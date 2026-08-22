@@ -1,5 +1,5 @@
-import {Observable} from 'rxjs';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
+import { Observable } from 'rxjs';
+import { FieldConfig } from '../../dynamic-form/models/field.config';
 
 /**
  * Configuration parameter object for the file upload dialog component. This class encapsulates all settings
@@ -7,7 +7,6 @@ import {FieldConfig} from '../../dynamic-form/models/field.config';
  * options, and the upload service to use.
  */
 export class FileUploadParam {
-
   /**
    * Creates a new file upload parameter configuration.
    *
@@ -27,17 +26,17 @@ export class FileUploadParam {
    * @param persistenceCSVKey - Optional key for persisting user's CSV format preferences in browser storage.
    *                            Used to restore previous format selections in subsequent uploads
    */
-  public constructor(public helpId: string,
-                     public additionalFieldConfig: AdditionalFieldConfig,
-                     public acceptFileType: string,
-                     public title: string,
-                     public multiple: boolean,
-                     public uploadService: UploadServiceFunction,
-                     public entityId: number,
-                     public supportedCSVFormats?: SupportedCSVFormats,
-                     public persistenceCSVKey?: string
-  ) {
-  }
+  public constructor(
+    public helpId: string,
+    public additionalFieldConfig: AdditionalFieldConfig,
+    public acceptFileType: string,
+    public title: string,
+    public multiple: boolean,
+    public uploadService: UploadServiceFunction,
+    public entityId: number,
+    public supportedCSVFormats?: SupportedCSVFormats,
+    public persistenceCSVKey?: string
+  ) {}
 }
 
 /**
@@ -71,9 +70,10 @@ export class AdditionalFieldConfig {
    *                          values and append them to the FormData object. Receives current form values,
    *                          the FormData instance, and field configurations
    */
-  constructor(public fieldConfig: FieldConfig[],
-              public submitPrepareFN: (value: { [name: string]: any }, formData: FormData, fieldConfig: FieldConfig[]) => void) {
-  }
+  constructor(
+    public fieldConfig: FieldConfig[],
+    public submitPrepareFN: (value: { [name: string]: any }, formData: FormData, fieldConfig: FieldConfig[]) => void
+  ) {}
 }
 
 /**

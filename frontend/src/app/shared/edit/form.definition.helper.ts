@@ -1,11 +1,10 @@
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {Portfolio} from '../../entities/portfolio';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { Portfolio } from '../../entities/portfolio';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 
 export abstract class FormDefinitionHelper {
-
   /**
    * Creates a transaction time field configuration with weekend restrictions.
    * Weekends (Saturday/Sunday) are always disabled.
@@ -16,7 +15,11 @@ export abstract class FormDefinitionHelper {
    * @returns FieldConfig for transaction time input
    */
   public static getTransactionTime(): FieldConfig {
-    const transactionTime: FieldConfig = DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateTimeNumeric, 'transactionTime', true);
+    const transactionTime: FieldConfig = DynamicFieldHelper.createFieldPcalendarHeqF(
+      DataType.DateTimeNumeric,
+      'transactionTime',
+      true
+    );
     transactionTime.calendarConfig.disabledDays = [0, 6];
     return transactionTime;
   }
@@ -53,5 +56,4 @@ export abstract class FormDefinitionHelper {
     }
     return gpsGT.getTenantClosedUntil();
   }
-
 }

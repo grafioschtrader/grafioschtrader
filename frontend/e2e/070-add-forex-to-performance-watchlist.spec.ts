@@ -1,9 +1,9 @@
-import {test} from '@playwright/test';
-import {loginAsFixtureUser} from './helpers';
+import { test } from '@playwright/test';
+import { loginAsFixtureUser } from './helpers';
 import {
   ensureWatchlist,
   ensureWatchlistSecuritiesBySearch,
-  loadPlaywrightInstrumentWatchlists,
+  loadPlaywrightInstrumentWatchlists
 } from './watchlist.helpers';
 
 /**
@@ -13,10 +13,9 @@ import {
 const WATCHLISTS = loadPlaywrightInstrumentWatchlists();
 
 for (const watchlist of WATCHLISTS) {
-  test(`adds fixture securities to ${watchlist.name} of '${watchlist.loginNickname}'`,
-    async ({page}) => {
-      await loginAsFixtureUser(page, watchlist.loginNickname);
-      await ensureWatchlist(page, watchlist);
-      await ensureWatchlistSecuritiesBySearch(page, watchlist);
-    });
+  test(`adds fixture securities to ${watchlist.name} of '${watchlist.loginNickname}'`, async ({ page }) => {
+    await loginAsFixtureUser(page, watchlist.loginNickname);
+    await ensureWatchlist(page, watchlist);
+    await ensureWatchlistSecuritiesBySearch(page, watchlist);
+  });
 }

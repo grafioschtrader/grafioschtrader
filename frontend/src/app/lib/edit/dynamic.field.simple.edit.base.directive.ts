@@ -1,11 +1,11 @@
-import {SimpleEditBase} from './simple.edit.base';
-import {Directive} from '@angular/core';
+import { SimpleEditBase } from './simple.edit.base';
+import { Directive } from '@angular/core';
 
 /**
  * Abstract base directive for Optimus UI editing dialogs with dynamic fields.
  * Extends SimpleEditBase to provide specialized functionality for dynamic field editing.
  */
- @Directive()
+@Directive()
 export abstract class DynamicFieldSimpleEditBase extends SimpleEditBase {
   /**
    * Override of the onShow method to initialize the component when dialog becomes visible.

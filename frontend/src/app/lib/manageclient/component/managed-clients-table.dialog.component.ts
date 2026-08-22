@@ -1,21 +1,21 @@
-import {Component, Injector, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {TableModule} from '@openng/optimus-ui/table';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import { Component, Injector, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { TableModule } from '@openng/optimus-ui/table';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
-import {TableConfigBase} from '../../datashowbase/table.config.base';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {MessageToastService} from '../../message/message.toast.service';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {AppHelper} from '../../helper/app.helper';
-import {HelpIds} from '../../help/help.ids';
-import {ManageClientService} from '../service/manage-client.service';
-import {TenantAccessInfo} from '../model/tenant-access-info';
+import { TableConfigBase } from '../../datashowbase/table.config.base';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { MessageToastService } from '../../message/message.toast.service';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { AppHelper } from '../../helper/app.helper';
+import { HelpIds } from '../../help/help.ids';
+import { ManageClientService } from '../service/manage-client.service';
+import { TenantAccessInfo } from '../model/tenant-access-info';
 
 /**
  * Dialog listing the clients an advisor manages, with columns for the client's e-mail and the client (tenant) name.
@@ -35,7 +35,7 @@ import {TenantAccessInfo} from '../model/tenant-access-info';
           <tr>
             @for (field of fields; track field) {
               <th [pSortableColumn]="field.field">
-                {{field.headerTranslated}}
+                {{ field.headerTranslated }}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
             }
@@ -45,17 +45,25 @@ import {TenantAccessInfo} from '../model/tenant-access-info';
         <ng-template #body let-el>
           <tr [pSelectableRow]="el">
             @for (field of fields; track field) {
-              <td>{{getValueByPath(el, field)}}</td>
+              <td>{{ getValueByPath(el, field) }}</td>
             }
             <td>
-              <button pButton type="button" class="p-button-text"
-                      [pTooltip]="'SWITCH_TO_CLIENT' | translate" (click)="switchTo(el)">
+              <button
+                pButton
+                type="button"
+                class="p-button-text"
+                [pTooltip]="'SWITCH_TO_CLIENT' | translate"
+                (click)="switchTo(el)">
                 <i class="fa fa-sign-in" pButtonIcon></i>
               </button>
               @if (el.accessLevel === 'MANAGE') {
-                <button pButton type="button" class="p-button-text p-button-danger"
-                        [pTooltip]="'DELETE' | translate" [disabled]="el.idTenant === currentIdTenant"
-                        (click)="deleteClient(el)">
+                <button
+                  pButton
+                  type="button"
+                  class="p-button-text p-button-danger"
+                  [pTooltip]="'DELETE' | translate"
+                  [disabled]="el.idTenant === currentIdTenant"
+                  (click)="deleteClient(el)">
                   <i class="fa fa-trash" pButtonIcon></i>
                 </button>
               }
@@ -66,21 +74,23 @@ import {TenantAccessInfo} from '../model/tenant-access-info';
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, TableModule, ButtonModule, TooltipModule]
 })
 export class ManagedClientsTableDialogComponent extends TableConfigBase implements OnInit {
-
   managedClients: TenantAccessInfo[] = [];
   currentIdTenant: number;
 
-  constructor(filterService: FilterService,
+  constructor(
+    filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
     gps: GlobalparameterService,
     injector: Injector,
     private manageClientService: ManageClientService,
     private confirmationService: ConfirmationService,
-    private messageToastService: MessageToastService) {
+    private messageToastService: MessageToastService
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.currentIdTenant = gps.getIdTenant();
   }
@@ -102,19 +112,18 @@ export class ManagedClientsTableDialogComponent extends TableConfigBase implemen
   }
 
   deleteClient(client: TenantAccessInfo): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_CLIENT', () => {
-        this.manageClientService.deleteClient(client.idTenant).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'CLIENT_DELETED');
-          this.loadData();
-        });
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONFIRM_DELETE_CLIENT', () => {
+      this.manageClientService.deleteClient(client.idTenant).subscribe(() => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'CLIENT_DELETED');
+        this.loadData();
       });
+    });
   }
 
   private loadData(): void {
     // Exclude the home tenant and the client the advisor is currently in (no point switching to where you already are).
-    this.manageClientService.getAccessibleTenants().subscribe(list => {
-      this.managedClients = list.filter(t => !t.home && t.idTenant !== this.currentIdTenant);
+    this.manageClientService.getAccessibleTenants().subscribe((list) => {
+      this.managedClients = list.filter((t) => !t.home && t.idTenant !== this.currentIdTenant);
     });
   }
 }

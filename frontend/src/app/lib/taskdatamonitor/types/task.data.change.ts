@@ -1,5 +1,5 @@
-import {BaseID} from '../../entities/base.id';
-import {TaskTypeBase} from './task.type.base';
+import { BaseID } from '../../entities/base.id';
+import { TaskTypeBase } from './task.type.base';
 
 export class TaskDataChange implements BaseID {
   idTaskDataChange: number;

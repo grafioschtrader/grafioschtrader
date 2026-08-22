@@ -1,5 +1,5 @@
-import {Exclude} from 'class-transformer';
-import {HistoryquoteBase} from './historyquote.base';
+import { Exclude } from 'class-transformer';
+import { HistoryquoteBase } from './historyquote.base';
 
 /**
  * One row of the {@code historyquote_legacy} shadow archive. Mirrors the backend HistoryquoteLegacy entity. Besides the

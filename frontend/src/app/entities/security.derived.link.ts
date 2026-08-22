@@ -1,4 +1,7 @@
 export class SecurityDerivedLink {
-  constructor(publicidSecuritycurrency: number, public varName: string, public idLinkSecuritycurrency: number) {
-  }
+  constructor(
+    publicidSecuritycurrency: number,
+    public varName: string,
+    public idLinkSecuritycurrency: number
+  ) {}
 }

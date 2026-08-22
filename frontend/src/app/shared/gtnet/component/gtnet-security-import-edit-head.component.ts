@@ -1,19 +1,19 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
 
-import {HelpIds} from '../../../lib/help/help.ids';
-import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {SimpleEntityEditBase} from '../../../lib/edit/simple.entity.edit.base';
-import {DynamicFieldHelper} from '../../../lib/helper/dynamic.field.helper';
-import {DynamicFormModule} from '../../../lib/dynamic-form/dynamic-form.module';
-import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {AppHelper} from '../../../lib/helper/app.helper';
-import {BaseSettings} from '../../../lib/base.settings';
+import { HelpIds } from '../../../lib/help/help.ids';
+import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../../lib/message/message.toast.service';
+import { SimpleEntityEditBase } from '../../../lib/edit/simple.entity.edit.base';
+import { DynamicFieldHelper } from '../../../lib/helper/dynamic.field.helper';
+import { DynamicFormModule } from '../../../lib/dynamic-form/dynamic-form.module';
+import { TranslateHelper } from '../../../lib/helper/translate.helper';
+import { AppHelper } from '../../../lib/helper/app.helper';
+import { BaseSettings } from '../../../lib/base.settings';
 
-import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
-import {GTNetSecurityImpHeadService} from '../service/gtnet-security-imp-head.service';
+import { GTNetSecurityImpHead } from '../model/gtnet-security-imp-head';
+import { GTNetSecurityImpHeadService } from '../service/gtnet-security-imp-head.service';
 
 /**
  * Dialog component for creating and editing GTNet security import headers.
@@ -21,21 +21,27 @@ import {GTNetSecurityImpHeadService} from '../service/gtnet-security-imp-head.se
 @Component({
   selector: 'gtnet-security-import-edit-head',
   template: `
-    <p-dialog header="{{'GTNET_SECURITY_IMP_HEAD' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '400px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'GTNET_SECURITY_IMP_HEAD' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '400px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<GTNetSecurityImpHead> implements OnInit {
-
   @Input() entity: GTNetSecurityImpHead;
 
   constructor(

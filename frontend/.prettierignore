@@ -1,0 +1,20 @@
+# Build output and tool caches
+dist
+.angular
+node_modules
+playwright-report
+test-results
+*.tar.gz
+
+# Playwright storage state, rewritten by the e2e setup project
+e2e/.auth
+
+# Externally shaped JSON schemas - keep them byte-identical to their source
+src/assets/schemas
+
+# Checked-in third-party assets
+src/assets/fonts
+src/assets/icons
+
+# npm-managed, rewritten on every install
+package-lock.json

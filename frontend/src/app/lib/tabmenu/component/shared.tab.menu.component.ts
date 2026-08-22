@@ -1,13 +1,13 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {TabItem} from '../../types/tab.item';
-import {Subscription} from 'rxjs';
-import {TabMenuService} from '../service/tab.menu.service';
-import {SessionStorageTabHelper} from './session.storage.tab.helper';
+import { Component, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { TabItem } from '../../types/tab.item';
+import { Subscription } from 'rxjs';
+import { TabMenuService } from '../service/tab.menu.service';
+import { SessionStorageTabHelper } from './session.storage.tab.helper';
 
-import {TabsModule} from '@openng/optimus-ui/tabs';
+import { TabsModule } from '@openng/optimus-ui/tabs';
 
 /**
  * Shared Tab Menu Component providing a consistent tab menu interface using Optimus p-tabs.
@@ -36,27 +36,29 @@ import {TabsModule} from '@openng/optimus-ui/tabs';
       <ng-content></ng-content>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-      height: 100%;
-    }
-    .card {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-    .card ::ng-deep > router-outlet + * {
-      flex: 1;
-      min-height: 0;
-    }
-  `],
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100%;
+      }
+      .card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .card ::ng-deep > router-outlet + * {
+        flex: 1;
+        min-height: 0;
+      }
+    `
+  ],
   standalone: true,
   imports: [TabsModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [TabMenuService]
 })
 export class SharedTabMenuComponent implements OnInit, OnDestroy {
-
   /**
    * Array of tab items to display in the tab menu.
    * @example [{ label: 'TAB_ONE', route: 'route-one', icon: '' }]
@@ -88,8 +90,7 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private translateService: TranslateService,
     private sessionStorageHelper: SessionStorageTabHelper
-  ) {
-  }
+  ) {}
 
   /**
    * Initializes the component, handles session storage restoration,
@@ -106,14 +107,10 @@ export class SharedTabMenuComponent implements OnInit, OnDestroy {
 
     // Initialize tabs through service only if no custom navigation handler
     if (!this.customNavigationHandler) {
-      this.tabs = this.tabMenuService.initializeTabs(
-        this.tabs,
-        this.defaultRoute,
-        this.activatedRoute
-      );
+      this.tabs = this.tabMenuService.initializeTabs(this.tabs, this.defaultRoute, this.activatedRoute);
 
       // Subscribe to active route changes
-      this.subscription = this.tabMenuService.activeRoute$.subscribe(route => {
+      this.subscription = this.tabMenuService.activeRoute$.subscribe((route) => {
         this.activeRoute = route;
         this.saveActiveRoute(route);
       });

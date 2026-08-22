@@ -30,5 +30,4 @@ export const TreeNodeType = {
 /**
  * Type representing all possible tree node type values.
  */
-export type TreeNodeType = typeof TreeNodeType[keyof typeof TreeNodeType];
-
+export type TreeNodeType = (typeof TreeNodeType)[keyof typeof TreeNodeType];

@@ -1,20 +1,20 @@
-import {Directive, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService, MenuItem, SortEvent} from '@openng/optimus-ui/api';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import { Directive, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, FilterService, MenuItem, SortEvent } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {GTNetExchangeFields} from '../../lib/gnet/model/gtnet';
-import {GTNetExchangeService} from '../service/gtnet-exchange.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {HelpIds} from '../../lib/help/help.ids';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import { CrudMenuOptions, TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { GTNetExchangeFields } from '../../lib/gnet/model/gtnet';
+import { GTNetExchangeService } from '../service/gtnet-exchange.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { HelpIds } from '../../lib/help/help.ids';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 
 /**
  * Abstract base component for GTNet exchange configuration tables.
@@ -30,8 +30,9 @@ import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-ta
  */
 @Directive()
 export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GTNetExchangeFields>
-  extends TableCrudSupportMenu<T> implements OnInit, OnDestroy {
-
+  extends TableCrudSupportMenu<T>
+  implements OnInit, OnDestroy
+{
   /** Set of modified item IDs for batch save tracking */
   modifiedItems: Set<number> = new Set();
 
@@ -56,8 +57,20 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
     usersettingsService: UserSettingsService,
     injector: Injector
   ) {
-    super(entityName, null, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, injector, [CrudMenuOptions.ParentControl]);
+    super(
+      entityName,
+      null,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector,
+      [CrudMenuOptions.ParentControl]
+    );
     this.rowsPerPage = 50;
   }
 
@@ -91,14 +104,10 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Uses the new field names directly on the entity.
    */
   protected addCheckboxColumns(): void {
-    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceRecv', true, false,
-      {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalRecv', true, false,
-      {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceSend', true, false,
-      {width: 80, templateName: 'checkbox'});
-    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalSend', true, false,
-      {width: 80, templateName: 'checkbox'});
+    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceRecv', true, false, { width: 80, templateName: 'checkbox' });
+    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalRecv', true, false, { width: 80, templateName: 'checkbox' });
+    this.addColumnFeqH(DataType.Boolean, 'gtNetLastpriceSend', true, false, { width: 80, templateName: 'checkbox' });
+    this.addColumnFeqH(DataType.Boolean, 'gtNetHistoricalSend', true, false, { width: 80, templateName: 'checkbox' });
   }
 
   /**
@@ -121,7 +130,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Get the list of modified entities for batch save.
    */
   protected getModifiedList(): T[] {
-    return this.entityList.filter(item => this.modifiedItems.has(item.idSecuritycurrency));
+    return this.entityList.filter((item) => this.modifiedItems.has(item.idSecuritycurrency));
   }
 
   /**
@@ -136,7 +145,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   protected handleSaveSuccess(updatedItems: T[]): void {
     // Update entityList with returned items
     for (const updated of updatedItems) {
-      const index = this.entityList.findIndex(e => e.idSecuritycurrency === updated.idSecuritycurrency);
+      const index = this.entityList.findIndex((e) => e.idSecuritycurrency === updated.idSecuritycurrency);
       if (index >= 0) {
         this.entityList[index] = updated;
       }
@@ -166,7 +175,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   doCustomSort(event: SortEvent): void {
     event.data.sort((data1, data2) => {
       for (const sortMeta of event.multiSortMeta) {
-        const field = this.fields.find(f => f.field === sortMeta.field);
+        const field = this.fields.find((f) => f.field === sortMeta.field);
         const value1 = this.getValueByPath(data1, field);
         const value2 = this.getValueByPath(data2, field);
 
@@ -179,7 +188,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
           if (typeof value1 === 'string' && typeof value2 === 'string') {
             result = value1.localeCompare(value2);
           } else {
-            result = (value1 < value2) ? -1 : (value1 > value2) ? 1 : 0;
+            result = value1 < value2 ? -1 : value1 > value2 ? 1 : 0;
           }
         }
 
@@ -195,7 +204,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
    * Get CSS class for table cell based on data type.
    */
   getCellClass(field: any): string {
-    return (field.dataType === DataType.Numeric || field.dataType === DataType.DateTimeNumeric) ? 'text-end' : '';
+    return field.dataType === DataType.Numeric || field.dataType === DataType.DateTimeNumeric ? 'text-end' : '';
   }
 
   override prepareCallParam(entity: T): void {
@@ -256,7 +265,7 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
     const data = table.filteredValue || table.value;
 
     if (data) {
-      data.forEach(row => {
+      data.forEach((row) => {
         if (!this.isCheckboxDisabled(row, field)) {
           if (row[field] !== state) {
             row[field] = state;

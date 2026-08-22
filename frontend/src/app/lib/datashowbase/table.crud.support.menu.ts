@@ -1,25 +1,25 @@
-import {TableConfigBase} from './table.config.base';
-import {Directive, Injector, OnInit} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../services/user.settings.service';
-import {AppHelper} from '../helper/app.helper';
-import {InfoLevelType} from '../message/info.leve.type';
-import {MessageToastService} from '../message/message.toast.service';
-import {BaseID} from '../entities/base.id';
-import {ProcessedAction} from '../types/processed.action';
-import {ProcessedActionData} from '../types/processed.action.data';
-import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../mainmenubar/component/iglobal.menu.attach';
-import {DeleteService} from './delete.service';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {AuditHelper} from '../helper/audit.helper';
-import {TranslateHelper} from '../helper/translate.helper';
-import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {DynamicDialogs} from '../dynamicdialog/component/dynamic.dialogs';
+import { TableConfigBase } from './table.config.base';
+import { Directive, Injector, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { UserSettingsService } from '../services/user.settings.service';
+import { AppHelper } from '../helper/app.helper';
+import { InfoLevelType } from '../message/info.leve.type';
+import { MessageToastService } from '../message/message.toast.service';
+import { BaseID } from '../entities/base.id';
+import { ProcessedAction } from '../types/processed.action';
+import { ProcessedActionData } from '../types/processed.action.data';
+import { ActivePanelService } from '../mainmenubar/service/active.panel.service';
+import { IGlobalMenuAttach } from '../mainmenubar/component/iglobal.menu.attach';
+import { DeleteService } from './delete.service';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { AuditHelper } from '../helper/audit.helper';
+import { TranslateHelper } from '../helper/translate.helper';
+import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { DynamicDialogs } from '../dynamicdialog/component/dynamic.dialogs';
 import saveAs from '../filesaver/filesaver';
-import {BaseSettings} from '../base.settings';
+import { BaseSettings } from '../base.settings';
 
 export enum CrudMenuOptions {
   Allow_Create,
@@ -46,14 +46,19 @@ export enum CrudMenuOptions {
  * customizing behavior through abstract and protected methods.
  */
 @Directive()
-export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfigBase implements OnInit, IGlobalMenuAttach {
-
+export abstract class TableCrudSupportMenu<T extends BaseID>
+  extends TableConfigBase
+  implements OnInit, IGlobalMenuAttach
+{
   /**
    * Predefined configuration allowing all CRUD operations.
    * Convenience constant for common use cases where all operations are permitted.
    */
-  public static readonly ALLOW_ALL_CRUD_OPERATIONS = [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Edit,
-    CrudMenuOptions.Allow_Delete];
+  public static readonly ALLOW_ALL_CRUD_OPERATIONS = [
+    CrudMenuOptions.Allow_Create,
+    CrudMenuOptions.Allow_Edit,
+    CrudMenuOptions.Allow_Delete
+  ];
 
   /** Array containing all entities currently displayed in the table */
   entityList: T[] = [];
@@ -89,7 +94,8 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    * @param injector - Angular injector for lazy service resolution
    * @param crudMenuOptions - Array of allowed CRUD operations (defaults to all operations)
    */
-  protected constructor(protected entityName: string,
+  protected constructor(
+    protected entityName: string,
     protected deleteService: DeleteService,
     protected confirmationService: ConfirmationService,
     protected messageToastService: MessageToastService,
@@ -100,8 +106,8 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
     injector: Injector,
-    private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
-
+    private crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.entityNameUpper = AppHelper.toUpperCaseWithUnderscore(this.entityName);
     this.entityKeyName = this.gps.getKeyNameByEntityName(entityName);
@@ -134,16 +140,21 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    * @param entity - Entity to delete
    */
   handleDeleteEntity(entity: T) {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|' + this.entityNameUpper, () => {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|' + this.entityNameUpper,
+      () => {
         entity = this.beforeDelete(entity);
-        this.deleteService.deleteEntity(entity[this.entityKeyName]).subscribe(response => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: this.entityNameUpper});
+        this.deleteService.deleteEntity(entity[this.entityKeyName]).subscribe((response) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: this.entityNameUpper
+          });
           this.resetMenu(null);
           this.readData();
         });
-      });
+      }
+    );
   }
 
   /**
@@ -162,10 +173,16 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   }
 
   protected checkLimitError(processedActionData: ProcessedActionData): void {
-    if (processedActionData.transformedError && processedActionData.transformedError.errorClass
-      && processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError) {
+    if (
+      processedActionData.transformedError &&
+      processedActionData.transformedError.errorClass &&
+      processedActionData.transformedError.errorClass instanceof LimitEntityTransactionError
+    ) {
       DynamicDialogs.getOpenedLimitTransactionRequestDynamicComponent(
-        this.translateService, this.dialogService, this.entityName);
+        this.translateService,
+        this.dialogService,
+        this.entityName
+      );
     }
   }
 
@@ -192,14 +209,12 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
   /**
    * Called when component is deactivated. Override to perform cleanup operations.
    */
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   /**
    * Hides context menu. Override to perform custom menu hiding logic.
    */
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
   /**
    * Returns help context ID for this component.
@@ -227,19 +242,19 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    * @param data - Array of data objects to export
    */
   downloadCSvFile(data: any[]) {
-    const lineSeparator = (navigator.appVersion.indexOf('Win') !== -1) ? '\r\n' : '\n';
-    const replacer = (key, value) => value === null ? undefined : value; // specify how you want to handle null values here
+    const lineSeparator = navigator.appVersion.indexOf('Win') !== -1 ? '\r\n' : '\n';
+    const replacer = (key, value) => (value === null ? undefined : value); // specify how you want to handle null values here
     const header: string[] = [];
-    Object.keys(data[0]).filter(name => {
+    Object.keys(data[0]).filter((name) => {
       const columnConfig = this.getColumnConfigByField(name);
       if (columnConfig && columnConfig.export) {
         header.push(name);
       }
     });
-    const csv = data.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(';'));
+    const csv = data.map((row) => header.map((fieldName) => JSON.stringify(row[fieldName], replacer)).join(';'));
     csv.unshift(header.join(';'));
     const csvArray = csv.join(lineSeparator);
-    const blob = new Blob([csvArray], {type: 'text/csv'});
+    const blob = new Blob([csvArray], { type: 'text/csv' });
     saveAs(blob, this.entityName.toLocaleLowerCase() + '.csv');
   }
 
@@ -333,8 +348,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    * @param entity - Currently selected entity
    * @param menuItems - Array to add custom menu items to
    */
-  protected addCustomMenusToSelectedEntity(entity: T, menuItems: MenuItem[]): void {
-  }
+  protected addCustomMenusToSelectedEntity(entity: T, menuItems: MenuItem[]): void {}
 
   /**
    * Checks if user has permission to create new entities.
@@ -396,7 +410,9 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
    */
   protected refreshSelectedEntity(): void {
     if (this.selectedEntity) {
-      this.resetMenu(this.entityList.find(entity => entity[this.entityKeyName] === this.selectedEntity[this.entityKeyName]));
+      this.resetMenu(
+        this.entityList.find((entity) => entity[this.entityKeyName] === this.selectedEntity[this.entityKeyName])
+      );
     }
   }
 
@@ -417,7 +433,3 @@ export abstract class TableCrudSupportMenu<T extends BaseID> extends TableConfig
     }
   }
 }
-
-
-
-

@@ -1,33 +1,33 @@
-import {EntityPrepareRegistry} from '../../lib/proposechange/service/entity.prepare.registry';
-import {AssetclassService} from '../../assetclass/service/assetclass.service';
-import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
-import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {AssetclassPrepareEdit} from './assetclass.prepare.edit';
-import {StockexchangePrepareEdit} from './stockexchange.prepare.edit';
-import {ImportTransactionPlatformPrepareEdit} from './import.transaction.platform.prepare.edit';
-import {SecurityPrepareEdit} from './security.prepare.edit';
-import {HistoryquotePrepareEdit} from './historyquote.prepare.edit';
-import {HistoryquoteLegacyPrepareEdit} from './historyquote.legacy.prepare.edit';
-import {GeneralEntityPrepareEdit} from '../../lib/proposechange/component/general.entity.prepare.edit';
-import {TradingCalendarRuleSet} from '../../entities/trading.calendar.rule.set';
-import {TradingCalendarRuleSetEditComponent} from '../../stockexchange/component/trading-calendar-rule-set-edit.component';
-import {Currencypair} from '../../entities/currencypair';
-import {Security} from '../../entities/security';
-import {TradingPlatformPlan} from '../../entities/tradingplatformplan';
-import {AppSettings} from '../app.settings';
-import {AssetclassEditComponent} from '../../assetclass/component/assetclass-edit.component';
-import {StockexchangeEditComponent} from '../../stockexchange/component/stockexchange-edit.component';
-import {ImportTransactionEditPlatformComponent} from '../../imptranstemplate/component/import-transaction-edit-platform.component';
-import {ImportTransactionEditTemplateComponent} from '../../imptranstemplate/component/import-transaction-edit-template.component';
-import {CurrencypairEditComponent} from '../../shared/securitycurrency/currencypair-edit.component';
-import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit.component';
-import {SecurityDerivedEditComponent} from '../../securitycurrency/component/security-derived-edit.component';
-import {TradingPlatformPlanEditComponent} from '../../tradingplatform/component/trading-platform-plan-edit.component';
-import {HistoryquoteEditComponent} from '../../historyquote/component/historyquote-edit.component';
-import {HistoryquoteLegacyEditComponent} from '../../historyquote/component/historyquote-legacy-edit.component';
+import { EntityPrepareRegistry } from '../../lib/proposechange/service/entity.prepare.registry';
+import { AssetclassService } from '../../assetclass/service/assetclass.service';
+import { StockexchangeService } from '../../stockexchange/service/stockexchange.service';
+import { ImportTransactionPlatformService } from '../../imptranstemplate/service/import.transaction.platform.service';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { AssetclassPrepareEdit } from './assetclass.prepare.edit';
+import { StockexchangePrepareEdit } from './stockexchange.prepare.edit';
+import { ImportTransactionPlatformPrepareEdit } from './import.transaction.platform.prepare.edit';
+import { SecurityPrepareEdit } from './security.prepare.edit';
+import { HistoryquotePrepareEdit } from './historyquote.prepare.edit';
+import { HistoryquoteLegacyPrepareEdit } from './historyquote.legacy.prepare.edit';
+import { GeneralEntityPrepareEdit } from '../../lib/proposechange/component/general.entity.prepare.edit';
+import { TradingCalendarRuleSet } from '../../entities/trading.calendar.rule.set';
+import { TradingCalendarRuleSetEditComponent } from '../../stockexchange/component/trading-calendar-rule-set-edit.component';
+import { Currencypair } from '../../entities/currencypair';
+import { Security } from '../../entities/security';
+import { TradingPlatformPlan } from '../../entities/tradingplatformplan';
+import { AppSettings } from '../app.settings';
+import { AssetclassEditComponent } from '../../assetclass/component/assetclass-edit.component';
+import { StockexchangeEditComponent } from '../../stockexchange/component/stockexchange-edit.component';
+import { ImportTransactionEditPlatformComponent } from '../../imptranstemplate/component/import-transaction-edit-platform.component';
+import { ImportTransactionEditTemplateComponent } from '../../imptranstemplate/component/import-transaction-edit-template.component';
+import { CurrencypairEditComponent } from '../../shared/securitycurrency/currencypair-edit.component';
+import { SecurityEditComponent } from '../../shared/securitycurrency/security-edit.component';
+import { SecurityDerivedEditComponent } from '../../securitycurrency/component/security-derived-edit.component';
+import { TradingPlatformPlanEditComponent } from '../../tradingplatform/component/trading-platform-plan-edit.component';
+import { HistoryquoteEditComponent } from '../../historyquote/component/historyquote-edit.component';
+import { HistoryquoteLegacyEditComponent } from '../../historyquote/component/historyquote-legacy-edit.component';
 
 /**
  * Sets up entity handlers for the propose change workflow.
@@ -52,8 +52,8 @@ export function setupProposeChangeEntityHandlers(
   importTransactionPlatformService: ImportTransactionPlatformService,
   securityService: SecurityService,
   currencypairService: CurrencypairService,
-  gps: GlobalparameterService): void {
-
+  gps: GlobalparameterService
+): void {
   // Register Assetclass
   registry.registerEntityHandler(
     AppSettings.ASSETCLASS,

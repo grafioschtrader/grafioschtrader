@@ -1,6 +1,6 @@
-import {expect, Locator, Page, test} from '@playwright/test';
-import {loginAsFixtureUser} from './helpers';
-import {expectToast} from './manage-client.helpers';
+import { expect, Locator, Page, test } from '@playwright/test';
+import { loginAsFixtureUser } from './helpers';
+import { expectToast } from './manage-client.helpers';
 
 /**
  * Bulk history-quote maintenance for the seeded CRE18 bond.
@@ -19,7 +19,7 @@ const SECURITY_NAME_RX = /Credito Real SAB/i;
 const HISTORYQUOTE_CREATE_TYPE = {
   MANUAL_IMPORTED: 'MANUAL_IMPORTED',
   FILLED_CLOSED_LINEAR_TRADING_DAY: 'FILLED_CLOSED_LINEAR_TRADING_DAY',
-  ADD_MODIFIED_USER: 'ADD_MODIFIED_USER',
+  ADD_MODIFIED_USER: 'ADD_MODIFIED_USER'
 } as const;
 const FILLED_LINEAR_CREATE_TYPE_QUERY_VALUE = 3;
 
@@ -64,7 +64,7 @@ const RX = {
   fillGapsDialogHeader: /(Linear filling missing EOD|Lineares bef.llen fehlender Kursdaten)/i,
   executeButton: /^(Execute|Ausf.hren)$/i,
   deletedToast: /(Deleted:|Gel.scht wurde:)/i,
-  filledToast: /(Filled gaps:|Gef.llte L.cken:)/i,
+  filledToast: /(Filled gaps:|Gef.llte L.cken:)/i
 };
 
 function pad(value: number): string {
@@ -110,10 +110,13 @@ function isoDateParts(iso: string): [number, number, number] {
 }
 
 function waitForQuotes(page: Page): Promise<QuotesPayload> {
-  return page.waitForResponse(response =>
-    /\/historyquote\/securitycurrency\/\d+(\?|$)/.test(response.url())
-    && response.request().method() === 'GET', {timeout: 30_000})
-    .then(async response => {
+  return page
+    .waitForResponse(
+      (response) =>
+        /\/historyquote\/securitycurrency\/\d+(\?|$)/.test(response.url()) && response.request().method() === 'GET',
+      { timeout: 30_000 }
+    )
+    .then(async (response) => {
       const body = await response.text();
       expect(response.ok(), `GET ${response.url()} → ${response.status()}: ${body}`).toBe(true);
       return JSON.parse(body) as QuotesPayload;
@@ -130,51 +133,60 @@ async function responseJson<T>(responsePromise: Promise<import('@playwright/test
 async function openEodTable(page: Page): Promise<QuotesPayload> {
   await loginAsFixtureUser(page, LOGIN_NICKNAME);
 
-  const watchlistNode = page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true}).first();
-  await watchlistNode.waitFor({state: 'visible', timeout: 15_000});
+  const watchlistNode = page.getByRole('treeitem', { name: WATCHLIST_NAME, exact: true }).first();
+  await watchlistNode.waitFor({ state: 'visible', timeout: 15_000 });
   await watchlistNode.click();
 
   const container = page.locator('.data-container').first();
-  await container.waitFor({state: 'visible', timeout: 15_000});
-  const securityRow = container.locator('tbody tr').filter({hasText: SECURITY_TICKER}).first();
-  await expect(securityRow, `${SECURITY_TICKER} in ${WATCHLIST_NAME}`).toContainText(SECURITY_NAME_RX, {timeout: 20_000});
+  await container.waitFor({ state: 'visible', timeout: 15_000 });
+  const securityRow = container.locator('tbody tr').filter({ hasText: SECURITY_TICKER }).first();
+  await expect(securityRow, `${SECURITY_TICKER} in ${WATCHLIST_NAME}`).toContainText(SECURITY_NAME_RX, {
+    timeout: 20_000
+  });
 
-  const tickerCell = securityRow.locator('td').filter({hasText: new RegExp(`^\\s*${SECURITY_TICKER}\\s*$`)}).first();
+  const tickerCell = securityRow
+    .locator('td')
+    .filter({ hasText: new RegExp(`^\\s*${SECURITY_TICKER}\\s*$`) })
+    .first();
   await tickerCell.click();
   await page.waitForTimeout(500);
-  await tickerCell.click({button: 'right'});
+  await tickerCell.click({ button: 'right' });
 
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   const quotes = waitForQuotes(page);
   await menu.getByText(RX.eodTableItem).first().click();
 
-  await page.waitForURL(/historyquotes/, {timeout: 15_000});
-  await page.locator('historyquote-table').waitFor({state: 'visible', timeout: 20_000});
+  await page.waitForURL(/historyquotes/, { timeout: 15_000 });
+  await page.locator('historyquote-table').waitFor({ state: 'visible', timeout: 20_000 });
   return quotes;
 }
 
 async function openTableContextMenu(page: Page): Promise<Locator> {
   const heading = page.locator('historyquote-table h4').first();
-  await heading.waitFor({state: 'visible', timeout: 10_000});
+  await heading.waitFor({ state: 'visible', timeout: 10_000 });
   await heading.click();
   await page.waitForTimeout(400);
-  await heading.click({button: 'right'});
+  await heading.click({ button: 'right' });
 
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   return menu;
 }
 
 function assertOnlyExpectedUserQuotesRemain(payload: QuotesPayload): void {
-  expect(payload.historyquoteList.filter(quote =>
-    quote.createType === HISTORYQUOTE_CREATE_TYPE.MANUAL_IMPORTED)).toHaveLength(0);
-  expect(payload.historyquoteList.filter(quote =>
-    quote.createType === HISTORYQUOTE_CREATE_TYPE.FILLED_CLOSED_LINEAR_TRADING_DAY)).toHaveLength(0);
+  expect(
+    payload.historyquoteList.filter((quote) => quote.createType === HISTORYQUOTE_CREATE_TYPE.MANUAL_IMPORTED)
+  ).toHaveLength(0);
+  expect(
+    payload.historyquoteList.filter(
+      (quote) => quote.createType === HISTORYQUOTE_CREATE_TYPE.FILLED_CLOSED_LINEAR_TRADING_DAY
+    )
+  ).toHaveLength(0);
 
   const userQuoteDates = payload.historyquoteList
-    .filter(quote => quote.createType === HISTORYQUOTE_CREATE_TYPE.ADD_MODIFIED_USER)
-    .map(quote => quote.date)
+    .filter((quote) => quote.createType === HISTORYQUOTE_CREATE_TYPE.ADD_MODIFIED_USER)
+    .map((quote) => quote.date)
     .sort();
   expect(userQuoteDates).toEqual(EXPECTED_USER_QUOTE_DATES);
   expect(payload.historyquoteQuality.manualImported).toBe(0);
@@ -187,63 +199,74 @@ async function replaceDate(dateInput: Locator, iso: string): Promise<void> {
   await dateInput.click();
   await dateInput.press('Control+a');
   await dateInput.press('Backspace');
-  await dateInput.pressSequentially(displayedDate, {delay: 20});
+  await dateInput.pressSequentially(displayedDate, { delay: 20 });
   await dateInput.blur();
   await expect(dateInput).toHaveValue(displayedDate);
 }
 
 test.describe('CRE18 history-quote bulk delete and gap filling', () => {
-  test.use({viewport: {width: 1600, height: 1200}});
+  test.use({ viewport: { width: 1600, height: 1200 } });
 
-  test('deletes generated quotes, retains two user quotes, and fills through the latest trading day', async ({page}) => {
+  test('deletes generated quotes, retains two user quotes, and fills through the latest trading day', async ({
+    page
+  }) => {
     const initial = await openEodTable(page);
     expect(initial.historyquoteList.length, `${SECURITY_TICKER} has no seeded history quotes`).toBeGreaterThan(0);
 
     let afterDelete = initial;
     if (initial.historyquoteQuality.filledLinear > 0 || initial.historyquoteQuality.manualImported > 0) {
       const menu = await openTableContextMenu(page);
-      const boundsResponse = page.waitForResponse(response =>
-        /\/historyquote\/deletebounds\/\d+(\?|$)/.test(response.url())
-        && response.request().method() === 'GET', {timeout: 20_000});
+      const boundsResponse = page.waitForResponse(
+        (response) =>
+          /\/historyquote\/deletebounds\/\d+(\?|$)/.test(response.url()) && response.request().method() === 'GET',
+        { timeout: 20_000 }
+      );
       await menu.getByText(RX.deleteCreateTypesItem).first().click();
       const bounds = await responseJson<DeleteBounds>(boundsResponse);
 
-      const dialog = page.locator('historyquote-delete-dialog .p-dialog')
-        .filter({hasText: RX.deleteDialogHeader}).first();
-      await dialog.waitFor({state: 'visible', timeout: 10_000});
+      const dialog = page
+        .locator('historyquote-delete-dialog .p-dialog')
+        .filter({ hasText: RX.deleteDialogHeader })
+        .first();
+      await dialog.waitFor({ state: 'visible', timeout: 10_000 });
       await expect(dialog.locator('#dateFrom input')).toHaveValue(toDeChDate(bounds.minDate));
       await expect(dialog.locator('#dateTo input')).toHaveValue(toDeChDate(bounds.maxDate));
 
-      const deleteResponse = page.waitForResponse(response =>
-        /\/historyquote\/delete\/\d+(\?|$)/.test(response.url())
-        && response.request().method() === 'DELETE', {timeout: 30_000});
+      const deleteResponse = page.waitForResponse(
+        (response) =>
+          /\/historyquote\/delete\/\d+(\?|$)/.test(response.url()) && response.request().method() === 'DELETE',
+        { timeout: 30_000 }
+      );
       const refreshedQuotes = waitForQuotes(page);
-      await dialog.getByRole('button', {name: RX.executeButton}).click();
+      await dialog.getByRole('button', { name: RX.executeButton }).click();
 
       const deleted = await deleteResponse;
       const deleteUrl = new URL(deleted.url());
       expect(deleted.ok(), `DELETE ${deleted.url()} → ${deleted.status()}`).toBe(true);
       expect(deleteUrl.searchParams.get('dateFrom')).toBe(bounds.minDate);
       expect(deleteUrl.searchParams.get('dateTo')).toBe(bounds.maxDate);
-      expect(deleteUrl.searchParams.getAll('createTypes'))
-        .toContain(String(FILLED_LINEAR_CREATE_TYPE_QUERY_VALUE));
+      expect(deleteUrl.searchParams.getAll('createTypes')).toContain(String(FILLED_LINEAR_CREATE_TYPE_QUERY_VALUE));
       await expectToast(page, RX.deletedToast);
-      await dialog.waitFor({state: 'hidden', timeout: 15_000});
+      await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
       afterDelete = await refreshedQuotes;
     }
 
     assertOnlyExpectedUserQuotesRemain(afterDelete);
 
     const menu = await openTableContextMenu(page);
-    const boundsResponse = page.waitForResponse(response =>
-      /\/security\/\d+\/fillgapsbounds(\?|$)/.test(response.url())
-      && response.request().method() === 'GET', {timeout: 20_000});
+    const boundsResponse = page.waitForResponse(
+      (response) =>
+        /\/security\/\d+\/fillgapsbounds(\?|$)/.test(response.url()) && response.request().method() === 'GET',
+      { timeout: 20_000 }
+    );
     await menu.getByText(RX.fillGapsItem).first().click();
     const bounds = await responseJson<FillGapsBounds>(boundsResponse);
 
-    const dialog = page.locator('historyquote-quality-fill-gaps .p-dialog')
-      .filter({hasText: RX.fillGapsDialogHeader}).first();
-    await dialog.waitFor({state: 'visible', timeout: 10_000});
+    const dialog = page
+      .locator('historyquote-quality-fill-gaps .p-dialog')
+      .filter({ hasText: RX.fillGapsDialogHeader })
+      .first();
+    await dialog.waitFor({ state: 'visible', timeout: 10_000 });
     const fillDateInput = dialog.locator('#fillUpToDate input');
     await expect(fillDateInput).toHaveValue(toDeChDate(bounds.defaultFillUpTo));
 
@@ -252,11 +275,12 @@ test.describe('CRE18 history-quote bulk delete and gap filling', () => {
       await replaceDate(fillDateInput, selectedFillDate);
     }
 
-    const fillResponse = page.waitForResponse(response =>
-      /\/security\/\d+\/fillgapes(\?|$)/.test(response.url())
-      && response.request().method() === 'POST', {timeout: 60_000});
+    const fillResponse = page.waitForResponse(
+      (response) => /\/security\/\d+\/fillgapes(\?|$)/.test(response.url()) && response.request().method() === 'POST',
+      { timeout: 60_000 }
+    );
     const refreshedQuotes = waitForQuotes(page);
-    await dialog.getByRole('button', {name: RX.executeButton}).click();
+    await dialog.getByRole('button', { name: RX.executeButton }).click();
 
     const filled = await fillResponse;
     const fillBody = filled.request().postDataJSON() as FillGapsParam;
@@ -264,16 +288,23 @@ test.describe('CRE18 history-quote bulk delete and gap filling', () => {
     expect(filled.ok(), `POST ${filled.url()} → ${filled.status()}: ${fillResponseBody}`).toBe(true);
     expect(fillBody.fillUpToDate).toBe(selectedFillDate);
     await expectToast(page, RX.filledToast);
-    await dialog.waitFor({state: 'hidden', timeout: 15_000});
+    await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
 
     const afterFill = await refreshedQuotes;
-    const newestDate = afterFill.historyquoteList.map(quote => quote.date).sort().at(-1);
+    const newestDate = afterFill.historyquoteList
+      .map((quote) => quote.date)
+      .sort()
+      .at(-1);
     expect(newestDate, `${SECURITY_TICKER} has no quote after linear filling`).toBeTruthy();
     const latestQuoteAge = daysBetween(selectedFillDate, newestDate!);
-    expect(latestQuoteAge, `newest ${SECURITY_TICKER} quote ${newestDate} is after ${selectedFillDate}`)
-      .toBeGreaterThanOrEqual(0);
-    expect(latestQuoteAge,
-      `newest ${SECURITY_TICKER} quote ${newestDate} is more than ${MAX_LATEST_QUOTE_AGE_DAYS} days before `
-      + selectedFillDate).toBeLessThanOrEqual(MAX_LATEST_QUOTE_AGE_DAYS);
+    expect(
+      latestQuoteAge,
+      `newest ${SECURITY_TICKER} quote ${newestDate} is after ${selectedFillDate}`
+    ).toBeGreaterThanOrEqual(0);
+    expect(
+      latestQuoteAge,
+      `newest ${SECURITY_TICKER} quote ${newestDate} is more than ${MAX_LATEST_QUOTE_AGE_DAYS} days before ` +
+        selectedFillDate
+    ).toBeLessThanOrEqual(MAX_LATEST_QUOTE_AGE_DAYS);
   });
 });

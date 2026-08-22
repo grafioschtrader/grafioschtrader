@@ -2,7 +2,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": false,
@@ -20,9 +19,7 @@
     "module": "ES2022",
     "useDefineForClassFields": false,
     "paths": {
-      "plotly.js": [
-        "./node_modules/plotly.js/dist/plotly.js"
-      ]
+      "plotly.js": ["./node_modules/plotly.js/dist/plotly.js"]
     }
   },
   "angularCompilerOptions": {
@@ -31,9 +28,5 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": false
   },
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.spec.json" }
-  ]
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.spec.json" }]
 }
-

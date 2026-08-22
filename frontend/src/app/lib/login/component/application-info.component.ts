@@ -1,7 +1,6 @@
-import {Component, Input} from '@angular/core';
-import {ApplicationInfo} from '../../services/actuator.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { ApplicationInfo } from '../../services/actuator.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'application-info',
@@ -18,12 +17,11 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
     }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule]
 })
 export class ApplicationInfoComponent {
   @Input() applicationInfo: ApplicationInfo;
 
-  constructor(public translateService: TranslateService) {
-  }
-
+  constructor(public translateService: TranslateService) {}
 }

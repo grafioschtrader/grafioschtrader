@@ -1,4 +1,4 @@
-import {Day} from './day';
+import { Day } from './day';
 
 export class Week {
   daysOfWeek: Day[] = [];

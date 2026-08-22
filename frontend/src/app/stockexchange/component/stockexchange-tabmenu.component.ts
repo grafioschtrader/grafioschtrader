@@ -1,9 +1,9 @@
-import {Component, OnInit} from '@angular/core';
-import {RouterModule} from '@angular/router';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
-import {SharedTabMenuComponent} from '../../lib/tabmenu/component/shared.tab.menu.component';
-import {TabItem} from '../../lib/types/tab.item';
-import {AppSettings} from '../../shared/app.settings';
+import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.menu.component';
+import { TabItem } from '../../lib/types/tab.item';
+import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Tab menu for the stock exchange base data. It groups the exchanges themselves with the trading calendar rule sets,
@@ -12,20 +12,15 @@ import {AppSettings} from '../../shared/app.settings';
 @Component({
   selector: 'stockexchange-tabmenu',
   standalone: true,
-  imports: [
-    SharedTabMenuComponent,
-    RouterModule
-  ],
+  imports: [SharedTabMenuComponent, RouterModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <app-shared-tab-menu
-      [tabs]="tabs"
-      [defaultRoute]="defaultRoute">
+    <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `
 })
 export class StockexchangeTabMenuComponent implements OnInit {
-
   tabs: TabItem[] = [];
   defaultRoute: string = AppSettings.STOCKEXCHANGE_TAB_EXCHANGES_KEY;
 

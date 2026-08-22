@@ -1,7 +1,7 @@
-import {BaseID} from '../lib/entities/base.id';
-import {MultilanguageString} from '../lib/entities/multilanguage.string';
-import {ImportTransactionPlatform} from './import.transaction.platform';
-import {Auditable} from '../lib/entities/auditable';
+import { BaseID } from '../lib/entities/base.id';
+import { MultilanguageString } from '../lib/entities/multilanguage.string';
+import { ImportTransactionPlatform } from './import.transaction.platform';
+import { Auditable } from '../lib/entities/auditable';
 
 export class TradingPlatformPlan extends Auditable implements BaseID {
   idTradingPlatformPlan?: number = null;
@@ -13,5 +13,4 @@ export class TradingPlatformPlan extends Auditable implements BaseID {
   public override getId(): number {
     return this.idTradingPlatformPlan;
   }
-
 }

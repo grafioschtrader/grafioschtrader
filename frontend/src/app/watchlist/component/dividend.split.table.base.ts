@@ -1,13 +1,13 @@
-import {Injector} from '@angular/core';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {SvgIconRegistryService} from 'angular-svg-icon';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {DividendSplit} from '../../entities/dividend.split';
-import {DividendSplitSvgCreator} from '../../shared/dividendsplit/dividend.split.svg.creator';
-import {FilterService} from '@openng/optimus-ui/api';
+import { Injector } from '@angular/core';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { SvgIconRegistryService } from 'angular-svg-icon';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { DividendSplit } from '../../entities/dividend.split';
+import { DividendSplitSvgCreator } from '../../shared/dividendsplit/dividend.split.svg.creator';
+import { FilterService } from '@openng/optimus-ui/api';
 
 /**
  * Abstract base class for displaying dividend and split data in table format with SVG icon support.
@@ -30,16 +30,19 @@ export abstract class DividendSplitTableBase<S extends DividendSplit> extends Ta
    * @param sortField Default field name for initial table sorting
    * @param groupTitle Translation key for the table group title
    */
-  protected constructor(filterService: FilterService,
-              usersettingsService: UserSettingsService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              private iconReg: SvgIconRegistryService,
-              public keyfield: string, sortField: string,
-              public groupTitle: string,
-              injector: Injector) {
+  protected constructor(
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    private iconReg: SvgIconRegistryService,
+    public keyfield: string,
+    sortField: string,
+    public groupTitle: string,
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
-    this.multiSortMeta.push({field: sortField, order: -1});
+    this.multiSortMeta.push({ field: sortField, order: -1 });
     DividendSplitSvgCreator.registerIcons(this.iconReg);
   }
 

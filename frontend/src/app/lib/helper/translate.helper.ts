@@ -1,11 +1,11 @@
-import {TranslateService} from '@ngx-translate/core';
-import {FieldFormGroup, FormGroupDefinition} from '../dynamic-form/models/form.group.definition';
-import {FieldConfig} from '../dynamic-form/models/field.config';
-import {FormHelper} from '../dynamic-form/components/FormHelper';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {ColumnConfig, TranslateValue} from '../datashowbase/column.config';
-import {Helper} from './helper';
-import {BaseSettings} from '../base.settings';
+import { TranslateService } from '@ngx-translate/core';
+import { FieldFormGroup, FormGroupDefinition } from '../dynamic-form/models/form.group.definition';
+import { FieldConfig } from '../dynamic-form/models/field.config';
+import { FormHelper } from '../dynamic-form/components/FormHelper';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { ColumnConfig, TranslateValue } from '../datashowbase/column.config';
+import { Helper } from './helper';
+import { BaseSettings } from '../base.settings';
 
 /**
  * Utility class providing static helper methods for handling internationalization (i18n) and translation operations.
@@ -21,7 +21,6 @@ import {BaseSettings} from '../base.settings';
  * @abstract This class cannot be instantiated and only provides static utility methods
  */
 export class TranslateHelper {
-
   /**
    * Converts a camelCase string to UPPER_CASE_WITH_UNDERSCORES format.
    * This is commonly used for generating translation keys from property names.
@@ -36,8 +35,10 @@ export class TranslateHelper {
    * ```
    */
   public static camelToUnderscoreCase(camelCaseStr: string): string {
-    return camelCaseStr.replace(/(.)([A-Z][a-z]+)/, '$1_$2')
-      .replace(/([a-z0-9])([A-Z])/, '$1_$2').toUpperCase();
+    return camelCaseStr
+      .replace(/(.)([A-Z][a-z]+)/, '$1_$2')
+      .replace(/([a-z0-9])([A-Z])/, '$1_$2')
+      .toUpperCase();
   }
 
   /**
@@ -56,22 +57,30 @@ export class TranslateHelper {
    * // Access field element: configObject.email.elementRef.nativeElement.focus();
    * ```
    */
-  public static prepareFieldsAndErrors(translateService: TranslateService,
-    fieldFormGroup: FieldFormGroup[]): { [name: string]: FieldConfig } {
+  public static prepareFieldsAndErrors(
+    translateService: TranslateService,
+    fieldFormGroup: FieldFormGroup[]
+  ): { [name: string]: FieldConfig } {
     const fieldConfigs = FormHelper.flattenConfigMap(fieldFormGroup);
 
     // Fix für Object.assign Spread-Problem
-    const fieldConfigMap = fieldConfigs.reduce((acc, d) => {
-      if (d.field) {
-        acc[d.field] = d;
-      }
-      return acc;
-    }, {} as { [name: string]: FieldConfig });
+    const fieldConfigMap = fieldConfigs.reduce(
+      (acc, d) => {
+        if (d.field) {
+          acc[d.field] = d;
+        }
+        return acc;
+      },
+      {} as { [name: string]: FieldConfig }
+    );
 
-    const formGroupMap = FormHelper.getFormGroupDefinition(fieldFormGroup).reduce((acc, d) => {
-      acc[d.formGroupName] = d as any; // Type assertion für Kompatibilität
-      return acc;
-    }, {} as { [name: string]: any });
+    const formGroupMap = FormHelper.getFormGroupDefinition(fieldFormGroup).reduce(
+      (acc, d) => {
+        acc[d.formGroupName] = d as any; // Type assertion für Kompatibilität
+        return acc;
+      },
+      {} as { [name: string]: any }
+    );
 
     const flattenFieldConfigObject = {
       ...fieldConfigMap,
@@ -102,12 +111,13 @@ export class TranslateHelper {
         fieldConfig.errors && this.translateMessageError(translateService, <FieldConfig>fieldConfig);
         this.translateMessageErrors(translateService, (<FormGroupDefinition>fieldConfig).fieldConfig);
       } else {
-        fieldConfigs.filter(fc => (<FieldConfig>fc).labelHelpText &&
-          (/^[A-Z,_]*$/).test((<FieldConfig>fc).labelHelpText)).forEach(fc =>
-          this.translateLabelHelpText(translateService, <FieldConfig>fc));
+        fieldConfigs
+          .filter((fc) => (<FieldConfig>fc).labelHelpText && /^[A-Z,_]*$/.test((<FieldConfig>fc).labelHelpText))
+          .forEach((fc) => this.translateLabelHelpText(translateService, <FieldConfig>fc));
 
-        fieldConfigs.filter(() => (<FieldConfig>fieldConfig).errors).forEach(() =>
-          this.translateMessageError(translateService, <FieldConfig>fieldConfig));
+        fieldConfigs
+          .filter(() => (<FieldConfig>fieldConfig).errors)
+          .forEach(() => this.translateMessageError(translateService, <FieldConfig>fieldConfig));
       }
     });
   }
@@ -126,8 +136,7 @@ export class TranslateHelper {
    * ```
    */
   public static translateLabelHelpText(translateService: TranslateService, fieldConfig: FieldConfig) {
-    translateService.get(fieldConfig.labelHelpText).subscribe(transText => fieldConfig.labelHelpText
-      = transText);
+    translateService.get(fieldConfig.labelHelpText).subscribe((transText) => (fieldConfig.labelHelpText = transText));
   }
 
   /**
@@ -144,13 +153,17 @@ export class TranslateHelper {
    * ```
    */
   public static translateMessageError(translateService: TranslateService, fieldConfig: FieldConfig) {
-    fieldConfig.errors.filter(e => !e.text).forEach(error => translateService.get(error.keyi18n, {
-      param1: error.param1,
-      param2: error.param2
-    })
-      .subscribe(text => error.text = text));
+    fieldConfig.errors
+      .filter((e) => !e.text)
+      .forEach((error) =>
+        translateService
+          .get(error.keyi18n, {
+            param1: error.param1,
+            param2: error.param2
+          })
+          .subscribe((text) => (error.text = text))
+      );
   }
-
 
   /**
    * Translates menu items recursively, supporting complex label structures and tooltips.
@@ -178,7 +191,7 @@ export class TranslateHelper {
       if (menuItem.label) {
         if (menuItem.label.startsWith('_')) {
           menuItem.label = menuItem.label.slice(1);
-          menuItem.tooltipOptions = {tooltipLabel: TranslateHelper.cutOffDialogDots(menuItem.label) + '_TITLE'};
+          menuItem.tooltipOptions = { tooltipLabel: TranslateHelper.cutOffDialogDots(menuItem.label) + '_TITLE' };
         }
         TranslateHelper.translateMenuItem(menuItem, 'label', translateService, translateParam);
         if (menuItem.tooltipOptions) {
@@ -208,11 +221,19 @@ export class TranslateHelper {
    * // Results in: [{ status: 'ACTIVE', status$: 'Active' }, { status: 'INACTIVE', status$: 'Inactive' }]
    * ```
    */
-  public static createTranslatedValueStore(translateService: TranslateService, fields: ColumnConfig[], data: any[]): void {
-    const columnConfigs = fields.filter(columnConfig => !!columnConfig.translateValues);
+  public static createTranslatedValueStore(
+    translateService: TranslateService,
+    fields: ColumnConfig[],
+    data: any[]
+  ): void {
+    const columnConfigs = fields.filter((columnConfig) => !!columnConfig.translateValues);
     if (columnConfigs.length > 0) {
-      data.forEach(dataValue => TranslateHelper.createTranslatedValueStoreForTranslation(translateService, columnConfigs, dataValue));
-      columnConfigs.forEach(columnConfig => columnConfig.fieldTranslated = columnConfig.field + BaseSettings.FIELD_SUFFIX);
+      data.forEach((dataValue) =>
+        TranslateHelper.createTranslatedValueStoreForTranslation(translateService, columnConfigs, dataValue)
+      );
+      columnConfigs.forEach(
+        (columnConfig) => (columnConfig.fieldTranslated = columnConfig.field + BaseSettings.FIELD_SUFFIX)
+      );
     }
   }
 
@@ -232,9 +253,12 @@ export class TranslateHelper {
    * // Adds translated fields: categories$: "Category 1, Category 2", status$: "Pending"
    * ```
    */
-  public static createTranslatedValueStoreForTranslation(translateService: TranslateService,
-    fields: ColumnConfig[], dataObject: any): void {
-    fields.forEach(columnConfig => {
+  public static createTranslatedValueStoreForTranslation(
+    translateService: TranslateService,
+    fields: ColumnConfig[],
+    dataObject: any
+  ): void {
+    fields.forEach((columnConfig) => {
       if (!columnConfig.translatedValueMap) {
         columnConfig.translatedValueMap = {};
       }
@@ -258,16 +282,24 @@ export class TranslateHelper {
    *
    * @private Internal method used by createTranslatedValueStoreForTranslation
    */
-  private static translateSingleValue(translateService: TranslateService,
-    columnConfig: ColumnConfig, value: any, dataObject: any): void {
+  private static translateSingleValue(
+    translateService: TranslateService,
+    columnConfig: ColumnConfig,
+    value: any,
+    dataObject: any
+  ): void {
     if (columnConfig.translatedValueMap.hasOwnProperty(value)) {
       // Expand data with a field and existing translation
-      Helper.setValueByPath(dataObject, columnConfig.field + BaseSettings.FIELD_SUFFIX, columnConfig.translatedValueMap[value]);
+      Helper.setValueByPath(
+        dataObject,
+        columnConfig.field + BaseSettings.FIELD_SUFFIX,
+        columnConfig.translatedValueMap[value]
+      );
     } else {
       if (value) {
         // Add value and translation
         value = columnConfig.translateValues === TranslateValue.UPPER_CASE ? value.toUpperCase() : value;
-        translateService.get(value).subscribe(translated => {
+        translateService.get(value).subscribe((translated) => {
           columnConfig.translatedValueMap[value] = translated;
           // Expand data with a field that contains the value
           Helper.setValueByPath(dataObject, columnConfig.field + BaseSettings.FIELD_SUFFIX, translated);
@@ -290,19 +322,30 @@ export class TranslateHelper {
    *
    * @private Internal method used by createTranslatedValueStoreForTranslation
    */
-  private static translateArrayIntoCommaSeparatorString(translateService: TranslateService,
-    columnConfig: ColumnConfig, values: Array<any> | string, dataObject: any): void {
-    const valueArray: Array<any> = typeof values === 'string'
-      ? values.split(',').map(v => v.trim()).filter(v => v.length > 0)
-      : (values ?? []);
+  private static translateArrayIntoCommaSeparatorString(
+    translateService: TranslateService,
+    columnConfig: ColumnConfig,
+    values: Array<any> | string,
+    dataObject: any
+  ): void {
+    const valueArray: Array<any> =
+      typeof values === 'string'
+        ? values
+            .split(',')
+            .map((v) => v.trim())
+            .filter((v) => v.length > 0)
+        : (values ?? []);
     const commaSpace = ', ';
     let commaSeparatorValue = '';
-    valueArray.forEach(value => {
+    valueArray.forEach((value) => {
       if (columnConfig.translatedValueMap.hasOwnProperty(value)) {
-        commaSeparatorValue = commaSeparatorValue + (commaSeparatorValue.length === 0 ? '' : commaSpace) + columnConfig.translatedValueMap[value];
+        commaSeparatorValue =
+          commaSeparatorValue +
+          (commaSeparatorValue.length === 0 ? '' : commaSpace) +
+          columnConfig.translatedValueMap[value];
       } else {
         value = columnConfig.translateValues === TranslateValue.UPPER_CASE ? value.toUpperCase() : value;
-        translateService.get(value).subscribe(translated => {
+        translateService.get(value).subscribe((translated) => {
           columnConfig.translatedValueMap[value] = translated;
           commaSeparatorValue = commaSeparatorValue + (commaSeparatorValue.length === 0 ? '' : commaSpace) + translated;
         });
@@ -328,7 +371,12 @@ export class TranslateHelper {
    * // Results in something like "Create User" depending on translation template
    * ```
    */
-  private static translateMenuItem(menuItem: MenuItem, targetProperty: string, translateService: TranslateService, translateParam: boolean): void {
+  private static translateMenuItem(
+    menuItem: MenuItem,
+    targetProperty: string,
+    translateService: TranslateService,
+    translateParam: boolean
+  ): void {
     if (menuItem[targetProperty] && menuItem[targetProperty].toUpperCase() === menuItem[targetProperty]) {
       // Translate only once
       const dialogMenuItem = menuItem[targetProperty].endsWith(BaseSettings.DIALOG_MENU_SUFFIX);
@@ -339,17 +387,28 @@ export class TranslateHelper {
         const labelWord: string[] = menuItem[targetProperty].split('|');
 
         if (translateParam) {
-          translateService.get(labelWord[1]).subscribe(param =>
-            translateService.get(labelWord[0], {i18nRecord: param}).subscribe(message =>
-              menuItem[targetProperty] = message + (dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : ''))
-          );
+          translateService
+            .get(labelWord[1])
+            .subscribe((param) =>
+              translateService
+                .get(labelWord[0], { i18nRecord: param })
+                .subscribe(
+                  (message) =>
+                    (menuItem[targetProperty] = message + (dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : ''))
+                )
+            );
         } else {
-          translateService.get(labelWord[0], {i18nRecord: labelWord[1]}).subscribe(
-            message => menuItem[targetProperty] = message);
+          translateService
+            .get(labelWord[0], { i18nRecord: labelWord[1] })
+            .subscribe((message) => (menuItem[targetProperty] = message));
         }
       } else {
-        translateService.get(menuItem[targetProperty]).subscribe(translated => menuItem[targetProperty] =
-          translated + (dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : ''));
+        translateService
+          .get(menuItem[targetProperty])
+          .subscribe(
+            (translated) =>
+              (menuItem[targetProperty] = translated + (dialogMenuItem ? BaseSettings.DIALOG_MENU_SUFFIX : ''))
+          );
       }
     }
   }
@@ -370,7 +429,8 @@ export class TranslateHelper {
    * ```
    */
   private static cutOffDialogDots(label: string): string {
-    return label.endsWith(BaseSettings.DIALOG_MENU_SUFFIX) ? label.slice(0, -BaseSettings.DIALOG_MENU_SUFFIX.length) : label;
+    return label.endsWith(BaseSettings.DIALOG_MENU_SUFFIX)
+      ? label.slice(0, -BaseSettings.DIALOG_MENU_SUFFIX.length)
+      : label;
   }
-
 }

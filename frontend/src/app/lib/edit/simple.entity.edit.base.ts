@@ -1,19 +1,19 @@
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {MessageToastService} from '../message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
-import {ProcessedActionData} from '../types/processed.action.data';
-import {ProcessedAction} from '../types/processed.action';
-import {InfoLevelType} from '../message/info.leve.type';
-import {ServiceEntityUpdate} from './service.entity.update';
-import {SimpleEditBase} from './simple.edit.base';
-import {ProposeChangeEntityWithEntity} from '../proposechange/model/propose.change.entity.whit.entity';
-import {AuditHelper} from '../helper/audit.helper';
-import {ProposeTransientTransfer} from '../entities/propose.transient.transfer';
-import {TransformedError} from '../login/service/transformed.error';
-import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
-import {plainToClassFromExist} from 'class-transformer';
-import {Directive} from '@angular/core';
-import {EditHelper} from './edit.helper';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { MessageToastService } from '../message/message.toast.service';
+import { TranslateService } from '@ngx-translate/core';
+import { ProcessedActionData } from '../types/processed.action.data';
+import { ProcessedAction } from '../types/processed.action';
+import { InfoLevelType } from '../message/info.leve.type';
+import { ServiceEntityUpdate } from './service.entity.update';
+import { SimpleEditBase } from './simple.edit.base';
+import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
+import { AuditHelper } from '../helper/audit.helper';
+import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
+import { TransformedError } from '../login/service/transformed.error';
+import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
+import { plainToClassFromExist } from 'class-transformer';
+import { Directive } from '@angular/core';
+import { EditHelper } from './edit.helper';
 
 /**
  * Abstract base class for simple entity editing in dialogs with service-based updates.
@@ -23,7 +23,6 @@ import {EditHelper} from './edit.helper';
  */
 @Directive()
 export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
-
   /**
    * Constructor for SimpleEntityEditBase.
    *
@@ -34,12 +33,14 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
    * @param {MessageToastService} messageToastService - Service for displaying toast messages
    * @param {ServiceEntityUpdate<T>} serviceEntityUpdate - Service for updating entities
    */
-  protected constructor(helpId: string,
+  protected constructor(
+    helpId: string,
     public i18nRecord: string,
     public translateService: TranslateService,
     gps: GlobalparameterService,
     public messageToastService: MessageToastService,
-    public serviceEntityUpdate: ServiceEntityUpdate<T>) {
+    public serviceEntityUpdate: ServiceEntityUpdate<T>
+  ) {
     super(helpId, gps);
   }
 
@@ -55,11 +56,15 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
     AuditHelper.disableRejectFieldButton(this.configObject, true);
     this.activateWaitStateInButton();
     this.serviceEntityUpdate.update(entityNew).subscribe({
-      next: returnEntity => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: this.i18nRecord});
-        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED,
-          plainToClassFromExist(entityNew, returnEntity)));
-      }, error: (transformedError: TransformedError) => {
+      next: (returnEntity) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+          i18nRecord: this.i18nRecord
+        });
+        this.closeDialog.emit(
+          new ProcessedActionData(ProcessedAction.CREATED, plainToClassFromExist(entityNew, returnEntity))
+        );
+      },
+      error: (transformedError: TransformedError) => {
         if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
           this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
         }
@@ -88,9 +93,18 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
    * @param {ProposeChangeEntityWithEntity} proposeChangeEntityWithEntity - The propose change entity wrapper
    * @returns {void}
    */
-  public copyFormToPublicBusinessObject(targetEntity: ProposeTransientTransfer, existingEntity: T,
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
-    EditHelper.copyFormToPublicBusinessObject(targetEntity, existingEntity, proposeChangeEntityWithEntity, this.form, this);
+  public copyFormToPublicBusinessObject(
+    targetEntity: ProposeTransientTransfer,
+    existingEntity: T,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
+  ): void {
+    EditHelper.copyFormToPublicBusinessObject(
+      targetEntity,
+      existingEntity,
+      proposeChangeEntityWithEntity,
+      this.form,
+      this
+    );
   }
 
   /**
@@ -98,16 +112,14 @@ export abstract class SimpleEntityEditBase<T> extends SimpleEditBase {
    *
    * @returns {void}
    */
-  protected activateWaitStateInButton(): void {
-  }
+  protected activateWaitStateInButton(): void {}
 
   /**
    * Deactivates waiting state in submit button after processing. Override to implement custom wait state logic.
    *
    * @returns {void}
    */
-  protected deactivateWaitStateInButton(): void {
-  }
+  protected deactivateWaitStateInButton(): void {}
 
   /**
    * Abstract method to create or retrieve entity instance before saving.

@@ -1,6 +1,6 @@
-import {BaseID} from '../../../lib/entities/base.id';
-import {Security} from '../../../entities/security';
-import {GTNetSecurityImpGap} from './gtnet-security-imp-gap';
+import { BaseID } from '../../../lib/entities/base.id';
+import { Security } from '../../../entities/security';
+import { GTNetSecurityImpGap } from './gtnet-security-imp-gap';
 
 /**
  * Position entity representing a single security to be imported via GTNet.

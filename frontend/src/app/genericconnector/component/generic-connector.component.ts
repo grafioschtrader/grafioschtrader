@@ -1,39 +1,39 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
-import {combineLatest} from 'rxjs';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
-import {GenericConnectorDef} from '../../entities/generic.connector.def';
-import {GenericConnectorEndpoint} from '../../entities/generic.connector.endpoint';
-import {GenericConnectorFieldMapping} from '../../entities/generic.connector.field.mapping';
-import {GenericConnectorDefService} from '../service/generic.connector.def.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {AppHelpIds} from '../../shared/help/help.ids';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {AccordionModule} from '@openng/optimus-ui/accordion';
-import {GenericConnectorDefDetailComponent} from './generic-connector-def-detail.component';
-import {GenericConnectorEndpointPanelComponent} from './generic-connector-endpoint-panel.component';
-import {GenericConnectorDefEditComponent} from './generic-connector-def-edit.component';
-import {GenericConnectorEndpointEditComponent} from './generic-connector-endpoint-edit.component';
-import {GenericConnectorHttpHeaderTableComponent} from './generic-connector-http-header-table.component';
-import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.header';
-import {GenericConnectorTestDialogComponent} from './generic-connector-test-dialog.component';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {DynamicDialogs} from '../../lib/dynamicdialog/component/dynamic.dialogs';
-import {MailSendParam} from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
-import {AppSettings} from '../../shared/app.settings';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import { combineLatest } from 'rxjs';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
+import { GenericConnectorDef } from '../../entities/generic.connector.def';
+import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpoint';
+import { GenericConnectorFieldMapping } from '../../entities/generic.connector.field.mapping';
+import { GenericConnectorDefService } from '../service/generic.connector.def.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { AppHelpIds } from '../../shared/help/help.ids';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { AccordionModule } from '@openng/optimus-ui/accordion';
+import { GenericConnectorDefDetailComponent } from './generic-connector-def-detail.component';
+import { GenericConnectorEndpointPanelComponent } from './generic-connector-endpoint-panel.component';
+import { GenericConnectorDefEditComponent } from './generic-connector-def-edit.component';
+import { GenericConnectorEndpointEditComponent } from './generic-connector-endpoint-edit.component';
+import { GenericConnectorHttpHeaderTableComponent } from './generic-connector-http-header-table.component';
+import { GenericConnectorHttpHeader } from '../../entities/generic.connector.http.header';
+import { GenericConnectorTestDialogComponent } from './generic-connector-test-dialog.component';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { DynamicDialogs } from '../../lib/dynamicdialog/component/dynamic.dialogs';
+import { MailSendParam } from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
+import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Top-level component for managing generic connector definitions.
@@ -42,12 +42,21 @@ import {AppSettings} from '../../shared/app.settings';
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      class="data-container"
+      (click)="onComponentClick($event)"
+      #cmDiv
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <h4>{{ 'GENERIC_CONNECTOR_DEF' | translate }}</h4>
 
-      <dynamic-form [config]="config" [formConfig]="formConfig"
-                    [translateService]="translateService" #form="dynamicForm">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm">
       </dynamic-form>
 
       @if (isActivated() && contextMenuItems) {
@@ -55,8 +64,7 @@ import {AppSettings} from '../../shared/app.settings';
       }
 
       @if (selectedEntity) {
-        <generic-connector-def-detail [connectorDef]="selectedEntity">
-        </generic-connector-def-detail>
+        <generic-connector-def-detail [connectorDef]="selectedEntity"> </generic-connector-def-detail>
 
         <generic-connector-http-header-table
           [httpHeaders]="selectedEntity.httpHeaders"
@@ -66,12 +74,18 @@ import {AppSettings} from '../../shared/app.settings';
 
         <p-accordion [multiple]="true" [(value)]="expandedPanelValues">
           @for (endpoint of selectedEntity.endpoints; track endpoint.idEndpoint; let i = $index) {
-            <div (click)="onEndpointPanelClick(endpoint, $event)"
-                 [ngClass]="{'active-border': endpoint === selectedEndpoint,
-                             'passiv-border': endpoint !== selectedEndpoint}">
+            <div
+              (click)="onEndpointPanelClick(endpoint, $event)"
+              [ngClass]="{
+                'active-border': endpoint === selectedEndpoint,
+                'passiv-border': endpoint !== selectedEndpoint
+              }">
               <p-accordion-panel [value]="'' + i">
                 <p-accordion-header>
-                  <h5>{{ endpoint.feedSupport  | translate }} &mdash; {{ endpoint.instrumentType  | translate }}</h5>
+                  <h5>
+                    {{ endpoint.feedSupport | translate }} &mdash;
+                    {{ endpoint.instrumentType | translate }}
+                  </h5>
                 </p-accordion-header>
                 <p-accordion-content>
                   <generic-connector-endpoint-panel
@@ -89,24 +103,31 @@ import {AppSettings} from '../../shared/app.settings';
     </div>
 
     @if (visibleEditDialog) {
-      <generic-connector-def-edit [visibleDialog]="visibleEditDialog"
-        [callParam]="callParam" (closeDialog)="handleCloseEditDialog($event)">
+      <generic-connector-def-edit
+        [visibleDialog]="visibleEditDialog"
+        [callParam]="callParam"
+        (closeDialog)="handleCloseEditDialog($event)">
       </generic-connector-def-edit>
     }
     @if (visibleEndpointDialog) {
-      <generic-connector-endpoint-edit [visibleDialog]="visibleEndpointDialog"
-        [endpoint]="selectedEndpoint" [connectorDef]="selectedEntity"
+      <generic-connector-endpoint-edit
+        [visibleDialog]="visibleEndpointDialog"
+        [endpoint]="selectedEndpoint"
+        [connectorDef]="selectedEntity"
         (closeDialog)="handleCloseEndpointDialog($event)">
       </generic-connector-endpoint-edit>
     }
     @if (visibleTestDialog) {
-      <generic-connector-test-dialog [visibleDialog]="visibleTestDialog"
-        [endpoint]="selectedEndpoint" [connectorDef]="selectedEntity"
+      <generic-connector-test-dialog
+        [visibleDialog]="visibleTestDialog"
+        [endpoint]="selectedEndpoint"
+        [connectorDef]="selectedEntity"
         (closeDialog)="handleCloseTestDialog($event)">
       </generic-connector-test-dialog>
     }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -123,28 +144,39 @@ import {AppSettings} from '../../shared/app.settings';
 })
 export class GenericConnectorComponent
   extends SingleRecordMasterViewBase<GenericConnectorDef, GenericConnectorEndpoint>
-  implements OnInit, OnDestroy {
-
+  implements OnInit, OnDestroy
+{
   visibleEndpointDialog = false;
   visibleTestDialog = false;
   selectedEndpoint: GenericConnectorEndpoint;
   private lastSelectedConnectorId: number = null;
 
-  constructor(private genericConnectorDefService: GenericConnectorDefService,
-              private dialogService: DialogService,
-              gps: GlobalparameterService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              translateService: TranslateService) {
-    super(gps, AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR, 'idGenericConnector',
-      AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF), genericConnectorDefService,
-      confirmationService, messageToastService, activePanelService, translateService);
+  constructor(
+    private genericConnectorDefService: GenericConnectorDefService,
+    private dialogService: DialogService,
+    gps: GlobalparameterService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    translateService: TranslateService
+  ) {
+    super(
+      gps,
+      AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR,
+      'idGenericConnector',
+      AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF),
+      genericConnectorDefService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      translateService
+    );
 
-    this.formConfig = {labelColumns: 2, nonModal: true};
+    this.formConfig = { labelColumns: 2, nonModal: true };
     this.config = [
-      DynamicFieldHelper.createFieldSelectNumber('idGenericConnector', 'GENERIC_CONNECTOR_DEF', false,
-        {usedLayoutColumns: 6})
+      DynamicFieldHelper.createFieldSelectNumber('idGenericConnector', 'GENERIC_CONNECTOR_DEF', false, {
+        usedLayoutColumns: 6
+      })
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -164,11 +196,15 @@ export class GenericConnectorComponent
   }
 
   readData(): void {
-    this.genericConnectorDefService.getAllGenericConnectors().subscribe(connectors => {
+    this.genericConnectorDefService.getAllGenericConnectors().subscribe((connectors) => {
       this.entityList = connectors;
       this.configObject.idGenericConnector.valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idGenericConnector',
-          'readableName', connectors, true);
+        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+          'idGenericConnector',
+          'readableName',
+          connectors,
+          true
+        );
       setTimeout(() => {
         this.valueChangedMainField();
         this.setFieldValues();
@@ -198,7 +234,7 @@ export class GenericConnectorComponent
     if (!this.selectedEntity || !this.gps.isEntityCreatedByUser(this.selectedEntity)) {
       return false;
     }
-    return !this.selectedEntity.endpoints?.some(e => e.everUsedSuccessfully);
+    return !this.selectedEntity.endpoints?.some((e) => e.everUsedSuccessfully);
   }
 
   /**
@@ -220,26 +256,26 @@ export class GenericConnectorComponent
 
     // Override edit/delete disabled state for def-level based on usage permissions
     if (menuItems.length > 0) {
-      const editItem = menuItems.find(m => m.label?.startsWith('EDIT_RECORD'));
+      const editItem = menuItems.find((m) => m.label?.startsWith('EDIT_RECORD'));
       if (editItem) {
         editItem.disabled = !this.selectedEntity || !this.canEditConnectorDef();
       }
-      const deleteItem = menuItems.find(m => m.label?.startsWith('DELETE_RECORD'));
+      const deleteItem = menuItems.find((m) => m.label?.startsWith('DELETE_RECORD'));
       if (deleteItem) {
-        deleteItem.disabled = !this.selectedEntity || !this.canEditConnectorDef()
-          || (this.selectedEntity?.instrumentCount > 0);
+        deleteItem.disabled =
+          !this.selectedEntity || !this.canEditConnectorDef() || this.selectedEntity?.instrumentCount > 0;
       }
     }
 
     if (this.selectedEntity && !this.selectedEntity.activated && this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
-      menuItems.push({separator: true});
+      menuItems.push({ separator: true });
       menuItems.push({
         label: 'ACTIVATE' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.handleActivate(this.selectedEntity)
       });
     }
     if (this.selectedEntity && this.selectedEntity.activated && this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
-      menuItems.push({separator: true});
+      menuItems.push({ separator: true });
       menuItems.push({
         label: 'DEACTIVATE' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.handleDeactivate(this.selectedEntity)
@@ -248,7 +284,7 @@ export class GenericConnectorComponent
     if (this.selectedEntity) {
       const isAdmin = this.gps.hasRole(BaseSettings.ROLE_ADMIN);
       const isCreator = this.gps.isEntityCreatedByUser(this.selectedEntity);
-      menuItems.push({separator: true});
+      menuItems.push({ separator: true });
       menuItems.push({
         label: 'CREATE|ENDPOINT' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.handleCreateEndpoint(),
@@ -269,7 +305,7 @@ export class GenericConnectorComponent
         command: () => this.handleTestEndpoint(this.selectedEndpoint),
         disabled: !this.selectedEndpoint
       });
-      menuItems.push({separator: true});
+      menuItems.push({ separator: true });
       menuItems.push({
         label: 'MAIL_TO_ADMIN' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: () => this.mailToAdmin()
@@ -310,21 +346,28 @@ export class GenericConnectorComponent
   }
 
   handleDeleteEndpoint(endpoint: GenericConnectorEndpoint): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|ENDPOINT', () => {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|ENDPOINT',
+      () => {
         const idx = this.selectedEntity.endpoints.indexOf(endpoint);
         if (idx >= 0) {
           this.selectedEntity.endpoints.splice(idx, 1);
           this.selectedEndpoint = null;
           this.saveConnector();
         }
-      });
+      }
+    );
   }
 
   private mailToAdmin(): void {
     const subject = this.selectedEntity.shortId + ' - ' + this.selectedEntity.readableName;
-    DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService,
-      new MailSendParam(0, null, subject, BaseSettings.ROLE_ADMIN));
+    DynamicDialogs.getOpenedMailSendComponent(
+      this.translateService,
+      this.dialogService,
+      new MailSendParam(0, null, subject, BaseSettings.ROLE_ADMIN)
+    );
   }
 
   handleCloseEndpointDialog(processedActionData: ProcessedActionData): void {
@@ -349,7 +392,7 @@ export class GenericConnectorComponent
   // --- Field Mapping handling ---
 
   onFieldMappingsChange(mappings: GenericConnectorFieldMapping[], endpoint: GenericConnectorEndpoint): void {
-    const ep = this.selectedEntity.endpoints.find(e => e.idEndpoint === endpoint.idEndpoint);
+    const ep = this.selectedEntity.endpoints.find((e) => e.idEndpoint === endpoint.idEndpoint);
     if (ep) {
       ep.fieldMappings = mappings;
     }
@@ -360,15 +403,18 @@ export class GenericConnectorComponent
 
   private handleActivate(entity: GenericConnectorDef): void {
     this.genericConnectorDefService.activateConnector(entity.idGenericConnector).subscribe(() => {
-      this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED',
-        {i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)});
+      this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED', {
+        i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
+      });
       this.readData();
     });
   }
 
   private handleDeactivate(entity: GenericConnectorDef): void {
     combineLatest([
-      this.translateService.get('MSG_CONFIRM_DEACTIVATE_CONNECTOR', {count: entity.instrumentCount}),
+      this.translateService.get('MSG_CONFIRM_DEACTIVATE_CONNECTOR', {
+        count: entity.instrumentCount
+      }),
       this.translateService.get('MSG_GENERAL_HEADER')
     ]).subscribe(([msg, header]) => {
       this.confirmationService.confirm({
@@ -376,8 +422,9 @@ export class GenericConnectorComponent
         header: header,
         accept: () => {
           this.genericConnectorDefService.deactivateConnector(entity.idGenericConnector).subscribe(() => {
-            this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED',
-              {i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)});
+            this.messageToastService.showMessageI18n(null, 'MSG_RECORD_SAVED', {
+              i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
+            });
             this.readData();
           });
         }
@@ -386,9 +433,10 @@ export class GenericConnectorComponent
   }
 
   private saveConnector(): void {
-    this.genericConnectorDefService.update(this.selectedEntity).subscribe(updated => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
-        {i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)});
+    this.genericConnectorDefService.update(this.selectedEntity).subscribe((updated) => {
+      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+        i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF)
+      });
       this.selectedEntity = updated;
       this.readData();
       // The reload endpoint is admin-only; calling it as a non-admin creator raises a

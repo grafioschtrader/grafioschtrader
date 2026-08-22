@@ -1,6 +1,6 @@
-import {FieldConfig} from '../models/field.config';
-import {FieldFormGroup, FormGroupDefinition} from '../models/form.group.definition';
-import {InputType} from '../models/input.type';
+import { FieldConfig } from '../models/field.config';
+import { FieldFormGroup, FormGroupDefinition } from '../models/form.group.definition';
+import { InputType } from '../models/input.type';
 
 /**
  * Utility class providing static helper methods for manipulating dynamic form configurations.
@@ -13,7 +13,6 @@ import {InputType} from '../models/input.type';
  * @abstract This class cannot be instantiated and only provides static utility methods
  */
 export abstract class FormHelper {
-
   /**
    * Recursively flattens a nested structure of form groups and field configurations into a flat array of FieldConfig objects.
    * This method extracts all individual field configurations from FormGroupDefinition containers and their nested children.
@@ -34,9 +33,15 @@ export abstract class FormHelper {
    * ```
    */
   public static flattenConfigMap(fieldFormGroups: FieldFormGroup[]): FieldConfig[] {
-    return fieldFormGroups.reduce((explored, toExplore) =>
-      explored.concat((FormHelper.isFieldConfig(toExplore)) ? toExplore :
-        FormHelper.flattenConfigMap((<FormGroupDefinition>toExplore).fieldConfig)), []);
+    return fieldFormGroups.reduce(
+      (explored, toExplore) =>
+        explored.concat(
+          FormHelper.isFieldConfig(toExplore)
+            ? toExplore
+            : FormHelper.flattenConfigMap((<FormGroupDefinition>toExplore).fieldConfig)
+        ),
+      []
+    );
   }
 
   /**
@@ -53,7 +58,7 @@ export abstract class FormHelper {
    * ```
    */
   public static getFormGroupDefinition(fieldFormGroups: FieldFormGroup[]): FormGroupDefinition[] {
-    return fieldFormGroups.filter(fieldConfig => !FormHelper.isFieldConfig(fieldConfig)) as FormGroupDefinition[];
+    return fieldFormGroups.filter((fieldConfig) => !FormHelper.isFieldConfig(fieldConfig)) as FormGroupDefinition[];
   }
 
   /**
@@ -70,7 +75,7 @@ export abstract class FormHelper {
    * ```
    */
   public static getFieldConfigs(fieldFormGroups: FieldFormGroup[]): FieldConfig[] {
-    return fieldFormGroups.filter(fieldConfig => FormHelper.isFieldConfig(fieldConfig)) as FieldConfig[];
+    return fieldFormGroups.filter((fieldConfig) => FormHelper.isFieldConfig(fieldConfig)) as FieldConfig[];
   }
 
   /**
@@ -93,8 +98,9 @@ export abstract class FormHelper {
    * @param fieldConfigs Array of FieldConfig objects to search through
    */
   public static hideVisibleFieldSet(invisible: boolean, fieldSetName: string, fieldConfigs: FieldConfig[]): void {
-    fieldConfigs.filter(fieldConfig => fieldConfig.fieldsetName && fieldConfig.fieldsetName === fieldSetName)
-      .forEach(fieldConfig => fieldConfig.invisible = invisible);
+    fieldConfigs
+      .filter((fieldConfig) => fieldConfig.fieldsetName && fieldConfig.fieldsetName === fieldSetName)
+      .forEach((fieldConfig) => (fieldConfig.invisible = invisible));
   }
 
   /**
@@ -105,7 +111,7 @@ export abstract class FormHelper {
    * @param fieldConfigs Array of FieldConfig objects to be affected
    */
   public static hideVisibleFieldConfigs(invisible: boolean, fieldConfigs: FieldConfig[]): void {
-    fieldConfigs.forEach(fieldConfig => fieldConfig.invisible = invisible);
+    fieldConfigs.forEach((fieldConfig) => (fieldConfig.invisible = invisible));
   }
 
   /**
@@ -117,7 +123,7 @@ export abstract class FormHelper {
    * @param fieldConfigs Array of FieldConfig objects to be affected
    */
   public static disableEnableFieldConfigs(disable: boolean, fieldConfigs: FieldConfig[]): void {
-    fieldConfigs.forEach(fieldConfig => {
+    fieldConfigs.forEach((fieldConfig) => {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
         fieldConfig.invisible = false;
         if (disable) {
@@ -138,7 +144,7 @@ export abstract class FormHelper {
    * @param fieldConfigs Array of FieldConfig objects to be processed
    */
   public static disableEnableFieldConfigsWhenAlreadySet(disable: boolean, fieldConfigs: FieldConfig[]): void {
-    fieldConfigs.forEach(fieldConfig => {
+    fieldConfigs.forEach((fieldConfig) => {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
         const saveVisibleState = fieldConfig.invisible;
         fieldConfig.invisible = false;
@@ -151,5 +157,4 @@ export abstract class FormHelper {
       }
     });
   }
-
 }

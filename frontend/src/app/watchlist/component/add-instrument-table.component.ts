@@ -1,19 +1,19 @@
-import {Directive, Injector, Input} from '@angular/core';
-import {Security} from '../../entities/security';
-import {Currencypair} from '../../entities/currencypair';
-import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {SecuritycurrencyLists} from '../../entities/view/securitycurrency.lists';
-import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TenantLimit} from '../../shared/types/tenant.limit';
-import {SecuritycurrencySearchTableBase} from '../../securitycurrency/component/securitycurrency.search.table.base';
-import {FilterService} from '@openng/optimus-ui/api';
-import {Observable} from 'rxjs';
+import { Directive, Injector, Input } from '@angular/core';
+import { Security } from '../../entities/security';
+import { Currencypair } from '../../entities/currencypair';
+import { TranslateService } from '@ngx-translate/core';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
+import { SecuritycurrencyLists } from '../../entities/view/securitycurrency.lists';
+import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { SecuritycurrencySearchTableBase } from '../../securitycurrency/component/securitycurrency.search.table.base';
+import { FilterService } from '@openng/optimus-ui/api';
+import { Observable } from 'rxjs';
 
 /**
  * Abstract directive providing base functionality for adding instruments to various entity lists.
@@ -43,16 +43,18 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
    * @param gps - Global parameter service for application settings
    * @param usersettingsService - Service for user-specific settings and preferences
    */
-  protected constructor(private instance: T,
-              private dataChangedService: DataChangedService,
-              private addSearchToListService: AddSearchToListService<T>,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
+  protected constructor(
+    private instance: T,
+    private dataChangedService: DataChangedService,
+    private addSearchToListService: AddSearchToListService<T>,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
-    this.multiSortMeta.push({field: 'name', order: 1});
+    this.multiSortMeta.push({ field: 'name', order: 1 });
   }
 
   /** Clears the search results and selected instruments lists */
@@ -69,7 +71,8 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   loadData(id: number, securitycurrencySearch: SecuritycurrencySearch): void {
     this.id = id;
     this.securitycurrencySearch = securitycurrencySearch;
-    this.addSearchToListService.searchByCriteria(id, securitycurrencySearch)
+    this.addSearchToListService
+      .searchByCriteria(id, securitycurrencySearch)
       .subscribe((securitycurrencyLists: SecuritycurrencyLists) => {
         this.createTranslatedValueStoreAndFilterField(securitycurrencyLists.securityList);
         this.securitycurrencyList = securitycurrencyLists.securityList;
@@ -80,7 +83,7 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
   /** Adds the selected instruments to the target entity and refreshes the data display */
   onClickAdd(): void {
     const securitycurrencyLists = new SecuritycurrencyLists();
-    this.selectedSecuritycurrencies.forEach(securitycurrency => {
+    this.selectedSecuritycurrencies.forEach((securitycurrency) => {
       if (securitycurrency instanceof CurrencypairWatchlist) {
         securitycurrencyLists.currencypairList.push(Object.assign(new Currencypair(null, null), securitycurrency));
       } else {
@@ -90,7 +93,9 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
     this.addSearchToListService.addSecuritycurrenciesToList(this.id, securitycurrencyLists).subscribe((data: T) => {
       this.clearList();
       this.loadData(this.id, this.securitycurrencySearch);
-      this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, this.instance ? this.instance : data));
+      this.dataChangedService.dataHasChanged(
+        new ProcessedActionData(ProcessedAction.UPDATED, this.instance ? this.instance : data)
+      );
     });
   }
 
@@ -106,7 +111,6 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
     }
     return false;
   }
-
 }
 
 /**
@@ -114,7 +118,6 @@ export abstract class AddInstrumentTable<T> extends SecuritycurrencySearchTableB
  * Provides methods for finding available instruments and adding them to target entities.
  */
 export interface AddSearchToListService<T> {
-
   /**
    * Searches for instruments based on the provided criteria.
    * @param id - ID of the target entity to search for

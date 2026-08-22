@@ -1,17 +1,16 @@
-import {AfterViewInit, Directive, Input, OnChanges, OnDestroy} from '@angular/core';
-import {AbstractControl, FormGroupDirective} from '@angular/forms';
-import {BehaviorSubject} from 'rxjs';
-import {ErrorDetails, ErrorOptions} from './ngxerrors';
-import {toArray} from './toArray';
+import { AfterViewInit, Directive, Input, OnChanges, OnDestroy } from '@angular/core';
+import { AbstractControl, FormGroupDirective } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
+import { ErrorDetails, ErrorOptions } from './ngxerrors';
+import { toArray } from './toArray';
 
 @Directive({
-    selector: '[ngxErrors]',
-    exportAs: 'ngxErrors',
-    standalone: true
+  selector: '[ngxErrors]',
+  exportAs: 'ngxErrors',
+  standalone: true
 })
 export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
-
-//  @Input('ngxErrors') controlName: string;
+  //  @Input('ngxErrors') controlName: string;
 
   @Input('ngxErrors') control: AbstractControl;
 
@@ -21,11 +20,10 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
 
   ready = false;
 
-  constructor(private form: FormGroupDirective) {
-  }
+  constructor(private form: FormGroupDirective) {}
 
   get errors() {
-    return this.ready? this.control.errors: null;
+    return this.ready ? this.control.errors : null;
   }
 
   get hasErrors() {
@@ -52,13 +50,11 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
-
     setTimeout(() => {
       // this.form.valueChanges.subscribe(data => {
       this.checkStatus();
       this.control.statusChanges.subscribe(this.checkStatus.bind(this));
     });
-
   }
 
   ngOnDestroy(): void {
@@ -69,15 +65,11 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
     if (!this.ready) {
       return null;
     }
-    const controlPropsState = (
-      !conditions || toArray(conditions).every((condition: string) => this.control[condition])
-    );
+    const controlPropsState = !conditions || toArray(conditions).every((condition: string) => this.control[condition]);
     if (field.charAt(0) === '*') {
       return this.control[prop] && controlPropsState;
     }
-    return (
-      prop === 'valid' ? !this.control.hasError(field) : this.control.hasError(field) && controlPropsState
-    );
+    return prop === 'valid' ? !this.control.hasError(field) : this.control.hasError(field) && controlPropsState;
   }
 
   private checkStatus() {
@@ -88,8 +80,7 @@ export class NgxErrorsDirective implements OnChanges, OnDestroy, AfterViewInit {
       return;
     }
     for (const errorName of Object.keys(errors)) {
-      this.subject.next({control, errorName});
+      this.subject.next({ control, errorName });
     }
   }
-
 }

@@ -1,20 +1,20 @@
-import {Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TableConfigBase} from '../../datashowbase/table.config.base';
-import {GTNetConfigEntity, GTNetEntity, GTNetExchangeKindType, SupplierConsumerLogTypes} from '../model/gtnet';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {GTNetConfigEntityEditComponent} from './gtnet-config-entity-edit.component';
+import { Component, EventEmitter, Injector, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TableConfigBase } from '../../datashowbase/table.config.base';
+import { GTNetConfigEntity, GTNetEntity, GTNetExchangeKindType, SupplierConsumerLogTypes } from '../model/gtnet';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { ProcessedAction } from '../../types/processed.action';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { GTNetConfigEntityEditComponent } from './gtnet-config-entity-edit.component';
 
 /**
  * Table component for displaying GTNetConfigEntity records within the expandedRow of GTNetSetupTableComponent.
@@ -35,7 +35,9 @@ import {GTNetConfigEntityEditComponent} from './gtnet-config-entity-edit.compone
   ],
   template: `
     <div class="nested-table-container">
-      <h5 class="nested-table-header">{{ 'GT_NET_CONFIG_ENTITY_TABLE' | translate }}</h5>
+      <h5 class="nested-table-header">
+        {{ 'GT_NET_CONFIG_ENTITY_TABLE' | translate }}
+      </h5>
       <configurable-table
         [data]="configEntities"
         [fields]="fields"
@@ -44,7 +46,7 @@ import {GTNetConfigEntityEditComponent} from './gtnet-config-entity-edit.compone
         [contextMenuItems]="contextMenuItems"
         [contextMenuAppendTo]="'body'"
         [showContextMenu]="true"
-        [containerClass]="{'data-container-full': true, 'nested-table': true}"
+        [containerClass]="{ 'data-container-full': true, 'nested-table': true }"
         [valueGetterFn]="getValueByPath.bind(this)"
         (selectionChange)="onSelectionChange($event)">
       </configurable-table>
@@ -58,20 +60,23 @@ import {GTNetConfigEntityEditComponent} from './gtnet-config-entity-edit.compone
       </gtnet-config-entity-edit>
     }
   `,
-  styles: [`
-    .nested-table-container {
-      margin-bottom: 1rem;
-      padding: 0.5rem;
-      background-color: rgba(0, 0, 0, 0.02);
-      border-radius: 4px;
-    }
-    .nested-table-header {
-      margin: 0 0 0.5rem 0;
-      padding: 0;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-  `]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styles: [
+    `
+      .nested-table-container {
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.02);
+        border-radius: 4px;
+      }
+      .nested-table-header {
+        margin: 0 0 0.5rem 0;
+        padding: 0;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+    `
+  ]
 })
 export class GTNetConfigEntityTableComponent extends TableConfigBase implements OnInit {
   @Input() gtNetEntities: GTNetEntity[];
@@ -93,16 +98,21 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   }
 
   ngOnInit(): void {
-    this.addColumn(DataType.String, 'entityKind', 'ENTITY', true, false,
-      {translateValues: TranslateValue.NORMAL, width: 150});
+    this.addColumn(DataType.String, 'entityKind', 'ENTITY', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      width: 150
+    });
     this.addColumn(DataType.NumericInteger, 'maxLimit', 'GT_NET_MAX_LIMIT', true, false);
-    this.addColumnFeqH(DataType.Boolean, 'exchange',  true, false,
-      {templateName: 'check'});
-    this.addColumnFeqH(DataType.String, 'supplierLog', true, false,
-      {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.String, 'consumerLog', true, false,
-      {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.NumericInteger, 'consumerUsage',  true, false);
+    this.addColumnFeqH(DataType.Boolean, 'exchange', true, false, {
+      templateName: 'check'
+    });
+    this.addColumnFeqH(DataType.String, 'supplierLog', true, false, {
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumnFeqH(DataType.String, 'consumerLog', true, false, {
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'consumerUsage', true, false);
 
     this.prepareData();
     this.createTranslatedValueStore(this.configEntities);
@@ -112,25 +122,28 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
 
   private prepareData(): void {
     this.configEntities = this.gtNetEntities
-      .filter(entity => entity.gtNetConfigEntity != null)
-      .map(entity => this.createDisplayEntity(entity));
+      .filter((entity) => entity.gtNetConfigEntity != null)
+      .map((entity) => this.createDisplayEntity(entity));
   }
 
   private createDisplayEntity(gtNetEntity: GTNetEntity): GTNetConfigEntityDisplay {
     const configEntity = gtNetEntity.gtNetConfigEntity;
 
     // Convert numeric enum values to string names for translation
-    const entityKindName = typeof gtNetEntity.entityKind === 'number'
-      ? GTNetExchangeKindType[gtNetEntity.entityKind]
-      : gtNetEntity.entityKind;
+    const entityKindName =
+      typeof gtNetEntity.entityKind === 'number'
+        ? GTNetExchangeKindType[gtNetEntity.entityKind]
+        : gtNetEntity.entityKind;
 
-    const supplierLogName = typeof configEntity.supplierLog === 'number'
-      ? SupplierConsumerLogTypes[configEntity.supplierLog]
-      : configEntity.supplierLog;
+    const supplierLogName =
+      typeof configEntity.supplierLog === 'number'
+        ? SupplierConsumerLogTypes[configEntity.supplierLog]
+        : configEntity.supplierLog;
 
-    const consumerLogName = typeof configEntity.consumerLog === 'number'
-      ? SupplierConsumerLogTypes[configEntity.consumerLog]
-      : configEntity.consumerLog;
+    const consumerLogName =
+      typeof configEntity.consumerLog === 'number'
+        ? SupplierConsumerLogTypes[configEntity.consumerLog]
+        : configEntity.consumerLog;
 
     return {
       ...configEntity,
@@ -183,4 +196,3 @@ export interface GTNetConfigEntityDisplay {
   entityKind: string;
   maxLimit?: number;
 }
-

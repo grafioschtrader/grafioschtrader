@@ -1,9 +1,7 @@
-import {Securitycurrency} from './securitycurrency';
-import {BaseID} from '../lib/entities/base.id';
-
+import { Securitycurrency } from './securitycurrency';
+import { BaseID } from '../lib/entities/base.id';
 
 export class Currencypair extends Securitycurrency implements BaseID {
-
   public fromCurrency: string;
   public toCurrency: string;
   public isCryptocurrency?: boolean;
@@ -19,5 +17,4 @@ export class Currencypair extends Securitycurrency implements BaseID {
   public getNewInstance(): Currencypair {
     return new Currencypair();
   }
-
 }

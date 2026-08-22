@@ -1,5 +1,5 @@
-import {Security} from '../../security';
-import {Cashaccount} from '../../cashaccount';
+import { Security } from '../../security';
+import { Cashaccount } from '../../cashaccount';
 
 export interface SecurityDividendsPosition extends AccountDividendPosition {
   countPaidTransactions: number;
@@ -31,7 +31,6 @@ export interface AccountDividendPosition {
   valueAtEndOfYearMC: number;
 
   exchangeRateEndOfYear: number;
-
 }
 
 export interface CashAccountPosition extends AccountDividendPosition {

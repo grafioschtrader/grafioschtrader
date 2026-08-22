@@ -1,4 +1,4 @@
-import {GapCodeType} from './gap-code.type';
+import { GapCodeType } from './gap-code.type';
 
 /**
  * Model representing a gap (mismatch) identified during GTNet security import.

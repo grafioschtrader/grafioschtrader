@@ -1,20 +1,19 @@
-import {Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import {catchError} from 'rxjs/operators';
-import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
-import {MessageToastService} from '../../message/message.toast.service';
-import {LoginService} from '../../login/service/log-in.service';
-import {BaseSettings} from '../../base.settings';
-import {GTNetExchangeLogTree} from '../model/gtnet-exchange-log';
-import {GTNetExchangeKindType} from '../model/gtnet';
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
+import { MessageToastService } from '../../message/message.toast.service';
+import { LoginService } from '../../login/service/log-in.service';
+import { BaseSettings } from '../../base.settings';
+import { GTNetExchangeLogTree } from '../model/gtnet-exchange-log';
+import { GTNetExchangeKindType } from '../model/gtnet';
 
 /**
  * Service for GTNet exchange log operations.
  */
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchangeLogTree> {
-
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
   }
@@ -27,10 +26,12 @@ export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchange
    */
   getExchangeLogTree(idGtNet: number, entityKind: GTNetExchangeKindType): Observable<GTNetExchangeLogTree> {
     const params = new HttpParams().set('entityKind', this.getEntityKindName(entityKind));
-    return this.httpClient.get<GTNetExchangeLogTree>(
-      `${BaseSettings.API_ENDPOINT}gtnetexchangelog/tree/${idGtNet}`,
-      {...this.getHeaders(), params}
-    ).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .get<GTNetExchangeLogTree>(`${BaseSettings.API_ENDPOINT}gtnetexchangelog/tree/${idGtNet}`, {
+        ...this.getHeaders(),
+        params
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -40,10 +41,12 @@ export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchange
    */
   getAllExchangeLogTrees(entityKind: GTNetExchangeKindType): Observable<GTNetExchangeLogTree[]> {
     const params = new HttpParams().set('entityKind', this.getEntityKindName(entityKind));
-    return this.httpClient.get<GTNetExchangeLogTree[]>(
-      `${BaseSettings.API_ENDPOINT}gtnetexchangelog/trees`,
-      {...this.getHeaders(), params}
-    ).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .get<GTNetExchangeLogTree[]>(`${BaseSettings.API_ENDPOINT}gtnetexchangelog/trees`, {
+        ...this.getHeaders(),
+        params
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**

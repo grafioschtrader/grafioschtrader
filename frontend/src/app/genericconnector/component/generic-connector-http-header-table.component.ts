@@ -1,13 +1,26 @@
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
-import {FilterService} from '@openng/optimus-ui/api';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TableEditConfigBase} from '../../lib/datashowbase/table.edit.config.base';
-import {EditableTableComponent, RowEditEvent, RowEditSaveEvent} from '../../lib/datashowbase/editable-table.component';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.header';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
+import {
+  EditableTableComponent,
+  RowEditEvent,
+  RowEditSaveEvent
+} from '../../lib/datashowbase/editable-table.component';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { GenericConnectorHttpHeader } from '../../entities/generic.connector.http.header';
 
 /**
  * Standalone table component for editing HTTP headers of a generic connector definition.
@@ -16,30 +29,35 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
 @Component({
   selector: 'generic-connector-http-header-table',
   template: `
-    <editable-table #entityTable
-                    [data]="httpHeaders"
-                    (dataChange)="onDataChange($event)"
-                    [fields]="fields"
-                    dataKey="idHttpHeader"
-                    [showEditColumn]="editable"
-                    [editColumnWidth]="120"
-                    [selectionMode]="null"
-                    [contextMenuEnabled]="false"
-                    [createNewEntityFn]="createNewEntity.bind(this)"
-                    (rowEditSave)="onRowEditSave($event)"
-                    (rowEditCancel)="onRowEditCancel($event)"
-                    [canDeleteRowFn]="canDeleteRow"
-                    (rowDelete)="onRowDelete($event)"
-                    [valueGetterFn]="getValueByPath.bind(this)"
-                    [customSortFn]="customSort.bind(this)"
-                    [baseLocale]="baseLocale"
-                    [scrollable]="false"
-                    [containerClass]="''"
-                    [stripedRows]="true">
+    <editable-table
+      #entityTable
+      [data]="httpHeaders"
+      (dataChange)="onDataChange($event)"
+      [fields]="fields"
+      dataKey="idHttpHeader"
+      [showEditColumn]="editable"
+      [editColumnWidth]="120"
+      [selectionMode]="null"
+      [contextMenuEnabled]="false"
+      [createNewEntityFn]="createNewEntity.bind(this)"
+      (rowEditSave)="onRowEditSave($event)"
+      (rowEditCancel)="onRowEditCancel($event)"
+      [canDeleteRowFn]="canDeleteRow"
+      (rowDelete)="onRowDelete($event)"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      [customSortFn]="customSort.bind(this)"
+      [baseLocale]="baseLocale"
+      [scrollable]="false"
+      [containerClass]="''"
+      [stripedRows]="true">
       <div caption style="display: flex; align-items: center;">
         <h6 style="margin: 0;">{{ 'HTTP_HEADERS' | translate }}</h6>
         @if (editable) {
-          <p-button [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}">
+          <p-button
+            [rounded]="true"
+            [text]="true"
+            (click)="entityTable.addNewRow()"
+            [style]="{ 'margin-left': '0.5rem' }">
             <i class="pi pi-plus" pButtonIcon></i>
           </p-button>
         }
@@ -47,20 +65,23 @@ import {GenericConnectorHttpHeader} from '../../entities/generic.connector.http.
     </editable-table>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBase implements OnChanges {
-
-  @ViewChild('entityTable') entityTable: EditableTableComponent<GenericConnectorHttpHeader>;
+  @ViewChild('entityTable')
+  entityTable: EditableTableComponent<GenericConnectorHttpHeader>;
 
   @Input() httpHeaders: GenericConnectorHttpHeader[] = [];
   @Input() editable: boolean = true;
   @Output() httpHeadersChange = new EventEmitter<GenericConnectorHttpHeader[]>();
 
-  constructor(filterService: FilterService,
-              usersettingsService: UserSettingsService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+  constructor(
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService
+  ) {
     super(filterService, usersettingsService, translateService, gps);
     this.setupColumns();
   }
@@ -103,9 +124,9 @@ export class GenericConnectorHttpHeaderTableComponent extends TableEditConfigBas
    * treating it as a detached entity (StaleObjectStateException).
    */
   private stripTempIds(headers: GenericConnectorHttpHeader[]): GenericConnectorHttpHeader[] {
-    return headers.map(h => {
+    return headers.map((h) => {
       if (typeof h.idHttpHeader === 'string' || (typeof h.idHttpHeader === 'number' && h.idHttpHeader < 0)) {
-        return {...h, idHttpHeader: null};
+        return { ...h, idHttpHeader: null };
       }
       return h;
     });

@@ -1,31 +1,31 @@
-import {Injectable} from '@angular/core';
-import {Observable, of, forkJoin} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {MenuItem, TreeNode, ConfirmationService} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
-import {TreeNodeType} from '../../shared/maintree/types/tree.node.type';
-import {TypeNodeData} from '../../lib/maintree/types/type.node.data';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {AlgoTopService} from '../service/algo.top.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {AlgoTop} from '../model/algo.top';
-import {AlgoTopCreate} from '../../entities/backend/algo.top.create';
-import {AppSettings} from '../../shared/app.settings';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {GlobalSessionNames} from '../../lib/global.session.names';
-import {FeatureType} from '../../lib/login/model/configuration-with-login';
-import {AlgoRuleStrategyCreateDynamicComponent} from '../component/algo.rule.strategy.create.component';
-import {AlgoCreateFromPortfolioDynamicComponent} from '../component/algo-create-from-portfolio.component';
-import {AlgoTopCreateFromPortfolio} from '../../entities/backend/algo.top.create';
-import {TenantService} from '../../tenant/service/tenant.service';
-import {SimulationTenantInfo} from '../model/simulation.tenant';
-import {AlgoSimulationCreateDynamicComponent} from '../component/algo-simulation-create.component';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {Cashaccount} from '../../entities/cashaccount';
+import { Injectable } from '@angular/core';
+import { Observable, of, forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { MenuItem, TreeNode, ConfirmationService } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { MainTreeContributor } from '../../lib/maintree/contributor/main-tree-contributor.interface';
+import { TreeNodeType } from '../../shared/maintree/types/tree.node.type';
+import { TypeNodeData } from '../../lib/maintree/types/type.node.data';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { AlgoTopService } from '../service/algo.top.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { AlgoTop } from '../model/algo.top';
+import { AlgoTopCreate } from '../../entities/backend/algo.top.create';
+import { AppSettings } from '../../shared/app.settings';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { FeatureType } from '../../lib/login/model/configuration-with-login';
+import { AlgoRuleStrategyCreateDynamicComponent } from '../component/algo.rule.strategy.create.component';
+import { AlgoCreateFromPortfolioDynamicComponent } from '../component/algo-create-from-portfolio.component';
+import { AlgoTopCreateFromPortfolio } from '../../entities/backend/algo.top.create';
+import { TenantService } from '../../tenant/service/tenant.service';
+import { SimulationTenantInfo } from '../model/simulation.tenant';
+import { AlgoSimulationCreateDynamicComponent } from '../component/algo-simulation-create.component';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { Cashaccount } from '../../entities/cashaccount';
 
 /**
  * Contributor for Algo (algorithmic trading) nodes in the main navigation tree.
@@ -33,7 +33,6 @@ import {Cashaccount} from '../../entities/cashaccount';
  */
 @Injectable()
 export class AlgoMainTreeContributor extends MainTreeContributor {
-
   private rootNode: TreeNode;
   private simulationTenants: SimulationTenantInfo[] = [];
 
@@ -64,12 +63,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
     this.rootNode = {
       expanded: true,
       children: [],
-      data: new TypeNodeData(
-        TreeNodeType.AlgoRoot,
-        this.addMainRoute(AppSettings.STRATEGY_OVERVIEW_KEY),
-        null,
-        null
-      )
+      data: new TypeNodeData(TreeNodeType.AlgoRoot, this.addMainRoute(AppSettings.STRATEGY_OVERVIEW_KEY), null, null)
     };
     this.setLangTrans('ALGO_OVERVIEW', this.rootNode);
     return of([this.rootNode]);
@@ -81,7 +75,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
     // If we're in a simulation tenant, skip loading simulations (we're already inside one)
     if (this.isInSimulation()) {
       return this.algoTopService.getAlgoTopByIdTenantOrderByName().pipe(
-        map(algoTopList => {
+        map((algoTopList) => {
           rootNode.children.splice(0);
           for (const algoTop of algoTopList) {
             rootNode.children.push(this.createStrategyNode(algoTop));
@@ -101,7 +95,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
           const treeNode = this.createStrategyNode(algoTop);
 
           // Add simulation child nodes for this strategy
-          const sims = simTenants.filter(s => s.idAlgoTop === algoTop.idAlgoAssetclassSecurity);
+          const sims = simTenants.filter((s) => s.idAlgoTop === algoTop.idAlgoAssetclassSecurity);
           if (sims.length > 0) {
             treeNode.icon = 'pi pi-desktop';
             treeNode.children = [];
@@ -140,23 +134,35 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
         } else {
           menuItems.push({
             label: 'CREATE|ALGO_PORTFOLIO_STRATEGY' + BaseSettings.DIALOG_MENU_SUFFIX,
-            command: () => this.callbacks?.handleEdit(AlgoRuleStrategyCreateDynamicComponent, null,
-              new AlgoTopCreate(), 'ALGO_PORTFOLIO_STRATEGY')
-              ?.subscribe(result => {
-                if (result) {
-                  this.callbacks?.refreshTree();
-                }
-              })
+            command: () =>
+              this.callbacks
+                ?.handleEdit(
+                  AlgoRuleStrategyCreateDynamicComponent,
+                  null,
+                  new AlgoTopCreate(),
+                  'ALGO_PORTFOLIO_STRATEGY'
+                )
+                ?.subscribe((result) => {
+                  if (result) {
+                    this.callbacks?.refreshTree();
+                  }
+                })
           });
           menuItems.push({
             label: 'CREATE_STRATEGY_FROM_PORTFOLIO' + BaseSettings.DIALOG_MENU_SUFFIX,
-            command: () => this.callbacks?.handleEdit(AlgoCreateFromPortfolioDynamicComponent, null,
-              new AlgoTopCreateFromPortfolio(), 'CREATE_STRATEGY_FROM_PORTFOLIO')
-              ?.subscribe(result => {
-                if (result) {
-                  this.callbacks?.refreshTree();
-                }
-              })
+            command: () =>
+              this.callbacks
+                ?.handleEdit(
+                  AlgoCreateFromPortfolioDynamicComponent,
+                  null,
+                  new AlgoTopCreateFromPortfolio(),
+                  'CREATE_STRATEGY_FROM_PORTFOLIO'
+                )
+                ?.subscribe((result) => {
+                  if (result) {
+                    this.callbacks?.refreshTree();
+                  }
+                })
           });
         }
         break;
@@ -167,16 +173,16 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             label: 'CREATE_SIMULATION' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: () => {
               const algoTop: AlgoTop = JSON.parse(typeNodeData.entityObject);
-              this.portfolioService.getPortfoliosForTenantOrderByName().subscribe(portfolios => {
+              this.portfolioService.getPortfoliosForTenantOrderByName().subscribe((portfolios) => {
                 const cashAccounts: Cashaccount[] = [];
                 for (const portfolio of portfolios) {
                   if (portfolio.cashaccountList) {
                     cashAccounts.push(...portfolio.cashaccountList);
                   }
                 }
-                this.callbacks?.handleEdit(AlgoSimulationCreateDynamicComponent, {cashAccounts},
-                  algoTop, 'CREATE_SIMULATION')
-                  ?.subscribe(result => {
+                this.callbacks
+                  ?.handleEdit(AlgoSimulationCreateDynamicComponent, { cashAccounts }, algoTop, 'CREATE_SIMULATION')
+                  ?.subscribe((result) => {
                     if (result) {
                       this.callbacks?.refreshTree();
                     }
@@ -250,8 +256,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   private switchToSimulationTenant(simIdTenant: number): void {
     // Save main tenant ID if not already saved
     if (!sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT)) {
-      sessionStorage.setItem(GlobalSessionNames.MAIN_ID_TENANT,
-        sessionStorage.getItem(GlobalSessionNames.ID_TENANT));
+      sessionStorage.setItem(GlobalSessionNames.MAIN_ID_TENANT, sessionStorage.getItem(GlobalSessionNames.ID_TENANT));
     }
 
     this.tenantService.switchTenant(simIdTenant).subscribe({
@@ -262,7 +267,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'SIMULATION_SWITCHED');
         this.callbacks?.refreshTree();
       },
-      error: err => console.error('Error switching to simulation:', err)
+      error: (err) => console.error('Error switching to simulation:', err)
     });
   }
 
@@ -281,7 +286,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MAIN_TENANT_SWITCHED');
         this.callbacks?.refreshTree();
       },
-      error: err => console.error('Error switching to main tenant:', err)
+      error: (err) => console.error('Error switching to main tenant:', err)
     });
   }
 
@@ -293,14 +298,12 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
       () => {
         this.tenantService.deleteSimulationTenant(idSimTenant).subscribe({
           next: () => {
-            this.messageToastService.showMessageI18n(
-              InfoLevelType.SUCCESS,
-              'MSG_DELETE_RECORD',
-              {i18nRecord: 'SIMULATION_ENVIRONMENT'}
-            );
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: 'SIMULATION_ENVIRONMENT'
+            });
             this.callbacks?.refreshTree();
           },
-          error: err => console.error('Error deleting simulation:', err)
+          error: (err) => console.error('Error deleting simulation:', err)
         });
       }
     );
@@ -314,15 +317,13 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
       () => {
         this.algoTopService.deleteEntity(idAlgoAssetclassSecurity).subscribe({
           next: () => {
-            this.messageToastService.showMessageI18n(
-              InfoLevelType.SUCCESS,
-              'MSG_DELETE_RECORD',
-              {i18nRecord: 'STRATEGY'}
-            );
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: 'STRATEGY'
+            });
             this.callbacks?.navigateToNode(this.getPreviousNode(treeNode).data);
             this.callbacks?.refreshTree();
           },
-          error: err => console.error('Error deleting strategy:', err)
+          error: (err) => console.error('Error deleting strategy:', err)
         });
       }
     );
@@ -337,7 +338,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   }
 
   private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe(translated => target.label = translated + suffix);
+    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

@@ -1,8 +1,8 @@
-import {Injectable, Type} from '@angular/core';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {Observable, of} from 'rxjs';
+import { Injectable, Type } from '@angular/core';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { Observable, of } from 'rxjs';
 
-import {DialogHandler} from '../app/lib/maintree/handler/dialog-handler.interface';
+import { DialogHandler } from '../app/lib/maintree/handler/dialog-handler.interface';
 
 /**
  * The {@code DIALOG_HANDLER} implementation of this host. The main tree calls it whenever a node wants to open an edit
@@ -14,13 +14,11 @@ import {DialogHandler} from '../app/lib/maintree/handler/dialog-handler.interfac
  */
 @Injectable()
 export class GrafioschDialogHandler implements DialogHandler {
-
-  constructor(private dialogService: DialogService) {
-  }
+  constructor(private dialogService: DialogService) {}
 
   openEditDialog(componentType: Type<any>, parentObject: any, data: any, titleKey: string): Observable<any> {
     return this.dialogService.open(componentType, {
-      data: {callParam: {parentObject, thisObject: data}},
+      data: { callParam: { parentObject, thisObject: data } },
       header: titleKey,
       modal: true,
       closable: true,

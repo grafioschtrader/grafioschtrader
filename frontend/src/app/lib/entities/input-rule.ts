@@ -1,5 +1,5 @@
-import {ValidatorFn, Validators} from '@angular/forms';
-import {range} from '../validator/validator';
+import { ValidatorFn, Validators } from '@angular/forms';
+import { range } from '../validator/validator';
 
 /**
  * Parses and validates property values against dynamic validation rules stored as DSL strings.
@@ -17,7 +17,6 @@ import {range} from '../validator/validator';
  * const description = rule.getDescription();
  */
 export class InputRule {
-
   static readonly RULE_MIN = 'min';
   static readonly RULE_MAX = 'max';
   static readonly RULE_ENUM = 'enum';
@@ -28,8 +27,7 @@ export class InputRule {
   enumValues: number[] = null;
   pattern: string = null;
 
-  private constructor() {
-  }
+  private constructor() {}
 
   /**
    * Parses an input rule DSL string into an InputRule object.
@@ -64,7 +62,7 @@ export class InputRule {
           rule.max = parseInt(ruleValue.trim(), 10);
           break;
         case InputRule.RULE_ENUM:
-          rule.enumValues = ruleValue.split(',').map(v => parseInt(v.trim(), 10));
+          rule.enumValues = ruleValue.split(',').map((v) => parseInt(v.trim(), 10));
           break;
         case InputRule.RULE_PATTERN:
           rule.pattern = ruleValue;
@@ -138,7 +136,7 @@ export class InputRule {
         return null;
       }
       const value = +control.value;
-      return allowedValues.includes(value) ? null : {enum: {allowedValues, actualValue: value}};
+      return allowedValues.includes(value) ? null : { enum: { allowedValues, actualValue: value } };
     };
   }
 }

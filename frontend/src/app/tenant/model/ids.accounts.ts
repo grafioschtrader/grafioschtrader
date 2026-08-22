@@ -1,4 +1,6 @@
 export class IdsAccounts {
-  constructor(public idsSecurityaccount: number[], public idsCashaccount: number[]) {
-  }
+  constructor(
+    public idsSecurityaccount: number[],
+    public idsCashaccount: number[]
+  ) {}
 }

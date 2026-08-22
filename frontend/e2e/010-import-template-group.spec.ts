@@ -1,8 +1,8 @@
-import {expect, Page, Response, test} from '@playwright/test';
+import { expect, Page, Response, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {loginAsFixtureUser} from './helpers';
-import {fillText, openContextMenu, selectByValue} from './generic-connector.helpers';
+import { loginAsFixtureUser } from './helpers';
+import { fillText, openContextMenu, selectByValue } from './generic-connector.helpers';
 
 /**
  * Creates the import template group 'Grafioschtrader' as user 'alledit' and adds one import
@@ -23,8 +23,10 @@ import {fillText, openContextMenu, selectByValue} from './generic-connector.help
 const CREATOR = 'alledit';
 const GRAFIOSCHTRADER_GROUP_NAME = 'Grafioschtrader';
 
-const TEMPLATE_ROOT_DIR = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/import_template');
+const TEMPLATE_ROOT_DIR = path.resolve(
+  __dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/import_template'
+);
 
 // Menu labels are built as CREATE|<entity key> and translated to 'Create <entity>...' /
 // 'Erstellen <entity>...'. The template regex is anchored so it cannot match the group item
@@ -36,13 +38,13 @@ const CREATE_TEMPLATE_RX =
 
 interface TemplateFileData {
   fileName: string;
-  templateCategory: string;    // enum name parsed from the discovered file
-  templateFormatType: string;  // enum name parsed from the discovered file
-  validSinceInput: string;     // date converted to the de-CH p-datepicker format dd.mm.yy
-  validSinceIso: string;       // expected round-trip in the REST payload
-  templateLanguage: string;    // ISO language code parsed from the discovered file
-  templatePurpose: string;     // from the file's templatePurpose= line
-  templateAsTxt: string;       // full file content
+  templateCategory: string; // enum name parsed from the discovered file
+  templateFormatType: string; // enum name parsed from the discovered file
+  validSinceInput: string; // date converted to the de-CH p-datepicker format dd.mm.yy
+  validSinceIso: string; // expected round-trip in the REST payload
+  templateLanguage: string; // ISO language code parsed from the discovered file
+  templatePurpose: string; // from the file's templatePurpose= line
+  templateAsTxt: string; // full file content
 }
 
 interface TemplateGroupData {
@@ -56,10 +58,11 @@ function loadTemplateFiles(templateDir: string): TemplateFileData[] {
   if (!fs.existsSync(templateDir)) {
     return [];
   }
-  return fs.readdirSync(templateDir)
-    .filter(fileName => path.extname(fileName).toLowerCase() === '.tmpl')
+  return fs
+    .readdirSync(templateDir)
+    .filter((fileName) => path.extname(fileName).toLowerCase() === '.tmpl')
     .sort()
-    .map(fileName => {
+    .map((fileName) => {
       const [category, format, validSince, language] = fileName.replace(/\.tmpl$/i, '').split('-');
       const templateAsTxt = fs.readFileSync(path.join(templateDir, fileName), 'utf-8');
       const purposeMatch = /^templatePurpose=(.+)$/m.exec(templateAsTxt);
@@ -75,7 +78,7 @@ function loadTemplateFiles(templateDir: string): TemplateFileData[] {
         validSinceIso: `${y}-${m}-${d}`,
         templateLanguage: language,
         templatePurpose: purposeMatch[1].trim(),
-        templateAsTxt,
+        templateAsTxt
       };
     });
 }
@@ -87,23 +90,25 @@ const TEMPLATE_GROUPS: TemplateGroupData[] = [
 
 function createTemplateGroupData(name: string, directoryName: string): TemplateGroupData {
   const templateDir = path.join(TEMPLATE_ROOT_DIR, directoryName);
-  return {name, templateDir, templateFiles: loadTemplateFiles(templateDir)};
+  return { name, templateDir, templateFiles: loadTemplateFiles(templateDir) };
 }
 
 /** Navigates to the 'Import Vorlagengruppe' base-data view after login and waits for the master view. */
 async function openImportTemplateView(page: Page): Promise<void> {
   // The node lives under the collapsed 'Base Data - ...' root — expand it first (fresh login ⇒ collapsed).
-  const baseDataNode = page.locator('.p-tree-node-content', {hasText: /(Base Data|Basisdaten)/i}).first();
-  await baseDataNode.waitFor({state: 'visible', timeout: 15_000});
+  const baseDataNode = page.locator('.p-tree-node-content', { hasText: /(Base Data|Basisdaten)/i }).first();
+  await baseDataNode.waitFor({ state: 'visible', timeout: 15_000 });
   await baseDataNode.dblclick();
 
-  const treeNode = page.locator('.p-tree-node-content', {
-    hasText: /(Import template set|Import Vorlagengruppe|IMPORT_TRANSACTION_PLATFORM)/i
-  }).first();
-  await treeNode.waitFor({state: 'visible', timeout: 15_000});
+  const treeNode = page
+    .locator('.p-tree-node-content', {
+      hasText: /(Import template set|Import Vorlagengruppe|IMPORT_TRANSACTION_PLATFORM)/i
+    })
+    .first();
+  await treeNode.waitFor({ state: 'visible', timeout: 15_000 });
   await treeNode.click();
 
-  await page.locator('.data-container').first().waitFor({state: 'visible', timeout: 15_000});
+  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
   // Let readData() populate the template group dropdown before the caller inspects it.
   await page.waitForTimeout(800);
 }
@@ -111,17 +116,18 @@ async function openImportTemplateView(page: Page): Promise<void> {
 /** Selects the template group in the master dropdown; the child template table reloads on change. */
 async function selectGroup(page: Page, name: string): Promise<void> {
   const select = page.locator('select#idTransactionImportPlatform');
-  const option = select.locator('option', {hasText: name}).first();
-  await option.waitFor({state: 'attached', timeout: 10_000});
-  await select.selectOption({value: await option.getAttribute('value')});
+  const option = select.locator('option', { hasText: name }).first();
+  await option.waitFor({ state: 'attached', timeout: 10_000 });
+  await select.selectOption({ value: await option.getAttribute('value') });
   await select.dispatchEvent('change');
   await page.waitForTimeout(500);
 }
 
 /** Waits for a save response and reports a rejected request immediately with its response body. */
 async function submitAndWaitForPost(page: Page, endpoint: string, submit: () => Promise<void>): Promise<Response> {
-  const responsePromise = page.waitForResponse(r => r.url().includes(endpoint)
-    && r.request().method() === 'POST', {timeout: 20_000});
+  const responsePromise = page.waitForResponse((r) => r.url().includes(endpoint) && r.request().method() === 'POST', {
+    timeout: 20_000
+  });
   await submit();
   const response = await responsePromise;
   if (!response.ok()) {
@@ -133,13 +139,14 @@ async function submitAndWaitForPost(page: Page, endpoint: string, submit: () => 
 /** Fills and submits the template edit dialog; asserts validSince survived the calendar round-trip. */
 async function createTemplate(page: Page, t: TemplateFileData): Promise<void> {
   const menu = await openContextMenu(page);
-  const initializationPromise = page.waitForResponse(response =>
-    response.url().includes('/importtransactiontemplate/languages')
-    && response.request().method() === 'GET');
+  const initializationPromise = page.waitForResponse(
+    (response) =>
+      response.url().includes('/importtransactiontemplate/languages') && response.request().method() === 'GET'
+  );
   await menu.getByText(CREATE_TEMPLATE_RX).first().click();
 
   const dialog = page.locator('.p-dialog');
-  await dialog.waitFor({state: 'visible', timeout: 10_000});
+  await dialog.waitFor({ state: 'visible', timeout: 10_000 });
   const initializationResponse = await initializationPromise;
   expect(initializationResponse.ok(), 'template dialog language initialization failed').toBeTruthy();
 
@@ -155,7 +162,7 @@ async function createTemplate(page: Page, t: TemplateFileData): Promise<void> {
   // reaches the model and the text is wiped again on blur.
   const dateInput = dialog.locator('#validSince input').first();
   await dateInput.click();
-  await dateInput.pressSequentially(t.validSinceInput, {delay: 20});
+  await dateInput.pressSequentially(t.validSinceInput, { delay: 20 });
   await dateInput.blur();
 
   await selectByValue(dialog, 'templateLanguage', t.templateLanguage);
@@ -164,30 +171,28 @@ async function createTemplate(page: Page, t: TemplateFileData): Promise<void> {
   const submitButton = dialog.locator('button[type="submit"]');
   await expect(dialog.locator('input#templatePurpose')).toHaveValue(t.templatePurpose);
   await expect(submitButton).toBeEnabled();
-  const response = await submitAndWaitForPost(page, '/importtransactiontemplate', () =>
-    submitButton.click());
+  const response = await submitAndWaitForPost(page, '/importtransactiontemplate', () => submitButton.click());
   const saved = await response.json();
   // The two-digit-year calendar input is the most fragile field — verify the persisted date.
   expect(saved.validSince).toBe(t.validSinceIso);
   expect(saved.templateCategory).toBe(t.templateCategory);
   expect(saved.templateLanguage).toBe(t.templateLanguage);
-  await dialog.waitFor({state: 'hidden', timeout: 15_000});
+  await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
   // handleCloseDialog re-reads the template table.
   await page.waitForTimeout(500);
 }
 
 test.describe.serial('import template group — create group and templates as alledit', () => {
   // The template dialog holds a 30-row textarea — keep the submit button inside the viewport.
-  test.use({viewport: {width: 1400, height: 1800}});
+  test.use({ viewport: { width: 1400, height: 1800 } });
 
-  test(`creates import template group '${GRAFIOSCHTRADER_GROUP_NAME}'`, async ({page}) => {
+  test(`creates import template group '${GRAFIOSCHTRADER_GROUP_NAME}'`, async ({ page }) => {
     await loginAsFixtureUser(page, CREATOR);
     await openImportTemplateView(page);
 
     // Idempotency: skip when the group already exists (dropdown option label = group name).
-    const existing = page.locator('select#idTransactionImportPlatform option',
-      {hasText: GRAFIOSCHTRADER_GROUP_NAME});
-    if (await existing.count() > 0) {
+    const existing = page.locator('select#idTransactionImportPlatform option', { hasText: GRAFIOSCHTRADER_GROUP_NAME });
+    if ((await existing.count()) > 0) {
       return;
     }
 
@@ -195,21 +200,22 @@ test.describe.serial('import template group — create group and templates as al
     await menu.getByText(CREATE_GROUP_RX).first().click();
 
     const dialog = page.locator('.p-dialog');
-    await dialog.waitFor({state: 'visible', timeout: 10_000});
+    await dialog.waitFor({ state: 'visible', timeout: 10_000 });
     await fillText(dialog, 'input#name', GRAFIOSCHTRADER_GROUP_NAME);
     // idCsvImportImplementation stays empty — templates are configured individually.
 
     await submitAndWaitForPost(page, '/importtransactionplatform', () =>
-      dialog.locator('button[type="submit"]').click());
-    await dialog.waitFor({state: 'hidden', timeout: 15_000});
+      dialog.locator('button[type="submit"]').click()
+    );
+    await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
 
     // handleCloseEditDialog re-reads all groups into the master dropdown.
-    await expect(page.locator('select#idTransactionImportPlatform option',
-      {hasText: GRAFIOSCHTRADER_GROUP_NAME}))
-      .toHaveCount(1, {timeout: 10_000});
+    await expect(
+      page.locator('select#idTransactionImportPlatform option', { hasText: GRAFIOSCHTRADER_GROUP_NAME })
+    ).toHaveCount(1, { timeout: 10_000 });
   });
 
-  test('creates one import template per platform-specific .tmpl file via the edit dialog', async ({page}) => {
+  test('creates one import template per platform-specific .tmpl file via the edit dialog', async ({ page }) => {
     const totalTemplateCount = TEMPLATE_GROUPS.reduce((count, group) => count + group.templateFiles.length, 0);
     test.setTimeout(Math.max(240_000, totalTemplateCount * 30_000));
     await loginAsFixtureUser(page, CREATOR);
@@ -223,7 +229,7 @@ test.describe.serial('import template group — create group and templates as al
         // Idempotency: the dialog path has no server-side dedup (unlike the file upload), so skip
         // files whose purpose (unique per file and group) already has a row in the template table.
         const existingRow = findTemplateRow(page, t);
-        if (await existingRow.count() > 0) {
+        if ((await existingRow.count()) > 0) {
           continue;
         }
         await createTemplate(page, t);
@@ -235,7 +241,7 @@ test.describe.serial('import template group — create group and templates as al
     }
   });
 
-  test('persisted templates survive a fresh login', async ({page}) => {
+  test('persisted templates survive a fresh login', async ({ page }) => {
     await loginAsFixtureUser(page, CREATOR);
     await openImportTemplateView(page);
 
@@ -248,14 +254,15 @@ test.describe.serial('import template group — create group and templates as al
 });
 
 function findTemplateRow(page: Page, templateFile: TemplateFileData) {
-  return page.locator('import-transaction-template-table tbody tr')
-    .filter({hasText: templateFile.templatePurpose})
-    .filter({hasText: templateFile.validSinceInput});
+  return page
+    .locator('import-transaction-template-table tbody tr')
+    .filter({ hasText: templateFile.templatePurpose })
+    .filter({ hasText: templateFile.validSinceInput });
 }
 
 async function expectTemplatesPresent(page: Page, templateFiles: TemplateFileData[]): Promise<void> {
   for (const t of templateFiles) {
     const row = findTemplateRow(page, t);
-    await expect(row, `row for ${t.fileName}`).toHaveCount(1, {timeout: 10_000});
+    await expect(row, `row for ${t.fileName}`).toHaveCount(1, { timeout: 10_000 });
   }
 }

@@ -1,9 +1,9 @@
-import {TransactionType} from '../../shared/types/transaction.type';
-import {Security} from '../../entities/security';
-import {Securityaccount} from '../../entities/securityaccount';
-import {Portfolio} from '../../entities/portfolio';
-import {Transaction} from '../../entities/transaction';
-import {Cashaccount} from '../../entities/cashaccount';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { Security } from '../../entities/security';
+import { Securityaccount } from '../../entities/securityaccount';
+import { Portfolio } from '../../entities/portfolio';
+import { Transaction } from '../../entities/transaction';
+import { Cashaccount } from '../../entities/cashaccount';
 
 /**
  * Container class that holds call parameters for different transaction forms and dialogs.
@@ -56,10 +56,11 @@ export class CloseMarginPosition {
    * @param idSecurityaccount Security account identifier where the position is held
    * @param idOpenMarginTransaction Transaction identifier of the original margin opening transaction
    */
-  constructor(public quotationOpenPosition: number,
-              public originUnits: number,
-              public closeMaxMarginUnits: number,
-              public idSecurityaccount: number,
-              public idOpenMarginTransaction: number) {
-  }
+  constructor(
+    public quotationOpenPosition: number,
+    public originUnits: number,
+    public closeMaxMarginUnits: number,
+    public idSecurityaccount: number,
+    public idOpenMarginTransaction: number
+  ) {}
 }

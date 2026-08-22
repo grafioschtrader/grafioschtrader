@@ -1,44 +1,45 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {CorrelationSetService} from '../service/correlation.set.service';
-import {CorrelationLimit, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {CorrelationEditingSupport} from './correlation.editing.support';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { CorrelationSetService } from '../service/correlation.set.service';
+import { CorrelationLimit, CorrelationSet, SamplingPeriodType } from '../../entities/correlation.set';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { CorrelationEditingSupport } from './correlation.editing.support';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Dialog component for creating and editing correlation sets with form validation and dynamic field configuration.
  * Provides a modal dialog interface for correlation set management with sampling period and rolling configuration.
  */
 @Component({
-    selector: 'correlation-set-edit',
-    template: `
-    <p-dialog header="{{'CORRELATION_SET' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '400px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
-    imports: [
-      TranslateModule,
-      DialogModule,
-      DynamicFormComponent
-    ],
-    standalone: true
+  selector: 'correlation-set-edit',
+  template: ` <p-dialog
+    header="{{ 'CORRELATION_SET' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '400px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
+  imports: [TranslateModule, DialogModule, DynamicFormComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: true
 })
 export class CorrelationSetEditComponent extends SimpleEntityEditBase<CorrelationSet> implements OnInit {
-
   /** Dialog configuration parameters containing entity data and operation context */
   @Input() callParam: CallParam;
 
@@ -55,12 +56,20 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
    * @param messageToastService Service for displaying user notifications and messages
    * @param correlationSetService Service for correlation set CRUD operations
    */
-  constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              correlationSetService: CorrelationSetService) {
-    super(HelpIds.HELP_WATCHLIST_CORRELATION, 'CORRELATION_SET', translateService, gps,
-      messageToastService, correlationSetService);
+  constructor(
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    correlationSetService: CorrelationSetService
+  ) {
+    super(
+      HelpIds.HELP_WATCHLIST_CORRELATION,
+      'CORRELATION_SET',
+      translateService,
+      gps,
+      messageToastService,
+      correlationSetService
+    );
   }
 
   /**
@@ -68,8 +77,7 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
    * Sets up dynamic form fields for correlation set properties including sampling period and rolling configuration.
    */
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      5, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = this.correlationEditingSupport.getCorrelationFieldDefinition(null, 12, 'SAVE_AND_CALC');
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -79,8 +87,10 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
    * Configures sampling period options, establishes field dependencies, and loads existing entity data if available.
    */
   protected override initialize(): void {
-    this.configObject.samplingPeriod.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-      SamplingPeriodType);
+    this.configObject.samplingPeriod.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      SamplingPeriodType
+    );
     this.correlationEditingSupport.setUpValueChange(this.configObject, this.correlationLimit);
     if (this.callParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.callParam.thisObject);
@@ -95,8 +105,10 @@ export class CorrelationSetEditComponent extends SimpleEntityEditBase<Correlatio
    * @returns Prepared correlation set entity ready for persistence
    */
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): CorrelationSet {
-    const newCorrelationSet = this.copyFormToPrivateBusinessObject(new CorrelationSet(),
-      <CorrelationSet>this.callParam.thisObject);
+    const newCorrelationSet = this.copyFormToPrivateBusinessObject(
+      new CorrelationSet(),
+      <CorrelationSet>this.callParam.thisObject
+    );
     delete newCorrelationSet.securitycurrencyList;
     return newCorrelationSet;
   }

@@ -1,22 +1,22 @@
-import {Component, OnInit} from '@angular/core';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {combineLatest} from 'rxjs';
-import {DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { combineLatest } from 'rxjs';
+import { DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 
-import {PasswordBaseComponent} from '../../login/component/password.base.component';
-import {GlobalparameterService, PasswordRegexProperties} from '../../services/globalparameter.service';
-import {MessageToastService} from '../../message/message.toast.service';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {AppHelper} from '../../helper/app.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
-import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
-import {HelpIds} from '../../help/help.ids';
-import {ManageClientService} from '../service/manage-client.service';
+import { PasswordBaseComponent } from '../../login/component/password.base.component';
+import { GlobalparameterService, PasswordRegexProperties } from '../../services/globalparameter.service';
+import { MessageToastService } from '../../message/message.toast.service';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
+import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
+import { AppHelper } from '../../helper/app.helper';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { FieldDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { ProcessedAction } from '../../types/processed.action';
+import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { HelpIds } from '../../help/help.ids';
+import { ManageClientService } from '../service/manage-client.service';
 
 /**
  * Dialog where a tenant owner grants another person read access to their own portfolio. The owner first enters an
@@ -30,24 +30,30 @@ import {ManageClientService} from '../service/manage-client.service';
 @Component({
   template: `
     @if (formConfig) {
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="submit($event)">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
 export class ShareReadAccessDynamicComponent extends PasswordBaseComponent implements OnInit {
-
   /** True once the entered e-mail has been checked and accepted, so the grant button may be enabled. */
   private checked = false;
 
-  constructor(private dynamicDialogRef: DynamicDialogRef,
+  constructor(
+    private dynamicDialogRef: DynamicDialogRef,
     private manageClientService: ManageClientService,
     private messageToastService: MessageToastService,
     gps: GlobalparameterService,
-    translateService: TranslateService) {
+    translateService: TranslateService
+  ) {
     super(gps, translateService);
   }
 
@@ -66,7 +72,8 @@ export class ShareReadAccessDynamicComponent extends PasswordBaseComponent imple
             }
           });
         });
-      });
+      }
+    );
   }
 
   submit(value: { [name: string]: any }): void {
@@ -76,16 +83,21 @@ export class ShareReadAccessDynamicComponent extends PasswordBaseComponent imple
     const businessObject: any = {};
     this.form.cleanMaskAndTransferValuesToBusinessObject(businessObject, true);
     this.form.setDisableAll(true);
-    this.manageClientService.shareReadAccess({email: businessObject.email, password: businessObject.password}).subscribe({
-      next: () => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'SHARE_READ_ACCESS_DONE');
-        this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, businessObject));
-      },
-      error: () => {
-        this.form.setDisableAll(false);
-        this.configObject.submit.disabled = false;
-      }
-    });
+    this.manageClientService
+      .shareReadAccess({
+        email: businessObject.email,
+        password: businessObject.password
+      })
+      .subscribe({
+        next: () => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'SHARE_READ_ACCESS_DONE');
+          this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, businessObject));
+        },
+        error: () => {
+          this.form.setDisableAll(false);
+          this.configObject.submit.disabled = false;
+        }
+      });
   }
 
   /** Resolves the recipient status, then locks the e-mail / check button and reveals the password only when needed. */
@@ -95,7 +107,7 @@ export class ShareReadAccessDynamicComponent extends PasswordBaseComponent imple
       this.configObject.email.formControl.markAsTouched();
       return;
     }
-    this.manageClientService.checkRecipientStatus(email).subscribe(response => {
+    this.manageClientService.checkRecipientStatus(email).subscribe((response) => {
       switch (response.status) {
         case 'SELF':
           this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'SHARE_SELF_REJECTED');
@@ -162,13 +174,18 @@ export class ShareReadAccessDynamicComponent extends PasswordBaseComponent imple
 
   private buildForm(fdias: FieldDescriptorInputAndShow[]): void {
     super.init(fdias, false);
-    this.formConfig = {labelColumns: 3, nonModal: true, language: this.translateService.currentLang,
-      helpLinkFN: this.helpLink.bind(this)};
+    this.formConfig = {
+      labelColumns: 3,
+      nonModal: true,
+      language: this.translateService.currentLang,
+      helpLinkFN: this.helpLink.bind(this)
+    };
     this.config = [
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'email', fdias),
-      DynamicFieldHelper.createFunctionButtonFieldName('checkExistence', 'CHECK_EXISTENCE',
-        () => this.checkExistence()),
-      {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
+      DynamicFieldHelper.createFunctionButtonFieldName('checkExistence', 'CHECK_EXISTENCE', () =>
+        this.checkExistence()
+      ),
+      { formGroupName: 'passwordGroup', fieldConfig: this.configPassword },
       DynamicFieldHelper.createSubmitButton('GRANT_READ_ACCESS')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

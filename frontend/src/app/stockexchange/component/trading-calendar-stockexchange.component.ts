@@ -1,37 +1,37 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {TradingCalendarBase} from '../../tradingcalendar/component/trading.calendar.base';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TradingCalendarBase } from '../../tradingcalendar/component/trading.calendar.base';
 import {
   AddRemoveDay,
   SaveTradingDays,
   TradingDaysPlusService
 } from '../../tradingcalendar/service/trading.days.plus.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {CopyTradingDaysFromSourceToTarget, TradingDaysMinusService} from '../service/trading.days.minus.service';
-import {combineLatest, Observable} from 'rxjs';
-import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
-import {TradingCalendarGlobalComponent} from '../../tradingcalendar/component/trading.calendar.global.component';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {TradingDaysWithDateBoundaries} from '../../tradingcalendar/model/trading.days.with.date.boundaries';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {TradingCalendarOtherExchangeDynamicComponent} from './trading.calendar.other.exchange.dynamic.component';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { CopyTradingDaysFromSourceToTarget, TradingDaysMinusService } from '../service/trading.days.minus.service';
+import { combineLatest, Observable } from 'rxjs';
+import { RangeSelectDays } from '../../lib/fullyearcalendar/Interface/range.select.days';
+import { TradingCalendarGlobalComponent } from '../../tradingcalendar/component/trading.calendar.global.component';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { TradingDaysWithDateBoundaries } from '../../tradingcalendar/model/trading.days.with.date.boundaries';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { TradingCalendarOtherExchangeDynamicComponent } from './trading.calendar.other.exchange.dynamic.component';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import moment from 'moment';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {Stockexchange} from '../../entities/stockexchange';
-import {CreateType} from '../../entities/dividend.split';
-import {BaseSettings} from '../../lib/base.settings';
-import {PanelModule} from '@openng/optimus-ui/panel';
-import {SelectModule} from '@openng/optimus-ui/select';
-import {FullyearcalendarLibComponent} from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {NgClass} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { Stockexchange } from '../../entities/stockexchange';
+import { CreateType } from '../../entities/dividend.split';
+import { BaseSettings } from '../../lib/base.settings';
+import { PanelModule } from '@openng/optimus-ui/panel';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { FullyearcalendarLibComponent } from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 /**
  * The calendar component for the stock exchange.
@@ -40,6 +40,7 @@ import {FormsModule} from '@angular/forms';
   selector: 'trading-calendar-stockexchange',
   templateUrl: '../../tradingcalendar/view/trading.calendar.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     PanelModule,
     SelectModule,
@@ -57,7 +58,6 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   @Input() stockexchange: Stockexchange;
   @Input() sourceCopyStockexchanges: ValueKeyHtmlSelectOptions[];
 
-
   readonly DATE_ATTRIBUTE = 'tradingDateMinus';
   readonly COPY_FULL_TITLE_KEY = 'TRADING_CALENDAR_FROM_OTHER_EXCHANGE_FULL';
   readonly COPY_YEAR_TITLE_KEY = 'TRADING_CALENDAR_FROM_OTHER_EXCHANGE_YEAR';
@@ -74,15 +74,25 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
 
   private dateCreateTypes: { [key: number]: CreateType };
 
-  constructor(private tradingDaysMinusService: TradingDaysMinusService,
+  constructor(
+    private tradingDaysMinusService: TradingDaysMinusService,
     private tradingDaysPlusService: TradingDaysPlusService,
     private dialogService: DialogService,
     translateService: TranslateService,
     gps: GlobalparameterService,
     activePanelService: ActivePanelService,
-    messageToastService: MessageToastService) {
-    super(translateService, gps, [TradingCalendarStockexchangeComponent.USER_CREATED_COLOR,
-      TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR], activePanelService, messageToastService);
+    messageToastService: MessageToastService
+  ) {
+    super(
+      translateService,
+      gps,
+      [
+        TradingCalendarStockexchangeComponent.USER_CREATED_COLOR,
+        TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR
+      ],
+      activePanelService,
+      messageToastService
+    );
   }
 
   ngOnInit(): void {
@@ -90,20 +100,24 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   readData(yearChange: boolean): void {
-    const plusObservable: Observable<TradingDaysWithDateBoundaries>
-      = this.tradingDaysPlusService.getTradingDaysByYear(this.yearCalendarData.year);
-    const minusObservable: Observable<TradingDaysWithDateBoundaries>
-      = this.tradingDaysMinusService.getTradingDaysMinusByStockexchangeAndYear(
-      this.stockexchange.idStockexchange, this.yearCalendarData.year);
+    const plusObservable: Observable<TradingDaysWithDateBoundaries> = this.tradingDaysPlusService.getTradingDaysByYear(
+      this.yearCalendarData.year
+    );
+    const minusObservable: Observable<TradingDaysWithDateBoundaries> =
+      this.tradingDaysMinusService.getTradingDaysMinusByStockexchangeAndYear(
+        this.stockexchange.idStockexchange,
+        this.yearCalendarData.year
+      );
 
-    combineLatest([plusObservable, minusObservable]).subscribe((data: [TradingDaysWithDateBoundaries,
-      TradingDaysWithDateBoundaries]) => {
-      this.oldestYear = moment(data[0].oldestTradingCalendarDay).year();
-      this.youngestYear = moment(data[0].youngestTradingCalendarDay).year();
-      this.setYearsBoundariesAfterRead(data[0], yearChange);
-      this.tradingDaysPlusList = data[0].dates;
-      this.markDays(data[1].dates, data[1].createTypes);
-    });
+    combineLatest([plusObservable, minusObservable]).subscribe(
+      (data: [TradingDaysWithDateBoundaries, TradingDaysWithDateBoundaries]) => {
+        this.oldestYear = moment(data[0].oldestTradingCalendarDay).year();
+        this.youngestYear = moment(data[0].youngestTradingCalendarDay).year();
+        this.setYearsBoundariesAfterRead(data[0], yearChange);
+        this.tradingDaysPlusList = data[0].dates;
+        this.markDays(data[1].dates, data[1].createTypes);
+      }
+    );
   }
 
   markGlobalTradingDay(): void {
@@ -113,13 +127,15 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
       date.setHours(0, 0, 0, 0);
       this.globalTradingMinusDaysSet.delete(date.getTime());
       this.yearCalendarData.dates.push({
-        id: i, start: date, end: date,
+        id: i,
+        start: date,
+        end: date,
         color: TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR,
         select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onDayPlusSelect(range, ranges)
       });
     });
     this.yearCalendarData.disabledDays = [];
-    this.globalTradingMinusDaysSet.forEach(time => this.yearCalendarData.disabledDays.push({date: new Date(time)}));
+    this.globalTradingMinusDaysSet.forEach((time) => this.yearCalendarData.disabledDays.push({ date: new Date(time) }));
   }
 
   /**
@@ -142,11 +158,12 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   saveData(convertedAddRemoveDays: AddRemoveDay[]): void {
-    this.tradingDaysMinusService.save(this.stockexchange.idStockexchange, new SaveTradingDays(this.yearCalendarData.year,
-      convertedAddRemoveDays)).subscribe(
-      (tradingDaysMinus: TradingDaysWithDateBoundaries) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_GLOBAL_SAVE',
-          {year: this.yearCalendarData.year});
+    this.tradingDaysMinusService
+      .save(this.stockexchange.idStockexchange, new SaveTradingDays(this.yearCalendarData.year, convertedAddRemoveDays))
+      .subscribe((tradingDaysMinus: TradingDaysWithDateBoundaries) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_GLOBAL_SAVE', {
+          year: this.yearCalendarData.year
+        });
         this.markDays(tradingDaysMinus.dates, tradingDaysMinus.createTypes);
       });
   }
@@ -171,15 +188,19 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   copyCalendarFromOtherExchange(fullCopy: boolean): void {
-    this.translateService.get(fullCopy ? this.COPY_FULL_TITLE_KEY : this.COPY_YEAR_TITLE_KEY).subscribe(msg => {
+    this.translateService.get(fullCopy ? this.COPY_FULL_TITLE_KEY : this.COPY_YEAR_TITLE_KEY).subscribe((msg) => {
       const ref = this.dialogService.open(TradingCalendarOtherExchangeDynamicComponent, {
         data: {
-          copyTradingDaysFromSourceToTarget: new CopyTradingDaysFromSourceToTarget(this.stockexchange.idStockexchange,
-            this.yearCalendarData.year, fullCopy),
+          copyTradingDaysFromSourceToTarget: new CopyTradingDaysFromSourceToTarget(
+            this.stockexchange.idStockexchange,
+            this.yearCalendarData.year,
+            fullCopy
+          ),
           sourceCopyStockexchanges: this.sourceCopyStockexchanges,
           calendarRange: `${this.oldestYear} - ${this.youngestYear}`
         },
-        header: msg, width: '400px'
+        header: msg,
+        width: '400px'
       });
 
       ref.onClose.subscribe((tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries) => {
@@ -195,8 +216,9 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
   }
 
   protected override getExistingColor(date: Date): string {
-    return this.dateCreateTypes[date.getTime()] === CreateType.ADD_MODIFIED_USER ?
-      TradingCalendarStockexchangeComponent.USER_CREATED_COLOR : TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR;
+    return this.dateCreateTypes[date.getTime()] === CreateType.ADD_MODIFIED_USER
+      ? TradingCalendarStockexchangeComponent.USER_CREATED_COLOR
+      : TradingCalendarStockexchangeComponent.SYSTEM_CREATED_COLOR;
   }
 
   private markDays(tradingDaysMinus: Date[], createTypes: CreateType[]): void {

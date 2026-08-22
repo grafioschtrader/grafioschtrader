@@ -1,7 +1,7 @@
-import {GlobalSessionNames} from '../global.session.names';
-import {CanActivateFn, Router} from '@angular/router';
-import {inject} from '@angular/core';
-import {BaseSettings} from '../base.settings';
+import { GlobalSessionNames } from '../global.session.names';
+import { CanActivateFn, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { BaseSettings } from '../base.settings';
 
 /**
  * Route guards shared by every application built on this library. They read the roles that

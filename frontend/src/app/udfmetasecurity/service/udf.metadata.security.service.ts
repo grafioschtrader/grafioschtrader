@@ -1,15 +1,15 @@
-import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {Observable} from 'rxjs';
-import {AppSettings} from '../../shared/app.settings';
-import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../lib/login/service/log-in.service';
-import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {DeleteReadAllService} from '../../lib/udfmeta/components/udf.metadata.table';
-import {BaseSettings} from '../../lib/base.settings';
-import {FieldDescriptorInputAndShowExtendedSecurity, UDFMetadataSecurity} from '../model/udf.metadata.security';
+import { Injectable } from '@angular/core';
+import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
+import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { Observable } from 'rxjs';
+import { AppSettings } from '../../shared/app.settings';
+import { catchError } from 'rxjs/operators';
+import { LoginService } from '../../lib/login/service/log-in.service';
+import { HttpClient } from '@angular/common/http';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { DeleteReadAllService } from '../../lib/udfmeta/components/udf.metadata.table';
+import { BaseSettings } from '../../lib/base.settings';
+import { FieldDescriptorInputAndShowExtendedSecurity, UDFMetadataSecurity } from '../model/udf.metadata.security';
 
 /**
  * Service for managing security-specific UDF metadata definitions via REST API.
@@ -17,9 +17,10 @@ import {FieldDescriptorInputAndShowExtendedSecurity, UDFMetadataSecurity} from '
  * Supports asset class and instrument type filtering to ensure UDF fields appear only for relevant security types.
  */
 @Injectable()
-export class UDFMetadataSecurityService extends AuthServiceWithLogout<UDFMetadataSecurity>
-  implements DeleteReadAllService<UDFMetadataSecurity>, ServiceEntityUpdate<UDFMetadataSecurity> {
-
+export class UDFMetadataSecurityService
+  extends AuthServiceWithLogout<UDFMetadataSecurity>
+  implements DeleteReadAllService<UDFMetadataSecurity>, ServiceEntityUpdate<UDFMetadataSecurity>
+{
   /**
    * Creates the UDF metadata security service.
    *
@@ -38,8 +39,11 @@ export class UDFMetadataSecurityService extends AuthServiceWithLogout<UDFMetadat
    * @returns Observable emitting array of security UDF metadata entries
    */
   public getAllByIdUser(): Observable<UDFMetadataSecurity[]> {
-    return <Observable<UDFMetadataSecurity[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<UDFMetadataSecurity[]>>(
+      this.httpClient
+        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   /**
@@ -50,9 +54,11 @@ export class UDFMetadataSecurityService extends AuthServiceWithLogout<UDFMetadat
    * @returns Observable emitting array of field descriptors for enabled security UDF fields, sorted by UI order
    */
   public getAllByIdUserInOrderByUiOrderExcludeDisabled(): Observable<FieldDescriptorInputAndShowExtendedSecurity[]> {
-    return <Observable<FieldDescriptorInputAndShowExtendedSecurity[]>>this.httpClient.get(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/fielddescriptor`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<FieldDescriptorInputAndShowExtendedSecurity[]>>(
+      this.httpClient
+        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/fielddescriptor`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   /**
@@ -63,7 +69,11 @@ export class UDFMetadataSecurityService extends AuthServiceWithLogout<UDFMetadat
    * @returns Observable emitting the updated security UDF metadata entity
    */
   public update(udfMetadataSecurity: UDFMetadataSecurity): Observable<UDFMetadataSecurity> {
-    return this.updateEntity(udfMetadataSecurity, udfMetadataSecurity.idUDFMetadata, AppSettings.UDF_METADATA_SECURITY_KEY);
+    return this.updateEntity(
+      udfMetadataSecurity,
+      udfMetadataSecurity.idUDFMetadata,
+      AppSettings.UDF_METADATA_SECURITY_KEY
+    );
   }
 
   /**
@@ -74,7 +84,11 @@ export class UDFMetadataSecurityService extends AuthServiceWithLogout<UDFMetadat
    * @returns Observable completing when deletion is successful
    */
   public deleteEntity(idUDFMetadata: number): Observable<any> {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}`, this.getHeaders())
+    return this.httpClient
+      .delete(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.UDF_METADATA_SECURITY_KEY}/${idUDFMetadata}`,
+        this.getHeaders()
+      )
       .pipe(catchError(this.handleError.bind(this)));
   }
 }

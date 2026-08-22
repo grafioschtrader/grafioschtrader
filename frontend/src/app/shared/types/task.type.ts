@@ -1,5 +1,5 @@
-import {TaskTypeBase} from '../../lib/taskdatamonitor/types/task.type.base';
-import {TaskTypeExtended} from './task.type.extended';
+import { TaskTypeBase } from '../../lib/taskdatamonitor/types/task.type.base';
+import { TaskTypeExtended } from './task.type.extended';
 
 /**
  * Combined task type enum for Grafioschtrader application.

@@ -6,19 +6,19 @@ import {
   FieldDescriptorInputAndShowExtended,
   ReplaceFieldWithGroup
 } from '../dynamicfield/field.descriptor.input.and.show';
-import {FieldConfig} from '../dynamic-form/models/field.config';
-import {AppHelper} from './app.helper';
-import {DataType} from '../dynamic-form/models/data.type';
-import {BaseParam} from '../entities/base.param';
-import {DynamicFieldHelper, FieldOptions, FieldOptionsCc, VALIDATION_SPECIAL} from './dynamic.field.helper';
-import {Validators} from '@angular/forms';
-import {RuleEvent} from '../dynamic-form/error/error.message.rules';
-import {dateRange, gteDate} from '../validator/validator';
-import {ErrorMessageRules} from '../dynamic-form/error/error.message.rules';
-import {FieldFormGroup} from '../dynamic-form/models/form.group.definition';
-import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
-import {TranslateService} from '@ngx-translate/core';
-import {SelectOptionsHelper} from './select.options.helper';
+import { FieldConfig } from '../dynamic-form/models/field.config';
+import { AppHelper } from './app.helper';
+import { DataType } from '../dynamic-form/models/data.type';
+import { BaseParam } from '../entities/base.param';
+import { DynamicFieldHelper, FieldOptions, FieldOptionsCc, VALIDATION_SPECIAL } from './dynamic.field.helper';
+import { Validators } from '@angular/forms';
+import { RuleEvent } from '../dynamic-form/error/error.message.rules';
+import { dateRange, gteDate } from '../validator/validator';
+import { ErrorMessageRules } from '../dynamic-form/error/error.message.rules';
+import { FieldFormGroup } from '../dynamic-form/models/form.group.definition';
+import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
+import { TranslateService } from '@ngx-translate/core';
+import { SelectOptionsHelper } from './select.options.helper';
 
 /**
  * Utility class for automatically generating dynamic form fields from class descriptors.
@@ -35,7 +35,6 @@ import {SelectOptionsHelper} from './select.options.helper';
  * - Business object to form model conversion utilities with type safety
  */
 export class DynamicFieldModelHelper {
-
   /**
    * Creates form field configurations from a class descriptor with constraint validation support.
    * Handles special validators like date ranges and generates appropriate form groups. If constraint
@@ -48,9 +47,13 @@ export class DynamicFieldModelHelper {
    * @param submitText Custom text for the submit button (defaults to 'SAVE' if not provided)
    * @returns Array of FieldFormGroup objects representing the complete form configuration, or empty array if cdias is null
    */
-  public static createFieldsFromClassDescriptorInputAndShow(translateService: TranslateService,
-    cdias: ClassDescriptorInputAndShow, labelPrefix: string,
-    addSubmitButton = false, submitText?: string): FieldFormGroup[] {
+  public static createFieldsFromClassDescriptorInputAndShow(
+    translateService: TranslateService,
+    cdias: ClassDescriptorInputAndShow,
+    labelPrefix: string,
+    addSubmitButton = false,
+    submitText?: string
+  ): FieldFormGroup[] {
     let config: FieldFormGroup[];
     if (cdias?.constraintValidatorMap && cdias.constraintValidatorMap.size > 0) {
       let validatorCounter = 0;
@@ -58,15 +61,30 @@ export class DynamicFieldModelHelper {
         validatorCounter++;
         switch (ConstraintValidatorType[key]) {
           case ConstraintValidatorType.DateRange:
-            config = this.createDateRangeFields(translateService, cdias, labelPrefix, validatorCounter,
-              value, addSubmitButton, submitText);
+            config = this.createDateRangeFields(
+              translateService,
+              cdias,
+              labelPrefix,
+              validatorCounter,
+              value,
+              addSubmitButton,
+              submitText
+            );
             break;
         }
       }
       return config;
     } else {
-      return cdias ? this.ccFieldsFromDescriptorWithGroup(translateService, cdias.fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
-        null, submitText) : [];
+      return cdias
+        ? this.ccFieldsFromDescriptorWithGroup(
+            translateService,
+            cdias.fieldDescriptorInputAndShows,
+            labelPrefix,
+            addSubmitButton,
+            null,
+            submitText
+          )
+        : [];
     }
   }
 
@@ -84,19 +102,36 @@ export class DynamicFieldModelHelper {
    * @param submitText Custom submit button text
    * @returns Array of FieldFormGroup with dateRange validator applied and original fields replaced
    */
-  private static createDateRangeFields(translateService: TranslateService, cdias: ClassDescriptorInputAndShow,
-    labelPrefix: string, validatorCounter: number,
-    fields: any, addSubmitButton = false, submitText?: string): FieldFormGroup[] {
-    const fdDate1 = cdias.fieldDescriptorInputAndShows.find(f => f.fieldName === fields.startField);
-    const fdDate2 = cdias.fieldDescriptorInputAndShows.find(f => f.fieldName === fields.endField);
-    const fieldConfigs = this.createConfigFieldsFromDescriptor(translateService, [fdDate1, fdDate2], labelPrefix, addSubmitButton, submitText);
-    const fieldFormGroup: FieldFormGroup = {formGroupName: 'dateRange' + validatorCounter, fieldConfig: fieldConfigs};
+  private static createDateRangeFields(
+    translateService: TranslateService,
+    cdias: ClassDescriptorInputAndShow,
+    labelPrefix: string,
+    validatorCounter: number,
+    fields: any,
+    addSubmitButton = false,
+    submitText?: string
+  ): FieldFormGroup[] {
+    const fdDate1 = cdias.fieldDescriptorInputAndShows.find((f) => f.fieldName === fields.startField);
+    const fdDate2 = cdias.fieldDescriptorInputAndShows.find((f) => f.fieldName === fields.endField);
+    const fieldConfigs = this.createConfigFieldsFromDescriptor(
+      translateService,
+      [fdDate1, fdDate2],
+      labelPrefix,
+      addSubmitButton,
+      submitText
+    );
+    const fieldFormGroup: FieldFormGroup = { formGroupName: 'dateRange' + validatorCounter, fieldConfig: fieldConfigs };
     fieldFormGroup.validation = [dateRange(fdDate1.fieldName, fdDate2.fieldName, fdDate2.fieldName)];
-    fieldFormGroup.errors = [{name: 'dateRange', keyi18n: 'dateRange', rules: ['dirty']}];
+    fieldFormGroup.errors = [{ name: 'dateRange', keyi18n: 'dateRange', rules: ['dirty'] }];
     const rfwg = new ReplaceFieldWithGroup(fdDate1.fieldName, fieldFormGroup, fdDate2.fieldName);
-    return this.ccFieldsFromDescriptorWithGroup(translateService, cdias.fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
-      rfwg, submitText);
-
+    return this.ccFieldsFromDescriptorWithGroup(
+      translateService,
+      cdias.fieldDescriptorInputAndShows,
+      labelPrefix,
+      addSubmitButton,
+      rfwg,
+      submitText
+    );
   }
 
   /**
@@ -110,10 +145,19 @@ export class DynamicFieldModelHelper {
    * @param fieldOptionsCc Additional field options and configuration overrides (target field, styling, etc.)
    * @returns FieldConfig object for the specified field, or null if field not found in descriptors
    */
-  public static ccWithFieldsFromDescriptorHeqF(translateService: TranslateService, fieldName: string,
-    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
-    return this.ccWithFieldsFromDescriptor(translateService, fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
-      fieldDescriptorInputAndShows, fieldOptionsCc);
+  public static ccWithFieldsFromDescriptorHeqF(
+    translateService: TranslateService,
+    fieldName: string,
+    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
+    fieldOptionsCc?: FieldOptionsCc
+  ): FieldConfig {
+    return this.ccWithFieldsFromDescriptor(
+      translateService,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      fieldDescriptorInputAndShows,
+      fieldOptionsCc
+    );
   }
 
   /**
@@ -128,9 +172,14 @@ export class DynamicFieldModelHelper {
    * @param fieldOptionsCc Additional field options and configuration overrides (width, validation, etc.)
    * @returns FieldConfig object for the specified field with appropriate input type and validation
    */
-  public static ccWithFieldsFromDescriptor(translateService: TranslateService, fieldName: string, labelKey: string,
-    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[], fieldOptionsCc?: FieldOptionsCc): FieldConfig {
-    const fd = fieldDescriptorInputAndShows.filter(fdias => fdias.fieldName === fieldName)[0];
+  public static ccWithFieldsFromDescriptor(
+    translateService: TranslateService,
+    fieldName: string,
+    labelKey: string,
+    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
+    fieldOptionsCc?: FieldOptionsCc
+  ): FieldConfig {
+    const fd = fieldDescriptorInputAndShows.filter((fdias) => fdias.fieldName === fieldName)[0];
     return this.createConfigFieldFromDescriptor(translateService, fd, null, labelKey, fieldOptionsCc);
   }
 
@@ -146,11 +195,23 @@ export class DynamicFieldModelHelper {
    * @param submitText Custom submit button text
    * @returns Array of FieldConfig objects with asterisk-prefixed labels for literal text (non-translation keys)
    */
-  public static createConfigFieldsFromExtendedDescriptor(translateService: TranslateService,
+  public static createConfigFieldsFromExtendedDescriptor(
+    translateService: TranslateService,
     fdExtendedList: FieldDescriptorInputAndShowExtended[],
-    labelPrefix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
-    const fieldConfigs: FieldConfig[] = <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(translateService, fdExtendedList, labelPrefix, addSubmitButton,
-      null, submitText);
+    labelPrefix: string,
+    addSubmitButton = false,
+    submitText?: string
+  ): FieldConfig[] {
+    const fieldConfigs: FieldConfig[] = <FieldConfig[]>(
+      this.ccFieldsFromDescriptorWithGroup(
+        translateService,
+        fdExtendedList,
+        labelPrefix,
+        addSubmitButton,
+        null,
+        submitText
+      )
+    );
     DynamicFieldModelHelper.addAsterisksToLabelAndHelpText(fdExtendedList, fieldConfigs);
     return fieldConfigs;
   }
@@ -163,8 +224,10 @@ export class DynamicFieldModelHelper {
    * @param fdExtendedList Array of extended field descriptors containing description text
    * @param fieldConfigs Array of field configurations to modify with asterisk prefixes for literal text
    */
-  private static addAsterisksToLabelAndHelpText(fdExtendedList: FieldDescriptorInputAndShowExtended[],
-    fieldConfigs: FieldConfig[]): void {
+  private static addAsterisksToLabelAndHelpText(
+    fdExtendedList: FieldDescriptorInputAndShowExtended[],
+    fieldConfigs: FieldConfig[]
+  ): void {
     const regex = /^[A-Z_]+$/;
     for (let i: number = 0; i < fdExtendedList.length; i++) {
       if (!regex.test(fdExtendedList[i].description)) {
@@ -190,11 +253,23 @@ export class DynamicFieldModelHelper {
    * @param submitText Custom submit button text
    * @returns Array of FieldConfig objects cast as FieldFormGroup for compatibility
    */
-  public static createConfigFieldsFromDescriptor(translateService: TranslateService,
+  public static createConfigFieldsFromDescriptor(
+    translateService: TranslateService,
     fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-    labelPrefix: string, addSubmitButton = false, submitText?: string): FieldConfig[] {
-    return <FieldConfig[]>this.ccFieldsFromDescriptorWithGroup(translateService, fieldDescriptorInputAndShows, labelPrefix, addSubmitButton,
-      null, submitText);
+    labelPrefix: string,
+    addSubmitButton = false,
+    submitText?: string
+  ): FieldConfig[] {
+    return <FieldConfig[]>(
+      this.ccFieldsFromDescriptorWithGroup(
+        translateService,
+        fieldDescriptorInputAndShows,
+        labelPrefix,
+        addSubmitButton,
+        null,
+        submitText
+      )
+    );
   }
 
   /**
@@ -210,12 +285,16 @@ export class DynamicFieldModelHelper {
    * @param submitText Custom submit button text
    * @returns Array of FieldFormGroup objects (mix of individual fields and form groups)
    */
-  private static ccFieldsFromDescriptorWithGroup(translateService: TranslateService,
+  private static ccFieldsFromDescriptorWithGroup(
+    translateService: TranslateService,
     fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-    labelPrefix: string, addSubmitButton = false,
-    rpg: ReplaceFieldWithGroup, submitText?: string): FieldFormGroup[] {
+    labelPrefix: string,
+    addSubmitButton = false,
+    rpg: ReplaceFieldWithGroup,
+    submitText?: string
+  ): FieldFormGroup[] {
     const fieldConfigs: FieldFormGroup[] = [];
-    fieldDescriptorInputAndShows.forEach(fd => {
+    fieldDescriptorInputAndShows.forEach((fd) => {
       if (rpg && (fd.fieldName === rpg.replaceFieldName || fd.fieldName === rpg.removeFieldName)) {
         if (fd.fieldName === rpg.replaceFieldName) {
           fieldConfigs.push(rpg.fieldFormGroup);
@@ -245,11 +324,20 @@ export class DynamicFieldModelHelper {
    * @param fieldOptionsCc Additional field options and overrides (target field, styling, etc.)
    * @returns FieldConfig object with appropriate input type, validation, and calendar config, or null if unsupported type
    */
-  private static createConfigFieldFromDescriptor(translateService: TranslateService, fd: FieldDescriptorInputAndShow,
-    labelPrefix: string, labelKey: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+  private static createConfigFieldFromDescriptor(
+    translateService: TranslateService,
+    fd: FieldDescriptorInputAndShow,
+    labelPrefix: string,
+    labelKey: string,
+    fieldOptionsCc?: FieldOptionsCc
+  ): FieldConfig {
     let fieldConfig: FieldConfig;
     const targetField = fieldOptionsCc && fieldOptionsCc.targetField ? fieldOptionsCc.targetField : fd.fieldName;
-    labelKey = labelKey ? labelKey : (fd.labelKey ? fd.labelKey : labelPrefix + AppHelper.toUpperCaseWithUnderscore(fd.fieldName));
+    labelKey = labelKey
+      ? labelKey
+      : fd.labelKey
+        ? fd.labelKey
+        : labelPrefix + AppHelper.toUpperCaseWithUnderscore(fd.fieldName);
 
     switch (DataType[fd.dataType]) {
       case DataType.Boolean:
@@ -263,8 +351,7 @@ export class DynamicFieldModelHelper {
         fieldConfig = this.createNumericInputFromDescriptor(fd, labelKey, targetField, fieldOptionsCc);
         break;
       case DataType.URLString:
-        fieldConfig = DynamicFieldHelper.createFieldInputWebUrl(targetField, labelKey, fd.required,
-          fieldOptionsCc);
+        fieldConfig = DynamicFieldHelper.createFieldInputWebUrl(targetField, labelKey, fd.required, fieldOptionsCc);
         break;
       case DataType.EnumSet:
         fieldConfig = this.createEnumSetMultiSelect(translateService, fd, labelKey, targetField, fieldOptionsCc);
@@ -274,9 +361,16 @@ export class DynamicFieldModelHelper {
       case DataType.DateTimeNumeric:
       case DataType.DateTimeString:
       case DataType.DateStringShortUS:
-        fieldConfig = DynamicFieldHelper.createFieldPcalendar(DataType[fd.dataType], targetField, labelKey, fd.required);
-        if (fd.dynamicFormPropertyHelps
-          && DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0]] === DynamicFormPropertyHelps.DATE_FUTURE) {
+        fieldConfig = DynamicFieldHelper.createFieldPcalendar(
+          DataType[fd.dataType],
+          targetField,
+          labelKey,
+          fd.required
+        );
+        if (
+          fd.dynamicFormPropertyHelps &&
+          DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0]] === DynamicFormPropertyHelps.DATE_FUTURE
+        ) {
           fieldConfig.defaultValue = new Date();
           this.applyMinDate(fieldConfig, fieldConfig.defaultValue, fd.required);
         } else {
@@ -302,10 +396,10 @@ export class DynamicFieldModelHelper {
    * @param required whether the field is required (kept for symmetry with the existing required validators)
    */
   private static applyMinDate(fieldConfig: FieldConfig, minDate: Date, required: boolean): void {
-    fieldConfig.calendarConfig = {...fieldConfig.calendarConfig, minDate};
+    fieldConfig.calendarConfig = { ...fieldConfig.calendarConfig, minDate };
     const validator = gteDate(minDate);
     fieldConfig.validation = fieldConfig.validation ? [...fieldConfig.validation, validator] : [validator];
-    const emr: ErrorMessageRules = {name: 'gteDate', keyi18n: 'gteDate', param1: <any>minDate, rules: ['dirty']};
+    const emr: ErrorMessageRules = { name: 'gteDate', keyi18n: 'gteDate', param1: <any>minDate, rules: ['dirty'] };
     fieldConfig.errors = fieldConfig.errors ? [...fieldConfig.errors, emr] : [emr];
   }
 
@@ -320,19 +414,37 @@ export class DynamicFieldModelHelper {
    * @param fieldOptionsCc additional field options
    * @returns FieldConfig for the appropriate numeric input type
    */
-  private static createNumericInputFromDescriptor(fd: FieldDescriptorInputAndShow, labelKey: string,
-    targetField: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+  private static createNumericInputFromDescriptor(
+    fd: FieldDescriptorInputAndShow,
+    labelKey: string,
+    targetField: string,
+    fieldOptionsCc?: FieldOptionsCc
+  ): FieldConfig {
     const helpNames = <string[]>(fd.dynamicFormPropertyHelps || []);
     if (helpNames.indexOf(DynamicFormPropertyHelps[DynamicFormPropertyHelps.SELECT_OPTIONS]) >= 0) {
       return DynamicFieldHelper.createFieldSelectNumber(targetField, labelKey, fd.required, fieldOptionsCc);
     }
     if (fd.digitsInteger != null) {
       const allowNegative = fd.min == null || fd.min < 0;
-      return DynamicFieldHelper.createFieldInputNumber(targetField, labelKey, fd.required, fd.digitsInteger,
-        fd.digitsFraction != null ? fd.digitsFraction : 0, allowNegative, fieldOptionsCc);
+      return DynamicFieldHelper.createFieldInputNumber(
+        targetField,
+        labelKey,
+        fd.required,
+        fd.digitsInteger,
+        fd.digitsFraction != null ? fd.digitsFraction : 0,
+        allowNegative,
+        fieldOptionsCc
+      );
     }
-    return DynamicFieldHelper.createFieldMinMaxNumber(DataType[fd.dataType], targetField, labelKey, fd.required,
-      fd.min, fd.max, {...fieldOptionsCc, fieldSuffix: DynamicFieldModelHelper.getFieldPercentageSuffix(fd)});
+    return DynamicFieldHelper.createFieldMinMaxNumber(
+      DataType[fd.dataType],
+      targetField,
+      labelKey,
+      fd.required,
+      fd.min,
+      fd.max,
+      { ...fieldOptionsCc, fieldSuffix: DynamicFieldModelHelper.getFieldPercentageSuffix(fd) }
+    );
   }
 
   /**
@@ -344,7 +456,7 @@ export class DynamicFieldModelHelper {
   private static applyPattern(fieldConfig: FieldConfig, pattern: string): void {
     const validator = Validators.pattern(pattern);
     fieldConfig.validation = fieldConfig.validation ? [...fieldConfig.validation, validator] : [validator];
-    const emr: ErrorMessageRules = {name: 'pattern', keyi18n: 'pattern', rules: [RuleEvent.FOCUSOUT]};
+    const emr: ErrorMessageRules = { name: 'pattern', keyi18n: 'pattern', rules: [RuleEvent.FOCUSOUT] };
     fieldConfig.errors = fieldConfig.errors ? [...fieldConfig.errors, emr] : [emr];
   }
 
@@ -359,24 +471,38 @@ export class DynamicFieldModelHelper {
    * @param fieldOptionsCc Additional field options and configuration (merged with min length from descriptor)
    * @returns FieldConfig object configured for appropriate string input type with validation
    */
-  private static createStringInputFromDescriptor(fd: FieldDescriptorInputAndShow, labelKey: string, targetField: string,
-    fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+  private static createStringInputFromDescriptor(
+    fd: FieldDescriptorInputAndShow,
+    labelKey: string,
+    targetField: string,
+    fieldOptionsCc?: FieldOptionsCc
+  ): FieldConfig {
     let fieldConfig: FieldConfig;
-    const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, {minLength: fd.min});
+    const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, { minLength: fd.min });
     if (fd.dynamicFormPropertyHelps) {
       switch (DynamicFormPropertyHelps[fd.dynamicFormPropertyHelps[0]]) {
         case DynamicFormPropertyHelps.EMAIL:
-          fieldConfig = DynamicFieldHelper.createFieldDAInputStringVSHeqF(DataType.Email, targetField, fd.max, fd.required,
-            [VALIDATION_SPECIAL.EMail], fieldOptions);
+          fieldConfig = DynamicFieldHelper.createFieldDAInputStringVSHeqF(
+            DataType.Email,
+            targetField,
+            fd.max,
+            fd.required,
+            [VALIDATION_SPECIAL.EMail],
+            fieldOptions
+          );
           break;
         case DynamicFormPropertyHelps.PASSWORD:
-          fieldConfig = DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.Password, targetField, fd.max, fd.required,
-            fieldOptions);
+          fieldConfig = DynamicFieldHelper.createFieldDAInputStringHeqF(
+            DataType.Password,
+            targetField,
+            fd.max,
+            fd.required,
+            fieldOptions
+          );
           break;
         case DynamicFormPropertyHelps.SELECT_OPTIONS:
           fieldOptions.inputWidth = fd.max;
-          fieldConfig = DynamicFieldHelper.createFieldSelectStringHeqF(targetField, fd.required,
-            fieldOptions);
+          fieldConfig = DynamicFieldHelper.createFieldSelectStringHeqF(targetField, fd.required, fieldOptions);
           break;
 
         default:
@@ -384,11 +510,21 @@ export class DynamicFieldModelHelper {
     } else {
       if (fd.max && fd.max > 80) {
         fieldOptions.textareaRows = fieldOptions.textareaRows ? fieldOptions.textareaRows : Math.ceil(fd.max / 80);
-        fieldConfig = DynamicFieldHelper.createFieldTextareaInputString(targetField, labelKey, fd.max, fd.required,
-          fieldOptions);
+        fieldConfig = DynamicFieldHelper.createFieldTextareaInputString(
+          targetField,
+          labelKey,
+          fd.max,
+          fd.required,
+          fieldOptions
+        );
       } else {
-        fieldConfig = DynamicFieldHelper.createFieldInputString(targetField, labelKey, fd.max, fd.required,
-          fieldOptions);
+        fieldConfig = DynamicFieldHelper.createFieldInputString(
+          targetField,
+          labelKey,
+          fd.max,
+          fd.required,
+          fieldOptions
+        );
       }
       if (fd.pattern) {
         this.applyPattern(fieldConfig, fd.pattern);
@@ -409,16 +545,23 @@ export class DynamicFieldModelHelper {
    * @param fieldOptionsCc Additional field options (merged with generated options)
    * @returns FieldConfig for multi-select component with translated enum options and empty array default
    */
-  private static createEnumSetMultiSelect(translateService: TranslateService, fd: FieldDescriptorInputAndShow,
-    labelKey: string, targetField: string, fieldOptionsCc?: FieldOptionsCc): FieldConfig {
+  private static createEnumSetMultiSelect(
+    translateService: TranslateService,
+    fd: FieldDescriptorInputAndShow,
+    labelKey: string,
+    targetField: string,
+    fieldOptionsCc?: FieldOptionsCc
+  ): FieldConfig {
     // Convert enum values to select options with translation
     // key = enum value name (submitted value), value = translated display text
-    const untranslatedOptions: ValueKeyHtmlSelectOptions[] = fd.enumValues?.map(enumValue =>
-      new ValueKeyHtmlSelectOptions(enumValue, enumValue)
-    ) || [];
+    const untranslatedOptions: ValueKeyHtmlSelectOptions[] =
+      fd.enumValues?.map((enumValue) => new ValueKeyHtmlSelectOptions(enumValue, enumValue)) || [];
 
     const valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-      translateService, untranslatedOptions, false);
+      translateService,
+      untranslatedOptions,
+      false
+    );
 
     const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, {
       valueKeyHtmlOptions
@@ -439,17 +582,22 @@ export class DynamicFieldModelHelper {
    * @param addStrategyImplField Whether to add the selection field to the model (for strategy pattern implementations)
    * @returns Dynamic model object with converted values ready for server submission
    */
-  public static createAndSetValuesInDynamicModel(e: any,
+  public static createAndSetValuesInDynamicModel(
+    e: any,
     targetSelectionField: string,
     paramMap: Map<string, BaseParam> | { [key: string]: BaseParam },
     fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
-    addStrategyImplField = false): any {
+    addStrategyImplField = false
+  ): any {
     const dynamicModel: any = {};
     if (addStrategyImplField) {
       dynamicModel[targetSelectionField] = e;
     }
-    return DynamicFieldModelHelper.setValuesOfMapModelToDynamicModel(fieldDescriptorInputAndShows,
-      paramMap, dynamicModel);
+    return DynamicFieldModelHelper.setValuesOfMapModelToDynamicModel(
+      fieldDescriptorInputAndShows,
+      paramMap,
+      dynamicModel
+    );
   }
 
   /**
@@ -462,10 +610,12 @@ export class DynamicFieldModelHelper {
    * @param dynamicModel Target model object to populate (created if not provided)
    * @returns Dynamic model object with type-converted values matching field descriptor data types
    */
-  public static setValuesOfMapModelToDynamicModel(fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
+  public static setValuesOfMapModelToDynamicModel(
+    fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
     paramMap: Map<string, BaseParam> | { [key: string]: BaseParam },
-    dynamicModel: any = {}): any {
-    fieldDescriptorInputAndShows.forEach(fieldDescriptorInputAndShow => {
+    dynamicModel: any = {}
+  ): any {
+    fieldDescriptorInputAndShows.forEach((fieldDescriptorInputAndShow) => {
       let value = paramMap[fieldDescriptorInputAndShow.fieldName].paramValue;
       switch (DataType[fieldDescriptorInputAndShow.dataType]) {
         case DataType.Numeric:
@@ -493,9 +643,12 @@ export class DynamicFieldModelHelper {
    * @returns Percentage symbol (%) if field has PERCENTAGE property, null otherwise
    */
   public static getFieldPercentageSuffix(fDIAS: FieldDescriptorInputAndShow): string {
-    return (fDIAS.dynamicFormPropertyHelps
-      && (<string[]>fDIAS.dynamicFormPropertyHelps)
-        .indexOf(DynamicFormPropertyHelps[DynamicFormPropertyHelps.PERCENTAGE]) >= 0) ? '%' : null;
+    return fDIAS.dynamicFormPropertyHelps &&
+      (<string[]>fDIAS.dynamicFormPropertyHelps).indexOf(
+        DynamicFormPropertyHelps[DynamicFormPropertyHelps.PERCENTAGE]
+      ) >= 0
+      ? '%'
+      : null;
   }
 
   /**
@@ -519,5 +672,4 @@ export class DynamicFieldModelHelper {
     }
     return false;
   }
-
 }

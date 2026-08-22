@@ -1,25 +1,25 @@
-import {Component, Injector, OnDestroy} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {combineLatest} from 'rxjs';
+import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { combineLatest } from 'rxjs';
 
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {BaseSettings} from '../../lib/base.settings';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {AppSettings} from '../../shared/app.settings';
-import {TradingCalendarRuleSet} from '../../entities/trading.calendar.rule.set';
-import {TradingCalendarRuleSetService} from '../service/trading.calendar.rule.set.service';
-import {TradingCalendarRuleSetEditComponent} from './trading-calendar-rule-set-edit.component';
-import {StockexchangeService} from '../service/stockexchange.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { BaseSettings } from '../../lib/base.settings';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { AppSettings } from '../../shared/app.settings';
+import { TradingCalendarRuleSet } from '../../entities/trading.calendar.rule.set';
+import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.set.service';
+import { TradingCalendarRuleSetEditComponent } from './trading-calendar-rule-set-edit.component';
+import { StockexchangeService } from '../service/stockexchange.service';
 
 /**
  * Shows the trading calendar rule sets, the shared holiday rules from which the closures of a stock exchange can be
@@ -38,69 +38,94 @@ import {StockexchangeService} from '../service/stockexchange.service';
       [scrollable]="false"
       [stripedRows]="true"
       [showGridlines]="true"
-      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems" [contextMenuAppendTo]="'body'"
+      [contextMenuItems]="contextMenuItems"
+      [contextMenuAppendTo]="'body'"
       [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
       [valueGetterFn]="getValueByPath.bind(this)"
       (componentClick)="onComponentClick($event)">
-
-      <h4 caption>{{entityNameUpper | translate}}</h4>
+      <h4 caption>{{ entityNameUpper | translate }}</h4>
 
       <!-- Country flag cell (templateName: 'icon'); country resolved from the MIC, tooltip shows
            the technical id_trading_calendar_rule_set -->
       <ng-template #iconCell let-row>
-        <img src="assets/icons/flag_placeholder.png"
-             [class]="'fi fi-' + getFlagCountryCode(row.mic)"
-             style="width: 20px"
-             [pTooltip]="row.idTradingCalendarRuleSet" tooltipPosition="top"/>
+        <img
+          src="assets/icons/flag_placeholder.png"
+          [class]="'fi fi-' + getFlagCountryCode(row.mic)"
+          style="width: 20px"
+          [pTooltip]="row.idTradingCalendarRuleSet"
+          tooltipPosition="top" />
       </ng-template>
-
     </configurable-table>
 
     @if (visibleDialog) {
-      <trading-calendar-rule-set-edit [visibleDialog]="visibleDialog"
-                                      [callParam]="callParam"
-                                      (closeDialog)="handleCloseDialog($event)">
+      <trading-calendar-rule-set-edit
+        [visibleDialog]="visibleDialog"
+        [callParam]="callParam"
+        (closeDialog)="handleCloseDialog($event)">
       </trading-calendar-rule-set-edit>
     }
   `,
   providers: [DialogService],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, TooltipModule, ConfigurableTableComponent, TradingCalendarRuleSetEditComponent]
 })
-export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<TradingCalendarRuleSet>
-  implements OnDestroy {
-
+export class TradingCalendarRuleSetTableComponent
+  extends TableCrudSupportMenu<TradingCalendarRuleSet>
+  implements OnDestroy
+{
   callParam: TradingCalendarRuleSet;
 
   /** Maps a market identifier code (MIC) to its ISO country code, for the flag column. */
   private micToCountryCode: { [mic: string]: string } = {};
 
-  constructor(private tradingCalendarRuleSetService: TradingCalendarRuleSetService,
-              private stockexchangeService: StockexchangeService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(AppSettings.TRADING_CALENDAR_RULE_SET, tradingCalendarRuleSetService, confirmationService,
-      messageToastService, activePanelService, dialogService, filterService, translateService, gps, usersettingsService,
-      injector);
+  constructor(
+    private tradingCalendarRuleSetService: TradingCalendarRuleSetService,
+    private stockexchangeService: StockexchangeService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      AppSettings.TRADING_CALENDAR_RULE_SET,
+      tradingCalendarRuleSetService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
 
-    this.addColumnFeqH(DataType.String, 'name', true, false,
-      {width: 220, templateName: BaseSettings.OWNER_TEMPLATE});
-    this.addColumn(DataType.String, 'countryFlag', 'COUNTRY_FLAG', true, false,
-      {width: 40, templateName: 'icon', fieldValueFN: this.getCountryCodeForSort.bind(this)});
-    this.addColumnFeqH(DataType.String, 'mic', true, false, {width: 50});
-    this.addColumn(DataType.String, 'nameExtendsRuleSet', 'ID_EXTENDS_RULE_SET', true, false, {width: 200});
-    this.addColumn(DataType.NumericInteger, 'usedByExchanges', 'USED_BY_EXCHANGES', true, false, {width: 80});
+    this.addColumnFeqH(DataType.String, 'name', true, false, {
+      width: 220,
+      templateName: BaseSettings.OWNER_TEMPLATE
+    });
+    this.addColumn(DataType.String, 'countryFlag', 'COUNTRY_FLAG', true, false, {
+      width: 40,
+      templateName: 'icon',
+      fieldValueFN: this.getCountryCodeForSort.bind(this)
+    });
+    this.addColumnFeqH(DataType.String, 'mic', true, false, { width: 50 });
+    this.addColumn(DataType.String, 'nameExtendsRuleSet', 'ID_EXTENDS_RULE_SET', true, false, { width: 200 });
+    this.addColumn(DataType.NumericInteger, 'usedByExchanges', 'USED_BY_EXCHANGES', true, false, { width: 80 });
 
-    this.multiSortMeta.push({field: 'name', order: 1});
+    this.multiSortMeta.push({ field: 'name', order: 1 });
     this.prepareTableAndTranslate();
   }
 
@@ -148,7 +173,7 @@ export class TradingCalendarRuleSetTableComponent extends TableCrudSupportMenu<T
       this.stockexchangeService.getAllStockexchangesBaseData()
     ]).subscribe(([ruleSets, baseData]) => {
       this.micToCountryCode = {};
-      baseData.stockexchangeMics.forEach(m => this.micToCountryCode[m.mic] = m.countryCode);
+      baseData.stockexchangeMics.forEach((m) => (this.micToCountryCode[m.mic] = m.countryCode));
       this.createTranslatedValueStoreAndFilterField(ruleSets);
       this.entityList = ruleSets;
       this.refreshSelectedEntity();

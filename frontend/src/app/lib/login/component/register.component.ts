@@ -1,25 +1,25 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {LoginService} from '../service/log-in.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../message/message.toast.service';
-import {GlobalparameterService, PasswordRegexProperties} from '../../services/globalparameter.service';
-import {User} from '../../entities/user';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {PasswordBaseComponent} from './password.base.component';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {ActuatorService, ApplicationInfo} from '../../services/actuator.service';
-import {combineLatest} from 'rxjs';
-import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {GlobalSessionNames} from '../../global.session.names';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
-import {HelpIds} from '../../help/help.ids';
-import {BaseSettings} from '../../base.settings';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { LoginService } from '../service/log-in.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MessageToastService } from '../../message/message.toast.service';
+import { GlobalparameterService, PasswordRegexProperties } from '../../services/globalparameter.service';
+import { User } from '../../entities/user';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { PasswordBaseComponent } from './password.base.component';
+import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { ActuatorService, ApplicationInfo } from '../../services/actuator.service';
+import { combineLatest } from 'rxjs';
+import { FieldDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
+import { GlobalSessionNames } from '../../global.session.names';
+import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
+import { HelpIds } from '../../help/help.ids';
+import { BaseSettings } from '../../base.settings';
 
-import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
-import {ProgressBarModule} from '@openng/optimus-ui/progressbar';
-import {ApplicationInfoComponent} from './application-info.component';
+import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
+import { ApplicationInfoComponent } from './application-info.component';
 
 /**
  * Shows the user register form.
@@ -28,7 +28,6 @@ import {ApplicationInfoComponent} from './application-info.component';
   template: `
     <div class="container">
       <div class="login jumbotron-replacement mx-auto">
-
         @if (errorLastRegistration) {
           <div class="alert alert-danger" role="alert">
             {{ errorLastRegistration | translate }}
@@ -39,9 +38,12 @@ import {ApplicationInfoComponent} from './application-info.component';
 
         @if (applicationInfo) {
           <h2>{{ 'REGISTRATION' | translate }}</h2>
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                        #form="dynamicForm"
-                        (submitBt)="submit($event)">
+          <dynamic-form
+            [config]="config"
+            [formConfig]="formConfig"
+            [translateService]="translateService"
+            #form="dynamicForm"
+            (submitBt)="submit($event)">
           </dynamic-form>
 
           @if (progressValue) {
@@ -61,6 +63,7 @@ import {ApplicationInfoComponent} from './application-info.component';
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule, ProgressBarModule, ApplicationInfoComponent]
 })
 export class RegisterComponent extends PasswordBaseComponent implements OnInit, OnDestroy {
@@ -70,29 +73,35 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   confirmEmail = false;
   applicationInfo: ApplicationInfo;
 
-  constructor(private messageToastService: MessageToastService,
+  constructor(
+    private messageToastService: MessageToastService,
     private actuatorService: ActuatorService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private loginService: LoginService,
     gps: GlobalparameterService,
-    translateService: TranslateService) {
+    translateService: TranslateService
+  ) {
     super(gps, translateService);
   }
 
   ngOnInit(): void {
-    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions(),
-      this.gps.getPasswordRegexProperties()]).subscribe({
-        next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[],
-          prp: PasswordRegexProperties]) => {
-          this.applicationInfo = data[0];
-          sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
-          this.loginFormDefinition(data[1]);
-          this.passwordRegexProperties = data[2];
-          setTimeout(() => this.preparePasswordFields());
-        }, error: err => this.applicationInfo = null
-      }
-    );
+    combineLatest([
+      this.actuatorService.applicationInfo(),
+      this.gps.getUserFormDefinitions(),
+      this.gps.getPasswordRegexProperties()
+    ]).subscribe({
+      next: (
+        data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[], prp: PasswordRegexProperties]
+      ) => {
+        this.applicationInfo = data[0];
+        sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
+        this.loginFormDefinition(data[1]);
+        this.passwordRegexProperties = data[2];
+        setTimeout(() => this.preparePasswordFields());
+      },
+      error: (err) => (this.applicationInfo = null)
+    });
   }
 
   submit(value: { [name: string]: any }): void {
@@ -104,12 +113,13 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
     this.form.setDisableAll(true);
     this.showProgressIndicator();
     this.loginService.update(user).subscribe({
-      next: newUser => {
+      next: (newUser) => {
         this.progressValue = 100;
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'USER_NEW_SAVED');
         this.progressValue = undefined;
         this.confirmEmail = true;
-      }, error: () => {
+      },
+      error: () => {
         this.progressValue = undefined;
         this.form.setDisableAll(false);
         this.configObject.submit.disabled = false;
@@ -139,17 +149,18 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
     super.init(fdias, false);
     this.formConfig = {
-      labelColumns: 3, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      labelColumns: 3,
+      helpLinkFN: this.helpLink.bind(this),
+      nonModal: true,
       language: this.translateService.currentLang
     };
 
     this.config = [
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'nickname', fdias),
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'email', fdias),
-      {formGroupName: 'passwordGroup', fieldConfig: this.configPassword},
+      { formGroupName: 'passwordGroup', fieldConfig: this.configPassword },
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'localeStr', fdias),
-      DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) =>
-        this.router.navigate([`/${BaseSettings.LOGIN_KEY}`])),
+      DynamicFieldHelper.createFunctionButton('SIGN_IN', (e) => this.router.navigate([`/${BaseSettings.LOGIN_KEY}`])),
       DynamicFieldHelper.createSubmitButton('REGISTRATION')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -157,14 +168,13 @@ export class RegisterComponent extends PasswordBaseComponent implements OnInit, 
   }
 
   private prepareData() {
-    this.queryParams = this.activatedRoute.params.subscribe(params => {
+    this.queryParams = this.activatedRoute.params.subscribe((params) => {
       this.errorLastRegistration = params['failure'];
     });
-    this.gps.getSupportedLocales().subscribe(data => {
-        this.configObject.localeStr.valueKeyHtmlOptions = data;
-        super.preparePasswordFields();
-        this.configObject.nickname.elementRef.nativeElement.focus();
-      }
-    );
+    this.gps.getSupportedLocales().subscribe((data) => {
+      this.configObject.localeStr.valueKeyHtmlOptions = data;
+      super.preparePasswordFields();
+      this.configObject.nickname.elementRef.nativeElement.focus();
+    });
   }
 }

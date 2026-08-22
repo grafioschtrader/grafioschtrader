@@ -1,30 +1,30 @@
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {Assetclass} from '../../entities/assetclass';
-import {Helper} from '../../lib/helper/helper';
-import {Subscription} from 'rxjs';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {Stockexchange} from '../../entities/stockexchange';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {Security} from '../../entities/security';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {FormBase} from '../../lib/edit/form.base';
-import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {ValidatorFn} from '@angular/forms';
-import {ErrorMessageRules} from '../../lib/dynamic-form/error/error.message.rules';
-import {AppSettings} from '../../shared/app.settings';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
-import {BusinessSelectOptionsHelper} from './business.select.options.helper';
-import {BaseSettings} from '../../lib/base.settings';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { Assetclass } from '../../entities/assetclass';
+import { Helper } from '../../lib/helper/helper';
+import { Subscription } from 'rxjs';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { Stockexchange } from '../../entities/stockexchange';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Security } from '../../entities/security';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { FormBase } from '../../lib/edit/form.base';
+import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { ValidatorFn } from '@angular/forms';
+import { ErrorMessageRules } from '../../lib/dynamic-form/error/error.message.rules';
+import { AppSettings } from '../../shared/app.settings';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
+import { BusinessSelectOptionsHelper } from './business.select.options.helper';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Some definition of fields are shared between the different edit components of instruments. Those aee
@@ -50,157 +50,302 @@ export class SecurityEditSupport {
   private activeFromDateSubscribe: Subscription;
   private securitySubscribe: Subscription;
 
-
-  constructor(private translateService: TranslateService,
+  constructor(
+    private translateService: TranslateService,
     private gps: GlobalparameterService,
-    private callbackValueChanged: CallbackValueChanged) {
-  }
-
+    private callbackValueChanged: CallbackValueChanged
+  ) {}
 
   static getSecurityBaseFieldDefinition(securityDerived: SecurityDerived, gps: GlobalparameterService): FieldConfig[] {
     const fc: FieldConfig[] = [];
 
-      fc.push(DynamicFieldHelper.createFieldInputString('name', 'NAME_SECURITY', 80, true,
-        {minLength: 2, fieldsetName: 'BASE_DATA'}));
-      fc.push(DynamicFieldHelper.createFieldSelectNumber('assetClass', AppSettings.ASSETCLASS.toUpperCase(), true,
-        {dataproperty: 'assetClass.idAssetClass', fieldsetName: 'BASE_DATA'}));
+    fc.push(
+      DynamicFieldHelper.createFieldInputString('name', 'NAME_SECURITY', 80, true, {
+        minLength: 2,
+        fieldsetName: 'BASE_DATA'
+      })
+    );
+    fc.push(
+      DynamicFieldHelper.createFieldSelectNumber('assetClass', AppSettings.ASSETCLASS.toUpperCase(), true, {
+        dataproperty: 'assetClass.idAssetClass',
+        fieldsetName: 'BASE_DATA'
+      })
+    );
 
-    fc.push(DynamicFieldHelper.createFieldCheckbox('isTenantPrivate', 'PRIVATE_SECURITY', {fieldsetName: 'BASE_DATA'}));
+    fc.push(
+      DynamicFieldHelper.createFieldCheckbox('isTenantPrivate', 'PRIVATE_SECURITY', { fieldsetName: 'BASE_DATA' })
+    );
 
-    fc.push(DynamicFieldHelper.createFieldSelectNumberHeqF(AppSettings.STOCKEXCHANGE.toLowerCase(), true,
-      {dataproperty: 'stockexchange.idStockexchange', fieldsetName: 'BASE_DATA'}));
+    fc.push(
+      DynamicFieldHelper.createFieldSelectNumberHeqF(AppSettings.STOCKEXCHANGE.toLowerCase(), true, {
+        dataproperty: 'stockexchange.idStockexchange',
+        fieldsetName: 'BASE_DATA'
+      })
+    );
 
     if (securityDerived === SecurityDerived.Security) {
-      fc.push(DynamicFieldHelper.createFieldInputStringVSHeqF('isin', 12, false,
-        ['ISIN'], {fieldsetName: 'BASE_DATA'}));
-      fc.push(DynamicFieldHelper.createFieldInputStringHeqF('tickerSymbol', 6, false,
-        {fieldsetName: 'BASE_DATA', upperCase: true}));
+      fc.push(
+        DynamicFieldHelper.createFieldInputStringVSHeqF('isin', 12, false, ['ISIN'], { fieldsetName: 'BASE_DATA' })
+      );
+      fc.push(
+        DynamicFieldHelper.createFieldInputStringHeqF('tickerSymbol', 6, false, {
+          fieldsetName: 'BASE_DATA',
+          upperCase: true
+        })
+      );
     }
 
-    fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('currency', true,
-      {inputWidth: 10, fieldsetName: 'BASE_DATA'}));
+    fc.push(
+      DynamicFieldHelper.createFieldSelectStringHeqF('currency', true, { inputWidth: 10, fieldsetName: 'BASE_DATA' })
+    );
 
     if (securityDerived === SecurityDerived.Security) {
-      const fieldConfig = DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'denomination', true,
-        1, 1_000_000, {fieldsetName: 'BASE_DATA'});
+      const fieldConfig = DynamicFieldHelper.createFieldMinMaxNumberHeqF(
+        DataType.NumericInteger,
+        'denomination',
+        true,
+        1,
+        1_000_000,
+        { fieldsetName: 'BASE_DATA' }
+      );
       fc.push(fieldConfig);
       this.denominationValidation = fieldConfig.validation;
       this.denominationErrors = fieldConfig.errors;
     }
 
-    fc.push(DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeFromDate',
-      true, {fieldsetName: 'BASE_DATA', defaultValue: new Date(2000, 0, 3)}));
+    fc.push(
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeFromDate', true, {
+        fieldsetName: 'BASE_DATA',
+        defaultValue: new Date(2000, 0, 3)
+      })
+    );
 
-    fc.push(DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeToDate',
-      true, {fieldsetName: 'BASE_DATA', defaultValue: new Date(2099, 11, 31)}));
+    fc.push(
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeToDate', true, {
+        fieldsetName: 'BASE_DATA',
+        defaultValue: new Date(2099, 11, 31)
+      })
+    );
 
-    fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('distributionFrequency', true,
-      {fieldsetName: 'BASE_DATA'}));
+    fc.push(
+      DynamicFieldHelper.createFieldSelectStringHeqF('distributionFrequency', true, { fieldsetName: 'BASE_DATA' })
+    );
 
-    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false,
-        -9.99, 9.99, {fieldsetName: 'BASE_DATA', defaultValue: 1}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false,
-        {fieldsetName: 'BASE_DATA'}));
+    fc.push(
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'leverageFactor', false, -9.99, 9.99, {
+        fieldsetName: 'BASE_DATA',
+        defaultValue: 1
+      }),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false, {
+        fieldsetName: 'BASE_DATA'
+      })
+    );
     if (securityDerived === SecurityDerived.Security) {
-      fc.push(DynamicFieldHelper.createFieldInputWebUrlHeqF('stockexchangeLink',
-        gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL), false, {fieldsetName: 'BASE_DATA'}));
-      fc.push(DynamicFieldHelper.createFieldInputWebUrlHeqF('productLink',
-        gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL), false, {fieldsetName: 'BASE_DATA'}));
+      fc.push(
+        DynamicFieldHelper.createFieldInputWebUrlHeqF(
+          'stockexchangeLink',
+          gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL),
+          false,
+          { fieldsetName: 'BASE_DATA' }
+        )
+      );
+      fc.push(
+        DynamicFieldHelper.createFieldInputWebUrlHeqF(
+          'productLink',
+          gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_G_WEB_URL),
+          false,
+          { fieldsetName: 'BASE_DATA' }
+        )
+      );
     }
     return fc;
   }
 
-  private static setGTNetFields(fc: FieldConfig[], gps: GlobalparameterService, sendFieldName: string, recvFieldName: string,
-    fieldsetName: string, hasExchangePeer: boolean): void {
-    if(gps.useGtnet()) {
-      fc.push(DynamicFieldHelper.createFieldCheckboxHeqF(sendFieldName,
-        {fieldsetName: fieldsetName, usedLayoutColumns: 6, defaultValue: hasExchangePeer}));
-      fc.push(DynamicFieldHelper.createFieldCheckboxHeqF(recvFieldName,
-        {fieldsetName: fieldsetName, usedLayoutColumns: 6, defaultValue: hasExchangePeer}));
+  private static setGTNetFields(
+    fc: FieldConfig[],
+    gps: GlobalparameterService,
+    sendFieldName: string,
+    recvFieldName: string,
+    fieldsetName: string,
+    hasExchangePeer: boolean
+  ): void {
+    if (gps.useGtnet()) {
+      fc.push(
+        DynamicFieldHelper.createFieldCheckboxHeqF(sendFieldName, {
+          fieldsetName: fieldsetName,
+          usedLayoutColumns: 6,
+          defaultValue: hasExchangePeer
+        })
+      );
+      fc.push(
+        DynamicFieldHelper.createFieldCheckboxHeqF(recvFieldName, {
+          fieldsetName: fieldsetName,
+          usedLayoutColumns: 6,
+          defaultValue: hasExchangePeer
+        })
+      );
     }
   }
 
   static getIntraHistoryFieldDefinition(securityDerived: SecurityDerived, gps: GlobalparameterService): FieldConfig[] {
     const fc: FieldConfig[] = [];
     if (securityDerived === SecurityDerived.Security || securityDerived === SecurityDerived.Currencypair) {
-      this.setGTNetFields(fc, gps, 'gtNetHistoricalSend', 'gtNetHistoricalRecv', this.HISTORY_SETTINGS,
-        gps.hasGtNetHistoricalExchangePeer())
-      fc.push(DynamicFieldHelper.createFieldSelectString('idConnectorHistory', 'HISTORY_DATA_PROVIDER', false,
-        {fieldsetName: this.HISTORY_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
-      fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlHistoryExtend', 254, false,
-        {fieldsetName: this.HISTORY_SETTINGS}));
+      this.setGTNetFields(
+        fc,
+        gps,
+        'gtNetHistoricalSend',
+        'gtNetHistoricalRecv',
+        this.HISTORY_SETTINGS,
+        gps.hasGtNetHistoricalExchangePeer()
+      );
+      fc.push(
+        DynamicFieldHelper.createFieldSelectString('idConnectorHistory', 'HISTORY_DATA_PROVIDER', false, {
+          fieldsetName: this.HISTORY_SETTINGS,
+          labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR
+        })
+      );
+      fc.push(
+        DynamicFieldHelper.createFieldInputStringHeqF('urlHistoryExtend', 254, false, {
+          fieldsetName: this.HISTORY_SETTINGS
+        })
+      );
     }
-    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryHistoryLoad',
-      true, 0, 3, {defaultValue: 0, fieldsetName: this.HISTORY_SETTINGS}));
+    fc.push(
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryHistoryLoad', true, 0, 3, {
+        defaultValue: 0,
+        fieldsetName: this.HISTORY_SETTINGS
+      })
+    );
     if (securityDerived === SecurityDerived.Security || securityDerived === SecurityDerived.Currencypair) {
-      this.setGTNetFields(fc, gps, 'gtNetLastpriceSend', 'gtNetLastpriceRecv', this.INTRA_SETTINGS,
-        gps.hasGtNetLastpriceExchangePeer())
-      fc.push(DynamicFieldHelper.createFieldSelectString('idConnectorIntra', 'INTRA_DATA_PROVIDER', false,
-        {fieldsetName: this.INTRA_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
-      fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlIntraExtend', 254, false,
-        {fieldsetName: this.INTRA_SETTINGS}));
+      this.setGTNetFields(
+        fc,
+        gps,
+        'gtNetLastpriceSend',
+        'gtNetLastpriceRecv',
+        this.INTRA_SETTINGS,
+        gps.hasGtNetLastpriceExchangePeer()
+      );
+      fc.push(
+        DynamicFieldHelper.createFieldSelectString('idConnectorIntra', 'INTRA_DATA_PROVIDER', false, {
+          fieldsetName: this.INTRA_SETTINGS,
+          labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR
+        })
+      );
+      fc.push(
+        DynamicFieldHelper.createFieldInputStringHeqF('urlIntraExtend', 254, false, {
+          fieldsetName: this.INTRA_SETTINGS
+        })
+      );
     }
-    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryIntraLoad',
-      true, 0, 3, {defaultValue: 0, fieldsetName: this.INTRA_SETTINGS}));
+    fc.push(
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryIntraLoad', true, 0, 3, {
+        defaultValue: 0,
+        fieldsetName: this.INTRA_SETTINGS
+      })
+    );
     return fc;
   }
 
   public getDividendFieldDefinition(): FieldConfig[] {
     const fc: FieldConfig[] = [];
-    fc.push(DynamicFieldHelper.createFieldSelectStringHeqF(this.ID_CONNECTOR_DIVIDEND, false,
-      {fieldsetName: AppSettings.DIVIDEND_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
-    fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlDividendExtend', 254, false,
-      {fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
-    fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('dividendCurrency', false,
-      {inputWidth: 10, fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
-    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryDividendLoad',
-      true, 0, 3, {defaultValue: 0, fieldsetName: AppSettings.DIVIDEND_SETTINGS}));
+    fc.push(
+      DynamicFieldHelper.createFieldSelectStringHeqF(this.ID_CONNECTOR_DIVIDEND, false, {
+        fieldsetName: AppSettings.DIVIDEND_SETTINGS,
+        labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR
+      })
+    );
+    fc.push(
+      DynamicFieldHelper.createFieldInputStringHeqF('urlDividendExtend', 254, false, {
+        fieldsetName: AppSettings.DIVIDEND_SETTINGS
+      })
+    );
+    fc.push(
+      DynamicFieldHelper.createFieldSelectStringHeqF('dividendCurrency', false, {
+        inputWidth: 10,
+        fieldsetName: AppSettings.DIVIDEND_SETTINGS
+      })
+    );
+    fc.push(
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retryDividendLoad', true, 0, 3, {
+        defaultValue: 0,
+        fieldsetName: AppSettings.DIVIDEND_SETTINGS
+      })
+    );
     return fc;
   }
 
   public getSplitDefinition(): FieldConfig[] {
     const fc: FieldConfig[] = [];
-    fc.push(DynamicFieldHelper.createFieldSelectStringHeqF('idConnectorSplit', false,
-      {fieldsetName: AppSettings.SPLIT_SETTINGS, labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR}));
-    fc.push(DynamicFieldHelper.createFieldInputStringHeqF('urlSplitExtend', 254, false,
-      {fieldsetName: AppSettings.SPLIT_SETTINGS}));
-    fc.push(DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retrySplitLoad',
-      true, 0, 3, {defaultValue: 0, fieldsetName: AppSettings.SPLIT_SETTINGS}));
+    fc.push(
+      DynamicFieldHelper.createFieldSelectStringHeqF('idConnectorSplit', false, {
+        fieldsetName: AppSettings.SPLIT_SETTINGS,
+        labelHelpText: SecurityEditSupport.FIELD_HELP_CONNECTOR
+      })
+    );
+    fc.push(
+      DynamicFieldHelper.createFieldInputStringHeqF('urlSplitExtend', 254, false, {
+        fieldsetName: AppSettings.SPLIT_SETTINGS
+      })
+    );
+    fc.push(
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'retrySplitLoad', true, 0, 3, {
+        defaultValue: 0,
+        fieldsetName: AppSettings.SPLIT_SETTINGS
+      })
+    );
     return fc;
   }
 
-  assignLoadedValues(configObject: { [name: string]: FieldConfig }, stockexchanges: Stockexchange[],
-    vksoCurrency: ValueKeyHtmlSelectOptions[], assetclasses: Assetclass[]): void {
+  assignLoadedValues(
+    configObject: { [name: string]: FieldConfig },
+    stockexchanges: Stockexchange[],
+    vksoCurrency: ValueKeyHtmlSelectOptions[],
+    assetclasses: Assetclass[]
+  ): void {
     configObject.stockexchange.referencedDataObject = stockexchanges;
-    configObject.stockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idStockexchange', 'name',
-      configObject.stockexchange.referencedDataObject, true);
+    configObject.stockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+      'idStockexchange',
+      'name',
+      configObject.stockexchange.referencedDataObject,
+      true
+    );
 
     configObject.currency.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')].concat(vksoCurrency);
-    configObject.dividendCurrency && (configObject.dividendCurrency.valueKeyHtmlOptions =
-      [new ValueKeyHtmlSelectOptions('', '')].concat(vksoCurrency));
+    configObject.dividendCurrency &&
+      (configObject.dividendCurrency.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')].concat(
+        vksoCurrency
+      ));
     configObject.assetClass.referencedDataObject = assetclasses;
     configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-      this.gps, this.translateService, configObject.assetClass.referencedDataObject);
-
+      this.gps,
+      this.translateService,
+      configObject.assetClass.referencedDataObject
+    );
   }
 
   removeFilterAssetclass(configObject: { [name: string]: FieldConfig }): void {
     configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-      this.gps, this.translateService, configObject.assetClass.referencedDataObject);
+      this.gps,
+      this.translateService,
+      configObject.assetClass.referencedDataObject
+    );
   }
 
   filterAssetclasses(configObject: { [name: string]: FieldConfig }, assetclassType: AssetclassType): void {
     configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-      this.gps, this.translateService,
-      (<Assetclass[]>configObject.assetClass.referencedDataObject).filter(assetclass =>
-        assetclass.categoryType === AssetclassType[assetclassType]));
-
+      this.gps,
+      this.translateService,
+      (<Assetclass[]>configObject.assetClass.referencedDataObject).filter(
+        (assetclass) => assetclass.categoryType === AssetclassType[assetclassType]
+      )
+    );
   }
 
   registerValueOnChanged(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
     this.valueChangedOnAssetClass(securityDerived, configObject);
     this.valueChangedOnaActiveFromDate(configObject);
-    !configObject.isTenantPrivate.formControl.disabled && this.valueChangedOnPrivateSecurity(securityDerived, configObject);
+    !configObject.isTenantPrivate.formControl.disabled &&
+      this.valueChangedOnPrivateSecurity(securityDerived, configObject);
   }
 
   valueChangedOnAssetClass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
@@ -210,8 +355,11 @@ export class SecurityEditSupport {
     });
   }
 
-  disableEnableFieldsOnAssetclass(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig },
-    idAssetclass: number): Assetclass {
+  disableEnableFieldsOnAssetclass(
+    securityDerived: SecurityDerived,
+    configObject: { [name: string]: FieldConfig },
+    idAssetclass: number
+  ): Assetclass {
     let assetClass: Assetclass;
     if (idAssetclass) {
       assetClass = Helper.getReferencedDataObject(configObject.assetClass, null);
@@ -227,36 +375,53 @@ export class SecurityEditSupport {
   }
 
   valueChangedOnaActiveFromDate(configObject: { [name: string]: FieldConfig }): void {
-    this.activeFromDateSubscribe = configObject.activeFromDate.formControl.valueChanges.subscribe((activeFromDate: Date) => {
-      if (activeFromDate) {
-        configObject.activeToDate.calendarConfig.minDate = new Date(activeFromDate.getTime() + 86400000);
-        if (configObject.activeToDate.formControl.value
-          && configObject.activeToDate.formControl.value.getTime() < configObject.activeToDate.calendarConfig.minDate.getTime()) {
-          configObject.activeToDate.formControl.setValue(null);
+    this.activeFromDateSubscribe = configObject.activeFromDate.formControl.valueChanges.subscribe(
+      (activeFromDate: Date) => {
+        if (activeFromDate) {
+          configObject.activeToDate.calendarConfig.minDate = new Date(activeFromDate.getTime() + 86400000);
+          if (
+            configObject.activeToDate.formControl.value &&
+            configObject.activeToDate.formControl.value.getTime() <
+              configObject.activeToDate.calendarConfig.minDate.getTime()
+          ) {
+            configObject.activeToDate.formControl.setValue(null);
+          }
         }
       }
-    });
+    );
   }
 
   /**
    * Private security has no ISIN, ticker symbol and can not be short
    */
   valueChangedOnPrivateSecurity(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig }): void {
-    this.securitySubscribe = configObject.isTenantPrivate.formControl.valueChanges.subscribe(isPrivate => this
-      .setPrivatePaper(securityDerived, isPrivate, configObject));
+    this.securitySubscribe = configObject.isTenantPrivate.formControl.valueChanges.subscribe((isPrivate) =>
+      this.setPrivatePaper(securityDerived, isPrivate, configObject)
+    );
   }
 
-  setPrivatePaper(securityDerived: SecurityDerived, isPrivate: boolean, configObject: {
-    [name: string]: FieldConfig
-  }): void {
+  setPrivatePaper(
+    securityDerived: SecurityDerived,
+    isPrivate: boolean,
+    configObject: {
+      [name: string]: FieldConfig;
+    }
+  ): void {
     if (isPrivate != null) {
-      FormHelper.hideVisibleFieldConfigs(this.isHideIsinAndTicker(configObject),
-        this.getIsinTickerLeverageFields(securityDerived, configObject));
+      FormHelper.hideVisibleFieldConfigs(
+        this.isHideIsinAndTicker(configObject),
+        this.getIsinTickerLeverageFields(securityDerived, configObject)
+      );
     }
   }
 
-  prepareForSave(formBase: FormBase, proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity, existingSecurity: Security,
-    dynamicForm: DynamicFormComponent, value: { [name: string]: any }): Security {
+  prepareForSave(
+    formBase: FormBase,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
+    existingSecurity: Security,
+    dynamicForm: DynamicFormComponent,
+    value: { [name: string]: any }
+  ): Security {
     const security: Security = new Security();
     if (existingSecurity) {
       Object.assign(security, existingSecurity);
@@ -275,8 +440,10 @@ export class SecurityEditSupport {
     this.securitySubscribe && this.securitySubscribe.unsubscribe();
   }
 
-  private getIsinTickerLeverageFields(securityDerived: SecurityDerived,
-    configObject: { [name: string]: FieldConfig }): FieldConfig[] {
+  private getIsinTickerLeverageFields(
+    securityDerived: SecurityDerived,
+    configObject: { [name: string]: FieldConfig }
+  ): FieldConfig[] {
     const fieldConfigs: FieldConfig[] = [];
     if (securityDerived === SecurityDerived.Security) {
       !this.getIsCFDByConfigObject(configObject) && fieldConfigs.push(configObject.tickerSymbol);
@@ -288,23 +455,37 @@ export class SecurityEditSupport {
   /**
    * Only fixed income and similar can have denomination property.
    */
-  private enableDisableDenomination(configObject: { [name: string]: FieldConfig }, assetClass: Assetclass,
-    hasMarkedPrice: boolean): void {
+  private enableDisableDenomination(
+    configObject: { [name: string]: FieldConfig },
+    assetClass: Assetclass,
+    hasMarkedPrice: boolean
+  ): void {
     if (configObject.denomination) {
       const hsd = BusinessHelper.hasSecurityDenomination(assetClass, hasMarkedPrice);
       AppHelper.invisibleAndHide(configObject.denomination, !hsd);
-      DynamicFieldHelper.resetValidator(configObject.denomination, hsd ? SecurityEditSupport.denominationValidation : null,
-        hsd ? SecurityEditSupport.denominationErrors : null);
+      DynamicFieldHelper.resetValidator(
+        configObject.denomination,
+        hsd ? SecurityEditSupport.denominationValidation : null,
+        hsd ? SecurityEditSupport.denominationErrors : null
+      );
     }
   }
 
-  private hideShowSomeFields(securityDerived: SecurityDerived, configObject: { [name: string]: FieldConfig },
-    assetClass: Assetclass): void {
-    FormHelper.hideVisibleFieldConfigs(this.isHideIsinAndTicker(configObject),
-      this.getIsinTickerLeverageFields(securityDerived, configObject));
-    FormHelper.hideVisibleFieldConfigs(assetClass.specialInvestmentInstrument
-      !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF] && assetClass.specialInvestmentInstrument
-      !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT], [configObject.leverageFactor]);
+  private hideShowSomeFields(
+    securityDerived: SecurityDerived,
+    configObject: { [name: string]: FieldConfig },
+    assetClass: Assetclass
+  ): void {
+    FormHelper.hideVisibleFieldConfigs(
+      this.isHideIsinAndTicker(configObject),
+      this.getIsinTickerLeverageFields(securityDerived, configObject)
+    );
+    FormHelper.hideVisibleFieldConfigs(
+      assetClass.specialInvestmentInstrument !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.ETF] &&
+        assetClass.specialInvestmentInstrument !==
+          SpecialInvestmentInstruments[SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT],
+      [configObject.leverageFactor]
+    );
   }
 
   private isHideIsinAndTicker(configObject: { [name: string]: FieldConfig }): boolean {
@@ -313,7 +494,10 @@ export class SecurityEditSupport {
 
   private getIsCFDByConfigObject(configObject: { [name: string]: FieldConfig }): boolean {
     const assetClass: Assetclass = Helper.getReferencedDataObject(configObject.assetClass, null);
-    return assetClass && assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD];
+    return (
+      assetClass &&
+      assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD]
+    );
   }
 }
 

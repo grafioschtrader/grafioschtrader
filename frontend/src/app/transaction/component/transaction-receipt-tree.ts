@@ -1,6 +1,6 @@
-import {TreeNode} from '@openng/optimus-ui/api';
+import { TreeNode } from '@openng/optimus-ui/api';
 
-import {Transaction} from '../../entities/transaction';
+import { Transaction } from '../../entities/transaction';
 
 /**
  * Builds receipt-selection branches from persisted margin transactions. Opening transactions become roots and
@@ -12,20 +12,19 @@ import {Transaction} from '../../entities/transaction';
  */
 export function buildTransactionReceiptTree(transactions: Transaction[]): TreeNode[] {
   const nodeById = new Map<number, TreeNode>();
-  transactions.forEach(transaction => {
+  transactions.forEach((transaction) => {
     if (transaction.idTransaction != null) {
-      nodeById.set(transaction.idTransaction, {data: transaction, children: []});
+      nodeById.set(transaction.idTransaction, { data: transaction, children: [] });
     }
   });
 
   const roots: TreeNode[] = [];
-  transactions.forEach(transaction => {
+  transactions.forEach((transaction) => {
     const node = nodeById.get(transaction.idTransaction);
     if (!node) {
       return;
     }
-    const parent = transaction.connectedIdTransaction == null
-      ? null : nodeById.get(transaction.connectedIdTransaction);
+    const parent = transaction.connectedIdTransaction == null ? null : nodeById.get(transaction.connectedIdTransaction);
     if (parent && parent !== node) {
       parent.children.push(node);
     } else {
@@ -33,7 +32,7 @@ export function buildTransactionReceiptTree(transactions: Transaction[]): TreeNo
     }
   });
 
-  nodeById.forEach(node => {
+  nodeById.forEach((node) => {
     node.leaf = node.children.length === 0;
     node.expanded = !node.leaf;
     if (node.leaf) {
@@ -51,9 +50,12 @@ export function buildTransactionReceiptTree(transactions: Transaction[]): TreeNo
  * @returns selected persisted transactions in their original order
  */
 export function getSelectedTransactions(transactions: Transaction[], selectedNodes: TreeNode[]): Transaction[] {
-  const selectedIds = new Set(selectedNodes
-    .map(node => node.data?.idTransaction)
-    .filter(idTransaction => idTransaction != null && idTransaction > 0));
-  return transactions.filter(transaction => transaction.idTransaction != null
-    && selectedIds.has(transaction.idTransaction));
+  const selectedIds = new Set(
+    selectedNodes
+      .map((node) => node.data?.idTransaction)
+      .filter((idTransaction) => idTransaction != null && idTransaction > 0)
+  );
+  return transactions.filter(
+    (transaction) => transaction.idTransaction != null && selectedIds.has(transaction.idTransaction)
+  );
 }

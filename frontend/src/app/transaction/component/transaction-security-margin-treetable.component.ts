@@ -1,34 +1,37 @@
-import {Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {ConfirmationService, FilterService, MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {TransactionContextMenu} from './transaction.context.menu';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TransactionService} from '../service/transaction.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {Transaction} from '../../entities/transaction';
-import {Security} from '../../entities/security';
-import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
-import {CloseMarginPosition, TransactionCallParam} from './transaction.call.parm';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {TransactionType} from '../../shared/types/transaction.type';
-import {ProposedMarginFinanceCost} from '../model/proposed.margin.finance.cost';
-import {TransactionSecurityFieldDefinition} from './transaction.security.field.definition';
-import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
-import {HelpIds} from '../../lib/help/help.ids';
-import {CommonModule} from '@angular/common';
-import {TreeTableModule} from '@openng/optimus-ui/treetable';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TransactionSecurityEditComponent} from './transaction-security-edit.component';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
+import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ConfirmationService, FilterService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { TransactionContextMenu } from './transaction.context.menu';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import {
+  PageFirstRowSelectedRow,
+  ParentChildRegisterService
+} from '../../shared/service/parent.child.register.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { TransactionService } from '../service/transaction.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { Transaction } from '../../entities/transaction';
+import { Security } from '../../entities/security';
+import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
+import { CloseMarginPosition, TransactionCallParam } from './transaction.call.parm';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { ProposedMarginFinanceCost } from '../model/proposed.margin.finance.cost';
+import { TransactionSecurityFieldDefinition } from './transaction.security.field.definition';
+import { TransactionSecurityOptionalParam } from '../model/transaction.security.optional.param';
+import { HelpIds } from '../../lib/help/help.ids';
+import { CommonModule } from '@angular/common';
+import { TreeTableModule } from '@openng/optimus-ui/treetable';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TransactionSecurityEditComponent } from './transaction-security-edit.component';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
 
 /**
  * Angular component that displays margin-based security transactions in a hierarchical tree table format.
@@ -38,44 +41,71 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
  * transactions and their corresponding closing or hypothetical transactions.
  */
 @Component({
-    selector: 'transaction-security-margin-treetable',
+  selector: 'transaction-security-margin-treetable',
   template: `
-    <div #cmDiv class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      #cmDiv
+      class="data-container"
+      (click)="onComponentClick($event)"
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <div class="datatable nestedtable">
-        <p-treeTable [value]="transactionNodes" [columns]="fields" [(selection)]="selectedNode"
-                     selectionMode="single" [scrollable]="false" dataKey="transaction.idTransaction"
-                     (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect($event)"
-                     [paginator]="true" [rows]="ROWS_PER_PAGE"
-                     [first]="firstRowIndexOnPage" (onPage)="onPage($event)"
-                     showGridlines="true">
+        <p-treeTable
+          [value]="transactionNodes"
+          [columns]="fields"
+          [(selection)]="selectedNode"
+          selectionMode="single"
+          [scrollable]="false"
+          dataKey="transaction.idTransaction"
+          (onNodeSelect)="onNodeSelect($event)"
+          (onNodeUnselect)="onNodeUnselect($event)"
+          [paginator]="true"
+          [rows]="ROWS_PER_PAGE"
+          [first]="firstRowIndexOnPage"
+          (onPage)="onPage($event)"
+          showGridlines="true">
           <ng-template #header let-fields>
             <tr>
               @for (field of fields; track field.field) {
-                <th [style.width.px]="field.width"
-                    [pTooltip]="field.headerTooltipTranslated" class="word-break-header" [attr.lang]="lang">
-                  {{field.headerTranslated}}
+                <th
+                  [style.width.px]="field.width"
+                  [pTooltip]="field.headerTooltipTranslated"
+                  class="word-break-header"
+                  [attr.lang]="lang">
+                  {{ field.headerTranslated }}
                 </th>
               }
             </tr>
           </ng-template>
           <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-            <tr [ttSelectableRow]="rowNode" [ttSelectableRowDisabled]="rowData.transaction.idTransaction < 0"
-                [ngClass]="{'rowgroup-total': rowData.transaction.idTransaction < 0}">
+            <tr
+              [ttSelectableRow]="rowNode"
+              [ttSelectableRowDisabled]="rowData.transaction.idTransaction < 0"
+              [ngClass]="{
+                'rowgroup-total': rowData.transaction.idTransaction < 0
+              }">
               @for (field of fields; track field.field; let i = $index) {
-                <td [ngClass]="{'text-end': (field.dataType===DataType.NumericInteger  || field.dataType===DataType.Numeric
-            || field.dataType===DataType.DateTimeNumeric)}" [style.width.px]="field.width">
+                <td
+                  [ngClass]="{
+                    'text-end':
+                      field.dataType === DataType.NumericInteger ||
+                      field.dataType === DataType.Numeric ||
+                      field.dataType === DataType.DateTimeNumeric
+                  }"
+                  [style.width.px]="field.width">
                   @if (i === 0) {
                     <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
                   }
                   @switch (field.templateName) {
                     @case ('greenRed') {
-                      <span [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'>
-                      {{getValueByPath(rowData, field)}}
-                    </span>
+                      <span [style.color]="isValueByPathMinus(rowData, field) ? 'red' : 'inherit'">
+                        {{ getValueByPath(rowData, field) }}
+                      </span>
                     }
                     @default {
-                      <span>{{getValueByPath(rowData, field)}}</span>
+                      <span>{{ getValueByPath(rowData, field) }}</span>
                     }
                   }
                 </td>
@@ -83,25 +113,20 @@ import {ProcessedActionData} from '../../lib/types/processed.action.data';
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body">
-        </p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body"> </p-contextMenu>
       </div>
       @if (visibleSecurityTransactionDialog) {
-        <transaction-security-edit [transactionCallParam]="transactionCallParam"
-                                   [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
-                                   (closeDialog)="handleCloseTransactionDialog($event)">
+        <transaction-security-edit
+          [transactionCallParam]="transactionCallParam"
+          [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog"
+          (closeDialog)="handleCloseTransactionDialog($event)">
         </transaction-security-edit>
       }
     </div>
   `,
-    standalone: true,
-    imports: [
-      CommonModule,
-      TreeTableModule,
-      TooltipModule,
-      ContextMenuModule,
-      TransactionSecurityEditComponent
-    ]
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, TreeTableModule, TooltipModule, ContextMenuModule, TransactionSecurityEditComponent]
 })
 export class TransactionSecurityMarginTreetableComponent extends TransactionContextMenu implements OnInit, OnDestroy {
   /** Array of security account IDs to filter transactions */
@@ -163,19 +188,31 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param gps Global parameter service for application-wide settings
    * @param usersettingsService Service for managing user-specific settings
    */
-  constructor(private securityService: SecurityService,
-              parentChildRegisterService: ParentChildRegisterService,
-              activePanelService: ActivePanelService,
-              transactionService: TransactionService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      filterService, translateService, gps, usersettingsService, injector);
+  constructor(
+    private securityService: SecurityService,
+    parentChildRegisterService: ParentChildRegisterService,
+    activePanelService: ActivePanelService,
+    transactionService: TransactionService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      parentChildRegisterService,
+      activePanelService,
+      transactionService,
+      confirmationService,
+      messageToastService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
     this.lang = this.gps.getUserLang();
   }
 
@@ -183,8 +220,13 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * Angular lifecycle hook that initializes the component after dependency injection.
    */
   ngOnInit(): void {
-    this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(this, this.idTenant, true,
-      this.transactionSecurityOptionalParam, this.gps);
+    this.currencyColumnConfigMC = TransactionSecurityFieldDefinition.getFieldDefinition(
+      this,
+      this.idTenant,
+      true,
+      this.transactionSecurityOptionalParam,
+      this.gps
+    );
     this.initialize();
   }
 
@@ -233,12 +275,18 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * Initializes the component by loading transaction data and setting up the tree structure.
    */
   protected initialize(): void {
-    BusinessHelper.getSecurityTransactionSummary(this.securityService, this.idSecuritycurrency, this.idsSecurityaccount,
-      this.idPortfolio, false, this.untilDate).subscribe(result => {
+    BusinessHelper.getSecurityTransactionSummary(
+      this.securityService,
+      this.idSecuritycurrency,
+      this.idsSecurityaccount,
+      this.idPortfolio,
+      false,
+      this.untilDate
+    ).subscribe((result) => {
       this.securityTransactionSummary = result;
       this.createTranslatedValueStoreAndFilterField(this.securityTransactionSummary.transactionPositionList);
       this.transactionPositionList = this.securityTransactionSummary.transactionPositionList;
-      this.currencyColumnConfigMC.forEach(cc => {
+      this.currencyColumnConfigMC.forEach((cc) => {
         cc.headerSuffix = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
         cc.fixedCurrency = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
         this.setFieldHeaderTranslation(cc);
@@ -264,14 +312,15 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     if (transaction && !transaction.connectedIdTransaction) {
       localContextMenu.push({
         label: 'CLOSE_MARGIN_POSITION',
-        command: (e) => this.handleClosePosition(transaction, this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]),
+        command: (e) =>
+          this.handleClosePosition(transaction, this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]),
         disabled: !this.selectedNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY]
       });
       localContextMenu.push({
         label: 'MARGIN_FINANCE_COST',
         command: (e) => this.handleFinanceCost(transaction)
       });
-      localContextMenu.push({separator: true});
+      localContextMenu.push({ separator: true });
     }
     TranslateHelper.translateMenuItems(localContextMenu, this.translateService);
     return localContextMenu.concat(super.getMenuItemsOnTransaction(transaction));
@@ -292,8 +341,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    *
    * @param transactionCallParam The transaction call parameter object to prepare
    */
-  protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
-  }
+  protected prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {}
 
   /**
    * Saves the current page and the just-saved transaction id before the parent refreshes
@@ -303,10 +351,13 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
   override handleCloseTransactionDialog(processedActionData: ProcessedActionData): void {
     if (processedActionData.action !== ProcessedAction.NO_CHANGE && processedActionData.data) {
       const tx: Transaction = Array.isArray(processedActionData.data)
-        ? processedActionData.data[0] : processedActionData.data;
+        ? processedActionData.data[0]
+        : processedActionData.data;
       if (tx?.idTransaction != null) {
-        this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency,
-          new PageFirstRowSelectedRow(this.firstRowIndexOnPage, tx.idTransaction));
+        this.parentChildRegisterService.saveRowPosition(
+          this.idSecuritycurrency,
+          new PageFirstRowSelectedRow(this.firstRowIndexOnPage, tx.idTransaction)
+        );
       }
     }
     super.handleCloseTransactionDialog(processedActionData);
@@ -317,8 +368,10 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * so applySavedPagePosition() falls back to topPageRow.
    */
   override afterDelete(transaction: Transaction): void {
-    this.parentChildRegisterService.saveRowPosition(this.idSecuritycurrency,
-      new PageFirstRowSelectedRow(this.firstRowIndexOnPage, null));
+    this.parentChildRegisterService.saveRowPosition(
+      this.idSecuritycurrency,
+      new PageFirstRowSelectedRow(this.firstRowIndexOnPage, null)
+    );
     super.afterDelete(transaction);
   }
 
@@ -334,9 +387,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     if (targetId != null) {
       rootIndex = this.findRootIndexForTransaction(rootNodes, targetId);
     }
-    return rootIndex >= 0
-      ? Math.floor(rootIndex / this.ROWS_PER_PAGE) * this.ROWS_PER_PAGE
-      : (saved?.topPageRow ?? 0);
+    return rootIndex >= 0 ? Math.floor(rootIndex / this.ROWS_PER_PAGE) * this.ROWS_PER_PAGE : (saved?.topPageRow ?? 0);
   }
 
   /**
@@ -349,7 +400,7 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
       if (root.data?.transaction?.idTransaction === idTransaction) {
         return i;
       }
-      if (root.children?.some(c => c.data?.transaction?.idTransaction === idTransaction)) {
+      if (root.children?.some((c) => c.data?.transaction?.idTransaction === idTransaction)) {
         return i;
       }
     }
@@ -372,12 +423,17 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
         leaf,
         parent: parentNode
       };
-      if (parentNode && stp.transaction.connectedIdTransaction
-        && parentNode.data.transaction.idTransaction === stp.transaction.connectedIdTransaction) {
+      if (
+        parentNode &&
+        stp.transaction.connectedIdTransaction &&
+        parentNode.data.transaction.idTransaction === stp.transaction.connectedIdTransaction
+      ) {
         // Close position or hypothetical sell/buy
         parentNode.children.push(treeNode);
-        if (stp.transaction.transactionType === TransactionType[TransactionType.HYPOTHETICAL_BUY]
-          || stp.transaction.transactionType === TransactionType[TransactionType.HYPOTHETICAL_SELL]) {
+        if (
+          stp.transaction.transactionType === TransactionType[TransactionType.HYPOTHETICAL_BUY] ||
+          stp.transaction.transactionType === TransactionType[TransactionType.HYPOTHETICAL_SELL]
+        ) {
           parentNode.data[this.HYPOTHETICAL_TRANSACTION_PROPERTY] = stp.transaction;
         } else {
           parentNode.data[this.OPEN_HAS_CLOSE_POSITION] = true;
@@ -402,11 +458,21 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
     const closeTransaction = this.getNewTransaction(openTransaction);
     closeTransaction.units = hypoTransaction.units;
     closeTransaction.assetInvestmentValue2 = hypoTransaction.assetInvestmentValue2;
-    closeTransaction.transactionType = hypoTransaction.transactionType === TransactionType[TransactionType.HYPOTHETICAL_BUY] ?
-      TransactionType[TransactionType.ACCUMULATE] : TransactionType[TransactionType.REDUCE];
+    closeTransaction.transactionType =
+      hypoTransaction.transactionType === TransactionType[TransactionType.HYPOTHETICAL_BUY]
+        ? TransactionType[TransactionType.ACCUMULATE]
+        : TransactionType[TransactionType.REDUCE];
     closeTransaction.quotation = hypoTransaction.quotation;
-    super.handleEditTransaction(closeTransaction, new CloseMarginPosition(openTransaction.quotation,
-      openTransaction.units, hypoTransaction.units, openTransaction.idSecurityaccount, openTransaction.idTransaction));
+    super.handleEditTransaction(
+      closeTransaction,
+      new CloseMarginPosition(
+        openTransaction.quotation,
+        openTransaction.units,
+        hypoTransaction.units,
+        openTransaction.idSecurityaccount,
+        openTransaction.idTransaction
+      )
+    );
   }
 
   /**
@@ -415,16 +481,18 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
    * @param openTransaction The open margin transaction to calculate finance costs for
    */
   private handleFinanceCost(openTransaction: Transaction): void {
-    this.transactionService.getEstimatedMarginFinanceCost(openTransaction.idTransaction).subscribe((pMFC: ProposedMarginFinanceCost) => {
-      const fcTransaction = this.getNewTransaction(openTransaction);
-      fcTransaction.units = pMFC.daysToPay;
-      fcTransaction.quotation = pMFC.financeCost && pMFC.daysToPay ? pMFC.financeCost / pMFC.daysToPay : 0;
-      fcTransaction.transactionType = TransactionType[TransactionType.FINANCE_COST];
-      if (pMFC.untilDate) {
-        fcTransaction.transactionTime = pMFC.untilDate;
-      }
-      this.handleEditTransaction(fcTransaction);
-    });
+    this.transactionService
+      .getEstimatedMarginFinanceCost(openTransaction.idTransaction)
+      .subscribe((pMFC: ProposedMarginFinanceCost) => {
+        const fcTransaction = this.getNewTransaction(openTransaction);
+        fcTransaction.units = pMFC.daysToPay;
+        fcTransaction.quotation = pMFC.financeCost && pMFC.daysToPay ? pMFC.financeCost / pMFC.daysToPay : 0;
+        fcTransaction.transactionType = TransactionType[TransactionType.FINANCE_COST];
+        if (pMFC.untilDate) {
+          fcTransaction.transactionTime = pMFC.untilDate;
+        }
+        this.handleEditTransaction(fcTransaction);
+      });
   }
 
   /**

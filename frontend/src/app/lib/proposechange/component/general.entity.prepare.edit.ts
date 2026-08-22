@@ -1,8 +1,8 @@
-import {BasePrepareEdit} from './base.prepare.edit';
-import {ProposeTransientTransfer} from '../../entities/propose.transient.transfer';
-import {BaseID} from '../../entities/base.id';
-import {Type} from '@angular/core';
-import {Observable, of} from 'rxjs';
+import { BasePrepareEdit } from './base.prepare.edit';
+import { ProposeTransientTransfer } from '../../entities/propose.transient.transfer';
+import { BaseID } from '../../entities/base.id';
+import { Type } from '@angular/core';
+import { Observable, of } from 'rxjs';
 
 /**
  * Generic implementation of entity preparation for edit dialogs in the propose change workflow.
@@ -15,13 +15,12 @@ import {Observable, of} from 'rxjs';
  * @template T - Entity type that implements BaseID interface
  */
 export class GeneralEntityPrepareEdit<T extends BaseID> extends BasePrepareEdit<T> implements PrepareCallParam<T> {
-
   /**
    * Creates a general entity preparation handler.
    *
    * @param type - Constructor function for creating new instances of the entity type
    */
-  constructor(private type: new() => T) {
+  constructor(private type: new () => T) {
     super();
   }
 
@@ -63,8 +62,7 @@ export class EntityMapping {
    *
    * @param prepareCallParam - Handler for preparing entities for editing
    */
-  constructor(public prepareCallParam: PrepareCallParam<any>) {
-  }
+  constructor(public prepareCallParam: PrepareCallParam<any>) {}
 }
 
 /**

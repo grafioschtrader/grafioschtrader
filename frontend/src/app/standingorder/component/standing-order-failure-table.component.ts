@@ -1,11 +1,11 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {StandingOrderFailure} from '../../entities/standing.order';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { StandingOrderFailure } from '../../entities/standing.order';
 
 /**
  * Displays execution failures for a single standing order. Uses ConfigurableTableComponent with its own
@@ -29,15 +29,16 @@ import {StandingOrderFailure} from '../../entities/standing.order';
     </configurable-table>
 
     <ng-template #stackTraceExpansion let-failure>
-      <textarea [rows]="getShowLines(failure.unexpectedError)"
-                style="width:100%;" readonly>{{failure.unexpectedError}}</textarea>
+      <textarea [rows]="getShowLines(failure.unexpectedError)" style="width:100%;" readonly>{{
+        failure.unexpectedError
+      }}</textarea>
     </ng-template>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTableComponent]
 })
 export class StandingOrderFailureTableComponent extends ShowRecordConfigBase implements OnInit, OnChanges {
-
   @Input() failures: StandingOrderFailure[] = [];
 
   private fieldsInitialized = false;

@@ -1,86 +1,114 @@
-import {Component, Injector, NgZone, OnDestroy, OnInit} from '@angular/core';
-import {SecurityaccountService} from '../service/securityaccount.service';
-import {ActivatedRoute, Params, Router} from '@angular/router';
+import { Component, Injector, NgZone, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { SecurityaccountService } from '../service/securityaccount.service';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
-import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
-import {SecurityaccountTable} from './securityaccountTable';
-import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {Subscription} from 'rxjs';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {ChartDataService} from '../../shared/chart/service/chart.data.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
+import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import { SecurityaccountTable } from './securityaccountTable';
+import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { Subscription } from 'rxjs';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ChartDataService } from '../../shared/chart/service/chart.data.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import {
   ImportTransactionHeadService,
   SuccessFailedDirectImportTransaction
 } from '../../imptransaction/service/import.transaction.head.service';
 
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {AppSettings} from '../../shared/app.settings';
-import {NgxFileDropEntry, NgxFileDropModule} from 'ngx-file-drop';
-import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
-import {BaseSettings} from '../../lib/base.settings';
-import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {Securityaccount} from '../../entities/securityaccount';
-import {SecurityPositionSummary} from '../../entities/view/security.position.summary';
-import {SecurityTransferCreateComponent} from '../../securityaction/component/security-transfer-create.component';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {CommonModule} from '@angular/common';
-import {TableModule} from '@openng/optimus-ui/table';
-import {DatePicker} from '@openng/optimus-ui/datepicker';
-import {FormsModule} from '@angular/forms';
-import {SelectModule} from '@openng/optimus-ui/select';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
-import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
-import {TransactionCashaccountTableComponent} from '../../transaction/component/transaction-cashaccount-table.component';
-import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { AppSettings } from '../../shared/app.settings';
+import { NgxFileDropEntry, NgxFileDropModule } from 'ngx-file-drop';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { BaseSettings } from '../../lib/base.settings';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { Securityaccount } from '../../entities/securityaccount';
+import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
+import { SecurityTransferCreateComponent } from '../../securityaction/component/security-transfer-create.component';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { CommonModule } from '@angular/common';
+import { TableModule } from '@openng/optimus-ui/table';
+import { DatePicker } from '@openng/optimus-ui/datepicker';
+import { FormsModule } from '@angular/forms';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TransactionSecurityTableComponent } from '../../transaction/component/transaction-security-table.component';
+import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
+import { TransactionCashaccountTableComponent } from '../../transaction/component/transaction-cashaccount-table.component';
+import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
 
 /**
  * It is the summary for a single security account with its securities.
  */
 @Component({
-    templateUrl: '../view/securityaccount.table.html',
-    standalone: true,
-    imports: [CommonModule, TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule, ContextMenuModule,
-      NgxFileDropModule, TransactionSecurityTableComponent, TransactionSecurityMarginTreetableComponent,
-      TransactionCashaccountTableComponent, TransactionSecurityEditComponent]
+  templateUrl: '../view/securityaccount.table.html',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    TableModule,
+    DatePicker,
+    FormsModule,
+    SelectModule,
+    TooltipModule,
+    ContextMenuModule,
+    NgxFileDropModule,
+    TransactionSecurityTableComponent,
+    TransactionSecurityMarginTreetableComponent,
+    TransactionCashaccountTableComponent,
+    TransactionSecurityEditComponent
+  ]
 })
 export class SecurityaccountSummaryComponent extends SecurityaccountTable implements OnInit, OnDestroy {
-
   private routeSubscribe: Subscription;
   private idSecurityaccount: number;
 
   /** Drop-zone choice: when true (and the tenant GT platform is configured) dropped PDFs use the GT templates. */
   useGtPlatformDrop = false;
 
-  constructor(private ngZone: NgZone,
-              protected importTransactionHeadService: ImportTransactionHeadService,
-              timeSeriesQuotesService: TimeSeriesQuotesService,
-              alarmSetupService: AlarmSetupService,
-              activePanelService: ActivePanelService,
-              messageToastService: MessageToastService,
-              securityaccountService: SecurityaccountService,
-              productIconService: ProductIconService,
-              activatedRoute: ActivatedRoute,
-              router: Router,
-              chartDataService: ChartDataService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
-      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService, injector);
+  constructor(
+    private ngZone: NgZone,
+    protected importTransactionHeadService: ImportTransactionHeadService,
+    timeSeriesQuotesService: TimeSeriesQuotesService,
+    alarmSetupService: AlarmSetupService,
+    activePanelService: ActivePanelService,
+    messageToastService: MessageToastService,
+    securityaccountService: SecurityaccountService,
+    productIconService: ProductIconService,
+    activatedRoute: ActivatedRoute,
+    router: Router,
+    chartDataService: ChartDataService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      timeSeriesQuotesService,
+      alarmSetupService,
+      activePanelService,
+      messageToastService,
+      securityaccountService,
+      productIconService,
+      activatedRoute,
+      router,
+      chartDataService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   ngOnInit() {
@@ -88,21 +116,27 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       this.idSecurityaccount = +params['id'];
       this.securityAccount = treeNavState.getEntity<Securityaccount>(
-        AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY, this.idSecurityaccount);
+        AppSettings.SECURITYACCOUNT_SUMMERY_ROUTE_KEY,
+        this.idSecurityaccount
+      );
       this.readData();
     });
   }
 
   override readData() {
     this.selectedSecurityPositionSummary = null;
-    this.securityaccountService.getPositionSummarySecurityaccount(this.idSecurityaccount, this.securityaccountGroupBase.defaultGroup,
-      this.includeClosedPosition, this.untilDate)
+    this.securityaccountService
+      .getPositionSummarySecurityaccount(
+        this.idSecurityaccount,
+        this.securityaccountGroupBase.defaultGroup,
+        this.includeClosedPosition,
+        this.untilDate
+      )
       .subscribe((data: SecurityPositionGrandSummary) => {
-          this.getDataToView(data);
-          this.initTableTextTranslation();
-          this.changeToOpenChart();
-        }
-      );
+        this.getDataToView(data);
+        this.initTableTextTranslation();
+        this.changeToOpenChart();
+      });
   }
 
   public override getHelpContextId(): string {
@@ -144,16 +178,21 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
     menuItems.push({
       label: 'TRANSFER_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (e) => this.handleTransferSecurity(securityPositionSummary),
-      disabled: !securityPositionSummary || securityPositionSummary.units === 0
-        || this.isMarginProduct(securityPositionSummary.security)
+      disabled:
+        !securityPositionSummary ||
+        securityPositionSummary.units === 0 ||
+        this.isMarginProduct(securityPositionSummary.security)
     });
   }
 
   private handleTransferSecurity(securityPositionSummary: SecurityPositionSummary): void {
     const dialogService = this.injector.get(DialogService);
-    this.translateService.get('CREATE_SECURITY_TRANSFER').subscribe(title => {
+    this.translateService.get('CREATE_SECURITY_TRANSFER').subscribe((title) => {
       const ref = dialogService.open(SecurityTransferCreateComponent, {
-        header: title, width: '500px', modal: true, closable: true,
+        header: title,
+        width: '500px',
+        modal: true,
+        closable: true,
         data: {
           idSecurity: securityPositionSummary.security.idSecuritycurrency,
           securityName: securityPositionSummary.security.name,
@@ -162,7 +201,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
           units: securityPositionSummary.units
         }
       });
-      ref.onClose.subscribe(result => {
+      ref.onClose.subscribe((result) => {
         if (result) {
           this.readData();
         }
@@ -175,32 +214,36 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   }
 
   protected getOptionalParameters(): OptionalParameters {
-    return {idSecurityaccount: this.idSecurityaccount};
+    return { idSecurityaccount: this.idSecurityaccount };
   }
 
   private uploadTransactionFiles(formData: FormData): void {
     // An account without its own import platform can only import through the GT platform; otherwise honour the choice.
     const useGtPlatform = !this.accountHasOwnPlatform || (this.gtPlatformConfigured && this.useGtPlatformDrop);
     formData.append('useGtPlatform', String(useGtPlatform));
-    this.importTransactionHeadService.uploadPdfFileSecurityAccountTransactions(this.idSecurityaccount, formData).subscribe(
-      (sfdit: SuccessFailedDirectImportTransaction) => {
+    this.importTransactionHeadService
+      .uploadPdfFileSecurityAccountTransactions(this.idSecurityaccount, formData)
+      .subscribe((sfdit: SuccessFailedDirectImportTransaction) => {
         const data: any = {};
         data[AppSettings.SUCCESS_FAILED_IMP_TRANS] = JSON.stringify(sfdit);
         if (sfdit.failed) {
-          this.ngZone.run(() => this.router.navigate([`${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
-            this.idSecurityaccount, data])).then();
+          this.ngZone
+            .run(() =>
+              this.router.navigate([
+                `${BaseSettings.MAINVIEW_KEY}/${AppSettings.SECURITYACCOUNT_TAB_MENU_KEY}`,
+                this.idSecurityaccount,
+                data
+              ])
+            )
+            .then();
         } else {
           // Success created transactions
-          this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'CREATED_TRANS_FROM_IMPORT',
-            {
-              noOfImportedTransactions: sfdit.noOfImportedTransactions,
-              noOfDifferentSecurities: sfdit.noOfDifferentSecurities
-            });
+          this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.INFO, 'CREATED_TRANS_FROM_IMPORT', {
+            noOfImportedTransactions: sfdit.noOfImportedTransactions,
+            noOfDifferentSecurities: sfdit.noOfDifferentSecurities
+          });
           this.readData();
         }
       });
   }
-
 }
-
-

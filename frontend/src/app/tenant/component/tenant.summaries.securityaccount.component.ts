@@ -1,62 +1,89 @@
-import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {SecurityaccountTable} from '../../securityaccount/component/securityaccountTable';
-import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
+import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { SecurityaccountTable } from '../../securityaccount/component/securityaccountTable';
+import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 
-import {ActivatedRoute, Router} from '@angular/router';
-import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {SecurityaccountService} from '../../securityaccount/service/securityaccount.service';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {ChartDataService} from '../../shared/chart/service/chart.data.service';
-import {AppSettings} from '../../shared/app.settings';
-import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {FilterService} from '@openng/optimus-ui/api';
-import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
-import {CommonModule} from '@angular/common';
-import {TableModule} from '@openng/optimus-ui/table';
-import {DatePicker} from '@openng/optimus-ui/datepicker';
-import {FormsModule} from '@angular/forms';
-import {SelectModule} from '@openng/optimus-ui/select';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
-import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
-import {TransactionCashaccountTableComponent} from '../../transaction/component/transaction-cashaccount-table.component';
-import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ChartDataService } from '../../shared/chart/service/chart.data.service';
+import { AppSettings } from '../../shared/app.settings';
+import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { FilterService } from '@openng/optimus-ui/api';
+import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { CommonModule } from '@angular/common';
+import { TableModule } from '@openng/optimus-ui/table';
+import { DatePicker } from '@openng/optimus-ui/datepicker';
+import { FormsModule } from '@angular/forms';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TransactionSecurityTableComponent } from '../../transaction/component/transaction-security-table.component';
+import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
+import { TransactionCashaccountTableComponent } from '../../transaction/component/transaction-cashaccount-table.component';
+import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
 
 /**
  * It is the summary for all security accounts with its securities of a for a certain tenant.
  * The user can change the grouping for example by currency or financial instrument.
  */
 @Component({
-    templateUrl: '../../securityaccount/view/securityaccount.table.html',
-    standalone: true,
-    imports: [CommonModule, TranslateModule, TableModule, DatePicker, FormsModule, SelectModule, TooltipModule, ContextMenuModule,
-      TransactionSecurityTableComponent, TransactionSecurityMarginTreetableComponent,
-      TransactionCashaccountTableComponent, TransactionSecurityEditComponent]
+  templateUrl: '../../securityaccount/view/securityaccount.table.html',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    TableModule,
+    DatePicker,
+    FormsModule,
+    SelectModule,
+    TooltipModule,
+    ContextMenuModule,
+    TransactionSecurityTableComponent,
+    TransactionSecurityMarginTreetableComponent,
+    TransactionCashaccountTableComponent,
+    TransactionSecurityEditComponent
+  ]
 })
 export class TenantSummariesSecurityaccountComponent extends SecurityaccountTable implements OnInit, OnDestroy {
-
-  constructor(timeSeriesQuotesService: TimeSeriesQuotesService,
-              alarmSetupService: AlarmSetupService,
-              activePanelService: ActivePanelService,
-              messageToastService: MessageToastService,
-              securityaccountService: SecurityaccountService,
-              productIconService: ProductIconService,
-              activatedRoute: ActivatedRoute,
-              router: Router,
-              chartDataService: ChartDataService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(timeSeriesQuotesService, alarmSetupService, activePanelService, messageToastService, securityaccountService,
-      productIconService, activatedRoute, router, chartDataService, filterService, translateService, gps, usersettingsService, injector);
+  constructor(
+    timeSeriesQuotesService: TimeSeriesQuotesService,
+    alarmSetupService: AlarmSetupService,
+    activePanelService: ActivePanelService,
+    messageToastService: MessageToastService,
+    securityaccountService: SecurityaccountService,
+    productIconService: ProductIconService,
+    activatedRoute: ActivatedRoute,
+    router: Router,
+    chartDataService: ChartDataService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      timeSeriesQuotesService,
+      alarmSetupService,
+      activePanelService,
+      messageToastService,
+      securityaccountService,
+      productIconService,
+      activatedRoute,
+      router,
+      chartDataService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   ngOnInit() {
@@ -66,8 +93,12 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
 
   readData() {
     this.selectedSecurityPositionSummary = null;
-    this.securityaccountService.getSecurityPositionSummaryTenant(this.securityaccountGroupBase.defaultGroup,
-      this.includeClosedPosition, this.untilDate)
+    this.securityaccountService
+      .getSecurityPositionSummaryTenant(
+        this.securityaccountGroupBase.defaultGroup,
+        this.includeClosedPosition,
+        this.untilDate
+      )
       .subscribe((data: SecurityPositionGrandSummary) => {
         this.getDataToView(data);
         this.initTableTextTranslation();
@@ -82,11 +113,9 @@ export class TenantSummariesSecurityaccountComponent extends SecurityaccountTabl
     return AppSettings.DEPOT_KEY;
   }
 
-  protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {
-  }
+  protected extendTransactionParamData(transactionCallParam: TransactionCallParam): void {}
 
   protected getOptionalParameters(): OptionalParameters {
     return null;
   }
-
 }

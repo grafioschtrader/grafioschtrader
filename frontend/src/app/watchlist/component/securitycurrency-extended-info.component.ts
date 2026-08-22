@@ -1,21 +1,21 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {AppSettings} from '../../shared/app.settings';
-import {ContentBase, SecuritycurrencyBaseInfoFields} from './securitycurrency.base.info.fields';
-import {Security} from '../../entities/security';
-import {DistributionFrequency} from '../../shared/types/distribution.frequency';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {WatchlistService} from '../service/watchlist.service';
-import {WatchlistHelper} from './watchlist.helper';
-import {CommonModule} from '@angular/common';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {ReplacePipe} from '../../shared/pipe/replace.pipe';
-import {AppHelper} from '../../lib/helper/app.helper';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { AppSettings } from '../../shared/app.settings';
+import { ContentBase, SecuritycurrencyBaseInfoFields } from './securitycurrency.base.info.fields';
+import { Security } from '../../entities/security';
+import { DistributionFrequency } from '../../shared/types/distribution.frequency';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
+import { WatchlistService } from '../service/watchlist.service';
+import { WatchlistHelper } from './watchlist.helper';
+import { CommonModule } from '@angular/common';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { ReplacePipe } from '../../shared/pipe/replace.pipe';
+import { AppHelper } from '../../lib/helper/app.helper';
 
 /**
  * Component that displays detailed information for a currency or financial instrument including quotation data,
@@ -26,12 +26,8 @@ import {AppHelper} from '../../lib/helper/app.helper';
   selector: 'securitycurrency-extended-info',
   templateUrl: '../view/securitycurrency.base.info.fields.html',
   standalone: true,
-  imports: [
-    CommonModule,
-    TranslateModule,
-    TooltipModule,
-    ReplacePipe
-  ]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, TranslateModule, TooltipModule, ReplacePipe]
 })
 export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseInfoFields implements OnInit, OnChanges {
   /** URL for intraday price data feed */
@@ -54,10 +50,12 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
    * @param translateService Service for internationalization and translation
    * @param gps Global parameter service for application-wide settings
    */
-  constructor(watchlistService: WatchlistService,
+  constructor(
+    watchlistService: WatchlistService,
     securityService: SecurityService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
+    gps: GlobalparameterService
+  ) {
     super(watchlistService, securityService, translateService, gps);
   }
 
@@ -72,8 +70,13 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     super.initializeFields();
     this.addQuotationDataFields();
     this.translateHeadersAndColumns();
-    this.content = new ContentExtendedInfo(this.intradayUrl, this.historicalUrl, this.dividendUrl, this.splitUrl,
-      this.securitycurrency);
+    this.content = new ContentExtendedInfo(
+      this.intradayUrl,
+      this.historicalUrl,
+      this.dividendUrl,
+      this.splitUrl,
+      this.securitycurrency
+    );
     this.createTranslatedValueStore([this.content]);
     this.fieldsInitialized = true;
   }
@@ -84,8 +87,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (this.fieldsInitialized && this.content) {
-      const urlChanged = changes['intradayUrl'] || changes['historicalUrl']
-        || changes['dividendUrl'] || changes['splitUrl'];
+      const urlChanged =
+        changes['intradayUrl'] || changes['historicalUrl'] || changes['dividendUrl'] || changes['splitUrl'];
       if (urlChanged) {
         // Update the content object with new URL values
         (this.content as ContentExtendedInfo).intradayUrl = this.intradayUrl;
@@ -101,25 +104,33 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
    * previous close, high/low values, and trading volume. All fields are grouped under QUOTATION_DATA fieldset.
    */
   private addQuotationDataFields(): void {
-    this.addFieldProperty(DataType.DateTimeString, this.SECURITYCURRENCY + 'sTimestamp', 'TIMEDATE',
-      {fieldsetName: this.QUOTATION_DATA});
+    this.addFieldProperty(DataType.DateTimeString, this.SECURITYCURRENCY + 'sTimestamp', 'TIMEDATE', {
+      fieldsetName: this.QUOTATION_DATA
+    });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLast', 'LAST', {
-      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()
+      fieldsetName: this.QUOTATION_DATA,
+      maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sChangePercentage', 'DAILY_CHANGE', {
-      fieldsetName: this.QUOTATION_DATA, headerSuffix: '%', templateName: 'greenRed'
+      fieldsetName: this.QUOTATION_DATA,
+      headerSuffix: '%',
+      templateName: 'greenRed'
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sPrevClose', 'DAY_BEFORE_CLOSE', {
-      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()
+      fieldsetName: this.QUOTATION_DATA,
+      maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sHigh', 'HIGH', {
-      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()
+      fieldsetName: this.QUOTATION_DATA,
+      maxFractionDigits: this.gps.getMaxFractionDigits()
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLow', 'LOW', {
-      fieldsetName: this.QUOTATION_DATA, maxFractionDigits: this.gps.getMaxFractionDigits()
+      fieldsetName: this.QUOTATION_DATA,
+      maxFractionDigits: this.gps.getMaxFractionDigits()
     });
-    this.addFieldProperty(DataType.NumericInteger, this.SECURITYCURRENCY + 'sVolume', 'VOLUME',
-      {fieldsetName: this.QUOTATION_DATA});
+    this.addFieldProperty(DataType.NumericInteger, this.SECURITYCURRENCY + 'sVolume', 'VOLUME', {
+      fieldsetName: this.QUOTATION_DATA
+    });
   }
 
   /**
@@ -127,24 +138,30 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
    * retry counters, URL extensions, and feed URLs. Also includes dividend and split group configurations.
    */
   protected override addHistoricalIntraday(): void {
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'idConnectorHistory', 'HISTORY_DATA_PROVIDER',
-      {
-        fieldsetName: 'HISTORY_SETTINGS', fieldValueFN: this.getFeedConnectorReadableName.bind(this)
-      });
+    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'idConnectorHistory', 'HISTORY_DATA_PROVIDER', {
+      fieldsetName: 'HISTORY_SETTINGS',
+      fieldValueFN: this.getFeedConnectorReadableName.bind(this)
+    });
     this.addFieldPropertyFeqH(DataType.NumericRaw, this.SECURITYCURRENCY + 'retryHistoryLoad', {
       fieldsetName: 'HISTORY_SETTINGS'
     });
-    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlHistoryExtend', {fieldsetName: 'HISTORY_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlHistoryExtend', {
+      fieldsetName: 'HISTORY_SETTINGS'
+    });
     this.addFieldPropertyFeqH(DataType.URLString, 'historicalUrl', {
       fieldsetName: 'HISTORY_SETTINGS',
       templateName: 'long'
     });
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'idConnectorIntra', 'INTRA_DATA_PROVIDER',
-      {fieldsetName: 'INTRA_SETTINGS', fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
+    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'idConnectorIntra', 'INTRA_DATA_PROVIDER', {
+      fieldsetName: 'INTRA_SETTINGS',
+      fieldValueFN: this.getFeedConnectorReadableName.bind(this)
+    });
     this.addFieldPropertyFeqH(DataType.NumericRaw, this.SECURITYCURRENCY + 'retryIntraLoad', {
       fieldsetName: 'INTRA_SETTINGS'
     });
-    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlIntraExtend', {fieldsetName: 'INTRA_SETTINGS'});
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'urlIntraExtend', {
+      fieldsetName: 'INTRA_SETTINGS'
+    });
     this.addFieldPropertyFeqH(DataType.URLString, WatchlistHelper.INTRADAY_URL, {
       fieldsetName: 'INTRA_SETTINGS',
       templateName: 'long'
@@ -160,10 +177,18 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
   private addDividendGroup(): void {
     if (!(this.securitycurrency instanceof CurrencypairWatchlist)) {
       const s = <Security>this.securitycurrency;
-      if (Security.canHaveDividendConnector(s.assetClass, !s.distributionFrequency
-      || s.distributionFrequency === '' ? null : DistributionFrequency[s.distributionFrequency], !s.stockexchange.noMarketValue)) {
+      if (
+        Security.canHaveDividendConnector(
+          s.assetClass,
+          !s.distributionFrequency || s.distributionFrequency === ''
+            ? null
+            : DistributionFrequency[s.distributionFrequency],
+          !s.stockexchange.noMarketValue
+        )
+      ) {
         this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'idConnectorDividend', {
-          fieldsetName: AppSettings.DIVIDEND_SETTINGS, fieldValueFN: this.getFeedConnectorReadableName.bind(this)
+          fieldsetName: AppSettings.DIVIDEND_SETTINGS,
+          fieldValueFN: this.getFeedConnectorReadableName.bind(this)
         });
         this.addFieldPropertyFeqH(DataType.NumericRaw, this.SECURITYCURRENCY + 'retryDividendLoad', {
           fieldsetName: AppSettings.DIVIDEND_SETTINGS
@@ -172,7 +197,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
           fieldsetName: AppSettings.DIVIDEND_SETTINGS
         });
         this.addFieldPropertyFeqH(DataType.URLString, 'dividendUrl', {
-          fieldsetName: AppSettings.DIVIDEND_SETTINGS, templateName: 'long'
+          fieldsetName: AppSettings.DIVIDEND_SETTINGS,
+          templateName: 'long'
         });
       }
     }
@@ -187,7 +213,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
       const s = <Security>this.securitycurrency;
       if (Security.canHaveSplitConnector(s.assetClass, !s.stockexchange.noMarketValue)) {
         this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'idConnectorSplit', {
-          fieldsetName: AppSettings.SPLIT_SETTINGS, fieldValueFN: this.getFeedConnectorReadableName.bind(this)
+          fieldsetName: AppSettings.SPLIT_SETTINGS,
+          fieldValueFN: this.getFeedConnectorReadableName.bind(this)
         });
         this.addFieldPropertyFeqH(DataType.NumericRaw, this.SECURITYCURRENCY + 'retrySplitLoad', {
           fieldsetName: AppSettings.SPLIT_SETTINGS
@@ -196,7 +223,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
           fieldsetName: AppSettings.SPLIT_SETTINGS
         });
         this.addFieldPropertyFeqH(DataType.URLString, 'splitUrl', {
-          fieldsetName: AppSettings.SPLIT_SETTINGS, templateName: 'long'
+          fieldsetName: AppSettings.SPLIT_SETTINGS,
+          templateName: 'long'
         });
       }
     }
@@ -229,8 +257,13 @@ class ContentExtendedInfo extends ContentBase {
    * @param splitUrl URL for stock split data feed
    * @param securitycurrency The base security or currency object
    */
-  constructor(public intradayUrl: string, public historicalUrl: string,
-    public dividendUrl, public splitUrl, securitycurrency: Securitycurrency) {
+  constructor(
+    public intradayUrl: string,
+    public historicalUrl: string,
+    public dividendUrl,
+    public splitUrl,
+    securitycurrency: Securitycurrency
+  ) {
     super(securitycurrency);
   }
 }

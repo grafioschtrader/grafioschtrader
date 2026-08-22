@@ -1,4 +1,4 @@
-import {expect, Locator, Page} from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -54,13 +54,13 @@ function exactText(text: string): RegExp {
  * (admindata-main-tree.contributor.ts), so the leaf can be clicked directly.
  */
 export async function openTaxDataView(page: Page): Promise<Locator> {
-  const taxDataNode = page.getByRole('treeitem', {name: RX.taxDataNode}).first();
-  await taxDataNode.waitFor({state: 'visible', timeout: 15_000});
+  const taxDataNode = page.getByRole('treeitem', { name: RX.taxDataNode }).first();
+  await taxDataNode.waitFor({ state: 'visible', timeout: 15_000 });
   await taxDataNode.click();
-  await page.waitForURL(/\/mainview\/taxdata(?:$|[/?#])/, {timeout: 15_000});
+  await page.waitForURL(/\/mainview\/taxdata(?:$|[/?#])/, { timeout: 15_000 });
 
-  const container = page.locator('.data-container', {has: page.locator('configurable-tree-table')}).first();
-  await container.locator('p-treetable').waitFor({state: 'visible', timeout: 15_000});
+  const container = page.locator('.data-container', { has: page.locator('configurable-tree-table') }).first();
+  await container.locator('p-treetable').waitFor({ state: 'visible', timeout: 15_000 });
   return container;
 }
 
@@ -71,8 +71,10 @@ export async function openTaxDataView(page: Page): Promise<Locator> {
  */
 export function nodeRow(container: Locator, text: string | RegExp): Locator {
   const nameRx = typeof text === 'string' ? exactText(text) : text;
-  return container.locator('.p-treetable-tbody tr')
-    .filter({has: container.page().locator('td:nth-child(1)').filter({hasText: nameRx})}).first();
+  return container
+    .locator('.p-treetable-tbody tr')
+    .filter({ has: container.page().locator('td:nth-child(1)').filter({ hasText: nameRx }) })
+    .first();
 }
 
 /**
@@ -83,10 +85,10 @@ export function nodeRow(container: Locator, text: string | RegExp): Locator {
  * the spec fails.
  */
 export async function openNodeMenu(page: Page, row: Locator): Promise<Locator> {
-  await row.waitFor({state: 'visible', timeout: 15_000});
-  await row.click({button: 'right'});
+  await row.waitFor({ state: 'visible', timeout: 15_000 });
+  await row.click({ button: 'right' });
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   return menu;
 }
 
@@ -95,17 +97,20 @@ export async function openNodeMenu(page: Page, row: Locator): Promise<Locator> {
  * "Create tax country". Requires an empty tree, the state after the cleanup and after step 6.
  */
 export async function openEmptyTreeMenu(page: Page, container: Locator): Promise<Locator> {
-  await expect(container.locator('.p-treetable-tbody tr')).toHaveCount(0, {timeout: 10_000});
-  await container.locator('configurable-tree-table').click({button: 'right'});
+  await expect(container.locator('.p-treetable-tbody tr')).toHaveCount(0, { timeout: 10_000 });
+  await container.locator('configurable-tree-table').click({ button: 'right' });
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   return menu;
 }
 
 /** Clicks a context menu entry and waits until the menu is gone again. */
 async function clickMenuItem(page: Page, menu: Locator, itemRx: RegExp): Promise<void> {
   await menu.getByText(itemRx).first().click();
-  await page.locator('[role="menu"]:visible').waitFor({state: 'hidden', timeout: 5_000}).catch(() => undefined);
+  await page
+    .locator('[role="menu"]:visible')
+    .waitFor({ state: 'hidden', timeout: 5_000 })
+    .catch(() => undefined);
 }
 
 /**
@@ -117,30 +122,35 @@ export async function createTaxCountry(page: Page, container: Locator, countryCo
   await clickMenuItem(page, menu, RX.createCountry);
 
   const dialog = page.locator('.p-dialog');
-  await dialog.waitFor({state: 'visible', timeout: 10_000});
+  await dialog.waitFor({ state: 'visible', timeout: 10_000 });
   const countrySelect = dialog.locator('select#countryCode');
-  await countrySelect.selectOption({value: countryCode});
+  await countrySelect.selectOption({ value: countryCode });
   await countrySelect.dispatchEvent('change');
   await dialog.locator('button[type="submit"]').click();
-  await dialog.waitFor({state: 'hidden', timeout: 10_000});
+  await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
 
-  await expect(nodeRow(container, RX.country)).toBeVisible({timeout: 10_000});
+  await expect(nodeRow(container, RX.country)).toBeVisible({ timeout: 10_000 });
 }
 
 /** Creates a tax year below the given country row. */
-export async function createTaxYear(page: Page, container: Locator, countryRow: Locator, taxYear: number): Promise<void> {
+export async function createTaxYear(
+  page: Page,
+  container: Locator,
+  countryRow: Locator,
+  taxYear: number
+): Promise<void> {
   const menu = await openNodeMenu(page, countryRow);
   await clickMenuItem(page, menu, RX.createYear);
 
   const dialog = page.locator('.p-dialog');
-  await dialog.waitFor({state: 'visible', timeout: 10_000});
+  await dialog.waitFor({ state: 'visible', timeout: 10_000 });
   const yearSelect = dialog.locator('select#taxYear');
-  await yearSelect.selectOption({value: String(taxYear)});
+  await yearSelect.selectOption({ value: String(taxYear) });
   await yearSelect.dispatchEvent('change');
   await dialog.locator('button[type="submit"]').click();
-  await dialog.waitFor({state: 'hidden', timeout: 10_000});
+  await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
 
-  await expect(nodeRow(container, String(taxYear))).toBeVisible({timeout: 10_000});
+  await expect(nodeRow(container, String(taxYear))).toBeVisible({ timeout: 10_000 });
 }
 
 /**
@@ -150,24 +160,28 @@ export async function createTaxYear(page: Page, container: Locator, countryRow: 
  * The backend stores the zip, extracts the XML and parses it completely in memory before filtering
  * by the ISINs held in GT, so the full Kursliste needs minutes rather than seconds.
  */
-export async function uploadTaxData(page: Page, container: Locator, yearRow: Locator,
-  zipPath: string): Promise<number> {
+export async function uploadTaxData(
+  page: Page,
+  container: Locator,
+  yearRow: Locator,
+  zipPath: string
+): Promise<number> {
   const menu = await openNodeMenu(page, yearRow);
   await clickMenuItem(page, menu, RX.uploadTaxData);
 
   const dialog = page.locator('.p-dialog');
-  await dialog.waitFor({state: 'visible', timeout: 10_000});
+  await dialog.waitFor({ state: 'visible', timeout: 10_000 });
   const fileInput = dialog.locator('input#fileToUpload');
   await fileInput.setInputFiles(zipPath);
   await fileInput.dispatchEvent('change');
 
   const submit = dialog.locator('button[type="submit"]');
-  await expect(submit).toBeEnabled({timeout: 10_000});
+  await expect(submit).toBeEnabled({ timeout: 10_000 });
   await submit.click();
-  await dialog.waitFor({state: 'hidden', timeout: 570_000});
+  await dialog.waitFor({ state: 'hidden', timeout: 570_000 });
 
   const fileRow = nodeRow(container, zipName(zipPath));
-  await expect(fileRow).toBeVisible({timeout: 30_000});
+  await expect(fileRow).toBeVisible({ timeout: 30_000 });
   return recordCountOfRow(fileRow);
 }
 
@@ -186,7 +200,7 @@ export async function deleteNode(page: Page, row: Locator): Promise<void> {
   const menu = await openNodeMenu(page, row);
   // No confirmation dialog: TaxDataTreetableComponent calls the delete endpoint directly.
   await clickMenuItem(page, menu, RX.deleteItem);
-  await expect(row).toHaveCount(0, {timeout: 30_000});
+  await expect(row).toHaveCount(0, { timeout: 30_000 });
 }
 
 /**
@@ -196,20 +210,20 @@ export async function deleteNode(page: Page, row: Locator): Promise<void> {
  */
 export async function deleteTaxCountryIfPresent(page: Page, container: Locator): Promise<void> {
   const countryRow = nodeRow(container, RX.country);
-  if (await countryRow.count() === 0) {
+  if ((await countryRow.count()) === 0) {
     return;
   }
   for (const zipPath of [FULL_ZIP, DIFF_ZIP]) {
     const fileRow = nodeRow(container, zipName(zipPath));
-    if (await fileRow.count() > 0) {
+    if ((await fileRow.count()) > 0) {
       await deleteNode(page, fileRow);
     }
   }
   const yearRow = nodeRow(container, String(TAX_YEAR));
-  if (await yearRow.count() > 0) {
+  if ((await yearRow.count()) > 0) {
     await deleteNode(page, yearRow);
   }
-  if (await countryRow.count() > 0) {
+  if ((await countryRow.count()) > 0) {
     await deleteNode(page, countryRow);
   }
 }

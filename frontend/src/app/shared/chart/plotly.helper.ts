@@ -1,11 +1,10 @@
-import {TranslateService} from '@ngx-translate/core';
-import {Helper} from '../../lib/helper/helper';
-import {Legend} from 'plotly.js';
-import {ElementRef} from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { Helper } from '../../lib/helper/helper';
+import { Legend } from 'plotly.js';
+import { ElementRef } from '@angular/core';
 import tippy from 'tippy.js';
 
 declare let Plotly: any;
-
 
 export interface ChartData {
   data: any;
@@ -16,22 +15,24 @@ export interface ChartData {
 }
 
 export interface ChartTrace {
-  x: (string | number) [];
+  x: (string | number)[];
   y: number[];
   name: string;
   type: string;
   mode: string;
-  visible: (boolean | 'legendonly');
+  visible: boolean | 'legendonly';
 }
 
 export class PlotlyHelper {
-
   public static initializeChartTrace(name: string, type: string, mode?: string): Partial<ChartTrace> {
-    const trace: Partial<ChartTrace> = {x: [], y: [], name, type, mode};
+    const trace: Partial<ChartTrace> = { x: [], y: [], name, type, mode };
     return trace;
   }
 
-  public static registerPlotlyClick(nativeElement: any, callBackFN: (traceIndex: number, dataPointIndex: number) => void) {
+  public static registerPlotlyClick(
+    nativeElement: any,
+    callBackFN: (traceIndex: number, dataPointIndex: number) => void
+  ) {
     nativeElement.on('plotly_click', (data) => {
       let point: string;
       let traceIndex: number;
@@ -41,12 +42,10 @@ export class PlotlyHelper {
         point = `x=  + ${data.points[i].x}; y= ${data.points[i].y.toPrecision(4)}, pn=${data.points[i].curveNumber}`;
         traceIndex = data.points[i].curveNumber;
         dataPointIndex = data.points[i].pointNumber;
-
       }
       callBackFN(traceIndex, dataPointIndex);
     });
   }
-
 
   /**
    * Search all properties 'label' in the layout tree and translate it. It is expecting, that all
@@ -58,19 +57,25 @@ export class PlotlyHelper {
     const founds: any = [];
     this.searchArrayInObjectTree(layout, founds);
 
-    founds.forEach(elements => elements
-      .filter(e => e && typeof e === 'object' && e.hasOwnProperty(LABEL) && typeof e[LABEL] === 'string')
-      .filter(f => f[LABEL] = f[LABEL].toUpperCase())
-      .map(match => translateService.get(Helper.getValueByPath(match, LABEL)).subscribe(
-        trans => Helper.setValueByPath(match, LABEL, trans))));
+    founds.forEach((elements) =>
+      elements
+        .filter((e) => e && typeof e === 'object' && e.hasOwnProperty(LABEL) && typeof e[LABEL] === 'string')
+        .filter((f) => (f[LABEL] = f[LABEL].toUpperCase()))
+        .map((match) =>
+          translateService
+            .get(Helper.getValueByPath(match, LABEL))
+            .subscribe((trans) => Helper.setValueByPath(match, LABEL, trans))
+        )
+    );
   }
 
   private static translateLayoutTitles(translateService: TranslateService, layout: any): void {
     const TITLE = 'title';
     const founds: any = [];
 
-    Helper.findPropertyNamesInObjectTree(layout, TITLE).forEach(keywordPath =>
-      this.translateLayoutTitle(translateService,  layout, keywordPath));
+    Helper.findPropertyNamesInObjectTree(layout, TITLE).forEach((keywordPath) =>
+      this.translateLayoutTitle(translateService, layout, keywordPath)
+    );
   }
 
   private static translateLayoutTitle(translateService: TranslateService, layout: any, keywordPath: string): void {
@@ -85,14 +90,16 @@ export class PlotlyHelper {
       }
 
       const params = {};
-      translateService.get(wordKey).subscribe(paramTrans => {
+      translateService.get(wordKey).subscribe((paramTrans) => {
         for (let i = 0; i < wordKey.length; i++) {
           params['p' + i] = paramTrans[wordKey[i]];
         }
-        translateService.get(labelParts[0], params).subscribe(trans => Helper.setValueByPath(layout, keywordPath, trans));
+        translateService
+          .get(labelParts[0], params)
+          .subscribe((trans) => Helper.setValueByPath(layout, keywordPath, trans));
       });
     } else {
-      translateService.get(labelParts[0]).subscribe(trans => Helper.setValueByPath(layout, keywordPath, trans));
+      translateService.get(labelParts[0]).subscribe((trans) => Helper.setValueByPath(layout, keywordPath, trans));
     }
   }
 
@@ -111,18 +118,18 @@ export class PlotlyHelper {
     }
   }
 
-
-  public static attachTooltip(plotly: any, legendTooltipMap = new Map<string, string>(),
-                              chartElement: ElementRef): void {
+  public static attachTooltip(
+    plotly: any,
+    legendTooltipMap = new Map<string, string>(),
+    chartElement: ElementRef
+  ): void {
     const legendLayer = chartElement.nativeElement.querySelector('g.legend');
     const items: any[] = legendLayer.querySelectorAll('g.traces');
 
-    items.forEach(i => {
-      tippy(i, {content: legendTooltipMap.get(i.textContent)});
+    items.forEach((i) => {
+      tippy(i, { content: legendTooltipMap.get(i.textContent) });
     });
-
   }
-
 
   public static getLegendUnderChart(fontSize: number): Partial<Legend> {
     return {
@@ -130,7 +137,7 @@ export class PlotlyHelper {
       yanchor: 'top',
       orientation: 'h',
       y: -0.4, // play with it
-      x: 0,   // play with it
+      x: 0, // play with it
       font: {
         family: 'sans-serif',
         size: fontSize,

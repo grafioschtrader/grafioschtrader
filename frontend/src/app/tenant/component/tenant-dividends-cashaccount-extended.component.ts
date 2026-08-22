@@ -1,18 +1,21 @@
-import {Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
-import {FilterService} from '@openng/optimus-ui/api';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {CashAccountPosition} from '../../entities/view/securitydividends/security.dividends.position';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SecurityDividendsGrandTotal} from '../../entities/view/securitydividends/security.dividends.grand.total';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {CashAccountTableInputFilter, TransactionCashaccountTableComponent} from '../../transaction/component/transaction-cashaccount-table.component';
-import {TransactionType} from '../../shared/types/transaction.type';
-import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
-import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {CommonModule} from '@angular/common';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import { Component, EventEmitter, Injector, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { CashAccountPosition } from '../../entities/view/securitydividends/security.dividends.position';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import {
+  CashAccountTableInputFilter,
+  TransactionCashaccountTableComponent
+} from '../../transaction/component/transaction-cashaccount-table.component';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { TenantDividendsExtendedBase } from './tenant.dividends.extended.base';
+import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
+import { CommonModule } from '@angular/common';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 
 /**
  * Displays the cash accounts in the interest/dividend report.
@@ -33,7 +36,7 @@ import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-ta
         [expandedRowTemplate]="expandedContent"
         [stripedRows]="true"
         [showGridlines]="true">
-        <h5 caption>{{ 'CASHACCOUNTS'|translate }}</h5>
+        <h5 caption>{{ 'CASHACCOUNTS' | translate }}</h5>
       </configurable-table>
 
       <ng-template #expandedContent let-row>
@@ -46,12 +49,8 @@ import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-ta
     </div>
   `,
   standalone: true,
-  imports: [
-    CommonModule,
-    TranslateModule,
-    ConfigurableTableComponent,
-    TransactionCashaccountTableComponent
-  ]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, TranslateModule, ConfigurableTableComponent, TransactionCashaccountTableComponent]
 })
 export class TenantDividendsCashaccountExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() securityDividendsGrandTotal: SecurityDividendsGrandTotal;
@@ -62,64 +61,74 @@ export class TenantDividendsCashaccountExtendedComponent extends TenantDividends
 
   cashAccountTableInputFilter: CashAccountTableInputFilter;
 
-  constructor(private parentChildRegisterService: ParentChildRegisterService,
+  constructor(
+    private parentChildRegisterService: ParentChildRegisterService,
     filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    injector: Injector) {
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnInit(): void {
     this.cashAccountTableInputFilter = new CashAccountTableInputFilter(
-      [TransactionType.FEE, TransactionType.INTEREST_CASHACCOUNT], this.year);
-    this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false, {width: 200});
+      [TransactionType.FEE, TransactionType.INTEREST_CASHACCOUNT],
+      this.year
+    );
+    this.addColumn(DataType.String, 'cashaccount.name', 'NAME', true, false, {
+      width: 200
+    });
     this.addColumnFeqH(DataType.String, 'cashaccount.currency', true, false);
     this.addColumnFeqH(DataType.Numeric, 'closeEndOfYear', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'feeCashAccount', true, false,
-      {width: 60, currencyPrecisionField: 'cashaccount.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'feeCashAccountMC', true, false,
-      {
-        width: 60, headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
-      });
-    this.addColumnFeqH(DataType.Numeric, 'feeSecurityAccount', true, false,
-      {currencyPrecisionField: 'cashaccount.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'feeSecurityAccountMC', true, false,
-      {
-        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
-      });
+    this.addColumnFeqH(DataType.Numeric, 'feeCashAccount', true, false, {
+      width: 60,
+      currencyPrecisionField: 'cashaccount.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'feeCashAccountMC', true, false, {
+      width: 60,
+      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+    });
+    this.addColumnFeqH(DataType.Numeric, 'feeSecurityAccount', true, false, {
+      currencyPrecisionField: 'cashaccount.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'feeSecurityAccountMC', true, false, {
+      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+    });
     this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency, 'cashaccount.currency');
-    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false,
-      {currencyPrecisionField: 'cashaccount.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'cashBalanceMC', true, false,
-      {
-        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
-      });
-    this.addColumnFeqH(DataType.Numeric, 'marginEarningsMC', false, true,
-      {
-        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
-      });
-    this.addColumnFeqH(DataType.Numeric, 'hypotheticalFinanceCostMC', false, true,
-      {
-        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
-      });
-    this.addColumnFeqH(DataType.Numeric, 'cashBalancePlusMarginMC', false, true,
-      {
-        headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
-      });
-    this.multiSortMeta.push({field: 'cashaccount.name', order: 1});
+    this.addColumnFeqH(DataType.Numeric, 'cashBalance', true, false, {
+      currencyPrecisionField: 'cashaccount.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'cashBalanceMC', true, false, {
+      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+    });
+    this.addColumnFeqH(DataType.Numeric, 'marginEarningsMC', false, true, {
+      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+    });
+    this.addColumnFeqH(DataType.Numeric, 'hypotheticalFinanceCostMC', false, true, {
+      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+    });
+    this.addColumnFeqH(DataType.Numeric, 'cashBalancePlusMarginMC', false, true, {
+      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+    });
+    this.multiSortMeta.push({ field: 'cashaccount.name', order: 1 });
     this.prepareTableAndTranslate();
     if (this.securityDividendsGrandTotal.hasMarginData) {
-      this.fields.filter(f => f.field === 'marginEarningsMC' || f.field === 'hypotheticalFinanceCostMC'
-        || f.field === 'cashBalancePlusMarginMC')
-        .forEach(f => f.visible = true);
+      this.fields
+        .filter(
+          (f) =>
+            f.field === 'marginEarningsMC' ||
+            f.field === 'hypotheticalFinanceCostMC' ||
+            f.field === 'cashBalancePlusMarginMC'
+        )
+        .forEach((f) => (f.visible = true));
     }
     this.parentChildRegisterService.initRegistry();
   }
@@ -127,5 +136,4 @@ export class TenantDividendsCashaccountExtendedComponent extends TenantDividends
   transactionDataChanged(event: ProcessedActionData) {
     this.dateChanged.emit(event);
   }
-
 }

@@ -1,5 +1,5 @@
-import {Auditable} from './auditable';
-import {BaseID} from './base.id';
+import { Auditable } from './auditable';
+import { BaseID } from './base.id';
 
 /**
  * One configured anti-flooding limit. The first five properties form the limit key; idRole and idUser are mutually

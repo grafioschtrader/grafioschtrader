@@ -1,54 +1,48 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BaseInputComponent} from '../base.input.component';
-import {Helper} from '../../../helper/helper';
-import {AbstractControl, ReactiveFormsModule} from '@angular/forms';
-import {Subscription} from 'rxjs';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { BaseInputComponent } from '../base.input.component';
+import { Helper } from '../../../helper/helper';
+import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
-import {DatePicker} from '@openng/optimus-ui/datepicker';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {TranslateModule} from '@ngx-translate/core';
-import {FilterOutPipe} from '../../pipe/FilterOutPipe';
-
+import { DatePicker } from '@openng/optimus-ui/datepicker';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 
 @Component({
-    selector: 'form-pcalendar',
-    template: `
+  selector: 'form-pcalendar',
+  template: `
     <ng-container [formGroup]="group">
-      <p-datepicker [id]="config.field"
-                  [style]="{'max-width': '180px'}"
-                  [inputStyleClass]="'form-control ' + (isRequired? 'required-input': '')"
-                  [showTime]="config.dataType === DataType.DateTimeNumeric"
-                  [dateFormat]="formConfig.dateFormat"
-                  dataType="date"
-                  [timeOnly]="config.dataType === DataType.TimeString"
-                  pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
-                  #input
-                  [hideOnDateTimeSelect]="true"
-                  [minDate]="config.calendarConfig.minDate"
-                  [maxDate]="config.calendarConfig.maxDate"
-                  [disabledDates]="config.calendarConfig.disabledDates"
-                  [disabledDays]="config.calendarConfig.disabledDays"
-                  selectionMode="single"
-                  [required]="isRequired"
-                  [showOnFocus]="false"
-                  [showIcon]="true"
-                  appendTo="body"
-                  (onBlur)="onCalendarBlur($event)"
-                  [formControlName]="config.field">
+      <p-datepicker
+        [id]="config.field"
+        [style]="{ 'max-width': '180px' }"
+        [inputStyleClass]="'form-control ' + (isRequired ? 'required-input' : '')"
+        [showTime]="config.dataType === DataType.DateTimeNumeric"
+        [dateFormat]="formConfig.dateFormat"
+        dataType="date"
+        [timeOnly]="config.dataType === DataType.TimeString"
+        pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}"
+        #input
+        [hideOnDateTimeSelect]="true"
+        [minDate]="config.calendarConfig.minDate"
+        [maxDate]="config.calendarConfig.maxDate"
+        [disabledDates]="config.calendarConfig.disabledDates"
+        [disabledDays]="config.calendarConfig.disabledDays"
+        selectionMode="single"
+        [required]="isRequired"
+        [showOnFocus]="false"
+        [showIcon]="true"
+        appendTo="body"
+        (onBlur)="onCalendarBlur($event)"
+        [formControlName]="config.field">
       </p-datepicker>
     </ng-container>
   `,
-    imports: [
-    ReactiveFormsModule,
-    DatePicker,
-    TooltipModule,
-    TranslateModule,
-    FilterOutPipe
-],
-    standalone: true
+  imports: [ReactiveFormsModule, DatePicker, TooltipModule, TranslateModule, FilterOutPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: true
 })
 export class FormPCalendarComponent extends BaseInputComponent implements OnInit, OnDestroy {
-
   /** Error names this component sets itself, they must be removed again before a new evaluation. */
   private static readonly OWN_ERRORS = ['calendarDateInvalid', 'calendarDateNotSelectable'];
 
@@ -64,7 +58,8 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
     // Every accepted date, no matter if it was entered or chosen over the calendar, withdraws a former complaint.
     // Otherwise a rejected entry would keep the field invalid even after a correct date was selected.
     this.valueChangedSub = this.group.controls[this.config.field]?.valueChanges.subscribe(() =>
-      this.setOwnError(this.group.controls[this.config.field], null));
+      this.setOwnError(this.group.controls[this.config.field], null)
+    );
   }
 
   ngOnDestroy(): void {
@@ -110,8 +105,8 @@ export class FormPCalendarComponent extends BaseInputComponent implements OnInit
    * @param errorName Name of the error to set or null when the entry is accepted
    */
   private setOwnError(control: AbstractControl, errorName: string): void {
-    const errors = {...(control.errors || {})};
-    FormPCalendarComponent.OWN_ERRORS.forEach(name => delete errors[name]);
+    const errors = { ...(control.errors || {}) };
+    FormPCalendarComponent.OWN_ERRORS.forEach((name) => delete errors[name]);
     if (errorName) {
       errors[errorName] = true;
     }

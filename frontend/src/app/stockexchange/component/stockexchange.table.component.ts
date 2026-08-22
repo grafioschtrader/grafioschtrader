@@ -1,31 +1,31 @@
-import {Component, Injector, OnDestroy} from '@angular/core';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {StockexchangeService} from '../service/stockexchange.service';
-import {Stockexchange} from '../../entities/stockexchange';
-import {combineLatest} from 'rxjs';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {plainToInstance} from 'class-transformer';
-import {StockexchangeCallParam} from './stockexchange.call.param';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {AppSettings} from '../../shared/app.settings';
-import {TableCrudSupportMenuSecurity} from '../../lib/datashowbase/table.crud.support.menu.security';
-import {StockexchangeBaseData, StockexchangeMic} from '../model/stockexchange.base.data';
-import {StockexchangeHasSecurity} from '../model/stockexchange.has.security';
-import {StockexchangeHelper} from './stockexchange.helper';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {StockexchangeEditComponent} from './stockexchange-edit.component';
-import {TradingCalendarStockexchangeComponent} from './trading-calendar-stockexchange.component';
+import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { StockexchangeService } from '../service/stockexchange.service';
+import { Stockexchange } from '../../entities/stockexchange';
+import { combineLatest } from 'rxjs';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { plainToInstance } from 'class-transformer';
+import { StockexchangeCallParam } from './stockexchange.call.param';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { AppSettings } from '../../shared/app.settings';
+import { TableCrudSupportMenuSecurity } from '../../lib/datashowbase/table.crud.support.menu.security';
+import { StockexchangeBaseData, StockexchangeMic } from '../model/stockexchange.base.data';
+import { StockexchangeHasSecurity } from '../model/stockexchange.has.security';
+import { StockexchangeHelper } from './stockexchange.helper';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { StockexchangeEditComponent } from './stockexchange-edit.component';
+import { TradingCalendarStockexchangeComponent } from './trading-calendar-stockexchange.component';
 
 /**
  * Shows stock exchanges in a table
@@ -47,41 +47,49 @@ import {TradingCalendarStockexchangeComponent} from './trading-calendar-stockexc
       [expandable]="true"
       [canExpandFn]="canExpandRow.bind(this)"
       [expandedRowTemplate]="expandedContent"
-      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container-full': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       [showContextMenu]="isActivated()"
-      [contextMenuItems]="contextMenuItems" [contextMenuAppendTo]="'body'"
+      [contextMenuItems]="contextMenuItems"
+      [contextMenuAppendTo]="'body'"
       [ownerHighlightFn]="isNotSingleModeAndOwner.bind(this)"
       [valueGetterFn]="getValueByPath.bind(this)"
       (componentClick)="onComponentClick($event)">
-
-      <h4 caption>{{entityNameUpper | translate}}</h4>
+      <h4 caption>{{ entityNameUpper | translate }}</h4>
 
       <!-- Country flag cell (templateName: 'icon'); tooltip shows the technical id_stockexchange -->
       <ng-template #iconCell let-row>
-        <img src="assets/icons/flag_placeholder.png"
-             [class]="'fi fi-' + (row.countryCode ? row.countryCode.toLowerCase() : 'xx')"
-             style="width: 20px"
-             [pTooltip]="row.idStockexchange" tooltipPosition="top"/>
+        <img
+          src="assets/icons/flag_placeholder.png"
+          [class]="'fi fi-' + (row.countryCode ? row.countryCode.toLowerCase() : 'xx')"
+          style="width: 20px"
+          [pTooltip]="row.idStockexchange"
+          tooltipPosition="top" />
       </ng-template>
-
     </configurable-table>
 
     <!-- Expanded row content template -->
     <ng-template #expandedContent let-stockexchange>
-      <trading-calendar-stockexchange [stockexchange]="stockexchange"
-                                      [sourceCopyStockexchanges]="getCopySourceStockexchanges(stockexchange.idStockexchange)">
+      <trading-calendar-stockexchange
+        [stockexchange]="stockexchange"
+        [sourceCopyStockexchanges]="getCopySourceStockexchanges(stockexchange.idStockexchange)">
       </trading-calendar-stockexchange>
     </ng-template>
 
     @if (visibleDialog) {
-      <stockexchange-edit [visibleDialog]="visibleDialog"
-                          [callParam]="callParam"
-                          (closeDialog)="handleCloseDialog($event)">
+      <stockexchange-edit
+        [visibleDialog]="visibleDialog"
+        [callParam]="callParam"
+        (closeDialog)="handleCloseDialog($event)">
       </stockexchange-edit>
     }
   `,
   providers: [DialogService],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ConfigurableTableComponent,
     StockexchangeEditComponent,
@@ -91,51 +99,71 @@ import {TradingCalendarStockexchangeComponent} from './trading-calendar-stockexc
   ]
 })
 export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<Stockexchange> implements OnDestroy {
-
   callParam: StockexchangeCallParam = new StockexchangeCallParam();
 
   private countriesAsKeyValue: { [cc: string]: string } = {};
   private stockexchangeMics: StockexchangeMic[];
 
-  constructor(private stockexchangeService: StockexchangeService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(AppSettings.STOCKEXCHANGE, stockexchangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, injector);
+  constructor(
+    private stockexchangeService: StockexchangeService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      AppSettings.STOCKEXCHANGE,
+      stockexchangeService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
 
     this.addColumnFeqH(DataType.String, 'mic', true, false, {
       width: 40,
       templateName: BaseSettings.OWNER_TEMPLATE
     });
     this.addColumnFeqH(DataType.String, 'name', true, false, {
-      width: 180,
+      width: 180
     });
-    this.addColumn(DataType.String, 'countryFlag', 'COUNTRY_FLAG', true, false,
-      {width: 40, templateName: 'icon', fieldValueFN: this.getDisplayNameForCounty.bind(this)});
-    this.addColumnFeqH(DataType.String, 'countryCode', true, false,
-      {fieldValueFN: this.getDisplayNameForCounty.bind(this)});
-    this.addColumnFeqH(DataType.Boolean, 'secondaryMarket', true, false,
-      {templateName: 'check'});
-    this.addColumnFeqH(DataType.Boolean, 'noMarketValue', true, false,
-      {templateName: 'check'});
+    this.addColumn(DataType.String, 'countryFlag', 'COUNTRY_FLAG', true, false, {
+      width: 40,
+      templateName: 'icon',
+      fieldValueFN: this.getDisplayNameForCounty.bind(this)
+    });
+    this.addColumnFeqH(DataType.String, 'countryCode', true, false, {
+      fieldValueFN: this.getDisplayNameForCounty.bind(this)
+    });
+    this.addColumnFeqH(DataType.Boolean, 'secondaryMarket', true, false, {
+      templateName: 'check'
+    });
+    this.addColumnFeqH(DataType.Boolean, 'noMarketValue', true, false, {
+      templateName: 'check'
+    });
     this.addColumnFeqH(DataType.TimeString, 'timeOpen', true, false);
     this.addColumnFeqH(DataType.TimeString, 'timeClose', true, false);
-    this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
-    this.addColumn(DataType.String, 'nameIndexUpdCalendar', 'ID_INDEX_UPD_CALENDAR', true, false, {width: 180});
-    this.addColumn(DataType.String, 'nameTradingCalendarRuleSet', 'ID_TRADING_CALENDAR_RULE_SET', true, false,
-      {width: 180});
+    this.addColumnFeqH(DataType.String, 'timeZone', true, false, {
+      width: 120
+    });
+    this.addColumn(DataType.String, 'nameIndexUpdCalendar', 'ID_INDEX_UPD_CALENDAR', true, false, { width: 180 });
+    this.addColumn(DataType.String, 'nameTradingCalendarRuleSet', 'ID_TRADING_CALENDAR_RULE_SET', true, false, {
+      width: 180
+    });
     this.addColumnFeqH(DataType.DateString, 'maxCalendarUpdDate', true, false);
     this.addColumnFeqH(DataType.TimeString, 'localTime', true, false);
-    this.addColumnFeqH(DataType.DateTimeString, 'lastDirectPriceUpdate', true, false,
-      {width: 100});
-    this.multiSortMeta.push({field: 'name', order: 1});
+    this.addColumnFeqH(DataType.DateTimeString, 'lastDirectPriceUpdate', true, false, { width: 100 });
+    this.multiSortMeta.push({ field: 'name', order: 1 });
     this.prepareTableAndTranslate();
   }
 
@@ -162,15 +190,17 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
   }
 
   getCopySourceStockexchanges(targetIdStockexchange: number): ValueKeyHtmlSelectOptions[] {
-    return this.entityList.filter(stockexhange => !stockexhange.noMarketValue
-      && targetIdStockexchange !== stockexhange.idStockexchange)
-      .map(stockexchange => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
+    return this.entityList
+      .filter((stockexhange) => !stockexhange.noMarketValue && targetIdStockexchange !== stockexhange.idStockexchange)
+      .map((stockexchange) => new ValueKeyHtmlSelectOptions(stockexchange.idStockexchange, stockexchange.name));
   }
 
   protected override readData(): void {
     if (this.callParam.countriesAsHtmlOptions) {
-      combineLatest([this.stockexchangeService.getAllStockexchanges(true),
-        this.stockexchangeService.stockexchangesHasSecurity()]).subscribe((data: [Stockexchange[], StockexchangeHasSecurity[]]) => {
+      combineLatest([
+        this.stockexchangeService.getAllStockexchanges(true),
+        this.stockexchangeService.stockexchangesHasSecurity()
+      ]).subscribe((data: [Stockexchange[], StockexchangeHasSecurity[]]) => {
         this.prepareStockexchanges(data[0], data[1]);
       });
     } else {
@@ -184,7 +214,7 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
   private prepareStockexchanges(stockexchanges: Stockexchange[], shs: StockexchangeHasSecurity[]): void {
     this.entityList = plainToInstance(Stockexchange, stockexchanges);
-    shs.forEach(keyvalue => this.hasSecurityObject[keyvalue.id] = keyvalue.s);
+    shs.forEach((keyvalue) => (this.hasSecurityObject[keyvalue.id] = keyvalue.s));
     this.refreshSelectedEntity();
   }
 
@@ -195,9 +225,10 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
 
   public override getEditMenuItems(): MenuItem[] {
     const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
-    menuItems.push({separator: true});
+    menuItems.push({ separator: true });
     menuItems.push({
-      label: 'WEBSITE', command: (e) => AppHelper.toExternalWebpage(this.selectedEntity.website, 'stockexchange'),
+      label: 'WEBSITE',
+      command: (e) => AppHelper.toExternalWebpage(this.selectedEntity.website, 'stockexchange'),
       disabled: !this.selectedEntity || !this.selectedEntity.website
     });
     return menuItems;
@@ -207,6 +238,6 @@ export class StockexchangeTableComponent extends TableCrudSupportMenuSecurity<St
     this.callParam.hasSecurity = entity && this.hasSecurityObject[this.getId(entity)] !== 0;
     this.callParam.stockexchange = entity;
     this.callParam.stockexchangeMics = this.stockexchangeMics;
-    this.callParam.existingMic = new Set(this.entityList.map(se => se.mic));
+    this.callParam.existingMic = new Set(this.entityList.map((se) => se.mic));
   }
 }

@@ -1,6 +1,6 @@
-import {Security} from '../security';
-import {Currencypair} from '../currencypair';
-import {SecuritycurrencyPosition} from './securitycurrency.position';
+import { Security } from '../security';
+import { Currencypair } from '../currencypair';
+import { SecuritycurrencyPosition } from './securitycurrency.position';
 
 export interface SecuritycurrencyGroup {
   securityPositionList: SecuritycurrencyPosition<Security>[];
@@ -10,7 +10,5 @@ export interface SecuritycurrencyGroup {
 }
 
 export interface SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
-  udfEntityValues: {[idSecuritycurrency: number]: string};
+  udfEntityValues: { [idSecuritycurrency: number]: string };
 }
-
-

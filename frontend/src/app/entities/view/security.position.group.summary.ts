@@ -1,4 +1,4 @@
-import {SecurityPositionSummary} from './security.position.summary';
+import { SecurityPositionSummary } from './security.position.summary';
 
 export class SecurityPositionGroupSummary {
   public groupAccountValueSecurityMC: number;

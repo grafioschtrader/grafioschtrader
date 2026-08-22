@@ -16,11 +16,9 @@ export enum TransactionType {
   /** Finance cost on a finance instrument, can be +/- */
   FINANCE_COST = 7,
 
-
   /** Dividend DRP (Dividend Reinvestment Programme) */
   HYPOTHETICAL_BUY = 9,
   /** Not used for a real Transaction, it may be used for a simulated postion sell */
   HYPOTHETICAL_SELL = 10,
   ACCRUED_INTEREST = 11
-
 }

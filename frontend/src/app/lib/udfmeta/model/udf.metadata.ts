@@ -1,6 +1,6 @@
-import {BaseID} from '../../entities/base.id';
-import {Exclude} from 'class-transformer';
-import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
+import { BaseID } from '../../entities/base.id';
+import { Exclude } from 'class-transformer';
+import { FieldDescriptorInputAndShowExtended } from '../../dynamicfield/field.descriptor.input.and.show';
 
 /**
  * Abstract base class for User-Defined Field (UDF) metadata configuration.
@@ -59,8 +59,6 @@ export class UDFMetadataGeneral extends UDFMetadata {
   entity: string = null;
 }
 
-
-
 /**
  * Parameters for UDF metadata editing operations.
  * Contains validation data to prevent duplicate field names and UI order conflicts.
@@ -79,7 +77,7 @@ export class UDFMetadataParam {
  */
 export class UDFMetadataGeneralParam extends UDFMetadataParam {
   /** The UDF metadata entity being edited, or null when creating a new entry */
-  uDFMetadataGeneral: UDFMetadataGeneral
+  uDFMetadataGeneral: UDFMetadataGeneral;
 }
 
 /**
@@ -94,8 +92,10 @@ export class UDFData {
    * @param uDFDataKey - Composite key identifying the entity instance and user owning this data
    * @param jsonValues - Object containing the actual UDF field values as key-value pairs
    */
-  constructor(public uDFDataKey: UDFDataKey, public jsonValues: any) {
-  }
+  constructor(
+    public uDFDataKey: UDFDataKey,
+    public jsonValues: any
+  ) {}
 }
 
 /**
@@ -110,8 +110,11 @@ export class UDFDataKey {
    * @param entity - Entity type name (e.g., "Portfolio", "Watchlist")
    * @param idEntity - Specific instance ID of the entity
    */
-  constructor(public idUser: number, public entity: string, public idEntity: number) {
-  }
+  constructor(
+    public idUser: number,
+    public entity: string,
+    public idEntity: number
+  ) {}
 }
 
 /**
@@ -136,16 +139,19 @@ export class UDFGeneralCallParam {
    * @param udfData - Existing UDF data for this entity, or null when creating new data
    * @param titleKey - Translation key for the dialog title
    */
-  constructor(public entityName: string, public selectedEntity: BaseID, public udfData: UDFData, public titleKey: string) {
-  }
+  constructor(
+    public entityName: string,
+    public selectedEntity: BaseID,
+    public udfData: UDFData,
+    public titleKey: string
+  ) {}
 }
 
 /**
  * Composite identifier for user-specific UDF special type disabling.
  * Used as the primary key for tracking which special UDF types a user has disabled.
  */
-export class UDFSpecialTypeDisableUserId
-{
+export class UDFSpecialTypeDisableUserId {
   /** User ID who disabled this UDF special type */
   idUser: number;
 

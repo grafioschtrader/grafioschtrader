@@ -1,11 +1,11 @@
-import {Component} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {SelectItem} from '@openng/optimus-ui/api';
-import {SelectModule} from '@openng/optimus-ui/select';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {DynamicDialogConfig} from '@openng/optimus-ui/dynamicdialog';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { SelectItem } from '@openng/optimus-ui/api';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { DynamicDialogConfig } from '@openng/optimus-ui/dynamicdialog';
 import {
   FilterSortEntryView,
   FilterSortScope,
@@ -34,14 +34,22 @@ export interface WatchlistFilterSortSettingsData {
   template: `
     <div class="settings-section">
       <label for="filterScope">{{ 'FILTER_SCOPE' | translate }}</label>
-      <p-select inputId="filterScope" [options]="scopeOptions" [ngModel]="filterScope"
-                (onChange)="changeFilterScope($event.value)" appendTo="body"></p-select>
+      <p-select
+        inputId="filterScope"
+        [options]="scopeOptions"
+        [ngModel]="filterScope"
+        (onChange)="changeFilterScope($event.value)"
+        appendTo="body"></p-select>
     </div>
 
     <div class="settings-section">
       <label for="sortScope">{{ 'SORT_SCOPE' | translate }}</label>
-      <p-select inputId="sortScope" [options]="scopeOptions" [ngModel]="sortScope"
-                (onChange)="changeSortScope($event.value)" appendTo="body"></p-select>
+      <p-select
+        inputId="sortScope"
+        [options]="scopeOptions"
+        [ngModel]="sortScope"
+        (onChange)="changeSortScope($event.value)"
+        appendTo="body"></p-select>
     </div>
 
     <h5>{{ 'ACTIVE_FILTERS' | translate }}</h5>
@@ -60,10 +68,11 @@ export interface WatchlistFilterSortSettingsData {
       }
     }
     <div class="entry-buttons">
-      <p-button [label]="'CLEAR_FILTER_WATCHLIST' | translate" severity="secondary"
-                (click)="clearFilters()"></p-button>
-      <p-button [label]="'CLEAR_FILTER_ALL_WATCHLISTS' | translate" severity="secondary"
-                (click)="clearAllFilters()"></p-button>
+      <p-button [label]="'CLEAR_FILTER_WATCHLIST' | translate" severity="secondary" (click)="clearFilters()"></p-button>
+      <p-button
+        [label]="'CLEAR_FILTER_ALL_WATCHLISTS' | translate"
+        severity="secondary"
+        (click)="clearAllFilters()"></p-button>
     </div>
 
     <h5>{{ 'ACTIVE_SORTING' | translate }}</h5>
@@ -82,68 +91,71 @@ export interface WatchlistFilterSortSettingsData {
       }
     }
     <div class="entry-buttons">
-      <p-button [label]="'CLEAR_SORT_WATCHLIST' | translate" severity="secondary"
-                (click)="clearSorts()"></p-button>
-      <p-button [label]="'CLEAR_SORT_ALL_WATCHLISTS' | translate" severity="secondary"
-                (click)="clearAllSorts()"></p-button>
+      <p-button [label]="'CLEAR_SORT_WATCHLIST' | translate" severity="secondary" (click)="clearSorts()"></p-button>
+      <p-button
+        [label]="'CLEAR_SORT_ALL_WATCHLISTS' | translate"
+        severity="secondary"
+        (click)="clearAllSorts()"></p-button>
     </div>
   `,
-  styles: [`
-    .settings-section {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding-bottom: 0.5rem;
-    }
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styles: [
+    `
+      .settings-section {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
 
-    .settings-section label {
-      flex: 0 0 12rem;
-    }
+      .settings-section label {
+        flex: 0 0 12rem;
+      }
 
-    h5 {
-      margin: 1rem 0 0.25rem 0;
-    }
+      h5 {
+        margin: 1rem 0 0.25rem 0;
+      }
 
-    .entry-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.15rem 0;
-      border-bottom: 1px solid var(--surface-border);
-    }
+      .entry-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.15rem 0;
+        border-bottom: 1px solid var(--surface-border);
+      }
 
-    .entry-scope {
-      flex: 0 0 8rem;
-      font-size: 0.85em;
-      opacity: 0.75;
-    }
+      .entry-scope {
+        flex: 0 0 8rem;
+        font-size: 0.85em;
+        opacity: 0.75;
+      }
 
-    .entry-label {
-      flex: 1 1 auto;
-      font-weight: 700;
-    }
+      .entry-label {
+        flex: 1 1 auto;
+        font-weight: 700;
+      }
 
-    .entry-value {
-      flex: 1 1 auto;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+      .entry-value {
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-    .entry-empty {
-      opacity: 0.75;
-      padding: 0.15rem 0;
-    }
+      .entry-empty {
+        opacity: 0.75;
+        padding: 0.15rem 0;
+      }
 
-    .entry-buttons {
-      display: flex;
-      gap: 0.5rem;
-      padding-top: 0.5rem;
-    }
-  `]
+      .entry-buttons {
+        display: flex;
+        gap: 0.5rem;
+        padding-top: 0.5rem;
+      }
+    `
+  ]
 })
 export class WatchlistFilterSortSettingsDialogComponent {
-
   /** The two scopes as dropdown options. */
   scopeOptions: SelectItem[];
 
@@ -161,14 +173,22 @@ export class WatchlistFilterSortSettingsDialogComponent {
 
   private readonly idWatchlist: number;
 
-  constructor(dynamicDialogConfig: DynamicDialogConfig,
+  constructor(
+    dynamicDialogConfig: DynamicDialogConfig,
     translateService: TranslateService,
-    private filterSortStateService: WatchlistFilterSortStateService) {
+    private filterSortStateService: WatchlistFilterSortStateService
+  ) {
     const data: WatchlistFilterSortSettingsData = dynamicDialogConfig.data;
     this.idWatchlist = data.idWatchlist;
     this.scopeOptions = [
-      {value: FilterSortScope.LOCAL, label: translateService.instant('SCOPE_WATCHLIST')},
-      {value: FilterSortScope.GLOBAL, label: translateService.instant('SCOPE_ALL_WATCHLISTS')}
+      {
+        value: FilterSortScope.LOCAL,
+        label: translateService.instant('SCOPE_WATCHLIST')
+      },
+      {
+        value: FilterSortScope.GLOBAL,
+        label: translateService.instant('SCOPE_ALL_WATCHLISTS')
+      }
     ];
     this.readState();
   }

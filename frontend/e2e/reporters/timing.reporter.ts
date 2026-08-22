@@ -7,7 +7,7 @@ import type {
   Suite,
   TestCase,
   TestResult,
-  TestStep,
+  TestStep
 } from '@playwright/test/reporter';
 
 /**
@@ -83,7 +83,7 @@ export default class TimingReporter implements Reporter {
       title: titlePath.slice(3).join(' › '),
       durationMs: result.duration,
       status: result.status,
-      retry: result.retry,
+      retry: result.retry
     });
   }
 
@@ -94,7 +94,7 @@ export default class TimingReporter implements Reporter {
       title: normalizeStepTitle(step.title),
       durationMs: step.duration,
       // A parent can finish marginally before a child's duration is accounted for; clamp at 0.
-      selfMs: Math.max(0, step.duration - childrenMs),
+      selfMs: Math.max(0, step.duration - childrenMs)
     });
   }
 
@@ -119,35 +119,41 @@ export default class TimingReporter implements Reporter {
 
   private appendWallClock(lines: string[]): void {
     const wallMs = this.endedAt - this.startedAt;
-    const testMs = sum(this.tests.map(t => t.durationMs));
+    const testMs = sum(this.tests.map((t) => t.durationMs));
     const overheadMs = Math.max(0, wallMs - testMs);
     lines.push('', banner('e2e timing — wall clock'));
     lines.push(`  total run           ${formatMs(wallMs).padStart(8)}`);
-    lines.push(`  inside tests        ${formatMs(testMs).padStart(8)}  ${share(testMs, wallMs)}`
-      + `  (${plural(this.tests.length, 'test')}, mean ${formatMs(testMs / this.tests.length)})`);
-    lines.push(`  harness overhead    ${formatMs(overheadMs).padStart(8)}  ${share(overheadMs, wallMs)}`
-      + '  (global setup, worker + browser startup, teardown)');
+    lines.push(
+      `  inside tests        ${formatMs(testMs).padStart(8)}  ${share(testMs, wallMs)}` +
+        `  (${plural(this.tests.length, 'test')}, mean ${formatMs(testMs / this.tests.length)})`
+    );
+    lines.push(
+      `  harness overhead    ${formatMs(overheadMs).padStart(8)}  ${share(overheadMs, wallMs)}` +
+        '  (global setup, worker + browser startup, teardown)'
+    );
   }
 
   private appendSlowestTests(lines: string[]): void {
-    const testMs = sum(this.tests.map(t => t.durationMs));
+    const testMs = sum(this.tests.map((t) => t.durationMs));
     const sorted = [...this.tests].sort((a, b) => b.durationMs - a.durationMs);
     // File and title as two columns: truncating the concatenation would drop whichever end is cut.
-    const fileWidth = Math.max(...sorted.map(t => t.file.length));
-    const titleWidth = Math.min(80, Math.max(...sorted.map(t => t.title.length)));
+    const fileWidth = Math.max(...sorted.map((t) => t.file.length));
+    const titleWidth = Math.min(80, Math.max(...sorted.map((t) => t.title.length)));
     lines.push('', banner('e2e timing — tests, slowest first'));
     for (const test of sorted) {
       const flag = test.status === 'passed' ? '' : `  [${test.status}]`;
-      lines.push(`  ${test.file.padEnd(fileWidth)}  ${truncate(test.title, titleWidth).padEnd(titleWidth)}`
-        + `  ${formatMs(test.durationMs).padStart(8)}  ${share(test.durationMs, testMs)}${flag}`);
+      lines.push(
+        `  ${test.file.padEnd(fileWidth)}  ${truncate(test.title, titleWidth).padEnd(titleWidth)}` +
+          `  ${formatMs(test.durationMs).padStart(8)}  ${share(test.durationMs, testMs)}${flag}`
+      );
     }
   }
 
   private appendPerSpecFile(lines: string[]): void {
-    const testMs = sum(this.tests.map(t => t.durationMs));
-    const byFile = new Map<string, {count: number; ms: number}>();
+    const testMs = sum(this.tests.map((t) => t.durationMs));
+    const byFile = new Map<string, { count: number; ms: number }>();
     for (const test of this.tests) {
-      const entry = byFile.get(test.file) ?? {count: 0, ms: 0};
+      const entry = byFile.get(test.file) ?? { count: 0, ms: 0 };
       entry.count += 1;
       entry.ms += test.durationMs;
       byFile.set(test.file, entry);
@@ -156,37 +162,41 @@ export default class TimingReporter implements Reporter {
     const labelWidth = Math.max(...sorted.map(([file]) => file.length));
     lines.push('', banner('e2e timing — spec files, slowest first'));
     for (const [file, entry] of sorted) {
-      lines.push(`  ${file.padEnd(labelWidth)}  ${formatMs(entry.ms).padStart(8)}`
-        + `  ${share(entry.ms, testMs)}  ${plural(entry.count, 'test').padStart(8)}`
-        + `  mean ${formatMs(entry.ms / entry.count)}`);
+      lines.push(
+        `  ${file.padEnd(labelWidth)}  ${formatMs(entry.ms).padStart(8)}` +
+          `  ${share(entry.ms, testMs)}  ${plural(entry.count, 'test').padStart(8)}` +
+          `  mean ${formatMs(entry.ms / entry.count)}`
+      );
     }
   }
 
   private appendStepCategories(lines: string[]): void {
-    const byCategory = this.bucketSteps(step => step.category);
-    const totalSelfMs = sum([...byCategory.values()].map(b => b.selfMs));
+    const byCategory = this.bucketSteps((step) => step.category);
+    const totalSelfMs = sum([...byCategory.values()].map((b) => b.selfMs));
     const sorted = [...byCategory.entries()].sort((a, b) => b[1].selfMs - a[1].selfMs);
     const labelWidth = Math.max(...sorted.map(([category]) => category.length), 8);
     lines.push('', banner('e2e timing — step categories (self time)'));
     for (const [category, bucket] of sorted) {
-      lines.push(`  ${category.padEnd(labelWidth)}  ${formatMs(bucket.selfMs).padStart(8)}`
-        + `  ${share(bucket.selfMs, totalSelfMs)}  ${plural(bucket.count, 'call').padStart(11)}`);
+      lines.push(
+        `  ${category.padEnd(labelWidth)}  ${formatMs(bucket.selfMs).padStart(8)}` +
+          `  ${share(bucket.selfMs, totalSelfMs)}  ${plural(bucket.count, 'call').padStart(11)}`
+      );
     }
   }
 
   private appendSlowestOperations(lines: string[]): void {
-    const byOperation = this.bucketSteps(step => `${step.category} :: ${step.title}`);
-    const totalSelfMs = sum([...byOperation.values()].map(b => b.selfMs));
-    const sorted = [...byOperation.entries()]
-      .sort((a, b) => b[1].selfMs - a[1].selfMs)
-      .slice(0, SLOWEST_OPERATIONS);
+    const byOperation = this.bucketSteps((step) => `${step.category} :: ${step.title}`);
+    const totalSelfMs = sum([...byOperation.values()].map((b) => b.selfMs));
+    const sorted = [...byOperation.entries()].sort((a, b) => b[1].selfMs - a[1].selfMs).slice(0, SLOWEST_OPERATIONS);
     const labelWidth = Math.min(80, Math.max(...sorted.map(([key]) => key.length)));
     lines.push('', banner(`e2e timing — top ${sorted.length} operations (self time)`));
     for (const [key, bucket] of sorted) {
-      lines.push(`  ${truncate(key, labelWidth).padEnd(labelWidth)}`
-        + `  ${formatMs(bucket.selfMs).padStart(8)}  ${share(bucket.selfMs, totalSelfMs)}`
-        + `  ${plural(bucket.count, 'call').padStart(11)}`
-        + `  mean ${formatMs(bucket.selfMs / bucket.count)}`);
+      lines.push(
+        `  ${truncate(key, labelWidth).padEnd(labelWidth)}` +
+          `  ${formatMs(bucket.selfMs).padStart(8)}  ${share(bucket.selfMs, totalSelfMs)}` +
+          `  ${plural(bucket.count, 'call').padStart(11)}` +
+          `  mean ${formatMs(bucket.selfMs / bucket.count)}`
+      );
     }
   }
 
@@ -196,7 +206,7 @@ export default class TimingReporter implements Reporter {
     const buckets = new Map<string, StepBucket>();
     for (const step of this.steps) {
       const key = keyOf(step);
-      const bucket = buckets.get(key) ?? {count: 0, selfMs: 0, totalMs: 0};
+      const bucket = buckets.get(key) ?? { count: 0, selfMs: 0, totalMs: 0 };
       bucket.count += 1;
       bucket.selfMs += step.selfMs;
       bucket.totalMs += step.durationMs;
@@ -207,17 +217,25 @@ export default class TimingReporter implements Reporter {
 
   private writeJson(status: string): void {
     try {
-      fs.mkdirSync(path.dirname(this.outputFile), {recursive: true});
-      fs.writeFileSync(this.outputFile, JSON.stringify({
-        status,
-        startedAt: new Date(this.startedAt).toISOString(),
-        endedAt: new Date(this.endedAt).toISOString(),
-        wallMs: this.endedAt - this.startedAt,
-        tests: this.tests,
-        steps: [...this.bucketSteps(step => `${step.category} :: ${step.title}`).entries()]
-          .map(([key, bucket]) => ({operation: key, ...bucket}))
-          .sort((a, b) => b.selfMs - a.selfMs),
-      }, null, 2), 'utf-8');
+      fs.mkdirSync(path.dirname(this.outputFile), { recursive: true });
+      fs.writeFileSync(
+        this.outputFile,
+        JSON.stringify(
+          {
+            status,
+            startedAt: new Date(this.startedAt).toISOString(),
+            endedAt: new Date(this.endedAt).toISOString(),
+            wallMs: this.endedAt - this.startedAt,
+            tests: this.tests,
+            steps: [...this.bucketSteps((step) => `${step.category} :: ${step.title}`).entries()]
+              .map(([key, bucket]) => ({ operation: key, ...bucket }))
+              .sort((a, b) => b.selfMs - a.selfMs)
+          },
+          null,
+          2
+        ),
+        'utf-8'
+      );
     } catch (error) {
       console.log(`e2e timing: could not write ${this.outputFile}: ${(error as Error).message}`);
     }

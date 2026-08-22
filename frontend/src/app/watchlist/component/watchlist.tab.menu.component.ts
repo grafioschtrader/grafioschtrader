@@ -1,20 +1,20 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute, Params, Router, RouterModule} from '@angular/router';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {combineLatest, Observable, Subscription} from 'rxjs';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { combineLatest, Observable, Subscription } from 'rxjs';
 
-import {Tab, TabList, Tabs} from '@openng/optimus-ui/tabs';
-import {Watchlist} from '../../entities/watchlist';
-import {UDFMetadataSecurityService} from '../../udfmetasecurity/service/udf.metadata.security.service';
-import {GlobalSessionNames} from '../../lib/global.session.names';
-import {UDFMetadataGeneralService} from '../../lib/udfmeta/service/udf.metadata.general.service';
-import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
-import {AppSettings} from '../../shared/app.settings';
-import {BaseSettings} from '../../lib/base.settings';
-import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
-import {TabItem} from '../../lib/types/tab.item';
-import {InstrumentStatisticsCacheService} from '../../securitycurrency/service/instrument.statistics.cache.service';
-import {WatchlistExpandedPanelStateService} from '../service/watchlist.expanded.panel.state.service';
+import { Tab, TabList, Tabs } from '@openng/optimus-ui/tabs';
+import { Watchlist } from '../../entities/watchlist';
+import { UDFMetadataSecurityService } from '../../udfmetasecurity/service/udf.metadata.security.service';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { UDFMetadataGeneralService } from '../../lib/udfmeta/service/udf.metadata.general.service';
+import { BaseTabMenuComponent } from '../../lib/tabmenu/component/base.tab.menu.component';
+import { AppSettings } from '../../shared/app.settings';
+import { BaseSettings } from '../../lib/base.settings';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
+import { TabItem } from '../../lib/types/tab.item';
+import { InstrumentStatisticsCacheService } from '../../securitycurrency/service/instrument.statistics.cache.service';
+import { WatchlistExpandedPanelStateService } from '../service/watchlist.expanded.panel.state.service';
 
 /**
  * Watchlist Tab Menu Component extending BaseTabMenuComponent.
@@ -42,10 +42,10 @@ import {WatchlistExpandedPanelStateService} from '../service/watchlist.expanded.
   // Both services are scoped to this component on purpose: the cached instrument statistics and the remembered
   // accordion panels of an expanded row survive watchlist and tab changes, but are discarded when the user leaves
   // the watchlist area.
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [InstrumentStatisticsCacheService, WatchlistExpandedPanelStateService]
 })
 export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
-
   /** The current watchlist object containing ID and data. */
   private watchlist: Watchlist;
 
@@ -89,7 +89,9 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
       observables.push(this.uDFMetadataSecurityService.getAllByIdUserInOrderByUiOrderExcludeDisabled());
     }
     if (!sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)) {
-      observables.push(this.uDFMetadataGeneralService.getFieldDescriptorByIdUserAndEveryUserForEntity(AppSettings.CURRENCYPAIR));
+      observables.push(
+        this.uDFMetadataGeneralService.getFieldDescriptorByIdUserAndEveryUserForEntity(AppSettings.CURRENCYPAIR)
+      );
     }
     if (observables.length > 0) {
       combineLatest(observables).subscribe((data: any[]) => {
@@ -129,7 +131,9 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
       const id = +params['id'];
       if (id) {
         this.watchlist = this.treeNavState.getEntity<Watchlist>(
-          BaseSettings.MAINVIEW_KEY + '/' + AppSettings.WATCHLIST_TAB_MENU_KEY, id);
+          BaseSettings.MAINVIEW_KEY + '/' + AppSettings.WATCHLIST_TAB_MENU_KEY,
+          id
+        );
 
         // Preserve the current active tab when switching watchlists
         if (this.isFirstLoad) {
@@ -153,7 +157,7 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
    */
   private getCurrentRouteFromUrl(): string | null {
     const urlSegments = this.router.url.split('/');
-    return this.tabs.find(tab => urlSegments.includes(tab.route))?.route || null;
+    return this.tabs.find((tab) => urlSegments.includes(tab.route))?.route || null;
   }
 
   /**
@@ -211,7 +215,7 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
     this.treeNavState.setEntity(route, this.watchlist.idWatchlist, this.watchlist);
     // Navigate with just the ID - no serialized entity
     this.router.navigate([route, this.watchlist.idWatchlist], {
-      relativeTo: this.activatedRoute,
+      relativeTo: this.activatedRoute
     });
   }
 

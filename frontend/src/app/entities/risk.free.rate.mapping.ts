@@ -1,4 +1,4 @@
-import {Auditable} from '../lib/entities/auditable';
+import { Auditable } from '../lib/entities/auditable';
 
 /**
  * Maps an ISO currency code to the synthetic Security whose historical close = risk-free interest rate for that

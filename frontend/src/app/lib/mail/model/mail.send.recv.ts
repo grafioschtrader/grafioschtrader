@@ -1,12 +1,11 @@
-import {BaseID} from '../../entities/base.id';
-import {Exclude} from 'class-transformer';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import { BaseID } from '../../entities/base.id';
+import { Exclude } from 'class-transformer';
+import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
 
 export class MailSettingForwardVar {
   public static readonly MESSAGE_COM_TYPE = 'messageComType';
   public static readonly MESSAGE_TARGET_TYPE = 'messageTargetType';
   public static readonly ID_USER_DIRECT = 'idUserRedirect';
-
 }
 
 export class MailSendRecv implements BaseID {
@@ -33,7 +32,7 @@ export class MailSendRecv implements BaseID {
   }
 }
 
-export class MailSettingForward implements BaseID{
+export class MailSettingForward implements BaseID {
   idMailSettingForward: number;
   idUser: number;
   messageComType: MessageComType = null;
@@ -47,9 +46,11 @@ export class MailSettingForward implements BaseID{
 }
 
 export class MailSettingForwardParam {
-  constructor(public possibleMsgComType: string[], public mailSendForwardDefault: MailSendForwardDefault,
-              public mailSettingForward: MailSettingForward ) {
-  }
+  constructor(
+    public possibleMsgComType: string[],
+    public mailSendForwardDefault: MailSendForwardDefault,
+    public mailSettingForward: MailSettingForward
+  ) {}
 }
 
 export enum SendRecvType {
@@ -70,10 +71,9 @@ export enum MessageComType {
   USER_ADMIN_ANNOUNCEMENT = 3,
   USER_ADMIN_PERSONAL_TO_USER = 4,
   USER_RECEIVED_PROPOSED_CHANGE = 8,
-  MAIN_ADMIN_HISTORY_PROVIDER_NOT_WORKING= 50,
+  MAIN_ADMIN_HISTORY_PROVIDER_NOT_WORKING = 50,
   MAIN_ADMIN_RELEASE_LOGOUT = 51,
   MAIN_ADMIN_HOLD_TABLE_INCONSISTENT = 52
-
 }
 
 export enum MessageTargetType {
@@ -96,7 +96,7 @@ export interface AnswerWithFirstSend {
 
 export interface MailSendForwardDefault {
   canRedirectToUsers: ValueKeyHtmlSelectOptions[];
-  mailSendForwardDefaultMapForUser: { [messageComType: MessageComType|number]: MailSendForwardDefaultConfig};
+  mailSendForwardDefaultMapForUser: { [messageComType: MessageComType | number]: MailSendForwardDefaultConfig };
 }
 
 export interface MailSendForwardDefaultConfig {

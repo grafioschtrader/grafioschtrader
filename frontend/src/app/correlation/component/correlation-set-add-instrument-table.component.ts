@@ -1,31 +1,31 @@
-import {AddInstrumentTable} from '../../watchlist/component/add-instrument-table.component';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {Component, Injector} from '@angular/core';
-import {FilterService} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {CorrelationSetService} from '../service/correlation.set.service';
-import {CorrelationSet} from '../../entities/correlation.set';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {CommonModule} from '@angular/common';
-import {TranslateModule} from '@ngx-translate/core';
-import {FormsModule} from '@angular/forms';
-import {TableModule} from '@openng/optimus-ui/table';
-import {ButtonModule} from '@openng/optimus-ui/button';
+import { AddInstrumentTable } from '../../watchlist/component/add-instrument-table.component';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { CorrelationSetService } from '../service/correlation.set.service';
+import { CorrelationSet } from '../../entities/correlation.set';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { FormsModule } from '@angular/forms';
+import { TableModule } from '@openng/optimus-ui/table';
+import { ButtonModule } from '@openng/optimus-ui/button';
 
 /**
  * Table component for selecting and displaying instruments in the correlation set search dialog.
  * Extends the base AddInstrumentTable with correlation set specific functionality and date columns.
  */
 @Component({
-    selector: 'correlation-set-add-instrument-table',
-    templateUrl: '../../watchlist/view/add.instrument.table.html',
-    standalone: true,
-    imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
+  selector: 'correlation-set-add-instrument-table',
+  templateUrl: '../../watchlist/view/add.instrument.table.html',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
 })
 export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTable<CorrelationSet> {
-
   /**
    * Initializes the correlation set instrument table with required services.
    * @param dataChangedService Service for handling data change notifications
@@ -35,14 +35,25 @@ export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTabl
    * @param gps Global parameter service for application settings
    * @param usersettingsService Service for user preference management
    */
-  constructor(dataChangedService: DataChangedService,
-              correlationSetService: CorrelationSetService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(null, dataChangedService, correlationSetService, filterService, translateService, gps, usersettingsService, injector);
+  constructor(
+    dataChangedService: DataChangedService,
+    correlationSetService: CorrelationSetService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      null,
+      dataChangedService,
+      correlationSetService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   /**
@@ -54,5 +65,4 @@ export class CorrelationSetAddInstrumentTableComponent extends AddInstrumentTabl
     this.insertColumnFeqH(1, DataType.DateString, 'activeFromDate', true, false);
     this.insertColumnFeqH(2, DataType.DateString, 'activeToDate', true, false);
   }
-
 }

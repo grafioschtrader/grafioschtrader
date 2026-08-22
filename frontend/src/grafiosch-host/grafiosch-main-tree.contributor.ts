@@ -1,16 +1,16 @@
-import {Injectable} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {TreeNode} from '@openng/optimus-ui/api';
-import {Observable, of} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { TreeNode } from '@openng/optimus-ui/api';
+import { Observable, of } from 'rxjs';
 
-import {BaseSettings} from '../app/lib/base.settings';
-import {AuditHelper} from '../app/lib/helper/audit.helper';
-import {LibDataMainTreeContributor} from '../app/lib/maintree/contributor/lib-data-main-tree.contributor';
-import {LibTreeNodeType} from '../app/lib/maintree/types/lib.tree.node.type';
-import {TypeNodeData} from '../app/lib/maintree/types/type.node.data';
-import {GlobalparameterService} from '../app/lib/services/globalparameter.service';
-import {GrafioschSettings} from './grafiosch.settings';
-import {GrafioschTreeContributorBase} from './grafiosch-tree-contributor.base';
+import { BaseSettings } from '../app/lib/base.settings';
+import { AuditHelper } from '../app/lib/helper/audit.helper';
+import { LibDataMainTreeContributor } from '../app/lib/maintree/contributor/lib-data-main-tree.contributor';
+import { LibTreeNodeType } from '../app/lib/maintree/types/lib.tree.node.type';
+import { TypeNodeData } from '../app/lib/maintree/types/type.node.data';
+import { GlobalparameterService } from '../app/lib/services/globalparameter.service';
+import { GrafioschSettings } from './grafiosch.settings';
+import { GrafioschTreeContributorBase } from './grafiosch-tree-contributor.base';
 
 /**
  * The administrative root of this host, built from the nodes the library already offers through
@@ -23,10 +23,12 @@ import {GrafioschTreeContributorBase} from './grafiosch-tree-contributor.base';
  */
 @Injectable()
 export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
-
   private rootNode: TreeNode;
 
-  constructor(translateService: TranslateService, private gps: GlobalparameterService) {
+  constructor(
+    translateService: TranslateService,
+    private gps: GlobalparameterService
+  ) {
     super(translateService);
   }
 
@@ -88,8 +90,13 @@ export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
           selectable: logEnabled
         }
       ],
-      data: new TypeNodeData(LibTreeNodeType.NO_MENU,
-        this.addMainRoute(GrafioschSettings.GT_NET_TAB_MENU_KEY), null, null, null)
+      data: new TypeNodeData(
+        LibTreeNodeType.NO_MENU,
+        this.addMainRoute(GrafioschSettings.GT_NET_TAB_MENU_KEY),
+        null,
+        null,
+        null
+      )
     };
     this.rootNode.children.push(gtNetNode);
   }

@@ -1,25 +1,25 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
-import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TenantService} from '../../tenant/service/tenant.service';
-import {AlgoTop} from '../model/algo.top';
-import {Tenant} from '../../entities/tenant';
-import {Cashaccount} from '../../entities/cashaccount';
-import {SimulationTenantCreateDTO} from '../model/simulation.tenant';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {AppSettings} from '../../shared/app.settings';
-import {BaseSettings} from '../../lib/base.settings';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {HelpIds} from '../../lib/help/help.ids';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TenantService } from '../../tenant/service/tenant.service';
+import { AlgoTop } from '../model/algo.top';
+import { Tenant } from '../../entities/tenant';
+import { Cashaccount } from '../../entities/cashaccount';
+import { SimulationTenantCreateDTO } from '../model/simulation.tenant';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AppSettings } from '../../shared/app.settings';
+import { BaseSettings } from '../../lib/base.settings';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { HelpIds } from '../../lib/help/help.ids';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Dialog for creating a simulation tenant from an AlgoTop strategy.
@@ -28,17 +28,22 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
  */
 @Component({
   template: `
-    <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                  #form="dynamicForm" (submitBt)="submit($event)">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
     </dynamic-form>
   `,
   standalone: true,
-  imports: [
-    DynamicFormModule,
-    TranslateModule
-  ]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DynamicFormModule, TranslateModule]
 })
-export class AlgoSimulationCreateDynamicComponent extends SimpleDynamicEditBase<Tenant> implements OnInit, AfterViewInit {
+export class AlgoSimulationCreateDynamicComponent
+  extends SimpleDynamicEditBase<Tenant>
+  implements OnInit, AfterViewInit
+{
   callParam: CallParam;
   private algoTop: AlgoTop;
   private cashAccounts: Cashaccount[] = [];
@@ -51,8 +56,15 @@ export class AlgoSimulationCreateDynamicComponent extends SimpleDynamicEditBase<
     gps: GlobalparameterService,
     messageToastService: MessageToastService
   ) {
-    super(dynamicDialogConfig, dynamicDialogRef, HelpIds.HELP_ALGO_STRATEGY, translateService, gps,
-      messageToastService, tenantService);
+    super(
+      dynamicDialogConfig,
+      dynamicDialogRef,
+      HelpIds.HELP_ALGO_STRATEGY,
+      translateService,
+      gps,
+      messageToastService,
+      tenantService
+    );
   }
 
   ngOnInit(): void {
@@ -63,7 +75,7 @@ export class AlgoSimulationCreateDynamicComponent extends SimpleDynamicEditBase<
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('name', 40, true),
-      DynamicFieldHelper.createFieldCheckboxHeqF('copyTransactions'),
+      DynamicFieldHelper.createFieldCheckboxHeqF('copyTransactions')
     ];
 
     for (const ca of this.cashAccounts) {
@@ -95,7 +107,7 @@ export class AlgoSimulationCreateDynamicComponent extends SimpleDynamicEditBase<
       }
 
       // Listen for checkbox changes to toggle cash balance field visibility
-      this.form.form?.get('copyTransactions')?.valueChanges.subscribe(checked => {
+      this.form.form?.get('copyTransactions')?.valueChanges.subscribe((checked) => {
         this.toggleCashBalanceFields(!checked);
       });
 
@@ -124,11 +136,11 @@ export class AlgoSimulationCreateDynamicComponent extends SimpleDynamicEditBase<
     }
 
     this.tenantService.createSimulationTenant(dto).subscribe({
-      next: returnEntity => {
+      next: (returnEntity) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'SIMULATION_CREATED');
         this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
       },
-      error: () => this.configObject.submit.disabled = false
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
 

@@ -1,6 +1,6 @@
-import {ImportTransactionPos} from '../../entities/import.transaction.pos';
-import {ImportTransactionTemplate} from '../../entities/import.transaction.template';
-import {BaseID} from '../../lib/entities/base.id';
+import { ImportTransactionPos } from '../../entities/import.transaction.pos';
+import { ImportTransactionTemplate } from '../../entities/import.transaction.template';
+import { BaseID } from '../../lib/entities/base.id';
 
 export class CombineTemplateAndImpTransPos implements BaseID {
   public static readonly EntityKeyName = 'importTransactionPos.idTransactionPos';
@@ -13,5 +13,4 @@ export class CombineTemplateAndImpTransPos implements BaseID {
   public getId(): number {
     return this.importTransactionPos.getId();
   }
-
 }

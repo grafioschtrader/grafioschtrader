@@ -54,7 +54,7 @@ export class TwoKeyMap<T> {
    * const invalidCategory = map.get('grades', 'math'); // null
    */
   public get(key: string, nestedKey: string): T {
-    return (!this.map[key] || this.map[key] && !this.map[key][nestedKey]) ? null : this.map[key][nestedKey];
+    return !this.map[key] || (this.map[key] && !this.map[key][nestedKey]) ? null : this.map[key][nestedKey];
   }
 
   /**
@@ -71,7 +71,7 @@ export class TwoKeyMap<T> {
     if (!this.map[key]) {
       this.map[key] = new Object();
     }
-    Object.defineProperty(this.map[key], nestedKey, {value, configurable: true, enumerable: true});
+    Object.defineProperty(this.map[key], nestedKey, { value, configurable: true, enumerable: true });
   }
 
   /**
@@ -107,7 +107,10 @@ export class TwoKeyMap<T> {
    * const totalItems = allQuantities.reduce((sum, qty) => sum + qty, 0); // 250
    */
   public getValues(): T[] {
-    return [].concat.apply([], Object.getOwnPropertyNames(this.map).map(key => Object.values(this.map[key])));
+    return [].concat.apply(
+      [],
+      Object.getOwnPropertyNames(this.map).map((key) => Object.values(this.map[key]))
+    );
   }
 
   /**
@@ -139,7 +142,7 @@ export class TwoKeyMap<T> {
    * @returns Array of string arrays, where each inner array contains the nested keys for a primary key
    */
   public nestedKeys(): Array<string[]> {
-    return Object.getOwnPropertyNames(this.map).map(key => Object.keys(this.map[key]));
+    return Object.getOwnPropertyNames(this.map).map((key) => Object.keys(this.map[key]));
   }
 
   /**
@@ -148,7 +151,7 @@ export class TwoKeyMap<T> {
    * After calling clear(), the map will be equivalent to a newly constructed instance.
    */
   public clear(): void {
-    Object.getOwnPropertyNames(this.map).forEach(property => {
+    Object.getOwnPropertyNames(this.map).forEach((property) => {
       delete this.map[property];
     });
   }

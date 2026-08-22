@@ -1,4 +1,4 @@
-import {BaseID} from '../../entities/base.id';
+import { BaseID } from '../../entities/base.id';
 
 /**
  * Abstract base class for preparing entities for edit dialogs in the propose change workflow.

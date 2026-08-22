@@ -1,10 +1,9 @@
-import {TranslateLoader} from '@ngx-translate/core';
-import {HttpClient} from '@angular/common/http';
-import {forkJoin, Observable, of} from 'rxjs';
-import {catchError, map, retry} from 'rxjs/operators';
+import { TranslateLoader } from '@ngx-translate/core';
+import { HttpClient } from '@angular/common/http';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, map, retry } from 'rxjs/operators';
 import deepmerge from 'deepmerge';
-import {OPTIMUS_TRANSLATIONS} from './optimus.translations';
-
+import { OPTIMUS_TRANSLATIONS } from './optimus.translations';
 
 export interface ITranslationResource {
   prefix: string;
@@ -22,22 +21,21 @@ export interface ITranslationResource {
 export class MultiTranslateHttpLoader implements TranslateLoader {
   constructor(
     private http: HttpClient,
-    private resources: ITranslationResource[],
-  ) {
-  }
+    private resources: ITranslationResource[]
+  ) {}
 
   public getTranslation(language: string): Observable<any> {
-    const requests = this.resources.map(resource => {
+    const requests = this.resources.map((resource) => {
       const path = resource.prefix + language + resource.suffix;
       const request = this.http.get<Record<string, any>>(path);
       return resource.mandatory
-        ? request.pipe(retry({count: 2, delay: 1500}))
+        ? request.pipe(retry({ count: 2, delay: 1500 }))
         : request.pipe(
-          catchError(() => {
-            console.error('Could not find translation file:', path);
-            return of({} as Record<string, any>);
-          })
-        );
+            catchError(() => {
+              console.error('Could not find translation file:', path);
+              return of({} as Record<string, any>);
+            })
+          );
     });
 
     // Optimus UI's own widget texts are merged last so they cannot be shadowed; optimus.translations.ts explains why

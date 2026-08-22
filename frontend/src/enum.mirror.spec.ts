@@ -1,7 +1,7 @@
-import {describe, expect, it} from 'vitest';
+import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import {fileURLToPath} from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Guards the hand-maintained TypeScript mirrors of backend Java enums against drift.
@@ -103,7 +103,7 @@ function readTypescriptEnum(file: string): Map<string, number> {
  */
 function findMirrorPairs(): MirrorPair[] {
   const pairs: MirrorPair[] = [];
-  for (const entry of fs.readdirSync(FRONTEND_APP, {recursive: true, encoding: 'utf8'})) {
+  for (const entry of fs.readdirSync(FRONTEND_APP, { recursive: true, encoding: 'utf8' })) {
     if (!entry.endsWith('.ts') || entry.endsWith('.spec.ts')) {
       continue;
     }
@@ -129,14 +129,15 @@ function findMirrorPairs(): MirrorPair[] {
  * @param frontendConstants constants of the TypeScript mirror
  * @returns one line per deviation, empty when both sides agree
  */
-function describeDrift(backendConstants: Map<string, number>,
-  frontendConstants: Map<string, number>): string[] {
+function describeDrift(backendConstants: Map<string, number>, frontendConstants: Map<string, number>): string[] {
   const drift: string[] = [];
   for (const [name, value] of backendConstants) {
     if (!frontendConstants.has(name)) {
       drift.push(`missing in frontend: ${name} = ${value}`);
     } else if (frontendConstants.get(name) !== value) {
-      drift.push(`value mismatch: ${name} is ${value} in the backend but ${frontendConstants.get(name)} in the frontend`);
+      drift.push(
+        `value mismatch: ${name} is ${value} in the backend but ${frontendConstants.get(name)} in the frontend`
+      );
     }
   }
   for (const [name, value] of frontendConstants) {
@@ -150,17 +151,18 @@ function describeDrift(backendConstants: Map<string, number>,
 const mirrorPairs = findMirrorPairs();
 
 describe('backend enums mirrored in the frontend', () => {
-
   it('finds at least one mirror declaring "Corresponds to backend:"', () => {
-    expect(mirrorPairs.length,
-      `No mirror found below ${FRONTEND_APP}. Either the marker convention was dropped or this test looks in the wrong place.`)
-      .toBeGreaterThan(0);
+    expect(
+      mirrorPairs.length,
+      `No mirror found below ${FRONTEND_APP}. Either the marker convention was dropped or this test looks in the wrong place.`
+    ).toBeGreaterThan(0);
   });
 
   it.each(mirrorPairs)('$frontendPath matches $backendPath', (pair: MirrorPair) => {
-    expect(fs.existsSync(pair.backendFile),
-      `${pair.frontendPath} points at ${pair.backendPath}, which does not exist. Update the "Corresponds to backend:" marker.`)
-      .toBe(true);
+    expect(
+      fs.existsSync(pair.backendFile),
+      `${pair.frontendPath} points at ${pair.backendPath}, which does not exist. Update the "Corresponds to backend:" marker.`
+    ).toBe(true);
 
     const backendConstants = readJavaEnum(pair.backendFile);
     const frontendConstants = readTypescriptEnum(pair.frontendFile);

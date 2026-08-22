@@ -1,22 +1,35 @@
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild} from '@angular/core';
-import {FilterService} from '@openng/optimus-ui/api';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {TableEditConfigBase} from '../../lib/datashowbase/table.edit.config.base';
-import {EditableTableComponent, RowEditEvent, RowEditSaveEvent} from '../../lib/datashowbase/editable-table.component';
-import {EditInputType, TranslateValue} from '../../lib/datashowbase/column.config';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {SecaccountTradingPeriod} from '../../entities/secaccount.trading.period';
-import {GlobalSessionNames} from '../../lib/global.session.names';
-import {TradingPeriodTransactionSummary} from '../../entities/trading.period.transaction.summary';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {BaseSettings} from '../../lib/base.settings';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
+import {
+  EditableTableComponent,
+  RowEditEvent,
+  RowEditSaveEvent
+} from '../../lib/datashowbase/editable-table.component';
+import { EditInputType, TranslateValue } from '../../lib/datashowbase/column.config';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { SecaccountTradingPeriod } from '../../entities/secaccount.trading.period';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { TradingPeriodTransactionSummary } from '../../entities/trading.period.transaction.summary';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Standalone table component for editing security account trading periods.
@@ -28,40 +41,42 @@ import {BaseSettings} from '../../lib/base.settings';
   template: `
     <div style="display: flex; align-items: center; margin-top: 1rem; margin-bottom: 0.5rem;">
       <h4 style="margin: 0;">{{ 'TRADING_PERIODS' | translate }}</h4>
-      <p-button [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}">
+      <p-button [rounded]="true" [text]="true" (click)="entityTable.addNewRow()" [style]="{ 'margin-left': '0.5rem' }">
         <i class="pi pi-plus" pButtonIcon></i>
       </p-button>
     </div>
-    <editable-table #entityTable
-                    [data]="tradingPeriods"
-                    (dataChange)="onDataChange($event)"
-                    [fields]="fields"
-                    dataKey="idSecaccountTradingPeriod"
-                    [showEditColumn]="true"
-                    [editColumnWidth]="120"
-                    [selectionMode]="null"
-                    [contextMenuEnabled]="false"
-                    [createNewEntityFn]="createNewEntity.bind(this)"
-                    [validateRowFn]="validateRow.bind(this)"
-                    [canDeleteRowFn]="canDeleteRow.bind(this)"
-                    (rowEditSave)="onRowEditSave($event)"
-                    (rowEditCancel)="onRowEditCancel($event)"
-                    (rowDelete)="onRowDelete($event)"
-                    (rowAdded)="onRowAdded($event)"
-                    [valueGetterFn]="getValueByPath.bind(this)"
-                    [customSortFn]="customSort.bind(this)"
-                    [baseLocale]="baseLocale"
-                    [scrollable]="false"
-                    [containerClass]="''"
-                    [stripedRows]="false">
+    <editable-table
+      #entityTable
+      [data]="tradingPeriods"
+      (dataChange)="onDataChange($event)"
+      [fields]="fields"
+      dataKey="idSecaccountTradingPeriod"
+      [showEditColumn]="true"
+      [editColumnWidth]="120"
+      [selectionMode]="null"
+      [contextMenuEnabled]="false"
+      [createNewEntityFn]="createNewEntity.bind(this)"
+      [validateRowFn]="validateRow.bind(this)"
+      [canDeleteRowFn]="canDeleteRow.bind(this)"
+      (rowEditSave)="onRowEditSave($event)"
+      (rowEditCancel)="onRowEditCancel($event)"
+      (rowDelete)="onRowDelete($event)"
+      (rowAdded)="onRowAdded($event)"
+      [valueGetterFn]="getValueByPath.bind(this)"
+      [customSortFn]="customSort.bind(this)"
+      [baseLocale]="baseLocale"
+      [scrollable]="false"
+      [containerClass]="''"
+      [stripedRows]="false">
     </editable-table>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class TradingPeriodTableComponent extends TableEditConfigBase implements OnChanges {
-
-  @ViewChild('entityTable') entityTable: EditableTableComponent<SecaccountTradingPeriod>;
+  @ViewChild('entityTable')
+  entityTable: EditableTableComponent<SecaccountTradingPeriod>;
 
   /** Trading periods to display and edit. Strings are converted to Date objects internally. */
   @Input() tradingPeriods: SecaccountTradingPeriod[] = [];
@@ -77,14 +92,18 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   private fieldsInitialized = false;
   private inputTempIdCounter = -1000;
   private static get MIN_DATE(): Date {
-    return new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
+    return new Date(
+      sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+    );
   }
 
-  constructor(filterService: FilterService,
-              usersettingsService: UserSettingsService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              private messageToastService: MessageToastService) {
+  constructor(
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    private messageToastService: MessageToastService
+  ) {
     super(filterService, usersettingsService, translateService, gps);
     this.setupColumns();
   }
@@ -104,8 +123,8 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    */
   getData(): SecaccountTradingPeriod[] {
     const data = this.entityTable?.getData() || this.tradingPeriods;
-    return this.convertDatesToStrings(data).map(p => {
-      const copy = {...p};
+    return this.convertDatesToStrings(data).map((p) => {
+      const copy = { ...p };
       if (copy.idSecaccountTradingPeriod != null && copy.idSecaccountTradingPeriod < 0) {
         copy.idSecaccountTradingPeriod = null;
       }
@@ -129,9 +148,12 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    * (specInvestInstrument, categoryType) combination already exists.
    */
   validateRow = (row: SecaccountTradingPeriod): boolean => {
-    const duplicates = this.tradingPeriods.filter(p => p !== row
-      && p.specInvestInstrument === row.specInvestInstrument
-      && this.sameCategoryType(p.categoryType, row.categoryType));
+    const duplicates = this.tradingPeriods.filter(
+      (p) =>
+        p !== row &&
+        p.specInvestInstrument === row.specInvestInstrument &&
+        this.sameCategoryType(p.categoryType, row.categoryType)
+    );
     if (duplicates.length > 0) {
       this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'TRADING_PERIOD_DUPLICATE');
       return false;
@@ -154,7 +176,11 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
     const row = event.row;
     if (row.dateTo) {
       const summary = this.findMatchingSummary(row);
-      if (summary && new Date(summary.maxTransactionDate + 'T00:00:00') > (row.dateTo instanceof Date ? row.dateTo : new Date(row.dateTo + 'T00:00:00'))) {
+      if (
+        summary &&
+        new Date(summary.maxTransactionDate + 'T00:00:00') >
+          (row.dateTo instanceof Date ? row.dateTo : new Date(row.dateTo + 'T00:00:00'))
+      ) {
         this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'TRADING_PERIOD_DATE_CONFLICT');
         // Restore original dateTo
         row.dateTo = event.originalRow.dateTo;
@@ -190,31 +216,41 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
 
   private setupColumns(): void {
     // specInvestInstrument column — only editable on new rows
-    const specInvestCol = this.addEditColumnFeqH(DataType.String, 'specInvestInstrument', false,
-      {translateValues: TranslateValue.NORMAL, width: 160});
+    const specInvestCol = this.addEditColumnFeqH(DataType.String, 'specInvestInstrument', false, {
+      translateValues: TranslateValue.NORMAL,
+      width: 160
+    });
     specInvestCol.cec.inputType = EditInputType.Select;
     specInvestCol.cec.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, SpecialInvestmentInstruments,
-      [SpecialInvestmentInstruments.NON_INVESTABLE_INDICES], true);
+      this.translateService,
+      SpecialInvestmentInstruments,
+      [SpecialInvestmentInstruments.NON_INVESTABLE_INDICES],
+      true
+    );
     specInvestCol.cec.canEditFn = (row) => this.isNewRow(row);
 
     // categoryType column — only editable on new rows
-    const categoryTypeCol = this.addEditColumnFeqH(DataType.String, 'categoryType', false,
-      {translateValues: TranslateValue.NORMAL, width: 160});
+    const categoryTypeCol = this.addEditColumnFeqH(DataType.String, 'categoryType', false, {
+      translateValues: TranslateValue.NORMAL,
+      width: 160
+    });
     categoryTypeCol.cec.inputType = EditInputType.Select;
     categoryTypeCol.cec.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnumAddEmpty(
-      this.translateService, AssetclassType,
-      [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN], true);
+      this.translateService,
+      AssetclassType,
+      [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN],
+      true
+    );
     categoryTypeCol.cec.canEditFn = (row) => this.isNewRow(row);
 
     // dateFrom column — only editable on new rows
-    const dateFromCol = this.addEditColumnFeqH(DataType.DateString, 'dateFrom', false, {width: 130});
+    const dateFromCol = this.addEditColumnFeqH(DataType.DateString, 'dateFrom', false, { width: 130 });
     dateFromCol.cec.inputType = EditInputType.DatePicker;
     dateFromCol.cec.minDate = new Date(TradingPeriodTableComponent.MIN_DATE);
     dateFromCol.cec.canEditFn = (row) => this.isNewRow(row);
 
     // dateTo column — always editable
-    const dateToCol = this.addEditColumnFeqH(DataType.DateString, 'dateTo', false, {width: 130});
+    const dateToCol = this.addEditColumnFeqH(DataType.DateString, 'dateTo', false, { width: 130 });
     dateToCol.cec.inputType = EditInputType.DatePicker;
     dateToCol.cec.minDate = new Date(TradingPeriodTableComponent.MIN_DATE);
 
@@ -244,16 +280,18 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
   }
 
   private hasConflictingTransactions(row: SecaccountTradingPeriod): boolean {
-    return this.transactionSummaries.some(ts =>
-      ts.specInvestInstrument === row.specInvestInstrument
-      && (row.categoryType == null || ts.categoryType === row.categoryType)
+    return this.transactionSummaries.some(
+      (ts) =>
+        ts.specInvestInstrument === row.specInvestInstrument &&
+        (row.categoryType == null || ts.categoryType === row.categoryType)
     );
   }
 
   private findMatchingSummary(row: SecaccountTradingPeriod): TradingPeriodTransactionSummary | undefined {
-    return this.transactionSummaries.find(ts =>
-      ts.specInvestInstrument === row.specInvestInstrument
-      && (row.categoryType == null || ts.categoryType === row.categoryType)
+    return this.transactionSummaries.find(
+      (ts) =>
+        ts.specInvestInstrument === row.specInvestInstrument &&
+        (row.categoryType == null || ts.categoryType === row.categoryType)
     );
   }
 
@@ -261,8 +299,8 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    * Converts ISO date strings (from backend JSON) to Date objects for Optimus DatePicker binding.
    */
   private convertDatesToDateObjects(periods: SecaccountTradingPeriod[]): SecaccountTradingPeriod[] {
-    return periods.map(p => {
-      const copy = {...p};
+    return periods.map((p) => {
+      const copy = { ...p };
       if (typeof copy.dateFrom === 'string') {
         copy.dateFrom = new Date(copy.dateFrom + 'T00:00:00');
       }
@@ -277,8 +315,8 @@ export class TradingPeriodTableComponent extends TableEditConfigBase implements 
    * Converts Date objects back to ISO date strings (yyyy-MM-dd) for backend JSON serialization.
    */
   private convertDatesToStrings(periods: SecaccountTradingPeriod[]): SecaccountTradingPeriod[] {
-    return periods.map(p => {
-      const copy = {...p};
+    return periods.map((p) => {
+      const copy = { ...p };
       if (copy.dateFrom instanceof Date) {
         copy.dateFrom = this.formatDateToIso(copy.dateFrom);
       }

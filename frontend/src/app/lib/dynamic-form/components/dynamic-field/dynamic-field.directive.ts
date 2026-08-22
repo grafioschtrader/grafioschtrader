@@ -1,25 +1,24 @@
-import {ComponentRef, Directive, Input, OnChanges, OnInit, Type, ViewContainerRef} from '@angular/core';
-import {UntypedFormGroup} from '@angular/forms';
-import {FormButtonComponent} from '../form-button/form-button.component';
-import {FormInputComponent} from '../form-input/form-input.component';
-import {FieldFormFormGroupConfig} from '../../models/field.form.form.group.config';
-import {FieldConfig} from '../../models/field.config';
-import {FormPCalendarComponent} from '../form-input/form-pcalendar.component';
-import {FormPInputTextareaComponent} from '../form-input/form-pinputtextarea.component';
-import {FormPButtonComponent} from '../form-button/form-pbutton.component';
-import {InputType} from '../../models/input.type';
-import {FormCheckboxComponent} from '../form-input/form-checkbox.component';
-import {FormConfig} from '../../models/form.config';
-import {FormFileUploadComponent} from '../form-input-file/form-file-upload.component';
-import {FormInputSuggestionComponent} from '../form-input/form-input-suggestion.component';
-import {FormInputSelectComponent} from '../form-input/form-input-select.component';
-import {FormTriStateCheckboxComponent} from '../form-input/form-tri-state-checkbox.component';
-import {FormInputButtonComponent} from '../form-input/form-input-button.component';
-import {FormInputNumberComponent} from '../form-input/form-input-number.component';
-import {FormInputDropdownComponent} from '../form-input/form-input-dropdown.component';
-import {FormInputMultiSelectComponent} from '../form-input/form-input-multi-select.component';
-import {FormInputTreeSelectComponent} from '../form-input/form-input-tree-select.component';
-
+import { ComponentRef, Directive, Input, OnChanges, OnInit, Type, ViewContainerRef } from '@angular/core';
+import { UntypedFormGroup } from '@angular/forms';
+import { FormButtonComponent } from '../form-button/form-button.component';
+import { FormInputComponent } from '../form-input/form-input.component';
+import { FieldFormFormGroupConfig } from '../../models/field.form.form.group.config';
+import { FieldConfig } from '../../models/field.config';
+import { FormPCalendarComponent } from '../form-input/form-pcalendar.component';
+import { FormPInputTextareaComponent } from '../form-input/form-pinputtextarea.component';
+import { FormPButtonComponent } from '../form-button/form-pbutton.component';
+import { InputType } from '../../models/input.type';
+import { FormCheckboxComponent } from '../form-input/form-checkbox.component';
+import { FormConfig } from '../../models/form.config';
+import { FormFileUploadComponent } from '../form-input-file/form-file-upload.component';
+import { FormInputSuggestionComponent } from '../form-input/form-input-suggestion.component';
+import { FormInputSelectComponent } from '../form-input/form-input-select.component';
+import { FormTriStateCheckboxComponent } from '../form-input/form-tri-state-checkbox.component';
+import { FormInputButtonComponent } from '../form-input/form-input-button.component';
+import { FormInputNumberComponent } from '../form-input/form-input-number.component';
+import { FormInputDropdownComponent } from '../form-input/form-input-dropdown.component';
+import { FormInputMultiSelectComponent } from '../form-input/form-input-multi-select.component';
+import { FormInputTreeSelectComponent } from '../form-input/form-input-tree-select.component';
 
 const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
   [InputType.Button]: FormButtonComponent,
@@ -39,10 +38,9 @@ const components: { [type: string]: Type<FieldFormFormGroupConfig> } = {
   [InputType.FileUpload]: FormFileUploadComponent
 };
 
-
 @Directive({
-    selector: 'dynamicField',
-    standalone: true
+  selector: 'dynamicField',
+  standalone: true
 })
 export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChanges, OnInit {
   @Input() config: FieldConfig;
@@ -51,8 +49,7 @@ export class DynamicFieldDirective implements FieldFormFormGroupConfig, OnChange
 
   component: ComponentRef<FieldFormFormGroupConfig>;
 
-  constructor(private viewContainerRef: ViewContainerRef) {
-  }
+  constructor(private viewContainerRef: ViewContainerRef) {}
 
   ngOnChanges() {
     if (this.component) {

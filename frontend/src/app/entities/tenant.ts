@@ -1,6 +1,5 @@
-import {Portfolio} from './portfolio';
-import {TenantBase} from '../lib/entities/tenant.base';
-
+import { Portfolio } from './portfolio';
+import { TenantBase } from '../lib/entities/tenant.base';
 
 export class Tenant extends TenantBase {
   currency: string = null;
@@ -20,6 +19,5 @@ export class Tenant extends TenantBase {
 
 export enum TenantKindType {
   MAIN = 0,
-  SIMULATION = 1,
+  SIMULATION = 1
 }
-

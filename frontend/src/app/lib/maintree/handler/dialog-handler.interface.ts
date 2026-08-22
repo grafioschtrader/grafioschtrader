@@ -1,5 +1,5 @@
-import {InjectionToken, Type} from '@angular/core';
-import {Observable} from 'rxjs';
+import { InjectionToken, Type } from '@angular/core';
+import { Observable } from 'rxjs';
 
 /**
  * Interface for handling dialog operations in the main tree.
@@ -15,12 +15,7 @@ export interface DialogHandler {
    * @param titleKey Translation key for the dialog title
    * @returns Observable that emits when the dialog closes
    */
-  openEditDialog(
-    componentType: Type<any>,
-    parentObject: any,
-    data: any,
-    titleKey: string
-  ): Observable<any>;
+  openEditDialog(componentType: Type<any>, parentObject: any, data: any, titleKey: string): Observable<any>;
 
   /**
    * Opens a tenant edit dialog with optional currency-only mode.

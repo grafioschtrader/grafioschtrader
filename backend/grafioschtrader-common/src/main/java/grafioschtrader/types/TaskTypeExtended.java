@@ -63,8 +63,7 @@ public enum TaskTypeExtended implements ITaskType {
   HOLD_TABLE_CONSISTENCY_CHECK((byte) 54),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin
-  ///////////////////////////////////////////////////////////////////////////////
-
+  // ----------------------------------------------------------------------------
   // Update from V_0
   UPD_V_0_11_0((byte) 90),
 

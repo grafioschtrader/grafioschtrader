@@ -1,4 +1,4 @@
-import {ProposeTransientTransfer} from './propose.transient.transfer';
+import { ProposeTransientTransfer } from './propose.transient.transfer';
 
 export abstract class Auditable extends ProposeTransientTransfer {
   createdBy: number = null;

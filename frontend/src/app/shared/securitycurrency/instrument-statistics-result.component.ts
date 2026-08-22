@@ -1,13 +1,11 @@
-import {Component, inject, Input, OnInit} from '@angular/core';
-import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {
-  InstrumentStatisticsCacheService
-} from '../../securitycurrency/service/instrument.statistics.cache.service';
-import {TranslateModule} from '@ngx-translate/core';
-import {InstrumentYearPerformanceTableComponent} from './instrument-year-performance-table.component';
-import {InstrumentAnnualisedReturnComponent} from './instrument.annualised.return.component';
-import {InstrumentStatisticsSummaryComponent} from './instrument-statistics-summary.component';
+import { Component, inject, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { InstrumentStatisticsResult } from '../../entities/view/instrument.statistics.result';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { InstrumentStatisticsCacheService } from '../../securitycurrency/service/instrument.statistics.cache.service';
+import { TranslateModule } from '@ngx-translate/core';
+import { InstrumentYearPerformanceTableComponent } from './instrument-year-performance-table.component';
+import { InstrumentAnnualisedReturnComponent } from './instrument.annualised.return.component';
+import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-summary.component';
 
 /**
  * Shows the yield and statistical data about an instrument.
@@ -17,43 +15,51 @@ import {InstrumentStatisticsSummaryComponent} from './instrument-statistics-summ
   template: `
     <div>
       @if (showTitle) {
-        <h4>{{"RETURN_STATISTICAL_DATA" | translate}}</h4>
+        <h4>{{ 'RETURN_STATISTICAL_DATA' | translate }}</h4>
       }
       <div class="fcontainer">
         @if (isr) {
-          <instrument-year-performance-table [values]="isr.annualisedPerformance.lastYears" class="tabletree"
-                                             [mainCurrency]="isr.annualisedPerformance.mainCurrency">
+          <instrument-year-performance-table
+            [values]="isr.annualisedPerformance.lastYears"
+            class="tabletree"
+            [mainCurrency]="isr.annualisedPerformance.mainCurrency">
           </instrument-year-performance-table>
         }
         @if (isr) {
-          <instrument-annualised-return-table [values]="isr.annualisedPerformance.annualisedYears"
-                                              class="tabletree"
-                                              [mainCurrency]="isr.annualisedPerformance.mainCurrency">
+          <instrument-annualised-return-table
+            [values]="isr.annualisedPerformance.annualisedYears"
+            class="tabletree"
+            [mainCurrency]="isr.annualisedPerformance.mainCurrency">
           </instrument-annualised-return-table>
         }
         @if (isr) {
-          <instrument-statistics-summary [statisticsSummary]="isr.statisticsSummary" class="tabletree"
-                                         [mainCurrency]="isr.annualisedPerformance.mainCurrency">
+          <instrument-statistics-summary
+            [statisticsSummary]="isr.statisticsSummary"
+            class="tabletree"
+            [mainCurrency]="isr.annualisedPerformance.mainCurrency">
           </instrument-statistics-summary>
         }
       </div>
     </div>
   `,
-  styles: [`
-    .tabletree {
-      min-width: 250px;
-      max-width: 33.12%;
-      margin: 0.1%;
-      border-style: solid;
-      border-color: darkgrey;
-    }
-  `],
+  styles: [
+    `
+      .tabletree {
+        min-width: 250px;
+        max-width: 33.12%;
+        margin: 0.1%;
+        border-style: solid;
+        border-color: darkgrey;
+      }
+    `
+  ],
   imports: [
     TranslateModule,
     InstrumentYearPerformanceTableComponent,
     InstrumentAnnualisedReturnComponent,
     InstrumentStatisticsSummaryComponent
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class InstrumentStatisticsResultComponent implements OnInit {
@@ -72,10 +78,11 @@ export class InstrumentStatisticsResultComponent implements OnInit {
    * for as long as the user stays in the watchlist area — the statistics are requested from the server only once.
    * Without such a provider, for example in the correlation matrix, every instance loads its own data.
    */
-  private readonly statisticsCache = inject(InstrumentStatisticsCacheService, {optional: true});
+  private readonly statisticsCache = inject(InstrumentStatisticsCacheService, {
+    optional: true
+  });
 
-  constructor(private securityService: SecurityService) {
-  }
+  constructor(private securityService: SecurityService) {}
 
   ngOnInit(): void {
     const statistics = this.statisticsCache

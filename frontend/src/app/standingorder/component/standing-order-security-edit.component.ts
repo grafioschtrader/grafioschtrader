@@ -1,30 +1,30 @@
-import {Component, OnInit} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {StandingOrderSecurity} from '../../entities/standing.order';
-import {Cashaccount} from '../../entities/cashaccount';
-import {Security} from '../../entities/security';
-import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {StandingOrderService} from '../service/standing.order.service';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {AppSettings} from '../../shared/app.settings';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TransactionType} from '../../shared/types/transaction.type';
-import {SupplementCriteria} from '../../securitycurrency/model/supplement.criteria';
-import {SecuritycurrencySearchAndSetComponent} from '../../securitycurrency/component/securitycurrency-search-and-set.component';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {Portfolio} from '../../entities/portfolio';
-import {StandingOrderEditBase} from './standing-order-edit-base';
-import {AppHelpIds} from '../../shared/help/help.ids';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { StandingOrderSecurity } from '../../entities/standing.order';
+import { Cashaccount } from '../../entities/cashaccount';
+import { Security } from '../../entities/security';
+import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
+import { StandingOrderService } from '../service/standing.order.service';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { AppSettings } from '../../shared/app.settings';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
+import { SecuritycurrencySearchAndSetComponent } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { Portfolio } from '../../entities/portfolio';
+import { StandingOrderEditBase } from './standing-order-edit-base';
+import { AppHelpIds } from '../../shared/help/help.ids';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 
 /** Invest mode: 0 = fixed units, 1 = fixed amount. Not persisted — derived from which field is non-null. */
 enum InvestMode {
@@ -41,20 +41,28 @@ enum InvestMode {
 @Component({
   selector: 'standing-order-security-edit',
   template: `
-    <p-dialog header="{{'STANDING_ORDER_SECURITY' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '600px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'STANDING_ORDER_SECURITY' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '600px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `,
   standalone: true,
   imports: [DialogModule, DynamicFormModule, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class StandingOrderSecurityEditComponent extends StandingOrderEditBase implements OnInit {
-
   private supplementCriteria = new SupplementCriteria(true, false);
 
   /** Security selected via the search dialog. */
@@ -68,39 +76,86 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     standingOrderService: StandingOrderService,
     private dialogService: DialogService
   ) {
-    super(portfolioService, AppHelpIds.HELP_STANDING_ORDER_SECURITY, translateService, gps, messageToastService, standingOrderService);
+    super(
+      portfolioService,
+      AppHelpIds.HELP_STANDING_ORDER_SECURITY,
+      translateService,
+      gps,
+      messageToastService,
+      standingOrderService
+    );
   }
 
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     const fs = StandingOrderEditBase.FS_TRANSACTION;
     this.config = [
-      DynamicFieldHelper.createFieldSelectStringHeqF('transactionType', true, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', AppSettings.SECURITYACCOUNT.toUpperCase(), true,
-        {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), true,
-        {dataproperty: 'cashaccount.idSecuritycashAccount', fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputButtonHeqF(DataType.String, 'securityName',
-        this.handleSecuritySearchClick.bind(this), true, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldSelectNumberHeqF('investMode', true, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputNumberHeqF('units', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS, false,
-        {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputNumberHeqF('investAmount', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS, false,
-        {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldCheckboxHeqF('amountIncludesCosts', {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldCheckboxHeqF('fractionalUnits', {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputNumberHeqF('taxCost', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS, false,
-        {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputStringHeqF('taxCostFormula', 200, false,
-        {fieldsetName: fs, labelHelpText: 'TAX_COST_FORMULA_TOOLTIP'}),
-      DynamicFieldHelper.createFieldInputNumberHeqF('transactionCost', false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS, false,
-        {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputStringHeqF('transactionCostFormula', 200, false,
-        {fieldsetName: fs, labelHelpText: 'TRANSACTION_COST_FORMULA_TOOLTIP'}),
+      DynamicFieldHelper.createFieldSelectStringHeqF('transactionType', true, {
+        fieldsetName: fs
+      }),
+      DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', AppSettings.SECURITYACCOUNT.toUpperCase(), true, {
+        fieldsetName: fs
+      }),
+      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), true, {
+        dataproperty: 'cashaccount.idSecuritycashAccount',
+        fieldsetName: fs
+      }),
+      DynamicFieldHelper.createFieldInputButtonHeqF(
+        DataType.String,
+        'securityName',
+        this.handleSecuritySearchClick.bind(this),
+        true,
+        { fieldsetName: fs }
+      ),
+      DynamicFieldHelper.createFieldSelectNumberHeqF('investMode', true, {
+        fieldsetName: fs
+      }),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'units',
+        false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        false,
+        { fieldsetName: fs }
+      ),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'investAmount',
+        false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        false,
+        { fieldsetName: fs }
+      ),
+      DynamicFieldHelper.createFieldCheckboxHeqF('amountIncludesCosts', {
+        fieldsetName: fs
+      }),
+      DynamicFieldHelper.createFieldCheckboxHeqF('fractionalUnits', {
+        fieldsetName: fs
+      }),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'taxCost',
+        false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        false,
+        { fieldsetName: fs }
+      ),
+      DynamicFieldHelper.createFieldInputStringHeqF('taxCostFormula', 200, false, {
+        fieldsetName: fs,
+        labelHelpText: 'TAX_COST_FORMULA_TOOLTIP'
+      }),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'transactionCost',
+        false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        AppSettings.FID_MAX_DIGITS - AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        false,
+        { fieldsetName: fs }
+      ),
+      DynamicFieldHelper.createFieldInputStringHeqF('transactionCostFormula', 200, false, {
+        fieldsetName: fs,
+        labelHelpText: 'TRANSACTION_COST_FORMULA_TOOLTIP'
+      }),
       ...StandingOrderEditBase.createSchedulingFields()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -111,9 +166,11 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     const securityaccountsHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
     for (const portfolio of this.portfolios) {
       if (portfolio.securityaccountList) {
-        portfolio.securityaccountList.forEach(sa => securityaccountsHtmlOptions.push(
-          new ValueKeyHtmlSelectOptions(sa.idSecuritycashAccount,
-            `${sa.name} / ${portfolio.name}`)));
+        portfolio.securityaccountList.forEach((sa) =>
+          securityaccountsHtmlOptions.push(
+            new ValueKeyHtmlSelectOptions(sa.idSecuritycashAccount, `${sa.name} / ${portfolio.name}`)
+          )
+        );
       }
     }
     this.configObject.idSecurityaccount.valueKeyHtmlOptions = securityaccountsHtmlOptions;
@@ -126,9 +183,14 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
 
   protected override initializeTransactionTypeOptions(): void {
     this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, TransactionType, [TransactionType.ACCUMULATE, TransactionType.REDUCE]);
+      this.translateService,
+      TransactionType,
+      [TransactionType.ACCUMULATE, TransactionType.REDUCE]
+    );
     this.configObject.investMode.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, InvestMode);
+      this.translateService,
+      InvestMode
+    );
     this.setupInvestModeListener();
     this.setupCostFormulaListeners();
   }
@@ -169,8 +231,10 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
         this.configObject.investMode.formControl.setValue(InvestMode[InvestMode.INVEST_MODE_UNITS]);
         this.configObject.units.formControl.setValue(Math.abs(t.units));
       }
-      const investModeNumeric = StandingOrderEditBase.enumFormValueToNumeric(InvestMode,
-        this.configObject.investMode.formControl.value);
+      const investModeNumeric = StandingOrderEditBase.enumFormValueToNumeric(
+        InvestMode,
+        this.configObject.investMode.formControl.value
+      );
       this.applyInvestMode(investModeNumeric ?? InvestMode.INVEST_MODE_UNITS);
     } else {
       // Default to units mode for new entries
@@ -186,10 +250,14 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
 
   /** Opens the security search dialog when the security name button is clicked. */
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
-    this.translateService.get('SET_SECURITY').subscribe(title => {
+    this.translateService.get('SET_SECURITY').subscribe((title) => {
       const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
-        header: title, width: '720px', resizable: false, closable: true, closeOnEscape: true,
-        data: {supplementCriteria: this.supplementCriteria}
+        header: title,
+        width: '720px',
+        resizable: false,
+        closable: true,
+        closeOnEscape: true,
+        data: { supplementCriteria: this.supplementCriteria }
       });
       ref.onClose.subscribe((security: Security | CurrencypairWatchlist) => {
         if (security) {
@@ -206,8 +274,10 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     this.copyFormToPrivateBusinessObject(so, existing);
     so.dtype = 'S';
     // Clear the field not selected by investMode
-    const mode = StandingOrderEditBase.enumFormValueToNumeric(InvestMode,
-      this.configObject.investMode.formControl.value);
+    const mode = StandingOrderEditBase.enumFormValueToNumeric(
+      InvestMode,
+      this.configObject.investMode.formControl.value
+    );
     if (mode === InvestMode.INVEST_MODE_UNITS) {
       so.investAmount = null;
       so.amountIncludesCosts = false;
@@ -225,7 +295,9 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
     delete (so as any).investMode;
     delete (so as any).securityName;
     // Wrap cashaccount ID into Cashaccount object for Jackson deserialization
-    so.cashaccount = {idSecuritycashAccount: +this.configObject.idCashaccount.formControl.value} as Cashaccount;
+    so.cashaccount = {
+      idSecuritycashAccount: +this.configObject.idCashaccount.formControl.value
+    } as Cashaccount;
     // Set security from search dialog selection, existing entity, or transaction
     if (this.selectedSecurity) {
       so.security = this.selectedSecurity;
@@ -293,9 +365,9 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
   private updateCashaccountOptions(idSecurityaccount: number): void {
     const portfolio = this.getPortfolioByIdSecurityaccount(idSecurityaccount);
     if (portfolio?.cashaccountList) {
-      const cashaccountsHtmlOptions: ValueKeyHtmlSelectOptions[] = portfolio.cashaccountList.map(ca =>
-        new ValueKeyHtmlSelectOptions(ca.idSecuritycashAccount,
-          `${ca.name} / ${ca.currency} / ${portfolio.name}`)
+      const cashaccountsHtmlOptions: ValueKeyHtmlSelectOptions[] = portfolio.cashaccountList.map(
+        (ca) =>
+          new ValueKeyHtmlSelectOptions(ca.idSecuritycashAccount, `${ca.name} / ${ca.currency} / ${portfolio.name}`)
       );
       this.configObject.idCashaccount.valueKeyHtmlOptions = cashaccountsHtmlOptions;
       if (cashaccountsHtmlOptions.length === 1) {

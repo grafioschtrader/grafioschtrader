@@ -1,15 +1,15 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
-import {TranslatePipe, TranslateService} from '@ngx-translate/core';
-import {ActivatedRoute, Params, Router, RouterOutlet} from '@angular/router';
-import {AppSettings} from '../../shared/app.settings';
-import {Securityaccount} from '../../entities/securityaccount';
-import {Subscription} from 'rxjs';
-import {BaseTabMenuComponent} from '../../lib/tabmenu/component/base.tab.menu.component';
-import {TabItem} from '../../lib/types/tab.item';
-import {BaseSettings} from '../../lib/base.settings';
-import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
-import {Tabs, TabList, Tab} from '@openng/optimus-ui/tabs';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ActivatedRoute, Params, Router, RouterOutlet } from '@angular/router';
+import { AppSettings } from '../../shared/app.settings';
+import { Securityaccount } from '../../entities/securityaccount';
+import { Subscription } from 'rxjs';
+import { BaseTabMenuComponent } from '../../lib/tabmenu/component/base.tab.menu.component';
+import { TabItem } from '../../lib/types/tab.item';
+import { BaseSettings } from '../../lib/base.settings';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
+import { Tabs, TabList, Tab } from '@openng/optimus-ui/tabs';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Tab menu for security account.
@@ -34,6 +34,7 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [Tabs, TabList, Tab, RouterOutlet, TranslatePipe]
 })
 export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implements OnInit, OnDestroy {
@@ -68,10 +69,12 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
     this.routeParamSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       const id = +params['id'];
       if (id) {
-        const route = this.activatedRoute.snapshot.routeConfig?.path?.split('/')[0]
-          ?? AppSettings.SECURITYACCOUNT_TAB_MENU_KEY;
+        const route =
+          this.activatedRoute.snapshot.routeConfig?.path?.split('/')[0] ?? AppSettings.SECURITYACCOUNT_TAB_MENU_KEY;
         this.securityaccount = this.treeNavState.getEntity<Securityaccount>(
-          BaseSettings.MAINVIEW_KEY + '/' + route, id);
+          BaseSettings.MAINVIEW_KEY + '/' + route,
+          id
+        );
 
         if (this.securityaccount) {
           // Handle special import transaction parameter
@@ -121,8 +124,10 @@ export class SecurityaccountTabMenuComponent extends BaseTabMenuComponent implem
    * exports into accounts without their own platform mapping).
    */
   private isImportDisabled(): boolean {
-    return !this.securityaccount?.tradingPlatformPlan?.importTransactionPlatform
-      && this.gpsGT.getTenantGtImportPlatformId() == null;
+    return (
+      !this.securityaccount?.tradingPlatformPlan?.importTransactionPlatform &&
+      this.gpsGT.getTenantGtImportPlatformId() == null
+    );
   }
 
   /**

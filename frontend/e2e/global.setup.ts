@@ -18,8 +18,8 @@ export default async function globalSetup(): Promise<void> {
   } catch (err) {
     throw new Error(
       `ABORTING E2E: could not reach backend at ${url}. ` +
-      `Start it with:  mvn -pl grafioschtrader-server spring-boot:test-run -Dspring-boot.run.profiles=e2e\n` +
-      `Underlying error: ${(err as Error).message}`,
+        `Start it with:  mvn -pl grafioschtrader-server spring-boot:test-run -Dspring-boot.run.profiles=e2e\n` +
+        `Underlying error: ${(err as Error).message}`
     );
   }
 
@@ -27,13 +27,13 @@ export default async function globalSetup(): Promise<void> {
     throw new Error(`ABORTING E2E: ${url} returned HTTP ${response.status}`);
   }
 
-  const info = await response.json() as { activeProfile?: string; databaseName?: string };
+  const info = (await response.json()) as { activeProfile?: string; databaseName?: string };
 
   if (info.databaseName !== EXPECTED_DB) {
     throw new Error(
       `ABORTING E2E: backend is connected to database '${info.databaseName ?? ''}' ` +
-      `(activeProfile='${info.activeProfile ?? ''}'), expected '${EXPECTED_DB}'. ` +
-      `Restart backend with:  mvn -pl grafioschtrader-server spring-boot:test-run -Dspring-boot.run.profiles=e2e`,
+        `(activeProfile='${info.activeProfile ?? ''}'), expected '${EXPECTED_DB}'. ` +
+        `Restart backend with:  mvn -pl grafioschtrader-server spring-boot:test-run -Dspring-boot.run.profiles=e2e`
     );
   }
 }

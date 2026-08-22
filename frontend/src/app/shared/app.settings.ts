@@ -1,10 +1,9 @@
-import {GlobalSessionNames} from '../lib/global.session.names';
-import {GTNetMessage} from '../lib/gnet/model/gtnet.message';
-import {GlobalGTSessionNames} from './global.gt.session.names';
-import {BaseSettings} from '../lib/base.settings';
+import { GlobalSessionNames } from '../lib/global.session.names';
+import { GTNetMessage } from '../lib/gnet/model/gtnet.message';
+import { GlobalGTSessionNames } from './global.gt.session.names';
+import { BaseSettings } from '../lib/base.settings';
 
 export class AppSettings {
-
   // Entities
   public static readonly ALGO_TOP = 'AlgoTop';
   public static readonly ALGO_ASSETCLASS = 'AlgoAssetclass';
@@ -15,7 +14,6 @@ export class AppSettings {
 
   public static readonly CURRENCYPAIR = 'Currencypair';
   public static readonly DIVIDEND = 'Dividend';
-
 
   public static readonly GT_NET_MESSAGE = 'GTNetMessage';
   public static readonly HISTORYQUOTE = 'Historyquote';
@@ -28,14 +26,12 @@ export class AppSettings {
 
   public static readonly PORTFOLIO = 'Portfolio';
 
-
   public static readonly STANDING_ORDER = 'StandingOrder';
   public static readonly SECURITY = 'Security';
   public static readonly SECURITYCURRENCY = 'Securitycurrency';
   public static readonly SECURITY_SPLIT = 'Securitysplit';
   public static readonly SECURITYACCOUNT = 'Securityaccount';
   public static readonly STOCKEXCHANGE = 'Stockexchange';
-
 
   public static readonly TRANSACTION = 'Transaction';
   public static readonly TRADING_DAYS_MINUS = 'TradingDaysMinus';
@@ -44,23 +40,19 @@ export class AppSettings {
   public static readonly TRADING_PLATFORM_PLAN = 'TradingPlatformPlan';
   public static readonly TRADING_CALENDAR_RULE_SET = 'TradingCalendarRuleSet';
 
-
   public static readonly SECURITY_ACTION = 'SecurityAction';
   public static readonly UDF_METADATA_SECURITY = 'UDFMetadataSecurity';
-
-
 
   public static readonly WATCHLIST = 'Watchlist';
 
   // Keywords
-  public static readonly GT_= 'gt_'
+  public static readonly GT_ = 'gt_';
 
   public static readonly ALGO_TOP_KEY = AppSettings.ALGO_TOP.toLowerCase();
   public static readonly ALGO_ASSETCLASS_KEY = AppSettings.ALGO_ASSETCLASS.toLowerCase();
   public static readonly ALGO_SECURITY_KEY = AppSettings.ALGO_SECURITY.toLowerCase();
   public static readonly ALGO_STRATEGY_KEY = AppSettings.ALGO_STRATEGY.toLowerCase();
   public static readonly ALGO_STRATEGY_DEFINITION = 'algostrategydefinition';
-
 
   public static readonly TOKEN_VERIFY_KEY = 'tokenverify';
   public static readonly ASSETCLASS_KEY = AppSettings.ASSETCLASS.toLowerCase();
@@ -120,7 +112,6 @@ export class AppSettings {
   public static readonly CURRENCY_KEY = 'currency';
   public static readonly PORTFOLIO_KEY = AppSettings.PORTFOLIO.toLowerCase();
 
-
   public static readonly DEPOT_KEY = 'depot';
   public static readonly PERFORMANCE_KEY = 'performance';
   public static readonly PERFORMANCE_TAB_KEY = 'performancetabmenu';
@@ -132,8 +123,7 @@ export class AppSettings {
   public static readonly HISTORYQUOTE_PERIOD_KEY = AppSettings.HISTORYQUOTE_PERIOD.toLowerCase();
   public static readonly CURRENCIES_P_KEY = 'currencies';
 
-
-  public static readonly UDF_METADATA_SECURITY_KEY = AppSettings.UDF_METADATA_SECURITY.toLowerCase()
+  public static readonly UDF_METADATA_SECURITY_KEY = AppSettings.UDF_METADATA_SECURITY.toLowerCase();
 
   public static readonly TIME_SERIE_QUOTES = 'timeSerieQuotes';
   public static readonly SEASONALITY = 'seasonality';
@@ -170,7 +160,6 @@ export class AppSettings {
   // Special keywords
   public static readonly PREFIX_ALGO_FIELD = 'ALGO_F_';
 
-
   public static readonly CATEGORY_TYPE = 'categoryType';
 
   public static readonly DEFAULT_LANGUAGE = 'en';
@@ -203,9 +192,6 @@ export class AppSettings {
   public static readonly DIV_CASHACCOUNTS = 'div_cashaccounts';
   public static readonly WATCHLIST_PERFORMANCE_TIMEFRAME_STORE = 'u_watchlist_performance_timeframe_1';
 
-
-
-
   // Some definitions of property names which are used in more than one class
   public static readonly VALUE_SECURITY_MAIN_CURRENCY_FIELD = 'accountValueSecurityMC';
   public static readonly SUCCESS_FAILED_IMP_TRANS = 'successFailedDirectImpTran';
@@ -214,8 +200,6 @@ export class AppSettings {
 
   public static readonly DIVIDEND_SETTINGS = 'DIVIDEND_SETTINGS';
   public static readonly SPLIT_SETTINGS = 'SPLIT_SETTING';
-
-
 
   public static readonly INSTRUMENT_HEADER = 'I';
 
@@ -236,9 +220,6 @@ export class AppSettings {
 
   public static FID_MAX_INTEGER_DIGITS = 11;
 
-
-
   public static readonly FIELD_SIZE_MAX_G_WEB_URL = 'FIELD_SIZE_MAX_G_WEB_URL';
   public static readonly FIELD_SIZE_MAX_Stockexchange_Website = 'FIELD_SIZE_MAX_Stockexchange_Website';
-
 }

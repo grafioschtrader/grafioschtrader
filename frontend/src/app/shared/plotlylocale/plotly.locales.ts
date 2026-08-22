@@ -1,12 +1,11 @@
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 
 export class PlotlyLocales {
-
   public static setPlotyLocales(plotly: any, gps: GlobalparameterService): any {
     const config: any = {
       locale: gps.getLocale(),
       locales: {
-        'de': {
+        de: {
           dictionary: {
             Autoscale: 'Automatische Skalierung',
             'Box Select': 'Rechteckauswahl',
@@ -22,7 +21,8 @@ export class PlotlyLocales {
             'Double-click to zoom back out': 'Herauszoomen durch Doppelklick',
             'Download plot as a png': 'Download als PNG',
             'Edit in Chart Studio': 'Im Chart Studio bearbeiten',
-            'IE only supports svg.  Changing format to svg.': 'IE unterstützt nur SVG-Dateien.  Format wird zu SVG gewechselt.',
+            'IE only supports svg.  Changing format to svg.':
+              'IE unterstützt nur SVG-Dateien.  Format wird zu SVG gewechselt.',
             'Lasso Select': 'Lassoauswahl',
             'Orbital rotation': 'Orbitalrotation',
             Pan: 'Verschieben',
@@ -35,8 +35,10 @@ export class PlotlyLocales {
             'Reset views': 'Ansichten zurücksetzen',
             'Show closest data on hover': 'Zeige näheste Daten beim Überfahren',
             'Snapshot succeeded': 'Snapshot erfolgreich',
-            'Sorry, there was a problem downloading your snapshot!': 'Es gab ein Problem beim Herunterladen des Snapshots',
-            'Taking snapshot - this may take a few seconds': 'Erstelle einen Snapshot - dies kann einige Sekunden dauern',
+            'Sorry, there was a problem downloading your snapshot!':
+              'Es gab ein Problem beim Herunterladen des Snapshots',
+            'Taking snapshot - this may take a few seconds':
+              'Erstelle einen Snapshot - dies kann einige Sekunden dauern',
             Zoom: 'Zoom',
             'Zoom in': 'Hineinzoomen',
             'Zoom out': 'Herauszoomen',
@@ -69,7 +71,20 @@ export class PlotlyLocales {
           format: {
             days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
             shortDays: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-            months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            months: [
+              'Januar',
+              'Februar',
+              'März',
+              'April',
+              'Mai',
+              'Juni',
+              'Juli',
+              'August',
+              'September',
+              'Oktober',
+              'November',
+              'Dezember'
+            ],
             shortMonths: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
             date: '%d.%m.%Y',
             decimal: ',',
@@ -81,11 +96,24 @@ export class PlotlyLocales {
           format: {
             days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
             shortDays: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-            months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            months: [
+              'Januar',
+              'Februar',
+              'März',
+              'April',
+              'Mai',
+              'Juni',
+              'Juli',
+              'August',
+              'September',
+              'Oktober',
+              'November',
+              'Dezember'
+            ],
             shortMonths: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
             date: '%d.%m.%Y',
             decimal: '.',
-            thousands: '\''
+            thousands: "'"
           }
         }
       }

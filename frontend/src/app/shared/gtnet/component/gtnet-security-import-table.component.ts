@@ -1,45 +1,54 @@
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 
-import {TableEditConfigBase} from '../../../lib/datashowbase/table.edit.config.base';
-import {EditableTableComponent, RowEditSaveEvent} from '../../../lib/datashowbase/editable-table.component';
-import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../../lib/services/user.settings.service';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {DataType} from '../../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../../lib/datashowbase/column.config';
-import {AppSettings} from '../../app.settings';
-import {TranslateHelper} from '../../../lib/helper/translate.helper';
-import {AppHelper} from '../../../lib/helper/app.helper';
-import {InfoLevelType} from '../../../lib/message/info.leve.type';
-import {ValueKeyHtmlSelectOptions} from '../../../lib/dynamic-form/models/value.key.html.select.options';
-import {BaseSettings} from '../../../lib/base.settings';
+import { TableEditConfigBase } from '../../../lib/datashowbase/table.edit.config.base';
+import { EditableTableComponent, RowEditSaveEvent } from '../../../lib/datashowbase/editable-table.component';
+import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../../lib/services/user.settings.service';
+import { MessageToastService } from '../../../lib/message/message.toast.service';
+import { DataType } from '../../../lib/dynamic-form/models/data.type';
+import { TranslateValue } from '../../../lib/datashowbase/column.config';
+import { AppSettings } from '../../app.settings';
+import { TranslateHelper } from '../../../lib/helper/translate.helper';
+import { AppHelper } from '../../../lib/helper/app.helper';
+import { InfoLevelType } from '../../../lib/message/info.leve.type';
+import { ValueKeyHtmlSelectOptions } from '../../../lib/dynamic-form/models/value.key.html.select.options';
+import { BaseSettings } from '../../../lib/base.settings';
 
-import {GlobalparameterGTService} from '../../../gtservice/globalparameter.gt.service';
-import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
-import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
-import {GTNetSecurityImpPosService} from '../service/gtnet-security-imp-pos.service';
-import {SecurityService} from '../../../securitycurrency/service/security.service';
-import {CurrencypairService} from '../../../securitycurrency/service/currencypair.service';
-import {SecurityCurrencyHelper} from '../../../securitycurrency/service/security.currency.helper';
-import {SecurityDataProviderUrls} from '../../../securitycurrency/model/security.data.provider.urls';
-import {SecuritycurrencyExtendedInfoComponent} from '../../../watchlist/component/securitycurrency-extended-info.component';
-import {SecurityEditComponent} from '../../securitycurrency/security-edit.component';
-import {Security} from '../../../entities/security';
-import {ProcessedActionData} from '../../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../../lib/types/processed.action';
-import {FileUploadParam} from '../../../lib/generaldialog/model/file.upload.param';
-import {UploadFileDialogComponent} from '../../../lib/generaldialog/component/upload-file-dialog.component';
-import {AppHelpIds} from '../../help/help.ids';
-import {HelpIds} from '../../../lib/help/help.ids';
-import {IGlobalMenuAttach} from '../../../lib/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../../lib/mainmenubar/service/active.panel.service';
-import {GTNetSecurityImpGapTableComponent} from './gtnet-security-imp-gap-table.component';
-import {GTNetService} from '../../../lib/gnet/service/gtnet.service';
-import {GTNet} from '../../../lib/gnet/model/gtnet';
+import { GlobalparameterGTService } from '../../../gtservice/globalparameter.gt.service';
+import { GTNetSecurityImpHead } from '../model/gtnet-security-imp-head';
+import { GTNetSecurityImpPos } from '../model/gtnet-security-imp-pos';
+import { GTNetSecurityImpPosService } from '../service/gtnet-security-imp-pos.service';
+import { SecurityService } from '../../../securitycurrency/service/security.service';
+import { CurrencypairService } from '../../../securitycurrency/service/currencypair.service';
+import { SecurityCurrencyHelper } from '../../../securitycurrency/service/security.currency.helper';
+import { SecurityDataProviderUrls } from '../../../securitycurrency/model/security.data.provider.urls';
+import { SecuritycurrencyExtendedInfoComponent } from '../../../watchlist/component/securitycurrency-extended-info.component';
+import { SecurityEditComponent } from '../../securitycurrency/security-edit.component';
+import { Security } from '../../../entities/security';
+import { ProcessedActionData } from '../../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../../lib/types/processed.action';
+import { FileUploadParam } from '../../../lib/generaldialog/model/file.upload.param';
+import { UploadFileDialogComponent } from '../../../lib/generaldialog/component/upload-file-dialog.component';
+import { AppHelpIds } from '../../help/help.ids';
+import { HelpIds } from '../../../lib/help/help.ids';
+import { IGlobalMenuAttach } from '../../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../../lib/mainmenubar/service/active.panel.service';
+import { GTNetSecurityImpGapTableComponent } from './gtnet-security-imp-gap-table.component';
+import { GTNetService } from '../../../lib/gnet/service/gtnet.service';
+import { GTNet } from '../../../lib/gnet/model/gtnet';
 
 /**
  * Table component for displaying and editing GTNet security import positions.
@@ -49,7 +58,8 @@ import {GTNet} from '../../../lib/gnet/model/gtnet';
   selector: 'gtnet-security-import-table',
   template: `
     <div #cmDiv class="data-container-inner" (click)="onComponentClick($event)">
-      <editable-table #editableTable
+      <editable-table
+        #editableTable
         [(data)]="positions"
         [fields]="fields"
         dataKey="idGtNetSecurityImpPos"
@@ -86,35 +96,43 @@ import {GTNet} from '../../../lib/gnet/model/gtnet';
           [splitUrl]="getUrlForPosition(position, 'splitUrl')">
         </securitycurrency-extended-info>
       } @else if (position.gaps?.length > 0) {
-        <gtnet-security-imp-gap-table
-          [gaps]="position.gaps"
-          [gtNetsMap]="gtNetsMap">
-        </gtnet-security-imp-gap-table>
+        <gtnet-security-imp-gap-table [gaps]="position.gaps" [gtNetsMap]="gtNetsMap"> </gtnet-security-imp-gap-table>
       }
     </ng-template>
 
     <!-- Security Edit Dialog -->
     @if (visibleEditSecurityDialog) {
-      <security-edit (closeDialog)="handleCloseEditSecurityDialog($event)"
-                     [securityCurrencypairCallParam]="securityCurrencypairCallParam"
-                     [visibleEditSecurityDialog]="visibleEditSecurityDialog">
+      <security-edit
+        (closeDialog)="handleCloseEditSecurityDialog($event)"
+        [securityCurrencypairCallParam]="securityCurrencypairCallParam"
+        [visibleEditSecurityDialog]="visibleEditSecurityDialog">
       </security-edit>
     }
 
     <!-- CSV Upload Dialog -->
     @if (visibleUploadDialog) {
-      <upload-file-dialog [visibleDialog]="visibleUploadDialog"
-                          [fileUploadParam]="fileUploadParam"
-                          (closeDialog)="handleCloseUploadDialog($event)">
+      <upload-file-dialog
+        [visibleDialog]="visibleUploadDialog"
+        [fileUploadParam]="fileUploadParam"
+        (closeDialog)="handleCloseUploadDialog($event)">
       </upload-file-dialog>
     }
   `,
   standalone: true,
-  imports: [CommonModule, EditableTableComponent, ContextMenuModule, SecuritycurrencyExtendedInfoComponent, SecurityEditComponent, UploadFileDialogComponent, GTNetSecurityImpGapTableComponent]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    EditableTableComponent,
+    ContextMenuModule,
+    SecuritycurrencyExtendedInfoComponent,
+    SecurityEditComponent,
+    UploadFileDialogComponent,
+    GTNetSecurityImpGapTableComponent
+  ]
 })
 export class GTNetSecurityImportTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
-
-  @ViewChild('editableTable') editableTable: EditableTableComponent<GTNetSecurityImpPos>;
+  @ViewChild('editableTable')
+  editableTable: EditableTableComponent<GTNetSecurityImpPos>;
 
   @Input() selectedHead: GTNetSecurityImpHead;
   @Output() positionChanged = new EventEmitter<void>();
@@ -145,9 +163,12 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   gtNetsMap: Map<number, GTNet> = new Map();
 
   /** Cache of data provider URLs keyed by security ID */
-  private dataProviderUrlsCache: { [idSecuritycurrency: number]: SecurityDataProviderUrls } = {};
+  private dataProviderUrlsCache: {
+    [idSecuritycurrency: number]: SecurityDataProviderUrls;
+  } = {};
 
-  constructor(private activePanelService: ActivePanelService,
+  constructor(
+    private activePanelService: ActivePanelService,
     private gtNetSecurityImpPosService: GTNetSecurityImpPosService,
     private gtNetService: GTNetService,
     private globalparameterGTService: GlobalparameterGTService,
@@ -164,39 +185,55 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     super(filterService, usersettingsService, translateService, gps);
 
     // Configure columns
-    this.addEditColumnFeqH(DataType.String, 'isin', false, {width: 120});
+    this.addEditColumnFeqH(DataType.String, 'isin', false, { width: 120 });
     const isinCol = this.getColumnConfigByField('isin');
     isinCol.cec.maxLength = 12;
 
-    this.addEditColumnFeqH(DataType.String, 'tickerSymbol', false, {width: 80});
+    this.addEditColumnFeqH(DataType.String, 'tickerSymbol', false, {
+      width: 80
+    });
     const tickerCol = this.getColumnConfigByField('tickerSymbol');
     tickerCol.cec.maxLength = 6;
 
-    this.addEditColumnFeqH(DataType.String, 'currency', true, {width: 100});
+    this.addEditColumnFeqH(DataType.String, 'currency', true, { width: 100 });
 
     // Security name column (read-only, shows linked security if any)
-    this.addColumn(DataType.String, 'security.name', 'LINKED_SECURITY', true, true, {width: 200});
+    this.addColumn(DataType.String, 'security.name', 'LINKED_SECURITY', true, true, { width: 200 });
 
     // Asset class columns (read-only, shows linked security's asset class)
-    this.addColumn(DataType.String, 'security.assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
-      {translateValues: TranslateValue.NORMAL, width: 60});
-    this.addColumn(DataType.String, 'security.assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, true,
-      {translateValues: TranslateValue.NORMAL, width: 80});
-    this.addColumn(DataType.String, 'security.assetClass.subCategoryNLS.map.' + gps.getUserLang(),
-      'SUB_ASSETCLASS', true, true, {width: 100});
+    this.addColumn(
+      DataType.String,
+      'security.assetClass.categoryType',
+      AppSettings.ASSETCLASS.toUpperCase(),
+      true,
+      true,
+      { translateValues: TranslateValue.NORMAL, width: 60 }
+    );
+    this.addColumn(
+      DataType.String,
+      'security.assetClass.specialInvestmentInstrument',
+      'FINANCIAL_INSTRUMENT',
+      true,
+      true,
+      { translateValues: TranslateValue.NORMAL, width: 80 }
+    );
+    this.addColumn(
+      DataType.String,
+      'security.assetClass.subCategoryNLS.map.' + gps.getUserLang(),
+      'SUB_ASSETCLASS',
+      true,
+      true,
+      { width: 100 }
+    );
   }
 
   ngOnInit(): void {
     // Load feed connectors for SecuritycurrencyExtendedInfoComponent
-    SecurityCurrencyHelper.loadAllConnectors(
-      this.securityService,
-      this.currencypairService,
-      this.feedConnectorsKV
-    );
+    SecurityCurrencyHelper.loadAllConnectors(this.securityService, this.currencypairService, this.feedConnectorsKV);
 
     // Load GTNets for displaying domain names in gap table
-    this.gtNetService.getAllGTNetsWithMessages().subscribe(result => {
-      this.gtNetsMap = new Map(result.gtNetList.map(gtNet => [gtNet.idGtNet, gtNet]));
+    this.gtNetService.getAllGTNetsWithMessages().subscribe((result) => {
+      this.gtNetsMap = new Map(result.gtNetList.map((gtNet) => [gtNet.idGtNet, gtNet]));
     });
 
     // Load currency options
@@ -224,16 +261,16 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
   onRowExpand(event: { data: GTNetSecurityImpPos }): void {
     const position = event.data;
     if (position.security?.idSecuritycurrency && !(position as any).dataProviderUrls) {
-      this.securityService.getDataProviderUrls(position.security.idSecuritycurrency).subscribe(
-        (urls: SecurityDataProviderUrls) => {
+      this.securityService
+        .getDataProviderUrls(position.security.idSecuritycurrency)
+        .subscribe((urls: SecurityDataProviderUrls) => {
           // Store URLs directly on position for change detection
           (position as any).dataProviderUrls = urls;
           // Also cache for potential reuse
           this.dataProviderUrlsCache[position.security.idSecuritycurrency] = urls;
           // Trigger change detection to update the template bindings
           this.cdr.markForCheck();
-        }
-      );
+        });
     }
   }
 
@@ -256,9 +293,10 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     this.resetMenu();
 
     if (head) {
-      this.gtNetSecurityImpPosService.getByHead(head.idGtNetSecurityImpHead).subscribe(
-        (positions: GTNetSecurityImpPos[]) => {
-          this.positions = positions.map(pos => {
+      this.gtNetSecurityImpPosService
+        .getByHead(head.idGtNetSecurityImpHead)
+        .subscribe((positions: GTNetSecurityImpPos[]) => {
+          this.positions = positions.map((pos) => {
             (pos as any).rowKey = pos.idGtNetSecurityImpPos
               ? `existing_${pos.idGtNetSecurityImpPos}`
               : `new_${this.newRowCounter++}`;
@@ -268,8 +306,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
           this.createTranslatedValueStore(this.positions);
           this.resetMenu();
           this.positionChanged.emit();
-        }
-      );
+        });
     } else {
       this.positions = [];
       this.positionChanged.emit();
@@ -291,11 +328,9 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     return this.activePanelService.isActivated(this);
   }
 
-  hideContextMenu(): void {
-  };
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   /**
    * Handles adding a new row via the editable table.
@@ -351,7 +386,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
         this.messageToastService.showMessageI18n(
           InfoLevelType.SUCCESS,
           event.isNew ? 'MSG_RECORD_CREATED' : 'MSG_RECORD_SAVED',
-          {i18nRecord: 'GTNET_SECURITY_IMP_POS'}
+          { i18nRecord: 'GTNET_SECURITY_IMP_POS' }
         );
         this.positionChanged.emit();
       },
@@ -404,7 +439,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
         disabled: !this.selectedPosition || !this.selectedPosition.idGtNetSecurityImpPos,
         command: () => this.handleDeletePosition()
       });
-      menuItems.push({separator: true});
+      menuItems.push({ separator: true });
       menuItems.push({
         label: 'EDIT|' + AppSettings.SECURITY.toUpperCase() + BaseSettings.DIALOG_MENU_SUFFIX,
         disabled: !this.selectedPosition?.security,
@@ -484,12 +519,10 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       'MSG_CONFIRM_DELETE_RECORD|GTNET_SECURITY_IMP_POS',
       () => {
         this.gtNetSecurityImpPosService.deleteEntity(this.selectedPosition.idGtNetSecurityImpPos).subscribe(() => {
-          this.messageToastService.showMessageI18n(
-            InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD',
-            {i18nRecord: 'GTNET_SECURITY_IMP_POS'}
-          );
-          this.positions = this.positions.filter(p => p !== this.selectedPosition);
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: 'GTNET_SECURITY_IMP_POS'
+          });
+          this.positions = this.positions.filter((p) => p !== this.selectedPosition);
           this.selectedPosition = null;
           this.positionChanged.emit();
         });
@@ -511,14 +544,14 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       this.confirmationService,
       'MSG_CONFIRM_DELETE_LINKED_SECURITY',
       () => {
-        this.gtNetSecurityImpPosService.deleteLinkedSecurity(this.selectedPosition.idGtNetSecurityImpPos).subscribe(
-          (updatedPosition: GTNetSecurityImpPos) => {
-            this.messageToastService.showMessageI18n(
-              InfoLevelType.SUCCESS,
-              'MSG_LINKED_SECURITY_DELETED'
-            );
+        this.gtNetSecurityImpPosService
+          .deleteLinkedSecurity(this.selectedPosition.idGtNetSecurityImpPos)
+          .subscribe((updatedPosition: GTNetSecurityImpPos) => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_LINKED_SECURITY_DELETED');
             // Update the position in the list
-            const index = this.positions.findIndex(p => p.idGtNetSecurityImpPos === updatedPosition.idGtNetSecurityImpPos);
+            const index = this.positions.findIndex(
+              (p) => p.idGtNetSecurityImpPos === updatedPosition.idGtNetSecurityImpPos
+            );
             if (index >= 0) {
               this.positions[index] = updatedPosition;
               (this.positions[index] as any).rowKey = `existing_${updatedPosition.idGtNetSecurityImpPos}`;
@@ -526,8 +559,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
             this.selectedPosition = updatedPosition;
             this.resetMenu();
             this.positionChanged.emit();
-          }
-        );
+          });
       }
     );
   }
@@ -544,5 +576,4 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       editMenu: this.contextMenuItems
     });
   }
-
 }

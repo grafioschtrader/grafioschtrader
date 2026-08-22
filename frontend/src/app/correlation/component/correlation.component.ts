@@ -1,28 +1,33 @@
-import {AfterViewInit, Component, OnDestroy, ViewChild} from '@angular/core';
-import {SingleRecordMasterViewBase} from '../../lib/masterdetail/component/single.record.master.view.base';
-import {CorrelationLimit, CorrelationResult, CorrelationSet, SamplingPeriodType} from '../../entities/correlation.set';
-import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
-import {ActivatedRoute} from '@angular/router';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
-import {HelpIds} from '../../lib/help/help.ids';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {CorrelationSetService} from '../service/correlation.set.service';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {ChildToParent, CorrelationTableComponent} from './correlation-table.component';
-import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {CorrelationEditingSupport} from './correlation.editing.support';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TranslateModule} from '@ngx-translate/core';
-import {PanelModule} from '@openng/optimus-ui/panel';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {CorrelationSetEditComponent} from './correlation-set-edit.component';
+import { AfterViewInit, Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { SingleRecordMasterViewBase } from '../../lib/masterdetail/component/single.record.master.view.base';
+import {
+  CorrelationLimit,
+  CorrelationResult,
+  CorrelationSet,
+  SamplingPeriodType
+} from '../../entities/correlation.set';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import { ActivatedRoute } from '@angular/router';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { TranslateService } from '@ngx-translate/core';
+import { HelpIds } from '../../lib/help/help.ids';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { CorrelationSetService } from '../service/correlation.set.service';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { ChildToParent, CorrelationTableComponent } from './correlation-table.component';
+import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { CorrelationEditingSupport } from './correlation.editing.support';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { PanelModule } from '@openng/optimus-ui/panel';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { CorrelationSetEditComponent } from './correlation-set-edit.component';
 
 /**
  * Main component for correlation set management. Supports the creation, deletion, and calculation of correlation sets
@@ -31,36 +36,52 @@ import {CorrelationSetEditComponent} from './correlation-set-edit.component';
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      class="data-container"
+      (click)="onComponentClick($event)"
+      #cmDiv
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <p-panel>
         <p-header>
-          <h4 class="ui-widget-header singleRowTableHeader">{{ 'CORRELATION_MATRIX' | translate }}</h4>
+          <h4 class="ui-widget-header singleRowTableHeader">
+            {{ 'CORRELATION_MATRIX' | translate }}
+          </h4>
         </p-header>
       </p-panel>
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="saveAndCalculate($event)">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="saveAndCalculate($event)">
       </dynamic-form>
       <p-contextMenu [target]="cmDiv" [model]="contextMenuItems"></p-contextMenu>
-      <br/>
+      <br />
       @if (timePeriod) {
-        <p>{{ 'TIME_PERIOD' | translate }} {{ timePeriod }} {{ 'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate }}</p>
+        <p>
+          {{ 'TIME_PERIOD' | translate }} {{ timePeriod }}
+          {{ 'INSTRUMENT_OVERLAPPING_PRICE_DATA' | translate }}
+        </p>
       }
       @if (nonOverlappingDates) {
         <p style="color:tomato;">{{ 'NON_OVERLAPPING_DATES' | translate }}</p>
       }
-      <correlation-table [childToParent]="this">
-      </correlation-table>
+      <correlation-table [childToParent]="this"> </correlation-table>
     </div>
     @if (visibleEditDialog) {
-      <correlation-set-edit [visibleDialog]="visibleEditDialog"
-                            [callParam]="callParam"
-                            [correlationLimit]="correlationLimit"
-                            (closeDialog)="handleCloseEditDialog($event)">
+      <correlation-set-edit
+        [visibleDialog]="visibleEditDialog"
+        [callParam]="callParam"
+        [correlationLimit]="correlationLimit"
+        (closeDialog)="handleCloseEditDialog($event)">
       </correlation-set-edit>
     }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,
@@ -72,14 +93,16 @@ import {CorrelationSetEditComponent} from './correlation-set-edit.component';
     CorrelationSetEditComponent
   ]
 })
-export class CorrelationComponent extends SingleRecordMasterViewBase<CorrelationSet, Securitycurrency, CallParam>
-  implements AfterViewInit, OnDestroy, ChildToParent {
-
+export class CorrelationComponent
+  extends SingleRecordMasterViewBase<CorrelationSet, Securitycurrency, CallParam>
+  implements AfterViewInit, OnDestroy, ChildToParent
+{
   /** Primary key field name for correlation set selection */
   private static readonly MAIN_FIELD = 'idCorrelationSet';
 
   /** Reference to the correlation table child component */
-  @ViewChild(CorrelationTableComponent, {static: true}) correlationTableComponent: CorrelationTableComponent;
+  @ViewChild(CorrelationTableComponent, { static: true })
+  correlationTableComponent: CorrelationTableComponent;
 
   /** Formatted time period string showing date range of overlapping price data */
   timePeriod: string = null;
@@ -109,24 +132,38 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
    * @param activePanelService - Service for managing active panel state
    * @param translateService - Angular translation service for internationalization
    */
-  constructor(private activatedRoute: ActivatedRoute,
+  constructor(
+    private activatedRoute: ActivatedRoute,
     private correlationSetService: CorrelationSetService,
     gps: GlobalparameterService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
-    translateService: TranslateService) {
-
-    super(gps, HelpIds.HELP_WATCHLIST_CORRELATION,
+    translateService: TranslateService
+  ) {
+    super(
+      gps,
+      HelpIds.HELP_WATCHLIST_CORRELATION,
       CorrelationComponent.MAIN_FIELD,
-      'CORRELATION_SET', correlationSetService, confirmationService, messageToastService, activePanelService,
-      translateService);
-    this.formConfig = this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      2, null, true);
-    this.config = this.correlationEditingSupport.getCorrelationFieldDefinition(CorrelationComponent.MAIN_FIELD, 6, 'SAVE_AND_CALC');
+      'CORRELATION_SET',
+      correlationSetService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      translateService
+    );
+    this.formConfig = this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, null, true);
+    this.config = this.correlationEditingSupport.getCorrelationFieldDefinition(
+      CorrelationComponent.MAIN_FIELD,
+      6,
+      'SAVE_AND_CALC'
+    );
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.configObject.samplingPeriod.valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, SamplingPeriodType, null);
+    this.configObject.samplingPeriod.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      SamplingPeriodType,
+      null
+    );
   }
 
   /**
@@ -170,10 +207,16 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
       this.entityList = correlationSets;
       this.correlationLimit.tenantLimit.actual = this.entityList.length;
       this.configObject[CorrelationComponent.MAIN_FIELD].valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(CorrelationComponent.MAIN_FIELD, 'name',
-          correlationSets, false);
-      this.selectedEntity && (this.selectedEntity = this.entityList.find(entity => entity[CorrelationComponent.MAIN_FIELD]
-        === this.selectedEntity[CorrelationComponent.MAIN_FIELD]));
+        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+          CorrelationComponent.MAIN_FIELD,
+          'name',
+          correlationSets,
+          false
+        );
+      this.selectedEntity &&
+        (this.selectedEntity = this.entityList.find(
+          (entity) => entity[CorrelationComponent.MAIN_FIELD] === this.selectedEntity[CorrelationComponent.MAIN_FIELD]
+        ));
       setTimeout(() => this.setFieldValues());
     });
   }
@@ -185,11 +228,12 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
   saveAndCalculate(event): void {
     this.form.cleanMaskAndTransferValuesToBusinessObject(this.selectedEntity);
     this.correlationSetService.update(this.selectedEntity).subscribe({
-      next: cs => {
+      next: (cs) => {
         Object.assign(this.selectedEntity, cs);
         this.setChildData(this.selectedEntity);
         this.configObject.submit.disabled = false;
-      }, error: errorBackend => (this.configObject.submit.disabled = false)
+      },
+      error: (errorBackend) => (this.configObject.submit.disabled = false)
     });
   }
 
@@ -228,13 +272,16 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     if (selectedEntity) {
       this.childEntityList = selectedEntity.securitycurrencyList;
       if (selectedEntity.securitycurrencyList.length >= 2 && calculate) {
-        this.correlationSetService.getCalculationByCorrelationSet(selectedEntity.idCorrelationSet).subscribe(
-          (correlationResult: CorrelationResult) => {
+        this.correlationSetService
+          .getCalculationByCorrelationSet(selectedEntity.idCorrelationSet)
+          .subscribe((correlationResult: CorrelationResult) => {
             this.correlationResult = correlationResult;
             this.correlationTableComponent.parentSelectionChanged(selectedEntity, correlationResult);
             if (correlationResult.firstAvailableDate) {
-              this.timePeriod = AppHelper.getDateByFormat(this.gps, correlationResult.firstAvailableDate) +
-                ' - ' + AppHelper.getDateByFormat(this.gps, correlationResult.lastAvailableDate);
+              this.timePeriod =
+                AppHelper.getDateByFormat(this.gps, correlationResult.firstAvailableDate) +
+                ' - ' +
+                AppHelper.getDateByFormat(this.gps, correlationResult.lastAvailableDate);
               this.correlationTableComponent.refreshChartWhenCorrelationSetChanges();
             } else {
               this.nonOverlappingDates = true;
@@ -255,7 +302,7 @@ export class CorrelationComponent extends SingleRecordMasterViewBase<Correlation
     const editMenu = this.prepareEditMenu();
     const showMenu = this.prepareShowMenu();
     this.contextMenuItems = [...editMenu, ...showMenu];
-    this.activePanelService.activatePanel(this, {editMenu, showMenu});
+    this.activePanelService.activatePanel(this, { editMenu, showMenu });
   }
 
   /**

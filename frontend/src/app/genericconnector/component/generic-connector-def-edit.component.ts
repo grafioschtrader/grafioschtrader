@@ -1,50 +1,55 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {Validators} from '@angular/forms';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GenericConnectorDefService} from '../service/generic.connector.def.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {GenericConnectorDef} from '../../entities/generic.connector.def';
-import {RateLimitType} from '../../shared/types/rate.limit.type';
-import {AssetclassCategory} from '../../shared/types/assetclass.category';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppSettings} from '../../shared/app.settings';
-import {AppHelpIds} from '../../shared/help/help.ids';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {FieldsetModule} from '@openng/optimus-ui/fieldset';
-import {YamlEditorComponent} from '../../algo/component/yaml-editor.component';
-import {HttpClient} from '@angular/common/http';
-import {MultilanguageString} from '../../lib/entities/multilanguage.string';
-import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
-import {Stockexchange} from '../../entities/stockexchange';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {TreeNode} from '@openng/optimus-ui/api';
-import {combineLatest} from 'rxjs';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Validators } from '@angular/forms';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GenericConnectorDefService } from '../service/generic.connector.def.service';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { GenericConnectorDef } from '../../entities/generic.connector.def';
+import { RateLimitType } from '../../shared/types/rate.limit.type';
+import { AssetclassCategory } from '../../shared/types/assetclass.category';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AppSettings } from '../../shared/app.settings';
+import { AppHelpIds } from '../../shared/help/help.ids';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { FieldsetModule } from '@openng/optimus-ui/fieldset';
+import { YamlEditorComponent } from '../../algo/component/yaml-editor.component';
+import { HttpClient } from '@angular/common/http';
+import { MultilanguageString } from '../../lib/entities/multilanguage.string';
+import { StockexchangeService } from '../../stockexchange/service/stockexchange.service';
+import { Stockexchange } from '../../entities/stockexchange';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { TreeNode } from '@openng/optimus-ui/api';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'generic-connector-def-edit',
-  template: `
-    <p-dialog header="{{'GENERIC_CONNECTOR_DEF' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '900px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+  template: ` <p-dialog
+    header="{{ 'GENERIC_CONNECTOR_DEF' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '900px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
 
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="submit($event)">
-      </dynamic-form>
-
-      <p-fieldset [legend]="'TOKEN_CONFIG_YAML' | translate" [toggleable]="true" [collapsed]="true"
-                  styleClass="mt-3">
-        <yaml-editor [height]="'300px'" [(value)]="tokenConfigYamlValue"
-                     [schema]="tokenConfigSchema"></yaml-editor>
-      </p-fieldset>
-    </p-dialog>`,
+    <p-fieldset [legend]="'TOKEN_CONFIG_YAML' | translate" [toggleable]="true" [collapsed]="true" styleClass="mt-3">
+      <yaml-editor [height]="'300px'" [(value)]="tokenConfigYamlValue" [schema]="tokenConfigSchema"></yaml-editor>
+    </p-fieldset>
+  </p-dialog>`,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule, FieldsetModule, YamlEditorComponent]
 })
 export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
@@ -53,16 +58,24 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   tokenConfigYamlValue = '';
   tokenConfigSchema: any;
   private geoTreeNodes: TreeNode[] = [];
-  private catTranslations: {[key: string]: string} = {};
+  private catTranslations: { [key: string]: string } = {};
 
-  constructor(private genericConnectorDefService: GenericConnectorDefService,
-              private stockexchangeService: StockexchangeService,
-              private httpClient: HttpClient,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService) {
-    super(AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR, AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF),
-      translateService, gps, messageToastService, genericConnectorDefService);
+  constructor(
+    private genericConnectorDefService: GenericConnectorDefService,
+    private stockexchangeService: StockexchangeService,
+    private httpClient: HttpClient,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService
+  ) {
+    super(
+      AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR,
+      AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF),
+      translateService,
+      gps,
+      messageToastService,
+      genericConnectorDefService
+    );
     this.loadTokenConfigSchema();
   }
 
@@ -72,10 +85,14 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('shortId', 32, true),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('readableName', 100, true),
-      DynamicFieldHelper.createFieldTextareaInputString('en', 'DESCRIPTION', 2000, true,
-        {labelSuffix: 'EN', dataproperty: 'descriptionNLS.map.en'}),
-      DynamicFieldHelper.createFieldTextareaInputString('de', 'DESCRIPTION', 2000, true,
-        {labelSuffix: 'DE', dataproperty: 'descriptionNLS.map.de'}),
+      DynamicFieldHelper.createFieldTextareaInputString('en', 'DESCRIPTION', 2000, true, {
+        labelSuffix: 'EN',
+        dataproperty: 'descriptionNLS.map.en'
+      }),
+      DynamicFieldHelper.createFieldTextareaInputString('de', 'DESCRIPTION', 2000, true, {
+        labelSuffix: 'DE',
+        dataproperty: 'descriptionNLS.map.de'
+      }),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('domainUrl', 255, true),
       DynamicFieldHelper.createFieldCheckboxHeqF('needsApiKey'),
       DynamicFieldHelper.createFieldSelectStringHeqF('rateLimitType', true),
@@ -89,7 +106,9 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
       DynamicFieldHelper.createFieldCheckboxHeqF('needHistoryGapFiller'),
       DynamicFieldHelper.createFieldCheckboxHeqF('gbxDividerEnabled'),
       DynamicFieldHelper.createFieldMultiSelectStringHeqF('supportedCategories', false),
-      DynamicFieldHelper.createFieldTreeSelectHeqF('geoInclusions', false, {propagateTreeSelection: false}),
+      DynamicFieldHelper.createFieldTreeSelectHeqF('geoInclusions', false, {
+        propagateTreeSelection: false
+      }),
       DynamicFieldHelper.createFieldTreeSelectHeqF('geoExclusions', false),
       DynamicFieldHelper.createSubmitButton()
     ];
@@ -97,22 +116,27 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   }
 
   protected override initialize(): void {
-    this.configObject.rateLimitType.valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, RateLimitType);
-    this.configObject.supportedCategories.valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AssetclassCategory);
+    this.configObject.rateLimitType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      RateLimitType
+    );
+    this.configObject.supportedCategories.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      AssetclassCategory
+    );
 
     // FormControl.disable() emits valueChanges as well. Ignoring it keeps applyFieldLocks() from clearing the rate
     // limit fields it has just locked, because disableAndClearField() would set them to null.
-    this.configObject.rateLimitType.formControl.valueChanges.subscribe(value => {
+    this.configObject.rateLimitType.formControl.valueChanges.subscribe((value) => {
       if (this.configObject.rateLimitType.formControl.enabled) {
         this.updateRateLimitTypeDependencies(value);
       }
     });
-    this.updateRateLimitTypeDependencies(this.callParam?.rateLimitType != null
-      ? RateLimitType[this.callParam.rateLimitType] : null);
+    this.updateRateLimitTypeDependencies(
+      this.callParam?.rateLimitType != null ? RateLimitType[this.callParam.rateLimitType] : null
+    );
 
-    const categoryNames = Object.keys(AssetclassCategory).filter(k => isNaN(Number(k)));
+    const categoryNames = Object.keys(AssetclassCategory).filter((k) => isNaN(Number(k)));
     combineLatest([
       this.stockexchangeService.getAllStockexchangesBaseData(),
       this.translateService.get(categoryNames)
@@ -122,8 +146,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
       this.configObject.geoInclusions.treeNodes = this.geoTreeNodes;
 
       // Rebuild geoExclusions tree whenever geoInclusions selection changes
-      this.configObject.geoInclusions.formControl.valueChanges.subscribe(() =>
-        this.rebuildExclusionsTree());
+      this.configObject.geoInclusions.formControl.valueChanges.subscribe(() => this.rebuildExclusionsTree());
 
       this.form.setDefaultValuesAndEnableSubmit();
       if (this.callParam) {
@@ -154,11 +177,18 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
       return;
     }
     FormHelper.disableEnableFieldConfigs(true, [this.configObject.shortId, this.configObject.domainUrl]);
-    if (this.callParam.endpoints?.some(endpoint => endpoint.everUsedSuccessfully)) {
-      FormHelper.disableEnableFieldConfigs(true, [this.configObject.readableName, this.configObject.needsApiKey,
-        this.configObject.rateLimitType, this.configObject.rateLimitRequests, this.configObject.rateLimitPeriodSec,
-        this.configObject.rateLimitConcurrent, this.configObject.regexUrlPattern,
-        this.configObject.supportsSecurity, this.configObject.supportsCurrency]);
+    if (this.callParam.endpoints?.some((endpoint) => endpoint.everUsedSuccessfully)) {
+      FormHelper.disableEnableFieldConfigs(true, [
+        this.configObject.readableName,
+        this.configObject.needsApiKey,
+        this.configObject.rateLimitType,
+        this.configObject.rateLimitRequests,
+        this.configObject.rateLimitPeriodSec,
+        this.configObject.rateLimitConcurrent,
+        this.configObject.regexUrlPattern,
+        this.configObject.supportsSecurity,
+        this.configObject.supportsCurrency
+      ]);
     }
   }
 
@@ -197,11 +227,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    * selectable — checking "US" means the whole country without requiring all US MICs to be checked.
    */
   private buildGeoTree(stockexchanges: Stockexchange[], countries: ValueKeyHtmlSelectOptions[]): TreeNode[] {
-    const countryNames: {[cc: string]: string} = {};
-    countries.forEach(c => countryNames[c.key as string] = c.value);
+    const countryNames: { [cc: string]: string } = {};
+    countries.forEach((c) => (countryNames[c.key as string] = c.value));
 
-    const countryMap: {[cc: string]: TreeNode} = {};
-    stockexchanges.forEach(se => {
+    const countryMap: { [cc: string]: TreeNode } = {};
+    stockexchanges.forEach((se) => {
       if (!countryMap[se.countryCode]) {
         countryMap[se.countryCode] = {
           key: se.countryCode,
@@ -227,7 +257,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
    */
   private loadSupportedCategories(): void {
     if (this.callParam.supportedCategories) {
-      const cats = this.callParam.supportedCategories.split(',').map(s => s.trim());
+      const cats = this.callParam.supportedCategories.split(',').map((s) => s.trim());
       this.configObject.supportedCategories.formControl.setValue(cats);
     }
   }
@@ -243,7 +273,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     const tokens = this.callParam.geoRestrictions.trim().split(/\s+/);
     const inclusions: string[] = [];
     const exclusionTokens: string[] = [];
-    tokens.forEach(token => {
+    tokens.forEach((token) => {
       const colonIdx = token.indexOf(':-');
       if (colonIdx > 0) {
         exclusionTokens.push(token);
@@ -255,11 +285,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     // Set geoInclusions as TreeNode[] — collect actual TreeNode references (no propagation)
     const inclusionSet = new Set(inclusions);
     const inclusionNodes: TreeNode[] = [];
-    this.geoTreeNodes.forEach(countryNode => {
+    this.geoTreeNodes.forEach((countryNode) => {
       if (inclusionSet.has(countryNode.key)) {
         inclusionNodes.push(countryNode);
       }
-      countryNode.children?.forEach(micNode => {
+      countryNode.children?.forEach((micNode) => {
         if (inclusionSet.has(micNode.key)) {
           inclusionNodes.push(micNode);
         }
@@ -269,17 +299,19 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     // Build exclusions tree from current inclusions, then set exclusion selections
     this.rebuildExclusionsTree();
     if (exclusionTokens.length > 0) {
-      const exclKeySet = new Set(exclusionTokens.map(token => {
-        const colonIdx = token.indexOf(':-');
-        return token.substring(0, colonIdx) + ':-' + token.substring(colonIdx + 2);
-      }));
+      const exclKeySet = new Set(
+        exclusionTokens.map((token) => {
+          const colonIdx = token.indexOf(':-');
+          return token.substring(0, colonIdx) + ':-' + token.substring(colonIdx + 2);
+        })
+      );
       // Collect matching TreeNode references from the exclusions tree (propagation ON: add parent when all children selected)
       const exclNodes: TreeNode[] = [];
       const exclTreeNodes = this.configObject.geoExclusions.treeNodes || [];
-      exclTreeNodes.forEach(geoNode => {
+      exclTreeNodes.forEach((geoNode) => {
         const childCount = geoNode.children?.length || 0;
         let checkedCount = 0;
-        geoNode.children?.forEach(catNode => {
+        geoNode.children?.forEach((catNode) => {
           if (exclKeySet.has(catNode.key)) {
             exclNodes.push(catNode);
             checkedCount++;
@@ -301,34 +333,38 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
   private rebuildExclusionsTree(): void {
     const inclusionVal: TreeNode[] = this.configObject.geoInclusions.formControl.value;
     const oldExclVal: TreeNode[] = this.configObject.geoExclusions.formControl.value;
-    const categoryNames = Object.keys(AssetclassCategory).filter(k => isNaN(Number(k)));
+    const categoryNames = Object.keys(AssetclassCategory).filter((k) => isNaN(Number(k)));
 
     // Collect all checked geo codes from inclusions (TreeNode[])
-    const selectedKeys = new Set<string>(inclusionVal?.map(n => n.key) || []);
+    const selectedKeys = new Set<string>(inclusionVal?.map((n) => n.key) || []);
 
-    const geoCodes: {key: string; label: string; icon?: string}[] = [];
-    this.geoTreeNodes.forEach(countryNode => {
+    const geoCodes: { key: string; label: string; icon?: string }[] = [];
+    this.geoTreeNodes.forEach((countryNode) => {
       if (selectedKeys.has(countryNode.key)) {
-        geoCodes.push({key: countryNode.key, label: countryNode.label, icon: countryNode.icon});
+        geoCodes.push({
+          key: countryNode.key,
+          label: countryNode.label,
+          icon: countryNode.icon
+        });
       }
-      countryNode.children?.forEach(micNode => {
+      countryNode.children?.forEach((micNode) => {
         if (selectedKeys.has(micNode.key)) {
-          geoCodes.push({key: micNode.key, label: micNode.label});
+          geoCodes.push({ key: micNode.key, label: micNode.label });
         }
       });
     });
 
     // Build tree: GeoCode → Category
-    const newExclusionNodes = geoCodes.map(geo => ({
+    const newExclusionNodes = geoCodes.map((geo) => ({
       key: geo.key,
       label: geo.label,
       data: geo.key,
       icon: geo.icon,
       selectable: true,
-      children: categoryNames.map(catName => ({
+      children: categoryNames.map((catName) => ({
         key: geo.key + ':-' + catName,
         label: this.catTranslations[catName] || catName,
-        data: {geo: geo.key, category: catName},
+        data: { geo: geo.key, category: catName },
         selectable: true
       }))
     }));
@@ -336,14 +372,14 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
 
     // Preserve old selections that still exist in the new tree (match by key, use NEW node references)
     if (oldExclVal && oldExclVal.length > 0) {
-      const oldKeys = new Set<string>(oldExclVal.map(n => n.key));
+      const oldKeys = new Set<string>(oldExclVal.map((n) => n.key));
       const newNodesByKey = new Map<string, TreeNode>();
-      newExclusionNodes.forEach(geoNode => {
+      newExclusionNodes.forEach((geoNode) => {
         newNodesByKey.set(geoNode.key, geoNode);
-        geoNode.children?.forEach(catNode => newNodesByKey.set(catNode.key, catNode));
+        geoNode.children?.forEach((catNode) => newNodesByKey.set(catNode.key, catNode));
       });
       const preserved: TreeNode[] = [];
-      oldKeys.forEach(key => {
+      oldKeys.forEach((key) => {
         const newNode = newNodesByKey.get(key);
         if (newNode) {
           preserved.push(newNode);
@@ -364,12 +400,12 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     const tokens: string[] = [];
 
     if (inclusionVal) {
-      const inclusionKeys = new Set<string>(inclusionVal.map(n => n.key));
-      this.geoTreeNodes.forEach(countryNode => {
+      const inclusionKeys = new Set<string>(inclusionVal.map((n) => n.key));
+      this.geoTreeNodes.forEach((countryNode) => {
         if (inclusionKeys.has(countryNode.key)) {
           tokens.push(countryNode.key);
         }
-        countryNode.children?.forEach(micNode => {
+        countryNode.children?.forEach((micNode) => {
           if (inclusionKeys.has(micNode.key)) {
             tokens.push(micNode.key);
           }
@@ -379,10 +415,10 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     const exclVal: TreeNode[] = this.configObject.geoExclusions.formControl.value;
     if (exclVal) {
       // Only serialize leaf nodes (geo:-CATEGORY), skip parent geo nodes
-      const exclKeys = new Set<string>(exclVal.map(n => n.key));
+      const exclKeys = new Set<string>(exclVal.map((n) => n.key));
       const exclNodes = this.configObject.geoExclusions.treeNodes || [];
-      exclNodes.forEach(geoNode => {
-        geoNode.children?.forEach(catNode => {
+      exclNodes.forEach((geoNode) => {
+        geoNode.children?.forEach((catNode) => {
           if (exclKeys.has(catNode.key)) {
             tokens.push(catNode.key);
           }
@@ -392,14 +428,17 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
     entity.geoRestrictions = tokens.length > 0 ? tokens.join(' ') : null;
   }
 
-  protected override getNewOrExistingInstanceBeforeSave(value: {[name: string]: any}): GenericConnectorDef {
+  protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GenericConnectorDef {
     const entity = new GenericConnectorDef();
     this.copyFormToPublicBusinessObject(entity, this.callParam, null);
     this.form.cleanMaskAndTransferValuesToBusinessObject(entity);
     const values: any = {};
     this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
     entity.descriptionNLS = entity.descriptionNLS || new MultilanguageString();
-    entity.descriptionNLS.map = entity.descriptionNLS.map || {de: null, en: null};
+    entity.descriptionNLS.map = entity.descriptionNLS.map || {
+      de: null,
+      en: null
+    };
     entity.descriptionNLS.map.en = values.en;
     entity.descriptionNLS.map.de = values.de;
     entity.tokenConfigYaml = this.tokenConfigYamlValue?.trim() || null;
@@ -416,7 +455,7 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
 
   private loadTokenConfigSchema(): void {
     this.httpClient.get('assets/schemas/token-config-schema.json').subscribe({
-      next: (schema: any) => this.tokenConfigSchema = schema,
+      next: (schema: any) => (this.tokenConfigSchema = schema),
       error: () => console.warn('Failed to load token config schema')
     });
   }

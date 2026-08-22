@@ -1,11 +1,10 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {ChangedViewSizeType, ViewSizeChangedService} from '../service/view.size.changed.service';
-import {RouterModule} from '@angular/router';
+import { Component, ElementRef, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ChangedViewSizeType, ViewSizeChangedService } from '../service/view.size.changed.service';
+import { RouterModule } from '@angular/router';
 
-import {MenubarComponent} from '../../mainmenubar/component/menubar.component';
-import {MainTreeComponent} from '../../maintree/component/main-tree.component';
-import {MainDialogComponent} from '../../mainmenubar/component/main.dialog.component';
-
+import { MenubarComponent } from '../../mainmenubar/component/menubar.component';
+import { MainTreeComponent } from '../../maintree/component/main-tree.component';
+import { MainDialogComponent } from '../../mainmenubar/component/main.dialog.component';
 
 declare function Split(ids, options);
 
@@ -14,8 +13,8 @@ declare function Split(ids, options);
  * The size of these areas can be adjusted.
  */
 @Component({
-    selector: 'split-layout',
-    template: `
+  selector: 'split-layout',
+  template: `
     <menubar></menubar>
     <div class="fullheight" #split (window:resize)="onResize($event)">
       <div id="tree" class="split split-horizontal">
@@ -33,15 +32,14 @@ declare function Split(ids, options);
 
     <main-dialog></main-dialog>
   `,
-    standalone: true,
-    imports: [RouterModule, MenubarComponent, MainTreeComponent, MainDialogComponent]
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [RouterModule, MenubarComponent, MainTreeComponent, MainDialogComponent]
 })
-
 export class SplitLayoutComponent implements OnInit {
-  @ViewChild('split', {static: true}) splitElementRef: ElementRef;
+  @ViewChild('split', { static: true }) splitElementRef: ElementRef;
 
-  constructor(private viewSizeChangedService: ViewSizeChangedService) {
-  }
+  constructor(private viewSizeChangedService: ViewSizeChangedService) {}
 
   ngOnInit() {
     const splitTreeMain = Split(['#tree', '#mainpanel'], {
@@ -50,7 +48,6 @@ export class SplitLayoutComponent implements OnInit {
       gutterSize: 8,
       direction: 'horizontal',
       onDragEnd: () => this.viewSizeChangedService.viewPanelChanged(ChangedViewSizeType.ALL_VIEWS)
-
     });
 
     const splitTopBottom = Split(['#maintop', '#mainbottom'], {
@@ -66,5 +63,4 @@ export class SplitLayoutComponent implements OnInit {
   onResize(event): void {
     this.viewSizeChangedService.viewPanelChanged(ChangedViewSizeType.WINDOW);
   }
-
 }

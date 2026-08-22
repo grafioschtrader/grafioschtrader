@@ -1,9 +1,8 @@
-import {Month} from './month';
-import {DayOfWeek} from './day.of.week';
-import {Day} from './day';
+import { Month } from './month';
+import { DayOfWeek } from './day.of.week';
+import { Day } from './day';
 
 export class Year {
-
   year: number;
   months: Month[] = [];
 
@@ -76,6 +75,4 @@ export class Year {
       this.months.push(month);
     }
   }
-
-
 }

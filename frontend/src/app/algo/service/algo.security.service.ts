@@ -1,35 +1,44 @@
-import {AuthServiceWithLogout} from '../../lib/login/service/base.auth.service.with.logout';
-import {AlgoSecurity, AlgoSecurityStrategyImplType} from '../model/algo.security';
-import {DeleteService} from '../../lib/datashowbase/delete.service';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {LoginService} from '../../lib/login/service/log-in.service';
-import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {Observable} from 'rxjs';
-import {AppSettings} from '../../shared/app.settings';
-import {catchError} from 'rxjs/operators';
-import {Injectable} from '@angular/core';
-import {BaseSettings} from '../../lib/base.settings';
-
+import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
+import { AlgoSecurity, AlgoSecurityStrategyImplType } from '../model/algo.security';
+import { DeleteService } from '../../lib/datashowbase/delete.service';
+import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { LoginService } from '../../lib/login/service/log-in.service';
+import { HttpClient } from '@angular/common/http';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { Observable } from 'rxjs';
+import { AppSettings } from '../../shared/app.settings';
+import { catchError } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { BaseSettings } from '../../lib/base.settings';
 
 @Injectable()
-export class AlgoSecurityService extends AuthServiceWithLogout<AlgoSecurity> implements DeleteService,
-  ServiceEntityUpdate<AlgoSecurity> {
-
+export class AlgoSecurityService
+  extends AuthServiceWithLogout<AlgoSecurity>
+  implements DeleteService, ServiceEntityUpdate<AlgoSecurity>
+{
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
   }
 
   getAllForTenant(): Observable<AlgoSecurity[]> {
-    return <Observable<AlgoSecurity[]>>
-      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/tenant`,
-        this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<AlgoSecurity[]>>(
+      this.httpClient
+        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/tenant`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
-  getAlgoSecurityStrategyImplTypeByIdSecuritycurrency(idSecuritycurrency: number): Observable<AlgoSecurityStrategyImplType> {
-    return <Observable<AlgoSecurityStrategyImplType>>
-      this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/security/${idSecuritycurrency}`,
-        this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  getAlgoSecurityStrategyImplTypeByIdSecuritycurrency(
+    idSecuritycurrency: number
+  ): Observable<AlgoSecurityStrategyImplType> {
+    return <Observable<AlgoSecurityStrategyImplType>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/security/${idSecuritycurrency}`,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   public update(algoSecurity: AlgoSecurity): Observable<AlgoSecurity> {
@@ -37,8 +46,11 @@ export class AlgoSecurityService extends AuthServiceWithLogout<AlgoSecurity> imp
   }
 
   public deleteEntity(idAlgoAssetclassSecurity: number): Observable<any> {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/${idAlgoAssetclassSecurity}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .delete(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_SECURITY_KEY}/${idAlgoAssetclassSecurity}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
-
 }

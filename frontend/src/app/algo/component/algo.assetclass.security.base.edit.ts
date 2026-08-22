@@ -1,18 +1,18 @@
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {Subscription} from 'rxjs';
-import {Portfolio} from '../../entities/portfolio';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {Directive, Input} from '@angular/core';
-import {AlgoAssetclassSecurity} from '../model/algo.assetclass.security';
-import {AlgoCallParam} from '../model/algo.dialog.visible';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { Subscription } from 'rxjs';
+import { Portfolio } from '../../entities/portfolio';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { Directive, Input } from '@angular/core';
+import { AlgoAssetclassSecurity } from '../model/algo.assetclass.security';
+import { AlgoCallParam } from '../model/algo.dialog.visible';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 
 /**
  * Project: Grafioschtrader
@@ -24,13 +24,14 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
   protected securityaccount1ChangedSub: Subscription;
   protected portfolios: Portfolio[];
 
-  protected constructor(i18nRecord: string,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              serviceEntityUpdate: ServiceEntityUpdate<T>) {
-    super(HelpIds.HELP_ALGO, i18nRecord, translateService, gps,
-      messageToastService, serviceEntityUpdate);
+  protected constructor(
+    i18nRecord: string,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    serviceEntityUpdate: ServiceEntityUpdate<T>
+  ) {
+    super(HelpIds.HELP_ALGO, i18nRecord, translateService, gps, messageToastService, serviceEntityUpdate);
   }
 
   override onHide(event): void {
@@ -42,33 +43,44 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
     return [
       DynamicFieldHelper.createFieldSelectString('idSecurityaccount1', 'ALGO_SECURITYACCOUNT_1', false),
       DynamicFieldHelper.createFieldSelectString('idSecurityaccount2', 'ALGO_SECURITYACCOUNT_2', false),
-      DynamicFieldHelper.createFieldMinMaxNumber(DataType.Numeric, 'percentage', 'ALGO_PERCENTAGE', true,
-        0.1, 100, {fieldSuffix: '%'}),
+      DynamicFieldHelper.createFieldMinMaxNumber(DataType.Numeric, 'percentage', 'ALGO_PERCENTAGE', true, 0.1, 100, {
+        fieldSuffix: '%'
+      }),
       DynamicFieldHelper.createSubmitButton()
     ];
   }
 
   protected setSecurityaccounts(): void {
     this.configObject.idSecurityaccount1.valueKeyHtmlOptions = this.createPorfolioSecurityaccountHtmlSelectOptions(
-      this.portfolios, '-1');
+      this.portfolios,
+      '-1'
+    );
     if (this.algoCallParam.thisObject != null) {
       this.form.transferBusinessObjectToForm(this.algoCallParam.thisObject);
       const securityaccount1: number = (<AlgoAssetclassSecurity>this.algoCallParam.thisObject).idSecurityaccount1;
-      this.configObject.idSecurityaccount2.valueKeyHtmlOptions = this.createPorfolioSecurityaccountHtmlSelectOptions(this.portfolios,
-        securityaccount1 ? ('' + securityaccount1) : '');
+      this.configObject.idSecurityaccount2.valueKeyHtmlOptions = this.createPorfolioSecurityaccountHtmlSelectOptions(
+        this.portfolios,
+        securityaccount1 ? '' + securityaccount1 : ''
+      );
     }
   }
 
-  protected createPorfolioSecurityaccountHtmlSelectOptions(portfolios: Portfolio[],
-                                                           idSecurityaccount: string): ValueKeyHtmlSelectOptions[] {
+  protected createPorfolioSecurityaccountHtmlSelectOptions(
+    portfolios: Portfolio[],
+    idSecurityaccount: string
+  ): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions('', ''));
     if (idSecurityaccount) {
-      portfolios.forEach(portfolio => {
-        portfolio.securityaccountList.forEach(securityaccount => {
-          if (idSecurityaccount !== ('' + securityaccount.idSecuritycashAccount)) {
-            valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(securityaccount.idSecuritycashAccount, portfolio.name
-              + ' / ' + securityaccount.name));
+      portfolios.forEach((portfolio) => {
+        portfolio.securityaccountList.forEach((securityaccount) => {
+          if (idSecurityaccount !== '' + securityaccount.idSecuritycashAccount) {
+            valueKeyHtmlSelectOptions.push(
+              new ValueKeyHtmlSelectOptions(
+                securityaccount.idSecuritycashAccount,
+                portfolio.name + ' / ' + securityaccount.name
+              )
+            );
           }
         });
       });
@@ -77,10 +89,13 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
   }
 
   protected valueChangedOnSecurityaccount1(): void {
-    this.securityaccount1ChangedSub = this.configObject.idSecurityaccount1.formControl.valueChanges
-      .subscribe((idSecurityaccount: string) => {
-        this.configObject.idSecurityaccount2.valueKeyHtmlOptions = this.createPorfolioSecurityaccountHtmlSelectOptions(this.portfolios,
-          idSecurityaccount);
-      });
+    this.securityaccount1ChangedSub = this.configObject.idSecurityaccount1.formControl.valueChanges.subscribe(
+      (idSecurityaccount: string) => {
+        this.configObject.idSecurityaccount2.valueKeyHtmlOptions = this.createPorfolioSecurityaccountHtmlSelectOptions(
+          this.portfolios,
+          idSecurityaccount
+        );
+      }
+    );
   }
 }

@@ -1,11 +1,11 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {TranslateModule} from '@ngx-translate/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { TranslateModule } from '@ngx-translate/core';
 
-import {Security} from '../../entities/security';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {TaxYearCorrectionTableComponent} from './tax-year-correction-table.component';
+import { Security } from '../../entities/security';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { TaxYearCorrectionTableComponent } from './tax-year-correction-table.component';
 
 /**
  * Modal dialog hosting the editable tax year correction table for one security. Closing always emits UPDATED so
@@ -15,22 +15,32 @@ import {TaxYearCorrectionTableComponent} from './tax-year-correction-table.compo
 @Component({
   selector: 'tax-year-correction-dialog',
   template: `
-    <p-dialog [visible]="visibleDialog" (visibleChange)="onVisibleChange($event)"
-              [style]="{width: '850px'}" [contentStyle]="{'max-height':'600px'}"
-              (onHide)="onHide($event)" [modal]="true" [closable]="true" [closeOnEscape]="true">
+    <p-dialog
+      [visible]="visibleDialog"
+      (visibleChange)="onVisibleChange($event)"
+      [style]="{ width: '850px' }"
+      [contentStyle]="{ 'max-height': '600px' }"
+      (onHide)="onHide($event)"
+      [modal]="true"
+      [closable]="true"
+      [closeOnEscape]="true">
       <ng-template pTemplate="header">
         <div style="white-space: normal; word-break: break-word; line-height: 1.3;">
-          <div class="p-dialog-title">{{ 'TAX_YEAR_CORRECTIONS' | translate }}</div>
+          <div class="p-dialog-title">
+            {{ 'TAX_YEAR_CORRECTIONS' | translate }}
+          </div>
           <div>{{ security.name }}{{ security.isin ? ' / ' + security.isin : '' }}</div>
         </div>
       </ng-template>
-      <tax-year-correction-table [idSecuritycurrency]="security.idSecuritycurrency"
-                                 [yearOptions]="yearOptions"
-                                 [suggestedYear]="suggestedYear">
+      <tax-year-correction-table
+        [idSecuritycurrency]="security.idSecuritycurrency"
+        [yearOptions]="yearOptions"
+        [suggestedYear]="suggestedYear">
       </tax-year-correction-table>
     </p-dialog>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, TranslateModule, TaxYearCorrectionTableComponent]
 })
 export class TaxYearCorrectionDialogComponent {

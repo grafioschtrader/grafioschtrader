@@ -1,49 +1,49 @@
-import {ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {WatchlistService} from '../service/watchlist.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {AppSettings} from '../../shared/app.settings';
-import {WatchlistTable, WatchListType} from './watchlist.table';
-import {combineLatest, Observable} from 'rxjs';
-import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
-import {TenantLimit} from '../../shared/types/tenant.limit';
-import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {FilterType} from '../../lib/datashowbase/filter.type';
-import {HelpIds} from '../../lib/help/help.ids';
-import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {CommonModule} from '@angular/common';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {AngularSvgIconModule} from 'angular-svg-icon';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
-import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
-import {SecuritycurrencyUdfComponent} from './securitycurrency-udf.component';
-import {WatchlistPriceFeedExpandedComponent} from './watchlist-price-feed-expanded.component';
-import {WatchlistDividendTableComponent} from './watchlist-dividend-table.component';
-import {WatchlistSecuritysplitTableComponent} from './watchlist-securitysplit-table.component';
-import {WatchlistAddInstrumentComponent} from './watchlist-add-instrument.component';
-import {CurrencypairEditComponent} from '../../shared/securitycurrency/currencypair-edit.component';
-import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit.component';
-import {SecurityDerivedEditComponent} from '../../securitycurrency/component/security-derived-edit.component';
-import {SecurityUDFEditComponent} from '../../securitycurrency/component/security-udf-edit.component';
-import {AlgoStrategyEditComponent} from '../../algo/component/algo-strategy-edit.component';
-import {WatchlistAddEditPriceProblemInstrumentComponent} from './watchlist-add-edit-price-problem-instrument.component';
-import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
-import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-edit.component';
+import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { WatchlistService } from '../service/watchlist.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { AppSettings } from '../../shared/app.settings';
+import { WatchlistTable, WatchListType } from './watchlist.table';
+import { combineLatest, Observable } from 'rxjs';
+import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { SecurityCurrencyHelper } from '../../securitycurrency/service/security.currency.helper';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { CommonModule } from '@angular/common';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { TransactionSecurityTableComponent } from '../../transaction/component/transaction-security-table.component';
+import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
+import { SecuritycurrencyUdfComponent } from './securitycurrency-udf.component';
+import { WatchlistPriceFeedExpandedComponent } from './watchlist-price-feed-expanded.component';
+import { WatchlistDividendTableComponent } from './watchlist-dividend-table.component';
+import { WatchlistSecuritysplitTableComponent } from './watchlist-securitysplit-table.component';
+import { WatchlistAddInstrumentComponent } from './watchlist-add-instrument.component';
+import { CurrencypairEditComponent } from '../../shared/securitycurrency/currencypair-edit.component';
+import { SecurityEditComponent } from '../../shared/securitycurrency/security-edit.component';
+import { SecurityDerivedEditComponent } from '../../securitycurrency/component/security-derived-edit.component';
+import { SecurityUDFEditComponent } from '../../securitycurrency/component/security-udf-edit.component';
+import { AlgoStrategyEditComponent } from '../../algo/component/algo-strategy-edit.component';
+import { WatchlistAddEditPriceProblemInstrumentComponent } from './watchlist-add-edit-price-problem-instrument.component';
+import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-general-edit.component';
 
 /**
  * Angular component for displaying and managing watchlist dividend and split feed data.
@@ -52,18 +52,20 @@ import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-
  */
 @Component({
   templateUrl: '../view/watchlist.data.html',
-  styles: [`
-    .cell-move {
-      cursor: move !important;
-    }
+  styles: [
+    `
+      .cell-move {
+        cursor: move !important;
+      }
 
-    table {
-      border: 1px solid #555;
-    }
-
-  `],
+      table {
+        border: 1px solid #555;
+      }
+    `
+  ],
   providers: [DialogService],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -88,9 +90,8 @@ import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-
   ]
 })
 export class WatchlistDividendSplitFeedComponent extends WatchlistTable implements OnInit, OnDestroy {
-
   /** Map of feed connector IDs to their human-readable names for display purposes */
- // feedConnectorsKV: { [id: string]: string } = {};
+  // feedConnectorsKV: { [id: string]: string } = {};
 
   /**
    * Creates a new WatchlistDividendSplitFeedComponent with all required services and dependencies.
@@ -115,7 +116,8 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
    * @param gps Global parameter service for application-wide settings and parameters
    * @param usersettingsService Service for managing user-specific settings and preferences
    */
-  constructor(private securityService: SecurityService,
+  constructor(
+    private securityService: SecurityService,
     private currencypairService: CurrencypairService,
     dialogService: DialogService,
     alarmSetupService: AlarmSetupService,
@@ -134,24 +136,53 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
     gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
-    super(WatchListType.DIVIDEND_SPLIT_FEED, AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
-      dialogService, alarmSetupService, timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router,
-      activatedRoute, confirmationService, messageToastService, productIconService, changeDetectionStrategy,
-      filterService, translateService, gpsGT, gps, usersettingsService, WatchlistTable.MULTIPLE, injector);
+    injector: Injector
+  ) {
+    super(
+      WatchListType.DIVIDEND_SPLIT_FEED,
+      AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_TABLE_SETTINGS_STORE,
+      dialogService,
+      alarmSetupService,
+      timeSeriesQuotesService,
+      dataChangedService,
+      activePanelService,
+      watchlistService,
+      router,
+      activatedRoute,
+      confirmationService,
+      messageToastService,
+      productIconService,
+      changeDetectionStrategy,
+      filterService,
+      translateService,
+      gpsGT,
+      gps,
+      usersettingsService,
+      WatchlistTable.MULTIPLE,
+      injector
+    );
     this.addBaseColumns();
-    this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true,
-      true, {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorDividend', true,
-      true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this), filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retryDividendLoad', true,
-      true, {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.DateNumeric, 'securitycurrency.dividendEarliestNextCheck', true, true,
-      {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorSplit', true,
-      true, {fieldValueFN: this.getFeedConnectorReadableName.bind(this), filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retrySplitLoad', true, true,
-      {filterType: FilterType.likeDataType});
+    this.addColumnFeqH(DataType.String, 'securitycurrency.distributionFrequency', true, true, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorDividend', true, true, {
+      fieldValueFN: this.getFeedConnectorReadableName.bind(this),
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retryDividendLoad', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.DateNumeric, 'securitycurrency.dividendEarliestNextCheck', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.String, 'securitycurrency.idConnectorSplit', true, true, {
+      fieldValueFN: this.getFeedConnectorReadableName.bind(this),
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'securitycurrency.retrySplitLoad', true, true, {
+      filterType: FilterType.likeDataType
+    });
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
   }
@@ -182,11 +213,13 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
       this.watchlistService.getWatchlistForSplitAndDividend(this.idWatchlist);
     const tenantLimitObservable: Observable<TenantLimit[]> =
       this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe((result: [SecuritycurrencyGroup, TenantLimit[]]) => {
-      this.createSecurityPositionList(result[0]);
-      this.tenantLimits = result[1];
-      this.loading = false;
-    });
+    combineLatest([watchListObservable, tenantLimitObservable]).subscribe(
+      (result: [SecuritycurrencyGroup, TenantLimit[]]) => {
+        this.createSecurityPositionList(result[0]);
+        this.tenantLimits = result[1];
+        this.loading = false;
+      }
+    );
   }
 
   public override getHelpContextId(): string {
@@ -204,8 +237,11 @@ export class WatchlistDividendSplitFeedComponent extends WatchlistTable implemen
    * Uses SecurityCurrencyHelper to populate the connector name mappings before loading watchlist content.
    */
   private loadData(): void {
-    SecurityCurrencyHelper.loadAllConnectors(this.securityService, this.currencypairService, this.feedConnectorsKV,
-      this.getWatchlistWithoutUpdate.bind(this));
+    SecurityCurrencyHelper.loadAllConnectors(
+      this.securityService,
+      this.currencypairService,
+      this.feedConnectorsKV,
+      this.getWatchlistWithoutUpdate.bind(this)
+    );
   }
-
 }

@@ -1,11 +1,10 @@
-import {Component, OnInit} from '@angular/core';
-import {AppSettings} from '../../shared/app.settings';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TabItem} from '../../lib/types/tab.item';
-import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
-import {SharedTabMenuComponent} from '../../lib/tabmenu/component/shared.tab.menu.component';
-import {RouterModule} from '@angular/router';
-
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { AppSettings } from '../../shared/app.settings';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TabItem } from '../../lib/types/tab.item';
+import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
+import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.menu.component';
+import { RouterModule } from '@angular/router';
 
 @Component({
   template: `
@@ -17,10 +16,8 @@ import {RouterModule} from '@angular/router';
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `,
-  imports: [
-    SharedTabMenuComponent,
-    RouterModule
-  ],
+  imports: [SharedTabMenuComponent, RouterModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class TenantTabMenuComponent implements OnInit {
@@ -28,8 +25,7 @@ export class TenantTabMenuComponent implements OnInit {
   defaultRoute: string = AppSettings.PORTFOLIO_KEY;
   sessionStorageKey: string = GlobalGTSessionNames.TAB_MENU_TENANT;
 
-  constructor(private gps: GlobalparameterService) {
-  }
+  constructor(private gps: GlobalparameterService) {}
 
   ngOnInit(): void {
     this.initializeTabs();
@@ -47,13 +43,11 @@ export class TenantTabMenuComponent implements OnInit {
       ['SECURITY_ASSETCLASS_WITH_CASH', AppSettings.DEPOT_CASH_KEY],
       ['PORTFOLIO_DIVIDENDS', AppSettings.DIVIDENDS_ROUTER_KEY],
       ['TRANSACTION_COST', AppSettings.TRANSACTION_COST_KEY],
-      ['TRANSACTIONS', AppSettings.TENANT_TRANSACTION],
+      ['TRANSACTIONS', AppSettings.TENANT_TRANSACTION]
     ];
 
     // Add standing order tab (sub-tab menu with cashaccount and security)
-    baseTabsConfig.push(
-      ['STANDING_ORDERS', AppSettings.STANDING_ORDER_TAB_KEY]
-    );
+    baseTabsConfig.push(['STANDING_ORDERS', AppSettings.STANDING_ORDER_TAB_KEY]);
 
     // Add conditional alert tab
     if (this.gps.useAlert()) {
@@ -68,4 +62,3 @@ export class TenantTabMenuComponent implements OnInit {
     }));
   }
 }
-

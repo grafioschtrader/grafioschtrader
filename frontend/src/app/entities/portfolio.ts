@@ -1,10 +1,9 @@
-import {Cashaccount} from './cashaccount';
-import {Securityaccount} from './securityaccount';
-import {Securitycashaccount} from './securitycashaccount';
-import {TenantBaseId} from '../lib/entities/tenant.base.id';
+import { Cashaccount } from './cashaccount';
+import { Securityaccount } from './securityaccount';
+import { Securitycashaccount } from './securitycashaccount';
+import { TenantBaseId } from '../lib/entities/tenant.base.id';
 
 export class Portfolio extends TenantBaseId {
-
   name: string = null;
   currency: string = null;
   closedUntil: string = null;
@@ -13,13 +12,9 @@ export class Portfolio extends TenantBaseId {
   securitycashaccountList?: Securitycashaccount;
 
   securityaccountList?: Securityaccount[];
-  cashaccountList?: Cashaccount [];
+  cashaccountList?: Cashaccount[];
 
   public getId(): number {
     return this.idPortfolio;
   }
 }
-
-
-
-

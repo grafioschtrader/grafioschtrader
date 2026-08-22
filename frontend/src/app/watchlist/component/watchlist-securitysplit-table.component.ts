@@ -1,30 +1,26 @@
-import {Component, Injector, Input, OnInit} from '@angular/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {SecuritysplitService} from '../../securitycurrency/service/securitysplit.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SvgIconRegistryService, AngularSvgIconModule} from 'angular-svg-icon';
-import {DividendSplitTableBase} from './dividend.split.table.base';
-import {Securitysplit} from '../../entities/dividend.split';
-import {FilterService} from '@openng/optimus-ui/api';
-import {CommonModule} from '@angular/common';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { SecuritysplitService } from '../../securitycurrency/service/securitysplit.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { SvgIconRegistryService, AngularSvgIconModule } from 'angular-svg-icon';
+import { DividendSplitTableBase } from './dividend.split.table.base';
+import { Securitysplit } from '../../entities/dividend.split';
+import { FilterService } from '@openng/optimus-ui/api';
+import { CommonModule } from '@angular/common';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 
 /**
  * Component that displays security splits in a table format for a specific security.
  * Shows split dates, creation types, and split ratios (from/to factors) with icons indicating data source.
  */
 @Component({
-    selector: 'watchlist-securitysplit-table',
-    templateUrl: '../view/dividend.split.table.html',
-    standalone: true,
-    imports: [
-      CommonModule,
-      TranslateModule,
-      ConfigurableTableComponent,
-      AngularSvgIconModule
-    ]
+  selector: 'watchlist-securitysplit-table',
+  templateUrl: '../view/dividend.split.table.html',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, TranslateModule, ConfigurableTableComponent, AngularSvgIconModule]
 })
 export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase<Securitysplit> implements OnInit {
   /** Field name constant for the split date column */
@@ -42,18 +38,32 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
    * @param gps Global parameter service for locale and formatting settings
    * @param iconReg SVG icon registry service for displaying creation type icons
    */
-  constructor(private securitysplitService: SecuritysplitService,
-              filterService: FilterService,
-              usersettingsService: UserSettingsService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              iconReg: SvgIconRegistryService,
-              injector: Injector) {
-    super(filterService, usersettingsService, translateService, gps, iconReg,
-      'idSecuritysplit', WatchlistSecuritysplitTableComponent.SPLIT_DATE, 'SPLIT', injector);
+  constructor(
+    private securitysplitService: SecuritysplitService,
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    iconReg: SvgIconRegistryService,
+    injector: Injector
+  ) {
+    super(
+      filterService,
+      usersettingsService,
+      translateService,
+      gps,
+      iconReg,
+      'idSecuritysplit',
+      WatchlistSecuritysplitTableComponent.SPLIT_DATE,
+      'SPLIT',
+      injector
+    );
     this.addColumnFeqH(DataType.DateNumeric, 'splitDate', true, false);
-    this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false,
-      {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});
+    this.addColumn(DataType.NumericInteger, 'createType', 'C', true, false, {
+      fieldValueFN: this.getCreateTypeIcon.bind(this),
+      templateName: 'icon',
+      width: 20
+    });
     this.addColumnFeqH(DataType.NumericInteger, 'fromFactor', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'toFactor', true, false);
     this.prepareTableAndTranslate();
@@ -61,8 +71,10 @@ export class WatchlistSecuritysplitTableComponent extends DividendSplitTableBase
 
   /** Loads security split data for the specified security/currency ID and populates the table */
   ngOnInit(): void {
-    this.securitysplitService.getSecuritysplitsByIdSecuritycurrency(this.idSecuritycurrency).subscribe((securitysplits) => {
-      this.data = securitysplits;
-    });
+    this.securitysplitService
+      .getSecuritysplitsByIdSecuritycurrency(this.idSecuritycurrency)
+      .subscribe((securitysplits) => {
+        this.data = securitysplits;
+      });
   }
 }

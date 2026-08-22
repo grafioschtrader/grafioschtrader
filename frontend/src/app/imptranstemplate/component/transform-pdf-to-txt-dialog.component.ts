@@ -1,73 +1,78 @@
-import {Component, OnInit} from '@angular/core';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {HelpIds} from '../../lib/help/help.ids';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ImportTransactionPlatformService} from '../service/import.transaction.platform.service';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { HelpIds } from '../../lib/help/help.ids';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ImportTransactionPlatformService } from '../service/import.transaction.platform.service';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 
 @Component({
-    selector: 'transform-pdf-to-txt-dialog',
-    template: `
-    <p-dialog header="{{'TRANSFORM_PDF_TO_TXT' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '600px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
-    standalone: true,
-    imports: [DialogModule, DynamicFormModule, TranslateModule]
+  selector: 'transform-pdf-to-txt-dialog',
+  template: ` <p-dialog
+    header="{{ 'TRANSFORM_PDF_TO_TXT' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '600px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TransformPdfToTxtDialogComponent extends SimpleEditBase implements OnInit {
-
-  constructor(private importTransactionPlatformService: ImportTransactionPlatformService,
-              public translateService: TranslateService,
-              gps: GlobalparameterService) {
+  constructor(
+    private importTransactionPlatformService: ImportTransactionPlatformService,
+    public translateService: TranslateService,
+    gps: GlobalparameterService
+  ) {
     super(HelpIds.HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      3, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 3, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFileUpload(DataType.File, 'fileToUpload', 'PDF_ORIGINAL_FORM',
-        'pdf', true, {handleChangeFileInputFN: this.handleFileInput.bind(this)}),
-      DynamicFieldHelper.createFieldTextareaInputString('templateAsTxt', 'PDF_TEMPLATE_AS_TXT', 4096, false,
-        {textareaRows: 30, readonly: true}),
+      DynamicFieldHelper.createFileUpload(DataType.File, 'fileToUpload', 'PDF_ORIGINAL_FORM', 'pdf', true, {
+        handleChangeFileInputFN: this.handleFileInput.bind(this)
+      }),
+      DynamicFieldHelper.createFieldTextareaInputString('templateAsTxt', 'PDF_TEMPLATE_AS_TXT', 4096, false, {
+        textareaRows: 30,
+        readonly: true
+      }),
       DynamicFieldHelper.createFunctionButton('COPY_TO_CLIPBOARD', (e) => this.copyToClipboard(e)),
       DynamicFieldHelper.createSubmitButton('EXIT')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-
   }
 
-  async copyToClipboard(event)  {
+  async copyToClipboard(event) {
     await navigator.clipboard.writeText(this.configObject.templateAsTxt.formControl.value);
   }
 
   handleFileInput(files: FileList) {
     this.importTransactionPlatformService.uploadAndTransformPDFToTxt(files.item(0)).subscribe((txt: string) => {
-        this.configObject.templateAsTxt.formControl.setValue(txt);
-      }
-    );
+      this.configObject.templateAsTxt.formControl.setValue(txt);
+    });
   }
 
   submit(value: { [name: string]: any }): void {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE, null));
   }
 
-  protected override initialize(): void {
-
-  }
+  protected override initialize(): void {}
 }

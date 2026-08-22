@@ -1,44 +1,45 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {TranslateModule} from '@ngx-translate/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {StepsComponent} from '../../lib/wizard/component/steps.component';
-import {StepComponent} from '../../lib/wizard/component/step.component';
+import { Component, EventEmitter, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { TranslateModule } from '@ngx-translate/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { StepsComponent } from '../../lib/wizard/component/steps.component';
+import { StepComponent } from '../../lib/wizard/component/step.component';
 
 /**
  * Test for Wizard - NOT used yet.
  * Project: Grafioschtrader
  */
 @Component({
-    selector: 'algo-strategy-create-wizard',
-    template: `
-    <p-dialog header="{{'STRATEGY_CREATE' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '400px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <pe-steps [(activeIndex)]="activeIndex" styleClass="steps-custom">
-        <pe-step label="First Step">
-          Step 1
-          <p-button label="Go" (click)="next()" />
-        </pe-step>
-        <pe-step label="2nd Step">
-          Step 2
-          <p-button label="Go" (click)="next()" />
-        </pe-step>
-        <pe-step label="3 Step">
-          Step 3
-          <p-button label="Ok" (click)="ok()" />
-        </pe-step>
-      </pe-steps>
-
-
-    </p-dialog>`,
-    standalone: true,
-    imports: [TranslateModule, DialogModule, ButtonModule, StepsComponent, StepComponent]
+  selector: 'algo-strategy-create-wizard',
+  template: ` <p-dialog
+    header="{{ 'STRATEGY_CREATE' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '400px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <pe-steps [(activeIndex)]="activeIndex" styleClass="steps-custom">
+      <pe-step label="First Step">
+        Step 1
+        <p-button label="Go" (click)="next()" />
+      </pe-step>
+      <pe-step label="2nd Step">
+        Step 2
+        <p-button label="Go" (click)="next()" />
+      </pe-step>
+      <pe-step label="3 Step">
+        Step 3
+        <p-button label="Ok" (click)="ok()" />
+      </pe-step>
+    </pe-steps>
+  </p-dialog>`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TranslateModule, DialogModule, ButtonModule, StepsComponent, StepComponent]
 })
 export class AlgoRuleStrategyCreateWizardComponent implements OnInit {
   // Input from parent view
@@ -51,13 +52,9 @@ export class AlgoRuleStrategyCreateWizardComponent implements OnInit {
   items: MenuItem[];
   activeIndex = 0;
 
-  ngOnInit(): void {
+  ngOnInit(): void {}
 
-  }
-
-  public onShow(event) {
-
-  }
+  public onShow(event) {}
 
   onHide(event) {
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
@@ -70,5 +67,4 @@ export class AlgoRuleStrategyCreateWizardComponent implements OnInit {
   ok() {
     this.activeIndex = 0;
   }
-
 }

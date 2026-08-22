@@ -1,9 +1,9 @@
-import {Inject, Injectable, Optional} from '@angular/core';
-import {combineLatest, Observable, of} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {MAIN_TREE_CONTRIBUTOR, MainTreeContributor} from './main-tree-contributor.interface';
-import {ProcessedActionData} from '../../types/processed.action.data';
+import { Inject, Injectable, Optional } from '@angular/core';
+import { combineLatest, Observable, of } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { MAIN_TREE_CONTRIBUTOR, MainTreeContributor } from './main-tree-contributor.interface';
+import { ProcessedActionData } from '../../types/processed.action.data';
 
 /**
  * Manager service that coordinates all MainTreeContributor instances.
@@ -12,16 +12,13 @@ import {ProcessedActionData} from '../../types/processed.action.data';
  */
 @Injectable()
 export class MainTreeContributorManager {
-
   private contributors: MainTreeContributor[];
 
-  constructor(
-    @Optional() @Inject(MAIN_TREE_CONTRIBUTOR) contributors: MainTreeContributor[]
-  ) {
+  constructor(@Optional() @Inject(MAIN_TREE_CONTRIBUTOR) contributors: MainTreeContributor[]) {
     this.contributors = contributors || [];
     // Filter out disabled contributors and sort by tree order
     this.contributors = this.contributors
-      .filter(c => c.isEnabled())
+      .filter((c) => c.isEnabled())
       .sort((a, b) => a.getTreeOrder() - b.getTreeOrder());
   }
 
@@ -32,8 +29,8 @@ export class MainTreeContributorManager {
    */
   buildTree(): Observable<TreeNode[]> {
     const rootNodesObservables: Observable<TreeNode[]>[] = this.contributors
-      .map(contributor => contributor.getRootNodes())
-      .filter(obs => obs !== null);
+      .map((contributor) => contributor.getRootNodes())
+      .filter((obs) => obs !== null);
 
     if (rootNodesObservables.length === 0) {
       return of([]);
@@ -41,9 +38,9 @@ export class MainTreeContributorManager {
 
     // Combine all observables and flatten the results
     return combineLatest(rootNodesObservables).pipe(
-      map(nodeArrays => {
+      map((nodeArrays) => {
         const allNodes: TreeNode[] = [];
-        nodeArrays.forEach(nodes => {
+        nodeArrays.forEach((nodes) => {
           if (nodes && nodes.length > 0) {
             allNodes.push(...nodes);
           }
@@ -63,7 +60,7 @@ export class MainTreeContributorManager {
   refreshNodesForDataChange(processedActionData: ProcessedActionData, portfolioTrees: TreeNode[]): Observable<void> {
     const refreshObservables: Observable<void>[] = [];
 
-    this.contributors.forEach(contributor => {
+    this.contributors.forEach((contributor) => {
       if (contributor.shouldRefreshOnDataChange(processedActionData)) {
         // Find the root node managed by this contributor
         const rootNode = this.findRootNodeForContributor(contributor, portfolioTrees);
@@ -80,9 +77,7 @@ export class MainTreeContributorManager {
       return of(void 0);
     }
 
-    return combineLatest(refreshObservables).pipe(
-      map(() => void 0)
-    );
+    return combineLatest(refreshObservables).pipe(map(() => void 0));
   }
 
   /**

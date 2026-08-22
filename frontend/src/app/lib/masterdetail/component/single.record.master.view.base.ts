@@ -1,23 +1,23 @@
-import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {FieldFormGroup} from '../../dynamic-form/models/form.group.definition';
-import {FormConfig} from '../../dynamic-form/models/form.config';
-import {Directive, ViewChild} from '@angular/core';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {Subscription} from 'rxjs';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {AppHelper} from '../../helper/app.helper';
-import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
-import {MessageToastService} from '../../message/message.toast.service';
-import {DeleteService} from '../../datashowbase/delete.service';
-import {BaseID} from '../../entities/base.id';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
-import {AuditHelper} from '../../helper/audit.helper';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {BaseSettings} from '../../base.settings';
+import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { FieldConfig } from '../../dynamic-form/models/field.config';
+import { FieldFormGroup } from '../../dynamic-form/models/form.group.definition';
+import { FormConfig } from '../../dynamic-form/models/form.config';
+import { Directive, ViewChild } from '@angular/core';
+import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { Subscription } from 'rxjs';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { AppHelper } from '../../helper/app.helper';
+import { TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
+import { MessageToastService } from '../../message/message.toast.service';
+import { DeleteService } from '../../datashowbase/delete.service';
+import { BaseID } from '../../entities/base.id';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { ProcessedAction } from '../../types/processed.action';
+import { AuditHelper } from '../../helper/audit.helper';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { BaseSettings } from '../../base.settings';
 
 /**
  * Abstract base class for components that display and edit a single record from a master list with associated
@@ -32,9 +32,8 @@ import {BaseSettings} from '../../base.settings';
  */
 @Directive()
 export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> implements IGlobalMenuAttach {
-
   // Access child components
-  @ViewChild(DynamicFormComponent, {static: true}) form: DynamicFormComponent;
+  @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
 
   // Form configuration
   formConfig: FormConfig;
@@ -70,7 +69,8 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
    * @param activePanelService Service for active panel
    * @param translateService Service for translation
    */
-  protected constructor(protected gps: GlobalparameterService,
+  protected constructor(
+    protected gps: GlobalparameterService,
     private helpId: string,
     private mainFieldId: string,
     private entityName: string,
@@ -78,8 +78,8 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
     protected confirmationService: ConfirmationService,
     protected messageToastService: MessageToastService,
     protected activePanelService: ActivePanelService,
-    public translateService: TranslateService) {
-  }
+    public translateService: TranslateService
+  ) {}
 
   abstract prepareEditMenu(): MenuItem[];
 
@@ -91,12 +91,14 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   abstract readData(): void;
 
   valueChangedMainField(): void {
-    this.changeOnMainFieldSub = this.configObject[this.mainFieldId].formControl.valueChanges.subscribe((key: number) => {
-      if (!this.ignoreChangeOnMonitorField) {
-        this.selectedEntity = this.entityList.find(entity => entity[this.mainFieldId] === +key);
-        this.setFieldValues();
+    this.changeOnMainFieldSub = this.configObject[this.mainFieldId].formControl.valueChanges.subscribe(
+      (key: number) => {
+        if (!this.ignoreChangeOnMonitorField) {
+          this.selectedEntity = this.entityList.find((entity) => entity[this.mainFieldId] === +key);
+          this.setFieldValues();
+        }
       }
-    });
+    );
   }
 
   getBaseEditMenu(entityName: string): MenuItem[] {
@@ -112,9 +114,12 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
       disabled: !this.selectedEntity
     });
     menuItems.push({
-      label: 'DELETE_RECORD|' + entityName, disabled: !this.selectedEntity || !this.childEntityList
-        || this.childEntityList.length > 0 || !AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps,
-          this.selectedEntity),
+      label: 'DELETE_RECORD|' + entityName,
+      disabled:
+        !this.selectedEntity ||
+        !this.childEntityList ||
+        this.childEntityList.length > 0 ||
+        !AuditHelper.hasRightsForEditingOrDeleteEntity(this.gps, this.selectedEntity),
       command: (event) => this.handleDeleteEntity(this.selectedEntity)
     });
     return menuItems;
@@ -138,27 +143,30 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
   }
 
   handleDeleteEntity(entity: T) {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|' + this.entityName, () => {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|' + this.entityName,
+      () => {
         //    entity = this.beforeDelete(entity);
-        this.deleteService.deleteEntity(entity[this.mainFieldId]).subscribe(response => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: this.entityName});
+        this.deleteService.deleteEntity(entity[this.mainFieldId]).subscribe((response) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: this.entityName
+          });
           this.selectedEntity = null;
           this.readData();
         });
-      });
+      }
+    );
   }
 
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
   onComponentClick(event): void {
     this.refreshMenus();
@@ -166,7 +174,7 @@ export abstract class SingleRecordMasterViewBase<T extends BaseID, S, CP = any> 
 
   refreshMenus(): void {
     this.contextMenuItems = this.prepareEditMenu();
-    this.activePanelService.activatePanel(this, {editMenu: this.contextMenuItems, showMenu: this.prepareShowMenu()});
+    this.activePanelService.activatePanel(this, { editMenu: this.contextMenuItems, showMenu: this.prepareShowMenu() });
   }
 
   protected reSetHelpId(helpId: string): void {

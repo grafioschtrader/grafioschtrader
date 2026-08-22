@@ -3,4 +3,3 @@ export class IntraHistoricalWatchlistProblem {
   addHistorical: boolean = null;
   daysSinceLastWork: number = null;
 }
-

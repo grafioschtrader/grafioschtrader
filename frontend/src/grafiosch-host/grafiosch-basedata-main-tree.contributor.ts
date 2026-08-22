@@ -1,14 +1,14 @@
-import {Injectable} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {TreeNode} from '@openng/optimus-ui/api';
-import {Observable, of} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { TreeNode } from '@openng/optimus-ui/api';
+import { Observable, of } from 'rxjs';
 
-import {BaseSettings} from '../app/lib/base.settings';
-import {LibDataMainTreeContributor} from '../app/lib/maintree/contributor/lib-data-main-tree.contributor';
-import {LibTreeNodeType} from '../app/lib/maintree/types/lib.tree.node.type';
-import {TypeNodeData} from '../app/lib/maintree/types/type.node.data';
-import {GrafioschSettings} from './grafiosch.settings';
-import {GrafioschTreeContributorBase} from './grafiosch-tree-contributor.base';
+import { BaseSettings } from '../app/lib/base.settings';
+import { LibDataMainTreeContributor } from '../app/lib/maintree/contributor/lib-data-main-tree.contributor';
+import { LibTreeNodeType } from '../app/lib/maintree/types/lib.tree.node.type';
+import { TypeNodeData } from '../app/lib/maintree/types/type.node.data';
+import { GrafioschSettings } from './grafiosch.settings';
+import { GrafioschTreeContributorBase } from './grafiosch-tree-contributor.base';
 
 /**
  * The base data root of this host, the counterpart of Grafioschtrader's {@code BaseDataMainTreeContributor} reduced to
@@ -21,7 +21,6 @@ import {GrafioschTreeContributorBase} from './grafiosch-tree-contributor.base';
  */
 @Injectable()
 export class GrafioschBaseDataMainTreeContributor extends GrafioschTreeContributorBase {
-
   constructor(translateService: TranslateService) {
     super(translateService);
   }
@@ -35,12 +34,18 @@ export class GrafioschBaseDataMainTreeContributor extends GrafioschTreeContribut
       label: 'BASE_DATA_PROPOSECHANGEENTITY',
       expanded: true,
       children: [
-        this.navigationNode('PROPOSE_CHANGE_ENTITY', GrafioschSettings.PROPOSE_CHANGE_TAB_MENU_KEY + '/'
-          + BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY),
+        this.navigationNode(
+          'PROPOSE_CHANGE_ENTITY',
+          GrafioschSettings.PROPOSE_CHANGE_TAB_MENU_KEY + '/' + BaseSettings.PROPOSE_CHANGE_REQUEST_FOR_YOU_KEY
+        ),
         LibDataMainTreeContributor.createUdfMetadataGeneralNode(LibTreeNodeType.NO_MENU)
       ],
-      data: new TypeNodeData(LibTreeNodeType.NO_MENU,
-        this.addMainRoute(GrafioschSettings.PROPOSE_CHANGE_TAB_MENU_KEY), null, null)
+      data: new TypeNodeData(
+        LibTreeNodeType.NO_MENU,
+        this.addMainRoute(GrafioschSettings.PROPOSE_CHANGE_TAB_MENU_KEY),
+        null,
+        null
+      )
     };
     this.translateNodes([rootNode]);
     return of([rootNode]);

@@ -1,51 +1,50 @@
-import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
-import {LoginService} from '../../login/service/log-in.service';
-import {ActivePanelService} from '../service/active.panel.service';
-import {TopMenuTypes} from './top.menu.types';
-import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../../helper/app.helper';
-import {MainDialogService} from '../service/main.dialog.service';
-import {ViewSizeChangedService} from '../../layout/service/view.size.changed.service';
-import {Location} from '@angular/common';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserDataService} from '../service/user.data.service';
-import {PERSONAL_DATA_ZIP_NAME} from '../service/personal.data.zip.token';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {MessageToastService} from '../../message/message.toast.service';
-import {UserSettingsDialogs} from './user-settings-dialogs';
-import {Subscription} from 'rxjs';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {ConfirmationService, MenuItem} from '@openng/optimus-ui/api';
+import { Component, Inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { LoginService } from '../../login/service/log-in.service';
+import { ActivePanelService } from '../service/active.panel.service';
+import { TopMenuTypes } from './top.menu.types';
+import { TranslateService } from '@ngx-translate/core';
+import { AppHelper } from '../../helper/app.helper';
+import { MainDialogService } from '../service/main.dialog.service';
+import { ViewSizeChangedService } from '../../layout/service/view.size.changed.service';
+import { Location } from '@angular/common';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserDataService } from '../service/user.data.service';
+import { PERSONAL_DATA_ZIP_NAME } from '../service/personal.data.zip.token';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { MessageToastService } from '../../message/message.toast.service';
+import { UserSettingsDialogs } from './user-settings-dialogs';
+import { Subscription } from 'rxjs';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import saveAs from '../../filesaver/filesaver';
-import {BaseSettings} from '../../base.settings';
-import {HelpIds} from '../../help/help.ids';
-import {MenubarModule} from '@openng/optimus-ui/menubar';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {ManageClientService} from '../../manageclient/service/manage-client.service';
-import {ClientCreateDynamicComponent} from '../../manageclient/component/client-create-dynamic.component';
-import {ManagedClientsTableDialogComponent} from '../../manageclient/component/managed-clients-table.dialog.component';
-import {ShareReadAccessDynamicComponent} from '../../manageclient/component/share-read-access-dynamic.component';
-import {SharedViewersTableDialogComponent} from '../../manageclient/component/shared-viewers-table.dialog.component';
-import {GlobalSessionNames} from '../../global.session.names';
-
+import { BaseSettings } from '../../base.settings';
+import { HelpIds } from '../../help/help.ids';
+import { MenubarModule } from '@openng/optimus-ui/menubar';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { ManageClientService } from '../../manageclient/service/manage-client.service';
+import { ClientCreateDynamicComponent } from '../../manageclient/component/client-create-dynamic.component';
+import { ManagedClientsTableDialogComponent } from '../../manageclient/component/managed-clients-table.dialog.component';
+import { ShareReadAccessDynamicComponent } from '../../manageclient/component/share-read-access-dynamic.component';
+import { SharedViewersTableDialogComponent } from '../../manageclient/component/shared-viewers-table.dialog.component';
+import { GlobalSessionNames } from '../../global.session.names';
 
 /**
  * Represents the menubar of GT
  */
 @Component({
   selector: 'menubar',
-  template: `
-    <p-menubar [model]="this.activePanelService.topMenuItems"></p-menubar>
-  `,
+  template: ` <p-menubar [model]="this.activePanelService.topMenuItems"></p-menubar> `,
   standalone: true,
   imports: [MenubarModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class MenubarComponent implements OnInit, OnDestroy {
   menuItems: MenuItem[] = new Array<MenuItem>(4);
   private subscriptionViewSizeChanged: Subscription;
 
-  constructor(public translateService: TranslateService,
+  constructor(
+    public translateService: TranslateService,
     public mainDialogService: MainDialogService,
     private messageToastService: MessageToastService,
     public activePanelService: ActivePanelService,
@@ -57,7 +56,8 @@ export class MenubarComponent implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService,
     private manageClientService: ManageClientService,
     private dialogService: DialogService,
-    @Inject(PERSONAL_DATA_ZIP_NAME) private personalDataZipName: string) {
+    @Inject(PERSONAL_DATA_ZIP_NAME) private personalDataZipName: string
+  ) {
     this.activePanelService.topMenuItems = this.menuItems;
   }
 
@@ -72,11 +72,21 @@ export class MenubarComponent implements OnInit, OnDestroy {
       command: (event) => this.toggleMainTree(false)
     };
     this.toggleMainTree(true);
-    this.menuItems[TopMenuTypes.SHOW] = {label: 'SHOW', icon: 'fa fa-fw fa-list', visible: true};
-    this.menuItems[TopMenuTypes.EDIT] = {label: 'EDIT', icon: 'fa fa-fw fa-edit', visible: true};
-    this.menuItems[TopMenuTypes.CUSTOM] = {label: 'XXX', visible: false};
+    this.menuItems[TopMenuTypes.SHOW] = {
+      label: 'SHOW',
+      icon: 'fa fa-fw fa-list',
+      visible: true
+    };
+    this.menuItems[TopMenuTypes.EDIT] = {
+      label: 'EDIT',
+      icon: 'fa fa-fw fa-edit',
+      visible: true
+    };
+    this.menuItems[TopMenuTypes.CUSTOM] = { label: 'XXX', visible: false };
     this.menuItems[TopMenuTypes.SETTINGS] = {
-      label: 'SETTINGS', icon: 'fa fa-fw fa-wrench', visible: true,
+      label: 'SETTINGS',
+      icon: 'fa fa-fw fa-wrench',
+      visible: true,
       items: [
         {
           label: 'PASSWORD_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
@@ -87,25 +97,34 @@ export class MenubarComponent implements OnInit, OnDestroy {
           command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.NicknameLocale)
         },
         exportDataItem,
-        {label: 'DELETE_MY', command: () => this.deleteMyDataAndUserAccount()}
+        {
+          label: 'DELETE_MY',
+          command: () => this.deleteMyDataAndUserAccount()
+        }
       ]
     };
     this.menuItems[TopMenuTypes.LOGOUT] = {
-      label: 'LOGOUT', icon: 'fa fa-fw fa-minus', visible: true,
+      label: 'LOGOUT',
+      icon: 'fa fa-fw fa-minus',
+      visible: true,
       command: (event) => this.loginService.logoutWithLoginView()
     };
     this.menuItems[TopMenuTypes.CONTEXT_HELP] = {
-      icon: 'fa fa-fw fa-question-circle', visible: true,
+      icon: 'fa fa-fw fa-question-circle',
+      visible: true,
       command: (event) => this.contextHelp()
     };
     TranslateHelper.translateMenuItems(this.menuItems, this.translateService);
     // Set after translateMenuItems, so that the already resolved text is not treated as a translation key.
     exportDataItem.tooltipOptions = {
-      tooltipLabel: this.translateService.instant('EXPORT_DATA_SQL_TITLE', {fileName: this.personalDataZipName})
+      tooltipLabel: this.translateService.instant('EXPORT_DATA_SQL_TITLE', {
+        fileName: this.personalDataZipName
+      })
     };
     this.addManageClientMenu();
-    this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(
-      () => this.toggleMainTree(true));
+    this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(() =>
+      this.toggleMainTree(true)
+    );
   }
 
   /**
@@ -157,7 +176,12 @@ export class MenubarComponent implements OnInit, OnDestroy {
     if (items.length === 0) {
       return;
     }
-    const clientMenu: MenuItem = {label: 'MANAGE_CLIENT', icon: 'fa fa-fw fa-users', visible: true, items};
+    const clientMenu: MenuItem = {
+      label: 'MANAGE_CLIENT',
+      icon: 'fa fa-fw fa-users',
+      visible: true,
+      items
+    };
     TranslateHelper.translateMenuItems([clientMenu], this.translateService);
     // Insert right after the Settings menu.
     this.menuItems.splice(TopMenuTypes.SETTINGS + 1, 0, clientMenu);
@@ -167,22 +191,28 @@ export class MenubarComponent implements OnInit, OnDestroy {
   private backToMyClientItem(): MenuItem {
     return {
       label: 'BACK_TO_MY_CLIENT',
-      command: () => this.manageClientService.switchAndReload(
-        +sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT), true)
+      command: () =>
+        this.manageClientService.switchAndReload(+sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT), true)
     };
   }
 
   private openShareReadAccessDialog(): void {
     this.dialogService.open(ShareReadAccessDynamicComponent, {
       header: this.translateService.instant('SHARE_READ_ACCESS'),
-      width: '450px', modal: true, closable: true, closeOnEscape: true
+      width: '450px',
+      modal: true,
+      closable: true,
+      closeOnEscape: true
     });
   }
 
   private openSharedViewersDialog(): void {
     this.dialogService.open(SharedViewersTableDialogComponent, {
       header: this.translateService.instant('SHARED_VIEWERS'),
-      width: '700px', modal: true, closable: true, closeOnEscape: true
+      width: '700px',
+      modal: true,
+      closable: true,
+      closeOnEscape: true
     });
   }
 
@@ -195,30 +225,39 @@ export class MenubarComponent implements OnInit, OnDestroy {
   private openCreateClientDialog(): void {
     this.dialogService.open(ClientCreateDynamicComponent, {
       header: this.translateService.instant('CREATE_CLIENT'),
-      width: '450px', modal: true, closable: true, closeOnEscape: true
+      width: '450px',
+      modal: true,
+      closable: true,
+      closeOnEscape: true
     });
   }
 
   private openManageClientsDialog(): void {
     this.dialogService.open(ManagedClientsTableDialogComponent, {
       header: this.translateService.instant('MANAGED_CLIENTS'),
-      width: '700px', modal: true, closable: true, closeOnEscape: true
+      width: '700px',
+      modal: true,
+      closable: true,
+      closeOnEscape: true
     });
   }
 
   private isAdvisor(): boolean {
-    return this.gps.hasRole(BaseSettings.ROLE_ADMIN) || this.gps.hasRole(BaseSettings.ROLE_ALL_EDIT)
-      || this.gps.hasRole(BaseSettings.ROLE_USER);
+    return (
+      this.gps.hasRole(BaseSettings.ROLE_ADMIN) ||
+      this.gps.hasRole(BaseSettings.ROLE_ALL_EDIT) ||
+      this.gps.hasRole(BaseSettings.ROLE_USER)
+    );
   }
 
   private isInManagedClient(): boolean {
     return sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT) != null;
   }
 
-
   public async downloadPersonalDataAsZip(): Promise<void> {
-    const blob = await this.userDataService.getExportPersonalDataAsZip()
-      .catch(error => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'DOWNLOAD_PERSONAL_DATA_FAILED'));
+    const blob = await this.userDataService
+      .getExportPersonalDataAsZip()
+      .catch((error) => this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'DOWNLOAD_PERSONAL_DATA_FAILED'));
     if (blob) {
       saveAs(blob, this.personalDataZipName);
       this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'DOWNLOAD_PERSONAL_DATA_SUCCESS');
@@ -240,7 +279,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
       this.confirmAndDelete();
       return;
     }
-    this.userDataService.getAccountDeletionEligibility().subscribe(eligibility => {
+    this.userDataService.getAccountDeletionEligibility().subscribe((eligibility) => {
       switch (eligibility.status) {
         case 'HAS_CLIENTS':
           this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'DELETE_MY_HAS_CLIENTS');
@@ -255,19 +294,18 @@ export class MenubarComponent implements OnInit, OnDestroy {
   }
 
   private confirmAndDelete(): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'DELETE_MY_SURE', () => {
-        this.userDataService.deleteMyDataAndUserAccount().subscribe(response => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'DELETE_MY_SUCCESS');
-          this.loginService.logoutWithLoginView();
-        });
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'DELETE_MY_SURE', () => {
+      this.userDataService.deleteMyDataAndUserAccount().subscribe((response) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'DELETE_MY_SUCCESS');
+        this.loginService.logoutWithLoginView();
       });
+    });
   }
 
   private toggleMainTree(setOnlyIcon: boolean) {
     !setOnlyIcon && this.viewSizeChangedService.toggleMainTree();
-    this.menuItems[TopMenuTypes.COLLAPSE_TREE].icon = 'pi ' + (this.viewSizeChangedService.isMainTreeVisible() ?
-      'pi-chevron-left' : 'pi-chevron-right');
+    this.menuItems[TopMenuTypes.COLLAPSE_TREE].icon =
+      'pi ' + (this.viewSizeChangedService.isMainTreeVisible() ? 'pi-chevron-left' : 'pi-chevron-right');
   }
 
   private contextHelp() {

@@ -1,10 +1,9 @@
-import {Component} from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
-import {FormsModule} from '@angular/forms';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
-
+import { FormsModule } from '@angular/forms';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { InputNumberModule } from '@openng/optimus-ui/inputnumber';
 
 /**
  * Project: Grafioschtrader
@@ -12,59 +11,90 @@ import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
 @Component({
   template: `
     <h4>Strategy Overview</h4>
-<!--    <input currencyMask [options]="optionsInput01"/>-->
-<!--    <input currencyMask [options]="optionsInput02"/>-->
-    <input type="number" id="tentacles21" name="tentacles">
-    <input type="number" id="tentacles32" name="tentacles">
-    <p-inputNumber [(ngModel)]="price1" mode="currency" [currency]="curreny1" locale="de-CH" onfocus="this.select()"
-                   currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
+    <!--    <input currencyMask [options]="optionsInput01"/>-->
+    <!--    <input currencyMask [options]="optionsInput02"/>-->
+    <input type="number" id="tentacles21" name="tentacles" />
+    <input type="number" id="tentacles32" name="tentacles" />
+    <p-inputNumber
+      [(ngModel)]="price1"
+      mode="currency"
+      [currency]="curreny1"
+      locale="de-CH"
+      onfocus="this.select()"
+      currencyDisplay="code"
+      inputStyleClass="text-end"></p-inputNumber>
 
-    <p-inputNumber [(ngModel)]="price2" mode="currency" [currency]="curreny2" locale="de-CH" onfocus="this.select()"
-                   currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
-
+    <p-inputNumber
+      [(ngModel)]="price2"
+      mode="currency"
+      [currency]="curreny2"
+      locale="de-CH"
+      onfocus="this.select()"
+      currencyDisplay="code"
+      inputStyleClass="text-end"></p-inputNumber>
 
     <p-button (click)="showBasicDialog()" label="Show"><i class="pi pi-external-link" pButtonIcon></i></p-button>
-    <p-button (click)="changeCurrency()" label="Change currency"><i class="pi pi-external-link" pButtonIcon></i></p-button>
-    <p-dialog header="Header" [(visible)]="displayBasic" [style]="{width: '50vw'}" [baseZIndex]="10000"
-              focusTrap="false">
+    <p-button (click)="changeCurrency()" label="Change currency"
+      ><i class="pi pi-external-link" pButtonIcon></i
+    ></p-button>
+    <p-dialog
+      header="Header"
+      [(visible)]="displayBasic"
+      [style]="{ width: '50vw' }"
+      [baseZIndex]="10000"
+      focusTrap="false">
+      <p-inputNumber
+        [(ngModel)]="price1"
+        mode="currency"
+        [currency]="curreny1"
+        locale="de-CH"
+        onfocus="this.select()"
+        currencyDisplay="code"
+        inputStyleClass="text-end"></p-inputNumber>
 
-      <p-inputNumber [(ngModel)]="price1" mode="currency" [currency]="curreny1" locale="de-CH" onfocus="this.select()"
-                     currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
+      <p-inputNumber
+        [(ngModel)]="price2"
+        mode="currency"
+        [currency]="curreny2"
+        locale="en-US"
+        onfocus="this.select()"
+        currencyDisplay="code"
+        inputStyleClass="text-end"></p-inputNumber>
 
-      <p-inputNumber [(ngModel)]="price2" mode="currency" [currency]="curreny2" locale="en-US" onfocus="this.select()"
-                     currencyDisplay="code" inputStyleClass="text-end"></p-inputNumber>
-
-<!--      <input currencyMask [options]="optionsInput01" onfocus="this.select()"/>-->
-<!--      <input currencyMask [options]="optionsInput02" onfocus="this.select()"/>-->
-      <input type="number" id="tentacles1" name="tentacles">
-      <input type="number" id="tentacles2" name="tentacles">
+      <!--      <input currencyMask [options]="optionsInput01" onfocus="this.select()"/>-->
+      <!--      <input currencyMask [options]="optionsInput02" onfocus="this.select()"/>-->
+      <input type="number" id="tentacles1" name="tentacles" />
+      <input type="number" id="tentacles2" name="tentacles" />
 
       <ng-template pTemplate="footer">
-        <p-button (click)="displayBasic=false" label="Ok" styleClass="p-button-text"><i class="pi pi-check" pButtonIcon></i></p-button>
+        <p-button (click)="displayBasic = false" label="Ok" styleClass="p-button-text"
+          ><i class="pi pi-check" pButtonIcon></i
+        ></p-button>
       </ng-template>
     </p-dialog>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, InputNumberModule, ButtonModule, DialogModule]
 })
 export class StrategyOverviewComponent {
   displayBasic: boolean;
   optionsInput01 = {
     prefix: 'CHF ',
-    thousands: '\'',
+    thousands: "'",
     decimal: '.',
- //   inputMode: NgxCurrencyInputMode.Natural,
+    //   inputMode: NgxCurrencyInputMode.Natural,
     precision: 2
   };
   optionsInput02 = {
     prefix: 'USD ',
-    thousands: '\'',
+    thousands: "'",
     decimal: '.',
-  //  inputMode: NgxCurrencyInputMode.Natural,
+    //  inputMode: NgxCurrencyInputMode.Natural,
     precision: 2
   };
-  price1 = 100.20;
-  price2 = 43.10;
+  price1 = 100.2;
+  price2 = 43.1;
   curreny1 = 'CHF';
   curreny2 = 'EUR';
 

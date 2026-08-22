@@ -1,6 +1,6 @@
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {FieldDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
-import {MenuItem} from '@openng/optimus-ui/api';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { FieldDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import { MenuItem } from '@openng/optimus-ui/api';
 
 /**
  * Registry of indicator definitions for the chart.
@@ -45,8 +45,7 @@ export class IndicatorDefinition {
    *                       displayed in a separate subplot below the price chart with its own y-axis (0-100).
    *                       If false, it's an overlay indicator (like SMA/EMA) displayed on the price chart.
    */
-  constructor(public isOscillator: boolean) {
-  }
+  constructor(public isOscillator: boolean) {}
 }
 
 export enum TaIndicators {
@@ -56,13 +55,18 @@ export enum TaIndicators {
 }
 
 export class TaEditReturn {
-  constructor(public taIndicators: string, public taDynamicDataModel: any) {
-  }
+  constructor(
+    public taIndicators: string,
+    public taDynamicDataModel: any
+  ) {}
 }
 
 export class TaEditParam extends TaEditReturn {
-  constructor(taIndicators: string, taDynamicDataModel: any,
-              public fieldConfig: FieldConfig[]) {
+  constructor(
+    taIndicators: string,
+    taDynamicDataModel: any,
+    public fieldConfig: FieldConfig[]
+  ) {
     super(taIndicators, taDynamicDataModel);
   }
 }

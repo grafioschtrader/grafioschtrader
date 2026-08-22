@@ -1,5 +1,5 @@
-import {Week} from './week';
-import {Day} from './day';
+import { Week } from './week';
+import { Day } from './day';
 
 export class Month {
   index: number;

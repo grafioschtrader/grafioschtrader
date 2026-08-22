@@ -1,12 +1,11 @@
-import {Injectable} from '@angular/core';
-import {Subject} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
 /**
  * Service that informs about the possible resizing of a view.
  */
 @Injectable()
 export class ViewSizeChangedService {
-
   private splitTreeMain;
   private lastSplitSize: number[];
 
@@ -34,7 +33,6 @@ export class ViewSizeChangedService {
   isMainTreeVisible(): boolean {
     return this.splitTreeMain.getSizes()[0] > 1;
   }
-
 }
 
 export enum ChangedViewSizeType {

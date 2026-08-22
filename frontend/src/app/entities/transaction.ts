@@ -1,7 +1,7 @@
-import {Cashaccount} from './cashaccount';
-import {Currencypair} from './currencypair';
-import {Security} from './security';
-import {TransactionType} from '../shared/types/transaction.type';
+import { Cashaccount } from './cashaccount';
+import { Currencypair } from './currencypair';
+import { Security } from './security';
+import { TransactionType } from '../shared/types/transaction.type';
 
 export class Transaction {
   //Some values are initialied with null, otherwise values will not be transfered
@@ -81,5 +81,4 @@ export class Transaction {
         return false;
     }
   }
-
 }

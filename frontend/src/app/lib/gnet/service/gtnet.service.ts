@@ -1,38 +1,49 @@
-import {Injectable} from '@angular/core';
-import {AuthServiceWithLogout} from '../../login/service/base.auth.service.with.logout';
-import {GTNet, GTNetWithMessages, MsgRequest} from '../model/gtnet';
-import {GTNetMessage} from '../model/gtnet.message';
-import {MultiTargetMsgRequest} from '../model/multi-target-msg-request';
-import {ServiceEntityUpdate} from '../../edit/service.entity.update';
-import {Observable} from 'rxjs/internal/Observable';
-import {lastValueFrom} from 'rxjs';
-import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../login/service/log-in.service';
-import {HttpClient} from '@angular/common/http';
-import {MessageToastService} from '../../message/message.toast.service';
-import {ApplicationInfo} from '../../services/actuator.service';
-import {BaseSettings} from '../../base.settings';
+import { Injectable } from '@angular/core';
+import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
+import { GTNet, GTNetWithMessages, MsgRequest } from '../model/gtnet';
+import { GTNetMessage } from '../model/gtnet.message';
+import { MultiTargetMsgRequest } from '../model/multi-target-msg-request';
+import { ServiceEntityUpdate } from '../../edit/service.entity.update';
+import { Observable } from 'rxjs/internal/Observable';
+import { lastValueFrom } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { LoginService } from '../../login/service/log-in.service';
+import { HttpClient } from '@angular/common/http';
+import { MessageToastService } from '../../message/message.toast.service';
+import { ApplicationInfo } from '../../services/actuator.service';
+import { BaseSettings } from '../../base.settings';
 
 @Injectable()
 export class GTNetService extends AuthServiceWithLogout<GTNet> implements ServiceEntityUpdate<GTNet> {
-
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
   }
 
   getAllGTNetsWithMessages(): Observable<GTNetWithMessages> {
-    return <Observable<GTNetWithMessages>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}`
-      + `/gtnetwithmessage`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<GTNetWithMessages>>(
+      this.httpClient
+        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/gtnetwithmessage`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   checkRemoteDomainWithApplicationInfo(remoteDomainName: string): Observable<ApplicationInfo> {
-    return <Observable<ApplicationInfo>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}`
-      + `/remotetest/${remoteDomainName}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<ApplicationInfo>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/remotetest/${remoteDomainName}`,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   submitMsg(msgRequest: MsgRequest): Observable<GTNetWithMessages> {
-    return <Observable<GTNetWithMessages>>this.httpClient.post(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/submitmsg`,
-      msgRequest, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<GTNetWithMessages>>(
+      this.httpClient
+        .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/submitmsg`, msgRequest, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   /**
@@ -44,9 +55,11 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
    * @returns the updated GTNet entry
    */
   checkPeerStatus(idGtNet: number): Observable<GTNet> {
-    return <Observable<GTNet>>this.httpClient.post(
-      `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/${idGtNet}/checkstatus`, null,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<GTNet>>(
+      this.httpClient
+        .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/${idGtNet}/checkstatus`, null, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   /**
@@ -57,9 +70,15 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
    * @returns the updated GTNetWithMessages for UI refresh
    */
   submitMsgToMultiple(multiTargetMsgRequest: MultiTargetMsgRequest): Observable<GTNetWithMessages> {
-    return <Observable<GTNetWithMessages>>this.httpClient.post(
-      `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/submitmsgmulti`,
-      multiTargetMsgRequest, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<GTNetWithMessages>>(
+      this.httpClient
+        .post(
+          `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/submitmsgmulti`,
+          multiTargetMsgRequest,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   /**
@@ -70,8 +89,11 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
    * @returns list of messages ordered by timestamp descending
    */
   getMessagesByIdGtNet(idGtNet: number): Observable<GTNetMessage[]> {
-    return <Observable<GTNetMessage[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}`
-      + `/messages/${idGtNet}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<GTNetMessage[]>>(
+      this.httpClient
+        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/messages/${idGtNet}`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   update(gtNet: GTNet): Observable<GTNet> {
@@ -79,8 +101,9 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
   }
 
   deleteEntity(idGtNet: number): Observable<any> {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/${idGtNet}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/${idGtNet}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -90,22 +113,28 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
    * @returns Observable that completes when deletion is successful
    */
   deleteMessageBatch(idGtNetMessageList: number[]): Observable<void> {
-    return this.httpClient.post<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/deletemessagebatch`,
-      idGtNetMessageList, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .post<void>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/deletemessagebatch`,
+        idGtNetMessageList,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   async exportGTNetData(): Promise<Blob> {
-    const blob$ = this.httpClient.get<Blob>(
-      `${BaseSettings.API_ENDPOINT}gtnetdataexport/export`,
-      {headers: this.prepareHeaders('text/plain'), responseType: 'blob' as 'json'});
+    const blob$ = this.httpClient.get<Blob>(`${BaseSettings.API_ENDPOINT}gtnetdataexport/export`, {
+      headers: this.prepareHeaders('text/plain'),
+      responseType: 'blob' as 'json'
+    });
     return await lastValueFrom(blob$);
   }
 
   importGTNetData(formData: FormData): Observable<any> {
     const options: any = this.getMultipartHeaders();
     options.responseType = 'text';
-    return this.httpClient.post(
-      `${BaseSettings.API_ENDPOINT}gtnetdataexport/import`,
-      formData, options).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .post(`${BaseSettings.API_ENDPOINT}gtnetdataexport/import`, formData, options)
+      .pipe(catchError(this.handleError.bind(this)));
   }
 }

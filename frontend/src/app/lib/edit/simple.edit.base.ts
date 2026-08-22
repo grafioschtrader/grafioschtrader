@@ -1,16 +1,15 @@
-import {ProcessedActionData} from '../types/processed.action.data';
-import {ProcessedAction} from '../types/processed.action';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {DynamicFormComponent} from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {FormBase} from './form.base';
+import { ProcessedActionData } from '../types/processed.action.data';
+import { ProcessedAction } from '../types/processed.action';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { Directive, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { FormBase } from './form.base';
 
 /**
  * Base class for simple editing fields of object in a dialog.
  */
 @Directive()
 export abstract class SimpleEditBase extends FormBase {
-
   // Input from parent view
   @Input() visibleDialog: boolean;
 
@@ -20,15 +19,16 @@ export abstract class SimpleEditBase extends FormBase {
   // Access child components
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
-  constructor(protected helpId: string,
-    public gps: GlobalparameterService) {
+  constructor(
+    protected helpId: string,
+    public gps: GlobalparameterService
+  ) {
     super();
   }
 
   public onShow(event) {
     setTimeout(() => this.initialize());
   }
-
 
   helpLink(): void {
     this.gps.toExternalHelpWebpage(this.gps.getUserLang(), this.helpId);

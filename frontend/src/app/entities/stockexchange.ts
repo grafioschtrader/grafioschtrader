@@ -1,6 +1,6 @@
-import {BaseID} from '../lib/entities/base.id';
-import {Auditable} from '../lib/entities/auditable';
-import {Exclude} from 'class-transformer';
+import { BaseID } from '../lib/entities/base.id';
+import { Auditable } from '../lib/entities/auditable';
+import { Exclude } from 'class-transformer';
 
 export class Stockexchange extends Auditable implements BaseID {
   idStockexchange?: number = null;
@@ -23,5 +23,4 @@ export class Stockexchange extends Auditable implements BaseID {
   public override getId(): number {
     return this.idStockexchange;
   }
-
 }

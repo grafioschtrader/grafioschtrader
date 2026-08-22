@@ -1,10 +1,10 @@
-import {DataType} from '../dynamic-form/models/data.type';
-import {CalendarConfig, FieldConfig} from '../dynamic-form/models/field.config';
-import {InputType} from '../dynamic-form/models/input.type';
-import {AppHelper} from './app.helper';
-import {ValidatorFn, Validators} from '@angular/forms';
-import {ErrorMessageRules, RuleEvent} from '../dynamic-form/error/error.message.rules';
-import {MenuItem} from '@openng/optimus-ui/api';
+import { DataType } from '../dynamic-form/models/data.type';
+import { CalendarConfig, FieldConfig } from '../dynamic-form/models/field.config';
+import { InputType } from '../dynamic-form/models/input.type';
+import { AppHelper } from './app.helper';
+import { ValidatorFn, Validators } from '@angular/forms';
+import { ErrorMessageRules, RuleEvent } from '../dynamic-form/error/error.message.rules';
+import { MenuItem } from '@openng/optimus-ui/api';
 
 import {
   email,
@@ -16,9 +16,8 @@ import {
   rangeLength,
   webUrl
 } from '../validator/validator';
-import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
-import {FileRequiredValidator} from '../dynamic-form/components/form-input-file/file-input.validator';
-
+import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
+import { FileRequiredValidator } from '../dynamic-form/components/form-input-file/file-input.validator';
 
 /**
  * Enumeration of special validation types available for form fields.
@@ -70,19 +69,20 @@ interface ValidError {
  * Optionally, the corresponding input checks are given to the input element.
  */
 export class DynamicFieldHelper {
-
   /** Pre-configured error rule for required fields triggered on touch */
-  public static readonly RULE_REQUIRED_TOUCHED = {name: 'required', keyi18n: 'required', rules: [RuleEvent.TOUCHED]};
+  public static readonly RULE_REQUIRED_TOUCHED = { name: 'required', keyi18n: 'required', rules: [RuleEvent.TOUCHED] };
 
   /** Pre-configured error rule for required fields triggered on dirty state */
-  public static readonly RULE_REQUIRED_DIRTY = {name: 'required', keyi18n: 'required', rules: [RuleEvent.DIRTY]};
+  public static readonly RULE_REQUIRED_DIRTY = { name: 'required', keyi18n: 'required', rules: [RuleEvent.DIRTY] };
 
   /**
    * Error rule for a manually entered date which cannot be interpreted with the date format of the input field.
    * Without it the date picker would discard such an entry without any notice.
    */
   public static readonly RULE_CALENDAR_DATE_INVALID = {
-    name: 'calendarDateInvalid', keyi18n: 'calendarDateInvalid', rules: [RuleEvent.TOUCHED]
+    name: 'calendarDateInvalid',
+    keyi18n: 'calendarDateInvalid',
+    rules: [RuleEvent.TOUCHED]
   };
 
   /**
@@ -90,7 +90,9 @@ export class DynamicFieldHelper {
    * outside the permitted period or falls on an excluded day.
    */
   public static readonly RULE_CALENDAR_DATE_NOT_SELECTABLE = {
-    name: 'calendarDateNotSelectable', keyi18n: 'calendarDateNotSelectable', rules: [RuleEvent.TOUCHED]
+    name: 'calendarDateNotSelectable',
+    keyi18n: 'calendarDateNotSelectable',
+    rules: [RuleEvent.TOUCHED]
   };
 
   /** Minimum allowed date for calendar components (January 1, 2000) */
@@ -106,23 +108,23 @@ export class DynamicFieldHelper {
   private static validationsErrorMap: { [key: string]: ValidError } = {
     [VALIDATION_SPECIAL.EMail]: {
       vFN: email,
-      msgR: {name: 'email', keyi18n: 'patternEmail', rules: [RuleEvent.FOCUSOUT]}
+      msgR: { name: 'email', keyi18n: 'patternEmail', rules: [RuleEvent.FOCUSOUT] }
     },
     [VALIDATION_SPECIAL.WEB_URL]: {
       vFN: webUrl,
-      msgR: {name: 'webUrl', keyi18n: 'webUrl', rules: [RuleEvent.TOUCHED, RuleEvent.DIRTY]}
+      msgR: { name: 'webUrl', keyi18n: 'webUrl', rules: [RuleEvent.TOUCHED, RuleEvent.DIRTY] }
     },
     [VALIDATION_SPECIAL.GT_With_Mask_Param]: {
-      msgR: {name: 'gt', keyi18n: 'gt', rules: [RuleEvent.DIRTY]},
+      msgR: { name: 'gt', keyi18n: 'gt', rules: [RuleEvent.DIRTY] },
       factory: (param1) => gtWithMask(param1)
     },
     [VALIDATION_SPECIAL.NOT_CONTAIN_STRING_IN_LIST]: {
-      msgR: {name: 'notContainStringInList', keyi18n: 'notContainStringInList', rules: [RuleEvent.DIRTY]},
+      msgR: { name: 'notContainStringInList', keyi18n: 'notContainStringInList', rules: [RuleEvent.DIRTY] },
       factory: (param1) => notContainStringInList(param1)
     },
     [VALIDATION_SPECIAL.NOT_ZERO]: {
       vFN: notZero,
-      msgR: {name: 'notZero', keyi18n: 'notZero', rules: [RuleEvent.DIRTY]}
+      msgR: { name: 'notZero', keyi18n: 'notZero', rules: [RuleEvent.DIRTY] }
     }
   };
 
@@ -146,7 +148,11 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for Optimus button component
    */
-  public static createFunctionButton(labelKey: string, buttonFN: (event?: any) => void, fieldOptions?: FieldOptions): FieldConfig {
+  public static createFunctionButton(
+    labelKey: string,
+    buttonFN: (event?: any) => void,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
     return this.createFunctionButtonFieldName(null, labelKey, buttonFN, fieldOptions);
   }
 
@@ -160,8 +166,12 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for Optimus button component
    */
-  public static createFunctionButtonFieldName(fieldName: string, labelKey: string, buttonFN: (event?: any) => void,
-    fieldOptions?: FieldOptions): FieldConfig {
+  public static createFunctionButtonFieldName(
+    fieldName: string,
+    labelKey: string,
+    buttonFN: (event?: any) => void,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
     const fieldConfig: FieldConfig = {
       dataType: DataType.None,
       inputType: InputType.Pbutton,
@@ -213,16 +223,26 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for file upload component
    */
-  public static createFileUpload(dataType: DataType.File | DataType.Files, fieldName: string, labelKey: string,
-    acceptFileUploadType: string, required: boolean, fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
+  public static createFileUpload(
+    dataType: DataType.File | DataType.Files,
+    fieldName: string,
+    labelKey: string,
+    acceptFileUploadType: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions(
+      {
         dataType,
         inputType: InputType.FileUpload,
         acceptFileUploadType: '.' + acceptFileUploadType
       },
-      fieldName, labelKey,
+      fieldName,
+      labelKey,
       required ? [FileRequiredValidator.validate] : null,
-      required ? [this.RULE_REQUIRED_DIRTY] : null, fieldOptions);
+      required ? [this.RULE_REQUIRED_DIRTY] : null,
+      fieldOptions
+    );
     return fieldConfig;
   }
 
@@ -237,16 +257,35 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including suggestion function
    * @returns FieldConfig for suggestion input component
    */
-  public static createFieldSuggestionInputString(fieldName: string, labelKey: string, maxLength: number, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldInputAndTeString(DataType.String, InputType.InputSuggestion, fieldName, labelKey,
-      maxLength, required, fieldOptions);
+  public static createFieldSuggestionInputString(
+    fieldName: string,
+    labelKey: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldInputAndTeString(
+      DataType.String,
+      InputType.InputSuggestion,
+      fieldName,
+      labelKey,
+      maxLength,
+      required,
+      fieldOptions
+    );
   }
 
-  public static createFieldDropdownStringHeqF(fieldName: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldDropdownString(fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required, fieldOptions);
+  public static createFieldDropdownStringHeqF(
+    fieldName: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldDropdownString(
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -259,10 +298,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including dropdown items
    * @returns FieldConfig for dropdown component with empty string default value
    */
-  public static createFieldDropdownString(fieldName: string, labelKey: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = DynamicFieldHelper.createFieldDropdownNumberString(DataType.String, fieldName, labelKey,
-      required, fieldOptions);
+  public static createFieldDropdownString(
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldDropdownNumberString(
+      DataType.String,
+      fieldName,
+      labelKey,
+      required,
+      fieldOptions
+    );
     fieldConfig.defaultValue = fieldConfig.defaultValue || '';
     return fieldConfig;
   }
@@ -276,15 +324,24 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including dropdown items
    * @returns FieldConfig for dropdown component with empty string default value
    */
-  private static createFieldDropdownNumberString(dataType: DataType, fieldName: string, labelKey: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return this.setFieldBaseAndOptions({
+  private static createFieldDropdownNumberString(
+    dataType: DataType,
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return this.setFieldBaseAndOptions(
+      {
         dataType,
         inputType: InputType.InputDropdown
       },
-      fieldName, labelKey,
+      fieldName,
+      labelKey,
       required ? [Validators.required] : null,
-      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
+      required ? [this.RULE_REQUIRED_TOUCHED] : null,
+      fieldOptions
+    );
   }
 
   /**
@@ -297,10 +354,21 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including row count
    * @returns FieldConfig for textarea component
    */
-  public static createFieldTextareaInputStringHeqF(fieldName: string, maxLength: number, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldInputAndTeString(DataType.String, InputType.Pinputtextarea, fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), maxLength, required, fieldOptions);
+  public static createFieldTextareaInputStringHeqF(
+    fieldName: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldInputAndTeString(
+      DataType.String,
+      InputType.Pinputtextarea,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      maxLength,
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -314,10 +382,22 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including row count
    * @returns FieldConfig for textarea component
    */
-  public static createFieldTextareaInputString(fieldName: string, labelKey: string, maxLength: number, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldInputAndTeString(DataType.String, InputType.Pinputtextarea, fieldName, labelKey,
-      maxLength, required, fieldOptions);
+  public static createFieldTextareaInputString(
+    fieldName: string,
+    labelKey: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldInputAndTeString(
+      DataType.String,
+      InputType.Pinputtextarea,
+      fieldName,
+      labelKey,
+      maxLength,
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -330,8 +410,20 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for URL input with web URL validation
    */
-  public static createFieldInputWebUrl(fieldName: string, labelKey: string, required: boolean, fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldInputStringVS(fieldName, labelKey, 254, required, [VALIDATION_SPECIAL.WEB_URL], fieldOptions);
+  public static createFieldInputWebUrl(
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldInputStringVS(
+      fieldName,
+      labelKey,
+      254,
+      required,
+      [VALIDATION_SPECIAL.WEB_URL],
+      fieldOptions
+    );
   }
 
   /**
@@ -344,8 +436,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for URL input with web URL validation
    */
-  public static createFieldInputWebUrlHeqF(fieldName: string, maxLength: number, required: boolean, fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldInputStringVSHeqF(fieldName, maxLength, required, [VALIDATION_SPECIAL.WEB_URL], fieldOptions);
+  public static createFieldInputWebUrlHeqF(
+    fieldName: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldInputStringVSHeqF(
+      fieldName,
+      maxLength,
+      required,
+      [VALIDATION_SPECIAL.WEB_URL],
+      fieldOptions
+    );
   }
 
   /**
@@ -359,11 +462,22 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for string input with specified validations
    */
-  public static createFieldInputStringVSHeqF(fieldName: string, maxLength: number, required: boolean,
-    validationSpecials: (VALIDATION_SPECIAL | string)[], fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldDAInputStringVS(DataType.String, fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), maxLength, required,
-      validationSpecials, fieldOptions);
+  public static createFieldInputStringVSHeqF(
+    fieldName: string,
+    maxLength: number,
+    required: boolean,
+    validationSpecials: (VALIDATION_SPECIAL | string)[],
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldDAInputStringVS(
+      DataType.String,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      maxLength,
+      required,
+      validationSpecials,
+      fieldOptions
+    );
   }
 
   /**
@@ -379,10 +493,27 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for string input with parameterized validation
    */
-  public static createFieldInputStringVSParam(fieldName: string, labelKey: string, maxLength: number, required: boolean,
-    validationSpecial: (VALIDATION_SPECIAL | string), param: any, fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.addValidationParam(DynamicFieldHelper.createFieldDAInputString(DataType.String, fieldName,
-      labelKey, maxLength, required, fieldOptions), validationSpecial, param);
+  public static createFieldInputStringVSParam(
+    fieldName: string,
+    labelKey: string,
+    maxLength: number,
+    required: boolean,
+    validationSpecial: VALIDATION_SPECIAL | string,
+    param: any,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.addValidationParam(
+      DynamicFieldHelper.createFieldDAInputString(
+        DataType.String,
+        fieldName,
+        labelKey,
+        maxLength,
+        required,
+        fieldOptions
+      ),
+      validationSpecial,
+      param
+    );
   }
 
   /**
@@ -397,10 +528,23 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for string input with specified validations
    */
-  public static createFieldInputStringVS(fieldName: string, labelKey: string, maxLength: number, required: boolean,
-    validationSpecials: VALIDATION_SPECIAL[], fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldDAInputStringVS(DataType.String, fieldName, labelKey, maxLength, required,
-      validationSpecials, fieldOptions);
+  public static createFieldInputStringVS(
+    fieldName: string,
+    labelKey: string,
+    maxLength: number,
+    required: boolean,
+    validationSpecials: VALIDATION_SPECIAL[],
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldDAInputStringVS(
+      DataType.String,
+      fieldName,
+      labelKey,
+      maxLength,
+      required,
+      validationSpecials,
+      fieldOptions
+    );
   }
 
   /**
@@ -415,11 +559,25 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for typed input with specified validations
    */
-  public static createFieldDAInputStringVSHeqF(dataType: DataType, fieldName: string, maxLength: number,
-    required: boolean, validationSpecials: VALIDATION_SPECIAL[],
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.addValidations(DynamicFieldHelper.createFieldDAInputString(dataType, fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), maxLength, required, fieldOptions), validationSpecials);
+  public static createFieldDAInputStringVSHeqF(
+    dataType: DataType,
+    fieldName: string,
+    maxLength: number,
+    required: boolean,
+    validationSpecials: VALIDATION_SPECIAL[],
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.addValidations(
+      DynamicFieldHelper.createFieldDAInputString(
+        dataType,
+        fieldName,
+        AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+        maxLength,
+        required,
+        fieldOptions
+      ),
+      validationSpecials
+    );
   }
 
   /**
@@ -435,11 +593,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for typed input with specified validations
    */
-  public static createFieldDAInputStringVS(dataType: DataType, fieldName: string, labelKey: string, maxLength: number,
-    required: boolean, validationSpecials: (VALIDATION_SPECIAL | string)[],
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.addValidations(DynamicFieldHelper.createFieldDAInputString(dataType, fieldName,
-      labelKey, maxLength, required, fieldOptions), validationSpecials);
+  public static createFieldDAInputStringVS(
+    dataType: DataType,
+    fieldName: string,
+    labelKey: string,
+    maxLength: number,
+    required: boolean,
+    validationSpecials: (VALIDATION_SPECIAL | string)[],
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.addValidations(
+      DynamicFieldHelper.createFieldDAInputString(dataType, fieldName, labelKey, maxLength, required, fieldOptions),
+      validationSpecials
+    );
   }
 
   /**
@@ -452,10 +618,20 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for basic string input
    */
-  public static createFieldInputStringHeqF(fieldName: string, maxLength: number, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldDAInputString(DataType.String, fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), maxLength, required, fieldOptions);
+  public static createFieldInputStringHeqF(
+    fieldName: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldDAInputString(
+      DataType.String,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      maxLength,
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -469,10 +645,21 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for input with integrated button
    */
-  public static createFieldInputButtonHeqF(dataType: DataType, fieldName: string, buttonFN: (event?: any) => void,
-    required: boolean, fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldInputButton(dataType, fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
-      buttonFN, required, fieldOptions);
+  public static createFieldInputButtonHeqF(
+    dataType: DataType,
+    fieldName: string,
+    buttonFN: (event?: any) => void,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldInputButton(
+      dataType,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      buttonFN,
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -487,10 +674,23 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for input with integrated button
    */
-  public static createFieldInputButton(dataType: DataType, fieldName: string, labelKey: string, buttonFN: (event?: any) => void,
-    required: boolean, fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = DynamicFieldHelper.createFieldInputAndTeString(dataType, InputType.InputButton, fieldName, labelKey, null,
-      required, fieldOptions);
+  public static createFieldInputButton(
+    dataType: DataType,
+    fieldName: string,
+    labelKey: string,
+    buttonFN: (event?: any) => void,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldInputAndTeString(
+      dataType,
+      InputType.InputButton,
+      fieldName,
+      labelKey,
+      null,
+      required,
+      fieldOptions
+    );
     fieldConfig.buttonFN = buttonFN;
     return fieldConfig;
   }
@@ -506,9 +706,21 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for basic string input
    */
-  public static createFieldInputString(fieldName: string, labelKey: string, maxLength: number, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldDAInputString(DataType.String, fieldName, labelKey, maxLength, required, fieldOptions);
+  public static createFieldInputString(
+    fieldName: string,
+    labelKey: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldDAInputString(
+      DataType.String,
+      fieldName,
+      labelKey,
+      maxLength,
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -522,10 +734,21 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for typed input field
    */
-  public static createFieldDAInputStringHeqF(dataType: DataType, fieldName: string, maxLength: number, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return this.createFieldDAInputString(dataType, fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
-      maxLength, required, fieldOptions);
+  public static createFieldDAInputStringHeqF(
+    dataType: DataType,
+    fieldName: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return this.createFieldDAInputString(
+      dataType,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      maxLength,
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -540,14 +763,30 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for typed input field with optimized width
    */
-  public static createFieldDAInputString(dataType: DataType, fieldName: string, labelKey: string, maxLength: number, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    if (maxLength < DynamicFieldHelper.ADJUST_INPUT_WITH_UNTIL_MAX_LENGTH && (!fieldOptions || !fieldOptions.inputWidth)) {
+  public static createFieldDAInputString(
+    dataType: DataType,
+    fieldName: string,
+    labelKey: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    if (
+      maxLength < DynamicFieldHelper.ADJUST_INPUT_WITH_UNTIL_MAX_LENGTH &&
+      (!fieldOptions || !fieldOptions.inputWidth)
+    ) {
       fieldOptions = fieldOptions || {};
       fieldOptions.inputWidth = maxLength;
     }
-    return DynamicFieldHelper.createFieldInputAndTeString(dataType, InputType.Input, fieldName, labelKey, maxLength, required,
-      fieldOptions);
+    return DynamicFieldHelper.createFieldInputAndTeString(
+      dataType,
+      InputType.Input,
+      fieldName,
+      labelKey,
+      maxLength,
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -559,11 +798,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including dropdown items
    * @returns FieldConfig for numeric select component
    */
-  public static createFieldSelectNumberHeqF(fieldName: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldSelectNumberString(InputType.Select, DataType.Numeric, fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required,
-      fieldOptions);
+  public static createFieldSelectNumberHeqF(
+    fieldName: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldSelectNumberString(
+      InputType.Select,
+      DataType.Numeric,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -576,10 +823,20 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including dropdown items
    * @returns FieldConfig for numeric select component
    */
-  public static createFieldSelectNumber(fieldName: string, labelKey: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return DynamicFieldHelper.createFieldSelectNumberString(InputType.Select, DataType.Numeric, fieldName, labelKey, required,
-      fieldOptions);
+  public static createFieldSelectNumber(
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldSelectNumberString(
+      InputType.Select,
+      DataType.Numeric,
+      fieldName,
+      labelKey,
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -592,11 +849,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including calendar constraints
    * @returns FieldConfig for calendar component with default date range (2000-2099)
    */
-  public static createFieldPcalendarHeqF(dataType: DataType.DateString | DataType.DateNumeric | DataType.DateTimeNumeric
-      | DataType.DateStringShortUS, fieldName: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return this.createFieldPcalendar(dataType, fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
-      required, fieldOptions);
+  public static createFieldPcalendarHeqF(
+    dataType: DataType.DateString | DataType.DateNumeric | DataType.DateTimeNumeric | DataType.DateStringShortUS,
+    fieldName: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return this.createFieldPcalendar(
+      dataType,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      fieldOptions
+    );
   }
 
   /**
@@ -610,16 +875,28 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including calendar constraints
    * @returns FieldConfig for calendar component with default date range (2000-2099)
    */
-  public static createFieldPcalendar(dataType: DataType.DateString | DataType.DateNumeric | DataType.DateTimeNumeric
-      | DataType.DateStringShortUS, fieldName: string, labelKey: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = this.setFieldBaseAndOptions({dataType, inputType: InputType.Pcalendar},
-      fieldName, labelKey,
+  public static createFieldPcalendar(
+    dataType: DataType.DateString | DataType.DateNumeric | DataType.DateTimeNumeric | DataType.DateStringShortUS,
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig = this.setFieldBaseAndOptions(
+      { dataType, inputType: InputType.Pcalendar },
+      fieldName,
+      labelKey,
       required ? [Validators.required] : null,
-      required ? [this.RULE_REQUIRED_TOUCHED, this.RULE_CALENDAR_DATE_INVALID, this.RULE_CALENDAR_DATE_NOT_SELECTABLE]
-        : [this.RULE_CALENDAR_DATE_INVALID, this.RULE_CALENDAR_DATE_NOT_SELECTABLE], fieldOptions);
-    fieldConfig.calendarConfig = Object.assign({}, {minDate: this.minDateCalendar, maxDate: this.maxDateCalendar},
-      fieldConfig?.calendarConfig);
+      required
+        ? [this.RULE_REQUIRED_TOUCHED, this.RULE_CALENDAR_DATE_INVALID, this.RULE_CALENDAR_DATE_NOT_SELECTABLE]
+        : [this.RULE_CALENDAR_DATE_INVALID, this.RULE_CALENDAR_DATE_NOT_SELECTABLE],
+      fieldOptions
+    );
+    fieldConfig.calendarConfig = Object.assign(
+      {},
+      { minDate: this.minDateCalendar, maxDate: this.maxDateCalendar },
+      fieldConfig?.calendarConfig
+    );
     return fieldConfig;
   }
 
@@ -632,10 +909,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including selection items
    * @returns FieldConfig for multi-select component with empty array default value
    */
-  public static createFieldMultiSelectStringHeqF(fieldName: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(InputType.MultiSelect, DataType.String, fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required, fieldOptions);
+  public static createFieldMultiSelectStringHeqF(
+    fieldName: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(
+      InputType.MultiSelect,
+      DataType.String,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      fieldOptions
+    );
     fieldConfig.defaultValue = fieldConfig.defaultValue || [];
     return fieldConfig;
   }
@@ -650,10 +936,20 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including selection items
    * @returns FieldConfig for multi-select component with empty array default value
    */
-  public static createFieldMultiSelectString(fieldName: string, labelKey: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(InputType.MultiSelect, DataType.String,
-      fieldName, labelKey, required, fieldOptions);
+  public static createFieldMultiSelectString(
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(
+      InputType.MultiSelect,
+      DataType.String,
+      fieldName,
+      labelKey,
+      required,
+      fieldOptions
+    );
     fieldConfig.defaultValue = fieldConfig.defaultValue || [];
     return fieldConfig;
   }
@@ -667,10 +963,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including treeNodes
    * @returns FieldConfig for tree-select component
    */
-  public static createFieldTreeSelectHeqF(fieldName: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(InputType.TreeSelect, DataType.String, fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required, fieldOptions);
+  public static createFieldTreeSelectHeqF(
+    fieldName: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(
+      InputType.TreeSelect,
+      DataType.String,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      fieldOptions
+    );
     fieldConfig.defaultValue = fieldConfig.defaultValue ?? null;
     return fieldConfig;
   }
@@ -684,10 +989,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including selection items
    * @returns FieldConfig for select component with empty string default value
    */
-  public static createFieldSelectStringHeqF(fieldName: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(InputType.Select, DataType.String, fieldName,
-      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required, fieldOptions);
+  public static createFieldSelectStringHeqF(
+    fieldName: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(
+      InputType.Select,
+      DataType.String,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      fieldOptions
+    );
     fieldConfig.defaultValue = fieldConfig.defaultValue || '';
     return fieldConfig;
   }
@@ -702,10 +1016,20 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options including selection items
    * @returns FieldConfig for select component with empty string default value
    */
-  public static createFieldSelectString(fieldName: string, labelKey: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(InputType.Select, DataType.String,
-      fieldName, labelKey, required, fieldOptions);
+  public static createFieldSelectString(
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig = DynamicFieldHelper.createFieldSelectNumberString(
+      InputType.Select,
+      DataType.String,
+      fieldName,
+      labelKey,
+      required,
+      fieldOptions
+    );
     fieldConfig.defaultValue = fieldConfig.defaultValue || '';
     return fieldConfig;
   }
@@ -723,11 +1047,25 @@ export class DynamicFieldHelper {
    * @param excludeZero When true, zero is not allowed as input (allows both positive and negative but not zero)
    * @returns FieldConfig for Optimus number input with calculated min/max values
    */
-  public static createFieldInputNumberHeqF(fieldName: string, required: boolean, integerLimit: number,
-    maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions,
-    excludeZero: boolean = false): FieldConfig {
-    return this.createFieldInputNumber(fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), required,
-      integerLimit, maxFractionDigits, allowNegative, fieldOptions, excludeZero);
+  public static createFieldInputNumberHeqF(
+    fieldName: string,
+    required: boolean,
+    integerLimit: number,
+    maxFractionDigits: number,
+    allowNegative: boolean,
+    fieldOptions?: FieldOptions,
+    excludeZero: boolean = false
+  ): FieldConfig {
+    return this.createFieldInputNumber(
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      integerLimit,
+      maxFractionDigits,
+      allowNegative,
+      fieldOptions,
+      excludeZero
+    );
   }
 
   /**
@@ -744,21 +1082,33 @@ export class DynamicFieldHelper {
    * @param excludeZero When true, zero is not allowed as input (allows both positive and negative but not zero)
    * @returns FieldConfig for Optimus number input with calculated min/max values
    */
-  public static createFieldInputNumber(fieldName: string, labelKey: string, required: boolean, integerLimit: number,
-    maxFractionDigits: number, allowNegative: boolean, fieldOptions?: FieldOptions,
-    excludeZero: boolean = false): FieldConfig {
+  public static createFieldInputNumber(
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    integerLimit: number,
+    maxFractionDigits: number,
+    allowNegative: boolean,
+    fieldOptions?: FieldOptions,
+    excludeZero: boolean = false
+  ): FieldConfig {
     const validations: ValidatorFn[] = required ? [Validators.required] : [];
     const errorMessageRules: ErrorMessageRules[] = required ? [this.RULE_REQUIRED_TOUCHED] : [];
     if (excludeZero) {
       validations.push(notZero);
       errorMessageRules.push(this.validationsErrorMap[VALIDATION_SPECIAL.NOT_ZERO].msgR);
     }
-    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
+    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions(
+      {
         dataType: DataType.Numeric,
         inputType: InputType.InputNumber
       },
-      fieldName, labelKey, validations.length > 0 ? validations : null,
-      errorMessageRules.length > 0 ? errorMessageRules : null, fieldOptions);
+      fieldName,
+      labelKey,
+      validations.length > 0 ? validations : null,
+      errorMessageRules.length > 0 ? errorMessageRules : null,
+      fieldOptions
+    );
     fieldConfig.inputNumberSettings = {
       maxFractionDigits: maxFractionDigits,
       allowNegative: allowNegative,
@@ -770,7 +1120,6 @@ export class DynamicFieldHelper {
     fieldConfig.min = allowNegative ? fieldConfig.max * -1 : required ? 1 / Math.pow(10, maxFractionDigits) : null;
     return fieldConfig;
   }
-
 
   /**
    * Sets currency prefix for number input fields.
@@ -796,7 +1145,6 @@ export class DynamicFieldHelper {
     fieldConfig.inputNumberSettings.maxFractionDigits = precision;
   }
 
-
   /**
    * Checks if a field configuration has required validation.
    * Utility method to determine if field is marked as mandatory.
@@ -817,8 +1165,14 @@ export class DynamicFieldHelper {
    * @returns FieldConfig for checkbox component
    */
   public static createFieldCheckboxHeqF(fieldName: string, fieldOptions?: FieldOptions): FieldConfig {
-    return this.setFieldBaseAndOptions({dataType: DataType.Boolean, inputType: InputType.Checkbox},
-      fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), null, null, fieldOptions);
+    return this.setFieldBaseAndOptions(
+      { dataType: DataType.Boolean, inputType: InputType.Checkbox },
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      null,
+      null,
+      fieldOptions
+    );
   }
 
   /**
@@ -831,8 +1185,14 @@ export class DynamicFieldHelper {
    * @returns FieldConfig for checkbox component
    */
   public static createFieldCheckbox(fieldName: string, labelKey: string, fieldOptions?: FieldOptions): FieldConfig {
-    return this.setFieldBaseAndOptions({dataType: DataType.Boolean, inputType: InputType.Checkbox},
-      fieldName, labelKey, null, null, fieldOptions);
+    return this.setFieldBaseAndOptions(
+      { dataType: DataType.Boolean, inputType: InputType.Checkbox },
+      fieldName,
+      labelKey,
+      null,
+      null,
+      fieldOptions
+    );
   }
 
   /**
@@ -844,8 +1204,14 @@ export class DynamicFieldHelper {
    * @returns FieldConfig for tri-state checkbox component
    */
   public static createFieldTriStateCheckboxHeqF(fieldName: string, fieldOptions?: FieldOptions): FieldConfig {
-    return this.setFieldBaseAndOptions({dataType: DataType.Boolean, inputType: InputType.TriStateCheckbox},
-      fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName), null, null, fieldOptions);
+    return this.setFieldBaseAndOptions(
+      { dataType: DataType.Boolean, inputType: InputType.TriStateCheckbox },
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      null,
+      null,
+      fieldOptions
+    );
   }
 
   /**
@@ -857,9 +1223,19 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for tri-state checkbox component
    */
-  public static createFieldTriStateCheckbox(fieldName: string, labelKey: string, fieldOptions?: FieldOptions): FieldConfig {
-    return this.setFieldBaseAndOptions({dataType: DataType.Boolean, inputType: InputType.TriStateCheckbox},
-      fieldName, labelKey, null, null, fieldOptions);
+  public static createFieldTriStateCheckbox(
+    fieldName: string,
+    labelKey: string,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return this.setFieldBaseAndOptions(
+      { dataType: DataType.Boolean, inputType: InputType.TriStateCheckbox },
+      fieldName,
+      labelKey,
+      null,
+      null,
+      fieldOptions
+    );
   }
 
   /**
@@ -874,10 +1250,23 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for number input with range validation and auto-sized width
    */
-  public static createFieldMinMaxNumberHeqF(dataType: DataType.Numeric | DataType.NumericInteger, fieldName: string,
-    required: boolean, min: number, max: number, fieldOptions?: FieldOptions): FieldConfig {
-    return this.createFieldMinMaxNumber(dataType, fieldName, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
-      required, min, max, fieldOptions);
+  public static createFieldMinMaxNumberHeqF(
+    dataType: DataType.Numeric | DataType.NumericInteger,
+    fieldName: string,
+    required: boolean,
+    min: number,
+    max: number,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return this.createFieldMinMaxNumber(
+      dataType,
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      min,
+      max,
+      fieldOptions
+    );
   }
 
   /**
@@ -893,27 +1282,40 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for number input with range validation and calculated width
    */
-  public static createFieldMinMaxNumber(dataType: DataType.Numeric | DataType.NumericInteger, fieldName: string, labelKey: string,
-    required: boolean, min: number, max: number, fieldOptions?: FieldOptions): FieldConfig {
+  public static createFieldMinMaxNumber(
+    dataType: DataType.Numeric | DataType.NumericInteger,
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    min: number,
+    max: number,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
     const validations: ValidatorFn[] = required ? [Validators.required] : [];
     const errorMessageRules: ErrorMessageRules[] = required ? [this.RULE_REQUIRED_TOUCHED] : [];
     if (min !== null && max) {
       validations.push(range([min, max]));
-      errorMessageRules.push({name: 'range', keyi18n: 'range', param1: min, param2: max, rules: [RuleEvent.DIRTY]});
+      errorMessageRules.push({ name: 'range', keyi18n: 'range', param1: min, param2: max, rules: [RuleEvent.DIRTY] });
     } else if (max) {
       validations.push(maxValue(max));
-      errorMessageRules.push({name: 'max', keyi18n: 'max', param1: max, rules: [RuleEvent.DIRTY]});
+      errorMessageRules.push({ name: 'max', keyi18n: 'max', param1: max, rules: [RuleEvent.DIRTY] });
     }
     const maxLength = Math.max(min ? min.toString().length : 0, max.toString().length);
     (fieldOptions = fieldOptions || {}).inputWidth = maxLength + 2;
-    return this.setFieldBaseAndOptions({
+    return this.setFieldBaseAndOptions(
+      {
         dataType,
         inputType: InputType.Input,
         min,
         max,
         maxLength
       },
-      fieldName, labelKey, validations, errorMessageRules, fieldOptions);
+      fieldName,
+      labelKey,
+      validations,
+      errorMessageRules,
+      fieldOptions
+    );
   }
 
   /**
@@ -928,15 +1330,25 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for select component
    */
-  private static createFieldSelectNumberString(intputType: InputType, dataType: DataType, fieldName: string, labelKey: string, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    return this.setFieldBaseAndOptions({
+  private static createFieldSelectNumberString(
+    intputType: InputType,
+    dataType: DataType,
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return this.setFieldBaseAndOptions(
+      {
         dataType,
         inputType: intputType
       },
-      fieldName, labelKey,
+      fieldName,
+      labelKey,
       required ? [Validators.required] : null,
-      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
+      required ? [this.RULE_REQUIRED_TOUCHED] : null,
+      fieldOptions
+    );
   }
 
   /**
@@ -952,22 +1364,34 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for text-based input with optional range validation
    */
-  private static createFieldInputAndTeString(dataType: DataType, inputType: InputType, fieldName: string, labelKey: string,
-    maxLength: number, required: boolean,
-    fieldOptions?: FieldOptions): FieldConfig {
-    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions({
+  private static createFieldInputAndTeString(
+    dataType: DataType,
+    inputType: InputType,
+    fieldName: string,
+    labelKey: string,
+    maxLength: number,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    const fieldConfig: FieldConfig = this.setFieldBaseAndOptions(
+      {
         dataType,
         inputType,
         maxLength
       },
-      fieldName, labelKey,
+      fieldName,
+      labelKey,
       required ? [Validators.required] : null,
-      required ? [this.RULE_REQUIRED_TOUCHED] : null, fieldOptions);
+      required ? [this.RULE_REQUIRED_TOUCHED] : null,
+      fieldOptions
+    );
     if (fieldOptions && fieldOptions.minLength) {
-      (fieldConfig.validation = fieldConfig.validation || []).push(
-        rangeLength([fieldOptions.minLength, maxLength]));
+      (fieldConfig.validation = fieldConfig.validation || []).push(rangeLength([fieldOptions.minLength, maxLength]));
       (fieldConfig.errors = fieldConfig.errors || []).push({
-        name: 'rangeLength', keyi18n: 'rangeLength', param1: fieldOptions.minLength, param2: maxLength,
+        name: 'rangeLength',
+        keyi18n: 'rangeLength',
+        param1: fieldOptions.minLength,
+        param2: maxLength,
         rules: [RuleEvent.TOUCHED]
       });
     }
@@ -983,11 +1407,18 @@ export class DynamicFieldHelper {
    * @param maxFractionDigits Maximum number of decimal places
    * @param allowNegative Whether negative values are permitted
    */
-  private static setMinMaxValues(fieldConfig: FieldConfig, integerDigits: number, maxFractionDigits: number,
-    allowNegative: boolean): void {
+  private static setMinMaxValues(
+    fieldConfig: FieldConfig,
+    integerDigits: number,
+    maxFractionDigits: number,
+    allowNegative: boolean
+  ): void {
     fieldConfig.max = Number('9'.repeat(integerDigits) + '.' + '9'.repeat(maxFractionDigits));
-    fieldConfig.min = allowNegative ?
-      fieldConfig.max * -1 : DynamicFieldHelper.isRequired(fieldConfig) ? 1 / Math.pow(10, maxFractionDigits) : 0;
+    fieldConfig.min = allowNegative
+      ? fieldConfig.max * -1
+      : DynamicFieldHelper.isRequired(fieldConfig)
+        ? 1 / Math.pow(10, maxFractionDigits)
+        : 0;
   }
 
   /**
@@ -1002,9 +1433,14 @@ export class DynamicFieldHelper {
    * @param fieldOptions Additional configuration options to merge
    * @returns Complete FieldConfig with all properties set
    */
-  private static setFieldBaseAndOptions(fieldConfig: FieldConfig, fieldName: string,
-    labelKey: string, validations: ValidatorFn[], errorMessageRules: ErrorMessageRules[],
-    fieldOptions: FieldOptions): FieldConfig {
+  private static setFieldBaseAndOptions(
+    fieldConfig: FieldConfig,
+    fieldName: string,
+    labelKey: string,
+    validations: ValidatorFn[],
+    errorMessageRules: ErrorMessageRules[],
+    fieldOptions: FieldOptions
+  ): FieldConfig {
     fieldConfig.field = fieldName;
     fieldConfig.labelKey = labelKey;
     fieldConfig.validation = validations;
@@ -1026,7 +1462,11 @@ export class DynamicFieldHelper {
    * @param validation New array of validator functions (null to clear)
    * @param errors New array of error message configurations (optional)
    */
-  public static resetValidator(fieldConfig: FieldConfig, validation: ValidatorFn[], errors?: ErrorMessageRules[]): void {
+  public static resetValidator(
+    fieldConfig: FieldConfig,
+    validation: ValidatorFn[],
+    errors?: ErrorMessageRules[]
+  ): void {
     fieldConfig.validation = validation;
     fieldConfig.formControl.setValidators(fieldConfig.validation);
     fieldConfig.errors = errors;
@@ -1042,13 +1482,18 @@ export class DynamicFieldHelper {
    * @param validationSpecials Array of special validation types to apply
    * @returns Enhanced FieldConfig with applied validations
    */
-  private static addValidations(fieldConfig: FieldConfig, validationSpecials: (VALIDATION_SPECIAL | string)[]): FieldConfig {
+  private static addValidations(
+    fieldConfig: FieldConfig,
+    validationSpecials: (VALIDATION_SPECIAL | string)[]
+  ): FieldConfig {
     for (const validationSpecial of validationSpecials) {
       const key = validationSpecial.toString();
       if (this.validationsErrorMap[key]) {
         this.addValidationParam(fieldConfig, key, null);
       } else {
-        console.warn(`Validation type '${key}' is not registered. Use DynamicFieldHelper.registerCustomValidation() to add it.`);
+        console.warn(
+          `Validation type '${key}' is not registered. Use DynamicFieldHelper.registerCustomValidation() to add it.`
+        );
       }
     }
     return fieldConfig;
@@ -1064,15 +1509,21 @@ export class DynamicFieldHelper {
    * @param param2 Optional secondary parameter
    * @returns Enhanced FieldConfig with parameterized validation
    */
-  public static addValidationParam(fieldConfig: FieldConfig, validationSpecial: VALIDATION_SPECIAL | string, param1: any,
-    param2?: any): FieldConfig {
+  public static addValidationParam(
+    fieldConfig: FieldConfig,
+    validationSpecial: VALIDATION_SPECIAL | string,
+    param1: any,
+    param2?: any
+  ): FieldConfig {
     const key = validationSpecial.toString();
     const validError: ValidError = this.validationsErrorMap[key];
     if (!validError) {
-      console.warn(`Validation type '${key}' is not registered. Use DynamicFieldHelper.registerCustomValidation() to add it.`);
+      console.warn(
+        `Validation type '${key}' is not registered. Use DynamicFieldHelper.registerCustomValidation() to add it.`
+      );
       return fieldConfig;
     }
-    (fieldConfig.errors = fieldConfig.errors || []).push({...validError.msgR});
+    (fieldConfig.errors = fieldConfig.errors || []).push({ ...validError.msgR });
     let validatorFn: ValidatorFn;
     if (validError.factory) {
       validatorFn = validError.factory(param1, param2);
@@ -1086,7 +1537,6 @@ export class DynamicFieldHelper {
     (fieldConfig.validation = fieldConfig.validation || []).push(validatorFn);
     return fieldConfig;
   }
-
 }
 
 /**

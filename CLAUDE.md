@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Grafioschtrader (GT) is a **multi-tenant portfolio management web application** for tracking investments across multiple portfolios, securities accounts, and cash accounts. It supports multiple currencies, various financial instruments (stocks, bonds, ETFs, CFDs, Forex), and provides asset class evaluations and correlation matrices.
 
 **Tech Stack:**
-- **Backend**: Java 25 + Spring Boot 4.1.0 (multi-module Maven project)
-- **Frontend**: Angular 21 + TypeScript 5.9.3 + Optimus UI 1
+- **Backend**: Java 25 + Spring Boot 4.1.1 (multi-module Maven project)
+- **Frontend**: Angular 22 + TypeScript 6.0.3 + Optimus UI 2
 - **Database**: MariaDB with Flyway migrations
 - **Security**: JWT authentication, Jasypt property encryption
 
@@ -49,12 +49,18 @@ mvn test -pl grafioschtrader-server
 # Test specific class
 mvn test -Dtest=YahooSplitCalendarTest
 
+# Format the Java sources (Spotless, reads gt-code-style/backend/eclipse/gt-java-formatting.xml)
+mvn spotless:apply
+
+# Report formatting drift without writing
+mvn spotless:check
+
 # Generate Javadoc
 mvn -B javadoc:aggregate
 ```
 
 ### Frontend (Angular/npm)
-**Requirements**: Node.js ^20.19.0, ^22.12.0 or ^24.0.0
+**Requirements**: Node.js ^22.22.3, ^24.15.0 or >=26.0.0
 
 ```bash
 cd frontend
@@ -74,8 +80,11 @@ npm test
 # Run tests in watch mode
 npm run test:watch
 
-# Lint TypeScript code
-npm run lint
+# Format TypeScript, HTML and SCSS (Prettier)
+npm run format
+
+# Report formatting drift without writing
+npm run format:check
 
 # Watch mode (auto-rebuild)
 npm run watch
@@ -105,7 +114,7 @@ Maven multi-module project with dependency hierarchy:
 
 ### Frontend Module Structure
 
-Angular 21 application organized by functional modules:
+Angular 22 application organized by functional modules:
 
 - **portfolio** - Portfolio management and holdings
 - **transaction** - Transaction recording and import
@@ -613,6 +622,10 @@ covers writing one, incorporating concerns raised by someone else, staged update
 
 ### General Principles
 
+- **Formatting is not done by hand**: `cd backend && mvn spotless:apply` (Java) and `cd frontend && npm run format`
+  (TypeScript, HTML, SCSS) are the authority. Never hand-wrap or hand-indent to match a style — write the code and
+  let the formatter settle it. Configuration: `gt-code-style/backend/eclipse/gt-java-formatting.xml` and
+  `frontend/.prettierrc.json`; see `gt-code-style/README.md`.
 - **Line length**: Code is formatted with a line break at 120 characters; comments should respect this limit
 - **Method length**: Keep methods under 50 lines of code when possible. If a method exceeds this limit, extract logical blocks (such as loop bodies or complex conditionals) into separate, well-named helper methods
 - **Purpose over mechanics**: Explain *why* and *what for*, not just *what* the code does
@@ -928,9 +941,9 @@ Before committing documented code, verify:
 
 ### Version Requirements
 - **Java 25** required (upgraded from Java 21 in v0.36.1; Java 21 was adopted in v0.31.6)
-- **Node.js**: ^20.19.0, ^22.12.0 or ^24.0.0
+- **Node.js**: ^22.22.3, ^24.15.0 or >=26.0.0
 - **Maven**: 3.6+ recommended
-- **Angular**: 21.x
+- **Angular**: 22.x
 
 ### Related Projects
 - **gt-import-transaction-template**: CSV transaction import templates

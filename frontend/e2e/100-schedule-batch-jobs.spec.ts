@@ -1,9 +1,9 @@
-import {expect, Locator, Page, test} from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {TaskTypeExtended} from '../src/app/shared/types/task.type.extended';
-import {loginAsFixtureUser, parseCsvRow} from './helpers';
-import {enumLabelRx, openContextMenu} from './generic-connector.helpers';
+import { TaskTypeExtended } from '../src/app/shared/types/task.type.extended';
+import { loginAsFixtureUser, parseCsvRow } from './helpers';
+import { enumLabelRx, openContextMenu } from './generic-connector.helpers';
 
 /**
  * Schedules the batch jobs declared in testdata/taskdatachange.csv as the admin user, through the
@@ -37,40 +37,50 @@ interface TaskFixtureRow {
   e2e: string;
 }
 
-const CSV_PATH = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/taskdatachange.csv');
+const CSV_PATH = path.resolve(
+  __dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/taskdatachange.csv'
+);
 
 /** Loads and validates the editable, headered task fixture while preserving its execution order. */
 function loadE2ERows(): TaskFixtureRow[] {
-  const lines = fs.readFileSync(CSV_PATH, 'utf-8').split(/\r?\n/)
-    .filter(line => line.trim().length > 0);
+  const lines = fs
+    .readFileSync(CSV_PATH, 'utf-8')
+    .split(/\r?\n/)
+    .filter((line) => line.trim().length > 0);
   const expectedHeader = ['idTask', 'startDelayMinutes', 'e2e'];
   const header = parseCsvRow(lines.shift() ?? '');
   if (header.join('|') !== expectedHeader.join('|')) {
     throw new Error(`Unexpected header in ${CSV_PATH}: ${header.join('|')}`);
   }
 
-  const rows = lines.map(line => {
-    const [idTaskValue, startDelayValue, e2e] = parseCsvRow(line);
-    const idTask = Number(idTaskValue);
-    const startDelayMinutes = Number(startDelayValue);
-    const taskName = TaskTypeExtended[idTask];
-    if (!Number.isInteger(idTask) || !taskName || !Number.isInteger(startDelayMinutes)
-      || startDelayMinutes < 1) {
-      throw new Error(`Invalid task fixture row in ${CSV_PATH}: ${line}`);
-    }
-    return {idTask, taskName, startDelayMinutes, e2e};
-  }).filter(row => row.e2e === 'e');
+  const rows = lines
+    .map((line) => {
+      const [idTaskValue, startDelayValue, e2e] = parseCsvRow(line);
+      const idTask = Number(idTaskValue);
+      const startDelayMinutes = Number(startDelayValue);
+      const taskName = TaskTypeExtended[idTask];
+      if (!Number.isInteger(idTask) || !taskName || !Number.isInteger(startDelayMinutes) || startDelayMinutes < 1) {
+        throw new Error(`Invalid task fixture row in ${CSV_PATH}: ${line}`);
+      }
+      return { idTask, taskName, startDelayMinutes, e2e };
+    })
+    .filter((row) => row.e2e === 'e');
 
-  if (new Set(rows.map(row => row.idTask)).size !== rows.length) {
+  if (new Set(rows.map((row) => row.idTask)).size !== rows.length) {
     throw new Error(`Duplicate idTask in ${CSV_PATH}`);
   }
-  const priceUpdateIndex = rows.findIndex(row =>
-    row.idTask === TaskTypeExtended.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU);
-  const ruleSetIndex = rows.findIndex(row =>
-    row.idTask === TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET);
-  if (priceUpdateIndex < 0 || ruleSetIndex <= priceUpdateIndex
-    || rows[ruleSetIndex].startDelayMinutes <= rows[priceUpdateIndex].startDelayMinutes) {
+  const priceUpdateIndex = rows.findIndex(
+    (row) => row.idTask === TaskTypeExtended.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU
+  );
+  const ruleSetIndex = rows.findIndex(
+    (row) => row.idTask === TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET
+  );
+  if (
+    priceUpdateIndex < 0 ||
+    ruleSetIndex <= priceUpdateIndex ||
+    rows[ruleSetIndex].startDelayMinutes <= rows[priceUpdateIndex].startDelayMinutes
+  ) {
     throw new Error(`Task 53 must follow task 30 with a later start delay in ${CSV_PATH}`);
   }
   return rows;
@@ -95,23 +105,25 @@ const CONFIRM_YES_RX = /^\s*(yes|ja)\s*$/i;
  */
 function toDeChShortDateTime(date: Date): string {
   const pad = (value: number): string => String(value).padStart(2, '0');
-  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${pad(date.getFullYear() % 100)} `
-    + `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return (
+    `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${pad(date.getFullYear() % 100)} ` +
+    `${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
 }
 
 /** Navigates to the batch processing monitor under the 'Administrative data' root and waits for the table. */
 async function openTaskDataMonitorView(page: Page): Promise<void> {
-  const node = page.locator('.p-tree-node-content', {hasText: MONITOR_NODE_RX}).first();
-  if (!await node.isVisible()) {
+  const node = page.locator('.p-tree-node-content', { hasText: MONITOR_NODE_RX }).first();
+  if (!(await node.isVisible())) {
     // The root is created expanded, but expand it explicitly when a previous state collapsed it.
-    const root = page.locator('.p-tree-node-content', {hasText: ADMIN_DATA_NODE_RX}).first();
-    await root.waitFor({state: 'visible', timeout: 15_000});
+    const root = page.locator('.p-tree-node-content', { hasText: ADMIN_DATA_NODE_RX }).first();
+    await root.waitFor({ state: 'visible', timeout: 15_000 });
     await root.dblclick();
   }
-  await node.waitFor({state: 'visible', timeout: 15_000});
+  await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
 
-  await page.locator('.data-container').first().waitFor({state: 'visible', timeout: 15_000});
+  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
   // Let readData() populate the table before the caller counts rows.
   await page.waitForTimeout(800);
 }
@@ -126,19 +138,20 @@ async function openTaskDataMonitorView(page: Page): Promise<void> {
 async function selectTaskType(page: Page, dialog: Locator, taskNumber: number): Promise<void> {
   // config.field becomes the id of the p-select host element (its [attr.id] host binding).
   const dropdown = dialog.locator('#idTask');
-  await expect(dropdown).toBeVisible({timeout: 10_000});
+  await expect(dropdown).toBeVisible({ timeout: 10_000 });
   await dropdown.click();
 
   const overlay = page.locator('.p-select-overlay').first();
-  await overlay.waitFor({state: 'visible', timeout: 10_000});
-  const option = overlay.locator('[role="option"]')
-    .filter({hasText: new RegExp(`-\\s*${taskNumber}\\s*$`)});
-  await expect(option, `task ${taskNumber} is not offered — is it above maxUserCreateTask?`)
-    .toHaveCount(1, {timeout: 10_000});
+  await overlay.waitFor({ state: 'visible', timeout: 10_000 });
+  const option = overlay.locator('[role="option"]').filter({ hasText: new RegExp(`-\\s*${taskNumber}\\s*$`) });
+  await expect(option, `task ${taskNumber} is not offered — is it above maxUserCreateTask?`).toHaveCount(1, {
+    timeout: 10_000
+  });
   await option.first().click();
-  await overlay.waitFor({state: 'hidden', timeout: 10_000});
-  await expect(dropdown, 'the picked task is not shown in the closed dropdown')
-    .toContainText(new RegExp(`-\\s*${taskNumber}\\s*$`));
+  await overlay.waitFor({ state: 'hidden', timeout: 10_000 });
+  await expect(dropdown, 'the picked task is not shown in the closed dropdown').toContainText(
+    new RegExp(`-\\s*${taskNumber}\\s*$`)
+  );
 }
 
 /** All data rows of the task table. */
@@ -153,16 +166,16 @@ function taskRows(page: Page): Locator {
  * the raw key. Column positions are not usable here: the expander column shifts every index.
  */
 function rowsWithLabel(page: Page, rows: Locator, key: string): Locator {
-  return rows.filter({has: page.locator('td', {hasText: enumLabelRx(key)})});
+  return rows.filter({ has: page.locator('td', { hasText: enumLabelRx(key) }) });
 }
 
 /** Opens the row context menu for the given row (pContextMenuRow selects the row on right-click). */
 async function openRowMenu(page: Page, row: Locator): Promise<Locator> {
   await row.click();
   await page.waitForTimeout(200);
-  await row.click({button: 'right'});
+  await row.click({ button: 'right' });
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   return menu;
 }
 
@@ -173,13 +186,12 @@ async function openRowMenu(page: Page, row: Locator): Promise<Locator> {
  */
 async function confirmDialogAccept(page: Page): Promise<void> {
   const confirmDialog = page.locator('[role="alertdialog"]:visible').first();
-  await confirmDialog.waitFor({state: 'visible', timeout: 10_000});
-  await confirmDialog.getByRole('button', {name: CONFIRM_YES_RX}).first().click();
+  await confirmDialog.waitFor({ state: 'visible', timeout: 10_000 });
+  await confirmDialog.getByRole('button', { name: CONFIRM_YES_RX }).first().click();
 }
 
 test.describe.serial('schedule CSV-defined batch jobs as admin', () => {
-
-  test('removes previously scheduled fixture jobs', async ({page}) => {
+  test('removes previously scheduled fixture jobs', async ({ page }) => {
     await loginAsFixtureUser(page, ADMIN);
     await openTaskDataMonitorView(page);
 
@@ -189,7 +201,7 @@ test.describe.serial('schedule CSV-defined batch jobs as admin', () => {
       // for PROG_RUNNING — so it is skipped here and tolerated by the create tests below.
       const fixtureRows = rowsWithLabel(page, taskRows(page), task.taskName);
       const deletable = fixtureRows.filter({
-        hasNot: page.locator('td', {hasText: enumLabelRx('PROG_RUNNING')})
+        hasNot: page.locator('td', { hasText: enumLabelRx('PROG_RUNNING') })
       });
       for (let guard = 0; guard < 20; guard++) {
         // Count only this task type: preceding specs enqueue other jobs and BackgroundWorker may
@@ -199,31 +211,32 @@ test.describe.serial('schedule CSV-defined batch jobs as admin', () => {
           break;
         }
         const menu = await openRowMenu(page, deletable.first());
-        const deleted = page.waitForResponse(response =>
-          response.url().includes('/taskdatachange') && response.request().method() === 'DELETE'
-          && response.ok(), {timeout: 20_000});
+        const deleted = page.waitForResponse(
+          (response) =>
+            response.url().includes('/taskdatachange') && response.request().method() === 'DELETE' && response.ok(),
+          { timeout: 20_000 }
+        );
         await menu.getByText(DELETE_RX).first().click();
         await confirmDialogAccept(page);
         await deleted;
-        await expect(deletable).toHaveCount(before - 1, {timeout: 10_000});
+        await expect(deletable).toHaveCount(before - 1, { timeout: 10_000 });
       }
       await expect(deletable, `task ${task.idTask} jobs left behind`).toHaveCount(0);
     }
   });
 
   for (const task of TASKS) {
-    test(`creates task ${task.idTask} with a delayed start`, async ({page}) => {
+    test(`creates task ${task.idTask} with a delayed start`, async ({ page }) => {
       await loginAsFixtureUser(page, ADMIN);
       await openTaskDataMonitorView(page);
 
-      const startTimeInput = toDeChShortDateTime(
-        new Date(Date.now() + task.startDelayMinutes * 60_000));
+      const startTimeInput = toDeChShortDateTime(new Date(Date.now() + task.startDelayMinutes * 60_000));
 
       const menu = await openContextMenu(page);
       await menu.getByText(CREATE_RX).first().click();
 
       const dialog = page.locator('.p-dialog');
-      await dialog.waitFor({state: 'visible', timeout: 10_000});
+      await dialog.waitFor({ state: 'visible', timeout: 10_000 });
 
       await selectTaskType(page, dialog, task.idTask);
       await page.waitForTimeout(300);
@@ -242,17 +255,18 @@ test.describe.serial('schedule CSV-defined batch jobs as admin', () => {
       await dateInput.click();
       await dateInput.press('Control+a');
       await dateInput.press('Backspace');
-      await dateInput.pressSequentially(startTimeInput, {delay: 20});
+      await dateInput.pressSequentially(startTimeInput, { delay: 20 });
       await dateInput.blur();
-      await expect(dateInput, 'earliestStartTime did not keep the typed value')
-        .toHaveValue(startTimeInput);
+      await expect(dateInput, 'earliestStartTime did not keep the typed value').toHaveValue(startTimeInput);
 
-      const saved = page.waitForResponse(response =>
-        response.url().includes('/taskdatachange') && response.request().method() === 'POST'
-        && response.ok(), {timeout: 20_000});
+      const saved = page.waitForResponse(
+        (response) =>
+          response.url().includes('/taskdatachange') && response.request().method() === 'POST' && response.ok(),
+        { timeout: 20_000 }
+      );
       await dialog.locator('button[type="submit"]').click();
       const response = await saved;
-      await dialog.waitFor({state: 'hidden', timeout: 15_000});
+      await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
 
       // Assert on the persisted entity rather than on formatted table cells.
       const created = await response.json();
@@ -264,10 +278,8 @@ test.describe.serial('schedule CSV-defined batch jobs as admin', () => {
 
       // The cleanup test removed prior waiting rows. Execution itself happens minutes later and is
       // deliberately not awaited here.
-      const waiting = rowsWithLabel(page,
-        rowsWithLabel(page, taskRows(page), task.taskName), 'PROG_WAITING');
-      await expect(waiting, `no waiting table row for task ${task.idTask}`)
-        .toHaveCount(1, {timeout: 15_000});
+      const waiting = rowsWithLabel(page, rowsWithLabel(page, taskRows(page), task.taskName), 'PROG_WAITING');
+      await expect(waiting, `no waiting table row for task ${task.idTask}`).toHaveCount(1, { timeout: 15_000 });
     });
   }
 });

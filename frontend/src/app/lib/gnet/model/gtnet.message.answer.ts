@@ -1,5 +1,5 @@
-import {BaseID} from '../../entities/base.id';
-import {GTNetMessageCodeType} from './gtnet.message';
+import { BaseID } from '../../entities/base.id';
+import { GTNetMessageCodeType } from './gtnet.message';
 
 /**
  * Defines automatic response templates for incoming GTNet messages requiring replies.
@@ -24,8 +24,7 @@ export class GTNetMessageAnswer implements BaseID {
  * Call parameter for GTNetMessageAnswer edit dialog.
  */
 export class GTNetMessageAnswerCallParam {
-  constructor(public gtNetMessageAnswer: GTNetMessageAnswer) {
-  }
+  constructor(public gtNetMessageAnswer: GTNetMessageAnswer) {}
 }
 
 /** Request codes that support auto-response configuration */

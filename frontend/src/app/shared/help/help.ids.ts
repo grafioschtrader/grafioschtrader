@@ -1,4 +1,4 @@
-import {HelpIds} from '../../lib/help/help.ids';
+import { HelpIds } from '../../lib/help/help.ids';
 
 /**
  * Application-specific (Grafioschtrader) help IDs.
@@ -11,8 +11,10 @@ export const AppHelpIds: Record<string, string> = {
   HELP_PORTFOLIO: 'tenantportfolio/portfolio',
   HELP_PORTFOLIO_ACCOUNT: 'tenantportfolio/cashaccount',
   HELP_PORTFOLIO_SECURITYACCOUNT: 'tenantportfolio/securityaccounts',
-  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT: 'tenantportfolio/securityaccounts/transactionimport/viewtransactionimport',
-  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT_GTNET: 'tenantportfolio/securityaccounts/transactionimport/securityimportfortransaction',
+  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT:
+    'tenantportfolio/securityaccounts/transactionimport/viewtransactionimport',
+  HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT_GTNET:
+    'tenantportfolio/securityaccounts/transactionimport/securityimportfortransaction',
 
   // Tenant and  Portfolios / Reports
   HELP_PORTFOLIOS: 'reportportfolio',
@@ -80,10 +82,8 @@ export const AppHelpIds: Record<string, string> = {
   HELP_TAX_DATA: 'admindata/taxdata/',
 
   HELP_GT_NET: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet',
-  HELP_GT_NET_ADMIN_MGS: HelpIds.HELP_MESSAGE_SYSTEM +  '/gtnet/setup/msgadmin',
-  HELP_GT_NET_AUTOANSWER: HelpIds.HELP_MESSAGE_SYSTEM +  '/gtnet/autoanswer',
-  HELP_GT_NET_EXCHANGE: HelpIds.HELP_MESSAGE_SYSTEM +  '/gtnet/exchange',
-  HELP_GT_NET_EXCHANGE_LOG: HelpIds.HELP_MESSAGE_SYSTEM +  '/gtnet/exchangelog'
-
-
+  HELP_GT_NET_ADMIN_MGS: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/setup/msgadmin',
+  HELP_GT_NET_AUTOANSWER: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/autoanswer',
+  HELP_GT_NET_EXCHANGE: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/exchange',
+  HELP_GT_NET_EXCHANGE_LOG: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/exchangelog'
 };

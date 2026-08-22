@@ -1,21 +1,21 @@
-import {Auditable} from '../entities/auditable';
-import {DynamicFormComponent} from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {FieldConfig} from '../dynamic-form/models/field.config';
-import {FormHelper} from '../dynamic-form/components/FormHelper';
-import {TranslateService} from '@ngx-translate/core';
-import {ProcessedAction} from '../types/processed.action';
-import {ProcessedActionData} from '../types/processed.action.data';
-import {EventEmitter} from '@angular/core';
-import {ProposeChangeEntityWithEntity} from '../proposechange/model/propose.change.entity.whit.entity';
-import {FormBase} from '../edit/form.base';
-import {ProposeTransientTransfer} from '../entities/propose.transient.transfer';
-import {DynamicFieldHelper} from './dynamic.field.helper';
-import {User} from '../entities/user';
-import {Helper} from './helper';
-import {InputType} from '../dynamic-form/models/input.type';
-import {ProposeUserTask} from '../entities/propose.user.task';
-import {BaseSettings} from '../base.settings';
-import {GlobalparameterService} from '../services/globalparameter.service';
+import { Auditable } from '../entities/auditable';
+import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { FieldConfig } from '../dynamic-form/models/field.config';
+import { FormHelper } from '../dynamic-form/components/FormHelper';
+import { TranslateService } from '@ngx-translate/core';
+import { ProcessedAction } from '../types/processed.action';
+import { ProcessedActionData } from '../types/processed.action.data';
+import { EventEmitter } from '@angular/core';
+import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
+import { FormBase } from '../edit/form.base';
+import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
+import { DynamicFieldHelper } from './dynamic.field.helper';
+import { User } from '../entities/user';
+import { Helper } from './helper';
+import { InputType } from '../dynamic-form/models/input.type';
+import { ProposeUserTask } from '../entities/propose.user.task';
+import { BaseSettings } from '../base.settings';
+import { GlobalparameterService } from '../services/globalparameter.service';
 
 /**
  * Utility class for handling audit trails and proposal workflows in dynamic forms.
@@ -31,7 +31,6 @@ import {GlobalparameterService} from '../services/globalparameter.service';
  * - Proposal acceptance/rejection workflow integration
  */
 export class AuditHelper {
-
   /**
    * Custom ownership check function that can be configured by the application.
    * Should return true if the entity has special ownership rules that grant edit rights.
@@ -65,15 +64,25 @@ export class AuditHelper {
    * @param configObject Map of field configurations keyed by field name
    * @param proposeChangeEntityWithEntity Proposal change context with original and proposed entities
    */
-  public static transferToFormAndChangeButtonForProposaleEdit(translateService: TranslateService,
-    gps: GlobalparameterService, entityAuditable: Auditable,
+  public static transferToFormAndChangeButtonForProposaleEdit(
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    entityAuditable: Auditable,
     form: DynamicFormComponent,
     configObject: { [name: string]: FieldConfig },
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
+  ): void {
     if (entityAuditable) {
       // Existing entity
-      AuditHelper.configureFormFromAuditableRights(translateService, gps, entityAuditable, form, configObject,
-        proposeChangeEntityWithEntity, true);
+      AuditHelper.configureFormFromAuditableRights(
+        translateService,
+        gps,
+        entityAuditable,
+        form,
+        configObject,
+        proposeChangeEntityWithEntity,
+        true
+      );
     } else {
       // New entity
       AuditHelper.editWithoutProposalInForm(form, configObject);
@@ -100,13 +109,16 @@ export class AuditHelper {
    * @param proposeUserTask User task containing proposed field changes
    * @returns ProposeChangeEntityWithEntity with original entity, proposed entity, and change metadata
    */
-  public static convertToProposeChangeEntityWithEntity(entity: any, proposeUserTask: ProposeUserTask): ProposeChangeEntityWithEntity {
+  public static convertToProposeChangeEntityWithEntity(
+    entity: any,
+    proposeUserTask: ProposeUserTask
+  ): ProposeChangeEntityWithEntity {
     let pewe: ProposeChangeEntityWithEntity;
     if (proposeUserTask) {
       pewe = new ProposeChangeEntityWithEntity();
       pewe.entity = entity;
       pewe.proposedEntity = JSON.parse(JSON.stringify(entity));
-      proposeUserTask.proposeChangeFieldList.forEach(put => pewe.proposedEntity[put.field] = put.valueDesarialized);
+      proposeUserTask.proposeChangeFieldList.forEach((put) => (pewe.proposedEntity[put.field] = put.valueDesarialized));
       pewe.proposeChangeEntity = proposeUserTask;
       (<Auditable>pewe.entity).idProposeRequest = proposeUserTask.idProposeRequest;
     }
@@ -126,28 +138,34 @@ export class AuditHelper {
    * @param proposeChangeEntityWithEntity Proposal context (null for direct editing)
    * @param transferToForm Whether to populate form with entity data
    */
-  public static configureFormFromAuditableRights(translateService: TranslateService,
-    gps: GlobalparameterService, entityAuditable: Auditable,
+  public static configureFormFromAuditableRights(
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    entityAuditable: Auditable,
     form: DynamicFormComponent,
     configObject: { [name: string]: FieldConfig },
     proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
-    transferToForm: boolean): void {
+    transferToForm: boolean
+  ): void {
     if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(gps, entityAuditable)) {
       // User can not change entity directly but propose one
       AuditHelper.setHeaderChangeRequest(translateService, form, 'YOUR_CHANGE_REQUEST');
       FormHelper.hideVisibleFieldConfigs(true, [
-        configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], configObject[AuditHelper.REJECT_FIELD_BUTTON]]);
+        configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT],
+        configObject[AuditHelper.REJECT_FIELD_BUTTON]
+      ]);
       FormHelper.disableEnableFieldConfigs(false, [configObject[AuditHelper.NOTE_REQUEST_INPUT]]);
       configObject[AuditHelper.SUBMIT_FIELD_BUTTON].labelKey = AuditHelper.SAVE_CHANGE_REQUEST;
-
     } else {
       // User can change entity
       if (proposeChangeEntityWithEntity) {
         // it is a proposal edit
         AuditHelper.setHeaderChangeRequest(translateService, form, 'CHANGE_REQUEST_FOR_YOU');
         FormHelper.disableEnableFieldConfigs(true, [configObject[AuditHelper.NOTE_REQUEST_INPUT]]);
-        FormHelper.hideVisibleFieldConfigs(false, [configObject[AuditHelper.REJECT_FIELD_BUTTON],
-          configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]]);
+        FormHelper.hideVisibleFieldConfigs(false, [
+          configObject[AuditHelper.REJECT_FIELD_BUTTON],
+          configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT]
+        ]);
         configObject[AuditHelper.SUBMIT_FIELD_BUTTON].labelKey = 'SAVE';
         AuditHelper.createDifferenceAsLabelTitle(configObject, proposeChangeEntityWithEntity);
       } else {
@@ -158,8 +176,10 @@ export class AuditHelper {
     if (transferToForm) {
       form.transferBusinessObjectToForm(entityAuditable);
     }
-    proposeChangeEntityWithEntity && configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.setValue(
-      proposeChangeEntityWithEntity.proposeChangeEntity.noteRequest);
+    proposeChangeEntityWithEntity &&
+      configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.setValue(
+        proposeChangeEntityWithEntity.proposeChangeEntity.noteRequest
+      );
   }
 
   /**
@@ -172,16 +192,28 @@ export class AuditHelper {
    * @param acceptRejectRequired Whether accept/reject note is mandatory
    * @returns Array of FieldConfig objects for complete note workflow
    */
-  public static getFullNoteRequestInputDefinition(closed: EventEmitter<ProcessedActionData>, formBase: FormBase,
-    acceptRejectRequired = false): FieldConfig[] {
+  public static getFullNoteRequestInputDefinition(
+    closed: EventEmitter<ProcessedActionData>,
+    formBase: FormBase,
+    acceptRejectRequired = false
+  ): FieldConfig[] {
     return [
       this.getNoteRequestInputDefinition(),
-      DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_ACCEPT_REJECT_INPUT, 'PROPOSEACCEPTREJECT',
-        BaseSettings.FID_MAX_LETTERS, acceptRejectRequired),
+      DynamicFieldHelper.createFieldTextareaInputString(
+        AuditHelper.NOTE_ACCEPT_REJECT_INPUT,
+        'PROPOSEACCEPTREJECT',
+        BaseSettings.FID_MAX_LETTERS,
+        acceptRejectRequired
+      ),
       DynamicFieldHelper.createSubmitButtonFieldName(AuditHelper.SUBMIT_FIELD_BUTTON),
-      DynamicFieldHelper.createFunctionButtonFieldName(AuditHelper.REJECT_FIELD_BUTTON, 'REJECT_DATA_CHANGE',
-        (e) => closed.emit(new ProcessedActionData(ProcessedAction.REJECT_DATA_CHANGE,
-          formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.value))),
+      DynamicFieldHelper.createFunctionButtonFieldName(AuditHelper.REJECT_FIELD_BUTTON, 'REJECT_DATA_CHANGE', (e) =>
+        closed.emit(
+          new ProcessedActionData(
+            ProcessedAction.REJECT_DATA_CHANGE,
+            formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.value
+          )
+        )
+      )
     ];
   }
 
@@ -193,8 +225,12 @@ export class AuditHelper {
    * @returns FieldConfig for note request textarea input
    */
   public static getNoteRequestInputDefinition(required = false): FieldConfig {
-    return DynamicFieldHelper.createFieldTextareaInputString(AuditHelper.NOTE_REQUEST_INPUT, 'NOTE_REQUEST',
-      BaseSettings.FID_MAX_LETTERS, required);
+    return DynamicFieldHelper.createFieldTextareaInputString(
+      AuditHelper.NOTE_REQUEST_INPUT,
+      'NOTE_REQUEST',
+      BaseSettings.FID_MAX_LETTERS,
+      required
+    );
   }
 
   /**
@@ -206,9 +242,11 @@ export class AuditHelper {
    * @param targetEntity Target entity to receive the note value
    */
   public static copyNoteRequestToEntity(formBase: FormBase, targetEntity: ProposeTransientTransfer): void {
-    if (formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT]
-      && !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].invisible
-      && !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.disabled) {
+    if (
+      formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT] &&
+      !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].invisible &&
+      !formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.disabled
+    ) {
       targetEntity.noteRequestOrReject = formBase.configObject[AuditHelper.NOTE_REQUEST_INPUT].formControl.value;
     }
   }
@@ -235,8 +273,10 @@ export class AuditHelper {
    * @returns True if accept/reject note field is visible and enabled
    */
   public static isProposeVisible(formBase: FormBase): boolean {
-    return !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].invisible
-      && !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.disabled
+    return (
+      !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].invisible &&
+      !formBase.configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT].formControl.disabled
+    );
   }
 
   /**
@@ -262,8 +302,11 @@ export class AuditHelper {
    * @param targetEntity Target entity to receive proposal data
    * @param proposeChangeEntityWithEntity Proposal context (null if no proposal)
    */
-  public static copyProposeChangeEntityToEntityAfterEdit(formBase: FormBase, targetEntity: ProposeTransientTransfer,
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
+  public static copyProposeChangeEntityToEntityAfterEdit(
+    formBase: FormBase,
+    targetEntity: ProposeTransientTransfer,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
+  ): void {
     if (proposeChangeEntityWithEntity) {
       targetEntity.idProposeRequest = proposeChangeEntityWithEntity.proposeChangeEntity.idProposeRequest;
       this.copyNoteAcceptRejectToEntity(formBase, targetEntity);
@@ -293,11 +336,12 @@ export class AuditHelper {
    * @param entityAuditable Auditable entity to check permissions for
    * @returns True if user can edit/delete the auditable entity
    */
-  public static hasRightsForEditingOrDeleteAuditable(gps: GlobalparameterService,
-    entityAuditable: Auditable): boolean {
-    return AuditHelper.hasHigherPrivileges(gps)
-      || gps.isEntityCreatedByUser(entityAuditable)
-      || (AuditHelper.customOwnershipCheck && AuditHelper.customOwnershipCheck(entityAuditable, gps.getIdUser()));
+  public static hasRightsForEditingOrDeleteAuditable(gps: GlobalparameterService, entityAuditable: Auditable): boolean {
+    return (
+      AuditHelper.hasHigherPrivileges(gps) ||
+      gps.isEntityCreatedByUser(entityAuditable) ||
+      (AuditHelper.customOwnershipCheck && AuditHelper.customOwnershipCheck(entityAuditable, gps.getIdUser()))
+    );
   }
 
   /**
@@ -309,8 +353,7 @@ export class AuditHelper {
    * @returns True if user has ADMIN or ALL_EDIT role
    */
   public static hasHigherPrivileges(gps: GlobalparameterService): boolean {
-    return gps.hasRole(BaseSettings.ROLE_ADMIN)
-      || gps.hasRole(BaseSettings.ROLE_ALL_EDIT);
+    return gps.hasRole(BaseSettings.ROLE_ADMIN) || gps.hasRole(BaseSettings.ROLE_ALL_EDIT);
   }
 
   /**
@@ -343,15 +386,17 @@ export class AuditHelper {
    * @param configObject Map of field configurations to enhance with old value tooltips
    * @param proposeChangeEntityWithEntity Proposal context containing original and proposed entities
    */
-  private static createDifferenceAsLabelTitle(configObject: { [name: string]: FieldConfig },
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
+  private static createDifferenceAsLabelTitle(
+    configObject: { [name: string]: FieldConfig },
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
+  ): void {
     Object.keys(configObject).forEach((key) => {
       const fieldConfig: FieldConfig = configObject[key];
       const field = fieldConfig.dataproperty ? fieldConfig.dataproperty : key;
       let oldValue = Helper.getValueByPath(proposeChangeEntityWithEntity.entity, field);
       if (oldValue !== Helper.getValueByPath(proposeChangeEntityWithEntity.proposedEntity, field)) {
         if (oldValue != null && fieldConfig.inputType === InputType.Select && fieldConfig.valueKeyHtmlOptions) {
-          oldValue = fieldConfig.valueKeyHtmlOptions.find(v => v.key === oldValue).value;
+          oldValue = fieldConfig.valueKeyHtmlOptions.find((v) => v.key === oldValue).value;
         }
         configObject[key].labelTitle = oldValue;
       }
@@ -366,11 +411,16 @@ export class AuditHelper {
    * @param form Dynamic form component to configure
    * @param configObject Map of field configurations to modify
    */
-  private static editWithoutProposalInForm(form: DynamicFormComponent,
-    configObject: { [name: string]: FieldConfig }): void {
+  private static editWithoutProposalInForm(
+    form: DynamicFormComponent,
+    configObject: { [name: string]: FieldConfig }
+  ): void {
     AuditHelper.setHeaderChangeRequest(null, form);
-    FormHelper.hideVisibleFieldConfigs(true, [configObject[AuditHelper.NOTE_REQUEST_INPUT],
-      configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], configObject[AuditHelper.REJECT_FIELD_BUTTON]]);
+    FormHelper.hideVisibleFieldConfigs(true, [
+      configObject[AuditHelper.NOTE_REQUEST_INPUT],
+      configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT],
+      configObject[AuditHelper.REJECT_FIELD_BUTTON]
+    ]);
     configObject[AuditHelper.SUBMIT_FIELD_BUTTON].labelKey = 'SAVE';
     DynamicFieldHelper.resetValidator(configObject[AuditHelper.NOTE_ACCEPT_REJECT_INPUT], null, null);
   }
@@ -384,10 +434,16 @@ export class AuditHelper {
    * @param form Dynamic form component to configure
    * @param textKey Translation key for header text (null to remove)
    */
-  private static setHeaderChangeRequest(translateService: TranslateService, form: DynamicFormComponent, textKey: string = null) {
+  private static setHeaderChangeRequest(
+    translateService: TranslateService,
+    form: DynamicFormComponent,
+    textKey: string = null
+  ) {
     if (textKey) {
       form.formConfig.fieldHeaders = form.formConfig.fieldHeaders || {};
-      translateService.get(textKey).subscribe(text => form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = text);
+      translateService
+        .get(textKey)
+        .subscribe((text) => (form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = text));
     } else {
       if (form.formConfig.fieldHeaders && form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT]) {
         form.formConfig.fieldHeaders[AuditHelper.NOTE_REQUEST_INPUT] = null;

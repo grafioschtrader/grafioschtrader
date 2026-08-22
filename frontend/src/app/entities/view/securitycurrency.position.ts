@@ -1,4 +1,4 @@
-import {Securitycurrency} from '../securitycurrency';
+import { Securitycurrency } from '../securitycurrency';
 
 export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public securitycurrency: T;
@@ -8,7 +8,7 @@ export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public historicalUrl: string;
   public intradayUrl: string;
   public dividendUrl: string;
-  public splitUrl: String
+  public splitUrl: String;
   public isUsedElsewhere: boolean;
   public watchlistSecurityHasEver: boolean;
   public youngestHistoryDate: Date;

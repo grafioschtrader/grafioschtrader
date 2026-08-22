@@ -8,11 +8,11 @@
   <groupId>grafioschtrader</groupId>
   <artifactId>grafioschtrader</artifactId>
   <packaging>pom</packaging>
-  <version>0.36.7.1</version>
+  <version>0.36.7.2</version>
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.1.0</version>
+    <version>4.1.1</version>
     <relativePath/>
   </parent>
   <dependencyManagement>
@@ -79,7 +79,61 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>25</java.version>
+    <!-- Formatter profile shared with Spring Tools / Eclipse. Maven inherits property values
+         unresolved, so ${project.basedir} is re-interpolated in every module; each module sits
+         at backend/<module>/, which makes ../../ the repository root in all of them. -->
+    <gt.java.formatter>${project.basedir}/../../gt-code-style/backend/eclipse/gt-java-formatting.xml</gt.java.formatter>
+    <spotless.version>2.44.5</spotless.version>
+    <!-- Eclipse JDT release whose formatter Spotless runs. Keep it close to the JDT of the
+         installed Spring Tools so IDE and command line produce the same bytes. -->
+    <gt.jdt.version>4.36</gt.jdt.version>
   </properties>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Code formatting. Deliberately NOT bound to a lifecycle phase: "mvn clean install"
+             must never rewrite sources and must never fail because of formatting. Run it
+             explicitly with "mvn spotless:apply", check with "mvn spotless:check".
+             The <eclipse> step reads the very profile that Spring Tools imports, so IDE and
+             command line produce the same bytes. If they ever disagree, add an explicit
+             <version> inside <eclipse> matching the JDT of the installed Spring Tools. -->
+        <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>${spotless.version}</version>
+          <configuration>
+            <java>
+              <eclipse>
+                <version>${gt.jdt.version}</version>
+                <file>${gt.java.formatter}</file>
+              </eclipse>
+              <!-- Reproduces the order the sources already use: static first, then java,
+                   javax, org, com, then everything else alphabetically. -->
+              <importOrder>
+                <order>\#,java,javax,org,com,</order>
+              </importOrder>
+              <removeUnusedImports />
+              <trimTrailingWhitespace />
+              <endWithNewline />
+            </java>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <!-- The aggregator itself carries no Java sources, and ${gt.java.formatter} only
+           resolves from a module directory. inherited=false keeps this skip out of the
+           modules, so "mvn spotless:apply" at the reactor root works on all of them. -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <inherited>false</inherited>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <reporting>
     <plugins>
       <plugin>

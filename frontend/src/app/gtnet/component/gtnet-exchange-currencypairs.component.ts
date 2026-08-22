@@ -1,35 +1,34 @@
-import {Component, Injector, ViewChild} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TableModule} from '@openng/optimus-ui/table';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {CheckboxModule} from '@openng/optimus-ui/checkbox';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {InputTextModule} from '@openng/optimus-ui/inputtext';
+import { Component, Injector, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TableModule } from '@openng/optimus-ui/table';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
 
-import {GTNetExchangeBaseComponent} from './gtnet-exchange-base.component';
-import {GTNetExchangeService} from '../service/gtnet-exchange.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FilterType} from '../../lib/datashowbase/filter.type';
-import {CurrencypairEditComponent} from '../../shared/securitycurrency/currencypair-edit.component';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {Currencypair} from '../../entities/currencypair';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.component';
-import {GTNetExchangeCheckboxesComponent, CheckboxToggleEvent} from './gtnet-exchange-checkboxes.component';
-import {HelpIds} from '../../lib/help/help.ids';
-
+import { GTNetExchangeBaseComponent } from './gtnet-exchange-base.component';
+import { GTNetExchangeService } from '../service/gtnet-exchange.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { CurrencypairEditComponent } from '../../shared/securitycurrency/currencypair-edit.component';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { Currencypair } from '../../entities/currencypair';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { GTNetSupplierDetailTableComponent } from './gtnet-supplier-detail-table.component';
+import { GTNetExchangeCheckboxesComponent, CheckboxToggleEvent } from './gtnet-exchange-checkboxes.component';
+import { HelpIds } from '../../lib/help/help.ids';
 
 /**
  * Component for configuring GTNet exchange settings for currency pairs.
@@ -73,30 +72,31 @@ import {HelpIds} from '../../lib/help/help.ids';
       (componentClick)="onComponentClick($event)"
       [contextMenuEnabled]="true"
       [contextMenuItems]="contextMenuItems"
-      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container-full': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       [showContextMenu]="true"
       [expandable]="true"
       [canExpandFn]="canExpand.bind(this)"
       [expandedRowTemplate]="expandedRow">
-
       <div caption class="caption-toolbar">
         <h4 class="caption-title">{{ getTitleKey() | translate }}</h4>
         <div class="caption-row">
-          <gtnet-exchange-checkboxes
-            [disabled]="!isUserAllowedToMultiSelect()"
-            (toggle)="onCheckboxToggle($event)">
+          <gtnet-exchange-checkboxes [disabled]="!isUserAllowedToMultiSelect()" (toggle)="onCheckboxToggle($event)">
           </gtnet-exchange-checkboxes>
         </div>
         <div class="caption-actions">
-              <span class="p-input-icon-left caption-search">
-                <i class="pi pi-search"></i>
-                <input pInputText type="text"
-                       (input)="configurableTable.table.filterGlobal($any($event.target).value, 'contains')"
-                       [placeholder]="'SEARCH' | translate" />
-              </span>
-          <p-button [label]="'SAVE' | translate"
-                    (onClick)="saveChanges()"
-                    [disabled]="!hasUnsavedChanges()">
+          <span class="p-input-icon-left caption-search">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              (input)="configurableTable.table.filterGlobal($any($event.target).value, 'contains')"
+              [placeholder]="'SEARCH' | translate" />
+          </span>
+          <p-button [label]="'SAVE' | translate" (onClick)="saveChanges()" [disabled]="!hasUnsavedChanges()">
             <i class="pi pi-save" pButtonIcon></i>
           </p-button>
         </div>
@@ -104,13 +104,15 @@ import {HelpIds} from '../../lib/help/help.ids';
 
       <ng-template #customCell let-row let-field="field">
         @if (field.templateName === 'checkbox') {
-          <p-checkbox [(ngModel)]="row[field.field]" [binary]="true"
-                      (onChange)="onCheckboxChange(row)"
-                      [disabled]="isCheckboxDisabled(row, field.field)"></p-checkbox>
+          <p-checkbox
+            [(ngModel)]="row[field.field]"
+            [binary]="true"
+            (onChange)="onCheckboxChange(row)"
+            [disabled]="isCheckboxDisabled(row, field.field)"></p-checkbox>
         } @else {
           <span [pTooltip]="getValueByPath(row, field)" tooltipPosition="top">
-              {{ getValueByPath(row, field) }}
-           </span>
+            {{ getValueByPath(row, field) }}
+          </span>
         }
       </ng-template>
 
@@ -118,77 +120,80 @@ import {HelpIds} from '../../lib/help/help.ids';
         <gtnet-supplier-detail-table [idSecuritycurrency]="row.idSecuritycurrency" [dtype]="'C'">
         </gtnet-supplier-detail-table>
       </ng-template>
-
     </configurable-table>
 
     @if (visibleEditCurrencypairDialog) {
-      <currencypair-edit (closeDialog)="handleCloseEditCurrencypairDialog($event)"
-                         [securityCurrencypairCallParam]="currencypairCallParam"
-                         [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog">
+      <currencypair-edit
+        (closeDialog)="handleCloseEditCurrencypairDialog($event)"
+        [securityCurrencypairCallParam]="currencypairCallParam"
+        [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog">
       </currencypair-edit>
     }
   `,
-  styles: [`
-    .caption-toolbar {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      width: 100%;
-    }
+  styles: [
+    `
+      .caption-toolbar {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+      }
 
-    .caption-title {
-      margin: 0;
-    }
+      .caption-title {
+        margin: 0;
+      }
 
-    .caption-row {
-      display: flex;
-      align-items: center;
-    }
+      .caption-row {
+        display: flex;
+        align-items: center;
+      }
 
-    .caption-actions {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 0.75rem;
-      flex-wrap: nowrap;
-      width: 100%;
-    }
-
-    .caption-search {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .caption-search i {
-      flex: 0 0 auto;
-    }
-
-    .caption-search input {
-      flex: 1;
-      min-width: 0;
-      width: 100%;
-    }
-
-    @media (max-width: 768px) {
       .caption-actions {
-        flex-wrap: wrap;
-        row-gap: 0.5rem;
-        justify-content: flex-start;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: nowrap;
+        width: 100%;
       }
 
       .caption-search {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .caption-search i {
+        flex: 0 0 auto;
+      }
+
+      .caption-search input {
+        flex: 1;
+        min-width: 0;
         width: 100%;
       }
-    }
-  `],
+
+      @media (max-width: 768px) {
+        .caption-actions {
+          flex-wrap: wrap;
+          row-gap: 0.5rem;
+          justify-content: flex-start;
+        }
+
+        .caption-search {
+          width: 100%;
+        }
+      }
+    `
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseComponent<Currencypair> {
-
-  @ViewChild(ConfigurableTableComponent) configurableTable: ConfigurableTableComponent;
+  @ViewChild(ConfigurableTableComponent)
+  configurableTable: ConfigurableTableComponent;
 
   /** Visibility flag for currency pair edit dialog */
   visibleEditCurrencypairDialog = false;
@@ -210,8 +215,19 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
     usersettingsService: UserSettingsService,
     injector: Injector
   ) {
-    super('Currencypair', gtNetExchangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, injector);
+    super(
+      'Currencypair',
+      gtNetExchangeService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   getTitleKey(): string {
@@ -223,16 +239,18 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   }
 
   protected initializeColumns(): void {
-    this.addColumnFeqH(DataType.String, 'name', true, false,
-      {width: 150, filterType: FilterType.likeDataType});
+    this.addColumnFeqH(DataType.String, 'name', true, false, {
+      width: 150,
+      filterType: FilterType.likeDataType
+    });
     this.addCheckboxColumns();
 
-    this.multiSortMeta.push({field: 'name', order: 1});
+    this.multiSortMeta.push({ field: 'name', order: 1 });
     this.prepareTableAndTranslate();
   }
 
   protected loadData(): void {
-    this.gtNetExchangeService.getCurrencypairs().subscribe(data => {
+    this.gtNetExchangeService.getCurrencypairs().subscribe((data) => {
       this.entityList = data.securitiescurrenciesList;
       this.idSecuritycurreniesWithDetails = new Set(data.idSecuritycurrenies);
       this.modifiedItems.clear();
@@ -317,5 +335,4 @@ export class GTNetExchangeCurrencypairsComponent extends GTNetExchangeBaseCompon
   public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET_EXCHANGE;
   }
-
 }

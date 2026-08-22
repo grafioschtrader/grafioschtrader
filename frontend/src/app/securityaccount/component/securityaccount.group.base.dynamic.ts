@@ -1,81 +1,101 @@
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
-import {TranslateService} from '@ngx-translate/core';
-import {SecurityaccountGroupBase} from './securityaccount.group.base';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
-import {SecurityPositionDynamicGrandSummary} from '../../entities/view/security.position.dynamic.grand.summary';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {BusinessHelper} from '../../shared/helper/business.helper';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
+import { TranslateService } from '@ngx-translate/core';
+import { SecurityaccountGroupBase } from './securityaccount.group.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { BusinessHelper } from '../../shared/helper/business.helper';
 
 /**
  * Allow dynamic grouping, but is general a base class of asset class grouping.
  */
-export abstract class SecurityaccountGroupBaseDynamic<S> extends SecurityaccountGroupBase<SecurityPositionDynamicGroupSummary<S>,
-  SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<S>>> {
-
+export abstract class SecurityaccountGroupBaseDynamic<S> extends SecurityaccountGroupBase<
+  SecurityPositionDynamicGroupSummary<S>,
+  SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<S>>
+> {
   static readonly VALUE_SECURITY_MAIN_CURRENCY_HEADER = 'SECURITY_RISK';
 
   // protected translatedShort: string;
   protected translatedGroupValues: { [key: string]: string } = {};
 
-  protected constructor(translateService: TranslateService,
-              datatableConfigBase: TableConfigBase,
-              defaultGroup: string,
-              defaultEntityGroup: string,
-              groupedBy: string) {
+  protected constructor(
+    translateService: TranslateService,
+    datatableConfigBase: TableConfigBase,
+    defaultGroup: string,
+    defaultEntityGroup: string,
+    groupedBy: string
+  ) {
     super(translateService, datatableConfigBase, defaultGroup, defaultEntityGroup, groupedBy);
     // this.translateService.get('short').subscribe(translated => this.translatedShort = translated);
   }
 
   public extendColumns(internalColumnConfigs: ColumnConfig[]) {
     internalColumnConfigs.push(
-      this.datatableConfigBase.insertColumn(7, DataType.Numeric, 'securityRiskMC',
-        SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER, true, true,
+      this.datatableConfigBase.insertColumn(
+        7,
+        DataType.Numeric,
+        'securityRiskMC',
+        SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER,
+        true,
+        true,
         {
           width: 75,
-          columnGroupConfigs: [new ColumnGroupConfig('groupSecurityRiskMC'),
-            new ColumnGroupConfig('grandSecurityRiskMC')]
-        }));
-    this.datatableConfigBase.insertColumnFeqH(8, DataType.NumericRaw, 'security.leverageFactor',  true, true,
-      {templateName: 'greenRed', fieldValueFN:  BusinessHelper.getDisplayLeverageFactor.bind(this)});
+          columnGroupConfigs: [
+            new ColumnGroupConfig('groupSecurityRiskMC'),
+            new ColumnGroupConfig('grandSecurityRiskMC')
+          ]
+        }
+      )
+    );
+    this.datatableConfigBase.insertColumnFeqH(8, DataType.NumericRaw, 'security.leverageFactor', true, true, {
+      templateName: 'greenRed',
+      fieldValueFN: BusinessHelper.getDisplayLeverageFactor.bind(this)
+    });
   }
 
   public getGroupValueFromGroupRow(securityPositionGroupSummary: SecurityPositionDynamicGroupSummary<S>) {
     return securityPositionGroupSummary.groupField;
   }
 
-  public override getGroupRowFieldText(columnConfig: ColumnConfig,
-                              arrIndex: number, data: any, mapKey: any): string {
+  public override getGroupRowFieldText(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any): string {
     return this.translatedGroupValues[mapKey];
   }
 
-  override getGroupRowFieldTextByRowIndex(columnConfig: ColumnConfig, arrIndex: number, data: any, rowIndex: number): string {
+  override getGroupRowFieldTextByRowIndex(
+    columnConfig: ColumnConfig,
+    arrIndex: number,
+    data: any,
+    rowIndex: number
+  ): string {
     const securityaccountGroupBase = data.get(rowIndex);
     return this.translatedGroupValues[securityaccountGroupBase.groupField];
   }
 
   public translateGroupValues(securityPositionGroupSummaries: SecurityPositionDynamicGroupSummary<S>[]) {
-    securityPositionGroupSummaries.forEach(spgs => {
+    securityPositionGroupSummaries.forEach((spgs) => {
       const groupFieldValue: string = this.getGroupFieldAsString(spgs.groupField);
       if (!this.translatedGroupValues[groupFieldValue]) {
-        this.translateService.get(groupFieldValue).subscribe(groupValueTranslated =>
-          this.translatedGroupValues[groupFieldValue] = groupValueTranslated);
+        this.translateService
+          .get(groupFieldValue)
+          .subscribe((groupValueTranslated) => (this.translatedGroupValues[groupFieldValue] = groupValueTranslated));
       }
     });
   }
 
-  public override getChartDefinition(title: string,
-                            spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<AssetclassType>>): any {
-
+  public override getChartDefinition(
+    title: string,
+    spdgs: SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<AssetclassType>>
+  ): any {
     const valuesNet: number[] = [];
-    const valuesGross: number [] = [];
+    const valuesGross: number[] = [];
 
     const labels: string[] = [];
 
     spdgs.securityPositionGroupSummaryList.forEach((spgs: SecurityPositionDynamicGroupSummary<AssetclassType>) => {
       labels.push(this.translatedGroupValues[spgs.groupField]);
-      valuesGross.push(spgs.groupAccountValueSecurityMC / spdgs.grandAccountValueSecurityMC * 100);
+      valuesGross.push((spgs.groupAccountValueSecurityMC / spdgs.grandAccountValueSecurityMC) * 100);
       const enumGroup = (<any>AssetclassType)[spgs.groupField];
       if (enumGroup === AssetclassType.CURRENCY_FOREIGN || enumGroup === AssetclassType.CURRENCY_CASH) {
         valuesNet.push(spgs.groupAccountValueSecurityMC);
@@ -90,7 +110,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
       type: 'bar',
       orientation: 'h',
       domain: {
-        x: [0.1, .48],
+        x: [0.1, 0.48],
         y: [0, 0.8]
       },
       sort: false,
@@ -112,17 +132,17 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
 
     const layout = {
       title,
-      grid: {rows: 1, columns: 2},
+      grid: { rows: 1, columns: 2 },
       yaxis: {
         automargin: true
       }
     };
 
-    this.translateService.get(SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER).subscribe(
-      translated => barChartNet.name = translated);
-    return {data, layout};
+    this.translateService
+      .get(SecurityaccountGroupBaseDynamic.VALUE_SECURITY_MAIN_CURRENCY_HEADER)
+      .subscribe((translated) => (barChartNet.name = translated));
+    return { data, layout };
   }
 
   protected abstract getGroupFieldAsString(enumType: S): string;
-
 }

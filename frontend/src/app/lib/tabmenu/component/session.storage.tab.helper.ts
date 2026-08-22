@@ -9,7 +9,6 @@ import { TabItem } from '../../types/tab.item';
   providedIn: 'root'
 })
 export class SessionStorageTabHelper {
-
   /**
    * Get saved active route from session storage
    * Handles both index-based (legacy) and route-based storage
@@ -35,7 +34,7 @@ export class SessionStorageTabHelper {
       return tabs[savedIndex]?.route || null;
     } else {
       // New: stored as route
-      return tabs.find(tab => tab.route === savedValue)?.route || null;
+      return tabs.find((tab) => tab.route === savedValue)?.route || null;
     }
   }
 
@@ -53,7 +52,7 @@ export class SessionStorageTabHelper {
     }
 
     // Find the index of the current route (for backward compatibility)
-    const tabIndex = tabs.findIndex(tab => tab.route === route);
+    const tabIndex = tabs.findIndex((tab) => tab.route === route);
     if (tabIndex >= 0) {
       sessionStorage.setItem(sessionStorageKey, tabIndex.toString());
     }
@@ -78,6 +77,6 @@ export class SessionStorageTabHelper {
    * @returns True if the route exists, false otherwise
    */
   isValidRoute(route: string, tabs: TabItem[]): boolean {
-    return tabs.some(tab => tab.route === route);
+    return tabs.some((tab) => tab.route === route);
   }
 }

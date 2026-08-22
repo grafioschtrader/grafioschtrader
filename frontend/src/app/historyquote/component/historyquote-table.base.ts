@@ -1,12 +1,12 @@
-import {Directive} from '@angular/core';
-import {SvgIconRegistryService} from 'angular-svg-icon';
-import {TableCrudSupportMenu} from '../../lib/datashowbase/table.crud.support.menu';
-import {BaseID} from '../../lib/entities/base.id';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FilterType} from '../../lib/datashowbase/filter.type';
-import {BaseSettings} from '../../lib/base.settings';
-import {HistoryquoteCreateType} from '../../entities/historyquote';
+import { Directive } from '@angular/core';
+import { SvgIconRegistryService } from 'angular-svg-icon';
+import { TableCrudSupportMenu } from '../../lib/datashowbase/table.crud.support.menu';
+import { BaseID } from '../../lib/entities/base.id';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { BaseSettings } from '../../lib/base.settings';
+import { HistoryquoteCreateType } from '../../entities/historyquote';
 
 /**
  * Shared base for the live {@code HistoryquoteTableComponent} and the archive
@@ -29,7 +29,6 @@ import {HistoryquoteCreateType} from '../../entities/historyquote';
  */
 @Directive()
 export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudSupportMenu<T> {
-
   /**
    * Maps each HistoryquoteCreateType byte value to an SVG icon name. Both the live view and
    * the legacy view render this column the same way — same icons, same lookup.
@@ -61,8 +60,7 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
 
   /** Adds the date column with the standard like-filter and export configuration. */
   protected addDateColumn(): void {
-    this.addColumnFeqH(DataType.DateString, 'date', true, false,
-      {filterType: FilterType.likeDataType, export: true});
+    this.addColumnFeqH(DataType.DateString, 'date', true, false, { filterType: FilterType.likeDataType, export: true });
   }
 
   /**
@@ -70,8 +68,11 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
    * {@link createTypeIconMap} to an SVG icon name. Width matches the live view's column.
    */
   protected addCreateTypeColumn(): void {
-    this.addColumn(DataType.NumericInteger, 'createType', 'T', true, true,
-      {fieldValueFN: this.getCreateTypeIcon.bind(this), templateName: 'icon', width: 20});
+    this.addColumn(DataType.NumericInteger, 'createType', 'T', true, true, {
+      fieldValueFN: this.getCreateTypeIcon.bind(this),
+      templateName: 'icon',
+      width: 20
+    });
   }
 
   /**
@@ -85,9 +86,10 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
     if (row.createType == null) {
       return undefined;
     }
-    const numericKey = typeof row.createType === 'string'
-      ? HistoryquoteCreateType[row.createType as keyof typeof HistoryquoteCreateType]
-      : row.createType;
+    const numericKey =
+      typeof row.createType === 'string'
+        ? HistoryquoteCreateType[row.createType as keyof typeof HistoryquoteCreateType]
+        : row.createType;
     return HistoryquoteTableBase.createTypeIconMap[numericKey];
   }
 
@@ -96,25 +98,30 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
    * settings used across the application's historyquote views.
    */
   protected addOhlcvColumns(): void {
-    this.addColumnFeqH(DataType.Numeric, 'volume', true, false, {export: true});
+    this.addColumnFeqH(DataType.Numeric, 'volume', true, false, { export: true });
     this.addColumnFeqH(DataType.Numeric, 'open', true, false, {
       minFractionDigits: 5,
       maxFractionDigits: this.gps.getMaxFractionDigits(),
       export: true
     });
-    this.addColumnFeqH(DataType.Numeric, 'high', true, false,
-      {maxFractionDigits: this.gps.getMaxFractionDigits(), export: true});
-    this.addColumnFeqH(DataType.Numeric, 'low', true, false,
-      {maxFractionDigits: this.gps.getMaxFractionDigits(), export: true});
+    this.addColumnFeqH(DataType.Numeric, 'high', true, false, {
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
+      export: true
+    });
+    this.addColumnFeqH(DataType.Numeric, 'low', true, false, {
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
+      export: true
+    });
     this.addColumnFeqH(DataType.Numeric, 'close', true, false, {
       minFractionDigits: 5,
       maxFractionDigits: this.gps.getMaxFractionDigits(),
-      filterType: FilterType.likeDataType, export: true
+      filterType: FilterType.likeDataType,
+      export: true
     });
   }
 
   /** Newest row first — matches what the live view shipped with before this refactor. */
   protected applyDefaultDateSort(): void {
-    this.multiSortMeta.push({field: 'date', order: -1});
+    this.multiSortMeta.push({ field: 'date', order: -1 });
   }
 }

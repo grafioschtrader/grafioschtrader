@@ -1,62 +1,65 @@
-import {Component, OnInit} from '@angular/core';
-import {AlgoSecurity} from '../model/algo.security';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {AlgoSecurityService} from '../service/algo.security.service';
-import {AlgoAssetclass} from '../model/algo.assetclass';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.edit';
-import {combineLatest, Observable} from 'rxjs';
-import {Portfolio} from '../../entities/portfolio';
-import {Security} from '../../entities/security';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppSettings} from '../../shared/app.settings';
-import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { AlgoSecurity } from '../model/algo.security';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { AlgoSecurityService } from '../service/algo.security.service';
+import { AlgoAssetclass } from '../model/algo.assetclass';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AlgoAssetclassSecurityBaseEdit } from './algo.assetclass.security.base.edit';
+import { combineLatest, Observable } from 'rxjs';
+import { Portfolio } from '../../entities/portfolio';
+import { Security } from '../../entities/security';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AppSettings } from '../../shared/app.settings';
+import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
 
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 
 @Component({
-    selector: 'algo-security-edit',
-    template: `
-    <p-dialog header="{{'ALGO_ASSETCLASS' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '500px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
-    standalone: true,
-    imports: [
-    DialogModule,
-    DynamicFormModule,
-    TranslateModule
-]
+  selector: 'algo-security-edit',
+  template: ` <p-dialog
+    header="{{ 'ALGO_ASSETCLASS' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '500px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoSecurity> implements OnInit {
-
-  constructor(private portfolioService: PortfolioService,
-              private securityService: SecurityService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              algoSecurityService: AlgoSecurityService) {
-    super('ALGO_SECURITY', translateService, gps,
-      messageToastService, algoSecurityService);
+  constructor(
+    private portfolioService: PortfolioService,
+    private securityService: SecurityService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    algoSecurityService: AlgoSecurityService
+  ) {
+    super('ALGO_SECURITY', translateService, gps, messageToastService, algoSecurityService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      4, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.SECURITY.toLowerCase(), true,
-        {dataproperty: 'security.idSecuritycurrency'}),
+      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.SECURITY.toLowerCase(), true, {
+        dataproperty: 'security.idSecuritycurrency'
+      }),
       ...this.getFieldDefinition()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -67,23 +70,28 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
     let securitiesObservable: Observable<Security[]>;
     if (parentAssetclass.name != null && this.algoCallParam.idWatchlist != null) {
       securitiesObservable = this.securityService.getUnusedSecurityForAlgoCustom(
-        this.algoCallParam.idWatchlist, parentAssetclass.idAlgoAssetclassSecurity);
+        this.algoCallParam.idWatchlist,
+        parentAssetclass.idAlgoAssetclassSecurity
+      );
     } else {
-      securitiesObservable = this.securityService.getUnusedSecurityForAlgo(
-        parentAssetclass.idAlgoAssetclassSecurity);
+      securitiesObservable = this.securityService.getUnusedSecurityForAlgo(parentAssetclass.idAlgoAssetclassSecurity);
     }
-    const allSecurityaccountsObservable: Observable<Portfolio[]> = this.portfolioService.getPortfoliosForTenantOrderByName();
+    const allSecurityaccountsObservable: Observable<Portfolio[]> =
+      this.portfolioService.getPortfoliosForTenantOrderByName();
     this.valueChangedOnSecurityaccount1();
     combineLatest([securitiesObservable, allSecurityaccountsObservable]).subscribe(
       (data: [Security[], Portfolio[]]) => {
         this.configObject.security.referencedDataObject = data[0];
         this.algoCallParam.thisObject &&
-        this.configObject.security.referencedDataObject.push((<AlgoSecurity>this.algoCallParam.thisObject).security);
-        BusinessSelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(this.configObject.security.referencedDataObject,
-          this.configObject.security);
+          this.configObject.security.referencedDataObject.push((<AlgoSecurity>this.algoCallParam.thisObject).security);
+        BusinessSelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(
+          this.configObject.security.referencedDataObject,
+          this.configObject.security
+        );
         this.portfolios = data[1];
         this.setSecurityaccounts();
-      });
+      }
+    );
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoSecurity {

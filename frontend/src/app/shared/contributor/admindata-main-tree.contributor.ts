@@ -1,16 +1,16 @@
-import {Injectable} from '@angular/core';
-import {Observable, of} from 'rxjs';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
-import {TreeNodeType} from '../maintree/types/tree.node.type';
-import {TypeNodeData} from '../../lib/maintree/types/type.node.data';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {AppSettings} from '../app.settings';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {LibDataMainTreeContributor} from '../../lib/maintree/contributor/lib-data-main-tree.contributor';
-import {BaseSettings} from '../../lib/base.settings';
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { MainTreeContributor } from '../../lib/maintree/contributor/main-tree-contributor.interface';
+import { TreeNodeType } from '../maintree/types/tree.node.type';
+import { TypeNodeData } from '../../lib/maintree/types/type.node.data';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { AppSettings } from '../app.settings';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { LibDataMainTreeContributor } from '../../lib/maintree/contributor/lib-data-main-tree.contributor';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Contributor for Admin Data nodes (Trading Calendar, Global Settings, etc.)
@@ -18,7 +18,6 @@ import {BaseSettings} from '../../lib/base.settings';
  */
 @Injectable()
 export class AdminDataMainTreeContributor extends MainTreeContributor {
-
   private rootNode: TreeNode;
 
   constructor(
@@ -42,12 +41,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       label: 'ADMIN_DATA',
       expanded: true,
       children: [],
-      data: new TypeNodeData(
-        TreeNodeType.AdminDataRoot,
-        this.addMainRoute(AppSettings.USER_MESSAGE_KEY),
-        null,
-        null
-      )
+      data: new TypeNodeData(TreeNodeType.AdminDataRoot, this.addMainRoute(AppSettings.USER_MESSAGE_KEY), null, null)
     };
     this.addAdminDataChildren();
     this.setLangTransNode(this.rootNode);
@@ -108,13 +102,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     // Tax Data management
     this.rootNode.children.push({
       label: 'TAX_DATA',
-      data: new TypeNodeData(
-        TreeNodeType.NO_MENU,
-        this.addMainRoute(AppSettings.TAX_DATA_KEY),
-        null,
-        null,
-        null
-      )
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.TAX_DATA_KEY), null, null, null)
     });
 
     // Admin-only nodes defined in lib contributor
@@ -134,13 +122,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       expanded: true,
       children: [],
       label: 'GT_NET_NET_AND_MESSAGE',
-      data: new TypeNodeData(
-        TreeNodeType.NO_MENU,
-        this.addMainRoute(AppSettings.GT_NET_TAB_MENU_KEY),
-        null,
-        null,
-        null
-      )
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_TAB_MENU_KEY), null, null, null)
     };
 
     gtNetNode.children.push({
@@ -156,13 +138,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
 
     gtNetNode.children.push({
       label: 'GT_NET_EXCHANGE',
-      data: new TypeNodeData(
-        TreeNodeType.NO_MENU,
-        this.addMainRoute(AppSettings.GT_NET_EXCHANGE_KEY),
-        null,
-        null,
-        null
-      )
+      data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_EXCHANGE_KEY), null, null, null)
     });
 
     const logEnabled = this.globalParamService.isGtNetLogEnabled();
@@ -190,11 +166,11 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
   }
 
   private setLangTransNodes(treeNodes: TreeNode[]): void {
-    treeNodes.forEach(treeNode => this.setLangTransNode(treeNode));
+    treeNodes.forEach((treeNode) => this.setLangTransNode(treeNode));
   }
 
   private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe(translated => target.label = translated + suffix);
+    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

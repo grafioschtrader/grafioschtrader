@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import {createSuiteHelpers, MailhogMessage, parseCsvRow, TestCredentials, UserFixture} from './lib/helpers';
+import { createSuiteHelpers, MailhogMessage, parseCsvRow, TestCredentials, UserFixture } from './lib/helpers';
 
 /**
  * Helpers of the Grafioschtrader browser suite.
@@ -16,13 +16,23 @@ export const gtHelpers = createSuiteHelpers({
   usersJson: path.resolve(__dirname, '../../backend/grafioschtrader-server/src/test/resources/testdata/users.json'),
   authDir: path.join(__dirname, '.auth'),
   mailApiBase: 'http://localhost:8025',
-  afterLoginUrl: /\/mainview/,
+  afterLoginUrl: /\/mainview/
 });
 
-export {parseCsvRow};
-export type {MailhogMessage, TestCredentials, UserFixture};
+export { parseCsvRow };
+export type { MailhogMessage, TestCredentials, UserFixture };
 
 export const {
-  clearMailhog, findMailhogMessage, getUser, loadCredentials, loadCredentialsByNickname, loadUsers,
-  loadE2EUsers, login, loginAs, loginAsFixtureUser, registerAndSetupTenant, saveCredentials,
+  clearMailhog,
+  findMailhogMessage,
+  getUser,
+  loadCredentials,
+  loadCredentialsByNickname,
+  loadUsers,
+  loadE2EUsers,
+  login,
+  loginAs,
+  loginAsFixtureUser,
+  registerAndSetupTenant,
+  saveCredentials
 } = gtHelpers;

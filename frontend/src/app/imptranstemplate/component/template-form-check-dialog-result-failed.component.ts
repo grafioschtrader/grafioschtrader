@@ -1,35 +1,42 @@
-import {Component, Injector, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FailedParsedTemplateState} from './failed.parsed.template.state';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {FilterService} from '@openng/optimus-ui/api';
-import {TableModule} from '@openng/optimus-ui/table';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import { Component, Injector, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { FailedParsedTemplateState } from './failed.parsed.template.state';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { FilterService } from '@openng/optimus-ui/api';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 /**
  * Display if the import template was not completely recognized. The last successfully recognized field per import
  * template is displayed.
  */
 @Component({
-    selector: 'template-form-check-dialog-result-failed',
+  selector: 'template-form-check-dialog-result-failed',
   template: `
     <div class="datatable">
-      <p-table [columns]="fields" [value]="failedParsedTemplateStateList" selectionMode="single"
-               sortField="security.name" stripedRows showGridlines>
+      <p-table
+        [columns]="fields"
+        [value]="failedParsedTemplateStateList"
+        selectionMode="single"
+        sortField="security.name"
+        stripedRows
+        showGridlines>
         <ng-template #caption>
-          <h4>{{'IMPORT_POS_CHECK_FAILED' | translate}}</h4>
+          <h4>{{ 'IMPORT_POS_CHECK_FAILED' | translate }}</h4>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
             @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field"
-                  [pTooltip]="field.headerTooltipTranslated" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{field.headerTranslated}}
+              <th
+                [pSortableColumn]="field.field"
+                [pTooltip]="field.headerTooltipTranslated"
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+                {{ field.headerTranslated }}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
             }
@@ -38,11 +45,17 @@ import {TooltipModule} from '@openng/optimus-ui/tooltip';
         <ng-template #body let-el let-columns="fields">
           <tr [pSelectableRow]="el">
             @for (field of fields; track field) {
-              <td [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-end': ''">
-                {{getValueByPath(el, field)}}
+              <td
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                [ngClass]="
+                  field.dataType === DataType.Numeric ||
+                  field.dataType === DataType.DateTimeNumeric ||
+                  field.dataType === DataType.NumericInteger
+                    ? 'text-end'
+                    : ''
+                ">
+                {{ getValueByPath(el, field) }}
               </td>
             }
           </tr>
@@ -50,25 +63,36 @@ import {TooltipModule} from '@openng/optimus-ui/tooltip';
       </p-table>
     </div>
   `,
-    standalone: true,
-    imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, TranslateModule, TableModule, TooltipModule]
 })
 export class TemplateFormCheckDialogResultFailedComponent extends TableConfigBase implements OnInit {
   @Input() failedParsedTemplateStateList: FailedParsedTemplateState[];
 
-  constructor(filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
+  constructor(
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
   }
 
   ngOnInit(): void {
-    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {width: 250});
-    this.addColumnFeqH(DataType.DateString, 'validSince', true, false, {width: 70});
-    this.addColumnFeqH(DataType.String, 'localeStr', true, false, {width: 70});
-    this.addColumnFeqH(DataType.String, 'lastMatchingProperty', true, false, {width: 100});
+    this.addColumnFeqH(DataType.String, 'templatePurpose', true, false, {
+      width: 250
+    });
+    this.addColumnFeqH(DataType.DateString, 'validSince', true, false, {
+      width: 70
+    });
+    this.addColumnFeqH(DataType.String, 'localeStr', true, false, {
+      width: 70
+    });
+    this.addColumnFeqH(DataType.String, 'lastMatchingProperty', true, false, {
+      width: 100
+    });
     this.addColumn(DataType.String, 'errorMessage', 'ERROR', true, false);
 
     this.prepareTableAndTranslate();

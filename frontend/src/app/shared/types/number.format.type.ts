@@ -1,3 +1,6 @@
 export enum NumberFormatType {
-  US = 'US', GERMAN = 'GERMAN', SWISS = 'SWISS', PLAIN = 'PLAIN'
+  US = 'US',
+  GERMAN = 'GERMAN',
+  SWISS = 'SWISS',
+  PLAIN = 'PLAIN'
 }

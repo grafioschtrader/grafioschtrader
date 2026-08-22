@@ -4,21 +4,22 @@ import {
   EventEmitter,
   Input,
   Output,
-  TemplateRef
+  TemplateRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TreeTableModule} from '@openng/optimus-ui/treetable';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {CheckboxModule} from '@openng/optimus-ui/checkbox';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
-import {InputTextModule} from '@openng/optimus-ui/inputtext';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {ColumnConfig, EditInputType} from './column.config';
-import {DataType} from '../dynamic-form/models/data.type';
-import {BaseLocale} from '../dynamic-form/models/base.locale';
-import {Helper} from '../helper/helper';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TreeTableModule } from '@openng/optimus-ui/treetable';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { InputNumberModule } from '@openng/optimus-ui/inputnumber';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { ColumnConfig, EditInputType } from './column.config';
+import { DataType } from '../dynamic-form/models/data.type';
+import { BaseLocale } from '../dynamic-form/models/base.locale';
+import { Helper } from '../helper/helper';
 
 /**
  * Event data emitted when a tree table cell edit operation completes or is cancelled.
@@ -73,12 +74,24 @@ export interface TreeTableCellEditEvent {
 @Component({
   selector: 'configurable-tree-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, TreeTableModule, ContextMenuModule, CheckboxModule, TooltipModule,
-    InputNumberModule, InputTextModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TreeTableModule,
+    ContextMenuModule,
+    CheckboxModule,
+    TooltipModule,
+    InputNumberModule,
+    InputTextModule
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <div #cmDiv (click)="onComponentClick($event)" (contextmenu)="onComponentClick($event)"
-         [ngClass]="containerClass"
-         [class]="customClass">
+    <div
+      #cmDiv
+      (click)="onComponentClick($event)"
+      (contextmenu)="onComponentClick($event)"
+      [ngClass]="containerClass"
+      [class]="customClass">
       <p-treeTable
         [value]="data"
         [columns]="fields"
@@ -98,7 +111,6 @@ export interface TreeTableCellEditEvent {
         (onEditInit)="onCellEditInit($event)"
         (onEditComplete)="onCellEditCompleteHandler($event)"
         (onEditCancel)="onCellEditCancelHandler($event)">
-
         <!-- Caption slot with content projection -->
         <ng-template pTemplate="caption">
           <ng-content select="[caption]"></ng-content>
@@ -109,9 +121,10 @@ export interface TreeTableCellEditEvent {
           <tr>
             @for (field of columns; track field.field) {
               @if (field.visible) {
-                <th [ttSortableColumn]="enableSort ? field.field : null"
-                    [pTooltip]="field.headerTooltipTranslated"
-                    [style.width.px]="field.width">
+                <th
+                  [ttSortableColumn]="enableSort ? field.field : null"
+                  [pTooltip]="field.headerTooltipTranslated"
+                  [style.width.px]="field.width">
                   {{ field.headerTranslated }}
                   @if (enableSort) {
                     <p-treeTableSortIcon [field]="field.field"></p-treeTableSortIcon>
@@ -124,16 +137,20 @@ export interface TreeTableCellEditEvent {
 
         <!-- Body template -->
         <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
-          <tr [ttSelectableRow]="rowNode"
-              [ngClass]="getRowClass(rowNode, rowData)"
-              [style.background-color]="getRowStyle(rowData)"
-              (contextmenu)="onRowContextMenu(rowNode)">
+          <tr
+            [ttSelectableRow]="rowNode"
+            [ngClass]="getRowClass(rowNode, rowData)"
+            [style.background-color]="getRowStyle(rowData)"
+            (contextmenu)="onRowContextMenu(rowNode)">
             @for (field of columns; track field.field; let i = $index) {
               @if (field.visible) {
                 @if (isEditable(field, rowData)) {
                   <!-- Editable cell with cell editor -->
-                  <td [ttEditableColumn]="rowData" [ttEditableColumnField]="field.field"
-                      [ngClass]="getCellClass(field)" [style.width.px]="field.width">
+                  <td
+                    [ttEditableColumn]="rowData"
+                    [ttEditableColumnField]="field.field"
+                    [ngClass]="getCellClass(field)"
+                    [style.width.px]="field.width">
                     @if (i === 0) {
                       <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
                     }
@@ -141,23 +158,25 @@ export interface TreeTableCellEditEvent {
                       <ng-template pTemplate="input">
                         @switch (getEditInputType(field)) {
                           @case (EditInputType.InputNumber) {
-                            <p-inputNumber [(ngModel)]="rowData[field.field]"
-                                          [locale]="baseLocale?.locale"
-                                          [minFractionDigits]="field.minFractionDigits || 0"
-                                          [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
-                                          [min]="field.cec?.min"
-                                          [max]="field.cec?.max">
+                            <p-inputNumber
+                              [(ngModel)]="rowData[field.field]"
+                              [locale]="$safeNavigationMigration(baseLocale?.locale)"
+                              [minFractionDigits]="field.minFractionDigits || 0"
+                              [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
+                              [min]="$safeNavigationMigration(field.cec?.min)"
+                              [max]="$safeNavigationMigration(field.cec?.max)">
                             </p-inputNumber>
                           }
                           @case (EditInputType.Number) {
-                            <input pInputText type="number"
-                                   [(ngModel)]="rowData[field.field]"
-                                   [min]="field.cec?.min"
-                                   [max]="field.cec?.max">
+                            <input
+                              pInputText
+                              type="number"
+                              [(ngModel)]="rowData[field.field]"
+                              [min]="$safeNavigationMigration(field.cec?.min)"
+                              [max]="$safeNavigationMigration(field.cec?.max)" />
                           }
                           @default {
-                            <input pInputText type="text"
-                                   [(ngModel)]="rowData[field.field]">
+                            <input pInputText type="text" [(ngModel)]="rowData[field.field]" />
                           }
                         }
                       </ng-template>
@@ -176,31 +195,50 @@ export interface TreeTableCellEditEvent {
                     }
                     <!-- Cell content rendering -->
                     @if (customCellTemplate) {
-                      <ng-container *ngTemplateOutlet="customCellTemplate; context: {$implicit: rowData, field: field}">
+                      <ng-container
+                        *ngTemplateOutlet="customCellTemplate; context: { $implicit: rowData, field: field }">
                       </ng-container>
                     } @else if (field.templateName === 'owner') {
-                      <span [pTooltip]="getValue(rowData, field)"
-                            [style]='isOwnerHighlighted(rowData, field) ? "font-weight:700" : null'
-                            tooltipPosition="top">
+                      <span
+                        [pTooltip]="getValue(rowData, field)"
+                        [style]="isOwnerHighlighted(rowData, field) ? 'font-weight:700' : null"
+                        tooltipPosition="top">
                         {{ getValue(rowData, field) }}
                       </span>
                     } @else if (field.templateName === 'greenRed') {
-                      <span [pTooltip]="getValue(rowData, field)"
-                            [style.color]='isNegativeValue(rowData, field) ? "red" : "inherit"'
-                            tooltipPosition="top">
+                      <span
+                        [pTooltip]="getValue(rowData, field)"
+                        [style.color]="isNegativeValue(rowData, field) ? 'red' : 'inherit'"
+                        tooltipPosition="top">
                         {{ getValue(rowData, field) }}
                       </span>
                     } @else if (field.templateName === 'check') {
-                      <span><i [ngClass]="{'fa fa-check': getValue(rowData, field)}" aria-hidden="true"></i></span>
+                      <span
+                        ><i
+                          [ngClass]="{
+                            'fa fa-check': getValue(rowData, field)
+                          }"
+                          aria-hidden="true"></i
+                      ></span>
                     } @else if (field.templateName === 'editableCheck') {
                       @if (!checkboxVisibleFn || checkboxVisibleFn(rowData, field)) {
-                        <p-checkbox [ngModel]="getValue(rowData, field)" [binary]="true"
+                        <p-checkbox
+                          [ngModel]="getValue(rowData, field)"
+                          [binary]="true"
                           (onChange)="onCheckboxChange(rowData, field, $event)">
                         </p-checkbox>
                       }
                     } @else if (field.templateName === 'icon') {
                       @if (iconTemplate) {
-                        <ng-container *ngTemplateOutlet="iconTemplate; context: {$implicit: rowData, field: field, value: getValue(rowData, field)}">
+                        <ng-container
+                          *ngTemplateOutlet="
+                            iconTemplate;
+                            context: {
+                              $implicit: rowData,
+                              field: field,
+                              value: getValue(rowData, field)
+                            }
+                          ">
                         </ng-container>
                       } @else {
                         <span>{{ getValue(rowData, field) }}</span>
@@ -234,7 +272,6 @@ export interface TreeTableCellEditEvent {
   `
 })
 export class ConfigurableTreeTableComponent {
-
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================
@@ -396,7 +433,11 @@ export class ConfigurableTreeTableComponent {
   // ============================================================================
 
   /** Emits when an editable checkbox value changes. Payload: {rowData, field, value}. */
-  @Output() checkboxChange = new EventEmitter<{rowData: any; field: ColumnConfig; value: boolean}>();
+  @Output() checkboxChange = new EventEmitter<{
+    rowData: any;
+    field: ColumnConfig;
+    value: boolean;
+  }>();
 
   /** Emits when the tree table container is clicked (left-click or right-click). */
   @Output() componentClick = new EventEmitter<any>();
@@ -450,7 +491,7 @@ export class ConfigurableTreeTableComponent {
       this.selection = node;
       this.selectionChange.emit(node);
     }
-    this.nodeSelect.emit({originalEvent: null, node});
+    this.nodeSelect.emit({ originalEvent: null, node });
   }
 
   /**
@@ -461,7 +502,7 @@ export class ConfigurableTreeTableComponent {
    * @param event - Optimus checkbox change event
    */
   onCheckboxChange(rowData: any, field: ColumnConfig, event: any): void {
-    this.checkboxChange.emit({rowData, field, value: event.checked});
+    this.checkboxChange.emit({ rowData, field, value: event.checked });
   }
 
   // ============================================================================
@@ -529,7 +570,7 @@ export class ConfigurableTreeTableComponent {
    * @param event - Optimus TreeTable edit complete event with {field, data}
    */
   onCellEditCompleteHandler(event: any): void {
-    const fieldConfig = this.fields.find(f => f.field === event.field);
+    const fieldConfig = this.fields.find((f) => f.field === event.field);
     if (fieldConfig) {
       this.cellEditComplete.emit({
         rowData: event.data,
@@ -547,7 +588,7 @@ export class ConfigurableTreeTableComponent {
    * @param event - Optimus TreeTable edit cancel event with {field, data}
    */
   onCellEditCancelHandler(event: any): void {
-    const fieldConfig = this.fields.find(f => f.field === event.field);
+    const fieldConfig = this.fields.find((f) => f.field === event.field);
     if (fieldConfig) {
       event.data[event.field] = this.editingOriginalValue;
       this.cellEditCancel.emit({
@@ -588,10 +629,10 @@ export class ConfigurableTreeTableComponent {
    * @returns CSS class string
    */
   getCellClass(field: ColumnConfig): string {
-    return (field.dataType === DataType.Numeric
-      || field.dataType === DataType.NumericShowZero
-      || field.dataType === DataType.NumericInteger
-      || field.dataType === DataType.DateTimeNumeric)
+    return field.dataType === DataType.Numeric ||
+      field.dataType === DataType.NumericShowZero ||
+      field.dataType === DataType.NumericInteger ||
+      field.dataType === DataType.DateTimeNumeric
       ? 'text-end'
       : '';
   }

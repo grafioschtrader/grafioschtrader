@@ -1,42 +1,42 @@
-import {Component} from '@angular/core';
-import {BaseInputComponent} from '../base.input.component';
-import {ReactiveFormsModule} from '@angular/forms';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { BaseInputComponent } from '../base.input.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
-import {Textarea} from '@openng/optimus-ui/textarea';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {TranslateModule} from '@ngx-translate/core';
-import {FilterOutPipe} from '../../pipe/FilterOutPipe';
+import { Textarea } from '@openng/optimus-ui/textarea';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 
 @Component({
-    selector: 'form-pinputtextarea',
+  selector: 'form-pinputtextarea',
   template: `
     <ng-container [formGroup]="group">
-    <textarea pTextarea [rows]="config.textareaRows" [formControlName]="config.field" [id]="config.field"
-              [class.required-input]="isRequired && !config.readonly"
-              [readonly]="config.readonly"
-              [disabled]="config.disabled"
-              [maxlength]="config.maxLength"
-              pTooltip="{{config.labelHelpText?.startsWith('*')? config.labelHelpText.slice(1):
-              config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"
-              #input class="form-control">
-    </textarea>
+      <textarea
+        pTextarea
+        [rows]="config.textareaRows"
+        [formControlName]="config.field"
+        [id]="config.field"
+        [class.required-input]="isRequired && !config.readonly"
+        [readonly]="config.readonly"
+        [disabled]="config.disabled"
+        [maxlength]="config.maxLength"
+        pTooltip="{{
+          config.labelHelpText?.startsWith('*')
+            ? config.labelHelpText.slice(1)
+            : (config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP')
+        }}"
+        #input
+        class="form-control">
+      </textarea>
 
       @if (config.contextMenuItems) {
-        <p-contextMenu [target]="input" [model]="config.contextMenuItems" appendTo="body"/>
+        <p-contextMenu [target]="input" [model]="config.contextMenuItems" appendTo="body" />
       }
     </ng-container>
   `,
-    imports: [
-    ReactiveFormsModule,
-    Textarea,
-    ContextMenuModule,
-    TooltipModule,
-    TranslateModule,
-    FilterOutPipe
-],
-    standalone: true
+  imports: [ReactiveFormsModule, Textarea, ContextMenuModule, TooltipModule, TranslateModule, FilterOutPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: true
 })
-export class FormPInputTextareaComponent extends BaseInputComponent {
-
-}
+export class FormPInputTextareaComponent extends BaseInputComponent {}

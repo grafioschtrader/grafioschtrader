@@ -1,4 +1,4 @@
-import {expect, Locator, Page} from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 
 /**
  * Shared UI helpers for the manage-client feature specs (085-manage-client / 090-share-read-access,
@@ -27,18 +27,15 @@ export const RX = {
   createPortfolioItem: /(Create\s+Portfolio|Erstellen\s+Portfolio)/i,
   checkExistenceBtn: /(Check e-mail|E-Mail pr.fen)/i,
   clientCreatedMailSubject: /(A portfolio has been created for you|Es wurde ein Portfolio f.r Sie erstellt)/i,
-  shareInvitedMailSubject: /(Read access to a portfolio has been shared|Lesezugriff auf ein Portfolio wurde mit Ihnen geteilt)/i,
+  shareInvitedMailSubject:
+    /(Read access to a portfolio has been shared|Lesezugriff auf ein Portfolio wurde mit Ihnen geteilt)/i,
   viewerKind: /(View-only login|Nur-Lese-Zugang)/i,
-  grantKind: /(Registered user|Registrierter Benutzer)/i,
+  grantKind: /(Registered user|Registrierter Benutzer)/i
 };
 
-/**
- * Success/warning toasts are rendered by ngx-toastr into a body-level `#toast-container`, not a
- * Optimus UI `p-toast`. Asserts a toast whose text matches `messageRx` appears.
- */
+/** Asserts that an Optimus UI toast whose text matches `messageRx` appears. */
 export async function expectToast(page: Page, messageRx: RegExp): Promise<void> {
-  await expect(page.locator('#toast-container').getByText(messageRx).first())
-    .toBeVisible({timeout: 15_000});
+  await expect(page.getByRole('alert').filter({ hasText: messageRx }).first()).toBeVisible({ timeout: 15_000 });
 }
 
 /** The top-level Client menu entry (label is exactly "Client"/"Klient"). */
@@ -49,7 +46,7 @@ export function clientMenuRoot(page: Page): Locator {
 /** Opens the top-level Client menu so its sub-items become visible. */
 export async function openClientMenu(page: Page): Promise<void> {
   const root = clientMenuRoot(page);
-  await root.waitFor({state: 'visible', timeout: 15_000});
+  await root.waitFor({ state: 'visible', timeout: 15_000 });
   await root.click();
 }
 
@@ -63,7 +60,7 @@ export async function closeMenus(page: Page): Promise<void> {
 export async function clickClientMenuItem(page: Page, itemRx: RegExp): Promise<void> {
   await openClientMenu(page);
   const item = page.locator('p-menubar').getByText(itemRx).first();
-  await item.waitFor({state: 'visible', timeout: 5_000});
+  await item.waitFor({ state: 'visible', timeout: 5_000 });
   await item.click();
 }
 
@@ -73,8 +70,8 @@ export async function clickClientMenuItem(page: Page, itemRx: RegExp): Promise<v
  */
 export async function openManageClientDialog(page: Page, itemRx: RegExp, headerRx: RegExp): Promise<Locator> {
   await clickClientMenuItem(page, itemRx);
-  const dialog = page.locator('.p-dialog').filter({hasText: headerRx}).first();
-  await dialog.waitFor({state: 'visible', timeout: 10_000});
+  const dialog = page.locator('.p-dialog').filter({ hasText: headerRx }).first();
+  await dialog.waitFor({ state: 'visible', timeout: 10_000 });
   await page.waitForTimeout(800);
   return dialog;
 }
@@ -82,13 +79,13 @@ export async function openManageClientDialog(page: Page, itemRx: RegExp, headerR
 /** Closes a (closable) dialog via ESC and waits until it is gone. */
 export async function closeDialog(page: Page, dialog: Locator): Promise<void> {
   await page.keyboard.press('Escape');
-  await dialog.waitFor({state: 'hidden', timeout: 5_000});
+  await dialog.waitFor({ state: 'hidden', timeout: 5_000 });
 }
 
 /** Fills a dynamic-form input and dispatches the input event so Angular picks the value up. */
 export async function fillInput(dialog: Locator, selector: string, value: string): Promise<void> {
   const input = dialog.locator(selector);
-  await input.waitFor({state: 'visible', timeout: 10_000});
+  await input.waitFor({ state: 'visible', timeout: 10_000 });
   await input.click();
   await input.fill(value);
   await input.dispatchEvent('input');
@@ -108,7 +105,7 @@ export function tenantRootNode(page: Page): Locator {
  */
 export async function expectNoClientMenu(page: Page): Promise<void> {
   const menubar = page.locator('p-menubar');
-  await menubar.waitFor({state: 'visible', timeout: 15_000});
+  await menubar.waitFor({ state: 'visible', timeout: 15_000 });
   await expect(menubar.getByText(RX.clientMenuRoot)).toHaveCount(0);
 }
 
@@ -118,21 +115,21 @@ export async function expectNoClientMenu(page: Page): Promise<void> {
  * POST must be rejected and no portfolio node may appear.
  */
 export async function attemptCreatePortfolioExpectRejected(page: Page, name: string): Promise<void> {
-  await tenantRootNode(page).click({button: 'right'});
+  await tenantRootNode(page).click({ button: 'right' });
   const menuItem = page.locator('p-contextmenu').getByText(RX.createPortfolioItem).first();
-  await menuItem.waitFor({state: 'visible', timeout: 5_000});
+  await menuItem.waitFor({ state: 'visible', timeout: 5_000 });
   await menuItem.click();
 
   const dialog = page.locator('.p-dialog').first();
-  await dialog.waitFor({state: 'visible', timeout: 10_000});
+  await dialog.waitFor({ state: 'visible', timeout: 10_000 });
   await fillInput(dialog, '#name', name);
   await dialog.locator('button[type="submit"]').click();
   await page.waitForTimeout(2_500);
 
-  await expect(page.locator('.p-tree-node-content', {hasText: name})).toHaveCount(0);
+  await expect(page.locator('.p-tree-node-content', { hasText: name })).toHaveCount(0);
 
   if (await dialog.isVisible().catch(() => false)) {
-    await page.keyboard.press('Escape');
-    await dialog.waitFor({state: 'hidden', timeout: 5_000}).catch(() => undefined);
+    await dialog.getByRole('button', { name: /^(Close|Schlie.en)$/i }).click();
+    await dialog.waitFor({ state: 'hidden', timeout: 5_000 });
   }
 }

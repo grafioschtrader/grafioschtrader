@@ -1,50 +1,57 @@
-import {Component, EventEmitter, Injector, Input, OnInit, Output} from '@angular/core';
-import {FormsModule} from '@angular/forms';
-import {SecurityDividendsPosition} from '../../entities/view/securitydividends/security.dividends.position';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SecurityDividendsGrandTotal} from '../../entities/view/securitydividends/security.dividends.grand.total';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {Security} from '../../entities/security';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {TransactionSecurityOptionalParam} from '../../transaction/model/transaction.security.optional.param';
-import {FilterService, SharedModule} from '@openng/optimus-ui/api';
-import {TenantDividendsExtendedBase} from './tenant.dividends.extended.base';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {TaxDataService} from '../../taxdata/service/tax-data.service';
-import {CommonModule} from '@angular/common';
-import {TableModule} from '@openng/optimus-ui/table';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {CheckboxModule} from '@openng/optimus-ui/checkbox';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {TaxYearCorrectionDialogComponent} from '../../taxdata/component/tax-year-correction-dialog.component';
-import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
-import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
-import {AngularSvgIconModule} from 'angular-svg-icon';
-import {AppSettings} from '../../shared/app.settings';
-import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
+import { Component, EventEmitter, Injector, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { SecurityDividendsPosition } from '../../entities/view/securitydividends/security.dividends.position';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Security } from '../../entities/security';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { TransactionSecurityOptionalParam } from '../../transaction/model/transaction.security.optional.param';
+import { FilterService, SharedModule } from '@openng/optimus-ui/api';
+import { TenantDividendsExtendedBase } from './tenant.dividends.extended.base';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { TaxDataService } from '../../taxdata/service/tax-data.service';
+import { CommonModule } from '@angular/common';
+import { TableModule } from '@openng/optimus-ui/table';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { TaxYearCorrectionDialogComponent } from '../../taxdata/component/tax-year-correction-dialog.component';
+import { TransactionSecurityTableComponent } from '../../transaction/component/transaction-security-table.component';
+import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { AppSettings } from '../../shared/app.settings';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 
 /**
  * Shows the dividends and other information of securities for one year in a table. One row per security.
  */
 @Component({
-    selector: 'tenant-dividends-security-extended',
+  selector: 'tenant-dividends-security-extended',
   template: `
     <div class="datatable">
-      <p-table [columns]="fields" [value]="securityDividendsPositions" selectionMode="single"
-               dataKey="security.idSecuritycurrency" sortMode="multiple" [multiSortMeta]="multiSortMeta"
-               [expandedRowKeys]="expandedRowKeys"
-               [contextMenu]="isSwissTenant ? cmSec : null" [(contextMenuSelection)]="contextMenuSelectedPosition"
-               (onContextMenuSelect)="onContextMenuSelect($event)"
-               stripedRows showGridlines>
+      <p-table
+        [columns]="fields"
+        [value]="securityDividendsPositions"
+        selectionMode="single"
+        dataKey="security.idSecuritycurrency"
+        sortMode="multiple"
+        [multiSortMeta]="multiSortMeta"
+        [expandedRowKeys]="expandedRowKeys"
+        [contextMenu]="isSwissTenant ? cmSec : null"
+        [(contextMenuSelection)]="contextMenuSelectedPosition"
+        (onContextMenuSelect)="onContextMenuSelect($event)"
+        stripedRows
+        showGridlines>
         <ng-template #caption>
-          <h5>{{ 'INSTRUMENT'|translate }}</h5>
+          <h5>{{ 'INSTRUMENT' | translate }}</h5>
         </ng-template>
         <ng-template #header let-fields>
           <tr>
@@ -53,10 +60,13 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
               {{ 'EXCLUDED_FROM_TAX' | translate }}
             </th>
             @for (field of fields; track field) {
-              <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [pTooltip]="field.headerTooltipTranslated"
-                  class="word-break-header" [attr.lang]="baseLocale.language">
+              <th
+                [pSortableColumn]="field.field"
+                [style.max-width.px]="field.width"
+                [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                [pTooltip]="field.headerTooltipTranslated"
+                class="word-break-header"
+                [attr.lang]="baseLocale.language">
                 {{ field.headerTranslated }}
                 <p-sortIcon [field]="field.field"></p-sortIcon>
               </th>
@@ -71,21 +81,32 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
               </a>
             </td>
             <td style="text-align:center">
-              <p-checkbox [binary]="true" [(ngModel)]="el.excludedFromTax" (onChange)="onExclusionToggle(el)"></p-checkbox>
+              <p-checkbox
+                [binary]="true"
+                [(ngModel)]="el.excludedFromTax"
+                (onChange)="onExclusionToggle(el)"></p-checkbox>
             </td>
             @for (field of fields; track field) {
-              <td [style.max-width.px]="field.width"
-                  [ngStyle]="getCellStyle(el, field)"
-                  [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                || field.dataType===DataType.NumericInteger)? 'text-end': ''">
+              <td
+                [style.max-width.px]="field.width"
+                [ngStyle]="getCellStyle(el, field)"
+                [ngClass]="
+                  field.dataType === DataType.Numeric ||
+                  field.dataType === DataType.DateTimeNumeric ||
+                  field.dataType === DataType.NumericInteger
+                    ? 'text-end'
+                    : ''
+                ">
                 @switch (field.templateName) {
                   @case ('icon') {
-                    <svg-icon [name]="getValueByPath(el, field)"
-                              [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+                    <svg-icon
+                      [name]="getValueByPath(el, field)"
+                      [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
                   }
                   @default {
-                    <span [pTooltip]="getCellTooltip(el, field)"
-                          tooltipPosition="top">{{ getValueByPath(el, field) }}</span>
+                    <span [pTooltip]="getCellTooltip(el, field)" tooltipPosition="top">{{
+                      getValueByPath(el, field)
+                    }}</span>
                   }
                 }
               </td>
@@ -96,12 +117,13 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
           <tr>
             <td [attr.colspan]="numberOfVisibleColumns + 2">
               @if (!!sdp.security.stockexchange && !isMarginProduct(sdp.security)) {
-                <transaction-security-table [idTenant]="idTenant"
-                                            [idSecuritycurrency]="sdp.security.idSecuritycurrency"
-                                            [idsSecurityaccount]="idsSecurityaccount"
-                                            [transactionSecurityOptionalParam]="tsop"
-                                            [untilDate]="untilDateForTransactions"
-                                            (dateChanged)="transactionDataChanged($event)">
+                <transaction-security-table
+                  [idTenant]="idTenant"
+                  [idSecuritycurrency]="sdp.security.idSecuritycurrency"
+                  [idsSecurityaccount]="idsSecurityaccount"
+                  [transactionSecurityOptionalParam]="tsop"
+                  [untilDate]="untilDateForTransactions"
+                  (dateChanged)="transactionDataChanged($event)">
                 </transaction-security-table>
               }
 
@@ -121,30 +143,32 @@ import {ProductIconService} from '../../securitycurrency/service/product.icon.se
       </p-table>
       <p-contextMenu #cmSec [model]="contextMenuItems" appendTo="body"></p-contextMenu>
       @if (visibleCorrectionDialog) {
-        <tax-year-correction-dialog [visibleDialog]="visibleCorrectionDialog"
-                                    [security]="dialogSecurity"
-                                    [yearOptions]="correctionYearOptions"
-                                    [suggestedYear]="year"
-                                    (closeDialog)="handleCorrectionDialogClose($event)">
+        <tax-year-correction-dialog
+          [visibleDialog]="visibleCorrectionDialog"
+          [security]="dialogSecurity"
+          [yearOptions]="correctionYearOptions"
+          [suggestedYear]="year"
+          (closeDialog)="handleCorrectionDialogClose($event)">
         </tax-year-correction-dialog>
       }
     </div>
   `,
-    standalone: true,
-    imports: [
-        CommonModule,
-        FormsModule,
-        TableModule,
-        TooltipModule,
-        TranslateModule,
-        SharedModule,
-        CheckboxModule,
-        ContextMenuModule,
-        TransactionSecurityTableComponent,
-        TransactionSecurityMarginTreetableComponent,
-        TaxYearCorrectionDialogComponent,
-        AngularSvgIconModule
-    ]
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TableModule,
+    TooltipModule,
+    TranslateModule,
+    SharedModule,
+    CheckboxModule,
+    ContextMenuModule,
+    TransactionSecurityTableComponent,
+    TransactionSecurityMarginTreetableComponent,
+    TaxYearCorrectionDialogComponent,
+    AngularSvgIconModule
+  ]
 })
 export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExtendedBase implements OnInit {
   @Input() idsSecurityaccount: number[];
@@ -184,13 +208,15 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   // Output
   @Output() dateChanged = new EventEmitter<ProcessedActionData>();
 
-  constructor(filterService: FilterService,
+  constructor(
+    filterService: FilterService,
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
     gps: GlobalparameterService,
     injector: Injector,
     private taxDataService: TaxDataService,
-    private productIconService: ProductIconService) {
+    private productIconService: ProductIconService
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.idTenant = this.gps.getIdTenant();
   }
@@ -199,40 +225,57 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   private nameColorReasons: { [key: string]: string } = {};
 
   ngOnInit(): void {
-    this.translateService.get(['BOND_REDEEMED_MATURITY_YEAR', 'POSITION_ZERO_START_END_YEAR',
-      'POSITION_SOLD_OUT_YEAR', 'POSITION_OPENED_YEAR', 'TAX_YEAR_CORRECTION_EXISTS'])
-      .subscribe(translations => this.nameColorReasons = translations);
-    this.addColumn(DataType.String, 'security.name', 'NAME', true, false, {width: 200});
-    this.addColumn(DataType.String, 'security', AppSettings.INSTRUMENT_HEADER, true, false,
-      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.addColumnFeqH(DataType.String, 'security.isin', true, false, {width: 90});
+    this.translateService
+      .get([
+        'BOND_REDEEMED_MATURITY_YEAR',
+        'POSITION_ZERO_START_END_YEAR',
+        'POSITION_SOLD_OUT_YEAR',
+        'POSITION_OPENED_YEAR',
+        'TAX_YEAR_CORRECTION_EXISTS'
+      ])
+      .subscribe((translations) => (this.nameColorReasons = translations));
+    this.addColumn(DataType.String, 'security.name', 'NAME', true, false, {
+      width: 200
+    });
+    this.addColumn(DataType.String, 'security', AppSettings.INSTRUMENT_HEADER, true, false, {
+      fieldValueFN: this.getInstrumentIcon.bind(this),
+      templateName: 'icon',
+      width: 20
+    });
+    this.addColumnFeqH(DataType.String, 'security.isin', true, false, {
+      width: 90
+    });
     this.addColumn(DataType.String, 'security.currency', 'CURRENCY', true, false);
     this.addColumnFeqH(DataType.String, 'exchangeRateEndOfYear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'unitsAtEndOfYear', true, false);
     this.addColumnFeqH(DataType.Numeric, 'closeEndOfYear', true, false);
-    this.addColumnFeqH(DataType.Numeric, 'taxFreeIncome', true, false,
-      {currencyPrecisionField: 'security.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'financeCostMC', false, true,
-      {
-        width: 80, headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
-      });
+    this.addColumnFeqH(DataType.Numeric, 'taxFreeIncome', true, false, {
+      currencyPrecisionField: 'security.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'financeCostMC', false, true, {
+      width: 80,
+      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+    });
     this.addGeneralColumns(this.securityDividendsGrandTotal.mainCurrency, 'security.currency');
     this.addIctaxColumns();
-    this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false,
-      {
-        width: 70, headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
-        fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
-      });
-    this.multiSortMeta.push({field: 'security.name', order: 1});
+    this.addColumnFeqH(DataType.Numeric, 'valueAtEndOfYearMC', true, false, {
+      width: 70,
+      headerSuffix: this.securityDividendsGrandTotal.mainCurrency,
+      fixedCurrency: this.securityDividendsGrandTotal.mainCurrency
+    });
+    this.multiSortMeta.push({ field: 'security.name', order: 1 });
     this.prepareTableAndTranslate();
     if (this.securityDividendsGrandTotal.hasMarginData) {
-      const marginCol = this.fields.find(f => f.field === 'financeCostMC');
-      if (marginCol) { marginCol.visible = true; }
+      const marginCol = this.fields.find((f) => f.field === 'financeCostMC');
+      if (marginCol) {
+        marginCol.visible = true;
+      }
     }
     if (this.securityDividendsGrandTotal.tenantCountry === 'CH') {
-      this.fields.filter(f => f.field === 'ictaxTotalPaymentValueChf' || f.field === 'ictaxTotalTaxValueChf')
-        .forEach(f => f.visible = true);
+      this.fields
+        .filter((f) => f.field === 'ictaxTotalPaymentValueChf' || f.field === 'ictaxTotalTaxValueChf')
+        .forEach((f) => (f.visible = true));
     }
   }
 
@@ -257,37 +300,47 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
    * @returns an ngStyle object for the cell
    */
   getCellStyle(row: SecurityDividendsPosition, field: ColumnConfig): { [key: string]: string } {
-    const widthStyle = field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {};
+    const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
     if (field.field === 'security.name') {
       const color = this.getNameCellColor(row);
-      return color ? {...widthStyle, 'background-color': color} : widthStyle;
+      return color ? { ...widthStyle, 'background-color': color } : widthStyle;
     }
     if (field.field === 'security.isin' && row.taxYearCorrectionNearby) {
-      return {...widthStyle, 'background-color': 'hsl(54, 100%, 78%)'};  // yellow — correction this or previous year
+      return { ...widthStyle, 'background-color': 'hsl(54, 100%, 78%)' }; // yellow — correction this or previous year
     }
     if (field.field === 'taxableAmountMC' && row.taxYearCorrectionType === 'TAXABLE_AMOUNT') {
-      return {...widthStyle, 'background-color': 'hsl(120, 60%, 82%)'};  // green — this value overrides ICTax
+      return { ...widthStyle, 'background-color': 'hsl(120, 60%, 82%)' }; // green — this value overrides ICTax
     }
     if (field.field === 'ictaxTotalPaymentValueChf' && row.taxYearCorrectionType === 'DIRECT_VALUE') {
-      return {...widthStyle, 'background-color': 'hsl(54, 100%, 78%)'};  // yellow — manually entered override
+      return { ...widthStyle, 'background-color': 'hsl(54, 100%, 78%)' }; // yellow — manually entered override
     }
-    if (field.field === 'ictaxTotalPaymentValueChf'
-      && row.ictaxTotalPaymentValueChf != null && row.ictaxTotalPaymentValueChf !== 0
-      && (row.taxableAmountMC == null || row.taxableAmountMC === 0)) {
-      return {...widthStyle, 'background-color': 'hsl(0, 70%, 80%)'};  // no taxable amount -> darkest red
+    if (
+      field.field === 'ictaxTotalPaymentValueChf' &&
+      row.ictaxTotalPaymentValueChf != null &&
+      row.ictaxTotalPaymentValueChf !== 0 &&
+      (row.taxableAmountMC == null || row.taxableAmountMC === 0)
+    ) {
+      return { ...widthStyle, 'background-color': 'hsl(0, 70%, 80%)' }; // no taxable amount -> darkest red
     }
-    if (field.field === 'ictaxTotalPaymentValueChf'
-      && row.ictaxTotalPaymentValueChf != null
-      && row.taxableAmountMC != null && row.taxableAmountMC !== 0) {
+    if (
+      field.field === 'ictaxTotalPaymentValueChf' &&
+      row.ictaxTotalPaymentValueChf != null &&
+      row.taxableAmountMC != null &&
+      row.taxableAmountMC !== 0
+    ) {
       const deviation = (row.ictaxTotalPaymentValueChf - row.taxableAmountMC) / row.taxableAmountMC;
-      if (deviation === 0) {                                      // equal values -> no shading at all
+      if (deviation === 0) {
+        // equal values -> no shading at all
         return widthStyle;
       }
-      const maxDeviation = 0.20;                                  // +/-20% = full shade
+      const maxDeviation = 0.2; // +/-20% = full shade
       const intensity = Math.min(Math.abs(deviation), maxDeviation) / maxDeviation;
-      const hue = deviation > 0 ? 0 : 120;                        // 0 = red (ictax higher), 120 = green (lower)
-      const lightness = 95 - intensity * 15;                      // 95% (subtle) -> 80% (strong)
-      return {...widthStyle, 'background-color': `hsl(${hue}, 70%, ${lightness}%)`};
+      const hue = deviation > 0 ? 0 : 120; // 0 = red (ictax higher), 120 = green (lower)
+      const lightness = 95 - intensity * 15; // 95% (subtle) -> 80% (strong)
+      return {
+        ...widthStyle,
+        'background-color': `hsl(${hue}, 70%, ${lightness}%)`
+      };
     }
     return widthStyle;
   }
@@ -312,9 +365,11 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     if (field.field === 'security.isin' && row.taxYearCorrectionNearby) {
       return value + '\n' + (row.taxYearCorrectionNote || this.nameColorReasons['TAX_YEAR_CORRECTION_EXISTS'] || '');
     }
-    if (row.taxYearCorrectionNote
-      && ((field.field === 'taxableAmountMC' && row.taxYearCorrectionType === 'TAXABLE_AMOUNT')
-        || (field.field === 'ictaxTotalPaymentValueChf' && row.taxYearCorrectionType === 'DIRECT_VALUE'))) {
+    if (
+      row.taxYearCorrectionNote &&
+      ((field.field === 'taxableAmountMC' && row.taxYearCorrectionType === 'TAXABLE_AMOUNT') ||
+        (field.field === 'ictaxTotalPaymentValueChf' && row.taxYearCorrectionType === 'DIRECT_VALUE'))
+    ) {
       return value + '\n' + row.taxYearCorrectionNote;
     }
     return value;
@@ -325,10 +380,12 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
    * for the selected security (Swiss tenants only, gated via the table's contextMenu binding).
    */
   private buildContextMenu(): void {
-    const menuItems: MenuItem[] = [{
-      label: 'TAX_YEAR_CORRECTIONS' + BaseSettings.DIALOG_MENU_SUFFIX,
-      command: () => this.openCorrectionDialog(this.contextMenuSelectedPosition)
-    }];
+    const menuItems: MenuItem[] = [
+      {
+        label: 'TAX_YEAR_CORRECTIONS' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.openCorrectionDialog(this.contextMenuSelectedPosition)
+      }
+    ];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     this.contextMenuItems = menuItems;
   }
@@ -350,7 +407,8 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
     }
     this.dialogSecurity = sdp.security;
     this.correctionYearOptions = this.securityDividendsGrandTotal.securityDividendsYearGroup
-      .map(yg => yg.year).sort((a, b) => b - a);
+      .map((yg) => yg.year)
+      .sort((a, b) => b - a);
     this.visibleCorrectionDialog = true;
   }
 
@@ -377,13 +435,13 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   private getNameCellColor(row: SecurityDividendsPosition): string | null {
     switch (this.getNameColorReasonKey(row)) {
       case 'BOND_REDEEMED_MATURITY_YEAR':
-        return '#FFD39B';                                // Burlywood 1 — bond redeemed at/after maturity
+        return '#FFD39B'; // Burlywood 1 — bond redeemed at/after maturity
       case 'POSITION_ZERO_START_END_YEAR':
-        return 'LightPink';                              // balance 0 at beginning and end of the year
+        return 'LightPink'; // balance 0 at beginning and end of the year
       case 'POSITION_SOLD_OUT_YEAR':
-        return 'hsl(54, 100%, 78%)';                     // yellow — position fully sold this year
+        return 'hsl(54, 100%, 78%)'; // yellow — position fully sold this year
       case 'POSITION_OPENED_YEAR':
-        return 'hsl(120, 60%, 82%)';                     // green — position opened this year (0 -> X)
+        return 'hsl(120, 60%, 82%)'; // green — position opened this year (0 -> X)
       default:
         return null;
     }
@@ -438,5 +496,4 @@ export class TenantDividendsSecurityExtendedComponent extends TenantDividendsExt
   transactionDataChanged(event: ProcessedActionData) {
     this.dateChanged.emit(event);
   }
-
 }

@@ -1,8 +1,8 @@
-import {UDFMetadata, UDFMetadataParam} from '../../lib/udfmeta/model/udf.metadata';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {FieldDescriptorInputAndShowExtended} from '../../lib/dynamicfield/field.descriptor.input.and.show';
-import {IUDFSpecialType} from '../../lib/udfmeta/model/udf.special.type.interface';
+import { UDFMetadata, UDFMetadataParam } from '../../lib/udfmeta/model/udf.metadata';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { FieldDescriptorInputAndShowExtended } from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import { IUDFSpecialType } from '../../lib/udfmeta/model/udf.special.type.interface';
 
 /**
  * UDF metadata configuration specific to securities and financial instruments.
@@ -24,7 +24,7 @@ export class UDFMetadataSecurity extends UDFMetadata {
  */
 export class UDFMetadataSecurityParam extends UDFMetadataParam {
   /** The security UDF metadata entity being edited, or null when creating a new entry */
-  uDFMetadataSecurity: UDFMetadataSecurity
+  uDFMetadataSecurity: UDFMetadataSecurity;
 }
 
 /**
@@ -49,23 +49,32 @@ export interface FieldDescriptorInputAndShowExtendedSecurity extends FieldDescri
  */
 export const UDFSpecialType = {
   /** Internal field for calculating yield to maturity for bonds */
-  UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY: { value: 1, name: 'UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY' } as IUDFSpecialType,
+  UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY: {
+    value: 1,
+    name: 'UDF_SPEC_INTERNAL_CALC_YIELD_TO_MATURITY'
+  } as IUDFSpecialType,
 
   /** Internal field storing Yahoo Finance earnings report link URL */
   UDF_SPEC_INTERNAL_YAHOO_EARNING_LINK: { value: 2, name: 'UDF_SPEC_INTERNAL_YAHOO_EARNING_LINK' } as IUDFSpecialType,
 
   /** Internal field for next earnings announcement date from Yahoo Finance */
-  UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE: { value: 3, name: 'UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE' } as IUDFSpecialType,
+  UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE: {
+    value: 3,
+    name: 'UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE'
+  } as IUDFSpecialType,
 
   /** Internal flag to hide Yahoo Finance symbol from display */
   UDF_SPEC_INTERNAL_YAHOO_SYMBOL_HIDE: { value: 4, name: 'UDF_SPEC_INTERNAL_YAHOO_SYMBOL_HIDE' } as IUDFSpecialType,
 
   /** Internal field storing Yahoo Finance statistics page link URL */
-  UDF_SPEC_INTERNAL_YAHOO_STATISTICS_LINK: { value: 5, name: 'UDF_SPEC_INTERNAL_YAHOO_STATISTICS_LINK' } as IUDFSpecialType
+  UDF_SPEC_INTERNAL_YAHOO_STATISTICS_LINK: {
+    value: 5,
+    name: 'UDF_SPEC_INTERNAL_YAHOO_STATISTICS_LINK'
+  } as IUDFSpecialType
 } as const;
 
 /**
  * Type alias for UDF special type values.
  * Allows type-safe usage of UDFSpecialType constants throughout the application.
  */
-export type UDFSpecialTypeValue = typeof UDFSpecialType[keyof typeof UDFSpecialType];
+export type UDFSpecialTypeValue = (typeof UDFSpecialType)[keyof typeof UDFSpecialType];

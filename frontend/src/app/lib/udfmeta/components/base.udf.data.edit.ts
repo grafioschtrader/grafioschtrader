@@ -1,20 +1,20 @@
-import {SimpleEditBase} from '../../edit/simple.edit.base';
-import {MessageToastService} from '../../message/message.toast.service';
-import {UDFDataService} from '../service/udf.data.service';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {AppHelper} from '../../helper/app.helper';
-import {UDFData, UDFDataKey, UDFGeneralCallParam} from '../model/udf.metadata';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {FieldDescriptorInputAndShowExtended} from '../../dynamicfield/field.descriptor.input.and.show';
-import {Directive, Input} from '@angular/core';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {Helper} from '../../helper/helper';
-import {BaseSettings} from '../../base.settings';
+import { SimpleEditBase } from '../../edit/simple.edit.base';
+import { MessageToastService } from '../../message/message.toast.service';
+import { UDFDataService } from '../service/udf.data.service';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { AppHelper } from '../../helper/app.helper';
+import { UDFData, UDFDataKey, UDFGeneralCallParam } from '../model/udf.metadata';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { ProcessedAction } from '../../types/processed.action';
+import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { FieldDescriptorInputAndShowExtended } from '../../dynamicfield/field.descriptor.input.and.show';
+import { Directive, Input } from '@angular/core';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { Helper } from '../../helper/helper';
+import { BaseSettings } from '../../base.settings';
 
 /**
  * Abstract base component for editing user-defined field data values.
@@ -40,14 +40,15 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
    * @param gps - Global parameter service providing user settings and system configuration
    * @protected
    */
-  protected constructor(private messageToastService: MessageToastService,
+  protected constructor(
+    private messageToastService: MessageToastService,
     private uDFDataService: UDFDataService,
     public translateService: TranslateService,
     helpId: string,
-    gps: GlobalparameterService) {
+    gps: GlobalparameterService
+  ) {
     super(helpId, gps);
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      4, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
   }
 
   /**
@@ -58,7 +59,12 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
    * @protected
    */
   protected baseInit(fdList: FieldDescriptorInputAndShowExtended[]): void {
-    this.config = DynamicFieldModelHelper.createConfigFieldsFromExtendedDescriptor(this.translateService, fdList, '', true);
+    this.config = DynamicFieldModelHelper.createConfigFieldsFromExtendedDescriptor(
+      this.translateService,
+      fdList,
+      '',
+      true
+    );
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.entityKeyName = this.gps.getKeyNameByEntityName(this.uDFGeneralCallParam.entityName);
   }
@@ -71,10 +77,14 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
    */
   protected override initialize(): void {
     if (!this.uDFGeneralCallParam.udfData) {
-      this.uDFDataService.getUDFDataByEntityAndIdEntity(this.uDFGeneralCallParam.entityName,
-        <number>this.uDFGeneralCallParam.selectedEntity[this.entityKeyName]).subscribe(udfData => {
-        this.prepareData(udfData?.jsonValues)
-      });
+      this.uDFDataService
+        .getUDFDataByEntityAndIdEntity(
+          this.uDFGeneralCallParam.entityName,
+          <number>this.uDFGeneralCallParam.selectedEntity[this.entityKeyName]
+        )
+        .subscribe((udfData) => {
+          this.prepareData(udfData?.jsonValues);
+        });
     }
     this.prepareData(this.uDFGeneralCallParam.udfData);
   }
@@ -97,16 +107,22 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
    * @param value - Form values containing UDF field data to save
    */
   submit(value: { [name: string]: any }): void {
-    const udfData = new UDFData(new UDFDataKey(null, this.uDFGeneralCallParam.entityName,
-      <number>this.uDFGeneralCallParam.selectedEntity[this.entityKeyName]), value);
+    const udfData = new UDFData(
+      new UDFDataKey(
+        null,
+        this.uDFGeneralCallParam.entityName,
+        <number>this.uDFGeneralCallParam.selectedEntity[this.entityKeyName]
+      ),
+      value
+    );
     this.formatDate(value);
     this.uDFDataService.update(udfData, this.uDFGeneralCallParam.udfData ? 1 : null).subscribe({
       next: (uDFData: UDFData) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
-          {i18nRecord: 'UDF'});
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', { i18nRecord: 'UDF' });
         // Read only the watchlist, the watchlist was not changed
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
-      }, error: () => this.configObject.submit.disabled = false
+      },
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
 
@@ -118,7 +134,8 @@ export abstract class BaseUDFDataEdit extends SimpleEditBase {
    * @private
    */
   private formatDate(value: { [name: string]: any }): void {
-    this.config.filter(c => c.dataType === DataType.DateString).forEach(c => value[c.field] =
-      Helper.formatDateStringAsString(c, BaseSettings.FORMAT_DATE_SHORT_NATIVE));
+    this.config
+      .filter((c) => c.dataType === DataType.DateString)
+      .forEach((c) => (value[c.field] = Helper.formatDateStringAsString(c, BaseSettings.FORMAT_DATE_SHORT_NATIVE)));
   }
 }

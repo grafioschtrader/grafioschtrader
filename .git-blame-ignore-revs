@@ -1,0 +1,6 @@
+# Commits that only reformat, and that `git blame` should look through.
+# Configure once per clone:  git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub honours this file automatically.
+#
+# Append the full 40-character hash of each sweep commit below, one per line,
+# with the commit subject as a comment.

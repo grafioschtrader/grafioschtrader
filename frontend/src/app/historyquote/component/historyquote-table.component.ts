@@ -1,49 +1,62 @@
-import {Component, EventEmitter, Injector, Input, OnChanges, OnDestroy, Output, SimpleChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {Historyquote} from '../../entities/historyquote';
-import {HistoryquoteService} from '../service/historyquote.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {AppSettings} from '../../shared/app.settings';
-import {combineLatest} from 'rxjs';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {INameSecuritycurrency} from '../../entities/view/iname.securitycurrency';
-import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {HistoryquoteDeleteBounds, HistoryquoteFillGapsBounds} from '../../securitycurrency/model/historyquote.quality.group';
-import {HelpIds} from '../../lib/help/help.ids';
-import {TimeSeriesParam} from './time.series.chart.component';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {HistoryquoteTableBase} from './historyquote-table.base';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {Security} from '../../entities/security';
-import {Currencypair} from '../../entities/currencypair';
-import {plainToClass} from 'class-transformer';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {HistoryquotesWithMissings} from '../model/historyquotes.with.missings';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {FileUploadParam} from '../../lib/generaldialog/model/file.upload.param';
-import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {BaseSettings} from '../../lib/base.settings';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {HistoryquoteQualityComponent} from './historyquote-quality.component';
-import {HistoryquoteEditComponent} from './historyquote-edit.component';
-import {UploadFileDialogComponent} from '../../lib/generaldialog/component/upload-file-dialog.component';
-import {HistoryquoteQualityFillGapsComponent} from './historyquote-quality-fill-gaps.component';
-import {HistoryquoteDeleteDialogComponent} from './historyquote-delete-dialog.component';
-import {GlobalSessionNames} from '../../lib/global.session.names';
+import {
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Output,
+  SimpleChanges,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Historyquote } from '../../entities/historyquote';
+import { HistoryquoteService } from '../service/historyquote.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { AppSettings } from '../../shared/app.settings';
+import { combineLatest } from 'rxjs';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { INameSecuritycurrency } from '../../entities/view/iname.securitycurrency';
+import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import {
+  HistoryquoteDeleteBounds,
+  HistoryquoteFillGapsBounds
+} from '../../securitycurrency/model/historyquote.quality.group';
+import { HelpIds } from '../../lib/help/help.ids';
+import { TimeSeriesParam } from './time.series.chart.component';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { HistoryquoteTableBase } from './historyquote-table.base';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { Security } from '../../entities/security';
+import { Currencypair } from '../../entities/currencypair';
+import { plainToClass } from 'class-transformer';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { HistoryquotesWithMissings } from '../model/historyquotes.with.missings';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
+import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { BaseSettings } from '../../lib/base.settings';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { HistoryquoteQualityComponent } from './historyquote-quality.component';
+import { HistoryquoteEditComponent } from './historyquote-edit.component';
+import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
+import { HistoryquoteQualityFillGapsComponent } from './historyquote-quality-fill-gaps.component';
+import { HistoryquoteDeleteDialogComponent } from './historyquote-delete-dialog.component';
+import { GlobalSessionNames } from '../../lib/global.session.names';
 
 /**
  * Shows the history quotes in a table. Hosted by {@link HistoryquoteHostComponent}, which feeds
@@ -53,8 +66,14 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
 @Component({
   selector: 'historyquote-table',
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" #cmDiv
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      class="data-container"
+      (click)="onComponentClick($event)"
+      #cmDiv
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <div class="datatable">
         <configurable-table
           [data]="entityList"
@@ -81,61 +100,70 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
           [showContextMenu]="isActivated()"
           [contextMenuItems]="contextMenuItems"
           [valueGetterFn]="getValueByPath.bind(this)">
-
           <!-- Caption content projected into table header -->
           <div caption>
-            <h4>{{ entityNameUpper | translate }} {{ nameSecuritycurrency?.getName() }}</h4>
+            <h4>
+              {{ entityNameUpper | translate }}
+              {{ nameSecuritycurrency?.getName() }}
+            </h4>
             @if (security) {
-              <span>{{ 'TRADING_FROM_TO' | translate }}: {{ getDateByFormat(security.activeFromDate) }}
-              - {{ getDateByFormat(security.activeToDate) }}</span>
+              <span
+                >{{ 'TRADING_FROM_TO' | translate }}: {{ getDateByFormat(security.activeFromDate) }} -
+                {{ getDateByFormat(security.activeToDate) }}</span
+              >
             }
-            <historyquote-quality [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
-                                  [securitycurrency]="historyquotesWithMissings?.securitycurrency">
+            <historyquote-quality
+              [historyquoteQuality]="$safeNavigationMigration(historyquotesWithMissings?.historyquoteQuality)"
+              [securitycurrency]="$safeNavigationMigration(historyquotesWithMissings?.securitycurrency)">
             </historyquote-quality>
           </div>
 
           <!-- Custom icon cell template for svg-icon rendering -->
           <ng-template #iconCell let-row let-field="field" let-value="value">
-            <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
+            <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
           </ng-template>
-
         </configurable-table>
       </div>
     </div>
     @if (visibleDialog) {
-      <historyquote-edit [visibleDialog]="visibleDialog"
-                         [callParam]="callParam"
-                         (closeDialog)="handleCloseDialog($event)">
+      <historyquote-edit
+        [visibleDialog]="visibleDialog"
+        [callParam]="callParam"
+        (closeDialog)="handleCloseDialog($event)">
       </historyquote-edit>
     }
 
     @if (visibleUploadFileDialog) {
-      <upload-file-dialog [visibleDialog]="visibleUploadFileDialog"
-                          [fileUploadParam]="fileUploadParam"
-                          (closeDialog)="handleCloseDialogAndRead($event)">
+      <upload-file-dialog
+        [visibleDialog]="visibleUploadFileDialog"
+        [fileUploadParam]="fileUploadParam"
+        (closeDialog)="handleCloseDialogAndRead($event)">
       </upload-file-dialog>
     }
 
     @if (visibleFillGapsDialog) {
-      <historyquote-quality-fill-gaps [visibleDialog]="visibleFillGapsDialog"
-                                      [historyquoteQuality]="historyquotesWithMissings?.historyquoteQuality"
-                                      [securitycurrency]="historyquotesWithMissings?.securitycurrency"
-                                      [fillGapsBounds]="fillGapsBounds"
-                                      (closeDialog)="handleCloseDialogAndRead($event)">
+      <historyquote-quality-fill-gaps
+        [visibleDialog]="visibleFillGapsDialog"
+        [historyquoteQuality]="$safeNavigationMigration(historyquotesWithMissings?.historyquoteQuality)"
+        [securitycurrency]="$safeNavigationMigration(historyquotesWithMissings?.securitycurrency)"
+        [fillGapsBounds]="fillGapsBounds"
+        (closeDialog)="handleCloseDialogAndRead($event)">
       </historyquote-quality-fill-gaps>
     }
 
     @if (visibleDeleteHistoryquotes) {
-      <historyquote-delete-dialog [visibleDialog]="visibleDeleteHistoryquotes"
-                                  [idSecuritycurrency]="historyquotesWithMissings.securitycurrency.idSecuritycurrency"
-                                  [historyquoteQuality]="historyquotesWithMissings.historyquoteQuality"
-                                  [deleteBounds]="deleteBounds"
-                                  (closeDialog)="handleCloseDialogAndRead($event)">
+      <historyquote-delete-dialog
+        [visibleDialog]="visibleDeleteHistoryquotes"
+        [idSecuritycurrency]="historyquotesWithMissings.securitycurrency.idSecuritycurrency"
+        [historyquoteQuality]="historyquotesWithMissings.historyquoteQuality"
+        [deleteBounds]="deleteBounds"
+        (closeDialog)="handleCloseDialogAndRead($event)">
       </historyquote-delete-dialog>
     }
   `,
   providers: [DialogService],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -152,7 +180,9 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   @Input() timeSeriesParams: TimeSeriesParam[];
   @Output() showLegacyRequested = new EventEmitter<void>();
 
-  minDate: Date = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
+  minDate: Date = new Date(
+    sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+  );
   maxDate: Date = new Date('2099-12-31');
 
   callParam: HistoryquoteSecurityCurrency;
@@ -188,8 +218,8 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
   protected transactionPositionList: SecurityTransactionPosition[] = [];
   private historyquoteSpecMenuItems: MenuItem[];
 
-
-  constructor(private iconReg: SvgIconRegistryService,
+  constructor(
+    private iconReg: SvgIconRegistryService,
     private securityService: SecurityService,
     private currencypairService: CurrencypairService,
     private historyquoteService: HistoryquoteService,
@@ -202,9 +232,21 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     filterService: FilterService,
     gps: GlobalparameterService,
     translateService: TranslateService,
-    injector: Injector) {
-    super(AppSettings.HISTORYQUOTE, historyquoteService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, injector);
+    injector: Injector
+  ) {
+    super(
+      AppSettings.HISTORYQUOTE,
+      historyquoteService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
 
     HistoryquoteTableBase.registerCreateTypeIcons(this.iconReg);
     this.addDateColumn();
@@ -240,30 +282,36 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     // Both bulk-quote actions are always rendered. Permission state is reflected by the .disabled flag set in
     // resetMenu() rather than by hiding the item, so a limited-edit user without rights on the parent security still
     // sees the menu but cannot trigger the action.
-    this.historyquoteSpecMenuItems = [
-      this.deleteCreateTypesMenu,
-      this.fillGapsMenu,
-    ];
+    this.historyquoteSpecMenuItems = [this.deleteCreateTypesMenu, this.fillGapsMenu];
     // Always show the legacy menu (even when legacyCount is 0) so the user can
     // reach the legacy view to import a CSV when the shadow archive is empty.
     // Reset the label to the translation key on every prepareMenu invocation —
     // we append the live count below after translation.
     this.showLegacyMenu.label = 'HISTORYQUOTE_SHOW_LEGACY';
     this.historyquoteSpecMenuItems.push(this.showLegacyMenu);
-    this.historyquoteSpecMenuItems.push({separator: true});
+    this.historyquoteSpecMenuItems.push({ separator: true });
     this.historyquoteSpecMenuItems.push(this.importQuotesMenu);
-    this.historyquoteSpecMenuItems.push({label: 'EXPORT_CSV',
-      command: (event) => this.downloadCSvFile(this.historyquotesWithMissings.historyquoteList)});
+    this.historyquoteSpecMenuItems.push({
+      label: 'EXPORT_CSV',
+      command: (event) => this.downloadCSvFile(this.historyquotesWithMissings.historyquoteList)
+    });
     TranslateHelper.translateMenuItems(this.historyquoteSpecMenuItems, this.translateService);
     const legacyCount = this.historyquotesWithMissings?.legacyCount ?? 0;
     this.showLegacyMenu.label = `${this.showLegacyMenu.label} (${legacyCount})`;
   }
 
   uploadImportQuotes(): void {
-    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, null,
-      'csv', 'IMPORT_QUOTES', false, this.historyquoteService,
-      this.nameSecuritycurrency.getSecuritycurrency().idSecuritycurrency, this.historyquotesWithMissings.supportedCSVFormats,
-      BaseSettings.CSV_EXPORT_FORMAT);
+    this.fileUploadParam = new FileUploadParam(
+      HelpIds.HELP_WATCHLIST_HISTORYQUOTES,
+      null,
+      'csv',
+      'IMPORT_QUOTES',
+      false,
+      this.historyquoteService,
+      this.nameSecuritycurrency.getSecuritycurrency().idSecuritycurrency,
+      this.historyquotesWithMissings.supportedCSVFormats,
+      BaseSettings.CSV_EXPORT_FORMAT
+    );
 
     this.visibleUploadFileDialog = true;
   }
@@ -284,8 +332,9 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    * selectable range while the dynamic form is built.
    */
   deleteCreateTypeQuotes(): void {
-    this.historyquoteService.getDeleteBounds(this.historyquotesWithMissings.securitycurrency.idSecuritycurrency)
-      .subscribe(deleteBounds => {
+    this.historyquoteService
+      .getDeleteBounds(this.historyquotesWithMissings.securitycurrency.idSecuritycurrency)
+      .subscribe((deleteBounds) => {
         this.deleteBounds = deleteBounds;
         this.visibleDeleteHistoryquotes = true;
       });
@@ -296,8 +345,9 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    * selectable range while the dynamic form is built.
    */
   fillLinearGap(): void {
-    this.securityService.getFillGapsBounds(this.historyquotesWithMissings.securitycurrency.idSecuritycurrency)
-      .subscribe(fillGapsBounds => {
+    this.securityService
+      .getFillGapsBounds(this.historyquotesWithMissings.securitycurrency.idSecuritycurrency)
+      .subscribe((fillGapsBounds) => {
         this.fillGapsBounds = fillGapsBounds;
         this.visibleFillGapsDialog = true;
       });
@@ -308,24 +358,28 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
     // only a security whose quotes are derived from another instrument (idLinkSecuritycurrency) has no own menu.
     if (this.historyquotesWithMissings && !this.security?.idLinkSecuritycurrency) {
       this.contextMenuItems = this.prepareEditMenu(this.selectedEntity);
-      this.contextMenuItems.push({separator: true});
+      this.contextMenuItems.push({ separator: true });
       this.importQuotesMenu.disabled = !this.hasRightsForDeleteEntity(null);
       // Both bulk-quote actions require owner-or-higher-privileges on the parent security (mirroring the backend
       // gate hasRightsOrPrivilegesForEditingOrDelete). The data-quality preconditions follow.
       const noEditRights = !this.hasRightsForCreateEntity(null);
-      this.fillGapsMenu.disabled = noEditRights
-        || !this.historyquotesWithMissings.historyquoteQuality
-        || (this.historyquotesWithMissings.historyquoteQuality.totalMissing === 0
-          && this.historyquotesWithMissings.historyquoteQuality.toManyAsCalendar === 0);
-      this.deleteCreateTypesMenu.disabled = noEditRights
-        || !this.historyquotesWithMissings.historyquoteQuality
-        || (!this.historyquotesWithMissings.historyquoteQuality.filledLinear
-          && !this.historyquotesWithMissings.historyquoteQuality.manualImported);
+      this.fillGapsMenu.disabled =
+        noEditRights ||
+        !this.historyquotesWithMissings.historyquoteQuality ||
+        (this.historyquotesWithMissings.historyquoteQuality.totalMissing === 0 &&
+          this.historyquotesWithMissings.historyquoteQuality.toManyAsCalendar === 0);
+      this.deleteCreateTypesMenu.disabled =
+        noEditRights ||
+        !this.historyquotesWithMissings.historyquoteQuality ||
+        (!this.historyquotesWithMissings.historyquoteQuality.filledLinear &&
+          !this.historyquotesWithMissings.historyquoteQuality.manualImported);
       this.contextMenuItems.push(...this.historyquoteSpecMenuItems);
     } else {
       this.contextMenuItems = null;
     }
-    this.activePanelService.activatePanel(this, {editMenu: this.contextMenuItems});
+    this.activePanelService.activatePanel(this, {
+      editMenu: this.contextMenuItems
+    });
   }
 
   getDateByFormat(date: string): string {
@@ -356,25 +410,30 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
    * The creation of a history quote depends on the right on the security or currency
    */
   protected override hasRightsForCreateEntity(historyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
-      this.nameSecuritycurrency.getSecuritycurrency());
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.nameSecuritycurrency.getSecuritycurrency());
   }
 
   /**
    * The deletion of a history quote depends on the right on the security or currency
    */
   protected override hasRightsForDeleteEntity(historyquote: Historyquote): boolean {
-    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps,
-      this.nameSecuritycurrency.getSecuritycurrency());
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.nameSecuritycurrency.getSecuritycurrency());
   }
 
   private readAndShowData(timeSeriesParam: TimeSeriesParam): void {
     const stsObservable = timeSeriesParam.currencySecurity
-      ? BusinessHelper.getSecurityTransactionSummary(this.securityService,
-        timeSeriesParam.idSecuritycurrency, null, null, false)
+      ? BusinessHelper.getSecurityTransactionSummary(
+          this.securityService,
+          timeSeriesParam.idSecuritycurrency,
+          null,
+          null,
+          false
+        )
       : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParam.idSecuritycurrency, false);
     const historyquoteObservable = this.historyquoteService.getHistoryqoutesByIdSecuritycurrencyWithMissing(
-      timeSeriesParam.idSecuritycurrency, !timeSeriesParam.currencySecurity);
+      timeSeriesParam.idSecuritycurrency,
+      !timeSeriesParam.currencySecurity
+    );
 
     this.firstRow = 0;
     combineLatest([stsObservable, historyquoteObservable]).subscribe((data: any[]) => {
@@ -383,10 +442,12 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
         : new CurrencypairWithTransaction(data[0]);
       this.historyquotesWithMissings = data[1];
       this.entityList = this.historyquotesWithMissings.historyquoteList;
-      this.security = <Security>(timeSeriesParam.currencySecurity ? this.historyquotesWithMissings.securitycurrency : null);
+      this.security = <Security>(
+        (timeSeriesParam.currencySecurity ? this.historyquotesWithMissings.securitycurrency : null)
+      );
       this.prepareMenu();
       this.refreshSelectedEntity();
-      setTimeout(() => this.firstRow = this.firstRowIndexOnPage);
+      setTimeout(() => (this.firstRow = this.firstRowIndexOnPage));
     });
   }
 
@@ -395,16 +456,17 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
       this.readData();
     }
   }
-
 }
 
 export class HistoryquoteSecurityCurrency {
-  constructor(public historyquote: Historyquote, public securitycurrency: Securitycurrency) {
-  }
+  constructor(
+    public historyquote: Historyquote,
+    public securitycurrency: Securitycurrency
+  ) {}
 
   get showName(): string {
-    return this.securitycurrency.hasOwnProperty('name') ? (<Security>this.securitycurrency).name :
-      (<Currencypair>this.securitycurrency).fromCurrency + '/' + (<Currencypair>this.securitycurrency).toCurrency;
+    return this.securitycurrency.hasOwnProperty('name')
+      ? (<Security>this.securitycurrency).name
+      : (<Currencypair>this.securitycurrency).fromCurrency + '/' + (<Currencypair>this.securitycurrency).toCurrency;
   }
 }
-

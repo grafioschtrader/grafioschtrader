@@ -1,79 +1,83 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {LoginService} from '../../lib/login/service/log-in.service';
-import {MainDialogService} from '../../lib/mainmenubar/service/main.dialog.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {Security} from '../../entities/security';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {SecurityDerived, SecurityEditSupport} from '../../shared/securitycurrency/security.edit.support';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {SecuritycurrencySearchAndSetComponent} from './securitycurrency-search-and-set.component';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {combineLatest, Observable, Subscription} from 'rxjs';
-import {Stockexchange} from '../../entities/stockexchange';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {Assetclass} from '../../entities/assetclass';
-import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
-import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
-import {AssetclassService} from '../../assetclass/service/assetclass.service';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {DistributionFrequency} from '../../shared/types/distribution.frequency';
-import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
-import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {SecurityService} from '../service/security.service';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {CurrencypairService} from '../service/currencypair.service';
-import {SupplementCriteria} from '../model/supplement.criteria';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {SecurityDerivedLink} from '../../entities/security.derived.link';
-import {SecurityCurrencypairDerivedLinks} from '../model/security.currencypair.derived.links';
-import {AppSettings} from '../../shared/app.settings';
-import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
+import { Component, Input, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { LoginService } from '../../lib/login/service/log-in.service';
+import { MainDialogService } from '../../lib/mainmenubar/service/main.dialog.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { Security } from '../../entities/security';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { SecurityDerived, SecurityEditSupport } from '../../shared/securitycurrency/security.edit.support';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { SecuritycurrencySearchAndSetComponent } from './securitycurrency-search-and-set.component';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { Stockexchange } from '../../entities/stockexchange';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { Assetclass } from '../../entities/assetclass';
+import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
+import { StockexchangeService } from '../../stockexchange/service/stockexchange.service';
+import { AssetclassService } from '../../assetclass/service/assetclass.service';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { DistributionFrequency } from '../../shared/types/distribution.frequency';
+import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { SecurityService } from '../service/security.service';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { CurrencypairService } from '../service/currencypair.service';
+import { SupplementCriteria } from '../model/supplement.criteria';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { SecurityDerivedLink } from '../../entities/security.derived.link';
+import { SecurityCurrencypairDerivedLinks } from '../model/security.currencypair.derived.links';
+import { AppSettings } from '../../shared/app.settings';
+import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 
 /**
  * To create a derived instrument a base instrument is required. Additionally, a formula can be added. Prices depend on other instrument,
  * so there is no connector.
  */
 @Component({
-    selector: 'security-derived-edit',
+  selector: 'security-derived-edit',
   template: `
-    <p-dialog header="{{'DERIVED_DATA' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '600px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'DERIVED_DATA' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '600px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `,
-    standalone: true,
-    imports: [
-      TranslateModule,
-      DialogModule,
-      DynamicFormComponent
-    ],
-    providers: [DialogService]
+  standalone: true,
+  imports: [TranslateModule, DialogModule, DynamicFormComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  providers: [DialogService]
 })
 export class SecurityDerivedEditComponent extends SimpleEditBase implements OnInit {
-// Input from parent component
+  // Input from parent component
   @Input() securityCallParam: Security;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   // Access child components
-  @ViewChild(DynamicFormComponent, {static: true}) dynamicForm: DynamicFormComponent;
+  @ViewChild(DynamicFormComponent, { static: true })
+  dynamicForm: DynamicFormComponent;
 
   readonly derivedData = 'DERIVED_DATA';
   supplementCriteria: SupplementCriteria;
@@ -81,7 +85,9 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
 
   private dialogSecurityTargetFieldname: string;
   private baseInstrument: Security | CurrencypairWatchlist;
-  private additionalInstruments: { [fieldName: string]: Security | CurrencypairWatchlist } = {};
+  private additionalInstruments: {
+    [fieldName: string]: Security | CurrencypairWatchlist;
+  } = {};
   private securityEditSupport: SecurityEditSupport;
 
   private readonly BASE_PRODUCT_NAME = 'baseProductName';
@@ -89,30 +95,38 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   private readonly FORMULA_PRICES = 'formulaPrices';
   private usedFormulaVars: string[];
 
-  constructor(public translateService: TranslateService,
-              private gpsGT: GlobalparameterGTService,
-              private messageToastService: MessageToastService,
-              private loginService: LoginService,
-              private mainDialogService: MainDialogService,
-              private stockexchangeService: StockexchangeService,
-              private assetclassService: AssetclassService,
-              private securityService: SecurityService,
-              private currencypairService: CurrencypairService,
-              private dialogService: DialogService,
-              gps: GlobalparameterService) {
+  constructor(
+    public translateService: TranslateService,
+    private gpsGT: GlobalparameterGTService,
+    private messageToastService: MessageToastService,
+    private loginService: LoginService,
+    private mainDialogService: MainDialogService,
+    private stockexchangeService: StockexchangeService,
+    private assetclassService: AssetclassService,
+    private securityService: SecurityService,
+    private currencypairService: CurrencypairService,
+    private dialogService: DialogService,
+    gps: GlobalparameterService
+  ) {
     super(HelpIds.HELP_WATCHLIST_DERIVED_INSTRUMENT, gps);
     this.supplementCriteria = new SupplementCriteria(false, true);
   }
 
   ngOnInit(): void {
     this.securityEditSupport = new SecurityEditSupport(this.translateService, this.gps, null);
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      5, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldInputButtonHeqF(DataType.String, this.BASE_PRODUCT_NAME,
-        this.handleSecurityClick.bind(this), true, {fieldsetName: this.derivedData}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.FORMULA_PRICES, 255, false, {fieldsetName: this.derivedData})
+      DynamicFieldHelper.createFieldInputButtonHeqF(
+        DataType.String,
+        this.BASE_PRODUCT_NAME,
+        this.handleSecurityClick.bind(this),
+        true,
+        { fieldsetName: this.derivedData }
+      ),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.FORMULA_PRICES, 255, false, {
+        fieldsetName: this.derivedData
+      })
     ];
 
     this.config.push(...SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Derived, this.gps));
@@ -120,40 +134,49 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     this.config.push(...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this));
 
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
-    this.configObject.distributionFrequency.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-      DistributionFrequency);
+    this.configObject.distributionFrequency.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      DistributionFrequency
+    );
   }
 
   disableBaseInstrumentFields(): void {
     if (!AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, this.securityCallParam)) {
-      this.config.filter(fieldConfig => fieldConfig.fieldsetName === this.derivedData).forEach(
-        fieldConfig => fieldConfig.formControl.disable());
+      this.config
+        .filter((fieldConfig) => fieldConfig.fieldsetName === this.derivedData)
+        .forEach((fieldConfig) => fieldConfig.formControl.disable());
     }
   }
 
   valueChangedOnFormula(): void {
-    this.formulaSubscribe = this.configObject[this.FORMULA_PRICES].formControl.valueChanges.subscribe((formulaPrices: string) => {
-      if (!this.configObject[this.FORMULA_PRICES].formControl.disabled) {
-        if (formulaPrices) {
-          let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
-          this.usedFormulaVars = [];
-          while (match != null) {
-            this.usedFormulaVars.push(match[1]);
-            match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
+    this.formulaSubscribe = this.configObject[this.FORMULA_PRICES].formControl.valueChanges.subscribe(
+      (formulaPrices: string) => {
+        if (!this.configObject[this.FORMULA_PRICES].formControl.disabled) {
+          if (formulaPrices) {
+            let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
+            this.usedFormulaVars = [];
+            while (match != null) {
+              this.usedFormulaVars.push(match[1]);
+              match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(formulaPrices);
+            }
+            this.addInvestmentInstrumentFieldRow();
           }
-          this.addInvestmentInstrumentFieldRow();
+          this.reduceExpandChoosableAssetclass();
         }
-        this.reduceExpandChoosableAssetclass();
       }
-    });
+    );
   }
 
   handleSecurityClick(fieldConfig: FieldConfig): void {
     this.dialogSecurityTargetFieldname = fieldConfig.field;
-    this.translateService.get('SET_SECURITY').subscribe(title => {
+    this.translateService.get('SET_SECURITY').subscribe((title) => {
       const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
-        header: title, width: '720px', resizable: false, closable: true, closeOnEscape: true,
-        data: {supplementCriteria: this.supplementCriteria}
+        header: title,
+        width: '720px',
+        resizable: false,
+        closable: true,
+        closeOnEscape: true,
+        data: { supplementCriteria: this.supplementCriteria }
       });
       ref.onClose.subscribe((security: Security | CurrencypairWatchlist) => {
         if (security) {
@@ -169,18 +192,32 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   }
 
   submit(value: { [name: string]: any }): void {
-    const security = this.securityEditSupport.prepareForSave(this, this.proposeChangeEntityWithEntity, this.securityCallParam,
-      this.dynamicForm, value);
+    const security = this.securityEditSupport.prepareForSave(
+      this,
+      this.proposeChangeEntityWithEntity,
+      this.securityCallParam,
+      this.dynamicForm,
+      value
+    );
     if (this.baseInstrument) {
       security.idLinkSecuritycurrency = this.baseInstrument.idSecuritycurrency;
     }
     this.translateFormulaFromUserLanguage(security);
     this.setSecurityDerivedLinks(security);
-    this.securityService.update(security).subscribe({next: newSecurity => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: AppSettings.SECURITY.toUpperCase()});
-      this.closeDialog.emit(new ProcessedActionData(this.securityCallParam ? ProcessedAction.UPDATED
-        : ProcessedAction.CREATED, newSecurity));
-    }, error: () => this.configObject.submit.disabled = false});
+    this.securityService.update(security).subscribe({
+      next: (newSecurity) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+          i18nRecord: AppSettings.SECURITY.toUpperCase()
+        });
+        this.closeDialog.emit(
+          new ProcessedActionData(
+            this.securityCallParam ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
+            newSecurity
+          )
+        );
+      },
+      error: () => (this.configObject.submit.disabled = false)
+    });
   }
 
   override onHide(event): void {
@@ -192,44 +229,72 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   protected initialize(): void {
     this.securityEditSupport.registerValueOnChanged(SecurityDerived.Derived, this.configObject);
     this.valueChangedOnFormula();
-    const observables: Observable<Stockexchange[] | ValueKeyHtmlSelectOptions[]
-      | Assetclass[] | IFeedConnector[] | SecurityCurrencypairDerivedLinks>[] = [];
+    const observables: Observable<
+      Stockexchange[] | ValueKeyHtmlSelectOptions[] | Assetclass[] | IFeedConnector[] | SecurityCurrencypairDerivedLinks
+    >[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
     observables.push(this.gpsGT.getCurrencies());
     observables.push(this.assetclassService.getAllAssetclass());
     if (this.securityCallParam) {
-      observables.push(this.securityService.getDerivedInstrumentsLinksForSecurity(this.securityCallParam.idSecuritycurrency));
+      observables.push(
+        this.securityService.getDerivedInstrumentsLinksForSecurity(this.securityCallParam.idSecuritycurrency)
+      );
     }
 
-    combineLatest(observables).subscribe((data: [Stockexchange[], ValueKeyHtmlSelectOptions[], Assetclass[],
-      SecurityCurrencypairDerivedLinks]) => {
-      this.securityEditSupport.assignLoadedValues(this.configObject, data[0], data[1], data[2]);
-      this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
-        this.securityCallParam, this.form, this.configObject, this.proposeChangeEntityWithEntity);
-      this.securityCallParam && this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[data.length - 1]);
-      this.disableEnableInputForExisting(!!this.securityCallParam);
-    });
+    combineLatest(observables).subscribe(
+      (data: [Stockexchange[], ValueKeyHtmlSelectOptions[], Assetclass[], SecurityCurrencypairDerivedLinks]) => {
+        this.securityEditSupport.assignLoadedValues(this.configObject, data[0], data[1], data[2]);
+        this.form.setDefaultValuesAndEnableSubmit();
+        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+          this.translateService,
+          this.gps,
+          this.securityCallParam,
+          this.form,
+          this.configObject,
+          this.proposeChangeEntityWithEntity
+        );
+        this.securityCallParam &&
+          this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[data.length - 1]);
+        this.disableEnableInputForExisting(!!this.securityCallParam);
+      }
+    );
   }
 
   private addInvestmentInstrumentFieldRow(): void {
     const fieldConfig: FieldConfig[] = [];
     this.usedFormulaVars.forEach((ufv: string) => {
-      if (SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.indexOf(ufv) >= 0 && ufv
-        !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[0]) {
+      if (
+        SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.indexOf(ufv) >= 0 &&
+        ufv !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[0]
+      ) {
         const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + ufv;
 
         if (!this.configObject[fieldName]) {
-          fieldConfig.push(DynamicFieldHelper.createFieldInputButton(DataType.String, fieldName, 'ADDITIONAL_INSTRUMENT_NAME',
-            this.handleSecurityClick.bind(this), true, {fieldsetName: this.derivedData, labelSuffix: `(${ufv})`}));
+          fieldConfig.push(
+            DynamicFieldHelper.createFieldInputButton(
+              DataType.String,
+              fieldName,
+              'ADDITIONAL_INSTRUMENT_NAME',
+              this.handleSecurityClick.bind(this),
+              true,
+              { fieldsetName: this.derivedData, labelSuffix: `(${ufv})` }
+            )
+          );
         }
       }
     });
 
-    const unusedInstruments = this.config.filter(fc => fc.field.startsWith(
-        SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_')
-      && this.usedFormulaVars.indexOf(fc.field.charAt(fc.field.length - 1)) < 0);
-    unusedInstruments.forEach(ffc => this.config.splice(this.config.findIndex(fc => fc.field === ffc.field), 1));
+    const unusedInstruments = this.config.filter(
+      (fc) =>
+        fc.field.startsWith(SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_') &&
+        this.usedFormulaVars.indexOf(fc.field.charAt(fc.field.length - 1)) < 0
+    );
+    unusedInstruments.forEach((ffc) =>
+      this.config.splice(
+        this.config.findIndex((fc) => fc.field === ffc.field),
+        1
+      )
+    );
     if (fieldConfig.length > 0 || unusedInstruments.length > 0) {
       this.config = [...this.config.slice(0, 2), ...fieldConfig, ...this.config.slice(2, this.config.length)];
       this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -243,7 +308,10 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
 
   private setBaseInstrumentForExistingSecurity(scdl: SecurityCurrencypairDerivedLinks): void {
     this.configObject[this.BASE_PRODUCT_NAME].disabled = true;
-    this.baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, this.securityCallParam.idLinkSecuritycurrency);
+    this.baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(
+      scdl,
+      this.securityCallParam.idLinkSecuritycurrency
+    );
     this.reduceExpandChoosableAssetclass();
     this.configObject[this.BASE_PRODUCT_NAME].formControl.setValue(this.baseInstrument.name);
   }
@@ -258,8 +326,11 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
 
   private reduceExpandChoosableAssetclass(): void {
     const formula: string = this.configObject[this.FORMULA_PRICES].formControl.value;
-    if (this.baseInstrument && this.baseInstrument.assetClass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR]
-      && (!formula || formula.length === 0)) {
+    if (
+      this.baseInstrument &&
+      this.baseInstrument.assetClass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR] &&
+      (!formula || formula.length === 0)
+    ) {
       this.securityEditSupport.filterAssetclasses(this.configObject, AssetclassType.CURRENCY_PAIR);
     } else {
       this.securityEditSupport.removeFilterAssetclass(this.configObject);
@@ -290,11 +361,18 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     security.securityDerivedLinks = [];
     if (this.usedFormulaVars) {
       this.usedFormulaVars.forEach((ufv: string) => {
-        if (SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.indexOf(ufv) >= 0
-          && ufv !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[0]) {
+        if (
+          SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES.indexOf(ufv) >= 0 &&
+          ufv !== SecurityCurrencypairDerivedLinks.ALLOWED_VAR_NAMES[0]
+        ) {
           const fieldName = SecurityCurrencypairDerivedLinks.ADDITIONAL_INSTRUMENT_NAME + '_' + ufv;
-          security.securityDerivedLinks.push(new SecurityDerivedLink(this.securityCallParam ?
-            this.securityCallParam.idSecuritycurrency : null, ufv, this.additionalInstruments[fieldName].idSecuritycurrency));
+          security.securityDerivedLinks.push(
+            new SecurityDerivedLink(
+              this.securityCallParam ? this.securityCallParam.idSecuritycurrency : null,
+              ufv,
+              this.additionalInstruments[fieldName].idSecuritycurrency
+            )
+          );
         }
       });
     }

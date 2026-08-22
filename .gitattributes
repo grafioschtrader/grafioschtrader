@@ -1,3 +1,14 @@
+# Every text file is stored LF in the repository and checked out LF in the working
+# tree, on every platform. Prettier (frontend) and Spotless (backend) both write LF,
+# so without this rule a Windows checkout fights the formatters on every run.
+* text=auto eol=lf
+
+# Windows launchers are executed by cmd.exe / PowerShell and must keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# The rules below are more specific and therefore win over the catch-all above.
 backend/grafioschtrader-server/src/test/resources/db/migration/test/V2__testdata.sql filter=lfs diff=lfs merge=lfs -text
 # Shell scripts and Caddyfile must keep LF line endings (executed on Linux)
 docker/**/*.sh text eol=lf

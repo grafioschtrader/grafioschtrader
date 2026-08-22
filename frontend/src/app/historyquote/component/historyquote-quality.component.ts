@@ -1,16 +1,16 @@
-import {Component, Input, OnInit} from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
-import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { SecurityCurrencyHelper } from '../../securitycurrency/service/security.currency.helper';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 /**
  * Shows some statistical data on the quality of the historical price data
@@ -32,6 +32,7 @@ import {TooltipModule} from '@openng/optimus-ui/tooltip';
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TooltipModule]
 })
 export class HistoryquoteQualityComponent extends SingleRecordConfigBase implements OnInit {
@@ -39,10 +40,12 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
   @Input() securitycurrency: Securitycurrency;
   private feedConnectorsKV: { [id: string]: string } = {};
 
-  constructor(private securityService: SecurityService,
+  constructor(
+    private securityService: SecurityService,
     private currencypairService: CurrencypairService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
+    gps: GlobalparameterService
+  ) {
     super(translateService, gps);
   }
 
@@ -53,10 +56,15 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'missingEnd');
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'totalMissing');
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'expectedTotal');
-    this.addFieldPropertyFeqH(DataType.Numeric, 'qualityPercentage', {headerSuffix: '%'});
-    this.addFieldPropertyFeqH(DataType.Numeric, 'ohlPercentage', {headerSuffix: '%'});
-    this.addColumn(DataType.String, 'idConnectorHistory', 'HISTORY_DATA_PROVIDER', true, true,
-      {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
+    this.addFieldPropertyFeqH(DataType.Numeric, 'qualityPercentage', {
+      headerSuffix: '%'
+    });
+    this.addFieldPropertyFeqH(DataType.Numeric, 'ohlPercentage', {
+      headerSuffix: '%'
+    });
+    this.addColumn(DataType.String, 'idConnectorHistory', 'HISTORY_DATA_PROVIDER', true, true, {
+      fieldValueFN: this.getFeedConnectorReadableName.bind(this)
+    });
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'toManyAsCalendar');
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'quoteSaturday');
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'quoteSunday');
@@ -72,6 +80,7 @@ export class HistoryquoteQualityComponent extends SingleRecordConfigBase impleme
 
   getFeedConnectorReadableName(dataobject: any, field: ColumnConfig, valueField: any): string {
     return Object.entries(this.feedConnectorsKV).length !== 0 && this.securitycurrency
-      ? this.feedConnectorsKV[this.securitycurrency.idConnectorHistory] : null;
+      ? this.feedConnectorsKV[this.securitycurrency.idConnectorHistory]
+      : null;
   }
 }

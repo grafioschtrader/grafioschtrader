@@ -1,5 +1,5 @@
-import {expect, test} from '@playwright/test';
-import {loginAsFixtureUser} from './helpers';
+import { expect, test } from '@playwright/test';
+import { loginAsFixtureUser } from './helpers';
 import {
   COUNTRY_CODE,
   createTaxCountry,
@@ -30,10 +30,12 @@ const ADMIN = 'admin'; // hg@hugograf.com in users.json
  * The Kursliste zips are git-ignored, so the whole file skips when they are missing.
  */
 test.describe.serial('tax data - create, upload, delete and recreate', () => {
-  test.skip(!fixturesPresent(),
-    'Kursliste fixtures backend/grafioschtrader-server/src/test/resources/ictax/kursliste_2025*.zip not found');
+  test.skip(
+    !fixturesPresent(),
+    'Kursliste fixtures backend/grafioschtrader-server/src/test/resources/ictax/kursliste_2025*.zip not found'
+  );
 
-  test('creates tax country, tax year 2025 and uploads both kursliste files', async ({page}) => {
+  test('creates tax country, tax year 2025 and uploads both kursliste files', async ({ page }) => {
     // The full Kursliste is parsed completely in memory before it is filtered by the ISINs held in GT.
     test.setTimeout(900_000);
     await loginAsFixtureUser(page, ADMIN);
@@ -52,7 +54,7 @@ test.describe.serial('tax data - create, upload, delete and recreate', () => {
     expect(diffCount, 'the diff Kursliste holds only changed securities and may match none').toBeGreaterThanOrEqual(0);
   });
 
-  test('deletes the uploaded tax data, the tax year and the tax country', async ({page}) => {
+  test('deletes the uploaded tax data, the tax year and the tax country', async ({ page }) => {
     await loginAsFixtureUser(page, ADMIN);
     const container = await openTaxDataView(page);
 
@@ -61,10 +63,10 @@ test.describe.serial('tax data - create, upload, delete and recreate', () => {
     await deleteNode(page, nodeRow(container, String(TAX_YEAR)));
     await deleteNode(page, nodeRow(container, RX.country));
 
-    await expect(container.locator('.p-treetable-tbody tr')).toHaveCount(0, {timeout: 10_000});
+    await expect(container.locator('.p-treetable-tbody tr')).toHaveCount(0, { timeout: 10_000 });
   });
 
-  test('recreates tax country, tax year 2025 and re-uploads both kursliste files', async ({page}) => {
+  test('recreates tax country, tax year 2025 and re-uploads both kursliste files', async ({ page }) => {
     test.setTimeout(900_000);
     await loginAsFixtureUser(page, ADMIN);
     const container = await openTaxDataView(page);

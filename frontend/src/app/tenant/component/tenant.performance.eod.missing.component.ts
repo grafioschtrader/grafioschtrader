@@ -1,49 +1,59 @@
-import {CommonModule} from '@angular/common';
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {FormsModule} from '@angular/forms';
-import {Router} from '@angular/router';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import moment from 'moment';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {PanelModule} from '@openng/optimus-ui/panel';
-import {SelectModule} from '@openng/optimus-ui/select';
-import {Subscription} from 'rxjs';
-import {Historyquote} from '../../entities/historyquote';
-import {Security} from '../../entities/security';
-import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {BaseSettings} from '../../lib/base.settings';
-import {FullyearcalendarLibComponent} from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
-import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {HelpIds} from '../../lib/help/help.ids';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {HoldingService} from '../../performanceperiod/service/holding.service';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {CalendarNavigation} from '../../tradingcalendar/component/calendar.navigation';
-import {MissingQuotesWithSecurities} from '../model/missing.quotes.with.securities';
-import {TenantPerformanceEodMissingTableComponent} from './tenant-performance-eod-missing-table.component';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { PanelModule } from '@openng/optimus-ui/panel';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { Subscription } from 'rxjs';
+import { Historyquote } from '../../entities/historyquote';
+import { Security } from '../../entities/security';
+import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { BaseSettings } from '../../lib/base.settings';
+import { FullyearcalendarLibComponent } from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
+import { RangeSelectDays } from '../../lib/fullyearcalendar/Interface/range.select.days';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { HelpIds } from '../../lib/help/help.ids';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { HoldingService } from '../../performanceperiod/service/holding.service';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { CalendarNavigation } from '../../tradingcalendar/component/calendar.navigation';
+import { MissingQuotesWithSecurities } from '../model/missing.quotes.with.securities';
+import { TenantPerformanceEodMissingTableComponent } from './tenant-performance-eod-missing-table.component';
 
 /**
  * Displays an annual calendar with a table of missing EOD courses.
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)"
-         #cmDiv [ngClass]=" {'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      class="data-container"
+      (click)="onComponentClick($event)"
+      (contextmenu)="onRightClick($event)"
+      #cmDiv
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <p-panel>
         <p-header>
-          <h5>{{ 'MISSING_DAY_CALENDAR_MARK'|translate }}</h5>
+          <h5>{{ 'MISSING_DAY_CALENDAR_MARK' | translate }}</h5>
         </p-header>
         <label class="small-padding control-label" for="idYearSelect">{{ 'YEAR' | translate }}</label>
-        <p-select id="idYearSelect" [options]="possibleYears" [(ngModel)]="selectedYear"
-                  (onChange)="yearChanged($event)">
+        <p-select
+          id="idYearSelect"
+          [options]="possibleYears"
+          [(ngModel)]="selectedYear"
+          (onChange)="yearChanged($event)">
         </p-select>
         <ng-fullyearcalendar-lib [locale]="locale" [underline]="underline" [yearCalendarData]="yearCalendarData">
         </ng-fullyearcalendar-lib>
@@ -67,24 +77,33 @@ import {TenantPerformanceEodMissingTableComponent} from './tenant-performance-eo
       <tenant-performance-eod-missing-table
         [securities]="securities"
         [selectedDayIdSecurities]="selectedDayIdSecurities"
-        [countIdSecurityMissingsMap]="missingQuotesWithSecurities?.countIdSecurityMissingsMap"
+        [countIdSecurityMissingsMap]="$safeNavigationMigration(missingQuotesWithSecurities?.countIdSecurityMissingsMap)"
         (changedSecurity)="handleChangedSecurity($event)">
       </tenant-performance-eod-missing-table>
 
       @if (contextMenuItems) {
-        <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body">
-        </p-contextMenu>
+        <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="cmDiv" appendTo="body"> </p-contextMenu>
       }
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    CommonModule, FormsModule, TranslateModule,
-    PanelModule, SelectModule, ButtonModule, ContextMenuModule,
-    FullyearcalendarLibComponent, TenantPerformanceEodMissingTableComponent
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    PanelModule,
+    SelectModule,
+    ButtonModule,
+    ContextMenuModule,
+    FullyearcalendarLibComponent,
+    TenantPerformanceEodMissingTableComponent
   ]
 })
-export class TenantPerformanceEodMissingComponent extends CalendarNavigation implements IGlobalMenuAttach, OnInit, OnDestroy {
+export class TenantPerformanceEodMissingComponent
+  extends CalendarNavigation
+  implements IGlobalMenuAttach, OnInit, OnDestroy
+{
   missingQuotesWithSecurities: MissingQuotesWithSecurities;
   securities: Security[] = [];
   allMissingDays: Date[] = [];
@@ -96,19 +115,21 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
 
   private subscriptionHistoryquoteChanged: Subscription;
 
-  constructor(private timeSeriesQuotesService: TimeSeriesQuotesService,
+  constructor(
+    private timeSeriesQuotesService: TimeSeriesQuotesService,
     private holdingService: HoldingService,
     private messageToastService: MessageToastService,
     private router: Router,
     private dataChangedService: DataChangedService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    activePanelService: ActivePanelService) {
+    activePanelService: ActivePanelService
+  ) {
     super(translateService, gps, activePanelService, ['yellow']);
   }
 
   ngOnInit(): void {
-    this.subscriptionHistoryquoteChanged = this.dataChangedService.dateChanged$.subscribe(processedActionData => {
+    this.subscriptionHistoryquoteChanged = this.dataChangedService.dateChanged$.subscribe((processedActionData) => {
       if (processedActionData.data instanceof Historyquote && processedActionData.action === ProcessedAction.UPDATED) {
         this.readData(true);
       }
@@ -117,17 +138,20 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   }
 
   readData(yearChange: boolean): void {
-    this.holdingService.getMissingQuotesWithSecurities(this.yearCalendarData.year).subscribe(
-      (mqws: MissingQuotesWithSecurities) => {
+    this.holdingService
+      .getMissingQuotesWithSecurities(this.yearCalendarData.year)
+      .subscribe((mqws: MissingQuotesWithSecurities) => {
         this.clearDaySelection(this.selectedDayByUser);
         this.missingQuotesWithSecurities = mqws;
         // Securities and currency pairs share one table, because a day without an exchange rate is as unusable for the
         // performance report as a day without a security quote. The pair carries no 'currency' of its own, so the
         // quote currency stands in for it and keeps the price chart of the context menu working.
-        this.securities = [...(mqws.securities ?? []),
-          ...(mqws.currencypairs ?? []).map(cp => ({...cp, currency: cp.toCurrency} as unknown as Security))];
+        this.securities = [
+          ...(mqws.securities ?? []),
+          ...(mqws.currencypairs ?? []).map((cp) => ({ ...cp, currency: cp.toCurrency }) as unknown as Security)
+        ];
         this.allMissingDays = [];
-        Object.keys(mqws.dateSecurityMissingMap).forEach(e => {
+        Object.keys(mqws.dateSecurityMissingMap).forEach((e) => {
           this.allMissingDays.push(new Date(e));
         });
         this.markGroundDays(this.allMissingDays);
@@ -142,7 +166,9 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
     days.forEach((date, i) => {
       date.setHours(0, 0, 0, 0);
       this.yearCalendarData.dates.push({
-        id: i, start: date, end: date,
+        id: i,
+        start: date,
+        end: date,
         color: 'red',
         select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onDayPlusSelect(range, ranges)
       });
@@ -162,7 +188,8 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   }
 
   onDayPlusSelect(range: RangeSelectDays, ranges: RangeSelectDays[]) {
-    this.foundDayMarkedRange = ranges.length === 2 && this.securityMissingDays.find(date => date === range.start) !== null;
+    this.foundDayMarkedRange =
+      ranges.length === 2 && this.securityMissingDays.find((date) => date === range.start) !== null;
     this.clearCalendarFromTableSelection();
     if (ranges.length === 1 || this.foundDayMarkedRange) {
       if (this.selectedDayByUser) {
@@ -171,8 +198,10 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
       }
       this.addRemoveOnOffDay(range.start);
       this.selectedDayByUser = range.start;
-      this.selectedDayIdSecurities = this.missingQuotesWithSecurities.dateSecurityMissingMap[
-        moment(range.start).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)];
+      this.selectedDayIdSecurities =
+        this.missingQuotesWithSecurities.dateSecurityMissingMap[
+          moment(range.start).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
+        ];
     }
   }
 
@@ -209,8 +238,13 @@ export class TenantPerformanceEodMissingComponent extends CalendarNavigation imp
   protected override getMenuShowOptions(): MenuItem[] {
     let menuItems: MenuItem[] = [];
     if (this.selectedSecurity) {
-      menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(this.selectedSecurity.idSecuritycurrency,
-        this.selectedSecurity.currency, false));
+      menuItems = menuItems.concat(
+        this.timeSeriesQuotesService.getMenuItems(
+          this.selectedSecurity.idSecuritycurrency,
+          this.selectedSecurity.currency,
+          false
+        )
+      );
       this.contextMenuItems = menuItems;
       menuItems.push(...BusinessHelper.getUrlLinkMenus(this.selectedSecurity));
       TranslateHelper.translateMenuItems(menuItems, this.translateService);

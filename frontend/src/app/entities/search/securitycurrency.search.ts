@@ -17,4 +17,3 @@ export class SecuritycurrencySearch {
   idConnectorIntra: string = null;
   withHoldings: boolean = null;
 }
-

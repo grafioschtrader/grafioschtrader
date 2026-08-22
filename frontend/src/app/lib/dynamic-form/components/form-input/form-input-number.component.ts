@@ -1,11 +1,11 @@
-import {Component} from '@angular/core';
-import {BaseInputComponent} from '../base.input.component';
-import {ReactiveFormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
-import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {TranslateModule} from '@ngx-translate/core';
-import {FilterOutPipe} from '../../pipe/FilterOutPipe';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { BaseInputComponent } from '../base.input.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { InputNumberModule } from '@openng/optimus-ui/inputnumber';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 
 /**
  * Optimus InputNumber wrapper component for dynamic forms.
@@ -46,7 +46,7 @@ import {FilterOutPipe} from '../../pipe/FilterOutPipe';
         [readonly]="config.readonly"
         [ngStyle]="{ width: config.inputWidth + 'em' }"
         [class.negativ-number]="currentValue < 0"
-        pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: (config.labelKey + '_TOOLTIP') }}"
+        pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}"
         #input
         [attr.placeholder]="config.placeholder"
         [formControlName]="config.field"
@@ -55,7 +55,7 @@ import {FilterOutPipe} from '../../pipe/FilterOutPipe';
         [id]="config.field"
         [min]="config.min"
         [max]="config.max"
-        [maxFractionDigits]="config.inputNumberSettings?.maxFractionDigits"
+        [maxFractionDigits]="$safeNavigationMigration(config.inputNumberSettings?.maxFractionDigits)"
         [allowEmpty]="config.inputNumberSettings?.allowEmpty !== false"
         [prefix]="inputPrefix"
         [currency]="inputCurrency"
@@ -64,18 +64,11 @@ import {FilterOutPipe} from '../../pipe/FilterOutPipe';
       </p-inputNumber>
     </ng-container>
   `,
-  imports: [
-    ReactiveFormsModule,
-    CommonModule,
-    InputNumberModule,
-    TooltipModule,
-    TranslateModule,
-    FilterOutPipe
-  ],
+  imports: [ReactiveFormsModule, CommonModule, InputNumberModule, TooltipModule, TranslateModule, FilterOutPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputNumberComponent extends BaseInputComponent {
-
   /**
    * Current numeric value from the FormControl.
    * p-inputNumber writes a number (not the formatted string) to the model.
@@ -146,4 +139,3 @@ export class FormInputNumberComponent extends BaseInputComponent {
     return this.currency;
   }
 }
-

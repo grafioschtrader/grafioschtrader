@@ -1,12 +1,11 @@
-import {Pipe, PipeTransform} from '@angular/core';
+import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-    name: 'filterOut',
-    standalone: true
+  name: 'filterOut',
+  standalone: true
 })
 export class FilterOutPipe implements PipeTransform {
-  constructor() {
-  }
+  constructor() {}
 
   transform(inputStr: string, filterOutValue: string): any {
     return inputStr === filterOutValue ? null : inputStr;

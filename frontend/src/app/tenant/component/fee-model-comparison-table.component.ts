@@ -1,17 +1,25 @@
-import {Component, Injector, Input, OnChanges, OnDestroy, SimpleChanges} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {FilterService} from '@openng/optimus-ui/api';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {FeeModelComparisonDetail} from '../../entities/fee.model.comparison';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {FilterType} from '../../lib/datashowbase/filter.type';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {Helper} from '../../lib/helper/helper';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {AppSettings} from '../../shared/app.settings';
+import {
+  Component,
+  Injector,
+  Input,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { FilterService } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { FeeModelComparisonDetail } from '../../entities/fee.model.comparison';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { Helper } from '../../lib/helper/helper';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Table component for displaying fee model comparison detail rows. Extends TableConfigBase
@@ -36,10 +44,10 @@ import {AppSettings} from '../../shared/app.settings';
   `,
   standalone: true,
   imports: [ConfigurableTableComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class FeeModelComparisonTableComponent extends TableConfigBase implements OnChanges, OnDestroy {
-
   @Input() details: FeeModelComparisonDetail[] = [];
   selectedRow: FeeModelComparisonDetail;
 
@@ -54,20 +62,33 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.rowsPerPage = 20;
-    this.addColumnFeqH(DataType.DateString, 'transactionDate', true, true,
-      {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.String, 'transactionType', true, true,
-      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumn(DataType.String, 'securityName', 'SECURITY', true, true,
-      {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.String, 'categoryType', true, true,
-      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'specInvestInstrument', true, true,
-      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'mic', true, true,
-      {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.Numeric, 'actualCost', true, true, {maxFractionDigits: 2});
-    this.addColumnFeqH(DataType.Numeric, 'estimatedCost', true, true, {maxFractionDigits: 2});
+    this.addColumnFeqH(DataType.DateString, 'transactionDate', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.String, 'transactionType', true, true, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumn(DataType.String, 'securityName', 'SECURITY', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.String, 'categoryType', true, true, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'specInvestInstrument', true, true, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'mic', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.Numeric, 'actualCost', true, true, {
+      maxFractionDigits: 2
+    });
+    this.addColumnFeqH(DataType.Numeric, 'estimatedCost', true, true, {
+      maxFractionDigits: 2
+    });
     this.addColumnFeqH(DataType.Numeric, 'relativeError', true, true, {
       maxFractionDigits: 2,
       fieldValueFN: (dataobject: any, field: ColumnConfig, valueField: any) => {
@@ -78,15 +99,19 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
         return rawValue;
       }
     });
-    this.addColumnFeqH(DataType.String, 'currency', true, true,
-      {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.Numeric, 'tradeValue', true, true, {maxFractionDigits: 2});
+    this.addColumnFeqH(DataType.String, 'currency', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.Numeric, 'tradeValue', true, true, {
+      maxFractionDigits: 2
+    });
     this.addColumn(DataType.Numeric, 'quotation', 'SHARE_PRICE', true, true);
     this.addColumnFeqH(DataType.Numeric, 'units', true, true);
 
-    this.addColumnFeqH(DataType.String, 'matchedRuleName', true, true,
-      {filterType: FilterType.likeDataType});
-    this.multiSortMeta.push({field: 'transactionDate', order: 1});
+    this.addColumnFeqH(DataType.String, 'matchedRuleName', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.multiSortMeta.push({ field: 'transactionDate', order: 1 });
     this.prepareTableAndTranslate();
     this.readTableDefinition(AppSettings.FEE_MODEL_COMPARISON_TABLE_SETTINGS_STORE);
     this.fieldsInitialized = true;
@@ -101,7 +126,7 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
       const absError = Math.abs(row.relativeError);
       const maxError = 50;
       const hue = Math.max(0, 120 - (Math.min(absError, maxError) / maxError) * 120);
-      return {'background-color': `hsl(${hue}, 70%, 85%)`};
+      return { 'background-color': `hsl(${hue}, 70%, 85%)` };
     }
     return null;
   }

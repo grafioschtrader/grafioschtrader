@@ -1,17 +1,17 @@
-import {Injector} from '@angular/core';
-import {ShowRecordConfigBase} from './show.record.config.base';
-import {TranslateService} from '@ngx-translate/core';
-import {FilterService, SelectItem} from '@openng/optimus-ui/api';
+import { Injector } from '@angular/core';
+import { ShowRecordConfigBase } from './show.record.config.base';
+import { TranslateService } from '@ngx-translate/core';
+import { FilterService, SelectItem } from '@openng/optimus-ui/api';
 import moment from 'moment';
-import {ColumnConfig, ColumnGroupConfig} from './column.config';
-import {AppHelper} from '../helper/app.helper';
-import {Auditable} from '../entities/auditable';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {BaseSettings} from '../base.settings';
-import {FilterType} from './filter.type';
-import {DataType} from '../dynamic-form/models/data.type';
-import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
-import {FilterableTable} from './filterable.table.type';
+import { ColumnConfig, ColumnGroupConfig } from './column.config';
+import { AppHelper } from '../helper/app.helper';
+import { Auditable } from '../entities/auditable';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { BaseSettings } from '../base.settings';
+import { FilterType } from './filter.type';
+import { DataType } from '../dynamic-form/models/data.type';
+import { ValueLabelHtmlSelectOptions } from './value.label.html.select.options';
+import { FilterableTable } from './filterable.table.type';
 
 /**
  * Abstract base class extending ShowRecordConfigBase with functionality for handling
@@ -23,7 +23,6 @@ import {FilterableTable} from './filterable.table.type';
  * data summaries, and hierarchical data displays.
  */
 export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
-
   /**
    * Exposes FilterType enum for use in Angular templates.
    * Required for template-based filter type comparisons.
@@ -47,10 +46,12 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param injector - Angular injector for lazy service resolution in subclasses
    * @param filterService - Optional Optimus service for registering custom filters
    */
-  protected constructor(translateService: TranslateService,
+  protected constructor(
+    translateService: TranslateService,
     gps: GlobalparameterService,
     injector: Injector = null,
-    protected filterService?: FilterService) {
+    protected filterService?: FilterService
+  ) {
     super(translateService, gps, injector);
   }
 
@@ -99,7 +100,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
         if (columnConfig.columnGroupConfigs[arrIndex].fieldValue) {
           const dataValue = this.getFieldValueColumnTotal(columnConfig, arrIndex, data, mapKey);
           if (dataValue) {
-            value += (value.length > 0) ? ' ' + dataValue : dataValue;
+            value += value.length > 0 ? ' ' + dataValue : dataValue;
           }
         }
       }
@@ -117,7 +118,12 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param rowIndex - Specific row index to check
    * @returns True if the total value starts with '-', false otherwise
    */
-  isColumnTotalByRowIndexMinus(columnConfig: ColumnConfig, arrIndex: number, groupChangeIndexMap: any, rowIndex: number): boolean {
+  isColumnTotalByRowIndexMinus(
+    columnConfig: ColumnConfig,
+    arrIndex: number,
+    groupChangeIndexMap: any,
+    rowIndex: number
+  ): boolean {
     return this.getValueColumnTotalByRowIndex(columnConfig, arrIndex, groupChangeIndexMap, rowIndex).startsWith('-');
   }
 
@@ -131,17 +137,27 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param rowIndex - Specific row index to access
    * @returns Formatted string combining label and value for display
    */
-  getValueColumnTotalByRowIndex(columnConfig: ColumnConfig, arrIndex: number, groupChangeIndexMap: any, rowIndex: number): string {
+  getValueColumnTotalByRowIndex(
+    columnConfig: ColumnConfig,
+    arrIndex: number,
+    groupChangeIndexMap: any,
+    rowIndex: number
+  ): string {
     let value = '';
     if (columnConfig.columnGroupConfigs && arrIndex < columnConfig.columnGroupConfigs.length) {
       if (columnConfig.columnGroupConfigs[arrIndex].fieldTextFN) {
-        value = columnConfig.columnGroupConfigs[arrIndex].fieldTextFN(columnConfig, arrIndex, groupChangeIndexMap, rowIndex);
+        value = columnConfig.columnGroupConfigs[arrIndex].fieldTextFN(
+          columnConfig,
+          arrIndex,
+          groupChangeIndexMap,
+          rowIndex
+        );
       } else {
         value = this.getTextValueColumnTotal(columnConfig, arrIndex);
         if (columnConfig.columnGroupConfigs[arrIndex].fieldValue) {
           const dataValue = this.getFieldValueColumnTotal(columnConfig, arrIndex, groupChangeIndexMap, rowIndex);
           if (dataValue) {
-            value += (value.length > 0) ? ' ' + dataValue : dataValue;
+            value += value.length > 0 ? ' ' + dataValue : dataValue;
           }
         }
       }
@@ -158,7 +174,11 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @returns True if entity should be highlighted as user-owned
    */
   public isNotSingleModeAndOwner(entity: Auditable, columnConfig: ColumnConfig): boolean {
-    return this.gps.isUiShowMyProperty() && columnConfig.templateName === BaseSettings.OWNER_TEMPLATE && this.gps.isEntityCreatedByUser(entity);
+    return (
+      this.gps.isUiShowMyProperty() &&
+      columnConfig.templateName === BaseSettings.OWNER_TEMPLATE &&
+      this.gps.isEntityCreatedByUser(entity)
+    );
   }
 
   /**
@@ -188,13 +208,25 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    *                                currency-specific precision formatting
    * @returns Formatted field value ready for display
    */
-  getFieldValueForFieldColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any, field: string,
-    currencyFieldOverride?: string) {
+  getFieldValueForFieldColumnTotal(
+    columnConfig: ColumnConfig,
+    arrIndex: number,
+    data: any,
+    mapKey: any,
+    field: string,
+    currencyFieldOverride?: string
+  ) {
     if (mapKey !== null) {
       data = data.get(mapKey);
     }
-    return AppHelper.getValueByPathWithField(this.gps, this.translateService, data, columnConfig,
-      field, currencyFieldOverride);
+    return AppHelper.getValueByPathWithField(
+      this.gps,
+      this.translateService,
+      data,
+      columnConfig,
+      field,
+      currencyFieldOverride
+    );
   }
 
   /**
@@ -208,9 +240,14 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @returns Formatted field value ready for display
    */
   getFieldValueColumnTotal(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any) {
-    return this.getFieldValueForFieldColumnTotal(columnConfig, arrIndex, data, mapKey,
+    return this.getFieldValueForFieldColumnTotal(
+      columnConfig,
+      arrIndex,
+      data,
+      mapKey,
       columnConfig.columnGroupConfigs[arrIndex].fieldValue,
-      columnConfig.columnGroupConfigs[arrIndex].currencyPrecisionField);
+      columnConfig.columnGroupConfigs[arrIndex].currencyPrecisionField
+    );
   }
 
   /**
@@ -218,7 +255,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * Should be called after column definitions are complete.
    */
   protected initializeFilters(): void {
-    this.hasFilter = this.fields.filter(field => field.filterType).length > 0;
+    this.hasFilter = this.fields.filter((field) => field.filterType).length > 0;
     if (this.hasFilter && this.filterService) {
       this.registerFilter();
     }
@@ -232,15 +269,19 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
     if (!this.filterService) {
       return;
     }
-    const filters: FilterFN[] = [{name: 'gtNoFilter', fn: null},
-      {name: 'gtIS', fn: this.isEqual.bind(this)},
-      {name: 'gtSameOrBefore', fn: this.sameOrBefore.bind(this)},
-      {name: 'gtSameAfter', fn: this.sameOrAfter.bind(this)},
+    const filters: FilterFN[] = [
+      { name: 'gtNoFilter', fn: null },
+      { name: 'gtIS', fn: this.isEqual.bind(this) },
+      { name: 'gtSameOrBefore', fn: this.sameOrBefore.bind(this) },
+      { name: 'gtSameAfter', fn: this.sameOrAfter.bind(this) }
     ];
-    this.customSearchNames = filters.map(v => v.name);
-    this.translateService.get('GT_FILTER').subscribe(tr => filters.forEach(f =>
-      this.customMatchModeOptions.push({value: f.name, label: tr[f.name]})));
-    filters.forEach(f => {
+    this.customSearchNames = filters.map((v) => v.name);
+    this.translateService
+      .get('GT_FILTER')
+      .subscribe((tr) =>
+        filters.forEach((f) => this.customMatchModeOptions.push({ value: f.name, label: tr[f.name] }))
+      );
+    filters.forEach((f) => {
       this.filterService.register(f.name, (value, filter): boolean => {
         if (filter === undefined || filter === null || f.fn === null) {
           return true;
@@ -294,22 +335,31 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param data - Array of data objects to extract filter values from
    */
   public prepareFilter(data: any[]): void {
-    this.fields.forEach(field => {
+    this.fields.forEach((field) => {
       if (field.filterType && field.filterType === FilterType.withOptions) {
         const valueLabelHtmlSelectOptions: ValueLabelHtmlSelectOptions[] = [];
         if (field.translateValues && field.translatedValueMap) {
-          Object.keys(field.translatedValueMap).sort((a, b) => field.translatedValueMap[a] < field.translatedValueMap[b]
-            ? -1 : field.translatedValueMap[a] > field.translatedValueMap[b] ? 1 : 0)
-            .forEach(key =>
+          Object.keys(field.translatedValueMap)
+            .sort((a, b) =>
+              field.translatedValueMap[a] < field.translatedValueMap[b]
+                ? -1
+                : field.translatedValueMap[a] > field.translatedValueMap[b]
+                  ? 1
+                  : 0
+            )
+            .forEach((key) =>
               valueLabelHtmlSelectOptions.push(new ValueLabelHtmlSelectOptions(key, field.translatedValueMap[key]))
             );
         } else {
-          const uniqueValuesSet = new Set(data.map(item => this.getValueByPath(item, field)).filter(v => v != null));
+          const uniqueValuesSet = new Set(
+            data.map((item) => this.getValueByPath(item, field)).filter((v) => v != null)
+          );
 
-          Array.from(uniqueValuesSet).sort((a, b) => a.toLowerCase() < b.toLowerCase() ? -1 :
-            a.toLowerCase() > b.toLowerCase() ? 1 : 0).forEach(value => {
-            valueLabelHtmlSelectOptions.push(new ValueLabelHtmlSelectOptions(value, value));
-          });
+          Array.from(uniqueValuesSet)
+            .sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : a.toLowerCase() > b.toLowerCase() ? 1 : 0))
+            .forEach((value) => {
+              valueLabelHtmlSelectOptions.push(new ValueLabelHtmlSelectOptions(value, value));
+            });
         }
         field.filterValues = valueLabelHtmlSelectOptions;
       }
@@ -326,10 +376,12 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param data - Array of data objects to process
    */
   createFilterField(data: any[]): void {
-    const columnConfigs = this.fields.filter(columnConfig => columnConfig.filterType && columnConfig.dataType === DataType.DateNumeric);
-    columnConfigs.forEach(cc => {
+    const columnConfigs = this.fields.filter(
+      (columnConfig) => columnConfig.filterType && columnConfig.dataType === DataType.DateNumeric
+    );
+    columnConfigs.forEach((cc) => {
       const fieldName = cc.field + BaseSettings.FIELD_SUFFIX;
-      data.forEach(item => item[fieldName] = this.getValueByPath(item, cc));
+      data.forEach((item) => (item[fieldName] = this.getValueByPath(item, cc)));
     });
     this.createFilterFieldForValueFN(data);
   }
@@ -346,11 +398,12 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @param data - Array of data objects to process
    */
   private createFilterFieldForValueFN(data: any[]): void {
-    const columnConfigs = this.fields.filter(columnConfig => columnConfig.filterType && columnConfig.fieldValueFN
-      && !columnConfig.translateValues);
-    columnConfigs.forEach(cc => {
+    const columnConfigs = this.fields.filter(
+      (columnConfig) => columnConfig.filterType && columnConfig.fieldValueFN && !columnConfig.translateValues
+    );
+    columnConfigs.forEach((cc) => {
       cc.filterField = cc.field.replace(/\./g, '_') + BaseSettings.FIELD_SUFFIX;
-      data.forEach(item => item[cc.filterField] = this.getValueByPath(item, cc));
+      data.forEach((item) => (item[cc.filterField] = this.getValueByPath(item, cc)));
     });
   }
 
@@ -388,7 +441,11 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
       }
     } else {
       // Without value
-      table.filter(null, columnConfig.field + (columnConfig.dataType === DataType.DateNumeric ? BaseSettings.FIELD_SUFFIX : ''), null);
+      table.filter(
+        null,
+        columnConfig.field + (columnConfig.dataType === DataType.DateNumeric ? BaseSettings.FIELD_SUFFIX : ''),
+        null
+      );
     }
   }
 

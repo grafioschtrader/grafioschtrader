@@ -1,27 +1,31 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {forkJoin} from 'rxjs';
+import { Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { forkJoin } from 'rxjs';
 
-import {RiskFreeInstrumentOption, RiskFreeRateMapping} from '../../entities/risk.free.rate.mapping';
-import {RiskFreeRateMappingService} from '../service/risk.free.rate.mapping.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TableEditConfigBase} from '../../lib/datashowbase/table.edit.config.base';
-import {EditableTableComponent, RowEditEvent, RowEditSaveEvent} from '../../lib/datashowbase/editable-table.component';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {GlobalSessionNames} from '../../lib/global.session.names';
-import {BaseSettings} from '../../lib/base.settings';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {AppHelpIds} from '../../shared/help/help.ids';
+import { RiskFreeInstrumentOption, RiskFreeRateMapping } from '../../entities/risk.free.rate.mapping';
+import { RiskFreeRateMappingService } from '../service/risk.free.rate.mapping.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TableEditConfigBase } from '../../lib/datashowbase/table.edit.config.base';
+import {
+  EditableTableComponent,
+  RowEditEvent,
+  RowEditSaveEvent
+} from '../../lib/datashowbase/editable-table.component';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { BaseSettings } from '../../lib/base.settings';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AppHelpIds } from '../../shared/help/help.ids';
 
 /**
  * Editable-table admin for the risk-free-rate currency-to-security mapping. Shows 3 columns:
@@ -40,7 +44,8 @@ import {AppHelpIds} from '../../shared/help/help.ids';
  */
 @Component({
   template: `
-    <editable-table #entityTable
+    <editable-table
+      #entityTable
       [(data)]="entityList"
       [fields]="fields"
       dataKey="rowKey"
@@ -55,27 +60,35 @@ import {AppHelpIds} from '../../shared/help/help.ids';
       [contextMenuEnabled]="false"
       [contextMenuItems]="contextMenuItems"
       [showContextMenu]="isActivated()"
-      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       (rowEditSave)="onRowEditSave($event)"
       (rowDelete)="onRowDelete($event)"
       (componentClick)="onComponentClick()">
       <div caption style="display: flex; align-items: center;">
         <h6 style="margin: 0;">{{ 'RISK_FREE_RATE_MAPPING' | translate }}</h6>
-        <p-button [rounded]="true" [text]="true"
-                  (click)="entityTable.addNewRow()" [style]="{'margin-left': '0.5rem'}">
+        <p-button
+          [rounded]="true"
+          [text]="true"
+          (click)="entityTable.addNewRow()"
+          [style]="{ 'margin-left': '0.5rem' }">
           <i class="pi pi-plus" pButtonIcon></i>
         </p-button>
       </div>
     </editable-table>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule, ButtonModule]
 })
 export class RiskFreeRateMappingTableComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
-
   static readonly I18N_RECORD = 'RISK_FREE_RATE_MAPPING';
 
-  @ViewChild('entityTable') entityTable: EditableTableComponent<RiskFreeRateMapping>;
+  @ViewChild('entityTable')
+  entityTable: EditableTableComponent<RiskFreeRateMapping>;
 
   contextMenuItems: MenuItem[] = [];
   entityList: RiskFreeRateMapping[] = [];
@@ -95,21 +108,23 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
 
   private newRowCounter = 0;
 
-  constructor(private activePanelService: ActivePanelService,
-              private riskFreeRateMappingService: RiskFreeRateMappingService,
-              private gpsGT: GlobalparameterGTService,
-              private confirmationService: ConfirmationService,
-              private messageToastService: MessageToastService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+  constructor(
+    private activePanelService: ActivePanelService,
+    private riskFreeRateMappingService: RiskFreeRateMappingService,
+    private gpsGT: GlobalparameterGTService,
+    private confirmationService: ConfirmationService,
+    private messageToastService: MessageToastService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService
+  ) {
     super(filterService, usersettingsService, translateService, gps);
 
     this.currentUserId = +sessionStorage.getItem(GlobalSessionNames.ID_USER);
 
     // Column 1: currency dropdown — already-used filter applied per row.
-    this.addEditColumnFeqH(DataType.String, 'currency', true, {width: 90});
+    this.addEditColumnFeqH(DataType.String, 'currency', true, { width: 90 });
     const currencyCol = this.getColumnConfigByField('currency');
     currencyCol.cec.optionsProviderFn = (row: RiskFreeRateMapping) => this.getCurrencyOptions(row);
     currencyCol.cec.canEditFn = (row: RiskFreeRateMapping) => !row.idRiskFreeRateMapping;
@@ -119,9 +134,13 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
     //   `optionsProviderFn` is set (`hasDropdownOptions`); NumericInteger would force a number input and right-align
     //   the cell — and the user never sees id_securitycurrency, only the security name.
     // - fieldValueFN resolves the underlying id_securitycurrency to the security name for display mode.
-    this.addEditColumn(DataType.String, 'idSecuritycurrency',
-      RiskFreeRateMappingTableComponent.I18N_RECORD + '_INSTRUMENT', true,
-      {fieldValueFN: this.getInstrumentNameForRow.bind(this)});
+    this.addEditColumn(
+      DataType.String,
+      'idSecuritycurrency',
+      RiskFreeRateMappingTableComponent.I18N_RECORD + '_INSTRUMENT',
+      true,
+      { fieldValueFN: this.getInstrumentNameForRow.bind(this) }
+    );
     const instrumentCol = this.getColumnConfigByField('idSecuritycurrency');
     instrumentCol.cec.optionsProviderFn = (row: RiskFreeRateMapping) => this.getInstrumentOptions(row);
     // EditableTableComponent.updateDependentFields clears row.idSecuritycurrency and evicts the cached dropdown
@@ -129,19 +148,18 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
     instrumentCol.cec.dependsOnField = 'currency';
 
     // Column 3: derived display of FRED series id. Non-editable; populated by fieldValueFN.
-    this.addColumn(DataType.String, 'fredSeriesId', 'FRED_SERIES_ID', true, false,
-      {fieldValueFN: this.getFredSeriesForRow.bind(this)});
+    this.addColumn(DataType.String, 'fredSeriesId', 'FRED_SERIES_ID', true, false, {
+      fieldValueFN: this.getFredSeriesForRow.bind(this)
+    });
   }
 
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   getHelpContextId(): string {
     return AppHelpIds.HELP_BASEDATA_RISK_FREE_RATE_MAPPING;
@@ -158,7 +176,7 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
       this.riskFreeRateMappingService.getAllInstruments(),
       this.gpsGT.getCurrencies()
     ]).subscribe(([mappings, instruments, currencies]) => {
-      this.entityList = (mappings || []).map(m => {
+      this.entityList = (mappings || []).map((m) => {
         (m as any).rowKey = `existing_${m.idRiskFreeRateMapping}`;
         return m;
       });
@@ -176,7 +194,7 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
    */
   private rebuildInstrumentLookup(): void {
     this.instrumentsById.clear();
-    this.allInstrumentOptions.forEach(opt => this.instrumentsById.set(opt.idSecuritycurrency, opt));
+    this.allInstrumentOptions.forEach((opt) => this.instrumentsById.set(opt.idSecuritycurrency, opt));
   }
 
   // ============================================================================
@@ -185,11 +203,9 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
 
   private getCurrencyOptions(row: RiskFreeRateMapping): ValueKeyHtmlSelectOptions[] {
     const usedCurrencies = new Set<string>(
-      this.entityList
-        .filter(m => m !== row && m.currency != null)
-        .map(m => m.currency)
+      this.entityList.filter((m) => m !== row && m.currency != null).map((m) => m.currency)
     );
-    return this.allCurrencyOptions.filter(opt => !usedCurrencies.has(String(opt.key)));
+    return this.allCurrencyOptions.filter((opt) => !usedCurrencies.has(String(opt.key)));
   }
 
   private getInstrumentOptions(row: RiskFreeRateMapping): ValueKeyHtmlSelectOptions[] {
@@ -197,13 +213,11 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
       return [];
     }
     const usedIds = new Set<number>(
-      this.entityList
-        .filter(m => m !== row && m.idSecuritycurrency != null)
-        .map(m => m.idSecuritycurrency)
+      this.entityList.filter((m) => m !== row && m.idSecuritycurrency != null).map((m) => m.idSecuritycurrency)
     );
     return this.allInstrumentOptions
-      .filter(opt => opt.currency === row.currency && !usedIds.has(opt.idSecuritycurrency))
-      .map(opt => new ValueKeyHtmlSelectOptions(opt.idSecuritycurrency, opt.name));
+      .filter((opt) => opt.currency === row.currency && !usedIds.has(opt.idSecuritycurrency))
+      .map((opt) => new ValueKeyHtmlSelectOptions(opt.idSecuritycurrency, opt.name));
   }
 
   // ============================================================================
@@ -253,9 +267,11 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
     }
     this.riskFreeRateMappingService.update(entity).subscribe({
       next: () => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
+        this.messageToastService.showMessageI18n(
+          InfoLevelType.SUCCESS,
           event.isNew ? 'MSG_RECORD_CREATED' : 'MSG_RECORD_SAVED',
-          {i18nRecord: RiskFreeRateMappingTableComponent.I18N_RECORD});
+          { i18nRecord: RiskFreeRateMappingTableComponent.I18N_RECORD }
+        );
         this.readData();
       }
     });
@@ -277,21 +293,29 @@ export class RiskFreeRateMappingTableComponent extends TableEditConfigBase imple
    */
   private resetMenu(): void {
     this.contextMenuItems = [];
-    this.activePanelService.activatePanel(this, {showMenu: null, editMenu: this.contextMenuItems});
+    this.activePanelService.activatePanel(this, {
+      showMenu: null,
+      editMenu: this.contextMenuItems
+    });
   }
 
   private handleDeleteEntity(entity: RiskFreeRateMapping): void {
     if (!entity?.idRiskFreeRateMapping) {
       return;
     }
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|' + RiskFreeRateMappingTableComponent.I18N_RECORD, () => {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|' + RiskFreeRateMappingTableComponent.I18N_RECORD,
+      () => {
         this.riskFreeRateMappingService.deleteEntity(entity.idRiskFreeRateMapping).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD',
-            {i18nRecord: RiskFreeRateMappingTableComponent.I18N_RECORD});
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: RiskFreeRateMappingTableComponent.I18N_RECORD
+          });
           this.selectedEntity = null;
           this.readData();
         });
-      });
+      }
+    );
   }
 }

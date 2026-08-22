@@ -1,14 +1,12 @@
-import {Injectable} from '@angular/core';
-import {InfoLevelType} from './info.leve.type';
-import {MessageContainer} from './message.container';
-import {Subject} from 'rxjs';
+import { Injectable } from '@angular/core';
+import { InfoLevelType } from './info.leve.type';
+import { MessageContainer } from './message.container';
+import { Subject } from 'rxjs';
 
 @Injectable()
 export class MessageToastService {
-
   private showMessageSource = new Subject<MessageContainer>();
   showMessageSource$ = this.showMessageSource.asObservable();
-
 
   /**
    * Message of a certain type is showing, nothing gets translated. It support of optional parameters, which will not be translated.
@@ -45,10 +43,14 @@ export class MessageToastService {
     this.showMessageSource.next(messageContainer);
   }
 
-  showMessageI18nTitle(infoLevelType: InfoLevelType, titleKey: string, key: string | Array<string>, interpolateParams?: any) {
+  showMessageI18nTitle(
+    infoLevelType: InfoLevelType,
+    titleKey: string,
+    key: string | Array<string>,
+    interpolateParams?: any
+  ) {
     const mc = new MessageContainer(true, infoLevelType, key, interpolateParams);
     mc.titleKey = titleKey;
     this.showMessageSource.next(mc);
   }
-
 }

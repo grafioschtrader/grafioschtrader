@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {Observable, Subject} from 'rxjs';
-import {SortMeta} from '@openng/optimus-ui/api';
-import {ColumnConfig, getFilterKey} from '../../lib/datashowbase/column.config';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {AppSettings} from '../../shared/app.settings';
+import { Injectable } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { SortMeta } from '@openng/optimus-ui/api';
+import { ColumnConfig, getFilterKey } from '../../lib/datashowbase/column.config';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { AppSettings } from '../../shared/app.settings';
 
 /** Whether a filter or a sort order belongs to a single watchlist or to all of them. */
 export enum FilterSortScope {
@@ -91,7 +91,6 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
  */
 @Injectable()
 export class WatchlistFilterSortStateService {
-
   /** Emits after every change, so an open table can re-apply the settings without being recreated. */
   public readonly changed$: Observable<void>;
 
@@ -146,10 +145,12 @@ export class WatchlistFilterSortStateService {
     const local = this.entriesOf(idWatchlist).filters;
     const global = this.state.global.filters;
     const effective: { [filterKey: string]: any } = {};
-    Object.keys(local).filter(key => applicable.has(key) && !global[key])
-      .forEach(key => effective[key] = this.clone(local[key].meta));
-    Object.keys(global).filter(key => applicable.has(key))
-      .forEach(key => effective[key] = this.clone(global[key].meta));
+    Object.keys(local)
+      .filter((key) => applicable.has(key) && !global[key])
+      .forEach((key) => (effective[key] = this.clone(local[key].meta)));
+    Object.keys(global)
+      .filter((key) => applicable.has(key))
+      .forEach((key) => (effective[key] = this.clone(global[key].meta)));
     return effective;
   }
 
@@ -164,10 +165,11 @@ export class WatchlistFilterSortStateService {
    */
   getEffectiveSorts(idWatchlist: number, fields: ColumnConfig[]): SortMeta[] {
     const applicable = this.applicableSortFields(fields);
-    const global = this.state.global.sorts.filter(sort => applicable.has(sort.field));
-    const local = this.entriesOf(idWatchlist).sorts.filter(sort => applicable.has(sort.field)
-      && !global.some(globalSort => globalSort.field === sort.field));
-    return [...global, ...local].map(sort => ({field: sort.field, order: sort.order}));
+    const global = this.state.global.sorts.filter((sort) => applicable.has(sort.field));
+    const local = this.entriesOf(idWatchlist).sorts.filter(
+      (sort) => applicable.has(sort.field) && !global.some((globalSort) => globalSort.field === sort.field)
+    );
+    return [...global, ...local].map((sort) => ({ field: sort.field, order: sort.order }));
   }
 
   /**
@@ -191,7 +193,7 @@ export class WatchlistFilterSortStateService {
       } else if (!this.isSameMeta(global[key], meta) && !this.isSameMeta(local[key], meta)) {
         const target = this.state.filterScope === FilterSortScope.GLOBAL ? global : local;
         const other = target === global ? local : global;
-        target[key] = {label, meta: this.clone(meta)};
+        target[key] = { label, meta: this.clone(meta) };
         this.deleteKey(other, key);
         changed = true;
       }
@@ -211,22 +213,22 @@ export class WatchlistFilterSortStateService {
   captureSorts(idWatchlist: number, fields: ColumnConfig[], sortMeta: SortMeta[]): void {
     const applicable = this.applicableSortFields(fields);
     const localEntries = this.entriesOf(idWatchlist);
-    const current = (sortMeta ?? []).filter(sort => applicable.has(sort.field));
+    const current = (sortMeta ?? []).filter((sort) => applicable.has(sort.field));
     let changed = this.removeDroppedSorts(this.state.global.sorts, applicable, current);
     changed = this.removeDroppedSorts(localEntries.sorts, applicable, current) || changed;
-    current.forEach(sort => {
-      const inGlobal = this.state.global.sorts.find(stored => stored.field === sort.field);
-      const inLocal = localEntries.sorts.find(stored => stored.field === sort.field);
+    current.forEach((sort) => {
+      const inGlobal = this.state.global.sorts.find((stored) => stored.field === sort.field);
+      const inLocal = localEntries.sorts.find((stored) => stored.field === sort.field);
       if (inGlobal?.order !== sort.order && inLocal?.order !== sort.order) {
         const target = this.state.sortScope === FilterSortScope.GLOBAL ? this.state.global.sorts : localEntries.sorts;
         const other = target === this.state.global.sorts ? localEntries.sorts : this.state.global.sorts;
         this.removeSortField(other, sort.field);
-        const existing = target.find(stored => stored.field === sort.field);
+        const existing = target.find((stored) => stored.field === sort.field);
         if (existing) {
           // Only the direction was toggled, keep the position because it is the sort priority.
           existing.order = sort.order;
         } else {
-          target.push({label: applicable.get(sort.field), field: sort.field, order: sort.order});
+          target.push({ label: applicable.get(sort.field), field: sort.field, order: sort.order });
         }
         changed = true;
       }
@@ -244,11 +246,16 @@ export class WatchlistFilterSortStateService {
    */
   listFilters(idWatchlist: number): FilterSortEntryView[] {
     const toView = (entries: { [filterKey: string]: StoredFilter }, scope: FilterSortScope) =>
-      Object.keys(entries).map(key => ({
-        key, label: entries[key].label, valueText: this.filterValueText(entries[key].meta), scope
+      Object.keys(entries).map((key) => ({
+        key,
+        label: entries[key].label,
+        valueText: this.filterValueText(entries[key].meta),
+        scope
       }));
-    return [...toView(this.state.global.filters, FilterSortScope.GLOBAL),
-      ...toView(this.entriesOf(idWatchlist).filters, FilterSortScope.LOCAL)];
+    return [
+      ...toView(this.state.global.filters, FilterSortScope.GLOBAL),
+      ...toView(this.entriesOf(idWatchlist).filters, FilterSortScope.LOCAL)
+    ];
   }
 
   /**
@@ -258,11 +265,18 @@ export class WatchlistFilterSortStateService {
    * @returns one row per stored sort criterion
    */
   listSorts(idWatchlist: number): FilterSortEntryView[] {
-    const toView = (sorts: StoredSort[], scope: FilterSortScope) => sorts.map(sort => ({
-      key: sort.field, label: sort.label, valueText: '', order: sort.order, scope
-    }));
-    return [...toView(this.state.global.sorts, FilterSortScope.GLOBAL),
-      ...toView(this.entriesOf(idWatchlist).sorts, FilterSortScope.LOCAL)];
+    const toView = (sorts: StoredSort[], scope: FilterSortScope) =>
+      sorts.map((sort) => ({
+        key: sort.field,
+        label: sort.label,
+        valueText: '',
+        order: sort.order,
+        scope
+      }));
+    return [
+      ...toView(this.state.global.sorts, FilterSortScope.GLOBAL),
+      ...toView(this.entriesOf(idWatchlist).sorts, FilterSortScope.LOCAL)
+    ];
   }
 
   /**
@@ -305,7 +319,7 @@ export class WatchlistFilterSortStateService {
   /** Removes the global filters and the filters of every watchlist. */
   clearAllFilters(): void {
     this.state.global.filters = {};
-    Object.values(this.state.byWatchlist).forEach(entries => entries.filters = {});
+    Object.values(this.state.byWatchlist).forEach((entries) => (entries.filters = {}));
     this.writeState();
   }
 
@@ -323,7 +337,7 @@ export class WatchlistFilterSortStateService {
   /** Removes the global sort criteria and those of every watchlist. */
   clearAllSorts(): void {
     this.state.global.sorts = [];
-    Object.values(this.state.byWatchlist).forEach(entries => entries.sorts = []);
+    Object.values(this.state.byWatchlist).forEach((entries) => (entries.sorts = []));
     this.writeState();
   }
 
@@ -335,7 +349,7 @@ export class WatchlistFilterSortStateService {
    */
   private entriesOf(idWatchlist: number): WatchlistFilterSortEntries {
     if (!this.state.byWatchlist[idWatchlist]) {
-      this.state.byWatchlist[idWatchlist] = {filters: {}, sorts: []};
+      this.state.byWatchlist[idWatchlist] = { filters: {}, sorts: [] };
     }
     return this.state.byWatchlist[idWatchlist];
   }
@@ -349,8 +363,9 @@ export class WatchlistFilterSortStateService {
    */
   private applicableFilterKeys(fields: ColumnConfig[]): Map<string, string> {
     const keys = new Map<string, string>();
-    fields.filter(field => field.filterType).forEach(field =>
-      keys.set(getFilterKey(field), field.headerTranslated || field.headerKey));
+    fields
+      .filter((field) => field.filterType)
+      .forEach((field) => keys.set(getFilterKey(field), field.headerTranslated || field.headerKey));
     return keys;
   }
 
@@ -362,7 +377,7 @@ export class WatchlistFilterSortStateService {
    */
   private applicableSortFields(fields: ColumnConfig[]): Map<string, string> {
     const sortFields = new Map<string, string>();
-    fields.forEach(field => sortFields.set(field.field, field.headerTranslated || field.headerKey));
+    fields.forEach((field) => sortFields.set(field.field, field.headerTranslated || field.headerKey));
     return sortFields;
   }
 
@@ -375,9 +390,10 @@ export class WatchlistFilterSortStateService {
    * @returns true when something was removed
    */
   private removeDroppedSorts(sorts: StoredSort[], applicable: Map<string, string>, current: SortMeta[]): boolean {
-    const dropped = sorts.filter(stored => applicable.has(stored.field)
-      && !current.some(sort => sort.field === stored.field));
-    dropped.forEach(stored => this.removeSortField(sorts, stored.field));
+    const dropped = sorts.filter(
+      (stored) => applicable.has(stored.field) && !current.some((sort) => sort.field === stored.field)
+    );
+    dropped.forEach((stored) => this.removeSortField(sorts, stored.field));
     return dropped.length > 0;
   }
 
@@ -388,7 +404,7 @@ export class WatchlistFilterSortStateService {
    * @param field the sort field to remove
    */
   private removeSortField(sorts: StoredSort[], field: string): void {
-    const index = sorts.findIndex(sort => sort.field === field);
+    const index = sorts.findIndex((sort) => sort.field === field);
     if (index >= 0) {
       sorts.splice(index, 1);
     }
@@ -422,9 +438,10 @@ export class WatchlistFilterSortStateService {
       return true;
     }
     if (Array.isArray(meta)) {
-      return meta.every(constraint => this.isFilterBlank(constraint));
+      return meta.every((constraint) => this.isFilterBlank(constraint));
     }
-    return Array.isArray(meta.value) ? meta.value.length === 0
+    return Array.isArray(meta.value)
+      ? meta.value.length === 0
       : meta.value === null || meta.value === undefined || meta.value === '';
   }
 
@@ -448,10 +465,16 @@ export class WatchlistFilterSortStateService {
    */
   private filterValueText(meta: any): string {
     const constraints = Array.isArray(meta) ? meta : [meta];
-    return constraints.filter(constraint => !this.isFilterBlank(constraint))
-      .map(constraint => Array.isArray(constraint.value) ? constraint.value.join(', ')
-        : constraint.value instanceof Date ? constraint.value.toLocaleDateString()
-          : String(constraint.value)).join(', ');
+    return constraints
+      .filter((constraint) => !this.isFilterBlank(constraint))
+      .map((constraint) =>
+        Array.isArray(constraint.value)
+          ? constraint.value.join(', ')
+          : constraint.value instanceof Date
+            ? constraint.value.toLocaleDateString()
+            : String(constraint.value)
+      )
+      .join(', ');
   }
 
   /**
@@ -467,14 +490,17 @@ export class WatchlistFilterSortStateService {
   /** @returns the persisted state, or an empty one when nothing was stored yet */
   private readState(): WatchlistFilterSortState {
     const stored: WatchlistFilterSortState = this.usersettingsService.retrieveObject(
-      AppSettings.WATCHLIST_FILTER_SORT_STORE);
+      AppSettings.WATCHLIST_FILTER_SORT_STORE
+    );
     if (!stored) {
       return {
-        filterScope: FilterSortScope.LOCAL, sortScope: FilterSortScope.LOCAL,
-        global: {filters: {}, sorts: []}, byWatchlist: {}
+        filterScope: FilterSortScope.LOCAL,
+        sortScope: FilterSortScope.LOCAL,
+        global: { filters: {}, sorts: [] },
+        byWatchlist: {}
       };
     }
-    stored.global = stored.global ?? {filters: {}, sorts: []};
+    stored.global = stored.global ?? { filters: {}, sorts: [] };
     stored.byWatchlist = stored.byWatchlist ?? {};
     return this.reviveDates(stored);
   }
@@ -497,10 +523,10 @@ export class WatchlistFilterSortStateService {
       return ISO_DATE_PATTERN.test(value) ? new Date(value) : value;
     }
     if (Array.isArray(value)) {
-      return value.map(entry => this.reviveDates(entry));
+      return value.map((entry) => this.reviveDates(entry));
     }
     if (value !== null && typeof value === 'object') {
-      Object.keys(value).forEach(key => value[key] = this.reviveDates(value[key]));
+      Object.keys(value).forEach((key) => (value[key] = this.reviveDates(value[key])));
     }
     return value;
   }

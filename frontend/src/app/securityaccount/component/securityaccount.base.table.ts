@@ -1,41 +1,40 @@
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {SecurityPositionDynamicGroupSummary} from '../../entities/view/security.position.dynamic.group.summary';
-import {Directive, ElementRef, Injector, ViewChild} from '@angular/core';
-import {SecurityaccountGroupBase} from './securityaccount.group.base';
-import {SecurityPositionCurrenyGroupSummary} from '../../entities/view/security.position.curreny.group.summary';
-import {Subscription} from 'rxjs';
-import {ColumnConfig, ColumnGroupConfig} from '../../lib/datashowbase/column.config';
-import {SecurityPositionSummary} from '../../entities/view/security.position.summary';
-import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {Portfolio} from '../../entities/portfolio';
-import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
-import {SecurityaccountService} from '../service/securityaccount.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {ChartDataService} from '../../shared/chart/service/chart.data.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TranslateService} from '@ngx-translate/core';
-import {AppSettings} from '../../shared/app.settings';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TransactionType} from '../../shared/types/transaction.type';
-import {Security} from '../../entities/security';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {HelpIds} from '../../lib/help/help.ids';
-import {OptionalParameters, TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
-import {BaseSettings} from '../../lib/base.settings';
-
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
+import { Directive, ElementRef, Injector, ViewChild } from '@angular/core';
+import { SecurityaccountGroupBase } from './securityaccount.group.base';
+import { SecurityPositionCurrenyGroupSummary } from '../../entities/view/security.position.curreny.group.summary';
+import { Subscription } from 'rxjs';
+import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
+import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
+import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
+import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { Portfolio } from '../../entities/portfolio';
+import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
+import { SecurityaccountService } from '../service/securityaccount.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { ChartDataService } from '../../shared/chart/service/chart.data.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TranslateService } from '@ngx-translate/core';
+import { AppSettings } from '../../shared/app.settings';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { Security } from '../../entities/security';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { HelpIds } from '../../lib/help/help.ids';
+import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { BaseSettings } from '../../lib/base.settings';
 
 @Directive()
 export abstract class SecurityaccountBaseTable extends TableConfigBase implements IGlobalMenuAttach {
@@ -48,7 +47,10 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   showTable = true;
   untilDate: Date;
 
-  securityaccountGroupBase: SecurityaccountGroupBase<SecurityPositionDynamicGroupSummary<any> | SecurityPositionCurrenyGroupSummary, any>;
+  securityaccountGroupBase: SecurityaccountGroupBase<
+    SecurityPositionDynamicGroupSummary<any> | SecurityPositionCurrenyGroupSummary,
+    any
+  >;
   securityPositionAll: SecurityPositionSummary[];
   securityPositionSummary: SecurityPositionGrandSummary;
   groupMap: Map<any, SecurityaccountGroupBase<any, any>>;
@@ -66,7 +68,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   protected internalColumnConfigs: ColumnConfig[];
   private subscriptionRequestFromChart: Subscription;
 
-  protected constructor(protected timeSeriesQuotesService: TimeSeriesQuotesService,
+  protected constructor(
+    protected timeSeriesQuotesService: TimeSeriesQuotesService,
     protected alarmSetupService: AlarmSetupService,
     protected activePanelService: ActivePanelService,
     protected messageToastService: MessageToastService,
@@ -79,7 +82,8 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
   }
@@ -107,8 +111,10 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
         rowIndex++;
       }
       this.groupChangeIndexMap.set(rowIndex, <any>securityPositionGroupSummary);
-      this.groupMap.set(this.securityaccountGroupBase.getGroupValueFromGroupRow(<any>securityPositionGroupSummary),
-        <any>securityPositionGroupSummary);
+      this.groupMap.set(
+        this.securityaccountGroupBase.getGroupValueFromGroupRow(<any>securityPositionGroupSummary),
+        <any>securityPositionGroupSummary
+      );
     }
     this.showTable = true;
   }
@@ -125,13 +131,13 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       menuItems = this.addTimeSeriesMenus(<Security>securitycurrencySelected, menuItems, false);
     }
 
-    menuItems.push({separator: true});
+    menuItems.push({ separator: true });
     menuItems.push({
       label: 'SHOW_CHART',
       command: (event) => this.navigateToChartRoute()
     });
 
-    menuItems.push({separator: true});
+    menuItems.push({ separator: true });
     menuItems.push({
       label: 'SHOW_CLOSE_POSITION',
       command: (event) => this.handleOpenClosePosition(event),
@@ -189,8 +195,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     return this.activePanelService.isActivated(this);
   }
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   onRightClick(event): void {
     this.isActivated() && this.resetMenu();
@@ -244,8 +249,7 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     return BusinessHelper.isMarginProduct(security);
   }
 
-  protected extendEditMenu(menuItems: MenuItem[], securityPositionSummary: SecurityPositionSummary): void {
-  }
+  protected extendEditMenu(menuItems: MenuItem[], securityPositionSummary: SecurityPositionSummary): void {}
 
   protected abstract readData(): void;
 
@@ -257,59 +261,83 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     this.removeAllColumns();
     this.internalColumnConfigs = [];
 
-    this.addColumn(DataType.String, 'security.name', 'NAME', true, false,
-      {
-        columnGroupConfigs: [new ColumnGroupConfig('security.currency', 'EXCHANGE_RATE',
+    this.addColumn(DataType.String, 'security.name', 'NAME', true, false, {
+      columnGroupConfigs: [
+        new ColumnGroupConfig(
+          'security.currency',
+          'EXCHANGE_RATE',
           this.securityaccountGroupBase.getGroupRowFieldTextByRowIndex.bind(this.securityaccountGroupBase),
-          {colspan: 99}),
-          new ColumnGroupConfig(null, 'GRAND_TOTAL')], width: 170
-      });
-    this.addColumn(DataType.String, AppSettings.SECURITY.toLowerCase(), AppSettings.INSTRUMENT_HEADER, true, true,
-      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
+          { colspan: 99 }
+        ),
+        new ColumnGroupConfig(null, 'GRAND_TOTAL')
+      ],
+      width: 170
+    });
+    this.addColumn(DataType.String, AppSettings.SECURITY.toLowerCase(), AppSettings.INSTRUMENT_HEADER, true, true, {
+      fieldValueFN: this.getInstrumentIcon.bind(this),
+      templateName: 'icon',
+      width: 20
+    });
 
-    this.addColumn(DataType.Numeric, 'units', 'HOLDING', true, false, {width: 55});
-    this.addColumnFeqH(DataType.String, 'security.currency', true, false, {width: 35});
+    this.addColumn(DataType.Numeric, 'units', 'HOLDING', true, false, { width: 55 });
+    this.addColumnFeqH(DataType.String, 'security.currency', true, false, { width: 35 });
 
-    this.addColumn(DataType.DateString, 'closeDate', 'TIMEDATE', true, false,
-      {width: 90});
-    this.addColumn(DataType.Numeric, 'closePrice', 'LAST', true, false,
-      {columnGroupConfigs: [new ColumnGroupConfig(null, 'TOTAL')], width: 60});
+    this.addColumn(DataType.DateString, 'closeDate', 'TIMEDATE', true, false, { width: 90 });
+    this.addColumn(DataType.Numeric, 'closePrice', 'LAST', true, false, {
+      columnGroupConfigs: [new ColumnGroupConfig(null, 'TOTAL')],
+      width: 60
+    });
 
-    this.addColumnFeqH(DataType.Numeric, 'gainLossSecurity', true, false,
-      {
-        currencyPrecisionField: 'security.currency',
-        columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecurity', null, null,
-          {currencyPrecisionField: 'currency'})]
-      });
+    this.addColumnFeqH(DataType.Numeric, 'gainLossSecurity', true, false, {
+      currencyPrecisionField: 'security.currency',
+      columnGroupConfigs: [
+        new ColumnGroupConfig('groupGainLossSecurity', null, null, { currencyPrecisionField: 'currency' })
+      ]
+    });
 
-    this.internalColumnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossSecurityMC', true, true,
-      {
-        columnGroupConfigs: [new ColumnGroupConfig('groupGainLossSecurityMC'),
-          new ColumnGroupConfig('grandGainLossSecurityMC')]
-      }));
-    this.internalColumnConfigs.push(this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, true,
-      {
-        columnGroupConfigs: [new ColumnGroupConfig('groupGainLossCurrencyMC'),
-          new ColumnGroupConfig('grandGainLossCurrencyMC')]
-      }));
+    this.internalColumnConfigs.push(
+      this.addColumnFeqH(DataType.Numeric, 'gainLossSecurityMC', true, true, {
+        columnGroupConfigs: [
+          new ColumnGroupConfig('groupGainLossSecurityMC'),
+          new ColumnGroupConfig('grandGainLossSecurityMC')
+        ]
+      })
+    );
+    this.internalColumnConfigs.push(
+      this.addColumnFeqH(DataType.Numeric, 'gainLossCurrencyMC', true, true, {
+        columnGroupConfigs: [
+          new ColumnGroupConfig('groupGainLossCurrencyMC'),
+          new ColumnGroupConfig('grandGainLossCurrencyMC')
+        ]
+      })
+    );
 
-    this.addColumn(DataType.Numeric, 'accountValueSecurity', AppSettings.VALUE_SECURITY_ACCOUNT_HEADER, true, false,
-      {
-        currencyPrecisionField: 'security.currency',
-        columnGroupConfigs: [new ColumnGroupConfig('groupAccountValueSecurity', null, null,
-          {currencyPrecisionField: 'currency'})]
-      });
+    this.addColumn(DataType.Numeric, 'accountValueSecurity', AppSettings.VALUE_SECURITY_ACCOUNT_HEADER, true, false, {
+      currencyPrecisionField: 'security.currency',
+      columnGroupConfigs: [
+        new ColumnGroupConfig('groupAccountValueSecurity', null, null, { currencyPrecisionField: 'currency' })
+      ]
+    });
 
-    this.internalColumnConfigs.push(this.addColumn(DataType.Numeric, AppSettings.VALUE_SECURITY_MAIN_CURRENCY_FIELD,
-      AppSettings.VALUE_SECURITY_ACCOUNT_HEADER,
-      true, true, {
-        width: 100,
-        columnGroupConfigs: [new ColumnGroupConfig('groupAccountValueSecurityMC'),
-          new ColumnGroupConfig('grandAccountValueSecurityMC')]
-      }));
+    this.internalColumnConfigs.push(
+      this.addColumn(
+        DataType.Numeric,
+        AppSettings.VALUE_SECURITY_MAIN_CURRENCY_FIELD,
+        AppSettings.VALUE_SECURITY_ACCOUNT_HEADER,
+        true,
+        true,
+        {
+          width: 100,
+          columnGroupConfigs: [
+            new ColumnGroupConfig('groupAccountValueSecurityMC'),
+            new ColumnGroupConfig('grandAccountValueSecurityMC')
+          ]
+        }
+      )
+    );
 
     this.securityaccountGroupBase.extendColumns(this.internalColumnConfigs);
-    this.fields.filter(cc => cc.dataType === DataType.Numeric).map(cc => cc.templateName = 'greenRed');
+    this.fields.filter((cc) => cc.dataType === DataType.Numeric).map((cc) => (cc.templateName = 'greenRed'));
   }
 
   protected getDataToView(data: SecurityPositionGrandSummary) {
@@ -319,19 +347,27 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   protected initTableTextTranslation() {
-    this.internalColumnConfigs.forEach(columnConfig => {
+    this.internalColumnConfigs.forEach((columnConfig) => {
       columnConfig.headerSuffix = this.securityPositionSummary.currency;
       columnConfig.fixedCurrency = this.securityPositionSummary.currency;
     });
     this.prepareTableAndTranslate();
-    this.securityaccountGroupBase.translateGroupValues(<any[]>this.securityPositionSummary.securityPositionGroupSummaryList);
+    this.securityaccountGroupBase.translateGroupValues(
+      <any[]>this.securityPositionSummary.securityPositionGroupSummaryList
+    );
     this.changeToOpenChart();
   }
 
   protected addTimeSeriesMenus(security: Security, menuItems: MenuItem[], translate: boolean): MenuItem[] {
     if (security) {
-      menuItems = menuItems.concat(this.timeSeriesQuotesService.getMenuItems(security.idSecuritycurrency, security.currency,
-        true, this.addNoMarketValueOpt(security)));
+      menuItems = menuItems.concat(
+        this.timeSeriesQuotesService.getMenuItems(
+          security.idSecuritycurrency,
+          security.currency,
+          true,
+          this.addNoMarketValueOpt(security)
+        )
+      );
       menuItems.push(...this.alarmSetupService.getMenuItem(security));
       translate && TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }
@@ -339,8 +375,10 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   }
 
   protected changeToOpenChart() {
-    this.subscriptionRequestFromChart && this.chartDataService.sentToChart(
-      this.securityaccountGroupBase.getChartDefinition(this.getTitleChart(), this.securityPositionSummary));
+    this.subscriptionRequestFromChart &&
+      this.chartDataService.sentToChart(
+        this.securityaccountGroupBase.getChartDefinition(this.getTitleChart(), this.securityPositionSummary)
+      );
   }
 
   protected getTitleChart(): string {
@@ -360,18 +398,22 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
 
   private navigateToChartRoute() {
     !this.subscriptionRequestFromChart && this.prepareChartDataWithRequest();
-    this.router.navigate([BaseSettings.MAINVIEW_KEY + '/', {
-      outlets: {
-        mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, this.getComponentId()]
+    this.router.navigate([
+      BaseSettings.MAINVIEW_KEY + '/',
+      {
+        outlets: {
+          mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, this.getComponentId()]
+        }
       }
-    }]);
+    ]);
   }
 
   private prepareChartDataWithRequest(): void {
-    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe(id => {
+    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe((id) => {
       if (id === this.getComponentId()) {
-        this.chartDataService.sentToChart(this.securityaccountGroupBase.getChartDefinition(
-          this.getTitleChart(), this.securityPositionSummary));
+        this.chartDataService.sentToChart(
+          this.securityaccountGroupBase.getChartDefinition(this.getTitleChart(), this.securityPositionSummary)
+        );
       }
     });
   }
@@ -379,24 +421,36 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   private resetMenu(): void {
     this.contextMenuItems = this.getEditMenu(this.selectedSecurityPositionSummary);
     this.activePanelService.activatePanel(this, {
-      showMenu: this.getMenuShowOptionsParam(this.selectedSecurityPositionSummary ?
-        this.selectedSecurityPositionSummary.security : null),
+      showMenu: this.getMenuShowOptionsParam(
+        this.selectedSecurityPositionSummary ? this.selectedSecurityPositionSummary.security : null
+      ),
       editMenu: this.contextMenuItems
     });
     if (this.contextMenuItems) {
-      this.contextMenuItems = this.addTimeSeriesMenus(this.selectedSecurityPositionSummary.security,
-        this.contextMenuItems, true);
-      this.contextMenuItems = this.addUrlLinkMenus(this.selectedSecurityPositionSummary.security, this.contextMenuItems, true);
+      this.contextMenuItems = this.addTimeSeriesMenus(
+        this.selectedSecurityPositionSummary.security,
+        this.contextMenuItems,
+        true
+      );
+      this.contextMenuItems = this.addUrlLinkMenus(
+        this.selectedSecurityPositionSummary.security,
+        this.contextMenuItems,
+        true
+      );
     }
   }
 
   private getEditMenu(securityPositionSummary: SecurityPositionSummary): MenuItem[] {
     let menuItems: MenuItem[] = null;
 
-    if (securityPositionSummary && (AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR
-        || (AssetclassType[securityPositionSummary.security.assetClass.categoryType] === AssetclassType.CURRENCY_PAIR
-          && [SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT
-          ].includes(SpecialInvestmentInstruments[securityPositionSummary.security.assetClass.specialInvestmentInstrument])))) {
+    if (
+      securityPositionSummary &&
+      (AssetclassType[securityPositionSummary.security.assetClass.categoryType] < AssetclassType.CURRENCY_PAIR ||
+        (AssetclassType[securityPositionSummary.security.assetClass.categoryType] === AssetclassType.CURRENCY_PAIR &&
+          [SpecialInvestmentInstruments.FOREX, SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT].includes(
+            SpecialInvestmentInstruments[securityPositionSummary.security.assetClass.specialInvestmentInstrument]
+          )))
+    ) {
       menuItems = [];
       menuItems.push({
         label: 'ACCUMULATE',
@@ -420,5 +474,4 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     }
     return menuItems;
   }
-
 }

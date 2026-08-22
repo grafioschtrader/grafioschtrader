@@ -1,8 +1,7 @@
-import {AlgoTopAssetSecurity} from './algo.top.asset.security';
-import {AlgoAssetclass} from './algo.assetclass';
-import {Exclude, Type} from 'class-transformer';
-import {AlgoTreeName} from '../../entities/view/algo.tree.name';
-
+import { AlgoTopAssetSecurity } from './algo.top.asset.security';
+import { AlgoAssetclass } from './algo.assetclass';
+import { Exclude, Type } from 'class-transformer';
+import { AlgoTreeName } from '../../entities/view/algo.tree.name';
 
 export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {
   name: string = null;
@@ -25,7 +24,7 @@ export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {
 }
 
 export enum AlgoLevelType {
-  TOP_LEVEL = "T",
-  ASSET_CLASS_LEVEL = "A",
-  SECURITY_LEVEL = "S"
+  TOP_LEVEL = 'T',
+  ASSET_CLASS_LEVEL = 'A',
+  SECURITY_LEVEL = 'S'
 }

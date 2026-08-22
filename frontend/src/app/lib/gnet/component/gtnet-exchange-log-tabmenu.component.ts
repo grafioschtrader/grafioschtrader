@@ -1,9 +1,9 @@
-import {Component, OnInit} from '@angular/core';
-import {RouterModule} from '@angular/router';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
-import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.component';
-import {TabItem} from '../../types/tab.item';
-import {BaseSettings} from '../../base.settings';
+import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.component';
+import { TabItem } from '../../types/tab.item';
+import { BaseSettings } from '../../base.settings';
 
 /**
  * Tab menu component for GTNet Exchange Log.
@@ -12,20 +12,15 @@ import {BaseSettings} from '../../base.settings';
 @Component({
   selector: 'gtnet-exchange-log-tabmenu',
   standalone: true,
-  imports: [
-    SharedTabMenuComponent,
-    RouterModule
-  ],
+  imports: [SharedTabMenuComponent, RouterModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <app-shared-tab-menu
-      [tabs]="tabs"
-      [defaultRoute]="defaultRoute">
+    <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `
 })
 export class GTNetExchangeLogTabMenuComponent implements OnInit {
-
   tabs: TabItem[] = [];
   defaultRoute: string = BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY;
 

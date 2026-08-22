@@ -1,29 +1,29 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {AlgoStrategy} from '../model/algo.strategy';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {AlgoStrategyService} from '../service/algo.strategy.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {AlgoCallParam} from '../model/algo.dialog.visible';
-import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
-import {Subscription} from 'rxjs';
-import {FieldDescriptorInputAndShow} from '../../lib/dynamicfield/field.descriptor.input.and.show';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {BaseParam} from '../../lib/entities/base.param';
-import {AppSettings} from '../../shared/app.settings';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AlgoStrategyHelper} from './algo.strategy.helper';
-import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {YamlEditorComponent} from './yaml-editor.component';
-import {ButtonModule} from '@openng/optimus-ui/button';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { AlgoStrategy } from '../model/algo.strategy';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AlgoStrategyService } from '../service/algo.strategy.service';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AlgoCallParam } from '../model/algo.dialog.visible';
+import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
+import { Subscription } from 'rxjs';
+import { FieldDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { BaseParam } from '../../lib/entities/base.param';
+import { AppSettings } from '../../shared/app.settings';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AlgoStrategyHelper } from './algo.strategy.helper';
+import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { YamlEditorComponent } from './yaml-editor.component';
+import { ButtonModule } from '@openng/optimus-ui/button';
 import * as yaml from 'js-yaml';
 
 /** Default YAML template for the Mean Reversion Dip strategy */
@@ -153,38 +153,37 @@ outputs:
  * with syntax highlighting, autocompletion, validation, and hover documentation.
  */
 @Component({
-    selector: 'algo-strategy-edit',
-    template: `
-    <p-dialog header="{{'ALGO_STRATEGY' | translate}}" [visible]="visibleDialog"
-              [style]="{width: dialogWidth}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
+  selector: 'algo-strategy-edit',
+  template: ` <p-dialog
+    header="{{ 'ALGO_STRATEGY' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: dialogWidth }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
 
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-
-      @if (isComplexStrategy) {
-        <yaml-editor [(value)]="yamlContent" [height]="'500px'" [schema]="yamlSchema" />
-        <div class="mt-2 text-end">
-          <p-button [label]="'LOAD_TEMPLATE' | translate"
-                    severity="secondary" (click)="loadTemplate()" styleClass="me-2">
-            <i class="pi pi-file" pButtonIcon></i>
-          </p-button>
-          <p-button [label]="'APPLY' | translate" (click)="submitComplexStrategy()">
-            <i class="pi pi-check" pButtonIcon></i>
-          </p-button>
-        </div>
-      }
-    </p-dialog>`,
-    standalone: true,
-    imports: [
-      TranslateModule,
-      DialogModule,
-      DynamicFormComponent,
-      YamlEditorComponent,
-      ButtonModule
-    ]
+    @if (isComplexStrategy) {
+      <yaml-editor [(value)]="yamlContent" [height]="'500px'" [schema]="yamlSchema" />
+      <div class="mt-2 text-end">
+        <p-button [label]="'LOAD_TEMPLATE' | translate" severity="secondary" (click)="loadTemplate()" styleClass="me-2">
+          <i class="pi pi-file" pButtonIcon></i>
+        </p-button>
+        <p-button [label]="'APPLY' | translate" (click)="submitComplexStrategy()">
+          <i class="pi pi-check" pButtonIcon></i>
+        </p-button>
+      </div>
+    }
+  </p-dialog>`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TranslateModule, DialogModule, DynamicFormComponent, YamlEditorComponent, ButtonModule]
 })
 export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy> implements OnInit {
   @Input() algoCallParam: AlgoCallParam;
@@ -206,18 +205,18 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   private static readonly FIELD_STRATEGY_CONFIG = 'strategyConfig';
 
-  constructor(translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              private algoStrategyService: AlgoStrategyService) {
-    super(HelpIds.HELP_ALGO, 'ALGO_SECURITY', translateService, gps,
-      messageToastService, algoStrategyService);
+  constructor(
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    private algoStrategyService: AlgoStrategyService
+  ) {
+    super(HelpIds.HELP_ALGO, 'ALGO_SECURITY', translateService, gps, messageToastService, algoStrategyService);
     this.loadYamlSchema();
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      6, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 6, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectString(AlgoStrategyHelper.FIELD_STRATEGY_IMPL, 'ALGO_STRATEGY_NAME', true),
       DynamicFieldHelper.createSubmitButton()
@@ -237,11 +236,19 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       this.ignoreValueChanged = false;
       this.preparePossibleStrategies();
     } else {
-        const possibleValues: AlgoStrategyImplementationType[] =
-          this.algoCallParam.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(this.algoCallParam.parentObject.idAlgoAssetclassSecurity);
-        this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
-          SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AlgoStrategyImplementationType,
-            possibleValues.map(algoStrategyImplementations => AlgoStrategyImplementationType[algoStrategyImplementations]), false);
+      const possibleValues: AlgoStrategyImplementationType[] =
+        this.algoCallParam.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
+          this.algoCallParam.parentObject.idAlgoAssetclassSecurity
+        );
+      this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
+        SelectOptionsHelper.createHtmlOptionsFromEnum(
+          this.translateService,
+          AlgoStrategyImplementationType,
+          possibleValues.map(
+            (algoStrategyImplementations) => AlgoStrategyImplementationType[algoStrategyImplementations]
+          ),
+          false
+        );
     }
   }
 
@@ -258,34 +265,40 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    * with the YAML content from the Monaco editor.
    */
   submitComplexStrategy(): void {
-    const value = {...this.form.value};
+    const value = { ...this.form.value };
     value[AlgoStrategyEditComponent.FIELD_STRATEGY_CONFIG] = this.yamlContent;
     this.submit(value);
   }
 
   private preparePossibleStrategies(): void {
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, AlgoStrategyImplementationType,
-        [AlgoStrategyImplementationType[(<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations]], false);
+      SelectOptionsHelper.createHtmlOptionsFromEnum(
+        this.translateService,
+        AlgoStrategyImplementationType,
+        [AlgoStrategyImplementationType[(<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations]],
+        false
+      );
     this.createViewFromSelectedEnum((<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.setValue(
-      (<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations);
+      (<AlgoStrategy>this.algoCallParam.thisObject).algoStrategyImplementations
+    );
   }
 
   private valueChangedOnAlgoStrategyImplementation(): void {
-    this.algoStrategyImplementationsChangedSub = this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.valueChanges
-      .subscribe((asi: AlgoStrategyImplementationType) => {
-        if (!this.ignoreValueChanged) {
-          this.createViewFromSelectedEnum(asi);
-        }
-      });
+    this.algoStrategyImplementationsChangedSub = this.configObject[
+      AlgoStrategyHelper.FIELD_STRATEGY_IMPL
+    ].formControl.valueChanges.subscribe((asi: AlgoStrategyImplementationType) => {
+      if (!this.ignoreValueChanged) {
+        this.createViewFromSelectedEnum(asi);
+      }
+    });
   }
 
   private createViewFromSelectedEnum(asi: string | AlgoStrategyImplementationType): void {
     const asiNo: number = AlgoStrategyImplementationType[asi];
     const inputAndShowDefinition = this.algoCallParam.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
     if (!inputAndShowDefinition) {
-      this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe(iasd => {
+      this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe((iasd) => {
         this.algoCallParam.algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
         if (iasd.isComplexStrategy) {
           this.isComplexStrategy = true;
@@ -293,7 +306,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
         } else {
           this.isComplexStrategy = false;
           this.fieldDescriptorInputAndShows = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
-            this.algoCallParam.parentObject, iasd);
+            this.algoCallParam.parentObject,
+            iasd
+          );
           this.createDynamicInputFields();
         }
       });
@@ -303,8 +318,10 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
         this.createComplexStrategyInput();
       } else {
         this.isComplexStrategy = false;
-        this.fieldDescriptorInputAndShows = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(this.algoCallParam.parentObject,
-          inputAndShowDefinition);
+        this.fieldDescriptorInputAndShows = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
+          this.algoCallParam.parentObject,
+          inputAndShowDefinition
+        );
         this.createDynamicInputFields();
       }
     }
@@ -338,7 +355,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     if (algoStrategy.strategyConfig) {
       try {
         const jsonObj = JSON.parse(algoStrategy.strategyConfig);
-        this.yamlContent = yaml.dump(jsonObj, {lineWidth: 120, noRefs: true});
+        this.yamlContent = yaml.dump(jsonObj, { lineWidth: 120, noRefs: true });
       } catch (e) {
         this.yamlContent = algoStrategy.strategyConfig;
       }
@@ -352,8 +369,12 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.dialogWidth = '700px';
     const submitButton = this.config[this.config.length - 1];
     submitButton.invisible = false;
-    const fieldConfig: FieldConfig[] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.translateService,
-      this.fieldDescriptorInputAndShows, AppSettings.PREFIX_ALGO_FIELD, false);
+    const fieldConfig: FieldConfig[] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
+      this.translateService,
+      this.fieldDescriptorInputAndShows,
+      AppSettings.PREFIX_ALGO_FIELD,
+      false
+    );
 
     this.config = [this.config[0], ...fieldConfig, submitButton];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -369,7 +390,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       (<AlgoStrategy>this.algoCallParam.thisObject)[AlgoStrategyHelper.FIELD_STRATEGY_IMPL],
       AlgoStrategyHelper.FIELD_STRATEGY_IMPL,
       (<AlgoStrategy>this.algoCallParam.thisObject).algoRuleStrategyParamMap,
-      this.fieldDescriptorInputAndShows, true);
+      this.fieldDescriptorInputAndShows,
+      true
+    );
     this.form.transferBusinessObjectToForm(dynamicModel);
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.disable();
     this.ignoreValueChanged = false;
@@ -399,8 +422,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       algoStrategy.algoRuleStrategyParamMap = {};
     } else {
       algoStrategy.algoRuleStrategyParamMap = {};
-      this.fieldDescriptorInputAndShows.forEach(fDIAS =>
-        algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new BaseParam(value[fDIAS.fieldName])
+      this.fieldDescriptorInputAndShows.forEach(
+        (fDIAS) => (algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new BaseParam(value[fDIAS.fieldName]))
       );
     }
     return algoStrategy;
@@ -415,8 +438,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   private loadYamlSchema(): void {
     const schemaUrl = new URL('assets/schemas/mean-reversion-dip-schema.json', document.baseURI).toString();
     fetch(schemaUrl)
-      .then(res => res.json())
-      .then(schema => this.yamlSchema = schema)
-      .catch(err => console.warn('Could not load YAML schema for autocompletion:', err));
+      .then((res) => res.json())
+      .then((schema) => (this.yamlSchema = schema))
+      .catch((err) => console.warn('Could not load YAML schema for autocompletion:', err));
   }
 }

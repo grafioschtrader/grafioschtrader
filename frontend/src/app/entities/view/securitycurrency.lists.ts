@@ -1,5 +1,5 @@
-import {Currencypair} from '../currencypair';
-import {Security} from '../security';
+import { Currencypair } from '../currencypair';
+import { Security } from '../security';
 
 export class SecuritycurrencyLists {
   public securityList: Security[] = [];

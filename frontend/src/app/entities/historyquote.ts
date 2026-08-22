@@ -1,7 +1,7 @@
-import {Exclude} from 'class-transformer';
-import {HistoryquoteBase} from './historyquote.base';
+import { Exclude } from 'class-transformer';
+import { HistoryquoteBase } from './historyquote.base';
 
-export {HistoryquoteCreateType} from './historyquote.base';
+export { HistoryquoteCreateType } from './historyquote.base';
 
 export class Historyquote extends HistoryquoteBase {
   idHistoryQuote?: number;

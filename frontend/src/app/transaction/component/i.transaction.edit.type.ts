@@ -1,6 +1,6 @@
-import {Securityaccount} from '../../entities/securityaccount';
-import {Cashaccount} from '../../entities/cashaccount';
-import {SecurityaccountOpenPositionUnits} from '../../entities/view/securityaccount.open.position.units';
+import { Securityaccount } from '../../entities/securityaccount';
+import { Cashaccount } from '../../entities/cashaccount';
+import { SecurityaccountOpenPositionUnits } from '../../entities/view/securityaccount.open.position.units';
 
 /**
  * Interface defining transaction editing behaviors for different transaction types. Provides methods for calculating
@@ -19,8 +19,14 @@ export interface ITransactionEditType {
    * @param valuePerPoint The value per point for margin instruments
    * @returns The calculated total amount (positive for credits, negative for debits)
    */
-  calcPosTotal(quotation: number, units: number, taxcost: number, transactioncost: number,
-               accruedInterest: number, valuePerPoint: number): number;
+  calcPosTotal(
+    quotation: number,
+    units: number,
+    taxcost: number,
+    transactioncost: number,
+    accruedInterest: number,
+    valuePerPoint: number
+  ): number;
 
   /** Returns true if the user cannot change the security selection for this transaction type */
   securityOnlyParentSelected(): boolean;
@@ -33,7 +39,10 @@ export interface ITransactionEditType {
    * @param closeMarginIdSecurityaccount The security account ID for closing margin positions
    * @returns True if the account is acceptable for this transaction type
    */
-  acceptSecurityaccount(securitycashaccount: Securityaccount | Cashaccount,
-                        securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
-                        isSellBuyMarginInstrument: boolean, closeMarginIdSecurityaccount: number): boolean;
+  acceptSecurityaccount(
+    securitycashaccount: Securityaccount | Cashaccount,
+    securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
+    isSellBuyMarginInstrument: boolean,
+    closeMarginIdSecurityaccount: number
+  ): boolean;
 }

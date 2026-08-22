@@ -1,6 +1,5 @@
-import {ImportTransactionPos} from '../../entities/import.transaction.pos';
-import {FailedParsedTemplateState, ParsedTemplateState} from './failed.parsed.template.state';
-
+import { ImportTransactionPos } from '../../entities/import.transaction.pos';
+import { FailedParsedTemplateState, ParsedTemplateState } from './failed.parsed.template.state';
 
 export class FormTemplateCheck {
   pdfAsTxt: string;

@@ -1,5 +1,5 @@
-import {GetTransformedError} from './get.transformed.error';
-import {TransformedError} from './transformed.error';
+import { GetTransformedError } from './get.transformed.error';
+import { TransformedError } from './transformed.error';
 
 export class LimitEntityTransactionError implements GetTransformedError {
   public entity: string;
@@ -15,5 +15,4 @@ export class LimitEntityTransactionError implements GetTransformedError {
 
     return transformedError;
   }
-
 }

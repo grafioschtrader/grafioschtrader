@@ -1,17 +1,17 @@
-import {Component, Injector} from '@angular/core';
-import {AddInstrumentTable} from './add-instrument-table.component';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {FilterService} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {WatchlistService} from '../service/watchlist.service';
-import {Watchlist} from '../../entities/watchlist';
-import {CommonModule} from '@angular/common';
-import {TranslateModule} from '@ngx-translate/core';
-import {FormsModule} from '@angular/forms';
-import {TableModule} from '@openng/optimus-ui/table';
-import {ButtonModule} from '@openng/optimus-ui/button';
+import { Component, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { AddInstrumentTable } from './add-instrument-table.component';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { FilterService } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { WatchlistService } from '../service/watchlist.service';
+import { Watchlist } from '../../entities/watchlist';
+import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { FormsModule } from '@angular/forms';
+import { TableModule } from '@openng/optimus-ui/table';
+import { ButtonModule } from '@openng/optimus-ui/button';
 
 /**
  * Component that displays found instruments in a table for adding to a watchlist. Extends the base AddInstrumentTable
@@ -19,13 +19,13 @@ import {ButtonModule} from '@openng/optimus-ui/button';
  * securities and currency pairs to add to an existing watchlist.
  */
 @Component({
-    selector: 'add-instrument-table',
-    templateUrl: '../view/add.instrument.table.html',
-    standalone: true,
-    imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
+  selector: 'add-instrument-table',
+  templateUrl: '../view/add.instrument.table.html',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, TranslateModule, FormsModule, TableModule, ButtonModule]
 })
 export class WatchlistAddInstrumentTableComponent extends AddInstrumentTable<Watchlist> {
-
   /**
    * Creates a new watchlist add instrument table component with required services for data management and user interaction.
    *
@@ -36,14 +36,24 @@ export class WatchlistAddInstrumentTableComponent extends AddInstrumentTable<Wat
    * @param gps Global parameter service providing application-wide settings and user preferences
    * @param usersettingsService Service for persisting and retrieving user-specific table configuration settings
    */
-  constructor(dataChangedService: DataChangedService,
-              watchlistService: WatchlistService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(new Watchlist(), dataChangedService, watchlistService, filterService, translateService, gps, usersettingsService, injector);
+  constructor(
+    dataChangedService: DataChangedService,
+    watchlistService: WatchlistService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      new Watchlist(),
+      dataChangedService,
+      watchlistService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
-
 }

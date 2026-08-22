@@ -1,27 +1,32 @@
-import {StockexchangeService} from '../../stockexchange/service/stockexchange.service';
-import {Stockexchange} from '../../entities/stockexchange';
-import {StockexchangeCallParam} from '../../stockexchange/component/stockexchange.call.param';
-import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
-import {StockexchangeBaseData} from '../../stockexchange/model/stockexchange.base.data';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {EntityMapping, PrepareCallParam} from '../../lib/proposechange/component/general.entity.prepare.edit';
+import { StockexchangeService } from '../../stockexchange/service/stockexchange.service';
+import { Stockexchange } from '../../entities/stockexchange';
+import { StockexchangeCallParam } from '../../stockexchange/component/stockexchange.call.param';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { BasePrepareEdit } from '../../lib/proposechange/component/base.prepare.edit';
+import { StockexchangeBaseData } from '../../stockexchange/model/stockexchange.base.data';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { EntityMapping, PrepareCallParam } from '../../lib/proposechange/component/general.entity.prepare.edit';
 
 /**
  * Preparation handler for Stockexchange entities in the propose change workflow.
  * Loads stock exchange base data including country lists, existing MIC codes, and security associations
  * needed for the stock exchange edit dialog.
  */
-export class StockexchangePrepareEdit extends BasePrepareEdit<Stockexchange> implements PrepareCallParam<Stockexchange> {
+export class StockexchangePrepareEdit
+  extends BasePrepareEdit<Stockexchange>
+  implements PrepareCallParam<Stockexchange>
+{
   /**
    * Creates a stock exchange preparation handler.
    *
    * @param stockexchangeService - Service for loading stock exchange data
    * @param gps - Global parameter service for system configuration
    */
-  constructor(private stockexchangeService: StockexchangeService,
-    private gps: GlobalparameterService) {
+  constructor(
+    private stockexchangeService: StockexchangeService,
+    private gps: GlobalparameterService
+  ) {
     super();
   }
 
@@ -43,7 +48,7 @@ export class StockexchangePrepareEdit extends BasePrepareEdit<Stockexchange> imp
         entityMapping.callParam.hasSecurity = sbd.hasSecurity;
         entityMapping.callParam.countriesAsHtmlOptions = sbd.countries;
         entityMapping.callParam.stockexchangeMics = sbd.stockexchangeMics;
-        entityMapping.callParam.existingMic = new Set(sbd.stockexchanges.map(se => se.mic));
+        entityMapping.callParam.existingMic = new Set(sbd.stockexchanges.map((se) => se.mic));
         entityMapping.callParam.proposeChange = true;
         entityMapping.visibleDialog = true;
       })

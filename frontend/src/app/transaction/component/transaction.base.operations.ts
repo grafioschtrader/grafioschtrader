@@ -1,15 +1,15 @@
-import {Portfolio} from '../../entities/portfolio';
-import {Cashaccount} from '../../entities/cashaccount';
-import {TranslateService} from '@ngx-translate/core';
-import {AppSettings} from '../../shared/app.settings';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {Currencypair} from '../../entities/currencypair';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
+import { Portfolio } from '../../entities/portfolio';
+import { Cashaccount } from '../../entities/cashaccount';
+import { TranslateService } from '@ngx-translate/core';
+import { AppSettings } from '../../shared/app.settings';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { Currencypair } from '../../entities/currencypair';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HistoryquoteService } from '../../historyquote/service/historyquote.service';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import moment from 'moment';
 
 /**
@@ -38,12 +38,13 @@ export abstract class TransactionBaseOperations {
    * @param translateService Angular translation service for internationalization
    * @param gps Global parameter service for application-wide settings
    */
-  protected constructor(public messageToastService: MessageToastService,
-              public currencypairService: CurrencypairService,
-              public historyquoteService: HistoryquoteService,
-              public translateService: TranslateService,
-              protected gps: GlobalparameterService) {
-  }
+  protected constructor(
+    public messageToastService: MessageToastService,
+    public currencypairService: CurrencypairService,
+    public historyquoteService: HistoryquoteService,
+    public translateService: TranslateService,
+    protected gps: GlobalparameterService
+  ) {}
 
   /** Returns whether the transaction dialog is currently visible */
   abstract isVisibleDialog(): boolean;
@@ -54,14 +55,17 @@ export abstract class TransactionBaseOperations {
    * @param idSecuritycashaccount ID of the cash account to find
    * @returns Object containing the found cash account and its portfolio, or null if not found
    */
-  getCashaccountByIdCashaccountFormPortfolios(portfolios: Portfolio[], idSecuritycashaccount: number): {
+  getCashaccountByIdCashaccountFormPortfolios(
+    portfolios: Portfolio[],
+    idSecuritycashaccount: number
+  ): {
     cashaccount: Cashaccount;
     portfolio: Portfolio;
   } {
     if (idSecuritycashaccount != null) {
       for (const portfolio of portfolios) {
-        const found: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolio(portfolio,
-          idSecuritycashaccount);
+        const found: { cashaccount: Cashaccount; portfolio: Portfolio } =
+          this.getCashaccountByIdCashaccountFromPortfolio(portfolio, idSecuritycashaccount);
         if (found) {
           return found;
         }
@@ -70,15 +74,18 @@ export abstract class TransactionBaseOperations {
     return null;
   }
 
-
   /**
    * Finds a cash account by ID within a collection of portfolios.
    * @param portfolios Array of portfolios to search
    * @param idSecuritycashaccount ID of the cash account to locate
    * @returns Object with cash account and portfolio reference, or null if not found
    */
-  getCashaccountByIdCashaccountFromPortfolios(portfolios: Portfolio[], idSecuritycashaccount: number): {
-    cashaccount: Cashaccount; portfolio: Portfolio;
+  getCashaccountByIdCashaccountFromPortfolios(
+    portfolios: Portfolio[],
+    idSecuritycashaccount: number
+  ): {
+    cashaccount: Cashaccount;
+    portfolio: Portfolio;
   } {
     for (const portfolio of portfolios) {
       const found = this.getCashaccountByIdCashaccountFromPortfolio(portfolio, idSecuritycashaccount);
@@ -95,17 +102,20 @@ export abstract class TransactionBaseOperations {
    * @param idSecuritycashaccount ID of the cash account to find
    * @returns Object containing the cash account and portfolio, or null if not found
    */
-  getCashaccountByIdCashaccountFromPortfolio(portfolio: Portfolio, idSecuritycashaccount: number): {
-    cashaccount: Cashaccount; portfolio: Portfolio;
+  getCashaccountByIdCashaccountFromPortfolio(
+    portfolio: Portfolio,
+    idSecuritycashaccount: number
+  ): {
+    cashaccount: Cashaccount;
+    portfolio: Portfolio;
   } {
     for (const cashaccount of portfolio.cashaccountList) {
       if (cashaccount.idSecuritycashAccount === idSecuritycashaccount) {
-        return {cashaccount, portfolio};
+        return { cashaccount, portfolio };
       }
     }
     return null;
   }
-
 
   /**
    * Calculates and sets the inverse of the current exchange rate.
@@ -115,7 +125,6 @@ export abstract class TransactionBaseOperations {
     this.configObject.currencyExRate.formControl.setValue(1 / this.configObject.currencyExRate.formControl.value);
   }
 
-
   /**
    * Retrieves and sets the appropriate exchange rate based on transaction timing.
    * @param event Event object from user interaction
@@ -123,12 +132,22 @@ export abstract class TransactionBaseOperations {
   getTimeDependingExchangeRate(event): void {
     const transactionTime: Date = this.configObject.transactionTime.formControl.value;
     if (this.currencypair.idSecuritycurrency) {
-      BusinessHelper.setHistoryquoteCloseToFormControl(this.messageToastService, this.historyquoteService,
+      BusinessHelper.setHistoryquoteCloseToFormControl(
+        this.messageToastService,
+        this.historyquoteService,
         this.gps,
-        transactionTime, this.currencypair.idSecuritycurrency, false, this.configObject.currencyExRate.formControl);
+        transactionTime,
+        this.currencypair.idSecuritycurrency,
+        false,
+        this.configObject.currencyExRate.formControl
+      );
     } else {
-      BusinessHelper.getAndSetQuotationCurrencypair(this.currencypairService, this.currencypair,
-        transactionTime, this.configObject.currencyExRate.formControl);
+      BusinessHelper.getAndSetQuotationCurrencypair(
+        this.currencypairService,
+        this.currencypair,
+        transactionTime,
+        this.configObject.currencyExRate.formControl
+      );
     }
   }
 
@@ -138,22 +157,26 @@ export abstract class TransactionBaseOperations {
    */
   protected createExRateButtons(): FieldConfig[] {
     return [
-      DynamicFieldHelper.createFunctionButtonFieldName('oneOverX', 'ONE_OVER_X',
-        (e) => this.oneOverX(e), {
-          buttonInForm: true, usedLayoutColumns: 1,
-        }),
-      DynamicFieldHelper.createFunctionButtonFieldName('exRateButton', 'EX_RATE_SYMBOL',
-        (e) => this.getTimeDependingExchangeRate(e), {
-          buttonInForm: true, usedLayoutColumns: 1
-        })
-
+      DynamicFieldHelper.createFunctionButtonFieldName('oneOverX', 'ONE_OVER_X', (e) => this.oneOverX(e), {
+        buttonInForm: true,
+        usedLayoutColumns: 1
+      }),
+      DynamicFieldHelper.createFunctionButtonFieldName(
+        'exRateButton',
+        'EX_RATE_SYMBOL',
+        (e) => this.getTimeDependingExchangeRate(e),
+        {
+          buttonInForm: true,
+          usedLayoutColumns: 1
+        }
+      )
     ];
   }
 
   /** Updates the enabled/disabled state of exchange rate buttons based on form validity */
   protected disableEnableExchangeRateButtons(): void {
-    this.configObject.exRateButton.disabled = this.configObject.currencyExRate.formControl.disabled ||
-      !this.configObject.transactionTime.formControl.valid;
+    this.configObject.exRateButton.disabled =
+      this.configObject.currencyExRate.formControl.disabled || !this.configObject.transactionTime.formControl.valid;
     this.configObject.oneOverX.disabled = this.configObject.currencyExRate.formControl.disabled;
   }
 
@@ -176,15 +199,23 @@ export abstract class TransactionBaseOperations {
     if (effectiveClosedUntil && transactionTime) {
       const transactionDate = new Date(transactionTime);
       // Compare dates only (ignore time component)
-      const transactionDateOnly = new Date(transactionDate.getFullYear(), transactionDate.getMonth(), transactionDate.getDate());
-      const closedUntilDateOnly = new Date(effectiveClosedUntil.getFullYear(), effectiveClosedUntil.getMonth(), effectiveClosedUntil.getDate());
+      const transactionDateOnly = new Date(
+        transactionDate.getFullYear(),
+        transactionDate.getMonth(),
+        transactionDate.getDate()
+      );
+      const closedUntilDateOnly = new Date(
+        effectiveClosedUntil.getFullYear(),
+        effectiveClosedUntil.getMonth(),
+        effectiveClosedUntil.getDate()
+      );
 
       if (transactionDateOnly <= closedUntilDateOnly) {
         this.transactionLocked = true;
         const formattedDate = moment(effectiveClosedUntil).format(this.gps.getDateFormat());
-        this.translateService.get('TRANSACTION_LOCKED_MESSAGE', {date: formattedDate}).subscribe(
-          msg => this.transactionLockedMessage = msg
-        );
+        this.translateService
+          .get('TRANSACTION_LOCKED_MESSAGE', { date: formattedDate })
+          .subscribe((msg) => (this.transactionLockedMessage = msg));
         // Hide the submit button
         if (this.configObject.submit) {
           this.configObject.submit.invisible = true;
@@ -192,6 +223,4 @@ export abstract class TransactionBaseOperations {
       }
     }
   }
-
 }
-

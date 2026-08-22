@@ -4,7 +4,6 @@
  * can be moved between the two suites without rewriting its URLs.
  */
 export class GrafioschSettings {
-
   /** Landing route of the verification link in the registration mail. */
   public static readonly TOKEN_VERIFY_KEY = 'tokenverify';
 

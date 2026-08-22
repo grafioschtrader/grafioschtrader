@@ -1,19 +1,19 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output} from '@angular/core';
-import {AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
-import {FieldConfig} from '../../models/field.config';
-import {InputType} from '../../models/input.type';
-import {Helper} from '../../../helper/helper';
-import {DataType} from '../../models/data.type';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {FormConfig} from '../../models/form.config';
-import {FieldFormGroup, FormGroupDefinition} from '../../models/form.group.definition';
-import {FormHelper} from '../../components/FormHelper';
-import {ValueKeyHtmlSelectOptions} from '../../models/value.key.html.select.options';
-import {CommonModule} from '@angular/common';
-import {DynamicFormLayoutComponent} from './dynamic-form-layout.component';
-import {ErrorMessageComponent} from './error-message.compoent';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-field.directive';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
+import { AbstractControl, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FieldConfig } from '../../models/field.config';
+import { InputType } from '../../models/input.type';
+import { Helper } from '../../../helper/helper';
+import { DataType } from '../../models/data.type';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { FormConfig } from '../../models/form.config';
+import { FieldFormGroup, FormGroupDefinition } from '../../models/form.group.definition';
+import { FormHelper } from '../../components/FormHelper';
+import { ValueKeyHtmlSelectOptions } from '../../models/value.key.html.select.options';
+import { CommonModule } from '@angular/common';
+import { DynamicFormLayoutComponent } from './dynamic-form-layout.component';
+import { ErrorMessageComponent } from './error-message.compoent';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { DynamicFieldDirective } from '../../components/dynamic-field/dynamic-field.directive';
 
 /**
  * The form with its label, input fields and buttons.
@@ -26,17 +26,13 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
       <form [formGroup]="form" (ngSubmit)="handleSubmit($event)">
         @if (showWithFieldset) {
           @for (fieldsetConfig of fieldsetConfigs; track fieldsetConfig) {
-            <fieldset [ngClass]="fieldsetConfig.fieldsetName? 'out-border': ''">
-              <legend
-                [ngClass]="fieldsetConfig.fieldsetName? 'out-border-legend': ''">{{ fieldsetConfig.fieldsetName | translate }}
+            <fieldset [ngClass]="fieldsetConfig.fieldsetName ? 'out-border' : ''">
+              <legend [ngClass]="fieldsetConfig.fieldsetName ? 'out-border-legend' : ''">
+                {{ fieldsetConfig.fieldsetName | translate }}
               </legend>
               <div class="row">
                 @for (field of fieldsetConfig.fieldConfig; track field) {
-                  <dynamic-form-layout
-                    [config]="field"
-                    [formConfig]="formConfig"
-                    [group]="form">
-                  </dynamic-form-layout>
+                  <dynamic-form-layout [config]="field" [formConfig]="formConfig" [group]="form"> </dynamic-form-layout>
                 }
               </div>
             </fieldset>
@@ -45,16 +41,11 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
           <div class="row">
             @for (field of controlsWithGroups; track field) {
               @if ('inputType' in field) {
-                <dynamic-form-layout [config]="field"
-                                     [formConfig]="formConfig"
-                                     [group]="form">
-                </dynamic-form-layout>
+                <dynamic-form-layout [config]="field" [formConfig]="formConfig" [group]="form"> </dynamic-form-layout>
               } @else {
                 <ng-container [formGroupName]="field.formGroupName">
                   @for (childField of field.fieldConfig; track childField) {
-                    <dynamic-form-layout [config]="childField"
-                                         [formConfig]="formConfig"
-                                         [group]="field.formControl">
+                    <dynamic-form-layout [config]="childField" [formConfig]="formConfig" [group]="field.formControl">
                     </dynamic-form-layout>
                   }
                 </ng-container>
@@ -76,10 +67,7 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
           <div class="ms-auto">
             @for (field of buttons; track field) {
               @if (!field.invisible) {
-                <dynamicField [config]="field"
-                              [formConfig]="formConfig"
-                              [group]="form">
-                </dynamicField>
+                <dynamicField [config]="field" [formConfig]="formConfig" [group]="form"> </dynamicField>
               }
             }
           </div>
@@ -96,6 +84,7 @@ import {DynamicFieldDirective} from '../../components/dynamic-field/dynamic-fiel
     ButtonModule,
     DynamicFieldDirective
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class DynamicFormComponent implements OnChanges, OnInit {
@@ -111,36 +100,44 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   fieldsetConfigs: FieldsetConfig[];
   showWithFieldset: boolean;
 
-  constructor(private _formBuilder: UntypedFormBuilder) {
-  }
+  constructor(private _formBuilder: UntypedFormBuilder) {}
 
   get formGroups(): FormGroupDefinition[] {
     return this.config.filter((fieldFormGroup: any) => !!fieldFormGroup.formGroupName) as FormGroupDefinition[];
   }
 
   get controlsWithGroups(): FieldFormGroup[] {
-    return this.config.filter((fieldFormGroup: any) => fieldFormGroup.formGroupName ||
-      fieldFormGroup.buttonInForm || !(fieldFormGroup.inputType === InputType.Button || fieldFormGroup.inputType === InputType.Pbutton));
+    return this.config.filter(
+      (fieldFormGroup: any) =>
+        fieldFormGroup.formGroupName ||
+        fieldFormGroup.buttonInForm ||
+        !(fieldFormGroup.inputType === InputType.Button || fieldFormGroup.inputType === InputType.Pbutton)
+    );
   }
 
   get controlsFlatten(): FieldConfig[] {
-    return FormHelper.flattenConfigMap(this.config).filter(({inputType}) =>
-      inputType !== InputType.Button && inputType !== InputType.Pbutton);
+    return FormHelper.flattenConfigMap(this.config).filter(
+      ({ inputType }) => inputType !== InputType.Button && inputType !== InputType.Pbutton
+    );
   }
 
   get controls(): FieldConfig[] {
-    return FormHelper.getFieldConfigs(this.config).filter(({inputType}) =>
-      inputType !== InputType.Button && inputType !== InputType.Pbutton);
+    return FormHelper.getFieldConfigs(this.config).filter(
+      ({ inputType }) => inputType !== InputType.Button && inputType !== InputType.Pbutton
+    );
   }
 
   get buttons(): FieldConfig[] {
-    return FormHelper.getFieldConfigs(this.config).filter((config) =>
-      !config.buttonInForm && (config.inputType === InputType.Button || config.inputType === InputType.Pbutton));
+    return FormHelper.getFieldConfigs(this.config).filter(
+      (config) =>
+        !config.buttonInForm && (config.inputType === InputType.Button || config.inputType === InputType.Pbutton)
+    );
   }
 
   get submitButton(): FieldConfig {
-    return FormHelper.getFieldConfigs(this.config).find((config) =>
-      (config.inputType === InputType.Button || config.inputType === InputType.Pbutton) && !config.buttonFN);
+    return FormHelper.getFieldConfigs(this.config).find(
+      (config) => (config.inputType === InputType.Button || config.inputType === InputType.Pbutton) && !config.buttonFN
+    );
   }
 
   get changes() {
@@ -176,45 +173,53 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   createGroupAndControl(): UntypedFormGroup {
     const childGroups = {};
 
-    this.formGroups.forEach(formGroupDefinition => {
+    this.formGroups.forEach((formGroupDefinition) => {
       formGroupDefinition.formControl = this._formBuilder.group({});
 
       childGroups[formGroupDefinition.formGroupName] = formGroupDefinition.formControl;
-      formGroupDefinition.fieldConfig.forEach(control =>
-        childGroups[formGroupDefinition.formGroupName].addControl(control.field, this.createControl(control)));
+      formGroupDefinition.fieldConfig.forEach((control) =>
+        childGroups[formGroupDefinition.formGroupName].addControl(control.field, this.createControl(control))
+      );
       formGroupDefinition.formControl.setValidators(formGroupDefinition.validation);
     });
 
     const group = this._formBuilder.group(childGroups);
-    this.controls.forEach(control => group.addControl(control.field, this.createControl(control)));
+    this.controls.forEach((control) => group.addControl(control.field, this.createControl(control)));
     return group;
   }
 
   createControl(config: FieldConfig): AbstractControl {
     if (!config.formControl) {
-      const {disabled, validation, defaultValue: value} = config;
-      config.formControl = this._formBuilder.control({disabled, value}, validation);
+      const { disabled, validation, defaultValue: value } = config;
+      config.formControl = this._formBuilder.control({ disabled, value }, validation);
     }
     return config.formControl;
   }
 
   transferBusinessObjectToForm(sourceObject: any): void {
-    this.controlsFlatten.forEach(config => {
+    this.controlsFlatten.forEach((config) => {
       let value = config.defaultValue;
 
       if (config.dataproperty) {
         // field can not be used to access the input value
         value = Helper.getValueByPath(sourceObject, config.dataproperty);
       } else if (config.field in sourceObject) {
-        if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateTimeNumeric
-          || config.dataType === DataType.DateString) {
+        if (
+          config.dataType === DataType.DateNumeric ||
+          config.dataType === DataType.DateTimeNumeric ||
+          config.dataType === DataType.DateString
+        ) {
           // Date is a timestamp / numeric
           if (sourceObject[config.field]) {
             value = new Date(sourceObject[config.field]);
           }
-        } else if(config.inputType === InputType.InputNumber && sourceObject[config.field] === 0 && config.inputNumberSettings.treatZeroAsNull) {
+        } else if (
+          config.inputType === InputType.InputNumber &&
+          sourceObject[config.field] === 0 &&
+          config.inputNumberSettings.treatZeroAsNull
+        ) {
           value = null;
-        }  else {
+        } else {
           value = sourceObject[config.field];
         }
       }
@@ -222,21 +227,23 @@ export class DynamicFormComponent implements OnChanges, OnInit {
         // Mapping value to a shown value, this mapping is happened with valueKeyHtmlOptions
         let valueKeyHtmlOption: ValueKeyHtmlSelectOptions;
         if (!value) {
-          valueKeyHtmlOption = config.valueKeyHtmlOptions.find(valueKeyHtmlOptions => '' === valueKeyHtmlOptions.key);
+          valueKeyHtmlOption = config.valueKeyHtmlOptions.find((valueKeyHtmlOptions) => '' === valueKeyHtmlOptions.key);
         } else {
-          valueKeyHtmlOption = config.valueKeyHtmlOptions.find(valueKeyHtmlOptions => value === valueKeyHtmlOptions.key);
+          valueKeyHtmlOption = config.valueKeyHtmlOptions.find(
+            (valueKeyHtmlOptions) => value === valueKeyHtmlOptions.key
+          );
         }
         value = valueKeyHtmlOption.value;
       }
 
       config.formControl.setValue(value);
-
     });
   }
 
   cleanMaskAndTransferValuesToBusinessObject(targetObject: any, createProperty: boolean = false): void {
-    this.controlsFlatten.forEach(fieldConfig =>
-      Helper.copyFormSingleFormConfigToBusinessObject(this.formConfig, fieldConfig, targetObject, createProperty));
+    this.controlsFlatten.forEach((fieldConfig) =>
+      Helper.copyFormSingleFormConfigToBusinessObject(this.formConfig, fieldConfig, targetObject, createProperty)
+    );
   }
 
   setDefaultValuesAndEnableSubmit() {
@@ -248,7 +255,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
   setDefaultValues() {
     this.form.reset();
-    this.controlsFlatten.forEach(config => {
+    this.controlsFlatten.forEach((config) => {
       if (config.defaultValue !== null && config.defaultValue !== undefined) {
         config.formControl.setValue(config.defaultValue);
       }
@@ -268,7 +275,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 
   setDisableAll(disable: boolean) {
     const method = disable ? 'disable' : 'enable';
-    FormHelper.flattenConfigMap(this.config).forEach(fieldConfig => {
+    FormHelper.flattenConfigMap(this.config).forEach((fieldConfig) => {
       if (fieldConfig.inputType !== InputType.Button && fieldConfig.inputType !== InputType.Pbutton) {
         fieldConfig.formControl[method]();
       }
@@ -291,7 +298,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
   }
 
   setValue(name: string, value: any) {
-    this.form.controls[name].setValue(value, {emitEvent: true});
+    this.form.controls[name].setValue(value, { emitEvent: true });
   }
 
   hasFieldset(): boolean {
@@ -304,7 +311,7 @@ export class DynamicFormComponent implements OnChanges, OnInit {
     const fieldConfigs: FieldConfig[] = this.controls;
     let oldFieldsetName = '';
     let fieldsetConfig: FieldsetConfig;
-    fieldConfigs.forEach(fieldConfig => {
+    fieldConfigs.forEach((fieldConfig) => {
       if (fieldConfig.fieldsetName !== oldFieldsetName) {
         fieldsetConfig = new FieldsetConfig(fieldConfig.fieldsetName);
         fieldsetConfigs.push(fieldsetConfig);
@@ -323,6 +330,5 @@ export class DynamicFormComponent implements OnChanges, OnInit {
 class FieldsetConfig {
   fieldConfig: FieldConfig[] = [];
 
-  constructor(public fieldsetName: string) {
-  }
+  constructor(public fieldsetName: string) {}
 }

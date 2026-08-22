@@ -1,10 +1,10 @@
-import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {lastValueFrom, Observable} from 'rxjs';
-import {catchError} from 'rxjs/operators';
-import {BaseAuthService} from '../../login/service/base.auth.service';
-import {MessageToastService} from '../../message/message.toast.service';
-import {BaseSettings} from '../../base.settings';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { lastValueFrom, Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { BaseAuthService } from '../../login/service/base.auth.service';
+import { MessageToastService } from '../../message/message.toast.service';
+import { BaseSettings } from '../../base.settings';
 
 /**
  * Service for managing user personal data operations including data export and account deletion.
@@ -13,7 +13,6 @@ import {BaseSettings} from '../../base.settings';
  */
 @Injectable()
 export class UserDataService extends BaseAuthService<any> {
-
   constructor(httpClient: HttpClient, messageToastService: MessageToastService) {
     super(httpClient, messageToastService);
   }
@@ -28,7 +27,8 @@ export class UserDataService extends BaseAuthService<any> {
   public async getExportPersonalDataAsZip(): Promise<Blob> {
     const blob$ = this.httpClient.get<Blob>(
       `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/exportpersonaldataaszip`,
-      {headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json'});
+      { headers: this.prepareHeaders('application/zip'), responseType: 'blob' as 'json' }
+    );
     return await lastValueFrom(blob$);
   }
 
@@ -40,7 +40,8 @@ export class UserDataService extends BaseAuthService<any> {
    * @returns Observable that completes when the deletion is successful
    */
   public deleteMyDataAndUserAccount(): Observable<any> {
-    return this.httpClient.delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}`, this.getHeaders())
+    return this.httpClient
+      .delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 
@@ -52,10 +53,11 @@ export class UserDataService extends BaseAuthService<any> {
    *
    * @returns Observable emitting the deletion eligibility status
    */
-  public getAccountDeletionEligibility(): Observable<{status: string}> {
-    return <Observable<{status: string}>>this.httpClient.get(
-      `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/deletion-eligibility`, this.getHeaders())
-      .pipe(catchError(this.handleError.bind(this)));
+  public getAccountDeletionEligibility(): Observable<{ status: string }> {
+    return <Observable<{ status: string }>>(
+      this.httpClient
+        .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/deletion-eligibility`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
-
 }

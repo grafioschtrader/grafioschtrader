@@ -1,18 +1,18 @@
-import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
-import {HttpResponse} from '@angular/common/http';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
+import { AfterViewInit, Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { HttpResponse } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 
 import saveAs from '../../lib/filesaver/filesaver';
-import {FormBase} from '../../lib/edit/form.base';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TransactionService} from '../service/transaction.service';
+import { FormBase } from '../../lib/edit/form.base';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TransactionService } from '../service/transaction.service';
 
 /** Data passed to the transaction CSV export dialog via the DynamicDialog configuration. */
 export interface TransactionExportCsvDialogData {
@@ -29,21 +29,28 @@ export interface TransactionExportCsvDialogData {
 @Component({
   template: `
     <p>{{ 'EXPORT_TRANSACTIONS_CSV_MARGIN_HINT' | translate }}</p>
-    <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                  (submitBt)="submit($event)">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
     </dynamic-form>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule]
 })
 export class TransactionExportCsvDialogComponent extends FormBase implements OnInit, AfterViewInit {
   @ViewChild(DynamicFormComponent) form: DynamicFormComponent;
 
-  constructor(private dynamicDialogConfig: DynamicDialogConfig,
+  constructor(
+    private dynamicDialogConfig: DynamicDialogConfig,
     private dynamicDialogRef: DynamicDialogRef,
     public translateService: TranslateService,
     private gps: GlobalparameterService,
-    private transactionService: TransactionService) {
+    private transactionService: TransactionService
+  ) {
     super();
   }
 
@@ -65,14 +72,15 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
     const request: { dateFrom?: string; dateTo?: string } = {};
     this.form.cleanMaskAndTransferValuesToBusinessObject(request, true);
     const data: TransactionExportCsvDialogData = this.dynamicDialogConfig.data || {};
-    this.transactionService.exportTransactionsCsv(data.idPortfolio ?? null, request.dateFrom ?? null,
-      request.dateTo ?? null).subscribe({
-      next: (response: HttpResponse<Blob>) => {
-        saveAs(response.body, this.getFileName(response));
-        this.dynamicDialogRef.close();
-      },
-      error: () => this.configObject.submit.disabled = false
-    });
+    this.transactionService
+      .exportTransactionsCsv(data.idPortfolio ?? null, request.dateFrom ?? null, request.dateTo ?? null)
+      .subscribe({
+        next: (response: HttpResponse<Blob>) => {
+          saveAs(response.body, this.getFileName(response));
+          this.dynamicDialogRef.close();
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   /** Takes the file name from the Content-Disposition header set by the backend. */

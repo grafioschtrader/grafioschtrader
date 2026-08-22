@@ -1,4 +1,4 @@
-import {GenericConnectorFieldMapping} from './generic.connector.field.mapping';
+import { GenericConnectorFieldMapping } from './generic.connector.field.mapping';
 
 export class GenericConnectorEndpoint {
   idEndpoint: number = null;

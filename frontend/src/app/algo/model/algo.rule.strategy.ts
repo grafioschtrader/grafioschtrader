@@ -1,6 +1,6 @@
-import {TenantBaseId} from '../../lib/entities/tenant.base.id';
-import {BaseParam} from '../../lib/entities/base.param';
-import {Exclude} from 'class-transformer';
+import { TenantBaseId } from '../../lib/entities/tenant.base.id';
+import { BaseParam } from '../../lib/entities/base.param';
+import { Exclude } from 'class-transformer';
 
 export abstract class AlgoRuleStrategy extends TenantBaseId {
   idAlgoRuleStrategy: number;

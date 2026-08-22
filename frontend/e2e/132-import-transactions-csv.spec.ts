@@ -1,6 +1,6 @@
-import {test} from '@playwright/test';
+import { test } from '@playwright/test';
 
-import {loginAsFixtureUser} from './helpers';
+import { loginAsFixtureUser } from './helpers';
 import {
   createAllImportedTransactions,
   expectCsvImportedTransactions,
@@ -9,14 +9,15 @@ import {
   openSecurityAccount,
   openTransactionImport,
   resetCsvImportTransactionScenario,
-  uploadTransactionCsv,
+  uploadTransactionCsv
 } from './import-transaction.helpers';
 
 const SCENARIOS = loadCsvImportTransactionScenarios('e2e');
 
 for (const scenario of SCENARIOS) {
-  test.describe.serial(`CSV transaction import of '${scenario.securityAccountName}' for '${scenario.loginNickname}'`, () => {
-    test(`uploads ${scenario.csvFileName} and creates every transaction`, async ({page}) => {
+  test.describe
+    .serial(`CSV transaction import of '${scenario.securityAccountName}' for '${scenario.loginNickname}'`, () => {
+    test(`uploads ${scenario.csvFileName} and creates every transaction`, async ({ page }) => {
       await loginAsFixtureUser(page, scenario.loginNickname);
       const idTransactionHead = await resetCsvImportTransactionScenario(page, scenario);
       const idSecurityAccount = await openSecurityAccount(page, scenario);

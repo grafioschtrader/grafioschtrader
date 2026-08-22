@@ -1,5 +1,5 @@
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 
 /**
  * Request DTO for querying security metadata from GTNet peers.

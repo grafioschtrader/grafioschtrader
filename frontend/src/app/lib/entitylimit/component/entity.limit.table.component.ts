@@ -1,28 +1,28 @@
-import {Component, Injector, OnDestroy, ViewChild} from '@angular/core';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {combineLatest} from 'rxjs';
+import { Component, Injector, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { combineLatest } from 'rxjs';
 
-import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
-import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
-import {EntityLimitEditComponent} from './entity.limit.edit.component';
-import {EntityLimit} from '../../entities/entity.limit';
-import {EntityLimitService} from '../service/entity.limit.service';
-import {LimitKeyDefinition} from '../model/limit.key.definition';
-import {MessageToastService} from '../../message/message.toast.service';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {HelpIds} from '../../help/help.ids';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {FilterType} from '../../datashowbase/filter.type';
-import {BaseSettings} from '../../base.settings';
-import {AppHelper} from '../../helper/app.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
+import { EntityLimitEditComponent } from './entity.limit.edit.component';
+import { EntityLimit } from '../../entities/entity.limit';
+import { EntityLimitService } from '../service/entity.limit.service';
+import { LimitKeyDefinition } from '../model/limit.key.definition';
+import { MessageToastService } from '../../message/message.toast.service';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { HelpIds } from '../../help/help.ids';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { FilterType } from '../../datashowbase/filter.type';
+import { BaseSettings } from '../../base.settings';
+import { AppHelper } from '../../helper/app.helper';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Administration of every configured limit, of any limit type and any scope.
@@ -46,43 +46,50 @@ import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.htm
       [showGridlines]="true"
       [hasFilter]="hasFilter && showFilterRow"
       [formLocale]="formLocale"
-      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       [showContextMenu]="!!contextMenuItems"
       [contextMenuItems]="contextMenuItems"
       [valueGetterFn]="getValueByPath.bind(this)"
       (componentClick)="onComponentClick($event)">
-
       <h4 caption>{{ entityNameUpper | translate }}</h4>
 
       <!-- Whether the limited entity holds data of one client/user or data shared between all tenants. The cell shows
            only the icon, the column value stays the translated text so that sorting and the dropdown filter work. -->
       <ng-template #iconCell let-row let-value="value">
         @if (isSharedData(row) !== undefined) {
-          <i [class]="isSharedData(row) ? 'fa fa-globe' : 'fa fa-lock'"
-             [pTooltip]="value" tooltipPosition="top" aria-hidden="true"></i>
+          <i
+            [class]="isSharedData(row) ? 'fa fa-globe' : 'fa fa-lock'"
+            [pTooltip]="value"
+            tooltipPosition="top"
+            aria-hidden="true"></i>
         }
       </ng-template>
-
     </configurable-table>
 
     @if (visibleDialog) {
-      <entity-limit-edit [visibleDialog]="visibleDialog"
-                         [existingEntityLimit]="callParam"
-                         [existingEntityLimits]="entityList"
-                         (closeDialog)="handleCloseDialog($event)">
+      <entity-limit-edit
+        [visibleDialog]="visibleDialog"
+        [existingEntityLimit]="callParam"
+        [existingEntityLimits]="entityList"
+        (closeDialog)="handleCloseDialog($event)">
       </entity-limit-edit>
     }
   `,
   providers: [DialogService],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TranslateModule, TooltipModule, EntityLimitEditComponent]
 })
 export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit> implements OnDestroy {
-
   /** The row the edit dialog works on, null when a new one is created. */
   callParam: EntityLimit;
 
-  @ViewChild(ConfigurableTableComponent) private configurableTable: ConfigurableTableComponent;
+  @ViewChild(ConfigurableTableComponent)
+  private configurableTable: ConfigurableTableComponent;
 
   /** Key ids whose default row is mandatory, so the delete action can be withheld for exactly those rows. */
   private mandatoryKeyIds = new Set<string>();
@@ -97,7 +104,8 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    */
   private sharedByEntityName = new Map<string, boolean>();
 
-  constructor(private entityLimitService: EntityLimitService,
+  constructor(
+    private entityLimitService: EntityLimitService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -106,32 +114,61 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
-    super('ENTITY_LIMIT_INFO_CLASS', entityLimitService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, injector);
+    injector: Injector
+  ) {
+    super(
+      'ENTITY_LIMIT_INFO_CLASS',
+      entityLimitService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
 
-    this.addColumnFeqH(DataType.String, 'entityName', true, false,
-      {fieldValueFN: this.getEntityLabel.bind(this), filterType: FilterType.withOptions});
-    this.addColumn(DataType.String, 'dataScope', 'DATA_SCOPE', true, false,
-      {fieldValueFN: this.getDataScopeLabel.bind(this), templateName: 'icon', width: 40,
-        filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'limitTypeKey', true, false,
-      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'relationEntityName', true, false,
-      {fieldValueFN: this.getRelationEntityLabel.bind(this), filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'countScopeKey', true, false,
-      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'ownerScopeKey', true, false,
-      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'idRole', true, false,
-      {fieldValueFN: this.getRoleName.bind(this), filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.NumericInteger, 'idUser', true, false,
-      {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.NumericInteger, 'limitValue', true, false,
-      {filterType: FilterType.likeDataType});
+    this.addColumnFeqH(DataType.String, 'entityName', true, false, {
+      fieldValueFN: this.getEntityLabel.bind(this),
+      filterType: FilterType.withOptions
+    });
+    this.addColumn(DataType.String, 'dataScope', 'DATA_SCOPE', true, false, {
+      fieldValueFN: this.getDataScopeLabel.bind(this),
+      templateName: 'icon',
+      width: 40,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'limitTypeKey', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'relationEntityName', true, false, {
+      fieldValueFN: this.getRelationEntityLabel.bind(this),
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'countScopeKey', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'ownerScopeKey', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'idRole', true, false, {
+      fieldValueFN: this.getRoleName.bind(this),
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'idUser', true, false, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'limitValue', true, false, {
+      filterType: FilterType.likeDataType
+    });
     this.addColumnFeqH(DataType.DateNumeric, 'validUntil', true, false);
     this.prepareTableAndTranslate();
-    this.multiSortMeta.push({field: 'entityName', order: 1});
+    this.multiSortMeta.push({ field: 'entityName', order: 1 });
     // The table is long and mixes three limit families, so the filter row is offered right away; the show menu
     // hides it again.
     this.filterRowToggleable = true;
@@ -143,15 +180,16 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * from the displayed name and not from the id.
    */
   protected override initialize(): void {
-    combineLatest([this.entityLimitService.getLimitKeyDefinitions(), this.entityLimitService.getRoles()])
-      .subscribe(([definitions, roles]: [LimitKeyDefinition[], ValueKeyHtmlSelectOptions[]]) => {
-        this.mandatoryKeyIds = new Set(definitions.filter(d => d.mandatoryAllRow).map(d => d.keyId));
-        this.sharedByEntityName = new Map(definitions.filter(d => d.sharedData != null)
-          .map(d => [d.entityName, d.sharedData]));
-        this.roleNameById = new Map(roles.map(role =>
-          [String(role.key), this.translateService.instant(role.value)]));
+    combineLatest([this.entityLimitService.getLimitKeyDefinitions(), this.entityLimitService.getRoles()]).subscribe(
+      ([definitions, roles]: [LimitKeyDefinition[], ValueKeyHtmlSelectOptions[]]) => {
+        this.mandatoryKeyIds = new Set(definitions.filter((d) => d.mandatoryAllRow).map((d) => d.keyId));
+        this.sharedByEntityName = new Map(
+          definitions.filter((d) => d.sharedData != null).map((d) => [d.entityName, d.sharedData])
+        );
+        this.roleNameById = new Map(roles.map((role) => [String(role.key), this.translateService.instant(role.value)]));
         this.readData();
-      });
+      }
+    );
   }
 
   protected override readData(): void {
@@ -167,8 +205,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    * unlimited. Role and user overrides, and every daily row, stay freely deletable.
    */
   protected override hasRightsForDeleteEntity(entityLimit: EntityLimit): boolean {
-    return !(entityLimit.idRole == null && entityLimit.idUser == null
-      && this.mandatoryKeyIds.has(entityLimit.keyId));
+    return !(entityLimit.idRole == null && entityLimit.idUser == null && this.mandatoryKeyIds.has(entityLimit.keyId));
   }
 
   protected prepareCallParam(entity: EntityLimit): void {
@@ -218,7 +255,8 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
    */
   private getDataScopeLabel(entityLimit: EntityLimit, field: ColumnConfig, valueField: any): string {
     const shared = this.isSharedData(entityLimit);
-    return shared === undefined ? ''
+    return shared === undefined
+      ? ''
       : this.translateService.instant(shared ? 'DATA_SCOPE_SHARED' : 'DATA_SCOPE_PRIVATE');
   }
 
@@ -228,7 +266,7 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
 
   /** The role ids arrive as strings from the options endpoint, the column holds them as numbers. */
   private getRoleName(entityLimit: EntityLimit, field: ColumnConfig, value: any): string {
-    return value == null ? '' : this.roleNameById.get(String(value)) ?? String(value);
+    return value == null ? '' : (this.roleNameById.get(String(value)) ?? String(value));
   }
 
   private translateEntityName(entityName: string): string {

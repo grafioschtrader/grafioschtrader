@@ -1,10 +1,10 @@
-import {Injectable} from '@angular/core';
-import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {BehaviorSubject} from 'rxjs';
-import {filter} from 'rxjs/operators';
-import {TabItem} from '../../types/tab.item';
+import { Injectable } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { BehaviorSubject } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { TabItem } from '../../types/tab.item';
 
 /**
  * Service for managing tab menu navigation and state tracking.
@@ -12,7 +12,6 @@ import {TabItem} from '../../types/tab.item';
  */
 @Injectable()
 export class TabMenuService {
-
   /** Subject for tracking the currently active route. */
   private activeRouteSubject = new BehaviorSubject<string>('');
 
@@ -22,8 +21,7 @@ export class TabMenuService {
   constructor(
     private router: Router,
     private translateService: TranslateService
-  ) {
-  }
+  ) {}
 
   /**
    * Initialize tabs with translation and router tracking.
@@ -40,11 +38,9 @@ export class TabMenuService {
     // Set initial active route
     this.activeRouteSubject.next(defaultRoute);
     // Subscribe to router events to update active route
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        this.updateActiveRoute(tabs);
-      });
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
+      this.updateActiveRoute(tabs);
+    });
     // Navigate to default route
     this.navigateTo(defaultRoute, activatedRoute);
     return tabs;
@@ -58,7 +54,7 @@ export class TabMenuService {
    */
   navigateTo(route: string, activatedRoute: ActivatedRoute): void {
     this.activeRouteSubject.next(route);
-    this.router.navigate([route], {relativeTo: activatedRoute});
+    this.router.navigate([route], { relativeTo: activatedRoute });
   }
 
   /**
@@ -72,7 +68,7 @@ export class TabMenuService {
 
     // Find the tab with the longest matching route (most specific match)
     const matchingTab = tabs
-      .filter(tab => currentUrl.includes(tab.route))
+      .filter((tab) => currentUrl.includes(tab.route))
       .sort((a, b) => b.route.length - a.route.length)[0];
 
     if (matchingTab) {

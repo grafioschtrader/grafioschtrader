@@ -1,26 +1,26 @@
-import {Directive, OnDestroy} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {AppHelpIds} from '../../shared/help/help.ids';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {StandingOrder, StandingOrderFailure} from '../../entities/standing.order';
-import {StandingOrderService} from '../service/standing.order.service';
-import {StandingOrderCallParam} from '../model/standing.order.call.param';
-import {TransactionType} from '../../shared/types/transaction.type';
+import { Directive, OnDestroy } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AppHelpIds } from '../../shared/help/help.ids';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { StandingOrder, StandingOrderFailure } from '../../entities/standing.order';
+import { StandingOrderService } from '../service/standing.order.service';
+import { StandingOrderCallParam } from '../model/standing.order.call.param';
+import { TransactionType } from '../../shared/types/transaction.type';
 import moment from 'moment';
-import {BaseSettings} from '../../lib/base.settings';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Abstract base class for standing order table components. Provides shared column definitions,
@@ -30,7 +30,6 @@ import {BaseSettings} from '../../lib/base.settings';
  */
 @Directive()
 export abstract class StandingOrderTableBase extends TableConfigBase implements OnDestroy, IGlobalMenuAttach {
-
   standingOrders: StandingOrder[] = [];
   selectedEntity: StandingOrder | null = null;
   contextMenuItems: MenuItem[] = [];
@@ -50,12 +49,10 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
     gps: GlobalparameterService
   ) {
     super(filterService, usersettingsService, translateService, gps);
-    this.addColumn(DataType.NumericInteger, 'idStandingOrder', 'ID', true, false)
-    this.addColumnFeqH(DataType.String, 'transactionType', true, false,
-      {translateValues: TranslateValue.NORMAL});
+    this.addColumn(DataType.NumericInteger, 'idStandingOrder', 'ID', true, false);
+    this.addColumnFeqH(DataType.String, 'transactionType', true, false, { translateValues: TranslateValue.NORMAL });
     this.addSubtypeColumns();
-    this.addColumnFeqH(DataType.String, 'repeatUnit', true, false,
-      {translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.String, 'repeatUnit', true, false, { translateValues: TranslateValue.NORMAL });
     this.addColumnFeqH(DataType.NumericInteger, 'repeatInterval', true, false);
     this.addColumnFeqH(DataType.DateString, 'nextExecutionDate', true, false);
     this.addColumnFeqH(DataType.DateString, 'validFrom', true, false);
@@ -77,11 +74,9 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
     return this.activePanelService.isActivated(this);
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   getHelpContextId(): string {
     return AppHelpIds.HELP_STANDING_ORDER;
@@ -120,7 +115,7 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   onRowExpand(event: { data: StandingOrder }): void {
     const so = event.data;
     if ((so.failureCount ?? 0) > 0 && !this.failuresMap.has(so.idStandingOrder)) {
-      this.standingOrderService.getFailures(so.idStandingOrder).subscribe(failures => {
+      this.standingOrderService.getFailures(so.idStandingOrder).subscribe((failures) => {
         this.failuresMap.set(so.idStandingOrder, failures);
       });
     }
@@ -139,14 +134,17 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
     this.failuresMap.clear();
     this.standingOrderService.getAllForTenant().subscribe((all: StandingOrder[]) => {
       const today = moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
-      this.standingOrders = all.filter(so => so.dtype === this.getDtype()
-        && (this.showInactive || moment(so.validTo).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) >= today));
+      this.standingOrders = all.filter(
+        (so) =>
+          so.dtype === this.getDtype() &&
+          (this.showInactive || moment(so.validTo).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) >= today)
+      );
       this.prepareTableAndTranslate();
       this.createTranslatedValueStore(this.standingOrders);
       this.standingOrders
-        .filter(so => previousFailureIds.has(so.idStandingOrder) && (so.failureCount ?? 0) > 0)
-        .forEach(so => {
-          this.standingOrderService.getFailures(so.idStandingOrder).subscribe(failures => {
+        .filter((so) => previousFailureIds.has(so.idStandingOrder) && (so.failureCount ?? 0) > 0)
+        .forEach((so) => {
+          this.standingOrderService.getFailures(so.idStandingOrder).subscribe((failures) => {
             this.failuresMap.set(so.idStandingOrder, failures);
           });
         });
@@ -164,14 +162,19 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   }
 
   protected handleDelete(so: StandingOrder): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|STANDING_ORDER', () => {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|STANDING_ORDER',
+      () => {
         this.standingOrderService.deleteEntity(so.idStandingOrder).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: 'STANDING_ORDER'});
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: 'STANDING_ORDER'
+          });
           this.loadData();
         });
-      });
+      }
+    );
   }
 
   private resetMenu(): void {
@@ -220,5 +223,4 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
-
 }

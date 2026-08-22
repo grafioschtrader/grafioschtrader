@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 
 /**
  * Shared state service for passing entity data between tree navigation and routed components.
@@ -10,7 +10,6 @@ import {Injectable} from '@angular/core';
  */
 @Injectable()
 export class TreeNavigationStateService {
-
   private entityMap = new Map<string, any>();
 
   /**
@@ -32,7 +31,7 @@ export class TreeNavigationStateService {
    * @returns The stored entity, or null if not found (e.g., after a page refresh)
    */
   getEntity<T>(route: string, id: number): T | null {
-    return this.entityMap.get(this.buildKey(route, id)) as T ?? null;
+    return (this.entityMap.get(this.buildKey(route, id)) as T) ?? null;
   }
 
   private buildKey(route: string, id: number): string {

@@ -1,28 +1,28 @@
-import {Directive, EventEmitter, Output, ViewChild} from '@angular/core';
-import {forkJoin} from 'rxjs';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TenantService} from '../service/tenant.service';
-import {Tenant} from '../../entities/tenant';
-import {FormConfig} from '../../lib/dynamic-form/models/form.config';
-import {HelpIds} from '../../lib/help/help.ids';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {GlobalGTSessionNames} from '../../shared/global.gt.session.names';
-import {GlobalSessionNames} from '../../lib/global.session.names';
-import {BaseSettings} from '../../lib/base.settings';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import { Directive, EventEmitter, Output, ViewChild } from '@angular/core';
+import { forkJoin } from 'rxjs';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateService } from '@ngx-translate/core';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TenantService } from '../service/tenant.service';
+import { Tenant } from '../../entities/tenant';
+import { FormConfig } from '../../lib/dynamic-form/models/form.config';
+import { HelpIds } from '../../lib/help/help.ids';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { BaseSettings } from '../../lib/base.settings';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { ImportTransactionPlatformService } from '../../imptranstemplate/service/import.transaction.platform.service';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 
 /**
  * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
@@ -40,18 +40,24 @@ export abstract class TenantEditComponent {
   config: FieldConfig[] = [];
   formConfig: FormConfig;
 
-  protected constructor(protected gpsGT: GlobalparameterGTService,
+  protected constructor(
+    protected gpsGT: GlobalparameterGTService,
     protected gps: GlobalparameterService,
     protected messageToastService: MessageToastService,
     protected tenantService: TenantService,
     public translateService: TranslateService,
     protected importTransactionPlatformService: ImportTransactionPlatformService,
-    private nonModal: boolean, private labelColumns: number) {
-  }
+    private nonModal: boolean,
+    private labelColumns: number
+  ) {}
 
   init(onlyCurrency: boolean, isRegistration: boolean = false): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      this.labelColumns, this.helpLink.bind(this), this.nonModal);
+    this.formConfig = AppHelper.getDefaultFormConfig(
+      this.gps,
+      this.labelColumns,
+      this.helpLink.bind(this),
+      this.nonModal
+    );
     this.config = this.getFields(onlyCurrency, isRegistration);
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -67,61 +73,75 @@ export abstract class TenantEditComponent {
     }
     this.form.cleanMaskAndTransferValuesToBusinessObject(tenant);
     this.tenantService.update(tenant).subscribe({
-      next: newTenant => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'TENANT'});
+      next: (newTenant) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', { i18nRecord: 'TENANT' });
         const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
         // Update sessionStorage with new closedUntil value
         sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, tenantNew.closedUntil || '');
         // Update sessionStorage with the Grafioschtrader import platform reference
-        sessionStorage.setItem(GlobalGTSessionNames.TENANT_ID_GT_IMPORT_PLATFORM,
-          tenantNew.idGtImportPlatform != null ? String(tenantNew.idGtImportPlatform) : '');
+        sessionStorage.setItem(
+          GlobalGTSessionNames.TENANT_ID_GT_IMPORT_PLATFORM,
+          tenantNew.idGtImportPlatform != null ? String(tenantNew.idGtImportPlatform) : ''
+        );
         this.closeInputDialog(tenantNew);
-      }, error: () => this.configObject.submit.disabled = false
+      },
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
 
-  protected closeInputDialog(tenant: Tenant): void {
-  }
+  protected closeInputDialog(tenant: Tenant): void {}
 
   helpLink(): void {
     this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_CLIENT);
   }
 
   protected loadData() {
-    forkJoin([this.gpsGT.getCurrencies(), this.gps.getCountriesForSelectBox(),
-      this.importTransactionPlatformService.getAllImportTransactionPlatforms()]).subscribe(
-      ([currencies, countries, importTransactionPlatforms]) => {
-        this.form.setDefaultValuesAndEnableSubmit();
-        this.configObject.currency.valueKeyHtmlOptions = currencies;
-        if (this.configObject.country) {
-          this.configObject.country.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions(null, ''), ...countries];
-        }
-        if (this.configObject.idGtImportPlatform) {
-          this.configObject.idGtImportPlatform.valueKeyHtmlOptions = SelectOptionsHelper
-            .createValueKeyHtmlSelectOptionsFromArray('idTransactionImportPlatform', 'name',
-              importTransactionPlatforms, true);
-        }
-        if (this.existingTenant) {
-          this.form.transferBusinessObjectToForm(this.existingTenant);
-        }
-        if (this.configObject.tenantName) {
-          this.configObject.tenantName.elementRef.nativeElement.focus();
-        } else {
-          this.configObject.currency.elementRef.nativeElement.focus();
-        }
+    forkJoin([
+      this.gpsGT.getCurrencies(),
+      this.gps.getCountriesForSelectBox(),
+      this.importTransactionPlatformService.getAllImportTransactionPlatforms()
+    ]).subscribe(([currencies, countries, importTransactionPlatforms]) => {
+      this.form.setDefaultValuesAndEnableSubmit();
+      this.configObject.currency.valueKeyHtmlOptions = currencies;
+      if (this.configObject.country) {
+        this.configObject.country.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions(null, ''), ...countries];
       }
-    );
+      if (this.configObject.idGtImportPlatform) {
+        this.configObject.idGtImportPlatform.valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+            'idTransactionImportPlatform',
+            'name',
+            importTransactionPlatforms,
+            true
+          );
+      }
+      if (this.existingTenant) {
+        this.form.transferBusinessObjectToForm(this.existingTenant);
+      }
+      if (this.configObject.tenantName) {
+        this.configObject.tenantName.elementRef.nativeElement.focus();
+      } else {
+        this.configObject.currency.elementRef.nativeElement.focus();
+      }
+    });
   }
 
   private getFields(onlyCurrency: boolean, isRegistration: boolean): FieldConfig[] {
-    const fieldConfig = [DynamicFieldHelper.createFieldInputStringHeqF('tenantName', 25, true),
+    const fieldConfig = [
+      DynamicFieldHelper.createFieldInputStringHeqF('tenantName', 25, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
       DynamicFieldHelper.createFieldCheckboxHeqF('excludeDivTax'),
-      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'closedUntil', false,
-        {calendarConfig: {minDate: new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK)}}),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'closedUntil', false, {
+        calendarConfig: {
+          minDate: new Date(
+            sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+          )
+        }
+      }),
       DynamicFieldHelper.createFieldSelectStringHeqF('country', false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idGtImportPlatform', false),
-      DynamicFieldHelper.createSubmitButton()];
+      DynamicFieldHelper.createSubmitButton()
+    ];
     if (onlyCurrency) {
       return [fieldConfig[1], fieldConfig[6]];
     }
@@ -131,4 +151,3 @@ export abstract class TenantEditComponent {
     return fieldConfig;
   }
 }
-

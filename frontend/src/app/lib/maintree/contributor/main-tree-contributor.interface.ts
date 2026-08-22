@@ -1,7 +1,7 @@
-import {InjectionToken, Type} from '@angular/core';
-import {Observable} from 'rxjs';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {ProcessedActionData} from '../../types/processed.action.data';
+import { InjectionToken, Type } from '@angular/core';
+import { Observable } from 'rxjs';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { ProcessedActionData } from '../../types/processed.action.data';
 
 /**
  * Callbacks that contributors can use to interact with the main tree.
@@ -34,7 +34,6 @@ export interface MainTreeCallbacks {
  * Each feature module can implement this to contribute nodes to the navigation tree.
  */
 export abstract class MainTreeContributor {
-
   protected callbacks?: MainTreeCallbacks;
 
   /**

@@ -1,25 +1,25 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
-import {SimpleDynamicEditBase} from '../../lib/edit/simple.dynamic.edit.base';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {AlgoTopService} from '../service/algo.top.service';
-import {WatchlistService} from '../../watchlist/service/watchlist.service';
-import {AlgoTop} from '../model/algo.top';
-import {AlgoTopCreateFromPortfolio} from '../../entities/backend/algo.top.create';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {AppSettings} from '../../shared/app.settings';
-import {HelpIds} from '../../lib/help/help.ids';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { AlgoTopService } from '../service/algo.top.service';
+import { WatchlistService } from '../../watchlist/service/watchlist.service';
+import { AlgoTop } from '../model/algo.top';
+import { AlgoTopCreateFromPortfolio } from '../../entities/backend/algo.top.create';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { AppSettings } from '../../shared/app.settings';
+import { HelpIds } from '../../lib/help/help.ids';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Dialog for auto-generating an AlgoTop hierarchy from current portfolio holdings at a reference date.
@@ -27,17 +27,22 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
  */
 @Component({
   template: `
-    <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                  #form="dynamicForm" (submitBt)="submit($event)">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
     </dynamic-form>
   `,
   standalone: true,
-  imports: [
-    DynamicFormModule,
-    TranslateModule
-  ]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DynamicFormModule, TranslateModule]
 })
-export class AlgoCreateFromPortfolioDynamicComponent extends SimpleDynamicEditBase<AlgoTop> implements OnInit, AfterViewInit {
+export class AlgoCreateFromPortfolioDynamicComponent
+  extends SimpleDynamicEditBase<AlgoTop>
+  implements OnInit, AfterViewInit
+{
   static readonly DIALOG_WIDTH = 500;
   callParam: CallParam;
   private dto: AlgoTopCreateFromPortfolio;
@@ -51,7 +56,15 @@ export class AlgoCreateFromPortfolioDynamicComponent extends SimpleDynamicEditBa
     gps: GlobalparameterService,
     messageToastService: MessageToastService
   ) {
-    super(dynamicDialogConfig, dynamicDialogRef, HelpIds.HELP_ALGO_STRATEGY, translateService, gps, messageToastService, algoTopService);
+    super(
+      dynamicDialogConfig,
+      dynamicDialogRef,
+      HelpIds.HELP_ALGO_STRATEGY,
+      translateService,
+      gps,
+      messageToastService,
+      algoTopService
+    );
   }
 
   ngOnInit(): void {
@@ -68,25 +81,30 @@ export class AlgoCreateFromPortfolioDynamicComponent extends SimpleDynamicEditBa
   ngAfterViewInit(): void {
     this.callParam = this.dynamicDialogConfig.data.callParam;
     this.dto = this.callParam.thisObject as AlgoTopCreateFromPortfolio;
-    this.watchlistService.getWatchlistsByIdTenant().subscribe(watchlists => {
+    this.watchlistService.getWatchlistsByIdTenant().subscribe((watchlists) => {
       this.configObject.idWatchlist.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-        'idWatchlist', 'name', watchlists, true);
+        'idWatchlist',
+        'name',
+        watchlists,
+        true
+      );
     });
   }
 
-  override submit(value: {[name: string]: any}): void {
+  override submit(value: { [name: string]: any }): void {
     this.form.cleanMaskAndTransferValuesToBusinessObject(this.dto);
     this.algoTopService.createFromPortfolio(this.dto).subscribe({
-      next: returnEntity => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
-          {i18nRecord: this.dynamicDialogConfig.header});
+      next: (returnEntity) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+          i18nRecord: this.dynamicDialogConfig.header
+        });
         this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED, returnEntity));
       },
-      error: () => this.configObject.submit.disabled = false
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
 
-  protected getNewOrExistingInstanceBeforeSave(value: {[p: string]: any}): AlgoTop {
+  protected getNewOrExistingInstanceBeforeSave(value: { [p: string]: any }): AlgoTop {
     return undefined;
   }
 }

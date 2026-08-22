@@ -1,5 +1,5 @@
-import {BaseID} from '../lib/entities/base.id';
-import {ProposeTransientTransfer} from '../lib/entities/propose.transient.transfer';
+import { BaseID } from '../lib/entities/base.id';
+import { ProposeTransientTransfer } from '../lib/entities/propose.transient.transfer';
 
 /**
  * Shared base for end-of-day quote rows — the live {@link Historyquote} and the archived
@@ -9,7 +9,7 @@ import {ProposeTransientTransfer} from '../lib/entities/propose.transient.transf
  */
 export abstract class HistoryquoteBase extends ProposeTransientTransfer implements BaseID {
   idSecuritycurrency?: number;
-  date ? = null;
+  date? = null;
   close?: number = null;
   volume?: number = null;
   open?: number = null;

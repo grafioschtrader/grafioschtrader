@@ -1,33 +1,37 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {FormBase} from '../../edit/form.base';
-import {AppHelper} from '../../helper/app.helper';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {HelpIds} from '../../help/help.ids';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {MessageToastService} from '../../message/message.toast.service';
-import {MailSendRecvService} from '../../mail/service/mail.send.recv.service';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {DialogService, DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
-import {MailSendRecv, ReplyToRolePrivateType} from '../../mail/model/mail.send.recv';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {UserAdminService} from '../../user/service/user.admin.service';
-import {BaseSettings} from '../../base.settings';
-import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
+import { Component, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FormBase } from '../../edit/form.base';
+import { AppHelper } from '../../helper/app.helper';
+import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { HelpIds } from '../../help/help.ids';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { MessageToastService } from '../../message/message.toast.service';
+import { MailSendRecvService } from '../../mail/service/mail.send.recv.service';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { FieldConfig } from '../../dynamic-form/models/field.config';
+import { SelectOptionsHelper } from '../../helper/select.options.helper';
+import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { DialogService, DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { MailSendRecv, ReplyToRolePrivateType } from '../../mail/model/mail.send.recv';
+import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
+import { UserAdminService } from '../../user/service/user.admin.service';
+import { BaseSettings } from '../../base.settings';
+import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
 
 /**
  * This input form can be used to compose and send a message. It is a dynamic dialog, as it can be used in different places in the GUI.
  */
 @Component({
-  template: `
-    <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                  (submitBt)="submit($event)">
-    </dynamic-form>`,
+  template: ` <dynamic-form
+    [config]="config"
+    [formConfig]="formConfig"
+    [translateService]="translateService"
+    #form="dynamicForm"
+    (submitBt)="submit($event)">
+  </dynamic-form>`,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule]
 })
 export class MailSendDynamicComponent extends FormBase implements OnInit {
@@ -43,20 +47,21 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
   private mailSendParam: MailSendParam;
   private userToAnyUserOptions: ValueKeyHtmlSelectOptions[];
 
-  constructor(public translateService: TranslateService,
+  constructor(
+    public translateService: TranslateService,
     public userAdminService: UserAdminService,
     public sendRecvService: MailSendRecvService,
     public gps: GlobalparameterService,
     private messageToastService: MessageToastService,
     private dialogService: DialogService,
     private dynamicDialogRef: DynamicDialogRef,
-    private dynamicDialogConfig: DynamicDialogConfig) {
+    private dynamicDialogConfig: DynamicDialogConfig
+  ) {
     super();
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      3, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 3, this.helpLink.bind(this));
     this.mailSendParam = this.dynamicDialogConfig.data.mailSendParam;
     if (this.mailSendParam?.idUserTo === this.USER_TO_ANY_USER_PARAM) {
       this.userAdminService.getIdUserAndNicknameExcludeMe().subscribe((vkhso: ValueKeyHtmlSelectOptions[]) => {
@@ -72,8 +77,7 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
     this.config = [
       this.getUserRoleOrUserField(),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.SUBJECT, 96, true),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.MESSAGE, 4096, true,
-        {textareaRows: 30}),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF(this.MESSAGE, 4096, true, { textareaRows: 30 }),
       ...this.getMarkAsPrivateWhenRoleMessage(),
       DynamicFieldHelper.createSubmitButton('SEND')
     ];
@@ -81,22 +85,26 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
     setTimeout(() => this.updateViewData());
   }
 
-
   submit(value: { [name: string]: any }): void {
     const mailSendRecv = new MailSendRecv();
     this.form.cleanMaskAndTransferValuesToBusinessObject(mailSendRecv, true);
-    mailSendRecv.replyToRolePrivate = value.replyToRolePrivate ? ReplyToRolePrivateType.REPLY_IS_PRIVATE :
-      ReplyToRolePrivateType.REPLY_NORMAL;
+    mailSendRecv.replyToRolePrivate = value.replyToRolePrivate
+      ? ReplyToRolePrivateType.REPLY_IS_PRIVATE
+      : ReplyToRolePrivateType.REPLY_NORMAL;
     mailSendRecv.idUserFrom = this.gps.getIdUser();
-    mailSendRecv.idReplyToLocal = this.mailSendParam.mailSendRecv?.idReplyToLocal ? this.mailSendParam.mailSendRecv.idReplyToLocal :
-      this.mailSendParam.mailSendRecv ? this.mailSendParam.mailSendRecv.idMailSendRecv : null;
+    mailSendRecv.idReplyToLocal = this.mailSendParam.mailSendRecv?.idReplyToLocal
+      ? this.mailSendParam.mailSendRecv.idReplyToLocal
+      : this.mailSendParam.mailSendRecv
+        ? this.mailSendParam.mailSendRecv.idMailSendRecv
+        : null;
     mailSendRecv.contextEntity = this.mailSendParam.contextEntity;
     mailSendRecv.idEntityContext = this.mailSendParam.idEntityContext;
     this.sendRecvService.sendMessage(mailSendRecv).subscribe({
       next: (mailSendRecvRc: MailSendRecv) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_PROPOSE_SAVED');
         this.dynamicDialogRef.close(mailSendRecvRc);
-      }, error: () => this.configObject.submit.disabled = false
+      },
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
 
@@ -117,15 +125,18 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
   }
 
   private getMarkAsPrivateWhenRoleMessage(): FieldConfig[] {
-    return this.isPrivateReply(this.mailSendParam.mailSendRecv?.replyToRolePrivate)
-    || this.mailSendParam.mailSendRecv?.idRoleTo ?
-      [DynamicFieldHelper.createFieldCheckboxHeqF('replyToRolePrivate')] : [];
+    return this.isPrivateReply(this.mailSendParam.mailSendRecv?.replyToRolePrivate) ||
+      this.mailSendParam.mailSendRecv?.idRoleTo
+      ? [DynamicFieldHelper.createFieldCheckboxHeqF('replyToRolePrivate')]
+      : [];
   }
 
   private isPrivateReply(replyToRolePrivate: ReplyToRolePrivateType | string | number): boolean {
     if (replyToRolePrivate) {
-      return typeof replyToRolePrivate === 'number' && replyToRolePrivate === ReplyToRolePrivateType.REPLY_IS_PRIVATE ||
-        replyToRolePrivate === ReplyToRolePrivateType[ReplyToRolePrivateType.REPLY_IS_PRIVATE];
+      return (
+        (typeof replyToRolePrivate === 'number' && replyToRolePrivate === ReplyToRolePrivateType.REPLY_IS_PRIVATE) ||
+        replyToRolePrivate === ReplyToRolePrivateType[ReplyToRolePrivateType.REPLY_IS_PRIVATE]
+      );
     }
     return false;
   }
@@ -139,10 +150,14 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
         this.configObject[this.ID_USER_TO].formControl.disable();
       }
     } else {
-      this.configObject[this.ROLE_NAME_TO].valueKeyHtmlOptions = SelectOptionsHelper.translateArrayKeyEqualValue(this.translateService,
+      this.configObject[this.ROLE_NAME_TO].valueKeyHtmlOptions = SelectOptionsHelper.translateArrayKeyEqualValue(
+        this.translateService,
         [BaseSettings.ROLE_ALL_EDIT, BaseSettings.ROLE_ADMIN].concat(
-          this.gps.hasRole(BaseSettings.ROLE_ADMIN) ? [BaseSettings.ROLE_USER, BaseSettings.ROLE_LIMIT_EDIT,
-            BaseSettings.ROLE_EVERY_USER] : []));
+          this.gps.hasRole(BaseSettings.ROLE_ADMIN)
+            ? [BaseSettings.ROLE_USER, BaseSettings.ROLE_LIMIT_EDIT, BaseSettings.ROLE_EVERY_USER]
+            : []
+        )
+      );
       if (this.mailSendParam.roleName) {
         this.configObject[this.ROLE_NAME_TO].formControl.setValue(this.mailSendParam.roleName);
         this.configObject[this.ROLE_NAME_TO].formControl.disable();
@@ -160,20 +175,27 @@ export class MailSendDynamicComponent extends FormBase implements OnInit {
     const idUserFrom = AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(this.ID_USER_FROM);
     const subject = AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(this.SUBJECT);
 
-    this.translateService.get([mailReplayLine, idUserFrom, subject]).subscribe(
-      replyLines => {
-        this.configObject[this.SUBJECT].formControl.setValue(this.mailSendParam.mailSendRecv.subject);
-        const replayText = this.NEW_LINE + replyLines[mailReplayLine] + this.NEW_LINE
-          + replyLines[idUserFrom] + ': ' + this.mailSendParam.idUserTo + this.NEW_LINE
-          + replyLines[subject] + ': ' + this.mailSendParam.mailSendRecv.subject + this.NEW_LINE
-          + this.mailSendParam.mailSendRecv.message;
-        this.configObject[this.MESSAGE].formControl.setValue(replayText);
-        this.configObject[this.MESSAGE].elementRef.nativeElement.focus();
-        this.configObject[this.MESSAGE].elementRef.nativeElement.selectionEnd = 0;
-        this.configObject[this.SUBJECT].elementRef.nativeElement.focus();
-      });
+    this.translateService.get([mailReplayLine, idUserFrom, subject]).subscribe((replyLines) => {
+      this.configObject[this.SUBJECT].formControl.setValue(this.mailSendParam.mailSendRecv.subject);
+      const replayText =
+        this.NEW_LINE +
+        replyLines[mailReplayLine] +
+        this.NEW_LINE +
+        replyLines[idUserFrom] +
+        ': ' +
+        this.mailSendParam.idUserTo +
+        this.NEW_LINE +
+        replyLines[subject] +
+        ': ' +
+        this.mailSendParam.mailSendRecv.subject +
+        this.NEW_LINE +
+        this.mailSendParam.mailSendRecv.message;
+      this.configObject[this.MESSAGE].formControl.setValue(replayText);
+      this.configObject[this.MESSAGE].elementRef.nativeElement.focus();
+      this.configObject[this.MESSAGE].elementRef.nativeElement.selectionEnd = 0;
+      this.configObject[this.SUBJECT].elementRef.nativeElement.focus();
+    });
   }
-
 }
 
 export class MailSendParam {
@@ -191,7 +213,12 @@ export class MailSendParam {
    *                      user-to-user message to a non-admin recipient; verified by the backend.
    * @param idEntityContext Optional id of the context entity referenced by contextEntity.
    */
-  constructor(public idUserTo: number, public mailSendRecv?: MailSendRecv, public subject?: string,
-    public roleName?: string, public contextEntity?: string, public idEntityContext?: number) {
-  }
+  constructor(
+    public idUserTo: number,
+    public mailSendRecv?: MailSendRecv,
+    public subject?: string,
+    public roleName?: string,
+    public contextEntity?: string,
+    public idEntityContext?: number
+  ) {}
 }

@@ -68,9 +68,7 @@ describe('Helper.findPropertyNamesInObjectTree', () => {
   });
 
   it('finds property at multiple levels', () => {
-    const result = Helper.findPropertyNamesInObjectTree(
-      { id: 1, child: { id: 2 } }, 'id'
-    );
+    const result = Helper.findPropertyNamesInObjectTree({ id: 1, child: { id: 2 } }, 'id');
     expect(result).toContain('id');
     expect(result).toContain('child.id');
   });

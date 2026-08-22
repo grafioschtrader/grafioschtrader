@@ -12,12 +12,12 @@ comes from `src/app/lib`, and the backend it talks to — `backend/grafiosch-tes
 `grafiosch-base` and `grafiosch-server-base` alone, with no `grafioschtrader` class, entity, migration or fixture on
 its class path. So each kind of leak fails in its own visible way:
 
-| Leak | How it shows up here |
-|---|---|
-| A file under `src/app/lib` imports application code | `ng build grafiosch-host` fails, or drags a Grafioschtrader module into the bundle |
-| A text used from `lib` lives in `grafioschtrader-common` | the page paints the raw NLS key, and `node scripts/nls-tool.mjs check` fails |
-| A REST endpoint used from `lib` lives in `grafioschtrader-server` | the request 404s against port 8081 |
-| An extension point is not really pluggable | it cannot be bound in `main.ts` without reaching into `src/app` |
+| Leak                                                              | How it shows up here                                                               |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| A file under `src/app/lib` imports application code               | `ng build grafiosch-host` fails, or drags a Grafioschtrader module into the bundle |
+| A text used from `lib` lives in `grafioschtrader-common`          | the page paints the raw NLS key, and `node scripts/nls-tool.mjs check` fails       |
+| A REST endpoint used from `lib` lives in `grafioschtrader-server` | the request 404s against port 8081                                                 |
+| An extension point is not really pluggable                        | it cannot be bound in `main.ts` without reaching into `src/app`                    |
 
 Anything the host does **not** reach is untested ground for the extraction — see [Known gaps](#known-gaps).
 
@@ -36,7 +36,7 @@ mvn -pl grafiosch-test-integration spring-boot:run -Dspring-boot.run.profiles=e2
 npm run start:grafiosch
 ```
 
-> **Check the target before writing anything.** Without the profile the same module starts against the *developer*
+> **Check the target before writing anything.** Without the profile the same module starts against the _developer_
 > database `grafiosch`, on the same port. `GET http://localhost:8081/api/integration-info` is public and answers
 > `{"activeProfiles":["e2e"],"databaseName":"grafiosch_t"}` or `{"activeProfiles":[],"databaseName":"grafiosch"}`.
 
@@ -50,16 +50,16 @@ the users from `testdata/users.json` (password `A123abcd`). The browser suite of
 This is the concrete answer to "what does an application built on `lib` have to bring along?". Everything else comes
 from the library.
 
-| Extension point | Host implementation |
-|---|---|
-| `DIALOG_HANDLER` | `grafiosch-dialog.handler.ts` |
-| `AfterLoginHandler` | `grafiosch-after-login.handler.ts` |
-| `MAIN_TREE_CONTRIBUTOR` (multi) | `grafiosch-basedata-main-tree.contributor.ts` and `grafiosch-main-tree.contributor.ts`, sharing `grafiosch-tree-contributor.base.ts` — at least one, or `/mainview` shows an empty tree |
-| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE` | the library `TaskTypeBase`; this host has no extended task types, so the service is bound to `null` |
-| `PERSONAL_DATA_ZIP_NAME` | optional — the library default `personalData.zip` is used; Grafioschtrader overrides it with `gtPersonalData.zip` |
-| The tenant page | `grafiosch-tenant-edit.component.ts` + `grafiosch-tenant.service.ts` — `TenantBase` is extended per application |
-| Application owned route keys | `grafiosch.settings.ts` — only the paths the library does not choose for itself; the values match the Grafioschtrader ones so a browser spec can move between the two suites |
-| Route table, `ToastrModule.forRoot`, `provideZoneChangeDetection()`, the NLS app initializer, the service list | `main.ts` |
+| Extension point                                                                                                  | Host implementation                                                                                                                                                                     |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DIALOG_HANDLER`                                                                                                 | `grafiosch-dialog.handler.ts`                                                                                                                                                           |
+| `AfterLoginHandler`                                                                                              | `grafiosch-after-login.handler.ts`                                                                                                                                                      |
+| `MAIN_TREE_CONTRIBUTOR` (multi)                                                                                  | `grafiosch-basedata-main-tree.contributor.ts` and `grafiosch-main-tree.contributor.ts`, sharing `grafiosch-tree-contributor.base.ts` — at least one, or `/mainview` shows an empty tree |
+| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE`                                                                       | the library `TaskTypeBase`; this host has no extended task types, so the service is bound to `null`                                                                                     |
+| `PERSONAL_DATA_ZIP_NAME`                                                                                         | optional — the library default `personalData.zip` is used; Grafioschtrader overrides it with `gtPersonalData.zip`                                                                       |
+| The tenant page                                                                                                  | `grafiosch-tenant-edit.component.ts` + `grafiosch-tenant.service.ts` — `TenantBase` is extended per application                                                                         |
+| Application owned route keys                                                                                     | `grafiosch.settings.ts` — only the paths the library does not choose for itself; the values match the Grafioschtrader ones so a browser spec can move between the two suites            |
+| Route table, Optimus `MessageService`, `provideZoneChangeDetection()`, the NLS app initializer, the service list | `main.ts`                                                                                                                                                                               |
 
 The navigation tree deliberately uses **two** contributors, mirroring Grafioschtrader's BaseData/AdminData split, so
 that the merge in `MainTreeService` (filter by `isEnabled()`, sort by `getTreeOrder()`, flatten) is exercised and not
@@ -90,7 +90,7 @@ deadlock, no entry means no menu and no menu means no entry.
 
 ## Two traps
 
-> **`provideZoneChangeDetection()` is required.** Angular 21 bootstraps zoneless, and the library components assume
+> **`provideZoneChangeDetection()` is required.** Angular 22 bootstraps zoneless, and the library components assume
 > zone change detection: `RegisterComponent` assigns `applicationInfo` in an HTTP callback and expects the `@if` around
 > `<dynamic-form>` to have rendered by the time `preparePasswordFields()` reaches `formControl`. Without it the page
 > shows nothing but "server unavailable".

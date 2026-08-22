@@ -1,26 +1,27 @@
-import {AddRemoveDay} from '../service/trading.days.plus.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
-import {HelpIds} from '../../lib/help/help.ids';
+import { AddRemoveDay } from '../service/trading.days.plus.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { RangeSelectDays } from '../../lib/fullyearcalendar/Interface/range.select.days';
+import { HelpIds } from '../../lib/help/help.ids';
 import moment from 'moment';
-import {CalendarNavigation} from './calendar.navigation';
-import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
-import {BaseSettings} from '../../lib/base.settings';
+import { CalendarNavigation } from './calendar.navigation';
+import { TradingDaysWithDateBoundaries } from '../model/trading.days.with.date.boundaries';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Base class for trading calendar
  */
 export abstract class TradingCalendarBase extends CalendarNavigation {
-
-  protected constructor(translateService: TranslateService,
+  protected constructor(
+    translateService: TranslateService,
     gps: GlobalparameterService,
     markExistingColor: string[],
     activePanelService: ActivePanelService,
     protected messageToastService: MessageToastService,
-    public titleKey?: string) {
+    public titleKey?: string
+  ) {
     super(translateService, gps, activePanelService, markExistingColor);
   }
 
@@ -49,14 +50,18 @@ export abstract class TradingCalendarBase extends CalendarNavigation {
     this.addRemoveDaysMap.forEach((value: boolean, key: number) =>
       convertedAddRemoveDays.push(new AddRemoveDay(moment(key).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), value))
     );
-    this.saveData((convertedAddRemoveDays));
+    this.saveData(convertedAddRemoveDays);
   }
 
-  protected setYearsBoundariesAfterRead(tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries,
-    yearChange: boolean): void {
+  protected setYearsBoundariesAfterRead(
+    tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries,
+    yearChange: boolean
+  ): void {
     if (!yearChange) {
-      this.setYearsBoundaries(moment(tradingDaysWithDateBoundaries.oldestTradingCalendarDay).year(),
-        moment(tradingDaysWithDateBoundaries.youngestTradingCalendarDay).year());
+      this.setYearsBoundaries(
+        moment(tradingDaysWithDateBoundaries.oldestTradingCalendarDay).year(),
+        moment(tradingDaysWithDateBoundaries.youngestTradingCalendarDay).year()
+      );
     }
   }
 }

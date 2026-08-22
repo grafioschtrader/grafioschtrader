@@ -1,37 +1,36 @@
-import {Injectable} from '@angular/core';
-import {Observable, combineLatest, of} from 'rxjs';
-import {catchError, map, tap} from 'rxjs/operators';
-import {MenuItem, TreeNode, ConfirmationService} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
-import {TreeNodeType} from '../../shared/maintree/types/tree.node.type';
-import {TypeNodeData} from '../../lib/maintree/types/type.node.data';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {WatchlistService} from '../service/watchlist.service';
-import {TenantService} from '../../tenant/service/tenant.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {Watchlist} from '../../entities/watchlist';
-import {Tenant} from '../../entities/tenant';
-import {TenantLimit, TenantLimitTypes} from '../../shared/types/tenant.limit';
-import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
-import {AppSettings} from '../../shared/app.settings';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {WatchlistEditDynamicComponent} from '../component/watchlist.edit.dynamic.component';
-import {WatchlistMoveStatus} from '../model/watchlist.move.status';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {ProcessedAction} from '../../lib/types/processed.action';
+import { Injectable } from '@angular/core';
+import { Observable, combineLatest, of } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { MenuItem, TreeNode, ConfirmationService } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { MainTreeContributor } from '../../lib/maintree/contributor/main-tree-contributor.interface';
+import { TreeNodeType } from '../../shared/maintree/types/tree.node.type';
+import { TypeNodeData } from '../../lib/maintree/types/type.node.data';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { WatchlistService } from '../service/watchlist.service';
+import { TenantService } from '../../tenant/service/tenant.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { Watchlist } from '../../entities/watchlist';
+import { Tenant } from '../../entities/tenant';
+import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
+import { WatchlistSecurityExists } from '../../entities/dnd/watchlist.security.exists';
+import { AppSettings } from '../../shared/app.settings';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { WatchlistEditDynamicComponent } from '../component/watchlist.edit.dynamic.component';
+import { WatchlistMoveStatus } from '../model/watchlist.move.status';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
 
 /**
  * Contributor for Watchlist-related nodes in the main navigation tree.
  */
 @Injectable()
 export class WatchlistMainTreeContributor extends MainTreeContributor {
-
   private tenant: Tenant;
   private hasSecurityObject: { [key: number]: number } = {};
   private rootNode: TreeNode;
@@ -60,8 +59,8 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
 
   getRootNodes(): Observable<TreeNode[]> {
     return this.tenantService.getTenantAndPortfolio().pipe(
-      tap(tenant => this.tenant = tenant),
-      map(tenant => {
+      tap((tenant) => (this.tenant = tenant)),
+      map((tenant) => {
         this.rootNode = {
           expanded: true,
           children: [],
@@ -86,15 +85,16 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
       this.watchlistService.getWatchlistsOfTenantHasSecurity(),
       // Only gates the create menu entry, the backend enforces the limit anyway - a failure here must not stop the
       // watchlist nodes from being rebuilt.
-      this.tenantService.getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_WATCHLIST])
+      this.tenantService
+        .getMaxTenantLimitsByMsgKey([TenantLimitTypes.MAX_WATCHLIST])
         .pipe(catchError(() => of([] as TenantLimit[])))
     ]).pipe(
       map(([watchlists, hasSecurityData, tenantLimits]) => {
         // Update has security mapping
-        hasSecurityData.forEach(item => this.hasSecurityObject[item.idWatchlist] = item.hasSecurity);
+        hasSecurityData.forEach((item) => (this.hasSecurityObject[item.idWatchlist] = item.hasSecurity));
 
         // Store tenant limits
-        this.tenantLimits = tenantLimits.reduce((ac, tl) => ({...ac, [tl.msgKey]: tl}), {});
+        this.tenantLimits = tenantLimits.reduce((ac, tl) => ({ ...ac, [tl.msgKey]: tl }), {});
 
         this.watchlists = watchlists;
         this.buildWatchlistNodes(rootNode, watchlists);
@@ -118,8 +118,8 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
     }
     this.rootNode = rootNode;
     return this.watchlistService.getWatchlistsOfTenantHasSecurity().pipe(
-      map(hasSecurityData => {
-        hasSecurityData.forEach(item => this.hasSecurityObject[item.idWatchlist] = item.hasSecurity);
+      map((hasSecurityData) => {
+        hasSecurityData.forEach((item) => (this.hasSecurityObject[item.idWatchlist] = item.hasSecurity));
         this.buildWatchlistNodes(rootNode, this.watchlists);
       })
     );
@@ -134,13 +134,13 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
         menuItems.push({
           label: 'CREATE|WATCHLIST' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: () => {
-            if (this.tenantLimits && BusinessHelper.isLimitCheckOk(
-              this.tenantLimits[TenantLimitTypes.MAX_WATCHLIST],
-              this.messageToastService
-            )) {
-              this.callbacks?.handleEdit(WatchlistEditDynamicComponent, parentNodeData, null,
-                AppSettings.WATCHLIST.toUpperCase())
-                ?.subscribe(result => {
+            if (
+              this.tenantLimits &&
+              BusinessHelper.isLimitCheckOk(this.tenantLimits[TenantLimitTypes.MAX_WATCHLIST], this.messageToastService)
+            ) {
+              this.callbacks
+                ?.handleEdit(WatchlistEditDynamicComponent, parentNodeData, null, AppSettings.WATCHLIST.toUpperCase())
+                ?.subscribe((result) => {
                   if (result) {
                     this.callbacks?.refreshTree();
                   }
@@ -153,20 +153,26 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
       case TreeNodeType.Watchlist:
         menuItems.push({
           label: 'EDIT_RECORD|WATCHLIST' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: () => this.callbacks?.handleEdit(WatchlistEditDynamicComponent, parentNodeData, selectedNodeData,
-            AppSettings.WATCHLIST.toUpperCase())
-            ?.subscribe(result => {
-              if (result) {
-                this.callbacks?.refreshTree();
-              }
-            })
+          command: () =>
+            this.callbacks
+              ?.handleEdit(
+                WatchlistEditDynamicComponent,
+                parentNodeData,
+                selectedNodeData,
+                AppSettings.WATCHLIST.toUpperCase()
+              )
+              ?.subscribe((result) => {
+                if (result) {
+                  this.callbacks?.refreshTree();
+                }
+              })
         });
         menuItems.push({
           label: 'DELETE|WATCHLIST',
           command: () => this.handleDeleteWatchlist(treeNode, selectedNodeData.idWatchlist),
           disabled: this.hasSecurityObject[selectedNodeData.idWatchlist] !== 0
         });
-        menuItems.push({separator: true});
+        menuItems.push({ separator: true });
         menuItems.push({
           label: 'WATCHLIST_AS_PERFORMANCE' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: () => this.handleWatchlistForPerformance(selectedNodeData.idWatchlist)
@@ -216,14 +222,14 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
         this.showMoveFailed(targetNode.label);
         return;
       }
-      this.watchlistService.moveSecuritycurrency(wse.idWatchlistSource, targetNode.data.id, wse.idSecuritycurrency)
-        .subscribe(moveStatus => {
+      this.watchlistService
+        .moveSecuritycurrency(wse.idWatchlistSource, targetNode.data.id, wse.idSecuritycurrency)
+        .subscribe((moveStatus) => {
           if (moveStatus === WatchlistMoveStatus.MOVED) {
-            this.messageToastService.showMessageI18n(
-              InfoLevelType.SUCCESS,
-              'MOVE_SECURITY_WATCHLIST',
-              {from: sourceLabel, to: targetNode.label}
-            );
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MOVE_SECURITY_WATCHLIST', {
+              from: sourceLabel,
+              to: targetNode.label
+            });
             this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
           } else {
             this.showMoveFailed(targetNode.label);
@@ -268,7 +274,9 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
    * @private
    */
   private showMoveFailed(targetLabel: string): void {
-    this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MOVE_SECURITY_WATCHLIST_FAILED', {to: targetLabel});
+    this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MOVE_SECURITY_WATCHLIST_FAILED', {
+      to: targetLabel
+    });
   }
 
   private handleDeleteWatchlist(treeNode: TreeNode, idWatchlist: number): void {
@@ -279,22 +287,20 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
       () => {
         this.watchlistService.delete(idWatchlist).subscribe({
           next: () => {
-            this.messageToastService.showMessageI18n(
-              InfoLevelType.SUCCESS,
-              'MSG_DELETE_RECORD',
-              {i18nRecord: AppSettings.WATCHLIST.toUpperCase()}
-            );
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: AppSettings.WATCHLIST.toUpperCase()
+            });
             this.callbacks?.navigateToNode(this.getPreviousNode(treeNode).data);
             this.callbacks?.refreshTree();
           },
-          error: err => console.error('Error deleting watchlist:', err)
+          error: (err) => console.error('Error deleting watchlist:', err)
         });
       }
     );
   }
 
   private handleWatchlistForPerformance(idWatchlist: number): void {
-    this.tenantService.setWatchlistForPerformance(idWatchlist).subscribe(tenant => {
+    this.tenantService.setWatchlistForPerformance(idWatchlist).subscribe((tenant) => {
       this.tenant = tenant;
       this.callbacks?.refreshTree();
     });
@@ -309,7 +315,7 @@ export class WatchlistMainTreeContributor extends MainTreeContributor {
   }
 
   private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe(translated => target.label = translated + suffix);
+    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

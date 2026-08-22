@@ -1,36 +1,50 @@
-<div (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
-     class="data-container">
+<div
+  (click)="onComponentClick($event)"
+  [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  class="data-container">
   <div class="datatable">
-    <p-table [(selection)]="securityDividendsGrandTotalSelected" [columns]="fields" [multiSortMeta]="multiSortMeta"
-             [paginator]="true" [rows]="30" [value]="securityDividendsYearGroup"
-             [(expandedRowKeys)]="expandedYearKeys"
-             [contextMenu]="cm" [(contextMenuSelection)]="securityDividendsGrandTotalSelected"
-             (onContextMenuSelect)="onContextMenuSelect($event)"
-             dataKey="year" selectionMode="single" sortMode="multiple"
-             stripedRows showGridlines>
+    <p-table
+      [(selection)]="securityDividendsGrandTotalSelected"
+      [columns]="fields"
+      [multiSortMeta]="multiSortMeta"
+      [paginator]="true"
+      [rows]="30"
+      [value]="securityDividendsYearGroup"
+      [(expandedRowKeys)]="expandedYearKeys"
+      [contextMenu]="cm"
+      [(contextMenuSelection)]="securityDividendsGrandTotalSelected"
+      (onContextMenuSelect)="onContextMenuSelect($event)"
+      dataKey="year"
+      selectionMode="single"
+      sortMode="multiple"
+      stripedRows
+      showGridlines>
       <ng-template #caption>
         @if (securityDividendsGrandTotal) {
-          <h4 [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"
-              [translate]="'PORTFOLIO_DIVIDENDS_YEAR'"></h4>
-          <h4 [translateParams]="{select: selectedCashAccounts, total: totalCashAccounts}"
-              [translate]="'PORTFOLIO_INTEREST_YEAR'"></h4>
+        <h4
+          [translateParams]="{select: selectedSecurityAccounts, total: totalSecurityAccounts}"
+          [translate]="'PORTFOLIO_DIVIDENDS_YEAR'"></h4>
+        <h4
+          [translateParams]="{select: selectedCashAccounts, total: totalCashAccounts}"
+          [translate]="'PORTFOLIO_INTEREST_YEAR'"></h4>
         }
       </ng-template>
 
       <ng-template #header let-fields>
         <tr>
-          <th style="width:24px"></th>
-          @for (field of fields; track field) {
-            @if (field.visible) {
-              <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
-                  [pTooltip]="field.headerTooltipTranslated"
-                  class="word-break-header" [attr.lang]="baseLocale.language">
-                {{ field.headerTranslated }}
-                <p-sortIcon [field]="field.field"></p-sortIcon>
-              </th>
-            }
-          }
+          <th style="width: 24px"></th>
+          @for (field of fields; track field) { @if (field.visible) {
+          <th
+            [pSortableColumn]="field.field"
+            [style.max-width.px]="field.width"
+            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}"
+            [pTooltip]="field.headerTooltipTranslated"
+            class="word-break-header"
+            [attr.lang]="baseLocale.language">
+            {{ field.headerTranslated }}
+            <p-sortIcon [field]="field.field"></p-sortIcon>
+          </th>
+          } }
         </tr>
       </ng-template>
 
@@ -41,31 +55,30 @@
               <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
           </td>
-          @for (field of fields; track field) {
-            @if (field.visible) {
-              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+          @for (field of fields; track field) { @if (field.visible) {
+          <td
+            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                   || field.dataType===DataType.NumericInteger)? 'text-end': ''"
-                  [style.max-width.px]="field.width"
-                  [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-                {{ getValueByPath(el, field) }}
-              </td>
-            }
-          }
+            [style.max-width.px]="field.width"
+            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            {{ getValueByPath(el, field) }}
+          </td>
+          } }
         </tr>
       </ng-template>
 
       <ng-template pTemplate="footer">
         <tr>
           <td></td>
-          @for (field of fields; track field) {
-            @if (field.visible) {
-              <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
-                  || field.dataType===DataType.NumericInteger)? 'text-end': ''" [style.width.px]="field.width"
-                  class="row-total">
-                {{ getValueColumnTotal(field, 0, securityDividendsGrandTotal, null) }}
-              </td>
-            }
-          }
+          @for (field of fields; track field) { @if (field.visible) {
+          <td
+            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                  || field.dataType===DataType.NumericInteger)? 'text-end': ''"
+            [style.width.px]="field.width"
+            class="row-total">
+            {{ getValueColumnTotal(field, 0, securityDividendsGrandTotal, null) }}
+          </td>
+          } }
         </tr>
       </ng-template>
 
@@ -100,18 +113,18 @@
 </div>
 
 @if (visibleSecurityaccountDialog) {
-  <tenant-dividend-security-account-selection-dialog (closeDialog)="handleOnProcessedDialog($event)"
-                                                     [idsAccounts]="idsAccounts"
-                                                     [portfolios]="securityDividendsGrandTotal.portfolioList"
-                                                     [visibleDialog]="visibleSecurityaccountDialog">
-  </tenant-dividend-security-account-selection-dialog>
-}
-
-@if (visibleExportDialog) {
-  <tax-statement-export-dialog (closeDialog)="handleExportDialogClose($event)"
-                               [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
-                               [availableTaxYears]="securityDividendsGrandTotal?.availableTaxYears"
-                               [taxExportSettings]="securityDividendsGrandTotal?.taxExportSettings"
-                               [visibleDialog]="visibleExportDialog">
-  </tax-statement-export-dialog>
+<tenant-dividend-security-account-selection-dialog
+  (closeDialog)="handleOnProcessedDialog($event)"
+  [idsAccounts]="idsAccounts"
+  [portfolios]="securityDividendsGrandTotal.portfolioList"
+  [visibleDialog]="visibleSecurityaccountDialog">
+</tenant-dividend-security-account-selection-dialog>
+} @if (visibleExportDialog) {
+<tax-statement-export-dialog
+  (closeDialog)="handleExportDialogClose($event)"
+  [idsSecurityaccount]="idsAccounts.idsSecurityaccount"
+  [availableTaxYears]="$safeNavigationMigration(securityDividendsGrandTotal?.availableTaxYears)"
+  [taxExportSettings]="$safeNavigationMigration(securityDividendsGrandTotal?.taxExportSettings)"
+  [visibleDialog]="visibleExportDialog">
+</tax-statement-export-dialog>
 }

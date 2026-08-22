@@ -1,20 +1,20 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {WatchlistService} from '../service/watchlist.service';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {IntraHistoricalWatchlistProblem} from '../model/intra.historical.watchlist.problem';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {atLeastOneFieldValidator} from '../../lib/validator/validator';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { WatchlistService } from '../service/watchlist.service';
+import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { IntraHistoricalWatchlistProblem } from '../model/intra.historical.watchlist.problem';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { atLeastOneFieldValidator } from '../../lib/validator/validator';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Dialog component for adding securities and currencies to an empty watchlist whose repeat counter has reached its limit.
@@ -25,22 +25,25 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
  * TODO: This dialog could well be transformed into a dialog for dynamic inputs.
  */
 @Component({
-    selector: 'watchlist-add-edit-price-problem-instrument',
-    template: `
-    <p-dialog header="{{'WATCHLIST_ADD_PROBLEM_INSTRUMENT' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '450px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
-    standalone: true,
-    imports: [
-      TranslateModule,
-      DialogModule,
-      DynamicFormModule
-    ]
+  selector: 'watchlist-add-edit-price-problem-instrument',
+  template: ` <p-dialog
+    header="{{ 'WATCHLIST_ADD_PROBLEM_INSTRUMENT' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '450px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TranslateModule, DialogModule, DynamicFormModule]
 })
 export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditBase implements OnInit {
   /** The unique identifier of the watchlist to add problem instruments to */
@@ -53,24 +56,30 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditB
    * @param watchlistService Service for performing watchlist-related operations including adding problem instruments
    * @param gps Global parameter service for accessing application-wide configuration and user settings
    */
-  constructor(public translateService: TranslateService,
-              private watchlistService: WatchlistService,
-              gps: GlobalparameterService) {
+  constructor(
+    public translateService: TranslateService,
+    private watchlistService: WatchlistService,
+    gps: GlobalparameterService
+  ) {
     super(HelpIds.HELP_WATCHLIST_PRICE_FEED, gps);
   }
 
   /** Initializes the component by setting up form configuration, field definitions, and validation rules */
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      6, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 6, this.helpLink.bind(this));
     const addGroupConfig: FieldConfig[] = [
-      DynamicFieldHelper.createFieldCheckboxHeqF('addIntraday', {defaultValue: true}),
-      DynamicFieldHelper.createFieldCheckboxHeqF('addHistorical', {defaultValue: true})
+      DynamicFieldHelper.createFieldCheckboxHeqF('addIntraday', {
+        defaultValue: true
+      }),
+      DynamicFieldHelper.createFieldCheckboxHeqF('addHistorical', {
+        defaultValue: true
+      })
     ];
     this.config = [
-      {formGroupName: 'addGroup', fieldConfig: addGroupConfig},
-      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'daysSinceLastWork',
-        true, 2, 90, {defaultValue: 60}),
+      { formGroupName: 'addGroup', fieldConfig: addGroupConfig },
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.Numeric, 'daysSinceLastWork', true, 2, 90, {
+        defaultValue: 60
+      }),
       DynamicFieldHelper.createSubmitButton('APPLY')
     ] as any[];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -82,11 +91,13 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditB
    */
   protected override initialize(): void {
     this.configObject.addGroup.validation = [atLeastOneFieldValidator];
-    this.configObject.addGroup.errors = [{
-      name: 'required',
-      keyi18n: 'required',
-      rules: ['dirty']
-    }];
+    this.configObject.addGroup.errors = [
+      {
+        name: 'required',
+        keyi18n: 'required',
+        rules: ['dirty']
+      }
+    ];
     TranslateHelper.translateMessageError(this.translateService, this.configObject.addGroup);
     this.configObject.addGroup.formControl.setValidators(atLeastOneFieldValidator);
   }
@@ -102,10 +113,8 @@ export class WatchlistAddEditPriceProblemInstrumentComponent extends SimpleEditB
     this.form.cleanMaskAndTransferValuesToBusinessObject(ihwp);
 
     this.watchlistService.addInstrumentsWithPriceDataProblems(this.idWatchlist, ihwp).subscribe({
-      next: watchlist =>
-        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)),
-      error: () => this.configObject.submit.disabled = false
+      next: (watchlist) => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)),
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
-
 }

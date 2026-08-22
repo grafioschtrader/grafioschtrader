@@ -7,24 +7,25 @@ import {
   Output,
   SimpleChanges,
   TemplateRef,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {Table, TableModule} from '@openng/optimus-ui/table';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {SharedModule, SelectItem} from '@openng/optimus-ui/api';
-import {MenuItem, SortEvent} from '@openng/optimus-ui/api';
-import {DatePickerModule} from '@openng/optimus-ui/datepicker';
-import {MultiSelectModule} from '@openng/optimus-ui/multiselect';
-import {ColumnConfig, getFilterKey} from './column.config';
-import {DataType} from '../dynamic-form/models/data.type';
-import {Helper} from '../helper/helper';
-import {FilterType} from './filter.type';
-import {BaseLocale} from '../dynamic-form/models/base.locale';
-import {GlobalSessionNames} from '../global.session.names';
-import {BaseSettings} from '../base.settings';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Table, TableModule } from '@openng/optimus-ui/table';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { SharedModule, SelectItem } from '@openng/optimus-ui/api';
+import { MenuItem, SortEvent } from '@openng/optimus-ui/api';
+import { DatePickerModule } from '@openng/optimus-ui/datepicker';
+import { MultiSelectModule } from '@openng/optimus-ui/multiselect';
+import { ColumnConfig, getFilterKey } from './column.config';
+import { DataType } from '../dynamic-form/models/data.type';
+import { Helper } from '../helper/helper';
+import { FilterType } from './filter.type';
+import { BaseLocale } from '../dynamic-form/models/base.locale';
+import { GlobalSessionNames } from '../global.session.names';
+import { BaseSettings } from '../base.settings';
 
 /** Represents one item in the first (group) header row */
 interface HeaderGroupItem {
@@ -85,12 +86,21 @@ interface HeaderGroupItem {
 @Component({
   selector: 'configurable-table',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ContextMenuModule, TooltipModule, SharedModule, DatePickerModule, MultiSelectModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TableModule,
+    ContextMenuModule,
+    TooltipModule,
+    SharedModule,
+    DatePickerModule,
+    MultiSelectModule
+  ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <div #cmDiv (click)="onComponentClick($event)"
-         [ngClass]="containerClass"
-         [class]="customClass">
-      <p-table #table
+    <div #cmDiv (click)="onComponentClick($event)" [ngClass]="containerClass" [class]="customClass">
+      <p-table
+        #table
         [columns]="fields"
         [value]="data"
         [dataKey]="dataKey"
@@ -118,7 +128,6 @@ interface HeaderGroupItem {
         (onRowUnselect)="rowUnselect.emit($event)"
         (onFilter)="filterChange.emit($event)"
         (onColResize)="colResize.emit($event)">
-
         <!-- Caption slot with content projection -->
         <ng-template pTemplate="caption">
           <ng-content select="[caption]"></ng-content>
@@ -139,11 +148,14 @@ interface HeaderGroupItem {
               }
               @for (item of headerGroupRow; track $index) {
                 @if (item.type === 'single') {
-                  <th [rowSpan]="2" [pSortableColumn]="item.field.field"
-                      [pTooltip]="item.field.headerTooltipTranslated"
-                      [style.max-width.px]="item.field.width"
-                      [ngStyle]="item.field.width ? {'flex-basis': '0 0 ' + item.field.width + 'px'} : {}"
-                      class="word-break-header" [attr.lang]="baseLocale.language">
+                  <th
+                    [rowSpan]="2"
+                    [pSortableColumn]="item.field.field"
+                    [pTooltip]="item.field.headerTooltipTranslated"
+                    [style.max-width.px]="item.field.width"
+                    [ngStyle]="item.field.width ? { 'flex-basis': '0 0 ' + item.field.width + 'px' } : {}"
+                    class="word-break-header"
+                    [attr.lang]="baseLocale.language">
                     {{ item.field.headerTranslated }}
                     <p-sortIcon [field]="item.field.field"></p-sortIcon>
                   </th>
@@ -157,11 +169,13 @@ interface HeaderGroupItem {
             <!-- Row 2: Individual headers for grouped columns only -->
             <tr>
               @for (field of groupedColumns; track field.field) {
-                <th [pSortableColumn]="field.field"
-                    [pTooltip]="field.headerTooltipTranslated"
-                    [style.max-width.px]="field.width"
-                    [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
-                    class="word-break-header" [attr.lang]="baseLocale.language">
+                <th
+                  [pSortableColumn]="field.field"
+                  [pTooltip]="field.headerTooltipTranslated"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                  class="word-break-header"
+                  [attr.lang]="baseLocale.language">
                   {{ field.headerTranslated }}
                   <p-sortIcon [field]="field.field"></p-sortIcon>
                 </th>
@@ -180,11 +194,13 @@ interface HeaderGroupItem {
               }
               @for (field of columns; track field.field) {
                 @if (field.visible) {
-                  <th [pSortableColumn]="field.field"
-                      [pTooltip]="field.headerTooltipTranslated"
-                      [style.max-width.px]="field.width"
-                      [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
-                      class="word-break-header" [attr.lang]="baseLocale.language">
+                  <th
+                    [pSortableColumn]="field.field"
+                    [pTooltip]="field.headerTooltipTranslated"
+                    [style.max-width.px]="field.width"
+                    [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                    class="word-break-header"
+                    [attr.lang]="baseLocale.language">
                     {{ field.headerTranslated }}
                     <p-sortIcon [field]="field.field"></p-sortIcon>
                   </th>
@@ -211,56 +227,91 @@ interface HeaderGroupItem {
                 @if (field.visible) {
                   <!-- The width has to be constrained like on the header and the body cell, otherwise a filter control
                        widens its column to fit the longest option label and the column's width is without effect. -->
-                  <th style="overflow:visible;"
-                      [style.max-width.px]="field.width"
-                      [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
+                  <th
+                    style="overflow:visible;"
+                    [style.max-width.px]="field.width"
+                    [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                     @switch (field.filterType) {
                       @case (FilterType.likeDataType) {
                         @switch (field.dataType) {
-                          @case (field.dataType === DataType.DateString || field.dataType === DataType.DateNumeric
-                            || field.dataType === DataType.DateTimeString ? field.dataType : '') {
-                            <p-columnFilter [field]="field.field" display="menu" [showOperator]="true"
-                                            appendTo="body"
-                                            [matchModeOptions]="customMatchModeOptions" [matchMode]="'gtNoFilter'">
+                          @case (
+                            field.dataType === DataType.DateString ||
+                            field.dataType === DataType.DateNumeric ||
+                            field.dataType === DataType.DateTimeString
+                              ? field.dataType
+                              : ''
+                          ) {
+                            <p-columnFilter
+                              [field]="field.field"
+                              display="menu"
+                              [showOperator]="true"
+                              appendTo="body"
+                              [matchModeOptions]="customMatchModeOptions"
+                              [matchMode]="'gtNoFilter'">
                               <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                <p-datepicker #cal [ngModel]="value" [dateFormat]="baseLocale.dateFormat"
-                                              (onSelect)="filter($event)"
-                                              [minDate]="minDate" [maxDate]="maxDate"
-                                              (onInput)="filter(cal.value)">
+                                <p-datepicker
+                                  #cal
+                                  [ngModel]="value"
+                                  [dateFormat]="baseLocale.dateFormat"
+                                  (onSelect)="filter($event)"
+                                  [minDate]="minDate"
+                                  [maxDate]="maxDate"
+                                  (onInput)="filter(cal.value)">
                                 </p-datepicker>
                               </ng-template>
                             </p-columnFilter>
                           }
                           @case (DataType.Numeric) {
-                            <p-columnFilter type="numeric" [field]="field.field"
-                                            [locale]="formLocale" appendTo="body"
-                                            minFractionDigits="2" display="menu"></p-columnFilter>
+                            <p-columnFilter
+                              type="numeric"
+                              [field]="field.field"
+                              [locale]="formLocale"
+                              appendTo="body"
+                              minFractionDigits="2"
+                              display="menu"></p-columnFilter>
                           }
                           @case (DataType.NumericShowZero) {
-                            <p-columnFilter type="numeric" [field]="field.field"
-                                            [locale]="formLocale" appendTo="body"
-                                            minFractionDigits="0" display="menu"></p-columnFilter>
+                            <p-columnFilter
+                              type="numeric"
+                              [field]="field.field"
+                              [locale]="formLocale"
+                              appendTo="body"
+                              minFractionDigits="0"
+                              display="menu"></p-columnFilter>
                           }
                           @case (DataType.NumericInteger) {
-                            <p-columnFilter type="numeric" [field]="field.field"
-                                            [locale]="formLocale" appendTo="body"
-                                            minFractionDigits="0" display="menu"></p-columnFilter>
+                            <p-columnFilter
+                              type="numeric"
+                              [field]="field.field"
+                              [locale]="formLocale"
+                              appendTo="body"
+                              minFractionDigits="0"
+                              display="menu"></p-columnFilter>
                           }
                           @case (DataType.String) {
-                            <p-columnFilter type="text" appendTo="body" [field]="filterKey(field)"
-                                            display="menu"></p-columnFilter>
+                            <p-columnFilter
+                              type="text"
+                              appendTo="body"
+                              [field]="filterKey(field)"
+                              display="menu"></p-columnFilter>
                           }
                         }
                       }
                       @case (FilterType.withOptions) {
                         <!-- Several values can be selected, they are combined with OR. An empty selection is handed
                              over as null, so that the table drops the filter instead of keeping an empty one. -->
-                        <p-multiSelect [options]="field.filterValues" [style]="{'width':'100%'}" appendTo="body"
-                                       [ngModel]="getSelectFilterValue(field)" [ngModelOptions]="{standalone: true}"
-                                       [maxSelectedLabels]="1" [showClear]="true"
-                                       [filter]="field.filterValues?.length > 10"
-                                       (onChange)="table.filter($event.value?.length ? $event.value : null,
-                                         filterKey(field), 'in')"></p-multiSelect>
+                        <p-multiSelect
+                          [options]="field.filterValues"
+                          [style]="{ width: '100%' }"
+                          appendTo="body"
+                          [ngModel]="getSelectFilterValue(field)"
+                          [ngModelOptions]="{ standalone: true }"
+                          [maxSelectedLabels]="1"
+                          [showClear]="true"
+                          [filter]="$safeNavigationMigration(field.filterValues?.length) > 10"
+                          (onChange)="
+                            table.filter($event.value?.length ? $event.value : null, filterKey(field), 'in')
+                          "></p-multiSelect>
                       }
                     }
                   </th>
@@ -272,10 +323,10 @@ interface HeaderGroupItem {
 
         <!-- Body template -->
         <ng-template pTemplate="body" let-rowData let-expanded="expanded" let-columns="columns">
-          <tr [pSelectableRow]="rowData"
-              [pContextMenuRow]="contextMenuEnabled ? rowData : null"
-              [ngClass]="getRowClass(rowData)">
-
+          <tr
+            [pSelectableRow]="rowData"
+            [pContextMenuRow]="contextMenuEnabled ? rowData : null"
+            [ngClass]="getRowClass(rowData)">
             <!-- Expansion toggle cell -->
             @if (expandable) {
               <td [style.width.px]="expansionColumnWidth">
@@ -297,38 +348,57 @@ interface HeaderGroupItem {
             <!-- Dynamic data cells -->
             @for (field of columns; track field.field) {
               @if (field.visible) {
-                <td [ngStyle]="getMergedCellStyle(rowData, field)"
-                    [style.max-width.px]="field.width"
-                    [ngClass]="getCellClass(field)">
+                <td
+                  [ngStyle]="getMergedCellStyle(rowData, field)"
+                  [style.max-width.px]="field.width"
+                  [ngClass]="getCellClass(field)">
                   <!-- Cell content rendering -->
                   @if (customCellTemplate) {
                     <!-- Use custom cell template if provided -->
-                    <ng-container *ngTemplateOutlet="customCellTemplate; context: {$implicit: rowData, field: field}">
+                    <ng-container *ngTemplateOutlet="customCellTemplate; context: { $implicit: rowData, field: field }">
                     </ng-container>
                   } @else if (field.templateName === 'owner') {
-                    <span [pTooltip]="getValue(rowData, field)"
-                          [style]='isOwnerHighlighted(rowData, field) ? "font-weight:700" : null'
-                          tooltipPosition="top">
+                    <span
+                      [pTooltip]="getValue(rowData, field)"
+                      [style]="isOwnerHighlighted(rowData, field) ? 'font-weight:700' : null"
+                      tooltipPosition="top">
                       {{ getValue(rowData, field) }}
                     </span>
                   } @else if (field.templateName === 'greenRed') {
-                    <span [pTooltip]="getValue(rowData, field)"
-                          [style.color]='isNegativeValue(rowData, field) ? "red" : "inherit"'
-                          tooltipPosition="top">
+                    <span
+                      [pTooltip]="getValue(rowData, field)"
+                      [style.color]="isNegativeValue(rowData, field) ? 'red' : 'inherit'"
+                      tooltipPosition="top">
                       {{ getValue(rowData, field) }}
                     </span>
                   } @else if (field.templateName === 'check') {
-                    <span><i [ngClass]="{'fa fa-check': getValue(rowData, field)}" aria-hidden="true"></i></span>
+                    <span><i [ngClass]="{ 'fa fa-check': getValue(rowData, field) }" aria-hidden="true"></i></span>
                   } @else if (field.templateName === 'icon') {
                     @if (iconTemplate) {
-                      <ng-container *ngTemplateOutlet="iconTemplate; context: {$implicit: rowData, field: field, value: getValue(rowData, field)}">
+                      <ng-container
+                        *ngTemplateOutlet="
+                          iconTemplate;
+                          context: {
+                            $implicit: rowData,
+                            field: field,
+                            value: getValue(rowData, field)
+                          }
+                        ">
                       </ng-container>
                     } @else {
                       <span>{{ getValue(rowData, field) }}</span>
                     }
                   } @else if (field.templateName === 'svgIcon') {
                     @if (svgIconTemplate) {
-                      <ng-container *ngTemplateOutlet="svgIconTemplate; context: {$implicit: rowData, field: field, value: getValue(rowData, field)}">
+                      <ng-container
+                        *ngTemplateOutlet="
+                          svgIconTemplate;
+                          context: {
+                            $implicit: rowData,
+                            field: field,
+                            value: getValue(rowData, field)
+                          }
+                        ">
                       </ng-container>
                     } @else {
                       <span>{{ getValue(rowData, field) }}</span>
@@ -337,7 +407,8 @@ interface HeaderGroupItem {
                     @if (getValue(rowData, field)) {
                       <a [href]="getValue(rowData, field)" target="_blank">
                         @if (linkIconTemplate) {
-                          <ng-container *ngTemplateOutlet="linkIconTemplate; context: {$implicit: rowData, field: field}">
+                          <ng-container
+                            *ngTemplateOutlet="linkIconTemplate; context: { $implicit: rowData, field: field }">
                           </ng-container>
                         } @else {
                           <i class="fa fa-external-link"></i>
@@ -361,8 +432,7 @@ interface HeaderGroupItem {
           <ng-template #expandedrow let-row let-columns="fields">
             <tr>
               <td [attr.colspan]="getExpandedColspan()">
-                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: {$implicit: row}">
-                </ng-container>
+                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }"> </ng-container>
               </td>
             </tr>
           </ng-template>
@@ -380,10 +450,11 @@ interface HeaderGroupItem {
               }
               @for (field of fields; track field.field) {
                 @if (field.visible) {
-                  <td [class]="footerCellClass"
-                      [ngClass]="getCellClass(field)"
-                      [style.max-width.px]="field.width"
-                      [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
+                  <td
+                    [class]="footerCellClass"
+                    [ngClass]="getCellClass(field)"
+                    [style.max-width.px]="field.width"
+                    [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
                     {{ footerValueFn(field) }}
                   </td>
                 }
@@ -401,7 +472,6 @@ interface HeaderGroupItem {
   `
 })
 export class ConfigurableTableComponent<T = any> implements OnChanges {
-
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================
@@ -501,7 +571,9 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
   /**
    * Minimum date allowed in date filter pickers.
    */
-  @Input() minDate: Date = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
+  @Input() minDate: Date = new Date(
+    sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+  );
 
   /**
    * Maximum date allowed in date filter pickers.
@@ -968,7 +1040,9 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * @returns Merged style object for ngStyle binding
    */
   getMergedCellStyle(row: T, field: ColumnConfig): { [key: string]: string } {
-    const widthStyle: { [key: string]: string } = field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {} as { [key: string]: string };
+    const widthStyle: { [key: string]: string } = field.width
+      ? { 'flex-basis': '0 0 ' + field.width + 'px' }
+      : ({} as { [key: string]: string });
     if (!this.cellStyleFn) {
       return widthStyle;
     }
@@ -976,7 +1050,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
     if (!customStyle) {
       return widthStyle;
     }
-    return {...widthStyle, ...customStyle};
+    return { ...widthStyle, ...customStyle };
   }
 
   /**
@@ -987,10 +1061,10 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * @returns CSS class string
    */
   getCellClass(field: ColumnConfig): string {
-    return (field.dataType === DataType.Numeric
-      || field.dataType === DataType.NumericShowZero
-      || field.dataType === DataType.NumericInteger
-      || field.dataType === DataType.DateTimeNumeric)
+    return field.dataType === DataType.Numeric ||
+      field.dataType === DataType.NumericShowZero ||
+      field.dataType === DataType.NumericInteger ||
+      field.dataType === DataType.DateTimeNumeric
       ? 'text-end'
       : '';
   }
@@ -1013,7 +1087,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * @returns Number of columns to span
    */
   getExpandedColspan(): number {
-    let count = this.fields.filter(f => f.visible).length;
+    let count = this.fields.filter((f) => f.visible).length;
     if (this.expandable) {
       count++;
     }
@@ -1040,8 +1114,8 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Splits visible columns into ungrouped (rowspan=2) and grouped (colspan) items.
    */
   private computeHeaderGroups(): void {
-    const visibleFields = this.fields.filter(f => f.visible);
-    this.hasGroups = visibleFields.some(f => !!f.headerGroupKey);
+    const visibleFields = this.fields.filter((f) => f.visible);
+    this.hasGroups = visibleFields.some((f) => !!f.headerGroupKey);
     if (!this.hasGroups) {
       this.headerGroupRow = [];
       this.groupedColumns = [];
@@ -1053,7 +1127,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
     while (i < visibleFields.length) {
       const field = visibleFields[i];
       if (!field.headerGroupKey) {
-        this.headerGroupRow.push({type: 'single', field});
+        this.headerGroupRow.push({ type: 'single', field });
         i++;
       } else {
         const groupKey = field.headerGroupKey;

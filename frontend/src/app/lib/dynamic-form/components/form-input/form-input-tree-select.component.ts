@@ -1,12 +1,12 @@
-import {BaseInputComponent} from '../base.input.component';
-import {Component, DoCheck, OnInit} from '@angular/core';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
-import {TreeSelectModule} from '@openng/optimus-ui/treeselect';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {TranslateModule} from '@ngx-translate/core';
-import {TreeNode} from '@openng/optimus-ui/api';
-import {FilterOutPipe} from '../../pipe/FilterOutPipe';
+import { BaseInputComponent } from '../base.input.component';
+import { Component, DoCheck, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { TreeSelectModule } from '@openng/optimus-ui/treeselect';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+import { TreeNode } from '@openng/optimus-ui/api';
+import { FilterOutPipe } from '../../pipe/FilterOutPipe';
 
 /**
  * A form input component wrapping Optimus TreeSelect with checkbox selection mode. Displays a hierarchical tree of
@@ -18,7 +18,7 @@ import {FilterOutPipe} from '../../pipe/FilterOutPipe';
   selector: 'form-input-tree-select',
   template: `
     <p-treeselect
-      [style]="{'width': '100%'}"
+      [style]="{ width: '100%' }"
       [class.required-input]="isRequired"
       [id]="config.field"
       [options]="treeOptions"
@@ -33,7 +33,7 @@ import {FilterOutPipe} from '../../pipe/FilterOutPipe';
       [propagateSelectionDown]="config.propagateTreeSelection !== false"
       [propagateSelectionUp]="config.propagateTreeSelection !== false"
       [placeholder]="config.placeholder || ''"
-      pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}"/>
+      pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}" />
   `,
   imports: [
     ReactiveFormsModule,
@@ -44,6 +44,7 @@ import {FilterOutPipe} from '../../pipe/FilterOutPipe';
     TranslateModule,
     FilterOutPipe
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })
 export class FormInputTreeSelectComponent extends BaseInputComponent implements OnInit, DoCheck {
@@ -58,7 +59,7 @@ export class FormInputTreeSelectComponent extends BaseInputComponent implements 
     const formControl = this.group.get(this.config.field);
     this.selectedNodes = formControl?.value || undefined;
     // Listen for programmatic changes from the form control
-    formControl?.valueChanges.subscribe(val => {
+    formControl?.valueChanges.subscribe((val) => {
       if (!this.updatingFromNgModel) {
         this.selectedNodes = val || undefined;
       }

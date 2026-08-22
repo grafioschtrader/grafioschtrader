@@ -1,15 +1,14 @@
-import {GroupItem} from './value.key.html.select.options';
-import {InputType} from './input.type';
-import {BaseInputComponent} from '../components/base.input.component';
-import {BaseFieldFieldgroupConfig} from './base.field.fieldgroup.config';
-import {BaseFieldDefinition, PropertyEditShare} from './base.field.definition';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
+import { GroupItem } from './value.key.html.select.options';
+import { InputType } from './input.type';
+import { BaseInputComponent } from '../components/base.input.component';
+import { BaseFieldFieldgroupConfig } from './base.field.fieldgroup.config';
+import { BaseFieldDefinition, PropertyEditShare } from './base.field.definition';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 
 /**
  * Definition of input elements and buttons.
  */
 export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinition, PropertyEditShare {
-
   /**
    * Disable works directly on the angular form control. Normally on the view the
    * field gets darker.
@@ -135,7 +134,6 @@ export interface FieldConfig extends BaseFieldFieldgroupConfig, BaseFieldDefinit
 
   /** Used for proposed data changes */
   labelTitle?: string;
-
 
   /** TODO: May be used for entering functions and variables as MenuItem in the Texterea.  */
   contextMenuItems?: MenuItem[];

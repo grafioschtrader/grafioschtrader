@@ -1,32 +1,32 @@
-import {Injectable} from '@angular/core';
-import {Observable, combineLatest, of} from 'rxjs';
-import {catchError, map, tap} from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { Observable, combineLatest, of } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import moment from 'moment';
-import {MenuItem, TreeNode, ConfirmationService} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
-import {TreeNodeType} from '../../shared/maintree/types/tree.node.type';
-import {TypeNodeData} from '../../lib/maintree/types/type.node.data';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {PortfolioService} from '../service/portfolio.service';
-import {SecurityaccountService} from '../../securityaccount/service/securityaccount.service';
-import {TenantService} from '../../tenant/service/tenant.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {Portfolio} from '../../entities/portfolio';
-import {Cashaccount} from '../../entities/cashaccount';
-import {Securityaccount} from '../../entities/securityaccount';
-import {Tenant} from '../../entities/tenant';
-import {TenantLimit, TenantLimitTypes} from '../../shared/types/tenant.limit';
-import {AppSettings} from '../../shared/app.settings';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {PortfolioEditDynamicComponent} from '../component/portfolio.edit.dynamic.component';
-import {SecurityaccountEditDynamicComponent} from '../../securityaccount/component/securityaccount.edit.dynamic.component';
-import {FeeModelEditComponent} from '../../tradingplatform/component/fee-model-edit.component';
+import { MenuItem, TreeNode, ConfirmationService } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { MainTreeContributor } from '../../lib/maintree/contributor/main-tree-contributor.interface';
+import { TreeNodeType } from '../../shared/maintree/types/tree.node.type';
+import { TypeNodeData } from '../../lib/maintree/types/type.node.data';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { PortfolioService } from '../service/portfolio.service';
+import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
+import { TenantService } from '../../tenant/service/tenant.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { Portfolio } from '../../entities/portfolio';
+import { Cashaccount } from '../../entities/cashaccount';
+import { Securityaccount } from '../../entities/securityaccount';
+import { Tenant } from '../../entities/tenant';
+import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
+import { AppSettings } from '../../shared/app.settings';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { PortfolioEditDynamicComponent } from '../component/portfolio.edit.dynamic.component';
+import { SecurityaccountEditDynamicComponent } from '../../securityaccount/component/securityaccount.edit.dynamic.component';
+import { FeeModelEditComponent } from '../../tradingplatform/component/fee-model-edit.component';
 
 /**
  * Contributor for Portfolio-related nodes in the main navigation tree.
@@ -34,7 +34,6 @@ import {FeeModelEditComponent} from '../../tradingplatform/component/fee-model-e
  */
 @Injectable()
 export class PortfolioMainTreeContributor extends MainTreeContributor {
-
   private tenant: Tenant;
   private tenantLimits: { [key: string]: TenantLimit };
   private rootNode: TreeNode;
@@ -57,8 +56,8 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
 
   getRootNodes(): Observable<TreeNode[]> {
     return this.tenantService.getTenantAndPortfolio().pipe(
-      tap(tenant => this.tenant = tenant),
-      map(tenant => {
+      tap((tenant) => (this.tenant = tenant)),
+      map((tenant) => {
         this.rootNode = {
           expanded: true,
           children: [],
@@ -80,27 +79,28 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
     const portfolioObservable = this.portfolioService.getPortfoliosForTenantOrderByName();
     // The limits only gate the create menu entries; the backend enforces them anyway. A failure here must therefore
     // not stop the tree from being rebuilt, otherwise a deleted portfolio or securities account stays visible.
-    const tenantLimitsObservable = this.tenantService.getMaxTenantLimitsByMsgKey([
-      TenantLimitTypes.MAX_SECURITY_ACCOUNT,
-      TenantLimitTypes.MAX_PORTFOLIO,
-      TenantLimitTypes.MAX_WATCHLIST
-    ]).pipe(catchError(() => of([] as TenantLimit[])));
+    const tenantLimitsObservable = this.tenantService
+      .getMaxTenantLimitsByMsgKey([
+        TenantLimitTypes.MAX_SECURITY_ACCOUNT,
+        TenantLimitTypes.MAX_PORTFOLIO,
+        TenantLimitTypes.MAX_WATCHLIST
+      ])
+      .pipe(catchError(() => of([] as TenantLimit[])));
 
     return combineLatest({
       tenant: tenantObservable,
       portfolios: portfolioObservable,
       tenantLimits: tenantLimitsObservable
     }).pipe(
-      tap(({tenant}) => this.tenant = tenant),
-      map(({tenant, portfolios, tenantLimits}): void => {
+      tap(({ tenant }) => (this.tenant = tenant)),
+      map(({ tenant, portfolios, tenantLimits }): void => {
         const tenantStringify = JSON.stringify(tenant);
 
         // Set root node label with fresh tenant data
-        this.setLangTrans('PORTFOLIOS', rootNode,
-          '-' + tenant.tenantName + ' / ' + tenant.currency);
+        this.setLangTrans('PORTFOLIOS', rootNode, '-' + tenant.tenantName + ' / ' + tenant.currency);
 
         rootNode.data.entityObject = tenantStringify;
-        this.tenantLimits = tenantLimits.reduce((ac, tl) => ({...ac, [tl.msgKey]: tl}), {});
+        this.tenantLimits = tenantLimits.reduce((ac, tl) => ({ ...ac, [tl.msgKey]: tl }), {});
         rootNode.children.splice(0);
 
         this.addPortfoliosToRootNode(portfolios, tenantStringify, rootNode);
@@ -117,8 +117,8 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
         menuItems.push(
           {
             label: 'EDIT_RECORD|TENANT' + BaseSettings.DIALOG_MENU_SUFFIX,
-            command: () => this.callbacks?.handleTenantEdit(selectedNodeData, false)
-              ?.subscribe(result => {
+            command: () =>
+              this.callbacks?.handleTenantEdit(selectedNodeData, false)?.subscribe((result) => {
                 if (result) {
                   this.callbacks?.refreshTree();
                 }
@@ -126,21 +126,24 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
           },
           {
             label: 'TENANT_CHANGE_CURRENCY' + BaseSettings.DIALOG_MENU_SUFFIX,
-            command: () => this.callbacks?.handleTenantEdit(selectedNodeData, true)
-              ?.subscribe(result => {
+            command: () =>
+              this.callbacks?.handleTenantEdit(selectedNodeData, true)?.subscribe((result) => {
                 if (result) {
                   this.callbacks?.refreshTree();
                 }
               })
           }
         );
-        menuItems.push({separator: true});
+        menuItems.push({ separator: true });
         menuItems.push({
           label: 'CREATE|PORTFOLIO' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: () => {
-            if (BusinessHelper.isLimitCheckOk(this.tenantLimits[TenantLimitTypes.MAX_PORTFOLIO], this.messageToastService)) {
-              this.callbacks?.handleEdit(PortfolioEditDynamicComponent, selectedNodeData, null, AppSettings.PORTFOLIO.toUpperCase())
-                ?.subscribe(result => {
+            if (
+              BusinessHelper.isLimitCheckOk(this.tenantLimits[TenantLimitTypes.MAX_PORTFOLIO], this.messageToastService)
+            ) {
+              this.callbacks
+                ?.handleEdit(PortfolioEditDynamicComponent, selectedNodeData, null, AppSettings.PORTFOLIO.toUpperCase())
+                ?.subscribe((result) => {
                   if (result) {
                     this.callbacks?.refreshTree();
                   }
@@ -153,18 +156,26 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       case TreeNodeType.Portfolio:
         menuItems.push({
           label: 'EDIT_RECORD|PORTFOLIO' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: () => this.callbacks?.handleEdit(PortfolioEditDynamicComponent, parentNodeData, selectedNodeData,
-            AppSettings.PORTFOLIO.toUpperCase())
-            ?.subscribe(result => {
-              if (result) {
-                this.callbacks?.refreshTree();
-              }
-            })
+          command: () =>
+            this.callbacks
+              ?.handleEdit(
+                PortfolioEditDynamicComponent,
+                parentNodeData,
+                selectedNodeData,
+                AppSettings.PORTFOLIO.toUpperCase()
+              )
+              ?.subscribe((result) => {
+                if (result) {
+                  this.callbacks?.refreshTree();
+                }
+              })
         });
         menuItems.push({
           label: 'DELETE|PORTFOLIO',
           command: () => this.handleDeletePortfolio(treeNode, selectedNodeData.idPortfolio),
-          disabled: !(selectedNodeData.cashaccountList.length === 0 && selectedNodeData.securityaccountList.length === 0)
+          disabled: !(
+            selectedNodeData.cashaccountList.length === 0 && selectedNodeData.securityaccountList.length === 0
+          )
         });
         break;
 
@@ -172,10 +183,20 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
         menuItems.push({
           label: 'CREATE|SECURITYACCOUNT' + BaseSettings.DIALOG_MENU_SUFFIX,
           command: () => {
-            if (BusinessHelper.isLimitCheckOk(this.tenantLimits[TenantLimitTypes.MAX_SECURITY_ACCOUNT], this.messageToastService)) {
-              this.callbacks?.handleEdit(SecurityaccountEditDynamicComponent, selectedNodeData, null,
-                AppSettings.SECURITYACCOUNT.toUpperCase())
-                ?.subscribe(result => {
+            if (
+              BusinessHelper.isLimitCheckOk(
+                this.tenantLimits[TenantLimitTypes.MAX_SECURITY_ACCOUNT],
+                this.messageToastService
+              )
+            ) {
+              this.callbacks
+                ?.handleEdit(
+                  SecurityaccountEditDynamicComponent,
+                  selectedNodeData,
+                  null,
+                  AppSettings.SECURITYACCOUNT.toUpperCase()
+                )
+                ?.subscribe((result) => {
                   if (result) {
                     this.callbacks?.refreshTree();
                   }
@@ -188,27 +209,35 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       case TreeNodeType.SecurityAccount:
         menuItems.push({
           label: 'EDIT_RECORD|SECURITYACCOUNT',
-          command: () => this.callbacks?.handleEdit(SecurityaccountEditDynamicComponent, parentNodeData, selectedNodeData,
-            AppSettings.SECURITYACCOUNT.toUpperCase())
-            ?.subscribe(result => {
-              if (result) {
-                this.callbacks?.refreshTree();
-              }
-            })
+          command: () =>
+            this.callbacks
+              ?.handleEdit(
+                SecurityaccountEditDynamicComponent,
+                parentNodeData,
+                selectedNodeData,
+                AppSettings.SECURITYACCOUNT.toUpperCase()
+              )
+              ?.subscribe((result) => {
+                if (result) {
+                  this.callbacks?.refreshTree();
+                }
+              })
         });
         menuItems.push({
           label: 'EDIT_FEE_MODEL' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: () => this.callbacks?.handleEdit(FeeModelEditComponent, parentNodeData, selectedNodeData,
-            'FEE_MODEL_YAML')
-            ?.subscribe(result => {
-              if (result) {
-                this.callbacks?.refreshTree();
-              }
-            })
+          command: () =>
+            this.callbacks
+              ?.handleEdit(FeeModelEditComponent, parentNodeData, selectedNodeData, 'FEE_MODEL_YAML')
+              ?.subscribe((result) => {
+                if (result) {
+                  this.callbacks?.refreshTree();
+                }
+              })
         });
         menuItems.push({
           label: 'DELETE|SECURITYACCOUNT',
-          command: () => this.handleDeleteSecurityaccount(treeNode, parentNodeData, selectedNodeData.idSecuritycashAccount),
+          command: () =>
+            this.handleDeleteSecurityaccount(treeNode, parentNodeData, selectedNodeData.idSecuritycashAccount),
           disabled: selectedNodeData.hasTransaction
         });
         break;
@@ -315,8 +344,9 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
    * @returns true when the account has an active-until date in the past
    */
   private isAccountTerminated(account: { activeToDate?: string | Date }): boolean {
-    return account.activeToDate != null
-      && moment(account.activeToDate).format('YYYYMMDD') < moment().format('YYYYMMDD');
+    return (
+      account.activeToDate != null && moment(account.activeToDate).format('YYYYMMDD') < moment().format('YYYYMMDD')
+    );
   }
 
   private handleDeletePortfolio(treeNode: TreeNode, idPortfolio: number): void {
@@ -327,15 +357,13 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       () => {
         this.portfolioService.deletePortfolio(idPortfolio).subscribe({
           next: () => {
-            this.messageToastService.showMessageI18n(
-              InfoLevelType.SUCCESS,
-              'MSG_DELETE_RECORD',
-              {i18nRecord: AppSettings.PORTFOLIO.toUpperCase()}
-            );
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: AppSettings.PORTFOLIO.toUpperCase()
+            });
             this.callbacks?.navigateToNode(this.getPreviousNode(treeNode).data);
             this.callbacks?.refreshTree();
           },
-          error: err => console.error('Error deleting portfolio:', err)
+          error: (err) => console.error('Error deleting portfolio:', err)
         });
       }
     );
@@ -349,11 +377,9 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
       () => {
         this.securityaccountService.deleteSecurityaccount(idSecuritycashaccount).subscribe({
           next: () => {
-            this.messageToastService.showMessageI18n(
-              InfoLevelType.SUCCESS,
-              'MSG_DELETE_RECORD',
-              {i18nRecord: AppSettings.SECURITYACCOUNT.toUpperCase()}
-            );
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: AppSettings.SECURITYACCOUNT.toUpperCase()
+            });
             if (portfolio.securityaccountList.length === 1) {
               treeNode.parent.data.route = this.addMainRoute(AppSettings.SECURITYACCOUNT_EMPTY_ROUTE_KEY);
               this.callbacks?.navigateToNode(treeNode.parent.data);
@@ -361,7 +387,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
             this.callbacks?.navigateToNode(this.getPreviousNode(treeNode).data);
             this.callbacks?.refreshTree();
           },
-          error: err => console.error('Error deleting security account:', err)
+          error: (err) => console.error('Error deleting security account:', err)
         });
       }
     );
@@ -376,7 +402,7 @@ export class PortfolioMainTreeContributor extends MainTreeContributor {
   }
 
   private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe(translated => target.label = translated + suffix);
+    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

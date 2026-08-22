@@ -7,18 +7,18 @@ export default async function globalSetup(): Promise<void> {
     response = await fetch(url);
   } catch (error) {
     throw new Error(
-      `ABORTING LIB E2E: could not reach ${url}. Start grafiosch-test-integration with the e2e profile. `
-      + `Underlying error: ${(error as Error).message}`,
+      `ABORTING LIB E2E: could not reach ${url}. Start grafiosch-test-integration with the e2e profile. ` +
+        `Underlying error: ${(error as Error).message}`
     );
   }
   if (!response.ok) {
     throw new Error(`ABORTING LIB E2E: ${url} returned HTTP ${response.status}`);
   }
-  const info = await response.json() as {activeProfiles?: string[]; databaseName?: string};
+  const info = (await response.json()) as { activeProfiles?: string[]; databaseName?: string };
   if (info.databaseName !== 'grafiosch_t' || !info.activeProfiles?.includes('e2e')) {
     throw new Error(
-      `ABORTING LIB E2E: expected profile e2e and database grafiosch_t, got `
-      + `profiles=${JSON.stringify(info.activeProfiles)} database=${info.databaseName ?? ''}`,
+      `ABORTING LIB E2E: expected profile e2e and database grafiosch_t, got ` +
+        `profiles=${JSON.stringify(info.activeProfiles)} database=${info.databaseName ?? ''}`
     );
   }
 
@@ -30,8 +30,8 @@ export default async function globalSetup(): Promise<void> {
     }
   } catch (error) {
     throw new Error(
-      `ABORTING LIB E2E: MailHog/Mailpit API is unavailable at ${mailApi}. `
-      + `Underlying error: ${(error as Error).message}`,
+      `ABORTING LIB E2E: MailHog/Mailpit API is unavailable at ${mailApi}. ` +
+        `Underlying error: ${(error as Error).message}`
     );
   }
 }

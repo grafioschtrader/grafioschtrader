@@ -25,11 +25,13 @@ The frontend should only contain:
 ### Examples
 
 **DO** (Frontend):
+
 - Disable a button when required fields are empty
 - Filter a dropdown based on a previously selected value
 - Format a date for display
 
 **DON'T** (Move to Backend):
+
 - Complex calculations or aggregations
 - Data deduplication logic
 - Matching/comparison algorithms
@@ -47,6 +49,7 @@ This separation ensures that the table gets proper sorting, filtering, column vi
 **Reference pattern**: `SingleRecordMasterViewBase` + child table (e.g., `SecurityaccountImportTransactionComponent` + `SecurityaccountImportTransactionTableComponent`).
 
 **Data flow**:
+
 ```
 Parent: dynamic-form input changes → loadData() → response received
   → pass details to child via @Input() binding
@@ -60,13 +63,13 @@ Child: @Input() data changes → ngOnChanges → createTranslatedValueStore(data
 
 Components that use Optimus UI tables (`p-table`) or trees (`p-tree`, `p-treeTable`) **MUST** extend one of the following base classes:
 
-| Base Class | Use Case |
-|------------|----------|
-| `ShowRecordConfigBase` | Single record display or simple dialog tables without sorting/filtering needs |
-| `TableConfigBase` | **Standalone table view components** - tables with filtering, sorting, column visibility, user settings persistence |
-| `TableEditConfigBase` | **Editable table components** using `EditableTableComponent` - provides `addEditColumnFeqH()`, sorting, translated values |
-| `TableCrudSupportMenu` | Full CRUD tables with context menus, dialogs, and entity management |
-| `TableTreetableTotalBase` | Tables or tree-tables with total/subtotal calculations |
+| Base Class                | Use Case                                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `ShowRecordConfigBase`    | Single record display or simple dialog tables without sorting/filtering needs                                             |
+| `TableConfigBase`         | **Standalone table view components** - tables with filtering, sorting, column visibility, user settings persistence       |
+| `TableEditConfigBase`     | **Editable table components** using `EditableTableComponent` - provides `addEditColumnFeqH()`, sorting, translated values |
+| `TableCrudSupportMenu`    | Full CRUD tables with context menus, dialogs, and entity management                                                       |
+| `TableTreetableTotalBase` | Tables or tree-tables with total/subtotal calculations                                                                    |
 
 **IMPORTANT**: Standalone table view components (e.g., `*TableComponent`) should extend at least `TableConfigBase`, not `ShowRecordConfigBase`. Use `ShowRecordConfigBase` only for single record displays or simple embedded tables in dialogs where filtering/sorting is not needed.
 
@@ -110,20 +113,21 @@ private initSummaryFields(): void {
 ```html
 <!-- In the template -->
 @for (sf of summaryFields; track sf.field) {
-  <span><strong>{{ sf.headerTranslated }}:</strong> {{ getValueByPath(responseData, sf) }}</span>
+<span><strong>{{ sf.headerTranslated }}:</strong> {{ getValueByPath(responseData, sf) }}</span>
 }
 ```
 
 **DO**:
+
 ```typescript
-ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'meanError', 'MEAN_ERROR')
+ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'meanError', 'MEAN_ERROR');
 // then: {{ getValueByPath(response, field) }}
 ```
 
 **DON'T**:
+
 ```html
-{{ response.meanError | number:'1.2-2' }}
-{{ response.totalCount | number:'1.0-0' }}
+{{ response.meanError | number:'1.2-2' }} {{ response.totalCount | number:'1.0-0' }}
 ```
 
 ### Using ConfigurableTableComponent
@@ -140,6 +144,7 @@ When using `ConfigurableTableComponent`, **always** bind the `valueGetterFn`:
 ```
 
 **CRITICAL**: The `[valueGetterFn]="getValueByPath.bind(this)"` binding is **required** for NLS translations to work in table columns. Without this binding:
+
 - Columns with `translateValues: TranslateValue.NORMAL` will not display translated values
 - The table will show raw enum/status values instead of localized text
 - Sorting on translated columns will not work correctly
@@ -158,8 +163,9 @@ When using `ConfigurableTableComponent`, **always** bind the `valueGetterFn`:
 ```
 
 The `customSort` method is provided by `TableConfigBase`. Initialize default sort order in `ngOnInit()`:
+
 ```typescript
-this.multiSortMeta.push({field: 'myDateField', order: -1}); // -1 = descending
+this.multiSortMeta.push({ field: 'myDateField', order: -1 }); // -1 = descending
 ```
 
 ### Translation of Table Values
@@ -172,14 +178,14 @@ For columns with translatable values (enums, status codes, etc.):
 
 ```typescript
 // Column definition
-this.addColumn(DataType.String, 'status', 'STATUS', true, false,
-  {translateValues: TranslateValue.NORMAL});
+this.addColumn(DataType.String, 'status', 'STATUS', true, false, { translateValues: TranslateValue.NORMAL });
 
 // After loading data
 this.createTranslatedValueStore(this.entityList);
 ```
 
 **IMPORTANT**: `createTranslatedValueStore()` must be called only after:
+
 - All column fields have been defined (via `addColumn()`/`addColumnFeqH()`)
 - `prepareTableAndTranslate()` has been called
 - Data is available
@@ -194,10 +200,10 @@ single entry behaves exactly like the former single-select.
 
 **CRITICAL**: Columns using `FilterType.withOptions` require **three method calls** after data loads. Missing any step results in an empty or broken dropdown.
 
-| Step | Method | Purpose |
-|------|--------|---------|
-| 1 | `createTranslatedValueStoreAndFilterField(data)` | Builds `translatedValueMap` on columns with `translateValues`, creates `field$` properties |
-| 2 | `prepareFilter(data)` | Populates `field.filterValues` (the `ValueLabelHtmlSelectOptions[]`) that the `<p-multiSelect>` reads |
+| Step | Method                                           | Purpose                                                                                               |
+| ---- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| 1    | `createTranslatedValueStoreAndFilterField(data)` | Builds `translatedValueMap` on columns with `translateValues`, creates `field$` properties            |
+| 2    | `prepareFilter(data)`                            | Populates `field.filterValues` (the `ValueLabelHtmlSelectOptions[]`) that the `<p-multiSelect>` reads |
 
 Without `prepareFilter(data)`, the dropdown renders but has **no options**.
 
@@ -205,19 +211,19 @@ Without `prepareFilter(data)`, the dropdown renders but has **no options**.
 
 ```typescript
 // Translated enum values → dropdown shows translated labels
-this.addColumnFeqH(DataType.String, 'transactionType', true, false,
-  {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
+this.addColumnFeqH(DataType.String, 'transactionType', true, false, {
+  translateValues: TranslateValue.NORMAL,
+  filterType: FilterType.withOptions
+});
 
 // Plain string values → dropdown shows unique values from data
-this.addColumn(DataType.String, 'cashaccount.name', 'CASHACCOUNT', true, false,
-  {filterType: FilterType.withOptions});
+this.addColumn(DataType.String, 'cashaccount.name', 'CASHACCOUNT', true, false, { filterType: FilterType.withOptions });
 
 // Text input filter (not a dropdown)
-this.addColumnFeqH(DataType.String, 'securityName', true, false,
-  {filterType: FilterType.likeDataType});
+this.addColumnFeqH(DataType.String, 'securityName', true, false, { filterType: FilterType.likeDataType });
 ```
 
-**How `prepareFilter` works internally**: For translated columns, it reads `field.translatedValueMap` (built by `createTranslatedValueStore`) and creates sorted dropdown options with translated labels — the option *value* stays the raw key, so the filter compares against the raw data. For plain string columns, it extracts unique values from the data. In both cases it populates `field.filterValues` which the template's `<p-multiSelect>` binds to. The list carries no empty "no filter" entry; the multi-select is reset with its clear icon.
+**How `prepareFilter` works internally**: For translated columns, it reads `field.translatedValueMap` (built by `createTranslatedValueStore`) and creates sorted dropdown options with translated labels — the option _value_ stays the raw key, so the filter compares against the raw data. For plain string columns, it extracts unique values from the data. In both cases it populates `field.filterValues` which the template's `<p-multiSelect>` binds to. The list carries no empty "no filter" entry; the multi-select is reset with its clear icon.
 
 In components using `OnChanges` with `@Input()` data, note that `ngOnChanges` is called **before** `ngOnInit`. Use a flag to ensure proper ordering:
 
@@ -244,6 +250,7 @@ ngOnChanges(changes: SimpleChanges): void {
 ### Using EditableTableComponent
 
 **CRITICAL**: Components that use `EditableTableComponent` **MUST** be implemented as a **separate component** extending `TableEditConfigBase`. Do NOT embed `EditableTableComponent` directly in a dialog component or any component that does not extend a table base class. Without the proper base class:
+
 - **Sorting will not work** — `EditableTableComponent` uses `enableCustomSort = true` by default, which requires a `customSortFn` callback. `TableConfigBase.customSort()` provides this.
 - **Translated enum values will not sort correctly** — the base class `getValueByPath()` resolves translated values for sorting
 - **`createTranslatedValueStoreAndFilterField()` is unavailable** — enum columns will show raw keys instead of translated text
@@ -254,9 +261,13 @@ ngOnChanges(changes: SimpleChanges): void {
 @Component({
   selector: 'my-editable-table',
   template: `
-    <editable-table #entityTable
-      [data]="items" [fields]="fields" dataKey="id"
-      [batchMode]="true" [startInEditMode]="true"
+    <editable-table
+      #entityTable
+      [data]="items"
+      [fields]="fields"
+      dataKey="id"
+      [batchMode]="true"
+      [startInEditMode]="true"
       [valueGetterFn]="getValueByPath.bind(this)"
       [customSortFn]="customSort.bind(this)"
       [baseLocale]="baseLocale">
@@ -266,8 +277,12 @@ ngOnChanges(changes: SimpleChanges): void {
   imports: [EditableTableComponent]
 })
 export class MyEditableTableComponent extends TableEditConfigBase {
-  constructor(filterService: FilterService, usersettingsService: UserSettingsService,
-              translateService: TranslateService, gps: GlobalparameterService) {
+  constructor(
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService
+  ) {
     super(filterService, usersettingsService, translateService, gps);
     // Define columns here using addEditColumnFeqH()
     this.prepareTableAndTranslate();
@@ -276,6 +291,7 @@ export class MyEditableTableComponent extends TableEditConfigBase {
 ```
 
 **Reference implementations**:
+
 - `TradingPeriodTableComponent` — batch-mode editable table embedded in a dialog
 - `MailForwardSettingTableEditComponent` — standalone editable table with row-by-row save and `IGlobalMenuAttach`
 
@@ -284,24 +300,30 @@ export class MyEditableTableComponent extends TableEditConfigBase {
 Just as `DynamicFieldHelper` provides `*HeqF` methods for form fields, `ShowRecordConfigBase` provides `addColumnFeqH` for table columns. It derives the header/translation key automatically from the field name using the same `UPPER_SNAKE_CASE` conversion.
 
 **Rule**: **Always use `addColumnFeqH` by default.** Only use `addColumn` with an explicit header key when:
+
 - The field uses a **dotted path** (e.g., `cashaccount.name`) where the derived key would be wrong (`NAME` instead of `CASHACCOUNT`)
 - There is a **conflict** with an existing NLS key that has a different meaning
 
 ```typescript
 // DEFAULT: Use addColumnFeqH — header key auto-derived from field name
-this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false);    // → 'CASHACCOUNT_AMOUNT'
-this.addColumnFeqH(DataType.DateString, 'validFrom', true, false);         // → 'VALID_FROM'
-this.addColumnFeqH(DataType.String, 'transactionType', true, false,        // → 'TRANSACTION_TYPE'
-  {translateValues: TranslateValue.NORMAL});
+this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false); // → 'CASHACCOUNT_AMOUNT'
+this.addColumnFeqH(DataType.DateString, 'validFrom', true, false); // → 'VALID_FROM'
+this.addColumnFeqH(
+  DataType.String,
+  'transactionType',
+  true,
+  false, // → 'TRANSACTION_TYPE'
+  { translateValues: TranslateValue.NORMAL }
+);
 
 // EXCEPTION: Dotted paths — derived key strips prefix (cashaccount.name → 'NAME'), so use explicit key
 this.addColumn(DataType.String, 'cashaccount.name', 'CASHACCOUNT', true, false);
 this.addColumn(DataType.String, 'security.name', 'SECURITY', true, false);
 ```
 
-## Optimus UI Button Patterns (Optimus UI 1.x)
+## Optimus UI Button Patterns (Optimus UI 2.x)
 
-**IMPORTANT**: In Optimus UI 1.x, the `icon` attribute on `<p-button>` and `pButton` is **deprecated**. Set the
+**IMPORTANT**: In Optimus UI 2.x, the `icon` attribute on `<p-button>` and `pButton` is **deprecated**. Set the
 icon with the **`pButtonIcon` directive** on a projected child element instead. The `<i pButtonIcon>` element is
 picked up via content projection (the button's `iconSignal = contentChild(ButtonIcon)` query) and styled as the
 button icon. `ButtonModule` already exports the `pButtonIcon` directive, so no extra import is needed.
@@ -334,9 +356,7 @@ When you need a native `<button>` element (e.g., for form submission), project t
 
 ```html
 <!-- Text only -->
-<button pButton type="button" (click)="save()">
-  {{ 'SAVE' | translate }}
-</button>
+<button pButton type="button" (click)="save()">{{ 'SAVE' | translate }}</button>
 
 <!-- With icon - use a pButtonIcon child element -->
 <button pButton type="submit" class="btn">
@@ -370,18 +390,19 @@ FormBase (abstract)
 
 ### Base Class Selection Guide
 
-| Scenario | Base Class | Examples |
-|----------|-----------|----------|
-| Modal dialog with custom submit logic, no entity service | **SimpleEditBase** | `UploadFileDialogComponent`, `HistoryquoteDeleteDialogComponent` |
-| Modal dialog with entity CRUD via service | **SimpleEntityEditBase<T>** | `HistoryquoteEditComponent`, `CashaccountEditComponent` |
-| Programmatically opened dialog (via `DialogService.open()`) | **SimpleDynamicEditBase<T>** | `PortfolioEditDynamicComponent` |
-| Dialog displaying a table (read-only) | **ShowRecordConfigBase** | Table display dialogs |
+| Scenario                                                    | Base Class                   | Examples                                                         |
+| ----------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
+| Modal dialog with custom submit logic, no entity service    | **SimpleEditBase**           | `UploadFileDialogComponent`, `HistoryquoteDeleteDialogComponent` |
+| Modal dialog with entity CRUD via service                   | **SimpleEntityEditBase<T>**  | `HistoryquoteEditComponent`, `CashaccountEditComponent`          |
+| Programmatically opened dialog (via `DialogService.open()`) | **SimpleDynamicEditBase<T>** | `PortfolioEditDynamicComponent`                                  |
+| Dialog displaying a table (read-only)                       | **ShowRecordConfigBase**     | Table display dialogs                                            |
 
 ### SimpleEditBase - Standard Modal Dialog
 
 **Use when**: Dialog has custom submit logic without automatic entity persistence.
 
 **Provides**:
+
 - `@Input() visibleDialog: boolean` - Dialog visibility control
 - `@Output() closeDialog: EventEmitter<ProcessedActionData>` - Close event
 - `@ViewChild(DynamicFormComponent) form` - Form access
@@ -389,19 +410,24 @@ FormBase (abstract)
 - `helpLink()` - Context-sensitive help
 
 **Required Implementation**:
+
 ```typescript
 protected abstract initialize(): void;  // Called on dialog show
 ```
 
 **Example**:
+
 ```typescript
 @Component({
-  template: `
-    <p-dialog [visible]="visibleDialog" (onShow)="onShow($event)" (onHide)="onHide($event)">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`
+  template: ` <p-dialog [visible]="visibleDialog" (onShow)="onShow($event)" (onHide)="onHide($event)">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`
 })
 export class MyDialogComponent extends SimpleEditBase implements OnInit {
   @Input() customInput: string;
@@ -441,16 +467,19 @@ export class MyDialogComponent extends SimpleEditBase implements OnInit {
 **Use when**: Dialog creates/updates an entity via a service implementing `ServiceEntityUpdate<T>`.
 
 **Extends SimpleEditBase** and adds:
+
 - Automatic entity persistence via `serviceEntityUpdate.update()`
 - Success/error toast notifications
 - Audit trail support for proposed changes
 
 **Required Implementation**:
+
 ```typescript
 protected abstract getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): T;
 ```
 
 **Example**:
+
 ```typescript
 export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote> implements OnInit {
   @Input() callParam: HistoryquoteCallParam;
@@ -459,10 +488,9 @@ export class HistoryquoteEditComponent extends SimpleEntityEditBase<Historyquote
     translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
-    historyquoteService: HistoryquoteService  // implements ServiceEntityUpdate<Historyquote>
+    historyquoteService: HistoryquoteService // implements ServiceEntityUpdate<Historyquote>
   ) {
-    super(HelpIds.HELP_HISTORYQUOTES, 'HISTORYQUOTE', translateService, gps,
-      messageToastService, historyquoteService);
+    super(HelpIds.HELP_HISTORYQUOTES, 'HISTORYQUOTE', translateService, gps, messageToastService, historyquoteService);
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: any): Historyquote {
@@ -505,11 +533,13 @@ PascalCase constant.
 **Use when**: Dialog is opened programmatically via `DialogService.open()`, not template-bound.
 
 **Key Differences**:
+
 - Uses `DynamicDialogConfig` and `DynamicDialogRef` instead of `@Input/@Output`
 - Closes via `dynamicDialogRef.close()` instead of `EventEmitter`
 - Data passed via `dynamicDialogConfig.data`
 
 **Example**:
+
 ```typescript
 // Dialog component
 export class PortfolioEditDynamicComponent extends SimpleDynamicEditBase<Portfolio> {
@@ -640,7 +670,7 @@ private updateResponseFormatDependencies(format: string): void {
 Guard child subscriptions so they only apply when the parent is in the correct state:
 
 ```typescript
-this.configObject.childField.formControl.valueChanges.subscribe(value => {
+this.configObject.childField.formControl.valueChanges.subscribe((value) => {
   if (this.configObject.parentField.formControl.value === 'EXPECTED_VALUE') {
     this.updateChildDependencies(value);
   }
@@ -657,6 +687,7 @@ this.configObject.childField.formControl.valueChanges.subscribe(value => {
 ### Always Use HeqF Methods by Default
 
 `DynamicFieldHelper` provides two variants for most field creation methods:
+
 - **Standard**: `createFieldInputString(fieldName, headerKey, ...)` - explicit header key
 - **HeqF**: `createFieldInputStringHeqF(fieldName, ...)` - header key derived from field name
 
@@ -670,35 +701,35 @@ this.configObject.childField.formControl.valueChanges.subscribe(value => {
 
 ```typescript
 // maxLength <= 80 → single-line input
-DynamicFieldHelper.createFieldInputStringHeqF('shortId', 32, true)
+DynamicFieldHelper.createFieldInputStringHeqF('shortId', 32, true);
 
 // maxLength > 80 → textarea
-DynamicFieldHelper.createFieldTextareaInputStringHeqF('readableName', 100, true)
-DynamicFieldHelper.createFieldTextareaInputStringHeqF('domainUrl', 255, true)
+DynamicFieldHelper.createFieldTextareaInputStringHeqF('readableName', 100, true);
+DynamicFieldHelper.createFieldTextareaInputStringHeqF('domainUrl', 255, true);
 ```
 
 ### Field Name to Header Key Conversion
 
-| Field Name | Derived Header Key |
-|------------|-------------------|
-| `name` | `NAME` |
-| `mode` | `MODE` |
-| `idUser` | `ID_USER` |
-| `headName` | `HEAD_NAME` |
+| Field Name               | Derived Header Key            |
+| ------------------------ | ----------------------------- |
+| `name`                   | `NAME`                        |
+| `mode`                   | `MODE`                        |
+| `idUser`                 | `ID_USER`                     |
+| `headName`               | `HEAD_NAME`                   |
 | `idGtNetSecurityImpHead` | `ID_GT_NET_SECURITY_IMP_HEAD` |
 
 ### When to Use Each Variant
 
 ```typescript
 // DEFAULT: Always use HeqF methods - create NLS keys if they don't exist
-DynamicFieldHelper.createFieldInputStringHeqF('name', 64, true)                      // 'name' → 'NAME'
-DynamicFieldHelper.createFieldSelectStringHeqF('mode', true)                         // 'mode' → 'MODE'
-DynamicFieldHelper.createFieldSelectNumberHeqF('idGtNetSecurityImpHead', false)      // → 'ID_GT_NET_SECURITY_IMP_HEAD'
-DynamicFieldHelper.createFieldInputStringHeqF('headName', 64, false)                 // → 'HEAD_NAME'
+DynamicFieldHelper.createFieldInputStringHeqF('name', 64, true); // 'name' → 'NAME'
+DynamicFieldHelper.createFieldSelectStringHeqF('mode', true); // 'mode' → 'MODE'
+DynamicFieldHelper.createFieldSelectNumberHeqF('idGtNetSecurityImpHead', false); // → 'ID_GT_NET_SECURITY_IMP_HEAD'
+DynamicFieldHelper.createFieldInputStringHeqF('headName', 64, false); // → 'HEAD_NAME'
 
 // EXCEPTION: Only use explicit header key when there's a conflict with existing NLS key
 // Example: 'status' field but 'STATUS' NLS key already means something different in context
-DynamicFieldHelper.createFieldSelectString('status', 'ORDER_STATUS', true)
+DynamicFieldHelper.createFieldSelectString('status', 'ORDER_STATUS', true);
 ```
 
 ### Workflow for New Fields
@@ -711,49 +742,52 @@ DynamicFieldHelper.createFieldSelectString('status', 'ORDER_STATUS', true)
 
 ### Available HeqF Methods
 
-| Standard Method | HeqF Variant |
-|-----------------|--------------|
-| `createFieldInputString` | `createFieldInputStringHeqF` |
-| `createFieldSelectString` | `createFieldSelectStringHeqF` |
-| `createFieldSelectNumber` | `createFieldSelectNumberHeqF` |
-| `createFieldCheckbox` | `createFieldCheckboxHeqF` |
-| `createFieldPcalendar` | `createFieldPcalendarHeqF` |
+| Standard Method                  | HeqF Variant                         |
+| -------------------------------- | ------------------------------------ |
+| `createFieldInputString`         | `createFieldInputStringHeqF`         |
+| `createFieldSelectString`        | `createFieldSelectStringHeqF`        |
+| `createFieldSelectNumber`        | `createFieldSelectNumberHeqF`        |
+| `createFieldCheckbox`            | `createFieldCheckboxHeqF`            |
+| `createFieldPcalendar`           | `createFieldPcalendarHeqF`           |
 | `createFieldTextareaInputString` | `createFieldTextareaInputStringHeqF` |
-| `createFieldInputNumber` | `createFieldInputNumberHeqF` |
-| `createFieldMultiSelectString` | `createFieldMultiSelectStringHeqF` |
-| `createFieldDropdownString` | `createFieldDropdownStringHeqF` |
-| `createFieldInputWebUrl` | `createFieldInputWebUrlHeqF` |
-| `createFieldTriStateCheckbox` | `createFieldTriStateCheckboxHeqF` |
-| `createFieldMinMaxNumber` | `createFieldMinMaxNumberHeqF` |
+| `createFieldInputNumber`         | `createFieldInputNumberHeqF`         |
+| `createFieldMultiSelectString`   | `createFieldMultiSelectStringHeqF`   |
+| `createFieldDropdownString`      | `createFieldDropdownStringHeqF`      |
+| `createFieldInputWebUrl`         | `createFieldInputWebUrlHeqF`         |
+| `createFieldTriStateCheckbox`    | `createFieldTriStateCheckboxHeqF`    |
+| `createFieldMinMaxNumber`        | `createFieldMinMaxNumberHeqF`        |
 
 See `src/app/lib/helper/dynamic.field.helper.ts` for complete list and signatures.
 
 ### Field Layout with usedLayoutColumns
 
 The `usedLayoutColumns` option controls field width using a 12-column grid system:
+
 - **Default (omitted)**: 12 columns = full width
 - **6**: Half width (two fields per row)
 - **4**: One-third width (three fields per row)
 
 **Rule**: Only use `usedLayoutColumns` in **non-modal views** where multiple fields should appear side-by-side. **Do not use it in modal dialogs** — with one exception: **InputButton fields** (created via `createFieldInputButtonHeqF`) should share a line with the input they belong to, even in dialogs. Place the InputButton field directly after its associated input and give both `usedLayoutColumns: 6`.
 
-| Context | usedLayoutColumns | Example |
-|---------|-------------------|---------|
-| Modal dialog (`<p-dialog>`) | **Omit** (full width) | `HistoryquoteDeleteDialogComponent` |
-| Modal dialog with InputButton | `6` for the input + `6` for the InputButton | `StandingOrderSecurityEditComponent` |
-| Non-modal view with `formConfig: {nonModal: true}` | `6` for side-by-side | `GTNetSecurityImportComponent` |
-| Master view with dropdown + note | `6` for both fields | `SecurityaccountImportTransactionComponent` |
+| Context                                            | usedLayoutColumns                           | Example                                     |
+| -------------------------------------------------- | ------------------------------------------- | ------------------------------------------- |
+| Modal dialog (`<p-dialog>`)                        | **Omit** (full width)                       | `HistoryquoteDeleteDialogComponent`         |
+| Modal dialog with InputButton                      | `6` for the input + `6` for the InputButton | `StandingOrderSecurityEditComponent`        |
+| Non-modal view with `formConfig: {nonModal: true}` | `6` for side-by-side                        | `GTNetSecurityImportComponent`              |
+| Master view with dropdown + note                   | `6` for both fields                         | `SecurityaccountImportTransactionComponent` |
 
 **Example - Non-modal view with side-by-side fields:**
+
 ```typescript
-this.formConfig = {labelColumns: 2, nonModal: true};
+this.formConfig = { labelColumns: 2, nonModal: true };
 this.config = [
-  DynamicFieldHelper.createFieldSelectNumberHeqF('idEntity', false, {usedLayoutColumns: 6}),
-  DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 1000, false, {usedLayoutColumns: 6, disabled: true})
+  DynamicFieldHelper.createFieldSelectNumberHeqF('idEntity', false, { usedLayoutColumns: 6 }),
+  DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 1000, false, { usedLayoutColumns: 6, disabled: true })
 ];
 ```
 
 **Example - Modal dialog (no usedLayoutColumns):**
+
 ```typescript
 this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
 this.config = [
@@ -769,16 +803,17 @@ this.config = [
 
 ### 1. Choose the Correct Base Class
 
-| If the dialog... | Extend |
-|------------------|--------|
-| Has custom submit logic, no entity service | `SimpleEditBase` |
-| Creates/updates an entity via service | `SimpleEntityEditBase<T>` |
+| If the dialog...                                      | Extend                     |
+| ----------------------------------------------------- | -------------------------- |
+| Has custom submit logic, no entity service            | `SimpleEditBase`           |
+| Creates/updates an entity via service                 | `SimpleEntityEditBase<T>`  |
 | Is opened programmatically via `DialogService.open()` | `SimpleDynamicEditBase<T>` |
-| Displays a read-only table | `ShowRecordConfigBase` |
+| Displays a read-only table                            | `ShowRecordConfigBase`     |
 
 ### 2. Reference an Existing Similar Dialog
 
 Before writing code, find and read an existing dialog that matches your use case:
+
 - `HistoryquoteDeleteDialogComponent` - Simple dialog with custom logic
 - `HistoryquoteEditComponent` - Entity CRUD dialog
 - `PortfolioEditDynamicComponent` - Programmatic dialog
@@ -807,11 +842,19 @@ Before writing code, find and read an existing dialog that matches your use case
 ```typescript
 @Component({
   template: `
-    <p-dialog header="{{'DIALOG_TITLE' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '500px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'DIALOG_TITLE' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '500px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `,
@@ -845,7 +888,7 @@ export class MyDialogComponent extends SimpleEditBase implements OnInit {
   submit(value: any): void {
     this.myService.doSomething(value).subscribe({
       next: () => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)),
-      error: () => this.configObject.submit.disabled = false
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
 }
@@ -859,19 +902,19 @@ layer really is free of Grafioschtrader — and it is where you see, concretely,
 supply itself. `src/grafiosch-host/README.md` states that purpose in full and keeps the list of library areas the host
 does not exercise yet:
 
-| Extension point | Host implementation |
-|---|---|
-| `DIALOG_HANDLER` | `grafiosch-dialog.handler.ts` |
-| `AfterLoginHandler` | `grafiosch-after-login.handler.ts` |
-| `MAIN_TREE_CONTRIBUTOR` (multi) | `grafiosch-basedata-main-tree.contributor.ts` + `grafiosch-main-tree.contributor.ts` (shared helpers in `grafiosch-tree-contributor.base.ts`) — at least one, or `/mainview` shows an empty tree; the host binds two so the merge in `MainTreeService` is exercised |
-| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE` | the library `TaskTypeBase`; no extended task types here |
-| `PERSONAL_DATA_ZIP_NAME` | optional — the library default `personalData.zip` is used; GT overrides it in `app.module.ts` with `gtPersonalData.zip` |
-| The tenant page | `grafiosch-tenant-edit.component.ts` — `TenantBase` is extended per application |
-| Route table, `ToastrModule.forRoot`, `provideZoneChangeDetection()`, the NLS app initializer | `main.ts` |
+| Extension point                                                                                | Host implementation                                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DIALOG_HANDLER`                                                                               | `grafiosch-dialog.handler.ts`                                                                                                                                                                                                                                       |
+| `AfterLoginHandler`                                                                            | `grafiosch-after-login.handler.ts`                                                                                                                                                                                                                                  |
+| `MAIN_TREE_CONTRIBUTOR` (multi)                                                                | `grafiosch-basedata-main-tree.contributor.ts` + `grafiosch-main-tree.contributor.ts` (shared helpers in `grafiosch-tree-contributor.base.ts`) — at least one, or `/mainview` shows an empty tree; the host binds two so the merge in `MainTreeService` is exercised |
+| `TASK_TYPE_ENUM` / `TASK_EXTENDED_SERVICE`                                                     | the library `TaskTypeBase`; no extended task types here                                                                                                                                                                                                             |
+| `PERSONAL_DATA_ZIP_NAME`                                                                       | optional — the library default `personalData.zip` is used; GT overrides it in `app.module.ts` with `gtPersonalData.zip`                                                                                                                                             |
+| The tenant page                                                                                | `grafiosch-tenant-edit.component.ts` — `TenantBase` is extended per application                                                                                                                                                                                     |
+| Route table, Optimus `MessageService`, `provideZoneChangeDetection()`, the NLS app initializer | `main.ts`                                                                                                                                                                                                                                                           |
 
 Two traps worth knowing:
 
-- **`provideZoneChangeDetection()` is required.** Angular 21 bootstraps zoneless, and the library components assume
+- **`provideZoneChangeDetection()` is required.** Angular 22 bootstraps zoneless, and the library components assume
   zone change detection: `RegisterComponent` assigns `applicationInfo` in an HTTP callback and expects the `@if`
   around `<dynamic-form>` to have rendered by the time `preparePasswordFields()` reaches `formControl`.
 - **The library services are not `providedIn: 'root'`.** Every host lists the ones its routes reach, including those
@@ -918,9 +961,9 @@ which `MultiTranslateHttpLoader` loads as ngx-translate's single source (GitHub 
 Pick the module by the layer of the code that **uses** the key, exactly like the backend rule in
 `backend/CLAUDE.md`:
 
-| Consuming code | Properties file |
-|----------------|-----------------|
-| `src/app/lib/**` (reusable library) | `backend/grafiosch-base/src/main/resources/i18n/messages{,_de}.properties` |
+| Consuming code                      | Properties file                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------------- |
+| `src/app/lib/**` (reusable library) | `backend/grafiosch-base/src/main/resources/i18n/messages{,_de}.properties`            |
 | `src/app/<module>/**` (application) | `backend/grafioschtrader-common/src/main/resources/message/messages{,_de}.properties` |
 
 Putting a library-consumed text in the application module compiles, passes tests and works in the
@@ -932,13 +975,13 @@ keys used from `src/app/lib`.
 
 The client key is derived from the stored key by `grafiosch.nls.NlsKeyMapper`:
 
-| Stored key | Client key | Use for |
-|------------|-----------|---------|
-| `READABLE_NAME` | `READABLE_NAME` | the normal case — write the key exactly as the frontend uses it |
-| `readable.name` | `READABLE_NAME` | a field label that the backend **also** resolves server-side (`@Valid`, `DataViolationException`) |
-| `c.required` | `required` | a **client-only** key: dynamic-form validator messages and the `login.*` codes |
-| `GT_FILTER.gtIS` | `{GT_FILTER: {gtIS: ...}}` | the only allow-listed nested namespace |
-| `g.…`, `gt.…`, `UDF_…` | unchanged | configuration parameters and metadata |
+| Stored key             | Client key                 | Use for                                                                                           |
+| ---------------------- | -------------------------- | ------------------------------------------------------------------------------------------------- |
+| `READABLE_NAME`        | `READABLE_NAME`            | the normal case — write the key exactly as the frontend uses it                                   |
+| `readable.name`        | `READABLE_NAME`            | a field label that the backend **also** resolves server-side (`@Valid`, `DataViolationException`) |
+| `c.required`           | `required`                 | a **client-only** key: dynamic-form validator messages and the `login.*` codes                    |
+| `GT_FILTER.gtIS`       | `{GT_FILTER: {gtIS: ...}}` | the only allow-listed nested namespace                                                            |
+| `g.…`, `gt.…`, `UDF_…` | unchanged                  | configuration parameters and metadata                                                             |
 
 So in almost all cases you simply add `MY_KEY=My text` to both language files of the right module.
 
@@ -1097,11 +1140,11 @@ required, ranges, regex) — the backend entity is the single source of truth.
 
 ### When to use which approach
 
-| Form | Approach |
-|------|----------|
-| Whole form derivable from the entity | `DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(translateService, cdias, '', true)` |
-| Form with custom layout, only some fields from backend | per-field `DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(translateService, fieldName, fdias)` |
-| A constraint that no backend annotation can express | hand-coded `DynamicFieldHelper.createField*` (last resort) |
+| Form                                                   | Approach                                                                                                 |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Whole form derivable from the entity                   | `DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(translateService, cdias, '', true)` |
+| Form with custom layout, only some fields from backend | per-field `DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(translateService, fieldName, fdias)`   |
+| A constraint that no backend annotation can express    | hand-coded `DynamicFieldHelper.createField*` (last resort)                                               |
 
 ### How
 
@@ -1125,14 +1168,20 @@ instant:
 
 ```typescript
 // Opener (parent) — fetch, then show the dialog
-this.gps.getEntityFormDefinition(AppSettings.CASHACCOUNT).subscribe(formDefinition => {
-  this.callParam = new CallParam(portfolio, cashaccount, {...optParam, formDefinition});
+this.gps.getEntityFormDefinition(AppSettings.CASHACCOUNT).subscribe((formDefinition) => {
+  this.callParam = new CallParam(portfolio, cashaccount, { ...optParam, formDefinition });
   this.visibleDialog = true;
 });
 
 // Dialog ngOnInit — build config synchronously from the pre-fetched descriptor
-this.config = <FieldConfig[]>DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
-  this.translateService, this.callParam.optParam.formDefinition, '', true);
+this.config = <FieldConfig[]>(
+  DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+    this.translateService,
+    this.callParam.optParam.formDefinition,
+    '',
+    true
+  )
+);
 this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
 ```
 

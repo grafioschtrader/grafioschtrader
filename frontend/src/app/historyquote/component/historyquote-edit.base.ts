@@ -1,21 +1,21 @@
-import {Directive, Input, OnInit} from '@angular/core';
+import { Directive, Input, OnInit } from '@angular/core';
 import moment from 'moment';
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {HistoryquoteBase} from '../../entities/historyquote.base';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {AppSettings} from '../../shared/app.settings';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { HistoryquoteBase } from '../../entities/historyquote.base';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AppSettings } from '../../shared/app.settings';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
 
 /**
  * Shared base for the two history-quote edit dialogs: the live {@link HistoryquoteEditComponent} and the archive
@@ -31,17 +31,20 @@ import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propo
  * @template T the concrete history-quote entity type (live {@code Historyquote} or {@code HistoryquoteLegacy})
  */
 @Directive()
-export abstract class HistoryquoteEditBase<T extends HistoryquoteBase> extends SimpleEntityEditBase<T>
-  implements OnInit {
-
+export abstract class HistoryquoteEditBase<T extends HistoryquoteBase>
+  extends SimpleEntityEditBase<T>
+  implements OnInit
+{
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
-  protected constructor(helpId: string,
+  protected constructor(
+    helpId: string,
     i18nRecord: string,
     translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
-    serviceEntityUpdate: ServiceEntityUpdate<T>) {
+    serviceEntityUpdate: ServiceEntityUpdate<T>
+  ) {
     super(helpId, i18nRecord, translateService, gps, messageToastService, serviceEntityUpdate);
   }
 
@@ -49,27 +52,37 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase> extends S
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'date', true,
-        {
-          calendarConfig: {
-            maxDate: moment().subtract(1, 'days').toDate(),
-            disabledDays: [0, 6]
-          }
-        }),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'date', true, {
+        calendarConfig: {
+          maxDate: moment().subtract(1, 'days').toDate(),
+          disabledDays: [0, 6]
+        }
+      }),
       ...this.getAdditionalLeadingFields(),
       ...this.createOhlcvFields(),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
-    this.configObject = this.config.reduce((acc, d) => ({
-      ...acc, [d.field]: d
-    }), {});
+    this.configObject = this.config.reduce(
+      (acc, d) => ({
+        ...acc,
+        [d.field]: d
+      }),
+      {}
+    );
     TranslateHelper.translateMessageErrors(this.translateService, this.config);
   }
 
   protected override initialize(): void {
     this.transferAndToggleImmutableFields();
-    AuditHelper.configureFormFromAuditableRights(this.translateService, this.gps,
-      this.getSecuritycurrency(), this.form, this.configObject, this.proposeChangeEntityWithEntity, false);
+    AuditHelper.configureFormFromAuditableRights(
+      this.translateService,
+      this.gps,
+      this.getSecuritycurrency(),
+      this.form,
+      this.configObject,
+      this.proposeChangeEntityWithEntity,
+      false
+    );
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): T {
@@ -85,16 +98,35 @@ export abstract class HistoryquoteEditBase<T extends HistoryquoteBase> extends S
    */
   protected createOhlcvFields(): FieldConfig[] {
     return [
-      DynamicFieldHelper.createFieldInputNumberHeqF('volume', false,
-        AppSettings.FID_MAX_INTEGER_DIGITS, 0, false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('open', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('high', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('low', false,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false),
-      DynamicFieldHelper.createFieldInputNumberHeqF('close', true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), false)
+      DynamicFieldHelper.createFieldInputNumberHeqF('volume', false, AppSettings.FID_MAX_INTEGER_DIGITS, 0, false),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'open',
+        false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE,
+        this.gps.getMaxFractionDigits(),
+        false
+      ),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'high',
+        false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE,
+        this.gps.getMaxFractionDigits(),
+        false
+      ),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'low',
+        false,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE,
+        this.gps.getMaxFractionDigits(),
+        false
+      ),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'close',
+        true,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE,
+        this.gps.getMaxFractionDigits(),
+        false
+      )
     ];
   }
 

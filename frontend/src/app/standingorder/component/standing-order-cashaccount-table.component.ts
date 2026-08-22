@@ -1,19 +1,19 @@
-import {Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {StandingOrderService} from '../service/standing.order.service';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {StandingOrderCashaccountEditComponent} from './standing-order-cashaccount-edit.component';
-import {StandingOrderFailureTableComponent} from './standing-order-failure-table.component';
-import {StandingOrderTransactionTableComponent} from './standing-order-transaction-table.component';
-import {StandingOrderTableBase} from './standing-order-table-base';
-import {TransactionType} from '../../shared/types/transaction.type';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { StandingOrderService } from '../service/standing.order.service';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { StandingOrderCashaccountEditComponent } from './standing-order-cashaccount-edit.component';
+import { StandingOrderFailureTableComponent } from './standing-order-failure-table.component';
+import { StandingOrderTransactionTableComponent } from './standing-order-transaction-table.component';
+import { StandingOrderTableBase } from './standing-order-table-base';
+import { TransactionType } from '../../shared/types/transaction.type';
 
 /**
  * Table component displaying cashaccount standing orders (dtype='C') for the current tenant.
@@ -22,8 +22,13 @@ import {TransactionType} from '../../shared/types/transaction.type';
 @Component({
   selector: 'standing-order-cashaccount-table',
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      class="data-container"
+      (click)="onComponentClick($event)"
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <configurable-table
         [data]="standingOrders"
         [fields]="fields"
@@ -45,14 +50,11 @@ import {TransactionType} from '../../shared/types/transaction.type';
 
     <ng-template #detailExpansion let-so>
       @if ((so.transactionCount ?? 0) > 0) {
-        <standing-order-transaction-table
-          [standingOrder]="so"
-          (dateChanged)="onTransactionChanged($event)">
+        <standing-order-transaction-table [standingOrder]="so" (dateChanged)="onTransactionChanged($event)">
         </standing-order-transaction-table>
       }
       @if ((so.failureCount ?? 0) > 0) {
-        <standing-order-failure-table [failures]="getFailuresForOrder(so)">
-        </standing-order-failure-table>
+        <standing-order-failure-table [failures]="getFailuresForOrder(so)"> </standing-order-failure-table>
       }
     </ng-template>
 
@@ -65,12 +67,17 @@ import {TransactionType} from '../../shared/types/transaction.type';
     }
   `,
   standalone: true,
-  imports: [CommonModule, TranslateModule, ConfigurableTableComponent,
-    StandingOrderCashaccountEditComponent, StandingOrderFailureTableComponent,
-    StandingOrderTransactionTableComponent]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ConfigurableTableComponent,
+    StandingOrderCashaccountEditComponent,
+    StandingOrderFailureTableComponent,
+    StandingOrderTransactionTableComponent
+  ]
 })
 export class StandingOrderCashaccountTableComponent extends StandingOrderTableBase implements OnInit {
-
   constructor(
     activePanelService: ActivePanelService,
     standingOrderService: StandingOrderService,
@@ -81,8 +88,16 @@ export class StandingOrderCashaccountTableComponent extends StandingOrderTableBa
     translateService: TranslateService,
     gps: GlobalparameterService
   ) {
-    super(activePanelService, standingOrderService, messageToastService, confirmationService,
-      filterService, usersettingsService, translateService, gps);
+    super(
+      activePanelService,
+      standingOrderService,
+      messageToastService,
+      confirmationService,
+      filterService,
+      usersettingsService,
+      translateService,
+      gps
+    );
   }
 
   ngOnInit(): void {
@@ -103,7 +118,11 @@ export class StandingOrderCashaccountTableComponent extends StandingOrderTableBa
   }
 
   protected override getAllowedTransactionTypes(): TransactionType[] {
-    return [TransactionType.WITHDRAWAL, TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
-      TransactionType.FEE];
+    return [
+      TransactionType.WITHDRAWAL,
+      TransactionType.DEPOSIT,
+      TransactionType.INTEREST_CASHACCOUNT,
+      TransactionType.FEE
+    ];
   }
 }

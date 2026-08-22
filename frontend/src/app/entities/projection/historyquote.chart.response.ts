@@ -1,5 +1,5 @@
-import {HistoryquoteDateClose} from './historyquote.date.close';
-import {HistoryquoteOHLC} from './historyquote.ohlc';
+import { HistoryquoteDateClose } from './historyquote.date.close';
+import { HistoryquoteOHLC } from './historyquote.ohlc';
 
 /**
  * Response wrapper for chart data containing either simple date/close data or full OHLC data.

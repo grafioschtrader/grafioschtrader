@@ -1,9 +1,9 @@
-import {TransactionContextMenu} from './transaction.context.menu';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {TransactionSecurityOptionalParam} from '../model/transaction.security.optional.param';
-import {AppSettings} from '../../shared/app.settings';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import { TransactionContextMenu } from './transaction.context.menu';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { TransactionSecurityOptionalParam } from '../model/transaction.security.optional.param';
+import { AppSettings } from '../../shared/app.settings';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 
 /**
  * Utility class that provides standardized field definitions for transaction security tables and tree views.
@@ -12,7 +12,6 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
  * conditional column visibility based on tenant context and optional parameters.
  */
 export class TransactionSecurityFieldDefinition {
-
   /**
    * Creates and configures standard column definitions for transaction security displays.
    * Adds columns for transaction details including dates, amounts, costs, and gains/losses.
@@ -24,40 +23,60 @@ export class TransactionSecurityFieldDefinition {
    * @param tsop Array of optional parameters controlling additional column visibility
    * @returns Array of currency-related column configurations for main currency display
    */
-  static getFieldDefinition(tcm: TransactionContextMenu, idTenant: number, isMarginInstrument: boolean,
-                            tsop: TransactionSecurityOptionalParam[], gps: GlobalparameterService): ColumnConfig[] {
+  static getFieldDefinition(
+    tcm: TransactionContextMenu,
+    idTenant: number,
+    isMarginInstrument: boolean,
+    tsop: TransactionSecurityOptionalParam[],
+    gps: GlobalparameterService
+  ): ColumnConfig[] {
     const currencyColumnConfigMC: ColumnConfig[] = [];
-    tcm.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false, {width: 100});
+    tcm.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false, { width: 100 });
     if (idTenant) {
-      tcm.addColumn(DataType.String, 'transaction.cashaccount.name', AppSettings.CASHACCOUNT.toUpperCase(), true, false);
+      tcm.addColumn(
+        DataType.String,
+        'transaction.cashaccount.name',
+        AppSettings.CASHACCOUNT.toUpperCase(),
+        true,
+        false
+      );
     }
-    tcm.addColumnFeqH(DataType.String, 'transaction.transactionType', true, false,
-      {translateValues: TranslateValue.NORMAL});
+    tcm.addColumnFeqH(DataType.String, 'transaction.transactionType', true, false, {
+      translateValues: TranslateValue.NORMAL
+    });
     tcm.addColumn(DataType.Numeric, 'transaction.units', 'QUANTITY', true, false);
     if (isMarginInstrument) {
       tcm.addColumn(DataType.Numeric, 'transaction.assetInvestmentValue2', 'VALUE_PER_POINT', true, false);
     }
-    tcm.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false,
-      {maxFractionDigits: gps.getMaxFractionDigits()});
-    tcm.addColumnFeqH(DataType.Numeric, 'transaction.taxCost', true, false,
-      {currencyPrecisionField: 'transaction.security.currency'});
+    tcm.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false, {
+      maxFractionDigits: gps.getMaxFractionDigits()
+    });
+    tcm.addColumnFeqH(DataType.Numeric, 'transaction.taxCost', true, false, {
+      currencyPrecisionField: 'transaction.security.currency'
+    });
 
     if (tsop && tsop.indexOf(TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN) >= 0) {
-      tcm.addColumnFeqH(DataType.Boolean, 'transaction.taxableInterest', true, false, {templateName: 'check'});
+      tcm.addColumnFeqH(DataType.Boolean, 'transaction.taxableInterest', true, false, { templateName: 'check' });
     }
     tcm.addColumnFeqH(DataType.Numeric, 'holdingsSplitAdjusted', true, false);
-    tcm.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false,
-      {currencyPrecisionField: 'transaction.security.currency'});
-    tcm.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false,
-      {currencyPrecisionField: 'transaction.cashaccount.currency'});
-    tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false,
-      {currencyPrecisionField: 'transaction.security.currency'});
+    tcm.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false, {
+      currencyPrecisionField: 'transaction.security.currency'
+    });
+    tcm.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false, {
+      currencyPrecisionField: 'transaction.cashaccount.currency'
+    });
+    tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false, {
+      currencyPrecisionField: 'transaction.security.currency'
+    });
     tcm.addColumn(DataType.Numeric, 'transactionGainLossPercentage', 'GAIN_PERCENTAGE', true, false);
-    tcm.addColumn(DataType.Numeric, 'transactionExchangeRate', 'EXCHANGE_RATE', true, false,
-      {maxFractionDigits: gps.getMaxFractionDigits()});
+    tcm.addColumn(DataType.Numeric, 'transactionExchangeRate', 'EXCHANGE_RATE', true, false, {
+      maxFractionDigits: gps.getMaxFractionDigits()
+    });
     currencyColumnConfigMC.push(tcm.addColumn(DataType.Numeric, 'transactionGainLossMC', 'GAIN', true, false));
-    currencyColumnConfigMC.push(tcm.addColumn(DataType.Numeric, 'transactionGainLossCurrencyMC', 'GAIN_LOSS_CURRENCY', true, false));
-    tcm.fields.filter(cc => cc.dataType === DataType.Numeric).map(cc => cc.templateName = 'greenRed');
+    currencyColumnConfigMC.push(
+      tcm.addColumn(DataType.Numeric, 'transactionGainLossCurrencyMC', 'GAIN_LOSS_CURRENCY', true, false)
+    );
+    tcm.fields.filter((cc) => cc.dataType === DataType.Numeric).map((cc) => (cc.templateName = 'greenRed'));
     tcm.prepareTableAndTranslate();
     return currencyColumnConfigMC;
   }

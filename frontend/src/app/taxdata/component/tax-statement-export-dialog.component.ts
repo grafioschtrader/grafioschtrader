@@ -1,18 +1,18 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {TaxDataService, TaxStatementExportRequest} from '../service/tax-data.service';
-import {TenantService} from '../../tenant/service/tenant.service';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { TaxDataService, TaxStatementExportRequest } from '../service/tax-data.service';
+import { TenantService } from '../../tenant/service/tenant.service';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 
 /**
  * Dialog for exporting an eCH-0196 v2.2.0 Swiss electronic tax statement.
@@ -21,27 +21,37 @@ import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key
 @Component({
   selector: 'tax-statement-export-dialog',
   template: `
-    <p-dialog header="{{'EXPORT_TAX_STATEMENT' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '550px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'EXPORT_TAX_STATEMENT' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '550px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TaxStatementExportDialogComponent extends SimpleEditBase implements OnInit {
-
   @Input() idsSecurityaccount: number[] = [];
   @Input() availableTaxYears: number[] = [];
   @Input() taxExportSettings: TaxStatementExportRequest;
 
-  constructor(public translateService: TranslateService,
-              private taxDataService: TaxDataService,
-              private tenantService: TenantService,
-              gps: GlobalparameterService) {
+  constructor(
+    public translateService: TranslateService,
+    private taxDataService: TaxDataService,
+    private tenantService: TenantService,
+    gps: GlobalparameterService
+  ) {
     super(HelpIds.HELP_TAX_DATA, gps);
   }
 
@@ -62,9 +72,10 @@ export class TaxStatementExportDialogComponent extends SimpleEditBase implements
   }
 
   protected override initialize(): void {
-    this.configObject.taxYear.valueKeyHtmlOptions = this.availableTaxYears
-      .map(y => new ValueKeyHtmlSelectOptions(String(y), String(y)));
-    this.taxDataService.getCantons().subscribe(cantons => {
+    this.configObject.taxYear.valueKeyHtmlOptions = this.availableTaxYears.map(
+      (y) => new ValueKeyHtmlSelectOptions(String(y), String(y))
+    );
+    this.taxDataService.getCantons().subscribe((cantons) => {
       this.configObject.canton.valueKeyHtmlOptions = cantons;
       this.form.setDefaultValuesAndEnableSubmit();
       if (this.taxExportSettings) {
@@ -101,7 +112,7 @@ export class TaxStatementExportDialogComponent extends SimpleEditBase implements
         window.URL.revokeObjectURL(url);
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED, request));
       },
-      error: () => this.configObject.submit.disabled = false
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
 }

@@ -1,19 +1,19 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {HistoryquoteLegacyService} from '../service/historyquote.legacy.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { HistoryquoteLegacyService } from '../service/historyquote.legacy.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
 
 /**
  * Dialog that captures a forgotten split (splitDate, fromFactor, toFactor) and applies it to
@@ -24,24 +24,35 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 @Component({
   selector: 'historyquote-legacy-apply-split-dialog',
   template: `
-    <p-dialog header="{{'HISTORYQUOTE_LEGACY_APPLY_SPLIT' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '500px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'HISTORYQUOTE_LEGACY_APPLY_SPLIT' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '500px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleEditBase implements OnInit {
   @Input() idSecuritycurrency: number;
 
-  constructor(public translateService: TranslateService,
-              gps: GlobalparameterService,
-              private historyquoteLegacyService: HistoryquoteLegacyService,
-              private messageToastService: MessageToastService) {
+  constructor(
+    public translateService: TranslateService,
+    gps: GlobalparameterService,
+    private historyquoteLegacyService: HistoryquoteLegacyService,
+    private messageToastService: MessageToastService
+  ) {
     super(HelpIds.HELP_WATCHLIST_HISTORYQUOTES, gps);
   }
 
@@ -58,17 +69,19 @@ export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleEditBase 
 
   submit(value: { [name: string]: any }): void {
     this.configObject.submit.disabled = true;
-    this.historyquoteLegacyService.applySplitToLegacy(this.idSecuritycurrency, {
-      splitDate: value.splitDate,
-      fromFactor: value.fromFactor,
-      toFactor: value.toFactor
-    }).subscribe({
-      next: () => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'HISTORYQUOTE_LEGACY_APPLY_SPLIT');
-        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
-      },
-      error: () => this.configObject.submit.disabled = false
-    });
+    this.historyquoteLegacyService
+      .applySplitToLegacy(this.idSecuritycurrency, {
+        splitDate: value.splitDate,
+        fromFactor: value.fromFactor,
+        toFactor: value.toFactor
+      })
+      .subscribe({
+        next: () => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'HISTORYQUOTE_LEGACY_APPLY_SPLIT');
+          this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
+        },
+        error: () => (this.configObject.submit.disabled = false)
+      });
   }
 
   protected override initialize(): void {

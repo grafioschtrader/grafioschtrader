@@ -1,62 +1,63 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {Stockexchange} from '../../entities/stockexchange';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {StockexchangeService} from '../service/stockexchange.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {HelpIds} from '../../lib/help/help.ids';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {StockexchangeCallParam} from './stockexchange.call.param';
-import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {combineLatest, Subscription} from 'rxjs';
-import {Observable} from 'rxjs/internal/Observable';
-import {Security} from '../../entities/security';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Stockexchange } from '../../entities/stockexchange';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { StockexchangeService } from '../service/stockexchange.service';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { HelpIds } from '../../lib/help/help.ids';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { StockexchangeCallParam } from './stockexchange.call.param';
+import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { combineLatest, Subscription } from 'rxjs';
+import { Observable } from 'rxjs/internal/Observable';
+import { Security } from '../../entities/security';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import moment from 'moment';
-import {AppSettings} from '../../shared/app.settings';
-import {GroupItem, ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {StockexchangeMic} from '../model/stockexchange.base.data';
-import {StockexchangeHelper} from './stockexchange.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {TradingCalendarRuleSetService} from '../service/trading.calendar.rule.set.service';
+import { AppSettings } from '../../shared/app.settings';
+import { GroupItem, ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { StockexchangeMic } from '../model/stockexchange.base.data';
+import { StockexchangeHelper } from './stockexchange.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { TradingCalendarRuleSetService } from '../service/trading.calendar.rule.set.service';
 
 /**
  * Edit stockexchnage
  */
 @Component({
   selector: 'stockexchange-edit',
-  template: `
-    <p-dialog header="{{i18nRecord | translate}}" [visible]="visibleDialog"
-              [style]="{width: '500px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
+  template: ` <p-dialog
+    header="{{ i18nRecord | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '500px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
   standalone: true,
-  imports: [
-    DialogModule,
-    DynamicFormModule,
-    TranslateModule
-  ]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchange> implements OnInit {
-
   @Input() callParam: StockexchangeCallParam;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   private readonly nameMaxLength = 32;
@@ -69,38 +70,54 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private ruleSetIdByMic: { [mic: string]: number } = {};
   private calendarSourceSubscriptions: Subscription[] = [];
 
-  constructor(translateService: TranslateService,
+  constructor(
+    translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     stockexchangeService: StockexchangeService,
     private tradingCalendarRuleSetService: TradingCalendarRuleSetService,
-    private securityService: SecurityService) {
-    super(HelpIds.HELP_BASEDATA_STOCKEXCHANGE, AppHelper.toUpperCaseWithUnderscore(AppSettings.STOCKEXCHANGE), translateService, gps,
-      messageToastService, stockexchangeService);
+    private securityService: SecurityService
+  ) {
+    super(
+      HelpIds.HELP_BASEDATA_STOCKEXCHANGE,
+      AppHelper.toUpperCaseWithUnderscore(AppSettings.STOCKEXCHANGE),
+      translateService,
+      gps,
+      messageToastService,
+      stockexchangeService
+    );
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      4, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldCheckboxHeqF('onlyMainStockexchange',
-        {defaultValue: true, disabled: !this.canAssignMic()}),
-      DynamicFieldHelper.createFieldDropdownStringHeqF('mic', false,
-        {groupItemUseOrLoading: true, disabled: !this.canAssignMic(), filter: true}),
-      DynamicFieldHelper.createFieldInputStringHeqF('name', this.nameMaxLength, true, {minLength: 2}),
+      DynamicFieldHelper.createFieldCheckboxHeqF('onlyMainStockexchange', {
+        defaultValue: true,
+        disabled: !this.canAssignMic()
+      }),
+      DynamicFieldHelper.createFieldDropdownStringHeqF('mic', false, {
+        groupItemUseOrLoading: true,
+        disabled: !this.canAssignMic(),
+        filter: true
+      }),
+      DynamicFieldHelper.createFieldInputStringHeqF('name', this.nameMaxLength, true, { minLength: 2 }),
       DynamicFieldHelper.createFieldSelectStringHeqF('countryCode', true),
-      DynamicFieldHelper.createFieldCheckboxHeqF('secondaryMarket', {defaultValue: true}),
+      DynamicFieldHelper.createFieldCheckboxHeqF('secondaryMarket', {
+        defaultValue: true
+      }),
       DynamicFieldHelper.createFieldCheckboxHeqF('noMarketValue'),
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeOpen', 8, true),
       DynamicFieldHelper.createFieldDAInputStringHeqF(DataType.TimeString, 'timeClose', 8, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('timeZone', true),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idTradingCalendarRuleSet', false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('idIndexUpdCalendar', false),
-      DynamicFieldHelper.createFieldInputWebUrlHeqF('website',
-        this.gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Stockexchange_Website), false),
-      ...
-        AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
+      DynamicFieldHelper.createFieldInputWebUrlHeqF(
+        'website',
+        this.gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Stockexchange_Website),
+        false
+      ),
+      ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
     if (this.callParam.stockexchange && !this.callParam.stockexchange.mic) {
       this.callParam.stockexchange.mic = '';
@@ -109,19 +126,23 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private canAssignMic(): boolean {
-    return this.callParam.stockexchange && (!this.callParam.stockexchange.mic || this.callParam.proposeChange)
-      || !this.callParam.stockexchange;
+    return (
+      (this.callParam.stockexchange && (!this.callParam.stockexchange.mic || this.callParam.proposeChange)) ||
+      !this.callParam.stockexchange
+    );
   }
 
   protected override initialize(): void {
-    const observables: Observable<any>[] = [this.gps.getTimezones(),
+    const observables: Observable<any>[] = [
+      this.gps.getTimezones(),
       this.tradingCalendarRuleSetService.getRuleSetOptions(),
-      this.tradingCalendarRuleSetService.getRuleSetIdByMic()];
+      this.tradingCalendarRuleSetService.getRuleSetIdByMic()
+    ];
     const securitiesIndex = observables.length;
     if (this.callParam.stockexchange) {
       observables.push(this.getSecurityObservable(this.callParam.stockexchange.countryCode));
     }
-    combineLatest(observables).subscribe(data => {
+    combineLatest(observables).subscribe((data) => {
       this.countriesAsKeyValue = StockexchangeHelper.transform(this.callParam.countriesAsHtmlOptions);
       this.configObject.mic.groupItem = this.createMicOptions(true);
       this.configObject.timeZone.valueKeyHtmlOptions = data[0] as ValueKeyHtmlSelectOptions[];
@@ -130,14 +151,27 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
       this.configObject.idTradingCalendarRuleSet.valueKeyHtmlOptions = this.ruleSetOptions;
       this.configObject.countryCode.valueKeyHtmlOptions = this.callParam.countriesAsHtmlOptions;
       this.form.setDefaultValuesAndEnableSubmit();
-      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
-        this.callParam.stockexchange, this.form, this.configObject, this.proposeChangeEntityWithEntity);
-      FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [this.configObject.noMarketValue,
-        this.configObject.timeZone]);
+      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+        this.translateService,
+        this.gps,
+        this.callParam.stockexchange,
+        this.form,
+        this.configObject,
+        this.proposeChangeEntityWithEntity
+      );
+      FormHelper.disableEnableFieldConfigs(this.callParam.hasSecurity, [
+        this.configObject.noMarketValue,
+        this.configObject.timeZone
+      ]);
       this.disableEnableCountry();
       if (data.length > securitiesIndex) {
-        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          'idSecuritycurrency', 'name', data[securitiesIndex] as Security[], true);
+        this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions =
+          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+            'idSecuritycurrency',
+            'name',
+            data[securitiesIndex] as Security[],
+            true
+          );
       }
       this.valueChangedOnCountryCode();
       this.watchCalendarSource();
@@ -153,14 +187,16 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private valueChangedOnOnlyMainStockexchange(): void {
-    this.onlyMainStockexchangeSubscribe = this.configObject.onlyMainStockexchange.formControl.valueChanges.subscribe((oms: boolean) => {
-      this.configObject.mic.groupItem = this.createMicOptions(oms);
-    });
+    this.onlyMainStockexchangeSubscribe = this.configObject.onlyMainStockexchange.formControl.valueChanges.subscribe(
+      (oms: boolean) => {
+        this.configObject.mic.groupItem = this.createMicOptions(oms);
+      }
+    );
   }
 
   private valueChangedOnMic(): void {
-    this.micSubscribe = this.configObject.mic.formControl.valueChanges.subscribe(mic => {
-      const sm: StockexchangeMic = this.callParam.stockexchangeMics.find(smf => smf.mic === mic);
+    this.micSubscribe = this.configObject.mic.formControl.valueChanges.subscribe((mic) => {
+      const sm: StockexchangeMic = this.callParam.stockexchangeMics.find((smf) => smf.mic === mic);
       this.configObject.name.formControl.setValue(sm.name.toLowerCase().substring(0, this.nameMaxLength));
       this.configObject.countryCode.formControl.setValue(sm.countryCode);
       this.configObject.website.formControl.setValue(sm.website);
@@ -180,9 +216,12 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private watchCalendarSource(): void {
     this.calendarSourceSubscriptions.push(
       this.configObject.idIndexUpdCalendar.formControl.valueChanges.subscribe(() =>
-        this.applyCalendarSourceExclusion()),
+        this.applyCalendarSourceExclusion()
+      ),
       this.configObject.idTradingCalendarRuleSet.formControl.valueChanges.subscribe(() =>
-        this.applyCalendarSourceExclusion()));
+        this.applyCalendarSourceExclusion()
+      )
+    );
   }
 
   /**
@@ -203,24 +242,28 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   private setCalendarSourceState(fieldConfig: FieldConfig, disable: boolean): void {
     if (disable) {
       if (fieldConfig.formControl.value != null) {
-        fieldConfig.formControl.setValue(null, {emitEvent: false});
+        fieldConfig.formControl.setValue(null, { emitEvent: false });
       }
       if (fieldConfig.formControl.enabled) {
-        fieldConfig.formControl.disable({emitEvent: false});
+        fieldConfig.formControl.disable({ emitEvent: false });
       }
     } else if (fieldConfig.formControl.disabled) {
-      fieldConfig.formControl.enable({emitEvent: false});
+      fieldConfig.formControl.enable({ emitEvent: false });
     }
   }
 
   private valueChangedOnCountryCode(): void {
-    this.countryCodeSubscribe = this.configObject.countryCode.formControl.valueChanges.subscribe(countryCode => {
+    this.countryCodeSubscribe = this.configObject.countryCode.formControl.valueChanges.subscribe((countryCode) => {
       this.configObject.idIndexUpdCalendar.formControl.setValue(null);
       if (countryCode) {
-        this.getSecurityObservable(countryCode).subscribe(securities => {
+        this.getSecurityObservable(countryCode).subscribe((securities) => {
           this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions =
             SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-              'idSecuritycurrency', 'name', securities, true);
+              'idSecuritycurrency',
+              'name',
+              securities,
+              true
+            );
         });
       } else {
         this.configObject.idIndexUpdCalendar.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')];
@@ -229,33 +272,50 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private disableEnableCountry(): void {
-    FormHelper.disableEnableFieldConfigs(this.configObject.mic.formControl.value.length > 0, [this.configObject.countryCode]);
+    FormHelper.disableEnableFieldConfigs(this.configObject.mic.formControl.value.length > 0, [
+      this.configObject.countryCode
+    ]);
   }
 
   private createMicOptions(onlyMainStockexchange: boolean): GroupItem[] {
     const countryMap: { [cc: string]: GroupItem } = {};
-    const emptyEntry: StockexchangeMic = {mic: '', name: '', city: '', countryCode: 'xx'};
+    const emptyEntry: StockexchangeMic = {
+      mic: '',
+      name: '',
+      city: '',
+      countryCode: 'xx'
+    };
     this.createGreopAndFristEntry(countryMap, emptyEntry, '-----');
 
-    this.callParam.stockexchangeMics.filter(sm => (this.canAssignMic() && (onlyMainStockexchange && sm.timeZone || !onlyMainStockexchange)
-        && !this.callParam.existingMic.has(sm.mic))
-      || ((!this.canAssignMic() || this.callParam.proposeChange) && this.callParam.stockexchange.mic === sm.mic)).forEach(sm => {
-      const existingGroup = countryMap[sm.countryCode];
-      if (existingGroup) {
-        this.addEntry(existingGroup, sm);
-      } else {
-        const country = this.countriesAsKeyValue[sm.countryCode];
-        if (country) {
-          this.createGreopAndFristEntry(countryMap, sm, country);
+    this.callParam.stockexchangeMics
+      .filter(
+        (sm) =>
+          (this.canAssignMic() &&
+            ((onlyMainStockexchange && sm.timeZone) || !onlyMainStockexchange) &&
+            !this.callParam.existingMic.has(sm.mic)) ||
+          ((!this.canAssignMic() || this.callParam.proposeChange) && this.callParam.stockexchange.mic === sm.mic)
+      )
+      .forEach((sm) => {
+        const existingGroup = countryMap[sm.countryCode];
+        if (existingGroup) {
+          this.addEntry(existingGroup, sm);
+        } else {
+          const country = this.countriesAsKeyValue[sm.countryCode];
+          if (country) {
+            this.createGreopAndFristEntry(countryMap, sm, country);
+          }
         }
-      }
-    });
+      });
     return Object.values(countryMap).sort((a, b) => a.optionsText.localeCompare(b.optionsText));
   }
 
-  private createGreopAndFristEntry(countryMap: {
-    [cc: string]: GroupItem
-  }, sm: StockexchangeMic, country: string): void {
+  private createGreopAndFristEntry(
+    countryMap: {
+      [cc: string]: GroupItem;
+    },
+    sm: StockexchangeMic,
+    country: string
+  ): void {
     const gp = new GroupItem(null, null, country, 'fi fi-' + sm.countryCode.toLowerCase());
     countryMap[sm.countryCode] = gp;
     gp.children = [];
@@ -263,10 +323,12 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
   }
 
   private addEntry(groupItem: GroupItem, sm: StockexchangeMic): void {
-    groupItem.children.splice(this.sortedIndex(groupItem.children, sm.name), 0,
-      new GroupItem(sm.mic, sm.mic, sm.name + ', ' + sm.city + ', ' + sm.mic, null));
+    groupItem.children.splice(
+      this.sortedIndex(groupItem.children, sm.name),
+      0,
+      new GroupItem(sm.mic, sm.mic, sm.name + ', ' + sm.city + ', ' + sm.mic, null)
+    );
   }
-
 
   private sortedIndex(groupItem: GroupItem[], value: string) {
     let low = 0;
@@ -285,15 +347,20 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): Stockexchange {
     const stockexchange: Stockexchange = new Stockexchange();
-    this.copyFormToPublicBusinessObject(stockexchange, this.callParam.stockexchange, this.proposeChangeEntityWithEntity);
-    stockexchange.mic = (stockexchange.mic.length === 0) ? null : stockexchange.mic;
+    this.copyFormToPublicBusinessObject(
+      stockexchange,
+      this.callParam.stockexchange,
+      this.proposeChangeEntityWithEntity
+    );
+    stockexchange.mic = stockexchange.mic.length === 0 ? null : stockexchange.mic;
     return stockexchange;
   }
 
   private getSecurityObservable(countryCode: string): Observable<Security[]> {
     const securitycurrencySearch = new SecuritycurrencySearch();
     securitycurrencySearch.assetclassType = AssetclassType[AssetclassType.EQUITIES];
-    securitycurrencySearch.specialInvestmentInstruments = SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES];
+    securitycurrencySearch.specialInvestmentInstruments =
+      SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES];
     securitycurrencySearch.activeDate = moment().format(BaseSettings.FORMAT_DATE_SHORT_US);
     securitycurrencySearch.stockexchangeCountryCode = countryCode;
     return this.securityService.searchByCriteria(securitycurrencySearch);
@@ -303,9 +370,8 @@ export class StockexchangeEditComponent extends SimpleEntityEditBase<Stockexchan
     this.onlyMainStockexchangeSubscribe && this.onlyMainStockexchangeSubscribe.unsubscribe();
     this.micSubscribe && this.micSubscribe.unsubscribe();
     this.countryCodeSubscribe && this.countryCodeSubscribe.unsubscribe();
-    this.calendarSourceSubscriptions.forEach(subscription => subscription.unsubscribe());
+    this.calendarSourceSubscriptions.forEach((subscription) => subscription.unsubscribe());
     this.calendarSourceSubscriptions = [];
     super.onHide(event);
   }
-
 }

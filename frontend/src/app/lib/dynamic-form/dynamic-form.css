@@ -13,7 +13,9 @@
   font-weight: bold;
   user-select: none;
   cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s;
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
   text-align: center; /* Align text in the center */
 }
 

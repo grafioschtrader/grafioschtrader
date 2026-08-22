@@ -1,27 +1,32 @@
-import {Injectable} from '@angular/core';
-import {AppSettings} from '../../shared/app.settings';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {Router} from '@angular/router';
-import {TimeSeriesParam} from '../component/time.series.chart.component';
-import {BaseSettings} from '../../lib/base.settings';
-import {TransactionReceiptService} from '../../transaction/service/transaction.receipt.service';
+import { Injectable } from '@angular/core';
+import { AppSettings } from '../../shared/app.settings';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { Router } from '@angular/router';
+import { TimeSeriesParam } from '../component/time.series.chart.component';
+import { BaseSettings } from '../../lib/base.settings';
+import { TransactionReceiptService } from '../../transaction/service/transaction.receipt.service';
 
 /**
  * Menu and function to show a history quotes as chart or table. It is shown in additional area.
  */
 @Injectable()
 export class TimeSeriesQuotesService {
-
   private idSecuritycurrency: number;
   private currencySecurity: string;
-  private optionalParameters: OptionalParameters = {idPortfolio: null, idSecurityaccount: null, noMarketValue: false};
+  private optionalParameters: OptionalParameters = { idPortfolio: null, idSecurityaccount: null, noMarketValue: false };
   private timeSeriesParams: TimeSeriesParam[] = [];
 
-  constructor(private router: Router, private transactionReceiptService: TransactionReceiptService) {
-  }
+  constructor(
+    private router: Router,
+    private transactionReceiptService: TransactionReceiptService
+  ) {}
 
-  getMenuItems(idSecuritycurrency: number, currencySecurity: string, addTopSeparator: boolean,
-    optionalParameters?: OptionalParameters): MenuItem[] {
+  getMenuItems(
+    idSecuritycurrency: number,
+    currencySecurity: string,
+    addTopSeparator: boolean,
+    optionalParameters?: OptionalParameters
+  ): MenuItem[] {
     this.idSecuritycurrency = idSecuritycurrency;
     this.currencySecurity = currencySecurity;
     if (optionalParameters) {
@@ -33,44 +38,38 @@ export class TimeSeriesQuotesService {
     }
 
     const menuItems: MenuItem[] = [];
-    addTopSeparator && menuItems.push({separator: true});
-    menuItems.push(
-      {
-        label: 'LINE_CHART',
-        command: (e) => this.showEodChartTable(AppSettings.TIME_SERIE_QUOTES, true)
-      }
-    );
-    menuItems.push(
-      {
-        label: 'ADD_TO_LINE_CHART',
-        command: (e) => this.showEodChartTable(AppSettings.TIME_SERIE_QUOTES, false),
-        disabled: !isTimeSeriesShown
-      }
-    );
+    addTopSeparator && menuItems.push({ separator: true });
+    menuItems.push({
+      label: 'LINE_CHART',
+      command: (e) => this.showEodChartTable(AppSettings.TIME_SERIE_QUOTES, true)
+    });
+    menuItems.push({
+      label: 'ADD_TO_LINE_CHART',
+      command: (e) => this.showEodChartTable(AppSettings.TIME_SERIE_QUOTES, false),
+      disabled: !isTimeSeriesShown
+    });
     if (!this.optionalParameters.noMarketValue) {
-      menuItems.push(
-        {
-          label: 'HISTORY_QUOTES_TABLE',
-          command: (e) => this.showEodChartTable(AppSettings.HISTORYQUOTE_P_KEY, true)
-        }
-      );
-      menuItems.push(
-        {
-          label: 'SEASONALITY',
-          command: (e) => this.showEodChartTable(AppSettings.SEASONALITY, true)
-        }
-      );
+      menuItems.push({
+        label: 'HISTORY_QUOTES_TABLE',
+        command: (e) => this.showEodChartTable(AppSettings.HISTORYQUOTE_P_KEY, true)
+      });
+      menuItems.push({
+        label: 'SEASONALITY',
+        command: (e) => this.showEodChartTable(AppSettings.SEASONALITY, true)
+      });
     }
     if (currencySecurity) {
       // Securities only: currency pairs pass null as currencySecurity and have no security transactions.
-      menuItems.push({separator: true});
-      menuItems.push(
-        {
-          label: 'TRANSACTION_RECEIPTS' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: (e) => this.transactionReceiptService.openDialog(this.idSecuritycurrency,
-            this.optionalParameters.idPortfolio, this.optionalParameters.idSecurityaccount)
-        }
-      );
+      menuItems.push({ separator: true });
+      menuItems.push({
+        label: 'TRANSACTION_RECEIPTS' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: (e) =>
+          this.transactionReceiptService.openDialog(
+            this.idSecuritycurrency,
+            this.optionalParameters.idPortfolio,
+            this.optionalParameters.idSecurityaccount
+          )
+      });
     }
     return menuItems;
   }
@@ -84,17 +83,28 @@ export class TimeSeriesQuotesService {
     if (initializeTimeSeriesParam) {
       this.timeSeriesParams = [];
     }
-    this.timeSeriesParams.push(new TimeSeriesParam(this.idSecuritycurrency, this.currencySecurity,
-      this.optionalParameters.idPortfolio, this.optionalParameters.idSecurityaccount));
-    this.router.navigate([BaseSettings.MAINVIEW_KEY + '/', {
-      outlets: {
-        mainbottom: [routeKey, {
-          allParam: JSON.stringify(this.timeSeriesParams)
-        }]
+    this.timeSeriesParams.push(
+      new TimeSeriesParam(
+        this.idSecuritycurrency,
+        this.currencySecurity,
+        this.optionalParameters.idPortfolio,
+        this.optionalParameters.idSecurityaccount
+      )
+    );
+    this.router.navigate([
+      BaseSettings.MAINVIEW_KEY + '/',
+      {
+        outlets: {
+          mainbottom: [
+            routeKey,
+            {
+              allParam: JSON.stringify(this.timeSeriesParams)
+            }
+          ]
+        }
       }
-    }]);
+    ]);
   }
-
 }
 
 export interface OptionalParameters {

@@ -1,4 +1,4 @@
-import {BaseLocale} from './base.locale';
+import { BaseLocale } from './base.locale';
 
 export interface FormConfig extends BaseLocale {
   labelColumns: number;

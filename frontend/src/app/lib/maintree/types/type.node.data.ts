@@ -6,13 +6,12 @@
  * Applications typically define these as constants or enums (e.g., TreeNodeType.Portfolio).
  */
 export class TypeNodeData {
-  constructor(public treeNodeType: string,
-              public route: string,
-              public id: number,
-              public parentObject: string,
-              public entityObject?: string,
-              public useQueryParams?: boolean) {
-  }
+  constructor(
+    public treeNodeType: string,
+    public route: string,
+    public id: number,
+    public parentObject: string,
+    public entityObject?: string,
+    public useQueryParams?: boolean
+  ) {}
 }
-
-

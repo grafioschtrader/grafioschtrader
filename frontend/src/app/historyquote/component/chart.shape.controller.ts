@@ -1,8 +1,8 @@
-import {Observable, of, Subject, Subscription} from 'rxjs';
-import {catchError, debounceTime, map} from 'rxjs/operators';
-import {TranslateService} from '@ngx-translate/core';
-import {ConfirmationService} from '@openng/optimus-ui/api';
-import {UserChartShapeService} from '../service/user.chart.shape.service';
+import { Observable, of, Subject, Subscription } from 'rxjs';
+import { catchError, debounceTime, map } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { ConfirmationService } from '@openng/optimus-ui/api';
+import { UserChartShapeService } from '../service/user.chart.shape.service';
 
 declare let Plotly: any;
 
@@ -26,13 +26,12 @@ declare let Plotly: any;
  * instruments. The controller is then told a null id and quietly ignores every change.
  */
 export class ChartShapeController {
-
   /** Snapshots of the shape array, oldest first. Always holds at least the state the chart was loaded with. */
   private shapeHistory: any[][] = [];
   private shapeHistoryIndex = -1;
   /** True while a relayout caused by undo or redo is still expected, so it is not recorded as a user change. */
   private isProgrammaticRelayout = false;
-  private shapeSave$ = new Subject<{ idSecuritycurrency: number, shapes: any[] }>();
+  private shapeSave$ = new Subject<{ idSecuritycurrency: number; shapes: any[] }>();
   private shapeSaveSubscription: Subscription;
   private chartNativeElement: any;
   /** Instrument the shapes belong to, null while more than one instrument is charted. */
@@ -43,16 +42,17 @@ export class ChartShapeController {
    * @param confirmationService used to confirm before all shapes of an instrument are discarded
    * @param translateService supplies the texts of that confirmation dialog
    */
-  constructor(private userChartShapeService: UserChartShapeService,
+  constructor(
+    private userChartShapeService: UserChartShapeService,
     private confirmationService: ConfirmationService,
-    private translateService: TranslateService) {
-  }
+    private translateService: TranslateService
+  ) {}
 
   /**
    * Starts the debounced save pipeline. Must be called once, from the ngOnInit of the chart component.
    */
   public init(): void {
-    this.shapeSaveSubscription = this.shapeSave$.pipe(debounceTime(500)).subscribe(data => {
+    this.shapeSaveSubscription = this.shapeSave$.pipe(debounceTime(500)).subscribe((data) => {
       if (data.shapes.length > 0) {
         this.userChartShapeService.saveShapes(data.idSecuritycurrency, data.shapes).subscribe();
       } else {
@@ -97,8 +97,9 @@ export class ChartShapeController {
    */
   public loadShapes(idSecuritycurrency: number): Observable<any[]> {
     return this.userChartShapeService.getShapes(idSecuritycurrency).pipe(
-      map(response => response?.shapeData || []),
-      catchError(() => of([])));
+      map((response) => response?.shapeData || []),
+      catchError(() => of([]))
+    );
   }
 
   /**
@@ -165,7 +166,8 @@ export class ChartShapeController {
         icon: {
           width: 857.1,
           height: 1000,
-          path: 'm857 350q0-87-34-166t-91-137-137-92-166-34q-96 0-183 41t-147 114q-4 6-4 13t5 11l76 77q6 5 14 5 9-1 13-7 ' +
+          path:
+            'm857 350q0-87-34-166t-91-137-137-92-166-34q-96 0-183 41t-147 114q-4 6-4 13t5 11l76 77q6 5 14 5 9-1 13-7 ' +
             '41-53 100-82t126-29q58 0 110 23t92 61 61 91 22 111-22 111-61 91-92 61-110 23q-55 0-105-20t-90-57l77-77q17-16 ' +
             '8-38-10-23-33-23h-250q-15 0-25 11t-11 25v250q0 24 22 33 22 10 39-8l72-72q60 57 137 88t159 31q87 0 166-34t137-91 ' +
             '91-137 34-166z',
@@ -179,7 +181,8 @@ export class ChartShapeController {
         icon: {
           width: 448,
           height: 512,
-          path: 'M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 ' +
+          path:
+            'M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 ' +
             '48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 ' +
             '0 0 0 47.9-45L416 128H32z'
         },
@@ -196,7 +199,7 @@ export class ChartShapeController {
    */
   private persistShapes(shapes: any[]): void {
     if (this.idSecuritycurrency != null) {
-      this.shapeSave$.next({idSecuritycurrency: this.idSecuritycurrency, shapes: shapes || []});
+      this.shapeSave$.next({ idSecuritycurrency: this.idSecuritycurrency, shapes: shapes || [] });
     }
   }
 
@@ -227,7 +230,7 @@ export class ChartShapeController {
   private applyShapesFromHistory(): void {
     this.isProgrammaticRelayout = true;
     const shapes = JSON.parse(JSON.stringify(this.shapeHistory[this.shapeHistoryIndex]));
-    Plotly.relayout(this.chartNativeElement, {shapes});
+    Plotly.relayout(this.chartNativeElement, { shapes });
   }
 
   /**
@@ -239,12 +242,12 @@ export class ChartShapeController {
     if (currentShapes.length === 0) {
       return;
     }
-    this.translateService.get(['DELETE_ALL_SHAPES', 'DELETE_ALL_SHAPES_CONFIRM']).subscribe(translations => {
+    this.translateService.get(['DELETE_ALL_SHAPES', 'DELETE_ALL_SHAPES_CONFIRM']).subscribe((translations) => {
       this.confirmationService.confirm({
         header: translations['DELETE_ALL_SHAPES'],
         message: translations['DELETE_ALL_SHAPES_CONFIRM'],
         accept: () => {
-          Plotly.relayout(this.chartNativeElement, {shapes: []});
+          Plotly.relayout(this.chartNativeElement, { shapes: [] });
         }
       });
     });

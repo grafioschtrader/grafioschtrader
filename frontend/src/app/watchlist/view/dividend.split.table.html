@@ -1,11 +1,17 @@
-<configurable-table [data]="data" [fields]="fields" [dataKey]="keyfield"
-                    [multiSortMeta]="multiSortMeta" [paginator]="true" [rows]="20"
-                    selectionMode="single" sortMode="multiple"
-                    [valueGetterFn]="getValueByPath.bind(this)"
-                    [customSortFn]="customSort.bind(this)"
-                    [baseLocale]="baseLocale"
-                    customClass="datatable nestedtable leftRight2Table"
-                    (pageChange)="onPage($event)">
+<configurable-table
+  [data]="data"
+  [fields]="fields"
+  [dataKey]="keyfield"
+  [multiSortMeta]="multiSortMeta"
+  [paginator]="true"
+  [rows]="20"
+  selectionMode="single"
+  sortMode="multiple"
+  [valueGetterFn]="getValueByPath.bind(this)"
+  [customSortFn]="customSort.bind(this)"
+  [baseLocale]="baseLocale"
+  customClass="datatable nestedtable leftRight2Table"
+  (pageChange)="onPage($event)">
   <div caption class="table-header">
     <h5>{{groupTitle | translate}}</h5>
   </div>
@@ -13,4 +19,3 @@
     <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
   </ng-template>
 </configurable-table>
-

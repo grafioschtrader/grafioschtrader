@@ -1,7 +1,7 @@
-import {Injectable} from '@angular/core';
-import {IGlobalMenuAttach} from '../component/iglobal.menu.attach';
-import {TopMenuTypes} from '../component/top.menu.types';
-import {MenuItem} from '@openng/optimus-ui/api';
+import { Injectable } from '@angular/core';
+import { IGlobalMenuAttach } from '../component/iglobal.menu.attach';
+import { TopMenuTypes } from '../component/top.menu.types';
+import { MenuItem } from '@openng/optimus-ui/api';
 
 /**
  * Service for managing active panels and their associated top menu items in the application.
@@ -18,7 +18,6 @@ import {MenuItem} from '@openng/optimus-ui/api';
  */
 @Injectable()
 export class ActivePanelService {
-
   /**
    * Reference to the top-level menu items array from the main menu bar.
    * Indexed by TopMenuTypes enum (SHOW=0, EDIT=1) to access specific menu sections.
@@ -34,8 +33,7 @@ export class ActivePanelService {
   /**
    * Creates the active panel service.
    */
-  constructor() {
-  }
+  constructor() {}
 
   /**
    * The currently active panel in the application.
@@ -97,10 +95,13 @@ export class ActivePanelService {
    * @param componentClass - The panel component to activate
    * @param menus - Menu configuration containing Show menu and Edit menu items. Defaults to empty menus.
    */
-  activatePanel(componentClass: IGlobalMenuAttach, menus: Menus = {
-    editMenu: null,
-    showMenu: null
-  }): void {
+  activatePanel(
+    componentClass: IGlobalMenuAttach,
+    menus: Menus = {
+      editMenu: null,
+      showMenu: null
+    }
+  ): void {
     if (this._activatedPanel && componentClass !== this._activatedPanel) {
       this._activatedPanel.hideContextMenu();
     }
@@ -108,7 +109,7 @@ export class ActivePanelService {
     this._activatedPanel = componentClass;
     this.setMenuItems(TopMenuTypes.SHOW, menus.showMenu);
     this.setMenuItems(TopMenuTypes.EDIT, menus.editMenu);
-    this.registeredPanel.filter(panel => panel !== componentClass).forEach(panel => panel.callMeDeactivate());
+    this.registeredPanel.filter((panel) => panel !== componentClass).forEach((panel) => panel.callMeDeactivate());
   }
 
   /**
@@ -142,7 +143,7 @@ export class ActivePanelService {
    */
   private setMenuItems(menuType: TopMenuTypes, menuItems?: MenuItem[]): void {
     this.topMenuItems[menuType].disabled = !menuItems;
-    this.topMenuItems[menuType].items = (menuItems) ? menuItems : null;
+    this.topMenuItems[menuType].items = menuItems ? menuItems : null;
     this.topMenuItems = [...this.topMenuItems];
   }
 }

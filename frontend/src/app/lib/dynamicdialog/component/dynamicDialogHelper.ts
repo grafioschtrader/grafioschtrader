@@ -1,27 +1,28 @@
-import {TranslateService} from '@ngx-translate/core';
-import {Type} from '@angular/core';
-import {DialogService, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
+import { TranslateService } from '@ngx-translate/core';
+import { Type } from '@angular/core';
+import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 
 export class DynamicDialogHelper {
-
-  constructor(private translateService: TranslateService,
+  constructor(
+    private translateService: TranslateService,
     private dialogService: DialogService,
     private componentType: Type<any>,
-    private titleKey: string) {
-  }
+    private titleKey: string
+  ) {}
 
   public openDynamicDialog(widthPx: number, data?: any, contentStyle?: any): DynamicDialogRef {
     let dynamicDialogRef: DynamicDialogRef;
-    this.translateService.get(this.titleKey).subscribe(msg => {
+    this.translateService.get(this.titleKey).subscribe((msg) => {
       dynamicDialogRef = this.dialogService.open(this.componentType, {
-        header: msg, width: widthPx + 'px',
+        header: msg,
+        width: widthPx + 'px',
         modal: true,
         closable: true,
+        closeOnEscape: true,
         contentStyle,
         data
       });
     });
     return dynamicDialogRef;
   }
-
 }

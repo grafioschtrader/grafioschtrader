@@ -1,7 +1,7 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 
-import {AfterLoginHandler} from '../app/lib/login/service/after-login.handler';
-import {ConfigurationWithLogin} from '../app/lib/login/model/configuration-with-login';
+import { AfterLoginHandler } from '../app/lib/login/service/after-login.handler';
+import { ConfigurationWithLogin } from '../app/lib/login/model/configuration-with-login';
 
 /**
  * The {@code AfterLoginHandler} of this host. It is provided although it does nothing, because the hook is how an
@@ -11,7 +11,6 @@ import {ConfigurationWithLogin} from '../app/lib/login/model/configuration-with-
  */
 @Injectable()
 export class GrafioschAfterLoginHandler extends AfterLoginHandler {
-
   handleAfterLogin(configurationWithLogin: ConfigurationWithLogin): void {
     // Nothing application specific to store.
   }

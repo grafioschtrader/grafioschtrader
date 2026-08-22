@@ -1,26 +1,27 @@
-import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-import {AuthServiceWithLogout} from '../../../lib/login/service/base.auth.service.with.logout';
-import {DeleteService} from '../../../lib/datashowbase/delete.service';
-import {LoginService} from '../../../lib/login/service/log-in.service';
-import {MessageToastService} from '../../../lib/message/message.toast.service';
-import {BaseSettings} from '../../../lib/base.settings';
-import {AppSettings} from '../../app.settings';
-import {GTNetSecurityImpPos} from '../model/gtnet-security-imp-pos';
-import {GTNetSecurityImpHead} from '../model/gtnet-security-imp-head';
-import {UploadHistoryquotesSuccess, UploadServiceFunction} from '../../../lib/generaldialog/model/file.upload.param';
+import { AuthServiceWithLogout } from '../../../lib/login/service/base.auth.service.with.logout';
+import { DeleteService } from '../../../lib/datashowbase/delete.service';
+import { LoginService } from '../../../lib/login/service/log-in.service';
+import { MessageToastService } from '../../../lib/message/message.toast.service';
+import { BaseSettings } from '../../../lib/base.settings';
+import { AppSettings } from '../../app.settings';
+import { GTNetSecurityImpPos } from '../model/gtnet-security-imp-pos';
+import { GTNetSecurityImpHead } from '../model/gtnet-security-imp-head';
+import { UploadHistoryquotesSuccess, UploadServiceFunction } from '../../../lib/generaldialog/model/file.upload.param';
 
 /**
  * Service for managing GTNet security import positions.
  * Provides CRUD operations for individual security entries within an import batch.
  */
 @Injectable()
-export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecurityImpPos>
-  implements DeleteService, UploadServiceFunction {
-
+export class GTNetSecurityImpPosService
+  extends AuthServiceWithLogout<GTNetSecurityImpPos>
+  implements DeleteService, UploadServiceFunction
+{
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
   }
@@ -32,10 +33,12 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
    * @returns Observable of positions belonging to the header
    */
   getByHead(idGtNetSecurityImpHead: number): Observable<GTNetSecurityImpPos[]> {
-    return this.httpClient.get<GTNetSecurityImpPos[]>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/head/${idGtNetSecurityImpHead}`,
-      this.getHeaders()
-    ).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .get<GTNetSecurityImpPos[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/head/${idGtNetSecurityImpHead}`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -45,11 +48,13 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
    * @returns Observable of the created position
    */
   create(entity: GTNetSecurityImpPos): Observable<GTNetSecurityImpPos> {
-    return this.httpClient.post<GTNetSecurityImpPos>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}`,
-      entity,
-      this.getHeaders()
-    ).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .post<GTNetSecurityImpPos>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}`,
+        entity,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -59,11 +64,13 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
    * @returns Observable of the updated position
    */
   update(entity: GTNetSecurityImpPos): Observable<GTNetSecurityImpPos> {
-    return this.httpClient.put<GTNetSecurityImpPos>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}`,
-      entity,
-      this.getHeaders()
-    ).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .put<GTNetSecurityImpPos>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}`,
+        entity,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -87,10 +94,9 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
    * @returns Observable completing when delete is done
    */
   deleteEntity(id: number): Observable<any> {
-    return this.httpClient.delete(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/${id}`,
-      this.getHeaders()
-    ).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .delete(`${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/${id}`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -119,10 +125,12 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
    * @returns Observable of the updated position with security set to null
    */
   deleteLinkedSecurity(idGtNetSecurityImpPos: number): Observable<GTNetSecurityImpPos> {
-    return this.httpClient.delete<GTNetSecurityImpPos>(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/${idGtNetSecurityImpPos}/security`,
-      this.getHeaders()
-    ).pipe(catchError(this.handleError.bind(this)));
+    return this.httpClient
+      .delete<GTNetSecurityImpPos>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/${idGtNetSecurityImpPos}/security`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -134,8 +142,11 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
    * @param headName name for new header (required if idGtNetSecurityImpHead is not provided)
    * @returns Observable of the GTNet security import header (existing or newly created)
    */
-  createFromImportTransactionHead(idTransactionHead: number, idGtNetSecurityImpHead?: number,
-                                  headName?: string): Observable<GTNetSecurityImpHead> {
+  createFromImportTransactionHead(
+    idTransactionHead: number,
+    idGtNetSecurityImpHead?: number,
+    headName?: string
+  ): Observable<GTNetSecurityImpHead> {
     let params = new URLSearchParams();
     if (idGtNetSecurityImpHead != null) {
       params.set('idGtNetSecurityImpHead', String(idGtNetSecurityImpHead));
@@ -144,9 +155,11 @@ export class GTNetSecurityImpPosService extends AuthServiceWithLogout<GTNetSecur
       params.set('headName', headName);
     }
     const queryString = params.toString();
-    const url = `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/fromimport/${idTransactionHead}`
-      + (queryString ? `?${queryString}` : '');
-    return this.httpClient.post<GTNetSecurityImpHead>(url, null, this.getHeaders())
+    const url =
+      `${BaseSettings.API_ENDPOINT}${AppSettings.GT_NET_SECURITY_IMP_POS_KEY}/fromimport/${idTransactionHead}` +
+      (queryString ? `?${queryString}` : '');
+    return this.httpClient
+      .post<GTNetSecurityImpHead>(url, null, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 }

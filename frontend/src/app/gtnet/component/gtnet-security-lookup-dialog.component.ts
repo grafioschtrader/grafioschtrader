@@ -1,20 +1,20 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {ProgressSpinnerModule} from '@openng/optimus-ui/progressspinner';
-import {MessageModule} from '@openng/optimus-ui/message';
-import {Subscription} from 'rxjs';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { ProgressSpinnerModule } from '@openng/optimus-ui/progressspinner';
+import { MessageModule } from '@openng/optimus-ui/message';
+import { Subscription } from 'rxjs';
 
-import {GtnetSecurityLookupService} from '../service/gtnet-security-lookup.service';
+import { GtnetSecurityLookupService } from '../service/gtnet-security-lookup.service';
 import {
   SecurityGtnetLookupDTO,
   SecurityGtnetLookupRequest,
   SecurityGtnetLookupResponse
 } from '../model/gtnet-security-lookup';
-import {GtnetSecurityLookupTableComponent} from './gtnet-security-lookup-table.component';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
+import { GtnetSecurityLookupTableComponent } from './gtnet-security-lookup-table.component';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
 
 /**
  * Dialog component for searching and selecting security metadata from GTNet peers.
@@ -32,16 +32,16 @@ import {ProcessedAction} from '../../lib/types/processed.action';
     MessageModule,
     GtnetSecurityLookupTableComponent
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <p-dialog
       [header]="'GTNET_SECURITY_LOOKUP' | translate"
       [visible]="visibleDialog"
-      [style]="{width: '900px', minHeight: '400px'}"
+      [style]="{ width: '900px', minHeight: '400px' }"
       [modal]="true"
       [resizable]="true"
       (onShow)="onShow()"
       (onHide)="onHide()">
-
       @if (loading) {
         <div class="flex justify-content-center align-items-center" style="min-height: 200px">
           <p-progressSpinner></p-progressSpinner>
@@ -57,8 +57,8 @@ import {ProcessedAction} from '../../lib/types/processed.action';
 
         @if (response && response.securities.length > 0) {
           <div class="mb-2 text-secondary">
-            {{ 'PEERS_QUERIED' | translate }}: {{ response.peersQueried }} |
-            {{ 'PEERS_RESPONDED' | translate }}: {{ response.peersResponded }}
+            {{ 'PEERS_QUERIED' | translate }}: {{ response.peersQueried }} | {{ 'PEERS_RESPONDED' | translate }}:
+            {{ response.peersResponded }}
           </div>
           <gtnet-security-lookup-table
             [securities]="response.securities"
@@ -70,7 +70,6 @@ import {ProcessedAction} from '../../lib/types/processed.action';
   `
 })
 export class GtnetSecurityLookupDialogComponent {
-
   @Input() visibleDialog = false;
   @Input() isin: string;
   @Input() currency: string;

@@ -1,11 +1,11 @@
-import {test} from '@playwright/test';
-import {loginAsFixtureUser} from './helpers';
+import { test } from '@playwright/test';
+import { loginAsFixtureUser } from './helpers';
 import {
   createCashStandingOrder,
   createSecurityStandingOrder,
   deleteExistingStandingOrders,
   expectStandingOrders,
-  loadStandingOrders,
+  loadStandingOrders
 } from './standing-order.helpers';
 
 /**
@@ -17,9 +17,9 @@ const STANDING_ORDERS = loadStandingOrders();
 test.describe.serial("standing orders of 'alledit'", () => {
   // The security dialog contains both the transaction and scheduling fieldsets. At the default 720px height its
   // lower date fields sit outside the non-scrolling centered dialog, just like the instrument search in 065.
-  test.use({viewport: {width: 1600, height: 1400}});
+  test.use({ viewport: { width: 1600, height: 1400 } });
 
-  test('recreates and verifies every fixture standing order', async ({page}) => {
+  test('recreates and verifies every fixture standing order', async ({ page }) => {
     await loginAsFixtureUser(page, 'alledit');
     await deleteExistingStandingOrders(page, STANDING_ORDERS);
 

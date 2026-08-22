@@ -7,11 +7,12 @@ import {
   OnChanges,
   Output,
   QueryList,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
-import {StepperModule} from '@openng/optimus-ui/stepper';
-import {ButtonModule} from '@openng/optimus-ui/button';
+import { StepperModule } from '@openng/optimus-ui/stepper';
+import { ButtonModule } from '@openng/optimus-ui/button';
 import { StepComponent } from './step.component';
 
 @Component({
@@ -20,10 +21,7 @@ import { StepComponent } from './step.component';
     <p-stepper [value]="activeIndex + 1" [class]="styleClass">
       <p-step-list>
         @for (step of steps.toArray(); track step; let i = $index) {
-          <p-step
-            [value]="i + 1"
-            [class]="step.styleClass || stepClass"
-            (click)="onStepClick(i)">
+          <p-step [value]="i + 1" [class]="step.styleClass || stepClass" (click)="onStepClick(i)">
             {{ step.label }}
           </p-step>
         }
@@ -36,19 +34,14 @@ import { StepComponent } from './step.component';
     <!-- Navigation buttons -->
     <div class="flex pt-6 justify-between">
       @if (activeIndex > 0) {
-        <p-button
-          type="button"
-          (click)="previous()"
-          severity="secondary">
+        <p-button type="button" (click)="previous()" severity="secondary">
           <i class="pi pi-chevron-left mr-2"></i>
           Previous
         </p-button>
       }
 
       @if (activeIndex < steps.length - 1) {
-        <p-button
-          type="button"
-          (click)="next()">
+        <p-button type="button" (click)="next()">
           Next
           <i class="pi pi-chevron-right ml-2"></i>
         </p-button>
@@ -56,6 +49,7 @@ import { StepComponent } from './step.component';
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [StepperModule, ButtonModule]
 })
 export class StepsComponent implements AfterContentInit, OnChanges {

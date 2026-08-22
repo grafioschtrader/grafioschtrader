@@ -1,6 +1,6 @@
-import {expect, Page, test as setup} from '@playwright/test';
+import { expect, Page, test as setup } from '@playwright/test';
 
-import {libHelpers, UserFixture} from './helpers';
+import { libHelpers, UserFixture } from './helpers';
 
 /**
  * Registers every users.json object of `grafiosch-test-integration` tagged `e2e='e'` through the browser, verifies it
@@ -15,12 +15,12 @@ import {libHelpers, UserFixture} from './helpers';
 /** Fills the tenant page of the standalone host, which asks for nothing but the tenant name. */
 async function setupGrafioschTenant(page: Page, user: UserFixture): Promise<void> {
   const tenantNameInput = page.locator('#tenantName');
-  await tenantNameInput.waitFor({state: 'visible', timeout: 15_000});
+  await tenantNameInput.waitFor({ state: 'visible', timeout: 15_000 });
   await tenantNameInput.fill(user.tenantName);
   await page.locator('button[type="submit"]').click();
 }
 
-setup('register the lib e2e users from users.json, verify, and setup their tenants', async ({page}) => {
+setup('register the lib e2e users from users.json, verify, and setup their tenants', async ({ page }) => {
   const e2eUsers = libHelpers.loadE2EUsers();
   expect(e2eUsers, `No objects with e2e='e' found in ${libHelpers.config.usersJson}`).not.toHaveLength(0);
   await libHelpers.clearMailhog();

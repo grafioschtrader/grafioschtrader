@@ -17,9 +17,7 @@
             },
             "index": "src/index.html",
             "tsConfig": "./tsconfig.app.json",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "assets": [
               "src/assets",
               "src/favicon.ico",
@@ -34,7 +32,6 @@
               "node_modules/normalize.css/normalize.css",
               "node_modules/@openng/icons/openng-icons.css",
               "node_modules/font-awesome/css/font-awesome.min.css",
-              "node_modules/ngx-toastr/toastr.css",
               "node_modules/flag-icons/css/flag-icons.min.css",
               "src/assets/theme.css",
               "src/styles.css",
@@ -47,11 +44,7 @@
               "node_modules/plotly.js/dist/plotly.min.js",
               "node_modules/reflect-metadata/Reflect.js"
             ],
-            "allowedCommonJsDependencies": [
-              "moment",
-              "deepmerge",
-              "angular2-uuid"
-            ],
+            "allowedCommonJsDependencies": ["moment", "deepmerge", "angular2-uuid"],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -129,12 +122,8 @@
             "index": "src/grafiosch-host/index.html",
             "browser": "src/grafiosch-host/main.ts",
             "tsConfig": "./tsconfig.grafiosch-host.json",
-            "polyfills": [
-              "zone.js"
-            ],
-            "assets": [
-              "src/assets"
-            ],
+            "polyfills": ["zone.js"],
+            "assets": ["src/assets"],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/normalize.css/normalize.css",
@@ -151,10 +140,7 @@
               "node_modules/split.js/dist/split.js",
               "node_modules/reflect-metadata/Reflect.js"
             ],
-            "allowedCommonJsDependencies": [
-              "moment",
-              "deepmerge"
-            ]
+            "allowedCommonJsDependencies": ["moment", "deepmerge"]
           },
           "configurations": {
             "development": {

@@ -1,10 +1,10 @@
-import {Component, Input, OnChanges, SimpleChanges} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import { Component, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 
 /** One calculated closure with the name of the rule that produced it. */
 export interface RuleSetClosure {
@@ -32,10 +32,10 @@ export interface RuleSetClosure {
     </configurable-table>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ConfigurableTableComponent, TranslateModule]
 })
 export class TradingCalendarRuleSetPreviewComponent extends ShowRecordConfigBase implements OnChanges {
-
   /** Closures as delivered by the backend, keyed by date in ascending order. */
   @Input() closures: { [date: string]: string };
 
@@ -50,8 +50,10 @@ export class TradingCalendarRuleSetPreviewComponent extends ShowRecordConfigBase
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['closures']) {
-      this.closureList = Object.entries(this.closures ?? {})
-        .map(([closureDate, ruleName]) => ({closureDate, ruleName}));
+      this.closureList = Object.entries(this.closures ?? {}).map(([closureDate, ruleName]) => ({
+        closureDate,
+        ruleName
+      }));
     }
   }
 }

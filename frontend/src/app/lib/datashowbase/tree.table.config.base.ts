@@ -1,9 +1,9 @@
-import {TranslateService} from '@ngx-translate/core';
-import {FilterService, TreeNode} from '@openng/optimus-ui/api';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {TableTreetableTotalBase} from './table.treetable.total.base';
-import {TranslateHelper} from '../helper/translate.helper';
-import {BaseSettings} from '../base.settings';
+import { TranslateService } from '@ngx-translate/core';
+import { FilterService, TreeNode } from '@openng/optimus-ui/api';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { TableTreetableTotalBase } from './table.treetable.total.base';
+import { TranslateHelper } from '../helper/translate.helper';
+import { BaseSettings } from '../base.settings';
 
 /**
  * Abstract base class for configuring Optimus TreeTable components with hierarchical data display.
@@ -15,7 +15,6 @@ import {BaseSettings} from '../base.settings';
  * support for sorting and filtering operations.
  */
 export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
-
   /**
    * Creates a new tree table configuration base.
    *
@@ -23,7 +22,11 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
    * @param gps - Global parameter service for locale and formatting settings
    * @param filterService - Optional Optimus service for registering custom filters
    */
-  protected constructor(translateService: TranslateService, gps: GlobalparameterService, filterService?: FilterService) {
+  protected constructor(
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    filterService?: FilterService
+  ) {
     super(translateService, gps, null, filterService);
   }
 
@@ -77,7 +80,7 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
    * ```
    */
   createTranslateValuesStoreForTranslation(root: TreeNode[]): void {
-    const columnConfigs = this.fields.filter(columnConfig => !!columnConfig.translateValues);
+    const columnConfigs = this.fields.filter((columnConfig) => !!columnConfig.translateValues);
     if (root === null) {
       return;
     }
@@ -94,6 +97,8 @@ export abstract class TreeTableConfigBase extends TableTreetableTotalBase {
         n--;
       }
     }
-    columnConfigs.forEach(columnConfig => columnConfig.fieldTranslated = columnConfig.field + BaseSettings.FIELD_SUFFIX);
+    columnConfigs.forEach(
+      (columnConfig) => (columnConfig.fieldTranslated = columnConfig.field + BaseSettings.FIELD_SUFFIX)
+    );
   }
 }

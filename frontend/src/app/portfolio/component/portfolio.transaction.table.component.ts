@@ -1,26 +1,29 @@
-import {TransactionTable} from '../../transaction/component/transaction.table';
-import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {Currencypair} from '../../entities/currencypair';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {combineLatest, Observable, Subscription} from 'rxjs';
-import {TransactionService} from '../../transaction/service/transaction.service';
-import {Transaction} from '../../entities/transaction';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivatedRoute, Params} from '@angular/router';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {CommonModule} from '@angular/common';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {TransactionCashaccountEditSingleComponent} from '../../transaction/component/transaction-cashaccount-editsingle.component';
-import {TransactionCashaccountEditDoubleComponent} from '../../transaction/component/transaction-cashaccount-editdouble.component';
-import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
-import {TransactionCashaccountConnectDebitCreditComponent} from '../../transaction/component/transaction-cashaccount-connect-debit-credit-component';
-import {StandingOrderCashaccountEditComponent} from '../../standingorder/component/standing-order-cashaccount-edit.component';
-import {StandingOrderSecurityEditComponent} from '../../standingorder/component/standing-order-security-edit.component';
+import { TransactionTable } from '../../transaction/component/transaction.table';
+import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {
+  PageFirstRowSelectedRow,
+  ParentChildRegisterService
+} from '../../shared/service/parent.child.register.service';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { Currencypair } from '../../entities/currencypair';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { TransactionService } from '../../transaction/service/transaction.service';
+import { Transaction } from '../../entities/transaction';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { TranslateService } from '@ngx-translate/core';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ActivatedRoute, Params } from '@angular/router';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { CommonModule } from '@angular/common';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
+import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
+import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { TransactionCashaccountConnectDebitCreditComponent } from '../../transaction/component/transaction-cashaccount-connect-debit-credit-component';
+import { StandingOrderCashaccountEditComponent } from '../../standingorder/component/standing-order-cashaccount-edit.component';
+import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
 
 /**
  * Component that displays all transactions belonging to a specific portfolio in a tabular format.
@@ -32,6 +35,7 @@ import {StandingOrderSecurityEditComponent} from '../../standingorder/component/
 @Component({
   templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ConfigurableTableComponent,
@@ -44,7 +48,6 @@ import {StandingOrderSecurityEditComponent} from '../../standingorder/component/
   ]
 })
 export class PortfolioTransactionTableComponent extends TransactionTable implements OnInit, OnDestroy {
-
   /** Subscription for monitoring route parameter changes */
   private routeSubscribe: Subscription;
 
@@ -67,7 +70,8 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
    * @param usersettingsService Service for managing user-specific preferences and settings
    */
 
-  constructor(private activatedRoute: ActivatedRoute,
+  constructor(
+    private activatedRoute: ActivatedRoute,
     currencypairService: CurrencypairService,
     parentChildRegisterService: ParentChildRegisterService,
     activePanelService: ActivePanelService,
@@ -78,9 +82,21 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
-    super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
-      messageToastService, filterService, translateService, gps, usersettingsService, injector);
+    injector: Injector
+  ) {
+    super(
+      currencypairService,
+      parentChildRegisterService,
+      activePanelService,
+      transactionService,
+      confirmationService,
+      messageToastService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   /**
@@ -88,7 +104,7 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
    * Configures sorting behavior and establishes the route parameter subscription to monitor portfolio changes.
    */
   ngOnInit(): void {
-    this.multiSortMeta.push({field: 'transactionTime', order: -1});
+    this.multiSortMeta.push({ field: 'transactionTime', order: -1 });
     this.prepareTableAndTranslate();
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       this.idPortfolio = +params['id'];
@@ -120,16 +136,24 @@ export class PortfolioTransactionTableComponent extends TransactionTable impleme
    * Updates the table display and configures filtering options based on the loaded data.
    */
   protected override initialize(): void {
-    const transactionsObservable: Observable<Transaction[]> =
-      this.transactionService.getTransactionsByIdPortfolio(this.idPortfolio);
-    const currencypairObservable: Observable<Currencypair[]> = this.currencypairService
-      .getCurrencypairInTransactionByTenant();
+    const transactionsObservable: Observable<Transaction[]> = this.transactionService.getTransactionsByIdPortfolio(
+      this.idPortfolio
+    );
+    const currencypairObservable: Observable<Currencypair[]> =
+      this.currencypairService.getCurrencypairInTransactionByTenant();
     this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(0, this.selectedTransaction);
-    combineLatest([transactionsObservable, currencypairObservable]).subscribe((result: [Transaction[], Currencypair[]]) => {
-      this.cashaccountTransactionPositions = this.addCurrencypairToTransaction(result[0], result[1]);
-      this.prepareFilter(this.cashaccountTransactionPositions);
-      setTimeout(() => this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(this.firstRowIndexOnPage,
-        this.selectedTransaction));
-    });
+    combineLatest([transactionsObservable, currencypairObservable]).subscribe(
+      (result: [Transaction[], Currencypair[]]) => {
+        this.cashaccountTransactionPositions = this.addCurrencypairToTransaction(result[0], result[1]);
+        this.prepareFilter(this.cashaccountTransactionPositions);
+        setTimeout(
+          () =>
+            (this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(
+              this.firstRowIndexOnPage,
+              this.selectedTransaction
+            ))
+        );
+      }
+    );
   }
 }

@@ -1,9 +1,9 @@
-import {expect, Locator, Page, test} from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {loginAsFixtureUser} from './helpers';
-import {expectToast} from './manage-client.helpers';
-import {fillText, selectByValue} from './generic-connector.helpers';
+import { loginAsFixtureUser } from './helpers';
+import { expectToast } from './manage-client.helpers';
+import { fillText, selectByValue } from './generic-connector.helpers';
 
 /**
  * A linked instrument of a derived security. Instruments are referenced by name because the
@@ -58,21 +58,25 @@ interface DerivedScenario {
   security: DerivedInstrument;
 }
 
-const FIXTURE_PATH = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/security-creations.json');
+const FIXTURE_PATH = path.resolve(
+  __dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/security-creations.json'
+);
 
 function loadFixture(): DerivedScenario[] {
   if (!fs.existsSync(FIXTURE_PATH)) {
     return [];
   }
   const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8')) as SecurityCreationFixture;
-  return fixture.groups.flatMap(group => group.securities
-    .filter(security => security.creationType === 'DERIVED' && security.e2e === 'e')
-    .map(security => ({
-      loginNickname: group.loginNickname,
-      watchlistName: group.watchlistName,
-      security
-    })));
+  return fixture.groups.flatMap((group) =>
+    group.securities
+      .filter((security) => security.creationType === 'DERIVED' && security.e2e === 'e')
+      .map((security) => ({
+        loginNickname: group.loginNickname,
+        watchlistName: group.watchlistName,
+        security
+      }))
+  );
 }
 
 const SCENARIOS = loadFixture();
@@ -83,7 +87,7 @@ const RX = {
   // ("Create and add security" / "Hinzufügen neues Wertpapier"), which sits right above it.
   createDerivedItem: /(Add\s*new\s*derived\s*security|Hinzuf.*abgeleitetes\s*Instrument)/i,
   assignSelected: /(Assign\s*selected|Selektierte\s*zuweisen)/i,
-  recordSaved: /(was saved|wurde gespeichert)/i,
+  recordSaved: /(was saved|wurde gespeichert)/i
 };
 
 /**
@@ -99,10 +103,9 @@ function toDeChShortDate(isoDate: string): string {
 /** Selects a native <select> option by a substring of its visible label. */
 async function selectByOptionText(scope: Locator, fieldId: string, text: string): Promise<void> {
   const select = scope.locator(`select#${fieldId}`).first();
-  await expect(select.locator('option')).not.toHaveCount(0, {timeout: 15_000});
-  const option = select.locator('option').filter({hasText: text}).first();
-  await expect(option, `no option containing "${text}" in select#${fieldId}`)
-    .toHaveCount(1, {timeout: 10_000});
+  await expect(select.locator('option')).not.toHaveCount(0, { timeout: 15_000 });
+  const option = select.locator('option').filter({ hasText: text }).first();
+  await expect(option, `no option containing "${text}" in select#${fieldId}`).toHaveCount(1, { timeout: 10_000 });
   await select.selectOption(await option.getAttribute('value'));
   await select.dispatchEvent('change');
 }
@@ -119,7 +122,7 @@ async function typeDate(scope: Locator, fieldId: string, isoDate: string): Promi
   await input.click();
   await input.press('Control+a');
   await input.press('Backspace');
-  await input.pressSequentially(shortDate, {delay: 20});
+  await input.pressSequentially(shortDate, { delay: 20 });
   await input.blur();
   await expect(input, `${fieldId} did not keep the typed date`).toHaveValue(shortDate);
 }
@@ -135,13 +138,13 @@ async function typeDate(scope: Locator, fieldId: string, isoDate: string): Promi
  */
 async function typeNumberIfVisible(scope: Locator, fieldId: string, value: number): Promise<void> {
   const input = scope.locator(`#${fieldId} input, input#${fieldId}`).first();
-  if (!await input.isVisible()) {
+  if (!(await input.isVisible())) {
     return;
   }
   await input.click();
   await input.press('Control+a');
   await input.press('Backspace');
-  await input.pressSequentially(String(value), {delay: 20});
+  await input.pressSequentially(String(value), { delay: 20 });
   await input.press('Tab');
 }
 
@@ -150,17 +153,20 @@ async function typeNumberIfVisible(scope: Locator, fieldId: string, value: numbe
  * matches roughly twenty pairs while the result table paginates at ten rows.
  */
 async function rowAcrossPages(page: Page, table: Locator, displayName: string): Promise<Locator> {
-  const row = table.locator('tr').filter({has: page.locator(`td:text-is("${displayName}")`)}).first();
+  const row = table
+    .locator('tr')
+    .filter({ has: page.locator(`td:text-is("${displayName}")`) })
+    .first();
   const nextPage = table.locator('.p-paginator-next');
 
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
-      await expect(row).toBeVisible({timeout: attempt === 0 ? 15_000 : 3_000});
+      await expect(row).toBeVisible({ timeout: attempt === 0 ? 15_000 : 3_000 });
       return row;
     } catch {
       // Not on this page — fall through and try the next one.
     }
-    if (await nextPage.count() === 0 || await nextPage.isDisabled()) {
+    if ((await nextPage.count()) === 0 || (await nextPage.isDisabled())) {
       break;
     }
     await nextPage.click();
@@ -177,29 +183,30 @@ async function rowAcrossPages(page: Page, table: Locator, displayName: string): 
  */
 async function pickInstrument(page: Page, dlg: Locator, fieldId: string, ref: InstrumentRef): Promise<void> {
   const openButton = dlg.locator(`p-inputgroup:has(input#${fieldId}) button`).first();
-  const search = page.locator('.p-dialog')
-    .filter({has: page.locator('securitycurrency-search-and-set')}).first();
+  const search = page
+    .locator('.p-dialog')
+    .filter({ has: page.locator('securitycurrency-search-and-set') })
+    .first();
 
   // The first click right after the derived dialog opened only moves the focus — the button
   // receives it (it becomes document.activeElement) but the (click) handler does not run and no
   // DynamicDialog is created. Verified with a DOM probe: click #1 leaves the body untouched, click
   // #2 appends the P-DYNAMICDIALOG. So click, verify, and repeat once. The count check before each
   // click makes sure a successful open is never followed by a second one.
-  for (let attempt = 0; attempt < 3 && await search.count() === 0; attempt++) {
+  for (let attempt = 0; attempt < 3 && (await search.count()) === 0; attempt++) {
     await openButton.click();
     try {
-      await search.waitFor({state: 'visible', timeout: 3_000});
+      await search.waitFor({ state: 'visible', timeout: 3_000 });
     } catch {
       // Swallowed click — try again.
     }
   }
-  await search.waitFor({state: 'visible', timeout: 10_000});
+  await search.waitFor({ state: 'visible', timeout: 10_000 });
 
   // Same reset race as the outer dialog: initialize() assigns the dropdown options and then calls
   // setDefaultValuesAndEnableSubmit(). Probe idStockexchange, because that select is hidden again
   // the moment assetclassType becomes CURRENCY_PAIR.
-  await expect(search.locator('select#idStockexchange').locator('option'))
-    .not.toHaveCount(0, {timeout: 15_000});
+  await expect(search.locator('select#idStockexchange').locator('option')).not.toHaveCount(0, { timeout: 15_000 });
 
   if (ref.type === 'CURRENCYPAIR') {
     // Restricts the security half of the search to currency pairs (of which none can be returned,
@@ -215,20 +222,20 @@ async function pickInstrument(page: Page, dlg: Locator, fieldId: string, ref: In
   const row = await rowAcrossPages(page, table, ref.displayName);
   await row.click();
 
-  const assign = search.getByRole('button', {name: RX.assignSelected}).first();
-  await expect(assign).toBeEnabled({timeout: 5_000});
+  const assign = search.getByRole('button', { name: RX.assignSelected }).first();
+  await expect(assign).toBeEnabled({ timeout: 5_000 });
   await assign.click();
-  await search.waitFor({state: 'hidden', timeout: 10_000});
+  await search.waitFor({ state: 'hidden', timeout: 10_000 });
 
-  await expect(dlg.locator(`input#${fieldId}`)).toHaveValue(ref.displayName, {timeout: 10_000});
+  await expect(dlg.locator(`input#${fieldId}`)).toHaveValue(ref.displayName, { timeout: 10_000 });
 }
 
 /** Opens the watchlist and waits for its table to be rendered. */
 async function openWatchlist(page: Page, watchlistName: string): Promise<void> {
-  const node = page.getByRole('treeitem', {name: watchlistName, exact: true}).first();
-  await node.waitFor({state: 'visible', timeout: 15_000});
+  const node = page.getByRole('treeitem', { name: watchlistName, exact: true }).first();
+  await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
-  await page.locator('.data-container').first().waitFor({state: 'visible', timeout: 15_000});
+  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
   // Let the watchlist table render before the skip-if-present check.
   await page.waitForTimeout(1500);
 }
@@ -237,17 +244,17 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
   // The search-and-assign dialog stacks a full criteria form, a ten row result table, the paginator
   // and the assign button. At the default 720px height it overflows the viewport and the assign
   // button cannot be scrolled into view, because a centered p-dialog does not scroll the body.
-  test.use({viewport: {width: 1600, height: 1400}});
+  test.use({ viewport: { width: 1600, height: 1400 } });
 
   for (const scenario of SCENARIOS) {
     const row = scenario.security;
-    test(`adds derived instrument ${row.name}`, async ({page}) => {
+    test(`adds derived instrument ${row.name}`, async ({ page }) => {
       await loginAsFixtureUser(page, scenario.loginNickname);
       await openWatchlist(page, scenario.watchlistName);
 
       // Derived instruments are globally shared and security has no unique name index, so a second
       // run would silently create duplicates — skip what is already in the watchlist.
-      if (await page.locator('td', {hasText: row.name}).count() > 0) {
+      if ((await page.locator('td', { hasText: row.name }).count()) > 0) {
         return;
       }
 
@@ -255,24 +262,23 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
       const contentArea = page.locator('.data-container').first();
       await contentArea.click();
       await page.waitForTimeout(300);
-      await contentArea.click({button: 'right'});
+      await contentArea.click({ button: 'right' });
 
       const menu = page.locator('[role="menu"]:visible');
-      await menu.waitFor({state: 'visible', timeout: 5_000});
+      await menu.waitFor({ state: 'visible', timeout: 5_000 });
       await menu.getByText(RX.createDerivedItem).first().click();
 
       // The derived dialog is a plain p-dialog rendered inside its component, whereas the search
       // dialog opened later is a DynamicDialog appended to the body — scoping through the component
       // tag keeps the two apart without relying on header text.
       const dlg = page.locator('security-derived-edit .p-dialog').first();
-      await dlg.waitFor({state: 'visible', timeout: 10_000});
+      await dlg.waitFor({ state: 'visible', timeout: 10_000 });
 
       // NOTHING may be entered before the dialog's master data has arrived. initialize() loads
       // stock exchanges, currencies and asset classes in one combineLatest whose subscribe assigns
       // the dropdown options and then calls setDefaultValuesAndEnableSubmit() — a form reset that
       // silently wipes anything typed earlier.
-      await expect(dlg.locator('select#assetClass').locator('option'))
-        .not.toHaveCount(0, {timeout: 15_000});
+      await expect(dlg.locator('select#assetClass').locator('option')).not.toHaveCount(0, { timeout: 15_000 });
 
       // --- Derived data: base instrument, formula, additional instruments ---
       await pickInstrument(page, dlg, 'baseProductName', row.baseInstrument);
@@ -303,16 +309,17 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
       await typeDate(dlg, 'activeToDate', row.activeToDate);
 
       // --- Save and verify what was really persisted ---
-      const responsePromise = page.waitForResponse(response =>
-        /\/api\/security$/.test(new URL(response.url()).pathname)
-        && response.request().method() === 'POST', {timeout: 20_000});
+      const responsePromise = page.waitForResponse(
+        (response) =>
+          /\/api\/security$/.test(new URL(response.url()).pathname) && response.request().method() === 'POST',
+        { timeout: 20_000 }
+      );
       // The derived dialog has exactly one submit button (AuditHelper.SUBMIT_FIELD_BUTTON); unlike
       // the plain security dialog there are no splits/trading-period sub-forms.
       await dlg.locator('button[type="submit"]').first().click();
 
       const response = await responsePromise;
-      expect(response.ok(), `POST /api/security returned ${response.status()}: ${await response.text()}`)
-        .toBe(true);
+      expect(response.ok(), `POST /api/security returned ${response.status()}: ${await response.text()}`).toBe(true);
       const saved = await response.json();
 
       expect(saved.name).toBe(row.name);
@@ -325,20 +332,18 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
       expect(saved.formulaPrices ?? null).toBe(row.formulaPrices);
       // The base instrument is the decisive part of a derived security — without it the instrument
       // would be an ordinary security without a price source.
-      expect(typeof saved.idLinkSecuritycurrency,
-        'base instrument was not linked').toBe('number');
+      expect(typeof saved.idLinkSecuritycurrency, 'base instrument was not linked').toBe('number');
 
       const expectedVars = Object.keys(row.additionalInstruments);
-      const savedLinks = (saved.securityDerivedLinks ?? []) as { varName: string, idLinkSecuritycurrency: number }[];
-      expect(savedLinks.map(l => l.varName).sort()).toEqual(expectedVars.sort());
+      const savedLinks = (saved.securityDerivedLinks ?? []) as { varName: string; idLinkSecuritycurrency: number }[];
+      expect(savedLinks.map((l) => l.varName).sort()).toEqual(expectedVars.sort());
       for (const link of savedLinks) {
         expect(typeof link.idLinkSecuritycurrency).toBe('number');
         expect(link.idLinkSecuritycurrency).not.toBe(saved.idLinkSecuritycurrency);
       }
 
       await expectToast(page, RX.recordSaved);
-      await expect(page.locator('td', {hasText: row.name}).first())
-        .toBeVisible({timeout: 15_000});
+      await expect(page.locator('td', { hasText: row.name }).first()).toBeVisible({ timeout: 15_000 });
     });
   }
 });

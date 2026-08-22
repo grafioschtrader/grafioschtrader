@@ -1,14 +1,14 @@
-import {CrudMenuOptions, TableCrudSupportMenu} from './table.crud.support.menu';
-import {Directive, Injector} from '@angular/core';
-import {DeleteService} from './delete.service';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {MessageToastService} from '../message/message.toast.service';
-import {ActivePanelService} from '../mainmenubar/service/active.panel.service';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {UserSettingsService} from '../services/user.settings.service';
-import {BaseID} from '../entities/base.id';
+import { CrudMenuOptions, TableCrudSupportMenu } from './table.crud.support.menu';
+import { Directive, Injector } from '@angular/core';
+import { DeleteService } from './delete.service';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { MessageToastService } from '../message/message.toast.service';
+import { ActivePanelService } from '../mainmenubar/service/active.panel.service';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { UserSettingsService } from '../services/user.settings.service';
+import { BaseID } from '../entities/base.id';
 
 /**
  * For example, a security has an asset class, this can only be deleted if no security refers to it.
@@ -16,27 +16,43 @@ import {BaseID} from '../entities/base.id';
  */
 @Directive()
 export abstract class TableCrudSupportMenuSecurity<T extends BaseID> extends TableCrudSupportMenu<T> {
-
   hasSecurityObject: { [key: number]: number } = {};
 
-  protected constructor(entityName: string,
-              deleteService: DeleteService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              activePanelService: ActivePanelService,
-              dialogService: DialogService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector,
-              crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS) {
-    super(entityName, deleteService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector, crudMenuOptions);
+  protected constructor(
+    entityName: string,
+    deleteService: DeleteService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    activePanelService: ActivePanelService,
+    dialogService: DialogService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector,
+    crudMenuOptions: CrudMenuOptions[] = TableCrudSupportMenu.ALLOW_ALL_CRUD_OPERATIONS
+  ) {
+    super(
+      entityName,
+      deleteService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector,
+      crudMenuOptions
+    );
   }
 
   protected override hasRightsForDeleteEntity(entity: T): boolean {
-    return Object.keys(this.hasSecurityObject).length > 0 && this.hasSecurityObject[this.getId(entity)] === 0
-      && super.hasRightsForDeleteEntity(entity);
+    return (
+      Object.keys(this.hasSecurityObject).length > 0 &&
+      this.hasSecurityObject[this.getId(entity)] === 0 &&
+      super.hasRightsForDeleteEntity(entity)
+    );
   }
 }

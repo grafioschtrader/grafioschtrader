@@ -1,11 +1,11 @@
-import {describe, expect, it} from 'vitest';
-import {TreeNode} from '@openng/optimus-ui/api';
+import { describe, expect, it } from 'vitest';
+import { TreeNode } from '@openng/optimus-ui/api';
 
-import {Transaction} from '../../entities/transaction';
-import {buildTransactionReceiptTree, getSelectedTransactions} from './transaction-receipt-tree';
+import { Transaction } from '../../entities/transaction';
+import { buildTransactionReceiptTree, getSelectedTransactions } from './transaction-receipt-tree';
 
 function transaction(idTransaction: number, connectedIdTransaction: number = null): Transaction {
-  return {idTransaction, connectedIdTransaction} as Transaction;
+  return { idTransaction, connectedIdTransaction } as Transaction;
 }
 
 describe('transaction receipt tree', () => {
@@ -14,8 +14,8 @@ describe('transaction receipt tree', () => {
 
     const roots = buildTransactionReceiptTree(transactions);
 
-    expect(roots.map(node => node.data.idTransaction)).toEqual([1, 4]);
-    expect(roots[0].children.map(node => node.data.idTransaction)).toEqual([2, 3]);
+    expect(roots.map((node) => node.data.idTransaction)).toEqual([1, 4]);
+    expect(roots[0].children.map((node) => node.data.idTransaction)).toEqual([2, 3]);
     expect(roots[0].expanded).toBe(true);
     expect(roots[1].leaf).toBe(true);
   });
@@ -38,12 +38,12 @@ describe('transaction receipt tree', () => {
   it('returns unique persisted selections in transaction order', () => {
     const transactions = [transaction(1), transaction(2, 1), transaction(3, 1)];
     const selectedNodes = [
-      {data: transaction(3)} as TreeNode,
-      {data: transaction(-1)} as TreeNode,
-      {data: transaction(1)} as TreeNode,
-      {data: transaction(1)} as TreeNode
+      { data: transaction(3) } as TreeNode,
+      { data: transaction(-1) } as TreeNode,
+      { data: transaction(1) } as TreeNode,
+      { data: transaction(1) } as TreeNode
     ];
 
-    expect(getSelectedTransactions(transactions, selectedNodes).map(t => t.idTransaction)).toEqual([1, 3]);
+    expect(getSelectedTransactions(transactions, selectedNodes).map((t) => t.idTransaction)).toEqual([1, 3]);
   });
 });

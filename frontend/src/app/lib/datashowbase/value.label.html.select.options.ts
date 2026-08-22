@@ -1,8 +1,9 @@
 export class ValueLabelHtmlSelectOptions {
-  constructor(public value: number | string, public label: string) {
-  }
+  constructor(
+    public value: number | string,
+    public label: string
+  ) {}
 }
-
 
 /*
 export interface ValueLabelHtmlSelectOptions {

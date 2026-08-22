@@ -1,72 +1,90 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
 
-import {AppHelper} from '../../lib/helper/app.helper';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {HelpIds} from '../../lib/help/help.ids';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {ImportTransactionPosService} from '../service/import.transaction.pos.service';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
-import {AppSettings} from '../../shared/app.settings';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { HelpIds } from '../../lib/help/help.ids';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { ImportTransactionPosService } from '../service/import.transaction.pos.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
+import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Dialog to assign a cash account to an imported transaction position.
  */
 @Component({
   selector: 'securityaccount-import-set-cashaccount',
-  template: `
-    <p-dialog header="{{'CASHACCOUNT' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '400px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
+  template: ` <p-dialog
+    header="{{ 'CASHACCOUNT' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '400px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class SecurityaccountImportSetCashaccountComponent extends SimpleEditBase implements OnInit {
   @Input() idSecuritycashAccount: number;
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos[];
 
-  constructor(private portfolioService: PortfolioService,
-              private importTransactionPosService: ImportTransactionPosService,
-              public translateService: TranslateService,
-              gps: GlobalparameterService) {
+  constructor(
+    private portfolioService: PortfolioService,
+    private importTransactionPosService: ImportTransactionPosService,
+    public translateService: TranslateService,
+    gps: GlobalparameterService
+  ) {
     super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT_TRANSACTIONIMPORT, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      4, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     this.config = [
-      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), false,
-        {dataproperty: 'cashaccount.idSecuritycashAccount'}),
+      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), false, {
+        dataproperty: 'cashaccount.idSecuritycashAccount'
+      }),
       DynamicFieldHelper.createSubmitButton('ASIGN')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   submit(value: { [name: string]: any }): void {
-    this.importTransactionPosService.setCashAccount(value.idCashaccount, this.combineTemplateAndImpTransPos.map(ct =>
-      ct.importTransactionPos.idTransactionPos)).subscribe(rcImportTransactionPosList =>
-      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)));
+    this.importTransactionPosService
+      .setCashAccount(
+        value.idCashaccount,
+        this.combineTemplateAndImpTransPos.map((ct) => ct.importTransactionPos.idTransactionPos)
+      )
+      .subscribe((rcImportTransactionPosList) =>
+        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED))
+      );
   }
 
   protected initialize(): void {
-    this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount).subscribe(portfolio => {
-        this.configObject.idCashaccount.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-          'idSecuritycashAccount', 'name', portfolio.cashaccountList, false);
-      }
-    );
+    this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount).subscribe((portfolio) => {
+      this.configObject.idCashaccount.valueKeyHtmlOptions =
+        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+          'idSecuritycashAccount',
+          'name',
+          portfolio.cashaccountList,
+          false
+        );
+    });
   }
 }

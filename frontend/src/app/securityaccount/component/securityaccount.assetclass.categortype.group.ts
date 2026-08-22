@@ -1,17 +1,21 @@
-import {Security} from '../../entities/security';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {TranslateService} from '@ngx-translate/core';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SecurityaccountGroupBaseDynamic} from './securityaccount.group.base.dynamic';
+import { Security } from '../../entities/security';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { TranslateService } from '@ngx-translate/core';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { SecurityaccountGroupBaseDynamic } from './securityaccount.group.base.dynamic';
 
 /**
  * Group by asset class, like bond, stock, commodities, real estate, ....
  */
 export class SecurityaccountAssetclassCategortypeGroup extends SecurityaccountGroupBaseDynamic<AssetclassType> {
-
-
   constructor(translateService: TranslateService, datatableConfigBase: TableConfigBase) {
-    super(translateService, datatableConfigBase, 'assetclasstype', 'security.assetClass.categoryType', 'GROUP_BY_ASSETCLASS');
+    super(
+      translateService,
+      datatableConfigBase,
+      'assetclasstype',
+      'security.assetClass.categoryType',
+      'GROUP_BY_ASSETCLASS'
+    );
     // this.translateService.get('short').subscribe(translated => this.translatedShort = translated);
   }
 
@@ -32,10 +36,7 @@ export class SecurityaccountAssetclassCategortypeGroup extends SecurityaccountGr
     return security.assetClass.categoryType;
   }
 
-
   protected getGroupFieldAsString(enumType: AssetclassType): string {
     return AssetclassType[AssetclassType[enumType]];
   }
-
-
 }

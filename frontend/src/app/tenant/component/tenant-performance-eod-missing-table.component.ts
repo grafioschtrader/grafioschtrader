@@ -1,16 +1,25 @@
-import {CommonModule} from '@angular/common';
-import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {FilterService} from '@openng/optimus-ui/api';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {Security} from '../../entities/security';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
+import { CommonModule } from '@angular/common';
+import {
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { FilterService } from '@openng/optimus-ui/api';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { Security } from '../../entities/security';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
 
 /**
  * Shows a table with the missing instruments that do not have a complete price history.
@@ -36,6 +45,7 @@ import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
     </configurable-table>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTableComponent]
 })
 export class TenantPerformanceEodMissingTableComponent extends TableConfigBase implements OnInit, OnChanges {
@@ -50,24 +60,28 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
   selectedSecurity: Security;
   private feedConnectorsKV: { [id: string]: string };
 
-  constructor(private securityService: SecurityService,
+  constructor(
+    private securityService: SecurityService,
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
-    this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
+    this.addColumnFeqH(DataType.String, 'name', true, false, { width: 250 });
     this.addColumnFeqH(DataType.String, 'isin');
     this.addColumnFeqH(DataType.String, 'currency');
     this.addColumnFeqH(DataType.DateString, 'activeFromDate');
     this.addColumnFeqH(DataType.DateString, 'activeToDate');
-    this.addColumn(DataType.String, 'idConnectorHistory', 'HISTORY_DATA_PROVIDER', true, true,
-      {fieldValueFN: this.getFeedConnectorReadableName.bind(this)});
+    this.addColumn(DataType.String, 'idConnectorHistory', 'HISTORY_DATA_PROVIDER', true, true, {
+      fieldValueFN: this.getFeedConnectorReadableName.bind(this)
+    });
 
-    this.addColumn(DataType.Numeric, 'count', 'COUNT_MISSING_YEAR', true, true,
-      {fieldValueFN: this.getSecurityMissingCount.bind(this)});
-    this.multiSortMeta.push({field: 'name', order: 1});
+    this.addColumn(DataType.Numeric, 'count', 'COUNT_MISSING_YEAR', true, true, {
+      fieldValueFN: this.getSecurityMissingCount.bind(this)
+    });
+    this.multiSortMeta.push({ field: 'name', order: 1 });
     this.prepareTableAndTranslate();
   }
 
@@ -90,10 +104,13 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
 
   ngOnInit(): void {
     this.securityService.getFeedConnectors().subscribe((feedConnectors: IFeedConnector[]) => {
-      this.feedConnectorsKV = feedConnectors.reduce((acc, feedConnector) => {
-        acc[feedConnector.id] = feedConnector.readableName;
-        return acc;
-      }, {} as { [key: string]: string });
+      this.feedConnectorsKV = feedConnectors.reduce(
+        (acc, feedConnector) => {
+          acc[feedConnector.id] = feedConnector.readableName;
+          return acc;
+        },
+        {} as { [key: string]: string }
+      );
     });
   }
 
@@ -102,5 +119,4 @@ export class TenantPerformanceEodMissingTableComponent extends TableConfigBase i
       this.selectedSecurity = null;
     }
   }
-
 }

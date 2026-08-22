@@ -1,4 +1,4 @@
-import {GetTransformedError} from './get.transformed.error';
+import { GetTransformedError } from './get.transformed.error';
 
 export class TransformedError {
   public msgKey: string;
@@ -6,8 +6,10 @@ export class TransformedError {
   public bringUpDialog: boolean;
   public bringUpAdminSelfReleaseDialog: boolean;
 
-  constructor(public msg: string = '', public interpolateParams: any = {}) {
-  }
+  constructor(
+    public msg: string = '',
+    public interpolateParams: any = {}
+  ) {}
 
   isEmtpy(): boolean {
     return this.msg.trim().length === 0;
@@ -16,5 +18,4 @@ export class TransformedError {
   getMsgOrKey(): string {
     return this.isEmtpy() ? this.msgKey : this.msg;
   }
-
 }

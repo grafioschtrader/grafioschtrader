@@ -1,5 +1,5 @@
-import {Table} from '@openng/optimus-ui/table';
-import {TreeTable} from '@openng/optimus-ui/treetable';
+import { Table } from '@openng/optimus-ui/table';
+import { TreeTable } from '@openng/optimus-ui/treetable';
 
 /**
  * Union type for Optimus Table and TreeTable components.

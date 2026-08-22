@@ -1,29 +1,29 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ConfirmationService, MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {concat, Subscription} from 'rxjs';
-import {toArray} from 'rxjs/operators';
-import {ActivatedRoute, Params} from '@angular/router';
-import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
-import {BaseSettings} from '../../lib/base.settings';
-import {AlgoTop} from '../model/algo.top';
-import {AlgoAssetclassService} from '../service/algo.assetclass.service';
-import {AlgoAssetclass} from '../model/algo.assetclass';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {AppSettings} from '../../shared/app.settings';
-import {plainToClass} from 'class-transformer';
-import {ColumnConfig, EditInputType, TranslateValue} from '../../lib/datashowbase/column.config';
-import {AlgoTopAssetSecurity} from '../model/algo.top.asset.security';
-import {AlgoStrategy} from '../model/algo.strategy';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../lib/help/help.ids';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {AlgoTreeName} from '../../entities/view/algo.tree.name';
-import {AlgoSecurity} from '../model/algo.security';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { ConfirmationService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { concat, Subscription } from 'rxjs';
+import { toArray } from 'rxjs/operators';
+import { ActivatedRoute, Params } from '@angular/router';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
+import { BaseSettings } from '../../lib/base.settings';
+import { AlgoTop } from '../model/algo.top';
+import { AlgoAssetclassService } from '../service/algo.assetclass.service';
+import { AlgoAssetclass } from '../model/algo.assetclass';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { AppSettings } from '../../shared/app.settings';
+import { plainToClass } from 'class-transformer';
+import { ColumnConfig, EditInputType, TranslateValue } from '../../lib/datashowbase/column.config';
+import { AlgoTopAssetSecurity } from '../model/algo.top.asset.security';
+import { AlgoStrategy } from '../model/algo.strategy';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { HelpIds } from '../../lib/help/help.ids';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { AlgoTreeName } from '../../entities/view/algo.tree.name';
+import { AlgoSecurity } from '../model/algo.security';
 
 import {
   AlgoCallParam,
@@ -31,30 +31,30 @@ import {
   AlgoStrategyDefinitionForm,
   AlgoStrategyParamCall
 } from '../model/algo.dialog.visible';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {DeleteService} from '../../lib/datashowbase/delete.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {BaseID} from '../../lib/entities/base.id';
-import {AlgoSecurityService} from '../service/algo.security.service';
-import {AlgoStrategyService} from '../service/algo.strategy.service';
-import {AlgoStrategyImplementationType} from '../../shared/types/algo.strategy.implementation.type';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AlgoStrategyHelper} from './algo.strategy.helper';
-import {AlgoTopService} from '../service/algo.top.service';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop} from '../model/tree.algo.base';
-import {AlgoSecurityEditComponent} from './algo-security-edit.component';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { DeleteService } from '../../lib/datashowbase/delete.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { BaseID } from '../../lib/entities/base.id';
+import { AlgoSecurityService } from '../service/algo.security.service';
+import { AlgoStrategyService } from '../service/algo.strategy.service';
+import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AlgoStrategyHelper } from './algo.strategy.helper';
+import { AlgoTopService } from '../service/algo.top.service';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop } from '../model/tree.algo.base';
+import { AlgoSecurityEditComponent } from './algo-security-edit.component';
 
 /**
  * Shows algorithmic trading tree with its strategies.
  * Supports inline editing of the percentage column for AlgoTop, AlgoAssetclass, and AlgoSecurity nodes.
  */
-import {CommonModule} from '@angular/common';
-import {TranslateModule} from '@ngx-translate/core';
-import {StrategyDetailComponent} from './strategy-detail.component';
-import {AlgoAssetclassEditComponent} from './algo-assetclass-edit.component';
-import {AlgoStrategyEditComponent} from './algo-strategy-edit.component';
+import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { StrategyDetailComponent } from './strategy-detail.component';
+import { AlgoAssetclassEditComponent } from './algo-assetclass-edit.component';
+import { AlgoStrategyEditComponent } from './algo-strategy-edit.component';
 import {
   ConfigurableTreeTableComponent,
   TreeTableCellEditEvent
@@ -62,13 +62,21 @@ import {
 
 @Component({
   template: `
-    <div class="data-container"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      class="data-container"
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <configurable-tree-table
-        [data]="treeNodes" [fields]="fields" dataKey="idTree"
+        [data]="treeNodes"
+        [fields]="fields"
+        dataKey="idTree"
         [(selection)]="selectedNode"
-        (nodeSelect)="onNodeSelect($event)" (nodeUnselect)="onNodeUnselect($event)"
-        [showContextMenu]="true" [contextMenuItems]="contextMenuItems"
+        (nodeSelect)="onNodeSelect($event)"
+        (nodeUnselect)="onNodeUnselect($event)"
+        [showContextMenu]="true"
+        [contextMenuItems]="contextMenuItems"
         [valueGetterFn]="getValueByPath.bind(this)"
         [baseLocale]="baseLocale"
         [canEditCellFn]="canEditCell.bind(this)"
@@ -81,41 +89,52 @@ import {
         <h4 caption>{{ 'ALGO_OVERVIEW' | translate }}</h4>
       </configurable-tree-table>
       @if (algoStrategyShowParamCall.algoStrategy) {
-        <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall">
-        </strategy-detail>
+        <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall"> </strategy-detail>
       }
     </div>
     @if (visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]) {
-      <algo-assetclass-edit [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]"
-                            [algoCallParam]="algoCallParam"
-                            (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
+      <algo-assetclass-edit
+        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_ASSETCLASS]"
+        [algoCallParam]="algoCallParam"
+        (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
       </algo-assetclass-edit>
     }
     @if (visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]) {
-      <algo-security-edit [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]"
-                          [algoCallParam]="algoCallParam"
-                          (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
+      <algo-security-edit
+        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_SECURITY]"
+        [algoCallParam]="algoCallParam"
+        (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
       </algo-security-edit>
     }
     @if (visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]) {
-      <algo-strategy-edit [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]"
-                          [algoCallParam]="algoCallParam"
-                          (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
+      <algo-strategy-edit
+        [visibleDialog]="visibleDialogs[AlgoDialogVisible.ALGO_STRATEGY]"
+        [algoCallParam]="algoCallParam"
+        (closeDialog)="handleCloseAlgoAssetclassDialog($event)">
       </algo-strategy-edit>
     }
   `,
-    styles: [`
-    .kb-row {
-      font-weight: 700 !important;
-    }
-  `],
-    standalone: true,
-    imports: [AlgoSecurityEditComponent, CommonModule, TranslateModule, ConfigurableTreeTableComponent,
-      StrategyDetailComponent, AlgoAssetclassEditComponent, AlgoStrategyEditComponent]
+  styles: [
+    `
+      .kb-row {
+        font-weight: 700 !important;
+      }
+    `
+  ],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    AlgoSecurityEditComponent,
+    CommonModule,
+    TranslateModule,
+    ConfigurableTreeTableComponent,
+    StrategyDetailComponent,
+    AlgoAssetclassEditComponent,
+    AlgoStrategyEditComponent
+  ]
 })
 export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
-
-// Otherwise enum DialogVisible can't be used in a html template
+  // Otherwise enum DialogVisible can't be used in a html template
   AlgoDialogVisible: typeof AlgoDialogVisible = AlgoDialogVisible;
 
   // For modal dialogs
@@ -134,7 +153,8 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   algoStrategyShowParamCall: AlgoStrategyParamCall = new AlgoStrategyParamCall();
   private routeSubscribe: Subscription;
 
-  constructor(private activatedRoute: ActivatedRoute,
+  constructor(
+    private activatedRoute: ActivatedRoute,
     private treeNavState: TreeNavigationStateService,
     private activePanelService: ActivePanelService,
     private algoTopService: AlgoTopService,
@@ -145,14 +165,24 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     protected messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
+    gps: GlobalparameterService
+  ) {
     super(translateService, gps);
 
-    this.addColumn(DataType.String, 'name', 'NAME', true, false,
-      {fieldValueFN: this.getReadableUniqueName.bind(this)});
-    this.addColumn(DataType.Boolean, '_selected', '', true, false, {templateName: 'editableCheck', width: 40});
+    this.addColumn(DataType.String, 'name', 'NAME', true, false, {
+      fieldValueFN: this.getReadableUniqueName.bind(this)
+    });
+    this.addColumn(DataType.Boolean, '_selected', '', true, false, {
+      templateName: 'editableCheck',
+      width: 40
+    });
     const percentageCol = this.addColumn(DataType.Numeric, 'percentage', 'ALGO_PERCENTAGE', true, false);
-    percentageCol.cec = {inputType: EditInputType.InputNumber, min: 0, max: 100, maxFractionDigits: 2};
+    percentageCol.cec = {
+      inputType: EditInputType.InputNumber,
+      min: 0,
+      max: 100,
+      maxFractionDigits: 2
+    };
     this.addColumnFeqH(DataType.NumericShowZero, 'addedPercentage', true, false);
     this.addColumn(DataType.String, 'idTree', 'ID', true, false);
   }
@@ -161,22 +191,27 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       const id = +params['id'];
       this.algoTop = this.treeNavState.getEntity<AlgoTop>(
-        BaseSettings.MAINVIEW_KEY + '/' + AppSettings.ALGO_TOP_KEY, id);
+        BaseSettings.MAINVIEW_KEY + '/' + AppSettings.ALGO_TOP_KEY,
+        id
+      );
       this.translateHeadersAndColumns();
       this.readDataWithoutTopLevel();
     });
   }
 
   readDataWithTopLevel(): void {
-    this.algoTopService.getAlgoTopByIdAlgoAssetclassSecurity(this.algoTop.idAlgoAssetclassSecurity).subscribe(algoTop => {
-      this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
-      this.algoTop = algoTop;
-      this.readDataWithoutTopLevel();
-    });
+    this.algoTopService
+      .getAlgoTopByIdAlgoAssetclassSecurity(this.algoTop.idAlgoAssetclassSecurity)
+      .subscribe((algoTop) => {
+        this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
+        this.algoTop = algoTop;
+        this.readDataWithoutTopLevel();
+      });
   }
 
   readDataWithoutTopLevel(): void {
-    this.algoAssetclassService.getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(this.algoTop.idAlgoAssetclassSecurity)
+    this.algoAssetclassService
+      .getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(this.algoTop.idAlgoAssetclassSecurity)
       .subscribe((algoAssetclassList: AlgoAssetclass[]) => {
         this.algoTop.algoAssetclassList = algoAssetclassList;
         this.algoTop = plainToClass(AlgoTop, this.algoTop);
@@ -226,17 +261,17 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     if (rowData instanceof AlgoTop) {
       this.algoTopService.update(rowData).subscribe({
         next: () => this.readDataWithTopLevel(),
-        error: () => rowData[event.field.field] = event.originalValue
+        error: () => (rowData[event.field.field] = event.originalValue)
       });
     } else if (rowData instanceof AlgoAssetclass) {
       this.algoAssetclassService.update(rowData).subscribe({
         next: () => this.readDataWithoutTopLevel(),
-        error: () => rowData[event.field.field] = event.originalValue
+        error: () => (rowData[event.field.field] = event.originalValue)
       });
     } else if (rowData instanceof AlgoSecurity) {
       this.algoSecurityService.update(rowData).subscribe({
         next: () => this.readDataWithoutTopLevel(),
-        error: () => rowData[event.field.field] = event.originalValue
+        error: () => (rowData[event.field.field] = event.originalValue)
       });
     }
   }
@@ -264,43 +299,56 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   /**
    * Handles checkbox toggle by storing the checked state on the row data object.
    */
-  onCheckboxChangeHandler(event: {rowData: any; field: ColumnConfig; value: boolean}): void {
+  onCheckboxChangeHandler(event: { rowData: any; field: ColumnConfig; value: boolean }): void {
     event.rowData._selected = event.value;
   }
 
-  extendMenuWithAlgoStrategy(menuItems: MenuItem[], selectedNode: AlgoTop | AlgoAssetclass | AlgoSecurity, algoStrategy: AlgoStrategy): void {
-    menuItems.push({separator: true});
+  extendMenuWithAlgoStrategy(
+    menuItems: MenuItem[],
+    selectedNode: AlgoTop | AlgoAssetclass | AlgoSecurity,
+    algoStrategy: AlgoStrategy
+  ): void {
+    menuItems.push({ separator: true });
     const algoStrategyMenuItem: MenuItem = {
       label: 'CREATE|ALGO_STRATEGY',
-      command: (e) => this.addEdit(AlgoDialogVisible.ALGO_STRATEGY, selectedNode, algoStrategy,
-        this.algoStrategyDefinitionForm)
+      command: (e) =>
+        this.addEdit(AlgoDialogVisible.ALGO_STRATEGY, selectedNode, algoStrategy, this.algoStrategyDefinitionForm)
     };
     menuItems.push(algoStrategyMenuItem);
     if (this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.has(selectedNode.idAlgoAssetclassSecurity)) {
-      algoStrategyMenuItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
-        selectedNode.idAlgoAssetclassSecurity).length === 0;
+      algoStrategyMenuItem.disabled =
+        this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(selectedNode.idAlgoAssetclassSecurity).length === 0;
     } else {
-
-      this.algoStrategyService.getUnusedStrategiesForManualAdding(selectedNode.idAlgoAssetclassSecurity)
-        .subscribe(algoStrategyImplementations => {
-          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(selectedNode.idAlgoAssetclassSecurity, algoStrategyImplementations);
-          algoStrategyMenuItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(
-            selectedNode.idAlgoAssetclassSecurity).length === 0;
+      this.algoStrategyService
+        .getUnusedStrategiesForManualAdding(selectedNode.idAlgoAssetclassSecurity)
+        .subscribe((algoStrategyImplementations) => {
+          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(
+            selectedNode.idAlgoAssetclassSecurity,
+            algoStrategyImplementations
+          );
+          algoStrategyMenuItem.disabled =
+            this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(selectedNode.idAlgoAssetclassSecurity).length ===
+            0;
         });
     }
   }
 
   handleDeleteEntity<T extends BaseID>(entity: T, deleteService: DeleteService): void {
     const entityMsg = AppHelper.toUpperCaseWithUnderscore(entity.constructor.name);
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|' + entityMsg, () => {
-        deleteService.deleteEntity(entity.getId()).subscribe(response => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: entity.constructor.name});
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|' + entityMsg,
+      () => {
+        deleteService.deleteEntity(entity.getId()).subscribe((response) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: entity.constructor.name
+          });
           this.resetMenu();
           this.readDataWithoutTopLevel();
         });
-      });
+      }
+    );
   }
 
   handleCloseAlgoAssetclassDialog(processedActionData: ProcessedActionData) {
@@ -330,11 +378,9 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     return null;
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   getHelpContextId(): string {
     return HelpIds.HELP_ALGO;
@@ -344,8 +390,11 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     if (this.selectedNode instanceof TreeAlgoStrategy) {
       // Needed to cause ngOnChanges
       this.algoStrategyShowParamCall = new AlgoStrategyParamCall();
-      this.setFieldDescriptorInputAndShow((<TreeNode>this.selectedNode).parent.data, this.selectedNode.data,
-        this.algoStrategyShowParamCall);
+      this.setFieldDescriptorInputAndShow(
+        (<TreeNode>this.selectedNode).parent.data,
+        this.selectedNode.data,
+        this.algoStrategyShowParamCall
+      );
       // this.algoStrategyShowParamCall.algoStrategy = this.selectedNode.algoStrategy;
     } else {
       this.algoStrategyShowParamCall.algoStrategy = null;
@@ -366,29 +415,41 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
 
   private translateDataForAssetclass(): void {
     const fieldsAssetclass: ColumnConfig[] = [];
-    this.addColumnToFields(fieldsAssetclass, DataType.String, 'assetclass.categoryType',
-      '', true, false, {translateValues: TranslateValue.NORMAL});
-    this.addColumnToFields(fieldsAssetclass, DataType.String, 'assetclass.specialInvestmentInstrument',
-      '', true, false, {translateValues: TranslateValue.NORMAL});
+    this.addColumnToFields(fieldsAssetclass, DataType.String, 'assetclass.categoryType', '', true, false, {
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumnToFields(
+      fieldsAssetclass,
+      DataType.String,
+      'assetclass.specialInvestmentInstrument',
+      '',
+      true,
+      false,
+      { translateValues: TranslateValue.NORMAL }
+    );
 
-    const nonCustomAssetclasses = this.algoTop.algoAssetclassList.filter(ac => !ac.isCustomCategory());
+    const nonCustomAssetclasses = this.algoTop.algoAssetclassList.filter((ac) => !ac.isCustomCategory());
     TranslateHelper.createTranslatedValueStore(this.translateService, fieldsAssetclass, nonCustomAssetclasses);
   }
 
   private translateDataForStrategy(): void {
     const fieldAlgoStrategy: ColumnConfig[] = [];
-    this.addColumnToFields(fieldAlgoStrategy, DataType.String, 'algoStrategyImplementations',
-      '', true, false, {translateValues: TranslateValue.NORMAL});
+    this.addColumnToFields(fieldAlgoStrategy, DataType.String, 'algoStrategyImplementations', '', true, false, {
+      translateValues: TranslateValue.NORMAL
+    });
     const algoStrategyList: AlgoStrategy[] = [];
     this.traverseObjectTreeForAlgoStrategy(algoStrategyList, this.algoTop);
     TranslateHelper.createTranslatedValueStore(this.translateService, fieldAlgoStrategy, algoStrategyList);
   }
 
-  private traverseObjectTreeForAlgoStrategy(algoStrategyList: AlgoStrategy[], algoTopAssetSecurity: AlgoTopAssetSecurity): void {
+  private traverseObjectTreeForAlgoStrategy(
+    algoStrategyList: AlgoStrategy[],
+    algoTopAssetSecurity: AlgoTopAssetSecurity
+  ): void {
     algoTopAssetSecurity.algoStrategyList && algoStrategyList.push(...algoTopAssetSecurity.algoStrategyList);
     const algoTopAssetSecurityList = algoTopAssetSecurity.getChildList();
     if (algoTopAssetSecurityList) {
-      algoTopAssetSecurityList.forEach(atas => {
+      algoTopAssetSecurityList.forEach((atas) => {
         this.traverseObjectTreeForAlgoStrategy(algoStrategyList, atas);
       });
     }
@@ -415,15 +476,23 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     if (checked.length === 0) {
       return;
     }
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|SECURITY', () => {
-        const deleteObs = checked.map(sec => this.algoSecurityService.deleteEntity(sec.idAlgoAssetclassSecurity));
-        concat(...deleteObs).pipe(toArray()).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {i18nRecord: 'AlgoSecurity'});
-          this.resetMenu();
-          this.readDataWithoutTopLevel();
-        });
-      });
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|SECURITY',
+      () => {
+        const deleteObs = checked.map((sec) => this.algoSecurityService.deleteEntity(sec.idAlgoAssetclassSecurity));
+        concat(...deleteObs)
+          .pipe(toArray())
+          .subscribe(() => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: 'AlgoSecurity'
+            });
+            this.resetMenu();
+            this.readDataWithoutTopLevel();
+          });
+      }
+    );
   }
 
   private handleNormalizePercentages(idAlgoAssetclassSecurity: number): void {
@@ -454,12 +523,12 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
         label: 'DELETE_SELECTED_SECURITIES',
         command: () => this.handleDeleteSelectedSecurities()
       });
-      menuItems.push({separator: true});
+      menuItems.push({ separator: true });
     }
     if (selectedNode instanceof TreeAlgoTop) {
       menuItems.push({
-        label: 'ADD_RECORD|ASSETCLASS', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS,
-          this.algoTop, null)
+        label: 'ADD_RECORD|ASSETCLASS',
+        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop, null)
       });
       menuItems.push({
         label: 'NORMALIZE_PERCENTAGES',
@@ -474,18 +543,18 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoAssetclass) {
       menuItems.push({
-        label: 'EDIT_RECORD|ASSETCLASS', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS,
-          this.algoTop, selectedNode.data)
+        label: 'EDIT_RECORD|ASSETCLASS',
+        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop, selectedNode.data)
       });
       menuItems.push({
         label: 'DELETE_RECORD|ASSETCLASS',
         command: (e) => this.handleDeleteEntity(selectedNode.data, this.algoAssetclassService),
         disabled: selectedNode.children.length > 0
       });
-      menuItems.push({separator: true});
+      menuItems.push({ separator: true });
       menuItems.push({
-        label: 'ADD_RECORD|SECURITY', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_SECURITY,
-          <AlgoAssetclass>selectedNode.data, null)
+        label: 'ADD_RECORD|SECURITY',
+        command: (e) => this.addEdit(AlgoDialogVisible.ALGO_SECURITY, <AlgoAssetclass>selectedNode.data, null)
       });
       menuItems.push({
         label: 'NORMALIZE_PERCENTAGES',
@@ -495,8 +564,13 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoSecurity) {
       menuItems.push({
-        label: 'EDIT_RECORD|SECURITY', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_SECURITY,
-          (<TreeNode>selectedNode).parent.data, <AlgoSecurity>selectedNode.data)
+        label: 'EDIT_RECORD|SECURITY',
+        command: (e) =>
+          this.addEdit(
+            AlgoDialogVisible.ALGO_SECURITY,
+            (<TreeNode>selectedNode).parent.data,
+            <AlgoSecurity>selectedNode.data
+          )
       });
       menuItems.push({
         label: 'DELETE_RECORD|SECURITY',
@@ -505,8 +579,14 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       this.extendMenuWithAlgoStrategy(menuItems, selectedNode.data, null);
     } else if (selectedNode instanceof TreeAlgoStrategy) {
       menuItems.push({
-        label: 'EDIT', command: (e) => this.addEdit(AlgoDialogVisible.ALGO_STRATEGY,
-          (<TreeNode>selectedNode).parent.data, selectedNode.data, this.algoStrategyDefinitionForm)
+        label: 'EDIT',
+        command: (e) =>
+          this.addEdit(
+            AlgoDialogVisible.ALGO_STRATEGY,
+            (<TreeNode>selectedNode).parent.data,
+            selectedNode.data,
+            this.algoStrategyDefinitionForm
+          )
       });
       menuItems.push({
         label: 'DELETE_RECORD|ALGO_STRATEGY',
@@ -517,12 +597,18 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     return menuItems;
   }
 
-  private addEdit(algoDialogVisible: AlgoDialogVisible, parent: AlgoTop | AlgoAssetclass | AlgoSecurity,
+  private addEdit(
+    algoDialogVisible: AlgoDialogVisible,
+    parent: AlgoTop | AlgoAssetclass | AlgoSecurity,
     thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
-    algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm): void {
-    const idWatchlist = (algoDialogVisible === AlgoDialogVisible.ALGO_SECURITY
-      && parent instanceof AlgoAssetclass && parent.isCustomCategory())
-      ? this.algoTop.idWatchlist : undefined;
+    algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm
+  ): void {
+    const idWatchlist =
+      algoDialogVisible === AlgoDialogVisible.ALGO_SECURITY &&
+      parent instanceof AlgoAssetclass &&
+      parent.isCustomCategory()
+        ? this.algoTop.idWatchlist
+        : undefined;
     this.algoCallParam = new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm, idWatchlist);
     this.visibleDialogs[algoDialogVisible] = true;
   }
@@ -534,25 +620,30 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     }
   }
 
-  private setFieldDescriptorInputAndShow<T extends AlgoTopAssetSecurity>(algoTopAssetSecurity: T,
+  private setFieldDescriptorInputAndShow<T extends AlgoTopAssetSecurity>(
+    algoTopAssetSecurity: T,
     algoStrategy: AlgoStrategy,
-    algoStrategyParamCall: AlgoStrategyParamCall): void {
+    algoStrategyParamCall: AlgoStrategyParamCall
+  ): void {
     const asiNo: number = AlgoStrategyImplementationType[algoStrategy.algoStrategyImplementations];
     const inputAndShowDefinition = this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.get(asiNo);
     if (!inputAndShowDefinition) {
-      this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe(iasd => {
+      this.algoStrategyService.getFormDefinitionsByAlgoStrategy(asiNo).subscribe((iasd) => {
         this.algoStrategyDefinitionForm.inputAndShowDefinitionMap.set(asiNo, iasd);
         algoStrategyParamCall.isComplexStrategy = iasd.isComplexStrategy;
-        algoStrategyParamCall.fieldDescriptorShow = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(algoTopAssetSecurity,
-          iasd);
+        algoStrategyParamCall.fieldDescriptorShow = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
+          algoTopAssetSecurity,
+          iasd
+        );
         this.algoStrategyShowParamCall.algoStrategy = algoStrategy;
       });
     } else {
       algoStrategyParamCall.isComplexStrategy = inputAndShowDefinition.isComplexStrategy;
-      algoStrategyParamCall.fieldDescriptorShow = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(algoTopAssetSecurity,
-        inputAndShowDefinition);
+      algoStrategyParamCall.fieldDescriptorShow = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
+        algoTopAssetSecurity,
+        inputAndShowDefinition
+      );
       this.algoStrategyShowParamCall.algoStrategy = algoStrategy;
     }
-
   }
 }

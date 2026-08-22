@@ -1,5 +1,5 @@
-import {Currencypair} from '../../entities/currencypair';
-import {Security} from '../../entities/security';
+import { Currencypair } from '../../entities/currencypair';
+import { Security } from '../../entities/security';
 
 export interface MissingQuotesWithSecurities {
   year: number;
@@ -14,4 +14,3 @@ export interface MissingQuotesWithSecurities {
   dateSecurityMissingMap: { [key: string]: number[] };
   countIdSecurityMissingsMap: { [key: number]: number };
 }
-

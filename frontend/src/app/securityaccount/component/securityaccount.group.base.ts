@@ -1,12 +1,14 @@
-import {Security} from '../../entities/security';
-import {SecurityPositionGroupSummary} from '../../entities/view/security.position.group.summary';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {TranslateService} from '@ngx-translate/core';
-import {SecurityPositionGrandSummary} from '../../entities/view/security.position.grand.summary';
+import { Security } from '../../entities/security';
+import { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { TranslateService } from '@ngx-translate/core';
+import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 
-export abstract class SecurityaccountGroupBase<T extends SecurityPositionGroupSummary, U extends SecurityPositionGrandSummary> {
-
+export abstract class SecurityaccountGroupBase<
+  T extends SecurityPositionGroupSummary,
+  U extends SecurityPositionGrandSummary
+> {
   /**
    *
    * @param translateService Service for translation
@@ -15,12 +17,13 @@ export abstract class SecurityaccountGroupBase<T extends SecurityPositionGroupSu
    * @param defaultEntityGroup
    * @param groupedBy
    */
-  protected constructor(protected translateService: TranslateService,
-              protected datatableConfigBase: TableConfigBase,
-              public defaultGroup: string,
-              public defaultEntityGroup: string,
-              public groupedBy: string) {
-  }
+  protected constructor(
+    protected translateService: TranslateService,
+    protected datatableConfigBase: TableConfigBase,
+    public defaultGroup: string,
+    public defaultEntityGroup: string,
+    public groupedBy: string
+  ) {}
 
   /**
    * Add some columns to the base definition
@@ -37,7 +40,12 @@ export abstract class SecurityaccountGroupBase<T extends SecurityPositionGroupSu
 
   public abstract getGroupRowFieldText(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any): string;
 
-  public abstract getGroupRowFieldTextByRowIndex(columnConfig: ColumnConfig, arrIndex: number, data: any, rowIndex: number): string;
+  public abstract getGroupRowFieldTextByRowIndex(
+    columnConfig: ColumnConfig,
+    arrIndex: number,
+    data: any,
+    rowIndex: number
+  ): string;
 
   public abstract getChartDefinition(title: string, securityPositionGrandSummary: U): any;
 }

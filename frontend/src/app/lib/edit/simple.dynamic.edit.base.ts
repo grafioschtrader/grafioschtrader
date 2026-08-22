@@ -1,21 +1,21 @@
-import {FormBase} from './form.base';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {EditHelper} from './edit.helper';
-import {ProposeTransientTransfer} from '../entities/propose.transient.transfer';
-import {ProposeChangeEntityWithEntity} from '../proposechange/model/propose.change.entity.whit.entity';
-import {DynamicFormComponent} from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {TranslateService} from '@ngx-translate/core';
-import {Directive, ViewChild} from '@angular/core';
-import {AuditHelper} from '../helper/audit.helper';
-import {InfoLevelType} from '../message/info.leve.type';
-import {ProcessedActionData} from '../types/processed.action.data';
-import {ProcessedAction} from '../types/processed.action';
-import {plainToClassFromExist} from 'class-transformer';
-import {TransformedError} from '../login/service/transformed.error';
-import {LimitEntityTransactionError} from '../login/service/limit.entity.transaction.error';
-import {MessageToastService} from '../message/message.toast.service';
-import {ServiceEntityUpdate} from './service.entity.update';
-import {DynamicDialogConfig, DynamicDialogRef} from '@openng/optimus-ui/dynamicdialog';
+import { FormBase } from './form.base';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { EditHelper } from './edit.helper';
+import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
+import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
+import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { TranslateService } from '@ngx-translate/core';
+import { Directive, ViewChild } from '@angular/core';
+import { AuditHelper } from '../helper/audit.helper';
+import { InfoLevelType } from '../message/info.leve.type';
+import { ProcessedActionData } from '../types/processed.action.data';
+import { ProcessedAction } from '../types/processed.action';
+import { plainToClassFromExist } from 'class-transformer';
+import { TransformedError } from '../login/service/transformed.error';
+import { LimitEntityTransactionError } from '../login/service/limit.entity.transaction.error';
+import { MessageToastService } from '../message/message.toast.service';
+import { ServiceEntityUpdate } from './service.entity.update';
+import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 
 /**
  * Abstract base class for dynamically created Optimus editing dialogs.
@@ -53,7 +53,8 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
     protected translateService: TranslateService,
     public gps: GlobalparameterService,
     public messageToastService: MessageToastService,
-    public serviceEntityUpdate: ServiceEntityUpdate<T>) {
+    public serviceEntityUpdate: ServiceEntityUpdate<T>
+  ) {
     super();
   }
 
@@ -68,12 +69,15 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
     const entityNew: T = this.getNewOrExistingInstanceBeforeSave(value);
     AuditHelper.disableRejectFieldButton(this.configObject, true);
     this.serviceEntityUpdate.update(entityNew).subscribe({
-      next: returnEntity => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
-          {i18nRecord: this.dynamicDialogConfig.header});
-        this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.CREATED,
-          plainToClassFromExist(entityNew, returnEntity)));
-      }, error: (transformedError: TransformedError) => {
+      next: (returnEntity) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+          i18nRecord: this.dynamicDialogConfig.header
+        });
+        this.dynamicDialogRef.close(
+          new ProcessedActionData(ProcessedAction.CREATED, plainToClassFromExist(entityNew, returnEntity))
+        );
+      },
+      error: (transformedError: TransformedError) => {
         if (transformedError.errorClass && transformedError.errorClass instanceof LimitEntityTransactionError) {
           this.dynamicDialogRef.close(new ProcessedActionData(ProcessedAction.NO_CHANGE, null, transformedError));
         }
@@ -103,9 +107,18 @@ export abstract class SimpleDynamicEditBase<T> extends FormBase {
    * @param {ProposeChangeEntityWithEntity} proposeChangeEntityWithEntity - The propose change entity wrapper
    * @returns {void}
    */
-  public copyFormToPublicBusinessObject(targetEntity: ProposeTransientTransfer, existingEntity: T,
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity): void {
-    EditHelper.copyFormToPublicBusinessObject(targetEntity, existingEntity, proposeChangeEntityWithEntity, this.form, this);
+  public copyFormToPublicBusinessObject(
+    targetEntity: ProposeTransientTransfer,
+    existingEntity: T,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity
+  ): void {
+    EditHelper.copyFormToPublicBusinessObject(
+      targetEntity,
+      existingEntity,
+      proposeChangeEntityWithEntity,
+      this.form,
+      this
+    );
   }
 
   /**

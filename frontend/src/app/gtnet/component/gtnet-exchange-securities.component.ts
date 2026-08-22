@@ -1,36 +1,36 @@
-import {Component, Injector, ViewChild} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TableModule} from '@openng/optimus-ui/table';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {CheckboxModule} from '@openng/optimus-ui/checkbox';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {InputTextModule} from '@openng/optimus-ui/inputtext';
+import { Component, Injector, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TableModule } from '@openng/optimus-ui/table';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
 
-import {GTNetExchangeBaseComponent} from './gtnet-exchange-base.component';
-import {GTNetExchangeService} from '../service/gtnet-exchange.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {FilterType} from '../../lib/datashowbase/filter.type';
-import {AppSettings} from '../../shared/app.settings';
-import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit.component';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {Security} from '../../entities/security';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {GTNetSupplierDetailTableComponent} from './gtnet-supplier-detail-table.component';
-import {GTNetExchangeCheckboxesComponent, CheckboxToggleEvent} from './gtnet-exchange-checkboxes.component';
-import {HelpIds} from '../../lib/help/help.ids';
+import { GTNetExchangeBaseComponent } from './gtnet-exchange-base.component';
+import { GTNetExchangeService } from '../service/gtnet-exchange.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { AppSettings } from '../../shared/app.settings';
+import { SecurityEditComponent } from '../../shared/securitycurrency/security-edit.component';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { Security } from '../../entities/security';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { GTNetSupplierDetailTableComponent } from './gtnet-supplier-detail-table.component';
+import { GTNetExchangeCheckboxesComponent, CheckboxToggleEvent } from './gtnet-exchange-checkboxes.component';
+import { HelpIds } from '../../lib/help/help.ids';
 
 /**
  * Component for configuring GTNet exchange settings for securities.
@@ -75,40 +75,44 @@ import {HelpIds} from '../../lib/help/help.ids';
       [contextMenuEnabled]="true"
       [contextMenuItems]="contextMenuItems"
       [showContextMenu]="true"
-      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container-full': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       [expandable]="true"
       [canExpandFn]="canExpand.bind(this)"
       [expandedRowTemplate]="expandedRow">
-
       <div caption class="flex justify-content-between align-items-center w-full">
         <h4>{{ getTitleKey() | translate }}</h4>
         <div class="flex align-items-center gap-2">
-          <gtnet-exchange-checkboxes
-            [disabled]="!isUserAllowedToMultiSelect()"
-            (toggle)="onCheckboxToggle($event)">
+          <gtnet-exchange-checkboxes [disabled]="!isUserAllowedToMultiSelect()" (toggle)="onCheckboxToggle($event)">
           </gtnet-exchange-checkboxes>
         </div>
-        <div class="flex align-items-center gap-2 w-full"
-             style="display: flex; width: 100%; margin-bottom: 0.75rem">
-          <div class="flex align-items-center gap-2 mr-3 surface-border w-full"
-               style="display: flex; width: 100%">
+        <div class="flex align-items-center gap-2 w-full" style="display: flex; width: 100%; margin-bottom: 0.75rem">
+          <div class="flex align-items-center gap-2 mr-3 surface-border w-full" style="display: flex; width: 100%">
             <i class="pi pi-search"></i>
-            <input pInputText type="text" class="w-full"
-                   style="flex: 1 1 auto; width: 100%"
-                   (input)="configurableTable.table.filterGlobal($any($event.target).value, 'contains')"
-                   [placeholder]="'SEARCH' | translate"/>
+            <input
+              pInputText
+              type="text"
+              class="w-full"
+              style="flex: 1 1 auto; width: 100%"
+              (input)="configurableTable.table.filterGlobal($any($event.target).value, 'contains')"
+              [placeholder]="'SEARCH' | translate" />
           </div>
         </div>
-        <div class="flex justify-content-between align-items-center w-full"
-             style="display: flex; justify-content: space-between; align-items: center; width: 100%">
+        <div
+          class="flex justify-content-between align-items-center w-full"
+          style="display: flex; justify-content: space-between; align-items: center; width: 100%">
           <div class="flex align-items-center gap-2" style="display: flex; align-items: center; gap: 0.5rem">
-            <p-checkbox [(ngModel)]="activeOnly" [binary]="true"
-                        (onChange)="loadData()" inputId="activeOnly"></p-checkbox>
+            <p-checkbox
+              [(ngModel)]="activeOnly"
+              [binary]="true"
+              (onChange)="loadData()"
+              inputId="activeOnly"></p-checkbox>
             <label for="activeOnly" style="margin-bottom: 0">{{ 'ACTIVE_NOW_SECURITIES' | translate }}</label>
           </div>
-          <p-button [label]="'SAVE' | translate"
-                    (onClick)="saveChanges()"
-                    [disabled]="!hasUnsavedChanges()">
+          <p-button [label]="'SAVE' | translate" (onClick)="saveChanges()" [disabled]="!hasUnsavedChanges()">
             <i class="pi pi-save" pButtonIcon></i>
           </p-button>
         </div>
@@ -116,13 +120,15 @@ import {HelpIds} from '../../lib/help/help.ids';
 
       <ng-template #customCell let-row let-field="field">
         @if (field.templateName === 'checkbox') {
-          <p-checkbox [(ngModel)]="row[field.field]" [binary]="true"
-                      (onChange)="onCheckboxChange(row)"
-                      [disabled]="isCheckboxDisabled(row, field.field)"></p-checkbox>
+          <p-checkbox
+            [(ngModel)]="row[field.field]"
+            [binary]="true"
+            (onChange)="onCheckboxChange(row)"
+            [disabled]="isCheckboxDisabled(row, field.field)"></p-checkbox>
         } @else {
           <span [pTooltip]="getValueByPath(row, field)" tooltipPosition="top">
-              {{ getValueByPath(row, field) }}
-           </span>
+            {{ getValueByPath(row, field) }}
+          </span>
         }
       </ng-template>
 
@@ -130,22 +136,23 @@ import {HelpIds} from '../../lib/help/help.ids';
         <gtnet-supplier-detail-table [idSecuritycurrency]="row.idSecuritycurrency" [dtype]="'S'">
         </gtnet-supplier-detail-table>
       </ng-template>
-
     </configurable-table>
 
     @if (visibleEditSecurityDialog) {
-      <security-edit (closeDialog)="handleCloseEditSecurityDialog($event)"
-                     [securityCurrencypairCallParam]="securityCallParam"
-                     [visibleEditSecurityDialog]="visibleEditSecurityDialog">
+      <security-edit
+        (closeDialog)="handleCloseEditSecurityDialog($event)"
+        [securityCurrencypairCallParam]="securityCallParam"
+        [visibleEditSecurityDialog]="visibleEditSecurityDialog">
       </security-edit>
     }
   `,
   styles: [],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent<Security> {
-
-  @ViewChild(ConfigurableTableComponent) configurableTable: ConfigurableTableComponent;
+  @ViewChild(ConfigurableTableComponent)
+  configurableTable: ConfigurableTableComponent;
 
   /** Filter to show only active securities */
   activeOnly = true;
@@ -170,8 +177,19 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
     usersettingsService: UserSettingsService,
     injector: Injector
   ) {
-    super('Security', gtNetExchangeService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, injector);
+    super(
+      'Security',
+      gtNetExchangeService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   getTitleKey(): string {
@@ -183,27 +201,43 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   }
 
   protected initializeColumns(): void {
-    this.addColumnFeqH(DataType.String, 'name', true, false,
-      {width: 200, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'isin', 'ISIN', true, false,
-      {width: 120, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'tickerSymbol', 'SYMBOL', true, false,
-      {width: 80, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'currency', 'CURRENCY', true, false, {width: 60});
-    this.addColumn(DataType.DateString, 'activeToDate', 'ACTIVE_TO_DATE', true, false,
-      {width: 100, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true,
-      {translateValues: TranslateValue.NORMAL, width: 100, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT',
-      true, false, {width: 150, translateValues: TranslateValue.NORMAL, filterType: FilterType.likeDataType});
+    this.addColumnFeqH(DataType.String, 'name', true, false, {
+      width: 200,
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.String, 'isin', 'ISIN', true, false, {
+      width: 120,
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.String, 'tickerSymbol', 'SYMBOL', true, false, {
+      width: 80,
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.String, 'currency', 'CURRENCY', true, false, {
+      width: 60
+    });
+    this.addColumn(DataType.DateString, 'activeToDate', 'ACTIVE_TO_DATE', true, false, {
+      width: 100,
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.String, 'assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, true, {
+      translateValues: TranslateValue.NORMAL,
+      width: 100,
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.String, 'assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false, {
+      width: 150,
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.likeDataType
+    });
     this.addCheckboxColumns();
 
-    this.multiSortMeta.push({field: 'name', order: 1});
+    this.multiSortMeta.push({ field: 'name', order: 1 });
     this.prepareTableAndTranslate();
   }
 
   protected loadData(): void {
-    this.gtNetExchangeService.getSecurities(this.activeOnly).subscribe(data => {
+    this.gtNetExchangeService.getSecurities(this.activeOnly).subscribe((data) => {
       this.entityList = data.securitiescurrenciesList;
       this.idSecuritycurreniesWithDetails = new Set(data.idSecuritycurrenies);
       this.modifiedItems.clear();
@@ -303,5 +337,4 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   public override getHelpContextId(): string {
     return HelpIds.HELP_GT_NET_EXCHANGE;
   }
-
 }

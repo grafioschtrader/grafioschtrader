@@ -1,21 +1,21 @@
-import {TransactionBaseOperations} from './transaction.base.operations';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {TransactionCallParam} from './transaction.call.parm';
-import {TranslateService} from '@ngx-translate/core';
-import {Portfolio} from '../../entities/portfolio';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {FieldFormGroup} from '../../lib/dynamic-form/models/form.group.definition';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {Subscription} from 'rxjs';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {AppSettings} from '../../shared/app.settings';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
+import { TransactionBaseOperations } from './transaction.base.operations';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { Directive, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { TransactionCallParam } from './transaction.call.parm';
+import { TranslateService } from '@ngx-translate/core';
+import { Portfolio } from '../../entities/portfolio';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { FieldFormGroup } from '../../lib/dynamic-form/models/form.group.definition';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { Subscription } from 'rxjs';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { AppSettings } from '../../shared/app.settings';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HistoryquoteService } from '../../historyquote/service/historyquote.service';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 
 /**
  * Abstract base class for cash account transaction operations that are shared between different input forms.
@@ -51,11 +51,13 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * @param translateService Angular service for internationalization and text translation
    * @param gps Global parameter service for accessing application-wide settings and configurations
    */
-  protected constructor(messageToastService: MessageToastService,
-              currencypairService: CurrencypairService,
-              historyquoteService: HistoryquoteService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,) {
+  protected constructor(
+    messageToastService: MessageToastService,
+    currencypairService: CurrencypairService,
+    historyquoteService: HistoryquoteService,
+    translateService: TranslateService,
+    gps: GlobalparameterService
+  ) {
     super(messageToastService, currencypairService, historyquoteService, translateService, gps);
   }
 
@@ -79,9 +81,13 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
   prepareCashaccountOptions(portfolios: Portfolio[]): ValueKeyHtmlSelectOptions[] {
     const cashaccountsHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
     for (const portfolio of portfolios) {
-      portfolio.cashaccountList.forEach(cashaccount => cashaccountsHtmlOptions
-        .push(new ValueKeyHtmlSelectOptions(cashaccount.idSecuritycashAccount,
-          `${cashaccount.name} / ${cashaccount.currency} / ${portfolio.name}`))
+      portfolio.cashaccountList.forEach((cashaccount) =>
+        cashaccountsHtmlOptions.push(
+          new ValueKeyHtmlSelectOptions(
+            cashaccount.idSecuritycashAccount,
+            `${cashaccount.name} / ${cashaccount.currency} / ${portfolio.name}`
+          )
+        )
       );
     }
     return cashaccountsHtmlOptions;
@@ -116,9 +122,13 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * @returns FieldConfig object configured for transaction cost input
    */
   protected getTransactionCostFieldDefinition(gps: GlobalparameterService): FieldConfig {
-      return DynamicFieldHelper.createFieldInputNumberHeqF('transactionCost', false,
-      AppSettings.FID_SMALL_INTEGER_LIMIT, gps.getStandardFractionDigits(), false);
-
+    return DynamicFieldHelper.createFieldInputNumberHeqF(
+      'transactionCost',
+      false,
+      AppSettings.FID_SMALL_INTEGER_LIMIT,
+      gps.getStandardFractionDigits(),
+      false
+    );
   }
 
   /**
@@ -127,9 +137,13 @@ export abstract class TransactionCashaccountBaseOperations extends TransactionBa
    * @returns FieldConfig object configured for debit amount display
    */
   protected getDebitAmountFieldDefinition(gps: GlobalparameterService): FieldConfig {
-    return DynamicFieldHelper.createFieldInputNumberHeqF('debitAmount', false,
-      AppSettings.FID_MAX_INT_REAL_DOUBLE, gps.getStandardFractionDigits(),
-      false,  {readonly: true});
+    return DynamicFieldHelper.createFieldInputNumberHeqF(
+      'debitAmount',
+      false,
+      AppSettings.FID_MAX_INT_REAL_DOUBLE,
+      gps.getStandardFractionDigits(),
+      false,
+      { readonly: true }
+    );
   }
-
 }

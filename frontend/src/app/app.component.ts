@@ -1,22 +1,22 @@
-import {Component, OnDestroy} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {LoginService} from './lib/login/service/log-in.service';
-import {Optimus} from '@openng/optimus-ui/config';
-import {AppSettings} from './shared/app.settings';
-import {Subscription} from 'rxjs';
-import {NavigationStart, Router} from '@angular/router';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { LoginService } from './lib/login/service/log-in.service';
+import { Optimus } from '@openng/optimus-ui/config';
+import { AppSettings } from './shared/app.settings';
+import { Subscription } from 'rxjs';
+import { NavigationStart, Router } from '@angular/router';
 import Aura from '@openng/optimus-ui-themes/aura';
-import {definePreset} from '@openng/optimus-ui-themes';
-import {Security} from './entities/security';
-import {AuditHelper} from './lib/helper/audit.helper';
-import {DynamicFieldHelper} from './lib/helper/dynamic.field.helper';
-import {validISIN} from './shared/validator/gt.validator';
-import {RuleEvent} from './lib/dynamic-form/error/error.message.rules';
-import {BaseSettings} from './lib/base.settings';
-import {GlobalSessionNames} from './lib/global.session.names';
-import {UDFSpecialTypeRegistry} from './lib/udfmeta/model/udf.special.type.registry';
-import {UDFSpecialType} from './udfmetasecurity/model/udf.metadata.security';
-import {TASK_EXTENDED_SERVICE} from './lib/taskdatamonitor/service/task.extend.service.token';
+import { definePreset } from '@openng/optimus-ui-themes';
+import { Security } from './entities/security';
+import { AuditHelper } from './lib/helper/audit.helper';
+import { DynamicFieldHelper } from './lib/helper/dynamic.field.helper';
+import { validISIN } from './shared/validator/gt.validator';
+import { RuleEvent } from './lib/dynamic-form/error/error.message.rules';
+import { BaseSettings } from './lib/base.settings';
+import { GlobalSessionNames } from './lib/global.session.names';
+import { UDFSpecialTypeRegistry } from './lib/udfmeta/model/udf.special.type.registry';
+import { UDFSpecialType } from './udfmetasecurity/model/udf.metadata.security';
+import { TASK_EXTENDED_SERVICE } from './lib/taskdatamonitor/service/task.extend.service.token';
 
 const MyPreset = definePreset(Aura, {
   semantic: {
@@ -37,106 +37,108 @@ const MyPreset = definePreset(Aura, {
   components: {
     button: {
       root: {
-        paddingX: "0.25rem",
-        paddingY: "0.25rem",
+        paddingX: '0.25rem',
+        paddingY: '0.25rem'
       }
     },
     datatable: {
       row: {
-        selectedBackground: "{blue.600}",
-        selectedColor: "#ffffff",
+        selectedBackground: '{blue.600}',
+        selectedColor: '#ffffff'
       }
     },
     inputtext: {
       root: {
-        paddingX: "0rem",
-        paddingY: "0rem",
+        paddingX: '0rem',
+        paddingY: '0rem'
       }
     },
     textarea: {
       root: {
-        paddingX: "0.1rem",
-        paddingY: "0rem",
+        paddingX: '0.1rem',
+        paddingY: '0rem'
       }
     },
     menubar: {
       root: {
-        padding: "0rem 0rem",
+        padding: '0rem 0rem'
       }
     },
     multiselect: {
       root: {
-        paddingX: "0rem",
-        paddingY: "0rem",
+        paddingX: '0rem',
+        paddingY: '0rem'
       }
     },
     select: {
       root: {
-        paddingX: "0rem",
-        paddingY: "0rem",
+        paddingX: '0rem',
+        paddingY: '0rem'
       }
     },
     tabs: {
       tab: {
-        borderWidth: "1px 1px 1px 1px"
+        borderWidth: '1px 1px 1px 1px'
       },
       tabpanel: {
-        padding: "0.rem 0rem 0rem 0rem"
+        padding: '0.rem 0rem 0rem 0rem'
       }
     },
     tree: {
       root: {
-        padding: "0.5rem"
+        padding: '0.5rem'
       },
       node: {
-        padding: "0rem 0rem",
+        padding: '0rem 0rem'
       },
       nodeToggleButton: {
-        size: "0.5rem"
-      },
+        size: '0.5rem'
+      }
     },
     treetable: {
       header: {
-        background: '#efefef',
+        background: '#efefef'
       },
       headerCell: {
-        padding: "0rem 0rem",
+        padding: '0rem 0rem'
       },
       bodyCell: {
-        padding: "0rem 0rem",
-        gap: "0rem"
-       },
+        padding: '0rem 0rem',
+        gap: '0rem'
+      },
       footerCell: {
         // Aura defaults to 0.75rem 1rem here. Without this the total row of a tree table is twice as
         // high as a data row and its right aligned figures sit 16px further left than the values above.
-        padding: "0rem 0rem",
+        padding: '0rem 0rem'
       },
       nodeToggleButton: {
-        size: "1rem"
+        size: '1rem'
       }
-    },
+    }
   }
 });
 /**
  * The main component of Grafioschtrader
  */
 @Component({
-    selector: 'app-root',
-    template: `
+  selector: 'app-root',
+  template: `
     <div>
       <toast-message></toast-message>
       <router-outlet></router-outlet>
     </div>
   `,
-    standalone: false
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false
 })
-
-
 export class AppComponent implements OnDestroy {
-
   private readonly subscription: Subscription;
 
-  constructor(translateService: TranslateService, optimusConfig: Optimus, private router: Router) {
+  constructor(
+    translateService: TranslateService,
+    optimusConfig: Optimus,
+    private router: Router
+  ) {
     translateService.addLangs(['en', 'de']);
     // this language will be used as a fallback when a translation isn't found in the current language
     translateService.setDefaultLang(AppSettings.DEFAULT_LANGUAGE);
@@ -145,16 +147,18 @@ export class AppComponent implements OnDestroy {
     LoginService.setGlobalLang(translateService, optimusConfig);
     this.initializeOptimusStyles(optimusConfig);
     AuditHelper.setCustomOwnershipCheck((entity: any, userId: number) => {
-      return entity instanceof Security &&
-        entity.idTenantPrivate &&
-        entity.idTenantPrivate === userId;
+      return entity instanceof Security && entity.idTenantPrivate && entity.idTenantPrivate === userId;
     });
 
     DynamicFieldHelper.registerCustomValidation({
-         key: 'ISIN',
-         validatorFn: validISIN,
-         errorConfig: {name: 'validISIN', keyi18n: 'validISIN', rules: [RuleEvent.TOUCHED, RuleEvent.DIRTY]}
-       });
+      key: 'ISIN',
+      validatorFn: validISIN,
+      errorConfig: {
+        name: 'validISIN',
+        keyi18n: 'validISIN',
+        rules: [RuleEvent.TOUCHED, RuleEvent.DIRTY]
+      }
+    });
 
     // Initialize UDF special type registry with application-specific special types
     UDFSpecialTypeRegistry.register(Object.values(UDFSpecialType));

@@ -1,8 +1,8 @@
-import {ITransactionEditType} from './i.transaction.edit.type';
-import {SecurityaccountOpenPositionUnits} from '../../entities/view/securityaccount.open.position.units';
-import {Cashaccount} from '../../entities/cashaccount';
-import {Securityaccount} from '../../entities/securityaccount';
-import {TransactionCallParam} from './transaction.call.parm';
+import { ITransactionEditType } from './i.transaction.edit.type';
+import { SecurityaccountOpenPositionUnits } from '../../entities/view/securityaccount.open.position.units';
+import { Cashaccount } from '../../entities/cashaccount';
+import { Securityaccount } from '../../entities/securityaccount';
+import { TransactionCallParam } from './transaction.call.parm';
 
 /**
  * Transaction implementation for accumulating (buying) units in a security account. This class handles the business
@@ -10,13 +10,11 @@ import {TransactionCallParam} from './transaction.call.parm';
  * It implements the accumulation strategy where new units are added to existing positions.
  */
 export class TransactionSecurityEditAccumulate implements ITransactionEditType {
-
   /**
    * Creates a new accumulation transaction handler.
    * @param transactionCallParam The transaction parameters containing security, account, and transaction context
    */
-  constructor(private transactionCallParam: TransactionCallParam) {
-  }
+  constructor(private transactionCallParam: TransactionCallParam) {}
 
   /**
    * Calculates the total position value for an accumulation transaction. Returns negative value representing the cost
@@ -29,8 +27,14 @@ export class TransactionSecurityEditAccumulate implements ITransactionEditType {
    * @param valuePerPoint The value per point for margin instruments
    * @returns The total cost as a negative number (representing outflow of cash)
    */
-  calcPosTotal(quotation: number, units: number, taxCost: number, transactionCost: number, accruedInterest: number,
-               valuePerPoint: number): number {
+  calcPosTotal(
+    quotation: number,
+    units: number,
+    taxCost: number,
+    transactionCost: number,
+    accruedInterest: number,
+    valuePerPoint: number
+  ): number {
     return (quotation * units * valuePerPoint + taxCost + transactionCost + accruedInterest) * -1;
   }
 
@@ -51,18 +55,23 @@ export class TransactionSecurityEditAccumulate implements ITransactionEditType {
    * @param closeMarginIdSecurityaccount The security account ID for closing margin positions
    * @returns true if the account is acceptable for this transaction type
    */
-  acceptSecurityaccount(securitycashaccount: Securityaccount | Cashaccount,
-                        securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
-                        isSellBuyMarginInstrument: boolean, closeMarginIdSecurityaccount: number): boolean {
+  acceptSecurityaccount(
+    securitycashaccount: Securityaccount | Cashaccount,
+    securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
+    isSellBuyMarginInstrument: boolean,
+    closeMarginIdSecurityaccount: number
+  ): boolean {
     if (securitycashaccount.hasOwnProperty('currency')) {
       // it is a Cashaccount
       return true;
-    } else if(closeMarginIdSecurityaccount) {
+    } else if (closeMarginIdSecurityaccount) {
       return securitycashaccount.idSecuritycashAccount === closeMarginIdSecurityaccount;
     } else {
       // it is a Securityaccount
-      return this.transactionCallParam.securityaccount === null
-        || this.transactionCallParam.securityaccount.idSecuritycashAccount === securitycashaccount.idSecuritycashAccount;
+      return (
+        this.transactionCallParam.securityaccount === null ||
+        this.transactionCallParam.securityaccount.idSecuritycashAccount === securitycashaccount.idSecuritycashAccount
+      );
     }
   }
 }

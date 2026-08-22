@@ -1,6 +1,6 @@
-import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {BaseParam} from '../../entities/base.param';
-import {AcceptRequestTypes, ExchangeKindTypeInfo, GTNet} from './gtnet';
+import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
+import { BaseParam } from '../../entities/base.param';
+import { AcceptRequestTypes, ExchangeKindTypeInfo, GTNet } from './gtnet';
 
 export class GTNetMessage {
   idGtNetMessage: number;
@@ -64,12 +64,16 @@ export class MsgCallParam {
   /** Metadata about all registered exchange kind types from the backend. */
   public exchangeKindTypes: ExchangeKindTypeInfo[] = [];
 
-  constructor(public formDefinitions: { [type: string]: ClassDescriptorInputAndShow }, public idGTNet: number,
-              public replyTo: number, public gtNetMessage: GTNetMessage, public isAllMessage: boolean = false,
-              public validResponseCodes: GTNetMessageCodeType[] = null,
-              public idOpenDiscontinuedMessage: number = null,
-              public parentVisibility: MessageVisibility = null) {
-  }
+  constructor(
+    public formDefinitions: { [type: string]: ClassDescriptorInputAndShow },
+    public idGTNet: number,
+    public replyTo: number,
+    public gtNetMessage: GTNetMessage,
+    public isAllMessage: boolean = false,
+    public validResponseCodes: GTNetMessageCodeType[] = null,
+    public idOpenDiscontinuedMessage: number = null,
+    public parentVisibility: MessageVisibility = null
+  ) {}
 }
 
 export enum SendReceivedType {
@@ -156,9 +160,7 @@ export const RESPONSE_CODE_MAP: { [key: number]: GTNetMessageCodeType[] } = {
     GTNetMessageCodeType.GT_NET_DATA_REQUEST_REJECTED_S
   ],
   // Admin messages can be replied to with another admin message
-  [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C]: [
-    GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C
-  ]
+  [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C]: [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C]
 };
 
 /** Checks if a message code is a request that requires a response */
@@ -169,23 +171,26 @@ export function isRequestRequiringResponse(code: GTNetMessageCodeType | string):
 
 /** Gets valid response codes for a request code */
 export function getValidResponseCodes(requestCode: GTNetMessageCodeType | string): GTNetMessageCodeType[] {
-  const codeValue = typeof requestCode === 'string'
-    ? GTNetMessageCodeType[requestCode as keyof typeof GTNetMessageCodeType]
-    : requestCode;
+  const codeValue =
+    typeof requestCode === 'string'
+      ? GTNetMessageCodeType[requestCode as keyof typeof GTNetMessageCodeType]
+      : requestCode;
   return RESPONSE_CODE_MAP[codeValue] ?? [];
 }
 
 /** Maps announcement codes to their cancellation codes */
 export const REVERSE_CODE_MAP: { [key: number]: GTNetMessageCodeType } = {
   [GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C]: GTNetMessageCodeType.GT_NET_MAINTENANCE_CANCEL_ALL_C,
-  [GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C]: GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C
+  [GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C]:
+    GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C
 };
 
 /** Gets the cancel code for a reversible announcement message */
 export function getReverseCode(messageCode: GTNetMessageCodeType | string): GTNetMessageCodeType | null {
-  const codeValue = typeof messageCode === 'string'
-    ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]
-    : messageCode;
+  const codeValue =
+    typeof messageCode === 'string'
+      ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]
+      : messageCode;
   return REVERSE_CODE_MAP[codeValue] ?? null;
 }
 
@@ -199,9 +204,10 @@ export const HIDE_WAIT_DAYS_APPLY_CODES: Set<GTNetMessageCodeType> = new Set([
 
 /** Checks if the waitDaysApply field should be shown for a given message code */
 export function shouldShowWaitDaysApply(messageCode: GTNetMessageCodeType | string): boolean {
-  const codeValue = typeof messageCode === 'string'
-    ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]
-    : messageCode;
+  const codeValue =
+    typeof messageCode === 'string'
+      ? GTNetMessageCodeType[messageCode as keyof typeof GTNetMessageCodeType]
+      : messageCode;
   return !HIDE_WAIT_DAYS_APPLY_CODES.has(codeValue);
 }
 
@@ -279,30 +285,33 @@ function getRemotePeerCodes(params: MsgCallParam): GTNetMessageCodeType[] {
  * Maps entity kind values to their ExchangeKindTypeInfo names.
  */
 export function getRequestableKindNames(target: GTNet, exchangeKindTypes: ExchangeKindTypeInfo[]): string[] {
-  return target.gtNetEntities
-    ?.filter(entity => isAccepting(entity) && !isExchangeActive(entity))
-    .map(entity => {
-      const kindValue = typeof entity.entityKind === 'number' ? entity.entityKind : Number(entity.entityKind);
-      return exchangeKindTypes.find(k => k.value === kindValue)?.name;
-    })
-    .filter((name): name is string => name != null) ?? [];
+  return (
+    target.gtNetEntities
+      ?.filter((entity) => isAccepting(entity) && !isExchangeActive(entity))
+      .map((entity) => {
+        const kindValue = typeof entity.entityKind === 'number' ? entity.entityKind : Number(entity.entityKind);
+        return exchangeKindTypes.find((k) => k.value === kindValue)?.name;
+      })
+      .filter((name): name is string => name != null) ?? []
+  );
 }
 
 function hasRequestableKinds(target: GTNet): boolean {
-  return target.gtNetEntities?.some(entity => isAccepting(entity) && !isExchangeActive(entity)) ?? false;
+  return target.gtNetEntities?.some((entity) => isAccepting(entity) && !isExchangeActive(entity)) ?? false;
 }
 
-function isAccepting(entity: {acceptRequest: AcceptRequestTypes | string}): boolean {
-  const ar = typeof entity.acceptRequest === 'string'
-    ? AcceptRequestTypes[entity.acceptRequest as keyof typeof AcceptRequestTypes]
-    : entity.acceptRequest;
+function isAccepting(entity: { acceptRequest: AcceptRequestTypes | string }): boolean {
+  const ar =
+    typeof entity.acceptRequest === 'string'
+      ? AcceptRequestTypes[entity.acceptRequest as keyof typeof AcceptRequestTypes]
+      : entity.acceptRequest;
   return ar === AcceptRequestTypes.AC_OPEN || ar === AcceptRequestTypes.AC_PUSH_OPEN;
 }
 
-function isExchangeActive(entity: {gtNetConfigEntity?: {exchange: boolean}}): boolean {
+function isExchangeActive(entity: { gtNetConfigEntity?: { exchange: boolean } }): boolean {
   return entity.gtNetConfigEntity?.exchange === true;
 }
 
 function hasActiveExchange(target: GTNet): boolean {
-  return target.gtNetEntities?.some(entity => isExchangeActive(entity)) ?? false;
+  return target.gtNetEntities?.some((entity) => isExchangeActive(entity)) ?? false;
 }

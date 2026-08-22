@@ -1,18 +1,22 @@
-import {Component, Injector, Input, OnChanges, SimpleChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TableModule} from '@openng/optimus-ui/table';
-import {FilterService} from '@openng/optimus-ui/api';
+import { Component, Injector, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TableModule } from '@openng/optimus-ui/table';
+import { FilterService } from '@openng/optimus-ui/api';
 import moment from 'moment';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {SeasonalColumnStat, SeasonalPeriodType, SeasonalReturnsResult, SeasonalYearRow}
-  from '../../entities/seasonal.returns.result';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import {
+  SeasonalColumnStat,
+  SeasonalPeriodType,
+  SeasonalReturnsResult,
+  SeasonalYearRow
+} from '../../entities/seasonal.returns.result';
 
 /**
  * Renders the seasonality heat map as a table: one row per year, one column per month or quarter, a trailing annual
@@ -24,8 +28,14 @@ import {SeasonalColumnStat, SeasonalPeriodType, SeasonalReturnsResult, SeasonalY
   selector: 'seasonality-table',
   template: `
     @if (result && result.yearRows.length > 0) {
-      <p-table [columns]="fields" [value]="result.yearRows" dataKey="year"
-               (sortFunction)="customSort($event)" [customSort]="true" stripedRows showGridlines>
+      <p-table
+        [columns]="fields"
+        [value]="result.yearRows"
+        dataKey="year"
+        (sortFunction)="customSort($event)"
+        [customSort]="true"
+        stripedRows
+        showGridlines>
         <ng-template #header let-fields>
           <tr>
             @for (field of fields; track field.field) {
@@ -39,8 +49,7 @@ import {SeasonalColumnStat, SeasonalPeriodType, SeasonalReturnsResult, SeasonalY
         <ng-template #body let-el let-columns="fields">
           <tr>
             @for (field of fields; track field.field) {
-              <td [style.background-color]="getBackgroundColor(el, field)"
-                  [class.text-end]="field.field !== 'year'">
+              <td [style.background-color]="getBackgroundColor(el, field)" [class.text-end]="field.field !== 'year'">
                 {{ getValueByPath(el, field) }}
               </td>
             }
@@ -49,7 +58,9 @@ import {SeasonalColumnStat, SeasonalPeriodType, SeasonalReturnsResult, SeasonalY
         <ng-template #footer>
           @for (footerRow of footerRows; track footerRow.labelKey) {
             <tr>
-              <td><strong>{{ footerRow.labelKey | translate }}</strong></td>
+              <td>
+                <strong>{{ footerRow.labelKey | translate }}</strong>
+              </td>
               @for (cs of result.columnStats; track $index) {
                 <td class="text-end">{{ formatStat(footerRow.value(cs)) }}</td>
               }
@@ -60,17 +71,20 @@ import {SeasonalColumnStat, SeasonalPeriodType, SeasonalReturnsResult, SeasonalY
     }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, FormsModule, TranslateModule, TableModule]
 })
 export class SeasonalityTableComponent extends TableConfigBase implements OnChanges {
-
   @Input() result: SeasonalReturnsResult;
 
   /** Footer statistic rows; each knows its label and how to read its value from a column statistic. */
-  readonly footerRows: { labelKey: string; value: (cs: SeasonalColumnStat) => number | null }[] = [
-    {labelKey: 'AVERAGE', value: cs => cs.mean},
-    {labelKey: 'MEDIAN', value: cs => cs.median},
-    {labelKey: 'HIT_RATE', value: cs => cs.pctPositive}
+  readonly footerRows: {
+    labelKey: string;
+    value: (cs: SeasonalColumnStat) => number | null;
+  }[] = [
+    { labelKey: 'AVERAGE', value: (cs) => cs.mean },
+    { labelKey: 'MEDIAN', value: (cs) => cs.median },
+    { labelKey: 'HIT_RATE', value: (cs) => cs.pctPositive }
   ];
 
   /**
@@ -85,12 +99,22 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
   private annualPos: number[] = [];
 
   /** Column config used solely to format the footer statistic numbers via getValueByPath. */
-  private readonly statColumnConfig: ColumnConfig =
-    ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'v', '', true, true,
-      {minFractionDigits: 2, maxFractionDigits: 2});
+  private readonly statColumnConfig: ColumnConfig = ShowRecordConfigBase.createColumnConfig(
+    DataType.Numeric,
+    'v',
+    '',
+    true,
+    true,
+    { minFractionDigits: 2, maxFractionDigits: 2 }
+  );
 
-  constructor(filterService: FilterService, usersettingsService: UserSettingsService,
-    translateService: TranslateService, gps: GlobalparameterService, injector: Injector) {
+  constructor(
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
   }
 
@@ -114,7 +138,7 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
 
   /** Formats a footer statistic through the GT formatting pipeline; blank for null. */
   formatStat(value: number | null): string {
-    return value == null ? '' : this.getValueByPath({v: value}, this.statColumnConfig);
+    return value == null ? '' : this.getValueByPath({ v: value }, this.statColumnConfig);
   }
 
   private cellValue(row: SeasonalYearRow, field: ColumnConfig): number | null {
@@ -126,39 +150,51 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
 
   private buildColumns(): void {
     this.removeAllColumns();
-    this.addColumn(DataType.String, 'year', 'YEAR', true, false, {width: 60});
-    const labels = this.result.periodType === SeasonalPeriodType.MONTHLY
-      ? moment.monthsShort() : ['Q1', 'Q2', 'Q3', 'Q4'];
+    this.addColumn(DataType.String, 'year', 'YEAR', true, false, { width: 60 });
+    const labels =
+      this.result.periodType === SeasonalPeriodType.MONTHLY ? moment.monthsShort() : ['Q1', 'Q2', 'Q3', 'Q4'];
     labels.forEach((label, index) => {
-      const cc = this.addColumn(DataType.Numeric, 'p' + index, label, true, false,
-        {width: 64, fieldValueFN: this.getPeriodReturn.bind(this), userValue: index,
-          minFractionDigits: 2, maxFractionDigits: 2});
+      const cc = this.addColumn(DataType.Numeric, 'p' + index, label, true, false, {
+        width: 64,
+        fieldValueFN: this.getPeriodReturn.bind(this),
+        userValue: index,
+        minFractionDigits: 2,
+        maxFractionDigits: 2
+      });
       cc.headerTranslated = label;
     });
-    this.addColumn(DataType.Numeric, 'annualReturn', 'ANNUAL_RETURN', true, false,
-      {width: 72, minFractionDigits: 2, maxFractionDigits: 2});
+    this.addColumn(DataType.Numeric, 'annualReturn', 'ANNUAL_RETURN', true, false, {
+      width: 72,
+      minFractionDigits: 2,
+      maxFractionDigits: 2
+    });
     this.translateHeadersAndColumns();
     // Month/quarter headers are not NLS keys, so restore them after the translation pass overwrote them.
-    labels.forEach((label, index) => this.fields[index + 1].headerTranslated = label);
+    labels.forEach((label, index) => (this.fields[index + 1].headerTranslated = label));
   }
 
   private computeColorScale(): void {
     const periodVals: number[] = [];
     const annualVals: number[] = [];
-    this.result.yearRows.forEach(row => {
-      row.periodReturns.forEach(v => v != null && periodVals.push(v));
+    this.result.yearRows.forEach((row) => {
+      row.periodReturns.forEach((v) => v != null && periodVals.push(v));
       row.annualReturn != null && annualVals.push(row.annualReturn);
     });
-    this.periodNeg = periodVals.filter(v => v < 0).map(v => -v).sort((a, b) => a - b);
-    this.periodPos = periodVals.filter(v => v > 0).sort((a, b) => a - b);
-    this.annualNeg = annualVals.filter(v => v < 0).map(v => -v).sort((a, b) => a - b);
-    this.annualPos = annualVals.filter(v => v > 0).sort((a, b) => a - b);
+    this.periodNeg = periodVals
+      .filter((v) => v < 0)
+      .map((v) => -v)
+      .sort((a, b) => a - b);
+    this.periodPos = periodVals.filter((v) => v > 0).sort((a, b) => a - b);
+    this.annualNeg = annualVals
+      .filter((v) => v < 0)
+      .map((v) => -v)
+      .sort((a, b) => a - b);
+    this.annualPos = annualVals.filter((v) => v > 0).sort((a, b) => a - b);
   }
 
   private colorForValue(value: number, isAnnual: boolean): string {
     const positive = value >= 0;
-    const sorted = isAnnual ? (positive ? this.annualPos : this.annualNeg)
-      : (positive ? this.periodPos : this.periodNeg);
+    const sorted = isAnnual ? (positive ? this.annualPos : this.annualNeg) : positive ? this.periodPos : this.periodNeg;
     // Rank within the same-sign group (empirical CDF): the most extreme value reaches full intensity, the bulk gets
     // spread across the mid-range — independent of the absolute magnitude of outliers.
     const t = this.rankFraction(sorted, Math.abs(value));

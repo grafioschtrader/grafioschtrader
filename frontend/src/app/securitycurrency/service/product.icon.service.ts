@@ -1,29 +1,50 @@
-import {Injectable} from '@angular/core';
-import {SvgIconRegistryService} from 'angular-svg-icon';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {DistributionFrequency} from '../../shared/types/distribution.frequency';
-import {Security} from '../../entities/security';
-import {AppSettings} from '../../shared/app.settings';
-import {Assetclass} from '../../entities/assetclass';
-import {BaseSettings} from '../../lib/base.settings';
+import { Injectable } from '@angular/core';
+import { SvgIconRegistryService } from 'angular-svg-icon';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { DistributionFrequency } from '../../shared/types/distribution.frequency';
+import { Security } from '../../entities/security';
+import { AppSettings } from '../../shared/app.settings';
+import { Assetclass } from '../../entities/assetclass';
+import { BaseSettings } from '../../lib/base.settings';
 
 @Injectable()
 export class ProductIconService {
-
-  readonly icons = ['bo', 'c', 'cc', 'cb', 'co', 'd', 'cfd_c', 'cfd_i', 'd', 'dist', 'eq', 'etf_c', 'etf_crypto',
-    'etf_i', 'f', 'fr', 'fx', 'i', 'ir', 'm'];
+  readonly icons = [
+    'bo',
+    'c',
+    'cc',
+    'cb',
+    'co',
+    'd',
+    'cfd_c',
+    'cfd_i',
+    'd',
+    'dist',
+    'eq',
+    'etf_c',
+    'etf_crypto',
+    'etf_i',
+    'f',
+    'fr',
+    'fx',
+    'i',
+    'ir',
+    'm'
+  ];
 
   constructor(private iconReg: SvgIconRegistryService) {
-    this.icons.forEach(icon => this.iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + icon + '.svg', icon));
+    this.icons.forEach((icon) => this.iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + icon + '.svg', icon));
   }
 
   getIconForInstrument(security: Security, isCryptocurrency: boolean): string {
     let icon = isCryptocurrency ? 'cc' : 'c';
     if (security) {
       const assetclass = security.assetClass;
-      if (security.idLinkSecuritycurrency && SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument]
-        !== SpecialInvestmentInstruments.FOREX) {
+      if (
+        security.idLinkSecuritycurrency &&
+        SpecialInvestmentInstruments[assetclass.specialInvestmentInstrument] !== SpecialInvestmentInstruments.FOREX
+      ) {
         icon = 'd';
       } else {
         icon = this.getIconForAssetclass(assetclass, icon);
@@ -41,8 +62,10 @@ export class ProductIconService {
    * @returns The name of the registered distribution icon or null when nothing is paid out
    */
   getDistributionIcon(security: Security): string {
-    return security?.distributionFrequency
-      && DistributionFrequency[security.distributionFrequency] !== DistributionFrequency.DF_NONE ? 'dist' : null;
+    return security?.distributionFrequency &&
+      DistributionFrequency[security.distributionFrequency] !== DistributionFrequency.DF_NONE
+      ? 'dist'
+      : null;
   }
 
   getIconForAssetclass(assetclass: Assetclass, icon: string) {
@@ -64,8 +87,12 @@ export class ProductIconService {
         icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'cfd_c' : 'cfd_i';
         break;
       case SpecialInvestmentInstruments.ETF:
-        icon = assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES] ? 'etf_c' :
-          assetclass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR] ? 'etf_crypto' : 'etf_i';
+        icon =
+          assetclass.categoryType === AssetclassType[AssetclassType.COMMODITIES]
+            ? 'etf_c'
+            : assetclass.categoryType === AssetclassType[AssetclassType.CURRENCY_PAIR]
+              ? 'etf_crypto'
+              : 'etf_i';
         break;
       case SpecialInvestmentInstruments.FOREX:
         icon = 'fx';
@@ -95,5 +122,4 @@ export class ProductIconService {
     }
     return icon;
   }
-
 }

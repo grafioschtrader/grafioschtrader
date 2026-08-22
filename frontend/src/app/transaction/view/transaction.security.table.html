@@ -23,16 +23,15 @@
 </configurable-table>
 
 @if (visibleSecurityTransactionDialog) {
-  <transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
-                             [transactionCallParam]="transactionCallParam"
-                             [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
-  </transaction-security-edit>
-}
-
-@if (visibleStandingOrderSecurityDialog) {
-  <standing-order-security-edit
-    [visibleDialog]="visibleStandingOrderSecurityDialog"
-    [callParam]="standingOrderCallParam"
-    (closeDialog)="handleCloseStandingOrderDialog($event)">
-  </standing-order-security-edit>
+<transaction-security-edit
+  (closeDialog)="handleCloseTransactionDialog($event)"
+  [transactionCallParam]="transactionCallParam"
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+</transaction-security-edit>
+} @if (visibleStandingOrderSecurityDialog) {
+<standing-order-security-edit
+  [visibleDialog]="visibleStandingOrderSecurityDialog"
+  [callParam]="standingOrderCallParam"
+  (closeDialog)="handleCloseStandingOrderDialog($event)">
+</standing-order-security-edit>
 }

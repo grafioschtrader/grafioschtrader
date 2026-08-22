@@ -106,7 +106,7 @@ describe('dateRange', () => {
   it('returns null when date1 <= date2', () => {
     const group = new FormGroup({
       from: new FormControl(new Date(2024, 0, 1)),
-      to: new FormControl(new Date(2024, 5, 1)),
+      to: new FormControl(new Date(2024, 5, 1))
     });
     const validator = dateRange('from', 'to', 'from');
     expect(validator(group)).toBeNull();
@@ -115,7 +115,7 @@ describe('dateRange', () => {
   it('returns error when date1 > date2', () => {
     const group = new FormGroup({
       from: new FormControl(new Date(2024, 5, 1)),
-      to: new FormControl(new Date(2024, 0, 1)),
+      to: new FormControl(new Date(2024, 0, 1))
     });
     const validator = dateRange('from', 'to', 'from');
     expect(validator(group)).toHaveProperty('dateRange');
@@ -125,7 +125,7 @@ describe('dateRange', () => {
     const d = new Date(2024, 3, 15);
     const group = new FormGroup({
       from: new FormControl(d),
-      to: new FormControl(new Date(d.getTime())),
+      to: new FormControl(new Date(d.getTime()))
     });
     const validator = dateRange('from', 'to', 'from');
     expect(validator(group)).toBeNull();
@@ -134,7 +134,7 @@ describe('dateRange', () => {
   it('returns null when either date is null', () => {
     const group = new FormGroup({
       from: new FormControl(null),
-      to: new FormControl(new Date(2024, 0, 1)),
+      to: new FormControl(new Date(2024, 0, 1))
     });
     const validator = dateRange('from', 'to', 'from');
     expect(validator(group)).toBeNull();

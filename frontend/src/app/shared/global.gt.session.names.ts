@@ -46,5 +46,5 @@ export enum GlobalGTSessionNames {
    * Per-instrument editing limits (max splits / max history-quote periods) as a JSON-serialized
    * {@link MaxInstrumentLimits} object.
    */
-  MAX_INSTRUMENT_LIMITS = 'maxInstrumentLimits',
+  MAX_INSTRUMENT_LIMITS = 'maxInstrumentLimits'
 }

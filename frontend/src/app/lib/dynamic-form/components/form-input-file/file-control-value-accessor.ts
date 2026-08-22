@@ -1,21 +1,16 @@
-import {Directive, HostListener} from '@angular/core';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import { Directive, HostListener } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Directive({
-    selector: 'input[type=file]',
-    providers: [
-        { provide: NG_VALUE_ACCESSOR, useExisting: FileValueAccessorDirective, multi: true }
-    ],
-    standalone: true
+  selector: 'input[type=file]',
+  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: FileValueAccessorDirective, multi: true }],
+  standalone: true
 })
 export class FileValueAccessorDirective implements ControlValueAccessor {
-  @HostListener('change', ['$event.target.files']) onChange = (_) => {
-  };
-  @HostListener('blur') onTouched = () => {
-  };
+  @HostListener('change', ['$event.target.files']) onChange = (_) => {};
+  @HostListener('blur') onTouched = () => {};
 
-  writeValue(value) {
-  }
+  writeValue(value) {}
 
   registerOnChange(fn: any) {
     this.onChange = fn;

@@ -37,9 +37,11 @@ One problem, one solution — split larger topics.
 
 ## Coding style
 
-- Apply the formatter profiles in `gt-code-style/`: `backend/eclipse/gt-java-formatting.xml` and
-  `frontend/idea/gt_typescripte_sytle.xml`. Java 4-space indentation, TypeScript 2-space, both
-  wrapped at 120 characters.
+- Do not format by hand. `cd backend && mvn spotless:apply` formats the Java sources, `cd frontend &&
+  npm run format` the TypeScript, HTML and SCSS sources. Both are 2-space indented and wrapped at 120
+  characters. The rules live in `gt-code-style/backend/eclipse/gt-java-formatting.xml` (read by both
+  Spotless and Spring Tools) and in `frontend/.prettierrc.json`. `gt-code-style/README.md` explains how
+  to make Spring Tools and IntelliJ IDEA use them on save.
 - The project's conventions are documented in `CLAUDE.md`, `backend/CLAUDE.md` and
   `frontend/CLAUDE.md`. They are written for AI coding agents but are ordinary developer
   documentation — read them as the style guide. The wiki
@@ -62,7 +64,8 @@ configuration impact, and attaches screenshots when a layout changes.
 
 - [ ] `cd backend && mvn clean install -DskipTests` succeeds
 - [ ] The affected backend tests pass, including the NLS and enum guard tests
-- [ ] `cd frontend && npm run lint` is clean and `npm test` passes
+- [ ] `cd frontend && npm run format:check` and `cd backend && mvn spotless:check` are clean
+- [ ] `cd frontend && npm test` passes
 - [ ] A schema change comes with an **idempotent** Flyway migration; `gt_ddl.sql` was not edited
 - [ ] New user interface texts exist in both the English and the German properties file
 - [ ] No secret is committed — credentials are encrypted with Jasypt

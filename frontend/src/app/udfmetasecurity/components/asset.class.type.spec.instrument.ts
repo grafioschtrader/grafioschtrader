@@ -1,15 +1,15 @@
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ServiceEntityUpdate} from '../../lib/edit/service.entity.update';
-import {AssetclassType} from '../../shared/types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {Subscription} from 'rxjs';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {InputType} from '../../lib/dynamic-form/models/input.type';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
+import { AssetclassType } from '../../shared/types/assetclass.type';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { Subscription } from 'rxjs';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { InputType } from '../../lib/dynamic-form/models/input.type';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 
 /**
  * Abstract base component for editing entities with asset class type and special investment instrument selection.
@@ -18,7 +18,6 @@ import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.servi
  * selections change, ensuring only valid instrument combinations are available.
  */
 export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBase<T> {
-
   /** Map of asset class types to their valid special investment instruments */
   protected assetclassSpezInstMap: { [key in AssetclassType]: SpecialInvestmentInstruments[] };
 
@@ -50,7 +49,8 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
    * @param serviceEntityUpdate - Service for entity update operations
    * @protected
    */
-  protected constructor(private fieldCategoryType: string,
+  protected constructor(
+    private fieldCategoryType: string,
     private gpsGT: GlobalparameterGTService,
     private fieldSpecialInvestmentInstrument: string,
     helpId: string,
@@ -58,9 +58,9 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
     translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
-    serviceEntityUpdate: ServiceEntityUpdate<T>) {
-    super(helpId, i18nRecord, translateService, gps,
-      messageToastService, serviceEntityUpdate);
+    serviceEntityUpdate: ServiceEntityUpdate<T>
+  ) {
+    super(helpId, i18nRecord, translateService, gps, messageToastService, serviceEntityUpdate);
   }
 
   /**
@@ -69,29 +69,34 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
    * to show only those valid for the selected asset class types.
    */
   valueChangedOnCategoryType(): void {
-    this.categoryTypeSubscribe = this.configObject[this.fieldCategoryType]
-      .formControl.valueChanges.subscribe(categoryType => {
+    this.categoryTypeSubscribe = this.configObject[this.fieldCategoryType].formControl.valueChanges.subscribe(
+      (categoryType) => {
         if (this.configObject[this.fieldCategoryType].inputType === InputType.MultiSelect) {
           const vkh: ValueKeyHtmlSelectOptions[] = [];
           if (categoryType && categoryType.length > 0) {
-            categoryType.forEach(ct => {
-              vkh.push(...this.valueKeyHtmlOptionsSpecInvest.filter(
-                v => this.assetclassSpezInstMap[ct].includes(v.key))
-                .filter(va => vkh.indexOf(va) < 0));
-
+            categoryType.forEach((ct) => {
+              vkh.push(
+                ...this.valueKeyHtmlOptionsSpecInvest
+                  .filter((v) => this.assetclassSpezInstMap[ct].includes(v.key))
+                  .filter((va) => vkh.indexOf(va) < 0)
+              );
             });
           }
           this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = vkh;
           vkh.length === 0 && this.configObject[this.fieldSpecialInvestmentInstrument].formControl.setValue('');
         } else {
           if (this.canChangeValues() && categoryType && categoryType.length > 0) {
-            this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest.filter(
-              v => this.assetclassSpezInstMap[categoryType].includes(v.key));
+            this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions =
+              this.valueKeyHtmlOptionsSpecInvest.filter((v) =>
+                this.assetclassSpezInstMap[categoryType].includes(v.key)
+              );
             this.configObject[this.fieldSpecialInvestmentInstrument].formControl.setValue(
-              this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions[0].key);
+              this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions[0].key
+            );
           }
         }
-      });
+      }
+    );
   }
 
   /**
@@ -112,13 +117,21 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
    * @protected
    */
   protected override initialize(): void {
-    this.gpsGT.getPossibleAssetclassInstrumentMap().subscribe(assetclassSpezInstMap => {
+    this.gpsGT.getPossibleAssetclassInstrumentMap().subscribe((assetclassSpezInstMap) => {
       this.assetclassSpezInstMap = assetclassSpezInstMap;
       this.form.setDefaultValuesAndEnableSubmit();
-      this.configObject[this.fieldCategoryType].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        AssetclassType, [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN], true);
+      this.configObject[this.fieldCategoryType].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+        this.translateService,
+        AssetclassType,
+        [AssetclassType.CURRENCY_CASH, AssetclassType.CURRENCY_FOREIGN],
+        true
+      );
       this.valueKeyHtmlOptionsSpecInvest = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService, SpecialInvestmentInstruments, [], true);
+        this.translateService,
+        SpecialInvestmentInstruments,
+        [],
+        true
+      );
       this.configObject[this.fieldSpecialInvestmentInstrument].valueKeyHtmlOptions = this.valueKeyHtmlOptionsSpecInvest;
       this.valueChangedOnCategoryType();
       this.initializeOthers();
@@ -135,5 +148,4 @@ export abstract class AssetClassTypeSpecInstrument<T> extends SimpleEntityEditBa
     this.categoryTypeSubscribe && this.categoryTypeSubscribe.unsubscribe();
     super.onHide(event);
   }
-
 }

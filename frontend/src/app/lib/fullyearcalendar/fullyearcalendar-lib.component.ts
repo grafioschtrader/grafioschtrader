@@ -1,37 +1,54 @@
-import {Component, DoCheck, EventEmitter, Input, OnDestroy, Output} from '@angular/core';
+import { Component, DoCheck, EventEmitter, Input, OnDestroy, Output, ChangeDetectionStrategy } from '@angular/core';
 
-import {Year} from './model/year';
-import {Range} from './model/range';
-import {YearCalendarData} from './Interface/year.calendar.data';
-import {LocaleSettings} from './Interface/locale.settings';
-import {DisabledDate} from './Interface/disabled.date';
-import {DayOfWeek} from './model/day.of.week';
-import {MonthlyCalendarComponent} from './month-calendar/monthly-calendar.component';
+import { Year } from './model/year';
+import { Range } from './model/range';
+import { YearCalendarData } from './Interface/year.calendar.data';
+import { LocaleSettings } from './Interface/locale.settings';
+import { DisabledDate } from './Interface/disabled.date';
+import { DayOfWeek } from './model/day.of.week';
+import { MonthlyCalendarComponent } from './month-calendar/monthly-calendar.component';
 
 @Component({
-    selector: 'ng-fullyearcalendar-lib',
+  selector: 'ng-fullyearcalendar-lib',
   template: `
     @if (year) {
       <div class="flex-container">
         @for (month of year.months; track month) {
           <div class="grid-item">
-            <month-calendar [underline]="underline" (dayClicked)="dayClicked($event)" [month]="month"
-                            [disabledDaysOfWeek]="disabledDaysOfWeek" [locale]="locale"></month-calendar>
+            <month-calendar
+              [underline]="underline"
+              (dayClicked)="dayClicked($event)"
+              [month]="month"
+              [disabledDaysOfWeek]="disabledDaysOfWeek"
+              [locale]="locale"></month-calendar>
           </div>
         }
       </div>
     }
   `,
-    styleUrls: ['./fullyearcalendar-lib.scss'],
-    standalone: true,
-    imports: [MonthlyCalendarComponent]
+  styleUrls: ['./fullyearcalendar-lib.scss'],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MonthlyCalendarComponent]
 })
 export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
-
   @Input() underline = false;
   @Input() locale: LocaleSettings = {
     dayNamesMin: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    monthNames: [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ]
   };
   _yearCalendarData: YearCalendarData;
   @Output() daySelect: EventEmitter<Date> = new EventEmitter<Date>();
@@ -40,14 +57,14 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
   private initial_data: string;
   private colorBgToFgColor: Map<string, string> = new Map();
 
-  constructor() {
-  }
+  constructor() {}
 
   @Input() set yearCalendarData(val: YearCalendarData) {
     if (val.disableWeekDays) {
       this.disabledDaysOfWeek = [];
       val.disableWeekDays.forEach((dayOfWeek: DayOfWeek) =>
-        this.disabledDaysOfWeek.push(this.locale.dayNamesMin[Year.getDayNumberByDayOfWeek(dayOfWeek)]));
+        this.disabledDaysOfWeek.push(this.locale.dayNamesMin[Year.getDayNumberByDayOfWeek(dayOfWeek)])
+      );
     }
     this._yearCalendarData = val;
 
@@ -70,8 +87,16 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
   }
 
   isDisabled(date: Date, disabledDays: DisabledDate[]): boolean {
-    return date && disabledDays && ((disabledDays.find(i => i.date.getFullYear() === date.getFullYear()
-      && i.date.getMonth() === date.getMonth() && i.date.getDate() === date.getDate())) != null);
+    return (
+      date &&
+      disabledDays &&
+      disabledDays.find(
+        (i) =>
+          i.date.getFullYear() === date.getFullYear() &&
+          i.date.getMonth() === date.getMonth() &&
+          i.date.getDate() === date.getDate()
+      ) != null
+    );
   }
 
   isWeekdayDisabled(dayOfWeek: DayOfWeek, daysOfWeek: DayOfWeek[]): boolean {
@@ -90,7 +115,6 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
       this.colorBgToFgColor.set(backgroundColor, foregroundColor);
     }
     return foregroundColor;
-
   }
 
   /**
@@ -118,14 +142,13 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
         for (const day of w.daysOfWeek) {
           if (this._yearCalendarData.dates && this._yearCalendarData.dates.length > 0) {
             for (const d of this._yearCalendarData.dates) {
-
               if (day.day >= d.start && day.day <= d.end) {
                 const range = new Range();
                 range.id = d.id;
                 range.start = d.start;
                 range.end = d.end;
                 range.tooltip = d.tooltip;
-                range.backgroundColor = (d.color) ? d.color : 'gray';
+                range.backgroundColor = d.color ? d.color : 'gray';
                 range.foregroundColor = this.getForegroundColorByBackgroundColor(range.backgroundColor);
                 range.day = day.day;
                 range.select = (allRanges): void => {
@@ -140,12 +163,11 @@ export class FullyearcalendarLibComponent implements OnDestroy, DoCheck {
               }
             }
           }
-          day.isDisabled = this.isDisabled(day.day, this._yearCalendarData.disabledDays)
-            || this.isWeekdayDisabled(day.dayOfWeek, this._yearCalendarData.disableWeekDays);
+          day.isDisabled =
+            this.isDisabled(day.day, this._yearCalendarData.disabledDays) ||
+            this.isWeekdayDisabled(day.dayOfWeek, this._yearCalendarData.disableWeekDays);
         }
       }
     }
   }
-
-
 }

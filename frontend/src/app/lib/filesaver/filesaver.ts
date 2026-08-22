@@ -23,9 +23,7 @@ class BrowserEnvironment {
   }
 
   static isSupported(): boolean {
-    return typeof document !== 'undefined' &&
-      typeof window !== 'undefined' &&
-      !!this.getURL();
+    return typeof document !== 'undefined' && typeof window !== 'undefined' && !!this.getURL();
   }
   /**
    * Get navigator object safely
@@ -39,18 +37,19 @@ class BrowserEnvironment {
    */
   static isMacOSWebView(): boolean {
     const nav = this.getNavigator();
-    return nav !== null &&
+    return (
+      nav !== null &&
       /Macintosh/.test(nav.userAgent) &&
       /AppleWebKit/.test(nav.userAgent) &&
-      !/Safari/.test(nav.userAgent);
+      !/Safari/.test(nav.userAgent)
+    );
   }
 
   /**
    * Check if running in Safari
    */
   static isSafari(): boolean {
-    return /constructor/i.test((window as any).HTMLElement?.toString() || '') ||
-      Boolean((window as any).safari);
+    return /constructor/i.test((window as any).HTMLElement?.toString() || '') || Boolean((window as any).safari);
   }
 
   /**
@@ -73,8 +72,7 @@ class BrowserEnvironment {
    * Check if browser supports download attribute
    */
   static hasDownloadAttribute(): boolean {
-    return typeof HTMLAnchorElement !== 'undefined' &&
-      'download' in HTMLAnchorElement.prototype;
+    return typeof HTMLAnchorElement !== 'undefined' && 'download' in HTMLAnchorElement.prototype;
   }
 }
 
@@ -85,9 +83,8 @@ function addBom(blob: Blob, opts: SaveAsOptions = {}): Blob {
   const options = { autoBom: false, ...opts };
 
   // Add BOM for UTF-8 XML and text/* types
-  if (options.autoBom &&
-    /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
-    return new Blob([String.fromCharCode(0xFEFF), blob], { type: blob.type });
+  if (options.autoBom && /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+    return new Blob([String.fromCharCode(0xfeff), blob], { type: blob.type });
   }
   return blob;
 }
@@ -138,8 +135,7 @@ function triggerClick(node: HTMLElement): void {
   } catch (e) {
     // Fallback for older browsers
     const evt = document.createEvent('MouseEvents');
-    evt.initMouseEvent('click', true, true, window, 0, 0, 0, 80, 20,
-      false, false, false, false, 0, null);
+    evt.initMouseEvent('click', true, true, window, 0, 0, 0, 80, 20, false, false, false, false, 0, null);
     node.dispatchEvent(evt);
   }
 }
@@ -319,13 +315,15 @@ export function saveCsvFile(data: any[], filename: string, separator: string = '
   const headers = Object.keys(data[0]);
   const csvContent = [
     headers.join(separator),
-    ...data.map(row => headers.map(header => {
-      const value = row[header];
-      // Escape values that contain the separator
-      return typeof value === 'string' && value.includes(separator)
-        ? `"${value.replace(/"/g, '""')}"`
-        : value;
-    }).join(separator))
+    ...data.map((row) =>
+      headers
+        .map((header) => {
+          const value = row[header];
+          // Escape values that contain the separator
+          return typeof value === 'string' && value.includes(separator) ? `"${value.replace(/"/g, '""')}"` : value;
+        })
+        .join(separator)
+    )
   ].join('\n');
 
   saveTextFile(csvContent, filename, 'text/csv');

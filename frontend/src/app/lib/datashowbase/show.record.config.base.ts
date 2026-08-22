@@ -1,12 +1,12 @@
-import {Injector} from '@angular/core';
-import {DataType} from '../dynamic-form/models/data.type';
-import {ColumnConfig, OptionalParams} from './column.config';
-import {BaseLocale} from '../dynamic-form/models/base.locale';
-import {TranslateService} from '@ngx-translate/core';
-import {AppHelper} from '../helper/app.helper';
-import {Helper} from '../helper/helper';
-import {TranslateHelper} from '../helper/translate.helper';
-import {GlobalparameterService} from '../services/globalparameter.service';
+import { Injector } from '@angular/core';
+import { DataType } from '../dynamic-form/models/data.type';
+import { ColumnConfig, OptionalParams } from './column.config';
+import { BaseLocale } from '../dynamic-form/models/base.locale';
+import { TranslateService } from '@ngx-translate/core';
+import { AppHelper } from '../helper/app.helper';
+import { Helper } from '../helper/helper';
+import { TranslateHelper } from '../helper/translate.helper';
+import { GlobalparameterService } from '../services/globalparameter.service';
 
 /**
  * Abstract base class that provides foundational functionality for displaying data in non-editable
@@ -43,8 +43,11 @@ export abstract class ShowRecordConfigBase {
    * @param injector - Angular injector for lazy service resolution in subclasses
    * @protected
    */
-  protected constructor(protected translateService: TranslateService, protected gps: GlobalparameterService,
-    protected injector: Injector = null) {
+  protected constructor(
+    protected translateService: TranslateService,
+    protected gps: GlobalparameterService,
+    protected injector: Injector = null
+  ) {
     this.baseLocale = {
       language: gps.getUserLang(),
       locale: gps.getLocale(),
@@ -90,8 +93,14 @@ export abstract class ShowRecordConfigBase {
    * @param optionalParams - Additional configuration options (width, formatting, etc.)
    * @returns The created ColumnConfig object
    */
-  addColumn(dataType: DataType, field: string, headerKey: string, visible: boolean = true, changeVisibility: boolean = true,
-    optionalParams?: OptionalParams): ColumnConfig {
+  addColumn(
+    dataType: DataType,
+    field: string,
+    headerKey: string,
+    visible: boolean = true,
+    changeVisibility: boolean = true,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
     return this.addColumnToFields(this.fields, dataType, field, headerKey, visible, changeVisibility, optionalParams);
   }
 
@@ -107,10 +116,22 @@ export abstract class ShowRecordConfigBase {
    * @param optionalParams - Additional configuration options (width, formatting, etc.)
    * @returns The created ColumnConfig object
    */
-  addColumnFeqH(dataType: DataType, field: string, visible: boolean = true, changeVisibility: boolean = true,
-    optionalParams?: OptionalParams): ColumnConfig {
-    return this.addColumnToFields(this.fields, dataType, field, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field), visible,
-      changeVisibility, optionalParams);
+  addColumnFeqH(
+    dataType: DataType,
+    field: string,
+    visible: boolean = true,
+    changeVisibility: boolean = true,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
+    return this.addColumnToFields(
+      this.fields,
+      dataType,
+      field,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field),
+      visible,
+      changeVisibility,
+      optionalParams
+    );
   }
 
   /**
@@ -126,9 +147,23 @@ export abstract class ShowRecordConfigBase {
    * @param optionalParams - Additional configuration options
    * @returns The created ColumnConfig object
    */
-  addColumnToFields(fields: ColumnConfig[], dataType: DataType, field: string, headerKey: string,
-    visible: boolean = true, changeVisibility: boolean = true, optionalParams?: OptionalParams): ColumnConfig {
-    const cc: ColumnConfig = ShowRecordConfigBase.createColumnConfig(dataType, field, headerKey, visible, changeVisibility, optionalParams);
+  addColumnToFields(
+    fields: ColumnConfig[],
+    dataType: DataType,
+    field: string,
+    headerKey: string,
+    visible: boolean = true,
+    changeVisibility: boolean = true,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
+    const cc: ColumnConfig = ShowRecordConfigBase.createColumnConfig(
+      dataType,
+      field,
+      headerKey,
+      visible,
+      changeVisibility,
+      optionalParams
+    );
     fields.push(cc);
     return cc;
   }
@@ -145,12 +180,22 @@ export abstract class ShowRecordConfigBase {
    * @returns A fully configured ColumnConfig object
    * @static
    */
-  public static createColumnConfigFeqH(dataType: DataType, field: string,
-    visible: boolean = true, changeVisibility: boolean = true, optionalParams?: OptionalParams): ColumnConfig {
-     return this.createColumnConfig(dataType, field, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field),
-       visible, changeVisibility, optionalParams );
+  public static createColumnConfigFeqH(
+    dataType: DataType,
+    field: string,
+    visible: boolean = true,
+    changeVisibility: boolean = true,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
+    return this.createColumnConfig(
+      dataType,
+      field,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field),
+      visible,
+      changeVisibility,
+      optionalParams
+    );
   }
-
 
   /**
    * Creates a column configuration object with the specified parameters.
@@ -165,8 +210,14 @@ export abstract class ShowRecordConfigBase {
    * @returns A fully configured ColumnConfig object
    * @static
    */
-  public static createColumnConfig(dataType: DataType, field: string, headerKey: string,
-    visible: boolean = true, changeVisibility: boolean = true, optionalParams?: OptionalParams): ColumnConfig {
+  public static createColumnConfig(
+    dataType: DataType,
+    field: string,
+    headerKey: string,
+    visible: boolean = true,
+    changeVisibility: boolean = true,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
     const cc: Partial<ColumnConfig> = {};
     cc.dataType = dataType;
     cc.field = field;
@@ -186,7 +237,7 @@ export abstract class ShowRecordConfigBase {
       cc.translateValues = optionalParams.translateValues;
       cc.headerPrefix = optionalParams.headerPrefix;
       cc.headerGroupKey = optionalParams.headerGroupKey;
-      cc.templateName = (optionalParams.templateName) ? optionalParams.templateName : '';
+      cc.templateName = optionalParams.templateName ? optionalParams.templateName : '';
       cc.maxFractionDigits = optionalParams.maxFractionDigits;
       cc.minFractionDigits = optionalParams.minFractionDigits;
       cc.currencyPrecisionField = optionalParams.currencyPrecisionField;
@@ -214,10 +265,23 @@ export abstract class ShowRecordConfigBase {
    * @param optionalParams - Additional configuration options
    * @returns The created ColumnConfig object
    */
-  insertColumnFeqH(index: number, dataType: DataType, field: string, visible: boolean, changeVisibility: boolean,
-    optionalParams?: OptionalParams): ColumnConfig {
-    return this.insertColumn(index, dataType, field, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field), visible,
-      changeVisibility, optionalParams);
+  insertColumnFeqH(
+    index: number,
+    dataType: DataType,
+    field: string,
+    visible: boolean,
+    changeVisibility: boolean,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
+    return this.insertColumn(
+      index,
+      dataType,
+      field,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field),
+      visible,
+      changeVisibility,
+      optionalParams
+    );
   }
 
   /**
@@ -232,9 +296,23 @@ export abstract class ShowRecordConfigBase {
    * @param optionalParams - Additional configuration options
    * @returns The created ColumnConfig object
    */
-  insertColumn(index: number, dataType: DataType, field: string, header: string, visible: boolean, changeVisibility: boolean,
-    optionalParams?: OptionalParams): ColumnConfig {
-    const columnConfig: ColumnConfig = ShowRecordConfigBase.createColumnConfig(dataType, field, header, visible, changeVisibility, optionalParams);
+  insertColumn(
+    index: number,
+    dataType: DataType,
+    field: string,
+    header: string,
+    visible: boolean,
+    changeVisibility: boolean,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
+    const columnConfig: ColumnConfig = ShowRecordConfigBase.createColumnConfig(
+      dataType,
+      field,
+      header,
+      visible,
+      changeVisibility,
+      optionalParams
+    );
     this.fields = [...this.fields.slice(0, index), columnConfig, ...this.fields.slice(index)];
     return columnConfig;
   }
@@ -244,7 +322,7 @@ export abstract class ShowRecordConfigBase {
    * This method handles the complete translation process for all configured columns.
    */
   translateHeadersAndColumns(): void {
-    const headerKeys: string [] = this.fields.map(field => field.headerKey);
+    const headerKeys: string[] = this.fields.map((field) => field.headerKey);
     this.translateHeaders(headerKeys, this.fields);
     this.translateHeadersTooltips(headerKeys, this.fields);
     this.translateColumnTotalTextValue(this.fields);
@@ -257,7 +335,7 @@ export abstract class ShowRecordConfigBase {
    * @returns The matching ColumnConfig or undefined if not found
    */
   getColumnConfigByField(field: string): ColumnConfig {
-    return this.fields.find(columnConfig => columnConfig.field === field);
+    return this.fields.find((columnConfig) => columnConfig.field === field);
   }
 
   /**
@@ -267,7 +345,7 @@ export abstract class ShowRecordConfigBase {
    * @returns The matching ColumnConfig or undefined if not found
    */
   getColumnConfigByHeader(header: string): ColumnConfig {
-    return this.fields.find(columnConfig => columnConfig.headerKey === header);
+    return this.fields.find((columnConfig) => columnConfig.headerKey === header);
   }
 
   /**
@@ -278,7 +356,7 @@ export abstract class ShowRecordConfigBase {
    * @returns The matching ColumnConfig or undefined if not found
    */
   getColumnConfigByFieldAndHeader(field: string, header: string): ColumnConfig {
-    return this.fields.find(columnConfig => columnConfig.field === field && columnConfig.headerKey === header);
+    return this.fields.find((columnConfig) => columnConfig.field === field && columnConfig.headerKey === header);
   }
 
   /**
@@ -288,7 +366,7 @@ export abstract class ShowRecordConfigBase {
    * @returns The matching ColumnConfig or undefined if not found
    */
   getColumnConfigByHeaderTranslated(headerTranslated: string): ColumnConfig {
-    return this.fields.find(columnConfig => columnConfig.headerTranslated === headerTranslated);
+    return this.fields.find((columnConfig) => columnConfig.headerTranslated === headerTranslated);
   }
 
   /**
@@ -350,14 +428,14 @@ export abstract class ShowRecordConfigBase {
    * @protected
    */
   protected translateHeaders(translateHeaderKeys: string[], columConfig: ColumnConfig[]): void {
-    const groupKeys = columConfig.map(f => f.headerGroupKey).filter(k => !!k);
-    const allKeys = [...new Set([...translateHeaderKeys.filter(thk => !!thk), ...groupKeys])];
+    const groupKeys = columConfig.map((f) => f.headerGroupKey).filter((k) => !!k);
+    const allKeys = [...new Set([...translateHeaderKeys.filter((thk) => !!thk), ...groupKeys])];
     this.translateService.get(allKeys).subscribe((allTranslatedTexts: any) =>
-      columConfig.map(field => {
+      columConfig.map((field) => {
         field.headerTranslated =
-          ((field.headerPrefix == null) ? '' : field.headerSuffix + ' ')
-          + allTranslatedTexts[field.headerKey]
-          + ((field.headerSuffix == null) ? '' : ' ' + field.headerSuffix);
+          (field.headerPrefix == null ? '' : field.headerSuffix + ' ') +
+          allTranslatedTexts[field.headerKey] +
+          (field.headerSuffix == null ? '' : ' ' + field.headerSuffix);
         if (field.headerGroupKey) {
           field.headerGroupTranslated = allTranslatedTexts[field.headerGroupKey];
         }
@@ -375,11 +453,13 @@ export abstract class ShowRecordConfigBase {
    */
   protected translateHeadersTooltips(translateHeaderKeys: string[], columConfig: ColumnConfig[]): void {
     const tSuffix = '_TOOLTIP';
-    this.translateService.get(translateHeaderKeys.map(thtk => thtk + tSuffix)).subscribe((allTranslatedTexts: any) =>
-      columConfig.map(field => {
+    this.translateService.get(translateHeaderKeys.map((thtk) => thtk + tSuffix)).subscribe((allTranslatedTexts: any) =>
+      columConfig.map((field) => {
         const key = field.headerKey + tSuffix;
-        field.headerTooltipTranslated = (allTranslatedTexts[key] !== key) ? allTranslatedTexts[key] : field.headerTooltipTranslated;
-      }));
+        field.headerTooltipTranslated =
+          allTranslatedTexts[key] !== key ? allTranslatedTexts[key] : field.headerTooltipTranslated;
+      })
+    );
   }
 
   /**
@@ -390,16 +470,16 @@ export abstract class ShowRecordConfigBase {
    * @param columConfigs - Array of column configurations to process for group text translation
    */
   private translateColumnTotalTextValue(columConfigs: ColumnConfig[]): void {
-    columConfigs.forEach(columConfig => {
+    columConfigs.forEach((columConfig) => {
       if (columConfig.columnGroupConfigs) {
-        columConfig.columnGroupConfigs.forEach(cc => {
-            if (cc.textValueKey) {
-              this.translateService.get(cc.textValueKey).subscribe(translatedText => cc.textValueTranslated = translatedText);
-            }
+        columConfig.columnGroupConfigs.forEach((cc) => {
+          if (cc.textValueKey) {
+            this.translateService
+              .get(cc.textValueKey)
+              .subscribe((translatedText) => (cc.textValueTranslated = translatedText));
           }
-        );
+        });
       }
     });
   }
-
 }

@@ -1,21 +1,31 @@
-import {Component, EventEmitter, Injector, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {FilterService} from '@openng/optimus-ui/api';
+import {
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { FilterService } from '@openng/optimus-ui/api';
 import moment from 'moment';
 
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {SecurityGtnetLookupDTO} from '../model/gtnet-security-lookup';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {SecurityCurrencyHelper} from '../../securitycurrency/service/security.currency.helper';
-import {AppSettings} from '../../shared/app.settings';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { SecurityGtnetLookupDTO } from '../model/gtnet-security-lookup';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { SecurityCurrencyHelper } from '../../securitycurrency/service/security.currency.helper';
+import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Table component for displaying security lookup results from GTNet peers.
@@ -86,55 +96,55 @@ import {AppSettings} from '../../shared/app.settings';
     </ng-template>
 
     <div class="flex justify-content-end mt-3">
-      <p-button [label]="'APPLY_SELECTED' | translate"
-                (onClick)="applySelected()"
-                [disabled]="!selectedSecurity">
+      <p-button [label]="'APPLY_SELECTED' | translate" (onClick)="applySelected()" [disabled]="!selectedSecurity">
         <i class="pi pi-check" pButtonIcon></i>
       </p-button>
     </div>
   `,
-  styles: [`
-    .connector-expansion {
-      padding: 0.5rem 1rem;
-      background-color: var(--surface-ground);
-    }
-    .connector-boxes {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .connector-box {
-      border: 1px solid var(--surface-border);
-      border-radius: 4px;
-      min-width: 200px;
-      max-width: 300px;
-      padding: 0.5rem;
-      background-color: var(--surface-card);
-    }
-    .connector-box legend {
-      font-weight: bold;
-      font-size: 0.9rem;
-      padding: 0 0.25rem;
-    }
-    .connector-row {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 0.25rem;
-    }
-    .connector-label {
-      font-size: 0.85rem;
-      color: var(--text-color-secondary);
-    }
-    .connector-value {
-      font-size: 0.9rem;
-    }
-    .text-break {
-      word-break: break-all;
-    }
-  `]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styles: [
+    `
+      .connector-expansion {
+        padding: 0.5rem 1rem;
+        background-color: var(--surface-ground);
+      }
+      .connector-boxes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .connector-box {
+        border: 1px solid var(--surface-border);
+        border-radius: 4px;
+        min-width: 200px;
+        max-width: 300px;
+        padding: 0.5rem;
+        background-color: var(--surface-card);
+      }
+      .connector-box legend {
+        font-weight: bold;
+        font-size: 0.9rem;
+        padding: 0 0.25rem;
+      }
+      .connector-row {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0.25rem;
+      }
+      .connector-label {
+        font-size: 0.85rem;
+        color: var(--text-color-secondary);
+      }
+      .connector-value {
+        font-size: 0.9rem;
+      }
+      .text-break {
+        word-break: break-all;
+      }
+    `
+  ]
 })
 export class GtnetSecurityLookupTableComponent extends TableConfigBase implements OnInit, OnChanges {
-
   @Input() securities: SecurityGtnetLookupDTO[] = [];
 
   @Output() securitySelected = new EventEmitter<SecurityGtnetLookupDTO>();
@@ -142,32 +152,52 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   selectedSecurity: SecurityGtnetLookupDTO;
 
   readonly connectorConfigs: ConnectorDisplayConfig[] = [
-    {connectorField: 'matchedHistoryConnector', urlField: 'matchedHistoryUrlExtension',
-      legendKey: 'HISTORY_SETTINGS', labelKey: 'HISTORY_DATA_PROVIDER', urlLabelKey: 'URL_HISTORY_EXTEND',
+    {
+      connectorField: 'matchedHistoryConnector',
+      urlField: 'matchedHistoryUrlExtension',
+      legendKey: 'HISTORY_SETTINGS',
+      labelKey: 'HISTORY_DATA_PROVIDER',
+      urlLabelKey: 'URL_HISTORY_EXTEND',
       extraFields: [
-        {field: 'retryHistoryLoad', labelKey: 'RETRY_HISTORY_LOAD'},
-        {field: 'historyMinDate', labelKey: 'MIN_DATE', isDate: true},
-        {field: 'historyMaxDate', labelKey: 'MAX_DATE', isDate: true},
-        {field: 'ohlPercentage', labelKey: 'OHL_PERCENTAGE', suffix: '%'},
-      ]},
-    {connectorField: 'matchedIntraConnector', urlField: 'matchedIntraUrlExtension',
-      legendKey: 'INTRA_SETTINGS', labelKey: 'INTRA_DATA_PROVIDER', urlLabelKey: 'URL_INTRA_EXTEND',
+        { field: 'retryHistoryLoad', labelKey: 'RETRY_HISTORY_LOAD' },
+        { field: 'historyMinDate', labelKey: 'MIN_DATE', isDate: true },
+        { field: 'historyMaxDate', labelKey: 'MAX_DATE', isDate: true },
+        { field: 'ohlPercentage', labelKey: 'OHL_PERCENTAGE', suffix: '%' }
+      ]
+    },
+    {
+      connectorField: 'matchedIntraConnector',
+      urlField: 'matchedIntraUrlExtension',
+      legendKey: 'INTRA_SETTINGS',
+      labelKey: 'INTRA_DATA_PROVIDER',
+      urlLabelKey: 'URL_INTRA_EXTEND',
       extraFields: [
-        {field: 'retryIntraLoad', labelKey: 'RETRY_INTRA_LOAD'},
-        {field: 'sTimestamp', labelKey: 'TIMEDATE', isDateTime: true},
-      ]},
-    {connectorField: 'matchedDividendConnector', urlField: 'matchedDividendUrlExtension',
-      legendKey: AppSettings.DIVIDEND_SETTINGS, labelKey: 'ID_CONNECTOR_DIVIDEND', urlLabelKey: 'URL_DIVIDEND_EXTEND',
+        { field: 'retryIntraLoad', labelKey: 'RETRY_INTRA_LOAD' },
+        { field: 'sTimestamp', labelKey: 'TIMEDATE', isDateTime: true }
+      ]
+    },
+    {
+      connectorField: 'matchedDividendConnector',
+      urlField: 'matchedDividendUrlExtension',
+      legendKey: AppSettings.DIVIDEND_SETTINGS,
+      labelKey: 'ID_CONNECTOR_DIVIDEND',
+      urlLabelKey: 'URL_DIVIDEND_EXTEND',
       extraFields: [
-        {field: 'retryDividendLoad', labelKey: 'RETRY_DIVIDEND_LOAD'},
-        {field: 'dividendCount', labelKey: 'DIVIDEND_COUNT'},
-      ]},
-    {connectorField: 'matchedSplitConnector', urlField: 'matchedSplitUrlExtension',
-      legendKey: AppSettings.SPLIT_SETTINGS, labelKey: 'ID_CONNECTOR_SPLIT', urlLabelKey: 'URL_SPLIT_EXTEND',
+        { field: 'retryDividendLoad', labelKey: 'RETRY_DIVIDEND_LOAD' },
+        { field: 'dividendCount', labelKey: 'DIVIDEND_COUNT' }
+      ]
+    },
+    {
+      connectorField: 'matchedSplitConnector',
+      urlField: 'matchedSplitUrlExtension',
+      legendKey: AppSettings.SPLIT_SETTINGS,
+      labelKey: 'ID_CONNECTOR_SPLIT',
+      urlLabelKey: 'URL_SPLIT_EXTEND',
       extraFields: [
-        {field: 'retrySplitLoad', labelKey: 'RETRY_SPLIT_LOAD'},
-        {field: 'splitCount', labelKey: 'SPLIT_COUNT'},
-      ]},
+        { field: 'retrySplitLoad', labelKey: 'RETRY_SPLIT_LOAD' },
+        { field: 'splitCount', labelKey: 'SPLIT_COUNT' }
+      ]
+    }
   ];
 
   /** Map of connector ID to human-readable name */
@@ -179,13 +209,15 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   /** User's language for subCategoryNLS lookup */
   private userLang: string;
 
-  constructor(filterService: FilterService,
-              usersettingsService: UserSettingsService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              injector: Injector,
-              private securityService: SecurityService,
-              private currencypairService: CurrencypairService) {
+  constructor(
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    injector: Injector,
+    private securityService: SecurityService,
+    private currencypairService: CurrencypairService
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.userLang = gps.getUserLang();
   }
@@ -201,18 +233,28 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   }
 
   ngOnInit(): void {
-    this.addColumnFeqH(DataType.String, 'name', true, false, {width: 200});
-    this.addColumn(DataType.String, 'isin', 'ISIN', true, false, {width: 120});
-    this.addColumnFeqH(DataType.String, 'currency', true, false, {width: 60});
-    this.addColumnFeqH(DataType.String, 'tickerSymbol', true, false, {width: 80});
-    this.addColumn(DataType.String, 'stockexchangeName', 'STOCKEXCHANGE', true, false, {width: 150});
-    this.addColumn(DataType.String, 'categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, false,
-      {width: 100, translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false,
-      {width: 120, translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.String, 'subCategoryNLS', 'SUB_ASSETCLASS', true, false,
-      {width: 120, fieldValueFN: this.getSubCategoryByLanguage.bind(this)});
-    this.addColumn(DataType.String, 'sourceDomain', 'SOURCE_DOMAIN', true, false, {width: 120});
+    this.addColumnFeqH(DataType.String, 'name', true, false, { width: 200 });
+    this.addColumn(DataType.String, 'isin', 'ISIN', true, false, {
+      width: 120
+    });
+    this.addColumnFeqH(DataType.String, 'currency', true, false, { width: 60 });
+    this.addColumnFeqH(DataType.String, 'tickerSymbol', true, false, {
+      width: 80
+    });
+    this.addColumn(DataType.String, 'stockexchangeName', 'STOCKEXCHANGE', true, false, { width: 150 });
+    this.addColumn(DataType.String, 'categoryType', AppSettings.ASSETCLASS.toUpperCase(), true, false, {
+      width: 100,
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumn(DataType.String, 'specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT', true, false, {
+      width: 120,
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumn(DataType.String, 'subCategoryNLS', 'SUB_ASSETCLASS', true, false, {
+      width: 120,
+      fieldValueFN: this.getSubCategoryByLanguage.bind(this)
+    });
+    this.addColumn(DataType.String, 'sourceDomain', 'SOURCE_DOMAIN', true, false, { width: 120 });
 
     this.prepareTableAndTranslate();
     this.fieldsInitialized = true;

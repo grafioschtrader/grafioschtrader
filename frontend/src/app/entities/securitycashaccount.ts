@@ -1,4 +1,4 @@
-import {Portfolio} from './portfolio';
+import { Portfolio } from './portfolio';
 
 export class Securitycashaccount {
   portfolio: Portfolio;
@@ -12,5 +12,4 @@ export class Securitycashaccount {
 
   // TODO It does not match with server entity
   idPortfolio: number;
-
 }

@@ -1,12 +1,12 @@
-import {test} from '@playwright/test';
-import {loginAsFixtureUser} from './helpers';
+import { test } from '@playwright/test';
+import { loginAsFixtureUser } from './helpers';
 import {
   createBankTransfer,
   createSingleBankTransaction,
   ensureBankTransactionExchangeRates,
   expectBankTransactions,
   findMissingBankTransactions,
-  loadBankTransactions,
+  loadBankTransactions
 } from './bank-account-transaction.helpers';
 
 /** Recreates each fixture user's bank-account-only transactions without disturbing exact existing operations. */
@@ -19,7 +19,7 @@ for (const fixture of loadBankTransactions()) {
 
 for (const [loginNickname, transactions] of TRANSACTIONS_BY_USER) {
   test.describe.serial(`bank account transactions of '${loginNickname}'`, () => {
-    test('reconciles and verifies every fixture transaction', async ({page}) => {
+    test('reconciles and verifies every fixture transaction', async ({ page }) => {
       await loginAsFixtureUser(page, loginNickname);
       await ensureBankTransactionExchangeRates(page, transactions);
       const missingTransactions = await findMissingBankTransactions(page, transactions);

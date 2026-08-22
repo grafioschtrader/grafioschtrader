@@ -1,8 +1,6 @@
-
 html {
   font-size: 100%;
 }
-
 
 .p-datatable-scrollable td.p-datatable-frozen-column {
   background: #fff;
@@ -34,9 +32,9 @@ body {
 }
 
 .dialog-lock-wrapper.is-locked .dialog-content {
-  pointer-events: none;   /* verhindert Klicks/Fokus */
+  pointer-events: none; /* verhindert Klicks/Fokus */
   user-select: none;
-  opacity: 0.6;           /* optional: visuelles Feedback */
+  opacity: 0.6; /* optional: visuelles Feedback */
 }
 
 /* Optional: Overlay für "gesperrt"-Gefühl (Spinner/Tooltip möglich) */
@@ -45,7 +43,7 @@ body {
   inset: 0;
   background: transparent; /* oder rgba(255,255,255,0.2) */
   z-index: 10;
-  pointer-events: auto;    /* fängt Events ab */
+  pointer-events: auto; /* fängt Events ab */
 }
 
 /* Alert for transaction locked warning in dialogs */
@@ -56,8 +54,6 @@ body {
   max-width: 100%;
   box-sizing: border-box;
 }
-
-
 
 label {
   text-align: end;
@@ -87,10 +83,9 @@ label {
   overflow: visible;
 }
 
-
 .p-datatable p-select .p-select-label {
-     padding: 1px 4px !important;
-   }
+  padding: 1px 4px !important;
+}
 
 .p-datatable p-select .p-select-dropdown {
   padding: 0 4px !important;
@@ -109,8 +104,8 @@ label {
   height: 22px;
 }
 
-
-.p-dialog-buttonpane button, .p-dialog-buttonpane button {
+.p-dialog-buttonpane button,
+.p-dialog-buttonpane button {
   margin: 3px;
 }
 
@@ -164,7 +159,8 @@ label {
   text-align: left;
 }
 
-.p-column-title, .p-sortable-column-icon {
+.p-column-title,
+.p-sortable-column-icon {
   white-space: normal;
   -webkit-hyphens: auto;
   -moz-hyphens: auto;
@@ -184,18 +180,17 @@ label {
   background: lightgoldenrodyellow !important;
 }
 
-
-
 .blank_row {
   height: 12px !important; /* overwrites any other rules */
-  background-color: #FFFFFF;
+  background-color: #ffffff;
 }
-
 
 /**
 * Tool tip an table cell
  */
-.p-datatable .p-datatable-thead > tr > th, .p-datatable .p-datatable-tfoot > tr > td, .p-datatable .p-datatable-data > tr > td {
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tfoot > tr > td,
+.p-datatable .p-datatable-data > tr > td {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -214,7 +209,6 @@ label {
   overflow-y: auto;
   max-height: calc(100vh - 20px);
 }
-
 
 .form-group .p-chkbox .p-chkbox-box {
   width: 1.5em;
@@ -247,7 +241,6 @@ label {
   justify-content: flex-end;
 }
 
-
 .plot-container {
   overflow: hidden;
   height: 100%;
@@ -268,14 +261,13 @@ label {
   margin-left: 20px;
 }
 
-.input-w input[type=checkbox] {
+.input-w input[type='checkbox'] {
   margin: 0px;
 }
 
 select option:disabled {
   color: #dedcdc;
 }
-
 
 /**
 * Drop Zone
@@ -306,16 +298,14 @@ select option:disabled {
   align-items: center;
 }
 
-
 /**
 * Optimus UI Table
 */
 
-.p-datatable-caption, .p-datatable-summary {
+.p-datatable-caption,
+.p-datatable-summary {
   text-align: left;
 }
-
-
 
 .p-datatable .p-datatable-tbody > tr:nth-child(even).p-contextmenu-selected {
   background: transparent;
@@ -391,7 +381,6 @@ table th input {
   padding-right: 10px;
 }
 
-
 .gvalue {
   float: left;
   width: calc(100% - 220px);
@@ -433,6 +422,3 @@ table th input {
   margin-top: 10px;
   font-size: 12px;
 }
-
-
-

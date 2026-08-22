@@ -16,4 +16,4 @@ export const LibTreeNodeType = {
 /**
  * Type representing all possible library tree node type values.
  */
-export type LibTreeNodeTypeValue = typeof LibTreeNodeType[keyof typeof LibTreeNodeType];
+export type LibTreeNodeTypeValue = (typeof LibTreeNodeType)[keyof typeof LibTreeNodeType];

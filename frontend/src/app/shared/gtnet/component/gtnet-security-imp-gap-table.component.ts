@@ -1,15 +1,15 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateService} from '@ngx-translate/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
 
-import {ShowRecordConfigBase} from '../../../lib/datashowbase/show.record.config.base';
-import {ConfigurableTableComponent} from '../../../lib/datashowbase/configurable-table.component';
-import {GlobalparameterService} from '../../../lib/services/globalparameter.service';
-import {DataType} from '../../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../../lib/datashowbase/column.config';
-import {GTNetSecurityImpGap} from '../model/gtnet-security-imp-gap';
-import {GTNet} from '../../../lib/gnet/model/gtnet';
-import {GapCodeType} from '../model/gap-code.type';
+import { ShowRecordConfigBase } from '../../../lib/datashowbase/show.record.config.base';
+import { ConfigurableTableComponent } from '../../../lib/datashowbase/configurable-table.component';
+import { GlobalparameterService } from '../../../lib/services/globalparameter.service';
+import { DataType } from '../../../lib/dynamic-form/models/data.type';
+import { TranslateValue } from '../../../lib/datashowbase/column.config';
+import { GTNetSecurityImpGap } from '../model/gtnet-security-imp-gap';
+import { GTNet } from '../../../lib/gnet/model/gtnet';
+import { GapCodeType } from '../model/gap-code.type';
 
 /** Maps numeric gap codes to translation keys */
 const GAP_CODE_TRANSLATION_KEYS: { [key: number]: string } = {
@@ -36,10 +36,10 @@ const GAP_CODE_TRANSLATION_KEYS: { [key: number]: string } = {
     </configurable-table>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, ConfigurableTableComponent]
 })
 export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase implements OnInit, OnChanges {
-
   /**
    * The list of gap records to display.
    */
@@ -57,10 +57,14 @@ export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase impl
   }
 
   ngOnInit(): void {
-    this.addColumn(DataType.String, 'gapCode', 'GAP_CODE', true, false,
-      {translateValues: TranslateValue.NORMAL, width: 150});
-    this.addColumn(DataType.String, 'gapMessage', 'GAP_MESSAGE', true, false, {width: 300});
-    this.addColumn(DataType.String, 'gtNetDomain', 'GT_NET_DOMAIN', true, false, {width: 200});
+    this.addColumn(DataType.String, 'gapCode', 'GAP_CODE', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      width: 150
+    });
+    this.addColumn(DataType.String, 'gapMessage', 'GAP_MESSAGE', true, false, {
+      width: 300
+    });
+    this.addColumn(DataType.String, 'gtNetDomain', 'GT_NET_DOMAIN', true, false, { width: 200 });
 
     this.translateHeadersAndColumns();
     this.fieldsInitialized = true;
@@ -81,7 +85,7 @@ export class GTNetSecurityImpGapTableComponent extends ShowRecordConfigBase impl
    * numeric gap codes to translation keys.
    */
   private prepareGapsForDisplay(): void {
-    this.gaps.forEach(gap => {
+    this.gaps.forEach((gap) => {
       // Convert numeric gapCode to translation key
       (gap as any).gapCode = GAP_CODE_TRANSLATION_KEYS[gap.gapCode] || 'GAP_CODE_ASSET_CLASS';
       // Add GTNet domain name as computed field

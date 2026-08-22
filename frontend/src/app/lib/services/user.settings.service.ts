@@ -1,8 +1,7 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 
 @Injectable()
 export class UserSettingsService {
-
   /// -----------------------------------------------------------
   /// For array
   /// -----------------------------------------------------------
@@ -24,9 +23,7 @@ export class UserSettingsService {
   public readArray(propertyKey: string): any[] {
     const value: string = localStorage.getItem(propertyKey);
     return value ? JSON.parse(value) : [];
-
   }
-
 
   /// -----------------------------------------------------------
   /// For objects
@@ -34,18 +31,14 @@ export class UserSettingsService {
   public saveObject(properpyKey: string, data: any): void {
     // Put the object into storage
     localStorage.setItem(properpyKey, JSON.stringify(data));
-
   }
 
   public retrieveObject(properpyKey: string): any {
     const retrievedObject = localStorage.getItem(properpyKey);
-    return (retrievedObject) ? JSON.parse(retrievedObject) : null;
+    return retrievedObject ? JSON.parse(retrievedObject) : null;
   }
 
   public removeKey(propertyKey: string): void {
     localStorage.removeItem(propertyKey);
   }
-
 }
-
-

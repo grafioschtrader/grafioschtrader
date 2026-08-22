@@ -1,52 +1,43 @@
 <div class="fcontainer">
   @for (fieldSetName of Object.keys(fieldSetGroups); track fieldSetName) {
-    <fieldset class="out-border fbox">
-      <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
-      @for (field of getFieldsForFieldSet(fieldSetName); track field.field) {
-        <div class="row">
-          <div [ngClass]="field.templateName !== 'long' ? 'col-md-5 showlabel text-end'
-              : 'col-12 showlabel'" [pTooltip]="field.headerTooltipTranslated">
-            {{field.headerTranslated}}:
-          </div>
-          <div [ngClass]="field.templateName !== 'long' ? 'col-md-7 nopadding wrap'
+  <fieldset class="out-border fbox">
+    <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
+    @for (field of getFieldsForFieldSet(fieldSetName); track field.field) {
+    <div class="row">
+      <div
+        [ngClass]="field.templateName !== 'long' ? 'col-md-5 showlabel text-end'
+              : 'col-12 showlabel'"
+        [pTooltip]="field.headerTooltipTranslated">
+        {{field.headerTranslated}}:
+      </div>
+      <div
+        [ngClass]="field.templateName !== 'long' ? 'col-md-7 nopadding wrap'
               : 'col-12 nopadding wrap'">
-            @switch (field.templateName) {
-              @case ('greenRed') {
-                <span [style.color]='isValueByPathMinus(content, field)? "red": "green"'>
-                    {{getValueByPath(content, field)}}
-                </span>
-              }
-              @case ('long') {
-                @if (!!(field.dataType === DataType.String)) {
-                  <span [innerHtml]="getValueByPath(content, field) | replace:'\n':'   &lt;br/&gt;'"></span>
-                } @else {
-                  <span>{{getValueByPath(content, field)}}</span>
-                }
-              }
-              @case ('check') {
-                <span><i [ngClass]="{'fa fa-check': getValueByPath(content, field)}"></i></span>
-              }
-              @default {
-                {{getValueByPath(content, field)}}
-              }
-            }
-
-            @if (field.dataType === DataType.URLString && getValueByPath(content, field) === 'lazy') {
-              <a href="#" (click)="handleLazyClick($event, '_blank', content, field)">
-                <i class="pi pi-link"></i>
-              </a>
-            }
-
-            @if (field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('http')) {
-              <a [href]="getValueByPath(content, field)" target=_blank><i class="pi pi-link"></i></a>
-            }
-            @if (field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('--')) {
-              <a role="button" (click)="AppHelper.toExternalWebpage(getValueByPath(content, field))">
-                <i class="pi pi-external-link"></i></a>
-            }
-          </div>
-        </div>
-      }
-    </fieldset>
+        @switch (field.templateName) { @case ('greenRed') {
+        <span [style.color]='isValueByPathMinus(content, field)? "red": "green"'>
+          {{getValueByPath(content, field)}}
+        </span>
+        } @case ('long') { @if (!!(field.dataType === DataType.String)) {
+        <span [innerHtml]="getValueByPath(content, field) | replace:'\n':'   &lt;br/&gt;'"></span>
+        } @else {
+        <span>{{getValueByPath(content, field)}}</span>
+        } } @case ('check') {
+        <span><i [ngClass]="{'fa fa-check': getValueByPath(content, field)}"></i></span>
+        } @default { {{getValueByPath(content, field)}} } } @if (field.dataType === DataType.URLString &&
+        getValueByPath(content, field) === 'lazy') {
+        <a href="#" (click)="handleLazyClick($event, '_blank', content, field)">
+          <i class="pi pi-link"></i>
+        </a>
+        } @if (field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('http')) {
+        <a [href]="getValueByPath(content, field)" target="_blank"><i class="pi pi-link"></i></a>
+        } @if (field.dataType === DataType.URLString && getValueByPath(content, field)?.startsWith('--')) {
+        <a role="button" (click)="AppHelper.toExternalWebpage(getValueByPath(content, field))">
+          <i class="pi pi-external-link"></i
+        ></a>
+        }
+      </div>
+    </div>
+    }
+  </fieldset>
   }
 </div>

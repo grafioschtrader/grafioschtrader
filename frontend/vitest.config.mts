@@ -6,11 +6,11 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.spec.ts'],
-    setupFiles: ['src/test-setup.ts'],
+    setupFiles: ['src/test-setup.ts']
   },
   resolve: {
     alias: {
-      'plotly.js': resolve(__dirname, 'node_modules/plotly.js/dist/plotly.js'),
-    },
-  },
+      'plotly.js': resolve(__dirname, 'node_modules/plotly.js/dist/plotly.js')
+    }
+  }
 });

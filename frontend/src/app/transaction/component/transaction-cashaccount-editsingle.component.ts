@@ -1,37 +1,37 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {TransactionType} from '../../shared/types/transaction.type';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {Portfolio} from '../../entities/portfolio';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ValidatorFn, Validators} from '@angular/forms';
-import {TransactionService} from '../service/transaction.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {Cashaccount} from '../../entities/cashaccount';
-import {gteWithMask, gteWithMaskIncludeNegative, gtDate} from '../../lib/validator/validator';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { Portfolio } from '../../entities/portfolio';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ValidatorFn, Validators } from '@angular/forms';
+import { TransactionService } from '../service/transaction.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Cashaccount } from '../../entities/cashaccount';
+import { gteWithMask, gteWithMaskIncludeNegative, gtDate } from '../../lib/validator/validator';
 import moment from 'moment';
-import {Subscription} from 'rxjs';
-import {Transaction} from '../../entities/transaction';
-import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
-import {TransactionCashaccountBaseOperations} from './transaction.cashaccount.base.operations';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {FormConfig} from '../../lib/dynamic-form/models/form.config';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {FormDefinitionHelper} from '../../shared/edit/form.definition.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppSettings} from '../../shared/app.settings';
-import {BaseSettings} from '../../lib/base.settings';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import { Subscription } from 'rxjs';
+import { Transaction } from '../../entities/transaction';
+import { RuleEvent } from '../../lib/dynamic-form/error/error.message.rules';
+import { TransactionCashaccountBaseOperations } from './transaction.cashaccount.base.operations';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { FormConfig } from '../../lib/dynamic-form/models/form.config';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { FormDefinitionHelper } from '../../shared/edit/form.definition.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AppSettings } from '../../shared/app.settings';
+import { BaseSettings } from '../../lib/base.settings';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
  * Component for editing single cash account transactions where only one cash account is involved.
@@ -40,30 +40,33 @@ import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
   selector: 'transaction-cashaccount-editsingle',
   template: `
-    <p-dialog header="{{'SINGLE_ACCOUNT_TRANSACTION' | translate}}"
-              [visible]="visibleCashaccountTransactionSingleDialog"
-              [style]="{width: '400px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
+    <p-dialog
+      header="{{ 'SINGLE_ACCOUNT_TRANSACTION' | translate }}"
+      [visible]="visibleCashaccountTransactionSingleDialog"
+      [style]="{ width: '400px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
       @if (transactionLocked) {
-        <div class="alert alert-warning alert-dialog-wrap">{{ transactionLockedMessage }}</div>
+        <div class="alert alert-warning alert-dialog-wrap">
+          {{ transactionLockedMessage }}
+        </div>
       }
 
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `,
   standalone: true,
-  imports: [
-    DialogModule,
-    DynamicFormModule,
-    TranslateModule
-  ]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TransactionCashaccountEditSingleComponent extends TransactionCashaccountBaseOperations implements OnInit {
-
   /** Controls visibility of the cash account transaction dialog */
   @Input() visibleCashaccountTransactionSingleDialog: boolean;
 
@@ -86,7 +89,11 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private transactionTimeChangedSub: Subscription;
 
   /** Standard required field error configuration */
-  private errorRequired = {name: 'required', keyi18n: 'required', rules: [RuleEvent.TOUCHED]};
+  private errorRequired = {
+    name: 'required',
+    keyi18n: 'required',
+    rules: [RuleEvent.TOUCHED]
+  };
 
   /**
    * Creates an instance of TransactionCashaccountEditSingleComponent.
@@ -96,12 +103,14 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @param translateService Angular translation service
    * @param gps Global parameter service for application settings
    */
-  constructor(private portfolioService: PortfolioService,
+  constructor(
+    private portfolioService: PortfolioService,
     private transactionService: TransactionService,
     private gpsGT: GlobalparameterGTService,
     messageToastService: MessageToastService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
+    gps: GlobalparameterService
+  ) {
     super(messageToastService, null, null, translateService, gps);
   }
 
@@ -109,26 +118,43 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Initializes the component and sets up form configuration with dynamic field definitions.
    */
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      5, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     const calcGroupConfig: FieldConfig[] = [
       // Validator for amount is set dynamically
-      DynamicFieldHelper.createFieldInputNumberHeqF('cashaccountAmount' , true,
-        AppSettings.FID_MAX_INT_REAL_DOUBLE, this.gps.getMaxFractionDigits(), true, {}, true),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'cashaccountAmount',
+        true,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE,
+        this.gps.getMaxFractionDigits(),
+        true,
+        {},
+        true
+      ),
       this.getTransactionCostFieldDefinition(this.gps)
     ];
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('transactionType', true),
       FormDefinitionHelper.getTransactionTime(),
-      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), true,
-        {dataproperty: 'cashaccount.idSecuritycashAccount'}),
-      DynamicFieldHelper.createFieldSelectNumber('idSecurityaccount', AppSettings.SECURITYACCOUNT.toUpperCase(), false,
-        {invisible: true}),
+      DynamicFieldHelper.createFieldSelectNumber('idCashaccount', AppSettings.CASHACCOUNT.toUpperCase(), true, {
+        dataproperty: 'cashaccount.idSecuritycashAccount'
+      }),
+      DynamicFieldHelper.createFieldSelectNumber(
+        'idSecurityaccount',
+        AppSettings.SECURITYACCOUNT.toUpperCase(),
+        false,
+        { invisible: true }
+      ),
 
-      DynamicFieldHelper.createFieldInputNumberHeqF('taxCost' , false,
-        AppSettings.FID_STANDARD_INTEGER_DIGITS, this.gps.getStandardFractionDigits(), false, {invisible: true}),
+      DynamicFieldHelper.createFieldInputNumberHeqF(
+        'taxCost',
+        false,
+        AppSettings.FID_STANDARD_INTEGER_DIGITS,
+        this.gps.getStandardFractionDigits(),
+        false,
+        { invisible: true }
+      ),
 
-      {formGroupName: 'calcGroup', fieldConfig: calcGroupConfig},
+      { formGroupName: 'calcGroup', fieldConfig: calcGroupConfig },
       this.getDebitAmountFieldDefinition(this.gps),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
@@ -150,7 +176,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * @param force Whether to force selection even with multiple options
    */
   selectSingleOptions(fieldConfig: FieldConfig, force: boolean) {
-    if (fieldConfig.valueKeyHtmlOptions.length === 1 || force && fieldConfig.valueKeyHtmlOptions.length > 0) {
+    if (fieldConfig.valueKeyHtmlOptions.length === 1 || (force && fieldConfig.valueKeyHtmlOptions.length > 0)) {
       fieldConfig.formControl.setValue(fieldConfig.valueKeyHtmlOptions[0].key);
     }
   }
@@ -175,9 +201,11 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         if (this.configObject.idCashaccount.formControl.value) {
           const cp: {
             cashaccount: Cashaccount;
-            portfolio: Portfolio
+            portfolio: Portfolio;
           } = this.getCashaccountByIdCashaccountFromPortfolios(
-            this.portfolios, +this.configObject.idCashaccount.formControl.value);
+            this.portfolios,
+            +this.configObject.idCashaccount.formControl.value
+          );
           this.prepareSecurityaccount(cp.portfolio);
         }
         this.setAmountValidator(true, gteWithMaskIncludeNegative(this.minAmount), 'gteWithMaskIncludeNegative');
@@ -194,8 +222,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
         AppHelper.disableAndHideInput(this.configObject.taxCost);
         this.setAmountValidator(false, gteWithMask(this.minAmount), 'gte');
     }
-    this.configObject.cashaccountAmount.labelKey = this.configObject.transactionType.valueKeyHtmlOptions
-      .find(vkho => vkho.key === transactionType).value;
+    this.configObject.cashaccountAmount.labelKey = this.configObject.transactionType.valueKeyHtmlOptions.find(
+      (vkho) => vkho.key === transactionType
+    ).value;
     const invisibleWithdrawal = TransactionType[transactionType] !== TransactionType.WITHDRAWAL;
     AppHelper.invisibleAndHide(this.configObject.debitAmount, invisibleWithdrawal);
     AppHelper.invisibleAndHide(this.configObject.transactionCost, invisibleWithdrawal);
@@ -207,7 +236,9 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   valueChangedOnCashaccount(): void {
     this.chashaccountChangedSub = this.configObject.idCashaccount.formControl.valueChanges.subscribe((data: string) => {
       const cp: { cashaccount: Cashaccount; portfolio: Portfolio } = this.getCashaccountByIdCashaccountFromPortfolios(
-        this.portfolios, +data);
+        this.portfolios,
+        +data
+      );
       this.prepareSecurityaccount(cp.portfolio);
       this.cashaccountCurrency = cp.cashaccount.currency;
 
@@ -222,9 +253,17 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       }
 
       const precision = this.gps.getCurrencyPrecision(this.cashaccountCurrency);
-      this.adjustNumberInputFractions(this.configObject.cashaccountAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
+      this.adjustNumberInputFractions(
+        this.configObject.cashaccountAmount,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE,
+        precision
+      );
       this.adjustNumberInputFractions(this.configObject.debitAmount, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
-      this.adjustNumberInputFractions(this.configObject.transactionCost, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
+      this.adjustNumberInputFractions(
+        this.configObject.transactionCost,
+        AppSettings.FID_MAX_INT_REAL_DOUBLE,
+        precision
+      );
       this.adjustNumberInputFractions(this.configObject.taxCost, AppSettings.FID_MAX_INT_REAL_DOUBLE, precision);
     });
   }
@@ -233,12 +272,13 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Sets up subscription for calculation field changes to update debit amount for withdrawal transactions.
    */
   valueChangedOnCalcFields(): void {
-    this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges.subscribe(data => {
+    this.valueChangedOnValueCalcFieldsSub = this.configObject.calcGroup.formControl.valueChanges.subscribe((data) => {
       if (!this.configObject.transactionCost.invisible) {
         const values: any = {};
         this.form.cleanMaskAndTransferValuesToBusinessObject(values, true);
-        this.configObject.debitAmount.formControl.setValue((values.cashaccountAmount + (values.transactionCost
-          ? values.transactionCost : 0)));
+        this.configObject.debitAmount.formControl.setValue(
+          values.cashaccountAmount + (values.transactionCost ? values.transactionCost : 0)
+        );
       }
     });
   }
@@ -264,18 +304,26 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       Object.assign(transaction, this.transactionCallParam.transaction);
     }
     this.form.cleanMaskAndTransferValuesToBusinessObject(transaction);
-    transaction.cashaccount = this.getCashaccountByIdCashaccountFromPortfolios(this.portfolios,
-      transaction.idCashaccount).cashaccount;
+    transaction.cashaccount = this.getCashaccountByIdCashaccountFromPortfolios(
+      this.portfolios,
+      transaction.idCashaccount
+    ).cashaccount;
     if (TransactionType[transaction.transactionType] === TransactionType.WITHDRAWAL) {
       transaction.cashaccountAmount = transaction.cashaccountAmount + transaction.transactionCost;
     }
     this.transactionService.updateCreateSingleCashTrans(transaction).subscribe({
-      next: newTransaction => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED',
-          {i18nRecord: AppSettings.TRANSACTION.toUpperCase()});
-        this.closeDialog.emit(new ProcessedActionData(transaction.idTransaction ? ProcessedAction.UPDATED
-          : ProcessedAction.CREATED, newTransaction));
-      }, error: () => this.configObject.submit.disabled = false
+      next: (newTransaction) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+          i18nRecord: AppSettings.TRANSACTION.toUpperCase()
+        });
+        this.closeDialog.emit(
+          new ProcessedActionData(
+            transaction.idTransaction ? ProcessedAction.UPDATED : ProcessedAction.CREATED,
+            newTransaction
+          )
+        );
+      },
+      error: () => (this.configObject.submit.disabled = false)
     });
   }
 
@@ -287,9 +335,11 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    * Initializes component data and sets up form options and subscriptions.
    */
   protected override initialize(): void {
-    this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-      TransactionType, [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT,
-        TransactionType.WITHDRAWAL, TransactionType.FEE]);
+    this.configObject.transactionType.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      TransactionType,
+      [TransactionType.DEPOSIT, TransactionType.INTEREST_CASHACCOUNT, TransactionType.WITHDRAWAL, TransactionType.FEE]
+    );
     this.selectSingleOptions(this.configObject.transactionType, true);
     if (this.transactionCallParam.portfolio) {
       this.getSinglePortfolioByIdPortfolio();
@@ -306,8 +356,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    */
   private adjustNumberInputFractions(fieldConfig: FieldConfig, integerDigits: number, precision: number): void {
     DynamicFieldHelper.setCurrency(fieldConfig, this.cashaccountCurrency);
-    DynamicFieldHelper.adjustNumberFraction(fieldConfig, integerDigits,
-      precision);
+    DynamicFieldHelper.adjustNumberFraction(fieldConfig, integerDigits, precision);
   }
 
   /**
@@ -318,7 +367,8 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     this.valueChangedOnTransactionType();
     this.valueChangedOnCalcFields();
     this.transactionTimeChangedSub = this.configObject.transactionTime.formControl.valueChanges.subscribe(() =>
-      this.toggleAccountOptionsByTransactionTime());
+      this.toggleAccountOptionsByTransactionTime()
+    );
   }
 
   /**
@@ -333,10 +383,16 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
     }
     const time = +transactionTime;
     BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
-      this.portfolios.flatMap(p => p.cashaccountList || []), this.configObject.idCashaccount, time);
+      this.portfolios.flatMap((p) => p.cashaccountList || []),
+      this.configObject.idCashaccount,
+      time
+    );
     if (!this.configObject.idSecurityaccount.invisible) {
       BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
-        this.portfolios.flatMap(p => p.securityaccountList || []), this.configObject.idSecurityaccount, time);
+        this.portfolios.flatMap((p) => p.securityaccountList || []),
+        this.configObject.idSecurityaccount,
+        time
+      );
     }
   }
 
@@ -345,29 +401,29 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
    */
   private getSinglePortfolioByIdPortfolio(): void {
     // Portfolio maybe out of date
-    this.portfolioService.getPortfolioByIdPortfolio(this.transactionCallParam.portfolio.idPortfolio).subscribe((portfolio: Portfolio) => {
+    this.portfolioService
+      .getPortfolioByIdPortfolio(this.transactionCallParam.portfolio.idPortfolio)
+      .subscribe((portfolio: Portfolio) => {
         // this.transactionCallParam.portfolio = portfolio;
         this.portfolios = [portfolio];
         this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
         this.setValueChanged();
         this.toggleAccountOptionsByTransactionTime();
         this.setExistingTransactionToView();
-      }
-    );
+      });
   }
 
   /**
    * Loads all portfolios for the tenant and initializes form options.
    */
   private getAllPortfolios(): void {
-    this.portfolioService.getPortfoliosForTenantOrderByName()
-      .subscribe((data: Portfolio[]) => {
-        this.portfolios = data;
-        this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
-        this.setValueChanged();
-        this.toggleAccountOptionsByTransactionTime();
-        this.setExistingTransactionToView();
-      });
+    this.portfolioService.getPortfoliosForTenantOrderByName().subscribe((data: Portfolio[]) => {
+      this.portfolios = data;
+      this.configObject.idCashaccount.valueKeyHtmlOptions = this.prepareCashaccountOptions(this.portfolios);
+      this.setValueChanged();
+      this.toggleAccountOptionsByTransactionTime();
+      this.setExistingTransactionToView();
+    });
   }
 
   /**
@@ -379,9 +435,12 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       this.changeTransactionType(this.configObject.transactionType.formControl.value);
     } else {
       this.form.transferBusinessObjectToForm(this.transactionCallParam.transaction);
-      this.configObject.cashaccountAmount.formControl.setValue(BusinessHelper.getTotalAmountFromTransaction(
-        this.transactionCallParam.transaction) - (this.transactionCallParam.transaction.transactionCost === null ? 0
-        : this.transactionCallParam.transaction.transactionCost));
+      this.configObject.cashaccountAmount.formControl.setValue(
+        BusinessHelper.getTotalAmountFromTransaction(this.transactionCallParam.transaction) -
+          (this.transactionCallParam.transaction.transactionCost === null
+            ? 0
+            : this.transactionCallParam.transaction.transactionCost)
+      );
     }
   }
 
@@ -394,11 +453,19 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private setAmountValidator(allowNegative: boolean, validator: ValidatorFn, validatorKey: string) {
     this.configObject.cashaccountAmount.inputNumberSettings.allowNegative = allowNegative;
     this.configObject.cashaccountAmount.min = allowNegative
-      ? this.configObject.cashaccountAmount.max * -1 : this.minAmount;
+      ? this.configObject.cashaccountAmount.max * -1
+      : this.minAmount;
     this.configObject.cashaccountAmount.validation = [Validators.required, validator];
     this.configObject.cashaccountAmount.formControl.setValidators(this.configObject.cashaccountAmount.validation);
-    this.configObject.cashaccountAmount.errors = [this.errorRequired,
-      {name: validatorKey, keyi18n: validatorKey, param1: this.minAmount, rules: ['dirty']}];
+    this.configObject.cashaccountAmount.errors = [
+      this.errorRequired,
+      {
+        name: validatorKey,
+        keyi18n: validatorKey,
+        param1: this.minAmount,
+        rules: ['dirty']
+      }
+    ];
     TranslateHelper.translateMessageError(this.translateService, this.configObject.cashaccountAmount);
     this.configObject.cashaccountAmount.formControl.updateValueAndValidity();
     this.configObject.cashaccountAmount.baseInputComponent.reEvaluateRequired();
@@ -411,8 +478,12 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
   private prepareSecurityaccount(portfolio: Portfolio) {
     if (!this.configObject.idSecurityaccount.invisible) {
       this.configObject.idSecurityaccount.valueKeyHtmlOptions =
-        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('idSecuritycashAccount', 'name',
-          portfolio.securityaccountList, true);
+        SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+          'idSecuritycashAccount',
+          'name',
+          portfolio.securityaccountList,
+          true
+        );
       this.toggleAccountOptionsByTransactionTime();
       this.selectSingleOptions(this.configObject.idSecurityaccount, true);
     }
@@ -429,7 +500,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
 
     // Remove existing gtDate error rule if present
     if (fieldConfig.errors) {
-      fieldConfig.errors = fieldConfig.errors.filter(e => e.name !== 'gtDate');
+      fieldConfig.errors = fieldConfig.errors.filter((e) => e.name !== 'gtDate');
     } else {
       fieldConfig.errors = [];
     }
@@ -450,9 +521,7 @@ export class TransactionCashaccountEditSingleComponent extends TransactionCashac
       fieldConfig.errors.push(gtDateError);
 
       // Translate the new error message
-      this.translateService.get('gtDate', {param1: formattedDate}).subscribe(
-        text => gtDateError.text = text
-      );
+      this.translateService.get('gtDate', { param1: formattedDate }).subscribe((text) => (gtDateError.text = text));
     } else {
       // Only required validator when no closedUntil restriction
       formControl.setValidators([Validators.required]);

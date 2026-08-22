@@ -24,7 +24,6 @@ export interface SecuritycurrencyFeedSupport {
   [key: string]: FeedIdentifier[];
 }
 
-
 export enum FeedIdentifier {
   CURRENCY,
   CURRENCY_URL,
@@ -35,4 +34,3 @@ export enum FeedIdentifier {
   SPLIT,
   SPLIT_URL
 }
-

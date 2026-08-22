@@ -1,27 +1,29 @@
-import {Transaction} from '../../entities/transaction';
-import {CloseMarginPosition, TransactionCallParam} from './transaction.call.parm';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {TransactionService} from '../service/transaction.service';
-import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {Directive, EventEmitter, Injector, Output, ViewChild} from '@angular/core';
-import {Security} from '../../entities/security';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {HelpIds} from '../../lib/help/help.ids';
-import {StandingOrderCallParam} from '../../standingorder/model/standing.order.call.param';
-import {BaseSettings} from '../../lib/base.settings';
-
+import { Transaction } from '../../entities/transaction';
+import { CloseMarginPosition, TransactionCallParam } from './transaction.call.parm';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { TransactionService } from '../service/transaction.service';
+import { TranslateService } from '@ngx-translate/core';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { Directive, EventEmitter, Injector, Output, ViewChild } from '@angular/core';
+import { Security } from '../../entities/security';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import {
+  PageFirstRowSelectedRow,
+  ParentChildRegisterService
+} from '../../shared/service/parent.child.register.service';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { HelpIds } from '../../lib/help/help.ids';
+import { StandingOrderCallParam } from '../../standingorder/model/standing.order.call.param';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Abstract base class for displaying transactions in a table format with comprehensive editing capabilities.
@@ -87,16 +89,18 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param gps Global parameter service for application-wide settings and configuration
    * @param usersettingsService Service for managing user-specific settings and preferences
    */
-  protected constructor(protected parentChildRegisterService: ParentChildRegisterService,
-              protected activePanelService: ActivePanelService,
-              protected transactionService: TransactionService,
-              protected confirmationService: ConfirmationService,
-              protected messageToastService: MessageToastService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
+  protected constructor(
+    protected parentChildRegisterService: ParentChildRegisterService,
+    protected activePanelService: ActivePanelService,
+    protected transactionService: TransactionService,
+    protected confirmationService: ConfirmationService,
+    protected messageToastService: MessageToastService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPosition(null);
   }
@@ -107,15 +111,23 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The transaction to be deleted
    */
   handleDeleteTransaction(transaction: Transaction): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      (transaction.connectedIdTransaction != null) ? 'MSG_DELETE_ACCOUNTTRANSFER' : 'MSG_CONFIRM_DELETE_RECORD|TRANSACTION', () => {
-        this.transactionService.deleteTransaction(transaction.idTransaction).subscribe(response => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            (transaction.connectedIdTransaction != null) ? 'MSG_DELETE_TRANSACTIONS'
-              : 'MSG_DELETE_RECORD', {i18nRecord: (transaction.connectedIdTransaction != null) ? 'TRANSACTIONS' : 'TRANSACTIONS'});
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      transaction.connectedIdTransaction != null
+        ? 'MSG_DELETE_ACCOUNTTRANSFER'
+        : 'MSG_CONFIRM_DELETE_RECORD|TRANSACTION',
+      () => {
+        this.transactionService.deleteTransaction(transaction.idTransaction).subscribe((response) => {
+          this.messageToastService.showMessageI18n(
+            InfoLevelType.SUCCESS,
+            transaction.connectedIdTransaction != null ? 'MSG_DELETE_TRANSACTIONS' : 'MSG_DELETE_RECORD',
+            { i18nRecord: transaction.connectedIdTransaction != null ? 'TRANSACTIONS' : 'TRANSACTIONS' }
+          );
           this.afterDelete(transaction);
         });
-      });
+      }
+    );
   }
 
   /**
@@ -154,7 +166,8 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The dividend or interest transaction whose taxable flag is toggled
    */
   handleToggleTaxableInterest(transaction: Transaction): void {
-    this.transactionService.updateTaxableInterest(transaction.idTransaction, !(transaction.taxableInterest === true))
+    this.transactionService
+      .updateTaxableInterest(transaction.idTransaction, !(transaction.taxableInterest === true))
       .subscribe(() => this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED, transaction)));
   }
 
@@ -163,8 +176,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The transaction that was deleted
    */
   afterDelete(transaction: Transaction): void {
-    this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED,
-      this.getSecurity(transaction)));
+    this.dateChanged.emit(new ProcessedActionData(ProcessedAction.DELETED, this.getSecurity(transaction)));
   }
 
   /**
@@ -178,8 +190,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
     this.visibleCashaccountTransactionDoubleDialog = false;
     this.visibleConnectDebitCreditDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
-      this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED,
-        processedActionData.data));
+      this.dateChanged.emit(new ProcessedActionData(ProcessedAction.UPDATED, processedActionData.data));
       // this.getSecurity(processedActionData.data)));
     }
   }
@@ -188,8 +199,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * Activates the current panel and sets up the context menu items based on the selected transaction.
    */
   setMenuItemsToActivePanel(): void {
-    this.activePanelService.activatePanel(this,
-      {editMenu: this.getMenuItemsOnTransaction(this.selectedTransaction)});
+    this.activePanelService.activatePanel(this, { editMenu: this.getMenuItemsOnTransaction(this.selectedTransaction) });
     this.contextMenuItems = this.getMenuItemsOnTransaction(this.selectedTransaction);
   }
 
@@ -210,8 +220,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   }
 
   /** Called when the component is deactivated, can be used for cleanup */
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   /** Hides the context menu if it is currently visible */
   hideContextMenu(): void {
@@ -259,11 +268,20 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
    * @param transaction The transaction with a connected transaction to be edited
    */
   protected handleEditConnectedTransaction(transaction: Transaction): void {
-    this.transactionService.getTransactionByIdTransaction(transaction.connectedIdTransaction).subscribe(transactionConnected =>
-      this.handleSecurityEditTransaction(transaction, new CloseMarginPosition(transactionConnected.quotation,
-        transactionConnected.units,
-        transactionConnected.units, transactionConnected.idSecurityaccount, transactionConnected.idTransaction))
-    );
+    this.transactionService
+      .getTransactionByIdTransaction(transaction.connectedIdTransaction)
+      .subscribe((transactionConnected) =>
+        this.handleSecurityEditTransaction(
+          transaction,
+          new CloseMarginPosition(
+            transactionConnected.quotation,
+            transactionConnected.units,
+            transactionConnected.units,
+            transactionConnected.idSecurityaccount,
+            transactionConnected.idTransaction
+          )
+        )
+      );
   }
 
   /**
@@ -327,35 +345,47 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
     if (transaction && transaction.idTransaction >= 0) {
       menuItems.push({
         label: 'EDIT_RECORD|TRANSACTION',
-        command: (e) => (transaction) ? this.handleEditTransaction(transaction) : null,
+        command: (e) => (transaction ? this.handleEditTransaction(transaction) : null),
         disabled: !transaction || !transaction.idTransaction
       });
 
       menuItems.push({
         label: 'DELETE_RECORD|TRANSACTION',
-        command: (e) => (transaction) ? this.handleDeleteTransaction(transaction) : null,
+        command: (e) => (transaction ? this.handleDeleteTransaction(transaction) : null),
         disabled: !transaction || !transaction.idTransaction || !this.canDeleteTransaction(transaction)
       });
 
       menuItems.push({
         label: 'CHANGE_TO_ACCOUNT_TRANSFER',
-        command: (e) => (transaction) ? this.handleConnectDebitCreditTransaction(transaction) : null,
-        disabled: !transaction || !transaction.idTransaction
-          || !Transaction.isWithdrawalOrDeposit(transaction.transactionType) || !!transaction.connectedIdTransaction
+        command: (e) => (transaction ? this.handleConnectDebitCreditTransaction(transaction) : null),
+        disabled:
+          !transaction ||
+          !transaction.idTransaction ||
+          !Transaction.isWithdrawalOrDeposit(transaction.transactionType) ||
+          !!transaction.connectedIdTransaction
       });
 
       menuItems.push({
         label: 'CREATE|STANDING_ORDER',
-        command: (e) => (transaction) ? this.handleCreateStandingOrderFromTransaction(transaction) : null,
-        disabled: !transaction || !transaction.idTransaction
-          || !(Transaction.isSecurityTransaction(transaction.transactionType) || Transaction.isWithdrawalOrDeposit(transaction.transactionType))
+        command: (e) => (transaction ? this.handleCreateStandingOrderFromTransaction(transaction) : null),
+        disabled:
+          !transaction ||
+          !transaction.idTransaction ||
+          !(
+            Transaction.isSecurityTransaction(transaction.transactionType) ||
+            Transaction.isWithdrawalOrDeposit(transaction.transactionType)
+          )
       });
 
       menuItems.push({
         label: 'TAXABLE_INTEREST_TOGGLE',
-        icon: transaction.taxableInterest === true ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
-        command: (e) => (transaction) ? this.handleToggleTaxableInterest(transaction) : null,
-        disabled: !transaction || !transaction.idTransaction || !Transaction.isDividendOrInterest(transaction.transactionType)
+        icon:
+          transaction.taxableInterest === true
+            ? BaseSettings.ICONNAME_SQUARE_CHECK
+            : BaseSettings.ICONNAME_SQUARE_EMTPY,
+        command: (e) => (transaction ? this.handleToggleTaxableInterest(transaction) : null),
+        disabled:
+          !transaction || !transaction.idTransaction || !Transaction.isDividendOrInterest(transaction.transactionType)
       });
 
       TranslateHelper.translateMenuItems(menuItems, this.translateService);
@@ -371,7 +401,4 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   protected canDeleteTransaction(transaction): boolean {
     return true;
   }
-
 }
-
-

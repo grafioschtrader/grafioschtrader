@@ -1,10 +1,10 @@
-import {Component} from '@angular/core';
-import {AppHelper} from '../../helper/app.helper';
-import {TabItem} from '../../types/tab.item';
-import {BaseSettings} from '../../base.settings';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { AppHelper } from '../../helper/app.helper';
+import { TabItem } from '../../types/tab.item';
+import { BaseSettings } from '../../base.settings';
 
-import {RouterModule} from '@angular/router';
-import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.component';
+import { RouterModule } from '@angular/router';
+import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.component';
 
 /**
  * The tab menu for messages.
@@ -14,13 +14,12 @@ import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.co
   // Selector is not used
   selector: 'send-recv-forward-tab-menu',
   template: `
-    <app-shared-tab-menu
-      [tabs]="tabs"
-      [defaultRoute]="defaultRoute">
+    <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterModule, SharedTabMenuComponent]
 })
 export class SendRecvForwardTabMenuComponent {

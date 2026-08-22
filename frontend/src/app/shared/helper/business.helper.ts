@@ -1,29 +1,29 @@
-import {Transaction} from '../../entities/transaction';
-import {TransactionType} from '../types/transaction.type';
-import {Currencypair} from '../../entities/currencypair';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {AbstractControl} from '@angular/forms';
+import { Transaction } from '../../entities/transaction';
+import { TransactionType } from '../types/transaction.type';
+import { Currencypair } from '../../entities/currencypair';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { AbstractControl } from '@angular/forms';
 import moment from 'moment';
-import {CurrencypairWithHistoryquote} from '../../entities/view/currencypair.with.historyquote';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {Observable} from 'rxjs';
-import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {HistoryquoteService} from '../../historyquote/service/historyquote.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {Security} from '../../entities/security';
-import {TenantLimit} from '../../shared/types/tenant.limit';
-import {AssetclassType} from '../types/assetclass.type';
-import {SpecialInvestmentInstruments} from '../types/special.investment.instruments';
-import {Assetclass} from '../../entities/assetclass';
-import {ISecuritycurrencyIdDateClose} from '../../entities/projection/i.securitycurrency.id.date.close';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {GlobalGTSessionNames} from '../global.gt.session.names';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {BaseSettings} from '../../lib/base.settings';
+import { CurrencypairWithHistoryquote } from '../../entities/view/currencypair.with.historyquote';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { Observable } from 'rxjs';
+import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { HistoryquoteService } from '../../historyquote/service/historyquote.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { Security } from '../../entities/security';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { AssetclassType } from '../types/assetclass.type';
+import { SpecialInvestmentInstruments } from '../types/special.investment.instruments';
+import { Assetclass } from '../../entities/assetclass';
+import { ISecuritycurrencyIdDateClose } from '../../entities/projection/i.securitycurrency.id.date.close';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { GlobalGTSessionNames } from '../global.gt.session.names';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Utility class providing static helper methods for financial business operations.
@@ -31,7 +31,6 @@ import {BaseSettings} from '../../lib/base.settings';
  * and external integrations for a financial trading application.
  */
 export class BusinessHelper {
-
   /**
    * Converts a numeric transaction type enum value to its string representation.
    * Iterates through the TransactionType enum to find the matching string name.
@@ -103,8 +102,12 @@ export class BusinessHelper {
    * @param currencypair The currency pair object containing from/to currency information
    * @returns The converted value, or the original value rounded to 8 decimal places if no currency pair
    */
-  public static divideMultiplyExchangeRate(value: number, currencyExRate: number, sourceCurrency: string,
-    currencypair: Currencypair): number {
+  public static divideMultiplyExchangeRate(
+    value: number,
+    currencyExRate: number,
+    sourceCurrency: string,
+    currencypair: Currencypair
+  ): number {
     if (sourceCurrency && currencypair) {
       if (sourceCurrency === currencypair.fromCurrency) {
         return value / currencyExRate;
@@ -137,19 +140,30 @@ export class BusinessHelper {
    * @param transactionTime Unix timestamp of the transaction
    * @param currencyExRateFormControl Angular form control to update with the exchange rate
    */
-  public static getAndSetQuotationCurrencypair(currencypairService: CurrencypairService, currencypair: Currencypair,
-    transactionTime: Date, currencyExRateFormControl: AbstractControl): void {
-    currencypairService.getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(currencypair,
-      moment(transactionTime).format('YYYYMMDD')).subscribe((cWh: CurrencypairWithHistoryquote) => {
-      if (cWh.currencypair) {
-        currencypair.idSecuritycurrency = cWh.currencypair.idSecuritycurrency;
-        if (moment(transactionTime).isAfter(moment(cWh.currencypair.sTimestamp)) || moment(transactionTime).isSame(new Date(), 'day')) {
-          currencyExRateFormControl.setValue(cWh.currencypair.sLast);
-        } else {
-          currencyExRateFormControl.setValue(cWh.historyquote.close);
+  public static getAndSetQuotationCurrencypair(
+    currencypairService: CurrencypairService,
+    currencypair: Currencypair,
+    transactionTime: Date,
+    currencyExRateFormControl: AbstractControl
+  ): void {
+    currencypairService
+      .getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(
+        currencypair,
+        moment(transactionTime).format('YYYYMMDD')
+      )
+      .subscribe((cWh: CurrencypairWithHistoryquote) => {
+        if (cWh.currencypair) {
+          currencypair.idSecuritycurrency = cWh.currencypair.idSecuritycurrency;
+          if (
+            moment(transactionTime).isAfter(moment(cWh.currencypair.sTimestamp)) ||
+            moment(transactionTime).isSame(new Date(), 'day')
+          ) {
+            currencyExRateFormControl.setValue(cWh.currencypair.sLast);
+          } else {
+            currencyExRateFormControl.setValue(cWh.historyquote.close);
+          }
         }
-      }
-    });
+      });
   }
 
   /**
@@ -163,16 +177,28 @@ export class BusinessHelper {
    * @param forChart Boolean flag indicating if data is for chart visualization
    * @returns Observable containing the security transaction summary
    */
-  public static getSecurityTransactionSummary(securityService: SecurityService,
+  public static getSecurityTransactionSummary(
+    securityService: SecurityService,
     idSecuritycurrency: number,
     idSecuritycashAccounts: number[],
     idPortfolio: number,
     forChart: boolean,
-    untilDate?: string): Observable<SecurityTransactionSummary> {
+    untilDate?: string
+  ): Observable<SecurityTransactionSummary> {
     if (idSecuritycashAccounts && idSecuritycashAccounts.length > 0 && idSecuritycashAccounts[0] !== null) {
-      return securityService.getTransactionsByIdSecurityaccountsAndIdSecurity(idSecuritycashAccounts, idSecuritycurrency, forChart, untilDate);
+      return securityService.getTransactionsByIdSecurityaccountsAndIdSecurity(
+        idSecuritycashAccounts,
+        idSecuritycurrency,
+        forChart,
+        untilDate
+      );
     } else if (idPortfolio) {
-      return securityService.getTransactionsByIdPortfolioAndIdSecurity(idPortfolio, idSecuritycurrency, forChart, untilDate);
+      return securityService.getTransactionsByIdPortfolioAndIdSecurity(
+        idPortfolio,
+        idSecuritycurrency,
+        forChart,
+        untilDate
+      );
     } else {
       return securityService.getTransactionsByIdTenantAndIdSecurity(idSecuritycurrency, forChart, untilDate);
     }
@@ -209,7 +235,8 @@ export class BusinessHelper {
   public static isLimitCheckOk(tenantLimit: TenantLimit, messageToastService: MessageToastService): boolean {
     if (tenantLimit && tenantLimit.actual >= tenantLimit.limit) {
       messageToastService.showMessageI18n(InfoLevelType.WARNING, 'MAX_LIMIT', {
-        limit: tenantLimit.limit, i18nEntity: tenantLimit.className.toUpperCase() + 'S'
+        limit: tenantLimit.limit,
+        i18nEntity: tenantLimit.className.toUpperCase() + 'S'
       });
       return false;
     }
@@ -229,19 +256,28 @@ export class BusinessHelper {
    * @param asTraded Boolean indicating whether to use traded prices vs. theoretical prices
    * @param formControl Angular form control to update with the retrieved close price
    */
-  public static setHistoryquoteCloseToFormControl(messageToastService: MessageToastService,
+  public static setHistoryquoteCloseToFormControl(
+    messageToastService: MessageToastService,
     historyquoteService: HistoryquoteService,
     gps: GlobalparameterService,
-    transactionTime: Date, idSecuritycurrency: number,
-    asTraded: boolean, formControl: AbstractControl): void {
-    historyquoteService.getCertainOrOlderDayInHistoryquoteByIdSecuritycurrency(idSecuritycurrency,
-      moment(transactionTime).format('YYYYMMDD'), asTraded).subscribe((historyquote: ISecuritycurrencyIdDateClose) => {
-      if (historyquote != null) {
-        formControl.setValue(historyquote.close);
-      } else {
-        messageToastService.showMessageI18n(InfoLevelType.WARNING, 'MSG_NON_TIME_QUOTATION');
-      }
-    });
+    transactionTime: Date,
+    idSecuritycurrency: number,
+    asTraded: boolean,
+    formControl: AbstractControl
+  ): void {
+    historyquoteService
+      .getCertainOrOlderDayInHistoryquoteByIdSecuritycurrency(
+        idSecuritycurrency,
+        moment(transactionTime).format('YYYYMMDD'),
+        asTraded
+      )
+      .subscribe((historyquote: ISecuritycurrencyIdDateClose) => {
+        if (historyquote != null) {
+          formControl.setValue(historyquote.close);
+        } else {
+          messageToastService.showMessageI18n(InfoLevelType.WARNING, 'MSG_NON_TIME_QUOTATION');
+        }
+      });
   }
 
   /**
@@ -254,26 +290,21 @@ export class BusinessHelper {
    */
   static getUrlLinkMenus(securitycurrency: Securitycurrency): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    menuItems.push({separator: true});
-    menuItems.push(
-      {
-        label: 'STOCKEXCHANGE_LINK',
-        command: (e) => AppHelper.toExternalWebpage(securitycurrency.stockexchangeLink, 'exchange'),
-        disabled: !securitycurrency.stockexchangeLink
-      }
-    );
+    menuItems.push({ separator: true });
+    menuItems.push({
+      label: 'STOCKEXCHANGE_LINK',
+      command: (e) => AppHelper.toExternalWebpage(securitycurrency.stockexchangeLink, 'exchange'),
+      disabled: !securitycurrency.stockexchangeLink
+    });
     if (securitycurrency.hasOwnProperty('productLink')) {
-      menuItems.push(
-        {
-          label: 'PRODUCT_LINK',
-          command: (e) => AppHelper.toExternalWebpage((<Security>securitycurrency).productLink, 'product'),
-          disabled: !(<Security>securitycurrency).productLink
-        }
-      );
+      menuItems.push({
+        label: 'PRODUCT_LINK',
+        command: (e) => AppHelper.toExternalWebpage((<Security>securitycurrency).productLink, 'product'),
+        disabled: !(<Security>securitycurrency).productLink
+      });
     }
     return menuItems;
   }
-
 
   /**
    * Determines if a security should display denomination values based on its asset class
@@ -286,15 +317,18 @@ export class BusinessHelper {
    */
   public static hasSecurityDenomination(assetclass: Assetclass, hasMarkedPrice: boolean): boolean {
     if (hasMarkedPrice) {
-      return !!assetclass && ((assetclass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME]
-          || assetclass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND]
-          || assetclass.categoryType === AssetclassType[AssetclassType.MONEY_MARKET])
-        && assetclass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT]);
+      return (
+        !!assetclass &&
+        (assetclass.categoryType === AssetclassType[AssetclassType.FIXED_INCOME] ||
+          assetclass.categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND] ||
+          assetclass.categoryType === AssetclassType[AssetclassType.MONEY_MARKET]) &&
+        assetclass.specialInvestmentInstrument ===
+          SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT]
+      );
     } else {
       return true;
     }
   }
-
 
   /**
    * Constructs a server URL using the current location hostname and specified port.
@@ -321,8 +355,12 @@ export class BusinessHelper {
    * @returns True if the security is a margin product (CFD or FOREX), false otherwise
    */
   public static isMarginProduct(security: Security): boolean {
-    return security.assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD]
-      || security.assetClass.specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.FOREX];
+    return (
+      security.assetClass.specialInvestmentInstrument ===
+        SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD] ||
+      security.assetClass.specialInvestmentInstrument ===
+        SpecialInvestmentInstruments[SpecialInvestmentInstruments.FOREX]
+    );
   }
 
   /**
@@ -384,5 +422,4 @@ export class BusinessHelper {
   public static saveDateToSessionStore(property: string, date: Date) {
     sessionStorage.setItem(property, moment(date).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
   }
-
 }

@@ -1,9 +1,9 @@
-import {FilterType} from './filter.type';
-import {DataType} from '../dynamic-form/models/data.type';
-import {ValueLabelHtmlSelectOptions} from './value.label.html.select.options';
-import {BaseFieldDefinition, PropertyEditShare} from '../dynamic-form/models/base.field.definition';
-import {ValidationErrorRule} from '../dynamic-form/models/base.field.fieldgroup.config';
-import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
+import { FilterType } from './filter.type';
+import { DataType } from '../dynamic-form/models/data.type';
+import { ValueLabelHtmlSelectOptions } from './value.label.html.select.options';
+import { BaseFieldDefinition, PropertyEditShare } from '../dynamic-form/models/base.field.definition';
+import { ValidationErrorRule } from '../dynamic-form/models/base.field.fieldgroup.config';
+import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Comprehensive configuration interface for defining table columns and single data field displays.
@@ -79,24 +79,24 @@ export interface ColumnConfig extends BaseFieldDefinition {
   translateValues: TranslateValue;
 
   /**
-  * Cached mapping of original field values to their translated equivalents.
-  * Populated automatically by the translation service for performance optimization.
-  *
-  * Key: Original field value from data object (e.g., "ACTIVE", "PENDING")
-  * Value: Translated display text (e.g., "Active", "Pending")
-  *
-  * Used for filter dropdown generation, consistent value display, and enabling
-  * proper alphabetical sorting of translated content in Optimus UI tables.
-  * Rebuilt when language changes or new unique values appear in dataset.
-  *
-  * **Field Creation**: For sorting support, translated values are also added to each
-  * data object with a "$" suffix (e.g., field "status" gets "status$" with translated value).
-  * The `fieldTranslated` property points to this suffixed field name for Optimus UI sorting.
-  *
-  * @example
-  * // translatedValueMap: { "ACTIVE": "Active", "INACTIVE": "Inactive" }
-  * // Data object gets: { status: "ACTIVE", status$: "Active" }
-  */
+   * Cached mapping of original field values to their translated equivalents.
+   * Populated automatically by the translation service for performance optimization.
+   *
+   * Key: Original field value from data object (e.g., "ACTIVE", "PENDING")
+   * Value: Translated display text (e.g., "Active", "Pending")
+   *
+   * Used for filter dropdown generation, consistent value display, and enabling
+   * proper alphabetical sorting of translated content in Optimus UI tables.
+   * Rebuilt when language changes or new unique values appear in dataset.
+   *
+   * **Field Creation**: For sorting support, translated values are also added to each
+   * data object with a "$" suffix (e.g., field "status" gets "status$" with translated value).
+   * The `fieldTranslated` property points to this suffixed field name for Optimus UI sorting.
+   *
+   * @example
+   * // translatedValueMap: { "ACTIVE": "Active", "INACTIVE": "Inactive" }
+   * // Data object gets: { status: "ACTIVE", status$: "Active" }
+   */
   translatedValueMap: { [key: string]: string };
 
   /**
@@ -165,7 +165,7 @@ export interface ColumnConfig extends BaseFieldDefinition {
  * columns to table configurations. Used by column creation methods to avoid
  * requiring all properties upfront.
  */
- export interface OptionalParams {
+export interface OptionalParams {
   /** Fixed width of the column in pixels */
   width?: number;
 
@@ -226,7 +226,6 @@ export interface ColumnConfig extends BaseFieldDefinition {
   /** Configuration for making this column editable in table/tree-table editing scenarios */
   cec?: ColumnEditConfig;
 }
-
 
 /**
  * Enumeration defining input types for inline table cell editing.
@@ -381,9 +380,17 @@ export class ColumnGroupConfig {
    *                     Function receives the group data object containing all backend values.
    * @param optionalsGropuParams - Additional configuration options including column spanning
    */
-  constructor(public fieldValue: string, public textValueKey?: string, public fieldTextFN?: (columnConfig: ColumnConfig,
-      arrIndex: number, groupChangeIndexMap: any, rowIndex: number) => any,
-    optionalsGropuParams?: OptionalGroupParams) {
+  constructor(
+    public fieldValue: string,
+    public textValueKey?: string,
+    public fieldTextFN?: (
+      columnConfig: ColumnConfig,
+      arrIndex: number,
+      groupChangeIndexMap: any,
+      rowIndex: number
+    ) => any,
+    optionalsGropuParams?: OptionalGroupParams
+  ) {
     if (optionalsGropuParams) {
       this.colspan = optionalsGropuParams.colspan;
       this.currencyPrecisionField = optionalsGropuParams.currencyPrecisionField;
@@ -424,9 +431,7 @@ export enum TranslateValue {
    * Ideal for displaying lists of translated enum values.
    */
   UPPER_CASE_ARRAY_TO_COMMA_SEPERATED = 3
-
 }
-
 
 /**
  * Returns the property a table filters a column on, which is not always the field of the column itself.

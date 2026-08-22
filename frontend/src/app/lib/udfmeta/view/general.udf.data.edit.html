@@ -1,9 +1,15 @@
-<p-dialog header="{{uDFGeneralCallParam.titleKey | translate}}" [visible]="visibleDialog"
-          [style]="{width: '500px'}"
-          (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-  <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                #form="dynamicForm"
-                (submitBt)="submit($event)">
-  </dynamic-form>
-</p-dialog>`
+<p-dialog
+  header="{{uDFGeneralCallParam.titleKey | translate}}"
+  [visible]="visibleDialog"
+  [style]="{width: '500px'}"
+  (onShow)="onShow($event)"
+  (onHide)="onHide($event)"
+  [modal]="true">
+  <dynamic-form
+    [config]="config"
+    [formConfig]="formConfig"
+    [translateService]="translateService"
+    #form="dynamicForm"
+    (submitBt)="submit($event)">
+  </dynamic-form> </p-dialog
+>`

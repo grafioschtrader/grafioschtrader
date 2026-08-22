@@ -1,5 +1,5 @@
-import {Cashaccount} from './cashaccount';
-import {Security} from '../entities/security';
+import { Cashaccount } from './cashaccount';
+import { Security } from '../entities/security';
 
 /**
  * Base standing order with common scheduling fields. Discriminated by dtype: 'C' for cashaccount, 'S' for security.

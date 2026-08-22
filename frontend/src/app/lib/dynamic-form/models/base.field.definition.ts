@@ -1,5 +1,5 @@
-import {DataType} from './data.type';
-import {ValueKeyHtmlSelectOptions} from './value.key.html.select.options';
+import { DataType } from './data.type';
+import { ValueKeyHtmlSelectOptions } from './value.key.html.select.options';
 
 /**
  * Common properties from the definition of a table column and an input field should be included here.

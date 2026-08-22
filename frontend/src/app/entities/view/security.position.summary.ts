@@ -1,7 +1,6 @@
-import {Security} from '../security';
+import { Security } from '../security';
 
 export class SecurityPositionSummary {
-
   public mainCurrency: string;
   public units: number;
   public splitFactorFromBaseTransaction: number;

@@ -1,6 +1,6 @@
-import {BaseID} from '../lib/entities/base.id';
-import {TemplateFormatType} from '../shared/types/template.format.type';
-import {Auditable} from '../lib/entities/auditable';
+import { BaseID } from '../lib/entities/base.id';
+import { TemplateFormatType } from '../shared/types/template.format.type';
+import { Auditable } from '../lib/entities/auditable';
 
 export class ImportTransactionTemplate extends Auditable implements BaseID {
   public static readonly KEY_NAME = 'idAssetClass';
@@ -11,7 +11,7 @@ export class ImportTransactionTemplate extends Auditable implements BaseID {
   templatePurpose: string = null;
   templateCategory?: TemplateCategory | string = null;
   templateAsTxt: string = null;
-  validSince ? = null;
+  validSince? = null;
   templateLanguage: string = null;
 
   public override getId() {

@@ -32,7 +32,7 @@ public enum TaskTypeBase implements ITaskType {
   GTNET_ADMIN_MESSAGE_DELIVERY((byte) 26),
 
   // Task which used oldValueNumber or oldValueString can not created by the admin (80+ system band)
-  ///////////////////////////////////////////////////////////////////////////////
+  // ----------------------------------------------------------------------------
   /** Moves shared entities from one user to another user by changing field created_by */
   MOVE_CREATED_BY_USER_TO_OTHER_USER((byte) 80);
 

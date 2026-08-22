@@ -1,43 +1,60 @@
-import {Component, OnInit} from '@angular/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {AddRemoveDay, SaveTradingDays, TradingDaysPlusService} from '../service/trading.days.plus.service';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {TradingCalendarBase} from './trading.calendar.base';
-import {TradingDaysWithDateBoundaries} from '../model/trading.days.with.date.boundaries';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {CommonModule} from '@angular/common';
-import {PanelModule} from '@openng/optimus-ui/panel';
-import {SelectModule} from '@openng/optimus-ui/select';
-import {FormsModule} from '@angular/forms';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {FullyearcalendarLibComponent} from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { AddRemoveDay, SaveTradingDays, TradingDaysPlusService } from '../service/trading.days.plus.service';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TradingCalendarBase } from './trading.calendar.base';
+import { TradingDaysWithDateBoundaries } from '../model/trading.days.with.date.boundaries';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { CommonModule } from '@angular/common';
+import { PanelModule } from '@openng/optimus-ui/panel';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { FullyearcalendarLibComponent } from '../../lib/fullyearcalendar/fullyearcalendar-lib.component';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 
 /**
  * Component for the  global trading calendar
  */
 @Component({
-    templateUrl: '../view/trading.calendar.html',
-    standalone: true,
-    imports: [CommonModule, TranslateModule, PanelModule, SelectModule, FormsModule, ButtonModule, FullyearcalendarLibComponent, ContextMenuModule]
+  templateUrl: '../view/trading.calendar.html',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    PanelModule,
+    SelectModule,
+    FormsModule,
+    ButtonModule,
+    FullyearcalendarLibComponent,
+    ContextMenuModule
+  ]
 })
 export class TradingCalendarGlobalComponent extends TradingCalendarBase implements OnInit {
-
   public static readonly GLOBAL_TRADING_DAYS_COLOR = 'lime';
   readonly DATE_ATTRIBUTE = 'tradingDate';
 
-  constructor(private tradingDaysPlusService: TradingDaysPlusService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              activePanelService: ActivePanelService,
-              messageToastService: MessageToastService) {
-    super(translateService, gps, [TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR],
-      activePanelService, messageToastService, 'TRADING_CALENDAR_GLOBAL');
+  constructor(
+    private tradingDaysPlusService: TradingDaysPlusService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    activePanelService: ActivePanelService,
+    messageToastService: MessageToastService
+  ) {
+    super(
+      translateService,
+      gps,
+      [TradingCalendarGlobalComponent.GLOBAL_TRADING_DAYS_COLOR],
+      activePanelService,
+      messageToastService,
+      'TRADING_CALENDAR_GLOBAL'
+    );
   }
 
   ngOnInit(): void {
@@ -45,18 +62,21 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
   }
 
   readData(yearChange: boolean): void {
-    this.tradingDaysPlusService.getTradingDaysByYear(this.yearCalendarData.year).subscribe(
-      (tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries) => {
+    this.tradingDaysPlusService
+      .getTradingDaysByYear(this.yearCalendarData.year)
+      .subscribe((tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries) => {
         this.clearDaysAndTransformReadData(tradingDaysWithDateBoundaries.dates);
         this.setYearsBoundariesAfterRead(tradingDaysWithDateBoundaries, yearChange);
       });
   }
 
   saveData(convertedAddRemoveDays: AddRemoveDay[]): void {
-    this.tradingDaysPlusService.save(new SaveTradingDays(this.yearCalendarData.year, convertedAddRemoveDays)).subscribe(
-      (tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_GLOBAL_SAVE',
-          {year: this.yearCalendarData.year});
+    this.tradingDaysPlusService
+      .save(new SaveTradingDays(this.yearCalendarData.year, convertedAddRemoveDays))
+      .subscribe((tradingDaysWithDateBoundaries: TradingDaysWithDateBoundaries) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'TRADING_CALENDAR_GLOBAL_SAVE', {
+          year: this.yearCalendarData.year
+        });
         this.clearDaysAndTransformReadData(tradingDaysWithDateBoundaries.dates);
       });
   }
@@ -64,7 +84,10 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
   override getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
     if (this.hasRightsToModify()) {
-      menuItems.push({label: '_TRADING_CALENDAR_MARK_YEAR', command: (e) => this.markWorkingDaysOfFullYear()});
+      menuItems.push({
+        label: '_TRADING_CALENDAR_MARK_YEAR',
+        command: (e) => this.markWorkingDaysOfFullYear()
+      });
       TranslateHelper.translateMenuItems(menuItems, this.translateService);
     }
     this.contextMenuItems = menuItems;
@@ -90,7 +113,4 @@ export class TradingCalendarGlobalComponent extends TradingCalendarBase implemen
       startDate.setDate(startDate.getDate() + 1);
     }
   }
-
 }
-
-

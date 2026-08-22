@@ -1,38 +1,38 @@
-import {Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TransactionService} from '../service/transaction.service';
-import {Transaction} from '../../entities/transaction';
-import {Currencypair} from '../../entities/currencypair';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {CashaccountTransactionPosition} from '../../entities/view/cashaccount.transaction.position';
-import {TransactionContextMenu} from './transaction.context.menu';
-import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {Security} from '../../entities/security';
-import {Portfolio} from '../../entities/portfolio';
-import {TransactionCallParam} from './transaction.call.parm';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {combineLatest, Observable} from 'rxjs';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
+import { Component, Injector, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TransactionService } from '../service/transaction.service';
+import { Transaction } from '../../entities/transaction';
+import { Currencypair } from '../../entities/currencypair';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { CashaccountTransactionPosition } from '../../entities/view/cashaccount.transaction.position';
+import { TransactionContextMenu } from './transaction.context.menu';
+import { TranslateService } from '@ngx-translate/core';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { Security } from '../../entities/security';
+import { Portfolio } from '../../entities/portfolio';
+import { TransactionCallParam } from './transaction.call.parm';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { combineLatest, Observable } from 'rxjs';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
 import {
   ChildPreservePage,
   PageFirstRowSelectedRow,
   ParentChildRegisterService
 } from '../../shared/service/parent.child.register.service';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {AppSettings} from '../../shared/app.settings';
-import {TransactionType} from '../../shared/types/transaction.type';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {TransactionCashaccountEditSingleComponent} from './transaction-cashaccount-editsingle.component';
-import {TransactionCashaccountEditDoubleComponent} from './transaction-cashaccount-editdouble.component';
-import {TransactionSecurityEditComponent} from './transaction-security-edit.component';
-import {TransactionCashaccountConnectDebitCreditComponent} from './transaction-cashaccount-connect-debit-credit-component';
-import {StandingOrderCashaccountEditComponent} from '../../standingorder/component/standing-order-cashaccount-edit.component';
-import {StandingOrderSecurityEditComponent} from '../../standingorder/component/standing-order-security-edit.component';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { AppSettings } from '../../shared/app.settings';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { TransactionCashaccountEditSingleComponent } from './transaction-cashaccount-editsingle.component';
+import { TransactionCashaccountEditDoubleComponent } from './transaction-cashaccount-editdouble.component';
+import { TransactionSecurityEditComponent } from './transaction-security-edit.component';
+import { TransactionCashaccountConnectDebitCreditComponent } from './transaction-cashaccount-connect-debit-credit-component';
+import { StandingOrderCashaccountEditComponent } from '../../standingorder/component/standing-order-cashaccount-edit.component';
+import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
 
 /**
  * Angular component that displays transactions for a cash account in a table format with context menu functionality.
@@ -44,6 +44,7 @@ import {StandingOrderSecurityEditComponent} from '../../standingorder/component/
   selector: 'transaction-cashaccount-table',
   templateUrl: '../view/transaction.cashaccount.table.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     ConfigurableTableComponent,
@@ -55,8 +56,10 @@ import {StandingOrderSecurityEditComponent} from '../../standingorder/component/
     StandingOrderSecurityEditComponent
   ]
 })
-export class TransactionCashaccountTableComponent extends TransactionContextMenu
-  implements ChildPreservePage, OnInit, OnDestroy {
+export class TransactionCashaccountTableComponent
+  extends TransactionContextMenu
+  implements ChildPreservePage, OnInit, OnDestroy
+{
   /** The unique identifier of the security cash account for which transactions are displayed */
   @Input() idSecuritycashAccount: number;
 
@@ -86,7 +89,8 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
    * @param gps Global parameter service for application settings
    * @param usersettingsService Service for user-specific settings
    */
-  constructor(private currencypairService: CurrencypairService,
+  constructor(
+    private currencypairService: CurrencypairService,
     private portfolioService: PortfolioService,
     parentChildRegisterService: ParentChildRegisterService,
     activePanelService: ActivePanelService,
@@ -97,32 +101,56 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
-    super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      filterService, translateService, gps, usersettingsService, injector);
+    injector: Injector
+  ) {
+    super(
+      parentChildRegisterService,
+      activePanelService,
+      transactionService,
+      confirmationService,
+      messageToastService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   /** Initializes the component by setting up table columns, sorting, and registering with parent-child service */
   ngOnInit(): void {
-    this.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false,);
-    this.addColumnFeqH(DataType.String, 'transaction.transactionType', true, false,
-      {width: 100, translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.String, 'transaction.security.name', AppSettings.SECURITY.toUpperCase(), true, false, {width: 150});
+    this.addColumn(DataType.DateString, 'transaction.transactionTime', 'DATE', true, false);
+    this.addColumnFeqH(DataType.String, 'transaction.transactionType', true, false, {
+      width: 100,
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumn(DataType.String, 'transaction.security.name', AppSettings.SECURITY.toUpperCase(), true, false, {
+      width: 150
+    });
     this.addColumn(DataType.Numeric, 'transaction.units', 'QUANTITY', true, false);
     this.addColumn(DataType.Numeric, 'transaction.quotation', 'QUOTATION_DIV', true, false);
     this.addColumn(DataType.String, 'transaction.currencypair.fromCurrency', 'CURRENCY', true, false);
     this.addColumn(DataType.String, 'transaction.currencyExRate', 'EXCHANGE_RATE', true, false);
-    this.addColumn(DataType.Numeric, 'transaction.taxCost', 'TAX_COST', true, false,
-      {currencyPrecisionField: 'transaction.security.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false,
-      {currencyPrecisionField: 'transaction.security.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false,
-      {templateName: 'greenRed', currencyPrecisionField: 'transaction.cashaccount.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'balance', true, false,
-      {templateName: 'greenRed', currencyPrecisionField: 'transaction.cashaccount.currency'});
+    this.addColumn(DataType.Numeric, 'transaction.taxCost', 'TAX_COST', true, false, {
+      currencyPrecisionField: 'transaction.security.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false, {
+      currencyPrecisionField: 'transaction.security.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false, {
+      templateName: 'greenRed',
+      currencyPrecisionField: 'transaction.cashaccount.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'balance', true, false, {
+      templateName: 'greenRed',
+      currencyPrecisionField: 'transaction.cashaccount.currency'
+    });
     this.prepareTableAndTranslate();
     // this.pageFirstRowSelectedRow = this.parentChildRegisterService.getRowPostion(this.idSecuritycashAccount);
-    this.multiSortMeta.push({field: 'transaction.transactionTime', order: -1});
+    this.multiSortMeta.push({
+      field: 'transaction.transactionTime',
+      order: -1
+    });
     this.initialize();
     this.parentChildRegisterService.registerChildComponent(this);
   }
@@ -134,18 +162,25 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
   preservePage(data: any) {
     if (data && this.cashaccountTransactionPositionSelected) {
       const transactions: Transaction[] = Array.isArray(data) ? data : [data];
-      if (!transactions.find(transaction => transaction.idTransaction === this.cashaccountTransactionPositionSelected.idTransaction)) {
-        this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions.find(ctps =>
-          ctps.idTransaction === transactions[0].idTransaction);
+      if (
+        !transactions.find(
+          (transaction) => transaction.idTransaction === this.cashaccountTransactionPositionSelected.idTransaction
+        )
+      ) {
+        this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions.find(
+          (ctps) => ctps.idTransaction === transactions[0].idTransaction
+        );
         if (!this.cashaccountTransactionPositionSelected && transactions.length > 1) {
-          this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions.find(ctps =>
-            ctps.idTransaction === transactions[1].idTransaction);
+          this.cashaccountTransactionPositionSelected = this.cashaccountTransactionPositions.find(
+            (ctps) => ctps.idTransaction === transactions[1].idTransaction
+          );
         }
       }
     }
-    this.parentChildRegisterService.saveRowPosition(this.idSecuritycashAccount,
-      new PageFirstRowSelectedRow(this.firstRowIndexOnPage,
-        (data) ? this.cashaccountTransactionPositionSelected : null));
+    this.parentChildRegisterService.saveRowPosition(
+      this.idSecuritycashAccount,
+      new PageFirstRowSelectedRow(this.firstRowIndexOnPage, data ? this.cashaccountTransactionPositionSelected : null)
+    );
   }
 
   /**
@@ -177,7 +212,7 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
     if (this.portfolio) {
       this.loadData();
     } else {
-      this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount).subscribe(portfolio => {
+      this.portfolioService.getPortfolioByIdSecuritycashaccount(this.idSecuritycashAccount).subscribe((portfolio) => {
         this.portfolio = portfolio;
         this.loadData();
       });
@@ -195,15 +230,21 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
   /** Loads transaction and currency pair data simultaneously and processes the results */
   private loadData() {
     const transactionsObservable: Observable<CashaccountTransactionPosition[]> =
-      this.transactionService.getTransactionsWithBalanceForCashaccount(this.idSecuritycashAccount,
-        this.cashAccountTableInputFilter ?? new CashAccountTableInputFilter());
-    const currencypairObservable: Observable<Currencypair[]> = this.currencypairService
-      .getTransactionCurrencypairsByPortfolioId(this.portfolio.idPortfolio);
+      this.transactionService.getTransactionsWithBalanceForCashaccount(
+        this.idSecuritycashAccount,
+        this.cashAccountTableInputFilter ?? new CashAccountTableInputFilter()
+      );
+    const currencypairObservable: Observable<Currencypair[]> =
+      this.currencypairService.getTransactionCurrencypairsByPortfolioId(this.portfolio.idPortfolio);
     combineLatest([transactionsObservable, currencypairObservable]).subscribe(
       (result: [CashaccountTransactionPosition[], Currencypair[]]) => {
-        this.cashaccountTransactionPositions = this.addCurrencypairToCashaccountTransactionPosition(result[0], result[1]);
+        this.cashaccountTransactionPositions = this.addCurrencypairToCashaccountTransactionPosition(
+          result[0],
+          result[1]
+        );
         this.goToFirsRowPosition(this.idSecuritycashAccount);
-      });
+      }
+    );
   }
 
   /**
@@ -212,15 +253,18 @@ export class TransactionCashaccountTableComponent extends TransactionContextMenu
    * @param currencypairs Array of available currency pairs
    * @returns Enhanced transaction positions with currency pair information
    */
-  private addCurrencypairToCashaccountTransactionPosition(cashaccountTransactionPositions: CashaccountTransactionPosition[],
-    currencypairs: Currencypair[]): CashaccountTransactionPosition[] {
+  private addCurrencypairToCashaccountTransactionPosition(
+    cashaccountTransactionPositions: CashaccountTransactionPosition[],
+    currencypairs: Currencypair[]
+  ): CashaccountTransactionPosition[] {
     const currencypairMap: Map<number, Currencypair> = new Map();
-    currencypairs.forEach(currencypair => currencypairMap.set(currencypair.idSecuritycurrency, currencypair));
+    currencypairs.forEach((currencypair) => currencypairMap.set(currencypair.idSecuritycurrency, currencypair));
     for (const cashaccountTransactionPosition of cashaccountTransactionPositions) {
       cashaccountTransactionPosition['idTransaction'] = cashaccountTransactionPosition.transaction.idTransaction;
       if (cashaccountTransactionPosition.transaction.idCurrencypair != null) {
-        cashaccountTransactionPosition.transaction.currencypair = currencypairMap.get(cashaccountTransactionPosition
-          .transaction.idCurrencypair);
+        cashaccountTransactionPosition.transaction.currencypair = currencypairMap.get(
+          cashaccountTransactionPosition.transaction.idCurrencypair
+        );
       }
     }
     this.createTranslatedValueStoreAndFilterField(cashaccountTransactionPositions);
@@ -237,6 +281,8 @@ export class CashAccountTableInputFilter {
    * @param transactionTypes Array of transaction types to include in the filter
    * @param year Specific year to filter transactions, 0 for all years
    */
-  constructor(public transactionTypes: TransactionType[] = [], public year: number = 0) {
-  }
+  constructor(
+    public transactionTypes: TransactionType[] = [],
+    public year: number = 0
+  ) {}
 }

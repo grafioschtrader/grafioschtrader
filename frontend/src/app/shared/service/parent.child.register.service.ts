@@ -1,8 +1,7 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 
 @Injectable()
 export class ParentChildRegisterService {
-
   childPreservePages: ChildPreservePage[] = [];
   pageServerMap: Map<number, PageFirstRowSelectedRow> = new Map();
 
@@ -23,7 +22,7 @@ export class ParentChildRegisterService {
   }
 
   public callChildrenToPreserve(data: any) {
-    this.childPreservePages.forEach(childPreservePage => childPreservePage.preservePage(data));
+    this.childPreservePages.forEach((childPreservePage) => childPreservePage.preservePage(data));
   }
 
   /**
@@ -36,15 +35,16 @@ export class ParentChildRegisterService {
   }
 
   public getRowPosition(id: number): PageFirstRowSelectedRow {
-    const pageFirstRowSelectedRow = (id) ? this.pageServerMap.get(id) : null;
+    const pageFirstRowSelectedRow = id ? this.pageServerMap.get(id) : null;
     return pageFirstRowSelectedRow ? pageFirstRowSelectedRow : new PageFirstRowSelectedRow(0, null);
   }
 }
 
 export class PageFirstRowSelectedRow {
-  constructor(public topPageRow: number, public selectedRow: any) {
-
-  }
+  constructor(
+    public topPageRow: number,
+    public selectedRow: any
+  ) {}
 }
 
 export interface ChildPreservePage {

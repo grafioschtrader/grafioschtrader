@@ -1,72 +1,76 @@
-import {Component, OnInit} from '@angular/core';
-import {Validators} from '@angular/forms';
-import {AlgoAssetclass} from '../model/algo.assetclass';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {AlgoAssetclassService} from '../service/algo.assetclass.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {AssetclassService} from '../../assetclass/service/assetclass.service';
-import {combineLatest, Observable, of} from 'rxjs';
-import {Assetclass} from '../../entities/assetclass';
-import {Portfolio} from '../../entities/portfolio';
-import {AlgoTop} from '../model/algo.top';
-import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
-import {AlgoAssetclassSecurityBaseEdit} from './algo.assetclass.security.base.edit';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppSettings} from '../../shared/app.settings';
-import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Validators } from '@angular/forms';
+import { AlgoAssetclass } from '../model/algo.assetclass';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { AlgoAssetclassService } from '../service/algo.assetclass.service';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { AssetclassService } from '../../assetclass/service/assetclass.service';
+import { combineLatest, Observable, of } from 'rxjs';
+import { Assetclass } from '../../entities/assetclass';
+import { Portfolio } from '../../entities/portfolio';
+import { AlgoTop } from '../model/algo.top';
+import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
+import { AlgoAssetclassSecurityBaseEdit } from './algo.assetclass.security.base.edit';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AppSettings } from '../../shared/app.settings';
+import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 
 @Component({
-    selector: 'algo-assetclass-edit',
-    template: `
-    <p-dialog header="{{'ALGO_ASSETCLASS' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '600px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
-    standalone: true,
-    imports: [
-        DialogModule,
-        DynamicFormModule,
-        TranslateModule
-    ]
+  selector: 'algo-assetclass-edit',
+  template: ` <p-dialog
+    header="{{ 'ALGO_ASSETCLASS' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '600px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoAssetclass> implements OnInit {
-
-  constructor(private portfolioService: PortfolioService,
-              private assetclassService: AssetclassService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              messageToastService: MessageToastService,
-              algoAssetclassService: AlgoAssetclassService) {
-    super('ALGO_ASSETCLASS', translateService, gps,
-      messageToastService, algoAssetclassService);
+  constructor(
+    private portfolioService: PortfolioService,
+    private assetclassService: AssetclassService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    messageToastService: MessageToastService,
+    algoAssetclassService: AlgoAssetclassService
+  ) {
+    super('ALGO_ASSETCLASS', translateService, gps, messageToastService, algoAssetclassService);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      4, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
 
     this.config = [
       DynamicFieldHelper.createFieldCheckboxHeqF('customCategory'),
       DynamicFieldHelper.createFieldInputStringHeqF('name', 40, false),
-      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.ASSETCLASS_KEY, true,
-        {dataproperty: 'assetclass.idAssetClass'}),
+      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.ASSETCLASS_KEY, true, {
+        dataproperty: 'assetclass.idAssetClass'
+      }),
       ...this.getFieldDefinition()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   protected override initialize(): void {
-    const allSecurityaccountsObservable: Observable<Portfolio[]> = this.portfolioService.getPortfoliosForTenantOrderByName();
+    const allSecurityaccountsObservable: Observable<Portfolio[]> =
+      this.portfolioService.getPortfoliosForTenantOrderByName();
     this.valueChangedOnSecurityaccount1();
 
     // Detect custom category mode for existing entity
@@ -82,8 +86,12 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     combineLatest([assetclassObservable, allSecurityaccountsObservable]).subscribe(
       (data: [Assetclass | Assetclass[], Portfolio[]]) => {
         this.configObject.assetclass.referencedDataObject = Array.isArray(data[0]) ? data[0] : [data[0]];
-        this.configObject.assetclass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-          this.gps, this.translateService, this.configObject.assetclass.referencedDataObject);
+        this.configObject.assetclass.valueKeyHtmlOptions =
+          BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+            this.gps,
+            this.translateService,
+            this.configObject.assetclass.referencedDataObject
+          );
         this.portfolios = data[1];
         this.setSecurityaccounts();
 
@@ -93,7 +101,8 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
           this.updateCustomCategoryDependencies(false);
           this.disableEnableInputForExisting(this.algoCallParam.thisObject != null);
         }
-      });
+      }
+    );
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoAssetclass {
@@ -140,9 +149,13 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
 
   private getAssetclassObserver(): Observable<Assetclass> | Observable<Assetclass[]> {
     if (this.algoCallParam.thisObject) {
-      return this.assetclassService.getAssetclass((<AlgoAssetclass>this.algoCallParam.thisObject).assetclass.idAssetClass);
+      return this.assetclassService.getAssetclass(
+        (<AlgoAssetclass>this.algoCallParam.thisObject).assetclass.idAssetClass
+      );
     } else {
-      return this.assetclassService.getUnusedAssetclassForAlgo((<AlgoTop>this.algoCallParam.parentObject).idAlgoAssetclassSecurity);
+      return this.assetclassService.getUnusedAssetclassForAlgo(
+        (<AlgoTop>this.algoCallParam.parentObject).idAlgoAssetclassSecurity
+      );
     }
   }
 

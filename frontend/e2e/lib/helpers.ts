@@ -1,4 +1,4 @@
-import {Page, test} from '@playwright/test';
+import { Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -112,7 +112,8 @@ function decodeMimeHeader(value: string): string {
   return value.replace(/=\?[^?]+\?([BbQq])\?([^?]*)\?=/g, (_match, encoding, text) =>
     encoding.toUpperCase() === 'B'
       ? Buffer.from(text, 'base64').toString('utf-8')
-      : qpToBuffer(text.replace(/_/g, ' ')).toString('utf-8'));
+      : qpToBuffer(text.replace(/_/g, ' ')).toString('utf-8')
+  );
 }
 
 /** Decodes a quoted-printable mail body (removes soft line breaks, resolves =XX escapes). */
@@ -156,16 +157,16 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
     if (!Array.isArray(users) || users.length === 0) {
       throw new Error(`Expected a non-empty user array in ${config.usersJson}`);
     }
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
       tenantName: `Tenant ${user.nickname}`,
       tenantCurrency: user.currency,
-      locale: user.localeStr,
+      locale: user.localeStr
     }));
   }
 
   function loadE2EUsers(): UserFixture[] {
-    return loadUsers().filter(u => u.e2e === 'e');
+    return loadUsers().filter((u) => u.e2e === 'e');
   }
 
   function loadCredentials(): TestCredentials {
@@ -178,7 +179,7 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
 
   function saveCredentials(user: UserFixture, isPrimary: boolean): void {
     if (!fs.existsSync(config.authDir)) {
-      fs.mkdirSync(config.authDir, {recursive: true});
+      fs.mkdirSync(config.authDir, { recursive: true });
     }
     const payload: TestCredentials = {
       email: user.email,
@@ -186,7 +187,7 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
       nickname: user.nickname,
       role: user.role,
       tenantName: user.tenantName,
-      tenantCurrency: user.currency,
+      tenantCurrency: user.currency
     };
     fs.writeFileSync(path.join(config.authDir, `credentials.${user.nickname}.json`), JSON.stringify(payload));
     if (isPrimary) {
@@ -195,7 +196,7 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
   }
 
   function getUser(nickname: string): UserFixture {
-    const user = loadUsers().find(u => u.nickname === nickname);
+    const user = loadUsers().find((u) => u.nickname === nickname);
     if (!user) {
       throw new Error(`User '${nickname}' not found in ${config.usersJson}`);
     }
@@ -209,12 +210,12 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
   async function performLogin(page: Page, creds: TestCredentials): Promise<void> {
     await test.step('login', async () => {
       await page.goto('/login');
-      await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
+      await page.locator('#email').waitFor({ state: 'visible', timeout: 15_000 });
       await page.locator('#email').fill(creds.email);
       await page.locator('#password').fill(creds.password);
       await page.locator('button[type="submit"]').click();
-      await page.waitForURL(config.afterLoginUrl, {timeout: 15_000});
-      await page.locator('p-tree').waitFor({state: 'visible', timeout: 15_000});
+      await page.waitForURL(config.afterLoginUrl, { timeout: 15_000 });
+      await page.locator('p-tree').waitFor({ state: 'visible', timeout: 15_000 });
     });
   }
 
@@ -222,12 +223,13 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
    * Returns the fixture password currently accepted by the backend, including a password-edit target from a prior run.
    */
   async function findAcceptedPassword(page: Page, user: UserFixture): Promise<string | null> {
-    const candidates = [user.passwordEdit?.passwordNew, user.password]
-      .filter((password, index, all): password is string => !!password && all.indexOf(password) === index);
+    const candidates = [user.passwordEdit?.passwordNew, user.password].filter(
+      (password, index, all): password is string => !!password && all.indexOf(password) === index
+    );
     for (const password of candidates) {
       const response = await page.request.post('/api/login', {
-        data: {email: user.email, password, timezoneOffset: Number(user.timezoneOffset)},
-        failOnStatusCode: false,
+        data: { email: user.email, password, timezoneOffset: Number(user.timezoneOffset) },
+        failOnStatusCode: false
       });
       if (response.ok()) {
         return password;
@@ -241,39 +243,44 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
     if (!password) {
       throw new Error(`Neither the original nor target password is accepted for ${user.email}`);
     }
-    return {...user, password};
+    return { ...user, password };
   }
 
-  async function findMailhogMessage(recipient: string, subjectRegex: RegExp,
-      maxAttempts = 10): Promise<MailhogMessage | null> {
+  async function findMailhogMessage(
+    recipient: string,
+    subjectRegex: RegExp,
+    maxAttempts = 10
+  ): Promise<MailhogMessage | null> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const response = await fetch(
-        `${config.mailApiBase}/api/v2/search?kind=to&query=${encodeURIComponent(recipient)}`);
+        `${config.mailApiBase}/api/v2/search?kind=to&query=${encodeURIComponent(recipient)}`
+      );
       if (response.ok) {
-        const result = await response.json() as any;
+        const result = (await response.json()) as any;
         for (const item of result.items ?? []) {
           const subject = decodeMimeHeader(item.Content?.Headers?.Subject?.[0] ?? '');
           const body = decodeMimeBody(item.Content?.Body ?? '');
           if (subjectRegex.test(subject) || subjectRegex.test(body)) {
-            return {subject, body};
+            return { subject, body };
           }
         }
       }
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
     return null;
   }
 
   async function clearMailhog(): Promise<void> {
-    await fetch(`${config.mailApiBase}/api/v1/messages`, {method: 'DELETE'});
+    await fetch(`${config.mailApiBase}/api/v1/messages`, { method: 'DELETE' });
   }
 
   async function getVerificationToken(recipientEmail: string, maxAttempts = 10): Promise<string> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const response = await fetch(
-        `${config.mailApiBase}/api/v2/search?kind=to&query=${encodeURIComponent(recipientEmail)}`);
+        `${config.mailApiBase}/api/v2/search?kind=to&query=${encodeURIComponent(recipientEmail)}`
+      );
       if (response.ok) {
-        const body = await response.json() as any;
+        const body = (await response.json()) as any;
         for (const item of body.items ?? []) {
           const match = (item.Content?.Body ?? '').match(/tokenverify\?token=([0-9a-f-]{36})/i);
           if (match) {
@@ -281,7 +288,7 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
           }
         }
       }
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
     throw new Error(`No verification email found for ${recipientEmail} after ${maxAttempts} attempts`);
   }
@@ -298,30 +305,32 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
   async function registerAndSetupTenant(page: Page, user: UserFixture, tenantSetup: TenantSetup): Promise<void> {
     const acceptedPassword = await findAcceptedPassword(page, user);
     if (acceptedPassword) {
-      await completeFirstLogin(page, {...user, password: acceptedPassword}, tenantSetup);
+      await completeFirstLogin(page, { ...user, password: acceptedPassword }, tenantSetup);
       return;
     }
     await page.goto('/register');
     const nicknameInput = page.locator('#nickname');
-    await nicknameInput.waitFor({state: 'visible', timeout: 15_000});
+    await nicknameInput.waitFor({ state: 'visible', timeout: 15_000 });
     await nicknameInput.fill(user.nickname);
     await page.locator('#email').fill(user.email);
     await page.locator('#password').fill(user.password);
     await page.locator('#passwordConfirm').fill(user.password);
     const localeSelect = page.locator('#localeStr');
-    await localeSelect.waitFor({state: 'visible'});
+    await localeSelect.waitFor({ state: 'visible' });
     // Frontend locale options use the language prefix (e.g. 'en' for 'en-US'). Try the full string first,
     // fall back to the language code.
     const langCode = user.localeStr.split('-')[0];
-    await localeSelect.selectOption({value: user.localeStr}).catch(() => localeSelect.selectOption({value: langCode}));
+    await localeSelect
+      .selectOption({ value: user.localeStr })
+      .catch(() => localeSelect.selectOption({ value: langCode }));
     await page.locator('button[type="submit"]').click();
-    await page.locator('.alert-info').waitFor({state: 'visible', timeout: 30_000});
+    await page.locator('.alert-info').waitFor({ state: 'visible', timeout: 30_000 });
 
     const token = await getVerificationToken(user.email);
     await page.goto(`/tokenverify?token=${token}`);
 
-    await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
-    await page.locator('.alert-success').waitFor({state: 'visible', timeout: 5_000});
+    await page.locator('#email').waitFor({ state: 'visible', timeout: 15_000 });
+    await page.locator('.alert-success').waitFor({ state: 'visible', timeout: 5_000 });
     await completeFirstLogin(page, user, tenantSetup);
   }
 
@@ -331,16 +340,16 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
    */
   async function completeFirstLogin(page: Page, user: UserFixture, tenantSetup: TenantSetup): Promise<void> {
     await page.goto('/login');
-    await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
+    await page.locator('#email').waitFor({ state: 'visible', timeout: 15_000 });
     await page.locator('#email').fill(user.email);
     await page.locator('#password').fill(user.password);
     await page.locator('button[type="submit"]').click();
-    await page.waitForURL(/\/tenant|\/mainview/, {timeout: 15_000});
+    await page.waitForURL(/\/tenant|\/mainview/, { timeout: 15_000 });
 
     if (page.url().includes('/tenant')) {
       await tenantSetup(page, user);
       // After tenant setup the user is logged out; wait for the login form.
-      await page.locator('#email').waitFor({state: 'visible', timeout: 15_000});
+      await page.locator('#email').waitFor({ state: 'visible', timeout: 15_000 });
     }
   }
 
@@ -370,20 +379,32 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
     findMailhogMessage,
     clearMailhog,
     getVerificationToken,
-    registerAndSetupTenant,
+    registerAndSetupTenant
   };
 }
 
 /** Helpers of the portable library suite: the grafiosch-test-integration backend and the grafiosch-host frontend. */
 export const libHelpers = createSuiteHelpers({
-  usersJson: path.resolve(__dirname,
-    '../../../backend/grafiosch-test-integration/src/test/resources/testdata/users.json'),
+  usersJson: path.resolve(
+    __dirname,
+    '../../../backend/grafiosch-test-integration/src/test/resources/testdata/users.json'
+  ),
   authDir: path.join(__dirname, '.auth'),
   mailApiBase: process.env.LIB_E2E_MAIL_API_URL ?? 'http://localhost:8025',
-  afterLoginUrl: /\/mainview/,
+  afterLoginUrl: /\/mainview/
 });
 
 export const {
-  clearMailhog, findMailhogMessage, getUser, loadCredentials, loadCredentialsByNickname, loadUsers,
-  loadE2EUsers, login, loginAs, loginAsFixtureUser, registerAndSetupTenant, saveCredentials,
+  clearMailhog,
+  findMailhogMessage,
+  getUser,
+  loadCredentials,
+  loadCredentialsByNickname,
+  loadUsers,
+  loadE2EUsers,
+  login,
+  loginAs,
+  loginAsFixtureUser,
+  registerAndSetupTenant,
+  saveCredentials
 } = libHelpers;

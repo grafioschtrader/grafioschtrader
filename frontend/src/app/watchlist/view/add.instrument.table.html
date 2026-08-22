@@ -1,21 +1,32 @@
 <div class="col-md-12">
   @for (tenantLimit of tenantLimits; track tenantLimit.msgKey) {
-    <h5>{{tenantLimit.actual}} {{tenantLimit.msgKey | translate}} {{tenantLimit.limit}}</h5>
+  <h5>{{tenantLimit.actual}} {{tenantLimit.msgKey | translate}} {{tenantLimit.limit}}</h5>
   }
-  <p-table [(selection)]="selectedSecuritycurrencies" [columns]="fields" [multiSortMeta]="multiSortMeta"
-           [paginator]="true" [rowsPerPageOptions]="[10,20,30]" [rows]="10" [value]="securitycurrencyList"
-           dataKey="idSecuritycurrency" sortMode="multiple"  stripedRows showGridlines>
-    <ng-template #header let-fields >
+  <p-table
+    [(selection)]="selectedSecuritycurrencies"
+    [columns]="fields"
+    [multiSortMeta]="multiSortMeta"
+    [paginator]="true"
+    [rowsPerPageOptions]="[10,20,30]"
+    [rows]="10"
+    [value]="securitycurrencyList"
+    dataKey="idSecuritycurrency"
+    sortMode="multiple"
+    stripedRows
+    showGridlines>
+    <ng-template #header let-fields>
       <tr>
         <th style="width: 2.25em">
           <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
         </th>
         @for (field of fields; track field.field) {
-          <th [pSortableColumn]="field.field" [style.max-width.px]="field.width"
-              [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-            {{field.headerTranslated}}
-            <p-sortIcon [field]="field.field"></p-sortIcon>
-          </th>
+        <th
+          [pSortableColumn]="field.field"
+          [style.max-width.px]="field.width"
+          [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+          {{field.headerTranslated}}
+          <p-sortIcon [field]="field.field"></p-sortIcon>
+        </th>
         }
       </tr>
     </ng-template>
@@ -24,33 +35,37 @@
         <td>
           <p-tableCheckbox [value]="el"></p-tableCheckbox>
         </td>
-        @for (field of fields; track field.field) {
-          @if (field.visible) {
-            <td [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+        @for (field of fields; track field.field) { @if (field.visible) {
+        <td
+          [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
                   || field.dataType===DataType.NumericInteger)? 'text-end': ''"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
-              {{getValueByPath(el, field)}}
-            </td>
-          }
-        }
+          [style.max-width.px]="field.width"
+          [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+          {{getValueByPath(el, field)}}
+        </td>
+        } }
       </tr>
     </ng-template>
     <ng-template pTemplate="paginatorleft" let-state>
-      {{selectedSecuritycurrencies.length}} {{'SELECTED_FROM' | translate}} {{securitycurrencyList.length}}
-      {{"ALLOWED" | translate}}: @for (tenantLimit of tenantLimits; track tenantLimit.msgKey) {
-      <span [style.color]='selectedSecuritycurrencies.length>
+      {{selectedSecuritycurrencies.length}} {{'SELECTED_FROM' | translate}} {{securitycurrencyList.length}} {{"ALLOWED"
+      | translate}}: @for (tenantLimit of tenantLimits; track tenantLimit.msgKey) {
+      <span
+        [style.color]='selectedSecuritycurrencies.length>
                                             tenantLimit.limit - tenantLimit.actual? "red": "green"'>
-          {{tenantLimit.limit - tenantLimit.actual - selectedSecuritycurrencies.length}},</span>
-    }
+        {{tenantLimit.limit - tenantLimit.actual - selectedSecuritycurrencies.length}},</span
+      >
+      }
     </ng-template>
   </p-table>
 </div>
 
 <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
-  <button (click)="onClickAdd()" [disabled]="selectedSecuritycurrencies.length === 0 || reachedListLimits()"
-          class="btn float-end" pButton type="button">
+  <button
+    (click)="onClickAdd()"
+    [disabled]="selectedSecuritycurrencies.length === 0 || reachedListLimits()"
+    class="btn float-end"
+    pButton
+    type="button">
     {{'ADD' | translate}}
   </button>
 </div>
-

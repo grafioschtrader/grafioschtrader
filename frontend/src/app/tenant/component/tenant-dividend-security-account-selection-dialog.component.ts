@@ -1,66 +1,72 @@
-import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {Portfolio} from '../../entities/portfolio';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {TenantDividendAccountSelectionComponent} from './tenant-dividend-account-selection.component';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {IdsAccounts} from '../model/ids.accounts';
-import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
+import { Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { Portfolio } from '../../entities/portfolio';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { TenantDividendAccountSelectionComponent } from './tenant-dividend-account-selection.component';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { IdsAccounts } from '../model/ids.accounts';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {TranslateModule} from '@ngx-translate/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { TranslateModule } from '@ngx-translate/core';
 
 /**
  * This dialog allows to select certain cash or security accounts. It includes two tree table one for cash the other
  * for security accounts.
  */
 @Component({
-    selector: 'tenant-dividend-security-account-selection-dialog',
-    template: `
-    <p-dialog header="{{'DIV_INCLUDE_SECURITYACCOUNT' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '600px'}"
-              [contentStyle]="{'max-height':'800px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
+  selector: 'tenant-dividend-security-account-selection-dialog',
+  template: `
+    <p-dialog
+      header="{{ 'DIV_INCLUDE_SECURITYACCOUNT' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '600px' }"
+      [contentStyle]="{ 'max-height': '800px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
       <div class="nopadding row">
         <div class="row">
           <div class="col-md-5">
-            <tenant-dividend-account-selection #securityaccountTree
-                                               [columnConfig]="saColumnConfig"
-                                               [portfolios]="portfolios"
-                                               [idsAccount]="idsAccounts.idsSecurityaccount"
-                                               [selectionRequired]="true"
-                                               listAttributeName="securityaccountList" title="SECURITYACCOUNTS">
+            <tenant-dividend-account-selection
+              #securityaccountTree
+              [columnConfig]="saColumnConfig"
+              [portfolios]="portfolios"
+              [idsAccount]="idsAccounts.idsSecurityaccount"
+              [selectionRequired]="true"
+              listAttributeName="securityaccountList"
+              title="SECURITYACCOUNTS">
             </tenant-dividend-account-selection>
           </div>
           <div class="col-md-7">
-            <tenant-dividend-account-selection #cashaccountTree
-                                               [columnConfig]="caColumnConfig"
-                                               [portfolios]="portfolios"
-                                               [idsAccount]="idsAccounts.idsCashaccount"
-                                               [selectionRequired]="false"
-                                               listAttributeName="cashaccountList" title="CASHACCOUNTS">
+            <tenant-dividend-account-selection
+              #cashaccountTree
+              [columnConfig]="caColumnConfig"
+              [portfolios]="portfolios"
+              [idsAccount]="idsAccounts.idsCashaccount"
+              [selectionRequired]="false"
+              listAttributeName="cashaccountList"
+              title="CASHACCOUNTS">
             </tenant-dividend-account-selection>
           </div>
         </div>
         <div class="float-end ui-dialog-buttonpane  ui-helper-clearfix">
-          <button pButton class="btn" type="submit"
-                  [disabled]="disableButton"
-                  label="{{'APPLY' | translate}}" (click)="submit($event)">
-          </button>
+          <button
+            pButton
+            class="btn"
+            type="submit"
+            [disabled]="disableButton"
+            label="{{ 'APPLY' | translate }}"
+            (click)="submit($event)"></button>
         </div>
       </div>
     </p-dialog>
   `,
-    standalone: true,
-    imports: [
-    DialogModule,
-    ButtonModule,
-    TranslateModule,
-    TenantDividendAccountSelectionComponent
-]
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DialogModule, ButtonModule, TranslateModule, TenantDividendAccountSelectionComponent]
 })
 export class TenantDividendSecurityAccountSelectionDialogComponent {
   @Input() portfolios: Portfolio[];
@@ -69,8 +75,10 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
 
-  @ViewChild('securityaccountTree', {static: true}) securityaccountTree: TenantDividendAccountSelectionComponent;
-  @ViewChild('cashaccountTree', {static: true}) cashaccountTree: TenantDividendAccountSelectionComponent;
+  @ViewChild('securityaccountTree', { static: true })
+  securityaccountTree: TenantDividendAccountSelectionComponent;
+  @ViewChild('cashaccountTree', { static: true })
+  cashaccountTree: TenantDividendAccountSelectionComponent;
 
   saColumnConfig: ColumnConfig[] = [];
   caColumnConfig: ColumnConfig[] = [];
@@ -79,7 +87,9 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
     const columnConfig = ShowRecordConfigBase.createColumnConfig(DataType.String, 'name', 'Name', true, false);
     this.saColumnConfig.push(columnConfig);
     this.caColumnConfig.push(columnConfig);
-    this.caColumnConfig.push(ShowRecordConfigBase.createColumnConfig(DataType.String, 'currency', 'CURRENCY', true, false));
+    this.caColumnConfig.push(
+      ShowRecordConfigBase.createColumnConfig(DataType.String, 'currency', 'CURRENCY', true, false)
+    );
   }
 
   get disableButton(): boolean {
@@ -91,9 +101,12 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
   }
 
   submit(event) {
-    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED,
-      new IdsAccounts(this.securityaccountTree.getSelectedAccountIds(), this.cashaccountTree.getSelectedAccountIds())
-    ));
+    this.closeDialog.emit(
+      new ProcessedActionData(
+        ProcessedAction.CREATED,
+        new IdsAccounts(this.securityaccountTree.getSelectedAccountIds(), this.cashaccountTree.getSelectedAccountIds())
+      )
+    );
   }
 
   onHide(event) {
@@ -104,8 +117,4 @@ export class TenantDividendSecurityAccountSelectionDialogComponent {
     this.securityaccountTree.prepareData();
     this.cashaccountTree.prepareData();
   }
-
 }
-
-
-

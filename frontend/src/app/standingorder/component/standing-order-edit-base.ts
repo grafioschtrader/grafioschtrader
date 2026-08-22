@@ -1,28 +1,28 @@
-import {Directive, Input} from '@angular/core';
-import {Validators} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {StandingOrder} from '../../entities/standing.order';
-import {StandingOrderService} from '../service/standing.order.service';
-import {StandingOrderCallParam} from '../model/standing.order.call.param';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {Portfolio} from '../../entities/portfolio';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {BusinessSelectOptionsHelper} from '../../shared/securitycurrency/business.select.options.helper';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { Directive, Input } from '@angular/core';
+import { Validators } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { StandingOrder } from '../../entities/standing.order';
+import { StandingOrderService } from '../service/standing.order.service';
+import { StandingOrderCallParam } from '../model/standing.order.call.param';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { Portfolio } from '../../entities/portfolio';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import moment from 'moment';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {RepeatUnit} from '../../shared/types/repeat.unit';
-import {PeriodDayPosition} from '../../shared/types/period.day.position';
-import {WeekendAdjustType} from '../../shared/types/weekend.adjust.type';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {RuleEvent} from '../../lib/dynamic-form/error/error.message.rules';
-import {range as rangeValidator} from '../../lib/validator/validator';
-import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
-import {AppSettings} from '../../shared/app.settings';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { RepeatUnit } from '../../shared/types/repeat.unit';
+import { PeriodDayPosition } from '../../shared/types/period.day.position';
+import { WeekendAdjustType } from '../../shared/types/weekend.adjust.type';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { RuleEvent } from '../../lib/dynamic-form/error/error.message.rules';
+import { range as rangeValidator } from '../../lib/validator/validator';
+import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
+import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Abstract base class for standing order edit dialogs. Provides shared scheduling field definitions,
@@ -31,7 +31,6 @@ import {AppSettings} from '../../shared/app.settings';
  */
 @Directive()
 export abstract class StandingOrderEditBase extends SimpleEntityEditBase<StandingOrder> {
-
   /** Fieldset name for the transaction-related fields group. */
   static readonly FS_TRANSACTION = 'TRANSACTION_DATA';
   /** Fieldset name for the scheduling/execution-related fields group. */
@@ -56,8 +55,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
     messageToastService: MessageToastService,
     standingOrderService: StandingOrderService
   ) {
-    super(helpId, 'STANDING_ORDER', translateService, gps,
-      messageToastService, standingOrderService);
+    super(helpId, 'STANDING_ORDER', translateService, gps, messageToastService, standingOrderService);
   }
 
   /**
@@ -72,18 +70,23 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
   protected static createSchedulingFields(): FieldConfig[] {
     const fs = StandingOrderEditBase.FS_SCHEDULE;
     return [
-      DynamicFieldHelper.createFieldSelectStringHeqF('repeatUnit', true, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputNumberHeqF('repeatInterval', true, 3, 0, false, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldSelectStringHeqF('periodDayPosition', true, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldInputNumberHeqF('dayOfExecution', false, 2, 0, false, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldSelectNumberHeqF('monthOfExecution', false, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldSelectStringHeqF('weekendAdjust', true, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'quoteToleranceDays', true,
-        StandingOrderEditBase.QUOTE_TOLERANCE_TECHNICAL_MIN, StandingOrderEditBase.QUOTE_TOLERANCE_TECHNICAL_MAX,
-        {fieldsetName: fs, defaultValue: StandingOrderEditBase.QUOTE_TOLERANCE_DEFAULT}),
-      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'validFrom', true, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'validTo', true, {fieldsetName: fs}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 500, false, {fieldsetName: fs}),
+      DynamicFieldHelper.createFieldSelectStringHeqF('repeatUnit', true, { fieldsetName: fs }),
+      DynamicFieldHelper.createFieldInputNumberHeqF('repeatInterval', true, 3, 0, false, { fieldsetName: fs }),
+      DynamicFieldHelper.createFieldSelectStringHeqF('periodDayPosition', true, { fieldsetName: fs }),
+      DynamicFieldHelper.createFieldInputNumberHeqF('dayOfExecution', false, 2, 0, false, { fieldsetName: fs }),
+      DynamicFieldHelper.createFieldSelectNumberHeqF('monthOfExecution', false, { fieldsetName: fs }),
+      DynamicFieldHelper.createFieldSelectStringHeqF('weekendAdjust', true, { fieldsetName: fs }),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(
+        DataType.NumericInteger,
+        'quoteToleranceDays',
+        true,
+        StandingOrderEditBase.QUOTE_TOLERANCE_TECHNICAL_MIN,
+        StandingOrderEditBase.QUOTE_TOLERANCE_TECHNICAL_MAX,
+        { fieldsetName: fs, defaultValue: StandingOrderEditBase.QUOTE_TOLERANCE_DEFAULT }
+      ),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'validFrom', true, { fieldsetName: fs }),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'validTo', true, { fieldsetName: fs }),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', 500, false, { fieldsetName: fs }),
       DynamicFieldHelper.createSubmitButton()
     ];
   }
@@ -95,14 +98,21 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    */
   protected override initialize(): void {
     this.initializeTransactionTypeOptions();
-    this.configObject.repeatUnit.valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, RepeatUnit);
-    this.configObject.periodDayPosition.valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, PeriodDayPosition);
-    this.configObject.weekendAdjust.valueKeyHtmlOptions =
-      SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, WeekendAdjustType);
-    this.configObject.monthOfExecution.valueKeyHtmlOptions =
-      SelectOptionsHelper.createMonthOptions(this.gps.getUserLang());
+    this.configObject.repeatUnit.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      RepeatUnit
+    );
+    this.configObject.periodDayPosition.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      PeriodDayPosition
+    );
+    this.configObject.weekendAdjust.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+      this.translateService,
+      WeekendAdjustType
+    );
+    this.configObject.monthOfExecution.valueKeyHtmlOptions = SelectOptionsHelper.createMonthOptions(
+      this.gps.getUserLang()
+    );
     this.setupRepeatUnitListener();
     this.setupPeriodDayPositionListener();
     this.setupCashaccountPrecisionListener();
@@ -116,13 +126,18 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * replaced, which keeps the dialog from offering a value the server would reject on save.
    */
   private applyQuoteToleranceRange(): void {
-    (<StandingOrderService>this.serviceEntityUpdate).getQuoteToleranceRange().subscribe(range => {
+    (<StandingOrderService>this.serviceEntityUpdate).getQuoteToleranceRange().subscribe((range) => {
       const fieldConfig = this.configObject.quoteToleranceDays;
       fieldConfig.min = range.min;
       fieldConfig.max = range.max;
-      DynamicFieldHelper.resetValidator(fieldConfig, [Validators.required, rangeValidator([range.min, range.max])],
-        [DynamicFieldHelper.RULE_REQUIRED_TOUCHED,
-          {name: 'range', keyi18n: 'range', param1: range.min, param2: range.max, rules: [RuleEvent.DIRTY]}]);
+      DynamicFieldHelper.resetValidator(
+        fieldConfig,
+        [Validators.required, rangeValidator([range.min, range.max])],
+        [
+          DynamicFieldHelper.RULE_REQUIRED_TOUCHED,
+          { name: 'range', keyi18n: 'range', param1: range.min, param2: range.max, rules: [RuleEvent.DIRTY] }
+        ]
+      );
     });
   }
 
@@ -147,8 +162,9 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       const currency = this.getCashaccountCurrency(+idCashaccount);
       if (currency) {
         const precision = this.gps.getCurrencyPrecision(currency);
-        this.getCashaccountPrecisionFields().forEach(fc =>
-          DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_STANDARD_INTEGER_DIGITS, precision));
+        this.getCashaccountPrecisionFields().forEach((fc) =>
+          DynamicFieldHelper.adjustNumberFraction(fc, AppSettings.FID_STANDARD_INTEGER_DIGITS, precision)
+        );
       }
     });
   }
@@ -158,7 +174,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    */
   private getCashaccountCurrency(idCashaccount: number): string {
     for (const portfolio of this.portfolios) {
-      const cashaccount = portfolio.cashaccountList?.find(ca => ca.idSecuritycashAccount === idCashaccount);
+      const cashaccount = portfolio.cashaccountList?.find((ca) => ca.idSecuritycashAccount === idCashaccount);
       if (cashaccount) {
         return cashaccount.currency;
       }
@@ -183,8 +199,10 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
     FormHelper.disableEnableFieldConfigs(true, [this.configObject.transactionType]);
     // @LockedWhenUsed fields — locked once the standing order has created transactions
     if (so?.hasTransactions) {
-      FormHelper.disableEnableFieldConfigs(true,
-        this.config.filter(f => f.fieldsetName === StandingOrderEditBase.FS_TRANSACTION));
+      FormHelper.disableEnableFieldConfigs(
+        true,
+        this.config.filter((f) => f.fieldsetName === StandingOrderEditBase.FS_TRANSACTION)
+      );
       // validFrom is in FS_SCHEDULE but annotated @LockedWhenUsed in the backend
       FormHelper.disableEnableFieldConfigs(true, [this.configObject.validFrom]);
     }
@@ -226,8 +244,9 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       this.configObject.monthOfExecution.formControl.setValue(null);
     } else {
       this.configObject.periodDayPosition.formControl.enable();
-      this.applyPeriodDayPosition(this.configObject.periodDayPosition.formControl.value
-        ?? PeriodDayPosition[PeriodDayPosition.SPECIFIC_DAY]);
+      this.applyPeriodDayPosition(
+        this.configObject.periodDayPosition.formControl.value ?? PeriodDayPosition[PeriodDayPosition.SPECIFIC_DAY]
+      );
       if (unit === RepeatUnit[RepeatUnit.YEARS]) {
         this.configObject.monthOfExecution.formControl.enable();
       } else {
@@ -274,9 +293,11 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       const cashaccountsHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
       for (const portfolio of portfolios) {
         if (portfolio.cashaccountList) {
-          portfolio.cashaccountList.forEach(ca => cashaccountsHtmlOptions.push(
-            new ValueKeyHtmlSelectOptions(ca.idSecuritycashAccount,
-              `${ca.name} / ${ca.currency} / ${portfolio.name}`)));
+          portfolio.cashaccountList.forEach((ca) =>
+            cashaccountsHtmlOptions.push(
+              new ValueKeyHtmlSelectOptions(ca.idSecuritycashAccount, `${ca.name} / ${ca.currency} / ${portfolio.name}`)
+            )
+          );
         }
       }
       this.configObject.idCashaccount.valueKeyHtmlOptions = cashaccountsHtmlOptions;
@@ -299,13 +320,15 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
       return;
     }
     BusinessSelectOptionsHelper.accountsEnableDisableOptionsByActiveDate(
-      this.portfolios.flatMap(p => p.cashaccountList || []), this.configObject.idCashaccount, moment(validFrom).valueOf());
+      this.portfolios.flatMap((p) => p.cashaccountList || []),
+      this.configObject.idCashaccount,
+      moment(validFrom).valueOf()
+    );
   }
 
   /**
    * Hook called after portfolios are loaded. Subclasses can override to populate additional
    * options derived from portfolios (e.g., securityaccount select).
    */
-  protected afterPortfoliosLoaded(): void {
-  }
+  protected afterPortfoliosLoaded(): void {}
 }

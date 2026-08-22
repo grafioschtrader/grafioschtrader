@@ -1,9 +1,9 @@
-import {Component, Injector, Input, OnDestroy} from '@angular/core';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
+import { Component, Injector, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
 import {
   CorrelationInstrument,
   CorrelationResult,
@@ -12,33 +12,33 @@ import {
   MinMaxDateHistoryquote,
   SamplingPeriodType
 } from '../../entities/correlation.set';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {AppSettings} from '../../shared/app.settings';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {Security} from '../../entities/security';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {CorrelationSetService} from '../service/correlation.set.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {TenantLimit} from '../../shared/types/tenant.limit';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {Subscription} from 'rxjs';
-import {ChartDataService} from '../../shared/chart/service/chart.data.service';
-import {Router} from '@angular/router';
-import {PlotlyHelper} from '../../shared/chart/plotly.helper';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { AppSettings } from '../../shared/app.settings';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { Security } from '../../entities/security';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { CorrelationSetService } from '../service/correlation.set.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { Subscription } from 'rxjs';
+import { ChartDataService } from '../../shared/chart/service/chart.data.service';
+import { Router } from '@angular/router';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 import moment from 'moment';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TranslateModule} from '@ngx-translate/core';
-import {TableModule} from '@openng/optimus-ui/table';
-import {CorrelationAddInstrumentComponent} from './correlation-add-instrument.component';
-import {InstrumentStatisticsResultComponent} from '../../shared/securitycurrency/instrument-statistics-result.component';
-import {GlobalSessionNames} from '../../lib/global.session.names';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { TableModule } from '@openng/optimus-ui/table';
+import { CorrelationAddInstrumentComponent } from './correlation-add-instrument.component';
+import { InstrumentStatisticsResultComponent } from '../../shared/securitycurrency/instrument-statistics-result.component';
+import { GlobalSessionNames } from '../../lib/global.session.names';
 
 /**
  * This component serves as the main table view for correlation sets, displaying securities and currency pairs
@@ -75,17 +75,25 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
 @Component({
   selector: 'correlation-table',
   template: `
-    <p-table [columns]="fields" [value]="securitycurrencyList" selectionMode="single"
-             [(selection)]="selectedEntity" dataKey="idSecuritycurrency"
-             (sortFunction)="customSort($event)" [customSort]="true"
-             stripedRows showGridlines>
+    <p-table
+      [columns]="fields"
+      [value]="securitycurrencyList"
+      selectionMode="single"
+      [(selection)]="selectedEntity"
+      dataKey="idSecuritycurrency"
+      (sortFunction)="customSort($event)"
+      [customSort]="true"
+      stripedRows
+      showGridlines>
       <ng-template #header let-fields>
         <tr>
           <th style="width:24px"></th>
           @for (field of fields; track field.field) {
-            <th [pSortableColumn]="field.field" [pTooltip]="field.headerTooltipTranslated"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            <th
+              [pSortableColumn]="field.field"
+              [pTooltip]="field.headerTooltipTranslated"
+              [style.max-width.px]="field.width"
+              [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
               {{ field.headerTranslated }}
               <p-sortIcon [field]="field.field"></p-sortIcon>
             </th>
@@ -100,14 +108,15 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
             </a>
           </td>
           @for (field of fields; track field.field) {
-            <td [style.background-color]="getBackgroundColor(el, field)"
-                [ngClass]="field.dataType===DataType.NumericShowZero ? 'text-end': ''"
-                (click)="cellClick(field)"
-                [style.max-width.px]="field.width"
-                [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            <td
+              [style.background-color]="getBackgroundColor(el, field)"
+              [ngClass]="field.dataType === DataType.NumericShowZero ? 'text-end' : ''"
+              (click)="cellClick(field)"
+              [style.max-width.px]="field.width"
+              [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
               @switch (field.templateName) {
                 @case ('check') {
-                  <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
+                  <span><i [ngClass]="{ 'fa fa-check': getValueByPath(el, field) }" aria-hidden="true"></i></span>
                 }
                 @default {
                   {{ getValueByPath(el, field) }}
@@ -120,22 +129,26 @@ import {GlobalSessionNames} from '../../lib/global.session.names';
       <ng-template #expandedrow let-securitycrrency let-columns="fields">
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1" style="overflow:visible;">
-            <instrument-statistics-result [idSecuritycurrency]="securitycrrency.idSecuritycurrency"
-                                          [dateFrom]="correlationSet.dateFrom" [dateTo]="correlationSet.dateTo">
+            <instrument-statistics-result
+              [idSecuritycurrency]="securitycrrency.idSecuritycurrency"
+              [dateFrom]="correlationSet.dateFrom"
+              [dateTo]="correlationSet.dateTo">
             </instrument-statistics-result>
           </td>
         </tr>
       </ng-template>
     </p-table>
     @if (visibleAddInstrumentDialog) {
-      <correlation-add-instrument [idCorrelationSet]="correlationSet.idCorrelationSet"
-                                  [tenantLimits]="tenantLimits"
-                                  [visibleAddInstrumentDialog]="visibleAddInstrumentDialog"
-                                  (closeDialog)="handleCloseAddInstrumentDialog($event)">
+      <correlation-add-instrument
+        [idCorrelationSet]="correlationSet.idCorrelationSet"
+        [tenantLimits]="tenantLimits"
+        [visibleAddInstrumentDialog]="visibleAddInstrumentDialog"
+        (closeDialog)="handleCloseAddInstrumentDialog($event)">
       </correlation-add-instrument>
     }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     FormsModule,
@@ -200,7 +213,8 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param gps Global parameter service
    * @param usersettingsService Service for user settings persistence
    */
-  constructor(private router: Router,
+  constructor(
+    private router: Router,
     private correlationSetService: CorrelationSetService,
     private messageToastService: MessageToastService,
     private dataChangedService: DataChangedService,
@@ -209,7 +223,8 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     this.createDynamicTableDefinition(null, null);
     this.addInstrumentsToCorrelationSet();
@@ -220,11 +235,12 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param field The column configuration that was clicked
    */
   cellClick(field: ColumnConfig): void {
-    const columnHeader = field.headerKey === this.nameHeader
-    || field.headerKey === this.tickerSymbol ? null : field.headerKey;
+    const columnHeader =
+      field.headerKey === this.nameHeader || field.headerKey === this.tickerSymbol ? null : field.headerKey;
 
-    this.securityCurrencyColumn = this.correlationSet.securitycurrencyList.find(sc => (sc.hasOwnProperty(this.tickerSymbol)
-      ? (<Security>sc)[this.tickerSymbol] : sc.name) === columnHeader);
+    this.securityCurrencyColumn = this.correlationSet.securitycurrencyList.find(
+      (sc) => (sc.hasOwnProperty(this.tickerSymbol) ? (<Security>sc)[this.tickerSymbol] : sc.name) === columnHeader
+    );
   }
 
   /**
@@ -243,18 +259,19 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   public prepareEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    menuItems.push({separator: true});
-    menuItems.push(
-      {
-        label: 'ADD_EXISTING_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
-        disabled: !this.tenantLimits || !this.correlationSet
-          || this.correlationSet.securitycurrencyList.length >= this.tenantLimits[0].limit
-      }
-    );
+    menuItems.push({ separator: true });
+    menuItems.push({
+      label: 'ADD_EXISTING_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (e) => this.addExistingSecurity(e),
+      disabled:
+        !this.tenantLimits ||
+        !this.correlationSet ||
+        this.correlationSet.securitycurrencyList.length >= this.tenantLimits[0].limit
+    });
     if (this.selectedEntity) {
       menuItems.push({
-        label: 'REMOVE_INSTRUMENT', command: (event) => this.removeInstrumentFromCorrelationSet(this.selectedEntity
-          .idSecuritycurrency)
+        label: 'REMOVE_INSTRUMENT',
+        command: (event) => this.removeInstrumentFromCorrelationSet(this.selectedEntity.idSecuritycurrency)
       });
     }
     return menuItems;
@@ -266,10 +283,20 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   public prepareShowMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    if (this.correlationSet && SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS) {
-      if (this.selectedEntity && this.securityCurrencyColumn && this.selectedEntity !== this.securityCurrencyColumn
-        && !this.isGraphForPairShowing(this.selectedEntity.idSecuritycurrency, this.securityCurrencyColumn.idSecuritycurrency)) {
-        menuItems.push({separator: true});
+    if (
+      this.correlationSet &&
+      SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS
+    ) {
+      if (
+        this.selectedEntity &&
+        this.securityCurrencyColumn &&
+        this.selectedEntity !== this.securityCurrencyColumn &&
+        !this.isGraphForPairShowing(
+          this.selectedEntity.idSecuritycurrency,
+          this.securityCurrencyColumn.idSecuritycurrency
+        )
+      ) {
+        menuItems.push({ separator: true });
         menuItems.push({
           label: 'CORRELATION_SET_GRAPH|' + this.getMenuName(this.selectedEntity, this.securityCurrencyColumn),
           command: (event) => this.navigateToChartRoute()
@@ -293,7 +320,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @returns True if graph is already showing for this pair
    */
   private isGraphForPairShowing(id1: number, id2: number): boolean {
-    return !!Object.keys(this.traceShow).find(key => {
+    return !!Object.keys(this.traceShow).find((key) => {
       const ids: number[] = key.split(',').map(Number);
       return ids.indexOf(id1) >= 0 && ids.indexOf(id2) >= 0;
     });
@@ -345,12 +372,13 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param idSecuritycurrency The ID of the security currency to remove
    */
   removeInstrumentFromCorrelationSet(idSecuritycurrency: number) {
-    this.correlationSetService.removeInstrumentFromCorrelationSet(this.correlationSet.idCorrelationSet,
-      idSecuritycurrency).subscribe(correlationSet => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_INSTRUMENT_FROM_CORRELATIONSET');
-      this.selectedEntity = null;
-      this.childToParent.refreshData(correlationSet);
-    });
+    this.correlationSetService
+      .removeInstrumentFromCorrelationSet(this.correlationSet.idCorrelationSet, idSecuritycurrency)
+      .subscribe((correlationSet) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_INSTRUMENT_FROM_CORRELATIONSET');
+        this.selectedEntity = null;
+        this.childToParent.refreshData(correlationSet);
+      });
   }
 
   /**
@@ -362,8 +390,9 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   getCorrelation(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
     if (this.correlationResult) {
-      const ci: CorrelationInstrument = this.correlationResult.correlationInstruments.find(cIn =>
-        cIn.idSecuritycurrency === dataobject.idSecuritycurrency);
+      const ci: CorrelationInstrument = this.correlationResult.correlationInstruments.find(
+        (cIn) => cIn.idSecuritycurrency === dataobject.idSecuritycurrency
+      );
       return ci ? ci.correlations[field.userValue] : null;
     } else {
       return null;
@@ -379,8 +408,9 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   getMinMaxDate(dataobject: Securitycurrency, field: ColumnConfig, valueField: any): string | number {
     if (this.correlationResult) {
-      const mmdh: MinMaxDateHistoryquote = this.correlationResult.mmdhList.find(mmdHist =>
-        mmdHist.idSecuritycurrency === dataobject.idSecuritycurrency);
+      const mmdh: MinMaxDateHistoryquote = this.correlationResult.mmdhList.find(
+        (mmdHist) => mmdHist.idSecuritycurrency === dataobject.idSecuritycurrency
+      );
       return AppHelper.getValueByPathWithField(this.gps, this.translateService, mmdh, field, field.field);
     } else {
       return null;
@@ -396,7 +426,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   getBackgroundColor(dataobject: Securitycurrency, field: ColumnConfig): string {
     if (field.userValue != null) {
       const value: number = this.getCorrelation(dataobject, field, null) as number;
-      return 'hsl(' + ((value + 1) * 58) + ',100%, 50%)';
+      return 'hsl(' + (value + 1) * 58 + ',100%, 50%)';
     }
     return null;
   }
@@ -412,9 +442,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   private readListLimitOnce(correlationSet: CorrelationSet): void {
     if (!this.tenantLimits && correlationSet) {
-      this.correlationSetService.getCorrelationSetInstrumentLimit(correlationSet.idCorrelationSet).subscribe(limit => {
-        this.tenantLimits = [limit];
-      });
+      this.correlationSetService
+        .getCorrelationSetInstrumentLimit(correlationSet.idCorrelationSet)
+        .subscribe((limit) => {
+          this.tenantLimits = [limit];
+        });
     }
   }
 
@@ -426,8 +458,10 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private createDynamicTableDefinition(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
     this.removeAllColumns();
     this.correlationResult = correlationResult;
-    this.addColumnFeqH(DataType.String, this.nameHeader, true, false,
-      {width: 250, templateName: BaseSettings.OWNER_TEMPLATE});
+    this.addColumnFeqH(DataType.String, this.nameHeader, true, false, {
+      width: 250,
+      templateName: BaseSettings.OWNER_TEMPLATE
+    });
     this.addColumnFeqH(DataType.String, 'currency', true, false);
     if (correlationSet) {
       if (correlationResult) {
@@ -452,28 +486,36 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   private addTickerAndCorrelationColumnDefinition(correlationSet: CorrelationSet): void {
     this.addColumnFeqH(DataType.String, this.tickerSymbol, true, false);
     let i = 0;
-    correlationSet.securitycurrencyList.forEach(sc => {
+    correlationSet.securitycurrencyList.forEach((sc) => {
       let label = sc.hasOwnProperty(this.tickerSymbol) ? (<Security>sc)[this.tickerSymbol] : sc.name;
       if (!label) {
         label = '(' + i + ')';
         (<Security>sc).tickerSymbol = label;
       }
-      this.addColumnFeqH(DataType.NumericShowZero, label,
-        true, false, {fieldValueFN: this.getCorrelation.bind(this), userValue: i++});
+      this.addColumnFeqH(DataType.NumericShowZero, label, true, false, {
+        fieldValueFN: this.getCorrelation.bind(this),
+        userValue: i++
+      });
     });
   }
 
   /** Adds min/max date columns to the table */
   private addMinMaxColumnDefinition(): void {
-    this.addColumnFeqH(DataType.DateString, this.minDate, true, false, {fieldValueFN: this.getMinMaxDate.bind(this)});
-    this.addColumnFeqH(DataType.DateString, 'maxDate', true, false, {fieldValueFN: this.getMinMaxDate.bind(this)});
+    this.addColumnFeqH(DataType.DateString, this.minDate, true, false, {
+      fieldValueFN: this.getMinMaxDate.bind(this)
+    });
+    this.addColumnFeqH(DataType.DateString, 'maxDate', true, false, {
+      fieldValueFN: this.getMinMaxDate.bind(this)
+    });
   }
 
   /** Sets up subscription for instrument addition events */
   private addInstrumentsToCorrelationSet(): void {
-    this.subscriptionInstrumentAdded = this.dataChangedService.dateChanged$.subscribe(processedActionData => {
-      if (processedActionData.data.hasOwnProperty('idCorrelationSet')
-        && processedActionData.action === ProcessedAction.UPDATED) {
+    this.subscriptionInstrumentAdded = this.dataChangedService.dateChanged$.subscribe((processedActionData) => {
+      if (
+        processedActionData.data.hasOwnProperty('idCorrelationSet') &&
+        processedActionData.action === ProcessedAction.UPDATED
+      ) {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ADDED_SECURITY_TO_WATCHLIST');
         this.childToParent.refreshData(processedActionData.data);
         this.tenantLimits[0].actual = this.securitycurrencyList.length;
@@ -483,20 +525,27 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   /** Refreshes chart when correlation set changes */
   public refreshChartWhenCorrelationSetChanges(): void {
-    if (SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS
-      && this.isChartShow()) {
+    if (
+      SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS &&
+      this.isChartShow()
+    ) {
       const idsPairs: number[][] = [];
-      Object.keys(this.traceShow).filter(key => {
-        const ids: string[] = key.split(',');
-        return this.correlationSet.securitycurrencyList.find(s => s.idSecuritycurrency === +ids[0])
-          && this.correlationSet.securitycurrencyList.find(s => s.idSecuritycurrency === +ids[1]);
-      }).forEach(key => {
-        const ids: string[] = key.split(',');
-        idsPairs.push([+ids[0], +ids[1]]);
-      });
+      Object.keys(this.traceShow)
+        .filter((key) => {
+          const ids: string[] = key.split(',');
+          return (
+            this.correlationSet.securitycurrencyList.find((s) => s.idSecuritycurrency === +ids[0]) &&
+            this.correlationSet.securitycurrencyList.find((s) => s.idSecuritycurrency === +ids[1])
+          );
+        })
+        .forEach((key) => {
+          const ids: string[] = key.split(',');
+          idsPairs.push([+ids[0], +ids[1]]);
+        });
       this.traceShow = [];
       if (idsPairs.length > 0) {
-        this.correlationSetService.getRollingCorrelations(this.correlationSet.idCorrelationSet, idsPairs)
+        this.correlationSetService
+          .getRollingCorrelations(this.correlationSet.idCorrelationSet, idsPairs)
           .subscribe((crs: CorrelationRollingResult[]) => this.prepareCharDataAndSentToChart(crs));
       }
     }
@@ -514,11 +563,14 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       this.getAndSetRollingCorrelation();
     } else {
       this.prepareChartDataWithRequest();
-      this.router.navigate([BaseSettings.MAINVIEW_KEY + '/', {
-        outlets: {
-          mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.CORRELATION_CHART]
+      this.router.navigate([
+        BaseSettings.MAINVIEW_KEY + '/',
+        {
+          outlets: {
+            mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.CORRELATION_CHART]
+          }
         }
-      }]);
+      ]);
     }
   }
 
@@ -532,21 +584,21 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   /** For the first call from the chart (callback) */
   private prepareChartDataWithRequest(): void {
-    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe(id => {
-        if (id === AppSettings.CORRELATION_CHART) {
-          this.getAndSetRollingCorrelation();
-        }
+    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe((id) => {
+      if (id === AppSettings.CORRELATION_CHART) {
+        this.getAndSetRollingCorrelation();
       }
-    );
+    });
   }
 
   /** Add single line to chart. It gets the data from the backend */
   private getAndSetRollingCorrelation(): void {
-    this.correlationSetService.getRollingCorrelations(this.correlationSet.idCorrelationSet,
-      [[this.securityCurrencyColumn.idSecuritycurrency, this.selectedEntity.idSecuritycurrency]])
+    this.correlationSetService
+      .getRollingCorrelations(this.correlationSet.idCorrelationSet, [
+        [this.securityCurrencyColumn.idSecuritycurrency, this.selectedEntity.idSecuritycurrency]
+      ])
       .subscribe((crs: CorrelationRollingResult[]) => this.prepareCharDataAndSentToChart(crs));
   }
-
 
   /**
    * Prepares chart data and sends it to the chart service.
@@ -554,10 +606,13 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   private prepareCharDataAndSentToChart(crsArray: CorrelationRollingResult[]): void {
     let minDate = moment();
-    let maxDate = moment(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
+    let maxDate = moment(
+      sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+    );
     const legendTooltipMap = new Map<string, string>();
-    crsArray.forEach(crs => {
-      const traceName = this.getTickerOrName(crs.securitycurrencyList[0]) + '<->' + this.getTickerOrName(crs.securitycurrencyList[1]);
+    crsArray.forEach((crs) => {
+      const traceName =
+        this.getTickerOrName(crs.securitycurrencyList[0]) + '<->' + this.getTickerOrName(crs.securitycurrencyList[1]);
       const fullName = crs.securitycurrencyList[0].name + '<->' + crs.securitycurrencyList[1].name;
       legendTooltipMap.set(traceName, fullName);
       const trace = {
@@ -569,17 +624,21 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       };
       minDate = moment.min(minDate, moment(crs.dates[0]));
       maxDate = moment.max(maxDate, moment(crs.dates[crs.dates.length - 1]));
-      this.traceShow[crs.securitycurrencyList[0].idSecuritycurrency + ',' + crs.securitycurrencyList[1].idSecuritycurrency] = trace;
+      this.traceShow[
+        crs.securitycurrencyList[0].idSecuritycurrency + ',' + crs.securitycurrencyList[1].idSecuritycurrency
+      ] = trace;
     });
     const chartData = Object.values(this.traceShow);
     this.chartDataService.sentToChart({
       data: chartData,
-      layout: this.getChartLayout(minDate.format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
-        maxDate.format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)),
+      layout: this.getChartLayout(
+        minDate.format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        maxDate.format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
+      ),
       legendTooltipMap,
       options: {
         modeBarButtonsToRemove: ['hoverCompareCartesian', 'hoverClosestCartesian']
-      },
+      }
     });
   }
 
@@ -597,7 +656,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       xaxis: {
         autorange: true,
         range: [minDate, maxDate],
-        rangeslider: {range: [minDate, maxDate]},
+        rangeslider: { range: [minDate, maxDate] },
         type: 'date'
       },
       yaxis: {
@@ -609,7 +668,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     PlotlyHelper.translateLayout(this.translateService, layout);
     return layout;
   }
-
 }
 
 /**
@@ -628,6 +686,3 @@ export interface ChildToParent {
    */
   getPeriodAndRollingWithParamPrefix(): string[];
 }
-
-
-

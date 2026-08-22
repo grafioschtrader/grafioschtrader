@@ -5,7 +5,7 @@
     <parent>
       <groupId>grafioschtrader</groupId>
       <artifactId>grafioschtrader</artifactId>
-      <version>0.36.7.1</version>
+      <version>0.36.7.2</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -114,6 +114,11 @@
     </dependencies>
     <build>
 		<plugins>
+			<!-- Code formatting. Configuration lives in the parent pom; run "mvn spotless:apply". -->
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

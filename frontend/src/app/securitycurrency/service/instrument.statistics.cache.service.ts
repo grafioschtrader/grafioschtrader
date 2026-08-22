@@ -1,7 +1,7 @@
-import {Injectable} from '@angular/core';
-import {catchError, Observable, shareReplay, throwError} from 'rxjs';
-import {SecurityService} from './security.service';
-import {InstrumentStatisticsResult} from '../../entities/view/instrument.statistics.result';
+import { Injectable } from '@angular/core';
+import { catchError, Observable, shareReplay, throwError } from 'rxjs';
+import { SecurityService } from './security.service';
+import { InstrumentStatisticsResult } from '../../entities/view/instrument.statistics.result';
 
 /**
  * Memoises the return and statistical data of an instrument for the lifetime of the component that provides this
@@ -18,12 +18,10 @@ import {InstrumentStatisticsResult} from '../../entities/view/instrument.statist
  */
 @Injectable()
 export class InstrumentStatisticsCacheService {
-
   /** Shared responses per instrument and period, keyed by {@link #getKey}. */
   private readonly cache = new Map<string, Observable<InstrumentStatisticsResult>>();
 
-  constructor(private securityService: SecurityService) {
-  }
+  constructor(private securityService: SecurityService) {}
 
   /**
    * Returns the statistics of an instrument, from the cache when they were requested before with the same period.
@@ -35,17 +33,21 @@ export class InstrumentStatisticsCacheService {
    * @param dateTo optional end of the evaluation period, the full history is used when omitted
    * @returns the shared observable of the statistics result
    */
-  getStatistics(idSecuritycurrency: number, dateFrom?: Date | string,
-    dateTo?: Date | string): Observable<InstrumentStatisticsResult> {
+  getStatistics(
+    idSecuritycurrency: number,
+    dateFrom?: Date | string,
+    dateTo?: Date | string
+  ): Observable<InstrumentStatisticsResult> {
     const key = this.getKey(idSecuritycurrency, dateFrom, dateTo);
     let statistics = this.cache.get(key);
     if (!statistics) {
       statistics = this.securityService.getSecurityStatisticsReturnResult(idSecuritycurrency, dateFrom, dateTo).pipe(
-        catchError(error => {
+        catchError((error) => {
           this.cache.delete(key);
           return throwError(() => error);
         }),
-        shareReplay({bufferSize: 1, refCount: false}));
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
       this.cache.set(key, statistics);
     }
     return statistics;

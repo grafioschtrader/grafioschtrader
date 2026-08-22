@@ -1,12 +1,12 @@
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
-import {Assetclass} from '../../entities/assetclass';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {combineLatest} from 'rxjs';
-import {Helper} from '../../lib/helper/helper';
-import {AppHelper, Comparison} from '../../lib/helper/app.helper';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {Security} from '../../entities/security';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TranslateService } from '@ngx-translate/core';
+import { Assetclass } from '../../entities/assetclass';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { combineLatest } from 'rxjs';
+import { Helper } from '../../lib/helper/helper';
+import { AppHelper, Comparison } from '../../lib/helper/app.helper';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { Security } from '../../entities/security';
 import moment from 'moment';
 
 export class BusinessSelectOptionsHelper {
@@ -19,17 +19,21 @@ export class BusinessSelectOptionsHelper {
    */
   public static securityCreateValueKeyHtmlSelectOptions(securities: Security[], fieldConfig: FieldConfig) {
     fieldConfig.valueKeyHtmlOptions = [];
-    securities.forEach(security => {
+    securities.forEach((security) => {
       fieldConfig.valueKeyHtmlOptions.push(
-        new ValueKeyHtmlSelectOptions(security.idSecuritycurrency, security.name + ' / ' + security.currency));
+        new ValueKeyHtmlSelectOptions(security.idSecuritycurrency, security.name + ' / ' + security.currency)
+      );
     });
   }
 
-  public static securitiesEnableDisableOptionsByActiveDate(securities: Security[],
-    fieldConfig: FieldConfig, activeDateNol: number) {
+  public static securitiesEnableDisableOptionsByActiveDate(
+    securities: Security[],
+    fieldConfig: FieldConfig,
+    activeDateNol: number
+  ) {
     const activeDate: string = moment(activeDateNol).format('YYYYMMDD');
-    fieldConfig.valueKeyHtmlOptions.forEach(vkho => {
-      const security = securities.find(s => s.idSecuritycurrency === vkho.key);
+    fieldConfig.valueKeyHtmlOptions.forEach((vkho) => {
+      const security = securities.find((s) => s.idSecuritycurrency === vkho.key);
       vkho.disabled = !(activeDate >= security.activeFromDate && activeDate <= security.activeToDate);
     });
   }
@@ -47,22 +51,25 @@ export class BusinessSelectOptionsHelper {
    */
   public static accountsEnableDisableOptionsByActiveDate(
     accounts: { idSecuritycashAccount: number; activeToDate?: string | Date }[],
-    fieldConfig: FieldConfig, activeDateNol: number): void {
+    fieldConfig: FieldConfig,
+    activeDateNol: number
+  ): void {
     const activeDate: string = moment(activeDateNol).format('YYYYMMDD');
-    fieldConfig.valueKeyHtmlOptions.forEach(vkho => {
-      const account = accounts.find(a => a.idSecuritycashAccount === vkho.key);
+    fieldConfig.valueKeyHtmlOptions.forEach((vkho) => {
+      const account = accounts.find((a) => a.idSecuritycashAccount === vkho.key);
       if (account) {
-        vkho.disabled = account.activeToDate != null
-          && activeDate > moment(account.activeToDate).format('YYYYMMDD');
+        vkho.disabled = account.activeToDate != null && activeDate > moment(account.activeToDate).format('YYYYMMDD');
       }
     });
   }
 
-  public static assetclassCreateValueKeyHtmlSelectOptions(gps: GlobalparameterService,
+  public static assetclassCreateValueKeyHtmlSelectOptions(
+    gps: GlobalparameterService,
     translateService: TranslateService,
-    assetClasses: Assetclass[]): ValueKeyHtmlSelectOptions[] {
+    assetClasses: Assetclass[]
+  ): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
-    assetClasses.forEach(assetclass => {
+    assetClasses.forEach((assetclass) => {
       // const observableTranslateCategoryType = translateService.get(<string>assetclass.categoryType);
       // const observableTranslateSpecialInvestment = translateService.get(<string>assetclass.specialInvestmentInstrument);
       this.translateAssetclass(translateService, gps.getUserLang(), assetclass, valueKeyHtmlSelectOptions);
@@ -70,22 +77,29 @@ export class BusinessSelectOptionsHelper {
     return valueKeyHtmlSelectOptions;
   }
 
-  public static translateAssetclass(translateService: TranslateService, language: string, assetclass: Assetclass,
-    valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[]): ValueKeyHtmlSelectOptions {
+  public static translateAssetclass(
+    translateService: TranslateService,
+    language: string,
+    assetclass: Assetclass,
+    valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[]
+  ): ValueKeyHtmlSelectOptions {
     const observableTranslateCategoryType = translateService.get(<string>assetclass.categoryType);
     const observableTranslateSpecialInvestment = translateService.get(<string>assetclass.specialInvestmentInstrument);
     const valueKeyHtmlSelectOption = new ValueKeyHtmlSelectOptions(assetclass.idAssetClass, null);
-    combineLatest([observableTranslateCategoryType, observableTranslateSpecialInvestment]).subscribe(translated => {
+    combineLatest([observableTranslateCategoryType, observableTranslateSpecialInvestment]).subscribe((translated) => {
       let subCategory: string = Helper.getValueByPath(assetclass, 'subCategoryNLS.map.' + language);
-      subCategory = (subCategory) ? subCategory + ' / ' : '';
+      subCategory = subCategory ? subCategory + ' / ' : '';
       valueKeyHtmlSelectOption.value = `${translated[0]} / ${subCategory}${translated[1]}`;
       if (valueKeyHtmlSelectOptions) {
-        const indexPos = AppHelper.binarySearch(valueKeyHtmlSelectOptions, valueKeyHtmlSelectOption.value, (option, value) =>
-          option.value === value ? Comparison.EQ : option.value > value ? Comparison.GT : Comparison.LT);
+        const indexPos = AppHelper.binarySearch(
+          valueKeyHtmlSelectOptions,
+          valueKeyHtmlSelectOption.value,
+          (option, value) =>
+            option.value === value ? Comparison.EQ : option.value > value ? Comparison.GT : Comparison.LT
+        );
         valueKeyHtmlSelectOptions.splice(Math.abs(indexPos), 0, valueKeyHtmlSelectOption);
       }
     });
     return valueKeyHtmlSelectOption;
   }
-
 }

@@ -1,5 +1,5 @@
-import {TransactionCostPosition} from './transaction.cost.position';
-import {Securityaccount} from '../../securityaccount';
+import { TransactionCostPosition } from './transaction.cost.position';
+import { Securityaccount } from '../../securityaccount';
 
 export class TransactionCostGroupSummary {
   public securityaccount: Securityaccount;

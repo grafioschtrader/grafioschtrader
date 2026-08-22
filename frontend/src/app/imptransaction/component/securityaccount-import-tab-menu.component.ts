@@ -1,16 +1,16 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {ActivatedRoute, Params, Router, RouterModule} from '@angular/router';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {Subscription} from 'rxjs';
-import {TabsModule} from '@openng/optimus-ui/tabs';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Params, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
+import { TabsModule } from '@openng/optimus-ui/tabs';
 
-import {AppSettings} from '../../shared/app.settings';
-import {Securityaccount} from '../../entities/securityaccount';
-import {TabItem} from '../../lib/types/tab.item';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
+import { AppSettings } from '../../shared/app.settings';
+import { Securityaccount } from '../../entities/securityaccount';
+import { TabItem } from '../../lib/types/tab.item';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
 
 /**
  * Tab menu component for security account import sub-tabs.
@@ -23,9 +23,7 @@ import {TreeNavigationStateService} from '../../lib/maintree/service/tree.naviga
       <p-tabs [value]="activeIndex">
         <p-tablist>
           @for (tab of tabs; track tab.route; let i = $index) {
-            <p-tab
-              [value]="i"
-              (click)="onTabClick(i)">
+            <p-tab [value]="i" (click)="onTabClick(i)">
               <span>{{ tab.label | translate }}</span>
             </p-tab>
           }
@@ -35,6 +33,7 @@ import {TreeNavigationStateService} from '../../lib/maintree/service/tree.naviga
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, RouterModule, TabsModule, TranslateModule]
 })
 export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy {
@@ -52,8 +51,7 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
     private translateService: TranslateService,
     private gps: GlobalparameterService,
     private treeNavState: TreeNavigationStateService
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.tabs = [
@@ -78,7 +76,9 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
       const id = +params['id'];
       if (id) {
         this.securityaccount = this.treeNavState.getEntity<Securityaccount>(
-          AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY, id);
+          AppSettings.SECURITYACCOUNT_IMPORT_TAB_MENU_KEY,
+          id
+        );
 
         if (this.securityaccount) {
           if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
@@ -123,9 +123,8 @@ export class SecurityaccountImportTabMenuComponent implements OnInit, OnDestroy 
       this.successFailedImportTransParam = null;
     }
 
-    this.router.navigate(
-      [tab.route, this.securityaccount.idSecuritycashAccount, data],
-      {relativeTo: this.activatedRoute}
-    );
+    this.router.navigate([tab.route, this.securityaccount.idSecuritycashAccount, data], {
+      relativeTo: this.activatedRoute
+    });
   }
 }

@@ -1,11 +1,11 @@
-import {Injectable} from '@angular/core';
-import {AfterLoginHandler} from '../../lib/login/service/after-login.handler';
-import {ConfigurationWithLoginGT} from './configuration-with-login-gt';
-import {GlobalGTSessionNames} from '../global.gt.session.names';
-import {BaseSettings} from '../../lib/base.settings';
+import { Injectable } from '@angular/core';
+import { AfterLoginHandler } from '../../lib/login/service/after-login.handler';
+import { ConfigurationWithLoginGT } from './configuration-with-login-gt';
+import { GlobalGTSessionNames } from '../global.gt.session.names';
+import { BaseSettings } from '../../lib/base.settings';
 import moment from 'moment';
-import {GlobalSessionNames} from '../../lib/global.session.names';
-import {AppSettings} from '../app.settings';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { AppSettings } from '../app.settings';
 
 /**
  * Grafioschtrader-specific implementation of post-login handler.
@@ -13,28 +13,40 @@ import {AppSettings} from '../app.settings';
  */
 @Injectable()
 export class GtAfterLoginHandler extends AfterLoginHandler {
-
   handleAfterLogin(configurationWithLogin: ConfigurationWithLoginGT): void {
     // Set default report date to today
-    sessionStorage.setItem(GlobalGTSessionNames.REPORT_UNTIL_DATE, moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
+    sessionStorage.setItem(
+      GlobalGTSessionNames.REPORT_UNTIL_DATE,
+      moment().format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
+    );
 
     // Store supported cryptocurrencies
     sessionStorage.setItem(GlobalGTSessionNames.CRYPTOS, JSON.stringify(configurationWithLogin.cryptocurrencies));
 
-    sessionStorage.setItem(GlobalSessionNames.CURRENCY_PRECISION, JSON.stringify(configurationWithLogin.currencyPrecision));
+    sessionStorage.setItem(
+      GlobalSessionNames.CURRENCY_PRECISION,
+      JSON.stringify(configurationWithLogin.currencyPrecision)
+    );
 
     // Store tenant-level closed-until date for transaction period locking
     sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, configurationWithLogin.tenantClosedUntil || '');
 
     // Store the tenant's Grafioschtrader import platform reference for the transaction import entry points
-    sessionStorage.setItem(GlobalGTSessionNames.TENANT_ID_GT_IMPORT_PLATFORM,
-      configurationWithLogin.tenantIdGtImportPlatform != null ? String(configurationWithLogin.tenantIdGtImportPlatform) : '');
+    sessionStorage.setItem(
+      GlobalGTSessionNames.TENANT_ID_GT_IMPORT_PLATFORM,
+      configurationWithLogin.tenantIdGtImportPlatform != null
+        ? String(configurationWithLogin.tenantIdGtImportPlatform)
+        : ''
+    );
 
     // Store earliest trading day supported by the backend
     sessionStorage.setItem(GlobalSessionNames.OLDEST_TRADING_DAY, configurationWithLogin.oldestTradingDay);
 
     // Store connector / asset class enforcement mode
-    sessionStorage.setItem(GlobalGTSessionNames.FORCE_CONNECTOR_MATCH, String(configurationWithLogin.forceConnectorMatch ?? 0));
+    sessionStorage.setItem(
+      GlobalGTSessionNames.FORCE_CONNECTOR_MATCH,
+      String(configurationWithLogin.forceConnectorMatch ?? 0)
+    );
 
     BaseSettings.resetInterFractionLimit(AppSettings, GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS);
   }

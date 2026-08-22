@@ -1,5 +1,5 @@
-import {UserTaskType} from '../types/user.task.type';
-import {ProposeRequest} from './propose.request';
+import { UserTaskType } from '../types/user.task.type';
+import { ProposeRequest } from './propose.request';
 
 export class ProposeUserTask extends ProposeRequest {
   idRoleTo: number;
@@ -7,5 +7,4 @@ export class ProposeUserTask extends ProposeRequest {
   constructor(public userTaskType: UserTaskType) {
     super();
   }
-
 }

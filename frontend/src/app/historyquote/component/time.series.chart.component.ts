@@ -1,25 +1,29 @@
-import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {CrossRateRequest, CrossRateResponse, CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {HistoryquoteService} from '../service/historyquote.service';
-import {ActivatedRoute} from '@angular/router';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {ViewSizeChangedService} from '../../lib/layout/service/view.size.changed.service';
-import {TranslatePipe, TranslateService} from '@ngx-translate/core';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
-import {SecurityTransactionSummary} from '../../entities/view/security.transaction.summary';
-import {PlotlyLocales} from '../../shared/plotlylocale/plotly.locales';
-import {combineLatest, Observable, Subscription} from 'rxjs';
-import {PlotlyHelper} from '../../shared/chart/plotly.helper';
-import {TransactionType} from '../../shared/types/transaction.type';
-import {AppHelper, Comparison} from '../../lib/helper/app.helper';
-import moment, {Moment} from 'moment';
-import {AppSettings} from '../../shared/app.settings';
-import {SecurityTransactionPosition} from '../../entities/view/security.transaction.position';
-import {ConfirmationService, MenuItem, SelectItem} from '@openng/optimus-ui/api';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import {
+  CrossRateRequest,
+  CrossRateResponse,
+  CurrencypairService
+} from '../../securitycurrency/service/currencypair.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { HistoryquoteService } from '../service/historyquote.service';
+import { ActivatedRoute } from '@angular/router';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { ViewSizeChangedService } from '../../lib/layout/service/view.size.changed.service';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
+import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
+import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
+import { combineLatest, Observable, Subscription } from 'rxjs';
+import { PlotlyHelper } from '../../shared/chart/plotly.helper';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { AppHelper, Comparison } from '../../lib/helper/app.helper';
+import moment, { Moment } from 'moment';
+import { AppSettings } from '../../shared/app.settings';
+import { SecurityTransactionPosition } from '../../entities/view/security.transaction.position';
+import { ConfirmationService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
 import {
   IndicatorDefinition,
   IndicatorDefinitions,
@@ -29,30 +33,30 @@ import {
   TaIndicators,
   TaTraceIndicatorData
 } from './indicator.definitions';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
-import {Transaction} from '../../entities/transaction';
-import {DynamicFieldModelHelper} from '../../lib/helper/dynamic.field.model.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {ChartType} from '../../shared/types/chart.type';
-import {HistoryquoteOHLC} from '../../entities/projection/historyquote.ohlc';
-import {HistoryquoteChartResponse} from '../../entities/projection/historyquote.chart.response';
-import {NgClass} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {DatePicker} from '@openng/optimus-ui/datepicker';
-import {Select} from '@openng/optimus-ui/select';
-import {ContextMenu} from '@openng/optimus-ui/contextmenu';
-import {IndicatorEditComponent} from './indicator-edit.component';
-import {UserChartShapeService} from '../service/user.chart.shape.service';
-import {GlobalSessionNames} from '../../lib/global.session.names';
-import {ChartCurrencyNormalizer} from './chart.currency.normalizer';
-import {ChartShapeController} from './chart.shape.controller';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
+import { Transaction } from '../../entities/transaction';
+import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { ChartType } from '../../shared/types/chart.type';
+import { HistoryquoteOHLC } from '../../entities/projection/historyquote.ohlc';
+import { HistoryquoteChartResponse } from '../../entities/projection/historyquote.chart.response';
+import { NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DatePicker } from '@openng/optimus-ui/datepicker';
+import { Select } from '@openng/optimus-ui/select';
+import { ContextMenu } from '@openng/optimus-ui/contextmenu';
+import { IndicatorEditComponent } from './indicator-edit.component';
+import { UserChartShapeService } from '../service/user.chart.shape.service';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { ChartCurrencyNormalizer } from './chart.currency.normalizer';
+import { ChartShapeController } from './chart.shape.controller';
 
 declare let Plotly: any;
 
@@ -76,81 +80,105 @@ interface Data {
  */
 @Component({
   template: `
-    <div #container class="fullChart" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
-         (click)="onComponentClick($event)" (contextmenu)="onRightClick($event)">
+    <div
+      #container
+      class="fullChart"
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
+      (click)="onComponentClick($event)"
+      (contextmenu)="onRightClick($event)">
       <div class="input-row">
         <label for="fromDate">{{ 'FROM_DATE' | translate }}</label>
-        <p-datepicker #cal appendTo="body"
-                      baseZIndex="100"
-                      [(ngModel)]="fromDate" id="fromDate"
-                      [dateFormat]="dateFormat"
-                      [disabledDays]="[0,6]"
-                      (onBlur)="onBlurFromDate($event)"
-                      (onSelect)="onBlurFromDate($event)"
-                      [minDate]="startDate" [maxDate]="endDate">
+        <p-datepicker
+          #cal
+          appendTo="body"
+          baseZIndex="100"
+          [(ngModel)]="fromDate"
+          id="fromDate"
+          [dateFormat]="dateFormat"
+          [disabledDays]="[0, 6]"
+          (onBlur)="onBlurFromDate($event)"
+          (onSelect)="onBlurFromDate($event)"
+          [minDate]="startDate"
+          [maxDate]="endDate">
         </p-datepicker>
         <i class="fa fa-undo fa-border fa-lg" (click)="onResetOldestDate($event)"></i>
-        <button type="button" (click)="fiveDays($event)">5{{ "D" | translate }}</button>
+        <button type="button" (click)="fiveDays($event)">5{{ 'D' | translate }}</button>
         <button type="button" (click)="oneMonth($event)">1M</button>
         <button type="button" (click)="threeMonth($event)">3M</button>
         <button type="button" (click)="yearToDate($event)">YTD</button>
-        <button type="button" (click)="oneYear($event)">1{{ "Y" | translate }}</button>
-        <button type="button" (click)="threeYears($event)">3{{ "Y" | translate }}</button>
-        <button type="button" (click)="fiveYears($event)">5{{ "Y" | translate }}</button>
-        <button type="button" (click)="tenYears($event)">10{{ "Y" | translate }}</button>
-        <button type="button" [disabled]="!hasTrades" (click)="oldestTrade($event)"
-                title="{{'OLDEST_TRADE_TOOLTIP' | translate}}">
-          {{ "OLDEST_TRADE" | translate }}
+        <button type="button" (click)="oneYear($event)">1{{ 'Y' | translate }}</button>
+        <button type="button" (click)="threeYears($event)">3{{ 'Y' | translate }}</button>
+        <button type="button" (click)="fiveYears($event)">5{{ 'Y' | translate }}</button>
+        <button type="button" (click)="tenYears($event)">10{{ 'Y' | translate }}</button>
+        <button
+          type="button"
+          [disabled]="!hasTrades"
+          (click)="oldestTrade($event)"
+          title="{{ 'OLDEST_TRADE_TOOLTIP' | translate }}">
+          {{ 'OLDEST_TRADE' | translate }}
         </button>
       </div>
       <div class="input-row">
         @if (this.loadedData.length === 1) {
           <label>{{ 'HOLDING' | translate }}</label>
-          <input type="checkbox" [(ngModel)]="showHolding" (change)="toggleCheckbox($event)">
+          <input type="checkbox" [(ngModel)]="showHolding" (change)="toggleCheckbox($event)" />
         }
 
         <label>{{ 'PERCENTAGE' | translate }}</label>
-        <input type="checkbox" [(ngModel)]="usePercentage" (change)="toggleCheckbox($event)">
+        <input type="checkbox" [(ngModel)]="usePercentage" (change)="toggleCheckbox($event)" />
 
         <label>{{ 'CONNECT_GAPS' | translate }}</label>
-        <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleCheckbox($event)">
+        <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleCheckbox($event)" />
 
         @if (this.loadedData.length === 1 && volumeAvailable) {
           <label>{{ 'VOLUME' | translate }}</label>
-          <input type="checkbox" [(ngModel)]="showVolume" (change)="toggleCheckbox($event)">
+          <input type="checkbox" [(ngModel)]="showVolume" (change)="toggleCheckbox($event)" />
         }
 
         <label>{{ 'CURRENCY' | translate }}</label>
-        <p-select [options]="currenciesOptions" [(ngModel)]="requestedCurrency"
-                  (onChange)="handleChangeCurrency($event)">
+        <p-select
+          [options]="currenciesOptions"
+          [(ngModel)]="requestedCurrency"
+          (onChange)="handleChangeCurrency($event)">
         </p-select>
 
         @if (this.loadedData.length === 1 && ohlcAvailable) {
           <label>{{ 'CHART_TYPE' | translate }}</label>
-          <p-select [options]="chartTypeOptions" [(ngModel)]="selectedChartType"
-                    (onChange)="handleChangeChartType($event)">
+          <p-select
+            [options]="chartTypeOptions"
+            [(ngModel)]="selectedChartType"
+            (onChange)="handleChangeChartType($event)">
           </p-select>
         }
       </div>
-      <div #chart class="plot-container">
-      </div>
+      <div #chart class="plot-container"></div>
       <p-contextMenu #contextMenu [model]="contextMenuItems" [target]="container"></p-contextMenu>
     </div>
     @if (visibleTaDialog) {
-      <indicator-edit [visibleDialog]="visibleTaDialog" [taEditParam]="taEditParam"
-                      (closeDialog)="handleCloseTaDialog($event)">
+      <indicator-edit
+        [visibleDialog]="visibleTaDialog"
+        [taEditParam]="taEditParam"
+        (closeDialog)="handleCloseTaDialog($event)">
       </indicator-edit>
     }
   `,
-  styles: ['button { border: 0; margin-left: 3px} .input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }'],
+  styles: [
+    'button { border: 0; margin-left: 3px} .input-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }'
+  ],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [NgClass, FormsModule, DatePicker, Select, ContextMenu, TranslatePipe, IndicatorEditComponent]
 })
 export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
-  @ViewChild('container', {static: true}) container: ElementRef;
-  @ViewChild('chart', {static: true}) chartElement: ElementRef;
+  @ViewChild('container', { static: true }) container: ElementRef;
+  @ViewChild('chart', { static: true }) chartElement: ElementRef;
 
-  startDate = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
+  startDate = new Date(
+    sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+  );
   endDate = new Date();
   fromDate: Date;
   oldestTradeDate: number;
@@ -168,7 +196,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   visibleTaDialog: boolean;
   contextMenuItems: MenuItem[] = [];
   requestedCurrency = '';
-  currenciesOptions: SelectItem[] = [{value: '', label: ''}];
+  currenciesOptions: SelectItem[] = [{ value: '', label: '' }];
   selectedChartType: ChartType = ChartType.LINE;
   chartTypeOptions: SelectItem[] = [];
   ohlcAvailable: boolean = false;
@@ -188,7 +216,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   /** Owns the freehand drawings on the chart together with their history and their persistence. */
   private shapeController: ChartShapeController;
 
-  constructor(private messageToastService: MessageToastService,
+  constructor(
+    private messageToastService: MessageToastService,
     private usersettingsService: UserSettingsService,
     private viewSizeChangedService: ViewSizeChangedService,
     private securityService: SecurityService,
@@ -199,8 +228,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     private translateService: TranslateService,
     private activePanelService: ActivePanelService,
     confirmationService: ConfirmationService,
-    userChartShapeService: UserChartShapeService) {
-
+    userChartShapeService: UserChartShapeService
+  ) {
     this.dateFormat = gps.getCalendarTwoNumberDateFormat().toLocaleLowerCase();
     //  this.yearRange = `2000:${new Date().getFullYear()}`;
     this.indicatorDefinitions = new IndicatorDefinitions();
@@ -212,11 +241,14 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
    * Initializes the chart type dropdown options with translated labels.
    */
   private initChartTypeOptions(): void {
-    this.translateService.get(['LINE_CHART', 'CANDLESTICK_CHART', 'OHLC_CHART']).subscribe(translations => {
+    this.translateService.get(['LINE_CHART', 'CANDLESTICK_CHART', 'OHLC_CHART']).subscribe((translations) => {
       this.chartTypeOptions = [
-        {value: ChartType.LINE, label: translations['LINE_CHART']},
-        {value: ChartType.CANDLESTICK, label: translations['CANDLESTICK_CHART']},
-        {value: ChartType.OHLC, label: translations['OHLC_CHART']}
+        { value: ChartType.LINE, label: translations['LINE_CHART'] },
+        {
+          value: ChartType.CANDLESTICK,
+          label: translations['CANDLESTICK_CHART']
+        },
+        { value: ChartType.OHLC, label: translations['OHLC_CHART'] }
       ];
     });
   }
@@ -229,8 +261,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return this.youngestMatchDate ? new Date(this.youngestMatchDate) : null;
   }
 
-  readonly compareHistoricalFN = (h, o) => h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT;
-  readonly compareXaxisFN = (x, b) => x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT;
+  readonly compareHistoricalFN = (h, o) => (h.date === o ? Comparison.EQ : h.date > o ? Comparison.GT : Comparison.LT);
+  readonly compareXaxisFN = (x, b) => (x === b ? Comparison.EQ : x > b ? Comparison.GT : Comparison.LT);
 
   ///////////////////////////////////////////////////////
   // Chart methods
@@ -241,11 +273,11 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     // Ready the drawing support before the route parameters can trigger the first plot.
     this.shapeController.setChartElement(this.chartElement.nativeElement);
     this.shapeController.init();
-    this.activatedRoute.paramMap.subscribe(paramMap => {
+    this.activatedRoute.paramMap.subscribe((paramMap) => {
       const paramObject = AppHelper.createParamObjectFromParamMap(paramMap);
       this.prepareChart(paramObject.allParam);
     });
-    this.historyquoteService.getAllTaForms().subscribe(formDefinition => this.taFormDefinitions = formDefinition);
+    this.historyquoteService.getAllTaForms().subscribe((formDefinition) => (this.taFormDefinitions = formDefinition));
   }
 
   ngOnDestroy(): void {
@@ -268,13 +300,18 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
     for (let i = this.loadedData.length; i < timeSeriesParams.length; i++) {
       const stsObservable = timeSeriesParams[i].currencySecurity
-        ? BusinessHelper.getSecurityTransactionSummary(this.securityService,
-          timeSeriesParams[i].idSecuritycurrency, timeSeriesParams[i].idSecurityaccount
-            ? [timeSeriesParams[i].idSecurityaccount] : null,
-          timeSeriesParams[i].idPortfolio, true)
+        ? BusinessHelper.getSecurityTransactionSummary(
+            this.securityService,
+            timeSeriesParams[i].idSecuritycurrency,
+            timeSeriesParams[i].idSecurityaccount ? [timeSeriesParams[i].idSecurityaccount] : null,
+            timeSeriesParams[i].idPortfolio,
+            true
+          )
         : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParams[i].idSecuritycurrency, true);
 
-      const historyquoteObservable = this.historyquoteService.getHistoryquoteForChart(timeSeriesParams[i].idSecuritycurrency);
+      const historyquoteObservable = this.historyquoteService.getHistoryquoteForChart(
+        timeSeriesParams[i].idSecuritycurrency
+      );
       const observable: Observable<any>[] = [stsObservable, historyquoteObservable];
       this.addCurrencyCrossRateObservable(timeSeriesParams, timeSeriesParams[i].currencySecurity, observable);
 
@@ -290,7 +327,10 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
         if (chartResponse.ohlcAvailable && chartResponse.ohlcList) {
           // Convert OHLC to date/close for line chart compatibility
-          historyquotes = chartResponse.ohlcList.map(ohlc => ({date: ohlc.date, close: ohlc.close}));
+          historyquotes = chartResponse.ohlcList.map((ohlc) => ({
+            date: ohlc.date,
+            close: ohlc.close
+          }));
           ohlcData = chartResponse.ohlcList;
           this.ohlcAvailable = true;
           this.volumeAvailable = chartResponse.volumeAvailable ?? false;
@@ -307,10 +347,20 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         }
 
         if (historyquotes.length > 0) {
-          this.createTodayAsHistoryquote(nameSecuritycurrency.getSecuritycurrency().sTimestamp,
-            nameSecuritycurrency.getSecuritycurrency().sLast, historyquotes);
-          this.loadedData.push(new LoadedData(timeSeriesParams[i].idSecuritycurrency, nameSecuritycurrency, historyquotes,
-            timeSeriesParams[i].currencySecurity, ohlcData));
+          this.createTodayAsHistoryquote(
+            nameSecuritycurrency.getSecuritycurrency().sTimestamp,
+            nameSecuritycurrency.getSecuritycurrency().sLast,
+            historyquotes
+          );
+          this.loadedData.push(
+            new LoadedData(
+              timeSeriesParams[i].idSecuritycurrency,
+              nameSecuritycurrency,
+              historyquotes,
+              timeSeriesParams[i].currencySecurity,
+              ohlcData
+            )
+          );
           if (observable.length === 3) {
             this.addCrossRateResponse(data[2]);
             this.currencyNormalizer.normalize(this.loadedData[this.loadedData.length - 1], this.requestedCurrency);
@@ -320,8 +370,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
             this.prepareLoadedDataAndPlot(false);
           }
         } else {
-          this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'HISTORIC_NO_DATA',
-            {securityName: nameSecuritycurrency.getName()});
+          this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'HISTORIC_NO_DATA', {
+            securityName: nameSecuritycurrency.getName()
+          });
         }
       });
     }
@@ -408,12 +459,16 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private prepareLoadedDataAndPlot(userUserInputDate: boolean) {
     const element = this.chartElement.nativeElement;
     // Drawings belong to a single instrument, a comparison of several disables them.
-    this.shapeController.setSecuritycurrency(this.loadedData.length === 1 ? this.loadedData[0].idSecuritycurrency : null);
+    this.shapeController.setSecuritycurrency(
+      this.loadedData.length === 1 ? this.loadedData[0].idSecuritycurrency : null
+    );
     !userUserInputDate && this.evaluateOldestYoungestMatchDate();
     let traces = this.createAllQuotesLines();
     traces = traces.concat(this.createAllMarkerTraces());
     if (this.showHolding && this.loadedData.length === 1 && this.loadedData[0].currencySecurity) {
-      const holdingsData = this.getHoldingTraceForSecurity(<SecurityTransactionSummary>this.loadedData[0].nameSecuritycurrency);
+      const holdingsData = this.getHoldingTraceForSecurity(
+        <SecurityTransactionSummary>this.loadedData[0].nameSecuritycurrency
+      );
       traces = traces.concat(holdingsData);
     }
     // Add volume trace if enabled and available
@@ -425,7 +480,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
     if (!userUserInputDate && this.loadedData.length === 1) {
       // A newly opened instrument starts from its stored drawings, which begin a fresh undo history.
-      this.shapeController.loadShapes(this.loadedData[0].idSecuritycurrency).subscribe(shapes => {
+      this.shapeController.loadShapes(this.loadedData[0].idSecuritycurrency).subscribe((shapes) => {
         this.shapeController.initHistory(shapes);
         this.plotWithShapes(element, traces, shapes);
       });
@@ -452,12 +507,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return {
       yaxis2: {
         title: 'HOLDING',
-        titlefont: {color: 'rgb(148, 103, 189)'},
-        tickfont: {color: 'rgb(148, 103, 189)'},
+        titlefont: { color: 'rgb(148, 103, 189)' },
+        tickfont: { color: 'rgb(148, 103, 189)' },
         overlaying: 'y',
         side: 'right'
       }
-    }
+    };
   }
 
   private createAllMarkerTraces(): any[] {
@@ -471,28 +526,37 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           this.hasTrades = true;
           // transactionTime is an ISO-8601 string; convert to epoch millis (Math.min on a string yields NaN).
           // The list is sorted ascending by transactionTime, so element [0] is the oldest trade.
-          this.oldestTradeDate = Math.min(this.oldestTradeDate,
-            moment(sts.transactionPositionList[0].transaction.transactionTime).valueOf());
+          this.oldestTradeDate = Math.min(
+            this.oldestTradeDate,
+            moment(sts.transactionPositionList[0].transaction.transactionTime).valueOf()
+          );
         }
         this.getBuySellDivMarkForSecurity(traces, ld, sts);
       } else {
         const cwt = <CurrencypairWithTransaction>ld.nameSecuritycurrency;
         if (cwt.transactionList.length > 0) {
           this.hasTrades = true;
-          this.oldestTradeDate = Math.min(this.oldestTradeDate, moment(cwt.transactionList[0].transactionTime).valueOf());
+          this.oldestTradeDate = Math.min(
+            this.oldestTradeDate,
+            moment(cwt.transactionList[0].transactionTime).valueOf()
+          );
         }
         this.getBuySellDivMarkForCurrency(traces, ld.historicalLine, cwt);
       }
     }
     this.oldestTradeDate = Math.max(this.oldestTradeDate, this.startDate.getTime());
 
-
     return Object.values(traces);
   }
 
   getHistoricalLineTrace(loadedData: LoadedData): any {
-    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.historyquotesNorm,
-      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
+    let foundStartIndex = Math.abs(
+      AppHelper.binarySearch(
+        loadedData.historyquotesNorm,
+        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        this.compareHistoricalFN
+      )
+    );
     // const foundEndIndex = AppHelper.binarySearch(loadedData.historyquotes, this.youngestDate, this.compareHistoricalFN);
 
     while (loadedData.historyquotesNorm[foundStartIndex].close === null) {
@@ -501,18 +565,27 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
     loadedData.factor = 100 / loadedData.historyquotesNorm[foundStartIndex].close;
     if (loadedData.currencySecurity) {
-      this.legendTooltipMap.set(loadedData.nameSecuritycurrency.getName(),
-        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity);
+      this.legendTooltipMap.set(
+        loadedData.nameSecuritycurrency.getName(),
+        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity
+      );
     }
     return {
       type: 'scatter',
       mode: 'lines',
       name: loadedData.nameSecuritycurrency.getName(),
       // name: AppHelper.truncateString(loadedData.nameSecuritycurrency.getName(), 25, true),
-      x: loadedData.historyquotesNorm.slice(foundStartIndex, loadedData.historyquotesNorm.length).map(historyquote => historyquote.date),
-      y: loadedData.historyquotesNorm.slice(foundStartIndex, loadedData.historyquotesNorm.length).map(historyquote =>
-        (this.usePercentage && historyquote.close != null) ? historyquote.close * loadedData.factor - 100 : historyquote.close),
-      line: {width: 1},
+      x: loadedData.historyquotesNorm
+        .slice(foundStartIndex, loadedData.historyquotesNorm.length)
+        .map((historyquote) => historyquote.date),
+      y: loadedData.historyquotesNorm
+        .slice(foundStartIndex, loadedData.historyquotesNorm.length)
+        .map((historyquote) =>
+          this.usePercentage && historyquote.close != null
+            ? historyquote.close * loadedData.factor - 100
+            : historyquote.close
+        ),
+      line: { width: 1 },
       connectgaps: this.connectGaps
     };
   }
@@ -529,8 +602,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       return this.getHistoricalLineTrace(loadedData);
     }
 
-    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.ohlcData,
-      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
+    let foundStartIndex = Math.abs(
+      AppHelper.binarySearch(
+        loadedData.ohlcData,
+        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        this.compareHistoricalFN
+      )
+    );
 
     while (loadedData.ohlcData[foundStartIndex]?.close === null) {
       foundStartIndex++;
@@ -538,21 +616,23 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
     loadedData.factor = 100 / (loadedData.ohlcData[foundStartIndex]?.close || 1);
     if (loadedData.currencySecurity) {
-      this.legendTooltipMap.set(loadedData.nameSecuritycurrency.getName(),
-        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity);
+      this.legendTooltipMap.set(
+        loadedData.nameSecuritycurrency.getName(),
+        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity
+      );
     }
 
     const slicedData = loadedData.ohlcData.slice(foundStartIndex, loadedData.ohlcData.length);
     return {
       type: 'candlestick',
       name: loadedData.nameSecuritycurrency.getName(),
-      x: slicedData.map(ohlc => ohlc.date),
-      open: slicedData.map(ohlc => ohlc.open),
-      high: slicedData.map(ohlc => ohlc.high),
-      low: slicedData.map(ohlc => ohlc.low),
-      close: slicedData.map(ohlc => ohlc.close),
-      increasing: {line: {color: 'green'}},
-      decreasing: {line: {color: 'red'}}
+      x: slicedData.map((ohlc) => ohlc.date),
+      open: slicedData.map((ohlc) => ohlc.open),
+      high: slicedData.map((ohlc) => ohlc.high),
+      low: slicedData.map((ohlc) => ohlc.low),
+      close: slicedData.map((ohlc) => ohlc.close),
+      increasing: { line: { color: 'green' } },
+      decreasing: { line: { color: 'red' } }
     };
   }
 
@@ -568,8 +648,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       return this.getHistoricalLineTrace(loadedData);
     }
 
-    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.ohlcData,
-      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
+    let foundStartIndex = Math.abs(
+      AppHelper.binarySearch(
+        loadedData.ohlcData,
+        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        this.compareHistoricalFN
+      )
+    );
 
     while (loadedData.ohlcData[foundStartIndex]?.close === null) {
       foundStartIndex++;
@@ -577,21 +662,23 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
     loadedData.factor = 100 / (loadedData.ohlcData[foundStartIndex]?.close || 1);
     if (loadedData.currencySecurity) {
-      this.legendTooltipMap.set(loadedData.nameSecuritycurrency.getName(),
-        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity);
+      this.legendTooltipMap.set(
+        loadedData.nameSecuritycurrency.getName(),
+        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity
+      );
     }
 
     const slicedData = loadedData.ohlcData.slice(foundStartIndex, loadedData.ohlcData.length);
     return {
       type: 'ohlc',
       name: loadedData.nameSecuritycurrency.getName(),
-      x: slicedData.map(ohlc => ohlc.date),
-      open: slicedData.map(ohlc => ohlc.open),
-      high: slicedData.map(ohlc => ohlc.high),
-      low: slicedData.map(ohlc => ohlc.low),
-      close: slicedData.map(ohlc => ohlc.close),
-      increasing: {line: {color: 'green'}},
-      decreasing: {line: {color: 'red'}}
+      x: slicedData.map((ohlc) => ohlc.date),
+      open: slicedData.map((ohlc) => ohlc.open),
+      high: slicedData.map((ohlc) => ohlc.high),
+      low: slicedData.map((ohlc) => ohlc.low),
+      close: slicedData.map((ohlc) => ohlc.close),
+      increasing: { line: { color: 'green' } },
+      decreasing: { line: { color: 'red' } }
     };
   }
 
@@ -608,8 +695,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       return null;
     }
 
-    let foundStartIndex = Math.abs(AppHelper.binarySearch(loadedData.ohlcData,
-      moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN));
+    let foundStartIndex = Math.abs(
+      AppHelper.binarySearch(
+        loadedData.ohlcData,
+        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        this.compareHistoricalFN
+      )
+    );
 
     while (loadedData.ohlcData[foundStartIndex]?.close === null) {
       foundStartIndex++;
@@ -623,52 +715,68 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         return 'rgba(128, 128, 128, 0.6)';
       }
       const prevClose = slicedData[index - 1].close || ohlc.open;
-      return (ohlc.close >= prevClose)
-        ? 'rgba(0, 128, 0, 0.6)'   // Green for up
+      return ohlc.close >= prevClose
+        ? 'rgba(0, 128, 0, 0.6)' // Green for up
         : 'rgba(255, 0, 0, 0.6)'; // Red for down
     });
 
     return {
       type: 'bar',
       name: 'Volume',
-      x: slicedData.map(ohlc => ohlc.date),
-      y: slicedData.map(ohlc => ohlc.volume || 0),
+      x: slicedData.map((ohlc) => ohlc.date),
+      y: slicedData.map((ohlc) => ohlc.volume || 0),
       yaxis: 'y4',
-      marker: {color: colors},
+      marker: { color: colors },
       showlegend: true
     };
   }
 
-  private getBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, currencypairWithTransaction: CurrencypairWithTransaction): Traces {
+  private getBuySellDivMarkForCurrency(
+    traces: Traces,
+    historicalLine: any,
+    currencypairWithTransaction: CurrencypairWithTransaction
+  ): Traces {
     const cptv = new CurrencyPairTraceValues();
     this.addBuySellDivMarkForCurrency(traces, historicalLine, currencypairWithTransaction.transactionList, cptv, false);
-    currencypairWithTransaction.cwtReverse && this.addBuySellDivMarkForCurrency(traces, historicalLine,
-      currencypairWithTransaction.cwtReverse.transactionList, cptv, true);
+    currencypairWithTransaction.cwtReverse &&
+      this.addBuySellDivMarkForCurrency(
+        traces,
+        historicalLine,
+        currencypairWithTransaction.cwtReverse.transactionList,
+        cptv,
+        true
+      );
 
     if (this.loadedData.length === 1 && !this.usePercentage) {
       const maxAmountSqrt = Math.sqrt(cptv.maxAmount);
       const minAmountSqrt = Math.sqrt(cptv.minAmount);
-      const step = (maxAmountSqrt - minAmountSqrt) ? 18 / (maxAmountSqrt - minAmountSqrt) : 0;
+      const step = maxAmountSqrt - minAmountSqrt ? 18 / (maxAmountSqrt - minAmountSqrt) : 0;
 
-      Object.entries(traces).forEach(
-        ([key, value]) => {
-          (<any>value).marker = {size: cptv.sizes[key].size.map(amount => (Math.sqrt(amount) - minAmountSqrt) * step + 6)};
-        }
-      );
+      Object.entries(traces).forEach(([key, value]) => {
+        (<any>value).marker = {
+          size: cptv.sizes[key].size.map((amount) => (Math.sqrt(amount) - minAmountSqrt) * step + 6)
+        };
+      });
     }
     return traces;
   }
 
-  private addBuySellDivMarkForCurrency(traces: Traces, historicalLine: any, transactions: Transaction[],
-    cptv: CurrencyPairTraceValues, reverse: boolean): void {
-    transactions.filter(transaction => moment(transaction.transactionTime).isSameOrAfter(this.fromDate))
-      .forEach(transaction => {
+  private addBuySellDivMarkForCurrency(
+    traces: Traces,
+    historicalLine: any,
+    transactions: Transaction[],
+    cptv: CurrencyPairTraceValues,
+    reverse: boolean
+  ): void {
+    transactions
+      .filter((transaction) => moment(transaction.transactionTime).isSameOrAfter(this.fromDate))
+      .forEach((transaction) => {
         const transactionType: TransactionType = TransactionType[transaction.transactionType];
         const transactionTypeStr = this.getTransactionTypeStr(transaction, transactionType, reverse);
         const amount = Math.abs(transaction.cashaccountAmount);
         if (!traces[transactionTypeStr]) {
           traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
-          cptv.sizes[transactionTypeStr] = {size: []};
+          cptv.sizes[transactionTypeStr] = { size: [] };
         }
         const transactionDateStr = moment(transaction.transactionTime).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
 
@@ -679,7 +787,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           const foundIndex = AppHelper.binarySearch(historicalLine.x, transactionDateStr, this.compareXaxisFN);
           traces[transactionTypeStr].y.push(historicalLine.y[Math.abs(foundIndex)]);
         } else {
-          traces[transactionTypeStr].y.push((reverse) ? 1 / transaction.currencyExRate : transaction.currencyExRate);
+          traces[transactionTypeStr].y.push(reverse ? 1 / transaction.currencyExRate : transaction.currencyExRate);
           cptv.sizes[transactionTypeStr].size.push(amount);
           cptv.minAmount = Math.min(cptv.minAmount, amount);
           cptv.maxAmount = Math.max(cptv.maxAmount, amount);
@@ -700,25 +808,37 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           return transaction.transactionType;
       }
     } else {
-      return transactionType === TransactionType.DEPOSIT ? TransactionType[TransactionType.ACCUMULATE] :
-        transactionType === TransactionType.WITHDRAWAL ? TransactionType[TransactionType.REDUCE] : transaction.transactionType;
+      return transactionType === TransactionType.DEPOSIT
+        ? TransactionType[TransactionType.ACCUMULATE]
+        : transactionType === TransactionType.WITHDRAWAL
+          ? TransactionType[TransactionType.REDUCE]
+          : transaction.transactionType;
     }
   }
 
   private getHoldingTraceForSecurity(securityTransactionSummary: SecurityTransactionSummary): Data {
     const trace: Data = {
-      x: [], y: [], yaxis: 'y2', name: 'HOLDING', type: 'scatter', line: {
+      x: [],
+      y: [],
+      yaxis: 'y2',
+      name: 'HOLDING',
+      type: 'scatter',
+      line: {
         dash: 'dashdot',
-        width: 1, color: 'rgb(148, 103, 189)'
+        width: 1,
+        color: 'rgb(148, 103, 189)'
       }
     };
     let before = 0;
     let seeded = false;
     const fromDateStr = moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
-    securityTransactionSummary.transactionPositionList.filter(stp =>
-      stp.transaction.transactionType === TransactionType[TransactionType.ACCUMULATE]
-      || stp.transaction.transactionType === TransactionType[TransactionType.REDUCE])
-      .forEach(securityTransactionPosition => {
+    securityTransactionSummary.transactionPositionList
+      .filter(
+        (stp) =>
+          stp.transaction.transactionType === TransactionType[TransactionType.ACCUMULATE] ||
+          stp.transaction.transactionType === TransactionType[TransactionType.REDUCE]
+      )
+      .forEach((securityTransactionPosition) => {
         if (moment(securityTransactionPosition.transaction.transactionTime).isSameOrAfter(this.fromDate)) {
           if (!seeded) {
             trace.x.push(fromDateStr);
@@ -784,32 +904,52 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return 0;
   }
 
-  private getBuySellDivMarkForSecurity(traces: Traces, loadedData: LoadedData, securityTransactionSummary: SecurityTransactionSummary): Traces {
-    securityTransactionSummary.transactionPositionList.filter(stp => moment(stp.transaction.transactionTime).isSameOrAfter(this.fromDate))
-      .forEach(securityTransactionPosition => {
+  private getBuySellDivMarkForSecurity(
+    traces: Traces,
+    loadedData: LoadedData,
+    securityTransactionSummary: SecurityTransactionSummary
+  ): Traces {
+    securityTransactionSummary.transactionPositionList
+      .filter((stp) => moment(stp.transaction.transactionTime).isSameOrAfter(this.fromDate))
+      .forEach((securityTransactionPosition) => {
         const transaction = securityTransactionPosition.transaction;
         const transactionTypeStr = transaction.transactionType;
         const transactionType: TransactionType = TransactionType[transactionTypeStr];
-        if (transactionType === TransactionType.ACCUMULATE || transactionType === TransactionType.REDUCE
-          || transactionType === TransactionType.DIVIDEND) {
+        if (
+          transactionType === TransactionType.ACCUMULATE ||
+          transactionType === TransactionType.REDUCE ||
+          transactionType === TransactionType.DIVIDEND
+        ) {
           if (!traces[transactionTypeStr]) {
             traces[transactionTypeStr] = this.initializeBuySellTrace(transactionTypeStr, transactionType);
           }
           const transactionDateStr = this.getDateTimeAsStringPutAsX(transaction, traces[transactionTypeStr].x);
           if (transactionType === TransactionType.DIVIDEND || this.loadedData.length > 1 || this.usePercentage) {
-            const foundIndex = AppHelper.binarySearch(loadedData.historicalLine.x, transactionDateStr, this.compareXaxisFN);
+            const foundIndex = AppHelper.binarySearch(
+              loadedData.historicalLine.x,
+              transactionDateStr,
+              this.compareXaxisFN
+            );
             traces[transactionTypeStr].y.push(this.getInterpolatedYValue(loadedData.historicalLine, foundIndex));
           } else {
             // Y represent the normalized sell or buy price
             let normalizeFactor = 1;
             if (!this.currencyNormalizer.isNormalizeNotNeeded(loadedData, this.requestedCurrency)) {
-              const foundStartIndex = AppHelper.binarySearch(loadedData.historyquotes,
-                moment(securityTransactionPosition.transaction.transactionTime).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
-                this.compareHistoricalFN);
-              normalizeFactor = loadedData.historyquotesNorm[foundStartIndex].close / loadedData.historyquotes[foundStartIndex].close;
+              const foundStartIndex = AppHelper.binarySearch(
+                loadedData.historyquotes,
+                moment(securityTransactionPosition.transaction.transactionTime).format(
+                  BaseSettings.FORMAT_DATE_SHORT_NATIVE
+                ),
+                this.compareHistoricalFN
+              );
+              normalizeFactor =
+                loadedData.historyquotesNorm[foundStartIndex].close / loadedData.historyquotes[foundStartIndex].close;
             }
-            traces[transactionTypeStr].y.push((securityTransactionPosition.quotationSplitCorrection
-              ? securityTransactionPosition.quotationSplitCorrection : transaction.quotation) * normalizeFactor);
+            traces[transactionTypeStr].y.push(
+              (securityTransactionPosition.quotationSplitCorrection
+                ? securityTransactionPosition.quotationSplitCorrection
+                : transaction.quotation) * normalizeFactor
+            );
           }
           traces[transactionTypeStr].text.push(transaction.cashaccount.name);
         }
@@ -823,12 +963,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     return transactionDateStr;
   }
 
-  chartDataPointClicked(dataPointIndex: number) {
-  }
+  chartDataPointClicked(dataPointIndex: number) {}
 
   private initializeBuySellTrace(transactionTypeStr: string, transactionType: TransactionType) {
     const trace = {
-      x: [], y: [], text: [],
+      x: [],
+      y: [],
+      text: [],
       mode: 'markers',
       type: 'scatter',
       opacity: 0.75,
@@ -836,14 +977,14 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       textfont: {
         family: 'Times New Roman'
       },
-      marker: {size: transactionType === TransactionType.DIVIDEND ? 6 : 8}
+      marker: { size: transactionType === TransactionType.DIVIDEND ? 6 : 8 }
     };
     this.translateTraceName(trace);
     return trace;
   }
 
   translateTraceName(trace) {
-    this.translateService.get(trace.name).subscribe(transText => trace.name = transText);
+    this.translateService.get(trace.name).subscribe((transText) => (trace.name = transText));
   }
 
   isActivated(): boolean {
@@ -866,43 +1007,56 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       const taEditReturn: TaEditReturn = processedActionData.data;
       const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taEditReturn.taIndicators];
       const iDef: IndicatorDefinition = this.indicatorDefinitions.defMap.get(TaIndicators[taEditReturn.taIndicators]);
-      this.deleteShownTaTraceWhenInputDataHasChanged(taEditReturn.taIndicators, iDef, taEditReturn.taDynamicDataModel,
-        taFormDefinition);
-      this.usersettingsService.saveObject(AppSettings.TA_INDICATORS_STORE + taEditReturn.taIndicators,
-        taEditReturn.taDynamicDataModel);
+      this.deleteShownTaTraceWhenInputDataHasChanged(
+        taEditReturn.taIndicators,
+        iDef,
+        taEditReturn.taDynamicDataModel,
+        taFormDefinition
+      );
+      this.usersettingsService.saveObject(
+        AppSettings.TA_INDICATORS_STORE + taEditReturn.taIndicators,
+        taEditReturn.taDynamicDataModel
+      );
       this.loadAndShowIndicatorDataWithMenu(taEditReturn.taIndicators, iDef);
     }
   }
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   public getHelpContextId(): string {
     return HelpIds.HELP_WATCHLIST_HISTORYQUOTES_CHART;
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  private addCurrencyCrossRateObservable(timeSeriesParams: TimeSeriesParam[], currencySecurity: string,
-    observable: Observable<any>[]): void {
+  private addCurrencyCrossRateObservable(
+    timeSeriesParams: TimeSeriesParam[],
+    currencySecurity: string,
+    observable: Observable<any>[]
+  ): void {
     if (timeSeriesParams[timeSeriesParams.length - 1].currencySecurity != null) {
       const currencypairList: string[] = this.currencyNormalizer.getExistingCurrencypairKeys();
-      const uniqueSecuritycurrency = new Set(this.loadedData.filter(ld => ld.currencySecurity).map(ld => ld.currencySecurity));
+      const uniqueSecuritycurrency = new Set(
+        this.loadedData.filter((ld) => ld.currencySecurity).map((ld) => ld.currencySecurity)
+      );
       uniqueSecuritycurrency.add(currencySecurity);
-      observable.push(this.currencypairService.getCurrencypairForCrossRate(new CrossRateRequest(
-        [...uniqueSecuritycurrency], currencypairList)));
+      observable.push(
+        this.currencypairService.getCurrencypairForCrossRate(
+          new CrossRateRequest([...uniqueSecuritycurrency], currencypairList)
+        )
+      );
     }
   }
 
   private addCrossRateResponse(crossRateResponse: CrossRateResponse): void {
-    crossRateResponse.currenciesAndClosePrice.forEach(crr =>
-      this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList));
+    crossRateResponse.currenciesAndClosePrice.forEach((crr) =>
+      this.createTodayAsHistoryquote(crr.currencypair.sTimestamp, crr.currencypair.sLast, crr.closeAndDateList)
+    );
     this.currencyNormalizer.setCrossRates(crossRateResponse);
-    const co = new Set(this.loadedData.filter(ld => ld.currencySecurity).map(ld => ld.currencySecurity));
-    this.currenciesOptions = [{value: '', label: ''}];
+    const co = new Set(this.loadedData.filter((ld) => ld.currencySecurity).map((ld) => ld.currencySecurity));
+    this.currenciesOptions = [{ value: '', label: '' }];
     co.add(crossRateResponse.mainCurrency);
-    co.forEach((currency) => this.currenciesOptions.push({value: currency, label: currency}));
+    co.forEach((currency) => this.currenciesOptions.push({ value: currency, label: currency }));
   }
 
   private resetMenu(): void {
@@ -918,13 +1072,15 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     this.indicatorDefinitions.defMap.forEach((iDef: IndicatorDefinition, taIndicators: TaIndicators) => {
       iDef.menuItem = {
         label: TaIndicators[taIndicators],
-        icon: (iDef.shown) ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
+        icon: iDef.shown ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
         command: (event) => this.onOffIndicatorEvent(event, TaIndicators[taIndicators], iDef),
         disabled: !this.possibleShowingTaIndicator(),
-        items: [{
-          label: `EDIT_RECORD|${TaIndicators[taIndicators]}`,
-          command: () => this.editIndicatorParam(iDef, TaIndicators[taIndicators])
-        }]
+        items: [
+          {
+            label: `EDIT_RECORD|${TaIndicators[taIndicators]}`,
+            command: () => this.editIndicatorParam(iDef, TaIndicators[taIndicators])
+          }
+        ]
       };
       menuItems.push(iDef.menuItem);
     });
@@ -933,8 +1089,10 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private possibleShowingTaIndicator(): boolean {
-    return this.loadedData.length === 1 && (this.loadedData[0].currencySecurity === this.requestedCurrency
-      || this.requestedCurrency === '');
+    return (
+      this.loadedData.length === 1 &&
+      (this.loadedData[0].currencySecurity === this.requestedCurrency || this.requestedCurrency === '')
+    );
   }
 
   private onOffIndicatorEvent(event, taIndicators: string, iDef: IndicatorDefinition): void {
@@ -957,9 +1115,17 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private editIndicatorParam(iDef: IndicatorDefinition, taIndicators: string): void {
     const taFormDefinition: TaFormDefinition = this.taFormDefinitions[taIndicators];
     const dataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators);
-    this.taEditParam = new TaEditParam(taIndicators,
+    this.taEditParam = new TaEditParam(
+      taIndicators,
       dataModel ? dataModel : taFormDefinition.defaultDataModel,
-      DynamicFieldModelHelper.createConfigFieldsFromDescriptor(this.translateService, taFormDefinition.taFormList, '', true, 'APPLY'));
+      DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
+        this.translateService,
+        taFormDefinition.taFormList,
+        '',
+        true,
+        'APPLY'
+      )
+    );
     this.visibleTaDialog = true;
   }
 
@@ -970,23 +1136,29 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   }
 
   private loadAndShowIndicatorData(taIndicators: string, iDef: IndicatorDefinition): void {
-    const dataModel: string = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators)
-      || this.taFormDefinitions[taIndicators].defaultDataModel;
+    const dataModel: string =
+      this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicators) ||
+      this.taFormDefinitions[taIndicators].defaultDataModel;
     this.indicatorDefinitions.idSecuritycurrency = this.loadedData[0].idSecuritycurrency;
-    this.historyquoteService.getTaWithShortMediumLongInputPeriod(taIndicators, this.indicatorDefinitions.idSecuritycurrency,
-      dataModel).subscribe((taTraceIndicatorDataList: TaTraceIndicatorData[]) => {
-      iDef.taTraceIndicatorDataList = taTraceIndicatorDataList;
-      if (iDef.isOscillator) {
-        // Replot the entire chart to include subplot layout for oscillator indicators
-        this.prepareLoadedDataAndPlot(true);
-      } else {
-        this.createTaTrace(iDef);
-      }
-    });
+    this.historyquoteService
+      .getTaWithShortMediumLongInputPeriod(taIndicators, this.indicatorDefinitions.idSecuritycurrency, dataModel)
+      .subscribe((taTraceIndicatorDataList: TaTraceIndicatorData[]) => {
+        iDef.taTraceIndicatorDataList = taTraceIndicatorDataList;
+        if (iDef.isOscillator) {
+          // Replot the entire chart to include subplot layout for oscillator indicators
+          this.prepareLoadedDataAndPlot(true);
+        } else {
+          this.createTaTrace(iDef);
+        }
+      });
   }
 
-  private deleteShownTaTraceWhenInputDataHasChanged(taIndicator: string, iDef: IndicatorDefinition, newDataModel: any,
-    taFormDefinition: TaFormDefinition): void {
+  private deleteShownTaTraceWhenInputDataHasChanged(
+    taIndicator: string,
+    iDef: IndicatorDefinition,
+    newDataModel: any,
+    taFormDefinition: TaFormDefinition
+  ): void {
     if (iDef.shown) {
       const existingDataModel = this.usersettingsService.retrieveObject(AppSettings.TA_INDICATORS_STORE + taIndicator);
       if (!DynamicFieldModelHelper.isDataModelEqual(existingDataModel, newDataModel, taFormDefinition.taFormList)) {
@@ -999,9 +1171,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     if (iDef.shown) {
       iDef.menuItem.icon = BaseSettings.ICONNAME_SQUARE_EMTPY;
       iDef.shown = false;
-      const traceIndices: number[] = iDef.taTraceIndicatorDataList.map(taT => taT.traceIndex).reverse();
+      const traceIndices: number[] = iDef.taTraceIndicatorDataList.map((taT) => taT.traceIndex).reverse();
       Plotly.deleteTraces(this.chartElement.nativeElement, traceIndices);
-      iDef.taTraceIndicatorDataList.forEach(taT => taT.traceIndex = undefined);
+      iDef.taTraceIndicatorDataList.forEach((taT) => (taT.traceIndex = undefined));
       this.adjustTATraceIndices(traceIndices);
     }
   }
@@ -1010,8 +1182,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     for (const index of traceIndices) {
       this.indicatorDefinitions.defMap.forEach((iDefI: IndicatorDefinition, taIndicators: TaIndicators) => {
         if (iDefI.shown) {
-          iDefI.taTraceIndicatorDataList.forEach(ttid =>
-            ttid.traceIndex = ttid.traceIndex > index ? ttid.traceIndex - 1 : ttid.traceIndex);
+          iDefI.taTraceIndicatorDataList.forEach(
+            (ttid) => (ttid.traceIndex = ttid.traceIndex > index ? ttid.traceIndex - 1 : ttid.traceIndex)
+          );
         }
       });
     }
@@ -1019,29 +1192,36 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
   private createTaTrace(iDef: IndicatorDefinition): void {
     iDef.taTraceIndicatorDataList.forEach((taTraceIndicatorData: TaTraceIndicatorData) => {
-      const foundStartIndex = AppHelper.binarySearch(taTraceIndicatorData.taIndicatorData,
-        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE), this.compareHistoricalFN);
+      const foundStartIndex = AppHelper.binarySearch(
+        taTraceIndicatorData.taIndicatorData,
+        moment(this.fromDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
+        this.compareHistoricalFN
+      );
 
       const trace: any = {
         type: 'scatter',
         mode: 'lines',
         name: `${taTraceIndicatorData.traceName} (${taTraceIndicatorData.period})`,
-        x: taTraceIndicatorData.taIndicatorData.slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
-          .map(taIndicatorData => taIndicatorData.date),
-        line: {width: 1}
+        x: taTraceIndicatorData.taIndicatorData
+          .slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
+          .map((taIndicatorData) => taIndicatorData.date),
+        line: { width: 1 }
       };
 
       if (iDef.isOscillator) {
         // Oscillator indicators (RSI) display on separate y-axis with 0-100 scale
         // Use yaxis3 since yaxis2 is reserved for holdings
         trace.yaxis = 'y3';
-        trace.y = taTraceIndicatorData.taIndicatorData.slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
-          .map(taIndicatorData => taIndicatorData.value);
+        trace.y = taTraceIndicatorData.taIndicatorData
+          .slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
+          .map((taIndicatorData) => taIndicatorData.value);
       } else {
         // Overlay indicators (SMA/EMA) follow the price chart
-        trace.y = taTraceIndicatorData.taIndicatorData.slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
-          .map(taIndicatorData => (this.usePercentage)
-            ? taIndicatorData.value * this.loadedData[0].factor - 100 : taIndicatorData.value);
+        trace.y = taTraceIndicatorData.taIndicatorData
+          .slice(foundStartIndex, taTraceIndicatorData.taIndicatorData.length)
+          .map((taIndicatorData) =>
+            this.usePercentage ? taIndicatorData.value * this.loadedData[0].factor - 100 : taIndicatorData.value
+          );
       }
 
       Plotly.addTraces(this.chartElement.nativeElement, trace);
@@ -1063,22 +1243,31 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     });
   }
 
-
   private evaluateOldestYoungestMatchDate(): void {
     this.oldestMatchDate = null;
     this.youngestMatchDate = null;
     for (const ld of this.loadedData) {
-      this.oldestMatchDate = !this.oldestMatchDate ? ld.historyquotesNorm[0].date : ld.historyquotesNorm[0].date > this.oldestMatchDate ?
-        ld.historyquotesNorm[0].date : this.oldestMatchDate;
+      this.oldestMatchDate = !this.oldestMatchDate
+        ? ld.historyquotesNorm[0].date
+        : ld.historyquotesNorm[0].date > this.oldestMatchDate
+          ? ld.historyquotesNorm[0].date
+          : this.oldestMatchDate;
       const maxIndex = ld.historyquotesNorm.length - 1;
-      this.youngestMatchDate = !this.youngestMatchDate ? ld.historyquotesNorm[maxIndex].date :
-        ld.historyquotesNorm[maxIndex].date < this.youngestMatchDate ? ld.historyquotesNorm[maxIndex].date : this.youngestMatchDate;
+      this.youngestMatchDate = !this.youngestMatchDate
+        ? ld.historyquotesNorm[maxIndex].date
+        : ld.historyquotesNorm[maxIndex].date < this.youngestMatchDate
+          ? ld.historyquotesNorm[maxIndex].date
+          : this.youngestMatchDate;
     }
     this.matchEveryHistoryquotesYoungestDate();
     if (!this.fromDate || this.loadedData.length === 1 || this.oldestDate.getTime() > this.fromDate.getTime()) {
       this.fromDate = this.oldestDate;
     }
-    this.startDate = this.oldestDate ? new Date(this.oldestDate) : new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
+    this.startDate = this.oldestDate
+      ? new Date(this.oldestDate)
+      : new Date(
+          sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+        );
     this.endDate = this.youngestDate ? new Date(this.youngestDate) : new Date();
   }
 
@@ -1093,8 +1282,11 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         this.fromDate = new Date(youngest);
         return;
       }
-      const foundStartIndex = AppHelper.binarySearch(this.loadedData[i].historyquotesNorm, fromStr,
-        this.compareHistoricalFN);
+      const foundStartIndex = AppHelper.binarySearch(
+        this.loadedData[i].historyquotesNorm,
+        fromStr,
+        this.compareHistoricalFN
+      );
       if (foundStartIndex < 0) {
         this.fromDate = moment(this.fromDate).add(1, 'days').toDate();
         i = 0;
@@ -1126,8 +1318,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
       // Calculate Y-axis min/max from close values (for candlestick/OHLC, use high/low)
       if (ld.historicalLine.type === 'candlestick' || ld.historicalLine.type === 'ohlc') {
-        this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.low.filter(v => v != null));
-        this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.high.filter(v => v != null));
+        this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.low.filter((v) => v != null));
+        this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.high.filter((v) => v != null));
       } else {
         this.minValueOfY = Math.min(this.minValueOfY, ...ld.historicalLine.y);
         this.maxValueOfY = Math.max(this.maxValueOfY, ...ld.historicalLine.y);
@@ -1141,7 +1333,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     const config = PlotlyLocales.setPlotyLocales(Plotly, this.gps);
     config.modeBarButtonsToRemove = ['lasso2d', 'select2d'];
     config.modeBarButtonsToAdd = [
-      'drawline', 'drawopenpath', 'drawclosedpath', 'drawcircle', 'drawrect', 'eraseshape',
+      'drawline',
+      'drawopenpath',
+      'drawclosedpath',
+      'drawcircle',
+      'drawrect',
+      'eraseshape',
       ...this.shapeController.getModeBarButtons()
     ];
     config.displaylogo = false;
@@ -1152,8 +1349,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 
     PlotlyHelper.registerPlotlyClick(element, this.chartDataPointClicked.bind(this));
     if (!this.subscriptionViewSizeChanged) {
-      this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(changedViewSizeType =>
-        Plotly.Plots.resize(element));
+      this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe((changedViewSizeType) =>
+        Plotly.Plots.resize(element)
+      );
     }
   }
 
@@ -1162,7 +1360,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       const dateLastStr = moment(sTimestamp).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
       if (historyquotes.length === 0 || dateLastStr > historyquotes[historyquotes.length - 1].date) {
         const historyquoteToday: HistoryquoteDateClose = {
-          date: dateLastStr, close: sLast
+          date: dateLastStr,
+          close: sLast
         };
         historyquotes.push(historyquoteToday);
       }
@@ -1213,7 +1412,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         type: 'linear'
       },
       newshape: {
-        line: {color: 'cyan', width: 2},
+        line: { color: 'cyan', width: 2 },
         fillcolor: 'rgba(0, 255, 255, 0.1)'
       },
       shapes: shapes
@@ -1222,10 +1421,15 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     // Configure subplot layout based on active subcharts
     if (hasOscillator && hasVolume) {
       // Price: 50%, Volume: 17%, RSI: 25%, gaps: 8%
-      layout.grid = {rows: 3, columns: 1, pattern: 'independent', roworder: 'top to bottom'};
-      layout.yaxis.domain = [0.50, 1];
+      layout.grid = {
+        rows: 3,
+        columns: 1,
+        pattern: 'independent',
+        roworder: 'top to bottom'
+      };
+      layout.yaxis.domain = [0.5, 1];
       layout.yaxis4 = {
-        domain: [0.30, 0.47],
+        domain: [0.3, 0.47],
         autorange: true,
         fixedrange: true,
         showgrid: true,
@@ -1242,8 +1446,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       layout.xaxis.rangeslider.thickness = 0.03;
     } else if (hasVolume) {
       // Price: 70%, Volume: 25%, gap: 5%
-      layout.grid = {rows: 2, columns: 1, pattern: 'independent', roworder: 'top to bottom'};
-      layout.yaxis.domain = [0.30, 1];
+      layout.grid = {
+        rows: 2,
+        columns: 1,
+        pattern: 'independent',
+        roworder: 'top to bottom'
+      };
+      layout.yaxis.domain = [0.3, 1];
       layout.yaxis4 = {
         domain: [0, 0.25],
         autorange: true,
@@ -1254,7 +1463,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       layout.xaxis.rangeslider.thickness = 0.04;
     } else if (hasOscillator) {
       // Use grid layout with 2 rows
-      layout.grid = {rows: 2, columns: 1, pattern: 'independent', roworder: 'top to bottom'};
+      layout.grid = {
+        rows: 2,
+        columns: 1,
+        pattern: 'independent',
+        roworder: 'top to bottom'
+      };
       // Price chart takes 65% height (top)
       layout.yaxis.domain = [0.35, 1];
       // RSI/oscillator takes 30% height (bottom), with 5% gap
@@ -1282,9 +1496,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
 }
 
 export class TimeSeriesParam {
-  constructor(public idSecuritycurrency: number, public currencySecurity: string,
-    public idPortfolio: number, public idSecurityaccount: number, fileGaps = true) {
-  }
+  constructor(
+    public idSecuritycurrency: number,
+    public currencySecurity: string,
+    public idPortfolio: number,
+    public idSecurityaccount: number,
+    fileGaps = true
+  ) {}
 }
 
 class LoadedData {
@@ -1292,8 +1510,13 @@ class LoadedData {
   public historicalLine: any;
   public historyquotesNorm: HistoryquoteDateClose[];
 
-  constructor(public idSecuritycurrency: number, public nameSecuritycurrency: (CurrencypairWithTransaction | SecurityTransactionSummary),
-    public historyquotes: HistoryquoteDateClose[], public currencySecurity: string, public ohlcData?: HistoryquoteOHLC[]) {
+  constructor(
+    public idSecuritycurrency: number,
+    public nameSecuritycurrency: CurrencypairWithTransaction | SecurityTransactionSummary,
+    public historyquotes: HistoryquoteDateClose[],
+    public currencySecurity: string,
+    public ohlcData?: HistoryquoteOHLC[]
+  ) {
     this.historyquotesNorm = historyquotes;
   }
 }
@@ -1303,4 +1526,3 @@ class CurrencyPairTraceValues {
   public minAmount = Number.MAX_VALUE;
   public maxAmount = 0;
 }
-

@@ -1,5 +1,4 @@
-import {SecurityPositionGroupSummary} from './security.position.group.summary';
-
+import { SecurityPositionGroupSummary } from './security.position.group.summary';
 
 export class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSummary {
   public currencyExchangeRate: number;
@@ -8,5 +7,4 @@ export class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
   public groupTransactionCost: number;
   public groupAccountValueSecurity: number;
   public groupTaxCost: number;
-
 }

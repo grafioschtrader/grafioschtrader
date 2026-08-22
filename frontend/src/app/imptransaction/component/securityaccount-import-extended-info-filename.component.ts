@@ -1,14 +1,14 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {AngularSvgIconModule} from 'angular-svg-icon';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
-import {CombineTemplateAndImpTransPos} from '../../securityaccount/component/combine.template.and.imp.trans.pos';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ImportSettings} from './import.settings';
-import {AppSettings} from '../../shared/app.settings';
+import { CombineTemplateAndImpTransPos } from '../../securityaccount/component/combine.template.and.imp.trans.pos';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { ImportSettings } from './import.settings';
+import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Show the file name of an imported transaction file.
@@ -17,10 +17,10 @@ import {AppSettings} from '../../shared/app.settings';
   selector: 'securityaccount-import-extended-info-filename',
   templateUrl: '../../securityaccount/view/securityaccount.import.extended.info.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, AngularSvgIconModule]
 })
 export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRecordConfigBase implements OnInit {
-
   @Input() combineTemplateAndImpTransPos: CombineTemplateAndImpTransPos;
 
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
@@ -28,8 +28,9 @@ export class SecurityaccountImportExtendedInfoFilenameComponent extends SingleRe
   }
 
   ngOnInit(): void {
-    this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'fileNameOriginal',
-      {fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()});
+    this.addFieldPropertyFeqH(DataType.String, ImportSettings.IMPORT_TRANSACTION_POS + 'fileNameOriginal', {
+      fieldsetName: AppSettings.IMPORT_TRANSACTION_TEMPLATE.toUpperCase()
+    });
     this.translateHeadersAndColumns();
   }
 }

@@ -57,7 +57,7 @@ write the test that replays it — is documented in the wiki under
 Three rules from it are worth repeating here, because getting them wrong is silent:
 
 - A fixture exported this way belongs in `backend/grafioschtrader-server/src/test/resources/testdata/`,
-  **never** in `testdata/generated/` — that directory is wiped and rebuilt from the *production*
+  **never** in `testdata/generated/` — that directory is wiped and rebuilt from the _production_
   database, so anything hand-authored there disappears.
 - Reference rows by natural key (ISIN + currency, MIC, nickname, account name), never by id. Ids differ
   between databases.
@@ -499,7 +499,7 @@ values through the create dialog.
 
 The instrument is not created by the spec — it is **seeded with its price history**. `nv.bat` dumps
 the CH/US securities that have a future `active_to_date` and no API-key connector into
-`V2__testdata.sql` *together with their `historyquote` rows*, and Nestlé is one of them (~6700
+`V2__testdata.sql` _together with their `historyquote` rows_, and Nestlé is one of them (~6700
 quotes from 2000 onwards). The data is therefore present as soon as Flyway has run.
 
 A security created through the UI from `generated/securities.json` would not work here: saving it
@@ -524,7 +524,7 @@ Delete-then-recreate makes the spec repeatable: a rerun targets the same date ag
 row comes back with create type `ADD_MODIFIED_USER` instead of `CONNECTOR_CREATED`, so its icon in
 the `T` column changes — harmless for the flow. Because the OHLCV values are written back unchanged,
 the shared Nestlé series also stays intact for `080-correlation-matrix.spec.ts`, which uses it. Only
-a run aborted *between* the delete and the recreate leaves that one connector row missing; the next
+a run aborted _between_ the delete and the recreate leaves that one connector row missing; the next
 run then targets the row before it.
 
 The instrument is added only when missing, so the spec can be re-run against the same `grafioschtrader_t`
@@ -567,11 +567,11 @@ the `STANDARD_WITH_PERIODS` entries. It is hand-authored, so it belongs in `test
 `testdata/generated/`, which `nv.bat` empties on every run. JSON rather than CSV because the linked instruments and
 history-quote periods form nested structures. The three derived instruments mirror the production database:
 
-| name | base (`o`) | formula | additional |
-|---|---|---|---|
+| name                    | base (`o`)               | formula                | additional                  |
+| ----------------------- | ------------------------ | ---------------------- | --------------------------- |
 | `Gold 100 Gramm in CHF` | security `Gold Feinunze` | `o * 3.2150746569 * p` | `p` = currency pair USD/CHF |
-| `Forex EUR/CHF -> CHF` | currency pair EUR/CHF | — | — |
-| `Forex USD/CHF -> CHF` | currency pair USD/CHF | — | — |
+| `Forex EUR/CHF -> CHF`  | currency pair EUR/CHF    | —                      | —                           |
+| `Forex USD/CHF -> CHF`  | currency pair USD/CHF    | —                      | —                           |
 
 Linked instruments are referenced **by name, never by id**. `Gold Feinunze` and the pair `EUR/CHF` are
 seeded by `V2__testdata.sql`, but `USD/CHF` is not: `nv.bat` drops every currency pair whose connector
@@ -579,9 +579,9 @@ needs an API key, and the production USD/CHF pair uses one. That pair is recreat
 `045-create-currencypair.spec.ts` from `currencypair.csv` and therefore gets a different id — which is
 also why this spec has to run after `045`.
 
-Two ordering traps are worth knowing when changing the spec. Assigning a *security* as base instrument
+Two ordering traps are worth knowing when changing the spec. Assigning a _security_ as base instrument
 calls `transferBusinessObjectToForm()` and overwrites name, currency, asset class, stock exchange and
-both dates with the base's values; assigning a *currency pair* sets the currency to its **from**
+both dates with the base's values; assigning a _currency pair_ sets the currency to its **from**
 currency and restricts the asset class dropdown to `CURRENCY_PAIR` as long as no formula is entered.
 The base data is therefore filled after the instrument pickers, and always explicitly. Typing the
 formula spawns one `additionalInstrumentName_<var>` input button per variable, so the formula has to

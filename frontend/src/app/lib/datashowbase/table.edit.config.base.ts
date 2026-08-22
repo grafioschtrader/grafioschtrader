@@ -1,35 +1,61 @@
-import {Injector} from '@angular/core';
-import {TableConfigBase} from './table.config.base';
-import {FilterService} from '@openng/optimus-ui/api';
-import {UserSettingsService} from '../services/user.settings.service';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {ColumnConfig, OptionalParams} from './column.config';
-import {DataType} from '../dynamic-form/models/data.type';
-import {AppHelper} from '../helper/app.helper';
-import {Validators} from '@angular/forms';
-import {DynamicFieldHelper} from '../helper/dynamic.field.helper';
+import { Injector } from '@angular/core';
+import { TableConfigBase } from './table.config.base';
+import { FilterService } from '@openng/optimus-ui/api';
+import { UserSettingsService } from '../services/user.settings.service';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { ColumnConfig, OptionalParams } from './column.config';
+import { DataType } from '../dynamic-form/models/data.type';
+import { AppHelper } from '../helper/app.helper';
+import { Validators } from '@angular/forms';
+import { DynamicFieldHelper } from '../helper/dynamic.field.helper';
 
 export abstract class TableEditConfigBase extends TableConfigBase {
-  protected constructor(filterService: FilterService,
-                        usersettingsService: UserSettingsService,
-                        translateService: TranslateService,
-                        gps: GlobalparameterService,
-                        injector: Injector = null) {
+  protected constructor(
+    filterService: FilterService,
+    usersettingsService: UserSettingsService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    injector: Injector = null
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
   }
 
-  addEditColumnFeqH(dataType: DataType, field: string, required: boolean,
-                    optionalParams?: OptionalParams): ColumnConfig {
-    return this.addEditColumn(dataType, field, AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field), required, optionalParams);
+  addEditColumnFeqH(
+    dataType: DataType,
+    field: string,
+    required: boolean,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
+    return this.addEditColumn(
+      dataType,
+      field,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(field),
+      required,
+      optionalParams
+    );
   }
 
-  addEditColumn(dataType: DataType, field: string, headerKey: string, required: boolean,
-                optionalParams?: OptionalParams): ColumnConfig {
-    const cc: ColumnConfig = this.addColumnToFields(this.fields, dataType, field, headerKey, true, true, optionalParams);
-    cc.cec = {validation:  required ? [Validators.required] : null, errors:  required ? [DynamicFieldHelper.RULE_REQUIRED_TOUCHED] : null};
+  addEditColumn(
+    dataType: DataType,
+    field: string,
+    headerKey: string,
+    required: boolean,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
+    const cc: ColumnConfig = this.addColumnToFields(
+      this.fields,
+      dataType,
+      field,
+      headerKey,
+      true,
+      true,
+      optionalParams
+    );
+    cc.cec = {
+      validation: required ? [Validators.required] : null,
+      errors: required ? [DynamicFieldHelper.RULE_REQUIRED_TOUCHED] : null
+    };
     return cc;
   }
-
-
 }

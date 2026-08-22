@@ -1,7 +1,7 @@
-import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
-import {TranslateService} from '@ngx-translate/core';
-import {EnumI} from './enumI';
-import {SelectItem} from '@openng/optimus-ui/api';
+import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
+import { TranslateService } from '@ngx-translate/core';
+import { EnumI } from './enumI';
+import { SelectItem } from '@openng/optimus-ui/api';
 
 /**
  * Comprehensive utility class for creating select/dropdown options from various data sources.
@@ -25,7 +25,6 @@ import {SelectItem} from '@openng/optimus-ui/api';
  * - Conditional option disabling
  */
 export class SelectOptionsHelper {
-
   /**
    * Creates select options from a numeric range with optional exclusions.
    * Generates consecutive integer options within specified bounds, excluding specified values.
@@ -43,15 +42,18 @@ export class SelectOptionsHelper {
    * );
    * // Result: [{key: 2020, value: "2020"}, {key: 2021, value: "2021"}, {key: 2024, value: "2024"}, {key: 2025, value: "2025"}]
    */
-  public static createValueKeyHtmlSelectOptionsForNumberRange(startNum: number, endNum: number,
-    excludeNum: number[]): ValueKeyHtmlSelectOptions[] {
+  public static createValueKeyHtmlSelectOptionsForNumberRange(
+    startNum: number,
+    endNum: number,
+    excludeNum: number[]
+  ): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     for (let i = startNum; i <= endNum; i += 1) {
       if (excludeNum.indexOf(i) < 0) {
         valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(i, '' + i));
       }
     }
-    return valueKeyHtmlSelectOptions
+    return valueKeyHtmlSelectOptions;
   }
 
   /**
@@ -78,10 +80,19 @@ export class SelectOptionsHelper {
    * // Result: [{key: 'Security', value: 'SECURITY'},
    * //          {key: 'TradingCalendarRuleSet', value: 'TRADING_CALENDAR_RULE_SET'}]
    */
-  public static createHtmlOptionsFromStringArray(keysAndValues: string[], deriveNlsKey = false): ValueKeyHtmlSelectOptions[] {
+  public static createHtmlOptionsFromStringArray(
+    keysAndValues: string[],
+    deriveNlsKey = false
+  ): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
-    keysAndValues.forEach(keyAndValue => valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(keyAndValue,
-      deriveNlsKey ? keyAndValue.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase() : keyAndValue)));
+    keysAndValues.forEach((keyAndValue) =>
+      valueKeyHtmlSelectOptions.push(
+        new ValueKeyHtmlSelectOptions(
+          keyAndValue,
+          deriveNlsKey ? keyAndValue.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase() : keyAndValue
+        )
+      )
+    );
     return valueKeyHtmlSelectOptions;
   }
 
@@ -103,10 +114,20 @@ export class SelectOptionsHelper {
    * );
    * // Result: [{key: '', value: ''}, {key: 'BUY', value: 'Buy'}, {key: 'SELL', value: 'Sell'}]
    */
-  public static createHtmlOptionsFromEnumAddEmpty(translateService: TranslateService, e: EnumI, allowedEnums?: any[],
-    deny?: boolean): ValueKeyHtmlSelectOptions[] {
+  public static createHtmlOptionsFromEnumAddEmpty(
+    translateService: TranslateService,
+    e: EnumI,
+    allowedEnums?: any[],
+    deny?: boolean
+  ): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
-    return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, allowedEnums, deny);
+    return this.createHtmlOptionsFromEnumWithEmptyOrNot(
+      transactionHtmlOptions,
+      translateService,
+      e,
+      allowedEnums,
+      deny
+    );
   }
 
   /**
@@ -127,10 +148,20 @@ export class SelectOptionsHelper {
    * );
    * // Result: [{key: 'HIGH', value: 'High'}, {key: 'CRITICAL', value: 'Critical'}]
    */
-  public static createHtmlOptionsFromEnum(translateService: TranslateService, e: EnumI, allowedEnums?: any[],
-    deny?: boolean): ValueKeyHtmlSelectOptions[] {
+  public static createHtmlOptionsFromEnum(
+    translateService: TranslateService,
+    e: EnumI,
+    allowedEnums?: any[],
+    deny?: boolean
+  ): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
-    return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, allowedEnums, deny);
+    return this.createHtmlOptionsFromEnumWithEmptyOrNot(
+      transactionHtmlOptions,
+      translateService,
+      e,
+      allowedEnums,
+      deny
+    );
   }
 
   /**
@@ -150,11 +181,20 @@ export class SelectOptionsHelper {
    * );
    * // Result: All statuses with CANCELLED and DELETED marked as disabled: true
    */
-  public static createHtmlOptionsFromEnumDisabled(translateService: TranslateService, e: EnumI,
-    disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
+  public static createHtmlOptionsFromEnumDisabled(
+    translateService: TranslateService,
+    e: EnumI,
+    disabledEnums?: any[]
+  ): ValueKeyHtmlSelectOptions[] {
     const transactionHtmlOptions: ValueKeyHtmlSelectOptions[] = [];
-    return this.createHtmlOptionsFromEnumWithEmptyOrNot(transactionHtmlOptions, translateService, e, null, false,
-      disabledEnums);
+    return this.createHtmlOptionsFromEnumWithEmptyOrNot(
+      transactionHtmlOptions,
+      translateService,
+      e,
+      null,
+      false,
+      disabledEnums
+    );
   }
 
   /**
@@ -176,11 +216,15 @@ export class SelectOptionsHelper {
    * );
    * // Result: [{key: '', value: ''}, {key: 1, value: 'John Doe'}, {key: 2, value: 'Jane Smith'}]
    */
-  public static createValueKeyHtmlSelectOptionsFromArray(key: string, propertyName: string, values: any[],
-    addEmpty: boolean): ValueKeyHtmlSelectOptions[] {
+  public static createValueKeyHtmlSelectOptionsFromArray(
+    key: string,
+    propertyName: string,
+    values: any[],
+    addEmpty: boolean
+  ): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     addEmpty && valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions('', ''));
-    values.forEach(element => {
+    values.forEach((element) => {
       valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(element[key], element[propertyName]));
     });
     return valueKeyHtmlSelectOptions;
@@ -222,14 +266,19 @@ export class SelectOptionsHelper {
    * );
    * // Result: [{key: '', value: ''}, {key: 'tech', value: 'Technology'}, {key: 'finance', value: 'Finance'}]
    */
-  public static createValueKeyHtmlSelectOptionsFromObject(propertyName: string, values: {
-      [keySN: string | number]: any
+  public static createValueKeyHtmlSelectOptionsFromObject(
+    propertyName: string,
+    values: {
+      [keySN: string | number]: any;
     },
-    addEmpty: boolean, excludeKeys: string[] = []): ValueKeyHtmlSelectOptions[] {
+    addEmpty: boolean,
+    excludeKeys: string[] = []
+  ): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [];
     addEmpty && valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions('', ''));
-    Object.keys(values).filter(value => excludeKeys.indexOf(value) < 0).forEach(k =>
-      valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(k, values[k][propertyName])));
+    Object.keys(values)
+      .filter((value) => excludeKeys.indexOf(value) < 0)
+      .forEach((k) => valueKeyHtmlSelectOptions.push(new ValueKeyHtmlSelectOptions(k, values[k][propertyName])));
     return valueKeyHtmlSelectOptions;
   }
 
@@ -251,15 +300,20 @@ export class SelectOptionsHelper {
    * );
    * // Result: [{key: '', value: ''}, {key: 'ACTIVE', value: 'Active'}, {key: 'INACTIVE', value: 'Inactive'}] (sorted)
    */
-  public static translateExistingValueKeyHtmlSelectOptions(translateService: TranslateService,
+  public static translateExistingValueKeyHtmlSelectOptions(
+    translateService: TranslateService,
     hSelOpt: ValueKeyHtmlSelectOptions[],
-    addEmpty = true): ValueKeyHtmlSelectOptions[] {
-    const newValueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = addEmpty ? [new ValueKeyHtmlSelectOptions('', '')] :
-      [];
-    hSelOpt.forEach(h => newValueKeyHtmlSelectOptions.push(
-      this.translateValueKeyHtmlSelectOptions(translateService, h.key, h.value)));
-    return newValueKeyHtmlSelectOptions.sort((a, b) => a.value.toLowerCase() < b.value.toLowerCase() ? -1 :
-      a.value.toLowerCase() > b.value.toLowerCase() ? 1 : 0);
+    addEmpty = true
+  ): ValueKeyHtmlSelectOptions[] {
+    const newValueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = addEmpty
+      ? [new ValueKeyHtmlSelectOptions('', '')]
+      : [];
+    hSelOpt.forEach((h) =>
+      newValueKeyHtmlSelectOptions.push(this.translateValueKeyHtmlSelectOptions(translateService, h.key, h.value))
+    );
+    return newValueKeyHtmlSelectOptions.sort((a, b) =>
+      a.value.toLowerCase() < b.value.toLowerCase() ? -1 : a.value.toLowerCase() > b.value.toLowerCase() ? 1 : 0
+    );
   }
 
   /**
@@ -279,11 +333,14 @@ export class SelectOptionsHelper {
    * );
    * // Result: [{key: '', value: ''}, {key: 'EN', value: 'English'}, {key: 'DE', value: 'German'}, {key: 'FR', value: 'French'}]
    */
-  public static translateArrayKeyEqualValue<T extends number | string>(translateService: TranslateService,
-    arr: T[]): ValueKeyHtmlSelectOptions[] {
+  public static translateArrayKeyEqualValue<T extends number | string>(
+    translateService: TranslateService,
+    arr: T[]
+  ): ValueKeyHtmlSelectOptions[] {
     const valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[] = [new ValueKeyHtmlSelectOptions('', '')];
-    arr.forEach(value =>
-      valueKeyHtmlSelectOptions.push(this.translateValueKeyHtmlSelectOptions(translateService, value, '' + value)));
+    arr.forEach((value) =>
+      valueKeyHtmlSelectOptions.push(this.translateValueKeyHtmlSelectOptions(translateService, value, '' + value))
+    );
     return valueKeyHtmlSelectOptions;
   }
 
@@ -305,8 +362,11 @@ export class SelectOptionsHelper {
    * );
    * // Modifies options array, setting disabled: true for specified enum values
    */
-  public static disableEnableExistingHtmlOptionsFromEnum(valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[], e: EnumI, disabled: any[]):
-    ValueKeyHtmlSelectOptions[] {
+  public static disableEnableExistingHtmlOptionsFromEnum(
+    valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[],
+    e: EnumI,
+    disabled: any[]
+  ): ValueKeyHtmlSelectOptions[] {
     for (const vkhso of valueKeyHtmlSelectOptions) {
       vkhso.disabled = disabled.indexOf(e[vkhso.key]) >= 0;
     }
@@ -333,7 +393,7 @@ export class SelectOptionsHelper {
     for (const n in e) {
       if (typeof e[n] === 'number') {
         const stringType: string = e[e[n]];
-        translateService.get(stringType).subscribe(result => items.push({value: stringType, label: result}));
+        translateService.get(stringType).subscribe((result) => items.push({ value: stringType, label: result }));
       }
     }
   }
@@ -351,9 +411,14 @@ export class SelectOptionsHelper {
    * @param disabledEnums Optional array of enum values to mark as disabled
    * @returns The populated and sorted array of ValueKeyHtmlSelectOptions
    */
-  private static createHtmlOptionsFromEnumWithEmptyOrNot(valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[],
-    translateService: TranslateService, e: EnumI, allowedEnums?: any[],
-    deny?: boolean, disabledEnums?: any[]): ValueKeyHtmlSelectOptions[] {
+  private static createHtmlOptionsFromEnumWithEmptyOrNot(
+    valueKeyHtmlSelectOptions: ValueKeyHtmlSelectOptions[],
+    translateService: TranslateService,
+    e: EnumI,
+    allowedEnums?: any[],
+    deny?: boolean,
+    disabledEnums?: any[]
+  ): ValueKeyHtmlSelectOptions[] {
     let typeAllowedEnums = null;
     if (allowedEnums && allowedEnums.length > 0) {
       typeAllowedEnums = typeof allowedEnums[0];
@@ -362,7 +427,11 @@ export class SelectOptionsHelper {
       if (typeof e[n] === 'number') {
         const stringType: string = e[e[n]];
         if (this.checkAllowEnum(typeAllowedEnums, e, stringType, allowedEnums, deny)) {
-          const valueKeyHtmlSelectOption = this.translateValueKeyHtmlSelectOptions(translateService, stringType, stringType);
+          const valueKeyHtmlSelectOption = this.translateValueKeyHtmlSelectOptions(
+            translateService,
+            stringType,
+            stringType
+          );
           if (disabledEnums && disabledEnums.indexOf(e[stringType]) >= 0) {
             valueKeyHtmlSelectOption.disabled = true;
           }
@@ -370,8 +439,7 @@ export class SelectOptionsHelper {
         }
       }
     }
-    valueKeyHtmlSelectOptions.sort((a, b) =>
-      (a.value > b.value) ? 1 : ((b.value > a.value) ? -1 : 0));
+    valueKeyHtmlSelectOptions.sort((a, b) => (a.value > b.value ? 1 : b.value > a.value ? -1 : 0));
     return valueKeyHtmlSelectOptions;
   }
 
@@ -386,16 +454,23 @@ export class SelectOptionsHelper {
    * @param deny If true, allowedEnums are excluded; if false, only allowedEnums are included
    * @returns True if the enum value should be included in the options
    */
-  private static checkAllowEnum(typeAllowedEnums: string, e: EnumI, stringType: string, allowedEnums?: any[], deny?: boolean,): boolean {
+  private static checkAllowEnum(
+    typeAllowedEnums: string,
+    e: EnumI,
+    stringType: string,
+    allowedEnums?: any[],
+    deny?: boolean
+  ): boolean {
     if (!typeAllowedEnums || typeAllowedEnums === 'number') {
-      return !allowedEnums || (allowedEnums.indexOf(e[stringType]) >= 0 && !deny
-        || allowedEnums.indexOf(e[stringType]) < 0 && deny);
+      return (
+        !allowedEnums ||
+        (allowedEnums.indexOf(e[stringType]) >= 0 && !deny) ||
+        (allowedEnums.indexOf(e[stringType]) < 0 && deny)
+      );
     } else {
-      return allowedEnums.indexOf(stringType) >= 0 && !deny
-        || allowedEnums.indexOf(stringType) < 0 && deny;
+      return (allowedEnums.indexOf(stringType) >= 0 && !deny) || (allowedEnums.indexOf(stringType) < 0 && deny);
     }
   }
-
 
   /**
    * Creates select options for months 1-12 with localized full month names.
@@ -405,7 +480,7 @@ export class SelectOptionsHelper {
    * @returns Array of ValueKeyHtmlSelectOptions with key 1-12 and localized month names
    */
   public static createMonthOptions(language: string): ValueKeyHtmlSelectOptions[] {
-    const formatter = new Intl.DateTimeFormat(language, {month: 'long'});
+    const formatter = new Intl.DateTimeFormat(language, { month: 'long' });
     const options: ValueKeyHtmlSelectOptions[] = [];
     for (let m = 0; m < 12; m++) {
       const name = formatter.format(new Date(2000, m, 1));
@@ -427,10 +502,14 @@ export class SelectOptionsHelper {
    * @param value Display value (translation key or literal text)
    * @returns ValueKeyHtmlSelectOptions with async translation setup
    */
-  private static translateValueKeyHtmlSelectOptions(translateService: TranslateService, key: string | number,
-    value: string): ValueKeyHtmlSelectOptions {
+  private static translateValueKeyHtmlSelectOptions(
+    translateService: TranslateService,
+    key: string | number,
+    value: string
+  ): ValueKeyHtmlSelectOptions {
     const valueKeyHtmlSelectOptions = new ValueKeyHtmlSelectOptions(key, value);
-    value !== '' && translateService.get(value).subscribe(translated => valueKeyHtmlSelectOptions.value = translated);
+    value !== '' &&
+      translateService.get(value).subscribe((translated) => (valueKeyHtmlSelectOptions.value = translated));
     return valueKeyHtmlSelectOptions;
   }
 }

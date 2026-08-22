@@ -1,21 +1,25 @@
 import moment from 'moment';
-import {combineLatest} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {DataType} from '../dynamic-form/models/data.type';
-import {Helper} from './helper';
-import {ColumnConfig} from '../datashowbase/column.config';
-import {ParamMap} from '@angular/router';
-import {FormConfig} from '../dynamic-form/models/form.config';
-import {HttpHeaders, HttpParams} from '@angular/common/http';
-import {ConfirmationService} from '@openng/optimus-ui/api';
-import {FileSystemFileEntry, NgxFileDropEntry} from 'ngx-file-drop';
-import {InfoLevelType} from '../message/info.leve.type';
-import {MessageToastService} from '../message/message.toast.service';
-import {FieldConfig} from '../dynamic-form/models/field.config';
-import {BaseSettings} from '../base.settings';
-import {GlobalparameterService} from '../services/globalparameter.service';
+import { combineLatest } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { DataType } from '../dynamic-form/models/data.type';
+import { Helper } from './helper';
+import { ColumnConfig } from '../datashowbase/column.config';
+import { ParamMap } from '@angular/router';
+import { FormConfig } from '../dynamic-form/models/form.config';
+import { HttpHeaders, HttpParams } from '@angular/common/http';
+import { ConfirmationService } from '@openng/optimus-ui/api';
+import { FileSystemFileEntry, NgxFileDropEntry } from 'ngx-file-drop';
+import { InfoLevelType } from '../message/info.leve.type';
+import { MessageToastService } from '../message/message.toast.service';
+import { FieldConfig } from '../dynamic-form/models/field.config';
+import { BaseSettings } from '../base.settings';
+import { GlobalparameterService } from '../services/globalparameter.service';
 
-export const enum Comparison { GT, LT, EQ }
+export const enum Comparison {
+  GT,
+  LT,
+  EQ
+}
 
 type CompareFunc<T, S> = (a: T, b: S) => Comparison;
 
@@ -35,7 +39,6 @@ type CompareFunc<T, S> = (a: T, b: S) => Comparison;
  * - Form configuration and field state management
  */
 export class AppHelper {
-
   static readonly fieldToLabelRegex = new RegExp('^(rand|year|group)|(DiffMC|MC)$', 'g');
 
   /**
@@ -69,7 +72,11 @@ export class AppHelper {
    * @param httpHeaders HTTP headers to include in request
    * @returns HTTP options object with headers and query parameters
    */
-  static getOptionsWithIncludeClosedPositionAndUntilDate(includeClosedPosition: boolean, untilDate: Date, httpHeaders: HttpHeaders) {
+  static getOptionsWithIncludeClosedPositionAndUntilDate(
+    includeClosedPosition: boolean,
+    untilDate: Date,
+    httpHeaders: HttpHeaders
+  ) {
     const headerParam = AppHelper.getOptionsWithUntilDate(untilDate, httpHeaders);
     headerParam.params = headerParam.params.append('includeClosedPosition', includeClosedPosition.toString());
     return headerParam;
@@ -84,9 +91,11 @@ export class AppHelper {
    * @returns HTTP options object with headers and date parameter
    */
   static getOptionsWithUntilDate(untilDate: Date, httpHeaders: HttpHeaders) {
-    const httpParams = new HttpParams()
-      .set('untilDate', moment(untilDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE));
-    return {headers: httpHeaders, params: httpParams};
+    const httpParams = new HttpParams().set(
+      'untilDate',
+      moment(untilDate).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
+    );
+    return { headers: httpHeaders, params: httpParams };
   }
 
   /**
@@ -97,9 +106,9 @@ export class AppHelper {
    * @param data Source data object to transform
    * @returns New instance of specified type with data properties
    */
-  static transformDataToRealClassDataList<T>(type: new() => T, data: T): T {
+  static transformDataToRealClassDataList<T>(type: new () => T, data: T): T {
     const instance = new type();
-    return (Object.assign(instance, data));
+    return Object.assign(instance, data);
   }
 
   /**
@@ -111,7 +120,7 @@ export class AppHelper {
    */
   public static createParamObjectFromParamMap(paramMap: ParamMap): any {
     const paramObject = {};
-    paramMap.keys.forEach(key => paramObject[key] = JSON.parse(paramMap.get(key)));
+    paramMap.keys.forEach((key) => (paramObject[key] = JSON.parse(paramMap.get(key))));
     return paramObject;
   }
 
@@ -131,7 +140,7 @@ export class AppHelper {
   public static toUpperCaseWithUnderscore(upperLower: string): string {
     let startPoint = upperLower.indexOf('.');
     startPoint = startPoint < 0 ? 0 : startPoint + 1;
-    let str = upperLower.substring(startPoint).replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    let str = upperLower.substring(startPoint).replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2');
     return str.replace(/([a-z])([A-Z])/g, '$1_$2').toUpperCase();
   }
 
@@ -229,9 +238,7 @@ export class AppHelper {
       return str;
     } else {
       const subString = str.slice(0, length - 1);
-      return (useWordBoundary
-        ? subString.slice(0, subString.lastIndexOf(' '))
-        : subString) + '...';
+      return (useWordBoundary ? subString.slice(0, subString.lastIndexOf(' ')) : subString) + '...';
     }
   }
 
@@ -250,11 +257,17 @@ export class AppHelper {
    *                              column's currencyPrecisionField.
    * @returns Formatted value string or undefined if no data
    */
-  public static getValueByPathWithField(gps: GlobalparameterService, translateService: TranslateService,
-    dataobject: any, field: ColumnConfig, valueField: string, currencyFieldOverride?: string) {
+  public static getValueByPathWithField(
+    gps: GlobalparameterService,
+    translateService: TranslateService,
+    dataobject: any,
+    field: ColumnConfig,
+    valueField: string,
+    currencyFieldOverride?: string
+  ) {
     const rowObject = dataobject;
     dataobject = Helper.getValueByPath(dataobject, valueField);
-    if (dataobject || field.dataType === DataType.NumericShowZero && dataobject === 0) {
+    if (dataobject || (field.dataType === DataType.NumericShowZero && dataobject === 0)) {
       switch (field.dataType) {
         case DataType.NumericInteger:
           return AppHelper.numberIntegerFormat(gps, dataobject);
@@ -329,16 +342,26 @@ export class AppHelper {
    * @param minFractionDigits Minimum number of decimal places
    * @returns Formatted number string
    */
-  public static numberFormat(gps: GlobalparameterService, value: number, maxFractionDigits: number,
-    minFractionDigits: number) {
+  public static numberFormat(
+    gps: GlobalparameterService,
+    value: number,
+    maxFractionDigits: number,
+    minFractionDigits: number
+  ) {
     if (maxFractionDigits != null) {
       if (maxFractionDigits > 0) {
         const n = Math.log(Math.abs(value)) / Math.LN10;
         if (n < 1) {
           // negative number means fractions or less than 0
-          return value.toFixed(Math.min(maxFractionDigits, Math.max(minFractionDigits || 2,
-            Math.max(2, Math.ceil(Math.abs(n)) + ((n < 0) ? 4 : 2)))))
-            .split('.').join(gps.getDecimalSymbol());
+          return value
+            .toFixed(
+              Math.min(
+                maxFractionDigits,
+                Math.max(minFractionDigits || 2, Math.max(2, Math.ceil(Math.abs(n)) + (n < 0 ? 4 : 2)))
+              )
+            )
+            .split('.')
+            .join(gps.getDecimalSymbol());
         }
       } else {
         return value.toFixed(0);
@@ -400,12 +423,27 @@ export class AppHelper {
    * @param acceptFN Function to execute when user confirms
    * @param headerKey Translation key for dialog header
    */
-  public static confirmationDialog(translateService: TranslateService, confirmationService: ConfirmationService, msgKey: string,
-    acceptFN: () => void, headerKey: string = 'MSG_GENERAL_HEADER') {
+  public static confirmationDialog(
+    translateService: TranslateService,
+    confirmationService: ConfirmationService,
+    msgKey: string,
+    acceptFN: () => void,
+    headerKey: string = 'MSG_GENERAL_HEADER'
+  ) {
     if (msgKey.indexOf('|') >= 0) {
       const msgParam: string[] = msgKey.split('|');
-      translateService.get(msgParam[1]).subscribe(paramTrans => AppHelper.confirmationDialogParam(translateService,
-        confirmationService, msgParam[0], paramTrans, acceptFN, headerKey));
+      translateService
+        .get(msgParam[1])
+        .subscribe((paramTrans) =>
+          AppHelper.confirmationDialogParam(
+            translateService,
+            confirmationService,
+            msgParam[0],
+            paramTrans,
+            acceptFN,
+            headerKey
+          )
+        );
     } else {
       AppHelper.confirmationDialogParam(translateService, confirmationService, msgKey, null, acceptFN, headerKey);
     }
@@ -421,14 +459,21 @@ export class AppHelper {
    * @param nonModal Whether form is non-modal
    * @returns FormConfig object with locale-specific settings
    */
-  public static getDefaultFormConfig(gps: GlobalparameterService, labelColums: number,
-    helpLinkFN: () => void = null, nonModal = false): FormConfig {
+  public static getDefaultFormConfig(
+    gps: GlobalparameterService,
+    labelColums: number,
+    helpLinkFN: () => void = null,
+    nonModal = false
+  ): FormConfig {
     return {
       locale: gps.getLocale(),
-      labelColumns: labelColums, language: gps.getUserLang(),
+      labelColumns: labelColums,
+      language: gps.getUserLang(),
       thousandsSeparatorSymbol: gps.getThousandsSeparatorSymbol(),
       dateFormat: gps.getDateFormatForCalendar().toLowerCase(),
-      decimalSymbol: gps.getDecimalSymbol(), helpLinkFN, nonModal
+      decimalSymbol: gps.getDecimalSymbol(),
+      helpLinkFN,
+      nonModal
     };
   }
 
@@ -451,13 +496,19 @@ export class AppHelper {
    * @param allowBooleanNullFields Array of field names that can be null
    * @returns HttpParams object with query parameters
    */
-  public static getHttpParamsOfObjectAllowBooleanNullFields(dataobject: any, allowBooleanNullFields: string[]): HttpParams {
+  public static getHttpParamsOfObjectAllowBooleanNullFields(
+    dataobject: any,
+    allowBooleanNullFields: string[]
+  ): HttpParams {
     let params = new HttpParams();
     for (const key in dataobject) {
-      if (dataobject.hasOwnProperty(key) && (dataobject[key] != null
-        && dataobject[key] !== '' || allowBooleanNullFields.length > 0 && allowBooleanNullFields.indexOf(key) >= 0)) {
+      if (
+        dataobject.hasOwnProperty(key) &&
+        ((dataobject[key] != null && dataobject[key] !== '') ||
+          (allowBooleanNullFields.length > 0 && allowBooleanNullFields.indexOf(key) >= 0))
+      ) {
         const val = dataobject[key];
-        params = (dataobject[key] == null) ? params.append(key, '') : params.append(key, '' + val);
+        params = dataobject[key] == null ? params.append(key, '') : params.append(key, '' + val);
       }
     }
     return params;
@@ -473,12 +524,19 @@ export class AppHelper {
    * @param allowedFileExtension Single file extension to allow (without dot)
    * @param uploadFunc Function to call with FormData containing valid files
    */
-  public static processDroppedFiles(files: NgxFileDropEntry[], messageToastService: MessageToastService,
-    allowedFileExtension: string, uploadFunc: (formData: FormData) => void): void {
+  public static processDroppedFiles(
+    files: NgxFileDropEntry[],
+    messageToastService: MessageToastService,
+    allowedFileExtension: string,
+    uploadFunc: (formData: FormData) => void
+  ): void {
     let totalFilesSize = 0;
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
-      if (files[i].fileEntry.isFile && files[i].fileEntry.name.toLocaleLowerCase().endsWith('.' + allowedFileExtension)) {
+      if (
+        files[i].fileEntry.isFile &&
+        files[i].fileEntry.name.toLocaleLowerCase().endsWith('.' + allowedFileExtension)
+      ) {
         // Is it a PDF-file
         const fileEntry = files[i].fileEntry as FileSystemFileEntry;
         fileEntry.file((file: File) => {
@@ -506,10 +564,15 @@ export class AppHelper {
    * @param acceptFN Function to execute when user confirms
    * @param headerKey Translation key for dialog header
    */
-  private static confirmationDialogParam(translateService: TranslateService, confirmationService: ConfirmationService,
-    msgKey: string, param: string, acceptFN: () => void, headerKey: string) {
-    const observableMsg = (param) ? translateService.get(msgKey, {i18nRecord: param})
-      : translateService.get(msgKey);
+  private static confirmationDialogParam(
+    translateService: TranslateService,
+    confirmationService: ConfirmationService,
+    msgKey: string,
+    param: string,
+    acceptFN: () => void,
+    headerKey: string
+  ) {
+    const observableMsg = param ? translateService.get(msgKey, { i18nRecord: param }) : translateService.get(msgKey);
     const observableHeaderKey = translateService.get(headerKey);
     combineLatest([observableMsg, observableHeaderKey]).subscribe((translated: string[]) => {
       confirmationService.confirm({
@@ -537,8 +600,11 @@ export class TranslateParam {
    * @param paramValue Value of the parameter
    * @param translate Whether this parameter value should be translated
    */
-  constructor(public paramName, public paramValue: string, public translate: boolean) {
-  }
+  constructor(
+    public paramName,
+    public paramValue: string,
+    public translate: boolean
+  ) {}
 
   /**
    * Creates interpolation object for use with Angular translate service.

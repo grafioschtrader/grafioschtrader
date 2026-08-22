@@ -1,27 +1,27 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {SimpleEntityEditBase} from '../../edit/simple.entity.edit.base';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
 import {
   getResponseCodesForRequest,
   GTNetMessageAnswer,
   GTNetMessageAnswerCallParam,
   REQUEST_CODES_FOR_AUTO_RESPONSE
 } from '../model/gtnet.message.answer';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {MessageToastService} from '../../message/message.toast.service';
-import {HelpIds} from '../../help/help.ids';
-import {GTNetMessageAnswerService} from '../service/gtnet.message.answer.service';
-import {AppHelper} from '../../helper/app.helper';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {Subscription} from 'rxjs';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {GTNetMessageCodeType} from '../model/gtnet.message';
-import {MenuItem} from '@openng/optimus-ui/api';
-import {BaseSettings} from '../../base.settings';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { MessageToastService } from '../../message/message.toast.service';
+import { HelpIds } from '../../help/help.ids';
+import { GTNetMessageAnswerService } from '../service/gtnet.message.answer.service';
+import { AppHelper } from '../../helper/app.helper';
+import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
+import { Subscription } from 'rxjs';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { SelectOptionsHelper } from '../../helper/select.options.helper';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { GTNetMessageCodeType } from '../model/gtnet.message';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { BaseSettings } from '../../base.settings';
 
 /**
  * Type filter for context-aware variable filtering.
@@ -43,10 +43,20 @@ interface CursorContext {
  */
 const STRING_VARIABLES = ['MyTimezone', 'RemoteTimezone', 'RemoteDomainRemoteName', 'Message'];
 const NUMBER_VARIABLES = [
-  'hour', 'dayOfWeek', 'dailyCount', 'dailyLimit',
-  'MyDailyRequestLimit', 'MyMaxLimitLastPrice', 'MyMaxLimitHistorical',
-  'RemoteDailyRequestLimit', 'RemoteMaxLimitLastPrice', 'RemoteMaxLimitHistorical',
-  'TimezoneOffsetHours', 'TotalConnections', 'ConnectionsLastPrice', 'ConnectionsHistorical'
+  'hour',
+  'dayOfWeek',
+  'dailyCount',
+  'dailyLimit',
+  'MyDailyRequestLimit',
+  'MyMaxLimitLastPrice',
+  'MyMaxLimitHistorical',
+  'RemoteDailyRequestLimit',
+  'RemoteMaxLimitLastPrice',
+  'RemoteMaxLimitHistorical',
+  'TimezoneOffsetHours',
+  'TotalConnections',
+  'ConnectionsLastPrice',
+  'ConnectionsHistorical'
 ];
 
 /**
@@ -54,17 +64,17 @@ const NUMBER_VARIABLES = [
  * Maps function names to their parameter types by position.
  */
 const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
-  'STR_STARTS_WITH': ['STRING', 'STRING'],
-  'STR_ENDS_WITH': ['STRING', 'STRING'],
-  'STR_CONTAINS': ['STRING', 'STRING'],
-  'STR_MATCHES': ['STRING', 'STRING'],
-  'STR_LENGTH': ['STRING'],
-  'STR_LOWER': ['STRING'],
-  'STR_UPPER': ['STRING'],
-  'STR_TRIM': ['STRING'],
-  'STR_LEFT': ['STRING', 'NUMBER'],
-  'STR_RIGHT': ['STRING', 'NUMBER'],
-  'STR_SUBSTRING': ['STRING', 'NUMBER', 'NUMBER']
+  STR_STARTS_WITH: ['STRING', 'STRING'],
+  STR_ENDS_WITH: ['STRING', 'STRING'],
+  STR_CONTAINS: ['STRING', 'STRING'],
+  STR_MATCHES: ['STRING', 'STRING'],
+  STR_LENGTH: ['STRING'],
+  STR_LOWER: ['STRING'],
+  STR_UPPER: ['STRING'],
+  STR_TRIM: ['STRING'],
+  STR_LEFT: ['STRING', 'NUMBER'],
+  STR_RIGHT: ['STRING', 'NUMBER'],
+  STR_SUBSTRING: ['STRING', 'NUMBER', 'NUMBER']
 };
 
 /**
@@ -74,19 +84,22 @@ const FUNCTION_PARAM_TYPES: { [func: string]: EvalExType[] } = {
 @Component({
   selector: 'gtnet-message-answer-edit',
   standalone: true,
-  imports: [
-    DialogModule,
-    DynamicFormComponent,
-    TranslateModule
-  ],
+  imports: [DialogModule, DynamicFormComponent, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <p-dialog header="{{'GT_NET_MESSAGE_ANSWER' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '600px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'GT_NET_MESSAGE_ANSWER' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '600px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `
@@ -98,12 +111,20 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
   private currentTypeFilter: EvalExType = 'ANY';
   private textareaEventsBound = false;
 
-  constructor(translateService: TranslateService,
+  constructor(
+    translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
-    gtNetMessageAnswerService: GTNetMessageAnswerService) {
-    super(HelpIds.HELP_GT_NET_AUTOANSWER, AppHelper.toUpperCaseWithUnderscore(BaseSettings.GT_NET_MESSAGE_ANSWER), translateService, gps,
-      messageToastService, gtNetMessageAnswerService);
+    gtNetMessageAnswerService: GTNetMessageAnswerService
+  ) {
+    super(
+      HelpIds.HELP_GT_NET_AUTOANSWER,
+      AppHelper.toUpperCaseWithUnderscore(BaseSettings.GT_NET_MESSAGE_ANSWER),
+      translateService,
+      gps,
+      messageToastService,
+      gtNetMessageAnswerService
+    );
   }
 
   ngOnInit(): void {
@@ -111,14 +132,17 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('requestMsgCode', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('responseMsgCode', true),
-      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'priority', true, 1, 99,
-        {defaultValue: 1}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('responseMsgConditional', 256, false,
-        {inputWidth: 500, contextMenuItems: this.buildContextMenuItems()}),
-      DynamicFieldHelper.createFieldTextareaInputStringHeqF('responseMsgMessage', 1000, false,
-        {inputWidth: 500}),
-      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'waitDaysApply', true, 0, 365,
-        {defaultValue: 0}),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'priority', true, 1, 99, {
+        defaultValue: 1
+      }),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('responseMsgConditional', 256, false, {
+        inputWidth: 500,
+        contextMenuItems: this.buildContextMenuItems()
+      }),
+      DynamicFieldHelper.createFieldTextareaInputStringHeqF('responseMsgMessage', 1000, false, { inputWidth: 500 }),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'waitDaysApply', true, 0, 365, {
+        defaultValue: 0
+      }),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -127,8 +151,11 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
   protected override initialize(): void {
     // Setup request code options (only RR codes that support auto-response)
     this.configObject.requestMsgCode.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, GTNetMessageCodeType,
-      REQUEST_CODES_FOR_AUTO_RESPONSE.map(code => GTNetMessageCodeType[code]), false);
+      this.translateService,
+      GTNetMessageCodeType,
+      REQUEST_CODES_FOR_AUTO_RESPONSE.map((code) => GTNetMessageCodeType[code]),
+      false
+    );
 
     // Setup response code options (empty initially, updated when request code changes)
     this.configObject.responseMsgCode.valueKeyHtmlOptions = [];
@@ -144,9 +171,8 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     const entity = this.callParam?.gtNetMessageAnswer ?? new GTNetMessageAnswer();
     if (entity.requestMsgCode) {
       // Convert numeric code to string name for form
-      const requestCodeName = typeof entity.requestMsgCode === 'number'
-        ? GTNetMessageCodeType[entity.requestMsgCode]
-        : entity.requestMsgCode;
+      const requestCodeName =
+        typeof entity.requestMsgCode === 'number' ? GTNetMessageCodeType[entity.requestMsgCode] : entity.requestMsgCode;
       this.updateResponseCodeOptions(requestCodeName as string);
     }
     this.form.transferBusinessObjectToForm(entity);
@@ -192,8 +218,11 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     const responseCodes = getResponseCodesForRequest(requestCode);
 
     this.configObject.responseMsgCode.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, GTNetMessageCodeType,
-      responseCodes.map(code => GTNetMessageCodeType[code]), false);
+      this.translateService,
+      GTNetMessageCodeType,
+      responseCodes.map((code) => GTNetMessageCodeType[code]),
+      false
+    );
   }
 
   /**
@@ -231,7 +260,10 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
       createVarItem('MyMaxLimitHistorical', 'MY_MAX_LIMIT_HISTORICAL_DESC', 'NUMBER')
     ]);
     if (myServerItems.length > 0) {
-      menuItems.push({label: this.translateService.instant('EVALEX_MY_SERVER'), items: myServerItems});
+      menuItems.push({
+        label: this.translateService.instant('EVALEX_MY_SERVER'),
+        items: myServerItems
+      });
     }
 
     // Remote Server variables
@@ -243,15 +275,19 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
       createVarItem('RemoteMaxLimitHistorical', 'REMOTE_MAX_LIMIT_HISTORICAL_DESC', 'NUMBER')
     ]);
     if (remoteServerItems.length > 0) {
-      menuItems.push({label: this.translateService.instant('EVALEX_REMOTE_SERVER'), items: remoteServerItems});
+      menuItems.push({
+        label: this.translateService.instant('EVALEX_REMOTE_SERVER'),
+        items: remoteServerItems
+      });
     }
 
     // Message variables
-    const messageItems = filterItems([
-      createVarItem('Message', 'MESSAGE_DESC', 'STRING')
-    ]);
+    const messageItems = filterItems([createVarItem('Message', 'MESSAGE_DESC', 'STRING')]);
     if (messageItems.length > 0) {
-      menuItems.push({label: this.translateService.instant('EVALEX_MESSAGE'), items: messageItems});
+      menuItems.push({
+        label: this.translateService.instant('EVALEX_MESSAGE'),
+        items: messageItems
+      });
     }
 
     // Connections variables
@@ -261,7 +297,10 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
       createVarItem('ConnectionsHistorical', 'CONNECTIONS_HISTORICAL_DESC', 'NUMBER')
     ]);
     if (connectionItems.length > 0) {
-      menuItems.push({label: this.translateService.instant('EVALEX_CONNECTIONS'), items: connectionItems});
+      menuItems.push({
+        label: this.translateService.instant('EVALEX_CONNECTIONS'),
+        items: connectionItems
+      });
     }
 
     // Calculated variables
@@ -273,7 +312,10 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
       createVarItem('dailyLimit', 'DAILY_LIMIT_DESC', 'NUMBER')
     ]);
     if (calculatedItems.length > 0) {
-      menuItems.push({label: this.translateService.instant('EVALEX_CALCULATED'), items: calculatedItems});
+      menuItems.push({
+        label: this.translateService.instant('EVALEX_CALCULATED'),
+        items: calculatedItems
+      });
     }
 
     // String Functions (always shown, type filter doesn't apply to functions)
@@ -282,47 +324,58 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
         label: this.translateService.instant('EVALEX_STRING_FUNCTIONS'),
         items: [
           {
-            label: 'STR_STARTS_WITH(?, ?)', title: this.translateService.instant('STR_STARTS_WITH_DESC'),
+            label: 'STR_STARTS_WITH(?, ?)',
+            title: this.translateService.instant('STR_STARTS_WITH_DESC'),
             command: () => this.insertFunction('STR_STARTS_WITH(?, ?)')
           },
           {
-            label: 'STR_ENDS_WITH(?, ?)', title: this.translateService.instant('STR_ENDS_WITH_DESC'),
+            label: 'STR_ENDS_WITH(?, ?)',
+            title: this.translateService.instant('STR_ENDS_WITH_DESC'),
             command: () => this.insertFunction('STR_ENDS_WITH(?, ?)')
           },
           {
-            label: 'STR_CONTAINS(?, ?)', title: this.translateService.instant('STR_CONTAINS_DESC'),
+            label: 'STR_CONTAINS(?, ?)',
+            title: this.translateService.instant('STR_CONTAINS_DESC'),
             command: () => this.insertFunction('STR_CONTAINS(?, ?)')
           },
           {
-            label: 'STR_MATCHES(?, ?)', title: this.translateService.instant('STR_MATCHES_DESC'),
+            label: 'STR_MATCHES(?, ?)',
+            title: this.translateService.instant('STR_MATCHES_DESC'),
             command: () => this.insertFunction('STR_MATCHES(?, ?)')
           },
           {
-            label: 'STR_LENGTH(?)', title: this.translateService.instant('STR_LENGTH_DESC'),
+            label: 'STR_LENGTH(?)',
+            title: this.translateService.instant('STR_LENGTH_DESC'),
             command: () => this.insertFunction('STR_LENGTH(?)')
           },
           {
-            label: 'STR_LOWER(?)', title: this.translateService.instant('STR_LOWER_DESC'),
+            label: 'STR_LOWER(?)',
+            title: this.translateService.instant('STR_LOWER_DESC'),
             command: () => this.insertFunction('STR_LOWER(?)')
           },
           {
-            label: 'STR_UPPER(?)', title: this.translateService.instant('STR_UPPER_DESC'),
+            label: 'STR_UPPER(?)',
+            title: this.translateService.instant('STR_UPPER_DESC'),
             command: () => this.insertFunction('STR_UPPER(?)')
           },
           {
-            label: 'STR_TRIM(?)', title: this.translateService.instant('STR_TRIM_DESC'),
+            label: 'STR_TRIM(?)',
+            title: this.translateService.instant('STR_TRIM_DESC'),
             command: () => this.insertFunction('STR_TRIM(?)')
           },
           {
-            label: 'STR_LEFT(?, ?)', title: this.translateService.instant('STR_LEFT_DESC'),
+            label: 'STR_LEFT(?, ?)',
+            title: this.translateService.instant('STR_LEFT_DESC'),
             command: () => this.insertFunction('STR_LEFT(?, ?)')
           },
           {
-            label: 'STR_RIGHT(?, ?)', title: this.translateService.instant('STR_RIGHT_DESC'),
+            label: 'STR_RIGHT(?, ?)',
+            title: this.translateService.instant('STR_RIGHT_DESC'),
             command: () => this.insertFunction('STR_RIGHT(?, ?)')
           },
           {
-            label: 'STR_SUBSTRING(?, ?, ?)', title: this.translateService.instant('STR_SUBSTRING_DESC'),
+            label: 'STR_SUBSTRING(?, ?, ?)',
+            title: this.translateService.instant('STR_SUBSTRING_DESC'),
             command: () => this.insertFunction('STR_SUBSTRING(?, ?, ?)')
           }
         ]
@@ -405,7 +458,12 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     }
 
     if (funcStart === -1) {
-      return {insideFunction: false, functionName: null, parameterIndex: 0, expectedType: 'ANY'};
+      return {
+        insideFunction: false,
+        functionName: null,
+        parameterIndex: 0,
+        expectedType: 'ANY'
+      };
     }
 
     // Extract function name (word before opening paren)
@@ -415,7 +473,12 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     // Determine expected type based on function and parameter index
     const expectedType = this.getExpectedType(functionName, commaCount);
 
-    return {insideFunction: true, functionName, parameterIndex: commaCount, expectedType};
+    return {
+      insideFunction: true,
+      functionName,
+      parameterIndex: commaCount,
+      expectedType
+    };
   }
 
   /**

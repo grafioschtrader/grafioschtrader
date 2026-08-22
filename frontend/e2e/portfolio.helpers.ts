@@ -1,4 +1,4 @@
-import {expect, Locator, Page} from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -11,8 +11,10 @@ import * as path from 'path';
  * 'alledit' a German one (de-CH) — therefore every text selector here matches both languages (same
  * convention as manage-client.helpers.ts / 080-correlation-matrix.spec.ts).
  */
-const FIXTURE_PATH = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/portfolios.json');
+const FIXTURE_PATH = path.resolve(
+  __dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/portfolios.json'
+);
 
 export interface CashAccountData {
   name: string;
@@ -152,7 +154,7 @@ export function loadPortfolios(): PortfolioFixture[] {
     return [];
   }
   const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf-8')) as PortfolioFixtureFile;
-  return fixture.portfolios.filter(p => p.e2e === 'e');
+  return fixture.portfolios.filter((p) => p.e2e === 'e');
 }
 
 /**
@@ -173,7 +175,7 @@ export const RX = {
   deleteCashAccount: /(Delete\s+Cash\s*account|Löschen\s+Bankkonto)/i,
   /** Header of the delete question — AppHelper.confirmationDialog translates MSG_GENERAL_HEADER. */
   confirmHeader: /^(Confirmation|Bestätigung)$/,
-  confirmYes: /^(Yes|Ja)$/,
+  confirmYes: /^(Yes|Ja)$/
 };
 
 /** Label of the portfolio node in the main tree, e.g. "SaxoTrader / CHF". */
@@ -183,7 +185,7 @@ export function portfolioLabel(p: PortfolioFixture): string {
 
 /** The portfolio's own tree node content element. */
 export function portfolioNode(page: Page, p: PortfolioFixture): Locator {
-  return page.locator('.p-tree-node-content', {hasText: portfolioLabel(p)}).first();
+  return page.locator('.p-tree-node-content', { hasText: portfolioLabel(p) }).first();
 }
 
 /**
@@ -193,17 +195,18 @@ export function portfolioNode(page: Page, p: PortfolioFixture): Locator {
  * `.last()` picks the innermost of the nesting <p-treenode> ancestors that all contain the label.
  */
 export function portfolioSubtree(page: Page, p: PortfolioFixture): Locator {
-  return page.locator('p-treenode')
-    .filter({has: page.locator('.p-tree-node-content', {hasText: portfolioLabel(p)})})
+  return page
+    .locator('p-treenode')
+    .filter({ has: page.locator('.p-tree-node-content', { hasText: portfolioLabel(p) }) })
     .last();
 }
 
 /** Right-clicks `target` and clicks the p-contextmenu item matching `itemRx`. */
 export async function openTreeContextMenu(page: Page, target: Locator, itemRx: RegExp): Promise<void> {
-  await target.waitFor({state: 'visible', timeout: 15_000});
-  await target.click({button: 'right'});
+  await target.waitFor({ state: 'visible', timeout: 15_000 });
+  await target.click({ button: 'right' });
   const item = page.locator('p-contextmenu').getByText(itemRx).first();
-  await item.waitFor({state: 'visible', timeout: 5_000});
+  await item.waitFor({ state: 'visible', timeout: 5_000 });
   await item.click();
 }
 
@@ -213,9 +216,9 @@ export async function openTreeContextMenu(page: Page, target: Locator, itemRx: R
  * AppHelper.confirmationDialog), the buttons from Optimus UI.
  */
 export async function confirmDelete(page: Page): Promise<void> {
-  const confirmDialog = page.getByRole('alertdialog', {name: RX.confirmHeader});
-  await confirmDialog.waitFor({state: 'visible', timeout: 10_000});
-  await confirmDialog.getByRole('button', {name: RX.confirmYes}).click();
+  const confirmDialog = page.getByRole('alertdialog', { name: RX.confirmHeader });
+  await confirmDialog.waitFor({ state: 'visible', timeout: 10_000 });
+  await confirmDialog.getByRole('button', { name: RX.confirmYes }).click();
 }
 
 /**
@@ -226,7 +229,8 @@ export async function confirmDelete(page: Page): Promise<void> {
  * teardown green while it deleted nothing.
  */
 export async function appearsWithin(target: Locator, timeout = 15_000): Promise<boolean> {
-  return target.waitFor({state: 'visible', timeout})
+  return target
+    .waitFor({ state: 'visible', timeout })
     .then(() => true)
     .catch(() => false);
 }
@@ -234,7 +238,7 @@ export async function appearsWithin(target: Locator, timeout = 15_000): Promise<
 /** Fills a dynamic-form text input and dispatches the events Angular needs to commit the value. */
 export async function fillFormInput(dialog: Locator, selector: string, value: string): Promise<void> {
   const input = dialog.locator(selector);
-  await input.waitFor({state: 'visible', timeout: 10_000});
+  await input.waitFor({ state: 'visible', timeout: 10_000 });
   await input.click();
   await input.fill(value);
   await input.dispatchEvent('input');
@@ -245,11 +249,14 @@ export async function fillFormInput(dialog: Locator, selector: string, value: st
  * Selects a value in a native <select> of a dynamic-form whose options are loaded asynchronously from
  * the backend (currencies, trading platform plans).
  */
-export async function selectWhenLoaded(dialog: Locator, selector: string,
-    option: {value?: string; label?: string; index?: number}): Promise<void> {
+export async function selectWhenLoaded(
+  dialog: Locator,
+  selector: string,
+  option: { value?: string; label?: string; index?: number }
+): Promise<void> {
   const select = dialog.locator(selector);
-  await select.waitFor({state: 'visible', timeout: 10_000});
-  await expect(select.locator('option')).not.toHaveCount(0, {timeout: 10_000});
+  await select.waitFor({ state: 'visible', timeout: 10_000 });
+  await expect(select.locator('option')).not.toHaveCount(0, { timeout: 10_000 });
   await select.selectOption(option as any);
   await select.dispatchEvent('change');
 }
@@ -279,18 +286,17 @@ export function toShortDate(isoDate: string, locale: string): string {
  * events without a preceding keydown (Optimus UI's isKeydown guard), so fill() never reaches the model —
  * the text has to be typed key by key, exactly as in 065-create-derived-security.spec.ts.
  */
-export async function setRowDate(row: Locator, index: number, isoDate: string,
-    locale: string): Promise<void> {
+export async function setRowDate(row: Locator, index: number, isoDate: string, locale: string): Promise<void> {
   const input = row.locator('p-datepicker input').nth(index);
-  await input.waitFor({state: 'visible', timeout: 5_000});
+  await input.waitFor({ state: 'visible', timeout: 5_000 });
   const wanted = toShortDate(isoDate, locale);
-  if (await input.inputValue() === wanted) {
+  if ((await input.inputValue()) === wanted) {
     return;
   }
   await input.click();
   await input.press('Control+a');
   await input.press('Backspace');
-  await input.pressSequentially(wanted, {delay: 20});
+  await input.pressSequentially(wanted, { delay: 20 });
   await input.blur();
   await expect(input, `date picker did not keep the typed date ${wanted}`).toHaveValue(wanted);
 }
@@ -306,19 +312,21 @@ export async function setRowDate(row: Locator, index: number, isoDate: string,
  *
  * @param locale users.json locale of the logged-in user, needed for the date picker format.
  */
-export async function addTradingPeriod(dialog: Locator, tp: TradingPeriodData,
-    locale: string): Promise<void> {
+export async function addTradingPeriod(dialog: Locator, tp: TradingPeriodData, locale: string): Promise<void> {
   const table = dialog.locator('trading-period-table');
   await table.locator('button:has(i.pi-plus)').click();
 
   // addNewRow() appends the row and enters edit mode after a ~50ms setTimeout.
   const row = table.locator('tbody tr').last();
-  await row.locator('button:has(i.pi-check)').waitFor({state: 'visible', timeout: 5_000});
+  await row.locator('button:has(i.pi-check)').waitFor({ state: 'visible', timeout: 5_000 });
 
   // Column order: specInvestInstrument, categoryType, dateFrom, dateTo. The option values are the
   // enum names, so the selection is independent of the UI language.
   await row.locator('select').nth(0).selectOption(tp.specInvestInstrument);
-  await row.locator('select').nth(1).selectOption(tp.categoryType ?? '');
+  await row
+    .locator('select')
+    .nth(1)
+    .selectOption(tp.categoryType ?? '');
   await setRowDate(row, 0, tp.dateFrom, locale);
 
   await row.locator('button:has(i.pi-check)').click();

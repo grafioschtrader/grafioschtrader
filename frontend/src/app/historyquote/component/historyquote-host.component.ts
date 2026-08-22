@@ -1,10 +1,10 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute, ParamMap} from '@angular/router';
-import {Subscription} from 'rxjs';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {TimeSeriesParam} from './time.series.chart.component';
-import {HistoryquoteTableComponent} from './historyquote-table.component';
-import {HistoryquoteLegacyComponent} from './historyquote-legacy.component';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ActivatedRoute, ParamMap } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TimeSeriesParam } from './time.series.chart.component';
+import { HistoryquoteTableComponent } from './historyquote-table.component';
+import { HistoryquoteLegacyComponent } from './historyquote-legacy.component';
 
 /**
  * Route target for the historyquote view. Parses {@code timeSeriesParams} from the route, holds
@@ -17,28 +17,25 @@ import {HistoryquoteLegacyComponent} from './historyquote-legacy.component';
 @Component({
   template: `
     @if (viewMode === 'live') {
-      <historyquote-table [timeSeriesParams]="timeSeriesParams"
-                          (showLegacyRequested)="showLegacy()">
+      <historyquote-table [timeSeriesParams]="timeSeriesParams" (showLegacyRequested)="showLegacy()">
       </historyquote-table>
     } @else if (idSecuritycurrency != null) {
-      <historyquote-legacy [idSecuritycurrency]="idSecuritycurrency"
-                           (showLiveRequested)="viewMode = 'live'">
+      <historyquote-legacy [idSecuritycurrency]="idSecuritycurrency" (showLiveRequested)="viewMode = 'live'">
       </historyquote-legacy>
     }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [HistoryquoteTableComponent, HistoryquoteLegacyComponent]
 })
 export class HistoryquoteHostComponent implements OnInit, OnDestroy {
-
   viewMode: 'live' | 'legacy' = 'live';
   timeSeriesParams: TimeSeriesParam[] = [];
   idSecuritycurrency: number;
 
   private routeSubscribe: Subscription;
 
-  constructor(private activatedRoute: ActivatedRoute) {
-  }
+  constructor(private activatedRoute: ActivatedRoute) {}
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.paramMap.subscribe((paramMap: ParamMap) => {

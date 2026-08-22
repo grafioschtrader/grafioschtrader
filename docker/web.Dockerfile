@@ -6,13 +6,14 @@
 #   docker build -f docker/web.Dockerfile .
 
 # Angular bundles are architecture-independent — build on the host platform only.
-FROM --platform=$BUILDPLATFORM node:22-bookworm AS build
+FROM --platform=$BUILDPLATFORM node:22.22-bookworm AS build
 WORKDIR /app
-# package-lock.json is intentionally not committed (see frontend/.gitignore),
-# so install with `npm install` — matching the project's CI build. Copying only
-# package.json first keeps the dependency layer cached across source changes.
-COPY frontend/package.json ./
-RUN npm install
+# Angular 22 requires Node ^22.22.3, ^24.15.0 or >=26.0.0, hence the pinned 22.22 tag.
+# frontend/package-lock.json is committed, so the dependencies are installed with
+# `npm ci` - the same reproducible install the CI build uses. Copying only the two
+# manifests first keeps the dependency layer cached across source changes.
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
 COPY frontend/ .
 # The production build needs ~4 GB heap
 ENV NODE_OPTIONS=--max-old-space-size=4096

@@ -1,64 +1,103 @@
-import {Injectable} from '@angular/core';
-import {AppSettings} from '../../shared/app.settings';
-import {Currencypair} from '../../entities/currencypair';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {CurrencypairWithHistoryquote} from '../../entities/view/currencypair.with.historyquote';
-import {CurrencypairWithTransaction} from '../../entities/view/currencypair.with.transaction';
-import {Observable} from 'rxjs';
-import {IFeedConnector} from '../../shared/securitycurrency/ifeed.connector';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {catchError} from 'rxjs/operators';
-import {LoginService} from '../../lib/login/service/log-in.service';
-import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {HistoryquoteDateClose} from '../../entities/projection/historyquote.date.close';
-import {SecurityCurrencyService} from './security.currency.service';
-import {BaseSettings} from '../../lib/base.settings';
-
+import { Injectable } from '@angular/core';
+import { AppSettings } from '../../shared/app.settings';
+import { Currencypair } from '../../entities/currencypair';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { CurrencypairWithHistoryquote } from '../../entities/view/currencypair.with.historyquote';
+import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
+import { Observable } from 'rxjs';
+import { IFeedConnector } from '../../shared/securitycurrency/ifeed.connector';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { catchError } from 'rxjs/operators';
+import { LoginService } from '../../lib/login/service/log-in.service';
+import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { HistoryquoteDateClose } from '../../entities/projection/historyquote.date.close';
+import { SecurityCurrencyService } from './security.currency.service';
+import { BaseSettings } from '../../lib/base.settings';
 
 @Injectable()
 export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
-
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
   }
 
   getCurrencypairByIdSecuritycurrency(idSecuritycurrency: number): Observable<Currencypair> {
-    return <Observable<Currencypair>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/`
-      + `${idSecuritycurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<Currencypair>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/` + `${idSecuritycurrency}`,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   getAllCurrencypairs(): Observable<Currencypair[]> {
-    return <Observable<Currencypair[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}`,
-      this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<Currencypair[]>>(
+      this.httpClient
+        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   getCurrencypairInTransactionByTenant(): Observable<Currencypair[]> {
-    return <Observable<Currencypair[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/`
-      + `${BaseSettings.TENANT_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<Currencypair[]>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/` + `${BaseSettings.TENANT_KEY}`,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   getTransactionCurrencypairsByPortfolioId(idPortfolio: number): Observable<Currencypair[]> {
-    return <Observable<Currencypair[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/`
-      + `${idPortfolio}/${AppSettings.PORTFOLIO_KEY}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<Currencypair[]>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/` +
+            `${idPortfolio}/${AppSettings.PORTFOLIO_KEY}`,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   findOrCreateCurrencypairByFromAndToCurrency(fromCurrency: string, toCurrency: string): Observable<Currencypair> {
-    return <Observable<Currencypair>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/`
-      + `${fromCurrency}/${toCurrency}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<Currencypair>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/` + `${fromCurrency}/${toCurrency}`,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
-  getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(currencypair: Currencypair,
-    dateString: string): Observable<CurrencypairWithHistoryquote> {
-    return <Observable<CurrencypairWithHistoryquote>>this.httpClient.get(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/${currencypair.fromCurrency}/${currencypair.toCurrency}/`
-      + `${dateString}`, this.getHeaders()).pipe(catchError(this.handleError.bind(this)));
+  getCurrencypairWithHistoryquoteByIdSecuritycurrencyAndDate(
+    currencypair: Currencypair,
+    dateString: string
+  ): Observable<CurrencypairWithHistoryquote> {
+    return <Observable<CurrencypairWithHistoryquote>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/${currencypair.fromCurrency}/${currencypair.toCurrency}/` +
+            `${dateString}`,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   getTransactionForCurrencyPair(idCurrencypair: number, forChart: boolean): Observable<CurrencypairWithTransaction> {
-    return <Observable<CurrencypairWithTransaction>>this.httpClient.get(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/tenant/${idCurrencypair}`,
-      this.getOptionsWithIncludeForChart(forChart)).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<CurrencypairWithTransaction>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/tenant/${idCurrencypair}`,
+          this.getOptionsWithIncludeForChart(forChart)
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   getFeedConnectors(assetclassType?: string, specInvInstrument?: string): Observable<IFeedConnector[]> {
@@ -69,25 +108,30 @@ export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
     if (specInvInstrument != null) {
       params = params.set('specInvInstrument', specInvInstrument);
     }
-    return <Observable<IFeedConnector[]>>this.httpClient.get(
-      `${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/feedConnectors`,
-      {headers: this.prepareHeaders(), params}).pipe(catchError(this.handleError.bind(this)));
+    return <Observable<IFeedConnector[]>>this.httpClient
+      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/feedConnectors`, {
+        headers: this.prepareHeaders(),
+        params
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   searchByCriteria(securitycurrencySearch: SecuritycurrencySearch): Observable<Currencypair[]> {
-    return <Observable<Currencypair[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/search`,
-      {
+    return <Observable<Currencypair[]>>this.httpClient
+      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/search`, {
         headers: this.prepareHeaders(),
         params: AppHelper.getHttpParamsOfObject(securitycurrencySearch)
-      }).pipe(catchError(this.handleError.bind(this)));
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getCurrencypairForCrossRate(crossRateRequest: CrossRateRequest): Observable<CrossRateResponse[]> {
-    return <Observable<CrossRateResponse[]>>this.httpClient.get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/crossrate`,
-      {
+    return <Observable<CrossRateResponse[]>>this.httpClient
+      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.CURRENCYPAIR_KEY}/crossrate`, {
         headers: this.prepareHeaders(),
         params: AppHelper.getHttpParamsOfObject(crossRateRequest)
-      }).pipe(catchError(this.handleError.bind(this)));
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   /**
@@ -99,8 +143,10 @@ export class CurrencypairService extends SecurityCurrencyService<Currencypair> {
 }
 
 export class CrossRateRequest {
-  constructor(public securityCurrencyList: string[], public existingCurrencies: string[]) {
-  }
+  constructor(
+    public securityCurrencyList: string[],
+    public existingCurrencies: string[]
+  ) {}
 }
 
 export interface CurrenciesAndClosePrice {

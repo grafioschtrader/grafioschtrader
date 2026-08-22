@@ -1,60 +1,75 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
 
-import {HelpIds} from '../../lib/help/help.ids';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ImportTransactionHeadService} from '../service/import.transaction.head.service';
-import {ImportTransactionHead} from '../../entities/import.transaction.head';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {CallParam} from '../../shared/maintree/types/dialog.visible';
-import {Securityaccount} from '../../entities/securityaccount';
-import {SimpleEntityEditBase} from '../../lib/edit/simple.entity.edit.base';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BaseSettings} from '../../lib/base.settings';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-
+import { HelpIds } from '../../lib/help/help.ids';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ImportTransactionHeadService } from '../service/import.transaction.head.service';
+import { ImportTransactionHead } from '../../entities/import.transaction.head';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { CallParam } from '../../shared/maintree/types/dialog.visible';
+import { Securityaccount } from '../../entities/securityaccount';
+import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { BaseSettings } from '../../lib/base.settings';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 
 @Component({
   selector: 'securityaccount-import-transaction-edit-head',
-  template: `
-    <p-dialog header="{{'IMPORT_SET' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '400px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
+  template: ` <p-dialog
+    header="{{ 'IMPORT_SET' | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '400px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
-export class SecurityaccountImportTransactionEditHeadComponent extends SimpleEntityEditBase<ImportTransactionHead> implements OnInit {
-
+export class SecurityaccountImportTransactionEditHeadComponent
+  extends SimpleEntityEditBase<ImportTransactionHead>
+  implements OnInit
+{
   @Input() callParam: CallParam;
 
-  constructor(translateService: TranslateService,
+  constructor(
+    translateService: TranslateService,
     gps: GlobalparameterService,
     private gpsGT: GlobalparameterGTService,
     messageToastService: MessageToastService,
-    importTransactionHeadService: ImportTransactionHeadService) {
-    super(HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT, 'IMPORT_SET', translateService, gps,
-      messageToastService, importTransactionHeadService);
+    importTransactionHeadService: ImportTransactionHeadService
+  ) {
+    super(
+      HelpIds.HELP_PORTFOLIO_SECURITYACCOUNT,
+      'IMPORT_SET',
+      translateService,
+      gps,
+      messageToastService,
+      importTransactionHeadService
+    );
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      6, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 6, this.helpLink.bind(this));
 
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'IMPORT_TRANSACTION_NAME', 40, true),
       DynamicFieldHelper.createFieldTextareaInputString('note', 'NOTE', BaseSettings.FID_MAX_LETTERS, false),
       ...(this.gpsGT.getTenantGtImportPlatformId() != null
-        ? [DynamicFieldHelper.createFieldCheckboxHeqF('useGtPlatform')] : []),
+        ? [DynamicFieldHelper.createFieldCheckboxHeqF('useGtPlatform')]
+        : []),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);

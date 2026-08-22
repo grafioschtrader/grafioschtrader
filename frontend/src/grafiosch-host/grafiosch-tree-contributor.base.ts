@@ -1,12 +1,12 @@
-import {TranslateService} from '@ngx-translate/core';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {Observable, of} from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { Observable, of } from 'rxjs';
 
-import {BaseSettings} from '../app/lib/base.settings';
-import {MainTreeContributor} from '../app/lib/maintree/contributor/main-tree-contributor.interface';
-import {LibTreeNodeType} from '../app/lib/maintree/types/lib.tree.node.type';
-import {TypeNodeData} from '../app/lib/maintree/types/type.node.data';
-import {ProcessedActionData} from '../app/lib/types/processed.action.data';
+import { BaseSettings } from '../app/lib/base.settings';
+import { MainTreeContributor } from '../app/lib/maintree/contributor/main-tree-contributor.interface';
+import { LibTreeNodeType } from '../app/lib/maintree/types/lib.tree.node.type';
+import { TypeNodeData } from '../app/lib/maintree/types/type.node.data';
+import { ProcessedActionData } from '../app/lib/types/processed.action.data';
 
 /**
  * Shared behaviour of this host's tree contributors. Every node they publish is static navigation into a library view,
@@ -17,7 +17,6 @@ import {ProcessedActionData} from '../app/lib/types/processed.action.data';
  * in its tree needs the full contract, and the library must not suggest that a contributor is normally static.</p>
  */
 export abstract class GrafioschTreeContributorBase extends MainTreeContributor {
-
   protected constructor(protected translateService: TranslateService) {
     super();
   }
@@ -57,8 +56,8 @@ export abstract class GrafioschTreeContributorBase extends MainTreeContributor {
    * @param treeNodes - nodes whose labels are still NLS keys
    */
   protected translateNodes(treeNodes: TreeNode[]): void {
-    treeNodes.forEach(treeNode => {
-      this.translateService.get(treeNode.label).subscribe(translated => treeNode.label = translated);
+    treeNodes.forEach((treeNode) => {
+      this.translateService.get(treeNode.label).subscribe((translated) => (treeNode.label = translated));
       if (treeNode.children) {
         this.translateNodes(treeNode.children);
       }

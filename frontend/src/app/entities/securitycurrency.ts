@@ -1,6 +1,5 @@
-import {Historyquote} from './historyquote';
-import {Auditable} from '../lib/entities/auditable';
-
+import { Historyquote } from './historyquote';
+import { Auditable } from '../lib/entities/auditable';
 
 export class Securitycurrency extends Auditable {
   dtype?: string;
@@ -39,5 +38,4 @@ export class Securitycurrency extends Auditable {
   public override getId(): number {
     return this.idSecuritycurrency;
   }
-
 }

@@ -1,4 +1,4 @@
-import {AbstractControl} from '@angular/forms';
+import { AbstractControl } from '@angular/forms';
 
 export type ErrorOptions = string | string[];
 

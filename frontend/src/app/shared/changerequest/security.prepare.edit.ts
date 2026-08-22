@@ -1,4 +1,4 @@
-import {Security} from '../../entities/security';
+import { Security } from '../../entities/security';
 import {
   GeneralEntityPrepareEdit,
   PrepareCallParam

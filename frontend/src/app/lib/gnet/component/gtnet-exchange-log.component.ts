@@ -1,21 +1,21 @@
-import {Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {TreeNode} from '@openng/optimus-ui/api';
-import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {GTNetExchangeLogService} from '../service/gtnet-exchange-log.service';
-import {GTNetExchangeLogTree, GTNetExchangeLogNode} from '../model/gtnet-exchange-log';
-import {GTNetExchangeKindType} from '../model/gtnet';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {ActivatedRoute} from '@angular/router';
-import {BaseSettings} from '../../base.settings';
-import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
-import {ConfigurableTreeTableComponent} from '../../datashowbase/configurable-tree-table.component';
-import {ColumnConfig} from '../../datashowbase/column.config';
-import {ShowRecordConfigBase} from '../../datashowbase/show.record.config.base';
-import {HelpIds} from '../../help/help.ids';
-import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
+import { Component, Input, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TreeNode } from '@openng/optimus-ui/api';
+import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { GTNetExchangeLogService } from '../service/gtnet-exchange-log.service';
+import { GTNetExchangeLogTree, GTNetExchangeLogNode } from '../model/gtnet-exchange-log';
+import { GTNetExchangeKindType } from '../model/gtnet';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { ActivatedRoute } from '@angular/router';
+import { BaseSettings } from '../../base.settings';
+import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
+import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-tree-table.component';
+import { ColumnConfig } from '../../datashowbase/column.config';
+import { ShowRecordConfigBase } from '../../datashowbase/show.record.config.base';
+import { HelpIds } from '../../help/help.ids';
+import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 
 /**
  * Component for displaying GTNet exchange log statistics.
@@ -24,11 +24,7 @@ import {ActivePanelService} from '../../mainmenubar/service/active.panel.service
 @Component({
   selector: 'gtnet-exchange-log',
   standalone: true,
-  imports: [
-    TranslateModule,
-    ConfigurableTableComponent,
-    ConfigurableTreeTableComponent
-  ],
+  imports: [TranslateModule, ConfigurableTableComponent, ConfigurableTreeTableComponent],
   template: `
     <configurable-table
       [data]="exchangeLogTrees"
@@ -36,7 +32,11 @@ import {ActivePanelService} from '../../mainmenubar/service/active.panel.service
       [dataKey]="'idGtNet'"
       [expandable]="true"
       [expandedRowTemplate]="expandedContent"
-      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container-full': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       [selectionMode]="null"
       [valueGetterFn]="getMainTableValue.bind(this)"
       [baseLocale]="baseLocale"
@@ -50,8 +50,10 @@ import {ActivePanelService} from '../../mainmenubar/service/active.panel.service
         <h5>{{ 'SUPPLIER_STATISTICS' | translate }}</h5>
         @if (hasData(tree.supplierTotal)) {
           <configurable-tree-table
-            [data]="getSupplierNodes(tree)" [fields]="fields"
-            [selectionMode]="null" [enableSort]="false"
+            [data]="getSupplierNodes(tree)"
+            [fields]="fields"
+            [selectionMode]="null"
+            [enableSort]="false"
             [scrollable]="true"
             [valueGetterFn]="getValueByPath.bind(this)">
           </configurable-tree-table>
@@ -63,8 +65,10 @@ import {ActivePanelService} from '../../mainmenubar/service/active.panel.service
         <h5 class="mt-3">{{ 'CONSUMER_STATISTICS' | translate }}</h5>
         @if (hasData(tree.consumerTotal)) {
           <configurable-tree-table
-            [data]="getConsumerNodes(tree)" [fields]="fields"
-            [selectionMode]="null" [enableSort]="false"
+            [data]="getConsumerNodes(tree)"
+            [fields]="fields"
+            [selectionMode]="null"
+            [enableSort]="false"
             [scrollable]="true"
             [valueGetterFn]="getValueByPath.bind(this)">
           </configurable-tree-table>
@@ -74,28 +78,30 @@ import {ActivePanelService} from '../../mainmenubar/service/active.panel.service
       </div>
     </ng-template>
   `,
-  styles: [`
-    h5 {
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-    .no-data {
-      padding: 1rem;
-      text-align: center;
-      color: #666;
-      font-style: italic;
-    }
-    .mt-3 {
-      margin-top: 1rem;
-    }
-    .p-3 {
-      padding: 1rem;
-    }
-  `]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styles: [
+    `
+      h5 {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      .no-data {
+        padding: 1rem;
+        text-align: center;
+        color: #666;
+        font-style: italic;
+      }
+      .mt-3 {
+        margin-top: 1rem;
+      }
+      .p-3 {
+        padding: 1rem;
+      }
+    `
+  ]
 })
 export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
-
   @Input() entityKind: GTNetExchangeKindType = GTNetExchangeKindType.LAST_PRICE;
   @ViewChild('expandedContent') expandedContent: TemplateRef<any>;
 
@@ -135,12 +141,12 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
       ShowRecordConfigBase.createColumnConfig(DataType.String, 'domainRemoteName', 'DOMAIN_REMOTE_NAME', true, false)
     ];
     this.translateHeaders(
-      this.mainTableFields.map(f => f.headerKey),
+      this.mainTableFields.map((f) => f.headerKey),
       this.mainTableFields
     );
 
     // Configure tree table columns (inner tables)
-    this.addColumnFeqH(DataType.String, 'label', true, false, {width: 200});
+    this.addColumnFeqH(DataType.String, 'label', true, false, { width: 200 });
     this.addColumnFeqH(DataType.NumericInteger, 'entitiesSent', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'entitiesUpdated', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'entitiesInResponse', true, false);
@@ -175,7 +181,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     this.supplierNodesCache.clear();
     this.consumerNodesCache.clear();
 
-    this.gtNetExchangeLogService.getAllExchangeLogTrees(this.entityKind).subscribe(trees => {
+    this.gtNetExchangeLogService.getAllExchangeLogTrees(this.entityKind).subscribe((trees) => {
       this.exchangeLogTrees = trees;
     });
   }
@@ -189,7 +195,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
       return [];
     }
 
-    return node.children.map(child => this.convertToTreeNode(child));
+    return node.children.map((child) => this.convertToTreeNode(child));
   }
 
   isActivated(): boolean {
@@ -198,7 +204,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
 
   hideContextMenu() {}
 
-  callMeDeactivate(): void {};
+  callMeDeactivate(): void {}
 
   onComponentClick(event): void {
     this.activePanelService.activatePanel(this);
@@ -221,7 +227,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     };
 
     if (node.children && node.children.length > 0) {
-      treeNode.children = node.children.map(child => this.convertToTreeNode(child));
+      treeNode.children = node.children.map((child) => this.convertToTreeNode(child));
     }
 
     return treeNode;

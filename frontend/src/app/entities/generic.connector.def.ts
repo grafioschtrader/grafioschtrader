@@ -1,8 +1,8 @@
-import {Auditable} from '../lib/entities/auditable';
-import {BaseID} from '../lib/entities/base.id';
-import {MultilanguageString} from '../lib/entities/multilanguage.string';
-import {GenericConnectorEndpoint} from './generic.connector.endpoint';
-import {GenericConnectorHttpHeader} from './generic.connector.http.header';
+import { Auditable } from '../lib/entities/auditable';
+import { BaseID } from '../lib/entities/base.id';
+import { MultilanguageString } from '../lib/entities/multilanguage.string';
+import { GenericConnectorEndpoint } from './generic.connector.endpoint';
+import { GenericConnectorHttpHeader } from './generic.connector.http.header';
 
 export class GenericConnectorDef extends Auditable implements BaseID {
   idGenericConnector?: number = null;

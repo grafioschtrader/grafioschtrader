@@ -1,4 +1,4 @@
-import {Security} from '../../entities/security';
+import { Security } from '../../entities/security';
 
 export interface SecurityAction {
   idSecurityAction: number;

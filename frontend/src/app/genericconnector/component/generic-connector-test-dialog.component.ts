@@ -1,21 +1,21 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {GenericConnectorEndpoint} from '../../entities/generic.connector.endpoint';
-import {GenericConnectorDef} from '../../entities/generic.connector.def';
-import {GenericConnectorTestRequest, GenericConnectorTestResult} from '../model/generic-connector-test.model';
-import {GenericConnectorDefService} from '../service/generic.connector.def.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppHelpIds} from '../../shared/help/help.ids';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {FieldsetModule} from '@openng/optimus-ui/fieldset';
-import {TableModule} from '@openng/optimus-ui/table';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { GenericConnectorEndpoint } from '../../entities/generic.connector.endpoint';
+import { GenericConnectorDef } from '../../entities/generic.connector.def';
+import { GenericConnectorTestRequest, GenericConnectorTestResult } from '../model/generic-connector-test.model';
+import { GenericConnectorDefService } from '../service/generic.connector.def.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AppHelpIds } from '../../shared/help/help.ids';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { FieldsetModule } from '@openng/optimus-ui/fieldset';
+import { TableModule } from '@openng/optimus-ui/table';
 import moment from 'moment';
 
 /**
@@ -26,15 +26,23 @@ import moment from 'moment';
 @Component({
   selector: 'generic-connector-test-dialog',
   template: `
-    <p-dialog header="{{'TEST_ENDPOINT' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '900px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm" (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'TEST_ENDPOINT' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '900px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
 
       @if (testResult) {
-        <p-fieldset legend="{{'TEST_RESULT' | translate}}" class="mt-3">
+        <p-fieldset legend="{{ 'TEST_RESULT' | translate }}" class="mt-3">
           @for (item of summaryItems; track item.key) {
             <div class="mb-1">
               <strong>{{ item.label }}:</strong> {{ item.value }}
@@ -43,7 +51,7 @@ import moment from 'moment';
         </p-fieldset>
 
         @if (testResult.parsedRows?.length > 0) {
-          <p-fieldset legend="{{'PARSED_DATA' | translate}}" class="mt-3">
+          <p-fieldset legend="{{ 'PARSED_DATA' | translate }}" class="mt-3">
             <div style="max-height: 300px; overflow-y: auto;">
               <p-table [value]="testResult.parsedRows" [scrollable]="true" styleClass="p-datatable-sm">
                 <ng-template #header>
@@ -66,14 +74,17 @@ import moment from 'moment';
         }
 
         @if (testResult.rawResponseSnippet) {
-          <p-fieldset legend="{{'RAW_RESPONSE' | translate}}" [toggleable]="true" [collapsed]="true" class="mt-3">
-            <pre style="max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;">{{ testResult.rawResponseSnippet }}</pre>
+          <p-fieldset legend="{{ 'RAW_RESPONSE' | translate }}" [toggleable]="true" [collapsed]="true" class="mt-3">
+            <pre style="max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;">{{
+              testResult.rawResponseSnippet
+            }}</pre>
           </p-fieldset>
         }
       }
     </p-dialog>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, DialogModule, DynamicFormModule, FieldsetModule, TableModule]
 })
 export class GenericConnectorTestDialogComponent extends SimpleEditBase implements OnInit {
@@ -86,9 +97,11 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
 
   private summaryTranslations: { [key: string]: string } = {};
 
-  constructor(public translateService: TranslateService,
-              gps: GlobalparameterService,
-              private genericConnectorDefService: GenericConnectorDefService) {
+  constructor(
+    public translateService: TranslateService,
+    gps: GlobalparameterService,
+    private genericConnectorDefService: GenericConnectorDefService
+  ) {
     super(AppHelpIds.HELP_BASEDATA_GENERIC_CONNECTOR, gps);
   }
 
@@ -106,7 +119,7 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
     this.applyFieldVisibility();
 
     const keys = ['SUCCESS', 'HTTP_STATUS', 'REQUEST_URL', 'EXECUTION_TIME_MS', 'ERROR_MESSAGE'];
-    this.translateService.get(keys).subscribe(t => this.summaryTranslations = t);
+    this.translateService.get(keys).subscribe((t) => (this.summaryTranslations = t));
   }
 
   protected override initialize(): void {
@@ -117,8 +130,8 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
   }
 
   private applyFieldVisibility(): void {
-    const isCurrencyPairStrategy = this.endpoint.tickerBuildStrategy === 'CURRENCY_PAIR'
-      && this.endpoint.instrumentType === 'CURRENCY';
+    const isCurrencyPairStrategy =
+      this.endpoint.tickerBuildStrategy === 'CURRENCY_PAIR' && this.endpoint.instrumentType === 'CURRENCY';
     const isHistory = this.endpoint.feedSupport === 'FS_HISTORY';
 
     this.configObject.ticker.invisible = isCurrencyPairStrategy;
@@ -152,7 +165,7 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
     }
 
     this.genericConnectorDefService.testEndpoint(request).subscribe({
-      next: result => {
+      next: (result) => {
         this.testResult = result;
         this.buildSummaryItems(result);
         if (result.parsedRows?.length > 0) {
@@ -171,15 +184,33 @@ export class GenericConnectorTestDialogComponent extends SimpleEditBase implemen
   private buildSummaryItems(result: GenericConnectorTestResult): void {
     const t = this.summaryTranslations;
     this.summaryItems = [
-      {key: 'success', label: t['SUCCESS'] || 'Success', value: result.success},
-      {key: 'httpStatus', label: t['HTTP_STATUS'] || 'HTTP status', value: result.httpStatus},
-      {key: 'requestUrl', label: t['REQUEST_URL'] || 'Request URL', value: result.requestUrl},
-      {key: 'executionTimeMs', label: t['EXECUTION_TIME_MS'] || 'Execution time (ms)', value: result.executionTimeMs},
+      {
+        key: 'success',
+        label: t['SUCCESS'] || 'Success',
+        value: result.success
+      },
+      {
+        key: 'httpStatus',
+        label: t['HTTP_STATUS'] || 'HTTP status',
+        value: result.httpStatus
+      },
+      {
+        key: 'requestUrl',
+        label: t['REQUEST_URL'] || 'Request URL',
+        value: result.requestUrl
+      },
+      {
+        key: 'executionTimeMs',
+        label: t['EXECUTION_TIME_MS'] || 'Execution time (ms)',
+        value: result.executionTimeMs
+      }
     ];
     if (result.errorMessage) {
-      this.summaryItems.push(
-        {key: 'errorMessage', label: t['ERROR_MESSAGE'] || 'Error message', value: result.errorMessage}
-      );
+      this.summaryItems.push({
+        key: 'errorMessage',
+        label: t['ERROR_MESSAGE'] || 'Error message',
+        value: result.errorMessage
+      });
     }
   }
 }

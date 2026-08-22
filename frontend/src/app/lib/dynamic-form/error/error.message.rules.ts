@@ -5,7 +5,6 @@ export class RuleEvent {
 }
 
 export interface ErrorMessageRules {
-
   /** Name of validator, it is used for referencing it  */
   name: string;
   /** Must match with the key in the translation file */

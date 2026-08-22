@@ -1,9 +1,13 @@
-import {Injectable, Inject, Optional} from '@angular/core';
-import {Observable, combineLatest, of} from 'rxjs';
-import {catchError, map} from 'rxjs/operators';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {MAIN_TREE_CONTRIBUTOR, MainTreeContributor, MainTreeCallbacks} from '../contributor/main-tree-contributor.interface';
-import {ProcessedActionData} from '../../types/processed.action.data';
+import { Injectable, Inject, Optional } from '@angular/core';
+import { Observable, combineLatest, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import {
+  MAIN_TREE_CONTRIBUTOR,
+  MainTreeContributor,
+  MainTreeCallbacks
+} from '../contributor/main-tree-contributor.interface';
+import { ProcessedActionData } from '../../types/processed.action.data';
 
 /**
  * Main service for managing the navigation tree.
@@ -12,7 +16,6 @@ import {ProcessedActionData} from '../../types/processed.action.data';
  */
 @Injectable()
 export class MainTreeService {
-
   private contributors: MainTreeContributor[];
   private portfolioTrees: TreeNode[] = [];
 
@@ -21,7 +24,7 @@ export class MainTreeService {
    * This is necessary to trigger Optimus Tree's OnPush change detection.
    */
   private deepCloneTreeNodes(nodes: TreeNode[]): TreeNode[] {
-    return nodes.map(node => this.deepCloneTreeNode(node));
+    return nodes.map((node) => this.deepCloneTreeNode(node));
   }
 
   /**
@@ -48,7 +51,7 @@ export class MainTreeService {
     if (node.children && node.children.length > 0) {
       cloned.children = this.deepCloneTreeNodes(node.children);
       // Update parent references for children
-      cloned.children.forEach(child => child.parent = cloned);
+      cloned.children.forEach((child) => (child.parent = cloned));
     }
     return cloned;
   }
@@ -65,7 +68,7 @@ export class MainTreeService {
     this.contributors = contributors || [];
     // Filter out disabled contributors and sort by tree order
     this.contributors = this.contributors
-      .filter(c => c.isEnabled())
+      .filter((c) => c.isEnabled())
       .sort((a, b) => a.getTreeOrder() - b.getTreeOrder());
   }
 
@@ -83,7 +86,7 @@ export class MainTreeService {
       refreshTree: () => this.componentCallbacks.refreshTree?.()
     };
 
-    this.contributors.forEach(contributor => {
+    this.contributors.forEach((contributor) => {
       contributor.setCallbacks(callbacks);
     });
   }
@@ -108,17 +111,17 @@ export class MainTreeService {
    */
   buildTree(): Observable<TreeNode[]> {
     const rootNodesObservables: Observable<TreeNode[]>[] = this.contributors
-      .map(contributor => contributor.getRootNodes())
-      .filter(obs => obs !== null);
+      .map((contributor) => contributor.getRootNodes())
+      .filter((obs) => obs !== null);
 
     if (rootNodesObservables.length === 0) {
       return of([]);
     }
 
     return combineLatest(rootNodesObservables).pipe(
-      map(nodeArrays => {
+      map((nodeArrays) => {
         const allNodes: TreeNode[] = [];
-        nodeArrays.forEach(nodes => {
+        nodeArrays.forEach((nodes) => {
           if (nodes && nodes.length > 0) {
             allNodes.push(...nodes);
           }
@@ -150,9 +153,7 @@ export class MainTreeService {
       return of(void 0);
     }
 
-    return combineLatest(refreshObservables).pipe(
-      map(() => void 0)
-    );
+    return combineLatest(refreshObservables).pipe(map(() => void 0));
   }
 
   /**
@@ -180,9 +181,7 @@ export class MainTreeService {
       return of(void 0);
     }
 
-    return combineLatest(refreshObservables).pipe(
-      map(() => void 0)
-    );
+    return combineLatest(refreshObservables).pipe(map(() => void 0));
   }
 
   /**
@@ -195,10 +194,12 @@ export class MainTreeService {
    * @returns an observable that completes instead of erroring
    */
   private isolateFailure(refresh: Observable<void>, contributor: MainTreeContributor): Observable<void> {
-    return refresh.pipe(catchError(error => {
-      console.error(`Main tree refresh failed for ${contributor.constructor.name}:`, error);
-      return of(void 0);
-    }));
+    return refresh.pipe(
+      catchError((error) => {
+        console.error(`Main tree refresh failed for ${contributor.constructor.name}:`, error);
+        return of(void 0);
+      })
+    );
   }
 
   /**

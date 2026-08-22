@@ -1,9 +1,9 @@
-import {TreeNode} from '@openng/optimus-ui/api';
-import {AlgoSecurity} from './algo.security';
-import {AlgoAssetclass} from './algo.assetclass';
-import {AlgoStrategy} from './algo.strategy';
-import {AlgoTopAssetSecurity} from './algo.top.asset.security';
-import {AlgoTop} from './algo.top';
+import { TreeNode } from '@openng/optimus-ui/api';
+import { AlgoSecurity } from './algo.security';
+import { AlgoAssetclass } from './algo.assetclass';
+import { AlgoStrategy } from './algo.strategy';
+import { AlgoTopAssetSecurity } from './algo.top.asset.security';
+import { AlgoTop } from './algo.top';
 
 export abstract class TreeAlgoBase implements TreeNode {
   get children(): TreeNode[] {
@@ -23,7 +23,6 @@ export class TreeAlgoStrategy extends TreeAlgoBase {
   get expanded(): boolean {
     return false;
   }
-
 }
 
 export abstract class TreeAlgoTopAssetSecurityBase<T extends AlgoTopAssetSecurity> extends TreeAlgoBase {
@@ -32,7 +31,6 @@ export abstract class TreeAlgoTopAssetSecurityBase<T extends AlgoTopAssetSecurit
    */
   public expanded = true;
   treeNodes: TreeNode[];
-
 
   protected constructor(public data: T) {
     super();
@@ -44,7 +42,7 @@ export abstract class TreeAlgoTopAssetSecurityBase<T extends AlgoTopAssetSecurit
 
   getStrategyNodes(): TreeNode[] {
     const treeNodes: TreeNode[] = [];
-    this.data.algoStrategyList.forEach(algoStrategy => {
+    this.data.algoStrategyList.forEach((algoStrategy) => {
       treeNodes.push(new TreeAlgoStrategy(algoStrategy));
     });
     return treeNodes;
@@ -52,7 +50,6 @@ export abstract class TreeAlgoTopAssetSecurityBase<T extends AlgoTopAssetSecurit
 }
 
 export class TreeAlgoTop extends TreeAlgoTopAssetSecurityBase<AlgoTop> {
-
   constructor(data: AlgoTop) {
     super(data);
   }
@@ -60,17 +57,15 @@ export class TreeAlgoTop extends TreeAlgoTopAssetSecurityBase<AlgoTop> {
   override get children(): TreeNode[] {
     if (!this.treeNodes) {
       this.treeNodes = super.getStrategyNodes();
-      this.data.algoAssetclassList.forEach(algoAssetclass => {
+      this.data.algoAssetclassList.forEach((algoAssetclass) => {
         this.treeNodes.push(new TreeAlgoAssetclass(algoAssetclass));
       });
     }
     return this.treeNodes;
   }
-
 }
 
 export class TreeAlgoSecurity extends TreeAlgoTopAssetSecurityBase<AlgoSecurity> {
-
   constructor(data: AlgoSecurity) {
     super(data);
   }
@@ -81,11 +76,9 @@ export class TreeAlgoSecurity extends TreeAlgoTopAssetSecurityBase<AlgoSecurity>
     }
     return this.treeNodes;
   }
-
 }
 
 export class TreeAlgoAssetclass extends TreeAlgoTopAssetSecurityBase<AlgoAssetclass> {
-
   constructor(data: AlgoAssetclass) {
     super(data);
   }
@@ -93,11 +86,10 @@ export class TreeAlgoAssetclass extends TreeAlgoTopAssetSecurityBase<AlgoAssetcl
   override get children(): TreeNode[] {
     if (!this.treeNodes) {
       this.treeNodes = super.getStrategyNodes();
-      this.data.algoSecurityList.forEach(algoSecurity => {
+      this.data.algoSecurityList.forEach((algoSecurity) => {
         this.treeNodes.push(new TreeAlgoSecurity(algoSecurity));
       });
     }
     return this.treeNodes;
   }
-
 }

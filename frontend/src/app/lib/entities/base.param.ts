@@ -1,4 +1,3 @@
 export class BaseParam {
-  constructor(public paramValue: string) {
-  }
+  constructor(public paramValue: string) {}
 }

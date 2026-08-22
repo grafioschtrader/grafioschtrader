@@ -1,41 +1,41 @@
-import {Component, Injector, QueryList, ViewChildren} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {Observable} from 'rxjs';
-import {CrudMenuOptions, TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
-import {AcceptRequestTypes, ExchangeKindTypeInfo, GTNet, GTNetCallParam, GTNetWithMessages} from '../model/gtnet';
-import {GTNetMessage, MsgCallParam} from '../model/gtnet.message';
-import {GTNetService} from '../service/gtnet.service';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {MessageToastService} from '../../message/message.toast.service';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {HelpIds} from '../../help/help.ids';
-import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
-import {GTNetConfigEntityTableComponent} from './gtnet-config-entity-table.component';
-import {combineLatest} from 'rxjs';
-import {GTNetMessageService} from '../service/gtnet.message.service';
-import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {BaseSettings} from '../../base.settings';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {GTNetEditComponent} from './gtnet-edit.component';
-import {GTNetConfigEditComponent} from './gtnet-config-edit.component';
-import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
-import {GTNetConfigService} from '../service/gtnet.config.service';
-import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
-import {ProcessedAction} from '../../types/processed.action';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {GlobalSessionNames} from '../../global.session.names';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {UploadFileDialogComponent} from '../../generaldialog/component/upload-file-dialog.component';
-import {FileUploadParam, UploadServiceFunction} from '../../generaldialog/model/file.upload.param';
+import { Component, Injector, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { AcceptRequestTypes, ExchangeKindTypeInfo, GTNet, GTNetCallParam, GTNetWithMessages } from '../model/gtnet';
+import { GTNetMessage, MsgCallParam } from '../model/gtnet.message';
+import { GTNetService } from '../service/gtnet.service';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MessageToastService } from '../../message/message.toast.service';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { HelpIds } from '../../help/help.ids';
+import { GTNetMessageTreeTableComponent } from './gtnet-message-treetable.component';
+import { GTNetConfigEntityTableComponent } from './gtnet-config-entity-table.component';
+import { combineLatest } from 'rxjs';
+import { GTNetMessageService } from '../service/gtnet.message.service';
+import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
+import { BaseSettings } from '../../base.settings';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { GTNetEditComponent } from './gtnet-edit.component';
+import { GTNetConfigEditComponent } from './gtnet-config-edit.component';
+import { GTNetMessageEditComponent } from './gtnet-message-edit.component';
+import { GTNetConfigService } from '../service/gtnet.config.service';
+import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
+import { ProcessedAction } from '../../types/processed.action';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { GlobalSessionNames } from '../../global.session.names';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { UploadFileDialogComponent } from '../../generaldialog/component/upload-file-dialog.component';
+import { FileUploadParam, UploadServiceFunction } from '../../generaldialog/model/file.upload.param';
 import saveAs from '../../filesaver/filesaver';
 
 @Component({
@@ -62,7 +62,11 @@ import saveAs from '../../filesaver/filesaver';
       [(selection)]="selectedEntity"
       [contextMenuItems]="contextMenuItems"
       [showContextMenu]="true"
-      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container-full': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       [expandable]="true"
       [expandedRowTemplate]="expandedRow"
       [canExpandFn]="canExpand.bind(this)"
@@ -73,8 +77,8 @@ import saveAs from '../../filesaver/filesaver';
       [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)"
       (rowExpand)="onRowExpand($event)">
-
-      <h4 caption>{{ 'GT_NET_NET_AND_MESSAGE' | translate }}
+      <h4 caption>
+        {{ 'GT_NET_NET_AND_MESSAGE' | translate }}
         @if (!gtNetMyEntryId) {
           <div>
             <span style="color:red; font-size: 80%">{{ 'GT_NET_COMM_REQUIREMENT' | translate }}</span>
@@ -85,7 +89,6 @@ import saveAs from '../../filesaver/filesaver';
           </div>
         }
       </h4>
-
     </configurable-table>
 
     <ng-template #expandedRow let-row>
@@ -100,46 +103,52 @@ import saveAs from '../../filesaver/filesaver';
           <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
         </div>
       } @else if (gtNetMessageMap[row.idGtNet]?.length) {
-        <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
-                                 [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
-                                 [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
-                                 [formDefinitions]="formDefinitions"
-                                 (dataChanged)="onTreeTableDataChanged($event)">
+        <gtnet-message-treetable
+          [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
+          [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
+          [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
+          [formDefinitions]="formDefinitions"
+          (dataChanged)="onTreeTableDataChanged($event)">
         </gtnet-message-treetable>
       }
     </ng-template>
 
     @if (visibleDialog) {
-      <gtnet-edit [visibleDialog]="visibleDialog"
-                  [callParam]="callParam"
-                  (closeDialog)="handleCloseDialog($event)">
+      <gtnet-edit [visibleDialog]="visibleDialog" [callParam]="callParam" (closeDialog)="handleCloseDialog($event)">
       </gtnet-edit>
     }
     @if (visibleDialogConfig) {
-      <gtnet-config-edit [visibleDialog]="visibleDialogConfig"
-                         [gtNetConfig]="selectedEntity?.gtNetConfig"
-                         (closeDialog)="handleCloseDialogConfig($event)">
+      <gtnet-config-edit
+        [visibleDialog]="visibleDialogConfig"
+        [gtNetConfig]="$safeNavigationMigration(selectedEntity?.gtNetConfig)"
+        (closeDialog)="handleCloseDialogConfig($event)">
       </gtnet-config-edit>
     }
     @if (visibleDialogMsg) {
-      <gtnet-message-edit [visibleDialog]="visibleDialogMsg"
-                          [msgCallParam]="msgCallParam"
-                          (closeDialog)="handleCloseDialogMsg($event)">
+      <gtnet-message-edit
+        [visibleDialog]="visibleDialogMsg"
+        [msgCallParam]="msgCallParam"
+        (closeDialog)="handleCloseDialogMsg($event)">
       </gtnet-message-edit>
     }
     @if (visibleUploadDialog) {
-      <upload-file-dialog [visibleDialog]="visibleUploadDialog"
-                          [fileUploadParam]="fileUploadParam"
-                          (closeDialog)="handleCloseUploadDialog($event)">
+      <upload-file-dialog
+        [visibleDialog]="visibleUploadDialog"
+        [fileUploadParam]="fileUploadParam"
+        (closeDialog)="handleCloseUploadDialog($event)">
       </upload-file-dialog>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService, GTNetConfigService]
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
-  @ViewChildren(GTNetMessageTreeTableComponent) messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
+  @ViewChildren(GTNetMessageTreeTableComponent)
+  messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
 
-  minDate: Date = new Date(sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK);
+  minDate: Date = new Date(
+    sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+  );
   maxDate: Date = new Date('2099-12-31');
   private readonly domainRemoteName = 'domainRemoteName';
   callParam: GTNetCallParam;
@@ -166,7 +175,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   fileUploadParam: FileUploadParam;
   msgCallParam: MsgCallParam;
 
-  constructor(private gtNetService: GTNetService,
+  constructor(
+    private gtNetService: GTNetService,
     private gtNetMessageService: GTNetMessageService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
@@ -176,50 +186,79 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
+    injector: Injector
+  ) {
+    super(
+      BaseSettings.GT_NET,
+      gtNetService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector,
+      gps.hasRole(BaseSettings.ROLE_ADMIN)
+        ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Edit, CrudMenuOptions.Allow_Delete]
+        : []
+    );
 
-    super(BaseSettings.GT_NET, gtNetService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, injector,
-      gps.hasRole(BaseSettings.ROLE_ADMIN) ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Edit, CrudMenuOptions.Allow_Delete] : []);
-
-    this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false,
-      {width: 200, templateName: 'owner'});
-    this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
-    this.addColumnFeqH(DataType.Boolean, 'spreadCapability', true, false,
-      {templateName: 'check', width: 30});
+    this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false, {
+      width: 200,
+      templateName: 'owner'
+    });
+    this.addColumnFeqH(DataType.String, 'timeZone', true, false, {
+      width: 120
+    });
+    this.addColumnFeqH(DataType.Boolean, 'spreadCapability', true, false, {
+      templateName: 'check',
+      width: 30
+    });
     this.addColumnFeqH(DataType.NumericInteger, 'dailyRequestLimit', true, false);
-    this.addColumnFeqH(DataType.String, 'serverOnline', true, false,
-      {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.Boolean, 'serverBusy', true, false,
-      {templateName: 'check'});
-    this.addColumnFeqH(DataType.Boolean, 'allowServerCreation', true, false,
-      {templateName: 'check'});
-    this.addColumnFeqH(DataType.Boolean, 'authorized', true, false,
-      {templateName: 'check', fieldValueFN: this.isAuthorizedRemote.bind(this)});
-    this.addColumnFeqH(DataType.NumericInteger, 'connectionTimeout', true, false,
-      {fieldValueFN: this.getConnectionTimeout.bind(this)});
-    this.addColumnFeqH(DataType.NumericInteger, 'toBeAnswered', true, false,
-      {fieldValueFN: this.getToBeAnsweredCount.bind(this)});
-    this.addColumnFeqH(DataType.Numeric, 'answerExpected', true, false,
-      {fieldValueFN: this.getAnswerExpectedCount.bind(this)});
+    this.addColumnFeqH(DataType.String, 'serverOnline', true, false, {
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumnFeqH(DataType.Boolean, 'serverBusy', true, false, {
+      templateName: 'check'
+    });
+    this.addColumnFeqH(DataType.Boolean, 'allowServerCreation', true, false, {
+      templateName: 'check'
+    });
+    this.addColumnFeqH(DataType.Boolean, 'authorized', true, false, {
+      templateName: 'check',
+      fieldValueFN: this.isAuthorizedRemote.bind(this)
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'connectionTimeout', true, false, {
+      fieldValueFN: this.getConnectionTimeout.bind(this)
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'toBeAnswered', true, false, {
+      fieldValueFN: this.getToBeAnsweredCount.bind(this)
+    });
+    this.addColumnFeqH(DataType.Numeric, 'answerExpected', true, false, {
+      fieldValueFN: this.getAnswerExpectedCount.bind(this)
+    });
 
-    this.multiSortMeta.push({field: this.domainRemoteName, order: 1});
+    this.multiSortMeta.push({ field: this.domainRemoteName, order: 1 });
     this.prepareTableAndTranslate();
   }
 
   override prepareCallParam(entity: GTNet): void {
     this.callParam = {
       gtNet: entity,
-      isMyEntry: this.gtNetList.length === 0 || !!entity && this.isMyEntry(entity, null),
+      isMyEntry: this.gtNetList.length === 0 || (!!entity && this.isMyEntry(entity, null)),
       exchangeKindTypes: this.exchangeKindTypes
     };
   }
 
   protected override readData(): void {
-    const observable = [this.gtNetService.getAllGTNetsWithMessages(),
-      ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])];
+    const observable = [
+      this.gtNetService.getAllGTNetsWithMessages(),
+      ...(!this.formDefinitions ? [this.gtNetMessageService.getAllFormDefinitionsWithClass()] : [])
+    ];
 
-    combineLatest(observable).subscribe((data,) => {
+    combineLatest(observable).subscribe((data) => {
       const response = <GTNetWithMessages>data[0];
       this.gtNetList = response.gtNetList;
       this.exchangeKindTypes = response.exchangeKindTypes || [];
@@ -248,40 +287,47 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   private addSyncableKindColumns(): void {
-    this.dynamicKindFields.forEach(f => {
+    this.dynamicKindFields.forEach((f) => {
       const idx = this.fields.indexOf(f);
       if (idx >= 0) {
         this.fields.splice(idx, 1);
       }
     });
     this.dynamicKindFields = [];
-    for (const kind of this.exchangeKindTypes.filter(k => k.syncable)) {
+    for (const kind of this.exchangeKindTypes.filter((k) => k.syncable)) {
       this.dynamicKindFields.push(
-        this.addColumn(DataType.String, `accept_${kind.name}`, 'ACCEPT_REQUEST', true, false,
-          {translateValues: TranslateValue.NORMAL, headerGroupKey: kind.name}),
-        this.addColumn(DataType.String, `serverState_${kind.name}`, 'SERVER_STATE', true, false,
-          {translateValues: TranslateValue.NORMAL, headerGroupKey: kind.name}),
-        this.addColumn(DataType.NumericInteger, `maxLimit_${kind.name}`, 'GT_NET_MAX_LIMIT', true, false,
-          {headerGroupKey: kind.name})
+        this.addColumn(DataType.String, `accept_${kind.name}`, 'ACCEPT_REQUEST', true, false, {
+          translateValues: TranslateValue.NORMAL,
+          headerGroupKey: kind.name
+        }),
+        this.addColumn(DataType.String, `serverState_${kind.name}`, 'SERVER_STATE', true, false, {
+          translateValues: TranslateValue.NORMAL,
+          headerGroupKey: kind.name
+        }),
+        this.addColumn(DataType.NumericInteger, `maxLimit_${kind.name}`, 'GT_NET_MAX_LIMIT', true, false, {
+          headerGroupKey: kind.name
+        })
       );
     }
   }
 
   private mapGTNetEntityToGTNet(): void {
-    const syncableKinds = this.exchangeKindTypes.filter(k => k.syncable);
-    const syncableValues = new Set(syncableKinds.map(k => k.value));
-    this.gtNetList.forEach(gtNet => gtNet.gtNetEntities.forEach(e => {
-      const kindValue = typeof e.entityKind === 'number' ? e.entityKind : Number(e.entityKind);
-      if (!syncableValues.has(kindValue)) {
-        return;
-      }
-      const kindName = this.exchangeKindTypes.find(k => k.value === kindValue)?.name ?? String(kindValue);
-      const acceptRequestName = typeof e.acceptRequest === 'number'
-        ? AcceptRequestTypes[e.acceptRequest] : e.acceptRequest;
-      gtNet[`accept_${kindName}`] = acceptRequestName;
-      gtNet[`serverState_${kindName}`] = e.serverState;
-      gtNet[`maxLimit_${kindName}`] = e.maxLimit;
-    }));
+    const syncableKinds = this.exchangeKindTypes.filter((k) => k.syncable);
+    const syncableValues = new Set(syncableKinds.map((k) => k.value));
+    this.gtNetList.forEach((gtNet) =>
+      gtNet.gtNetEntities.forEach((e) => {
+        const kindValue = typeof e.entityKind === 'number' ? e.entityKind : Number(e.entityKind);
+        if (!syncableValues.has(kindValue)) {
+          return;
+        }
+        const kindName = this.exchangeKindTypes.find((k) => k.value === kindValue)?.name ?? String(kindValue);
+        const acceptRequestName =
+          typeof e.acceptRequest === 'number' ? AcceptRequestTypes[e.acceptRequest] : e.acceptRequest;
+        gtNet[`accept_${kindName}`] = acceptRequestName;
+        gtNet[`serverState_${kindName}`] = e.serverState;
+        gtNet[`maxLimit_${kindName}`] = e.maxLimit;
+      })
+    );
   }
 
   isAuthorizedRemote(dataobject: any, field: ColumnConfig, valueField: any): boolean {
@@ -290,18 +336,19 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   public override getEditMenuItems(): MenuItem[] {
     const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
-    menuItems.push({separator: true});
+    menuItems.push({ separator: true });
     menuItems.push({
       label: 'GT_NET_CONFIG_EDIT' + BaseSettings.DIALOG_MENU_SUFFIX,
       command: (e) => this.editConfig(),
       disabled: !this.selectedEntity?.gtNetConfig
     });
-    menuItems.push({separator: true});
+    menuItems.push({ separator: true });
     menuItems.push({
-      label: 'GT_NET_MESSAGE_SEND', command: (e) => this.sendMsg(),
+      label: 'GT_NET_MESSAGE_SEND',
+      command: (e) => this.sendMsg(),
       disabled: !this.canSendMessage()
     });
-    menuItems.push({separator: true});
+    menuItems.push({ separator: true });
     menuItems.push({
       label: 'GT_NET_CHECK_STATUS_NOW',
       command: () => this.checkPeerStatusNow(),
@@ -314,7 +361,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     const id = this.selectedEntity.idGtNet;
     this.gtNetService.checkPeerStatus(id).subscribe({
       next: (updated) => {
-        const idx = this.gtNetList.findIndex(g => g.idGtNet === id);
+        const idx = this.gtNetList.findIndex((g) => g.idGtNet === id);
         if (idx >= 0) {
           this.gtNetList[idx] = updated;
           this.mapGTNetEntityToGTNet();
@@ -346,7 +393,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
    * Required for sending ALL broadcast messages.
    */
   private hasAuthorizedRemoteEntry(): boolean {
-    return this.gtNetList?.some(gtNet => this.isAuthorizedRemoteEntry(gtNet)) ?? false;
+    return this.gtNetList?.some((gtNet) => this.isAuthorizedRemoteEntry(gtNet)) ?? false;
   }
 
   private isAuthorizedRemoteEntry(gtNet: GTNet): boolean {
@@ -357,8 +404,15 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     // Broadcast mode: no selection OR own peer selected (broadcast codes describe own server status)
     const isAllMessage = !this.selectedEntity || this.selectedEntity.idGtNet === this.gtNetMyEntryId;
     const idGTNet = this.selectedEntity?.idGtNet ?? null;
-    this.msgCallParam = new MsgCallParam(this.formDefinitions, idGTNet, null, null, isAllMessage, null,
-      this.idOpenDiscontinuedMessage);
+    this.msgCallParam = new MsgCallParam(
+      this.formDefinitions,
+      idGTNet,
+      null,
+      null,
+      isAllMessage,
+      null,
+      this.idOpenDiscontinuedMessage
+    );
     // Exclude admin messages - they should only be sent from GTNetAdminMessagesComponent
     this.msgCallParam.excludeAdminMessages = true;
     // Pass target peer and context for state-aware filtering
@@ -426,7 +480,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   private clearTreeTableSelection(): void {
     // Use setTimeout to ensure the tree table component is rendered after data update
     setTimeout(() => {
-      this.messageTreeTables?.forEach(treeTable => treeTable.clearSelection());
+      this.messageTreeTables?.forEach((treeTable) => treeTable.clearSelection());
     });
   }
 
@@ -519,7 +573,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   /** Check if any GTNetEntity has a GTNetConfigEntity */
   hasConfigEntity(row: GTNet): boolean {
-    return row.gtNetEntities?.some(entity => entity.gtNetConfigEntity != null) ?? false;
+    return row.gtNetEntities?.some((entity) => entity.gtNetConfigEntity != null) ?? false;
   }
 
   protected override prepareShowMenu(): MenuItem[] {
@@ -527,8 +581,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       return null;
     }
     const menuItems: MenuItem[] = [
-      {label: 'GT_NET_EXPORT', command: () => this.exportGTNet()},
-      {label: 'GT_NET_IMPORT', command: () => this.openImportDialog()}
+      { label: 'GT_NET_EXPORT', command: () => this.exportGTNet() },
+      { label: 'GT_NET_IMPORT', command: () => this.openImportDialog() }
     ];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
@@ -552,7 +606,15 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
         return this.gtNetService.importGTNetData(formData);
       }
     };
-    this.fileUploadParam = new FileUploadParam(HelpIds.HELP_GT_NET, null, 'sql', 'GT_NET_IMPORT', false, uploadService, 0);
+    this.fileUploadParam = new FileUploadParam(
+      HelpIds.HELP_GT_NET,
+      null,
+      'sql',
+      'GT_NET_IMPORT',
+      false,
+      uploadService,
+      0
+    );
     this.visibleUploadDialog = true;
   }
 
@@ -562,5 +624,4 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       this.readData();
     }
   }
-
 }

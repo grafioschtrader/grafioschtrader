@@ -1,15 +1,15 @@
-import {SecuritycurrencySearchBase} from '../../securitycurrency/component/securitycurrency.search.base';
-import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {TenantLimit} from '../../shared/types/tenant.limit';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MultipleRequestToOneService} from '../../shared/service/multiple.request.to.one.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {SecuritycurrencySearch} from '../../entities/search/securitycurrency.search';
-import {CorrelationSetAddInstrumentTableComponent} from './correlation-set-add-instrument-table.component';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { SecuritycurrencySearchBase } from '../../securitycurrency/component/securitycurrency.search.base';
+import { Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MultipleRequestToOneService } from '../../shared/service/multiple.request.to.one.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
+import { CorrelationSetAddInstrumentTableComponent } from './correlation-set-add-instrument-table.component';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Search dialog component for adding existing securities or currency pairs to a correlation set.
@@ -17,27 +17,30 @@ import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-fo
  * Handles the complete workflow from search criteria input to instrument selection and addition.
  */
 @Component({
-    selector: 'correlation-add-instrument',
-    template: `
-    <p-dialog header="{{'ADD_EXISTING_SECURITY' | translate}}" [visible]="visibleAddInstrumentDialog"
-              [style]="{width: '720px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <p class="big-size">{{'SEARCH_DIALOG_HELP' | translate}}</p>
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #dynamicFormComponent="dynamicForm" (submitBt)="submit($event)">
+  selector: 'correlation-add-instrument',
+  template: `
+    <p-dialog
+      header="{{ 'ADD_EXISTING_SECURITY' | translate }}"
+      [visible]="visibleAddInstrumentDialog"
+      [style]="{ width: '720px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <p class="big-size">{{ 'SEARCH_DIALOG_HELP' | translate }}</p>
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #dynamicFormComponent="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
-      <br/>
-      <correlation-set-add-instrument-table [tenantLimits]="tenantLimits">
-      </correlation-set-add-instrument-table>
+      <br />
+      <correlation-set-add-instrument-table [tenantLimits]="tenantLimits"> </correlation-set-add-instrument-table>
     </p-dialog>
   `,
-    imports: [
-      TranslateModule,
-      DialogModule,
-      DynamicFormComponent,
-      CorrelationSetAddInstrumentTableComponent
-    ],
-    standalone: true
+  imports: [TranslateModule, DialogModule, DynamicFormComponent, CorrelationSetAddInstrumentTableComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: true
 })
 export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBase {
   /** Controls the visibility state of the add instrument dialog */
@@ -50,7 +53,8 @@ export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBas
   @Input() tenantLimits: TenantLimit[];
 
   /** Reference to the child table component that displays and manages instrument selection */
-  @ViewChild(CorrelationSetAddInstrumentTableComponent) csaitc: CorrelationSetAddInstrumentTableComponent;
+  @ViewChild(CorrelationSetAddInstrumentTableComponent)
+  csaitc: CorrelationSetAddInstrumentTableComponent;
 
   /** Event emitter that notifies parent component when dialog is closed with action data */
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
@@ -62,9 +66,11 @@ export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBas
    * @param multipleRequestToOneService Service for handling multiple concurrent requests efficiently
    * @param translateService Angular translation service for internationalization support
    */
-  constructor(gps: GlobalparameterService,
-              multipleRequestToOneService: MultipleRequestToOneService,
-              translateService: TranslateService) {
+  constructor(
+    gps: GlobalparameterService,
+    multipleRequestToOneService: MultipleRequestToOneService,
+    translateService: TranslateService
+  ) {
     super(true, gps, multipleRequestToOneService, translateService);
   }
 
@@ -102,5 +108,4 @@ export class CorrelationAddInstrumentComponent extends SecuritycurrencySearchBas
   childLoadData(securitycurrencySearch: SecuritycurrencySearch): void {
     this.csaitc.loadData(this.idCorrelationSet, securitycurrencySearch);
   }
-
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 . ~/gtvar.sh
 cd $builddir/grafioschtrader/frontend
-npm install
+npm ci
 memorytotal="$(free -m | awk '/^Mem|Speicher/ { print $2}')"
 if (($memorytotal>=3700 && memorytotal<=4048))
   then

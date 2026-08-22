@@ -1,29 +1,32 @@
-import {Component, Injector, OnInit} from '@angular/core';
-import {PageFirstRowSelectedRow, ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {TranslateService} from '@ngx-translate/core';
-import {TransactionService} from '../../transaction/service/transaction.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {Transaction} from '../../entities/transaction';
-import {Currencypair} from '../../entities/currencypair';
-import {combineLatest, Observable} from 'rxjs';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {TransactionTable} from '../../transaction/component/transaction.table';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {CashTransferRelinkResult} from '../../transaction/service/transaction.service';
-import {CommonModule} from '@angular/common';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {TransactionCashaccountEditSingleComponent} from '../../transaction/component/transaction-cashaccount-editsingle.component';
-import {TransactionCashaccountEditDoubleComponent} from '../../transaction/component/transaction-cashaccount-editdouble.component';
-import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
-import {TransactionCashaccountConnectDebitCreditComponent} from '../../transaction/component/transaction-cashaccount-connect-debit-credit-component';
-import {StandingOrderCashaccountEditComponent} from '../../standingorder/component/standing-order-cashaccount-edit.component';
-import {StandingOrderSecurityEditComponent} from '../../standingorder/component/standing-order-security-edit.component';
+import { Component, Injector, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {
+  PageFirstRowSelectedRow,
+  ParentChildRegisterService
+} from '../../shared/service/parent.child.register.service';
+import { TranslateService } from '@ngx-translate/core';
+import { TransactionService } from '../../transaction/service/transaction.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Transaction } from '../../entities/transaction';
+import { Currencypair } from '../../entities/currencypair';
+import { combineLatest, Observable } from 'rxjs';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { TransactionTable } from '../../transaction/component/transaction.table';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { CashTransferRelinkResult } from '../../transaction/service/transaction.service';
+import { CommonModule } from '@angular/common';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
+import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
+import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { TransactionCashaccountConnectDebitCreditComponent } from '../../transaction/component/transaction-cashaccount-connect-debit-credit-component';
+import { StandingOrderCashaccountEditComponent } from '../../standingorder/component/standing-order-cashaccount-edit.component';
+import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
 
 /**
  * Angular component that displays all financial transactions for a tenant in a comprehensive table view. This component
@@ -33,21 +36,21 @@ import {StandingOrderSecurityEditComponent} from '../../standingorder/component/
  * original and main currency formats.
  */
 @Component({
-    templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
-    standalone: true,
-    imports: [
-      CommonModule,
-      ConfigurableTableComponent,
-      TransactionCashaccountEditSingleComponent,
-      TransactionCashaccountEditDoubleComponent,
-      TransactionSecurityEditComponent,
-      TransactionCashaccountConnectDebitCreditComponent,
-      StandingOrderCashaccountEditComponent,
-      StandingOrderSecurityEditComponent
-    ]
+  templateUrl: '../../transaction/view/transaction.cashaccount.table.html',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    ConfigurableTableComponent,
+    TransactionCashaccountEditSingleComponent,
+    TransactionCashaccountEditDoubleComponent,
+    TransactionSecurityEditComponent,
+    TransactionCashaccountConnectDebitCreditComponent,
+    StandingOrderCashaccountEditComponent,
+    StandingOrderSecurityEditComponent
+  ]
 })
 export class TenantTransactionTableComponent extends TransactionTable implements OnInit {
-
   /**
    * Creates a new tenant transaction table component with all necessary services for transaction management and display.
    *
@@ -62,19 +65,32 @@ export class TenantTransactionTableComponent extends TransactionTable implements
    * @param gps Global parameter service for application-wide settings and configuration
    * @param usersettingsService Service for managing user-specific settings and preferences
    */
-  constructor(currencypairService: CurrencypairService,
-              parentChildRegisterService: ParentChildRegisterService,
-              activePanelService: ActivePanelService,
-              transactionService: TransactionService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(currencypairService, parentChildRegisterService, activePanelService, transactionService, confirmationService,
-      messageToastService, filterService, translateService, gps, usersettingsService, injector);
+  constructor(
+    currencypairService: CurrencypairService,
+    parentChildRegisterService: ParentChildRegisterService,
+    activePanelService: ActivePanelService,
+    transactionService: TransactionService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      currencypairService,
+      parentChildRegisterService,
+      activePanelService,
+      transactionService,
+      confirmationService,
+      messageToastService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   /**
@@ -82,7 +98,7 @@ export class TenantTransactionTableComponent extends TransactionTable implements
    * Sets up default sort order by transaction time in descending order.
    */
   ngOnInit(): void {
-    this.multiSortMeta.push({field: 'transactionTime', order: -1});
+    this.multiSortMeta.push({ field: 'transactionTime', order: -1 });
     this.prepareTableAndTranslate();
     this.initialize();
   }
@@ -108,15 +124,18 @@ export class TenantTransactionTableComponent extends TransactionTable implements
 
   /** Asks for confirmation, runs the transfer relink on the backend and reports the result counts. */
   private handleConnectCashTransfers(): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONNECT_CASH_TRANSFERS',
-      () => this.transactionService.connectCashTransfers().subscribe((result: CashTransferRelinkResult) => {
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONNECT_CASH_TRANSFERS', () =>
+      this.transactionService.connectCashTransfers().subscribe((result: CashTransferRelinkResult) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'CONNECT_CASH_TRANSFERS_RESULT', {
-          linkedPairs: result.linkedPairs, ambiguous: result.ambiguous, failed: result.failed
+          linkedPairs: result.linkedPairs,
+          ambiguous: result.ambiguous,
+          failed: result.failed
         });
         if (result.linkedPairs > 0) {
           this.initialize();
         }
-      }));
+      })
+    );
   }
 
   /**
@@ -124,18 +143,22 @@ export class TenantTransactionTableComponent extends TransactionTable implements
    * pair information. Sets up table pagination and filtering capabilities after data is loaded.
    */
   protected initialize(): void {
-    const transactionsObservable: Observable<Transaction[]> =
-      this.transactionService.getTransactionByTenant();
-    const currencypairObservable: Observable<Currencypair[]> = this.currencypairService
-      .getCurrencypairInTransactionByTenant();
+    const transactionsObservable: Observable<Transaction[]> = this.transactionService.getTransactionByTenant();
+    const currencypairObservable: Observable<Currencypair[]> =
+      this.currencypairService.getCurrencypairInTransactionByTenant();
     this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(0, this.selectedTransaction);
-    combineLatest([transactionsObservable, currencypairObservable]).subscribe((result: [Transaction[], Currencypair[]] ) => {
-      this.cashaccountTransactionPositions = this.addCurrencypairToTransaction(result[0], result[1]);
-      this.prepareFilter(this.cashaccountTransactionPositions);
-      setTimeout(() => this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(this.firstRowIndexOnPage,
-        this.selectedTransaction));
-
-    });
+    combineLatest([transactionsObservable, currencypairObservable]).subscribe(
+      (result: [Transaction[], Currencypair[]]) => {
+        this.cashaccountTransactionPositions = this.addCurrencypairToTransaction(result[0], result[1]);
+        this.prepareFilter(this.cashaccountTransactionPositions);
+        setTimeout(
+          () =>
+            (this.pageFirstRowSelectedRow = new PageFirstRowSelectedRow(
+              this.firstRowIndexOnPage,
+              this.selectedTransaction
+            ))
+        );
+      }
+    );
   }
-
 }

@@ -1,7 +1,6 @@
-import {Injectable} from '@angular/core';
-import {Subject} from 'rxjs';
-import {ChartData} from '../plotly.helper';
-
+import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
+import { ChartData } from '../plotly.helper';
 
 /**
  * Data can be a large object, because of that, it is not used as parameter in the route. This service is the better
@@ -12,10 +11,8 @@ import {ChartData} from '../plotly.helper';
  */
 @Injectable()
 export class ChartDataService {
-
   // lastCallBackFN: (traceIndex: number, dataPointIndex: number) => void;
   private idShownChart: string = null;
-
 
   private requestFromChart = new Subject<string>();
   requestFromChart$ = this.requestFromChart.asObservable();
@@ -50,6 +47,3 @@ export class ChartDataService {
     this.chartDataChanged.next(chartData);
   }
 }
-
-
-

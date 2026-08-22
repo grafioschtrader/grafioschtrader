@@ -1,41 +1,41 @@
-import {Component} from '@angular/core';
-import {BaseInputComponent} from '../base.input.component';
-import {ReactiveFormsModule} from '@angular/forms';
-import {SelectModule} from '@openng/optimus-ui/select';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {TranslateModule} from '@ngx-translate/core';
-import {FilterOutPipe} from '../../pipe/FilterOutPipe';
-import {UpperCaseDirective} from './upper-case.directive';
-
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { BaseInputComponent } from '../base.input.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+import { FilterOutPipe } from '../../pipe/FilterOutPipe';
+import { UpperCaseDirective } from './upper-case.directive';
 
 /**
  * This Optimus dropdown allows grouping the offered options.
  */
 @Component({
-    selector: 'form-input-dropdown',
+  selector: 'form-input-dropdown',
   template: `
     <ng-container [formGroup]="group">
-      <p-select #input
-                [group]="config.groupItemUseOrLoading"
-                [options]="config.groupItem"
-                optionLabel="value"
-                optionValue="key"
-                optionGroupChildren="children"
-                [filter]="!!config.filter"
-                filterBy="optionsText"
-                [resetFilterOnHide]="true"
-                [id]="config.field" [formControlName]="config.field"
-                [class.required-input]="isRequired"
-                [upperCase]="config.upperCase"
-                scrollHeight="400px"
-                class="p-autocomplete"
-                [style]="{'width':'100%'}"
-                pTooltip="{{config.labelKey + '_TOOLTIP' | translate | filterOut:config.labelKey + '_TOOLTIP'}}">
-
+      <p-select
+        #input
+        [group]="config.groupItemUseOrLoading"
+        [options]="config.groupItem"
+        optionLabel="value"
+        optionValue="key"
+        optionGroupChildren="children"
+        [filter]="!!config.filter"
+        filterBy="optionsText"
+        [resetFilterOnHide]="true"
+        [id]="config.field"
+        [formControlName]="config.field"
+        [class.required-input]="isRequired"
+        [upperCase]="config.upperCase"
+        scrollHeight="400px"
+        class="p-autocomplete"
+        [style]="{ width: '100%' }"
+        pTooltip="{{ config.labelKey + '_TOOLTIP' | translate | filterOut: config.labelKey + '_TOOLTIP' }}">
         <ng-template let-group pTemplate="group">
           <div class="flex align-items-center">
             @if (group.img) {
-              <img src="assets/icons/flag_placeholder.png" [class]="group.img" style="width: 20px"/>
+              <img src="assets/icons/flag_placeholder.png" [class]="group.img" style="width: 20px" />
             }
             <span>{{ group.optionsText }}</span>
           </div>
@@ -44,7 +44,7 @@ import {UpperCaseDirective} from './upper-case.directive';
         <ng-template let-entry pTemplate="item">
           <div class="select-item">
             @if (entry.img) {
-              <img src="assets/icons/flag_placeholder.png" [class]="entry.img" style="width: 20px"/>
+              <img src="assets/icons/flag_placeholder.png" [class]="entry.img" style="width: 20px" />
             }
             @if (entry.iconClass) {
               <i [class]="entry.iconClass" style="width: 20px" aria-hidden="true"></i>
@@ -52,21 +52,11 @@ import {UpperCaseDirective} from './upper-case.directive';
             <div>{{ entry.optionsText }}</div>
           </div>
         </ng-template>
-
       </p-select>
     </ng-container>
   `,
-    imports: [
-    ReactiveFormsModule,
-    SelectModule,
-    TooltipModule,
-    TranslateModule,
-    FilterOutPipe,
-    UpperCaseDirective
-],
-    standalone: true
+  imports: [ReactiveFormsModule, SelectModule, TooltipModule, TranslateModule, FilterOutPipe, UpperCaseDirective],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: true
 })
-
-export class FormInputDropdownComponent extends BaseInputComponent {
-
-}
+export class FormInputDropdownComponent extends BaseInputComponent {}

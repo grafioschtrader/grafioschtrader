@@ -1,24 +1,24 @@
-import {Component, Injector, OnDestroy} from '@angular/core';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {UDFMetadataGeneral, UDFMetadataGeneralParam} from '../model/udf.metadata';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {MessageToastService} from '../../message/message.toast.service';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {UDFMetadataGeneralService} from '../service/udf.metadata.general.service';
-import {HelpIds} from '../../help/help.ids';
-import {UDFMetaTable} from './udf.metadata.table';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {TranslateValue} from '../../datashowbase/column.config';
-import {GlobalSessionNames} from '../../global.session.names';
-import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';
-import {BaseSettings} from '../../base.settings';
-import {CommonModule} from '@angular/common';
-import {AngularSvgIconModule} from 'angular-svg-icon';
-import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
-import {UDFMetadataGeneralEditComponent} from './udf-metadata-general-edit.component';
+import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { UDFMetadataGeneral, UDFMetadataGeneralParam } from '../model/udf.metadata';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { MessageToastService } from '../../message/message.toast.service';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { UDFMetadataGeneralService } from '../service/udf.metadata.general.service';
+import { HelpIds } from '../../help/help.ids';
+import { UDFMetaTable } from './udf.metadata.table';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { TranslateValue } from '../../datashowbase/column.config';
+import { GlobalSessionNames } from '../../global.session.names';
+import { UDFSpecialTypeDisableUserService } from '../service/udf.special.type.disable.user.service';
+import { BaseSettings } from '../../base.settings';
+import { CommonModule } from '@angular/common';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
+import { UDFMetadataGeneralEditComponent } from './udf-metadata-general-edit.component';
 
 /**
  * Table component for managing UDF metadata definitions across multiple entity types.
@@ -27,51 +27,61 @@ import {UDFMetadataGeneralEditComponent} from './udf-metadata-general-edit.compo
  * Users can create custom fields, define data types, and manage field visibility across entity types.
  */
 @Component({
-    // Selector is not used
-    selector: 'udf-metadata-general-table',
-    template: `
-      <div class="data-container-full" (click)="onComponentClick($event)" #cmDiv
-           [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+  // Selector is not used
+  selector: 'udf-metadata-general-table',
+  template: `
+    <div
+      class="data-container-full"
+      (click)="onComponentClick($event)"
+      #cmDiv
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
+      <configurable-table
+        [data]="entityList"
+        [fields]="fields"
+        [dataKey]="entityKeyName"
+        [(selection)]="selectedEntity"
+        [selectionMode]="'single'"
+        [multiSortMeta]="multiSortMeta"
+        [sortMode]="'multiple'"
+        [customSortFn]="customSort.bind(this)"
+        [valueGetterFn]="getValueByPath.bind(this)"
+        [scrollable]="true"
+        [scrollHeight]="'flex'"
+        [stripedRows]="true"
+        [showGridlines]="true"
+        [contextMenuEnabled]="true"
+        [contextMenuItems]="contextMenuItems"
+        [showContextMenu]="isActivated()"
+        [containerClass]="''"
+        (componentClick)="onComponentClick($event)">
+        <h4 caption>{{ entityNameUpper | translate }}</h4>
 
-        <configurable-table
-          [data]="entityList"
-          [fields]="fields"
-          [dataKey]="entityKeyName"
-          [(selection)]="selectedEntity"
-          [selectionMode]="'single'"
-          [multiSortMeta]="multiSortMeta"
-          [sortMode]="'multiple'"
-          [customSortFn]="customSort.bind(this)"
-          [valueGetterFn]="getValueByPath.bind(this)"
-          [scrollable]="true"
-          [scrollHeight]="'flex'"
-          [stripedRows]="true"
-          [showGridlines]="true"
-          [contextMenuEnabled]="true"
-          [contextMenuItems]="contextMenuItems"
-          [showContextMenu]="isActivated()"
-          [containerClass]="''"
-          (componentClick)="onComponentClick($event)">
-
-          <h4 caption>{{ entityNameUpper | translate }}</h4>
-
-          <ng-template #iconCell let-row let-field="field" let-value="value">
-            <svg-icon [name]="value"
-                      [svgStyle]="{ 'width.px':14, 'height.px':14 }"></svg-icon>
-          </ng-template>
-        </configurable-table>
-      </div>
-      @if (visibleDialog) {
-        <udf-metadata-general-edit [visibleDialog]="visibleDialog"
-                                   [callParam]="callParam"
-                                   (closeDialog)="handleCloseDialog($event)">
-        </udf-metadata-general-edit>
-      }
-    `,
-    providers: [DialogService],
-    standalone: true,
-    imports: [CommonModule, TranslateModule, AngularSvgIconModule, ConfigurableTableComponent,
-      UDFMetadataGeneralEditComponent]
+        <ng-template #iconCell let-row let-field="field" let-value="value">
+          <svg-icon [name]="value" [svgStyle]="{ 'width.px': 14, 'height.px': 14 }"></svg-icon>
+        </ng-template>
+      </configurable-table>
+    </div>
+    @if (visibleDialog) {
+      <udf-metadata-general-edit
+        [visibleDialog]="visibleDialog"
+        [callParam]="callParam"
+        (closeDialog)="handleCloseDialog($event)">
+      </udf-metadata-general-edit>
+    }
+  `,
+  providers: [DialogService],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    AngularSvgIconModule,
+    ConfigurableTableComponent,
+    UDFMetadataGeneralEditComponent
+  ]
 })
 export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGeneral> implements OnDestroy {
   /** Parameters for metadata editing operations including validation exclusions */
@@ -91,7 +101,8 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
    * @param gps - Global parameter service providing user settings and system configuration
    * @param usersettingsService - Service for managing user preferences
    */
-  constructor(udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService,
+  constructor(
+    udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService,
     uDFMetadataGeneralService: UDFMetadataGeneralService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
@@ -101,10 +112,27 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
-    super(UDFMetadataGeneral, udfSpecialTypeDisableUserService, uDFMetadataGeneralService, BaseSettings.UDF_METADATA_GENERAL,
-      confirmationService, messageToastService, activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector);
-    this.addMetadataBaseFields([{field: 'entity', order: 1}, {field: 'uiOrder', order: 1}]);
+    injector: Injector
+  ) {
+    super(
+      UDFMetadataGeneral,
+      udfSpecialTypeDisableUserService,
+      uDFMetadataGeneralService,
+      BaseSettings.UDF_METADATA_GENERAL,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
+    this.addMetadataBaseFields([
+      { field: 'entity', order: 1 },
+      { field: 'uiOrder', order: 1 }
+    ]);
   }
 
   /**
@@ -116,8 +144,9 @@ export class UDFMetadataGeneralTableComponent extends UDFMetaTable<UDFMetadataGe
    */
   protected override addAdditionalFields(beforeOthers: boolean): void {
     if (beforeOthers) {
-      this.addColumnFeqH(DataType.String, 'entity', true, false,
-        {translateValues: TranslateValue.UPPER_CASE});
+      this.addColumnFeqH(DataType.String, 'entity', true, false, {
+        translateValues: TranslateValue.UPPER_CASE
+      });
     }
   }
 

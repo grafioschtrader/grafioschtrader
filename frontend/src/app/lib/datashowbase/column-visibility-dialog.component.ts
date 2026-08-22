@@ -1,10 +1,10 @@
-import {Component} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule} from '@ngx-translate/core';
-import {CheckboxModule} from '@openng/optimus-ui/checkbox';
-import {FormsModule} from '@angular/forms';
-import {DynamicDialogConfig} from '@openng/optimus-ui/dynamicdialog';
-import {ColumnConfig} from './column.config';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { FormsModule } from '@angular/forms';
+import { DynamicDialogConfig } from '@openng/optimus-ui/dynamicdialog';
+import { ColumnConfig } from './column.config';
 
 /**
  * Dialog component for toggling column visibility in tables.
@@ -20,31 +20,32 @@ import {ColumnConfig} from './column.config';
     <div class="column-visibility-list">
       @for (field of toggleableFields; track field.field) {
         <div class="column-visibility-item">
-          <p-checkbox [(ngModel)]="field.visible"
-                      [binary]="true"
-                      [inputId]="'col-' + field.field"/>
+          <p-checkbox [(ngModel)]="field.visible" [binary]="true" [inputId]="'col-' + field.field" />
           <label [for]="'col-' + field.field" class="ms-2">
-            {{field.headerTranslated || field.headerKey}}
+            {{ field.headerTranslated || field.headerKey }}
           </label>
         </div>
       }
     </div>
   `,
-  styles: [`
-    .column-visibility-list {
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    .column-visibility-item {
-      display: flex;
-      align-items: center;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid var(--surface-border);
-    }
-    .column-visibility-item:last-child {
-      border-bottom: none;
-    }
-  `]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styles: [
+    `
+      .column-visibility-list {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .column-visibility-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--surface-border);
+      }
+      .column-visibility-item:last-child {
+        border-bottom: none;
+      }
+    `
+  ]
 })
 export class ColumnVisibilityDialogComponent {
   private fields: ColumnConfig[] = [];
@@ -57,6 +58,6 @@ export class ColumnVisibilityDialogComponent {
    * Returns only the fields that can have their visibility toggled by the user.
    */
   get toggleableFields(): ColumnConfig[] {
-    return this.fields.filter(f => f.changeVisibility);
+    return this.fields.filter((f) => f.changeVisibility);
   }
 }

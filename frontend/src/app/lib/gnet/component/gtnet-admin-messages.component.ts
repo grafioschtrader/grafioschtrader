@@ -1,31 +1,38 @@
-import {Component, Injector, QueryList, ViewChildren} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
-import {GTNet, GTNetWithMessages} from '../model/gtnet';
-import {getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MessageVisibility, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
-import {GTNetService} from '../service/gtnet.service';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {MessageToastService} from '../../message/message.toast.service';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {HelpIds} from '../../help/help.ids';
-import {GTNetMessageTreeTableComponent} from './gtnet-message-treetable.component';
-import {combineLatest} from 'rxjs';
-import {GTNetMessageService} from '../service/gtnet.message.service';
-import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {BaseSettings} from '../../base.settings';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
-import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
-import {ProcessedAction} from '../../types/processed.action';
-import {ProcessedActionData} from '../../types/processed.action.data';
+import { Component, Injector, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { GTNet, GTNetWithMessages } from '../model/gtnet';
+import {
+  getValidResponseCodes,
+  GTNetMessage,
+  GTNetMessageCodeType,
+  MessageVisibility,
+  MsgCallParam,
+  SendReceivedType
+} from '../model/gtnet.message';
+import { GTNetService } from '../service/gtnet.service';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { MessageToastService } from '../../message/message.toast.service';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { HelpIds } from '../../help/help.ids';
+import { GTNetMessageTreeTableComponent } from './gtnet-message-treetable.component';
+import { combineLatest } from 'rxjs';
+import { GTNetMessageService } from '../service/gtnet.message.service';
+import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
+import { BaseSettings } from '../../base.settings';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { GTNetMessageEditComponent } from './gtnet-message-edit.component';
+import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
+import { ProcessedAction } from '../../types/processed.action';
+import { ProcessedActionData } from '../../types/processed.action.data';
 
 /**
  * Component for displaying admin-only messages in a dedicated tab.
@@ -54,7 +61,11 @@ import {ProcessedActionData} from '../../types/processed.action.data';
       [(selection)]="selectedEntities"
       [contextMenuItems]="contextMenuItems"
       [showContextMenu]="true"
-      [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container-full': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       [expandable]="true"
       [expandedRowTemplate]="expandedRow"
       [canExpandFn]="canExpand.bind(this)"
@@ -63,9 +74,7 @@ import {ProcessedActionData} from '../../types/processed.action.data';
       [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)"
       (rowExpand)="onRowExpand($event)">
-
       <h4 caption>{{ 'GT_NET_ADMIN_MESSAGES' | translate }}</h4>
-
     </configurable-table>
 
     <ng-template #expandedRow let-row>
@@ -74,12 +83,13 @@ import {ProcessedActionData} from '../../types/processed.action.data';
           <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
         </div>
       } @else if (gtNetMessageMap[row.idGtNet]?.length) {
-        <gtnet-message-treetable [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
-                                 [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
-                                 [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
-                                 [formDefinitions]="formDefinitions"
-                                 [showFilter]="false"
-                                 (dataChanged)="onTreeTableDataChanged($event)">
+        <gtnet-message-treetable
+          [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
+          [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
+          [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
+          [formDefinitions]="formDefinitions"
+          [showFilter]="false"
+          (dataChanged)="onTreeTableDataChanged($event)">
         </gtnet-message-treetable>
       } @else {
         <div style="padding: 1rem; text-align: center; color: #888;">
@@ -89,16 +99,19 @@ import {ProcessedActionData} from '../../types/processed.action.data';
     </ng-template>
 
     @if (visibleDialogMsg) {
-      <gtnet-message-edit [visibleDialog]="visibleDialogMsg"
-                          [msgCallParam]="msgCallParam"
-                          (closeDialog)="handleCloseDialogMsg($event)">
+      <gtnet-message-edit
+        [visibleDialog]="visibleDialogMsg"
+        [msgCallParam]="msgCallParam"
+        (closeDialog)="handleCloseDialogMsg($event)">
       </gtnet-message-edit>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
 export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
-  @ViewChildren(GTNetMessageTreeTableComponent) messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
+  @ViewChildren(GTNetMessageTreeTableComponent)
+  messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
 
   private readonly domainRemoteName = 'domainRemoteName';
   gtNetList: GTNet[] = [];
@@ -123,7 +136,8 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   /** Whether current user has admin role (only admins can send admin messages) */
   private isUserAdmin: boolean;
 
-  constructor(private gtNetService: GTNetService,
+  constructor(
+    private gtNetService: GTNetService,
     private gtNetMessageService: GTNetMessageService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
@@ -133,24 +147,43 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
-
+    injector: Injector
+  ) {
     // No CRUD options - this is a read-only view for GTNet entities
-    super(BaseSettings.GT_NET, gtNetService, confirmationService, messageToastService, activePanelService,
-      dialogService, filterService, translateService, gps, usersettingsService, injector, []);
+    super(
+      BaseSettings.GT_NET,
+      gtNetService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector,
+      []
+    );
 
     this.isUserAdmin = gps.hasRole(BaseSettings.ROLE_ADMIN);
 
-    this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false,
-      {width: 200, templateName: 'owner'});
-    this.addColumnFeqH(DataType.String, 'timeZone', true, false, {width: 120});
-    this.addColumn(DataType.NumericInteger, 'adminMessageCount', 'GT_NET_ADMIN_MESSAGE_COUNT', true, false,
-      {fieldValueFN: this.getAdminMessageCount.bind(this)});
-    this.addColumnFeqH(DataType.NumericInteger, 'toBeAnswered', true, false,
-      {fieldValueFN: this.getToBeAnsweredCount.bind(this)});
-    this.addColumnFeqH(DataType.Numeric, 'answerExpected', true, false,
-      {fieldValueFN: this.getAnswerExpectedCount.bind(this)});
-    this.multiSortMeta.push({field: this.domainRemoteName, order: 1});
+    this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false, {
+      width: 200,
+      templateName: 'owner'
+    });
+    this.addColumnFeqH(DataType.String, 'timeZone', true, false, {
+      width: 120
+    });
+    this.addColumn(DataType.NumericInteger, 'adminMessageCount', 'GT_NET_ADMIN_MESSAGE_COUNT', true, false, {
+      fieldValueFN: this.getAdminMessageCount.bind(this)
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'toBeAnswered', true, false, {
+      fieldValueFN: this.getToBeAnsweredCount.bind(this)
+    });
+    this.addColumnFeqH(DataType.Numeric, 'answerExpected', true, false, {
+      fieldValueFN: this.getAnswerExpectedCount.bind(this)
+    });
+    this.multiSortMeta.push({ field: this.domainRemoteName, order: 1 });
     this.prepareTableAndTranslate();
   }
 
@@ -191,8 +224,8 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
       this.loadingMessageIds.clear();
 
       // Re-populate messages for previously expanded rows
-      previouslyLoadedIds.forEach(idGtNet => {
-        const messages = this.allAdminMessages.filter(msg => msg.idGtNet === idGtNet);
+      previouslyLoadedIds.forEach((idGtNet) => {
+        const messages = this.allAdminMessages.filter((msg) => msg.idGtNet === idGtNet);
         if (messages.length > 0) {
           this.gtNetMessageMap[idGtNet] = messages;
           this.loadedMessageIds.add(idGtNet);
@@ -214,13 +247,13 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
     // Build a set of message IDs that have been replied to
     const repliedToIds = new Set<number>();
-    this.allAdminMessages.forEach(msg => {
+    this.allAdminMessages.forEach((msg) => {
       if (msg.replyTo != null) {
         repliedToIds.add(msg.replyTo);
       }
     });
 
-    this.allAdminMessages.forEach(msg => {
+    this.allAdminMessages.forEach((msg) => {
       // Check if this message type supports replies
       const validResponses = getValidResponseCodes(msg.messageCode);
       if (validResponses.length === 0) {
@@ -231,7 +264,8 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
         return;
       }
       const idGtNet = msg.idGtNet;
-      const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
+      const isReceived =
+        msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
       if (isReceived) {
         // Incoming message I need to answer (can be root or reply)
         this.incomingPendingReplies[idGtNet] ??= [];
@@ -255,7 +289,8 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     // Only admins can send admin messages
     if (this.isUserAdmin) {
       menuItems.push({
-        label: 'GT_NET_ADMIN_MESSAGE_SEND', command: (e) => this.sendAdminMsg(),
+        label: 'GT_NET_ADMIN_MESSAGE_SEND',
+        command: (e) => this.sendAdminMsg(),
         disabled: this.selectedEntities.length === 0
       });
     }
@@ -268,13 +303,11 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
    * - Only includes entries with completed handshake (gtNetConfig exists)
    */
   getFilteredGtNetList(): GTNet[] {
-    return this.gtNetList.filter(gtNet =>
-      gtNet.idGtNet !== this.gtNetMyEntryId && gtNet.gtNetConfig != null
-    );
+    return this.gtNetList.filter((gtNet) => gtNet.idGtNet !== this.gtNetMyEntryId && gtNet.gtNetConfig != null);
   }
 
   private sendAdminMsg(): void {
-    const targetIds = this.selectedEntities.map(e => e.idGtNet);
+    const targetIds = this.selectedEntities.map((e) => e.idGtNet);
     this.msgCallParam = new MsgCallParam(this.formDefinitions, null, null, null, false, null, null);
     this.msgCallParam.targetIds = targetIds;
     this.msgCallParam.preselectedMessageCode = GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C;
@@ -309,7 +342,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
       // Filter admin messages for this GTNet from already loaded data
       setTimeout(() => {
-        this.gtNetMessageMap[idGtNet] = this.allAdminMessages.filter(msg => msg.idGtNet === idGtNet);
+        this.gtNetMessageMap[idGtNet] = this.allAdminMessages.filter((msg) => msg.idGtNet === idGtNet);
         this.loadedMessageIds.add(idGtNet);
         this.loadingMessageIds.delete(idGtNet);
         this.clearTreeTableSelection();
@@ -322,7 +355,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
    */
   private clearTreeTableSelection(): void {
     setTimeout(() => {
-      this.messageTreeTables?.forEach(treeTable => treeTable.clearSelection());
+      this.messageTreeTables?.forEach((treeTable) => treeTable.clearSelection());
     });
   }
 

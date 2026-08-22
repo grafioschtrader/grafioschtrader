@@ -1,5 +1,4 @@
-import {WeekYear} from '../service/holding.service';
-
+import { WeekYear } from '../service/holding.service';
 
 export interface PerformancePeriod {
   periodSplit: WeekYear | string;
@@ -18,8 +17,10 @@ export interface PeriodWindow {
 }
 
 export class PeriodWindowWithField {
-  constructor(public showField: string, public periodWindow: PeriodWindow) {
-  }
+  constructor(
+    public showField: string,
+    public periodWindow: PeriodWindow
+  ) {}
 }
 
 export interface PeriodStepMissingHoliday {

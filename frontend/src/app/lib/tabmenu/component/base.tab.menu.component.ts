@@ -1,11 +1,10 @@
-import {Directive, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {Subscription} from 'rxjs';
-import {filter} from 'rxjs/operators';
-import {TabItem} from '../../types/tab.item';
-
+import { Directive, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { TabItem } from '../../types/tab.item';
 
 /**
  * Abstract base class for tab menu components using p-tabs
@@ -46,8 +45,7 @@ export abstract class BaseTabMenuComponent implements OnInit, OnDestroy {
     protected router: Router,
     protected activatedRoute: ActivatedRoute,
     protected translateService: TranslateService
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     // Initialize tabs from derived class
@@ -59,7 +57,7 @@ export abstract class BaseTabMenuComponent implements OnInit, OnDestroy {
 
     // Subscribe to router events to track active route
     this.routerSubscription = this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         this.updateActiveRoute();
       });
@@ -80,7 +78,7 @@ export abstract class BaseTabMenuComponent implements OnInit, OnDestroy {
    */
   private updateActiveRoute(): void {
     const currentUrl = this.router.url;
-    const matchingTab = this.tabs.find(tab => currentUrl.includes(tab.route));
+    const matchingTab = this.tabs.find((tab) => currentUrl.includes(tab.route));
 
     if (matchingTab) {
       this.activeRoute = matchingTab.route;

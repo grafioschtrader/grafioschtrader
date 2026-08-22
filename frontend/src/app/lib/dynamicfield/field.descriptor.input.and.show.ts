@@ -1,5 +1,5 @@
-import {DataType} from '../dynamic-form/models/data.type';
-import {FieldFormGroup} from '../dynamic-form/models/form.group.definition';
+import { DataType } from '../dynamic-form/models/data.type';
+import { FieldFormGroup } from '../dynamic-form/models/form.group.definition';
 
 /**
  * Specialized form property helpers that provide UI hints and behaviors for dynamic form generation.
@@ -58,7 +58,7 @@ export class ClassDescriptorInputAndShow {
    * The key is the constraint type (e.g., DateRange), and the value contains the constraint configuration
    * (e.g., {startField: 'fromDateTime', endField: 'toDateTime'} for DateRange).
    */
-  constraintValidatorMap: { [key: string]: any} | Map<ConstraintValidatorType, any>;
+  constraintValidatorMap: { [key: string]: any } | Map<ConstraintValidatorType, any>;
 }
 
 /**
@@ -174,6 +174,9 @@ export class ReplaceFieldWithGroup {
    * @param fieldFormGroup - The form group definition that will replace the simple field
    * @param removeFieldName - The name of the field to remove from the original descriptor list
    */
-  constructor(public replaceFieldName: string, public fieldFormGroup: FieldFormGroup, public removeFieldName: string) {
-  }
+  constructor(
+    public replaceFieldName: string,
+    public fieldFormGroup: FieldFormGroup,
+    public removeFieldName: string
+  ) {}
 }

@@ -10,7 +10,7 @@ export class BaseSettings {
 
   // Native formats
   public static readonly FORMAT_DATE_SHORT_NATIVE = 'YYYY-MM-DD';
-  public static readonly FORMAT_DATE_SHORT_US: string  = 'YYYYMMDD';
+  public static readonly FORMAT_DATE_SHORT_US: string = 'YYYYMMDD';
 
   // Name for Icons
   public static readonly ICONNAME_SQUARE_EMTPY = 'fa fa-square-o';
@@ -24,7 +24,6 @@ export class BaseSettings {
    * For example, a particular property of one of the entities is displayed in bold.
    */
   public static readonly OWNER_TEMPLATE = 'owner';
-
 
   public static FID_MAX_LETTERS = 1000;
 
@@ -64,7 +63,7 @@ export class BaseSettings {
   public static readonly GLOBALPARAMETERS_P_KEY = BaseSettings.GLOBALPARAMETERS.toLowerCase();
 
   public static readonly UDF_METADATA_GENERAL = 'UDFMetadataGeneral';
-  public static readonly UDF_METADATA_GENERAL_KEY = BaseSettings.UDF_METADATA_GENERAL.toLowerCase()
+  public static readonly UDF_METADATA_GENERAL_KEY = BaseSettings.UDF_METADATA_GENERAL.toLowerCase();
 
   public static readonly GLOBAL_SETTINGS_KEY = 'globalsettings';
   public static readonly TASK_DATA_CHANGE_MONITOR_KEY = 'taskdatachangemonitor';
@@ -155,7 +154,7 @@ export class BaseSettings {
     const standardPrecisionMap: { [typename: string]: number } = JSON.parse(sessionStorage.getItem(sessionStorageKey));
     if (standardPrecisionMap) {
       const keys = Object.keys(standardPrecisionMap);
-      keys.forEach(key => {
+      keys.forEach((key) => {
         const value = standardPrecisionMap[key.toString()];
         if (BaseSettings.hasOwnProperty(key)) {
           BaseSettings[key] = value;
@@ -165,5 +164,4 @@ export class BaseSettings {
       });
     }
   }
-
 }

@@ -1,4 +1,4 @@
-import {CreateType} from '../../entities/dividend.split';
+import { CreateType } from '../../entities/dividend.split';
 
 export interface TradingDaysWithDateBoundaries {
   oldestTradingCalendarDay: Date | string;

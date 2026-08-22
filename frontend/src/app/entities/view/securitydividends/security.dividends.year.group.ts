@@ -1,4 +1,4 @@
-import {CashAccountPosition, SecurityDividendsPosition} from './security.dividends.position';
+import { CashAccountPosition, SecurityDividendsPosition } from './security.dividends.position';
 
 /**
  * Group total per year

@@ -26,12 +26,12 @@ A new JPA entity belongs to the module whose code consumes it, and owes two thin
 - `cd backend && mvn clean install -DskipTests` resolves module dependencies after updates. Use `-DskipTests`, not `-Dmaven.test.skip=true`, whenever a later `mvn test -pl <module>` follows: `grafiosch-server-base` publishes its tests as a test-jar and skipping test compilation installs an empty one.
 - `cd backend && mvn package` emits the runnable JAR; export `JASYPT_ENCRYPTOR_PASSWORD` before launching `java -jar grafioschtrader-server/target/...jar`.
 - `cd backend/grafioschtrader-server && mvn jasypt:encrypt -Djasypt.encryptor.password=***` re-encrypts secrets after editing `application.properties`.
-- `cd frontend && npm install` (Node `^20.19.0`, `^22.12.0` or `^24.0.0`) followed by `npm start` runs the proxy-enabled dev server; `npm run buildprod` creates deployment bundles.
+- `cd frontend && npm install` (Node `^22.22.3`, `^24.15.0` or `>=26.0.0`) followed by `npm start` runs the proxy-enabled dev server; `npm run buildprod` creates deployment bundles.
 
 ## Coding Style & Naming Conventions
-Use the Eclipse formatter profiles under `gt-code-style/backend` (4-space indent, braces on new lines) and group packages by domain such as `grafioschtrader.entities`.
+Formatting is applied by tools, not by hand: `cd backend && mvn spotless:apply` for Java, `cd frontend && npm run format` for TypeScript, HTML and SCSS. Java is 2-space indented with braces at end of line, wrapped at 120 characters, as defined by `gt-code-style/backend/eclipse/gt-java-formatting.xml` — the same profile Spring Tools imports and Spotless reads. Group packages by domain such as `grafioschtrader.entities`.
 Favor descriptive `CamelCase` types, `lowerCamelCase` members, and English enum constants; keep DTOs suffixed with `Dto` and repositories with `Repository`.
-For Angular, apply `gt_typescripte_sytle.xml`, stick to 2-space indents, `kebab-case` file names, and suffix artifacts (`*.service.ts`, `*-component.ts`); run `npm run lint` before committing.
+For Angular, Prettier owns the formatting (`frontend/.prettierrc.json`: 2-space indent, single quotes, 120 columns); keep `kebab-case` file names and suffix artifacts (`*.service.ts`, `*-component.ts`). Run `npm run format:check` before committing.
 
 ## Testing Guidelines
 `cd backend && mvn test` runs the JUnit 6 + Spring Boot suites under `src/test/java`. Grafioschtrader REST integration tests are split across the ordered `ResourceTestSuite_1`, `ResourceTestSuite_25`, and `ResourceTestSuite_50` phases; the reusable-library application keeps its `ResourceTestSuite`. All are built from `*ResourceTest` classes, and tests covering the reusable `grafiosch-*` libraries alone belong in `grafiosch-test-integration`.

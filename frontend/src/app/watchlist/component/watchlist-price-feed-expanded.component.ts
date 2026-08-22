@@ -1,14 +1,12 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {TranslateModule} from '@ngx-translate/core';
-import {AccordionModule} from '@openng/optimus-ui/accordion';
-import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
-import {Security} from '../../entities/security';
-import {Currencypair} from '../../entities/currencypair';
-import {SecuritycurrencyExtendedInfoComponent} from './securitycurrency-extended-info.component';
-import {
-  InstrumentStatisticsResultComponent
-} from '../../shared/securitycurrency/instrument-statistics-result.component';
-import {WatchlistExpandedPanelStateService} from '../service/watchlist.expanded.panel.state.service';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
+import { AccordionModule } from '@openng/optimus-ui/accordion';
+import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import { Security } from '../../entities/security';
+import { Currencypair } from '../../entities/currencypair';
+import { SecuritycurrencyExtendedInfoComponent } from './securitycurrency-extended-info.component';
+import { InstrumentStatisticsResultComponent } from '../../shared/securitycurrency/instrument-statistics-result.component';
+import { WatchlistExpandedPanelStateService } from '../service/watchlist.expanded.panel.state.service';
 
 /**
  * Content of an expanded row in the price feed watchlist. It offers the extended instrument information and the
@@ -31,7 +29,11 @@ import {WatchlistExpandedPanelStateService} from '../service/watchlist.expanded.
   template: `
     <p-accordion [multiple]="true" [value]="openPanels" (valueChange)="onPanelsChange($event)">
       <p-accordion-panel [value]="PANEL_INFO">
-        <p-accordion-header><h5>{{ 'EXTENDED_INSTRUMENT_INFO' | translate }}</h5></p-accordion-header>
+        <p-accordion-header
+          ><h5>
+            {{ 'EXTENDED_INSTRUMENT_INFO' | translate }}
+          </h5></p-accordion-header
+        >
         <p-accordion-content>
           @if (isOpen(PANEL_INFO)) {
             <securitycurrency-extended-info
@@ -46,11 +48,16 @@ import {WatchlistExpandedPanelStateService} from '../service/watchlist.expanded.
         </p-accordion-content>
       </p-accordion-panel>
       <p-accordion-panel [value]="PANEL_STATISTICS">
-        <p-accordion-header><h5>{{ 'RETURN_STATISTICAL_DATA' | translate }}</h5></p-accordion-header>
+        <p-accordion-header
+          ><h5>
+            {{ 'RETURN_STATISTICAL_DATA' | translate }}
+          </h5></p-accordion-header
+        >
         <p-accordion-content>
           @if (isOpen(PANEL_STATISTICS)) {
-            <instrument-statistics-result [showTitle]="false"
-                                          [idSecuritycurrency]="position.securitycurrency.idSecuritycurrency">
+            <instrument-statistics-result
+              [showTitle]="false"
+              [idSecuritycurrency]="position.securitycurrency.idSecuritycurrency">
             </instrument-statistics-result>
           }
         </p-accordion-content>
@@ -58,6 +65,7 @@ import {WatchlistExpandedPanelStateService} from '../service/watchlist.expanded.
     </p-accordion>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TranslateModule,
     AccordionModule,
@@ -84,8 +92,7 @@ export class WatchlistPriceFeedExpandedComponent implements OnInit {
    *
    * @param panelStateService Service which remembers the open panels per instrument for the watchlist session
    */
-  constructor(private panelStateService: WatchlistExpandedPanelStateService) {
-  }
+  constructor(private panelStateService: WatchlistExpandedPanelStateService) {}
 
   /**
    * Restores the panels the user had open for this instrument. Without an earlier choice both panels stay closed.

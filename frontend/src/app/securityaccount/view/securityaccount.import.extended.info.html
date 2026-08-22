@@ -1,31 +1,25 @@
 <div class="fcontainer">
   @for (fieldSetName of Object.keys(fieldSetGroups); track fieldSetName) {
-    <fieldset class="out-border fbox">
-      <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
-      @for (field of fieldSetGroups[fieldSetName]; track field) {
-        <div class="row">
-          @if (field.headerTranslated !=='null') {
-            <div class="col-md-5 showlabel text-end">
-              {{field.headerTranslated}}:
-            </div>
-          }
-          <div class="col-md-7 nopadding wrap">
-            @switch (field.templateName) {
-              @case ('check') {
-                <span><i [ngClass]="{'fa fa-check': getValueByPath(combineTemplateAndImpTransPos, field)}"
-                         aria-hidden="true"></i></span>
-              }
-              @case ('icon') {
-                <svg-icon [name]="getValueByPath(combineTemplateAndImpTransPos, field)"
-                          [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
-              }
-              @default {
-                {{getValueByPath(combineTemplateAndImpTransPos, field)}}
-              }
-            }
-          </div>
-        </div>
+  <fieldset class="out-border fbox">
+    <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
+    @for (field of fieldSetGroups[fieldSetName]; track field) {
+    <div class="row">
+      @if (field.headerTranslated !=='null') {
+      <div class="col-md-5 showlabel text-end">{{field.headerTranslated}}:</div>
       }
-    </fieldset>
+      <div class="col-md-7 nopadding wrap">
+        @switch (field.templateName) { @case ('check') {
+        <span
+          ><i [ngClass]="{'fa fa-check': getValueByPath(combineTemplateAndImpTransPos, field)}" aria-hidden="true"></i
+        ></span>
+        } @case ('icon') {
+        <svg-icon
+          [name]="getValueByPath(combineTemplateAndImpTransPos, field)"
+          [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+        } @default { {{getValueByPath(combineTemplateAndImpTransPos, field)}} } }
+      </div>
+    </div>
+    }
+  </fieldset>
   }
 </div>

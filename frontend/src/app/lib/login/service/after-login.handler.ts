@@ -1,4 +1,4 @@
-import {ConfigurationWithLogin} from '../model/configuration-with-login';
+import { ConfigurationWithLogin } from '../model/configuration-with-login';
 
 /**
  * Abstract handler for application-specific post-login actions.

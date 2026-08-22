@@ -1,8 +1,10 @@
 export class ValueKeyHtmlSelectOptions {
   disabled: boolean;
 
-  constructor(public key: number | string, public value: string) {
-  }
+  constructor(
+    public key: number | string,
+    public value: string
+  ) {}
 }
 
 export class GroupItem {
@@ -20,7 +22,11 @@ export class GroupItem {
    *                  font draws through a pseudo element and therefore cannot be carried by img, which renders an
    *                  image element.
    */
-  constructor(public key: number | string, public value: string, public optionsText: string, public img: string,
-    public iconClass?: string) {
-  }
+  constructor(
+    public key: number | string,
+    public value: string,
+    public optionsText: string,
+    public img: string,
+    public iconClass?: string
+  ) {}
 }

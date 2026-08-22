@@ -28,45 +28,39 @@
 </configurable-table>
 
 @if (visibleSecurityTransactionDialog) {
-  <transaction-security-edit (closeDialog)="handleCloseTransactionDialog($event)"
-                             [transactionCallParam]="transactionCallParam"
-                             [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
-  </transaction-security-edit>
-}
-
-@if (visibleCashaccountTransactionSingleDialog) {
-  <transaction-cashaccount-editsingle (closeDialog)="handleCloseTransactionDialog($event)"
-                                      [transactionCallParam]="transactionCallParam"
-                                      [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
-  </transaction-cashaccount-editsingle>
-}
-
-@if (visibleCashaccountTransactionDoubleDialog) {
-  <transaction-cashaccount-editdouble (closeDialog)="handleCloseTransactionDialog($event)"
-                                      [transactionCallParam]="transactionCallParam"
-                                      [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
-  </transaction-cashaccount-editdouble>
-}
-
-@if (visibleConnectDebitCreditDialog) {
-  <transaction-cashaccount-connect-debit-credit (closeDialog)="handleCloseTransactionDialog($event)"
-                                                [transactionCallParam]="transactionCallParam"
-                                                [visibleDialog]="visibleConnectDebitCreditDialog">
-  </transaction-cashaccount-connect-debit-credit>
-}
-
-@if (visibleStandingOrderCashaccountDialog) {
-  <standing-order-cashaccount-edit
-    [visibleDialog]="visibleStandingOrderCashaccountDialog"
-    [callParam]="standingOrderCallParam"
-    (closeDialog)="handleCloseStandingOrderDialog($event)">
-  </standing-order-cashaccount-edit>
-}
-
-@if (visibleStandingOrderSecurityDialog) {
-  <standing-order-security-edit
-    [visibleDialog]="visibleStandingOrderSecurityDialog"
-    [callParam]="standingOrderCallParam"
-    (closeDialog)="handleCloseStandingOrderDialog($event)">
-  </standing-order-security-edit>
+<transaction-security-edit
+  (closeDialog)="handleCloseTransactionDialog($event)"
+  [transactionCallParam]="transactionCallParam"
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+</transaction-security-edit>
+} @if (visibleCashaccountTransactionSingleDialog) {
+<transaction-cashaccount-editsingle
+  (closeDialog)="handleCloseTransactionDialog($event)"
+  [transactionCallParam]="transactionCallParam"
+  [visibleCashaccountTransactionSingleDialog]="visibleCashaccountTransactionSingleDialog">
+</transaction-cashaccount-editsingle>
+} @if (visibleCashaccountTransactionDoubleDialog) {
+<transaction-cashaccount-editdouble
+  (closeDialog)="handleCloseTransactionDialog($event)"
+  [transactionCallParam]="transactionCallParam"
+  [visibleCashaccountTransactionDoubleDialog]="visibleCashaccountTransactionDoubleDialog">
+</transaction-cashaccount-editdouble>
+} @if (visibleConnectDebitCreditDialog) {
+<transaction-cashaccount-connect-debit-credit
+  (closeDialog)="handleCloseTransactionDialog($event)"
+  [transactionCallParam]="transactionCallParam"
+  [visibleDialog]="visibleConnectDebitCreditDialog">
+</transaction-cashaccount-connect-debit-credit>
+} @if (visibleStandingOrderCashaccountDialog) {
+<standing-order-cashaccount-edit
+  [visibleDialog]="visibleStandingOrderCashaccountDialog"
+  [callParam]="standingOrderCallParam"
+  (closeDialog)="handleCloseStandingOrderDialog($event)">
+</standing-order-cashaccount-edit>
+} @if (visibleStandingOrderSecurityDialog) {
+<standing-order-security-edit
+  [visibleDialog]="visibleStandingOrderSecurityDialog"
+  [callParam]="standingOrderCallParam"
+  (closeDialog)="handleCloseStandingOrderDialog($event)">
+</standing-order-security-edit>
 }

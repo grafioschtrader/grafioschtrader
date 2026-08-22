@@ -1,28 +1,28 @@
-import {ParentChildRegisterService} from '../../shared/service/parent.child.register.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TransactionService} from '../service/transaction.service';
-import {Directive, Injector} from '@angular/core';
-import {TransactionContextMenu} from './transaction.context.menu';
-import {FilterType} from '../../lib/datashowbase/filter.type';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {Transaction} from '../../entities/transaction';
-import {Currencypair} from '../../entities/currencypair';
-import {Security} from '../../entities/security';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {TransactionCallParam} from './transaction.call.parm';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {HelpIds} from '../../lib/help/help.ids';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {AppSettings} from '../../shared/app.settings';
-import {BaseSettings} from '../../lib/base.settings';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
+import { ParentChildRegisterService } from '../../shared/service/parent.child.register.service';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { TranslateService } from '@ngx-translate/core';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TransactionService } from '../service/transaction.service';
+import { Directive, Injector } from '@angular/core';
+import { TransactionContextMenu } from './transaction.context.menu';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { Transaction } from '../../entities/transaction';
+import { Currencypair } from '../../entities/currencypair';
+import { Security } from '../../entities/security';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { TransactionCallParam } from './transaction.call.parm';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { HelpIds } from '../../lib/help/help.ids';
+import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { AppSettings } from '../../shared/app.settings';
+import { BaseSettings } from '../../lib/base.settings';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
 import {
   TransactionExportCsvDialogComponent,
   TransactionExportCsvDialogData
@@ -35,7 +35,6 @@ import {
  */
 @Directive()
 export abstract class TransactionTable extends TransactionContextMenu {
-
   /** Array of transaction positions displayed in the cash account table */
   cashaccountTransactionPositions: Transaction[];
 
@@ -54,56 +53,91 @@ export abstract class TransactionTable extends TransactionContextMenu {
    * @param usersettingsService Service for managing user-specific settings and preferences
    */
 
-  protected constructor(protected currencypairService: CurrencypairService,
-              parentChildRegisterService: ParentChildRegisterService,
-              activePanelService: ActivePanelService,
-              transactionService: TransactionService,
-              confirmationService: ConfirmationService,
-              messageToastService: MessageToastService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService,
-              injector: Injector) {
-    super(parentChildRegisterService, activePanelService, transactionService, confirmationService, messageToastService,
-      filterService, translateService, gps, usersettingsService, injector);
+  protected constructor(
+    protected currencypairService: CurrencypairService,
+    parentChildRegisterService: ParentChildRegisterService,
+    activePanelService: ActivePanelService,
+    transactionService: TransactionService,
+    confirmationService: ConfirmationService,
+    messageToastService: MessageToastService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService,
+    injector: Injector
+  ) {
+    super(
+      parentChildRegisterService,
+      activePanelService,
+      transactionService,
+      confirmationService,
+      messageToastService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
 
-    this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false,
-      {width: 60, filterType: FilterType.likeDataType});
+    this.addColumn(DataType.DateNumeric, 'transactionTime', 'DATE', true, false, {
+      width: 60,
+      filterType: FilterType.likeDataType
+    });
     this.addColumn(DataType.String, 'cashaccount.name', AppSettings.CASHACCOUNT.toUpperCase(), true, false, {
       width: 100,
       filterType: FilterType.withOptions
     });
-    this.addColumn(DataType.String, 'cashaccount.currency', 'ACCOUNT_CURRENCY', true, false,
-      {width: 40, filterType: FilterType.withOptions});
-    this.addColumn(DataType.String, 'transactionType', 'TRANSACTION_TYPE', true, false,
-      {width: 100, translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumn(DataType.String, 'security.name', AppSettings.SECURITY.toUpperCase(), true, false,
-      {width: 150, filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.NumericInteger, 'idStandingOrder', true, false,
-      {filterType: FilterType.likeDataType})
-    this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false,
-      {filterType: FilterType.likeDataType});
-    this.addColumn(DataType.Numeric, 'quotation', 'QUOTATION_DIV', true, false,
-      {filterType: FilterType.likeDataType, maxFractionDigits: gps.getMaxFractionDigits()});
-    this.addColumn(DataType.String, 'currencypair.fromCurrency', 'CURRENCY', true, false,
-      {filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.NumericInteger, 'idStandingOrder', true, false,
-      {filterType: FilterType.likeDataType})
-    this.addColumn(DataType.Numeric, 'currencyExRate', 'EXCHANGE_RATE', true, false,
-      {maxFractionDigits: gps.getMaxFractionDigits(), filterType: FilterType.likeDataType});
+    this.addColumn(DataType.String, 'cashaccount.currency', 'ACCOUNT_CURRENCY', true, false, {
+      width: 40,
+      filterType: FilterType.withOptions
+    });
+    this.addColumn(DataType.String, 'transactionType', 'TRANSACTION_TYPE', true, false, {
+      width: 100,
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumn(DataType.String, 'security.name', AppSettings.SECURITY.toUpperCase(), true, false, {
+      width: 150,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'idStandingOrder', true, false, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.Numeric, 'units', 'QUANTITY', true, false, { filterType: FilterType.likeDataType });
+    this.addColumn(DataType.Numeric, 'quotation', 'QUOTATION_DIV', true, false, {
+      filterType: FilterType.likeDataType,
+      maxFractionDigits: gps.getMaxFractionDigits()
+    });
+    this.addColumn(DataType.String, 'currencypair.fromCurrency', 'CURRENCY', true, false, {
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'idStandingOrder', true, false, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.Numeric, 'currencyExRate', 'EXCHANGE_RATE', true, false, {
+      maxFractionDigits: gps.getMaxFractionDigits(),
+      filterType: FilterType.likeDataType
+    });
 
-    this.addColumnFeqH(DataType.Numeric, 'taxCost', true, false,
-      {filterType: FilterType.likeDataType, currencyPrecisionField: 'security.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'transactionCost', true, false,
-      {width: 60, filterType: FilterType.likeDataType, currencyPrecisionField: 'security.currency'});
-    this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false,
-      {
-        width: 70, filterType: FilterType.likeDataType, templateName: 'greenRed',
-        currencyPrecisionField: 'cashaccount.currency'
-      });
-    this.addColumnFeqH(DataType.Numeric, 'cashaccountRoundingDiff', false, true,
-      {filterType: FilterType.likeDataType, currencyPrecisionField: 'cashaccount.currency'});
+    this.addColumnFeqH(DataType.Numeric, 'taxCost', true, false, {
+      filterType: FilterType.likeDataType,
+      currencyPrecisionField: 'security.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'transactionCost', true, false, {
+      width: 60,
+      filterType: FilterType.likeDataType,
+      currencyPrecisionField: 'security.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'cashaccountAmount', true, false, {
+      width: 70,
+      filterType: FilterType.likeDataType,
+      templateName: 'greenRed',
+      currencyPrecisionField: 'cashaccount.currency'
+    });
+    this.addColumnFeqH(DataType.Numeric, 'cashaccountRoundingDiff', false, true, {
+      filterType: FilterType.likeDataType,
+      currencyPrecisionField: 'cashaccount.currency'
+    });
   }
 
   /**
@@ -136,8 +170,9 @@ export abstract class TransactionTable extends TransactionContextMenu {
     super.handleCloseTransactionDialog(processedActionData);
     if (processedActionData.action === ProcessedAction.UPDATED) {
       if (processedActionData.data instanceof Array) {
-        this.selectedTransaction = (<Transaction[]>processedActionData.data).find(newTrans =>
-          newTrans.idTransaction === this.selectedTransaction.idTransaction);
+        this.selectedTransaction = (<Transaction[]>processedActionData.data).find(
+          (newTrans) => newTrans.idTransaction === this.selectedTransaction.idTransaction
+        );
       } else {
         this.selectedTransaction = processedActionData.data;
       }
@@ -168,10 +203,9 @@ export abstract class TransactionTable extends TransactionContextMenu {
    * @param currencypairs Array of available currency pairs for association
    * @returns The enhanced transaction array with currency pair objects attached
    */
-  protected addCurrencypairToTransaction(transactions: Transaction[],
-                                         currencypairs: Currencypair[]): Transaction[] {
+  protected addCurrencypairToTransaction(transactions: Transaction[], currencypairs: Currencypair[]): Transaction[] {
     const currencypairMap: Map<number, Currencypair> = new Map();
-    currencypairs.forEach(currencypair => currencypairMap.set(currencypair.idSecuritycurrency, currencypair));
+    currencypairs.forEach((currencypair) => currencypairMap.set(currencypair.idSecuritycurrency, currencypair));
     for (const transaction of transactions) {
       if (transaction.idCurrencypair != null) {
         transaction.currencypair = currencypairMap.get(transaction.idCurrencypair);
@@ -187,8 +221,7 @@ export abstract class TransactionTable extends TransactionContextMenu {
    *
    * @param transactionCallParam The transaction call parameter object to be configured
    */
-  protected override prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {
-  }
+  protected override prepareTransactionCallParam(transactionCallParam: TransactionCallParam) {}
 
   /**
    * Appends the selection-independent CSV export action to the transaction menu. The export scope follows the level
@@ -221,11 +254,14 @@ export abstract class TransactionTable extends TransactionContextMenu {
 
   /** Opens the CSV export dialog with the level-dependent portfolio scope. */
   private openExportCsvDialog(): void {
-    const data: TransactionExportCsvDialogData = {idPortfolio: this.getExportIdPortfolio()};
+    const data: TransactionExportCsvDialogData = { idPortfolio: this.getExportIdPortfolio() };
     this.injector.get(DialogService).open(TransactionExportCsvDialogComponent, {
       header: this.translateService.instant('EXPORT_TRANSACTIONS_CSV'),
-      data, width: '500px', modal: true, closable: true, closeOnEscape: true
+      data,
+      width: '500px',
+      modal: true,
+      closable: true,
+      closeOnEscape: true
     });
   }
-
 }

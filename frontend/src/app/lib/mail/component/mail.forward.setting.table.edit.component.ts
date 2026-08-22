@@ -1,11 +1,11 @@
-import {Component, OnInit} from '@angular/core';
-import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {ConfirmationService, FilterService, MenuItem} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {MailSettingForwardService} from '../service/mail.setting.forward.service';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { MailSettingForwardService } from '../service/mail.setting.forward.service';
 import {
   MailSendForwardDefault,
   MailSettingForward,
@@ -13,18 +13,18 @@ import {
   MessageComType,
   MessageTargetType
 } from '../model/mail.send.recv';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {ValueKeyHtmlSelectOptions} from '../../dynamic-form/models/value.key.html.select.options';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {TableEditConfigBase} from '../../datashowbase/table.edit.config.base';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {AppHelper} from '../../helper/app.helper';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {MessageToastService} from '../../message/message.toast.service';
-import {HelpIds} from '../../help/help.ids';
-import {EditableTableComponent, RowEditSaveEvent} from '../../datashowbase/editable-table.component';
-import {TranslateModule} from '@ngx-translate/core';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { ValueKeyHtmlSelectOptions } from '../../dynamic-form/models/value.key.html.select.options';
+import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { TableEditConfigBase } from '../../datashowbase/table.edit.config.base';
+import { SelectOptionsHelper } from '../../helper/select.options.helper';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { AppHelper } from '../../helper/app.helper';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { MessageToastService } from '../../message/message.toast.service';
+import { HelpIds } from '../../help/help.ids';
+import { EditableTableComponent, RowEditSaveEvent } from '../../datashowbase/editable-table.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 /**
  * Component for editing mail forwarding settings using the reusable EditableTableComponent.
@@ -43,9 +43,14 @@ import {TranslateModule} from '@ngx-translate/core';
       [baseLocale]="baseLocale"
       [customSortFn]="customSort.bind(this)"
       [createNewEntityFn]="createNewEntity.bind(this)"
-      [contextMenuItems]="contextMenuItems" [contextMenuAppendTo]="'body'"
+      [contextMenuItems]="contextMenuItems"
+      [contextMenuAppendTo]="'body'"
       [showContextMenu]="isActivated()"
-      [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+      [containerClass]="{
+        'data-container': true,
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }"
       (rowEditSave)="onRowEditSave($event)"
       (rowEditCancel)="onRowEditCancel($event)"
       (rowAdded)="onRowAdded($event)"
@@ -55,6 +60,7 @@ import {TranslateModule} from '@ngx-translate/core';
     </editable-table>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [EditableTableComponent, TranslateModule]
 })
 export class MailForwardSettingTableEditComponent extends TableEditConfigBase implements OnInit, IGlobalMenuAttach {
@@ -67,32 +73,39 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
   private readonly MAIL_SETTING_FORWARD = 'MAIL_SETTING_FORWARD';
 
-  constructor(private activePanelService: ActivePanelService,
-              private mailSettingForwardService: MailSettingForwardService,
-              private messageToastService: MessageToastService,
-              private confirmationService: ConfirmationService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService,
-              usersettingsService: UserSettingsService) {
+  constructor(
+    private activePanelService: ActivePanelService,
+    private mailSettingForwardService: MailSettingForwardService,
+    private messageToastService: MessageToastService,
+    private confirmationService: ConfirmationService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService,
+    usersettingsService: UserSettingsService
+  ) {
     super(filterService, usersettingsService, translateService, gps);
 
     // Configure MESSAGE_COM_TYPE column
-    this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_COM_TYPE, true,
-      {translateValues: TranslateValue.NORMAL, width: 450});
+    this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_COM_TYPE, true, {
+      translateValues: TranslateValue.NORMAL,
+      width: 450
+    });
     const comTypeCol = this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE);
     comTypeCol.cec.canEditFn = (row: MailSettingForward) => !row.idMailSettingForward;
 
     // Configure MESSAGE_TARGET_TYPE column with dependent dropdown
-    this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_TARGET_TYPE, true,
-      {translateValues: TranslateValue.NORMAL, width: 450});
+    this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.MESSAGE_TARGET_TYPE, true, {
+      translateValues: TranslateValue.NORMAL,
+      width: 450
+    });
     const targetTypeCol = this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_TARGET_TYPE);
     targetTypeCol.cec.dependsOnField = MailSettingForwardVar.MESSAGE_COM_TYPE;
     targetTypeCol.cec.optionsProviderFn = (row: MailSettingForward) => this.getTargetTypeOptions(row);
 
     // Configure ID_USER_REDIRECT column as an admin-only dependent dropdown of other admins
-    this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.ID_USER_DIRECT, false,
-      {fieldValueFN: this.getRedirectNickname.bind(this)});
+    this.addEditColumnFeqH(DataType.String, MailSettingForwardVar.ID_USER_DIRECT, false, {
+      fieldValueFN: this.getRedirectNickname.bind(this)
+    });
     const redirectCol = this.getColumnConfigByField(MailSettingForwardVar.ID_USER_DIRECT);
     redirectCol.cec.dependsOnField = MailSettingForwardVar.MESSAGE_COM_TYPE;
     redirectCol.cec.optionsProviderFn = (row: MailSettingForward) => this.getRedirectUserOptions(row);
@@ -107,11 +120,9 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     return this.activePanelService.isActivated(this);
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   getHelpContextId(): string {
     return HelpIds.HELP_MESSAGE_SYSTEM;
@@ -134,7 +145,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
   private readData(): void {
     this.mailSettingForwardService.getMailSettingForwardByUser().subscribe((msfList: MailSettingForward[]) => {
-      this.mailSettingForwardList = msfList.map(msf => {
+      this.mailSettingForwardList = msfList.map((msf) => {
         (msf as any).rowKey = msf.idMailSettingForward
           ? `existing_${msf.idMailSettingForward}`
           : `new_${this.newRowCounter++}`;
@@ -161,7 +172,11 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
           row.messageTargetType = msfdc.messageTargetDefaultType as MessageTargetType;
         }
         return SelectOptionsHelper.createHtmlOptionsFromEnum(
-          this.translateService, MessageTargetType, msfdc.mttPossibleTypeSet, false);
+          this.translateService,
+          MessageTargetType,
+          msfdc.mttPossibleTypeSet,
+          false
+        );
       }
     }
     return [];
@@ -170,11 +185,12 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
   /** Updates available MESSAGE_COM_TYPE options (excludes already used types) */
   private refreshMessageComTypeOptions(): void {
     const usedTypes = this.mailSettingForwardList
-      .filter(msf => msf.messageComType != null)
-      .map(msf => MessageComType[MessageComType[msf.messageComType]]);
+      .filter((msf) => msf.messageComType != null)
+      .map((msf) => MessageComType[MessageComType[msf.messageComType]]);
 
-    const availableTypes = Object.keys(this.mailSendForwardDefault.mailSendForwardDefaultMapForUser)
-      .filter(mct => usedTypes.indexOf(MessageComType[MessageComType[mct]]) === -1);
+    const availableTypes = Object.keys(this.mailSendForwardDefault.mailSendForwardDefaultMapForUser).filter(
+      (mct) => usedTypes.indexOf(MessageComType[MessageComType[mct]]) === -1
+    );
 
     this.getColumnConfigByField(MailSettingForwardVar.MESSAGE_COM_TYPE).cec.valueKeyHtmlOptions =
       SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, MessageComType, availableTypes, false);
@@ -186,9 +202,11 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
    * allows redirection (today only MAIN_ADMIN_RELEASE_LOGOUT).
    */
   private canRedirect(row: MailSettingForward): boolean {
-    return row.messageComType != null
-      && this.mailSendForwardDefault?.canRedirectToUsers?.length > 0
-      && this.mailSendForwardDefault.mailSendForwardDefaultMapForUser[row.messageComType]?.canRedirect === true;
+    return (
+      row.messageComType != null &&
+      this.mailSendForwardDefault?.canRedirectToUsers?.length > 0 &&
+      this.mailSendForwardDefault.mailSendForwardDefaultMapForUser[row.messageComType]?.canRedirect === true
+    );
   }
 
   /**
@@ -207,7 +225,7 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
     if (value == null || !this.mailSendForwardDefault?.canRedirectToUsers) {
       return '';
     }
-    const option = this.mailSendForwardDefault.canRedirectToUsers.find(o => o.key === String(value));
+    const option = this.mailSendForwardDefault.canRedirectToUsers.find((o) => o.key === String(value));
     return option ? option.value : '';
   }
 
@@ -267,9 +285,11 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
 
     this.mailSettingForwardService.update(entity).subscribe({
       next: () => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
+        this.messageToastService.showMessageI18n(
+          InfoLevelType.SUCCESS,
           event.isNew ? 'MSG_RECORD_CREATED' : 'MSG_RECORD_SAVED',
-          {i18nRecord: this.MAIL_SETTING_FORWARD});
+          { i18nRecord: this.MAIL_SETTING_FORWARD }
+        );
         this.readData();
       }
     });
@@ -306,15 +326,20 @@ export class MailForwardSettingTableEditComponent extends TableEditConfigBase im
       return;
     }
 
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|' + this.MAIL_SETTING_FORWARD, () => {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|' + this.MAIL_SETTING_FORWARD,
+      () => {
         this.mailSettingForwardService.deleteEntity(entity.idMailSettingForward).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: this.MAIL_SETTING_FORWARD});
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: this.MAIL_SETTING_FORWARD
+          });
           this.selectedEntity = null;
           this.resetMenu();
           this.readData();
         });
-      });
+      }
+    );
   }
 }

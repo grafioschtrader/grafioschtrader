@@ -1,4 +1,4 @@
-import {InjectionToken} from '@angular/core';
+import { InjectionToken } from '@angular/core';
 
 /**
  * Injection token for the file name under which the personal data export archive is saved. The same name is shown
@@ -7,5 +7,7 @@ import {InjectionToken} from '@angular/core';
  * The lib layer provides an application-neutral default, matching BaseConstants.PERSONAL_DATA_ZIP_FILENAME of the
  * backend library. The application layer can provide its own name (e.g. 'gtPersonalData.zip' in Grafioschtrader).
  */
-export const PERSONAL_DATA_ZIP_NAME = new InjectionToken<string>('PersonalDataZipName',
-  {providedIn: 'root', factory: () => 'personalData.zip'});
+export const PERSONAL_DATA_ZIP_NAME = new InjectionToken<string>('PersonalDataZipName', {
+  providedIn: 'root',
+  factory: () => 'personalData.zip'
+});

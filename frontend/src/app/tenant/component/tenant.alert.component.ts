@@ -1,28 +1,28 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {ConfirmationService, MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {HelpIds} from '../../lib/help/help.ids';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {AlgoSecurity} from '../../algo/model/algo.security';
-import {AlgoStrategy} from '../../algo/model/algo.strategy';
-import {AlgoSecurityService} from '../../algo/service/algo.security.service';
-import {AlgoStrategyService} from '../../algo/service/algo.strategy.service';
-import {AlgoCallParam, AlgoStrategyDefinitionForm} from '../../algo/model/algo.dialog.visible';
-import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
-import {AlgoStrategyEditComponent} from '../../algo/component/algo-strategy-edit.component';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ConfirmationService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { HelpIds } from '../../lib/help/help.ids';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { AlgoSecurity } from '../../algo/model/algo.security';
+import { AlgoStrategy } from '../../algo/model/algo.strategy';
+import { AlgoSecurityService } from '../../algo/service/algo.security.service';
+import { AlgoStrategyService } from '../../algo/service/algo.strategy.service';
+import { AlgoCallParam, AlgoStrategyDefinitionForm } from '../../algo/model/algo.dialog.visible';
+import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
+import { AlgoStrategyEditComponent } from '../../algo/component/algo-strategy-edit.component';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 
 /**
  * Displays all alerts across the tenant in a tree table where AlgoSecurity entries are parent rows
@@ -32,10 +32,17 @@ import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-ta
 @Component({
   selector: 'tenant-alert',
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      class="data-container"
+      (click)="onComponentClick($event)"
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <configurable-tree-table
-        [data]="treeNodes" [fields]="fields" dataKey="nodeKey"
+        [data]="treeNodes"
+        [fields]="fields"
+        dataKey="nodeKey"
         [(selection)]="selectedNode"
         (nodeSelect)="onRowSelect($event)"
         (nodeUnselect)="onRowUnselect($event)"
@@ -49,17 +56,18 @@ import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-ta
     </div>
 
     @if (visibleStrategyDialog) {
-      <algo-strategy-edit [visibleDialog]="visibleStrategyDialog"
+      <algo-strategy-edit
+        [visibleDialog]="visibleStrategyDialog"
         [algoCallParam]="algoCallParam"
         (closeDialog)="onStrategyDialogClose($event)">
       </algo-strategy-edit>
     }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, ConfigurableTreeTableComponent, AlgoStrategyEditComponent]
 })
 export class TenantAlertComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
-
   treeNodes: TreeNode[] = [];
   selectedNode: TreeNode | null = null;
   contextMenuItems: MenuItem[] = [];
@@ -81,14 +89,16 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
   ) {
     super(translateService, gps);
 
-    this.addColumn(DataType.String, 'name', 'NAME', true, false,
-      {fieldValueFN: this.getNodeName.bind(this)});
-    this.addColumn(DataType.String, 'algoStrategyImplementations', 'ALGO_STRATEGY_NAME', true, false,
-      {translateValues: TranslateValue.NORMAL});
-    this.addColumn(DataType.String, 'alertContext', 'ALERT_CONTEXT', true, false,
-      {fieldValueFN: this.getAlertContext.bind(this)});
-    this.addColumn(DataType.Boolean, 'activatable', 'ACTIVATABLE', true, false,
-      {templateName: 'editableCheck'});
+    this.addColumn(DataType.String, 'name', 'NAME', true, false, {
+      fieldValueFN: this.getNodeName.bind(this)
+    });
+    this.addColumn(DataType.String, 'algoStrategyImplementations', 'ALGO_STRATEGY_NAME', true, false, {
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumn(DataType.String, 'alertContext', 'ALERT_CONTEXT', true, false, {
+      fieldValueFN: this.getAlertContext.bind(this)
+    });
+    this.addColumn(DataType.Boolean, 'activatable', 'ACTIVATABLE', true, false, { templateName: 'editableCheck' });
   }
 
   ngOnInit(): void {
@@ -103,11 +113,9 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
     return this.activePanelService.isActivated(this);
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   getHelpContextId(): string {
     return HelpIds.HELP_ALGO;
@@ -127,11 +135,11 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
   }
 
   private buildTree(): void {
-    this.treeNodes = this.algoSecurities.map(as => {
+    this.treeNodes = this.algoSecurities.map((as) => {
       (as as any).nodeKey = 'as' + as.idAlgoAssetclassSecurity;
-      const strategyChildren: TreeNode[] = (as.algoStrategyList || []).map(strategy => {
+      const strategyChildren: TreeNode[] = (as.algoStrategyList || []).map((strategy) => {
         (strategy as any).nodeKey = 'rs' + strategy.idAlgoRuleStrategy;
-        return {data: strategy, leaf: true};
+        return { data: strategy, leaf: true };
       });
       return {
         data: as,
@@ -143,15 +151,16 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
 
   private translateStrategies(): void {
     const allStrategies: AlgoStrategy[] = [];
-    this.algoSecurities.forEach(as => {
+    this.algoSecurities.forEach((as) => {
       if (as.algoStrategyList) {
         allStrategies.push(...as.algoStrategyList);
       }
     });
     if (allStrategies.length > 0) {
       const strategyFields: ColumnConfig[] = [];
-      this.addColumnToFields(strategyFields, DataType.String, 'algoStrategyImplementations',
-        '', true, false, {translateValues: TranslateValue.NORMAL});
+      this.addColumnToFields(strategyFields, DataType.String, 'algoStrategyImplementations', '', true, false, {
+        translateValues: TranslateValue.NORMAL
+      });
       TranslateHelper.createTranslatedValueStore(this.translateService, strategyFields, allStrategies);
     }
   }
@@ -178,8 +187,8 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
   // Checkbox Toggle
   // ============================================================================
 
-  onCheckboxChange(event: {rowData: any; field: ColumnConfig; value: boolean}): void {
-    const {rowData, value} = event;
+  onCheckboxChange(event: { rowData: any; field: ColumnConfig; value: boolean }): void {
+    const { rowData, value } = event;
     if (rowData.algoStrategyImplementations !== undefined && rowData.algoStrategyImplementations !== null) {
       // Strategy row
       rowData.activatable = value;
@@ -262,11 +271,12 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
     menuItems.push(createItem);
 
     if (this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.has(algoSecurity.idAlgoAssetclassSecurity)) {
-      createItem.disabled = this.algoStrategyDefinitionForm.unusedAlgoStrategyMap
-        .get(algoSecurity.idAlgoAssetclassSecurity).length === 0;
+      createItem.disabled =
+        this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.get(algoSecurity.idAlgoAssetclassSecurity).length === 0;
     } else {
-      this.algoStrategyService.getUnusedStrategiesForManualAdding(algoSecurity.idAlgoAssetclassSecurity)
-        .subscribe(unused => {
+      this.algoStrategyService
+        .getUnusedStrategiesForManualAdding(algoSecurity.idAlgoAssetclassSecurity)
+        .subscribe((unused) => {
           this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.set(algoSecurity.idAlgoAssetclassSecurity, unused);
           createItem.disabled = unused.length === 0;
         });
@@ -291,27 +301,36 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
   }
 
   private handleDeleteStrategy(algoStrategy: AlgoStrategy): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|ALGO_STRATEGY', () => {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|ALGO_STRATEGY',
+      () => {
         this.algoStrategyService.deleteEntity(algoStrategy.idAlgoRuleStrategy).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: 'AlgoStrategy'});
-          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap
-            .delete(algoStrategy.idAlgoAssetclassSecurity);
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: 'AlgoStrategy'
+          });
+          this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(algoStrategy.idAlgoAssetclassSecurity);
           this.loadData();
         });
-      });
+      }
+    );
   }
 
   private handleDeleteSecurity(algoSecurity: AlgoSecurity): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|ALGO_SECURITY', () => {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|ALGO_SECURITY',
+      () => {
         this.algoSecurityService.deleteEntity(algoSecurity.idAlgoAssetclassSecurity).subscribe(() => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: 'AlgoSecurity'});
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+            i18nRecord: 'AlgoSecurity'
+          });
           this.loadData();
         });
-      });
+      }
+    );
   }
 
   onStrategyDialogClose(processedActionData: ProcessedActionData): void {
@@ -327,9 +346,9 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
   // ============================================================================
 
   private findParentSecurity(algoStrategy: AlgoStrategy): AlgoSecurity | null {
-    return this.algoSecurities.find(as =>
-      as.idAlgoAssetclassSecurity === algoStrategy.idAlgoAssetclassSecurity
-    ) || null;
+    return (
+      this.algoSecurities.find((as) => as.idAlgoAssetclassSecurity === algoStrategy.idAlgoAssetclassSecurity) || null
+    );
   }
 
   ngOnDestroy(): void {

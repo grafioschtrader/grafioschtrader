@@ -1,14 +1,13 @@
-import {DataType} from '../dynamic-form/models/data.type';
-import {ColumnConfig, OptionalParams} from './column.config';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {TranslateService} from '@ngx-translate/core';
-import {ShowRecordConfigBase} from './show.record.config.base';
+import { DataType } from '../dynamic-form/models/data.type';
+import { ColumnConfig, OptionalParams } from './column.config';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { TranslateService } from '@ngx-translate/core';
+import { ShowRecordConfigBase } from './show.record.config.base';
 
 /**
  * Show a singe record with the same definition as a table.
  */
 export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
-
   /**
    * Exposes the global Object constructor for use in Angular templates.
    * Required for template operations like Object.keys() iteration.
@@ -63,8 +62,12 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
    * @param optionalParams - Additional configuration options
    * @returns The created ColumnConfig object
    */
-  addFieldProperty(dataType: DataType, field: string, headerKey: string,
-                   optionalParams?: OptionalParams): ColumnConfig {
+  addFieldProperty(
+    dataType: DataType,
+    field: string,
+    headerKey: string,
+    optionalParams?: OptionalParams
+  ): ColumnConfig {
     return this.addColumn(dataType, field, headerKey, true, true, optionalParams);
   }
 
@@ -97,6 +100,4 @@ export abstract class SingleRecordConfigBase extends ShowRecordConfigBase {
       return grouped;
     }, {});
   }
-
 }
-

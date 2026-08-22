@@ -1,7 +1,7 @@
-import {CreateType} from '../../entities/dividend.split';
-import {SvgIconRegistryService} from 'angular-svg-icon';
-import {AppSettings} from '../app.settings';
-import {BaseSettings} from '../../lib/base.settings';
+import { CreateType } from '../../entities/dividend.split';
+import { SvgIconRegistryService } from 'angular-svg-icon';
+import { AppSettings } from '../app.settings';
+import { BaseSettings } from '../../lib/base.settings';
 
 export class DividendSplitSvgCreator {
   public static createTypeIconMap: { [key: number]: string } = {

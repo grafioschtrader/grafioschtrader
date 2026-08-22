@@ -1,9 +1,9 @@
-import {BaseID} from '../../entities/base.id';
-import {MessageComType} from '../../mail/model/mail.send.recv';
-import {BaseParam} from '../../entities/base.param';
+import { BaseID } from '../../entities/base.id';
+import { MessageComType } from '../../mail/model/mail.send.recv';
+import { BaseParam } from '../../entities/base.param';
 
 // Re-exported for the components that import the kind type together with the GTNet models.
-export {GTNetExchangeKindType} from './gtnet-exchange-kind.type';
+export { GTNetExchangeKindType } from './gtnet-exchange-kind.type';
 
 /**
  * Metadata about an exchange kind type, provided by the backend.
@@ -45,9 +45,9 @@ export enum SupplierConsumerLogTypes {
 export interface GTNetEntity {
   idGtNetEntity?: number;
   idGtNet: number;
-  entityKind: number|string;
+  entityKind: number | string;
   serverState: GTNetServerStateTypes;
-  acceptRequest: AcceptRequestTypes|string;
+  acceptRequest: AcceptRequestTypes | string;
   /**
    * Maximum number of instruments (securities or currency pairs) that can be transferred in a single request.
    * For example, 300 for LAST_PRICE means a maximum of 300 instruments per request.
@@ -63,8 +63,8 @@ export interface GTNetEntity {
 export interface GTNetConfigEntity {
   idGtNetEntity: number;
   exchange: boolean;
-  supplierLog: SupplierConsumerLogTypes|string;
-  consumerLog: SupplierConsumerLogTypes|string;
+  supplierLog: SupplierConsumerLogTypes | string;
+  consumerLog: SupplierConsumerLogTypes | string;
   consumerUsage: number;
 }
 
@@ -108,7 +108,6 @@ export class GTNet implements BaseID {
   getId(): number {
     return this.idGtNet;
   }
-
 }
 
 export class MsgRequest {
@@ -125,9 +124,12 @@ export class MsgRequest {
    */
   public visibility: string = null;
 
-  constructor(public idGTNetTargetDomain: number, public replyTo: number, public messageCode: MessageComType | string,
-              public message: string) {
-  }
+  constructor(
+    public idGTNetTargetDomain: number,
+    public replyTo: number,
+    public messageCode: MessageComType | string,
+    public message: string
+  ) {}
 }
 
 export interface GTNetWithMessages {

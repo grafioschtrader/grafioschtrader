@@ -1,7 +1,7 @@
-import {test, expect, Locator} from '@playwright/test';
+import { test, expect, Locator } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
-import {loginAsFixtureUser, parseCsvRow} from './helpers';
+import { loginAsFixtureUser, parseCsvRow } from './helpers';
 
 interface SeRow {
   mic: string;
@@ -16,19 +16,22 @@ interface SeRow {
   e2e: string;
 }
 
-const CSV_PATH = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/generated/stockexchanges.csv');
+const CSV_PATH = path.resolve(
+  __dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/generated/stockexchanges.csv'
+);
 
 function loadE2ERows(): SeRow[] {
   const csv = fs.readFileSync(CSV_PATH, 'utf-8');
-  return csv.split(/\r?\n/)
-    .filter(l => l.trim().length > 0)
-    .map(line => {
+  return csv
+    .split(/\r?\n/)
+    .filter((l) => l.trim().length > 0)
+    .map((line) => {
       const [mic, name, countryCode, noMarketValue, secondaryMarket, timeOpen, timeClose, timeZone, website, e2e] =
         parseCsvRow(line);
-      return {mic, name, countryCode, noMarketValue, secondaryMarket, timeOpen, timeClose, timeZone, website, e2e};
+      return { mic, name, countryCode, noMarketValue, secondaryMarket, timeOpen, timeClose, timeZone, website, e2e };
     })
-    .filter(r => r.e2e === 'e');
+    .filter((r) => r.e2e === 'e');
 }
 
 // Toggle an Optimus UI p-checkbox to match the desired boolean state. The native <input> carries the id,
@@ -41,45 +44,49 @@ async function setCheckbox(dialog: Locator, fieldId: string, desired: boolean): 
   }
 }
 
-test.describe.serial('Create stockexchanges (e2e=\'e\' rows from shared CSV)', () => {
+test.describe.serial("Create stockexchanges (e2e='e' rows from shared CSV)", () => {
   const rows = loadE2ERows();
 
   for (const row of rows) {
-    test(`creates Stockexchange: ${row.name} (${row.countryCode})`, async ({page}) => {
+    test(`creates Stockexchange: ${row.name} (${row.countryCode})`, async ({ page }) => {
       await loginAsFixtureUser(page, 'user');
 
       // 'Stock exchange' lives under the collapsed 'Base Data - Data change request' root — expand it first.
       // 'user' has locale de-CH, so every text selector must match the German and the English label.
-      const baseDataNode = page.locator('.p-tree-node-content', {hasText: /(Base Data|Basisdaten)/i}).first();
-      await baseDataNode.waitFor({state: 'visible', timeout: 15_000});
+      const baseDataNode = page.locator('.p-tree-node-content', { hasText: /(Base Data|Basisdaten)/i }).first();
+      await baseDataNode.waitFor({ state: 'visible', timeout: 15_000 });
       await baseDataNode.dblclick();
 
-      const treeNode = page.locator('.p-tree-node-content',
-        {hasText: /^\s*(Stock\s*exchange|Handelsplatz)\s*$/i}).first();
-      await treeNode.waitFor({state: 'visible', timeout: 15_000});
+      const treeNode = page
+        .locator('.p-tree-node-content', { hasText: /^\s*(Stock\s*exchange|Handelsplatz)\s*$/i })
+        .first();
+      await treeNode.waitFor({ state: 'visible', timeout: 15_000 });
       await treeNode.click();
 
       // The Stock exchange view has no .data-container wrapper — right-click on the Optimus UI table itself.
       const contentArea = page.locator('p-table, .p-datatable').first();
-      await contentArea.waitFor({state: 'visible', timeout: 10_000});
+      await contentArea.waitFor({ state: 'visible', timeout: 10_000 });
 
       // Idempotent: the table lists every stock exchange, and the name carries a unique key. Wait for the rows to
       // render first — checking an empty table would skip the guard and the create would fail on a duplicate name.
-      await contentArea.locator('tbody tr').first().waitFor({state: 'visible', timeout: 15_000});
-      if (await page.locator('td', {hasText: row.name}).count() > 0) {
+      await contentArea.locator('tbody tr').first().waitFor({ state: 'visible', timeout: 15_000 });
+      if ((await page.locator('td', { hasText: row.name }).count()) > 0) {
         return;
       }
 
       await contentArea.click();
       await page.waitForTimeout(300);
-      await contentArea.click({button: 'right'});
+      await contentArea.click({ button: 'right' });
 
       const menuList = page.locator('[role="menu"]:visible');
-      await menuList.waitFor({state: 'visible', timeout: 5_000});
-      await menuList.getByText(/(Create.*Stock.*exchange|Erstellen.*Handelsplatz)/i).first().click();
+      await menuList.waitFor({ state: 'visible', timeout: 5_000 });
+      await menuList
+        .getByText(/(Create.*Stock.*exchange|Erstellen.*Handelsplatz)/i)
+        .first()
+        .click();
 
       const dialog = page.locator('.p-dialog');
-      await dialog.waitFor({state: 'visible', timeout: 10_000});
+      await dialog.waitFor({ state: 'visible', timeout: 10_000 });
 
       // Leave the MIC p-dropdown at its default empty entry — MIC is optional and empty → null on save.
       // The countryCode field stays enabled as long as MIC is empty (see disableEnableCountry()).
@@ -93,7 +100,7 @@ test.describe.serial('Create stockexchanges (e2e=\'e\' rows from shared CSV)', (
 
       // countryCode — native <select> (createFieldSelectStringHeqF)
       const countrySelect = dialog.locator('select#countryCode');
-      await countrySelect.selectOption({value: row.countryCode});
+      await countrySelect.selectOption({ value: row.countryCode });
       await countrySelect.dispatchEvent('change');
 
       // Checkboxes — defaults: secondaryMarket=true, noMarketValue=false. Only click if CSV differs.
@@ -115,7 +122,7 @@ test.describe.serial('Create stockexchanges (e2e=\'e\' rows from shared CSV)', (
 
       // timeZone — native <select> populated from gps.getTimezones()
       const tzSelect = dialog.locator('select#timeZone');
-      await tzSelect.selectOption({value: row.timeZone});
+      await tzSelect.selectOption({ value: row.timeZone });
       await tzSelect.dispatchEvent('change');
 
       // website — optional URL. CSV may contain '\N' for null rows.
@@ -128,9 +135,9 @@ test.describe.serial('Create stockexchanges (e2e=\'e\' rows from shared CSV)', (
       }
 
       await dialog.locator('button[type="submit"]').click();
-      await dialog.waitFor({state: 'hidden', timeout: 10_000});
+      await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
 
-      await expect(page.locator('td', {hasText: row.name}).first()).toBeVisible({timeout: 5_000});
+      await expect(page.locator('td', { hasText: row.name }).first()).toBeVisible({ timeout: 5_000 });
     });
   }
 });

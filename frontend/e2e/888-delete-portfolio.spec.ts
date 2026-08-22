@@ -1,5 +1,5 @@
-import {test} from '@playwright/test';
-import {loginAsFixtureUser} from './helpers';
+import { test } from '@playwright/test';
+import { loginAsFixtureUser } from './helpers';
 import {
   appearsWithin,
   confirmDelete,
@@ -7,7 +7,7 @@ import {
   openTreeContextMenu,
   portfolioNode,
   portfolioSubtree,
-  RX,
+  RX
 } from './portfolio.helpers';
 
 /**
@@ -20,16 +20,17 @@ import {
  * Every delete step tolerates an already missing row or node, so a partially failed 025 does not
  * turn this spec red as well.
  */
-const PORTFOLIOS = loadPortfolios().filter(p => p.delete).reverse();
+const PORTFOLIOS = loadPortfolios()
+  .filter((p) => p.delete)
+  .reverse();
 
 for (const p of PORTFOLIOS) {
   test.describe.serial(`Delete portfolio ${p.name} of '${p.loginNickname}' (cleanup)`, () => {
-
-    test(`deletes ${p.cashAccounts.length} cash accounts of ${p.name}`, async ({page}) => {
+    test(`deletes ${p.cashAccounts.length} cash accounts of ${p.name}`, async ({ page }) => {
       await loginAsFixtureUser(page, p.loginNickname);
 
       const node = portfolioNode(page, p);
-      if (!await appearsWithin(node)) {
+      if (!(await appearsWithin(node))) {
         return;
       }
       await node.click();
@@ -37,16 +38,16 @@ for (const p of PORTFOLIOS) {
 
       for (const account of p.cashAccounts) {
         // Only selectable rows, so the header row cannot match the account name.
-        const row = page.locator('tr[data-p-selectable-row]', {hasText: account.name});
-        if (!await appearsWithin(row.first(), 10_000)) {
+        const row = page.locator('tr[data-p-selectable-row]', { hasText: account.name });
+        if (!(await appearsWithin(row.first(), 10_000))) {
           continue;
         }
         await row.first().click();
         await page.waitForTimeout(500);
-        await row.first().click({button: 'right'});
+        await row.first().click({ button: 'right' });
 
         const menuList = page.locator('[role="menu"]:visible');
-        await menuList.waitFor({state: 'visible', timeout: 5_000});
+        await menuList.waitFor({ state: 'visible', timeout: 5_000 });
         await menuList.getByText(RX.deleteCashAccount).first().click();
 
         await confirmDelete(page);
@@ -55,42 +56,43 @@ for (const p of PORTFOLIOS) {
     });
 
     for (const sa of p.securityAccounts) {
-      test(`deletes the securities account ${sa.name} of ${p.name}`, async ({page}) => {
+      test(`deletes the securities account ${sa.name} of ${p.name}`, async ({ page }) => {
         await loginAsFixtureUser(page, p.loginNickname);
 
         const node = portfolioNode(page, p);
-        if (!await appearsWithin(node)) {
+        if (!(await appearsWithin(node))) {
           return;
         }
         await node.dblclick();
 
         const subtree = portfolioSubtree(page, p);
-        const folder = subtree.locator('.p-tree-node-content')
-          .filter({hasText: RX.securityAccountsFolder}).first();
-        await folder.waitFor({state: 'visible', timeout: 10_000});
+        const folder = subtree.locator('.p-tree-node-content').filter({ hasText: RX.securityAccountsFolder }).first();
+        await folder.waitFor({ state: 'visible', timeout: 10_000 });
         await folder.dblclick();
 
-        const account = subtree.locator('.p-tree-node-content')
-          .filter({hasText: exactLabel(sa.name)}).first();
-        if (!await appearsWithin(account, 10_000)) {
+        const account = subtree
+          .locator('.p-tree-node-content')
+          .filter({ hasText: exactLabel(sa.name) })
+          .first();
+        if (!(await appearsWithin(account, 10_000))) {
           return;
         }
         await openTreeContextMenu(page, account, RX.deleteNode);
         await confirmDelete(page);
-        await account.waitFor({state: 'hidden', timeout: 10_000});
+        await account.waitFor({ state: 'hidden', timeout: 10_000 });
       });
     }
 
-    test(`deletes the portfolio ${p.name}`, async ({page}) => {
+    test(`deletes the portfolio ${p.name}`, async ({ page }) => {
       await loginAsFixtureUser(page, p.loginNickname);
 
       const node = portfolioNode(page, p);
-      if (!await appearsWithin(node)) {
+      if (!(await appearsWithin(node))) {
         return;
       }
       await openTreeContextMenu(page, node, RX.deleteNode);
       await confirmDelete(page);
-      await node.waitFor({state: 'hidden', timeout: 10_000});
+      await node.waitFor({ state: 'hidden', timeout: 10_000 });
     });
   });
 }

@@ -1,8 +1,8 @@
-import {HttpHeaders} from '@angular/common/http';
+import { HttpHeaders } from '@angular/common/http';
 
 export abstract class BaseService {
   getHeaders(): { headers: HttpHeaders } {
-    return {headers: this.prepareHeaders()};
+    return { headers: this.prepareHeaders() };
   }
 
   prepareHeaders(contentType = 'application/json'): HttpHeaders {
@@ -15,7 +15,7 @@ export abstract class BaseService {
   }
 
   getMultipartHeaders(): { headers: HttpHeaders } {
-    return {headers: this.prepareMultipartHeaders()};
+    return { headers: this.prepareMultipartHeaders() };
   }
 
   prepareMultipartHeaders(): HttpHeaders {
@@ -32,5 +32,4 @@ export abstract class BaseService {
       header['x-auth-token'] = sessionStorage.getItem('jwt');
     }
   }
-
 }

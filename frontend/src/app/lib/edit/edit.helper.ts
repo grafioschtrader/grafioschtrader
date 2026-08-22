@@ -1,15 +1,14 @@
-import {ProposeTransientTransfer} from '../entities/propose.transient.transfer';
-import {ProposeChangeEntityWithEntity} from '../proposechange/model/propose.change.entity.whit.entity';
-import {AuditHelper} from '../helper/audit.helper';
-import {DynamicFormComponent} from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {FormBase} from './form.base';
+import { ProposeTransientTransfer } from '../entities/propose.transient.transfer';
+import { ProposeChangeEntityWithEntity } from '../proposechange/model/propose.change.entity.whit.entity';
+import { AuditHelper } from '../helper/audit.helper';
+import { DynamicFormComponent } from '../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { FormBase } from './form.base';
 
 /**
  * Static helper class for copying form data to business objects.
  * Provides utility methods for transferring form values to entity instances.
  */
 export abstract class EditHelper {
-
   /**
    * Copies form data to a private business object by merging existing entity data with form values.
    *
@@ -40,8 +39,13 @@ export abstract class EditHelper {
    * @param {FormBase} formBase - The form base instance for audit operations
    * @returns {void}
    */
-  public static copyFormToPublicBusinessObject<T>(targetEntity: ProposeTransientTransfer, existingEntity: T,
-    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity, form: DynamicFormComponent, formBase: FormBase): void {
+  public static copyFormToPublicBusinessObject<T>(
+    targetEntity: ProposeTransientTransfer,
+    existingEntity: T,
+    proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity,
+    form: DynamicFormComponent,
+    formBase: FormBase
+  ): void {
     if (existingEntity) {
       Object.assign(targetEntity, existingEntity);
     }

@@ -3,7 +3,6 @@
  * Values are stored during login and persist throughout the user session.
  */
 export enum GlobalSessionNames {
-
   /** Tenant ID for multi-tenancy support. */
   ID_TENANT = 'idTenant',
 
@@ -94,5 +93,3 @@ export enum GlobalSessionNames {
   /** Whether at least one GTNet peer is configured to exchange intraday (last price) data. */
   GT_NET_HAS_LASTPRICE_PEER = 'gtNetHasLastpriceExchangePeer'
 }
-
-

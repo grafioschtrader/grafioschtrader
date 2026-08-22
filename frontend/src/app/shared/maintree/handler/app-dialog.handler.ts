@@ -1,16 +1,16 @@
-import {Injectable, Type} from '@angular/core';
-import {Observable} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {DialogHandler} from '../../../lib/maintree/handler/dialog-handler.interface';
-import {MainTreeDynamicDialogs} from '../../../dynamic-dialog/component/main.tree.dynamic.dialogs';
-import {CallParam} from '../types/dialog.visible';
-import {Portfolio} from '../../../entities/portfolio';
-import {Cashaccount} from '../../../entities/cashaccount';
-import {Securityaccount} from '../../../entities/securityaccount';
-import {Watchlist} from '../../../entities/watchlist';
-import {Tenant} from '../../../entities/tenant';
-import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
+import { Injectable, Type } from '@angular/core';
+import { Observable } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { DialogHandler } from '../../../lib/maintree/handler/dialog-handler.interface';
+import { MainTreeDynamicDialogs } from '../../../dynamic-dialog/component/main.tree.dynamic.dialogs';
+import { CallParam } from '../types/dialog.visible';
+import { Portfolio } from '../../../entities/portfolio';
+import { Cashaccount } from '../../../entities/cashaccount';
+import { Securityaccount } from '../../../entities/securityaccount';
+import { Watchlist } from '../../../entities/watchlist';
+import { Tenant } from '../../../entities/tenant';
+import { AlgoTopCreate } from '../../../entities/backend/algo.top.create';
 
 /**
  * Application-level implementation of DialogHandler.
@@ -18,7 +18,6 @@ import {AlgoTopCreate} from '../../../entities/backend/algo.top.create';
  */
 @Injectable()
 export class AppDialogHandler implements DialogHandler {
-
   constructor(
     private translateService: TranslateService,
     private dialogService: DialogService

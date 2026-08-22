@@ -1,14 +1,14 @@
-import {Injector} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {FilterService, MenuItem, SortEvent, SortMeta} from '@openng/optimus-ui/api';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {UserSettingsService} from '../services/user.settings.service';
-import {Helper} from '../helper/helper';
-import {ColumnConfig} from './column.config';
-import {TableTreetableTotalBase} from './table.treetable.total.base';
-import {BaseSettings} from '../base.settings';
-import {GlobalparameterService} from '../services/globalparameter.service';
-import {ColumnVisibilityDialogComponent} from './column-visibility-dialog.component';
+import { Injector } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { FilterService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { UserSettingsService } from '../services/user.settings.service';
+import { Helper } from '../helper/helper';
+import { ColumnConfig } from './column.config';
+import { TableTreetableTotalBase } from './table.treetable.total.base';
+import { BaseSettings } from '../base.settings';
+import { GlobalparameterService } from '../services/globalparameter.service';
+import { ColumnVisibilityDialogComponent } from './column-visibility-dialog.component';
 
 /**
  * Abstract base class for displaying data in Optimus table format with comprehensive
@@ -27,7 +27,6 @@ import {ColumnVisibilityDialogComponent} from './column-visibility-dialog.compon
  * - Group field management for  table layouts
  */
 export abstract class TableConfigBase extends TableTreetableTotalBase {
-
   /** Locale string for form and date formatting */
   formLocale: string;
 
@@ -71,11 +70,13 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @param gps - Global parameter base service for locale and formatting
    * @param injector - Angular injector for lazy service resolution (DialogService)
    */
-  protected constructor(filterService: FilterService,
+  protected constructor(
+    filterService: FilterService,
     protected usersettingsService: UserSettingsService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    injector: Injector = null) {
+    injector: Injector = null
+  ) {
     super(translateService, gps, injector, filterService);
     this.formLocale = gps.getLocale();
   }
@@ -86,7 +87,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @returns Number of columns with visible property set to true
    */
   get numberOfVisibleColumns(): number {
-    return this.fields.filter(field => field.visible).length;
+    return this.fields.filter((field) => field.visible).length;
   }
 
   /**
@@ -128,10 +129,9 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   writeTableDefinition(key: string) {
     const visibleColumns: any[] = [];
-    this.fields.forEach(field => {
-        visibleColumns.push({[field.headerKey]: field.visible});
-      }
-    );
+    this.fields.forEach((field) => {
+      visibleColumns.push({ [field.headerKey]: field.visible });
+    });
     this.usersettingsService.saveArray(key, visibleColumns);
     if (this.rowsPerPage) {
       this.usersettingsService.saveSingleValue(key + '.rows', this.rowsPerPage);
@@ -152,7 +152,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       const readFields: any[] = this.usersettingsService.readArray(key);
       if (readFields != null && readFields.length > 0) {
         const fieldObject: any = Object.assign({}, ...readFields);
-        this.fields.forEach(field => {
+        this.fields.forEach((field) => {
           field.visible = fieldObject[field.headerKey];
         });
       }
@@ -192,13 +192,12 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   private calculateHashAllOverFieldNames(): string {
     let i: number;
     let sum: number = 0;
-    this.fields.forEach(field => {
-        let fieldName = field.field.replace(/(\.de|\.en)$/, '');
-        let cs = this.charSum(fieldName);
-        sum = sum + (65027 / cs);
-      }
-    );
-    return ('' + sum).slice(0, 16)
+    this.fields.forEach((field) => {
+      let fieldName = field.field.replace(/(\.de|\.en)$/, '');
+      let cs = this.charSum(fieldName);
+      sum = sum + 65027 / cs;
+    });
+    return ('' + sum).slice(0, 16);
   }
 
   /**
@@ -213,7 +212,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     let i: number;
     let sum = 0;
     for (i = 0; i < s.length; i++) {
-      sum += (s.charCodeAt(i) * (i + 1));
+      sum += s.charCodeAt(i) * (i + 1);
     }
     return sum;
   }
@@ -224,7 +223,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   changeToUserSetting() {
     let i = 0;
-    this.fields.forEach(columnConfig => columnConfig.visible = this.visibleRestore[i++]);
+    this.fields.forEach((columnConfig) => (columnConfig.visible = this.visibleRestore[i++]));
   }
 
   /**
@@ -277,7 +276,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @returns Style object with width property or empty object
    */
   getStyle(field: ColumnConfig): any {
-    return (field.width) ? {width: field.width + 'px'} : {};
+    return field.width ? { width: field.width + 'px' } : {};
   }
 
   /**
@@ -288,7 +287,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   customSort(event: SortEvent): void {
     if (event.mode === 'single') {
-      this.customSortMultiple(event.data, [{field: event.field, order: event.order}]);
+      this.customSortMultiple(event.data, [{ field: event.field, order: event.order }]);
     } else {
       this.customSortMultiple(event.data, event.multiSortMeta);
     }
@@ -309,7 +308,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     }
 
     // Filter out any undefined or null entries from sortMeta
-    const validSortMeta = sortMeta.filter(meta => meta != null && meta.field != null);
+    const validSortMeta = sortMeta.filter((meta) => meta != null && meta.field != null);
     if (validSortMeta.length === 0) {
       return;
     }
@@ -326,9 +325,11 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
           continue;
         }
         const isDirectAccess = columnConfig.translateValues || columnConfig.fieldValueFN;
-        const value1 = isDirectAccess ? this.getValueByPath(data1, columnConfig)
+        const value1 = isDirectAccess
+          ? this.getValueByPath(data1, columnConfig)
           : Helper.getValueByPath(data1, columnConfig.field);
-        const value2 = isDirectAccess ? this.getValueByPath(data2, columnConfig)
+        const value2 = isDirectAccess
+          ? this.getValueByPath(data2, columnConfig)
           : Helper.getValueByPath(data2, columnConfig.field);
 
         if (value1 == null && value2 != null) {
@@ -340,12 +341,12 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
         } else if (typeof value1 === 'string' && typeof value2 === 'string') {
           result = value1.localeCompare(value2);
         } else {
-          result = (value1 < value2) ? -1 : (value1 > value2) ? 1 : 0;
+          result = value1 < value2 ? -1 : value1 > value2 ? 1 : 0;
         }
         i++;
       } while (i < validSortMeta.length && result === 0);
 
-      return (validSortMeta[i - 1].order * result);
+      return validSortMeta[i - 1].order * result;
     });
   }
 
@@ -356,13 +357,15 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @returns Array containing a single menu item for column visibility dialog, or empty array
    */
   getColumnsShow(): MenuItem[] {
-    const hasToggleableColumns = this.fields.some(field => field.changeVisibility);
+    const hasToggleableColumns = this.fields.some((field) => field.changeVisibility);
     if (hasToggleableColumns) {
-      return [{
-        label: 'ON_OFF_COLUMNS' + BaseSettings.DIALOG_MENU_SUFFIX,
-        icon: 'fa fa-columns',
-        command: () => this.openColumnVisibilityDialog()
-      }];
+      return [
+        {
+          label: 'ON_OFF_COLUMNS' + BaseSettings.DIALOG_MENU_SUFFIX,
+          icon: 'fa fa-columns',
+          command: () => this.openColumnVisibilityDialog()
+        }
+      ];
     }
     return [];
   }
@@ -374,7 +377,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @param visible - Whether columns should be visible
    */
   hideShowColumnByFileHeader(fileHeader: string, visible: boolean) {
-    this.fields.filter(field => field.headerKey === fileHeader).forEach(field => field.visible = visible);
+    this.fields.filter((field) => field.headerKey === fileHeader).forEach((field) => (field.visible = visible));
   }
 
   /**
@@ -388,7 +391,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       return;
     }
     const dialogService = this.injector.get(DialogService);
-    this.translateService.get('ON_OFF_COLUMNS').subscribe(header => {
+    this.translateService.get('ON_OFF_COLUMNS').subscribe((header) => {
       dialogService.open(ColumnVisibilityDialogComponent, {
         header,
         width: '300px',
@@ -397,7 +400,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
         closable: true,
         closeOnEscape: true,
         position: 'right',
-        data: {fields: this.fields}
+        data: { fields: this.fields }
       });
     });
   }
@@ -410,11 +413,13 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    */
   getFilterRowShow(): MenuItem[] {
     if (this.hasFilter && this.filterRowToggleable) {
-      return [{
-        label: 'ON_OFF_FILTER',
-        icon: 'fa fa-filter',
-        command: () => this.toggleFilterRow()
-      }];
+      return [
+        {
+          label: 'ON_OFF_FILTER',
+          icon: 'fa fa-filter',
+          command: () => this.toggleFilterRow()
+        }
+      ];
     }
     return [];
   }
@@ -454,7 +459,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     }
     return this.fields.length - 1;
   }
-
 }
 
 /**
@@ -468,7 +472,8 @@ class SortFields {
    * @param fieldName - Name of the field to sort by
    * @param order - Sort order (1 for ascending, -1 for descending)
    */
-  constructor(public fieldName: string, public order: number) {
-  }
-
+  constructor(
+    public fieldName: string,
+    public order: number
+  ) {}
 }

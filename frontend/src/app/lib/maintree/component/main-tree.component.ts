@@ -1,24 +1,24 @@
-import {Component, OnDestroy, OnInit, ViewChild, Type, Inject} from '@angular/core';
-import {Router} from '@angular/router';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {Subscription} from 'rxjs';
-import {MainTreeService} from '../service/main-tree.service';
-import {TreeNavigationStateService} from '../service/tree.navigation.state.service';
-import {TypeNodeData} from '../types/type.node.data';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
-import {DataChangedService} from '../service/data.changed.service';
-import {DialogHandler, DIALOG_HANDLER} from '../handler/dialog-handler.interface';
-import {HelpIds} from '../../help/help.ids';
-import {CommonModule} from '@angular/common';
-import {TreeModule} from '@openng/optimus-ui/tree';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {ConfirmDialogModule} from '@openng/optimus-ui/confirmdialog';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {SharedModule} from '@openng/optimus-ui/api';
+import { Component, OnDestroy, OnInit, ViewChild, Type, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { Subscription } from 'rxjs';
+import { MainTreeService } from '../service/main-tree.service';
+import { TreeNavigationStateService } from '../service/tree.navigation.state.service';
+import { TypeNodeData } from '../types/type.node.data';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { ProcessedAction } from '../../types/processed.action';
+import { DataChangedService } from '../service/data.changed.service';
+import { DialogHandler, DIALOG_HANDLER } from '../handler/dialog-handler.interface';
+import { HelpIds } from '../../help/help.ids';
+import { CommonModule } from '@angular/common';
+import { TreeModule } from '@openng/optimus-ui/tree';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { ConfirmDialogModule } from '@openng/optimus-ui/confirmdialog';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { SharedModule } from '@openng/optimus-ui/api';
 
 /**
  * This is the component for displaying the navigation tree. It is used to control the indicators of the main area.
@@ -32,10 +32,19 @@ import {SharedModule} from '@openng/optimus-ui/api';
   selector: 'main-tree',
   templateUrl: '../view/maintree.html',
   standalone: true,
-  imports: [CommonModule, TreeModule, ContextMenuModule, ConfirmDialogModule, ButtonModule, SharedModule, TranslateModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    TreeModule,
+    ContextMenuModule,
+    ConfirmDialogModule,
+    ButtonModule,
+    SharedModule,
+    TranslateModule
+  ]
 })
 export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
-  @ViewChild('cm', {static: true}) contextMenu: any;
+  @ViewChild('cm', { static: true }) contextMenu: any;
 
   /**
    * Only used to get the Optimus UI p-tabmenu working. For example when portfolio is clicked the 2nd time in the
@@ -63,8 +72,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.mainTreeService.setComponentCallbacks({
       handleEdit: (componentType: Type<any>, parentObject: any, data: any, titleKey: string) =>
         this.dialogHandler.openEditDialog(componentType, parentObject, data, titleKey),
-      handleTenantEdit: (data: any, onlyCurrency: boolean) =>
-        this.dialogHandler.openTenantDialog(data, onlyCurrency),
+      handleTenantEdit: (data: any, onlyCurrency: boolean) => this.dialogHandler.openTenantDialog(data, onlyCurrency),
       navigateToNode: (data: TypeNodeData) => this.navigateRoute(data),
       refreshTree: () => this.refreshTree()
     });
@@ -72,9 +80,9 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.refreshTreeBecauseOfParentAction();
   }
 
-   ngOnInit(): void {
+  ngOnInit(): void {
     // Build the tree using the service
-    this.mainTreeService.buildTree().subscribe(trees => {
+    this.mainTreeService.buildTree().subscribe((trees) => {
       this.portfolioTrees = trees;
       // Trigger initial refresh
       this.mainTreeService.refreshAllNodes().subscribe(() => {
@@ -123,20 +131,19 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     return this.activePanelService.isActivated(this);
   }
 
-
   ////////////////////////////////////////////////////////////////////////////////
   // Events
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   hideContextMenu(): void {
     this.contextMenu.hide();
   }
 
   onComponentClick(event) {
-    this.activePanelService.activatePanel(this,
-      {editMenu: (this.selectedNode) ? this.getEditMenuItemsByTypeNode(this.selectedNode) : null});
+    this.activePanelService.activatePanel(this, {
+      editMenu: this.selectedNode ? this.getEditMenuItemsByTypeNode(this.selectedNode) : null
+    });
   }
 
   handleOnProcessedDialog(processedActionData: ProcessedActionData) {
@@ -186,7 +193,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   private refreshTreeBecauseOfParentAction(): void {
-    this.subscription = this.dataChangedService.dateChanged$.subscribe(processedActionData => {
+    this.subscription = this.dataChangedService.dateChanged$.subscribe((processedActionData) => {
       // Delegate to the service to refresh appropriate nodes
       this.mainTreeService.refreshNodesForDataChange(processedActionData).subscribe(() => {
         this.triggerTreeUpdate();
@@ -216,10 +223,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
   }
 
   private clearSelection(): void {
-    this.activePanelService.activatePanel(this, {editMenu: null});
+    this.activePanelService.activatePanel(this, { editMenu: null });
     this.refreshTree();
   }
-
 }
-
-

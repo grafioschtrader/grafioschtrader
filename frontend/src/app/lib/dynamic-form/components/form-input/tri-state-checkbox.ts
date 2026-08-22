@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, Input, forwardRef, ChangeDetectionStrategy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -11,19 +11,19 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
       [attr.data-state]="state"
       tabindex="0"
       (click)="toggleState()"
-      (keydown)="handleKeydown($event)"
-    >
+      (keydown)="handleKeydown($event)">
       {{ getSymbol() }}
     </div>
   `,
   styleUrls: ['../../dynamic-form.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => TriStateCheckboxComponent),
-      multi: true,
-    },
-  ],
+      multi: true
+    }
+  ]
 })
 export class TriStateCheckboxComponent implements ControlValueAccessor {
   @Input() size: 'small' | 'large' = 'small'; // Default size

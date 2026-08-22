@@ -1,27 +1,28 @@
-import {MessageToastService} from '../../message/message.toast.service';
-import {Observable, throwError} from 'rxjs';
-import {ValidationError} from './validation.error';
-import {SingleNativeMsgError} from './single.native.msg.error';
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {catchError} from 'rxjs/operators';
-import {ErrorWrapper} from './error.wrapper';
-import {LimitEntityTransactionError} from './limit.entity.transaction.error';
-import {TransformedError} from './transformed.error';
-import {GetTransformedError} from './get.transformed.error';
-import {BaseService} from './base.service';
-import {BaseSettings} from '../../base.settings';
-
+import { MessageToastService } from '../../message/message.toast.service';
+import { Observable, throwError } from 'rxjs';
+import { ValidationError } from './validation.error';
+import { SingleNativeMsgError } from './single.native.msg.error';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { catchError } from 'rxjs/operators';
+import { ErrorWrapper } from './error.wrapper';
+import { LimitEntityTransactionError } from './limit.entity.transaction.error';
+import { TransformedError } from './transformed.error';
+import { GetTransformedError } from './get.transformed.error';
+import { BaseService } from './base.service';
+import { BaseSettings } from '../../base.settings';
 
 export abstract class BaseAuthService<T> extends BaseService {
-
   private static readonly classNameClassMap = {
     LimitEntityTransactionError,
     SingleNativeMsgError,
     ValidationError
   };
 
-  protected constructor(protected httpClient: HttpClient, protected messageToastService: MessageToastService) {
+  protected constructor(
+    protected httpClient: HttpClient,
+    protected messageToastService: MessageToastService
+  ) {
     super();
   }
 
@@ -34,11 +35,17 @@ export abstract class BaseAuthService<T> extends BaseService {
    */
   updateEntity(entity: T, id: number | string, pathApi: string): Observable<T> {
     if (id != null) {
-      return <Observable<T>>this.httpClient.put(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity,
-        {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
+      return <Observable<T>>(
+        this.httpClient
+          .put(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity, { headers: this.prepareHeaders() })
+          .pipe(catchError(this.handleError.bind(this)))
+      );
     } else {
-      return <Observable<T>>this.httpClient.post(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity,
-        {headers: this.prepareHeaders()}).pipe(catchError(this.handleError.bind(this)));
+      return <Observable<T>>(
+        this.httpClient
+          .post(`${BaseSettings.API_ENDPOINT}${pathApi}`, entity, { headers: this.prepareHeaders() })
+          .pipe(catchError(this.handleError.bind(this)))
+      );
     }
   }
 
@@ -47,7 +54,7 @@ export abstract class BaseAuthService<T> extends BaseService {
     if (error instanceof HttpErrorResponse) {
       const body = error.error;
 
-      if (typeof (error.error) === 'string') {
+      if (typeof error.error === 'string') {
         transformedError.msgKey = error.error;
       } else {
         transformedError = this.getMessageFromClass(error.error);
@@ -66,14 +73,17 @@ export abstract class BaseAuthService<T> extends BaseService {
 
     if (transformedError.msgKey) {
       // The message needs a translation
-      this.messageToastService.showMessageI18n(InfoLevelType.ERROR, transformedError.msgKey, transformedError.interpolateParams);
+      this.messageToastService.showMessageI18n(
+        InfoLevelType.ERROR,
+        transformedError.msgKey,
+        transformedError.interpolateParams
+      );
     } else {
       this.messageToastService.showMessage(InfoLevelType.ERROR, transformedError.msg);
     }
 
     return throwError(() => transformedError);
   }
-
 
   /**
    * Maps the error body of a failed request to a TransformedError. The body may be missing entirely - an error
@@ -91,8 +101,10 @@ export abstract class BaseAuthService<T> extends BaseService {
 
     if (BaseAuthService.classNameClassMap[errorWrapper.className] != null) {
       BaseAuthService.classNameClassMap[errorWrapper.className];
-      const getTransformedError: GetTransformedError = Object.assign(new BaseAuthService.classNameClassMap[errorWrapper.className](),
-        errorWrapper.error);
+      const getTransformedError: GetTransformedError = Object.assign(
+        new BaseAuthService.classNameClassMap[errorWrapper.className](),
+        errorWrapper.error
+      );
       transformedError = getTransformedError.getTransformedError();
     } else if (errorWrapper.className === 'ErrorWithLogoutAdmin') {
       transformedError.bringUpAdminSelfReleaseDialog = true;
@@ -104,7 +116,5 @@ export abstract class BaseAuthService<T> extends BaseService {
     return transformedError;
   }
 
-  protected toLogout(): void {
-
-  }
+  protected toLogout(): void {}
 }

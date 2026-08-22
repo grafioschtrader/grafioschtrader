@@ -11,5 +11,3 @@ export enum TenantLimitTypes {
   MAX_PORTFOLIO = 'MAX_PORTFOLIO',
   MAX_WATCHLIST = 'MAX_WATCHLIST'
 }
-
-

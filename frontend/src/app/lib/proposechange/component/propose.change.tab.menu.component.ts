@@ -1,20 +1,18 @@
-import {Component} from '@angular/core';
-import {TabItem} from '../../types/tab.item';
-import {BaseSettings} from '../../base.settings';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { TabItem } from '../../types/tab.item';
+import { BaseSettings } from '../../base.settings';
 
-import {RouterModule} from '@angular/router';
-import {SharedTabMenuComponent} from '../../tabmenu/component/shared.tab.menu.component';
-
+import { RouterModule } from '@angular/router';
+import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.component';
 
 @Component({
   template: `
-    <app-shared-tab-menu
-      [tabs]="tabs"
-      [defaultRoute]="defaultRoute">
+    <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
       <router-outlet></router-outlet>
     </app-shared-tab-menu>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterModule, SharedTabMenuComponent]
 })
 export class ProposeChangeTabMenuComponent {

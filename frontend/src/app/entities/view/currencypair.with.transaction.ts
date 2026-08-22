@@ -1,10 +1,9 @@
-import {Currencypair} from '../currencypair';
-import {Transaction} from '../transaction';
-import {INameSecuritycurrency} from './iname.securitycurrency';
-import {Securitycurrency} from '../securitycurrency';
+import { Currencypair } from '../currencypair';
+import { Transaction } from '../transaction';
+import { INameSecuritycurrency } from './iname.securitycurrency';
+import { Securitycurrency } from '../securitycurrency';
 
 export class CurrencypairWithTransaction implements INameSecuritycurrency {
-
   public currencypair: Currencypair;
   public transactionList: Transaction[];
   public sumAmountFrom: number;
@@ -29,5 +28,4 @@ export class CurrencypairWithTransaction implements INameSecuritycurrency {
   getSecuritycurrency(): Securitycurrency {
     return this.currencypair;
   }
-
 }

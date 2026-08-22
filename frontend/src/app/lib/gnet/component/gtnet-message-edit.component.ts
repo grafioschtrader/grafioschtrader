@@ -1,29 +1,36 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {getAvailableMessageCodes, getRequestableKindNames, GTNetMessageCodeType, MessageVisibility, MsgCallParam, shouldShowWaitDaysApply} from '../model/gtnet.message';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {MessageToastService} from '../../message/message.toast.service';
-import {HelpIds} from '../../help/help.ids';
-import {AppHelper} from '../../helper/app.helper';
-import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {Subscription} from 'rxjs';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
-import {BaseParam} from '../../entities/base.param';
-import {Helper} from '../../helper/helper';
-import {SimpleEditBase} from '../../edit/simple.edit.base';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
-import {GTNetService} from '../service/gtnet.service';
-import {GTNetWithMessages, MsgRequest} from '../model/gtnet';
-import {MultiTargetMsgRequest} from '../model/multi-target-msg-request';
-import {BaseSettings} from '../../base.settings';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {
+  getAvailableMessageCodes,
+  getRequestableKindNames,
+  GTNetMessageCodeType,
+  MessageVisibility,
+  MsgCallParam,
+  shouldShowWaitDaysApply
+} from '../model/gtnet.message';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { MessageToastService } from '../../message/message.toast.service';
+import { HelpIds } from '../../help/help.ids';
+import { AppHelper } from '../../helper/app.helper';
+import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
+import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { Subscription } from 'rxjs';
+import { FieldConfig } from '../../dynamic-form/models/field.config';
+import { SelectOptionsHelper } from '../../helper/select.options.helper';
+import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
+import { BaseParam } from '../../entities/base.param';
+import { Helper } from '../../helper/helper';
+import { SimpleEditBase } from '../../edit/simple.edit.base';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { ProcessedAction } from '../../types/processed.action';
+import { GTNetService } from '../service/gtnet.service';
+import { GTNetWithMessages, MsgRequest } from '../model/gtnet';
+import { MultiTargetMsgRequest } from '../model/multi-target-msg-request';
+import { BaseSettings } from '../../base.settings';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
  * Crate a new GTNet message. A message can not be changed.
@@ -31,19 +38,22 @@ import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/d
 @Component({
   selector: 'gtnet-message-edit',
   standalone: true,
-  imports: [
-    DialogModule,
-    DynamicFormComponent,
-    TranslateModule
-  ],
+  imports: [DialogModule, DynamicFormComponent, TranslateModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <p-dialog header="{{'GT_NET_MESSAGE_SEND' | translate}}" [visible]="visibleDialog"
-              [style]="{width: '500px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
+    <p-dialog
+      header="{{ 'GT_NET_MESSAGE_SEND' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '500px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
       </dynamic-form>
     </p-dialog>
   `
@@ -55,20 +65,23 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   private classDescriptorInputAndShows: ClassDescriptorInputAndShow;
   messageCodeSubscription: Subscription;
 
-  constructor(public translateService: TranslateService,
+  constructor(
+    public translateService: TranslateService,
     private messageToastService: MessageToastService,
     private gtNetService: GTNetService,
-    gps: GlobalparameterService) {
+    gps: GlobalparameterService
+  ) {
     super(HelpIds.HELP_GT_NET, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      4, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF(this.MESSAGE_CODE, true),
-      DynamicFieldHelper.createFieldSelectStringHeqF(this.VISIBILITY, false, {invisible: true}),
-      DynamicFieldHelper.createFieldInputNumberHeqF('waitDaysApply', false, 4, 0, false, {invisible: true}),
+      DynamicFieldHelper.createFieldSelectStringHeqF(this.VISIBILITY, false, {
+        invisible: true
+      }),
+      DynamicFieldHelper.createFieldInputNumberHeqF('waitDaysApply', false, 4, 0, false, { invisible: true }),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('message', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton('SEND')
     ];
@@ -82,8 +95,11 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     if (this.msgCallParam.validResponseCodes?.length) {
       // Response mode: only show valid response codes for the request
       this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-        this.translateService, GTNetMessageCodeType,
-        this.msgCallParam.validResponseCodes.map(code => GTNetMessageCodeType[code]), false);
+        this.translateService,
+        GTNetMessageCodeType,
+        this.msgCallParam.validResponseCodes.map((code) => GTNetMessageCodeType[code]),
+        false
+      );
 
       // If only one response code available, auto-select it and disable the dropdown
       if (this.msgCallParam.validResponseCodes.length === 1) {
@@ -98,15 +114,22 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
         this.configObject.waitDaysApply.invisible = true;
       }
     } else if (this.msgCallParam.gtNetMessage) {
-      this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService,
-        GTNetMessageCodeType, [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]], false);
+      this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+        this.translateService,
+        GTNetMessageCodeType,
+        [GTNetMessageCodeType[this.msgCallParam.gtNetMessage.messageCode]],
+        false
+      );
       this.configObject[this.MESSAGE_CODE].formControl.setValue(this.msgCallParam.gtNetMessage[this.MESSAGE_CODE]);
     } else {
       // State-aware filtering: only show codes valid for the current relationship state
       const availableCodes = getAvailableMessageCodes(this.msgCallParam);
-      this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions =
-        SelectOptionsHelper.createHtmlOptionsFromEnum(this.translateService, GTNetMessageCodeType,
-          availableCodes.map(code => GTNetMessageCodeType[code]), false);
+      this.configObject[this.MESSAGE_CODE].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
+        this.translateService,
+        GTNetMessageCodeType,
+        availableCodes.map((code) => GTNetMessageCodeType[code]),
+        false
+      );
 
       // Pre-select message code if provided (e.g., from admin messages component)
       if (this.msgCallParam.preselectedMessageCode != null) {
@@ -125,8 +148,11 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   private initializeVisibilityField(): void {
     // Set up visibility options
     this.configObject[this.VISIBILITY].valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
-      this.translateService, MessageVisibility,
-      [MessageVisibility[MessageVisibility.ALL_USERS], MessageVisibility[MessageVisibility.ADMIN_ONLY]], false);
+      this.translateService,
+      MessageVisibility,
+      [MessageVisibility[MessageVisibility.ALL_USERS], MessageVisibility[MessageVisibility.ADMIN_ONLY]],
+      false
+    );
 
     if (this.msgCallParam.replyTo != null && this.msgCallParam.parentVisibility != null) {
       // Reply mode - check parent visibility
@@ -155,7 +181,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
         this.createViewFromSelectedEnum(messageCode);
         this.updateVisibilityFieldDisplay(messageCode);
         this.updateWaitDaysApplyDisplay(messageCode);
-      });
+      }
+    );
   }
 
   /**
@@ -187,14 +214,18 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   private createViewFromSelectedEnum(gtNetMessageCodeType: string | GTNetMessageCodeType): void {
     let formDef = this.msgCallParam.formDefinitions[gtNetMessageCodeType];
     // For data request: filter entityKinds MultiSelect to only show requestable kinds
-    const codeName = typeof gtNetMessageCodeType === 'string' ? gtNetMessageCodeType : GTNetMessageCodeType[gtNetMessageCodeType];
+    const codeName =
+      typeof gtNetMessageCodeType === 'string' ? gtNetMessageCodeType : GTNetMessageCodeType[gtNetMessageCodeType];
     if (codeName === 'GT_NET_DATA_REQUEST_SEL_RR_C' && this.msgCallParam.targetGtNet && formDef) {
-      const requestableNames = getRequestableKindNames(this.msgCallParam.targetGtNet, this.msgCallParam.exchangeKindTypes);
+      const requestableNames = getRequestableKindNames(
+        this.msgCallParam.targetGtNet,
+        this.msgCallParam.exchangeKindTypes
+      );
       // Clone the form definition to avoid mutating the cached original
       formDef = {
         ...formDef,
-        fieldDescriptorInputAndShows: formDef.fieldDescriptorInputAndShows.map(fd =>
-          fd.fieldName === 'entityKinds' ? {...fd, enumValues: requestableNames} : fd
+        fieldDescriptorInputAndShows: formDef.fieldDescriptorInputAndShows.map((fd) =>
+          fd.fieldName === 'entityKinds' ? { ...fd, enumValues: requestableNames } : fd
         )
       };
     }
@@ -203,9 +234,14 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
   }
 
   private createDynamicInputFields(): void {
-    const fieldConfig: FieldConfig[] = <FieldConfig[]>DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
-      this.translateService, this.classDescriptorInputAndShows,
-      '', false);
+    const fieldConfig: FieldConfig[] = <FieldConfig[]>(
+      DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+        this.translateService,
+        this.classDescriptorInputAndShows,
+        '',
+        false
+      )
+    );
 
     // Preserve current visibility state before recreating form controls
     const currentVisibility = this.configObject?.[this.VISIBILITY]?.formControl?.value;
@@ -239,7 +275,9 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.msgCallParam.formDefinitions,
       this.MESSAGE_CODE,
       this.msgCallParam.gtNetMessage.gtNetMessageParamMap,
-      this.classDescriptorInputAndShows.fieldDescriptorInputAndShows, true);
+      this.classDescriptorInputAndShows.fieldDescriptorInputAndShows,
+      true
+    );
     this.form.transferBusinessObjectToForm(dynamicModel);
   }
 
@@ -262,16 +300,22 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
           if (this.msgCallParam.targetIds.length === 1) {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_SENT');
           } else {
-            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_QUEUED',
-              {count: this.msgCallParam.targetIds.length});
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_ADMIN_MESSAGE_QUEUED', {
+              count: this.msgCallParam.targetIds.length
+            });
           }
           this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
-        }, error: () => this.configObject.submit.disabled = false
+        },
+        error: () => (this.configObject.submit.disabled = false)
       });
     } else {
       // Single-target or reply mode: use standard submitMsg
-      const msgRequest = new MsgRequest(this.msgCallParam.idGTNet, this.msgCallParam.replyTo,
-        messageCode, value.message);
+      const msgRequest = new MsgRequest(
+        this.msgCallParam.idGTNet,
+        this.msgCallParam.replyTo,
+        messageCode,
+        value.message
+      );
       msgRequest.gtNetMessageParamMap = gtNetMessageParamMap;
       if (value.waitDaysApply != null) {
         msgRequest.waitDaysApply = value.waitDaysApply;
@@ -281,24 +325,30 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       }
       this.gtNetService.submitMsg(msgRequest).subscribe({
         next: (gtNetWithMessages: GTNetWithMessages) => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'GT_NET_MESSAGE'});
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: 'GT_NET_MESSAGE'
+          });
           this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, gtNetWithMessages));
-        }, error: () => this.configObject.submit.disabled = false
+        },
+        error: () => (this.configObject.submit.disabled = false)
       });
     }
   }
 
-  private getMessageParam(value: { [name: string]: any }): { [key: string]: BaseParam } {
+  private getMessageParam(value: { [name: string]: any }): {
+    [key: string]: BaseParam;
+  } {
     const gtNetMessageParamMap: { [key: string]: BaseParam } = {};
     const valuesFlatten = Helper.flattenObject(value);
-    this.classDescriptorInputAndShows && this.classDescriptorInputAndShows.fieldDescriptorInputAndShows.forEach(fDIAS => {
-      let paramValue = valuesFlatten[fDIAS.fieldName];
-      // Convert arrays (from MultiSelect/EnumSet) to comma-separated string for backend storage
-      if (Array.isArray(paramValue)) {
-        paramValue = paramValue.join(',');
-      }
-      gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(paramValue);
-    });
+    this.classDescriptorInputAndShows &&
+      this.classDescriptorInputAndShows.fieldDescriptorInputAndShows.forEach((fDIAS) => {
+        let paramValue = valuesFlatten[fDIAS.fieldName];
+        // Convert arrays (from MultiSelect/EnumSet) to comma-separated string for backend storage
+        if (Array.isArray(paramValue)) {
+          paramValue = paramValue.join(',');
+        }
+        gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(paramValue);
+      });
     return gtNetMessageParamMap;
   }
 

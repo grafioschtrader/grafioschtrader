@@ -1,32 +1,30 @@
-import {Directive, EventEmitter, Input, Output, ViewChild} from '@angular/core';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {FeedIdentifier, FeedSupport, IFeedConnector} from './ifeed.connector';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {TranslateService} from '@ngx-translate/core';
-import {Subscription} from 'rxjs';
-import {Validators} from '@angular/forms';
-import {FormBase} from '../../lib/edit/form.base';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {ProposeChangeEntityWithEntity} from '../../lib/proposechange/model/propose.change.entity.whit.entity';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {Security} from '../../entities/security';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {SelectOptionsHelper} from '../../lib/helper/select.options.helper';
-import {FormHelper} from '../../lib/dynamic-form/components/FormHelper';
-import {AppHelper} from '../../lib/helper/app.helper';
-
+import { Directive, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { FeedIdentifier, FeedSupport, IFeedConnector } from './ifeed.connector';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
+import { Validators } from '@angular/forms';
+import { FormBase } from '../../lib/edit/form.base';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { ProposeChangeEntityWithEntity } from '../../lib/proposechange/model/propose.change.entity.whit.entity';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Security } from '../../entities/security';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
+import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
+import { AppHelper } from '../../lib/helper/app.helper';
 
 @Directive()
 export abstract class SecuritycurrencyEdit extends FormBase {
-
   // Input from parent component
   @Input() securityCurrencypairCallParam: Security | Securitycurrency;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
   // Access child components
-  @ViewChild(DynamicFormComponent, {static: true}) dynamicForm: DynamicFormComponent;
+  @ViewChild(DynamicFormComponent, { static: true }) dynamicForm: DynamicFormComponent;
   // Output for parent view
   @Output() closeDialog = new EventEmitter<ProcessedActionData>();
   connectorSubscribe: { [fieldName: string]: Subscription } = {};
@@ -42,8 +40,10 @@ export abstract class SecuritycurrencyEdit extends FormBase {
 
   // connectorFieldConfig: FieldConfig[];
 
-  protected constructor(public translateService: TranslateService,
-              public gps: GlobalparameterService) {
+  protected constructor(
+    public translateService: TranslateService,
+    public gps: GlobalparameterService
+  ) {
     super();
   }
 
@@ -51,12 +51,15 @@ export abstract class SecuritycurrencyEdit extends FormBase {
     setTimeout(() => this.loadHelperData());
   }
 
-  public hideVisibleFeedConnectorsFields(connectorFieldConfig: FieldConfig[], hideConnector: boolean,
-                                         feedIdentifier: FeedIdentifier): void {
-    const idFieldConfigurations = connectorFieldConfig.filter(field => field.field.startsWith('id'));
-    const urlFieldConfigurations = connectorFieldConfig.filter(field => field.field.startsWith('url'));
+  public hideVisibleFeedConnectorsFields(
+    connectorFieldConfig: FieldConfig[],
+    hideConnector: boolean,
+    feedIdentifier: FeedIdentifier
+  ): void {
+    const idFieldConfigurations = connectorFieldConfig.filter((field) => field.field.startsWith('id'));
+    const urlFieldConfigurations = connectorFieldConfig.filter((field) => field.field.startsWith('url'));
     if (hideConnector) {
-      idFieldConfigurations.forEach(cfc => {
+      idFieldConfigurations.forEach((cfc) => {
         if (this.connectorSubscribe[cfc.field]) {
           this.connectorSubscribe[cfc.field].unsubscribe();
           this.connectorSubscribe[cfc.field] = null;
@@ -69,7 +72,7 @@ export abstract class SecuritycurrencyEdit extends FormBase {
   }
 
   onHide(event): void {
-    Object.values(this.connectorSubscribe).forEach(cs => cs && cs.unsubscribe);
+    Object.values(this.connectorSubscribe).forEach((cs) => cs && cs.unsubscribe);
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
   }
 
@@ -77,22 +80,43 @@ export abstract class SecuritycurrencyEdit extends FormBase {
 
   protected prepareFeedConnectors(feedConnectors: IFeedConnector[], isCurrency: boolean): void {
     this.feedPriceConnectors = feedConnectors;
-    this.feedConnectorsCreateValueKeyHtmlSelectOptions(this.configObject[this.ID_CONNECTOR_HISTORY], FeedSupport.FS_HISTORY, isCurrency);
-    this.feedConnectorsCreateValueKeyHtmlSelectOptions(this.configObject[this.ID_CONNECTOR_INTRA], FeedSupport.FS_INTRA, isCurrency);
+    this.feedConnectorsCreateValueKeyHtmlSelectOptions(
+      this.configObject[this.ID_CONNECTOR_HISTORY],
+      FeedSupport.FS_HISTORY,
+      isCurrency
+    );
+    this.feedConnectorsCreateValueKeyHtmlSelectOptions(
+      this.configObject[this.ID_CONNECTOR_INTRA],
+      FeedSupport.FS_INTRA,
+      isCurrency
+    );
   }
 
   protected prepareExistingSecuritycurrency(focusControl: FieldConfig): void {
     this.dynamicForm.setDefaultValuesAndEnableSubmit();
-    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(this.translateService, this.gps,
-      this.securityCurrencypairCallParam, this.dynamicForm, this.configObject, this.proposeChangeEntityWithEntity);
+    AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+      this.translateService,
+      this.gps,
+      this.securityCurrencypairCallParam,
+      this.dynamicForm,
+      this.configObject,
+      this.proposeChangeEntityWithEntity
+    );
     focusControl.elementRef.nativeElement.focus();
   }
 
-  protected disableEnableFeedUrlExtended(urlExtended: FieldConfig, feedIdentifiers: string[], feedIdentifier: FeedIdentifier): void {
+  protected disableEnableFeedUrlExtended(
+    urlExtended: FieldConfig,
+    feedIdentifiers: string[],
+    feedIdentifier: FeedIdentifier
+  ): void {
     AppHelper.invisibleAndHide(urlExtended, feedIdentifiers.indexOf(FeedIdentifier[feedIdentifier]) >= 0);
 
-    DynamicFieldHelper.resetValidator(urlExtended, (urlExtended.invisible) ? null : [Validators.required],
-      (urlExtended.invisible) ? null : [DynamicFieldHelper.RULE_REQUIRED_TOUCHED]);
+    DynamicFieldHelper.resetValidator(
+      urlExtended,
+      urlExtended.invisible ? null : [Validators.required],
+      urlExtended.invisible ? null : [DynamicFieldHelper.RULE_REQUIRED_TOUCHED]
+    );
   }
 
   /**
@@ -106,37 +130,53 @@ export abstract class SecuritycurrencyEdit extends FormBase {
    * @param urlExtends Field of url extends
    * @param feedIdentifier Identifier which marks a connector as not requiring a url extension
    */
-  private valueChangedOnFeedConnectors(connectorIdConfigs: FieldConfig[], urlExtends: FieldConfig[],
-                                       feedIdentifier: FeedIdentifier): void {
+  private valueChangedOnFeedConnectors(
+    connectorIdConfigs: FieldConfig[],
+    urlExtends: FieldConfig[],
+    feedIdentifier: FeedIdentifier
+  ): void {
     for (let i = 0; i < connectorIdConfigs.length; i++) {
       const connectorConfig = connectorIdConfigs[i];
       // Only the very first pass sees the generic text, later passes would capture a connector help text.
       this.connectorHelpFallback[connectorConfig.field] ??= connectorConfig.labelHelpText;
       this.connectorSubscribe[connectorConfig.field] = connectorConfig.formControl.valueChanges.subscribe(
-        connector => {
-          const foundConnector = this.feedPriceConnectors.find(fc => fc.id === connector);
+        (connector) => {
+          const foundConnector = this.feedPriceConnectors.find((fc) => fc.id === connector);
           if (foundConnector) {
-            connectorConfig.labelHelpText = ((this.ID_CONNECTOR_HISTORY === connectorConfig.field)
-              ? foundConnector.description?.historicalDescription : foundConnector.description?.intraDescription)
-              || this.connectorHelpFallback[connectorConfig.field];
-            if (this.ID_CONNECTOR_INTRA === connectorConfig.field
-              && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_INTRA]]) {
-              this.disableEnableFeedUrlExtended(urlExtends[i],
+            connectorConfig.labelHelpText =
+              (this.ID_CONNECTOR_HISTORY === connectorConfig.field
+                ? foundConnector.description?.historicalDescription
+                : foundConnector.description?.intraDescription) || this.connectorHelpFallback[connectorConfig.field];
+            if (
+              this.ID_CONNECTOR_INTRA === connectorConfig.field &&
+              foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_INTRA]]
+            ) {
+              this.disableEnableFeedUrlExtended(
+                urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_INTRA]],
-                feedIdentifier);
-            } else if (this.ID_CONNECTOR_HISTORY === connectorConfig.field
-              && foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_HISTORY]]) {
-              this.disableEnableFeedUrlExtended(urlExtends[i],
+                feedIdentifier
+              );
+            } else if (
+              this.ID_CONNECTOR_HISTORY === connectorConfig.field &&
+              foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_HISTORY]]
+            ) {
+              this.disableEnableFeedUrlExtended(
+                urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_HISTORY]],
-                feedIdentifier);
+                feedIdentifier
+              );
             } else if (foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_DIVIDEND]]) {
-              this.disableEnableFeedUrlExtended(urlExtends[i],
+              this.disableEnableFeedUrlExtended(
+                urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_DIVIDEND]],
-                FeedIdentifier.DIVIDEND);
+                FeedIdentifier.DIVIDEND
+              );
             } else if (foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_SPLIT]]) {
-              this.disableEnableFeedUrlExtended(urlExtends[i],
+              this.disableEnableFeedUrlExtended(
+                urlExtends[i],
                 foundConnector.securitycurrencyFeedSupport[FeedSupport[FeedSupport.FS_SPLIT]],
-                FeedIdentifier.SPLIT);
+                FeedIdentifier.SPLIT
+              );
             }
           } else {
             // No connector is chosen
@@ -146,26 +186,52 @@ export abstract class SecuritycurrencyEdit extends FormBase {
           if (connectorConfig.labelShowText) {
             connectorConfig.labelShowText = connectorConfig.labelHelpText;
           }
-        });
+        }
+      );
     }
   }
 
-  private feedConnectorsCreateValueKeyHtmlSelectOptions(fieldConfig: FieldConfig, filterType: FeedSupport, isCurrency: boolean): void {
-    const historyProvider: IFeedConnector[] = this.feedPriceConnectors.filter(feedConnector =>
-      !!feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]]
-      && this.checkCurrencySecurityProvider(feedConnector, filterType, isCurrency));
-    fieldConfig.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray('id', 'readableName', historyProvider,
-      !isCurrency);
+  private feedConnectorsCreateValueKeyHtmlSelectOptions(
+    fieldConfig: FieldConfig,
+    filterType: FeedSupport,
+    isCurrency: boolean
+  ): void {
+    const historyProvider: IFeedConnector[] = this.feedPriceConnectors.filter(
+      (feedConnector) =>
+        !!feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]] &&
+        this.checkCurrencySecurityProvider(feedConnector, filterType, isCurrency)
+    );
+    fieldConfig.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
+      'id',
+      'readableName',
+      historyProvider,
+      !isCurrency
+    );
   }
 
-  private checkCurrencySecurityProvider(feedConnector: IFeedConnector, filterType: FeedSupport, isCurrency: boolean): boolean {
+  private checkCurrencySecurityProvider(
+    feedConnector: IFeedConnector,
+    filterType: FeedSupport,
+    isCurrency: boolean
+  ): boolean {
     if (isCurrency) {
-      return feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(FeedIdentifier[FeedIdentifier.CURRENCY]) >= 0 ||
-        feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(FeedIdentifier[FeedIdentifier.CURRENCY_URL]) >= 0;
+      return (
+        feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(
+          FeedIdentifier[FeedIdentifier.CURRENCY]
+        ) >= 0 ||
+        feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(
+          FeedIdentifier[FeedIdentifier.CURRENCY_URL]
+        ) >= 0
+      );
     } else {
-      return feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(FeedIdentifier[FeedIdentifier.SECURITY]) >= 0 ||
-        feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(FeedIdentifier[FeedIdentifier.SECURITY_URL]) >= 0;
+      return (
+        feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(
+          FeedIdentifier[FeedIdentifier.SECURITY]
+        ) >= 0 ||
+        feedConnector.securitycurrencyFeedSupport[FeedSupport[filterType]].indexOf(
+          FeedIdentifier[FeedIdentifier.SECURITY_URL]
+        ) >= 0
+      );
     }
   }
-
 }

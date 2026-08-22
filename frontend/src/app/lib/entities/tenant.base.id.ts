@@ -1,4 +1,4 @@
-import {BaseID} from './base.id';
+import { BaseID } from './base.id';
 
 export abstract class TenantBaseId implements BaseID {
   idTenant: number;

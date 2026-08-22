@@ -1,4 +1,4 @@
-import {TransactionCostGroupSummary} from './transaction.cost.group.summary';
+import { TransactionCostGroupSummary } from './transaction.cost.group.summary';
 
 export class TransactionCostGrandSummary {
   public transactionCostGroupSummaries: TransactionCostGroupSummary[];

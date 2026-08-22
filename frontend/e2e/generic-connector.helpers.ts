@@ -1,4 +1,4 @@
-import {expect, Locator, Page} from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -83,16 +83,17 @@ export interface GenericConnectorDefData {
   endpoints: GenericConnectorEndpointData[];
 }
 
-const JSON_PATH = path.resolve(__dirname,
-  '../../backend/grafioschtrader-server/src/test/resources/testdata/generic-connectors.json');
+const JSON_PATH = path.resolve(
+  __dirname,
+  '../../backend/grafioschtrader-server/src/test/resources/testdata/generic-connectors.json'
+);
 
 /** Loads the e2e-tagged connectors from the generated JSON; empty when the file was not generated. */
 export function loadGenericConnectors(): GenericConnectorDefData[] {
   if (!fs.existsSync(JSON_PATH)) {
     return [];
   }
-  return (JSON.parse(fs.readFileSync(JSON_PATH, 'utf-8')) as GenericConnectorDefData[])
-    .filter(c => c.e2e === 'e');
+  return (JSON.parse(fs.readFileSync(JSON_PATH, 'utf-8')) as GenericConnectorDefData[]).filter((c) => c.e2e === 'e');
 }
 
 // ---------------------------------------------------------------------------
@@ -108,13 +109,13 @@ const MESSAGE_FILES = [
   '../../backend/grafioschtrader-common/src/main/resources/message/messages.properties',
   '../../backend/grafioschtrader-common/src/main/resources/message/messages_de.properties',
   '../../backend/grafiosch-base/src/main/resources/i18n/messages.properties',
-  '../../backend/grafiosch-base/src/main/resources/i18n/messages_de.properties',
-].map(p => path.resolve(__dirname, p));
+  '../../backend/grafiosch-base/src/main/resources/i18n/messages_de.properties'
+].map((p) => path.resolve(__dirname, p));
 
 const MAPPING_DESCRIPTORS = [
   '../../backend/grafiosch-base/src/main/resources/META-INF/grafiosch/nls-mapping.properties',
-  '../../backend/grafioschtrader-common/src/main/resources/META-INF/grafiosch/nls-mapping.properties',
-].map(p => path.resolve(__dirname, p));
+  '../../backend/grafioschtrader-common/src/main/resources/META-INF/grafiosch/nls-mapping.properties'
+].map((p) => path.resolve(__dirname, p));
 
 const mappingListCache: { [property: string]: string[] } = {};
 
@@ -125,7 +126,7 @@ function mappingList(property: string): string[] {
     for (const file of MAPPING_DESCRIPTORS) {
       if (fs.existsSync(file)) {
         const m = new RegExp(`^${property}\\s*=\\s*(.+)$`, 'm').exec(fs.readFileSync(file, 'utf-8'));
-        m?.[1].split(',').forEach(v => v.trim() && values.add(v.trim()));
+        m?.[1].split(',').forEach((v) => v.trim() && values.add(v.trim()));
       }
     }
     mappingListCache[property] = [...values];
@@ -143,7 +144,7 @@ function toClientKey(rawKey: string): string {
   if (rawKey.startsWith('c.')) {
     return rawKey.slice(2);
   }
-  if (mappingList('passthrough.prefixes').some(p => rawKey.startsWith(p))) {
+  if (mappingList('passthrough.prefixes').some((p) => rawKey.startsWith(p))) {
     return rawKey;
   }
   const firstDot = rawKey.indexOf('.');
@@ -157,7 +158,7 @@ let i18nCache: { [key: string]: string[] } | null = null;
 
 function loadI18n(): { [key: string]: string[] } {
   if (!i18nCache) {
-    const cache: { [key: string]: string[] } = i18nCache = {};
+    const cache: { [key: string]: string[] } = (i18nCache = {});
     // The frontend JSON translation files are gone; the backend properties files below are the only source of texts
     // (issue #214). Keys are indexed under their CLIENT form, which is what the UI labels are rendered from.
     for (const file of MESSAGE_FILES) {
@@ -195,7 +196,8 @@ export function enumLabelWithQualifierRx(labelKey: string, qualifierKey: string)
   const qualifierCandidates = [...new Set([...(loadI18n()[qualifierKey] ?? []), qualifierKey])].map(escapeRegex);
   return new RegExp(
     `^\\s*(${labelCandidates.join('|')})(?:\\s*/.*?)?\\s*\\((${qualifierCandidates.join('|')})(?:,.*)?\\)\\s*$`,
-    'i');
+    'i'
+  );
 }
 
 /** Regex matching the complete translated label of a limit key, including every relation and scope qualifier. */
@@ -216,17 +218,19 @@ export function enumLabelWithQualifiersRx(labelKeys: string[], qualifierKeys: st
 /** Navigates to the Generic Connector base-data view after login and waits for the master view. */
 export async function openGenericConnectorView(page: Page): Promise<void> {
   // The node lives under the collapsed 'Base Data - ...' root — expand it first (fresh login ⇒ collapsed).
-  const baseDataNode = page.locator('.p-tree-node-content', {hasText: /(Base Data|Basisdaten)/i}).first();
-  await baseDataNode.waitFor({state: 'visible', timeout: 15_000});
+  const baseDataNode = page.locator('.p-tree-node-content', { hasText: /(Base Data|Basisdaten)/i }).first();
+  await baseDataNode.waitFor({ state: 'visible', timeout: 15_000 });
   await baseDataNode.dblclick();
 
-  const treeNode = page.locator('.p-tree-node-content', {
-    hasText: /(Generic Connector|Generischer Connector|GENERIC_CONNECTOR_DEF)/i
-  }).first();
-  await treeNode.waitFor({state: 'visible', timeout: 15_000});
+  const treeNode = page
+    .locator('.p-tree-node-content', {
+      hasText: /(Generic Connector|Generischer Connector|GENERIC_CONNECTOR_DEF)/i
+    })
+    .first();
+  await treeNode.waitFor({ state: 'visible', timeout: 15_000 });
   await treeNode.click();
 
-  await page.locator('.data-container').first().waitFor({state: 'visible', timeout: 15_000});
+  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
   // Let readData() populate the connector dropdown before the caller inspects it.
   await page.waitForTimeout(800);
 }
@@ -238,9 +242,9 @@ export async function openContextMenu(page: Page): Promise<Locator> {
   // (detail/tables) whose own click handlers would consume the panel activation.
   await contentArea.locator('h4').first().click();
   await page.waitForTimeout(300);
-  await contentArea.locator('h4').first().click({button: 'right'});
+  await contentArea.locator('h4').first().click({ button: 'right' });
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   return menu;
 }
 
@@ -265,7 +269,7 @@ export async function fillNumber(scope: Locator, fieldId: string, value: number)
 /** Selects a native <select> option by value and commits the change to the reactive form. */
 export async function selectByValue(scope: Locator, fieldId: string, value: string): Promise<void> {
   const select = scope.locator(`select#${fieldId}`);
-  await select.selectOption({value});
+  await select.selectOption({ value });
   await select.dispatchEvent('change');
 }
 
@@ -282,21 +286,20 @@ export async function setCheckbox(scope: Locator, fieldId: string, desired: bool
  * Selects entries in an Optimus UI p-multiSelect whose item labels are translated enum names.
  * Opens the overlay, clicks each item by its DE/EN label (or raw key), then closes with Escape.
  */
-export async function pickMultiSelect(page: Page, scope: Locator, fieldId: string,
-    enumNames: string[]): Promise<void> {
+export async function pickMultiSelect(page: Page, scope: Locator, fieldId: string, enumNames: string[]): Promise<void> {
   if (enumNames.length === 0) {
     return;
   }
   await scope.locator(`#${fieldId}`).first().click();
   const overlay = page.locator('.p-multiselect-overlay, .p-multiselect-panel').first();
-  await overlay.waitFor({state: 'visible', timeout: 5_000});
+  await overlay.waitFor({ state: 'visible', timeout: 5_000 });
   for (const name of enumNames) {
-    const item = overlay.locator('[role="option"]', {hasText: enumLabelRx(name)}).first();
-    await item.waitFor({state: 'visible', timeout: 5_000});
+    const item = overlay.locator('[role="option"]', { hasText: enumLabelRx(name) }).first();
+    await item.waitFor({ state: 'visible', timeout: 5_000 });
     await item.click();
   }
   await page.keyboard.press('Escape');
-  await overlay.waitFor({state: 'hidden', timeout: 5_000});
+  await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
 }
 
 /**
@@ -313,7 +316,7 @@ export async function pickGeoInclusions(page: Page, scope: Locator, geoTokens: s
   const trigger = scope.locator('#geoInclusions').first();
   await trigger.click();
   const overlay = page.locator('.p-treeselect-overlay, .p-treeselect-panel').first();
-  await overlay.waitFor({state: 'visible', timeout: 5_000});
+  await overlay.waitFor({ state: 'visible', timeout: 5_000 });
   const filter = overlay.locator('input').first();
   for (const token of geoTokens) {
     // MIC child nodes ("Exchange name (MIC)") are hidden under collapsed country nodes — use the
@@ -321,11 +324,10 @@ export async function pickGeoInclusions(page: Page, scope: Locator, geoTokens: s
     await filter.fill(token);
     await filter.dispatchEvent('input');
     await page.waitForTimeout(400);
-    const rx = token.length === 4
-      ? new RegExp(`\\(${escapeRegex(token)}\\)`)
-      : new RegExp(`^\\s*${escapeRegex(token)}\\b`, 'i');
-    const node = overlay.locator('.p-tree-node-content', {hasText: rx}).first();
-    if (await node.count() > 0) {
+    const rx =
+      token.length === 4 ? new RegExp(`\\(${escapeRegex(token)}\\)`) : new RegExp(`^\\s*${escapeRegex(token)}\\b`, 'i');
+    const node = overlay.locator('.p-tree-node-content', { hasText: rx }).first();
+    if ((await node.count()) > 0) {
       await node.locator('.p-checkbox, input[type="checkbox"]').first().click();
       await page.waitForTimeout(150);
     }
@@ -335,9 +337,9 @@ export async function pickGeoInclusions(page: Page, scope: Locator, geoTokens: s
   }
   // Escape is consumed by the focused filter searchbox — close by toggling the trigger instead.
   await trigger.click();
-  await overlay.waitFor({state: 'hidden', timeout: 5_000}).catch(async () => {
+  await overlay.waitFor({ state: 'hidden', timeout: 5_000 }).catch(async () => {
     await page.keyboard.press('Escape');
-    await overlay.waitFor({state: 'hidden', timeout: 5_000});
+    await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
   });
 }
 
@@ -346,13 +348,16 @@ export async function pickGeoInclusions(page: Page, scope: Locator, geoTokens: s
  * fills it via the provided callback, and saves it with the row's check button. Each save PUTs the
  * whole connector definition, so the caller must wait for the toast/re-render afterwards.
  */
-export async function addEditableTableRow(page: Page, table: Locator,
-    fill: (row: Locator) => Promise<void>): Promise<void> {
+export async function addEditableTableRow(
+  page: Page,
+  table: Locator,
+  fill: (row: Locator) => Promise<void>
+): Promise<void> {
   // The '+' p-button sits next to the caption heading inside the table header.
   await table.locator('.p-datatable-header button').first().click();
   // addNewRow() enters edit mode after a ~50ms setTimeout.
   const row = table.locator('tbody tr').last();
-  await row.locator('button:has(i.pi-check)').waitFor({state: 'visible', timeout: 5_000});
+  await row.locator('button:has(i.pi-check)').waitFor({ state: 'visible', timeout: 5_000 });
   await fill(row);
   await row.locator('button:has(i.pi-check)').click();
 }

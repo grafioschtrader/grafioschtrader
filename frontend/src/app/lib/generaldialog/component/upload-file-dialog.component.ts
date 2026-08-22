@@ -1,24 +1,24 @@
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {AppHelper} from '../../helper/app.helper';
-import {SimpleEditBase} from '../../edit/simple.edit.base';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {FieldConfig} from '../../dynamic-form/models/field.config';
-import {SelectOptionsHelper} from '../../helper/select.options.helper';
-import {Subscription} from 'rxjs';
-import {InfoLevelType} from '../../message/info.leve.type';
-import {MessageToastService} from '../../message/message.toast.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess} from '../model/file.upload.param';
-import {BaseSettings} from '../../base.settings';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { ProcessedAction } from '../../types/processed.action';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { AppHelper } from '../../helper/app.helper';
+import { SimpleEditBase } from '../../edit/simple.edit.base';
+import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
+import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { FieldConfig } from '../../dynamic-form/models/field.config';
+import { SelectOptionsHelper } from '../../helper/select.options.helper';
+import { Subscription } from 'rxjs';
+import { InfoLevelType } from '../../message/info.leve.type';
+import { MessageToastService } from '../../message/message.toast.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { FileUploadParam, SupportedCSVFormat, UploadHistoryquotesSuccess } from '../model/file.upload.param';
+import { BaseSettings } from '../../base.settings';
 
 /**
  * Generic file upload dialog component for importing single or multiple files with optional CSV format
@@ -37,21 +37,27 @@ import {BaseSettings} from '../../base.settings';
  * management, form configuration, and lifecycle handling.
  */
 @Component({
-    selector: 'upload-file-dialog',
-    template: `
-    <p-dialog header="{{fileUploadParam.title | translate}}" [visible]="visibleDialog"
-              [style]="{width: '400px'}"
-              (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm"
-                    (submitBt)="submit($event)">
-      </dynamic-form>
-    </p-dialog>`,
-    standalone: true,
-    imports: [DialogModule, DynamicFormModule, TranslateModule]
+  selector: 'upload-file-dialog',
+  template: ` <p-dialog
+    header="{{ fileUploadParam.title | translate }}"
+    [visible]="visibleDialog"
+    [style]="{ width: '400px' }"
+    (onShow)="onShow($event)"
+    (onHide)="onHide($event)"
+    [modal]="true">
+    <dynamic-form
+      [config]="config"
+      [formConfig]="formConfig"
+      [translateService]="translateService"
+      #form="dynamicForm"
+      (submitBt)="submit($event)">
+    </dynamic-form>
+  </p-dialog>`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class UploadFileDialogComponent extends SimpleEditBase implements OnInit {
-
   /** Configuration parameters passed from parent component defining dialog behavior and upload settings */
   @Input() fileUploadParam: FileUploadParam;
 
@@ -69,11 +75,13 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    * @param userSettingsService - Service for persisting and retrieving user preferences (CSV format settings)
    * @param gps - Global parameter service providing application-wide configuration and user settings
    */
-  constructor(public translateService: TranslateService,
-              private messageToastService: MessageToastService,
-              private userSettingsService: UserSettingsService,
-              private cdr: ChangeDetectorRef,
-              gps: GlobalparameterService) {
+  constructor(
+    public translateService: TranslateService,
+    private messageToastService: MessageToastService,
+    private userSettingsService: UserSettingsService,
+    private cdr: ChangeDetectorRef,
+    gps: GlobalparameterService
+  ) {
     super(null, gps);
   }
 
@@ -83,14 +91,18 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    * Prepares all field configurations and translations for rendering.
    */
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      5, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.helpId = this.fileUploadParam.helpId;
     this.config = [
-      ...this.fileUploadParam.additionalFieldConfig ? this.fileUploadParam.additionalFieldConfig.fieldConfig : [],
+      ...(this.fileUploadParam.additionalFieldConfig ? this.fileUploadParam.additionalFieldConfig.fieldConfig : []),
       ...this.getCSVFormatsFields(),
-      DynamicFieldHelper.createFileUpload(this.fileUploadParam.multiple ? DataType.Files : DataType.File, 'fileToUpload',
-        this.fileUploadParam.multiple ? 'FILES' : 'FILE', this.fileUploadParam.acceptFileType, true),
+      DynamicFieldHelper.createFileUpload(
+        this.fileUploadParam.multiple ? DataType.Files : DataType.File,
+        'fileToUpload',
+        this.fileUploadParam.multiple ? 'FILES' : 'FILE',
+        this.fileUploadParam.acceptFileType,
+        true
+      ),
       DynamicFieldHelper.createSubmitButton('UPLOAD')
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -134,26 +146,38 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
       const supportedCSVFormat = new SupportedCSVFormat();
       this.form.cleanMaskAndTransferValuesToBusinessObject(supportedCSVFormat);
       this.userSettingsService.saveObject(BaseSettings.CSV_EXPORT_FORMAT, supportedCSVFormat);
-      Object.keys(supportedCSVFormat).forEach(e => formData.append(e, supportedCSVFormat[e]));
+      Object.keys(supportedCSVFormat).forEach((e) => formData.append(e, supportedCSVFormat[e]));
     }
 
-    this.fileUploadParam.additionalFieldConfig && this.fileUploadParam.additionalFieldConfig.submitPrepareFN(value, formData,
-      this.fileUploadParam.additionalFieldConfig.fieldConfig);
+    this.fileUploadParam.additionalFieldConfig &&
+      this.fileUploadParam.additionalFieldConfig.submitPrepareFN(
+        value,
+        formData,
+        this.fileUploadParam.additionalFieldConfig.fieldConfig
+      );
 
-    this.fileUploadParam.uploadService.uploadFiles(this.fileUploadParam.entityId, formData).subscribe({next:
-      response => {
+    this.fileUploadParam.uploadService.uploadFiles(this.fileUploadParam.entityId, formData).subscribe({
+      next: (response) => {
         if (response.hasOwnProperty('duplicatedInImport')) {
           const uhs: UploadHistoryquotesSuccess = response;
-          this.messageToastService.showMessageI18nEnableHtml(uhs.validationErrors + uhs.notOverridden > 0 ?
-            uhs.duplicatedInImport > 0 ? InfoLevelType.WARNING : InfoLevelType.ERROR
-            : InfoLevelType.SUCCESS, 'UPLOAD_SUCCESS', uhs);
+          this.messageToastService.showMessageI18nEnableHtml(
+            uhs.validationErrors + uhs.notOverridden > 0
+              ? uhs.duplicatedInImport > 0
+                ? InfoLevelType.WARNING
+                : InfoLevelType.ERROR
+              : InfoLevelType.SUCCESS,
+            'UPLOAD_SUCCESS',
+            uhs
+          );
         } else {
           // Endpoints without a result payload would otherwise close the dialog silently, which is
           // indistinguishable from a failure when the upload legitimately produced no rows.
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'UPLOAD_FILE_SUCCESS');
         }
         this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
-      }, error: () => this.configObject.submit.disabled = false});
+      },
+      error: () => (this.configObject.submit.disabled = false)
+    });
   }
 
   /**
@@ -164,8 +188,9 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    */
   valueChangedOnDecimalSeparator(): void {
     this.decimalSeparatorSub = this.configObject.decimalSeparator.formControl.valueChanges.subscribe((data: string) => {
-      const thousandSeparators: string[] = this.fileUploadParam.supportedCSVFormats.thousandSeparators.filter(separator => separator !==
-        this.configObject.decimalSeparator.formControl.value);
+      const thousandSeparators: string[] = this.fileUploadParam.supportedCSVFormats.thousandSeparators.filter(
+        (separator) => separator !== this.configObject.decimalSeparator.formControl.value
+      );
 
       this.configObject.thousandSeparator.valueKeyHtmlOptions =
         SelectOptionsHelper.createHtmlOptionsFromStringArray(thousandSeparators);
@@ -196,11 +221,15 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
    */
   protected override initialize(): void {
     if (this.fileUploadParam.supportedCSVFormats) {
-      this.configObject.decimalSeparator.valueKeyHtmlOptions =
-        SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.decimalSeparators);
-      this.configObject.dateFormat.valueKeyHtmlOptions =
-        SelectOptionsHelper.createHtmlOptionsFromStringArray(this.fileUploadParam.supportedCSVFormats.dateFormats);
-      const supportedCSVFormat: SupportedCSVFormat = this.userSettingsService.retrieveObject(this.fileUploadParam.persistenceCSVKey);
+      this.configObject.decimalSeparator.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
+        this.fileUploadParam.supportedCSVFormats.decimalSeparators
+      );
+      this.configObject.dateFormat.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromStringArray(
+        this.fileUploadParam.supportedCSVFormats.dateFormats
+      );
+      const supportedCSVFormat: SupportedCSVFormat = this.userSettingsService.retrieveObject(
+        this.fileUploadParam.persistenceCSVKey
+      );
       this.valueChangedOnDecimalSeparator();
       if (supportedCSVFormat) {
         this.form.transferBusinessObjectToForm(supportedCSVFormat);
@@ -220,17 +249,14 @@ export class UploadFileDialogComponent extends SimpleEditBase implements OnInit 
   private getCSVFormatsFields(): FieldConfig[] {
     const fieldConfig: FieldConfig[] = [];
     if (this.fileUploadParam.supportedCSVFormats) {
-      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('decimalSeparator', true,
-        {inputWidth: 3}));
-      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('thousandSeparator', true,
-        {inputWidth: 3}));
-      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('dateFormat', true,
-        {inputWidth: 15}));
+      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('decimalSeparator', true, { inputWidth: 3 }));
+      fieldConfig.push(DynamicFieldHelper.createFieldSelectStringHeqF('thousandSeparator', true, { inputWidth: 3 }));
+      fieldConfig.push(
+        DynamicFieldHelper.createFieldSelectStringHeqF('dateFormat', true, {
+          inputWidth: 15
+        })
+      );
     }
     return fieldConfig;
   }
 }
-
-
-
-

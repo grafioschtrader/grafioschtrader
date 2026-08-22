@@ -1,7 +1,7 @@
-import {Cashaccount} from './cashaccount';
-import {BaseID} from '../lib/entities/base.id';
-import {Security} from './security';
-import {ImportTransactionPosFailed} from './import.transaction.pos.failed';
+import { Cashaccount } from './cashaccount';
+import { BaseID } from '../lib/entities/base.id';
+import { Security } from './security';
+import { ImportTransactionPosFailed } from './import.transaction.pos.failed';
 
 export class ImportTransactionPos implements BaseID {
   idTransactionPos: number;
@@ -37,7 +37,4 @@ export class ImportTransactionPos implements BaseID {
   public getId(): number {
     return this.idTransactionPos;
   }
-
 }
-
-

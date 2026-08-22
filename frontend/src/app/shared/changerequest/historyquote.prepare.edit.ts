@@ -1,13 +1,13 @@
-import {Historyquote} from '../../entities/historyquote';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {combineLatest, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {HistoryquoteSecurityCurrency} from '../../historyquote/component/historyquote-table.component';
-import {Currencypair} from '../../entities/currencypair';
-import {Security} from '../../entities/security';
-import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
-import {EntityMapping, PrepareCallParam} from '../../lib/proposechange/component/general.entity.prepare.edit';
+import { Historyquote } from '../../entities/historyquote';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { combineLatest, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { HistoryquoteSecurityCurrency } from '../../historyquote/component/historyquote-table.component';
+import { Currencypair } from '../../entities/currencypair';
+import { Security } from '../../entities/security';
+import { BasePrepareEdit } from '../../lib/proposechange/component/base.prepare.edit';
+import { EntityMapping, PrepareCallParam } from '../../lib/proposechange/component/general.entity.prepare.edit';
 
 /**
  * Preparation handler for Historyquote entities in the propose change workflow.
@@ -15,14 +15,16 @@ import {EntityMapping, PrepareCallParam} from '../../lib/proposechange/component
  * being edited. History quotes are always linked to either a Security or Currencypair.
  */
 export class HistoryquotePrepareEdit extends BasePrepareEdit<Historyquote> implements PrepareCallParam<Historyquote> {
-
   /**
    * Creates a history quote preparation handler.
    *
    * @param securityService - Service for loading security data
    * @param currencypairService - Service for loading currency pair data
    */
-  constructor(private securityService: SecurityService, private currencypairService: CurrencypairService) {
+  constructor(
+    private securityService: SecurityService,
+    private currencypairService: CurrencypairService
+  ) {
     super();
   }
 
@@ -43,8 +45,9 @@ export class HistoryquotePrepareEdit extends BasePrepareEdit<Historyquote> imple
       map((data: any[]) => {
         const historyquote = new Historyquote();
         Object.assign(historyquote, entity);
-        entityMapping.callParam = data[0] ? new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Currencypair(), data[0])) :
-          new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Security(), data[1]));
+        entityMapping.callParam = data[0]
+          ? new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Currencypair(), data[0]))
+          : new HistoryquoteSecurityCurrency(historyquote, Object.assign(new Security(), data[1]));
         entityMapping.visibleDialog = true;
       })
     );

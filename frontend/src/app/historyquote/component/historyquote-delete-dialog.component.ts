@@ -1,24 +1,27 @@
-import {Component, Input, OnInit} from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import moment from 'moment';
-import {SimpleEditBase} from '../../lib/edit/simple.edit.base';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {HistoryquoteCreateType} from '../../entities/historyquote';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {HistoryquoteService} from '../service/historyquote.service';
-import {DeleteHistoryquotesSuccess, HistoryquoteDeleteBounds} from '../../securitycurrency/model/historyquote.quality.group';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {BaseSettings} from '../../lib/base.settings';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
+import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { HistoryquoteCreateType } from '../../entities/historyquote';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { HistoryquoteService } from '../service/historyquote.service';
+import {
+  DeleteHistoryquotesSuccess,
+  HistoryquoteDeleteBounds
+} from '../../securitycurrency/model/historyquote.quality.group';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { BaseSettings } from '../../lib/base.settings';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
 
 /**
  * Dialog to delete the linear filled and/or manually imported history quotes of an instrument.
@@ -34,19 +37,27 @@ import {DataType} from '../../lib/dynamic-form/models/data.type';
  * the new price manually and fills linearly into the future again.
  */
 @Component({
-    selector: 'historyquote-delete-dialog',
-    template: `
-      <p-dialog header="{{'DELETE_CREATE_TYPES_QUOTES' | translate}}" [visible]="visibleDialog"
-                [style]="{width: '500px'}"
-                (onShow)="onShow($event)" (onHide)="onHide($event)" [modal]="true">
-
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService" #form="dynamicForm"
-                        (submitBt)="submit($event)">
-          </dynamic-form>
-      </p-dialog>
+  selector: 'historyquote-delete-dialog',
+  template: `
+    <p-dialog
+      header="{{ 'DELETE_CREATE_TYPES_QUOTES' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '500px' }"
+      (onShow)="onShow($event)"
+      (onHide)="onHide($event)"
+      [modal]="true">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm"
+        (submitBt)="submit($event)">
+      </dynamic-form>
+    </p-dialog>
   `,
-    standalone: true,
-    imports: [DialogModule, DynamicFormModule, TranslateModule]
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements OnInit {
   @Input() idSecuritycurrency: number;
@@ -57,45 +68,53 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
   readonly dateFrom = 'dateFrom';
   readonly dateTo = 'dateTo';
 
-  readonly fieldCreatTypes: FieldCreateType[] = [new FieldCreateType('filledLinear',
-    HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY),
-    new FieldCreateType('manualImported', HistoryquoteCreateType.MANUAL_IMPORTED)];
+  readonly fieldCreatTypes: FieldCreateType[] = [
+    new FieldCreateType('filledLinear', HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY),
+    new FieldCreateType('manualImported', HistoryquoteCreateType.MANUAL_IMPORTED)
+  ];
 
-  constructor(public translateService: TranslateService,
-              private historyquoteService: HistoryquoteService,
-              private messageToastService: MessageToastService,
-              gps: GlobalparameterService) {
+  constructor(
+    public translateService: TranslateService,
+    private historyquoteService: HistoryquoteService,
+    private messageToastService: MessageToastService,
+    gps: GlobalparameterService
+  ) {
     super(HelpIds.HELP_HISTORYQUOTE_QUALITY, gps);
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps,
-      7, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 7, this.helpLink.bind(this));
 
     const minDate = HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.minDate);
     const maxDate = HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.maxDate);
     this.config.push(
-      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, this.dateFrom, true,
-        {calendarConfig: {minDate, maxDate}}),
-      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, this.dateTo, true,
-        {calendarConfig: {minDate, maxDate}}));
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, this.dateFrom, true, {
+        calendarConfig: { minDate, maxDate }
+      }),
+      DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, this.dateTo, true, {
+        calendarConfig: { minDate, maxDate }
+      })
+    );
 
-    this.fieldCreatTypes.forEach(fct => {
+    this.fieldCreatTypes.forEach((fct) => {
       if (this.historyquoteQuality[fct.fieldName]) {
-        this.config.push(DynamicFieldHelper.createFieldCheckboxHeqF(fct.fieldName, {defaultValue: true}));
+        this.config.push(
+          DynamicFieldHelper.createFieldCheckboxHeqF(fct.fieldName, {
+            defaultValue: true
+          })
+        );
       }
     });
     // Angular -> Submit button can not be used because the checkboxes carry no validation. The button is therefore
     // enabled and disabled from the state of the two date fields, see initialize().
-    this.config.push(DynamicFieldHelper.createFunctionButtonFieldName('execute', 'EXECUTE',
-      (e) => this.submit(null)));
+    this.config.push(DynamicFieldHelper.createFunctionButtonFieldName('execute', 'EXECUTE', (e) => this.submit(null)));
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   submit(value: { [name: string]: any }): void {
     this.configObject.execute.disabled = true;
     const hct: HistoryquoteCreateType[] = [];
-    this.fieldCreatTypes.forEach(fct => {
+    this.fieldCreatTypes.forEach((fct) => {
       if (this.historyquoteQuality[fct.fieldName]) {
         if (this.configObject[fct.fieldName].formControl.value) {
           hct.push(fct.hct);
@@ -104,13 +123,24 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     });
 
     if (hct.length > 0) {
-      this.historyquoteService.deleteHistoryquotesByCreateTypes(this.idSecuritycurrency, hct,
-        this.getDateAsBackendFormat(this.dateFrom), this.getDateAsBackendFormat(this.dateTo)).subscribe(
-        {next: (dhs: DeleteHistoryquotesSuccess) => {
-          this.messageToastService.showMessageI18nEnableHtml(InfoLevelType.SUCCESS,
-            'HISTORYQUOTE_DELETE_CREATE_TYPES', dhs);
-          this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
-        }, error: () => this.configObject.execute.disabled = false});
+      this.historyquoteService
+        .deleteHistoryquotesByCreateTypes(
+          this.idSecuritycurrency,
+          hct,
+          this.getDateAsBackendFormat(this.dateFrom),
+          this.getDateAsBackendFormat(this.dateTo)
+        )
+        .subscribe({
+          next: (dhs: DeleteHistoryquotesSuccess) => {
+            this.messageToastService.showMessageI18nEnableHtml(
+              InfoLevelType.SUCCESS,
+              'HISTORYQUOTE_DELETE_CREATE_TYPES',
+              dhs
+            );
+            this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED));
+          },
+          error: () => (this.configObject.execute.disabled = false)
+        });
     } else {
       this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
     }
@@ -118,20 +148,22 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
 
   protected override initialize(): void {
     this.form.setDefaultValuesAndEnableSubmit();
-    this.configObject[this.dateFrom].formControl
-      .setValue(HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.minDate));
-    this.configObject[this.dateTo].formControl
-      .setValue(HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.maxDate));
+    this.configObject[this.dateFrom].formControl.setValue(
+      HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.minDate)
+    );
+    this.configObject[this.dateTo].formControl.setValue(
+      HistoryquoteDeleteDialogComponent.toLocalDate(this.deleteBounds.maxDate)
+    );
     // Each picker limits the other, so a period whose start lies after its end can not be produced. A value that was
     // already chosen is not corrected by a changed boundary, therefore the opposite date is dragged along.
-    this.configObject[this.dateFrom].formControl.valueChanges.subscribe(dateFrom => {
+    this.configObject[this.dateFrom].formControl.valueChanges.subscribe((dateFrom) => {
       this.configObject[this.dateTo].calendarConfig.minDate = dateFrom;
       const dateToControl = this.configObject[this.dateTo].formControl;
       if (dateFrom && dateToControl.value && dateToControl.value < dateFrom) {
         dateToControl.setValue(dateFrom);
       }
     });
-    this.configObject[this.dateTo].formControl.valueChanges.subscribe(dateTo => {
+    this.configObject[this.dateTo].formControl.valueChanges.subscribe((dateTo) => {
       this.configObject[this.dateFrom].calendarConfig.maxDate = dateTo;
       const dateFromControl = this.configObject[this.dateFrom].formControl;
       if (dateTo && dateFromControl.value && dateFromControl.value > dateTo) {
@@ -140,8 +172,7 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
     });
     // The function button is outside the form and therefore not disabled by an invalid form on its own. Without this
     // the user could send a cleared or out of range date, which the server would only answer with a validation error.
-    this.form.form.statusChanges.subscribe(
-      status => this.configObject.execute.disabled = status !== 'VALID');
+    this.form.form.statusChanges.subscribe((status) => (this.configObject.execute.disabled = status !== 'VALID'));
   }
 
   /**
@@ -169,6 +200,8 @@ export class HistoryquoteDeleteDialogComponent extends SimpleEditBase implements
 }
 
 class FieldCreateType {
-  constructor(public fieldName: string, public hct: HistoryquoteCreateType) {
-  }
+  constructor(
+    public fieldName: string,
+    public hct: HistoryquoteCreateType
+  ) {}
 }

@@ -1,27 +1,27 @@
-import {CommonModule} from '@angular/common';
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {Subscription} from 'rxjs';
-import {FeeModelComparisonDetail, FeeModelComparisonResponse} from '../../entities/fee.model.comparison';
-import {Portfolio} from '../../entities/portfolio';
-import {ColumnConfig} from '../../lib/datashowbase/column.config';
-import {ShowRecordConfigBase} from '../../lib/datashowbase/show.record.config.base';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {DynamicFormModule} from '../../lib/dynamic-form/dynamic-form.module';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {FieldConfig} from '../../lib/dynamic-form/models/field.config';
-import {FieldFormGroup} from '../../lib/dynamic-form/models/form.group.definition';
-import {FormConfig} from '../../lib/dynamic-form/models/form.config';
-import {DynamicFieldHelper} from '../../lib/helper/dynamic.field.helper';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {ValueKeyHtmlSelectOptions} from '../../lib/dynamic-form/models/value.key.html.select.options';
-import {HelpIds} from '../../lib/help/help.ids';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {PortfolioService} from '../../portfolio/service/portfolio.service';
-import {SecurityaccountService} from '../../securityaccount/service/securityaccount.service';
-import {FeeModelComparisonTableComponent} from './fee-model-comparison-table.component';
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
+import { FeeModelComparisonDetail, FeeModelComparisonResponse } from '../../entities/fee.model.comparison';
+import { Portfolio } from '../../entities/portfolio';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
+import { FieldFormGroup } from '../../lib/dynamic-form/models/form.group.definition';
+import { FormConfig } from '../../lib/dynamic-form/models/form.config';
+import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { HelpIds } from '../../lib/help/help.ids';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
+import { FeeModelComparisonTableComponent } from './fee-model-comparison-table.component';
 
 /**
  * Parent component for the fee model comparison view. Uses dynamic-form for the security
@@ -30,28 +30,44 @@ import {FeeModelComparisonTableComponent} from './fee-model-comparison-table.com
  */
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
-      <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                    #form="dynamicForm">
+    <div
+      class="data-container"
+      (click)="onComponentClick($event)"
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
+      <dynamic-form
+        [config]="config"
+        [formConfig]="formConfig"
+        [translateService]="translateService"
+        #form="dynamicForm">
       </dynamic-form>
       @if (comparisonResponse && comparisonResponse.totalTransactions > 0) {
         <div class="fcontainer">
           <fieldset class="out-border fbox">
-            <legend class="out-border-legend">{{ 'OVERVIEW' | translate }}</legend>
+            <legend class="out-border-legend">
+              {{ 'OVERVIEW' | translate }}
+            </legend>
             @for (field of summaryInfoFields; track field.field) {
               <div class="row">
                 <div class="col-md-5 showlabel text-end">{{ field.headerTranslated }}:</div>
-                <div class="col-md-7 nopadding wrap">{{ getValueByPath(comparisonResponse, field) }}</div>
+                <div class="col-md-7 nopadding wrap">
+                  {{ getValueByPath(comparisonResponse, field) }}
+                </div>
               </div>
             }
           </fieldset>
           <fieldset class="out-border fbox">
-            <legend class="out-border-legend">{{ 'ACCURACY' | translate }}</legend>
+            <legend class="out-border-legend">
+              {{ 'ACCURACY' | translate }}
+            </legend>
             @for (field of summaryStatFields; track field.field) {
               <div class="row">
                 <div class="col-md-5 showlabel text-end">{{ field.headerTranslated }}:</div>
-                <div class="col-md-7 nopadding wrap">{{ getValueByPath(comparisonResponse, field) }}</div>
+                <div class="col-md-7 nopadding wrap">
+                  {{ getValueByPath(comparisonResponse, field) }}
+                </div>
               </div>
             }
           </fieldset>
@@ -61,12 +77,13 @@ import {FeeModelComparisonTableComponent} from './fee-model-comparison-table.com
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, TranslateModule, DynamicFormModule, FeeModelComparisonTableComponent]
 })
 export class FeeModelComparisonComponent extends ShowRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
-
-  @ViewChild(DynamicFormComponent, {static: true}) form: DynamicFormComponent;
-  @ViewChild(FeeModelComparisonTableComponent) comparisonTable: FeeModelComparisonTableComponent;
+  @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
+  @ViewChild(FeeModelComparisonTableComponent)
+  comparisonTable: FeeModelComparisonTableComponent;
 
   formConfig: FormConfig;
   config: FieldFormGroup[] = [];
@@ -88,11 +105,14 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
     gps: GlobalparameterService
   ) {
     super(translateService, gps);
-    this.formConfig = {labelColumns: 2, nonModal: true};
+    this.formConfig = { labelColumns: 2, nonModal: true };
     this.config = [
-      DynamicFieldHelper.createFieldSelectNumber('idSecuritycashAccount', 'SECURITYACCOUNT', false,
-        {usedLayoutColumns: 6}),
-      DynamicFieldHelper.createFieldCheckboxHeqF('excludeZeroCost', {usedLayoutColumns: 6})
+      DynamicFieldHelper.createFieldSelectNumber('idSecuritycashAccount', 'SECURITYACCOUNT', false, {
+        usedLayoutColumns: 6
+      }),
+      DynamicFieldHelper.createFieldCheckboxHeqF('excludeZeroCost', {
+        usedLayoutColumns: 6
+      })
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
@@ -114,14 +134,14 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
     return this.activePanelService.isActivated(this);
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   onComponentClick(event: any): void {
-    this.activePanelService.activatePanel(this, {showMenu: this.comparisonTable?.getMenuShowOptions()});
+    this.activePanelService.activatePanel(this, {
+      showMenu: this.comparisonTable?.getMenuShowOptions()
+    });
   }
 
   public getHelpContextId(): string {
@@ -129,34 +149,49 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe());
+    this.subscriptions.forEach((s) => s.unsubscribe());
     this.activePanelService.destroyPanel(this);
   }
 
   private initSummaryFields(): void {
     this.summaryInfoFields = [
       ShowRecordConfigBase.createColumnConfig(DataType.String, 'planName', 'PLAN'),
-      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'totalTransactions', 'TOTAL',
-        true, false, {maxFractionDigits: 0}),
-      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'comparedCount', 'COMPARED',
-        true, false, {maxFractionDigits: 0}),
-      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'skippedCount', 'SKIPPED',
-        true, false, {maxFractionDigits: 0}),
-      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'errorCount', 'ERRORS',
-        true, false, {maxFractionDigits: 0})
+      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'totalTransactions', 'TOTAL', true, false, {
+        maxFractionDigits: 0
+      }),
+      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'comparedCount', 'COMPARED', true, false, {
+        maxFractionDigits: 0
+      }),
+      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'skippedCount', 'SKIPPED', true, false, {
+        maxFractionDigits: 0
+      }),
+      ShowRecordConfigBase.createColumnConfig(DataType.NumericShowZero, 'errorCount', 'ERRORS', true, false, {
+        maxFractionDigits: 0
+      })
     ];
     this.summaryStatFields = [
-      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'meanAbsoluteError', 'MEAN_ABSOLUTE_ERROR',
-        true, false, {maxFractionDigits: 2}),
-      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'meanRelativeError', 'MEAN_RELATIVE_ERROR',
-        true, false, {maxFractionDigits: 2}),
-      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'rmse', 'RMSE',
-        true, false, {maxFractionDigits: 2})
+      ShowRecordConfigBase.createColumnConfig(
+        DataType.Numeric,
+        'meanAbsoluteError',
+        'MEAN_ABSOLUTE_ERROR',
+        true,
+        false,
+        { maxFractionDigits: 2 }
+      ),
+      ShowRecordConfigBase.createColumnConfig(
+        DataType.Numeric,
+        'meanRelativeError',
+        'MEAN_RELATIVE_ERROR',
+        true,
+        false,
+        { maxFractionDigits: 2 }
+      ),
+      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'rmse', 'RMSE', true, false, { maxFractionDigits: 2 })
     ];
     const allFields = [...this.summaryInfoFields, ...this.summaryStatFields];
-    const headerKeys = allFields.map(f => f.headerKey);
-    this.translateService.get(headerKeys).subscribe(translations => {
-      allFields.forEach(f => f.headerTranslated = translations[f.headerKey]);
+    const headerKeys = allFields.map((f) => f.headerKey);
+    this.translateService.get(headerKeys).subscribe((translations) => {
+      allFields.forEach((f) => (f.headerTranslated = translations[f.headerKey]));
     });
   }
 
@@ -178,7 +213,8 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
     const idSecuritycashAccount = this.configObject.idSecuritycashAccount.formControl.value;
     const excludeZeroCost = this.configObject.excludeZeroCost.formControl.value ?? true;
     if (idSecuritycashAccount) {
-      this.securityaccountService.getFeeModelComparison(+idSecuritycashAccount, excludeZeroCost)
+      this.securityaccountService
+        .getFeeModelComparison(+idSecuritycashAccount, excludeZeroCost)
         .subscribe((response: FeeModelComparisonResponse) => {
           this.comparisonResponse = response;
           this.details = response.details || [];

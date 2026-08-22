@@ -1,10 +1,10 @@
-import {AssetclassService} from '../../assetclass/service/assetclass.service';
-import {Assetclass} from '../../entities/assetclass';
-import {AssetclassCallParam} from '../../assetclass/component/assetclass.call.param';
-import {combineLatest, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {BasePrepareEdit} from '../../lib/proposechange/component/base.prepare.edit';
-import {EntityMapping, PrepareCallParam} from '../../lib/proposechange/component/general.entity.prepare.edit';
+import { AssetclassService } from '../../assetclass/service/assetclass.service';
+import { Assetclass } from '../../entities/assetclass';
+import { AssetclassCallParam } from '../../assetclass/component/assetclass.call.param';
+import { combineLatest, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { BasePrepareEdit } from '../../lib/proposechange/component/base.prepare.edit';
+import { EntityMapping, PrepareCallParam } from '../../lib/proposechange/component/general.entity.prepare.edit';
 
 /**
  * Preparation handler for Assetclass entities in the propose change workflow.
@@ -35,7 +35,7 @@ export class AssetclassPrepareEdit extends BasePrepareEdit<Assetclass> implement
     const observableAssetclassHasSecurity = this.assetclassService.assetclassHasSecurity(entity.idAssetClass);
 
     return combineLatest([observableAllAssetclasses, observableAssetclassHasSecurity]).pipe(
-      map(data => {
+      map((data) => {
         entityMapping.callParam = new AssetclassCallParam();
         entityMapping.callParam.assetclass = new Assetclass();
         Object.assign(entityMapping.callParam.assetclass, entity);

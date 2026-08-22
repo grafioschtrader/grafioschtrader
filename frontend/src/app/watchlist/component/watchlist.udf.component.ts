@@ -1,54 +1,54 @@
-import {ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from '@angular/core';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {WatchlistTable, WatchListType} from './watchlist.table';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {CurrencypairService} from '../../securitycurrency/service/currencypair.service';
-import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {WatchlistService} from '../service/watchlist.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ConfirmationService, FilterService} from '@openng/optimus-ui/api';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {TranslateService, TranslateModule} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {AppSettings} from '../../shared/app.settings';
-import {combineLatest, Observable} from 'rxjs';
-import {SecuritycurrencyUDFGroup} from '../../entities/view/securitycurrency.group';
-import {TenantLimit} from '../../shared/types/tenant.limit';
-import {UDFMetadataSecurityService} from '../../udfmetasecurity/service/udf.metadata.security.service';
-import {GlobalSessionNames} from '../../lib/global.session.names';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {SvgIconRegistryService} from 'angular-svg-icon';
-import {ColumnConfig, OptionalParams} from '../../lib/datashowbase/column.config';
-import {FilterType} from '../../lib/datashowbase/filter.type';
-import {WatchlistHelper} from './watchlist.helper';
-import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {BaseSettings} from '../../lib/base.settings';
-import {FieldDescriptorInputAndShowExtendedSecurity} from '../../udfmetasecurity/model/udf.metadata.security';
-import {CommonModule} from '@angular/common';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {AngularSvgIconModule} from 'angular-svg-icon';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {TransactionSecurityTableComponent} from '../../transaction/component/transaction-security-table.component';
-import {TransactionSecurityMarginTreetableComponent} from '../../transaction/component/transaction-security-margin-treetable.component';
-import {SecuritycurrencyUdfComponent} from './securitycurrency-udf.component';
-import {WatchlistPriceFeedExpandedComponent} from './watchlist-price-feed-expanded.component';
-import {WatchlistDividendTableComponent} from './watchlist-dividend-table.component';
-import {WatchlistSecuritysplitTableComponent} from './watchlist-securitysplit-table.component';
-import {WatchlistAddInstrumentComponent} from './watchlist-add-instrument.component';
-import {CurrencypairEditComponent} from '../../shared/securitycurrency/currencypair-edit.component';
-import {SecurityEditComponent} from '../../shared/securitycurrency/security-edit.component';
-import {SecurityDerivedEditComponent} from '../../securitycurrency/component/security-derived-edit.component';
-import {SecurityUDFEditComponent} from '../../securitycurrency/component/security-udf-edit.component';
-import {AlgoStrategyEditComponent} from '../../algo/component/algo-strategy-edit.component';
-import {WatchlistAddEditPriceProblemInstrumentComponent} from './watchlist-add-edit-price-problem-instrument.component';
-import {TransactionSecurityEditComponent} from '../../transaction/component/transaction-security-edit.component';
-import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-edit.component';
+import { ChangeDetectorRef, Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { WatchlistTable, WatchListType } from './watchlist.table';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
+import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { WatchlistService } from '../service/watchlist.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { AppSettings } from '../../shared/app.settings';
+import { combineLatest, Observable } from 'rxjs';
+import { SecuritycurrencyUDFGroup } from '../../entities/view/securitycurrency.group';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { UDFMetadataSecurityService } from '../../udfmetasecurity/service/udf.metadata.security.service';
+import { GlobalSessionNames } from '../../lib/global.session.names';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { SvgIconRegistryService } from 'angular-svg-icon';
+import { ColumnConfig, OptionalParams } from '../../lib/datashowbase/column.config';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { WatchlistHelper } from './watchlist.helper';
+import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { BaseSettings } from '../../lib/base.settings';
+import { FieldDescriptorInputAndShowExtendedSecurity } from '../../udfmetasecurity/model/udf.metadata.security';
+import { CommonModule } from '@angular/common';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { TransactionSecurityTableComponent } from '../../transaction/component/transaction-security-table.component';
+import { TransactionSecurityMarginTreetableComponent } from '../../transaction/component/transaction-security-margin-treetable.component';
+import { SecuritycurrencyUdfComponent } from './securitycurrency-udf.component';
+import { WatchlistPriceFeedExpandedComponent } from './watchlist-price-feed-expanded.component';
+import { WatchlistDividendTableComponent } from './watchlist-dividend-table.component';
+import { WatchlistSecuritysplitTableComponent } from './watchlist-securitysplit-table.component';
+import { WatchlistAddInstrumentComponent } from './watchlist-add-instrument.component';
+import { CurrencypairEditComponent } from '../../shared/securitycurrency/currencypair-edit.component';
+import { SecurityEditComponent } from '../../shared/securitycurrency/security-edit.component';
+import { SecurityDerivedEditComponent } from '../../securitycurrency/component/security-derived-edit.component';
+import { SecurityUDFEditComponent } from '../../securitycurrency/component/security-udf-edit.component';
+import { AlgoStrategyEditComponent } from '../../algo/component/algo-strategy-edit.component';
+import { WatchlistAddEditPriceProblemInstrumentComponent } from './watchlist-add-edit-price-problem-instrument.component';
+import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
+import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-general-edit.component';
 
 /**
  * Angular component that displays a watchlist with user-defined additional fields (UDF).
@@ -57,13 +57,16 @@ import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-
  */
 @Component({
   templateUrl: '../view/watchlist.data.html',
-  styles: [`
-    .cell-move {
-      cursor: move !important;
-    }
-  `],
+  styles: [
+    `
+      .cell-move {
+        cursor: move !important;
+      }
+    `
+  ],
   providers: [DialogService],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
     TranslateModule,
@@ -88,7 +91,6 @@ import {UDFGeneralEditComponent} from '../../lib/udfmeta/components/udf-general-
   ]
 })
 export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnDestroy {
-
   /** Base name for link icon assets */
   private static readonly LINK_ICON = 'link';
 
@@ -126,7 +128,8 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    * @param gps Global parameter service for application settings
    * @param usersettingsService Service for user preference management
    */
-  constructor(private iconReg: SvgIconRegistryService,
+  constructor(
+    private iconReg: SvgIconRegistryService,
     private securityService: SecurityService,
     private currencypairService: CurrencypairService,
     private uDFMetadataSecurityService: UDFMetadataSecurityService,
@@ -147,16 +150,38 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
-    super(WatchListType.UDF, AppSettings.WATCHLIST_UDF_TABLE_SETTINGS_STORE, dialogService, alarmSetupService,
-      timeSeriesQuotesService, dataChangedService, activePanelService, watchlistService, router, activatedRoute, confirmationService,
-      messageToastService, productIconService, changeDetectionStrategy, filterService, translateService,
-      gpsGT, gps, usersettingsService, WatchlistTable.SINGLE, injector);
+    injector: Injector
+  ) {
+    super(
+      WatchListType.UDF,
+      AppSettings.WATCHLIST_UDF_TABLE_SETTINGS_STORE,
+      dialogService,
+      alarmSetupService,
+      timeSeriesQuotesService,
+      dataChangedService,
+      activePanelService,
+      watchlistService,
+      router,
+      activatedRoute,
+      confirmationService,
+      messageToastService,
+      productIconService,
+      changeDetectionStrategy,
+      filterService,
+      translateService,
+      gpsGT,
+      gps,
+      usersettingsService,
+      WatchlistTable.SINGLE,
+      injector
+    );
     WatchlistUdfComponent.registerIcons(iconReg);
     this.addBaseColumns();
-    this.fdSecurityList = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY))
-      .concat(JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)).filter(fd =>
-        fd.entity === AppSettings.CURRENCYPAIR));
+    this.fdSecurityList = JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_SECURITY)).concat(
+      JSON.parse(sessionStorage.getItem(GlobalSessionNames.UDF_FORM_DESCRIPTOR_GENERAL)).filter(
+        (fd) => fd.entity === AppSettings.CURRENCYPAIR
+      )
+    );
     this.createColumnsFromUDFMetaData();
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();
@@ -169,7 +194,10 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    */
   private static registerIcons(iconReg: SvgIconRegistryService): void {
     for (let i = 0; i < 4; i++) {
-      iconReg.loadSvg(BaseSettings.PATH_ASSET_ICONS + WatchlistUdfComponent.LINK_ICON + i + BaseSettings.SVG, WatchlistUdfComponent.LINK_ICON + i);
+      iconReg.loadSvg(
+        BaseSettings.PATH_ASSET_ICONS + WatchlistUdfComponent.LINK_ICON + i + BaseSettings.SVG,
+        WatchlistUdfComponent.LINK_ICON + i
+      );
     }
   }
 
@@ -186,15 +214,20 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    * Combines watchlist UDF data and tenant limit observables to populate the component state.
    */
   protected override getWatchlistWithoutUpdate(): void {
-    const watchListObservable: Observable<SecuritycurrencyUDFGroup> = this.watchlistService.getWatchlistWithUDFData(this.idWatchlist);
-    const tenantLimitObservable: Observable<TenantLimit[]> = this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe((result:[SecuritycurrencyUDFGroup, TenantLimit[]] ) => {
-      this.createSecurityPositionList(result[0]);
-      this.udfEntityValues = (<SecuritycurrencyUDFGroup>result[0]).udfEntityValues;
-      this.tenantLimits = result[1];
-      this.extendSecurityWithUDF();
-      this.loading = false;
-    });
+    const watchListObservable: Observable<SecuritycurrencyUDFGroup> = this.watchlistService.getWatchlistWithUDFData(
+      this.idWatchlist
+    );
+    const tenantLimitObservable: Observable<TenantLimit[]> =
+      this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
+    combineLatest([watchListObservable, tenantLimitObservable]).subscribe(
+      (result: [SecuritycurrencyUDFGroup, TenantLimit[]]) => {
+        this.createSecurityPositionList(result[0]);
+        this.udfEntityValues = (<SecuritycurrencyUDFGroup>result[0]).udfEntityValues;
+        this.tenantLimits = result[1];
+        this.extendSecurityWithUDF();
+        this.loading = false;
+      }
+    );
   }
 
   /**
@@ -203,7 +236,7 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
    */
   private extendSecurityWithUDF(): void {
     this.udfValuesMap.clear();
-    this.securityPositionList.forEach(spl => {
+    this.securityPositionList.forEach((spl) => {
       const jsonString = this.udfEntityValues[spl.securitycurrency.idSecuritycurrency];
       if (jsonString) {
         const udfValues: any = JSON.parse(jsonString);
@@ -252,9 +285,14 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
         case DataType.NumericShowZero:
           optionalParam.filterType = FilterType.likeDataType;
       }
-      const cc: ColumnConfig = this.addColumn(DataType[fd.dataType] === DataType.DateTimeNumeric ? DataType.DateTimeString
-          : DataType[fd.dataType], WatchlistHelper.SECURITYCURRENCY + '.' + fd.fieldName, fd.description, true,
-        true, optionalParam);
+      const cc: ColumnConfig = this.addColumn(
+        DataType[fd.dataType] === DataType.DateTimeNumeric ? DataType.DateTimeString : DataType[fd.dataType],
+        WatchlistHelper.SECURITYCURRENCY + '.' + fd.fieldName,
+        fd.description,
+        true,
+        true,
+        optionalParam
+      );
       cc.headerTooltipTranslated = fd.descriptionHelp;
     }
   }

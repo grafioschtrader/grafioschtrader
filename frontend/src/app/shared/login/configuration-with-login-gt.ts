@@ -1,4 +1,4 @@
-import {ConfigurationWithLogin} from '../../lib/login/model/configuration-with-login';
+import { ConfigurationWithLogin } from '../../lib/login/model/configuration-with-login';
 
 /**
  * Extended configuration interface for GrafioschTrader-specific login settings.

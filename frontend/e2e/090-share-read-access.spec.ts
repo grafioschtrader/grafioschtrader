@@ -1,5 +1,5 @@
-import {test, expect} from '@playwright/test';
-import {findMailhogMessage, getUser, loginAs, loginAsFixtureUser} from './helpers';
+import { test, expect } from '@playwright/test';
+import { findMailhogMessage, getUser, loginAs, loginAsFixtureUser } from './helpers';
 import {
   attemptCreatePortfolioExpectRejected,
   clickClientMenuItem,
@@ -11,7 +11,7 @@ import {
   openClientMenu,
   openManageClientDialog,
   RX,
-  tenantRootNode,
+  tenantRootNode
 } from './manage-client.helpers';
 
 /**
@@ -33,7 +33,6 @@ const VIEWER_NICKNAME = 'e2euserr';
 const GRANTEE_NICKNAME = 'e2euser';
 
 test.describe.serial('Share read access (issue #201)', () => {
-
   const owner = getUser(OWNER_NICKNAME);
   const viewer = getUser(VIEWER_NICKNAME);
   const grantee = getUser(GRANTEE_NICKNAME);
@@ -41,24 +40,23 @@ test.describe.serial('Share read access (issue #201)', () => {
   /** Root-node label of the owner's tenant, captured in test 1 and asserted in tests 2/3. */
   let ownerRootText: string;
 
-  test('owner shares read access: new viewer login and READ grant for a registered user', async ({page}) => {
+  test('owner shares read access: new viewer login and READ grant for a registered user', async ({ page }) => {
     test.setTimeout(120_000);
     await loginAsFixtureUser(page, OWNER_NICKNAME);
     ownerRootText = (await tenantRootNode(page).innerText()).trim();
 
     // Idempotency: skip each flavour whose share already exists from a previous run.
     let viewers = await openManageClientDialog(page, RX.sharedViewersItem, RX.sharedViewersHeader);
-    const viewerExists = await viewers.locator('tbody tr', {hasText: viewer.email}).count() > 0;
-    const granteeExists = await viewers.locator('tbody tr', {hasText: grantee.email}).count() > 0;
+    const viewerExists = (await viewers.locator('tbody tr', { hasText: viewer.email }).count()) > 0;
+    const granteeExists = (await viewers.locator('tbody tr', { hasText: grantee.email }).count()) > 0;
     await closeDialog(page, viewers);
 
     if (!viewerExists) {
       // Flavour 1: unknown e-mail → status NEW → password fields appear → viewer login created.
-      const shareDialog =
-        await openManageClientDialog(page, RX.shareReadAccessItem, RX.shareDialogHeader);
+      const shareDialog = await openManageClientDialog(page, RX.shareReadAccessItem, RX.shareDialogHeader);
       await fillInput(shareDialog, '#email', viewer.email);
-      await shareDialog.getByRole('button', {name: RX.checkExistenceBtn}).click();
-      await shareDialog.locator('#password').waitFor({state: 'visible', timeout: 10_000});
+      await shareDialog.getByRole('button', { name: RX.checkExistenceBtn }).click();
+      await shareDialog.locator('#password').waitFor({ state: 'visible', timeout: 10_000 });
       await fillInput(shareDialog, '#password', viewer.password);
       await fillInput(shareDialog, '#passwordConfirm', viewer.password);
       await shareDialog.locator('button[type="submit"]').click();
@@ -73,11 +71,10 @@ test.describe.serial('Share read access (issue #201)', () => {
 
     if (!granteeExists) {
       // Flavour 2: registered e-mail → status EXISTS → no password needed, grant only, no e-mail.
-      const shareDialog =
-        await openManageClientDialog(page, RX.shareReadAccessItem, RX.shareDialogHeader);
+      const shareDialog = await openManageClientDialog(page, RX.shareReadAccessItem, RX.shareDialogHeader);
       await fillInput(shareDialog, '#email', grantee.email);
-      await shareDialog.getByRole('button', {name: RX.checkExistenceBtn}).click();
-      await expect(shareDialog.locator('button[type="submit"]')).toBeEnabled({timeout: 10_000});
+      await shareDialog.getByRole('button', { name: RX.checkExistenceBtn }).click();
+      await expect(shareDialog.locator('button[type="submit"]')).toBeEnabled({ timeout: 10_000 });
       await expect(shareDialog.locator('#password')).toBeHidden();
       await shareDialog.locator('button[type="submit"]').click();
       await expectToast(page, RX.sharedToast);
@@ -85,22 +82,22 @@ test.describe.serial('Share read access (issue #201)', () => {
 
     // Both shares are listed with their access kind.
     viewers = await openManageClientDialog(page, RX.sharedViewersItem, RX.sharedViewersHeader);
-    const viewerRow = viewers.locator('tbody tr', {hasText: viewer.email});
+    const viewerRow = viewers.locator('tbody tr', { hasText: viewer.email });
     await expect(viewerRow).toHaveCount(1);
     await expect(viewerRow).toContainText(RX.viewerKind);
-    const granteeRow = viewers.locator('tbody tr', {hasText: grantee.email});
+    const granteeRow = viewers.locator('tbody tr', { hasText: grantee.email });
     await expect(granteeRow).toHaveCount(1);
     await expect(granteeRow).toContainText(RX.grantKind);
     await closeDialog(page, viewers);
   });
 
-  test('viewer login sees the owner portfolio read-only', async ({page}) => {
+  test('viewer login sees the owner portfolio read-only', async ({ page }) => {
     test.setTimeout(120_000);
     await loginAsFixtureUser(page, VIEWER_NICKNAME);
 
     // The viewer's home tenant IS the owner's tenant — the same tree root as the owner sees.
     expect(ownerRootText).toBeTruthy();
-    await expect(tenantRootNode(page)).toContainText(ownerRootText, {timeout: 15_000});
+    await expect(tenantRootNode(page)).toContainText(ownerRootText, { timeout: 15_000 });
 
     // Read-only + not inside a managed client → the Client menu is suppressed entirely.
     await expectNoClientMenu(page);
@@ -109,7 +106,7 @@ test.describe.serial('Share read access (issue #201)', () => {
     await attemptCreatePortfolioExpectRejected(page, 'Viewer Blocked');
   });
 
-  test('registered grantee switches into the shared portfolio read-only and back', async ({page}) => {
+  test('registered grantee switches into the shared portfolio read-only and back', async ({ page }) => {
     test.setTimeout(120_000);
     const creds = await loginAs(page, GRANTEE_NICKNAME);
     const ownRootText = (await tenantRootNode(page).innerText()).trim();
@@ -118,18 +115,18 @@ test.describe.serial('Share read access (issue #201)', () => {
     // The shared tenant is listed in "My clients", labelled with the owner's e-mail. A READ row
     // offers no delete action, only the switch.
     const myClients = await openManageClientDialog(page, RX.switchToClientItem, RX.myClientsHeader);
-    const row = myClients.locator('tbody tr', {hasText: owner.email});
+    const row = myClients.locator('tbody tr', { hasText: owner.email });
     await expect(row).toHaveCount(1);
     await expect(row.locator('button:has(i.fa-trash)')).toHaveCount(0);
     await row.locator('button:has(i.fa-sign-in)').click();
 
     // Full reload into the owner's tenant.
-    await expect(tenantRootNode(page)).toContainText(ownerRootText, {timeout: 30_000});
+    await expect(tenantRootNode(page)).toContainText(ownerRootText, { timeout: 30_000 });
 
     // Read-only inside the shared tenant: the Client menu is reduced to "Back to my".
     await openClientMenu(page);
     const menubar = page.locator('p-menubar');
-    await expect(menubar.getByText(RX.backToMyItem).first()).toBeVisible({timeout: 5_000});
+    await expect(menubar.getByText(RX.backToMyItem).first()).toBeVisible({ timeout: 5_000 });
     await expect(menubar.getByText(RX.shareReadAccessItem)).toHaveCount(0);
     await expect(menubar.getByText(RX.switchToClientItem)).toHaveCount(0);
     await closeMenus(page);
@@ -141,7 +138,7 @@ test.describe.serial('Share read access (issue #201)', () => {
     if (await container.isVisible().catch(() => false)) {
       await container.click();
       await page.waitForTimeout(300);
-      await container.click({button: 'right'});
+      await container.click({ button: 'right' });
       const menu = page.locator('[role="menu"]:visible');
       if (await menu.isVisible().catch(() => false)) {
         await expect(menu.getByText(/(Create|Erstellen|Delete|L.schen)/i)).toHaveCount(0);
@@ -154,10 +151,9 @@ test.describe.serial('Share read access (issue #201)', () => {
 
     // Back to the grantee's own tenant — writable again (share item available once more).
     await clickClientMenuItem(page, RX.backToMyItem);
-    await expect(tenantRootNode(page)).toContainText(ownRootText, {timeout: 30_000});
+    await expect(tenantRootNode(page)).toContainText(ownRootText, { timeout: 30_000 });
     await openClientMenu(page);
-    await expect(page.locator('p-menubar').getByText(RX.shareReadAccessItem).first())
-      .toBeVisible({timeout: 5_000});
+    await expect(page.locator('p-menubar').getByText(RX.shareReadAccessItem).first()).toBeVisible({ timeout: 5_000 });
     await closeMenus(page);
   });
 });

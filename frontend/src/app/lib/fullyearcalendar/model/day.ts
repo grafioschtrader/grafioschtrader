@@ -1,5 +1,5 @@
-import {Range} from './range';
-import {DayOfWeek} from './day.of.week';
+import { Range } from './range';
+import { DayOfWeek } from './day.of.week';
 
 export class Day {
   day: Date;

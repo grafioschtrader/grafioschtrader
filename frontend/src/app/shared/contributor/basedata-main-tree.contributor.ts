@@ -1,16 +1,16 @@
-import {Injectable} from '@angular/core';
-import {Observable, of} from 'rxjs';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {MainTreeContributor} from '../../lib/maintree/contributor/main-tree-contributor.interface';
-import {TreeNodeType} from '../maintree/types/tree.node.type';
-import {TypeNodeData} from '../../lib/maintree/types/type.node.data';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {AppSettings} from '../app.settings';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {LibDataMainTreeContributor} from '../../lib/maintree/contributor/lib-data-main-tree.contributor';
-import {BaseSettings} from '../../lib/base.settings';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { MainTreeContributor } from '../../lib/maintree/contributor/main-tree-contributor.interface';
+import { TreeNodeType } from '../maintree/types/tree.node.type';
+import { TypeNodeData } from '../../lib/maintree/types/type.node.data';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { AppSettings } from '../app.settings';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { LibDataMainTreeContributor } from '../../lib/maintree/contributor/lib-data-main-tree.contributor';
+import { BaseSettings } from '../../lib/base.settings';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 
 /**
  * Contributor for Base Data nodes (AssetClass, StockExchange, etc.)
@@ -18,10 +18,12 @@ import {GlobalparameterService} from '../../lib/services/globalparameter.service
  */
 @Injectable()
 export class BaseDataMainTreeContributor extends MainTreeContributor {
-
   private rootNode: TreeNode;
 
-  constructor(private translateService: TranslateService, private globalParamService: GlobalparameterService) {
+  constructor(
+    private translateService: TranslateService,
+    private globalParamService: GlobalparameterService
+  ) {
     super();
   }
 
@@ -66,7 +68,9 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
   private addBaseDataChildren(): void {
     // Get UDF Metadata General node from lib contributor
     // Pass the application-specific node type for UDF metadata
-    const udfMetadataGeneralNode = LibDataMainTreeContributor.createUdfMetadataGeneralNode(TreeNodeType.UDFMetadataSecurity);
+    const udfMetadataGeneralNode = LibDataMainTreeContributor.createUdfMetadataGeneralNode(
+      TreeNodeType.UDFMetadataSecurity
+    );
     // Add grafioschtrader-specific child node
     udfMetadataGeneralNode.expanded = true;
     udfMetadataGeneralNode.children = [this.getUDFMetadataSecurityChild()];
@@ -74,13 +78,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
     this.rootNode.children = [
       {
         label: AppSettings.ASSETCLASS.toUpperCase(),
-        data: new TypeNodeData(
-          TreeNodeType.AssetClass,
-          this.addMainRoute(AppSettings.ASSETCLASS_KEY),
-          null,
-          null,
-          null
-        )
+        data: new TypeNodeData(TreeNodeType.AssetClass, this.addMainRoute(AppSettings.ASSETCLASS_KEY), null, null, null)
       },
       {
         label: AppSettings.STOCKEXCHANGE.toUpperCase(),
@@ -179,11 +177,11 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
   }
 
   private setLangTransNodes(treeNodes: TreeNode[]): void {
-    treeNodes.forEach(treeNode => this.setLangTransNode(treeNode));
+    treeNodes.forEach((treeNode) => this.setLangTransNode(treeNode));
   }
 
   private setLangTrans(key: string, target: TreeNode, suffix: string = ''): void {
-    this.translateService.get(key).subscribe(translated => target.label = translated + suffix);
+    this.translateService.get(key).subscribe((translated) => (target.label = translated + suffix));
   }
 
   private addMainRoute(suffix: string): string {

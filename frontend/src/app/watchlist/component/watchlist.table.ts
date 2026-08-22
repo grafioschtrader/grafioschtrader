@@ -1,55 +1,55 @@
-import {Security} from '../../entities/security';
-import {AfterViewInit, ChangeDetectorRef, Directive, Injector, OnDestroy, ViewChild} from '@angular/core';
-import {ActivatedRoute, Params, Router} from '@angular/router';
-import {WatchlistService} from '../service/watchlist.service';
-import {SecuritycurrencyGroup} from '../../entities/view/securitycurrency.group';
-import {SecuritycurrencyPosition} from '../../entities/view/securitycurrency.position';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {ConfirmationService, FilterService, MenuItem, SortEvent, SortMeta} from '@openng/optimus-ui/api';
-import {TranslateService} from '@ngx-translate/core';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {Watchlist} from '../../entities/watchlist';
-import {TransactionType} from '../../shared/types/transaction.type';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
-import {TransactionCallParam} from '../../transaction/component/transaction.call.parm';
-import {AppHelper} from '../../lib/helper/app.helper';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {Currencypair} from '../../entities/currencypair';
-import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {DataChangedService} from '../../lib/maintree/service/data.changed.service';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {SpecialInvestmentInstruments} from '../../shared/types/special.investment.instruments';
-import {Subscription} from 'rxjs';
-import {HelpIds} from '../../lib/help/help.ids';
-import {TimeSeriesQuotesService} from '../../historyquote/service/time.series.quotes.service';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {TenantLimit} from '../../shared/types/tenant.limit';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {ProductIconService} from '../../securitycurrency/service/product.icon.service';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {WatchlistSecurityExists} from '../../entities/dnd/watchlist.security.exists';
-import {MailSendParam} from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {AppSettings} from '../../shared/app.settings';
-import {UDFGeneralCallParam} from '../../lib/udfmeta/model/udf.metadata';
-import {SecurityUDFHelper} from '../../securitycurrency/component/security.udf.helper';
-import {UDFMetadataHelper} from '../../lib/udfmeta/components/udf.metadata.helper';
-import {WatchlistHelper} from './watchlist.helper';
-import {AlarmSetupService} from '../../algo/service/alarm.setup.service';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DynamicDialogs} from '../../lib/dynamicdialog/component/dynamic.dialogs';
-import {BaseSettings} from '../../lib/base.settings';
-import {TreeNavigationStateService} from '../../lib/maintree/service/tree.navigation.state.service';
-import {FilterType} from '../../lib/datashowbase/filter.type';
-import {ConfigurableTableComponent} from '../../lib/datashowbase/configurable-table.component';
-import {WatchlistFilterSortStateService} from '../service/watchlist.filter.sort.state.service';
+import { Security } from '../../entities/security';
+import { AfterViewInit, ChangeDetectorRef, Directive, Injector, OnDestroy, ViewChild } from '@angular/core';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import { WatchlistService } from '../service/watchlist.service';
+import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
+import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { ConfirmationService, FilterService, MenuItem, SortEvent, SortMeta } from '@openng/optimus-ui/api';
+import { TranslateService } from '@ngx-translate/core';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { Watchlist } from '../../entities/watchlist';
+import { TransactionType } from '../../shared/types/transaction.type';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
+import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
+import { AppHelper } from '../../lib/helper/app.helper';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { Currencypair } from '../../entities/currencypair';
+import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
+import { Subscription } from 'rxjs';
+import { HelpIds } from '../../lib/help/help.ids';
+import { TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { TenantLimit } from '../../shared/types/tenant.limit';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { WatchlistSecurityExists } from '../../entities/dnd/watchlist.security.exists';
+import { MailSendParam } from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { AppSettings } from '../../shared/app.settings';
+import { UDFGeneralCallParam } from '../../lib/udfmeta/model/udf.metadata';
+import { SecurityUDFHelper } from '../../securitycurrency/component/security.udf.helper';
+import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
+import { WatchlistHelper } from './watchlist.helper';
+import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { DynamicDialogs } from '../../lib/dynamicdialog/component/dynamic.dialogs';
+import { BaseSettings } from '../../lib/base.settings';
+import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
+import { FilterType } from '../../lib/datashowbase/filter.type';
+import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { WatchlistFilterSortStateService } from '../service/watchlist.filter.sort.state.service';
 import {
   WatchlistFilterSortSettingsDialogComponent,
   WatchlistFilterSortSettingsData
@@ -62,7 +62,6 @@ import {
  */
 @Directive()
 export abstract class WatchlistTable extends TableConfigBase implements AfterViewInit, OnDestroy, IGlobalMenuAttach {
-
   /**
    * Key-value mapping of feed connector IDs to human-readable names.
    * Used for displaying user-friendly connector names in the UI instead of technical IDs.
@@ -155,7 +154,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   tenantLimits: TenantLimit[];
 
   /** Single or multiple selection state. */
-  singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[];
+  singleMultiSelection:
+    SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[];
 
   /** Currently selected security currency position. */
   selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>;
@@ -170,7 +170,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   uDFGeneralCallParam: UDFGeneralCallParam;
 
   /** Map of UDF values by security currency ID. */
-  protected udfValuesMap = new Map<number, any>;
+  protected udfValuesMap = new Map<number, any>();
 
   /** Subscription to route parameter changes. */
   private routeSubscribe: Subscription;
@@ -214,7 +214,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {UserSettingsService} usersettingsService - User settings service
    * @param {string} selectMultiMode - Selection mode (single or multiple)
    */
-  protected constructor(public watchlistType: WatchListType,
+  protected constructor(
+    public watchlistType: WatchListType,
     protected storeKey: string,
     protected dialogService: DialogService,
     protected alarmSetupService: AlarmSetupService,
@@ -234,13 +235,14 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
     public selectMultiMode: 'single' | 'multiple',
-    injector: Injector) {
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
     if (selectMultiMode === WatchlistTable.MULTIPLE) {
       this.singleMultiSelection = [];
     }
     this.filterRowToggleable = true;
-    this.multiSortMeta.push({field: 'securitycurrency.name', order: 1});
+    this.multiSortMeta.push({ field: 'securitycurrency.name', order: 1 });
   }
 
   /**
@@ -265,17 +267,19 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     }
     if (this.showFilterRow) {
       const effective = this.filterSortState.getEffectiveFilters(this.idWatchlist, this.fields);
-      Object.keys(table.filters).filter(key => !effective[key]).forEach(key => {
-        const meta = table.filters[key];
-        if (Array.isArray(meta)) {
-          // The filter menu of a column creates its constraint objects only once, therefore they are emptied and not
-          // removed. Otherwise the menu of a column whose filter was removed in the dialog would stay unusable.
-          meta.forEach(constraint => constraint.value = null);
-        } else {
-          delete table.filters[key];
-        }
-      });
-      Object.keys(effective).forEach(key => table.filters[key] = effective[key]);
+      Object.keys(table.filters)
+        .filter((key) => !effective[key])
+        .forEach((key) => {
+          const meta = table.filters[key];
+          if (Array.isArray(meta)) {
+            // The filter menu of a column creates its constraint objects only once, therefore they are emptied and not
+            // removed. Otherwise the menu of a column whose filter was removed in the dialog would stay unusable.
+            meta.forEach((constraint) => (constraint.value = null));
+          } else {
+            delete table.filters[key];
+          }
+        });
+      Object.keys(effective).forEach((key) => (table.filters[key] = effective[key]));
       table._filter();
       this.storedFiltersApplied = true;
     } else {
@@ -290,7 +294,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    */
   protected applyStoredSorts(): void {
     const sorts = this.filterSortState.getEffectiveSorts(this.idWatchlist, this.fields);
-    this.multiSortMeta = sorts.length > 0 ? sorts : [{field: this.SECURITYCURRENCY_NAME, order: 1}];
+    this.multiSortMeta = sorts.length > 0 ? sorts : [{ field: this.SECURITYCURRENCY_NAME, order: 1 }];
   }
 
   /**
@@ -325,19 +329,27 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @returns True when it is the fallback sort by name and nothing is stored for this table
    */
   private isFallbackSort(sortMeta: SortMeta[]): boolean {
-    return sortMeta?.length === 1 && sortMeta[0].field === this.SECURITYCURRENCY_NAME && sortMeta[0].order === 1
-      && this.filterSortState.getEffectiveSorts(this.idWatchlist, this.fields).length === 0;
+    return (
+      sortMeta?.length === 1 &&
+      sortMeta[0].field === this.SECURITYCURRENCY_NAME &&
+      sortMeta[0].order === 1 &&
+      this.filterSortState.getEffectiveSorts(this.idWatchlist, this.fields).length === 0
+    );
   }
 
   /** Opens the dialog for the scope of filtering and sorting and for removing what is set. */
   protected openFilterSortSettingsDialog(): void {
-    const data: WatchlistFilterSortSettingsData = {idWatchlist: this.idWatchlist};
+    const data: WatchlistFilterSortSettingsData = { idWatchlist: this.idWatchlist };
     this.injector.get(DialogService).open(WatchlistFilterSortSettingsDialogComponent, {
       header: this.translateService.instant('FILTER_SORT_SETTINGS'),
-      width: '620px', modal: true, draggable: true, closable: true, closeOnEscape: true, data
+      width: '620px',
+      modal: true,
+      draggable: true,
+      closable: true,
+      closeOnEscape: true,
+      data
     });
   }
-
 
   /**
    * Creates security position list from security currency group data and handles currency pair transformations.
@@ -348,8 +360,10 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     this.securitycurrencyGroup = data;
     this.securityPositionList = data.securityPositionList;
     this.securitycurrencyGroup.currencypairPositionList.forEach((sp: SecuritycurrencyPosition<Currencypair>) => {
-      const currencypairWatchlist: CurrencypairWatchlist = new CurrencypairWatchlist(sp.securitycurrency.fromCurrency,
-        sp.securitycurrency.toCurrency);
+      const currencypairWatchlist: CurrencypairWatchlist = new CurrencypairWatchlist(
+        sp.securitycurrency.fromCurrency,
+        sp.securitycurrency.toCurrency
+      );
       Object.assign(currencypairWatchlist, sp.securitycurrency);
       sp.securitycurrency = currencypairWatchlist;
       this.securityPositionList.push(sp);
@@ -372,12 +386,19 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {any} valueField - Current field value (not used in this implementation)
    * @returns {string} Icon name/path for the instrument type
    */
-  getInstrumentIcon(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig,
-    valueField: any): string {
-    const currencypair: Currencypair = securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ?
-      securitycurrencyPosition.securitycurrency : null;
-    return this.productIconService.getIconForInstrument(currencypair ? null : <Security>securitycurrencyPosition.securitycurrency,
-      currencypair?.isCryptocurrency);
+  getInstrumentIcon(
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
+    field: ColumnConfig,
+    valueField: any
+  ): string {
+    const currencypair: Currencypair =
+      securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist
+        ? securitycurrencyPosition.securitycurrency
+        : null;
+    return this.productIconService.getIconForInstrument(
+      currencypair ? null : <Security>securitycurrencyPosition.securitycurrency,
+      currencypair?.isCryptocurrency
+    );
   }
 
   /**
@@ -389,7 +410,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @returns {string} Icon name for a distributing security, otherwise null which leaves the cell empty
    */
   getDistributionIcon(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): string {
-    return securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ? null
+    return securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist
+      ? null
       : this.productIconService.getDistributionIcon(<Security>securitycurrencyPosition.securitycurrency);
   }
 
@@ -411,11 +433,18 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {any} valueField - Raw distribution frequency of the row (not used in this implementation)
    * @returns {string} Translated distribution or no distribution, null for a currency pair
    */
-  getDistributionText(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig,
-    valueField: any): string {
-    return securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist ? null
-      : this.distributionTexts[this.getDistributionIcon(securitycurrencyPosition) ? WatchlistTable.DISTRIBUTION_YES
-        : WatchlistTable.DISTRIBUTION_NO];
+  getDistributionText(
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
+    field: ColumnConfig,
+    valueField: any
+  ): string {
+    return securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist
+      ? null
+      : this.distributionTexts[
+          this.getDistributionIcon(securitycurrencyPosition)
+            ? WatchlistTable.DISTRIBUTION_YES
+            : WatchlistTable.DISTRIBUTION_NO
+        ];
   }
 
   /** Applies the stored filters as soon as the table exists, the data may already have arrived before that. */
@@ -447,11 +476,14 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {Security | Currencypair} securityCurrency - Security or currency pair entity to remove from watchlist
    */
   removeInstrument(securityCurrency: Security | Currencypair) {
-    this.watchlistService.removeSecuritycurrenciesFromWatchlist(this.idWatchlist, securityCurrency).subscribe(watchlist => {
-      this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST',
-        {count: 1});
-      this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
-    });
+    this.watchlistService
+      .removeSecuritycurrenciesFromWatchlist(this.idWatchlist, securityCurrency)
+      .subscribe((watchlist) => {
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST', {
+          count: 1
+        });
+        this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
+      });
   }
 
   /**
@@ -459,16 +491,27 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    *
    * @param {SecuritycurrencyPosition<Security | Currencypair>[]} selectedSecurityCurrencies - Array of selected positions to remove
    */
-  removeSecuritiesAndCurrencypairs(selectedSecurityCurrencies: SecuritycurrencyPosition<Security | Currencypair>[]): void {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'REMOVE_INSTRUMENT_FROM_WATCHLIST_CONFIRM', () => {
-        this.watchlistService.removeMultipleFromWatchlist(this.idWatchlist,
-          selectedSecurityCurrencies.map(sc => sc.securitycurrency.idSecuritycurrency)).subscribe(count => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST',
-            {count});
-          this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
-        });
-      });
+  removeSecuritiesAndCurrencypairs(
+    selectedSecurityCurrencies: SecuritycurrencyPosition<Security | Currencypair>[]
+  ): void {
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'REMOVE_INSTRUMENT_FROM_WATCHLIST_CONFIRM',
+      () => {
+        this.watchlistService
+          .removeMultipleFromWatchlist(
+            this.idWatchlist,
+            selectedSecurityCurrencies.map((sc) => sc.securitycurrency.idSecuritycurrency)
+          )
+          .subscribe((count) => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'REMOVED_SECURITY_FROM_WATCHLIST', {
+              count
+            });
+            this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
+          });
+      }
+    );
   }
 
   /**
@@ -478,15 +521,22 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {string} domainKey - Translation key for the entity type used in confirmation messages
    */
   removeAndDeleteSecuritycurrency(securityCurrency: Securitycurrency, domainKey: string) {
-    AppHelper.confirmationDialog(this.translateService, this.confirmationService,
-      'MSG_CONFIRM_DELETE_RECORD|' + domainKey, () => {
-        this.watchlistService.removeSecuritycurrencyFromWatchlistAndDelete(this.idWatchlist, securityCurrency).subscribe(response => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS,
-            'MSG_DELETE_RECORD', {i18nRecord: domainKey});
-          // The event below already reloads the rows through watchlistHasModifiedFromOutside().
-          this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
-        });
-      });
+    AppHelper.confirmationDialog(
+      this.translateService,
+      this.confirmationService,
+      'MSG_CONFIRM_DELETE_RECORD|' + domainKey,
+      () => {
+        this.watchlistService
+          .removeSecuritycurrencyFromWatchlistAndDelete(this.idWatchlist, securityCurrency)
+          .subscribe((response) => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: domainKey
+            });
+            // The event below already reloads the rows through watchlistHasModifiedFromOutside().
+            this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.DELETED, new Watchlist()));
+          });
+      }
+    );
   }
 
   /**
@@ -530,10 +580,20 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   modifyOrCreateUDFData(securityCurrency: Securitycurrency): void {
     const udfValues = this.udfValuesMap.get(securityCurrency.idSecuritycurrency);
     if (securityCurrency instanceof CurrencypairWatchlist) {
-      this.uDFGeneralCallParam = new UDFGeneralCallParam(AppSettings.CURRENCYPAIR, securityCurrency, udfValues, 'UDF_CURRENCYPAIR');
+      this.uDFGeneralCallParam = new UDFGeneralCallParam(
+        AppSettings.CURRENCYPAIR,
+        securityCurrency,
+        udfValues,
+        'UDF_CURRENCYPAIR'
+      );
       this.visibleUDFGeneralDialog = true;
     } else {
-      this.uDFGeneralCallParam = new UDFGeneralCallParam(AppSettings.SECURITY, securityCurrency, udfValues, 'UDF_SECURITY');
+      this.uDFGeneralCallParam = new UDFGeneralCallParam(
+        AppSettings.SECURITY,
+        securityCurrency,
+        udfValues,
+        'UDF_SECURITY'
+      );
       this.visibleUDFSecurityDialog = true;
     }
   }
@@ -562,7 +622,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     });
     this.transactionCallParam.idWatchList = this.idWatchlist;
     const activeToDate: Date = new Date(security.activeToDate);
-    this.transactionCallParam.defaultTransactionTime = activeToDate.getTime() < new Date().getTime() ? activeToDate : new Date();
+    this.transactionCallParam.defaultTransactionTime =
+      activeToDate.getTime() < new Date().getTime() ? activeToDate : new Date();
     this.visibleSecurityTransactionDialog = true;
   }
 
@@ -584,8 +645,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    *
    * @param processedActionData - Data about the action performed in the dialog
    */
-  handleCloseAddPriceProblemInstrument(processedActionData: ProcessedActionData): void {
-  }
+  handleCloseAddPriceProblemInstrument(processedActionData: ProcessedActionData): void {}
 
   /**
    * Handles add instrument dialog close event.
@@ -609,9 +669,11 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     this.visibleUDFGeneralDialog = false;
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       if (processedActionData.action === ProcessedAction.CREATED) {
-        this.watchlistService.addSecurityToWatchlist(this.idWatchlist, processedActionData.data).subscribe(watchlist => {
-          this.updateAllPrice();
-        });
+        this.watchlistService
+          .addSecurityToWatchlist(this.idWatchlist, processedActionData.data)
+          .subscribe((watchlist) => {
+            this.updateAllPrice();
+          });
       } else {
         this.updateAllPrice();
       }
@@ -624,9 +686,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   }
 
   /** Called when component is deactivated (empty implementation for subclasses to override). */
-  callMeDeactivate(): void {
-  }
-
+  callMeDeactivate(): void {}
 
   /** Hides the context menu if it exists. */
   hideContextMenu(): void {
@@ -677,7 +737,9 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    */
   dragStart(event: DragEvent, data: SecuritycurrencyPosition<Security | Currencypair>) {
     this.changeDetectionStrategy.detach();
-    const dragPayload = JSON.stringify(new WatchlistSecurityExists(this.watchlist.idWatchlist, data.securitycurrency.idSecuritycurrency));
+    const dragPayload = JSON.stringify(
+      new WatchlistSecurityExists(this.watchlist.idWatchlist, data.securitycurrency.idSecuritycurrency)
+    );
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', dragPayload);
   }
@@ -700,9 +762,11 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @returns {boolean} True if the row can be expanded
    */
   canExpandRow(row: SecuritycurrencyPosition<Security | Currencypair>): boolean {
-    return row.watchlistSecurityHasEver
-      || this.watchlistType === WatchListType.PRICE_FEED
-      || this.watchlistType === WatchListType.UDF;
+    return (
+      row.watchlistSecurityHasEver ||
+      this.watchlistType === WatchListType.PRICE_FEED ||
+      this.watchlistType === WatchListType.UDF
+    );
   }
 
   /**
@@ -731,31 +795,68 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * split feed view, which keeps its own distribution frequency column.
    */
   protected addBaseColumns(): void {
-    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false,
-      {width: 200, frozenColumn: false, templateName: BaseSettings.OWNER_TEMPLATE, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false,
-      {fieldValueFN: this.getInstrumentIcon.bind(this), templateName: 'icon', width: 20});
-    this.translateService.get([WatchlistTable.DISTRIBUTION_YES, WatchlistTable.DISTRIBUTION_NO]).subscribe(
-      texts => this.distributionTexts = texts);
-    this.addColumn(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.distribution',
-      AppSettings.DISTRIBUTION_HEADER, true, true,
-      {fieldValueFN: this.getDistributionText.bind(this), filterType: FilterType.withOptions,
-        templateName: 'svgIcon', width: 60});
-    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.isin', true, true,
-      {width: 90, filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.tickerSymbol', true, true,
-      {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.currency', true, true,
-      {filterType: FilterType.withOptions, width: 40});
-    this.addColumn(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.assetClass.categoryType',
-      AppHelper.toUpperCaseWithUnderscore(AppSettings.ASSETCLASS), true, true,
-      {translateValues: TranslateValue.NORMAL, width: 60, filterType: FilterType.withOptions});
-    this.addColumn(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.assetClass.specialInvestmentInstrument',
-      'FINANCIAL_INSTRUMENT', true, true,
-      {translateValues: TranslateValue.NORMAL, width: 60, filterType: FilterType.withOptions});
-    this.addColumn(DataType.String,
+    this.addColumn(DataType.String, this.SECURITYCURRENCY_NAME, 'NAME', true, false, {
+      width: 200,
+      frozenColumn: false,
+      templateName: BaseSettings.OWNER_TEMPLATE,
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.String, 'securitycurrency', AppSettings.INSTRUMENT_HEADER, true, false, {
+      fieldValueFN: this.getInstrumentIcon.bind(this),
+      templateName: 'icon',
+      width: 20
+    });
+    this.translateService
+      .get([WatchlistTable.DISTRIBUTION_YES, WatchlistTable.DISTRIBUTION_NO])
+      .subscribe((texts) => (this.distributionTexts = texts));
+    this.addColumn(
+      DataType.String,
+      WatchlistHelper.SECURITYCURRENCY + '.distribution',
+      AppSettings.DISTRIBUTION_HEADER,
+      true,
+      true,
+      {
+        fieldValueFN: this.getDistributionText.bind(this),
+        filterType: FilterType.withOptions,
+        templateName: 'svgIcon',
+        width: 60
+      }
+    );
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.isin', true, true, {
+      width: 90,
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.tickerSymbol', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.currency', true, true, {
+      filterType: FilterType.withOptions,
+      width: 40
+    });
+    this.addColumn(
+      DataType.String,
+      WatchlistHelper.SECURITYCURRENCY + '.assetClass.categoryType',
+      AppHelper.toUpperCaseWithUnderscore(AppSettings.ASSETCLASS),
+      true,
+      true,
+      { translateValues: TranslateValue.NORMAL, width: 60, filterType: FilterType.withOptions }
+    );
+    this.addColumn(
+      DataType.String,
+      WatchlistHelper.SECURITYCURRENCY + '.assetClass.specialInvestmentInstrument',
+      'FINANCIAL_INSTRUMENT',
+      true,
+      true,
+      { translateValues: TranslateValue.NORMAL, width: 60, filterType: FilterType.withOptions }
+    );
+    this.addColumn(
+      DataType.String,
       WatchlistHelper.SECURITYCURRENCY + '.assetClass.subCategoryNLS.map.' + this.gps.getUserLang(),
-      'SUB_ASSETCLASS', true, true, {width: 80, filterType: FilterType.withOptions});
+      'SUB_ASSETCLASS',
+      true,
+      true,
+      { width: 80, filterType: FilterType.withOptions }
+    );
   }
 
   /**
@@ -779,11 +880,14 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * backend anyway.
    */
   protected watchlistHasModifiedFromOutside(): void {
-    this.subscriptionWatchlistAdded = this.dataChangedService.dateChanged$.subscribe(processedActionData => {
+    this.subscriptionWatchlistAdded = this.dataChangedService.dateChanged$.subscribe((processedActionData) => {
       if (processedActionData.data instanceof Watchlist && processedActionData.action === ProcessedAction.UPDATED) {
         this.getWatchlistWithoutUpdate();
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ADDED_SECURITY_TO_WATCHLIST');
-      } else if (processedActionData.data instanceof Watchlist && processedActionData.action === ProcessedAction.DELETED) {
+      } else if (
+        processedActionData.data instanceof Watchlist &&
+        processedActionData.action === ProcessedAction.DELETED
+      ) {
         this.updateAllPrice();
       }
     });
@@ -805,8 +909,9 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
         this.writeTableDefinition(this.storeKey);
       } else {
         //  first time
-        this.gpsGT.getIntraUpdateTimeout()
-          .subscribe((updateTimeout: number) => this.intraUpdateTimoutSeconds = updateTimeout);
+        this.gpsGT
+          .getIntraUpdateTimeout()
+          .subscribe((updateTimeout: number) => (this.intraUpdateTimoutSeconds = updateTimeout));
         this.readTableDefinition(this.storeKey);
       }
       this.idWatchlist = +params['id'];
@@ -828,13 +933,16 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @returns {MenuItem[]} Array of show menu items with translations applied
    */
   protected getShowMenu(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
-    const menuItems = [...this.getShowContextMenuItems(securitycurrencyPosition, false), {separator: true},
+    const menuItems = [
+      ...this.getShowContextMenuItems(securitycurrencyPosition, false),
+      { separator: true },
       ...(this.getMenuShowOptions() ?? []),
       {
         label: 'FILTER_SORT_SETTINGS' + BaseSettings.DIALOG_MENU_SUFFIX,
         icon: 'fa fa-sliders',
         command: () => this.openFilterSortSettingsDialog()
-      }];
+      }
+    ];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
   }
@@ -846,39 +954,51 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {boolean} translate - Whether to apply translations to menu items
    * @returns {MenuItem[]} Array of show context menu items
    */
-  protected getShowContextMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
-    translate: boolean): MenuItem[] {
+  protected getShowContextMenuItems(
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
+    translate: boolean
+  ): MenuItem[] {
     let menuItems: MenuItem[] = [];
 
     if (securitycurrencyPosition) {
       const isCurrencypair = this.selectedSecuritycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist;
       const optionalParameters = {
-        noMarketValue: !isCurrencypair
-          && (<Security>this.selectedSecuritycurrencyPosition.securitycurrency).stockexchange.noMarketValue
+        noMarketValue:
+          !isCurrencypair &&
+          (<Security>this.selectedSecuritycurrencyPosition.securitycurrency).stockexchange.noMarketValue
       };
-      menuItems = this.timeSeriesQuotesService.getMenuItems(this.selectedSecuritycurrencyPosition.securitycurrency.idSecuritycurrency,
+      menuItems = this.timeSeriesQuotesService.getMenuItems(
+        this.selectedSecuritycurrencyPosition.securitycurrency.idSecuritycurrency,
         isCurrencypair ? null : (<Security>this.selectedSecuritycurrencyPosition.securitycurrency).currency,
-        true, optionalParameters);
+        true,
+        optionalParameters
+      );
 
       menuItems.push(...BusinessHelper.getUrlLinkMenus(securitycurrencyPosition.securitycurrency));
-      menuItems.push(
-        {
-          label: '_INTRADAY_URL',
-          command: (e) => this.getDownloadLinkHistoricalIntra(securitycurrencyPosition.intradayUrl,
-            'intra', securitycurrencyPosition, true),
-          disabled: !securitycurrencyPosition.intradayUrl
-        }
-      );
-      menuItems.push(
-        {
-          label: '_HISTORICAL_URL',
-          command: (e) => this.getDownloadLinkHistoricalIntra(securitycurrencyPosition.historicalUrl,
-            'historical', securitycurrencyPosition, false),
-          disabled: !securitycurrencyPosition.historicalUrl
-        }
-      );
+      menuItems.push({
+        label: '_INTRADAY_URL',
+        command: (e) =>
+          this.getDownloadLinkHistoricalIntra(
+            securitycurrencyPosition.intradayUrl,
+            'intra',
+            securitycurrencyPosition,
+            true
+          ),
+        disabled: !securitycurrencyPosition.intradayUrl
+      });
+      menuItems.push({
+        label: '_HISTORICAL_URL',
+        command: (e) =>
+          this.getDownloadLinkHistoricalIntra(
+            securitycurrencyPosition.historicalUrl,
+            'historical',
+            securitycurrencyPosition,
+            false
+          ),
+        disabled: !securitycurrencyPosition.historicalUrl
+      });
       menuItems.push(...this.alarmSetupService.getMenuItem(securitycurrencyPosition.securitycurrency));
-      menuItems.push({separator: true});
+      menuItems.push({ separator: true });
       menuItems.push({
         label: '_MAIL_TO_CREATOR' + BaseSettings.DIALOG_MENU_SUFFIX,
         command: (e) => this.mailToCreator(securitycurrencyPosition.securitycurrency)
@@ -900,9 +1020,19 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Position containing the security/currency
    * @param {boolean} isIntra - True for intraday data, false for historical data
    */
-  private getDownloadLinkHistoricalIntra(url: string, targetPage: string, securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
-    isIntra: boolean): void {
-    WatchlistHelper.getDownloadLinkHistoricalIntra(url, targetPage, securitycurrencyPosition.securitycurrency, isIntra, this.watchlistService);
+  private getDownloadLinkHistoricalIntra(
+    url: string,
+    targetPage: string,
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
+    isIntra: boolean
+  ): void {
+    WatchlistHelper.getDownloadLinkHistoricalIntra(
+      url,
+      targetPage,
+      securitycurrencyPosition.securitycurrency,
+      isIntra,
+      this.watchlistService
+    );
   }
 
   /**
@@ -914,128 +1044,123 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   protected getEditMenuItems(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): MenuItem[] {
     const menuItems: MenuItem[] = [];
 
-    menuItems.push(
-      {
-        label: 'ADD_EXISTING_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX, command: (e) => this.addExistingSecurity(e),
-        disabled: this.reachedWatchlistLimits()
-      }
-    );
+    menuItems.push({
+      label: 'ADD_EXISTING_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (e) => this.addExistingSecurity(e),
+      disabled: this.reachedWatchlistLimits()
+    });
 
     if (Array.isArray(this.singleMultiSelection) && this.singleMultiSelection.length > 1) {
-      menuItems.push({separator: true});
-      menuItems.push(
-        {
-          label: 'REMOVE_SELECTED_INSTRUMENTS',
-          command: (e) => this.removeSecuritiesAndCurrencypairs(
-            this.singleMultiSelection as SecuritycurrencyPosition<Security | Currencypair>[])
-        }
-      );
+      menuItems.push({ separator: true });
+      menuItems.push({
+        label: 'REMOVE_SELECTED_INSTRUMENTS',
+        command: (e) =>
+          this.removeSecuritiesAndCurrencypairs(
+            this.singleMultiSelection as SecuritycurrencyPosition<Security | Currencypair>[]
+          )
+      });
     }
     if (securitycurrencyPosition) {
-      menuItems.push(
-        {
-          label: 'REMOVE_INSTRUMENT',
-          command: (e) => this.removeInstrument(securitycurrencyPosition.securitycurrency)
-        }
-      );
-      menuItems.push(
-        {
-          label: '_UPDATE_INTRADAY', command: (e) => this.handleUpdateAllPrice(),
-          disabled: !this.securitycurrencyGroup || !this.intraUpdateTimoutSeconds
-        }
-      );
+      menuItems.push({
+        label: 'REMOVE_INSTRUMENT',
+        command: (e) => this.removeInstrument(securitycurrencyPosition.securitycurrency)
+      });
+      menuItems.push({
+        label: '_UPDATE_INTRADAY',
+        command: (e) => this.handleUpdateAllPrice(),
+        disabled: !this.securitycurrencyGroup || !this.intraUpdateTimoutSeconds
+      });
     }
-    menuItems.push({separator: true});
-    menuItems.push(
-      {
-        label: 'CREATE_AND_ADD_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: (e) => this.modifyOrCreateAndAddSecurity(null),
-        disabled: this.reachedWatchlistLimits()
-      }
-    );
-    menuItems.push(
-      {
-        label: 'CREATE_AND_ADD_SECURITY_DERIVED' + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: (e) => this.modifyOrCreateAndAddSecurityDerived(null),
-        disabled: this.reachedWatchlistLimits()
-      }
-    );
-    menuItems.push(
-      {
-        label: 'EDIT_SECURITY_UDF' + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: (e) => this.modifyOrCreateUDFData(securitycurrencyPosition.securitycurrency),
-        disabled: !securitycurrencyPosition || !this.enableMenuItemUDF(securitycurrencyPosition.securitycurrency)
-      }
-    );
+    menuItems.push({ separator: true });
+    menuItems.push({
+      label: 'CREATE_AND_ADD_SECURITY' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (e) => this.modifyOrCreateAndAddSecurity(null),
+      disabled: this.reachedWatchlistLimits()
+    });
+    menuItems.push({
+      label: 'CREATE_AND_ADD_SECURITY_DERIVED' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (e) => this.modifyOrCreateAndAddSecurityDerived(null),
+      disabled: this.reachedWatchlistLimits()
+    });
+    menuItems.push({
+      label: 'EDIT_SECURITY_UDF' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (e) => this.modifyOrCreateUDFData(securitycurrencyPosition.securitycurrency),
+      disabled: !securitycurrencyPosition || !this.enableMenuItemUDF(securitycurrencyPosition.securitycurrency)
+    });
     if (securitycurrencyPosition && !(securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist)) {
-      menuItems.push(
-        {
-          label: 'REMOVE_DELETE_INSTRUMENT',
-          command: (e) => this.removeAndDeleteSecuritycurrency(<Security>securitycurrencyPosition.securitycurrency,
-            AppSettings.SECURITY.toUpperCase()), disabled: securitycurrencyPosition.isUsedElsewhere
-            || (!AuditHelper.hasHigherPrivileges(this.gps) && (!!(<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate
-              && (<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate !== this.gps.getIdTenant()))
-        }
-      );
+      menuItems.push({
+        label: 'REMOVE_DELETE_INSTRUMENT',
+        command: (e) =>
+          this.removeAndDeleteSecuritycurrency(
+            <Security>securitycurrencyPosition.securitycurrency,
+            AppSettings.SECURITY.toUpperCase()
+          ),
+        disabled:
+          securitycurrencyPosition.isUsedElsewhere ||
+          (!AuditHelper.hasHigherPrivileges(this.gps) &&
+            !!(<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate &&
+            (<Security>securitycurrencyPosition.securitycurrency).idTenantPrivate !== this.gps.getIdTenant())
+      });
 
-      menuItems.push(
-        {
-          label: 'EDIT_RECORD|INSTRUMENT' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: (e) => this.modifySecurityOrSecurityDerived(<Security>securitycurrencyPosition.securitycurrency)
-        }
-      );
+      menuItems.push({
+        label: 'EDIT_RECORD|INSTRUMENT' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: (e) => this.modifySecurityOrSecurityDerived(<Security>securitycurrencyPosition.securitycurrency)
+      });
 
-      if ((<Security>securitycurrencyPosition.securitycurrency).assetClass.specialInvestmentInstrument
-        !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES]) {
-        menuItems.push({separator: true});
+      if (
+        (<Security>securitycurrencyPosition.securitycurrency).assetClass.specialInvestmentInstrument !==
+        SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES]
+      ) {
+        menuItems.push({ separator: true });
 
         menuItems.push({
           label: 'ACCUMULATE' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: (e) => this.handleTransaction(TransactionType.ACCUMULATE,
-            <Security>securitycurrencyPosition.securitycurrency)
+          command: (e) =>
+            this.handleTransaction(TransactionType.ACCUMULATE, <Security>securitycurrencyPosition.securitycurrency)
         });
 
         menuItems.push({
           label: 'REDUCE' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: (e) => (securitycurrencyPosition) ? this.handleTransaction(TransactionType.REDUCE,
-            <Security>securitycurrencyPosition.securitycurrency) : null,
-          disabled: (securitycurrencyPosition.units === null || securitycurrencyPosition.units === 0)
-            && !this.isMarginProduct(securitycurrencyPosition)
+          command: (e) =>
+            securitycurrencyPosition
+              ? this.handleTransaction(TransactionType.REDUCE, <Security>securitycurrencyPosition.securitycurrency)
+              : null,
+          disabled:
+            (securitycurrencyPosition.units === null || securitycurrencyPosition.units === 0) &&
+            !this.isMarginProduct(securitycurrencyPosition)
         });
 
         if (!this.isMarginProduct(securitycurrencyPosition)) {
           menuItems.push({
             label: AppSettings.DIVIDEND.toUpperCase() + BaseSettings.DIALOG_MENU_SUFFIX,
-            command: (e) => this.handleTransaction(TransactionType.DIVIDEND,
-              <Security>securitycurrencyPosition.securitycurrency)
+            command: (e) =>
+              this.handleTransaction(TransactionType.DIVIDEND, <Security>securitycurrencyPosition.securitycurrency)
           });
         }
       }
     }
 
-    menuItems.push({separator: true});
-    menuItems.push(
-      {
-        label: 'CREATE_AND_ADD_CURRENCYPAIR' + BaseSettings.DIALOG_MENU_SUFFIX,
-        command: (e) => this.modifyOrCreateAndAddCurrencypair(null),
-        disabled: this.reachedWatchlistLimits()
-      }
-    );
+    menuItems.push({ separator: true });
+    menuItems.push({
+      label: 'CREATE_AND_ADD_CURRENCYPAIR' + BaseSettings.DIALOG_MENU_SUFFIX,
+      command: (e) => this.modifyOrCreateAndAddCurrencypair(null),
+      disabled: this.reachedWatchlistLimits()
+    });
     if (securitycurrencyPosition) {
       if (securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist) {
-        menuItems.push(
-          {
-            label: 'EDIT_RECORD|CURRENCYPAIR' + BaseSettings.DIALOG_MENU_SUFFIX,
-            command: (e) => this.modifyOrCreateAndAddCurrencypair(securitycurrencyPosition.securitycurrency)
-          }
-        );
-        menuItems.push(
-          {
-            label: 'REMOVE_DELETE_CURRENCYPAIR',
-            command: (e) => this.removeAndDeleteSecuritycurrency(<Security>securitycurrencyPosition.securitycurrency,
-              AppSettings.CURRENCYPAIR.toUpperCase()), disabled: securitycurrencyPosition.isUsedElsewhere
-          }
-        );
+        menuItems.push({
+          label: 'EDIT_RECORD|CURRENCYPAIR' + BaseSettings.DIALOG_MENU_SUFFIX,
+          command: (e) => this.modifyOrCreateAndAddCurrencypair(securitycurrencyPosition.securitycurrency)
+        });
+        menuItems.push({
+          label: 'REMOVE_DELETE_CURRENCYPAIR',
+          command: (e) =>
+            this.removeAndDeleteSecuritycurrency(
+              <Security>securitycurrencyPosition.securitycurrency,
+              AppSettings.CURRENCYPAIR.toUpperCase()
+            ),
+          disabled: securitycurrencyPosition.isUsedElsewhere
+        });
       }
     }
     return menuItems;
@@ -1051,9 +1176,13 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
     const key = securitycurreny instanceof CurrencypairWatchlist ? -1 : securitycurreny.idSecuritycurrency;
     let hasUDF = this.lazyMapHasUDF[key];
     if (this.lazyMapHasUDF[key] === undefined) {
-      const fd = securitycurreny instanceof CurrencypairWatchlist
-        ? UDFMetadataHelper.getFieldDescriptorByEntity(AppSettings.CURRENCYPAIR)
-        : SecurityUDFHelper.getFieldDescriptorInputAndShowExtendedSecurity((<Security>securitycurreny).assetClass, true);
+      const fd =
+        securitycurreny instanceof CurrencypairWatchlist
+          ? UDFMetadataHelper.getFieldDescriptorByEntity(AppSettings.CURRENCYPAIR)
+          : SecurityUDFHelper.getFieldDescriptorInputAndShowExtendedSecurity(
+              (<Security>securitycurreny).assetClass,
+              true
+            );
       hasUDF = this.lazyMapHasUDF[key] = fd.length > 0;
     }
     return hasUDF;
@@ -1062,9 +1191,14 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
   /** Translates formula prices to user's decimal symbol format. */
   private translateFormulaToUserLanguage(): void {
     if (this.gps.getDecimalSymbol() !== '.') {
-      this.securitycurrencyGroup.securityPositionList.filter(sp => sp.securitycurrency.formulaPrices)
-        .map(sp => sp.securitycurrency.formulaPrices = sp.securitycurrency.formulaPrices.split('.')
-          .join(this.gps.getDecimalSymbol()));
+      this.securitycurrencyGroup.securityPositionList
+        .filter((sp) => sp.securitycurrency.formulaPrices)
+        .map(
+          (sp) =>
+            (sp.securitycurrency.formulaPrices = sp.securitycurrency.formulaPrices
+              .split('.')
+              .join(this.gps.getDecimalSymbol()))
+        );
     }
   }
 
@@ -1074,8 +1208,10 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[]} singleMultiSelection - Current selection state (single item or array)
    * @returns {SecuritycurrencyPosition<Security | Currencypair>} Single position or null if multiple items selected
    */
-  private getSSP(singleMultiSelection: SecuritycurrencyPosition<Security | Currencypair>
-    | SecuritycurrencyPosition<Security | Currencypair>[]): SecuritycurrencyPosition<Security | Currencypair> {
+  private getSSP(
+    singleMultiSelection:
+      SecuritycurrencyPosition<Security | Currencypair> | SecuritycurrencyPosition<Security | Currencypair>[]
+  ): SecuritycurrencyPosition<Security | Currencypair> {
     if (Array.isArray(singleMultiSelection)) {
       return singleMultiSelection.length === 1 ? singleMultiSelection[0] : null;
     } else {
@@ -1089,11 +1225,22 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {Securitycurrency} securitycurrency - Security or currency entity whose creator will receive the message
    */
   private mailToCreator(securitycurrency: Securitycurrency): void {
-    const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
-      : (<Security>securitycurrency).name;
-    DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService,
-      new MailSendParam(securitycurrency.createdBy, null, subject, undefined, AppSettings.SECURITYCURRENCY,
-        securitycurrency.idSecuritycurrency));
+    const subject =
+      securitycurrency instanceof CurrencypairWatchlist
+        ? (<CurrencypairWatchlist>securitycurrency).name
+        : (<Security>securitycurrency).name;
+    DynamicDialogs.getOpenedMailSendComponent(
+      this.translateService,
+      this.dialogService,
+      new MailSendParam(
+        securitycurrency.createdBy,
+        null,
+        subject,
+        undefined,
+        AppSettings.SECURITYCURRENCY,
+        securitycurrency.idSecuritycurrency
+      )
+    );
   }
 
   /**
@@ -1102,19 +1249,23 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {Securitycurrency} securitycurrency - Security or currency entity referenced in the message
    */
   private mailToAdmin(securitycurrency: Securitycurrency): void {
-    const subject = securitycurrency instanceof CurrencypairWatchlist ? (<CurrencypairWatchlist>securitycurrency).name
-      : (<Security>securitycurrency).name;
-    DynamicDialogs.getOpenedMailSendComponent(this.translateService, this.dialogService,
-      new MailSendParam(0, null, subject, BaseSettings.ROLE_ADMIN));
+    const subject =
+      securitycurrency instanceof CurrencypairWatchlist
+        ? (<CurrencypairWatchlist>securitycurrency).name
+        : (<Security>securitycurrency).name;
+    DynamicDialogs.getOpenedMailSendComponent(
+      this.translateService,
+      this.dialogService,
+      new MailSendParam(0, null, subject, BaseSettings.ROLE_ADMIN)
+    );
   }
 
   /** Handles price update with timeout check to prevent excessive API calls. */
   private handleUpdateAllPrice() {
     const lastTs = new Date(this.securitycurrencyGroup.lastTimestamp).getTime();
     if (Date.now() < lastTs + this.intraUpdateTimoutSeconds * 1000) {
-      const minutes = this.millisToMinutesAndSeconds(lastTs
-        + this.intraUpdateTimoutSeconds * 1000 - Date.now());
-      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'UPDATE_TIMEOUT', {time: minutes});
+      const minutes = this.millisToMinutesAndSeconds(lastTs + this.intraUpdateTimoutSeconds * 1000 - Date.now());
+      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'UPDATE_TIMEOUT', { time: minutes });
     } else {
       this.updateAllPrice();
     }
@@ -1167,14 +1318,15 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    */
   private resetMenu(selectedSecuritycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>) {
     this.selectedSecuritycurrencyPosition = selectedSecuritycurrencyPosition;
-    this.contextMenuItems = [...this.getEditMenu(selectedSecuritycurrencyPosition),
-      ...this.getShowContextMenuItems(selectedSecuritycurrencyPosition, true)];
+    this.contextMenuItems = [
+      ...this.getEditMenu(selectedSecuritycurrencyPosition),
+      ...this.getShowContextMenuItems(selectedSecuritycurrencyPosition, true)
+    ];
     this.activePanelService.activatePanel(this, {
       showMenu: this.getShowMenu(selectedSecuritycurrencyPosition),
       editMenu: this.getEditMenu(selectedSecuritycurrencyPosition)
     });
   }
-
 }
 
 /**
@@ -1186,8 +1338,10 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
  * @param {number} days - Number of days from current date to calculate performance metrics
  */
 export class TimeFrame {
-  constructor(public name: string, public days: number) {
-  }
+  constructor(
+    public name: string,
+    public days: number
+  ) {}
 }
 /**
  * Enumeration defining different types of watchlist views and their specific functionality.

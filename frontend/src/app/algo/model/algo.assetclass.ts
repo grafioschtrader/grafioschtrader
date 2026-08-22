@@ -1,12 +1,11 @@
-import {AlgoAssetclassSecurity} from './algo.assetclass.security';
-import {AlgoSecurity} from './algo.security';
-import {Exclude, Type} from 'class-transformer';
-import {Assetclass} from '../../entities/assetclass';
-import {AlgoTopAssetSecurity} from './algo.top.asset.security';
-import {AlgoTreeName} from '../../entities/view/algo.tree.name';
+import { AlgoAssetclassSecurity } from './algo.assetclass.security';
+import { AlgoSecurity } from './algo.security';
+import { Exclude, Type } from 'class-transformer';
+import { Assetclass } from '../../entities/assetclass';
+import { AlgoTopAssetSecurity } from './algo.top.asset.security';
+import { AlgoTreeName } from '../../entities/view/algo.tree.name';
 
 export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeName {
-
   idAlgoAssetclassParent: number;
 
   name: string = null;
@@ -28,13 +27,17 @@ export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeNa
     if (this.isCustomCategory()) {
       return this.name;
     }
-    return this.assetclass['categoryType$'] + ', ' + this.assetclass.subCategoryNLS.map[language] + ', '
-      + this.assetclass[`specialInvestmentInstrument$`];
+    return (
+      this.assetclass['categoryType$'] +
+      ', ' +
+      this.assetclass.subCategoryNLS.map[language] +
+      ', ' +
+      this.assetclass[`specialInvestmentInstrument$`]
+    );
   }
 
   @Exclude()
   getChildList(): AlgoTopAssetSecurity[] {
     return this.algoSecurityList;
   }
-
 }

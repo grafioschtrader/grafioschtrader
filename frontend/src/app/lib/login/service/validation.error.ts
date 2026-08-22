@@ -1,5 +1,5 @@
-import {TransformedError} from './transformed.error';
-import {GetTransformedError} from './get.transformed.error';
+import { TransformedError } from './transformed.error';
+import { GetTransformedError } from './get.transformed.error';
 
 export class ValidationError implements GetTransformedError {
   public fieldErrors: FieldError[];
@@ -7,8 +7,9 @@ export class ValidationError implements GetTransformedError {
   getTransformedError(): TransformedError {
     const transformedError = new TransformedError();
     transformedError.errorClass = this;
-    this.fieldErrors.forEach(fieldError => transformedError.msg += `<b>${fieldError.field}</b>: ` +
-      `${fieldError.message}</br>`);
+    this.fieldErrors.forEach(
+      (fieldError) => (transformedError.msg += `<b>${fieldError.field}</b>: ` + `${fieldError.message}</br>`)
+    );
     return transformedError;
   }
 }

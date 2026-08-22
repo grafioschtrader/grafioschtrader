@@ -1,22 +1,21 @@
-import {Injector} from '@angular/core';
-import {UDFMetadata, UDFMetadataParam} from '../model/udf.metadata';
-import {ConfirmationService, FilterService, MenuItem, SortMeta} from '@openng/optimus-ui/api';
-import {MessageToastService} from '../../message/message.toast.service';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {UserSettingsService} from '../../services/user.settings.service';
-import {DeleteService} from '../../datashowbase/delete.service';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {combineLatest, Observable} from 'rxjs';
-import {plainToInstance} from 'class-transformer';
-import {ClassConstructor} from 'class-transformer/types/interfaces';
-import {TableCrudSupportMenu} from '../../datashowbase/table.crud.support.menu';
-import {UDFSpecialTypeDisableUserService} from '../service/udf.special.type.disable.user.service';
-import {UDFSpecialTypeRegistry} from '../model/udf.special.type.registry';
-
+import { Injector } from '@angular/core';
+import { UDFMetadata, UDFMetadataParam } from '../model/udf.metadata';
+import { ConfirmationService, FilterService, MenuItem, SortMeta } from '@openng/optimus-ui/api';
+import { MessageToastService } from '../../message/message.toast.service';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { UserSettingsService } from '../../services/user.settings.service';
+import { DeleteService } from '../../datashowbase/delete.service';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { combineLatest, Observable } from 'rxjs';
+import { plainToInstance } from 'class-transformer';
+import { ClassConstructor } from 'class-transformer/types/interfaces';
+import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
+import { UDFSpecialTypeDisableUserService } from '../service/udf.special.type.disable.user.service';
+import { UDFSpecialTypeRegistry } from '../model/udf.special.type.registry';
 
 /**
  * Abstract base class for displaying and managing UDF metadata in a table format.
@@ -48,7 +47,8 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @param usersettingsService - Service for managing user preferences
    * @protected
    */
-  protected constructor(private classz: ClassConstructor<T>,
+  protected constructor(
+    private classz: ClassConstructor<T>,
     private udfSpecialTypeDisableUserService: UDFSpecialTypeDisableUserService,
     private deleteReadAllService: DeleteReadAllService<UDFMetadata>,
     entityName: string,
@@ -60,10 +60,21 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
     translateService: TranslateService,
     gps: GlobalparameterService,
     usersettingsService: UserSettingsService,
-    injector: Injector) {
-
-    super(entityName, deleteReadAllService, confirmationService, messageToastService,
-      activePanelService, dialogService, filterService, translateService, gps, usersettingsService, injector)
+    injector: Injector
+  ) {
+    super(
+      entityName,
+      deleteReadAllService,
+      confirmationService,
+      messageToastService,
+      activePanelService,
+      dialogService,
+      filterService,
+      translateService,
+      gps,
+      usersettingsService,
+      injector
+    );
   }
 
   /**
@@ -86,16 +97,19 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
   protected addMetadataBaseFields(sortMeta: SortMeta[]): void {
     this.addAdditionalFields(true);
     this.addColumnFeqH(DataType.String, 'uiOrder', true, false);
-    this.addColumnFeqH(DataType.String, 'udfSpecialType', true, false,
-      {translateValues: TranslateValue.NORMAL, width: 80});
-    this.addColumnFeqH(DataType.Boolean, 'udfDisabledUser', true, false,
-      {templateName: 'check', width: 60, fieldValueFN: this.udfDisabled.bind(this)});
+    this.addColumnFeqH(DataType.String, 'udfSpecialType', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      width: 80
+    });
+    this.addColumnFeqH(DataType.Boolean, 'udfDisabledUser', true, false, {
+      templateName: 'check',
+      width: 60,
+      fieldValueFN: this.udfDisabled.bind(this)
+    });
     this.addColumn(DataType.String, 'description', 'FIELD_DESCRIPTION', true, false);
-    this.addColumn(DataType.String, 'descriptionHelp', 'FIELD_DESCRIPTION_HELP', true, false,
-      {width: 150});
-    this.addColumnFeqH(DataType.String, 'udfDataType', true, false,
-      {translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.String, 'fieldSize', true, false, {width: 60});
+    this.addColumn(DataType.String, 'descriptionHelp', 'FIELD_DESCRIPTION_HELP', true, false, { width: 150 });
+    this.addColumnFeqH(DataType.String, 'udfDataType', true, false, { translateValues: TranslateValue.NORMAL });
+    this.addColumnFeqH(DataType.String, 'fieldSize', true, false, { width: 60 });
     this.addAdditionalFields(false);
     this.multiSortMeta.push(...sortMeta);
     this.prepareTableAndTranslate();
@@ -110,10 +124,12 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * @protected
    */
   protected beforeEdit(entity: UDFMetadata, uDFMetadataParam: UDFMetadataParam): void {
-    uDFMetadataParam.excludeUiOrders = this.entityList.filter(m => entity == null
-      || entity.uiOrder !== m.uiOrder).map(m => m.uiOrder);
-    uDFMetadataParam.excludeFieldNames = this.entityList.filter(m => entity == null
-      || entity.description !== m.description).map(m => m.description);
+    uDFMetadataParam.excludeUiOrders = this.entityList
+      .filter((m) => entity == null || entity.uiOrder !== m.uiOrder)
+      .map((m) => m.uiOrder);
+    uDFMetadataParam.excludeFieldNames = this.entityList
+      .filter((m) => entity == null || entity.description !== m.description)
+      .map((m) => m.description);
   }
 
   /**
@@ -121,13 +137,15 @@ export abstract class UDFMetaTable<T extends UDFMetadata> extends TableCrudSuppo
    * Combines metadata and disabled types into table data with proper type transformation.
    */
   override readData(): void {
-    combineLatest([this.deleteReadAllService.getAllByIdUser(),
-      this.udfSpecialTypeDisableUserService.getDisabledSpecialTypes()]).subscribe((data: [T[], number[]]) => {
+    combineLatest([
+      this.deleteReadAllService.getAllByIdUser(),
+      this.udfSpecialTypeDisableUserService.getDisabledSpecialTypes()
+    ]).subscribe((data: [T[], number[]]) => {
       this.entityList = plainToInstance(this.classz, data[0]);
       this.specialTypeDisabledArr = data[1];
       console.log(this.specialTypeDisabledArr);
       this.createTranslatedValueStoreAndFilterField(this.entityList);
-    })
+    });
   }
 
   /**
@@ -216,5 +234,5 @@ export interface DeleteReadAllService<T extends UDFMetadata> extends DeleteServi
    *
    * @returns Observable emitting array of UDF metadata entries
    */
-  getAllByIdUser(): Observable<T[]>
+  getAllByIdUser(): Observable<T[]>;
 }

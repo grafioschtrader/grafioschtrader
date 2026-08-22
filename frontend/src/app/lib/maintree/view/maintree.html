@@ -1,12 +1,19 @@
-<div (click)="onComponentClick($event)" [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
-     dynamicItems>
-  <p-tree (keydown)="onKeydown($event)" (onNodeContextMenuSelect)="onNodeContextMenuSelect($event)"
-          (onNodeSelect)="onNodeSelect($event)" [(selection)]="selectedNode"
-          [contextMenu]="cm"  [value]="portfolioTrees" selectionMode="single">
+<div
+  (click)="onComponentClick($event)"
+  [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
+  dynamicItems>
+  <p-tree
+    (keydown)="onKeydown($event)"
+    (onNodeContextMenuSelect)="onNodeContextMenuSelect($event)"
+    (onNodeSelect)="onNodeSelect($event)"
+    [(selection)]="selectedNode"
+    [contextMenu]="cm"
+    [value]="portfolioTrees"
+    selectionMode="single">
     <ng-template let-node pTemplate="default">
-        <span (dragover)="dragOver($event, node)" (dragenter)="dragOver($event, node)" (drop)="drop($event, node)">
-            {{node.label}}
-        </span>
+      <span (dragover)="dragOver($event, node)" (dragenter)="dragOver($event, node)" (drop)="drop($event, node)">
+        {{node.label}}
+      </span>
     </ng-template>
   </p-tree>
   <!-- Context menu is always visible -->
@@ -25,4 +32,3 @@
     </button>
   </p-footer>
 </p-confirmDialog>
-

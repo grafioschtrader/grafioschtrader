@@ -1,34 +1,43 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TreeTableConfigBase} from '../../datashowbase/tree.table.config.base';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {DeliveryStatus, getReverseCode, getValidResponseCodes, GTNetMessage, GTNetMessageCodeType, MessageVisibility, MsgCallParam, SendReceivedType} from '../model/gtnet.message';
-import {MsgRequest} from '../model/gtnet';
-import {GTNetService} from '../service/gtnet.service';
-import {FilterService, MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {IGlobalMenuAttach} from '../../mainmenubar/component/iglobal.menu.attach';
-import {HelpIds} from '../../help/help.ids';
-import {ActivePanelService} from '../../mainmenubar/service/active.panel.service';
-import {ColumnConfig, TranslateValue} from '../../datashowbase/column.config';
-import {ClassDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {TreeTable, TreeTableModule} from '@openng/optimus-ui/treetable';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {DatePickerModule} from '@openng/optimus-ui/datepicker';
-import {MultiSelectModule} from '@openng/optimus-ui/multiselect';
-import {InputTextModule} from '@openng/optimus-ui/inputtext';
-import {CheckboxModule} from '@openng/optimus-ui/checkbox';
-import {GTNetMessageEditComponent} from './gtnet-message-edit.component';
-import {ProcessedActionData} from '../../types/processed.action.data';
-import {ProcessedAction} from '../../types/processed.action';
-import {GTNetMessageService} from '../service/gtnet.message.service';
-import {AngularSvgIconModule, SvgIconRegistryService} from 'angular-svg-icon';
-import {BaseSettings} from '../../base.settings';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {FilterType} from '../../datashowbase/filter.type';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
+import { DataType } from '../../dynamic-form/models/data.type';
+import {
+  DeliveryStatus,
+  getReverseCode,
+  getValidResponseCodes,
+  GTNetMessage,
+  GTNetMessageCodeType,
+  MessageVisibility,
+  MsgCallParam,
+  SendReceivedType
+} from '../model/gtnet.message';
+import { MsgRequest } from '../model/gtnet';
+import { GTNetService } from '../service/gtnet.service';
+import { FilterService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { IGlobalMenuAttach } from '../../mainmenubar/component/iglobal.menu.attach';
+import { HelpIds } from '../../help/help.ids';
+import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
+import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
+import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
+import { TreeTable, TreeTableModule } from '@openng/optimus-ui/treetable';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { DatePickerModule } from '@openng/optimus-ui/datepicker';
+import { MultiSelectModule } from '@openng/optimus-ui/multiselect';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { GTNetMessageEditComponent } from './gtnet-message-edit.component';
+import { ProcessedActionData } from '../../types/processed.action.data';
+import { ProcessedAction } from '../../types/processed.action';
+import { GTNetMessageService } from '../service/gtnet.message.service';
+import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
+import { BaseSettings } from '../../base.settings';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { FilterType } from '../../datashowbase/filter.type';
 
 /**
  * It shows the messages in a tree table.
@@ -50,22 +59,35 @@ import {FilterType} from '../../datashowbase/filter.type';
     GTNetMessageEditComponent,
     AngularSvgIconModule
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <div #cmDiv class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      #cmDiv
+      class="data-container"
+      (click)="onComponentClick($event)"
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <div class="datatable nestedtable">
-        <p-treeTable #tt [value]="rootNode.children" [columns]="fields" dataKey="idGtNetMessage"
-                     selectionMode="single" [(selection)]="selectedNode"
-                     (selectionChange)="onSelectionChange($event)"
-                     showGridlines="true">
+        <p-treeTable
+          #tt
+          [value]="rootNode.children"
+          [columns]="fields"
+          dataKey="idGtNetMessage"
+          selectionMode="single"
+          [(selection)]="selectedNode"
+          (selectionChange)="onSelectionChange($event)"
+          showGridlines="true">
           <ng-template #header let-fields>
             <tr>
               <th style="width: 40px; text-align: center;">
                 @if (hasDeletableMessages()) {
-                  <p-checkbox [binary]="true"
-                              [ngModel]="areAllDeletableSelected()"
-                              (onChange)="onSelectAllChange($event)"
-                              [pTooltip]="'SELECT_DESELECT_ALL' | translate">
+                  <p-checkbox
+                    [binary]="true"
+                    [ngModel]="areAllDeletableSelected()"
+                    (onChange)="onSelectAllChange($event)"
+                    [pTooltip]="'SELECT_DESELECT_ALL' | translate">
                   </p-checkbox>
                 }
               </th>
@@ -83,18 +105,28 @@ import {FilterType} from '../../datashowbase/filter.type';
                     @switch (field.filterType) {
                       @case (FilterType.likeDataType) {
                         @if (field.dataType === DataType.DateTimeString) {
-                          <p-datepicker [ngModel]="null" [dateFormat]="baseLocale.dateFormat"
-                            (onSelect)="filterDate($event, field, tt)" appendTo="body">
+                          <p-datepicker
+                            [ngModel]="null"
+                            [dateFormat]="baseLocale.dateFormat"
+                            (onSelect)="filterDate($event, field, tt)"
+                            appendTo="body">
                           </p-datepicker>
                         } @else if (field.dataType === DataType.String) {
-                          <input pInputText type="text"
-                            (input)="tt.filter($any($event.target).value, field.field, 'contains')">
+                          <input
+                            pInputText
+                            type="text"
+                            (input)="tt.filter($any($event.target).value, field.field, 'contains')" />
                         }
                       }
                       @case (FilterType.withOptions) {
                         <!-- Several values can be selected, they are combined with OR. -->
-                        <p-multiSelect [options]="field.filterValues" [style]="{'width':'100%'}" appendTo="body"
-                          [maxSelectedLabels]="1" [showClear]="true" [filter]="field.filterValues?.length > 10"
+                        <p-multiSelect
+                          [options]="field.filterValues"
+                          [style]="{ width: '100%' }"
+                          appendTo="body"
+                          [maxSelectedLabels]="1"
+                          [showClear]="true"
+                          [filter]="$safeNavigationMigration(field.filterValues?.length) > 10"
                           (onChange)="tt.filter($event.value?.length ? $event.value : null, field.field, 'in')">
                         </p-multiSelect>
                       }
@@ -105,39 +137,50 @@ import {FilterType} from '../../datashowbase/filter.type';
             }
           </ng-template>
           <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
-            <tr [ttSelectableRow]="rowNode"
-                [style.background-color]="getPendingBackgroundColor(rowData)">
+            <tr [ttSelectableRow]="rowNode" [style.background-color]="getPendingBackgroundColor(rowData)">
               <td style="width: 40px; text-align: center;">
                 @if (rowData.canDelete && !rowData.replyTo) {
-                  <p-checkbox [binary]="true"
-                              [ngModel]="selectedDeletableIds.has(rowData.idGtNetMessage)"
-                              (onChange)="onDeleteCheckChange($event, rowData)">
+                  <p-checkbox
+                    [binary]="true"
+                    [ngModel]="selectedDeletableIds.has(rowData.idGtNetMessage)"
+                    (onChange)="onDeleteCheckChange($event, rowData)">
                   </p-checkbox>
                 }
               </td>
               @for (field of fields; track field; let i = $index) {
                 @if (field.visible) {
                   <td
-                    [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
+                    [ngClass]="
+                      field.dataType === DataType.Numeric || field.dataType === DataType.DateTimeNumeric
+                        ? 'text-end'
+                        : ''
+                    "
                     [style.width.px]="field.width">
                     @if (i === 0) {
                       <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
                     }
                     @switch (field.templateName) {
                       @case ('greenRed') {
-                        <span [pTooltip]="getValueByPath(rowData, field)"
-                              [style.color]='isValueByPathMinus(rowData, field)? "red": "inherit"'
-                              tooltipPosition="top">
-                        {{ getValueByPath(rowData, field) }}
-                      </span>
+                        <span
+                          [pTooltip]="getValueByPath(rowData, field)"
+                          [style.color]="isValueByPathMinus(rowData, field) ? 'red' : 'inherit'"
+                          tooltipPosition="top">
+                          {{ getValueByPath(rowData, field) }}
+                        </span>
                       }
                       @case ('icon') {
-                        <svg-icon [name]="getValueByPath(rowData, field)"
-                                  [svgStyle]="{ 'width.px':16, 'height.px':16 }"></svg-icon>
+                        <svg-icon
+                          [name]="getValueByPath(rowData, field)"
+                          [svgStyle]="{ 'width.px': 16, 'height.px': 16 }"></svg-icon>
                       }
                       @case ('check') {
-                        <span><i [ngClass]="{'fa fa-check': getValueByPath(rowData, field)}"
-                                 aria-hidden="true"></i></span>
+                        <span
+                          ><i
+                            [ngClass]="{
+                              'fa fa-check': getValueByPath(rowData, field)
+                            }"
+                            aria-hidden="true"></i
+                        ></span>
                       }
                       @default {
                         <span [pTooltip]="getValueByPath(rowData, field)">{{ getValueByPath(rowData, field) }}</span>
@@ -149,19 +192,18 @@ import {FilterType} from '../../datashowbase/filter.type';
             </tr>
           </ng-template>
         </p-treeTable>
-        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body">
-        </p-contextMenu>
+        <p-contextMenu #cm [target]="cmDiv" [model]="contextMenuItems" appendTo="body"> </p-contextMenu>
       </div>
     </div>
     @if (visibleDialogMsg) {
-      <gtnet-message-edit [visibleDialog]="visibleDialogMsg"
-                          [msgCallParam]="msgCallParam"
-                          (closeDialog)="handleCloseDialogMsg($event)">
+      <gtnet-message-edit
+        [visibleDialog]="visibleDialogMsg"
+        [msgCallParam]="msgCallParam"
+        (closeDialog)="handleCloseDialogMsg($event)">
       </gtnet-message-edit>
     }
   `
 })
-
 export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
   @Input() gtNetMessages: GTNetMessage[];
   @Input() incomingPendingIds: Set<number>;
@@ -185,7 +227,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   private static iconLoadDone = false;
 
-  rootNode: TreeNode = {children: []};
+  rootNode: TreeNode = { children: [] };
   selectedNode: TreeNode;
   selectedGTNetMessage: GTNetMessage;
   contextMenuItems: MenuItem[] = [];
@@ -195,13 +237,15 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   /** Set of message IDs selected for batch deletion */
   selectedDeletableIds: Set<number> = new Set();
 
-  constructor(private activePanelService: ActivePanelService,
-              private gtNetMessageService: GTNetMessageService,
-              private gtNetService: GTNetService,
-              private iconReg: SvgIconRegistryService,
-              filterService: FilterService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+  constructor(
+    private activePanelService: ActivePanelService,
+    private gtNetMessageService: GTNetMessageService,
+    private gtNetService: GTNetService,
+    private iconReg: SvgIconRegistryService,
+    filterService: FilterService,
+    translateService: TranslateService,
+    gps: GlobalparameterService
+  ) {
     super(translateService, gps, filterService);
     GTNetMessageTreeTableComponent.registerIcons(this.iconReg);
   }
@@ -224,17 +268,31 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   }
 
   ngOnInit(): void {
-    this.addColumn(DataType.DateTimeString, 'timestamp', 'SEND_RECV_TIME', true, false,
-      {width: 160, filterType: FilterType.likeDataType});
-    this.addColumn(DataType.String, 'sendRecv', 'A', true, false,
-      {fieldValueFN: this.getSendRecvIcon.bind(this), templateName: 'icon', width: 25});
-    this.addColumnFeqH(DataType.String, 'messageCode', true, false,
-      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions});
-    this.addColumnFeqH(DataType.String, 'message', true, false,
-      {filterType: FilterType.likeDataType});
-    this.addColumnFeqH(DataType.String, 'visibility', true, false,
-      {translateValues: TranslateValue.NORMAL, filterType: FilterType.withOptions, width: 100});
-    this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false, {templateName: 'check', width: 60});
+    this.addColumn(DataType.DateTimeString, 'timestamp', 'SEND_RECV_TIME', true, false, {
+      width: 160,
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.String, 'sendRecv', 'A', true, false, {
+      fieldValueFN: this.getSendRecvIcon.bind(this),
+      templateName: 'icon',
+      width: 25
+    });
+    this.addColumnFeqH(DataType.String, 'messageCode', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions
+    });
+    this.addColumnFeqH(DataType.String, 'message', true, false, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumnFeqH(DataType.String, 'visibility', true, false, {
+      translateValues: TranslateValue.NORMAL,
+      filterType: FilterType.withOptions,
+      width: 100
+    });
+    this.addColumnFeqH(DataType.Boolean, 'hasBeenRead', true, false, {
+      templateName: 'check',
+      width: 60
+    });
     this.prepareData();
     this.createTranslateValuesStoreForTranslation(this.rootNode.children);
     this.prepareTreeTableAndTranslate();
@@ -247,7 +305,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   private extractDataFromTree(): GTNetMessage[] {
     const data: GTNetMessage[] = [];
     const traverse = (nodes: TreeNode[]) => {
-      nodes?.forEach(node => {
+      nodes?.forEach((node) => {
         if (node.data) {
           data.push(node.data);
         }
@@ -266,13 +324,13 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     // First pass: create all nodes and populate the nodeMap
     // This ensures all nodes exist before we establish parent-child relationships,
     // regardless of the order messages arrive from the backend (timestamp DESC).
-    this.gtNetMessages.forEach(gtMessage => {
-      const node: TreeNode = {data: gtMessage, leaf: true};
+    this.gtNetMessages.forEach((gtMessage) => {
+      const node: TreeNode = { data: gtMessage, leaf: true };
       nodeMap.set(gtMessage.idGtNetMessage, node);
     });
 
     // Second pass: establish parent-child relationships
-    this.gtNetMessages.forEach(gtMessage => {
+    this.gtNetMessages.forEach((gtMessage) => {
       const node = nodeMap.get(gtMessage.idGtNetMessage);
       if (gtMessage.replyTo) {
         const parentNode = nodeMap.get(gtMessage.replyTo);
@@ -297,9 +355,10 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Expands parent nodes that contain unread received messages.
    */
   private expandNodesWithUnreadMessages(nodes: TreeNode[], nodeMap: Map<number, TreeNode>): void {
-    nodes?.forEach(node => {
+    nodes?.forEach((node) => {
       const msg: GTNetMessage = node.data;
-      const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
+      const isReceived =
+        msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
       if (isReceived && !msg.hasBeenRead) {
         // Mark parent nodes as expanded
         if (msg.replyTo) {
@@ -327,7 +386,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
       return;
     }
     const msg: GTNetMessage = node.data;
-    const isReceived = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
+    const isReceived =
+      msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
 
     // Mark as read if it's a received message that hasn't been read
     if (isReceived && !msg.hasBeenRead) {
@@ -352,12 +412,12 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     this.contextMenu && this.contextMenu.hide();
   }
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   private setMenuItemsToActivePanel(): void {
-    this.activePanelService.activatePanel(this,
-      {editMenu: this.getMenuItems()});
+    this.activePanelService.activatePanel(this, {
+      editMenu: this.getMenuItems()
+    });
     this.contextMenuItems = this.getMenuItems();
   }
 
@@ -401,7 +461,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (!msg) {
       return false;
     }
-    const isIncoming = msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
+    const isIncoming =
+      msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
     const validResponses = getValidResponseCodes(msg.messageCode);
     if (!isIncoming || validResponses.length === 0) {
       return false;
@@ -448,9 +509,10 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * the full inheritance rule.
    */
   private getParentVisibility(msg: GTNetMessage): MessageVisibility {
-    const visibilityValue = typeof msg.visibility === 'string'
-      ? MessageVisibility[msg.visibility as keyof typeof MessageVisibility]
-      : msg.visibility;
+    const visibilityValue =
+      typeof msg.visibility === 'string'
+        ? MessageVisibility[msg.visibility as keyof typeof MessageVisibility]
+        : msg.visibility;
     return visibilityValue ?? MessageVisibility.ALL_USERS;
   }
 
@@ -571,7 +633,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     const filteredNodes = this.treeTable?.filteredNodes ?? this.rootNode.children;
 
     const traverse = (nodes: TreeNode[]) => {
-      nodes?.forEach(node => {
+      nodes?.forEach((node) => {
         const msg: GTNetMessage = node.data;
         if (msg?.canDelete && !msg.replyTo) {
           deletable.push(msg);
@@ -600,7 +662,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     if (deletable.length === 0) {
       return false;
     }
-    return deletable.every(msg => this.selectedDeletableIds.has(msg.idGtNetMessage));
+    return deletable.every((msg) => this.selectedDeletableIds.has(msg.idGtNetMessage));
   }
 
   /**
@@ -611,10 +673,10 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     const deletable = this.getFilteredDeletableMessages();
     if (event.checked) {
       // Select all deletable messages
-      deletable.forEach(msg => this.selectedDeletableIds.add(msg.idGtNetMessage));
+      deletable.forEach((msg) => this.selectedDeletableIds.add(msg.idGtNetMessage));
     } else {
       // Deselect all deletable messages
-      deletable.forEach(msg => this.selectedDeletableIds.delete(msg.idGtNetMessage));
+      deletable.forEach((msg) => this.selectedDeletableIds.delete(msg.idGtNetMessage));
     }
     // Update menu items to reflect selection state
     this.setMenuItemsToActivePanel();
@@ -654,5 +716,4 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     this.selectedDeletableIds.clear();
     this.setMenuItemsToActivePanel();
   }
-
 }

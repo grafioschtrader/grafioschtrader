@@ -1,28 +1,28 @@
-import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {PeriodHoldingAndDiff} from '../model/performance.period';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {AppHelper} from '../../lib/helper/app.helper';
+import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { PeriodHoldingAndDiff } from '../model/performance.period';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { AppHelper } from '../../lib/helper/app.helper';
 
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 @Component({
-    selector: 'performance-period-from-to-diff',
+  selector: 'performance-period-from-to-diff',
   template: `
     <div class="fcontainer">
       @for (phad of periodHoldingsAndDiff; track phad; let i = $index) {
         <fieldset class="out-border fbox">
-          <legend class="out-border-legend">{{titles[i]}}</legend>
+          <legend class="out-border-legend">{{ titles[i] }}</legend>
           @for (field of fields; track field) {
             <div class="row gx-1">
               <div class="col-9 text-end" [pTooltip]="field.headerTooltipTranslated">
-                {{field.headerTranslated}}
+                {{ field.headerTranslated }}
               </div>
               <div class="col-3 text-end">
-                <span [style.color]='isValueByPathMinus(phad, field)? "red": "inherit"'>
-                  {{getValueByPath(phad, field)}}
+                <span [style.color]="isValueByPathMinus(phad, field) ? 'red' : 'inherit'">
+                  {{ getValueByPath(phad, field) }}
                 </span>
               </div>
             </div>
@@ -31,18 +31,18 @@ import {TooltipModule} from '@openng/optimus-ui/tooltip';
       }
     </div>
   `,
-    standalone: true,
-    imports: [TooltipModule]
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TooltipModule]
 })
 export class TenantPerformanceFromToDiffComponent extends SingleRecordConfigBase implements OnInit, OnChanges {
   @Input() periodHoldingsAndDiff: PeriodHoldingAndDiff[];
 
   titles: string[] = new Array(3);
-It
+  It;
   constructor(translateService: TranslateService, gps: GlobalparameterService) {
     super(translateService, gps);
   }
-
 
   ngOnInit(): void {
     this.addFieldPropertyFeqH(DataType.Numeric, 'dividendRealMC');
@@ -58,7 +58,7 @@ It
     this.addFieldPropertyFeqH(DataType.Numeric, 'marginCloseGainMC');
     this.addFieldPropertyFeqH(DataType.Numeric, 'totalGainMC');
     this.translateHeadersAndColumns();
-    this.translateService.get('DIFFERENCE').subscribe(trans => this.titles[2] = trans);
+    this.translateService.get('DIFFERENCE').subscribe((trans) => (this.titles[2] = trans));
   }
 
   ngOnChanges(changes: SimpleChanges): void {

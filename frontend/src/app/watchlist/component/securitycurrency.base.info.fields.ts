@@ -1,19 +1,19 @@
-import {SingleRecordConfigBase} from '../../lib/datashowbase/single.record.config.base';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {ColumnConfig, TranslateValue} from '../../lib/datashowbase/column.config';
-import {Security} from '../../entities/security';
-import {CurrencypairWatchlist} from '../../entities/view/currencypair.watchlist';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {AppSettings} from '../../shared/app.settings';
-import {BusinessHelper} from '../../shared/helper/business.helper';
-import {SecurityCurrencypairDerivedLinks} from '../../securitycurrency/model/security.currencypair.derived.links';
-import {SecurityService} from '../../securitycurrency/service/security.service';
-import {Currencypair} from '../../entities/currencypair';
-import {Directive, Input} from '@angular/core';
-import {Securitycurrency} from '../../entities/securitycurrency';
-import {WatchlistHelper} from './watchlist.helper';
-import {WatchlistService} from '../service/watchlist.service';
+import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { Security } from '../../entities/security';
+import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { AppSettings } from '../../shared/app.settings';
+import { BusinessHelper } from '../../shared/helper/business.helper';
+import { SecurityCurrencypairDerivedLinks } from '../../securitycurrency/model/security.currencypair.derived.links';
+import { SecurityService } from '../../securitycurrency/service/security.service';
+import { Currencypair } from '../../entities/currencypair';
+import { Directive, Input } from '@angular/core';
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { WatchlistHelper } from './watchlist.helper';
+import { WatchlistService } from '../service/watchlist.service';
 
 /**
  * Abstract directive class that contains the definition of the basic fields as a group of an instrument.
@@ -22,7 +22,6 @@ import {WatchlistService} from '../service/watchlist.service';
  */
 @Directive()
 export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigBase {
-
   /** The security or currency pair to display information for */
   @Input() securitycurrency: Security | CurrencypairWatchlist;
 
@@ -46,10 +45,12 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    * @param translateService Angular translation service for internationalization
    * @param gps Global parameter service for application-wide settings
    */
-  protected constructor(private watchlistService: WatchlistService,
+  protected constructor(
+    private watchlistService: WatchlistService,
     private securityService: SecurityService,
     translateService: TranslateService,
-    gps: GlobalparameterService) {
+    gps: GlobalparameterService
+  ) {
     super(translateService, gps);
   }
 
@@ -63,8 +64,14 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    */
   public handleLazyClick(event: Event, targetPage: string, content: ContentBase, field: ColumnConfig): void {
     event.preventDefault();
-    const url = this.getValueByPath(content, field)
-    WatchlistHelper.getDownloadLinkHistoricalIntra(url, targetPage, content.securitycurrency, field.field.endsWith(WatchlistHelper.INTRADAY_URL), this.watchlistService);
+    const url = this.getValueByPath(content, field);
+    WatchlistHelper.getDownloadLinkHistoricalIntra(
+      url,
+      targetPage,
+      content.securitycurrency,
+      field.field.endsWith(WatchlistHelper.INTRADAY_URL),
+      this.watchlistService
+    );
   }
 
   /**
@@ -84,8 +91,12 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    * Includes from/to currency fields, note field, and historical/intraday data fields.
    */
   private addCurrencypairFields(): void {
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'fromCurrency', 'CURRENCY_FROM', {fieldsetName: 'BASE_DATA'});
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'toCurrency', 'CURRENCY_TO', {fieldsetName: 'BASE_DATA'});
+    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'fromCurrency', 'CURRENCY_FROM', {
+      fieldsetName: 'BASE_DATA'
+    });
+    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'toCurrency', 'CURRENCY_TO', {
+      fieldsetName: 'BASE_DATA'
+    });
     this.addNoteField();
     this.addHistoricalIntraday();
   }
@@ -113,34 +124,54 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    */
   private addSecurityFields(security: Security): void {
     this.addDerivedFields(security);
-    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'name',
-      {fieldsetName: 'BASE_DATA'});
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.categoryType', AppSettings.ASSETCLASS.toUpperCase(),
-      {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.specialInvestmentInstrument', 'FINANCIAL_INSTRUMENT',
-      {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'assetClass.subCategoryNLS.map.'
-      + this.gps.getUserLang(),
-      'SUB_ASSETCLASS', {fieldsetName: 'BASE_DATA'});
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'stockexchange.name', AppSettings.STOCKEXCHANGE.toUpperCase(),
-      {fieldsetName: 'BASE_DATA'});
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'name', { fieldsetName: 'BASE_DATA' });
+    this.addFieldProperty(
+      DataType.String,
+      this.SECURITYCURRENCY + 'assetClass.categoryType',
+      AppSettings.ASSETCLASS.toUpperCase(),
+      { translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA' }
+    );
+    this.addFieldProperty(
+      DataType.String,
+      this.SECURITYCURRENCY + 'assetClass.specialInvestmentInstrument',
+      'FINANCIAL_INSTRUMENT',
+      { translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA' }
+    );
+    this.addFieldProperty(
+      DataType.String,
+      this.SECURITYCURRENCY + 'assetClass.subCategoryNLS.map.' + this.gps.getUserLang(),
+      'SUB_ASSETCLASS',
+      { fieldsetName: 'BASE_DATA' }
+    );
+    this.addFieldProperty(
+      DataType.String,
+      this.SECURITYCURRENCY + 'stockexchange.name',
+      AppSettings.STOCKEXCHANGE.toUpperCase(),
+      { fieldsetName: 'BASE_DATA' }
+    );
     this.addFieldProperty(DataType.Boolean, this.SECURITYCURRENCY + 'idTenantPrivate', 'PRIVATE_SECURITY', {
-      fieldsetName: 'BASE_DATA', templateName: 'check'
+      fieldsetName: 'BASE_DATA',
+      templateName: 'check'
     });
     if (!security.idLinkSecuritycurrency) {
-      this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'isin', {fieldsetName: 'BASE_DATA'});
-      this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'tickerSymbol', {fieldsetName: 'BASE_DATA'});
+      this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'isin', { fieldsetName: 'BASE_DATA' });
+      this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'tickerSymbol', { fieldsetName: 'BASE_DATA' });
     }
     if (BusinessHelper.hasSecurityDenomination(security.assetClass, !security.stockexchange.noMarketValue)) {
-      this.addFieldPropertyFeqH(DataType.NumericInteger, this.SECURITYCURRENCY + 'denomination',
-        {fieldsetName: 'BASE_DATA'});
+      this.addFieldPropertyFeqH(DataType.NumericInteger, this.SECURITYCURRENCY + 'denomination', {
+        fieldsetName: 'BASE_DATA'
+      });
     }
-    this.addFieldPropertyFeqH(DataType.DateString, this.SECURITYCURRENCY + 'activeFromDate',
-      {fieldsetName: 'BASE_DATA'});
-    this.addFieldPropertyFeqH(DataType.DateString, this.SECURITYCURRENCY + 'activeToDate',
-      {fieldsetName: 'BASE_DATA'});
-    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'distributionFrequency',
-      {translateValues: TranslateValue.NORMAL, fieldsetName: 'BASE_DATA'});
+    this.addFieldPropertyFeqH(DataType.DateString, this.SECURITYCURRENCY + 'activeFromDate', {
+      fieldsetName: 'BASE_DATA'
+    });
+    this.addFieldPropertyFeqH(DataType.DateString, this.SECURITYCURRENCY + 'activeToDate', {
+      fieldsetName: 'BASE_DATA'
+    });
+    this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'distributionFrequency', {
+      translateValues: TranslateValue.NORMAL,
+      fieldsetName: 'BASE_DATA'
+    });
     this.addFieldPropertyFeqH(DataType.NumericRaw, this.SECURITYCURRENCY + 'leverageFactor', {
       fieldsetName: 'BASE_DATA',
       templateName: 'greenRed',
@@ -154,8 +185,7 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
    * Hook method for subclasses to add historical and intraday data fields.
    * Default implementation is empty, intended to be overridden by subclasses.
    */
-  protected addHistoricalIntraday(): void {
-  }
+  protected addHistoricalIntraday(): void {}
 
   /**
    * Adds field definitions for derived securities that are linked to base instruments.
@@ -168,7 +198,9 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
         fieldValueFN: this.getDerivedValues.bind(this),
         fieldsetName: this.DERIVED_DATA
       });
-      this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'formulaPrices', {fieldsetName: this.DERIVED_DATA});
+      this.addFieldPropertyFeqH(DataType.String, this.SECURITYCURRENCY + 'formulaPrices', {
+        fieldsetName: this.DERIVED_DATA
+      });
 
       let match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(security.formulaPrices);
       while (match != null) {
@@ -183,19 +215,23 @@ export abstract class SecuritycurrencyBaseInfoFields extends SingleRecordConfigB
         }
         match = SecurityCurrencypairDerivedLinks.VAR_NAME_REGEX.exec(security.formulaPrices);
       }
-      this.securityService.getDerivedInstrumentsLinksForSecurity(security.idSecuritycurrency).subscribe(
-        (scdl: SecurityCurrencypairDerivedLinks) => {
-          this.baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(scdl, security.idLinkSecuritycurrency);
-          this.additionalInstruments = SecurityCurrencypairDerivedLinks.getAdditionalInstrumentsForExistingSecurity(scdl);
+      this.securityService
+        .getDerivedInstrumentsLinksForSecurity(security.idSecuritycurrency)
+        .subscribe((scdl: SecurityCurrencypairDerivedLinks) => {
+          this.baseInstrument = SecurityCurrencypairDerivedLinks.getBaseInstrument(
+            scdl,
+            security.idLinkSecuritycurrency
+          );
+          this.additionalInstruments =
+            SecurityCurrencypairDerivedLinks.getAdditionalInstrumentsForExistingSecurity(scdl);
         });
     }
   }
 
   /** Adds a note field to the BASE_DATA fieldset for displaying additional notes or comments */
   private addNoteField(): void {
-    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'note', 'NOTE', {fieldsetName: 'BASE_DATA'});
+    this.addFieldProperty(DataType.String, this.SECURITYCURRENCY + 'note', 'NOTE', { fieldsetName: 'BASE_DATA' });
   }
-
 }
 
 /**
@@ -207,6 +243,5 @@ export abstract class ContentBase {
    * Creates a new ContentBase instance.
    * @param securitycurrency The security currency object containing the data to display
    */
-  protected constructor(public securitycurrency: Securitycurrency) {
-  }
+  protected constructor(public securitycurrency: Securitycurrency) {}
 }

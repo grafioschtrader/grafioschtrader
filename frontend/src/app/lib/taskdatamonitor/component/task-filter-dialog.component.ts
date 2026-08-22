@@ -1,15 +1,15 @@
-import {Component, EventEmitter, Inject, Input, Output} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DialogModule} from '@openng/optimus-ui/dialog';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {TASK_TYPE_ENUM} from '../service/task.type.enum.token';
-import {ShowRecordConfigBase} from '../../datashowbase/show.record.config.base';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {DataType} from '../../dynamic-form/models/data.type';
-import {ConfigurableTableComponent} from '../../datashowbase/configurable-table.component';
-import {TranslateValue} from '../../datashowbase/column.config';
+import { Component, EventEmitter, Inject, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DialogModule } from '@openng/optimus-ui/dialog';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { TASK_TYPE_ENUM } from '../service/task.type.enum.token';
+import { ShowRecordConfigBase } from '../../datashowbase/show.record.config.base';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { DataType } from '../../dynamic-form/models/data.type';
+import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
+import { TranslateValue } from '../../datashowbase/column.config';
 
 /**
  * Represents a single task type item for display in the filter dialog.
@@ -32,11 +32,14 @@ export interface TaskFilterItem {
 @Component({
   selector: 'task-filter-dialog',
   template: `
-    <p-dialog header="{{ 'TASK_FILTER' | translate }}" [visible]="visibleDialog"
-              [style]="{width: '500px'}"
-              [contentStyle]="{'max-height':'600px'}"
-              (onShow)="onShow()" (onHide)="onHide()" [modal]="true">
-
+    <p-dialog
+      header="{{ 'TASK_FILTER' | translate }}"
+      [visible]="visibleDialog"
+      [style]="{ width: '500px' }"
+      [contentStyle]="{ 'max-height': '600px' }"
+      (onShow)="onShow()"
+      (onHide)="onHide()"
+      [modal]="true">
       <configurable-table
         [data]="taskFilterItems"
         [fields]="fields"
@@ -52,22 +55,13 @@ export interface TaskFilterItem {
       </configurable-table>
 
       <div class="flex justify-content-end mt-3">
-        <p-button [disabled]="!hasSelection()"
-                  [label]="'APPLY' | translate"
-                  (click)="applyFilter()">
-        </p-button>
+        <p-button [disabled]="!hasSelection()" [label]="'APPLY' | translate" (click)="applyFilter()"> </p-button>
       </div>
     </p-dialog>
   `,
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    TranslateModule,
-    DialogModule,
-    ButtonModule,
-    ConfigurableTableComponent
-  ]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, FormsModule, TranslateModule, DialogModule, ButtonModule, ConfigurableTableComponent]
 })
 export class TaskFilterDialogComponent extends ShowRecordConfigBase {
   @Input() visibleDialog = false;
@@ -89,9 +83,13 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
    * Initializes the table columns with proper translation support.
    */
   private initializeColumns(): void {
-    this.addColumnFeqH(DataType.NumericInteger, 'taskAsId', true, false, {width: 80});
-    this.addColumn(DataType.String, 'idTask', 'ID_TASK', true, false,
-      {width: 300, translateValues: TranslateValue.NORMAL});
+    this.addColumnFeqH(DataType.NumericInteger, 'taskAsId', true, false, {
+      width: 80
+    });
+    this.addColumn(DataType.String, 'idTask', 'ID_TASK', true, false, {
+      width: 300,
+      translateValues: TranslateValue.NORMAL
+    });
   }
 
   /**
@@ -123,7 +121,7 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
    * Applies the current filter selection. Saves to LocalStorage and emits the selected task IDs.
    */
   applyFilter(): void {
-    const selectedTaskIds = this.selectedItems.map(item => item.taskAsId);
+    const selectedTaskIds = this.selectedItems.map((item) => item.taskAsId);
     this.saveSelectionToStorage(selectedTaskIds);
     this.closeDialog.emit(selectedTaskIds);
   }
@@ -134,7 +132,7 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
    */
   private initializeTaskFilterItems(): void {
     this.taskFilterItems = [];
-    const enumKeys = Object.keys(this.taskTypeEnum).filter(key => isNaN(Number(key)));
+    const enumKeys = Object.keys(this.taskTypeEnum).filter((key) => isNaN(Number(key)));
 
     for (const key of enumKeys) {
       const value = this.taskTypeEnum[key];
@@ -145,7 +143,6 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
         });
       }
     }
-
 
     // Sort by taskAsId
     this.taskFilterItems.sort((a, b) => a.taskAsId - b.taskAsId);
@@ -164,9 +161,7 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
       this.selectedItems = [...this.taskFilterItems];
     } else {
       // Restore saved selection
-      this.selectedItems = this.taskFilterItems.filter(item =>
-        savedTaskIds.includes(item.taskAsId)
-      );
+      this.selectedItems = this.taskFilterItems.filter((item) => savedTaskIds.includes(item.taskAsId));
     }
   }
 
@@ -195,8 +190,8 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
    */
   static extractTaskIds(taskTypeEnum: any): number[] {
     return Object.keys(taskTypeEnum)
-      .filter(key => isNaN(Number(key)))
-      .map(key => taskTypeEnum[key])
+      .filter((key) => isNaN(Number(key)))
+      .map((key) => taskTypeEnum[key])
       .filter((value): value is number => typeof value === 'number')
       .sort((a, b) => a - b);
   }
@@ -232,8 +227,13 @@ export class TaskFilterDialogComponent extends ShowRecordConfigBase {
     }
     try {
       const parsed = JSON.parse(raw);
-      if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object'
-        || !Array.isArray(parsed.taskIds) || parsed.checksum !== currentChecksum) {
+      if (
+        !parsed ||
+        Array.isArray(parsed) ||
+        typeof parsed !== 'object' ||
+        !Array.isArray(parsed.taskIds) ||
+        parsed.checksum !== currentChecksum
+      ) {
         return null;
       }
       return parsed.taskIds as number[];

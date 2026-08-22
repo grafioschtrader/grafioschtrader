@@ -1,28 +1,28 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {LoginService} from '../service/log-in.service';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {DynamicFormComponent} from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {GlobalparameterService} from '../../services/globalparameter.service';
-import {DynamicFieldHelper} from '../../helper/dynamic.field.helper';
-import {TranslateHelper} from '../../helper/translate.helper';
-import {FormBase} from '../../edit/form.base';
-import {DialogService} from '@openng/optimus-ui/dynamicdialog';
-import {ActuatorService, ApplicationInfo} from '../../services/actuator.service';
-import {combineLatest} from 'rxjs';
-import {FieldDescriptorInputAndShow} from '../../dynamicfield/field.descriptor.input.and.show';
-import {GlobalSessionNames} from '../../global.session.names';
-import {DynamicFieldModelHelper} from '../../helper/dynamic.field.model.helper';
-import {AppHelper} from '../../helper/app.helper';
-import {DynamicDialogs} from '../../dynamicdialog/component/dynamic.dialogs';
-import {ReleaseNote, ReleaseNoteService} from '../service/release.note.service';
-import {HelpIds} from '../../help/help.ids';
-import {BaseSettings} from '../../base.settings';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { LoginService } from '../service/log-in.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { GlobalparameterService } from '../../services/globalparameter.service';
+import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
+import { TranslateHelper } from '../../helper/translate.helper';
+import { FormBase } from '../../edit/form.base';
+import { DialogService } from '@openng/optimus-ui/dynamicdialog';
+import { ActuatorService, ApplicationInfo } from '../../services/actuator.service';
+import { combineLatest } from 'rxjs';
+import { FieldDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
+import { GlobalSessionNames } from '../../global.session.names';
+import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
+import { AppHelper } from '../../helper/app.helper';
+import { DynamicDialogs } from '../../dynamicdialog/component/dynamic.dialogs';
+import { ReleaseNote, ReleaseNoteService } from '../service/release.note.service';
+import { HelpIds } from '../../help/help.ids';
+import { BaseSettings } from '../../base.settings';
 
-import {DynamicFormModule} from '../../dynamic-form/dynamic-form.module';
-import {CardModule} from '@openng/optimus-ui/card';
-import {ApplicationInfoComponent} from './application-info.component';
-import {PasswordEditComponent} from './password-edit.component';
+import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
+import { CardModule } from '@openng/optimus-ui/card';
+import { ApplicationInfoComponent } from './application-info.component';
+import { PasswordEditComponent } from './password-edit.component';
 
 /**
  * Shows the login form
@@ -39,13 +39,16 @@ import {PasswordEditComponent} from './password-edit.component';
         <application-info [applicationInfo]="applicationInfo"></application-info>
         @if (formConfig) {
           <h2>{{ 'SIGN_IN' | translate }}</h2>
-          <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                        #form="dynamicForm"
-                        (submitBt)="submit($event)">
+          <dynamic-form
+            [config]="config"
+            [formConfig]="formConfig"
+            [translateService]="translateService"
+            #form="dynamicForm"
+            (submitBt)="submit($event)">
           </dynamic-form>
         }
         @if (releaseNotes && releaseNotes.length > 0) {
-          <p-card class="mt-2 d-block" header="{{'RELEASE_NOTE' | translate}}">
+          <p-card class="mt-2 d-block" header="{{ 'RELEASE_NOTE' | translate }}">
             @for (note of releaseNotes; track note.idReleaseNote) {
               <div class="mb-3">
                 <h4>{{ note.version }}</h4>
@@ -54,7 +57,7 @@ import {PasswordEditComponent} from './password-edit.component';
             }
           </p-card>
         } @else {
-          <p-card class="mt-2 d-block" header="{{'RELEASE_NOTE' | translate}}">
+          <p-card class="mt-2 d-block" header="{{ 'RELEASE_NOTE' | translate }}">
             <div class="text-center text-muted">
               <i class="pi pi-info-circle me-2"></i>
               {{ 'NO_RELEASE_NOTES_AVAILABLE' | translate }}
@@ -65,13 +68,12 @@ import {PasswordEditComponent} from './password-edit.component';
     </div>
 
     @if (visiblePasswordDialog) {
-      <password-edit [forcePasswordChange]="true"
-                     [visibleDialog]="visiblePasswordDialog">
-      </password-edit>
+      <password-edit [forcePasswordChange]="true" [visibleDialog]="visiblePasswordDialog"> </password-edit>
     }
   `,
   providers: [DialogService],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DynamicFormModule, TranslateModule, CardModule, ApplicationInfoComponent, PasswordEditComponent]
 })
 export class LoginComponent extends FormBase implements OnInit, OnDestroy {
@@ -82,56 +84,74 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
   successLastRegistration: string;
   visiblePasswordDialog = false;
 
-
-  constructor(private router: Router,
+  constructor(
+    private router: Router,
     private activatedRoute: ActivatedRoute,
     private releaseNoteService: ReleaseNoteService,
     private loginService: LoginService,
     private actuatorService: ActuatorService,
     public translateService: TranslateService,
     private dialogService: DialogService,
-    private gps: GlobalparameterService) {
+    private gps: GlobalparameterService
+  ) {
     super();
   }
 
   ngOnInit(): void {
-    combineLatest([this.actuatorService.applicationInfo(), this.gps.getUserFormDefinitions(),
-      this.releaseNoteService.getTopReleaseNotes()]).subscribe({
-        next: (data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[], releaseNotes: ReleaseNote[]]) => {
-          this.applicationInfo = data[0];
-          sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
-          this.loginFormDefinition(data[1]);
-          this.releaseNotes = data[2];
-        }, error: err => this.applicationInfo = null
-      }
-    );
+    combineLatest([
+      this.actuatorService.applicationInfo(),
+      this.gps.getUserFormDefinitions(),
+      this.releaseNoteService.getTopReleaseNotes()
+    ]).subscribe({
+      next: (
+        data: [applicationInfo: ApplicationInfo, fdias: FieldDescriptorInputAndShow[], releaseNotes: ReleaseNote[]]
+      ) => {
+        this.applicationInfo = data[0];
+        sessionStorage.setItem(GlobalSessionNames.USER_FORM_DEFINITION, JSON.stringify(data[1]));
+        this.loginFormDefinition(data[1]);
+        this.releaseNotes = data[2];
+      },
+      error: (err) => (this.applicationInfo = null)
+    });
   }
 
   submit(value: { [name: string]: any }): void {
-    this.loginService.login(value.email, value.password)
-      .subscribe({
-        next: (response: Response) => {
-          const passwordRegexOk: boolean = this.loginService.afterSuccessfulLogin(response.headers.get('x-auth-token'),
-            (response as any).body);
-          if (this.gps.getIdTenant()) {
-            this.navigateToMainView(passwordRegexOk);
-          } else {
-            // It is a new tenant -> setup is required
-            this.router.navigate([`/${BaseSettings.TENANT_KEY}`]);
-          }
-        }, error: (errorBackend) => {
-          this.configObject.submit.disabled = false;
-
-          if (errorBackend.bringUpAdminSelfReleaseDialog) {
-            DynamicDialogs.getOpenedAdminSelfReleaseDynamicComponent(
-              this.translateService, this.dialogService, this.loginService, this.gps,
-              this.router, value.email, value.password);
-          } else if (errorBackend.bringUpDialog) {
-            DynamicDialogs.getOpenedLogoutReleaseRequestDynamicComponent(
-              this.translateService, this.dialogService, value.email, value.password);
-          }
+    this.loginService.login(value.email, value.password).subscribe({
+      next: (response: Response) => {
+        const passwordRegexOk: boolean = this.loginService.afterSuccessfulLogin(
+          response.headers.get('x-auth-token'),
+          (response as any).body
+        );
+        if (this.gps.getIdTenant()) {
+          this.navigateToMainView(passwordRegexOk);
+        } else {
+          // It is a new tenant -> setup is required
+          this.router.navigate([`/${BaseSettings.TENANT_KEY}`]);
         }
-      });
+      },
+      error: (errorBackend) => {
+        this.configObject.submit.disabled = false;
+
+        if (errorBackend.bringUpAdminSelfReleaseDialog) {
+          DynamicDialogs.getOpenedAdminSelfReleaseDynamicComponent(
+            this.translateService,
+            this.dialogService,
+            this.loginService,
+            this.gps,
+            this.router,
+            value.email,
+            value.password
+          );
+        } else if (errorBackend.bringUpDialog) {
+          DynamicDialogs.getOpenedLogoutReleaseRequestDynamicComponent(
+            this.translateService,
+            this.dialogService,
+            value.email,
+            value.password
+          );
+        }
+      }
+    });
   }
 
   private navigateToMainView(passwordRegexOk: boolean): void {
@@ -154,7 +174,9 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
 
   private loginFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
     this.formConfig = {
-      labelColumns: 2, helpLinkFN: this.helpLink.bind(this), nonModal: true,
+      labelColumns: 2,
+      helpLinkFN: this.helpLink.bind(this),
+      nonModal: true,
       language: AppHelper.getNonUserDefinedLanguage(this.translateService.currentLang)
     };
     this.applicationInfo.users;
@@ -163,12 +185,16 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
     this.config.push(DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'password', fdias));
 
     if (this.applicationInfo.users.active < this.applicationInfo.users.allowed) {
-      this.config.push(DynamicFieldHelper.createFunctionButton('REGISTRATION',
-        (e) => this.router.navigate([`/${BaseSettings.REGISTER_KEY}`])));
+      this.config.push(
+        DynamicFieldHelper.createFunctionButton('REGISTRATION', (e) =>
+          this.router.navigate([`/${BaseSettings.REGISTER_KEY}`])
+        )
+      );
     }
     this.config.push(DynamicFieldHelper.createSubmitButton('SIGN_IN'));
-    this.queryParams = this.activatedRoute.params.subscribe(params => this.successLastRegistration = params['success']);
+    this.queryParams = this.activatedRoute.params.subscribe(
+      (params) => (this.successLastRegistration = params['success'])
+    );
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 }
-

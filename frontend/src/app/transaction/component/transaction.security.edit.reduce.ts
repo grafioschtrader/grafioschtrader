@@ -1,8 +1,8 @@
-import {ITransactionEditType} from './i.transaction.edit.type';
-import {Cashaccount} from '../../entities/cashaccount';
-import {Securityaccount} from '../../entities/securityaccount';
-import {SecurityaccountOpenPositionUnits} from '../../entities/view/securityaccount.open.position.units';
-import {TransactionCallParam} from './transaction.call.parm';
+import { ITransactionEditType } from './i.transaction.edit.type';
+import { Cashaccount } from '../../entities/cashaccount';
+import { Securityaccount } from '../../entities/securityaccount';
+import { SecurityaccountOpenPositionUnits } from '../../entities/view/securityaccount.open.position.units';
+import { TransactionCallParam } from './transaction.call.parm';
 
 /**
  * Handles transaction operations for reducing security holdings, processing dividend payments, and interest calculations.
@@ -11,13 +11,11 @@ import {TransactionCallParam} from './transaction.call.parm';
  * calculates the total transaction value including taxes, costs, and accrued interest.
  */
 export class TransactionSecurityEditDividendReduce implements ITransactionEditType {
-
   /**
    * Creates a new dividend/reduce transaction handler.
    * @param transactionCallParam Configuration parameters containing transaction context and security details
    */
-  constructor(private transactionCallParam: TransactionCallParam) {
-  }
+  constructor(private transactionCallParam: TransactionCallParam) {}
 
   /**
    * Calculates the total position value for dividend or security reduction transactions.
@@ -29,9 +27,15 @@ export class TransactionSecurityEditDividendReduce implements ITransactionEditTy
    * @param valuePerPoint Value multiplier per point for margin instruments
    * @returns The calculated total transaction amount
    */
-  calcPosTotal(quotation: number, units: number, taxCost: number, transactionCost: number, accruedInterest: number,
-               valuePerPoint: number): number {
-    return (quotation * units * valuePerPoint - taxCost - transactionCost + accruedInterest);
+  calcPosTotal(
+    quotation: number,
+    units: number,
+    taxCost: number,
+    transactionCost: number,
+    accruedInterest: number,
+    valuePerPoint: number
+  ): number {
+    return quotation * units * valuePerPoint - taxCost - transactionCost + accruedInterest;
   }
 
   /** Security can not be changed when reducing a position */
@@ -48,21 +52,31 @@ export class TransactionSecurityEditDividendReduce implements ITransactionEditTy
    * @param closeMarginIdSecurityaccount ID of the security account for closing margin positions
    * @returns True if the account can be used for reduction transactions
    */
-  acceptSecurityaccount(securitycashaccount: Securityaccount | Cashaccount,
-                        securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
-                        isSellBuyMarginInstrument: boolean, closeMarginIdSecurityaccount: number): boolean {
+  acceptSecurityaccount(
+    securitycashaccount: Securityaccount | Cashaccount,
+    securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
+    isSellBuyMarginInstrument: boolean,
+    closeMarginIdSecurityaccount: number
+  ): boolean {
     if (securitycashaccount.hasOwnProperty('currency')) {
       // it is a cash account
       return true;
     } else {
       if (isSellBuyMarginInstrument) {
-        return this.transactionCallParam.securityaccount === null
-          || this.transactionCallParam.securityaccount.idSecuritycashAccount === securitycashaccount.idSecuritycashAccount;
+        return (
+          this.transactionCallParam.securityaccount === null ||
+          this.transactionCallParam.securityaccount.idSecuritycashAccount === securitycashaccount.idSecuritycashAccount
+        );
       } else {
-        const founds: SecurityaccountOpenPositionUnits[] = securityaccountOpenPositionUnits
-          .filter(pos => securitycashaccount.idSecuritycashAccount === pos.idSecurityaccount);
-        return founds.length === 1 && (this.transactionCallParam.securityaccount === null
-          || this.transactionCallParam.securityaccount.idSecuritycashAccount === securitycashaccount.idSecuritycashAccount);
+        const founds: SecurityaccountOpenPositionUnits[] = securityaccountOpenPositionUnits.filter(
+          (pos) => securitycashaccount.idSecuritycashAccount === pos.idSecurityaccount
+        );
+        return (
+          founds.length === 1 &&
+          (this.transactionCallParam.securityaccount === null ||
+            this.transactionCallParam.securityaccount.idSecuritycashAccount ===
+              securitycashaccount.idSecuritycashAccount)
+        );
       }
     }
   }
@@ -73,9 +87,10 @@ export class TransactionSecurityEditDividendReduce implements ITransactionEditTy
  * provide specialized calculation logic for financing costs on leveraged positions. The main difference is that
  * finance costs result in negative cash flow, representing the cost of maintaining leveraged positions.
  */
-export class TransactionSecurityEditFinanceCost extends TransactionSecurityEditDividendReduce
-  implements ITransactionEditType {
-
+export class TransactionSecurityEditFinanceCost
+  extends TransactionSecurityEditDividendReduce
+  implements ITransactionEditType
+{
   /**
    * Calculates the total position value for finance cost transactions on margin instruments.
    * @param quotation The financing rate or cost per unit
@@ -86,9 +101,14 @@ export class TransactionSecurityEditFinanceCost extends TransactionSecurityEditD
    * @param valuePerPoint Value multiplier per point for margin calculations
    * @returns The calculated finance cost amount (negative value representing cost)
    */
-  override calcPosTotal(quotation: number, units: number, taxCost: number, transactionCost: number, accruedInterest: number,
-               valuePerPoint: number): number {
+  override calcPosTotal(
+    quotation: number,
+    units: number,
+    taxCost: number,
+    transactionCost: number,
+    accruedInterest: number,
+    valuePerPoint: number
+  ): number {
     return (quotation * units * valuePerPoint - taxCost - transactionCost + accruedInterest) * -1;
   }
-
 }

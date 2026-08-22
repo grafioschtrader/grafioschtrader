@@ -1,11 +1,11 @@
-import {expect, Locator, Page, test} from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 import {
   CashStandingOrderData,
   loadPortfolios,
   PortfolioFixture,
   SecurityStandingOrderData,
   StandingOrderData,
-  toShortDate,
+  toShortDate
 } from './portfolio.helpers';
 
 export interface StandingOrderFixture {
@@ -17,7 +17,7 @@ interface ApiStandingOrder {
   dtype: 'C' | 'S';
   idStandingOrder: number;
   transactionType: string;
-  cashaccount?: {name: string} | null;
+  cashaccount?: { name: string } | null;
   note?: string | null;
   repeatUnit: string;
   repeatInterval: number;
@@ -32,7 +32,7 @@ interface ApiStandingOrder {
   cashaccountAmount?: number | null;
   amountCurrency?: string | null;
   cashaccountAmountFormula?: string | null;
-  security?: {name: string; isin?: string | null} | null;
+  security?: { name: string; isin?: string | null } | null;
   idSecurityaccount?: number | null;
   units?: number | null;
   investAmount?: number | null;
@@ -44,19 +44,20 @@ interface ApiStandingOrder {
 }
 
 const ROUTE = {
-  cash: '/mainview/tenantTabMenu/standingordertabmenu/tenantstandingordercashaccount',
+  cash: '/mainview/tenantTabMenu/standingordertabmenu/tenantstandingordercashaccount'
 };
 
 const RX = {
   create: /(Create\s+standing\s+order|Erstellen\s+Dauerauftrag)/i,
   assignSelected: /(Assign\s*selected|Selektierte\s*zuweisen)/i,
-  securityTab: /(Standing\s+order\s+security|Dauerauftrag\s+Wertpapier)/i,
+  securityTab: /(Standing\s+order\s+security|Dauerauftrag\s+Wertpapier)/i
 };
 
 /** Loads every standing order nested below an e2e portfolio. */
 export function loadStandingOrders(): StandingOrderFixture[] {
-  return loadPortfolios().flatMap(portfolio =>
-    (portfolio.standingOrders ?? []).map(standingOrder => ({portfolio, standingOrder})));
+  return loadPortfolios().flatMap((portfolio) =>
+    (portfolio.standingOrders ?? []).map((standingOrder) => ({ portfolio, standingOrder }))
+  );
 }
 
 /**
@@ -68,13 +69,14 @@ export async function deleteExistingStandingOrders(page: Page, fixtures: Standin
   await test.step('delete matching standing orders from an earlier run', async () => {
     const headers = await authHeaders(page);
     const existing = await getTenantStandingOrders(page, headers);
-    const matching = existing.filter(actual => fixtures.some(fixture => sameIdentity(actual, fixture)));
+    const matching = existing.filter((actual) => fixtures.some((fixture) => sameIdentity(actual, fixture)));
 
     for (const order of matching) {
-      expect(order.hasTransactions,
-        `standing order ${order.idStandingOrder} has generated transactions; detach it in grafioschtrader_t first`)
-        .not.toBe(true);
-      const response = await page.request.delete(`/api/standingorder/${order.idStandingOrder}`, {headers});
+      expect(
+        order.hasTransactions,
+        `standing order ${order.idStandingOrder} has generated transactions; detach it in grafioschtrader_t first`
+      ).not.toBe(true);
+      const response = await page.request.delete(`/api/standingorder/${order.idStandingOrder}`, { headers });
       expect(response.ok(), `deleting standing order ${order.idStandingOrder}: ${await response.text()}`).toBeTruthy();
     }
   });
@@ -86,7 +88,7 @@ export async function createCashStandingOrder(page: Page, fixture: StandingOrder
   await test.step(`create cash standing order for ${data.cashAccount}`, async () => {
     await openCreateDialog(page, 'cash');
     const dialog = page.locator('standing-order-cashaccount-edit .p-dialog:visible');
-    await expect(dialog.locator('select#idCashaccount option')).not.toHaveCount(0, {timeout: 15_000});
+    await expect(dialog.locator('select#idCashaccount option')).not.toHaveCount(0, { timeout: 15_000 });
 
     await selectValue(dialog, 'transactionType', data.transactionType);
     await selectOptionText(dialog, 'idCashaccount', accountLabel(fixture.portfolio, data.cashAccount));
@@ -99,8 +101,10 @@ export async function createCashStandingOrder(page: Page, fixture: StandingOrder
     await fillSchedule(dialog, data, fixture.portfolio.loginNickname);
     await submitStandingOrder(page, dialog);
 
-    await expect(page.locator('standing-order-cashaccount-table tbody tr', {hasText: data.cashAccount}))
-      .toHaveCount(1, {timeout: 10_000});
+    await expect(page.locator('standing-order-cashaccount-table tbody tr', { hasText: data.cashAccount })).toHaveCount(
+      1,
+      { timeout: 10_000 }
+    );
   });
 }
 
@@ -110,16 +114,14 @@ export async function createSecurityStandingOrder(page: Page, fixture: StandingO
   await test.step(`create security standing order for ${data.securityName}`, async () => {
     await openCreateDialog(page, 'security');
     const dialog = page.locator('standing-order-security-edit .p-dialog:visible');
-    await expect(dialog.locator('select#idSecurityaccount option')).not.toHaveCount(0, {timeout: 15_000});
+    await expect(dialog.locator('select#idSecurityaccount option')).not.toHaveCount(0, { timeout: 15_000 });
 
     await selectValue(dialog, 'transactionType', data.transactionType);
-    await selectOptionText(dialog, 'idSecurityaccount',
-      securityAccountLabel(fixture.portfolio, data.securityAccount));
+    await selectOptionText(dialog, 'idSecurityaccount', securityAccountLabel(fixture.portfolio, data.securityAccount));
     await selectOptionText(dialog, 'idCashaccount', accountLabel(fixture.portfolio, data.cashAccount));
     await selectSecurity(page, dialog, data);
 
-    await selectValue(dialog, 'investMode', data.investAmount == null
-      ? 'INVEST_MODE_UNITS' : 'INVEST_MODE_AMOUNT');
+    await selectValue(dialog, 'investMode', data.investAmount == null ? 'INVEST_MODE_UNITS' : 'INVEST_MODE_AMOUNT');
     await fillOptionalNumber(dialog, 'units', data.units);
     await fillOptionalNumber(dialog, 'investAmount', data.investAmount);
     await setCheckbox(dialog, 'amountIncludesCosts', data.amountIncludesCosts);
@@ -131,8 +133,10 @@ export async function createSecurityStandingOrder(page: Page, fixture: StandingO
     await fillSchedule(dialog, data, fixture.portfolio.loginNickname);
     await submitStandingOrder(page, dialog);
 
-    await expect(page.locator('standing-order-security-table tbody tr', {hasText: data.securityName}))
-      .toHaveCount(1, {timeout: 10_000});
+    await expect(page.locator('standing-order-security-table tbody tr', { hasText: data.securityName })).toHaveCount(
+      1,
+      { timeout: 10_000 }
+    );
   });
 }
 
@@ -141,7 +145,7 @@ export async function expectStandingOrders(page: Page, fixtures: StandingOrderFi
   await test.step('verify persisted standing orders', async () => {
     const actual = await getTenantStandingOrders(page, await authHeaders(page));
     for (const fixture of fixtures) {
-      const matches = actual.filter(order => sameIdentity(order, fixture));
+      const matches = actual.filter((order) => sameIdentity(order, fixture));
       expect(matches, describeFixture(fixture)).toHaveLength(1);
       expectCommonFields(matches[0], fixture.standingOrder);
       if (fixture.standingOrder.kind === 'cash') {
@@ -158,50 +162,57 @@ async function openCreateDialog(page: Page, kind: 'cash' | 'security'): Promise<
   // visible sub-tab for the security view instead of racing the component's default-route navigation.
   await page.goto(ROUTE.cash);
   if (kind === 'security') {
-    await page.getByRole('tab', {name: RX.securityTab}).click();
+    await page.getByRole('tab', { name: RX.securityTab }).click();
   }
-  const host = page.locator(kind === 'cash'
-    ? 'standing-order-cashaccount-table' : 'standing-order-security-table');
+  const host = page.locator(kind === 'cash' ? 'standing-order-cashaccount-table' : 'standing-order-security-table');
   const container = host.locator(':scope > .data-container');
-  await container.waitFor({state: 'visible', timeout: 15_000});
+  await container.waitFor({ state: 'visible', timeout: 15_000 });
   await container.click();
   await page.waitForTimeout(250);
-  await container.click({button: 'right'});
+  await container.click({ button: 'right' });
 
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   await menu.getByText(RX.create).first().click();
-  await page.locator(kind === 'cash'
-    ? 'standing-order-cashaccount-edit .p-dialog:visible'
-    : 'standing-order-security-edit .p-dialog:visible')
-    .waitFor({state: 'visible', timeout: 10_000});
+  await page
+    .locator(
+      kind === 'cash'
+        ? 'standing-order-cashaccount-edit .p-dialog:visible'
+        : 'standing-order-security-edit .p-dialog:visible'
+    )
+    .waitFor({ state: 'visible', timeout: 10_000 });
 }
 
 async function selectSecurity(page: Page, dialog: Locator, data: SecurityStandingOrderData): Promise<void> {
   const openButton = dialog.locator('p-inputgroup:has(input#securityName) button').first();
-  const search = page.locator('.p-dialog')
-    .filter({has: page.locator('securitycurrency-search-and-set')}).first();
+  const search = page
+    .locator('.p-dialog')
+    .filter({ has: page.locator('securitycurrency-search-and-set') })
+    .first();
 
-  for (let attempt = 0; attempt < 3 && await search.count() === 0; attempt++) {
+  for (let attempt = 0; attempt < 3 && (await search.count()) === 0; attempt++) {
     await openButton.click();
-    await search.waitFor({state: 'visible', timeout: 3_000}).catch(() => undefined);
+    await search.waitFor({ state: 'visible', timeout: 3_000 }).catch(() => undefined);
   }
-  await search.waitFor({state: 'visible', timeout: 10_000});
-  await expect(search.locator('select#idStockexchange option')).not.toHaveCount(0, {timeout: 15_000});
+  await search.waitFor({ state: 'visible', timeout: 10_000 });
+  await expect(search.locator('select#idStockexchange option')).not.toHaveCount(0, { timeout: 15_000 });
 
   const isin = search.locator('input#isin');
   await isin.fill(data.securityIsin);
   await isin.dispatchEvent('input');
   await search.locator('button[type="submit"]').click();
 
-  const row = search.locator('securitycurrency-search-and-set-table tbody tr')
-    .filter({hasText: data.securityIsin}).filter({hasText: data.securityName}).first();
-  await row.waitFor({state: 'visible', timeout: 15_000});
+  const row = search
+    .locator('securitycurrency-search-and-set-table tbody tr')
+    .filter({ hasText: data.securityIsin })
+    .filter({ hasText: data.securityName })
+    .first();
+  await row.waitFor({ state: 'visible', timeout: 15_000 });
   await row.click();
-  const assign = search.getByRole('button', {name: RX.assignSelected}).first();
-  await expect(assign).toBeEnabled({timeout: 5_000});
+  const assign = search.getByRole('button', { name: RX.assignSelected }).first();
+  await expect(assign).toBeEnabled({ timeout: 5_000 });
   await assign.click();
-  await search.waitFor({state: 'hidden', timeout: 10_000});
+  await search.waitFor({ state: 'hidden', timeout: 10_000 });
   await expect(dialog.locator('input#securityName')).toHaveValue(data.securityName);
 }
 
@@ -223,28 +234,28 @@ async function fillSchedule(dialog: Locator, data: StandingOrderData, loginNickn
 
 async function selectValue(scope: Locator, field: string, value: string): Promise<void> {
   const select = scope.locator(`select#${field}`);
-  await select.waitFor({state: 'visible', timeout: 10_000});
-  await expect(select.locator(`option[value="${value}"]`)).toHaveCount(1, {timeout: 10_000});
+  await select.waitFor({ state: 'visible', timeout: 10_000 });
+  await expect(select.locator(`option[value="${value}"]`)).toHaveCount(1, { timeout: 10_000 });
   await select.selectOption(value);
   await select.dispatchEvent('change');
 }
 
 async function selectOptionText(scope: Locator, field: string, text: string): Promise<void> {
   const select = scope.locator(`select#${field}`);
-  await select.waitFor({state: 'visible', timeout: 10_000});
-  const option = select.locator('option').filter({hasText: text}).first();
-  await expect(option, `no option containing '${text}' in select#${field}`).toHaveCount(1, {timeout: 10_000});
+  await select.waitFor({ state: 'visible', timeout: 10_000 });
+  const option = select.locator('option').filter({ hasText: text }).first();
+  await expect(option, `no option containing '${text}' in select#${field}`).toHaveCount(1, { timeout: 10_000 });
   await select.selectOption(await option.getAttribute('value'));
   await select.dispatchEvent('change');
 }
 
 async function fillNumber(scope: Locator, field: string, value: number): Promise<void> {
   const input = scope.locator(`#${field} input, input#${field}`).first();
-  await input.waitFor({state: 'visible', timeout: 10_000});
+  await input.waitFor({ state: 'visible', timeout: 10_000 });
   await input.click();
   await input.press('Control+a');
   await input.press('Backspace');
-  await input.pressSequentially(String(value), {delay: 20});
+  await input.pressSequentially(String(value), { delay: 20 });
   await input.press('Tab');
 }
 
@@ -271,55 +282,59 @@ async function fillDate(scope: Locator, field: string, isoDate: string, loginNic
   await input.click();
   await input.press('Control+a');
   await input.press('Backspace');
-  await input.pressSequentially(value, {delay: 20});
+  await input.pressSequentially(value, { delay: 20 });
   await input.blur();
   await expect(input, `${field} did not keep the typed date`).toHaveValue(value);
 }
 
 async function setCheckbox(scope: Locator, field: string, checked: boolean): Promise<void> {
   const checkbox = scope.locator(`input[type="checkbox"]#${field}`);
-  await checkbox.waitFor({state: 'visible', timeout: 10_000});
-  if (await checkbox.isChecked() !== checked) {
+  await checkbox.waitFor({ state: 'visible', timeout: 10_000 });
+  if ((await checkbox.isChecked()) !== checked) {
     await checkbox.click();
   }
-  await expect(checkbox).toBeChecked({checked});
+  await expect(checkbox).toBeChecked({ checked });
 }
 
 async function submitStandingOrder(page: Page, dialog: Locator): Promise<void> {
   const submit = dialog.locator('button[type="submit"]');
-  await expect(submit).toBeEnabled({timeout: 10_000});
-  const responsePromise = page.waitForResponse(response =>
-    response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/standingorder');
+  await expect(submit).toBeEnabled({ timeout: 10_000 });
+  const responsePromise = page.waitForResponse(
+    (response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/standingorder'
+  );
   await submit.click();
   const response = await responsePromise;
   expect(response.ok(), `POST /api/standingorder: ${await response.text()}`).toBeTruthy();
-  await dialog.waitFor({state: 'hidden', timeout: 10_000});
+  await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
 }
 
 async function authHeaders(page: Page): Promise<Record<string, string>> {
   const token = await page.evaluate(() => sessionStorage.getItem('jwt'));
   expect(token, 'JWT in sessionStorage after login').toBeTruthy();
-  return {'x-auth-token': token, Accept: 'application/json'};
+  return { 'x-auth-token': token, Accept: 'application/json' };
 }
 
-async function getTenantStandingOrders(page: Page,
-    headers: Record<string, string>): Promise<ApiStandingOrder[]> {
-  const response = await page.request.get('/api/standingorder/tenant', {headers});
+async function getTenantStandingOrders(page: Page, headers: Record<string, string>): Promise<ApiStandingOrder[]> {
+  const response = await page.request.get('/api/standingorder/tenant', { headers });
   expect(response.ok(), `loading tenant standing orders: ${await response.text()}`).toBeTruthy();
-  return await response.json() as ApiStandingOrder[];
+  return (await response.json()) as ApiStandingOrder[];
 }
 
 function sameIdentity(actual: ApiStandingOrder, fixture: StandingOrderFixture): boolean {
   const expected = fixture.standingOrder;
   if (expected.kind === 'cash') {
-    return actual.dtype === 'C'
-      && actual.transactionType === expected.transactionType
-      && actual.cashaccount?.name === expected.cashAccount;
+    return (
+      actual.dtype === 'C' &&
+      actual.transactionType === expected.transactionType &&
+      actual.cashaccount?.name === expected.cashAccount
+    );
   }
-  return actual.dtype === 'S'
-    && actual.transactionType === expected.transactionType
-    && actual.cashaccount?.name === expected.cashAccount
-    && actual.security?.isin === expected.securityIsin;
+  return (
+    actual.dtype === 'S' &&
+    actual.transactionType === expected.transactionType &&
+    actual.cashaccount?.name === expected.cashAccount &&
+    actual.security?.isin === expected.securityIsin
+  );
 }
 
 function expectCommonFields(actual: ApiStandingOrder, expected: StandingOrderData): void {
@@ -356,13 +371,13 @@ function expectSecurityFields(actual: ApiStandingOrder, expected: SecurityStandi
 }
 
 function accountLabel(portfolio: PortfolioFixture, accountName: string): string {
-  const account = portfolio.cashAccounts.find(item => item.name === accountName);
+  const account = portfolio.cashAccounts.find((item) => item.name === accountName);
   expect(account, `cash account '${accountName}' in portfolio '${portfolio.name}'`).toBeDefined();
   return `${account.name} / ${account.currency} / ${portfolio.name}`;
 }
 
 function securityAccountLabel(portfolio: PortfolioFixture, accountName: string): string {
-  const account = portfolio.securityAccounts.find(item => item.name === accountName);
+  const account = portfolio.securityAccounts.find((item) => item.name === accountName);
   expect(account, `security account '${accountName}' in portfolio '${portfolio.name}'`).toBeDefined();
   return `${account.name} / ${portfolio.name}`;
 }

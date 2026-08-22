@@ -1,5 +1,5 @@
-import {IHistoryquoteQuality} from '../../entities/view/ihistoryquote.quality';
-import {Expose} from 'class-transformer';
+import { IHistoryquoteQuality } from '../../entities/view/ihistoryquote.quality';
+import { Expose } from 'class-transformer';
 
 export class HistoryquoteQualityIds {
   @Expose() idConnectorHistory: string;

@@ -1,4 +1,4 @@
-import {IUDFSpecialType} from './udf.special.type.interface';
+import { IUDFSpecialType } from './udf.special.type.interface';
 
 /**
  * Registry for managing UDF special types in the application.
@@ -23,7 +23,7 @@ export class UDFSpecialTypeRegistry {
    * @param types - Array of special type objects to register
    */
   static register(types: IUDFSpecialType[]): void {
-    types.forEach(t => this.types.set(t.value, t));
+    types.forEach((t) => this.types.set(t.value, t));
   }
 
   /**
@@ -43,7 +43,7 @@ export class UDFSpecialTypeRegistry {
    * @returns The matching special type object, or undefined if not found
    */
   static getByName(name: string): IUDFSpecialType | undefined {
-    return Array.from(this.types.values()).find(t => t.name === name);
+    return Array.from(this.types.values()).find((t) => t.name === name);
   }
 
   /**

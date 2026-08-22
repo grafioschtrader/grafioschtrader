@@ -4,10 +4,10 @@
 . ~/gtvar.sh
 
 # Required Node.js versions
-node_required="^20.19.0 || ^22.12.0 || ^24.0.0"
+node_required="^22.22.3 || ^24.15.0 || >=26.0.0"
 
 # Required Angular CLI version
-angular_cli_required=21
+angular_cli_required=22
 
 # Required Java version
 java_required=25

@@ -1,9 +1,8 @@
-import {Currencypair} from '../currencypair';
-import {Assetclass} from '../assetclass';
-import {AssetclassType} from '../../shared/types/assetclass.type';
+import { Currencypair } from '../currencypair';
+import { Assetclass } from '../assetclass';
+import { AssetclassType } from '../../shared/types/assetclass.type';
 
 export class CurrencypairWatchlist extends Currencypair {
-
   assetClass: Assetclass;
 
   public constructor(fromCurrency: string, toCurrency: string) {

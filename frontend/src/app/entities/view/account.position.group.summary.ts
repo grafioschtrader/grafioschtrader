@@ -1,5 +1,5 @@
-import {AccountPositionSummary} from './account.position.summary';
-import {MissingExchangeRate} from './missing.exchange.rate';
+import { AccountPositionSummary } from './account.position.summary';
+import { MissingExchangeRate } from './missing.exchange.rate';
 
 export class AccountPositionGroupSummary {
   groupBalance: number;

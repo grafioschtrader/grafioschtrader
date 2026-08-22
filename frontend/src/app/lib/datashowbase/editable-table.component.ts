@@ -8,27 +8,28 @@ import {
   Output,
   SimpleChanges,
   TemplateRef,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {TranslateService} from '@ngx-translate/core';
-import {FormsModule, Validators} from '@angular/forms';
-import {Table, TableModule} from '@openng/optimus-ui/table';
-import {ContextMenuModule} from '@openng/optimus-ui/contextmenu';
-import {TooltipModule} from '@openng/optimus-ui/tooltip';
-import {MenuItem, SortEvent} from '@openng/optimus-ui/api';
-import {InputTextModule} from '@openng/optimus-ui/inputtext';
-import {InputNumberModule} from '@openng/optimus-ui/inputnumber';
-import {DatePickerModule} from '@openng/optimus-ui/datepicker';
-import {SelectModule} from '@openng/optimus-ui/select';
-import {CheckboxModule} from '@openng/optimus-ui/checkbox';
-import {ButtonModule} from '@openng/optimus-ui/button';
-import {Textarea} from '@openng/optimus-ui/textarea';
-import {ColumnConfig, EditInputType} from './column.config';
-import {DataType} from '../dynamic-form/models/data.type';
-import {Helper} from '../helper/helper';
-import {BaseLocale} from '../dynamic-form/models/base.locale';
-import {ValueKeyHtmlSelectOptions} from '../dynamic-form/models/value.key.html.select.options';
+import { CommonModule } from '@angular/common';
+import { TranslateService } from '@ngx-translate/core';
+import { FormsModule, Validators } from '@angular/forms';
+import { Table, TableModule } from '@openng/optimus-ui/table';
+import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
+import { MenuItem, SortEvent } from '@openng/optimus-ui/api';
+import { InputTextModule } from '@openng/optimus-ui/inputtext';
+import { InputNumberModule } from '@openng/optimus-ui/inputnumber';
+import { DatePickerModule } from '@openng/optimus-ui/datepicker';
+import { SelectModule } from '@openng/optimus-ui/select';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { ButtonModule } from '@openng/optimus-ui/button';
+import { Textarea } from '@openng/optimus-ui/textarea';
+import { ColumnConfig, EditInputType } from './column.config';
+import { DataType } from '../dynamic-form/models/data.type';
+import { Helper } from '../helper/helper';
+import { BaseLocale } from '../dynamic-form/models/base.locale';
+import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
 
 /**
  * Event data emitted when a row edit operation occurs.
@@ -103,14 +104,24 @@ export interface ValidationErrorEvent<T> {
   selector: 'editable-table',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, TableModule, ContextMenuModule, TooltipModule,
-    InputTextModule, InputNumberModule, DatePickerModule, SelectModule,
-    CheckboxModule, ButtonModule, Textarea
+    CommonModule,
+    FormsModule,
+    TableModule,
+    ContextMenuModule,
+    TooltipModule,
+    InputTextModule,
+    InputNumberModule,
+    DatePickerModule,
+    SelectModule,
+    CheckboxModule,
+    ButtonModule,
+    Textarea
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <div #cmDiv (click)="onComponentClick($event)"
-         [ngClass]="containerClass">
-      <p-table #table
+    <div #cmDiv (click)="onComponentClick($event)" [ngClass]="containerClass">
+      <p-table
+        #table
         [columns]="fields"
         [value]="data"
         [dataKey]="dataKey"
@@ -132,7 +143,6 @@ export interface ValidationErrorEvent<T> {
         (onRowCollapse)="onRowCollapse($event)"
         (onRowSelect)="onRowSelect($event)"
         (onRowUnselect)="onRowUnselect($event)">
-
         <!-- Caption slot with content projection -->
         <ng-template pTemplate="caption">
           <ng-content select="[caption]"></ng-content>
@@ -146,11 +156,15 @@ export interface ValidationErrorEvent<T> {
             }
             @for (field of columns; track field.field) {
               @if (field.visible) {
-                <th [pSortableColumn]="field.field"
-                    [pTooltip]="field.headerTooltipTranslated"
-                    [style.max-width.px]="field.width"
-                    [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}">
-                  {{ field.headerTranslated }}@if (isFieldRequired(field)) {<span class="et-required-marker"> *</span>}
+                <th
+                  [pSortableColumn]="field.field"
+                  [pTooltip]="field.headerTooltipTranslated"
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}">
+                  {{ field.headerTranslated }}
+                  @if (isFieldRequired(field)) {
+                    <span class="et-required-marker"> *</span>
+                  }
                   <p-sortIcon [field]="field.field"></p-sortIcon>
                 </th>
               }
@@ -162,11 +176,17 @@ export interface ValidationErrorEvent<T> {
         </ng-template>
 
         <!-- Body template with row editing -->
-        <ng-template pTemplate="body" let-rowData let-columns="columns"
-                     let-editing="editing" let-ri="rowIndex" let-expanded="expanded">
-          <tr [pEditableRow]="rowData" [pSelectableRow]="rowData"
-              [pContextMenuRow]="contextMenuEnabled ? rowData : null">
-
+        <ng-template
+          pTemplate="body"
+          let-rowData
+          let-columns="columns"
+          let-editing="editing"
+          let-ri="rowIndex"
+          let-expanded="expanded">
+          <tr
+            [pEditableRow]="rowData"
+            [pSelectableRow]="rowData"
+            [pContextMenuRow]="contextMenuEnabled ? rowData : null">
             <!-- Expansion toggle cell -->
             @if (expandable) {
               <td [style.width.px]="expansionColumnWidth">
@@ -180,15 +200,19 @@ export interface ValidationErrorEvent<T> {
 
             @for (field of columns; track field.field) {
               @if (field.visible) {
-                <td [style.max-width.px]="field.width"
-                    [ngStyle]="field.width ? {'flex-basis': '0 0 ' + field.width + 'px'} : {}"
-                    [ngClass]="getCellClass(field)">
-
+                <td
+                  [style.max-width.px]="field.width"
+                  [ngStyle]="field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {}"
+                  [ngClass]="getCellClass(field)">
                   <!-- Batch Mode: Always show edit inputs directly -->
                   @if (startInEditMode || batchMode) {
                     @if (canEditCell(field, rowData)) {
-                      <ng-container [ngTemplateOutlet]="editInputTemplate"
-                                    [ngTemplateOutletContext]="{field: field, rowData: rowData}">
+                      <ng-container
+                        [ngTemplateOutlet]="editInputTemplate"
+                        [ngTemplateOutletContext]="{
+                          field: field,
+                          rowData: rowData
+                        }">
                       </ng-container>
                       @if (showValidationErrors && getFieldError(rowData, field)) {
                         <small class="p-error">{{ getFieldError(rowData, field) }}</small>
@@ -201,8 +225,12 @@ export interface ValidationErrorEvent<T> {
                     <p-cellEditor>
                       <ng-template pTemplate="input">
                         @if (canEditCell(field, rowData)) {
-                          <ng-container [ngTemplateOutlet]="editInputTemplate"
-                                        [ngTemplateOutletContext]="{field: field, rowData: rowData}">
+                          <ng-container
+                            [ngTemplateOutlet]="editInputTemplate"
+                            [ngTemplateOutletContext]="{
+                              field: field,
+                              rowData: rowData
+                            }">
                           </ng-container>
                           @if (showValidationErrors && getFieldError(rowData, field)) {
                             <small class="p-error">{{ getFieldError(rowData, field) }}</small>
@@ -214,15 +242,28 @@ export interface ValidationErrorEvent<T> {
 
                       <ng-template pTemplate="output">
                         @if (customCellTemplate) {
-                          <ng-container *ngTemplateOutlet="customCellTemplate;
-                                        context: {$implicit: rowData, field: field, value: getValue(rowData, field)}">
+                          <ng-container
+                            *ngTemplateOutlet="
+                              customCellTemplate;
+                              context: {
+                                $implicit: rowData,
+                                field: field,
+                                value: getValue(rowData, field)
+                              }
+                            ">
                           </ng-container>
                         } @else if (field.templateName === 'greenRed') {
                           <span [style.color]="isNegativeValue(rowData, field) ? 'red' : 'green'">
                             {{ getValue(rowData, field) }}
                           </span>
                         } @else if (field.templateName === 'check') {
-                          <span><i [ngClass]="{'fa fa-check': getValue(rowData, field)}" aria-hidden="true"></i></span>
+                          <span
+                            ><i
+                              [ngClass]="{
+                                'fa fa-check': getValue(rowData, field)
+                              }"
+                              aria-hidden="true"></i
+                          ></span>
                         } @else {
                           <span [pTooltip]="getValue(rowData, field)" tooltipPosition="top">
                             {{ getValue(rowData, field) }}
@@ -240,28 +281,43 @@ export interface ValidationErrorEvent<T> {
               <td>
                 <div class="flex align-items-center justify-content-center gap-2">
                   @if (!editing && canEditRow(rowData)) {
-                    <button pButton pRipple type="button" pInitEditableRow
-                            (click)="onRowEditInit(rowData, ri)"
-                            class="p-button-rounded p-button-text">
+                    <button
+                      pButton
+                      pRipple
+                      type="button"
+                      pInitEditableRow
+                      (click)="onRowEditInit(rowData, ri)"
+                      class="p-button-rounded p-button-text">
                       <i class="pi pi-pencil" pButtonIcon></i>
                     </button>
                   }
                   @if (!editing && canDeleteRowFn && canDeleteRowFn(rowData)) {
-                    <button pButton pRipple type="button"
-                            (click)="onRowDeleteClick(rowData, ri)"
-                            class="p-button-rounded p-button-text p-button-danger">
+                    <button
+                      pButton
+                      pRipple
+                      type="button"
+                      (click)="onRowDeleteClick(rowData, ri)"
+                      class="p-button-rounded p-button-text p-button-danger">
                       <i class="pi pi-trash" pButtonIcon></i>
                     </button>
                   }
                   @if (editing) {
-                    <button pButton pRipple type="button" pSaveEditableRow
-                            (click)="onRowEditSave(rowData, ri)"
-                            class="p-button-rounded p-button-text p-button-success mr-2">
+                    <button
+                      pButton
+                      pRipple
+                      type="button"
+                      pSaveEditableRow
+                      (click)="onRowEditSave(rowData, ri)"
+                      class="p-button-rounded p-button-text p-button-success mr-2">
                       <i class="pi pi-check" pButtonIcon></i>
                     </button>
-                    <button pButton pRipple type="button" pCancelEditableRow
-                            (click)="onRowEditCancel(rowData, ri)"
-                            class="p-button-rounded p-button-text p-button-danger">
+                    <button
+                      pButton
+                      pRipple
+                      type="button"
+                      pCancelEditableRow
+                      (click)="onRowEditCancel(rowData, ri)"
+                      class="p-button-rounded p-button-text p-button-danger">
                       <i class="pi pi-times" pButtonIcon></i>
                     </button>
                   }
@@ -276,8 +332,7 @@ export interface ValidationErrorEvent<T> {
           @if (expandable && expandedRowTemplate) {
             <tr>
               <td [attr.colspan]="getExpandedColspan()">
-                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: {$implicit: row}">
-                </ng-container>
+                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: row }"> </ng-container>
               </td>
             </tr>
           }
@@ -289,11 +344,12 @@ export interface ValidationErrorEvent<T> {
         @switch (getEditInputType(field)) {
           <!-- Select/Dropdown -->
           @case (EditInputType.Select) {
-            <select class="form-control input-sm"
-                    [class.required-input]="isFieldRequired(field)"
-                    [(ngModel)]="rowData[field.field]"
-                    (ngModelChange)="onFieldChange(field, rowData, $event)"
-                    [style.width.px]="field.width">
+            <select
+              class="form-control input-sm"
+              [class.required-input]="isFieldRequired(field)"
+              [(ngModel)]="rowData[field.field]"
+              (ngModelChange)="onFieldChange(field, rowData, $event)"
+              [style.width.px]="field.width">
               @for (option of getOptionsForField(field, rowData); track option.key) {
                 <option [value]="option.key" [disabled]="option.disabled">
                   {{ option.value }}
@@ -304,64 +360,70 @@ export interface ValidationErrorEvent<T> {
 
           <!-- Number Input -->
           @case (EditInputType.Number) {
-            <input pInputText type="number"
-                   [class.required-input]="isFieldRequired(field)"
-                   [(ngModel)]="rowData[field.field]"
-                   (ngModelChange)="onFieldChange(field, rowData, $event)"
-                   [min]="field.cec?.min"
-                   [max]="field.cec?.max"
-                   [placeholder]="field.cec?.placeholder || ''"
-                   [style.width.px]="field.width || 100">
+            <input
+              pInputText
+              type="number"
+              [class.required-input]="isFieldRequired(field)"
+              [(ngModel)]="rowData[field.field]"
+              (ngModelChange)="onFieldChange(field, rowData, $event)"
+              [min]="$safeNavigationMigration(field.cec?.min)"
+              [max]="$safeNavigationMigration(field.cec?.max)"
+              [placeholder]="field.cec?.placeholder || ''"
+              [style.width.px]="field.width || 100" />
           }
 
           <!-- Optimus InputNumber -->
           @case (EditInputType.InputNumber) {
-            <p-inputNumber [(ngModel)]="rowData[field.field]"
-                          (ngModelChange)="onFieldChange(field, rowData, $event)"
-                          [locale]="numberLocale"
-                          [minFractionDigits]="field.minFractionDigits || 0"
-                          [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
-                          [min]="field.cec?.min"
-                          [max]="field.cec?.max"
-                          [placeholder]="field.cec?.placeholder || ''"
-                          [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''">
+            <p-inputNumber
+              [(ngModel)]="rowData[field.field]"
+              (ngModelChange)="onFieldChange(field, rowData, $event)"
+              [locale]="numberLocale"
+              [minFractionDigits]="field.minFractionDigits || 0"
+              [maxFractionDigits]="field.cec?.maxFractionDigits || field.maxFractionDigits || 2"
+              [min]="$safeNavigationMigration(field.cec?.min)"
+              [max]="$safeNavigationMigration(field.cec?.max)"
+              [placeholder]="field.cec?.placeholder || ''"
+              [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''">
             </p-inputNumber>
           }
 
           <!-- DatePicker -->
           @case (EditInputType.DatePicker) {
-            <p-datepicker [(ngModel)]="rowData[field.field]"
-                         (ngModelChange)="onFieldChange(field, rowData, $event)"
-                         [dateFormat]="baseLocale.dateFormat"
-                         [minDate]="field.cec?.minDate"
-                         [maxDate]="field.cec?.maxDate"
-                         dataType="date"
-                         selectionMode="single"
-                         [showOnFocus]="false"
-                         [showIcon]="true"
-                         appendTo="body"
-                         [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''">
+            <p-datepicker
+              [(ngModel)]="rowData[field.field]"
+              (ngModelChange)="onFieldChange(field, rowData, $event)"
+              [dateFormat]="baseLocale.dateFormat"
+              [minDate]="$safeNavigationMigration(field.cec?.minDate)"
+              [maxDate]="$safeNavigationMigration(field.cec?.maxDate)"
+              dataType="date"
+              selectionMode="single"
+              [showOnFocus]="false"
+              [showIcon]="true"
+              appendTo="body"
+              [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''">
             </p-datepicker>
           }
 
           <!-- Checkbox -->
           @case (EditInputType.Checkbox) {
-            <p-checkbox [(ngModel)]="rowData[field.field]"
-                       (ngModelChange)="onFieldChange(field, rowData, $event)"
-                       [binary]="true">
+            <p-checkbox
+              [(ngModel)]="rowData[field.field]"
+              (ngModelChange)="onFieldChange(field, rowData, $event)"
+              [binary]="true">
             </p-checkbox>
           }
 
           <!-- Textarea for multi-line string values -->
           @case (EditInputType.Textarea) {
-            <textarea pTextarea
-                      [class.required-input]="isFieldRequired(field)"
-                      [(ngModel)]="rowData[field.field]"
-                      (ngModelChange)="onFieldChange(field, rowData, $event)"
-                      [maxlength]="field.cec?.maxLength"
-                      [rows]="field.cec?.rows || 3"
-                      [placeholder]="field.cec?.placeholder || ''"
-                      style="width: 100%"></textarea>
+            <textarea
+              pTextarea
+              [class.required-input]="isFieldRequired(field)"
+              [(ngModel)]="rowData[field.field]"
+              (ngModelChange)="onFieldChange(field, rowData, $event)"
+              [maxlength]="$safeNavigationMigration(field.cec?.maxLength)"
+              [rows]="field.cec?.rows || 3"
+              [placeholder]="field.cec?.placeholder || ''"
+              style="width: 100%"></textarea>
           }
 
           <!-- ReadOnly - show value even in edit mode -->
@@ -371,12 +433,14 @@ export interface ValidationErrorEvent<T> {
 
           <!-- Text Input (default) -->
           @default {
-            <input pInputText type="text"
-                   [class.required-input]="isFieldRequired(field)"
-                   [(ngModel)]="rowData[field.field]"
-                   (ngModelChange)="onFieldChange(field, rowData, $event)"
-                   [maxlength]="field.cec?.maxLength"
-                   [placeholder]="field.cec?.placeholder || ''">
+            <input
+              pInputText
+              type="text"
+              [class.required-input]="isFieldRequired(field)"
+              [(ngModel)]="rowData[field.field]"
+              (ngModelChange)="onFieldChange(field, rowData, $event)"
+              [maxlength]="$safeNavigationMigration(field.cec?.maxLength)"
+              [placeholder]="field.cec?.placeholder || ''" />
           }
         }
       </ng-template>
@@ -389,7 +453,6 @@ export interface ValidationErrorEvent<T> {
   `
 })
 export class EditableTableComponent<T = any> implements OnInit, OnChanges {
-
   // ============================================================================
   // Data and Column Configuration
   // ============================================================================
@@ -455,7 +518,9 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   @Input() loading = false;
 
   /** CSS class applied to the outer container */
-  @Input() containerClass: string | string[] | { [key: string]: boolean } = { 'data-container': true };
+  @Input() containerClass: string | string[] | { [key: string]: boolean } = {
+    'data-container': true
+  };
 
   /** Enable table scrolling */
   @Input() scrollable = true;
@@ -627,7 +692,9 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   private clonedRows: { [key: string]: T } = {};
 
   /** Map of row keys to per-row dropdown options */
-  private rowOptions: { [key: string]: { [field: string]: ValueKeyHtmlSelectOptions[] } } = {};
+  private rowOptions: {
+    [key: string]: { [field: string]: ValueKeyHtmlSelectOptions[] };
+  } = {};
 
   /** Map of row keys to validation error messages */
   private rowErrors: { [key: string]: { [field: string]: string } } = {};
@@ -665,8 +732,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    */
   menuModel: MenuItem[] = [];
 
-  constructor(private translateService: TranslateService) {
-  }
+  constructor(private translateService: TranslateService) {}
 
   /**
    * Rebuilds {@link menuModel} from the current inputs. Prepends an "Add new row" item when
@@ -682,7 +748,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
         icon: 'pi pi-plus',
         command: () => this.addNewRow()
       };
-      this.translateService.get(this.addRowLabel).subscribe(translated => addRowItem.label = translated);
+      this.translateService.get(this.addRowLabel).subscribe((translated) => (addRowItem.label = translated));
       items.push(addRowItem);
     }
 
@@ -736,7 +802,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
   /** Gets unique row key using dataKey property */
   private getRowKey(row: T): string {
     const key = row[this.dataKey];
-    return key != null ? String(key) : String(-(this.newRowCounter));
+    return key != null ? String(key) : String(-this.newRowCounter);
   }
 
   // ============================================================================
@@ -827,7 +893,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     }
 
     const newEntity = this.createNewEntityFn();
-    const tempKey = -(++this.newRowCounter);
+    const tempKey = -++this.newRowCounter;
 
     // Assign temporary key if dataKey is null/undefined
     if (newEntity[this.dataKey] == null) {
@@ -971,7 +1037,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
         const result = validator(control);
         if (result) {
           const errorKey = Object.keys(result)[0];
-          const errorRule = field.cec.errors?.find(e => e.name === errorKey);
+          const errorRule = field.cec.errors?.find((e) => e.name === errorKey);
           this.rowErrors[rowKey][field.field] = errorRule?.text || 'Invalid value';
           return false;
         }
@@ -1117,10 +1183,10 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
 
   /** Determines CSS class for table cell based on data type */
   getCellClass(field: ColumnConfig): string {
-    return (field.dataType === DataType.Numeric ||
+    return field.dataType === DataType.Numeric ||
       field.dataType === DataType.NumericShowZero ||
       field.dataType === DataType.NumericInteger ||
-      field.dataType === DataType.DateTimeNumeric)
+      field.dataType === DataType.DateTimeNumeric
       ? 'text-end'
       : '';
   }
@@ -1177,7 +1243,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    * Accounts for expansion toggle column and edit buttons column.
    */
   getExpandedColspan(): number {
-    let count = this.fields.filter(f => f.visible).length;
+    let count = this.fields.filter((f) => f.visible).length;
     if (this.expandable) {
       count++;
     }
@@ -1231,7 +1297,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
    */
   startEditingRow(row: T): void {
     const rowKey = this.getRowKey(row);
-    const rowIndex = this.data.findIndex(r => this.getRowKey(r) === rowKey);
+    const rowIndex = this.data.findIndex((r) => this.getRowKey(r) === rowKey);
 
     if (rowIndex >= 0) {
       // Initialize edit state (clone for cancel, init options, clear errors)
@@ -1262,11 +1328,11 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     // Find the first visible editable input in the row
     const editableInputs = rowElement.querySelectorAll(
       'input:not([type="hidden"]):not([disabled]), ' +
-      'select:not([disabled]), ' +
-      'textarea:not([disabled]), ' +
-      'p-inputNumber input, ' +
-      'p-datepicker input, ' +
-      'p-select select'
+        'select:not([disabled]), ' +
+        'textarea:not([disabled]), ' +
+        'p-inputNumber input, ' +
+        'p-datepicker input, ' +
+        'p-select select'
     );
 
     if (editableInputs.length > 0) {

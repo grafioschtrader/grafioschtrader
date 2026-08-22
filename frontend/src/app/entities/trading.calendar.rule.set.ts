@@ -1,5 +1,5 @@
-import {BaseID} from '../lib/entities/base.id';
-import {Auditable} from '../lib/entities/auditable';
+import { BaseID } from '../lib/entities/base.id';
+import { Auditable } from '../lib/entities/auditable';
 
 /**
  * A set of holiday rules from which the closures of one or more stock exchanges are calculated. It is the alternative

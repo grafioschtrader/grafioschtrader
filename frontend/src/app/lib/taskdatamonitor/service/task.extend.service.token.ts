@@ -1,5 +1,5 @@
-import {InjectionToken} from '@angular/core';
-import {ITaskExtendService} from '../component/itask.extend.service';
+import { InjectionToken } from '@angular/core';
+import { ITaskExtendService } from '../component/itask.extend.service';
 
 /**
  * Injection token for providing application-specific extensions to task data monitoring.

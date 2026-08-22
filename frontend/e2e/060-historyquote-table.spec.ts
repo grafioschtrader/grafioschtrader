@@ -1,6 +1,6 @@
-import {expect, Locator, Page, test} from '@playwright/test';
-import {loginAsFixtureUser} from './helpers';
-import {expectToast} from './manage-client.helpers';
+import { expect, Locator, Page, test } from '@playwright/test';
+import { loginAsFixtureUser } from './helpers';
+import { expectToast } from './manage-client.helpers';
 
 /**
  * End-of-day price views of a security that is seeded WITH its price history.
@@ -45,7 +45,7 @@ const SECURITY_RX = /Nestl.+AG/;
 /** One entry of HistoryquotesWithMissings.historyquoteList as delivered by the REST endpoint. */
 interface Quote {
   idHistoryQuote: number;
-  date: string;               // yyyy-MM-dd
+  date: string; // yyyy-MM-dd
   close: number;
   volume: number | null;
   open: number | null;
@@ -73,7 +73,7 @@ const RX = {
   confirmYes: /^(yes|ja)$/i,
   deletedToast: /(History quote was deleted|Historischer Kurse wurde gel)/i,
   savedToast: /(History quotes was saved|Historische Kurse wurde gespeichert)/i,
-  entityCaption: /(History quote|Historischer Kurse)/i,
+  entityCaption: /(History quote|Historischer Kurse)/i
 };
 
 function pad(value: number): string {
@@ -100,15 +100,16 @@ function todayIso(): string {
 function newestEligibleQuote(quotes: Quote[]): Quote {
   const today = todayIso();
   const eligible = quotes
-    .filter(quote => quote.date < today)
-    .filter(quote => {
+    .filter((quote) => quote.date < today)
+    .filter((quote) => {
       const dayOfWeek = new Date(`${quote.date}T00:00:00`).getDay();
       return dayOfWeek !== 0 && dayOfWeek !== 6;
     })
     .sort((a, b) => b.date.localeCompare(a.date));
-  expect(eligible.length,
-    `no history quote of ${SECURITY_NAME} older than ${today} — is V2__testdata.sql seeded?`)
-    .toBeGreaterThan(0);
+  expect(
+    eligible.length,
+    `no history quote of ${SECURITY_NAME} older than ${today} — is V2__testdata.sql seeded?`
+  ).toBeGreaterThan(0);
   return eligible[0];
 }
 
@@ -126,10 +127,13 @@ function parseLocaleNumber(text: string): number {
  * the server's own error message into the failure instead.
  */
 function waitForQuotes(page: Page): Promise<QuotesPayload> {
-  return page.waitForResponse(response =>
-    /\/historyquote\/securitycurrency\/\d+(\?|$)/.test(response.url())
-    && response.request().method() === 'GET', {timeout: 30_000})
-    .then(async response => {
+  return page
+    .waitForResponse(
+      (response) =>
+        /\/historyquote\/securitycurrency\/\d+(\?|$)/.test(response.url()) && response.request().method() === 'GET',
+      { timeout: 30_000 }
+    )
+    .then(async (response) => {
       const body = await response.text();
       expect(response.ok(), `GET ${response.url()} → ${response.status()}: ${body}`).toBe(true);
       return JSON.parse(body) as QuotesPayload;
@@ -143,21 +147,22 @@ function waitForQuotes(page: Page): Promise<QuotesPayload> {
  */
 function rowByDate(page: Page, deChDate: string): Locator {
   const cellText = new RegExp(`^\\s*${deChDate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`);
-  return page.locator('historyquote-table tbody tr')
-    .filter({has: page.locator('td:nth-child(1)', {hasText: cellText})});
+  return page
+    .locator('historyquote-table tbody tr')
+    .filter({ has: page.locator('td:nth-child(1)', { hasText: cellText }) });
 }
 
 /** Selects the watchlist in the left tree and waits for its table to render. */
 async function openWatchlist(page: Page): Promise<void> {
-  const watchlistNode = page.getByRole('treeitem', {name: WATCHLIST_NAME, exact: true}).first();
-  await watchlistNode.waitFor({state: 'visible', timeout: 15_000});
+  const watchlistNode = page.getByRole('treeitem', { name: WATCHLIST_NAME, exact: true }).first();
+  await watchlistNode.waitFor({ state: 'visible', timeout: 15_000 });
   await watchlistNode.click();
-  await page.locator('.data-container').first().waitFor({state: 'visible', timeout: 15_000});
+  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
 }
 
 /** The watchlist row of the security under test. */
 function securityCell(page: Page): Locator {
-  return page.locator('td').filter({hasText: SECURITY_RX}).first();
+  return page.locator('td').filter({ hasText: SECURITY_RX }).first();
 }
 
 /**
@@ -168,21 +173,21 @@ async function addSecurityByIsin(page: Page): Promise<void> {
   const container = page.locator('.data-container').first();
   await container.click();
   await page.waitForTimeout(300);
-  await container.click({button: 'right'});
+  await container.click({ button: 'right' });
 
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   await menu.getByText(RX.addExistingItem).first().click();
 
   const addDialog = page.locator('watchlist-add-instrument');
-  await addDialog.locator('.p-dialog').waitFor({state: 'visible', timeout: 10_000});
+  await addDialog.locator('.p-dialog').waitFor({ state: 'visible', timeout: 10_000 });
 
   // NOTHING may be typed before the search master data has arrived: the subscribe in
   // SecuritycurrencySearchBase.initialize() assigns the dropdown options and then calls
   // setDefaultValuesAndEnableSubmit(), which is a form.reset() — anything entered earlier is
   // silently wiped, leaving the criteria empty and Search disabled by atLeastOneFieldValidator.
   // idStockexchange is filled one line before that reset, so its options prove it already happened.
-  await expect(addDialog.locator('select#idStockexchange option')).not.toHaveCount(0, {timeout: 15_000});
+  await expect(addDialog.locator('select#idStockexchange option')).not.toHaveCount(0, { timeout: 15_000 });
 
   const isin = addDialog.locator('#isin');
   await isin.click();
@@ -192,19 +197,19 @@ async function addSecurityByIsin(page: Page): Promise<void> {
 
   // The ISIN is matched exactly, so exactly one instrument can come back.
   const resultRows = addDialog.locator('add-instrument-table tbody tr');
-  await expect(resultRows).toHaveCount(1, {timeout: 15_000});
+  await expect(resultRows).toHaveCount(1, { timeout: 15_000 });
   await expect(resultRows.first()).toContainText(SECURITY_RX);
   await resultRows.first().locator('p-tablecheckbox').click();
 
   // The Add button re-disables itself once the selection is cleared, which happens in the
   // subscribe of PUT /watchlist/{id}/addSecuritycurrency.
-  const add = addDialog.getByRole('button', {name: RX.addButton});
-  await expect(add).toBeEnabled({timeout: 5_000});
+  const add = addDialog.getByRole('button', { name: RX.addButton });
+  await expect(add).toBeEnabled({ timeout: 5_000 });
   await add.click();
-  await expect(add).toBeDisabled({timeout: 15_000});
+  await expect(add).toBeDisabled({ timeout: 15_000 });
 
-  await addDialog.getByRole('button', {name: RX.closeButton}).click();
-  await addDialog.locator('.p-dialog').waitFor({state: 'hidden', timeout: 10_000});
+  await addDialog.getByRole('button', { name: RX.closeButton }).click();
+  await addDialog.locator('.p-dialog').waitFor({ state: 'hidden', timeout: 10_000 });
 }
 
 /**
@@ -218,18 +223,18 @@ async function openEodTable(page: Page): Promise<QuotesPayload> {
   // Left-click first: the table binds pContextMenuRow but no [contextMenu], so a right-click alone
   // does not select the row the context menu is built from.
   const cell = securityCell(page);
-  await cell.waitFor({state: 'visible', timeout: 20_000});
+  await cell.waitFor({ state: 'visible', timeout: 20_000 });
   await cell.click();
   await page.waitForTimeout(500);
-  await cell.click({button: 'right'});
+  await cell.click({ button: 'right' });
 
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   const quotes = waitForQuotes(page);
   await menu.getByText(RX.eodTableItem).first().click();
 
-  await page.waitForURL(/historyquotes/, {timeout: 15_000});
-  await page.locator('historyquote-table').waitFor({state: 'visible', timeout: 20_000});
+  await page.waitForURL(/historyquotes/, { timeout: 15_000 });
+  await page.locator('historyquote-table').waitFor({ state: 'visible', timeout: 20_000 });
   return quotes;
 }
 
@@ -239,13 +244,13 @@ async function openEodTable(page: Page): Promise<QuotesPayload> {
  */
 async function openTableContextMenu(page: Page, target?: Locator): Promise<Locator> {
   const clickTarget = (target ?? page.locator('historyquote-table h4')).first();
-  await clickTarget.waitFor({state: 'visible', timeout: 10_000});
+  await clickTarget.waitFor({ state: 'visible', timeout: 10_000 });
   await clickTarget.click();
   await page.waitForTimeout(400);
-  await clickTarget.click({button: 'right'});
+  await clickTarget.click({ button: 'right' });
 
   const menu = page.locator('[role="menu"]:visible');
-  await menu.waitFor({state: 'visible', timeout: 5_000});
+  await menu.waitFor({ state: 'visible', timeout: 5_000 });
   return menu;
 }
 
@@ -262,38 +267,41 @@ async function typeNumber(dialog: Locator, field: string, value: number | null):
   await input.click();
   await input.press('Control+a');
   await input.press('Backspace');
-  await input.pressSequentially(String(value), {delay: 20});
+  await input.pressSequentially(String(value), { delay: 20 });
   await input.press('Tab');
 
   const shown = await input.inputValue();
-  expect(parseLocaleNumber(shown), `${field}: p-inputNumber shows "${shown}" instead of ${value}`)
-    .toBeCloseTo(value, 8);
+  expect(parseLocaleNumber(shown), `${field}: p-inputNumber shows "${shown}" instead of ${value}`).toBeCloseTo(
+    value,
+    8
+  );
 }
 
 test.describe.serial('historical prices of Nestlé — show, delete newest, recreate', () => {
   // The EOD table is rendered in the mainbottom outlet below the watchlist.
-  test.use({viewport: {width: 1600, height: 1200}});
+  test.use({ viewport: { width: 1600, height: 1200 } });
 
-  test(`adds ${SECURITY_NAME} to the ${WATCHLIST_NAME} watchlist by ISIN`, async ({page}) => {
+  test(`adds ${SECURITY_NAME} to the ${WATCHLIST_NAME} watchlist by ISIN`, async ({ page }) => {
     await loginAsFixtureUser(page, LOGIN_NICKNAME);
     await openWatchlist(page);
 
     // Let the watchlist table render before the skip-if-present check. The search endpoint excludes
     // instruments that are already in the watchlist, so adding twice is impossible anyway.
     await page.waitForTimeout(1500);
-    if (await securityCell(page).count() === 0) {
+    if ((await securityCell(page).count()) === 0) {
       await addSecurityByIsin(page);
     }
 
-    await expect(securityCell(page)).toBeVisible({timeout: 15_000});
+    await expect(securityCell(page)).toBeVisible({ timeout: 15_000 });
   });
 
-  test('shows the historical prices in the history quote table', async ({page}) => {
+  test('shows the historical prices in the history quote table', async ({ page }) => {
     const payload = await openEodTable(page);
     const quotes = payload.historyquoteList;
-    expect(quotes.length,
-      `${SECURITY_NAME} has no EOD data — is V2__testdata.sql seeded in grafioschtrader_t?`)
-      .toBeGreaterThan(0);
+    expect(
+      quotes.length,
+      `${SECURITY_NAME} has no EOD data — is V2__testdata.sql seeded in grafioschtrader_t?`
+    ).toBeGreaterThan(0);
 
     const caption = page.locator('historyquote-table h4');
     await expect(caption).toContainText(RX.entityCaption);
@@ -304,17 +312,18 @@ test.describe.serial('historical prices of Nestlé — show, delete newest, recr
     const newest = [...quotes].sort((a, b) => b.date.localeCompare(a.date))[0];
     const newestRow = rowByDate(page, toDeChDate(newest.date));
     await expect(newestRow).toHaveCount(1);
-    expect(parseLocaleNumber(await newestRow.locator('td').nth(COL_CLOSE).innerText()))
-      .toBeCloseTo(newest.close, 5);
-    await expect(page.locator('historyquote-table tbody tr').first().locator('td').nth(COL_DATE))
-      .toHaveText(toDeChDate(newest.date));
+    expect(parseLocaleNumber(await newestRow.locator('td').nth(COL_CLOSE).innerText())).toBeCloseTo(newest.close, 5);
+    await expect(page.locator('historyquote-table tbody tr').first().locator('td').nth(COL_DATE)).toHaveText(
+      toDeChDate(newest.date)
+    );
   });
 
-  test('deletes the newest quote and recreates it with the same values', async ({page}) => {
+  test('deletes the newest quote and recreates it with the same values', async ({ page }) => {
     const payload = await openEodTable(page);
-    expect(payload.historyquoteList.length,
-      `${SECURITY_NAME} has no EOD data — is V2__testdata.sql seeded in grafioschtrader_t?`)
-      .toBeGreaterThan(0);
+    expect(
+      payload.historyquoteList.length,
+      `${SECURITY_NAME} has no EOD data — is V2__testdata.sql seeded in grafioschtrader_t?`
+    ).toBeGreaterThan(0);
 
     const before = newestEligibleQuote(payload.historyquoteList);
     const countBefore = payload.historyquoteList.length;
@@ -325,35 +334,37 @@ test.describe.serial('historical prices of Nestlé — show, delete newest, recr
     await expect(targetRow).toHaveCount(1);
     const menu = await openTableContextMenu(page, targetRow.locator('td').nth(COL_DATE));
 
-    const deleted = page.waitForResponse(response =>
-      /\/historyquote\/\d+(\?|$)/.test(response.url())
-      && response.request().method() === 'DELETE' && response.ok(), {timeout: 20_000});
+    const deleted = page.waitForResponse(
+      (response) =>
+        /\/historyquote\/\d+(\?|$)/.test(response.url()) && response.request().method() === 'DELETE' && response.ok(),
+      { timeout: 20_000 }
+    );
     const afterDeleteQuotes = waitForQuotes(page);
     await menu.getByText(RX.deleteItem).first().click();
 
     const confirmDialog = page.locator('[role="alertdialog"]:visible').first();
-    await confirmDialog.waitFor({state: 'visible', timeout: 10_000});
-    await confirmDialog.getByRole('button', {name: RX.confirmYes}).first().click();
+    await confirmDialog.waitFor({ state: 'visible', timeout: 10_000 });
+    await confirmDialog.getByRole('button', { name: RX.confirmYes }).first().click();
 
     await deleted;
     await expectToast(page, RX.deletedToast);
     const afterDelete = await afterDeleteQuotes;
     expect(afterDelete.historyquoteList.length).toBe(countBefore - 1);
-    expect(afterDelete.historyquoteList.some(quote => quote.date === before.date)).toBe(false);
+    expect(afterDelete.historyquoteList.some((quote) => quote.date === before.date)).toBe(false);
     await expect(rowByDate(page, beforeDeCh)).toHaveCount(0);
 
     // --- recreate with the identical values ---
     const createMenu = await openTableContextMenu(page);
     await createMenu.getByText(RX.createItem).first().click();
 
-    const dialog = page.locator('.p-dialog').filter({hasText: RX.editDialogHeader}).first();
-    await dialog.waitFor({state: 'visible', timeout: 10_000});
+    const dialog = page.locator('.p-dialog').filter({ hasText: RX.editDialogHeader }).first();
+    await dialog.waitFor({ state: 'visible', timeout: 10_000 });
     await expect(dialog).toContainText(SECURITY_RX);
 
     // The date picker ignores input events without a preceding keydown, so type it key by key.
     const dateInput = dialog.locator('#date input').first();
     await dateInput.click();
-    await dateInput.pressSequentially(beforeDeCh, {delay: 20});
+    await dateInput.pressSequentially(beforeDeCh, { delay: 20 });
     await dateInput.blur();
     await expect(dateInput).toHaveValue(beforeDeCh);
 
@@ -363,19 +374,23 @@ test.describe.serial('historical prices of Nestlé — show, delete newest, recr
     await typeNumber(dialog, 'low', before.low);
     await typeNumber(dialog, 'close', before.close);
 
-    const created = page.waitForResponse(response =>
-      /\/historyquote$/.test(new URL(response.url()).pathname)
-      && response.request().method() === 'POST' && response.ok(), {timeout: 20_000});
+    const created = page.waitForResponse(
+      (response) =>
+        /\/historyquote$/.test(new URL(response.url()).pathname) &&
+        response.request().method() === 'POST' &&
+        response.ok(),
+      { timeout: 20_000 }
+    );
     const afterCreateQuotes = waitForQuotes(page);
     await dialog.locator('button[type="submit"]').click();
 
     await created;
     await expectToast(page, RX.savedToast);
-    await dialog.waitFor({state: 'hidden', timeout: 15_000});
+    await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
 
     const afterCreate = await afterCreateQuotes;
     expect(afterCreate.historyquoteList.length).toBe(countBefore);
-    const recreated = afterCreate.historyquoteList.find(quote => quote.date === before.date);
+    const recreated = afterCreate.historyquoteList.find((quote) => quote.date === before.date);
     expect(recreated, `the quote of ${before.date} was not recreated`).toBeTruthy();
     expect(recreated.close).toBeCloseTo(before.close, 8);
     expect(recreated.volume).toBe(before.volume);

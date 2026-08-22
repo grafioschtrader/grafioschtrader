@@ -1,3 +1,5 @@
 export enum ResponseFormatType {
-  JSON = 'JSON', CSV = 'CSV', HTML = 'HTML'
+  JSON = 'JSON',
+  CSV = 'CSV',
+  HTML = 'HTML'
 }

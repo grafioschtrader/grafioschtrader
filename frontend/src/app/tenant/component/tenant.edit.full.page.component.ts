@@ -1,14 +1,14 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
-import {Tenant} from '../../entities/tenant';
-import {GlobalparameterGTService} from '../../gtservice/globalparameter.gt.service';
-import {DynamicFormComponent} from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
-import {LoginService} from '../../lib/login/service/log-in.service';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {TenantService} from '../service/tenant.service';
-import {TenantEditComponent} from './tenant.edit.component';
-import {ImportTransactionPlatformService} from '../../imptranstemplate/service/import.transaction.platform.service';
+import { AfterViewInit, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Tenant } from '../../entities/tenant';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
+import { LoginService } from '../../lib/login/service/log-in.service';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { TenantService } from '../service/tenant.service';
+import { TenantEditComponent } from './tenant.edit.component';
+import { ImportTransactionPlatformService } from '../../imptranstemplate/service/import.transaction.platform.service';
 
 /**
  * Edit tenant fields on a full page layout used for a new tenant.
@@ -19,25 +19,30 @@ import {ImportTransactionPlatformService} from '../../imptranstemplate/service/i
       <div class="jumbotron-replacement mx-auto">
         <h2>{{ 'TENANT' | translate }}</h2>
         <h4>{{ 'TENANT_REGISTER' | translate }}</h4>
-        <dynamic-form [config]="config" [formConfig]="formConfig" [translateService]="translateService"
-                      #form="dynamicForm"
-                      (submitBt)="submit($event)">
+        <dynamic-form
+          [config]="config"
+          [formConfig]="formConfig"
+          [translateService]="translateService"
+          #form="dynamicForm"
+          (submitBt)="submit($event)">
         </dynamic-form>
       </div>
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslateModule, DynamicFormComponent]
 })
 export class TenantEditFullPageComponent extends TenantEditComponent implements OnInit, AfterViewInit {
-
-  constructor(private loginService: LoginService,
+  constructor(
+    private loginService: LoginService,
     gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     tenantService: TenantService,
     translateService: TranslateService,
-    importTransactionPlatformService: ImportTransactionPlatformService) {
+    importTransactionPlatformService: ImportTransactionPlatformService
+  ) {
     super(gpsGT, gps, messageToastService, tenantService, translateService, importTransactionPlatformService, true, 4);
   }
 
@@ -52,5 +57,4 @@ export class TenantEditFullPageComponent extends TenantEditComponent implements 
   protected override closeInputDialog(tenant: Tenant): void {
     this.loginService.logoutWithLoginView();
   }
-
 }

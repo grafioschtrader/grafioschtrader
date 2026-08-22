@@ -1,14 +1,14 @@
-import {LocaleSettings} from '../../lib/fullyearcalendar/Interface/locale.settings';
-import {YearCalendarData} from '../../lib/fullyearcalendar/Interface/year.calendar.data';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {Helper} from '../../lib/helper/helper';
-import {MenuItem, SelectItem} from '@openng/optimus-ui/api';
-import {DayOfWeek} from '../../lib/fullyearcalendar/model/day.of.week';
-import {RangeSelectDays} from '../../lib/fullyearcalendar/Interface/range.select.days';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {TranslateService} from '@ngx-translate/core';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { LocaleSettings } from '../../lib/fullyearcalendar/Interface/locale.settings';
+import { YearCalendarData } from '../../lib/fullyearcalendar/Interface/year.calendar.data';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { Helper } from '../../lib/helper/helper';
+import { MenuItem, SelectItem } from '@openng/optimus-ui/api';
+import { DayOfWeek } from '../../lib/fullyearcalendar/model/day.of.week';
+import { RangeSelectDays } from '../../lib/fullyearcalendar/Interface/range.select.days';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { TranslateService } from '@ngx-translate/core';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
 
 export abstract class CalendarNavigation implements IGlobalMenuAttach {
   readonly NEW_DATE_COLOR = 'yellow';
@@ -26,18 +26,19 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   readonly consumedGT = 'consumedGT';
   contextMenuItems: MenuItem[];
 
-  protected constructor(public translateService: TranslateService,
+  protected constructor(
+    public translateService: TranslateService,
     protected gps: GlobalparameterService,
     protected activePanelService: ActivePanelService,
-    protected markExistingColors: string[]) {
-
+    protected markExistingColors: string[]
+  ) {
     const language: string = gps.getUserLang();
 
     this.locale = {
       dayNamesMin: Helper.CALENDAR_LANG[language].dayNamesMin,
       monthNames: Helper.CALENDAR_LANG[language].monthNames
     };
-    this.yearCalendarData = {year: new Date().getFullYear(), disableWeekDays: [DayOfWeek.SATURDAY, DayOfWeek.SUNDAY]};
+    this.yearCalendarData = { year: new Date().getFullYear(), disableWeekDays: [DayOfWeek.SATURDAY, DayOfWeek.SUNDAY] };
   }
 
   abstract getHelpContextId(): string;
@@ -47,13 +48,15 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
   abstract onRangeSelect(range: RangeSelectDays, ranges: RangeSelectDays[]): void;
 
   setYearsBoundaries(fromYear: number, toYear: number) {
-    this.possibleYears = Array.from({length: toYear - fromYear + 1},
-      (_, index) => ({value: fromYear + index, label: (fromYear + index).toString()}));
+    this.possibleYears = Array.from({ length: toYear - fromYear + 1 }, (_, index) => ({
+      value: fromYear + index,
+      label: (fromYear + index).toString()
+    }));
     this.selectedYear = this.yearCalendarData.year;
   }
 
   containsYear(year: number): boolean {
-    return this.possibleYears.find(selectItem => selectItem.value === year) != null;
+    return this.possibleYears.find((selectItem) => selectItem.value === year) != null;
   }
 
   yearChanged(event): void {
@@ -73,7 +76,6 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     this.markOnOffSingleDays(dayToMarkList);
   }
 
-
   isActivated(): boolean {
     return this.activePanelService.isActivated(this);
   }
@@ -83,18 +85,16 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     this.resetMenu();
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   onRightClick(event): void {
     this.resetMenu();
   }
 
   addRemoveDays(days: Date[]): void {
-    days.forEach(date => this.addRemoveOnOffDay(date));
+    days.forEach((date) => this.addRemoveOnOffDay(date));
   }
 
   /**
@@ -106,24 +106,33 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
     let i = 0;
 
     for (; i < this.yearCalendarData.dates.length; i++) {
-      if (this.yearCalendarData.dates[i].start === date && (this.markExistingColors.includes(this.yearCalendarData.dates[i].color)
-        || this.yearCalendarData.dates[i].color === this.NEW_DATE_COLOR)) {
+      if (
+        this.yearCalendarData.dates[i].start === date &&
+        (this.markExistingColors.includes(this.yearCalendarData.dates[i].color) ||
+          this.yearCalendarData.dates[i].color === this.NEW_DATE_COLOR)
+      ) {
         break;
       }
     }
     if (i < this.yearCalendarData.dates.length) {
       // Date was marked -> it will be removed
       this.adjustAddRemoveMap(date, false);
-      this.yearCalendarData.dates = this.yearCalendarData.dates.slice(0, i).concat(this.yearCalendarData.dates.slice(i + 1,
-        this.yearCalendarData.dates.length));
+      this.yearCalendarData.dates = this.yearCalendarData.dates
+        .slice(0, i)
+        .concat(this.yearCalendarData.dates.slice(i + 1, this.yearCalendarData.dates.length));
     } else {
       // Date was not marked -> it will be marked
       this.adjustAddRemoveMap(date, true);
-      this.yearCalendarData.dates = [...this.yearCalendarData.dates, {
-        id: date.getTime(), start: date, end: date,
-        color: this.originalDaysMark.has(date.getTime()) ? this.getExistingColor(date) : this.NEW_DATE_COLOR,
-        select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
-      }];
+      this.yearCalendarData.dates = [
+        ...this.yearCalendarData.dates,
+        {
+          id: date.getTime(),
+          start: date,
+          end: date,
+          color: this.originalDaysMark.has(date.getTime()) ? this.getExistingColor(date) : this.NEW_DATE_COLOR,
+          select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
+        }
+      ];
     }
   }
 
@@ -140,7 +149,7 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
 
   protected getMenuShowOptions(): MenuItem[] {
     const menuItems: MenuItem[] = [
-      {label: 'TRADING_CALENDAR_UNDERLINE', command: (e) => this.underline = !this.underline}
+      { label: 'TRADING_CALENDAR_UNDERLINE', command: (e) => (this.underline = !this.underline) }
     ];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
@@ -155,7 +164,9 @@ export abstract class CalendarNavigation implements IGlobalMenuAttach {
 
       this.originalDaysMark.add(date.getTime());
       this.yearCalendarData.dates.push({
-        id: i, start: date, end: date,
+        id: i,
+        start: date,
+        end: date,
         color: this.getExistingColor(date),
         select: (range: RangeSelectDays, ranges: RangeSelectDays[]) => this.onRangeSelect(range, ranges)
       });

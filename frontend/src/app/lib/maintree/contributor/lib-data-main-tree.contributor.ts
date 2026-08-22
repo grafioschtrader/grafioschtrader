@@ -1,8 +1,8 @@
-import {TreeNode} from '@openng/optimus-ui/api';
-import {TypeNodeData} from '../types/type.node.data';
-import {AppHelper} from '../../helper/app.helper';
-import {BaseSettings} from '../../base.settings';
-import {LibTreeNodeType} from '../types/lib.tree.node.type';
+import { TreeNode } from '@openng/optimus-ui/api';
+import { TypeNodeData } from '../types/type.node.data';
+import { AppHelper } from '../../helper/app.helper';
+import { BaseSettings } from '../../base.settings';
+import { LibTreeNodeType } from '../types/lib.tree.node.type';
 
 /**
  * Library contributor that provides factory methods for creating reusable tree nodes.
@@ -15,7 +15,6 @@ import {LibTreeNodeType} from '../types/lib.tree.node.type';
  * as a parameter, allowing the calling application to specify the appropriate type constant.
  */
 export class LibDataMainTreeContributor {
-
   /**
    * Creates the UDF Metadata General node without children.
    * This node provides access to user-defined field metadata configuration.

@@ -1,18 +1,17 @@
-import {TableConfigBase} from '../../lib/datashowbase/table.config.base';
-import {Directive, EventEmitter, Injector, Input, Output} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {UserSettingsService} from '../../lib/services/user.settings.service';
+import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
+import { Directive, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { UserSettingsService } from '../../lib/services/user.settings.service';
 import moment from 'moment';
-import {InfoLevelType} from '../../lib/message/info.leve.type';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {Security} from '../../entities/security';
-import {plainToInstance} from 'class-transformer';
-import {DeleteCreateMultiple} from '../../securitycurrency/service/delete.create.multiple';
-import {ClassConstructor} from 'class-transformer/types/interfaces';
-import {FilterService} from '@openng/optimus-ui/api';
-import {BaseSettings} from '../../lib/base.settings';
-
+import { InfoLevelType } from '../../lib/message/info.leve.type';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { Security } from '../../entities/security';
+import { plainToInstance } from 'class-transformer';
+import { DeleteCreateMultiple } from '../../securitycurrency/service/delete.create.multiple';
+import { ClassConstructor } from 'class-transformer/types/interfaces';
+import { FilterService } from '@openng/optimus-ui/api';
+import { BaseSettings } from '../../lib/base.settings';
 
 @Directive()
 export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
@@ -24,7 +23,8 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
   dataChanged = false;
   _dataList: T[] = [];
 
-  protected constructor(public dataSortKey: string,
+  protected constructor(
+    public dataSortKey: string,
     public maxRowMessageKey: string,
     private classz: ClassConstructor<T>,
     private messageToastService: MessageToastService,
@@ -33,9 +33,10 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
     usersettingsService: UserSettingsService,
     translateService: TranslateService,
     gps: GlobalparameterService,
-    injector: Injector) {
+    injector: Injector
+  ) {
     super(filterService, usersettingsService, translateService, gps, injector);
-    this.multiSortMeta.push({field: dataSortKey, order: 1});
+    this.multiSortMeta.push({ field: dataSortKey, order: 1 });
   }
 
   get dataList(): T[] {
@@ -50,18 +51,23 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
 
   public addDataRow(rowData: T): void {
     const dateStr = moment(rowData[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
-    const replacePos = this._dataList.findIndex(ss => ss[this.dataSortKey] === dateStr ||
-      moment(ss[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) === dateStr);
+    const replacePos = this._dataList.findIndex(
+      (ss) =>
+        ss[this.dataSortKey] === dateStr ||
+        moment(ss[this.dataSortKey]).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) === dateStr
+    );
 
     if (replacePos === -1) {
       if (this._dataList.length < this.maxRows) {
         this._dataList = [...this._dataList, rowData];
       } else {
-        this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'SECURITY_SPLITS_MAX_REACHED', {maxSplits: this.maxRows});
+        this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'SECURITY_SPLITS_MAX_REACHED', {
+          maxSplits: this.maxRows
+        });
         return;
       }
     } else {
-      this._dataList = Object.assign([], this._dataList, {[replacePos]: rowData});
+      this._dataList = Object.assign([], this._dataList, { [replacePos]: rowData });
     }
 
     this.dataChanged = true;
@@ -79,19 +85,23 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
     this.editData.emit(this.selectedRow);
   }
 
-  createEntity(type: new() => T, item?: any): T {
+  createEntity(type: new () => T, item?: any): T {
     return new type();
   }
 
   save(security: Security, noteRequest: string): void {
     if (this.dataChanged) {
-      const securitySplitsCleaned = plainToInstance(this.classz, this._dataList, <any>{excludeExtraneousValues: true});
-      this.deleteCreateMultipleService.deleteAndCreateMultiple(security.idSecuritycurrency, securitySplitsCleaned, noteRequest).subscribe(
-        savedEntity => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {i18nRecord: 'SECURITY_SPLITS'});
+      const securitySplitsCleaned = plainToInstance(this.classz, this._dataList, <any>{
+        excludeExtraneousValues: true
+      });
+      this.deleteCreateMultipleService
+        .deleteAndCreateMultiple(security.idSecuritycurrency, securitySplitsCleaned, noteRequest)
+        .subscribe((savedEntity) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
+            i18nRecord: 'SECURITY_SPLITS'
+          });
           this.savedData.emit(new SaveSecuritySuccess(security, true));
-        }
-      );
+        });
     } else {
       this.savedData.emit(new SaveSecuritySuccess(security, true));
     }
@@ -100,6 +110,8 @@ export abstract class SplitPeriodTableBase<T> extends TableConfigBase {
 }
 
 export class SaveSecuritySuccess {
-  constructor(public security: Security, public success: boolean) {
-  }
+  constructor(
+    public security: Security,
+    public success: boolean
+  ) {}
 }

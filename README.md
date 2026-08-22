@@ -1,5 +1,8 @@
+## Update to Angular 22
+With GT version 0.36.7.2 the front end has switched to **Angular 22** from **Angular 21**. Angular 22 no longer runs on Node.js 20, it requires **Node.js ^22.22.3, ^24.15.0 or >=26.0.0**. A classic installation therefore has to raise its [Node.js installation](//github.com/grafioschtrader/grafioschtrader/wiki/Installation-on-Debian-10-to-13-based-Linux) before the next update; a Docker installation is not affected, because the front end is built inside the image.
+
 ## Update to Java 25
-With GT version 0.36.1 we have switched to **Java 25** from **Java 21**. Please adjust the configuration accordingly. **Angular 21** requires **Node.js ^20.19.0, ^22.12.0 or ^24.0.0**. In addition to the configuration of [Java 25](//github.com/grafioschtrader/grafioschtrader/wiki/Install-Java), the existing [Maven Installation](//github.com/grafioschtrader/grafioschtrader/wiki/Installing-the-Latest-Release-of-Apache-Maven) may also need to be adapted.
+With GT version 0.36.1 we have switched to **Java 25** from **Java 21**. Please adjust the configuration accordingly. In addition to the configuration of [Java 25](//github.com/grafioschtrader/grafioschtrader/wiki/Install-Java), the existing [Maven Installation](//github.com/grafioschtrader/grafioschtrader/wiki/Installing-the-Latest-Release-of-Apache-Maven) may also need to be adapted.
 
 ## Preface
 - **Unless otherwise described, GT will only get a new version if the new features require an update of the database. It is the goal that the master branch always contains the most reliable and feature rich source code.** 

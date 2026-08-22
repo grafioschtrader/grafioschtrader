@@ -1,66 +1,80 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {TranslatePipe, TranslateService} from '@ngx-translate/core';
-import {MenuItem, TreeNode} from '@openng/optimus-ui/api';
-import {TreeTableConfigBase} from '../../lib/datashowbase/tree.table.config.base';
-import {GlobalparameterService} from '../../lib/services/globalparameter.service';
-import {IGlobalMenuAttach} from '../../lib/mainmenubar/component/iglobal.menu.attach';
-import {ActivePanelService} from '../../lib/mainmenubar/service/active.panel.service';
-import {HelpIds} from '../../lib/help/help.ids';
-import {DataType} from '../../lib/dynamic-form/models/data.type';
-import {TranslateValue} from '../../lib/datashowbase/column.config';
-import {TranslateHelper} from '../../lib/helper/translate.helper';
-import {AuditHelper} from '../../lib/helper/audit.helper';
-import {SecurityActionService} from '../service/security-action.service';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
+import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
+import { HelpIds } from '../../lib/help/help.ids';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { TranslateValue } from '../../lib/datashowbase/column.config';
+import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { SecurityActionService } from '../service/security-action.service';
 import {
   SecurityAction,
   SecurityActionApplication,
   SecurityActionTreeData,
   SecurityTransfer
 } from '../model/security-action.model';
-import {NgClass} from '@angular/common';
-import {Panel} from '@openng/optimus-ui/panel';
-import {SharedModule} from '@openng/optimus-ui/api';
-import {ConfigurableTreeTableComponent} from '../../lib/datashowbase/configurable-tree-table.component';
-import {BaseSettings} from '../../lib/base.settings';
-import {MessageToastService} from '../../lib/message/message.toast.service';
-import {SecurityActionCreateComponent} from './security-action-create.component';
-import {ProcessedActionData} from '../../lib/types/processed.action.data';
-import {ProcessedAction} from '../../lib/types/processed.action';
+import { NgClass } from '@angular/common';
+import { Panel } from '@openng/optimus-ui/panel';
+import { SharedModule } from '@openng/optimus-ui/api';
+import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
+import { BaseSettings } from '../../lib/base.settings';
+import { MessageToastService } from '../../lib/message/message.toast.service';
+import { SecurityActionCreateComponent } from './security-action-create.component';
+import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { ProcessedAction } from '../../lib/types/processed.action';
 
 enum NodeLevel {
-  SYSTEM_ROOT, SYSTEM_ACTION, CLIENT_ROOT, CLIENT_TRANSFER, CLIENT_ISIN_CHANGE
+  SYSTEM_ROOT,
+  SYSTEM_ACTION,
+  CLIENT_ROOT,
+  CLIENT_TRANSFER,
+  CLIENT_ISIN_CHANGE
 }
 
 @Component({
   template: `
-    <div class="data-container" (click)="onComponentClick($event)"
-         [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}">
+    <div
+      class="data-container"
+      (click)="onComponentClick($event)"
+      [ngClass]="{
+        'active-border': isActivated(),
+        'passiv-border': !isActivated()
+      }">
       <p-panel>
         <p-header>
           <h4>{{ 'SECURITY_ACTION' | translate }}</h4>
         </p-header>
       </p-panel>
       <configurable-tree-table
-        [data]="treeNodes" [fields]="fields" dataKey="nodeKey"
+        [data]="treeNodes"
+        [fields]="fields"
+        dataKey="nodeKey"
         sortField="name"
-        [(selection)]="selectedNodes" (nodeSelect)="onNodeSelect($event)"
+        [(selection)]="selectedNodes"
+        (nodeSelect)="onNodeSelect($event)"
         (nodeUnselect)="onNodeUnselect($event)"
-        [contextMenuItems]="contextMenuItems" [showContextMenu]="!!contextMenuItems"
+        [contextMenuItems]="contextMenuItems"
+        [showContextMenu]="!!contextMenuItems"
         [valueGetterFn]="getValueByPath.bind(this)">
       </configurable-tree-table>
       @if (visibleCreateDialog) {
-        <security-action-create
-          [visibleDialog]="visibleCreateDialog"
-          (closeDialog)="handleCloseCreateDialog($event)">
+        <security-action-create [visibleDialog]="visibleCreateDialog" (closeDialog)="handleCloseCreateDialog($event)">
         </security-action-create>
       }
     </div>
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [NgClass, TranslatePipe, Panel, SharedModule, ConfigurableTreeTableComponent, SecurityActionCreateComponent]
 })
-export class SecurityActionTreetableComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
-
+export class SecurityActionTreetableComponent
+  extends TreeTableConfigBase
+  implements OnInit, OnDestroy, IGlobalMenuAttach
+{
   treeNodes: TreeNode[] = [];
   selectedNodes: TreeNode[] = [];
   contextMenuItems: MenuItem[];
@@ -70,24 +84,41 @@ export class SecurityActionTreetableComponent extends TreeTableConfigBase implem
   private selectedNode: TreeNode;
   private treeData: SecurityActionTreeData;
 
-  constructor(private securityActionService: SecurityActionService,
-              private activePanelService: ActivePanelService,
-              private messageToastService: MessageToastService,
-              translateService: TranslateService,
-              gps: GlobalparameterService) {
+  constructor(
+    private securityActionService: SecurityActionService,
+    private activePanelService: ActivePanelService,
+    private messageToastService: MessageToastService,
+    translateService: TranslateService,
+    gps: GlobalparameterService
+  ) {
     super(translateService, gps);
     this.isAdmin = AuditHelper.hasAdminRole(gps);
-    this.addColumnFeqH(DataType.String, 'name', true, false, {width: 250});
-    this.addColumnFeqH(DataType.String, 'isinOld', true, false, {width: 120});
-    this.addColumnFeqH(DataType.String, 'isinNew', true, false, {width: 120});
-    this.addColumnFeqH(DataType.DateString, 'actionDate', true, false, {width: 120});
-    this.addColumnFeqH(DataType.NumericInteger, 'fromFactor', true, false, {width: 80});
-    this.addColumnFeqH(DataType.NumericInteger, 'toFactor', true, false, {width: 80});
-    this.addColumnFeqH(DataType.NumericInteger, 'affectedCount', true, false, {width: 80});
-    this.addColumnFeqH(DataType.NumericInteger, 'appliedCount', true, false, {width: 80});
-    this.addColumn(DataType.String, 'status', 'PROGRESS_STATE_TYPE', true, false, {width: 120, translateValues: TranslateValue.NORMAL});
-    this.addColumnFeqH(DataType.Numeric, 'units', true, false, {width: 100});
-    this.addColumnFeqH(DataType.Numeric, 'quotation', true, false, {width: 100});
+    this.addColumnFeqH(DataType.String, 'name', true, false, { width: 250 });
+    this.addColumnFeqH(DataType.String, 'isinOld', true, false, { width: 120 });
+    this.addColumnFeqH(DataType.String, 'isinNew', true, false, { width: 120 });
+    this.addColumnFeqH(DataType.DateString, 'actionDate', true, false, {
+      width: 120
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'fromFactor', true, false, {
+      width: 80
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'toFactor', true, false, {
+      width: 80
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'affectedCount', true, false, {
+      width: 80
+    });
+    this.addColumnFeqH(DataType.NumericInteger, 'appliedCount', true, false, {
+      width: 80
+    });
+    this.addColumn(DataType.String, 'status', 'PROGRESS_STATE_TYPE', true, false, {
+      width: 120,
+      translateValues: TranslateValue.NORMAL
+    });
+    this.addColumnFeqH(DataType.Numeric, 'units', true, false, { width: 100 });
+    this.addColumnFeqH(DataType.Numeric, 'quotation', true, false, {
+      width: 100
+    });
     this.translateHeadersAndColumns();
   }
 
@@ -103,11 +134,9 @@ export class SecurityActionTreetableComponent extends TreeTableConfigBase implem
     return this.activePanelService.isActivated(this);
   }
 
-  hideContextMenu(): void {
-  }
+  hideContextMenu(): void {}
 
-  callMeDeactivate(): void {
-  }
+  callMeDeactivate(): void {}
 
   getHelpContextId(): string {
     return HelpIds.HELP_BASEDATA_SECURITY_ACTION;
@@ -130,7 +159,7 @@ export class SecurityActionTreetableComponent extends TreeTableConfigBase implem
   private readData(): void {
     this.securityActionService.getTree().subscribe((data: SecurityActionTreeData) => {
       this.treeData = data;
-      this.translateService.get(['SYSTEM_ACTIONS', 'CLIENT_TRANSFERS']).subscribe(t => {
+      this.translateService.get(['SYSTEM_ACTIONS', 'CLIENT_TRANSFERS']).subscribe((t) => {
         this.treeNodes = this.buildTree(data, t);
         this.createTranslateValuesStoreForTranslation(this.treeNodes);
       });
@@ -144,7 +173,7 @@ export class SecurityActionTreetableComponent extends TreeTableConfigBase implem
         nodeLevel: NodeLevel.SYSTEM_ROOT,
         nodeKey: 'sys_root'
       },
-      children: (data.systemActions || []).map(action => {
+      children: (data.systemActions || []).map((action) => {
         const app = data.appliedByCurrentTenant[action.idSecurityAction];
         let status = '';
         if (app && !app.reversed) {
@@ -156,7 +185,7 @@ export class SecurityActionTreetableComponent extends TreeTableConfigBase implem
         }
         return {
           data: {
-            name: (action.securityOld?.name || action.isinOld),
+            name: action.securityOld?.name || action.isinOld,
             isinOld: action.isinOld,
             isinNew: action.isinNew,
             actionDate: action.actionDate,
@@ -176,7 +205,7 @@ export class SecurityActionTreetableComponent extends TreeTableConfigBase implem
       expanded: true
     };
 
-    const transferNodes = (data.clientTransfers || []).map(transfer => ({
+    const transferNodes = (data.clientTransfers || []).map((transfer) => ({
       data: {
         name: transfer.security?.name || '',
         actionDate: transfer.transferDate,
@@ -191,8 +220,8 @@ export class SecurityActionTreetableComponent extends TreeTableConfigBase implem
     }));
 
     const appliedIsinChanges = Object.values(data.appliedByCurrentTenant || {})
-      .filter(app => !app.reversed)
-      .map(app => {
+      .filter((app) => !app.reversed)
+      .map((app) => {
         const action = app.securityAction;
         return {
           data: {

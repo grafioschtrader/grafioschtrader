@@ -6,7 +6,8 @@ import {
   Input,
   OnDestroy,
   Output,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import * as yaml from 'js-yaml';
 
@@ -21,13 +22,14 @@ import * as yaml from 'js-yaml';
 @Component({
   selector: 'yaml-editor',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div #editorContainer [style.height]="height" style="border: 1px solid #dee2e6; border-radius: 4px;"></div>
   `
 })
 export class YamlEditorComponent implements AfterViewInit, OnDestroy {
-
-  @ViewChild('editorContainer', {static: true}) editorContainer: ElementRef<HTMLDivElement>;
+  @ViewChild('editorContainer', { static: true })
+  editorContainer: ElementRef<HTMLDivElement>;
 
   @Input() height = '500px';
 
@@ -106,7 +108,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
   private static requireMonaco(resolve: (m: any) => void): void {
     const req = (window as any).require;
     const basePath = new URL('.', document.baseURI).toString();
-    req.config({paths: {vs: basePath + 'vs'}});
+    req.config({ paths: { vs: basePath + 'vs' } });
     req(['vs/editor/editor.main'], (monaco: any) => {
       (window as any).monaco = monaco;
       resolve(monaco);
@@ -118,7 +120,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
       value: this._value,
       language: 'yaml',
       theme: 'vs',
-      minimap: {enabled: false},
+      minimap: { enabled: false },
       wordWrap: 'on',
       lineNumbers: 'on',
       scrollBeyondLastLine: false,
@@ -128,8 +130,8 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
       renderWhitespace: 'selection',
       folding: true,
       foldingStrategy: 'indentation',
-      suggest: {showWords: false},
-      quickSuggestions: {other: true, comments: false, strings: true}
+      suggest: { showWords: false },
+      quickSuggestions: { other: true, comments: false, strings: true }
     });
 
     this.editor.onDidChangeModelContent(() => {
@@ -189,7 +191,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     this.completionDisposable = monaco.languages.registerCompletionItemProvider('yaml', {
       triggerCharacters: ['\n', ' ', ':'],
       provideCompletionItems: (model: any, position: any) => {
-        if (model !== editorModel) return {suggestions: []};
+        if (model !== editorModel) return { suggestions: [] };
         const suggestions: any[] = [];
         const lineContent = model.getLineContent(position.lineNumber);
         const indent = lineContent.search(/\S|$/);
@@ -202,8 +204,9 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
         };
 
         // Schema-based property suggestions (checked at invocation time, not registration)
-        const properties = this.schema?.$defs ? this.getEffectiveProperties(
-          this.findSchemaContext(model, position.lineNumber, indent)) : null;
+        const properties = this.schema?.$defs
+          ? this.getEffectiveProperties(this.findSchemaContext(model, position.lineNumber, indent))
+          : null;
 
         if (properties) {
           for (const [key, prop] of Object.entries<any>(properties)) {
@@ -251,7 +254,9 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
                   label: c.label,
                   kind: monaco.languages.CompletionItemKind[kindKey] ?? monaco.languages.CompletionItemKind.Variable,
                   insertText: c.insertText,
-                  insertTextRules: c.isSnippet ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet : undefined,
+                  insertTextRules: c.isSnippet
+                    ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    : undefined,
                   detail: c.detail,
                   documentation: c.documentation,
                   range
@@ -261,7 +266,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
           }
         }
 
-        return {suggestions};
+        return { suggestions };
       }
     });
   }
@@ -355,7 +360,8 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     }
     if (prop.enum) return `enum: [${prop.enum.join(', ')}]`;
     if (prop.type === 'array') return 'array';
-    if (prop.type) return Array.isArray(prop.type) ? prop.type.filter((t: string) => t !== 'null').join(' | ') : prop.type;
+    if (prop.type)
+      return Array.isArray(prop.type) ? prop.type.filter((t: string) => t !== 'null').join(' | ') : prop.type;
     return '';
   }
 
@@ -405,22 +411,23 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
 
         const contents = [];
         if (detail) {
-          contents.push({value: '```\n' + key + ': ' + detail + '\n```'});
+          contents.push({ value: '```\n' + key + ': ' + detail + '\n```' });
         }
         if (description) {
-          contents.push({value: description});
+          contents.push({ value: description });
         }
         if (resolved?.enum) {
-          contents.push({value: 'Values: `' + resolved.enum.join('` | `') + '`'});
+          contents.push({
+            value: 'Values: `' + resolved.enum.join('` | `') + '`'
+          });
         }
 
-        return contents.length > 0 ? {
-          range: new monaco.Range(
-            position.lineNumber, word.startColumn,
-            position.lineNumber, word.endColumn
-          ),
-          contents
-        } : null;
+        return contents.length > 0
+          ? {
+              range: new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn),
+              contents
+            }
+          : null;
       }
     });
   }
