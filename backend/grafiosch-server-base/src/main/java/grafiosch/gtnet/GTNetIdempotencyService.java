@@ -1,7 +1,5 @@
 package grafiosch.gtnet;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -106,7 +104,7 @@ public class GTNetIdempotencyService {
     boolean awaitingDecision = originalDescriptor != null && originalDescriptor.category() == MessageCategory.REQUEST;
     GTNetMessageCode answerCode = awaitingDecision ? GNetCoreMessageCode.GT_NET_DEFERRED_S
         : GNetCoreMessageCode.GT_NET_ACK_S;
-    GTNetMessage answer = new GTNetMessage(previousRow.getIdGtNet(), LocalDateTime.now(ZoneOffset.UTC),
+    GTNetMessage answer = new GTNetMessage(previousRow.getIdGtNet(), GTNetTime.now(),
         SendReceivedType.ANSWER.getValue(), null, answerCode.getValue(),
         awaitingDecision ? "Already received, still awaiting a decision" : "Already received", null);
     answer.setErrorMsgCode(DUPLICATE_DELIVERY);

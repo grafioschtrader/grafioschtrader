@@ -68,6 +68,7 @@ import grafiosch.gtnet.GTNetRequestBudgetService;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import grafiosch.gtnet.GTNetServerStateTypes;
 import grafiosch.gtnet.GTNetStatusCheckService;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.GTNetTokenRotationService;
 import grafiosch.gtnet.IExchangeKindType;
@@ -536,7 +537,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     // Create ONE message under sender's own entry (not per target)
-    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), LocalDateTime.now(),
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), GTNetTime.now(),
         SendReceivedType.SEND.getValue(), msgRequest.replyTo, messageCode.getValue(), msgRequest.message,
         msgRequest.gtNetMessageParamMap);
 
@@ -580,7 +581,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * broadcast messages in their own server's message list.
    */
   private void saveBroadcastToOwnEntry(GTNet sourceGTNet, MsgRequest msgRequest, GTNetMessageCode messageCode) {
-    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), LocalDateTime.now(),
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), GTNetTime.now(),
         SendReceivedType.SEND.getValue(), null, messageCode.getValue(), msgRequest.message,
         msgRequest.gtNetMessageParamMap);
     // Set visibility from request (for admin messages)
@@ -732,7 +733,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     for (GTNet targetGTNet : gtNetList) {
-      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(),
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), GTNetTime.now(),
           SendReceivedType.SEND.getValue(), msgRequest.replyTo, messageCode.getValue(), msgRequest.message,
           msgRequest.gtNetMessageParamMap);
       // Set visibility from request (for admin messages)
@@ -840,7 +841,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
     gtNetConfig.setTokenRemote(responseMsgData.tokenThis);
     gtNetConfig.setTokenThis(ourRequestData.tokenThis);
-    gtNetConfig.setHandshakeTimestamp(LocalDateTime.now());
+    gtNetConfig.setHandshakeTimestamp(GTNetTime.now());
     gtNetConfigJpaRepository.save(gtNetConfig);
     targetGTNet.setGtNetConfig(gtNetConfig);
 
@@ -1101,7 +1102,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     for (GTNet targetGTNet : gtNetList) {
-      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(),
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), GTNetTime.now(),
           SendReceivedType.SEND.getValue(), msgRequest.replyTo, messageCode.getValue(), msgRequest.message,
           msgRequest.gtNetMessageParamMap);
       // Set waitDaysApply if provided by admin
@@ -1289,8 +1290,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       String tokenForRemote = DataHelper.generateGUID();
       Map<String, GTNetMessageParam> msgMap = convertPojoToMap(new FirstHandshakeMsg(tokenForRemote));
       GTNetMessage gtNetMessageRequest = gtNetMessageJpaRepository
-          .saveMsg(new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
-              null, GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(), null, msgMap));
+          .saveMsg(new GTNetMessage(targetGTNet.getIdGtNet(), GTNetTime.now(), SendReceivedType.SEND.getValue(), null,
+              GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(), null, msgMap));
       // Send what we publish about ourselves, not our entity: the receiver builds its row from these fields, and the
       // entity carries local state such as allowServerCreation that a peer has no business seeing or setting.
       SendResult sendResult = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessageRequest,
@@ -1617,7 +1618,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     var coolingOffPeriod = coolingOffService.findActive(remoteGTNet, me.messageCode);
     if (coolingOffPeriod.isPresent()) {
       var period = coolingOffPeriod.get();
-      GTNetMessage refusal = new GTNetMessage(remoteGTNet.getIdGtNet(), LocalDateTime.now(ZoneOffset.UTC),
+      GTNetMessage refusal = new GTNetMessage(remoteGTNet.getIdGtNet(), GTNetTime.now(),
           SendReceivedType.ANSWER.getValue(), null, period.responseCode().getValue(),
           "Cooling-off period active: " + period.remainingDays() + " day(s) remaining", null);
       refusal.setErrorMsgCode("COOLING_OFF_ACTIVE");
@@ -1628,7 +1629,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // auto-answer rule reading dailyCount sees the request it is deciding about. A repeat of a delivery already
     // charged is not charged again, whether it is replayed or re-run.
     if (!duplicateDelivery && !requestBudgetService.chargeIncoming(remoteGTNet, myGTNet, me.messageCode)) {
-      GTNetMessage refusal = new GTNetMessage(remoteGTNet.getIdGtNet(), LocalDateTime.now(ZoneOffset.UTC),
+      GTNetMessage refusal = new GTNetMessage(remoteGTNet.getIdGtNet(), GTNetTime.now(),
           SendReceivedType.ANSWER.getValue(), null,
           GNetCoreMessageCode.GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S.getValue(),
           "Daily request limit of " + myGTNet.getDailyRequestLimit() + " reached", null);
@@ -1803,7 +1804,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @return the error envelope
    */
   private MessageEnvelope buildErrorResponse(GTNet myGTNet, String errorCode, String message) {
-    GTNetMessage errorMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
+    GTNetMessage errorMsg = new GTNetMessage(null, GTNetTime.now(), SendReceivedType.ANSWER.getValue(), null,
         GNetCoreMessageCode.GT_NET_ERROR_S.getValue(), message, null);
     errorMsg.setErrorMsgCode(errorCode);
     return new MessageEnvelope(myGTNet, errorMsg);
@@ -1817,7 +1818,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @return the acknowledgement envelope
    */
   private MessageEnvelope buildAckResponse(GTNet myGTNet) {
-    GTNetMessage ackMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
+    GTNetMessage ackMsg = new GTNetMessage(null, GTNetTime.now(), SendReceivedType.ANSWER.getValue(), null,
         GNetCoreMessageCode.GT_NET_ACK_S.getValue(), null, null);
     return new MessageEnvelope(myGTNet, ackMsg);
   }
@@ -1831,7 +1832,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @return the deferred-acknowledgement envelope
    */
   private MessageEnvelope buildDeferredResponse(GTNet myGTNet) {
-    GTNetMessage deferredMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
+    GTNetMessage deferredMsg = new GTNetMessage(null, GTNetTime.now(), SendReceivedType.ANSWER.getValue(), null,
         GNetCoreMessageCode.GT_NET_DEFERRED_S.getValue(), null, null);
     return new MessageEnvelope(myGTNet, deferredMsg);
   }
@@ -1888,7 +1889,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // A peer whose token refresh response was lost still holds the token we replaced. Accepting it for the bounded
     // overlap window is what lets that peer reach us at all, so that a retry can complete the rotation. The peer is
     // named by its id rather than by the caller-supplied domain, which must not be echoed into the log.
-    if (gtNetConfig.isPreviousTokenValid(LocalDateTime.now(ZoneOffset.UTC))
+    if (gtNetConfig.isPreviousTokenValid(GTNetTime.now())
         && tokenMatches(gtNetConfig.getTokenThisPrevious(), authToken)) {
       log.warn("Peer {} authenticated with the superseded token; its token refresh has not completed",
           remoteGTNet.getIdGtNet());
@@ -1983,7 +1984,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // Single target: send synchronously (no background job)
     if (validTargets.size() == 1) {
       GTNet targetGTNet = validTargets.get(0);
-      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(),
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), GTNetTime.now(),
           SendReceivedType.SEND.getValue(), null, GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
           multiTargetMsgRequest.message, multiTargetMsgRequest.gtNetMessageParamMap);
       applyVisibility(gtNetMessage, multiTargetMsgRequest.visibility);
@@ -1999,7 +2000,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       // Multiple targets: use background job for delivery
       int messagesCreated = 0;
       for (GTNet targetGTNet : validTargets) {
-        GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(),
+        GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), GTNetTime.now(),
             SendReceivedType.SEND.getValue(), null, GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
             multiTargetMsgRequest.message, multiTargetMsgRequest.gtNetMessageParamMap);
         applyVisibility(gtNetMessage, multiTargetMsgRequest.visibility);

@@ -1,8 +1,5 @@
 package grafiosch.m2m.rest;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -10,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 
 /**
@@ -43,7 +41,7 @@ public class GTNetM2MExceptionAdvice {
   public ResponseEntity<MessageEnvelope> onUnreadableBody(HttpMessageNotReadableException ex) {
     boolean tooLarge = hasBodyTooLargeCause(ex);
     MessageEnvelope error = new MessageEnvelope();
-    error.timestamp = LocalDateTime.now(ZoneOffset.UTC);
+    error.timestamp = GTNetTime.now();
     error.messageCode = GNetCoreMessageCode.GT_NET_ERROR_S.getValue();
     error.errorMsgCode = tooLarge ? "PAYLOAD_TOO_LARGE" : "ENVELOPE_INVALID";
     error.message = tooLarge ? "The message body exceeds the accepted size" : "The message body could not be read";

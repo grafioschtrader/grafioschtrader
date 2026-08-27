@@ -1,8 +1,6 @@
 package grafiosch.gtnet;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -20,12 +18,11 @@ import tools.jackson.databind.ObjectMapper;
  * The bounds of an inbound envelope that Bean Validation cannot express.
  *
  * <p>
- * Field-level lengths and the presence of the mandatory fields are declared on {@link MessageEnvelope} itself and are
- * enforced by the {@code @Valid} of the M2M endpoint. What is left over needs the request as a whole or a registry
- * lookup: how many parameters it carries, how large the serialized payload is, how far its timestamp lies from our
- * clock, and whether the correlation fields match the category of the code. All of it is checked before status
- * synchronization, budget charging and persistence, so a violation is a protocol rejection rather than an HTTP 500 out
- * of the persistence layer.
+ * Field-level lengths are declared on {@link MessageEnvelope} itself, but the enforcement lives here: how many
+ * parameters the envelope carries, how large the serialized payload is, how far its timestamp lies from our clock,
+ * whether the correlation fields match the category of the code, and which fields are mandatory for that code at all.
+ * All of it is checked before status synchronization, budget charging and persistence, so a violation is a protocol
+ * rejection rather than an HTTP 500 out of the persistence layer.
  * </p>
  */
 @Component
@@ -88,8 +85,9 @@ public class GTNetEnvelopeValidator {
    *         acceptable
    */
   public Optional<EnvelopeViolation> validate(MessageEnvelope me, GTNet remoteGTNet) {
-    return firstOf(checkFields(me), checkParams(me.gtNetMessageParamMap), checkPayloadSize(me), checkClockSkew(me),
-        checkCorrelation(me, remoteGTNet));
+    GTNetProtocolDescriptor descriptor = messageCodeRegistry.getDescriptor(me.messageCode);
+    return firstOf(checkFields(me, descriptor), checkParams(me.gtNetMessageParamMap), checkPayloadSize(me),
+        checkClockSkew(me), checkCorrelation(me, descriptor, remoteGTNet));
   }
 
   /**
@@ -98,15 +96,22 @@ public class GTNetEnvelopeValidator {
    * {@code BaseDataClient} turns every non-2xx into a result whose response envelope is null, so the sender would lose
    * the {@code errorMsgCode} entirely. Enforcing here keeps every refusal the same shape — HTTP 200 with
    * {@link GNetCoreMessageCode#GT_NET_ERROR_S}.
+   *
+   * <p>
+   * The sender-local id is demanded only from a code whose sender keeps a message row for it. The ping and the payload
+   * exchanges are built by a service and answered in the same HTTP response; they have no row to name, which is why
+   * {@link GTNetIdempotencyService#findPreviousDelivery} and {@code AbstractGTNetMessageHandler.findPreviousDelivery}
+   * treat a null id as an ordinary state rather than an error.
+   * </p>
    */
-  private Optional<EnvelopeViolation> checkFields(MessageEnvelope me) {
+  private Optional<EnvelopeViolation> checkFields(MessageEnvelope me, GTNetProtocolDescriptor descriptor) {
     if (me.sourceDomain == null || me.sourceDomain.isBlank() || me.sourceDomain.length() > MAX_DOMAIN_LENGTH) {
       return violation("ENVELOPE_INVALID", "Envelope names no usable source domain");
     }
     if (me.timestamp == null) {
       return violation("ENVELOPE_INVALID", "Envelope carries no timestamp");
     }
-    if (me.idSourceGtNetMessage == null) {
+    if (me.idSourceGtNetMessage == null && (descriptor == null || descriptor.senderPersists())) {
       return violation("ENVELOPE_INVALID", "Envelope carries no sender-local message id");
     }
     if (me.message != null && me.message.length() > MAX_MESSAGE_LENGTH) {
@@ -156,7 +161,7 @@ public class GTNetEnvelopeValidator {
     if (me.timestamp == null) {
       return Optional.empty();
     }
-    long minutes = Duration.between(me.timestamp, LocalDateTime.now(ZoneOffset.UTC)).toMinutes();
+    long minutes = Duration.between(me.timestamp, GTNetTime.now()).toMinutes();
     int tolerance = protocolLimits.getMaxClockSkewMinutes();
     if (minutes < -tolerance) {
       return violation("CLOCK_SKEW_EXCEEDED",
@@ -181,8 +186,8 @@ public class GTNetEnvelopeValidator {
    * foreign key, so an unchecked value would let one peer thread its message under another peer's conversation.
    * </p>
    */
-  private Optional<EnvelopeViolation> checkCorrelation(MessageEnvelope me, GTNet remoteGTNet) {
-    GTNetProtocolDescriptor descriptor = messageCodeRegistry.getDescriptor(me.messageCode);
+  private Optional<EnvelopeViolation> checkCorrelation(MessageEnvelope me, GTNetProtocolDescriptor descriptor,
+      GTNet remoteGTNet) {
     boolean isResponse = descriptor != null && descriptor.category() == MessageCategory.RESPONSE;
     if (isResponse && me.replyToSourceId == null) {
       return violation("ENVELOPE_INVALID", "A response must name the request it answers");

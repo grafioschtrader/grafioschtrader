@@ -2,8 +2,8 @@ package grafioschtrader.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +15,9 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.gtnet.GTNetRequestBudgetService;
+import grafiosch.gtnet.GTNetResponseResult;
+import grafiosch.gtnet.GTNetResponseValidator;
 import grafiosch.gtnet.GTNetTimeoutHelper;
-import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
@@ -32,8 +33,6 @@ import grafioschtrader.entities.GTNetSupplierDetailLast;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafiosch.gtnet.GTNetResponseResult;
-import grafiosch.gtnet.GTNetResponseValidator;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg.ExchangeSyncItem;
@@ -140,13 +139,8 @@ public class GTNetExchangeSyncService {
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found"));
 
     // Build and send request
-    MessageEnvelope requestEnvelope = new MessageEnvelope();
-    requestEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
-    requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-    requestEnvelope.serverBusy = myGTNet.isServerBusy();
-    requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C.getValue();
-    requestEnvelope.timestamp = LocalDateTime.now();
-    requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
+    MessageEnvelope requestEnvelope = MessageEnvelope.forExchange(myGTNet,
+        GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C.getValue(), objectMapper.valueToTree(requestPayload));
 
     log.debug("Sending exchange sync to {} with {} items (fullRecreation={})", peer.getDomainRemoteName(),
         itemsToSend.size(), fullRecreation);

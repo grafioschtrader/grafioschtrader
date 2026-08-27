@@ -1,10 +1,9 @@
 package grafiosch.m2m;
 
-import java.time.LocalDateTime;
-
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.SendReceivedType;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
@@ -36,6 +35,25 @@ public abstract class GTNetMessageHelper {
   }
 
   /**
+   * Builds the envelope of a liveness ping.
+   *
+   * <p>
+   * The ping message is never persisted, so the envelope names no sender-local message. That is why {@code GT_NET_PING}
+   * declares itself a transient send in the protocol registry — a receiver that demanded the id would refuse every ping
+   * as an invalid envelope. Separate from the send so that the envelope the receiver actually gets can be validated in
+   * a test without a peer.
+   * </p>
+   *
+   * @param sourceGTNet the local GTNet entry, which supplies the domain and the busy flag
+   * @return the envelope to post to the peer
+   */
+  public static MessageEnvelope buildPingEnvelope(GTNet sourceGTNet) {
+    GTNetMessage gtNetMessagePing = new GTNetMessage(null, GTNetTime.now(), SendReceivedType.SEND.getValue(), null,
+        GNetCoreMessageCode.GT_NET_PING.getValue(), null, null);
+    return new MessageEnvelope(sourceGTNet, gtNetMessagePing);
+  }
+
+  /**
    * Sends a ping message to a remote GTNet server and returns the status result.
    *
    * This method is used by the GTNetServerStatusCheckTask to check the reachability and busy status of remote peers
@@ -48,10 +66,7 @@ public abstract class GTNetMessageHelper {
    */
   public static SendResult sendPingWithStatus(BaseDataClient baseDataClient, GTNet sourceGTNet, GTNet targetGTNet,
       GlobalparametersJpaRepository globalparametersJpaRepository) {
-    GTNetMessage gtNetMessagePing = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.SEND.getValue(), null,
-        GNetCoreMessageCode.GT_NET_PING.getValue(), null, null);
-
-    MessageEnvelope meRequest = new MessageEnvelope(sourceGTNet, gtNetMessagePing);
+    MessageEnvelope meRequest = buildPingEnvelope(sourceGTNet);
 
     String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
     return baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest,

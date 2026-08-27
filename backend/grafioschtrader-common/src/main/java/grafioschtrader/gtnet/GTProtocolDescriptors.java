@@ -19,6 +19,11 @@ import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
  * </p>
  *
  * <p>
+ * Every one of them is a {@code transientSend()}: the sending service builds the envelope itself and writes no
+ * {@code gt_net_message} row, so the envelope names no sender-local message and the receiver must not demand one.
+ * </p>
+ *
+ * <p>
  * The list is static so that a test can build the whole protocol without a Spring context; {@code GTStartUp} registers
  * it into the shared registry at start-up.
  * </p>
@@ -40,63 +45,65 @@ public abstract class GTProtocolDescriptors {
 
         // Lastprice exchange (60-64). Reading prices changes nothing on this side, so a redelivery of the query is
         // simply answered again; the push does write and is therefore replayed from its stored outcome.
-        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C).reprocessable()
+        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C).transientSend()
+            .reprocessable()
             .responses(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S,
                 GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S)
             .build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S).systemOnlyAnswer()
-            .build(),
-        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C)
-            .responses(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S).build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S).inboundDispatch()
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S).transientSend()
             .systemOnlyAnswer().build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S).systemOnlyAnswer()
-            .build(),
+        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C).transientSend()
+            .responses(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S).build(),
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S).transientSend()
+            .inboundDispatch().systemOnlyAnswer().build(),
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S).transientSend()
+            .systemOnlyAnswer().build(),
 
         // Exchange configuration sync (70-71). The only application request that stays open until its answer arrives.
-        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C).requiresResponse()
-            .reprocessable().responses(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S).build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S).systemOnlyAnswer()
-            .build(),
+        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C).transientSend()
+            .requiresResponse().reprocessable().responses(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S).build(),
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S).transientSend()
+            .systemOnlyAnswer().build(),
 
         // Historyquote exchange (80-86).
-        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C).reprocessable()
+        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C).transientSend()
+            .reprocessable()
             .responses(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S,
                 GTNetMessageCodeType.GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S)
             .build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S)
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S).transientSend()
             .systemOnlyAnswer().build(),
-        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C)
+        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C).transientSend()
             .responses(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_ACK_S).build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_ACK_S).inboundDispatch()
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_ACK_S).transientSend()
+            .inboundDispatch().systemOnlyAnswer().build(),
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S).transientSend()
             .systemOnlyAnswer().build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S)
-            .systemOnlyAnswer().build(),
-        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_SEL_C).reprocessable()
-            .internalModel(HistoryquoteCoverageQueryMsg.class)
+        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_SEL_C).transientSend()
+            .reprocessable().internalModel(HistoryquoteCoverageQueryMsg.class)
             .responses(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_RESPONSE_S,
                 GTNetMessageCodeType.GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S)
             .build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_RESPONSE_S)
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_RESPONSE_S).transientSend()
             .internalModel(HistoryquoteCoverageResponseMsg.class).systemOnlyAnswer().build(),
 
         // Security metadata lookup (90-95).
-        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C).reprocessable()
-            .formModel(SecurityLookupMsg.class)
+        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C).transientSend()
+            .reprocessable().formModel(SecurityLookupMsg.class)
             .responses(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S,
                 GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S,
                 GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S)
             .build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S).systemOnlyAnswer()
-            .build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S).systemOnlyAnswer()
-            .build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S).systemOnlyAnswer()
-            .build(),
-        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_SEL_C).reprocessable()
-            .internalModel(SecurityBatchLookupMsg.class)
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S).transientSend()
+            .systemOnlyAnswer().build(),
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S).transientSend()
+            .systemOnlyAnswer().build(),
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S).transientSend()
+            .systemOnlyAnswer().build(),
+        GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_SEL_C).transientSend()
+            .reprocessable().internalModel(SecurityBatchLookupMsg.class)
             .responses(GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S).build(),
-        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S)
+        GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S).transientSend()
             .internalModel(SecurityBatchLookupResponseMsg.class).systemOnlyAnswer().build());
   }
 }

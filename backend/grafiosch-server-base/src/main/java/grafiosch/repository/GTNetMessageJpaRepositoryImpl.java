@@ -14,6 +14,7 @@ import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
 import grafiosch.gtnet.GTNetProtocolDescriptor;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.gtnet.MessageParamDateParser;
 import grafiosch.gtnet.MessageVisibility;
 
@@ -94,7 +95,7 @@ public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessa
   @Override
   public void computeCanDeleteFlags(List<GTNetMessage> messages, Set<Integer> outgoingPendingIds,
       Set<Integer> incomingPendingIds) {
-    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime now = GTNetTime.now();
     for (GTNetMessage msg : messages) {
       msg.setCanDelete(canDeleteMessage(msg, outgoingPendingIds, incomingPendingIds, now));
     }
@@ -167,7 +168,7 @@ public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessa
   @Override
   public void deleteBatch(List<Integer> idGtNetMessageList, Set<Integer> outgoingPendingIds,
       Set<Integer> incomingPendingIds) {
-    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime now = GTNetTime.now();
     List<GTNetMessage> messagesToDelete = new ArrayList<>();
 
     // Validate all messages are deletable before deleting any

@@ -1,7 +1,6 @@
 package grafioschtrader.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,8 +19,9 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.gtnet.GTNetRequestBudgetService;
+import grafiosch.gtnet.GTNetResponseResult;
+import grafiosch.gtnet.GTNetResponseValidator;
 import grafiosch.gtnet.GTNetTimeoutHelper;
-import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
@@ -39,8 +39,6 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafiosch.gtnet.GTNetResponseResult;
-import grafiosch.gtnet.GTNetResponseValidator;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
@@ -475,13 +473,8 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
     GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
-    MessageEnvelope pushEnvelope = new MessageEnvelope();
-    pushEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
-    pushEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-    pushEnvelope.serverBusy = myGTNet.isServerBusy();
-    pushEnvelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C.getValue();
-    pushEnvelope.timestamp = LocalDateTime.now();
-    pushEnvelope.payload = objectMapper.valueToTree(pushPayload);
+    MessageEnvelope pushEnvelope = MessageEnvelope.forExchange(myGTNet,
+        GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C.getValue(), objectMapper.valueToTree(pushPayload));
 
     log.info("Pushing {} securities, {} pairs to {}", pushPayload.securities.size(), pushPayload.currencypairs.size(),
         supplier.getDomainRemoteName());
@@ -582,13 +575,8 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
     // Build MessageEnvelope with source identification
-    MessageEnvelope requestEnvelope = new MessageEnvelope();
-    requestEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
-    requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-    requestEnvelope.serverBusy = myGTNet.isServerBusy();
-    requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue();
-    requestEnvelope.timestamp = LocalDateTime.now();
-    requestEnvelope.payload = objectMapper.valueToTree(request);
+    MessageEnvelope requestEnvelope = MessageEnvelope.forExchange(myGTNet,
+        GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue(), objectMapper.valueToTree(request));
 
     log.debug("Sending historyquote request to {} with {} securities, {} pairs", supplier.getDomainRemoteName(),
         request.securities != null ? request.securities.size() : 0,
@@ -719,13 +707,8 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
     // Build and send push message
-    MessageEnvelope pushEnvelope = new MessageEnvelope();
-    pushEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
-    pushEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-    pushEnvelope.serverBusy = myGTNet.isServerBusy();
-    pushEnvelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C.getValue();
-    pushEnvelope.timestamp = LocalDateTime.now();
-    pushEnvelope.payload = objectMapper.valueToTree(pushPayload);
+    MessageEnvelope pushEnvelope = MessageEnvelope.forExchange(myGTNet,
+        GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C.getValue(), objectMapper.valueToTree(pushPayload));
 
     log.info("Pushing {} securities, {} pairs historical data to {}", pushPayload.securities.size(),
         pushPayload.currencypairs.size(), supplier.getDomainRemoteName());

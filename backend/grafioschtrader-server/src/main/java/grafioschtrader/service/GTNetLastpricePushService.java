@@ -1,6 +1,5 @@
 package grafioschtrader.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -13,8 +12,9 @@ import org.springframework.stereotype.Component;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.gtnet.GTNetRequestBudgetService;
+import grafiosch.gtnet.GTNetResponseResult;
+import grafiosch.gtnet.GTNetResponseValidator;
 import grafiosch.gtnet.GTNetTimeoutHelper;
-import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
@@ -24,8 +24,6 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafiosch.gtnet.GTNetResponseResult;
-import grafiosch.gtnet.GTNetResponseValidator;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
 import tools.jackson.databind.ObjectMapper;
@@ -134,13 +132,8 @@ public class GTNetLastpricePushService {
     }
 
     // Build push message envelope
-    MessageEnvelope pushEnvelope = new MessageEnvelope();
-    pushEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
-    pushEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-    pushEnvelope.serverBusy = myGTNet.isServerBusy();
-    pushEnvelope.messageCode = GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C.getValue();
-    pushEnvelope.timestamp = LocalDateTime.now();
-    pushEnvelope.payload = objectMapper.valueToTree(pricesToPush);
+    MessageEnvelope pushEnvelope = MessageEnvelope.forExchange(myGTNet,
+        GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C.getValue(), objectMapper.valueToTree(pricesToPush));
 
     log.debug("Pushing {} securities and {} pairs to {}",
         pricesToPush.securities != null ? pricesToPush.securities.size() : 0,

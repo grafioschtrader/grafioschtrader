@@ -6,6 +6,7 @@ import java.util.Map;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
+import grafiosch.gtnet.GTNetTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -43,8 +44,9 @@ public class MessageEnvelope {
 
   @Schema(description = """
       The sender's local message ID (idGtNetMessage). The receiver stores this in their idSourceGtNetMessage field
-      when saving the received message, enabling cross-system message correlation.""")
-  @NotNull
+      when saving the received message, enabling cross-system message correlation, and uses it to recognize a repeated
+      delivery. Absent for a code whose sender keeps no message row of its own - the ping and the machine-to-machine
+      payload exchanges - which is why the protocol descriptor decides per code whether it must be present.""")
   public Integer idSourceGtNetMessage;
 
   @Schema(description = """
@@ -114,6 +116,34 @@ public class MessageEnvelope {
   public String errorMsgCode;
 
   public MessageEnvelope() {
+  }
+
+  /**
+   * The envelope of a machine-to-machine payload exchange: an intraday or historical price request, a push, a coverage
+   * or metadata lookup, an exchange sync.
+   *
+   * <p>
+   * These are not messages of a conversation. No row is written for them, so the envelope names no sender-local
+   * message; the answer comes back in the same HTTP response and is read by {@code GTNetResponseValidator}. The one
+   * factory exists because every one of these senders needs exactly the same five fields, and a sender that forgot one
+   * of them was refused by the peer for the whole release — the receiver reads the timestamp as UTC, which is what
+   * {@code GTNetTime} guarantees here.
+   * </p>
+   *
+   * @param sourceGtNet the local GTNet entry, which supplies the domain and the busy flag
+   * @param messageCode the wire value of the code being sent, declared {@code transientSend()} in the protocol
+   * @param payload     the request payload, already converted to a tree
+   * @return the envelope to post to the peer
+   */
+  public static MessageEnvelope forExchange(GTNet sourceGtNet, byte messageCode, JsonNode payload) {
+    MessageEnvelope me = new MessageEnvelope();
+    me.sourceDomain = sourceGtNet.getDomainRemoteName();
+    me.sourceGtNet = new GTNetPublicDTO(sourceGtNet);
+    me.serverBusy = sourceGtNet.isServerBusy();
+    me.messageCode = messageCode;
+    me.timestamp = GTNetTime.now();
+    me.payload = payload;
+    return me;
   }
 
   public MessageEnvelope(GTNet sourceGtNet, GTNetMessage gtNetMsg) {

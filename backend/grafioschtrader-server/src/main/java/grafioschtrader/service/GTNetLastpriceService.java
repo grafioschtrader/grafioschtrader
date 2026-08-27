@@ -22,8 +22,9 @@ import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.gtnet.AcceptRequestTypes;
 import grafiosch.gtnet.GTNetRequestBudgetService;
+import grafiosch.gtnet.GTNetResponseResult;
+import grafiosch.gtnet.GTNetResponseValidator;
 import grafiosch.gtnet.GTNetTimeoutHelper;
-import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
@@ -38,8 +39,6 @@ import grafiosch.types.TaskTypeBase;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
-import grafiosch.gtnet.GTNetResponseResult;
-import grafiosch.gtnet.GTNetResponseValidator;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
@@ -444,13 +443,8 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
     // Build MessageEnvelope with source identification
-    MessageEnvelope requestEnvelope = new MessageEnvelope();
-    requestEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
-    requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-    requestEnvelope.serverBusy = myGTNet.isServerBusy();
-    requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C.getValue();
-    requestEnvelope.timestamp = LocalDateTime.now();
-    requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
+    MessageEnvelope requestEnvelope = MessageEnvelope.forExchange(myGTNet,
+        GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C.getValue(), objectMapper.valueToTree(requestPayload));
 
     log.debug("Sending lastprice request to {} with {} securities, {} pairs", supplier.getDomainRemoteName(),
         securityDTOs.size(), currencypairDTOs.size());

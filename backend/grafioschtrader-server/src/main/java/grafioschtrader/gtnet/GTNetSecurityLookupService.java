@@ -1,6 +1,5 @@
 package grafioschtrader.gtnet;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +17,6 @@ import grafiosch.entities.MultilanguageString;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetRequestBudgetService;
 import grafiosch.gtnet.GTNetTimeoutHelper;
-import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
@@ -153,13 +151,8 @@ public class GTNetSecurityLookupService {
 
       try {
         // Build MessageEnvelope
-        MessageEnvelope requestEnvelope = new MessageEnvelope();
-        requestEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
-        requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-        requestEnvelope.serverBusy = myGTNet.isServerBusy();
-        requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C.getValue();
-        requestEnvelope.timestamp = LocalDateTime.now();
-        requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
+        MessageEnvelope requestEnvelope = MessageEnvelope.forExchange(myGTNet,
+            GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C.getValue(), objectMapper.valueToTree(requestPayload));
 
         log.debug("Sending security lookup request to {}", supplier.getDomainRemoteName());
 
@@ -341,13 +334,8 @@ public class GTNetSecurityLookupService {
 
       try {
         // Build MessageEnvelope
-        MessageEnvelope requestEnvelope = new MessageEnvelope();
-        requestEnvelope.sourceDomain = myGTNet.getDomainRemoteName();
-        requestEnvelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-        requestEnvelope.serverBusy = myGTNet.isServerBusy();
-        requestEnvelope.messageCode = GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_SEL_C.getValue();
-        requestEnvelope.timestamp = LocalDateTime.now();
-        requestEnvelope.payload = objectMapper.valueToTree(batchRequest);
+        MessageEnvelope requestEnvelope = MessageEnvelope.forExchange(myGTNet,
+            GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_SEL_C.getValue(), objectMapper.valueToTree(batchRequest));
 
         log.debug("Sending batch lookup request ({} queries) to {}", batchRequest.size(),
             supplier.getDomainRemoteName());

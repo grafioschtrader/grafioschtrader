@@ -51,9 +51,19 @@ class GTNetEnvelopeValidatorTest {
 
   @Test
   void refusesAnEnvelopeWithoutASenderLocalId() {
-    MessageEnvelope me = envelope(PING);
+    MessageEnvelope me = envelope(MAINTENANCE);
     me.idSourceGtNetMessage = null;
     assertThat(errorOf(me)).isEqualTo("ENVELOPE_INVALID");
+  }
+
+  @Test
+  void acceptsAnEnvelopeWithoutASenderLocalIdWhenTheSenderKeepsNoMessage() {
+    // The ping and the payload exchanges are built by a service and never written to gt_net_message, so there is no
+    // local id to name. Demanding one refused every intraday price request, every historyquote exchange and every
+    // liveness ping with ENVELOPE_INVALID.
+    MessageEnvelope me = envelope(PING);
+    me.idSourceGtNetMessage = null;
+    assertThat(validator.validate(me, peer())).isEmpty();
   }
 
   @Test

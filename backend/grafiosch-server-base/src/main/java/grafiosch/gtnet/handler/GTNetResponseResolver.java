@@ -20,6 +20,7 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import grafiosch.entities.GTNetMessageAnswer;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GTNetMessageAnswerJpaRepositoryBase;
 
@@ -194,7 +195,7 @@ public class GTNetResponseResolver {
   private EvalExContext buildEvalContext(GTNet myGTNet, GTNet remoteGTNet, Map<String, GTNetMessageParam> params,
       ConnectionCounts connectionCounts, String message) {
     EvalExContext ctx = new EvalExContext();
-    LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
+    LocalDateTime now = GTNetTime.now();
     ctx.hour = now.getHour();
     ctx.dayOfWeek = now.getDayOfWeek().getValue();
     ctx.message = message;

@@ -74,13 +74,37 @@ class GTNetAppExchangeSyncTest {
   @Test
   @Order(2)
   void theRequesterSideRunsTheSyncTaskToCompletion() throws Exception {
-    int idTaskDataChange = enqueueExchangeSync();
+    // Reaching PROG_PROCESSED proves nothing on its own: syncWithPeer returns false when the peer refuses and the
+    // task completes all the same. What only a peer that actually answered can produce is the supplier detail this
+    // side writes from the response, which is what moves supplierLastUpdate forward.
+    String before = supplierLastUpdateForPeerB();
 
+    int idTaskDataChange = enqueueExchangeSync();
     var run = GTNetPeerTestSupport.postApi(GTNetPeerTestSupport.PEER_A,
         "/api/gtnet-peer-test/tasks/" + idTaskDataChange + "/run", jwtA, "null");
 
     assertThat(run.statusCode()).as(run.body()).isBetween(200, 299);
     assertThat(run.body()).contains("PROG_PROCESSED");
+
+    String after = supplierLastUpdateForPeerB();
+    assertThat(after).as("peer B answered the sync request").isNotNull().isNotEqualTo(before);
+  }
+
+  /**
+   * The moment peer A last wrote supplier details from peer B's answer, as it stands right now.
+   *
+   * @return the serialized timestamp, null while no answer has ever been processed
+   */
+  private static String supplierLastUpdateForPeerB() throws Exception {
+    JsonNode state = GTNetPeerTestSupport.readGTNet(GTNetPeerTestSupport.PEER_A, jwtA);
+    int ownId = state.path("gtNetMyEntryId").asInt();
+    for (JsonNode entry : state.path("gtNetList")) {
+      if (entry.path("idGtNet").asInt() != ownId) {
+        JsonNode lastUpdate = entry.path("gtNetConfig").path("supplierLastUpdate");
+        return lastUpdate.isMissingNode() || lastUpdate.isNull() ? null : lastUpdate.toString();
+      }
+    }
+    throw new IllegalStateException("Peer A knows no remote entry");
   }
 
   /**

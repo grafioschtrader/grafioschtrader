@@ -41,11 +41,15 @@ import java.util.Objects;
  * @param autoAnswerRequest  the code may be the {@code requestMsgCode} of a {@code GTNetMessageAnswer} rule
  * @param autoAnswerResponse the code may be the {@code responseMsgCode} of a rule. False for a refusal the server
  *                           issues on its own, which an administrator must not be able to configure as an answer
+ * @param senderPersists     the sender writes a {@code gt_net_message} row before it sends, so its envelope can name
+ *                           that row in {@code idSourceGtNetMessage}. False for a machine-to-machine code whose sender
+ *                           keeps no row at all — the ping and the payload exchanges — whose envelope therefore carries
+ *                           no sender-local id and whose delivery is outside the idempotency mechanism
  */
 public record GTNetProtocolDescriptor(GTNetMessageCode code, MessageCategory category, boolean userInitiable,
     boolean requiresResponse, List<GTNetMessageCode> validResponses, Class<?> model, boolean formEligible,
     byte repeatSendAsMany, boolean reprocessable, boolean inboundDispatch, boolean threadable,
-    boolean autoAnswerRequest, boolean autoAnswerResponse) {
+    boolean autoAnswerRequest, boolean autoAnswerResponse, boolean senderPersists) {
 
   public GTNetProtocolDescriptor {
     Objects.requireNonNull(code, "code");
@@ -139,6 +143,7 @@ public record GTNetProtocolDescriptor(GTNetMessageCode code, MessageCategory cat
     private boolean threadable;
     private boolean autoAnswerRequest;
     private boolean autoAnswerResponse;
+    private boolean senderPersists = true;
 
     private Builder(GTNetMessageCode code, MessageCategory category) {
       this.code = code;
@@ -273,6 +278,18 @@ public record GTNetProtocolDescriptor(GTNetMessageCode code, MessageCategory cat
     }
 
     /**
+     * The sender keeps no local message row for this code, so its envelope names none. Declared by the ping and by the
+     * payload exchanges, which are built by a service and answered in the same HTTP response; without it the receiver
+     * refuses the envelope for carrying no sender-local id.
+     *
+     * @return this builder
+     */
+    public Builder transientSend() {
+      this.senderPersists = false;
+      return this;
+    }
+
+    /**
      * The code is issued by the server alone and must not be configurable as the answer of a rule.
      *
      * @return this builder
@@ -290,7 +307,7 @@ public record GTNetProtocolDescriptor(GTNetMessageCode code, MessageCategory cat
     public GTNetProtocolDescriptor build() {
       return new GTNetProtocolDescriptor(code, category, userInitiable, requiresResponse, validResponses, model,
           formEligible, repeatSendAsMany, reprocessable, inboundDispatch, threadable, autoAnswerRequest,
-          autoAnswerResponse);
+          autoAnswerResponse, senderPersists);
     }
   }
 }

@@ -1,6 +1,5 @@
 package grafiosch.gtnet.handler;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -13,6 +12,7 @@ import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import grafiosch.gtnet.GTNetGrantService;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.gtnet.IExchangeKindType;
 import grafiosch.gtnet.IExchangeSyncTrigger;
 import grafiosch.gtnet.SendReceivedType;
@@ -135,7 +135,7 @@ public abstract class AbstractGTNetMessageHandler implements GTNetMessageHandler
       String message, Map<String, GTNetMessageParam> params, GTNetMessage replyToMessage) {
     Integer idGtNet = context.getRemoteGTNet() != null ? context.getRemoteGTNet().getIdGtNet() : null;
 
-    GTNetMessage responseMsg = new GTNetMessage(idGtNet, LocalDateTime.now(), SendReceivedType.SEND.getValue(),
+    GTNetMessage responseMsg = new GTNetMessage(idGtNet, GTNetTime.now(), SendReceivedType.SEND.getValue(),
         replyToMessage != null ? replyToMessage.getIdGtNetMessage() : null, responseCode.getValue(), message, params);
 
     return gtNetMessageJpaRepository.saveMsg(responseMsg);

@@ -1,6 +1,5 @@
 package grafiosch.gtnet.handler.impl;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +21,7 @@ import grafiosch.entities.TaskDataChange;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetDomainService;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.gtnet.MessageParamDateParser;
 import grafiosch.gtnet.handler.AbstractRequestHandler;
 import grafiosch.gtnet.handler.GTNetMessageContext;
@@ -106,8 +106,7 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
     }
     String canonicalDomain = domainService.canonicalize(remotePublic.getDomainRemoteName());
     if (canonicalDomain == null || !domainService.isAcceptablePeerDomain(canonicalDomain)) {
-      return ValidationResult.invalid("ENVELOPE_INVALID",
-          "The announced domain is not an acceptable peer address");
+      return ValidationResult.invalid("ENVELOPE_INVALID", "The announced domain is not an acceptable peer address");
     }
     if (!domainService.isSameDomain(context.getSourceDomain(), canonicalDomain)) {
       return ValidationResult.invalid("DOMAIN_MISMATCH",
@@ -127,8 +126,8 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
   @Override
   protected Optional<HandlerResult<GTNetMessage, MessageEnvelope>> preProcess(GTNetMessageContext context)
       throws Exception {
-    String canonicalDomain = domainService.canonicalize(context.getPayloadAs(GTNetPublicDTO.class)
-        .getDomainRemoteName());
+    String canonicalDomain = domainService
+        .canonicalize(context.getPayloadAs(GTNetPublicDTO.class).getDomainRemoteName());
     GTNet existing = gtNetJpaRepository.findByDomainRemoteName(canonicalDomain);
 
     if (existing == null && !context.getMyGTNet().isAllowServerCreation()) {
@@ -139,9 +138,9 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
 
   /**
    * Builds the incoming message but writes nothing yet. The caller of a first handshake is unauthenticated, so until
-   * the answer is known it must leave no trace: the peer row, its configuration and its handshake timestamp are
-   * created in {@link #applyResponseSideEffects} and only for an accept. Persisting first would enrol a refused caller
-   * in {@code GNetFutureMessageDeliveryTask.createAttemptsForNewPartners} and leave it holding a token of ours.
+   * the answer is known it must leave no trace: the peer row, its configuration and its handshake timestamp are created
+   * in {@link #applyResponseSideEffects} and only for an accept. Persisting first would enrol a refused caller in
+   * {@code GNetFutureMessageDeliveryTask.createAttemptsForNewPartners} and leave it holding a token of ours.
    */
   @Override
   protected GTNetMessage storeIncomingMessage(GTNetMessageContext context) {
@@ -210,9 +209,8 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
       String message, Map<String, GTNetMessageParam> params, GTNetMessage replyToMessage) {
     GTNet processedRemoteGTNet = context.getHandlerData("processedRemoteGTNet", GTNet.class);
 
-    GTNetMessage responseMsg = new GTNetMessage(
-        processedRemoteGTNet != null ? processedRemoteGTNet.getIdGtNet() : null, LocalDateTime.now(),
-        grafiosch.gtnet.SendReceivedType.SEND.getValue(),
+    GTNetMessage responseMsg = new GTNetMessage(processedRemoteGTNet != null ? processedRemoteGTNet.getIdGtNet() : null,
+        GTNetTime.now(), grafiosch.gtnet.SendReceivedType.SEND.getValue(),
         replyToMessage != null ? replyToMessage.getIdGtNetMessage() : null, responseCode.getValue(), message, params);
 
     return processedRemoteGTNet == null ? responseMsg : gtNetMessageJpaRepository.saveMsg(responseMsg);
@@ -245,9 +243,8 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
    */
   private HandlerResult<GTNetMessage, MessageEnvelope> createNotInListRejectionResponse(GTNetMessageContext context)
       throws Exception {
-    GTNetMessage rejectMsg = new GTNetMessage(null, LocalDateTime.now(),
-        grafiosch.gtnet.SendReceivedType.ANSWER.getValue(), null,
-        GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S.getValue(),
+    GTNetMessage rejectMsg = new GTNetMessage(null, GTNetTime.now(), grafiosch.gtnet.SendReceivedType.ANSWER.getValue(),
+        null, GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S.getValue(),
         "You are not in my server list and we do not have automatic admission enabled.", null);
 
     MessageEnvelope response = createResponseEnvelopeWithPayload(context, rejectMsg,
@@ -261,10 +258,10 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
    * whole would let a peer set {@code allowServerCreation}, {@code closeStartDate} or {@code lastModifiedTime} on its
    * own row. The domain is stored in its canonical form, so later lookups by envelope domain resolve.
    *
-   * @param existing         the peer row when one already exists for the canonical domain, otherwise null
-   * @param remotePublic     what the peer publishes about itself
-   * @param canonicalDomain  the canonical form of the peer's domain
-   * @param theirTokenForUs  the token this peer expects us to authenticate with
+   * @param existing        the peer row when one already exists for the canonical domain, otherwise null
+   * @param remotePublic    what the peer publishes about itself
+   * @param canonicalDomain the canonical form of the peer's domain
+   * @param theirTokenForUs the token this peer expects us to authenticate with
    * @return the persisted peer row, with its configuration attached
    */
   private GTNet addOrUpdateRemoteGTNet(GTNet existing, GTNetPublicDTO remotePublic, String canonicalDomain,
@@ -284,7 +281,7 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
       gtNetConfig.setIdGtNet(peer.getIdGtNet());
     }
     gtNetConfig.setTokenRemote(theirTokenForUs);
-    gtNetConfig.setHandshakeTimestamp(LocalDateTime.now());
+    gtNetConfig.setHandshakeTimestamp(GTNetTime.now());
     gtNetConfig = gtNetConfigJpaRepositoryFull.save(gtNetConfig);
     peer.setGtNetConfig(gtNetConfig);
     return peer;

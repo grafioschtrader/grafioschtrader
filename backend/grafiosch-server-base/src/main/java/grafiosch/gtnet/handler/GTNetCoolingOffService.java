@@ -2,7 +2,6 @@ package grafiosch.gtnet.handler;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -11,6 +10,7 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
+import grafiosch.gtnet.GTNetTime;
 import grafiosch.gtnet.SendReceivedType;
 import grafiosch.repository.GTNetMessageJpaRepository;
 
@@ -37,7 +37,7 @@ public class GTNetCoolingOffService {
       return Optional.empty();
     }
 
-    LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+    LocalDateTime now = GTNetTime.now();
     LocalDateTime expiresAt = response.getTimestamp().plusDays(response.getWaitDaysApply());
     if (!now.isBefore(expiresAt)) {
       return Optional.empty();

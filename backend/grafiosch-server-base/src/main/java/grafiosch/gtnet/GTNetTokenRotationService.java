@@ -1,7 +1,6 @@
 package grafiosch.gtnet;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +45,7 @@ public class GTNetTokenRotationService {
    * @param newToken    the token the peer is to use from now on
    */
   public void rotateTokenThis(GTNetConfig gtNetConfig, String newToken) {
-    LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+    LocalDateTime now = GTNetTime.now();
     if (!gtNetConfig.isPreviousTokenValid(now)) {
       gtNetConfig.setTokenThisPrevious(gtNetConfig.getTokenThis());
       gtNetConfig.setTokenThisPreviousValidUntil(now.plusDays(protocolLimits.getTokenOverlapDays()));

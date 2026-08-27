@@ -1,13 +1,12 @@
 package grafioschtrader.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +16,9 @@ import org.springframework.stereotype.Service;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.gtnet.GTNetRequestBudgetService;
+import grafiosch.gtnet.GTNetResponseResult;
+import grafiosch.gtnet.GTNetResponseValidator;
 import grafiosch.gtnet.GTNetTimeoutHelper;
-import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.GTNetMessageHelper;
 import grafiosch.m2m.client.BaseDataClient;
@@ -29,8 +29,6 @@ import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
-import grafiosch.gtnet.GTNetResponseResult;
-import grafiosch.gtnet.GTNetResponseValidator;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
@@ -212,13 +210,8 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
     // Build envelope
-    MessageEnvelope envelope = new MessageEnvelope();
-    envelope.sourceDomain = myGTNet.getDomainRemoteName();
-    envelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-    envelope.serverBusy = myGTNet.isServerBusy();
-    envelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue();
-    envelope.timestamp = LocalDateTime.now();
-    envelope.payload = objectMapper.valueToTree(request);
+    MessageEnvelope envelope = MessageEnvelope.forExchange(myGTNet,
+        GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue(), objectMapper.valueToTree(request));
 
     log.debug("Fetching historyquotes from {} for {} ({}) from {} to {}", peer.getDomainRemoteName(),
         security.getIsin(), security.getCurrency(), fromDate, toDate);
@@ -336,13 +329,8 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     GTNet myGTNet = gtNetJpaRepository.findById(myGTNetId)
         .orElseThrow(() -> new IllegalStateException("Local GTNet entry not found: " + myGTNetId));
 
-    MessageEnvelope envelope = new MessageEnvelope();
-    envelope.sourceDomain = myGTNet.getDomainRemoteName();
-    envelope.sourceGtNet = new GTNetPublicDTO(myGTNet);
-    envelope.serverBusy = myGTNet.isServerBusy();
-    envelope.messageCode = GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_SEL_C.getValue();
-    envelope.timestamp = LocalDateTime.now();
-    envelope.payload = objectMapper.valueToTree(query);
+    MessageEnvelope envelope = MessageEnvelope.forExchange(myGTNet,
+        GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_SEL_C.getValue(), objectMapper.valueToTree(query));
 
     if (!gtNetRequestBudgetService.chargeOutgoing(peer, envelope.messageCode)) {
       return null;

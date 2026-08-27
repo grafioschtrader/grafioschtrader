@@ -32,8 +32,9 @@ public abstract class CoreProtocolDescriptors {
   public static List<GTNetProtocolDescriptor> all() {
     return List.of(
 
-        // Ping (0) - a health check answered with an acknowledgement, never with a semantic response.
-        GTNetProtocolDescriptor.request(GNetCoreMessageCode.GT_NET_PING).build(),
+        // Ping (0) - a health check answered with an acknowledgement, never with a semantic response. Neither side
+        // stores it, so its envelope names no sender-local message.
+        GTNetProtocolDescriptor.request(GNetCoreMessageCode.GT_NET_PING).transientSend().build(),
 
         // Handshake (1-4). The payload carries the token this side generates, which sendAndSaveMsg overwrites on the
         // way out, so the model is internal even though an administrator starts the handshake.
