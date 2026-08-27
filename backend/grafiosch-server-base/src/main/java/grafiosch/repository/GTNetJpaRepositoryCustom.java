@@ -3,6 +3,7 @@ package grafiosch.repository;
 import java.util.List;
 
 import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetMaintenanceWindow;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.gtnet.model.GTNetWithMessages;
@@ -14,9 +15,9 @@ import grafiosch.gtnet.model.MultiTargetMsgRequest;
  *
  * Provides three main capabilities:
  * <ul>
- *   <li>Combined data retrieval for UI display</li>
- *   <li>Client-initiated message submission</li>
- *   <li>Server-side message response processing (M2M endpoint)</li>
+ * <li>Combined data retrieval for UI display</li>
+ * <li>Client-initiated message submission</li>
+ * <li>Server-side message response processing (M2M endpoint)</li>
  * </ul>
  *
  * @see BaseRepositoryCustom for base repository interface
@@ -24,9 +25,8 @@ import grafiosch.gtnet.model.MultiTargetMsgRequest;
 public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
 
   /**
-   * Updates a GTNet entity with selective attribute modifications.
-   * Only attributes marked with appropriate update annotations will be changed.
-   * When serverBusy status changes, automatically notifies all connected peers.
+   * Updates a GTNet entity with selective attribute modifications. Only attributes marked with appropriate update
+   * annotations will be changed. When serverBusy status changes, automatically notifies all connected peers.
    *
    * @param gtNet the entity containing new values to save
    * @return the updated GTNet entity
@@ -39,9 +39,9 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    *
    * Combines multiple queries into a single response for efficient UI rendering:
    * <ul>
-   *   <li>All GTNet entries (domains)</li>
-   *   <li>Message counts per domain (for determining if expander should show)</li>
-   *   <li>The local instance's GTNet ID (for highlighting)</li>
+   * <li>All GTNet entries (domains)</li>
+   * <li>Message counts per domain (for determining if expander should show)</li>
+   * <li>The local instance's GTNet ID (for highlighting)</li>
    * </ul>
    *
    * Messages are loaded lazily via {@link #getMessagesByIdGtNet(Integer)} when expanded.
@@ -51,8 +51,16 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   GTNetWithMessages getAllGTNetsWithMessages();
 
   /**
-   * Retrieves all messages for a specific GTNet domain.
-   * Used for lazy loading when a row is expanded in the UI.
+   * Retrieves the announced maintenance windows of one GTNet domain, most recent first. Loaded lazily when the
+   * maintenance panel of the expanded row is opened; the counts alone come with {@link #getAllGTNetsWithMessages()}.
+   *
+   * @param idGtNet the domain whose windows are wanted
+   * @return the windows of that domain, empty when it announced none
+   */
+  List<GTNetMaintenanceWindow> getMaintenanceWindowsByIdGtNet(Integer idGtNet);
+
+  /**
+   * Retrieves all messages for a specific GTNet domain. Used for lazy loading when a row is expanded in the UI.
    *
    * @param idGtNet the GTNet domain ID
    * @return list of messages ordered by timestamp descending (newest first)
@@ -64,11 +72,11 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    *
    * Handles the complete message submission workflow:
    * <ol>
-   *   <li>Determines target domains (single or broadcast based on message code)</li>
-   *   <li>Ensures handshake is complete for each target (creates if needed)</li>
-   *   <li>Creates and saves the outgoing GTNetMessage</li>
-   *   <li>Sends the message via BaseDataClient</li>
-   *   <li>Saves any synchronous responses received</li>
+   * <li>Determines target domains (single or broadcast based on message code)</li>
+   * <li>Ensures handshake is complete for each target (creates if needed)</li>
+   * <li>Creates and saves the outgoing GTNetMessage</li>
+   * <li>Sends the message via BaseDataClient</li>
+   * <li>Saves any synchronous responses received</li>
    * </ol>
    *
    * @param msgRequest the message details from the UI
@@ -79,12 +87,11 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   /**
    * Processes an incoming M2M message and generates an appropriate response.
    *
-   * This is the server-side entry point for all incoming GTNet traffic. Dispatches based on
-   * message code to handle:
+   * This is the server-side entry point for all incoming GTNet traffic. Dispatches based on message code to handle:
    * <ul>
-   *   <li>GT_NET_PING - Liveness checks</li>
-   *   <li>GT_NET_FIRST_HANDSHAKE_S - Initial token exchange</li>
-   *   <li>Other message codes - Via handler registry</li>
+   * <li>GT_NET_PING - Liveness checks</li>
+   * <li>GT_NET_FIRST_HANDSHAKE_S - Initial token exchange</li>
+   * <li>Other message codes - Via handler registry</li>
    * </ul>
    *
    * @param messageEnvelope the incoming message
@@ -96,12 +103,11 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   /**
    * Validates the authentication token from an incoming M2M request.
    *
-   * Compares the provided token against the tokenThis we generated and sent to the remote domain
-   * during handshake. If the tokens don't match or the domain is unknown, throws an exception
-   * that results in HTTP 401 Unauthorized.
+   * Compares the provided token against the tokenThis we generated and sent to the remote domain during handshake. If
+   * the tokens don't match or the domain is unknown, throws an exception that results in HTTP 401 Unauthorized.
    *
    * @param sourceDomain the domain URL from the incoming message
-   * @param authToken the token from the Authorization header
+   * @param authToken    the token from the Authorization header
    * @throws SecurityException if the token is invalid or missing
    */
   void validateIncomingToken(String sourceDomain, String authToken);
@@ -109,18 +115,17 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   /**
    * Broadcasts a settings update notification to all GTNet peers with configured exchange.
    *
-   * Sends GT_NET_SETTINGS_UPDATED_ALL_C to all peers to inform them that this server's settings
-   * (dailyRequestLimit, GTNetEntity.acceptRequest, serverState, maxLimit) have changed.
-   * The message envelope automatically includes the updated sourceGtNet DTO which peers use
-   * to synchronize their local copy of this server's settings.
+   * Sends GT_NET_SETTINGS_UPDATED_ALL_C to all peers to inform them that this server's settings (dailyRequestLimit,
+   * GTNetEntity.acceptRequest, serverState, maxLimit) have changed. The message envelope automatically includes the
+   * updated sourceGtNet DTO which peers use to synchronize their local copy of this server's settings.
    *
    * This method is called by the background task GTNetSettingsBroadcastTask to avoid blocking the UI.
    */
   void broadcastSettingsUpdate();
 
   /**
-   * Deletes a batch of GTNet messages along with their cascade-deleted responses.
-   * Validates that all specified messages are deletable before performing deletion.
+   * Deletes a batch of GTNet messages along with their cascade-deleted responses. Validates that all specified messages
+   * are deletable before performing deletion.
    *
    * @param idGtNetMessageList the IDs of the messages to delete
    */
@@ -130,14 +135,14 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * Submits an admin message to multiple selected targets via background delivery.
    *
    * <p>
-   * Unlike {@link #submitMsg(MsgRequest)} which sends immediately, this method creates a single
-   * GTNetMessage and queues delivery via GTNetMessageAttempt entries for each target. The actual
-   * delivery is handled by the GTNetAdminMessageDeliveryTask background job.
+   * Unlike {@link #submitMsg(MsgRequest)} which sends immediately, this method creates a single GTNetMessage and queues
+   * delivery via GTNetMessageAttempt entries for each target. The actual delivery is handled by the
+   * GTNetAdminMessageDeliveryTask background job.
    * </p>
    *
    * <p>
-   * This is used when an administrator selects multiple peers via checkboxes in the
-   * GTNetAdminMessagesComponent and sends an admin message to all of them.
+   * This is used when an administrator selects multiple peers via checkboxes in the GTNetAdminMessagesComponent and
+   * sends an admin message to all of them.
    * </p>
    *
    * @param multiTargetMsgRequest the message details including list of target domain IDs
@@ -148,8 +153,8 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   /**
    * Deletes a GTNet server entry and all its dependent data via cascade.
    *
-   * Validates that the entry is not the local server's own entry and that there are no pending
-   * request-response messages with this server before performing the deletion.
+   * Validates that the entry is not the local server's own entry and that there are no pending request-response
+   * messages with this server before performing the deletion.
    *
    * @param idGtNet the ID of the GTNet entry to delete
    */
@@ -178,15 +183,15 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   /**
    * Triggers an immediate online-status check for a single GTNet peer.
    *
-   * <p>Behaviour mirrors the scheduled {@code GTNetServerStatusCheckTask} but for one peer:
+   * <p>
+   * Behaviour mirrors the scheduled {@code GTNetServerStatusCheckTask} but for one peer:
    * <ul>
-   *   <li>If the outbound handshake is complete, the peer is pinged. Its
-   *       {@code serverOnline}, {@code serverBusy} and child {@code GTNetEntity.serverState}
-   *       values are updated and persisted.</li>
-   *   <li>If the outbound handshake is incomplete ({@code tokenRemote} is null), the peer is
-   *       set to {@code SOS_UNKNOWN} and all its entities are closed.</li>
-   *   <li>If the target is the local server entry or the local entry is not configured, the
-   *       peer is returned unchanged.</li>
+   * <li>If the outbound handshake is complete, the peer is pinged. Its {@code serverOnline}, {@code serverBusy} and
+   * child {@code GTNetEntity.serverState} values are updated and persisted.</li>
+   * <li>If the outbound handshake is incomplete ({@code tokenRemote} is null), the peer is set to {@code SOS_UNKNOWN}
+   * and all its entities are closed.</li>
+   * <li>If the target is the local server entry or the local entry is not configured, the peer is returned
+   * unchanged.</li>
    * </ul>
    *
    * @param idGtNet the ID of the remote GTNet entry to probe

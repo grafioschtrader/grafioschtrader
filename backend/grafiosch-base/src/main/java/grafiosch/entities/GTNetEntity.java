@@ -32,16 +32,15 @@ public class GTNetEntity extends BaseID<Integer> {
   public static final String TABNAME = "gt_net_entity";
 
   /**
-   * Registry for resolving enum names to byte values.
-   * Applications must register their IExchangeKindType enum values during startup.
+   * Registry for resolving enum names to byte values. Applications must register their IExchangeKindType enum values
+   * during startup.
    */
   @Transient
   private static volatile IExchangeKindType[] exchangeKindTypes;
 
   /**
-   * Registers the application-specific exchange kind types for JSON deserialization.
-   * This must be called during application startup before any GTNetEntity instances
-   * are deserialized from JSON.
+   * Registers the application-specific exchange kind types for JSON deserialization. This must be called during
+   * application startup before any GTNetEntity instances are deserialized from JSON.
    *
    * @param types the array of exchange kind type enum values from the application
    */
@@ -110,8 +109,8 @@ public class GTNetEntity extends BaseID<Integer> {
   }
 
   /**
-   * Gets the entity kind value for JSON serialization.
-   * Returns the byte value which clients can interpret based on their enum definitions.
+   * Gets the entity kind value for JSON serialization. Returns the byte value which clients can interpret based on
+   * their enum definitions.
    *
    * @return the entity kind as a byte value
    */
@@ -121,9 +120,8 @@ public class GTNetEntity extends BaseID<Integer> {
   }
 
   /**
-   * Sets the entity kind from JSON deserialization.
-   * Accepts either a numeric byte value or a string enum name.
-   * When a string is provided, it is resolved using the registered exchange kind types.
+   * Sets the entity kind from JSON deserialization. Accepts either a numeric byte value or a string enum name. When a
+   * string is provided, it is resolved using the registered exchange kind types.
    *
    * @param value the entity kind as a Number (byte value) or String (enum name)
    * @throws IllegalArgumentException if the string value cannot be resolved to an exchange kind
@@ -208,8 +206,8 @@ public class GTNetEntity extends BaseID<Integer> {
   }
 
   /**
-   * Returns the existing GTNetConfigEntity or creates a new one if none exists.
-   * For persisted entities, sets the config entity's ID; for new entities, the ID must be set after persistence.
+   * Returns the existing GTNetConfigEntity or creates a new one if none exists. For persisted entities, sets the config
+   * entity's ID; for new entities, the ID must be set after persistence.
    *
    * @return the existing or newly created GTNetConfigEntity
    */

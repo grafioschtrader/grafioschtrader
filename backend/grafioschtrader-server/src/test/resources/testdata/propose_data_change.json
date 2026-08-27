@@ -1,0 +1,53 @@
+{
+  "_comment": [
+    "Playwright scenarios for proposing, reviewing, and checking changes to shared entities.",
+    "Entities and users are addressed by natural keys; database IDs are deliberately omitted.",
+    "Each changed field carries its baseline and proposed value so a failed or completed run can reset itself."
+  ],
+  "requests": [
+    {
+      "entity": "Security",
+      "securityName": "Repsol",
+      "isin": "ES0173516115",
+      "currency": "EUR",
+      "watchlistName": "Hauptliste",
+      "proposerNickname": "limit1",
+      "reviewerNickname": "alledit",
+      "changes": [
+        {
+          "field": "idConnectorIntra",
+          "before": "gt.datafeed.finanzennet",
+          "after": "gt.datafeed.yahoo",
+          "afterLabel": "Yahoo USA Finance"
+        },
+        {
+          "field": "urlIntraExtend",
+          "before": "aktien/repsol-aktie@stBoerse_STN",
+          "after": "REP.MC"
+        }
+      ],
+      "noteRequest": "Finanzen Net hat Verbindungsprobleme.",
+      "noteAcceptReject": "Sie haben recht. Akzeptiere die Änderung.",
+      "e2e": "e"
+    },
+    {
+      "entity": "Stockexchange",
+      "mic": "XVIE",
+      "proposerNickname": "limit2",
+      "alternateProposerNickname": "limit1",
+      "reviewerNickname": "alledit",
+      "changes": [
+        {
+          "field": "idTradingCalendarRuleSet",
+          "before": null,
+          "afterRuleSetName": "Wiener Boerse",
+          "afterRuleSetMic": "XVIE",
+          "afterLabel": "Wiener Boerse (XVIE)"
+        }
+      ],
+      "noteRequest": "Handelskalender-Regelsatz war leer.",
+      "noteAcceptReject": "Dank für den Hinweis",
+      "e2e": "e"
+    }
+  ]
+}

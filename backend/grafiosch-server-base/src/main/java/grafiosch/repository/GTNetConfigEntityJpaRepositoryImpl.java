@@ -9,9 +9,8 @@ import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.GTNetConfigEntity;
 
 /**
- * Implementation of GTNetConfigEntityJpaRepositoryCustom.
- * Handles selective attribute updates for GTNetConfigEntity, allowing only
- * useDetailLog and consumerUsage fields to be modified (marked with @PropertyAlwaysUpdatable).
+ * Implementation of GTNetConfigEntityJpaRepositoryCustom. Handles selective attribute updates for GTNetConfigEntity,
+ * allowing only useDetailLog and consumerUsage fields to be modified (marked with @PropertyAlwaysUpdatable).
  */
 public class GTNetConfigEntityJpaRepositoryImpl extends BaseRepositoryImpl<GTNetConfigEntity>
     implements GTNetConfigEntityJpaRepositoryCustom {

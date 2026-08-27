@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "types": ["vitest", "vitest/globals", "vitest/importMeta"],
+    "types": ["node", "vitest", "vitest/globals", "vitest/importMeta"],
     "lib": ["ES2022", "ESNext.Disposable", "DOM", "DOM.Iterable"],
     "skipLibCheck": true
   },

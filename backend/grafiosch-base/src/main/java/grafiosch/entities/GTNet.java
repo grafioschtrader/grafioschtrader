@@ -1,5 +1,6 @@
 package grafiosch.entities;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,11 +94,13 @@ public class GTNet extends BaseID<Integer> {
   private boolean spreadCapability;
 
   @Schema(description = """
-      For myGTNet (local server): Maximum number of data requests any remote domain can make to this server per day.
-      This limit protects the local server from excessive load. Set to null for unlimited requests.
+      For myGTNet (local server): Maximum number of requests any single remote domain can make to this server per day.
+      This limit protects the local server from excessive load. Set to null for unlimited requests. Ping, first
+      handshake and token refresh are never charged against it, so a peer can always reach us for status and recovery.
       For remote entries: The remote server's daily request limit as communicated during handshake or message exchange.
-      This indicates how many requests we can make to them per day. The counter (dailyRequestLimitCount in GTNetConfig)
-      tracks usage and resets at UTC midnight.""")
+      This indicates how many requests we can make to them per day. Consumption is tracked per peer in GTNetConfig
+      (dailyRequestLimitCount inbound, dailyRequestLimitRemoteCount outbound); both counters roll over on the first
+      charged request of a new UTC day.""")
   @PropertyAlwaysUpdatable
   @Column(name = "daily_req_limit")
   private Integer dailyRequestLimit;
@@ -114,10 +117,21 @@ public class GTNet extends BaseID<Integer> {
   @Schema(description = """
       This should reflect the current status of the system. No communication will take place with a system that is offline.
       This status is communicated to the other servers by starting and stopping the server. However,
-      it can also be changed via the user interface. Values: 0=Unknown, 1=Online, 2=Offline.""")
+      it can also be changed via the user interface.
+      Values: 0=Unknown, 1=Online, 2=Offline, 3=Out of service.""")
   @Column(name = "server_online")
   @PropertyAlwaysUpdatable
   private byte serverOnline;
+
+  @Schema(description = """
+      The date this server announced with GT_NET_OPERATION_DISCONTINUED_ALL_C as the day it goes out of operation.
+      Until that date the peer is used normally; from it GNetFutureMessageDeliveryTask sets serverOnline to
+      SOS_OUT_OF_SERVICE and clears this date again, so the terminal status alone carries the fact afterwards and an
+      administrator who resets the status by hand is not overruled at the next run. Null when no discontinuation is
+      pending.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "close_start_date")
+  private LocalDate closeStartDate;
 
   @Schema(description = """
       Controls whether unknown servers can be automatically added to this GTNet during the first handshake.
@@ -218,14 +232,12 @@ public class GTNet extends BaseID<Integer> {
       return;
     }
     // Remove entities not present in the incoming list
-    this.gtNetEntities.removeIf(existing -> existing.getIdGtNetEntity() != null
-        && incomingEntities.stream()
-            .noneMatch(incoming -> Objects.equals(existing.getIdGtNetEntity(), incoming.getIdGtNetEntity())));
+    this.gtNetEntities.removeIf(existing -> existing.getIdGtNetEntity() != null && incomingEntities.stream()
+        .noneMatch(incoming -> Objects.equals(existing.getIdGtNetEntity(), incoming.getIdGtNetEntity())));
     // Update existing entities or add new ones
     for (GTNetEntity incoming : incomingEntities) {
-      Optional<GTNetEntity> existingOpt = this.gtNetEntities.stream()
-          .filter(e -> incoming.getIdGtNetEntity() != null
-              && Objects.equals(e.getIdGtNetEntity(), incoming.getIdGtNetEntity()))
+      Optional<GTNetEntity> existingOpt = this.gtNetEntities.stream().filter(
+          e -> incoming.getIdGtNetEntity() != null && Objects.equals(e.getIdGtNetEntity(), incoming.getIdGtNetEntity()))
           .findFirst();
       if (existingOpt.isPresent()) {
         GTNetEntity existing = existingOpt.get();
@@ -261,6 +273,24 @@ public class GTNet extends BaseID<Integer> {
   @JsonProperty("serverOnline")
   public void setServerOnline(GTNetServerOnlineStatusTypes serverOnline) {
     this.serverOnline = serverOnline.getValue();
+  }
+
+  public LocalDate getCloseStartDate() {
+    return closeStartDate;
+  }
+
+  public void setCloseStartDate(LocalDate closeStartDate) {
+    this.closeStartDate = closeStartDate;
+  }
+
+  /**
+   * Whether this peer has been taken out of operation permanently. Such a peer must not be contacted any more, and
+   * neither a status check nor an inbound message may lift the status again.
+   *
+   * @return true when the announced discontinuation has taken effect
+   */
+  public boolean isOutOfService() {
+    return getServerOnline() == GTNetServerOnlineStatusTypes.SOS_OUT_OF_SERVICE;
   }
 
   /**

@@ -299,6 +299,16 @@ profile, then alternates the numbered backend `ResourceTestSuite_*` and Playwrig
 invoke it whenever a Playwright spec is written, changed, debugged or executed. The rules below are
 its summary.
 
+**Two-peer GTNet suites**: `--gtnet-lib` (library peers 8081/8082 on `grafiosch_t` / `grafiosch_t1`) and
+`--gtnet-app` (application peers 8080/8082 on `grafioschtrader_t` / `grafioschtrader_t1`); `--gtnet` runs
+both, one after the other because they share port 8082. Their tests are **client-only** — they start no
+Spring context and drive the running peers over HTTP — because GTNet allows only **one application context
+per database at a time**: a second context would share `g.gnet.my.entry.id` and one `domainRemoteName`,
+which is not a two-peer topology. Two details bite: the identity of an instance must be a **non-loopback
+literal IPv4** (`isDomainNameThisMachine` skips loopback interfaces, and `BaseDataClient` resolves
+`IPV6_PREFERRED`), and the two health endpoints differ in shape — `/api/integration-info` returns
+`activeProfiles` as an array while `/api/gtinfo` returns `activeProfile` as a comma-joined string.
+
 **IMPORTANT — run `e2eTest.cmd` / `e2eTest.sh` ONLY when the user explicitly asks for it.** Never
 start the full roundtrip on your own initiative — not because a spec failed, not to verify, not
 before a commit. If you think a roundtrip is warranted, say so and ask. The same applies to the

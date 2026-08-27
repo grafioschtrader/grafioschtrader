@@ -14,8 +14,10 @@ import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 
 /**
- * Dialog for editing the connection timeout of a GTNetConfig entity.
- * Only the connectionTimeout field (5-40 seconds, nullable) is editable.
+ * Dialog for editing the administrable fields of a GTNetConfig entity: the per-peer connection timeout and the
+ * request violation counter. The counter is raised by the backend whenever the peer exceeds the max_limit of an
+ * exchange kind; once it reaches g.max.limit.request.exceeded.count the peer's requests are refused, so resetting
+ * it here is how an administrator admits the peer again.
  */
 @Component({
   selector: 'gtnet-config-edit',
@@ -56,6 +58,7 @@ export class GTNetConfigEditComponent extends SimpleEntityEditBase<GTNetConfig> 
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'connectionTimeout', false, 5, 40),
+      DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'requestViolationCount', false, 0, 99),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -68,6 +71,7 @@ export class GTNetConfigEditComponent extends SimpleEntityEditBase<GTNetConfig> 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): GTNetConfig {
     const config = { ...this.gtNetConfig };
     config.connectionTimeout = value['connectionTimeout'] ?? null;
+    config.requestViolationCount = value['requestViolationCount'] ?? 0;
     return config;
   }
 }

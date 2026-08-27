@@ -1,5 +1,7 @@
 package grafiosch.gtnet.handler;
 
+import java.util.Optional;
+
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.MessageCategory;
 import grafiosch.gtnet.SendReceivedType;
@@ -13,8 +15,8 @@ import grafiosch.gtnet.m2m.model.MessageEnvelope;
  *
  * Examples:
  * <ul>
- *   <li>GT_NET_FIRST_HANDSHAKE_ACCEPT_S - Remote accepted our handshake</li>
- *   <li>GT_NET_DATA_REQUEST_REJECTED_S - Remote rejected our data request</li>
+ * <li>GT_NET_FIRST_HANDSHAKE_ACCEPT_S - Remote accepted our handshake</li>
+ * <li>GT_NET_DATA_REQUEST_REJECTED_S - Remote rejected our data request</li>
  * </ul>
  */
 public abstract class AbstractResponseHandler extends AbstractGTNetMessageHandler {
@@ -43,13 +45,25 @@ public abstract class AbstractResponseHandler extends AbstractGTNetMessageHandle
   }
 
   /**
-   * Stores an incoming response message, linking it to our original request via replyToSourceId.
+   * Stores an incoming response message, linking it to our original request via replyToSourceId, or returns the row a
+   * previous delivery of the same response already created.
+   *
+   * <p>
+   * The {@code replyTo} written here is the value the peer supplied. It is not taken on trust: the envelope validator
+   * has already resolved it against a local message of this same peer, so a peer cannot thread its answer under another
+   * peer's conversation.
+   * </p>
    *
    * @param context the message context containing replyToSourceId
-   * @return the persisted GTNetMessage entity
+   * @return the persisted GTNetMessage entity, existing or new
    */
   protected GTNetMessage storeIncomingResponseMessage(GTNetMessageContext context) {
     Integer idGtNet = context.getRemoteGTNet() != null ? context.getRemoteGTNet().getIdGtNet() : null;
+
+    Optional<GTNetMessage> alreadyStored = findPreviousDelivery(idGtNet, context.getIdSourceGtNetMessage());
+    if (alreadyStored.isPresent()) {
+      return alreadyStored.get();
+    }
 
     // replyTo points to our original sent request (using replyToSourceId from the envelope)
     Integer replyTo = context.getReplyToSourceId();
@@ -78,9 +92,9 @@ public abstract class AbstractResponseHandler extends AbstractGTNetMessageHandle
    *
    * Called after the response is stored. Use for operations like:
    * <ul>
-   *   <li>Updating GTNet entity flags based on accept/reject</li>
-   *   <li>Storing tokens from handshake accept responses</li>
-   *   <li>Updating server state based on response</li>
+   * <li>Updating GTNet entity flags based on accept/reject</li>
+   * <li>Storing tokens from handshake accept responses</li>
+   * <li>Updating server state based on response</li>
    * </ul>
    *
    * @param context       the message context

@@ -79,17 +79,20 @@ export class GrafioschMainTreeContributor extends GrafioschTreeContributorBase {
       return;
     }
     const logEnabled = this.gps.isGtNetLogEnabled();
+    const children: TreeNode[] = [
+      {
+        ...this.navigationNode('GT_NET_EXCHANGE_LOG', BaseSettings.GT_NET_EXCHANGE_LOG_KEY),
+        styleClass: logEnabled ? '' : 'p-disabled',
+        selectable: logEnabled
+      }
+    ];
+    if (AuditHelper.hasAdminRole(this.gps)) {
+      children.unshift(this.navigationNode('GT_NET_MESSAGE_ANSWER', BaseSettings.GT_NET_MESSAGE_ANSWER_KEY));
+    }
     const gtNetNode: TreeNode = {
       label: 'GT_NET_NET_AND_MESSAGE',
       expanded: true,
-      children: [
-        this.navigationNode('GT_NET_MESSAGE_ANSWER', BaseSettings.GT_NET_MESSAGE_ANSWER_KEY),
-        {
-          ...this.navigationNode('GT_NET_EXCHANGE_LOG', BaseSettings.GT_NET_EXCHANGE_LOG_KEY),
-          styleClass: logEnabled ? '' : 'p-disabled',
-          selectable: logEnabled
-        }
-      ],
+      children,
       data: new TypeNodeData(
         LibTreeNodeType.NO_MENU,
         this.addMainRoute(GrafioschSettings.GT_NET_TAB_MENU_KEY),

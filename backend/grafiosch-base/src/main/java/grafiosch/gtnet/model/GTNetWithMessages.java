@@ -11,14 +11,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
  *
  * This DTO is designed to support the GTNetSetupTableComponent frontend view, which displays:
  * <ul>
- *   <li>A list of all known GTNet domains with their configuration</li>
- *   <li>Message counts per domain (for determining if expander should show)</li>
- *   <li>Pending reply counts for unanswered requests (columns: "To be answered", "Answer expected")</li>
- *   <li>Identification of which entry represents the local instance</li>
+ * <li>A list of all known GTNet domains with their configuration</li>
+ * <li>Message counts per domain (for determining if expander should show)</li>
+ * <li>Pending reply counts for unanswered requests (columns: "To be answered", "Answer expected")</li>
+ * <li>Identification of which entry represents the local instance</li>
  * </ul>
  *
- * Messages are loaded lazily when a row is expanded via separate REST call.
- * The pending reply maps are keyed by idGtNet for efficient UI rendering.
+ * Messages are loaded lazily when a row is expanded via separate REST call. The pending reply maps are keyed by idGtNet
+ * for efficient UI rendering.
  */
 @Schema(description = """
     Combined response for the GTNet setup screen. Contains all known domains, message counts per domain,
@@ -57,10 +57,17 @@ public class GTNetWithMessages {
   public Integer idOpenDiscontinuedMessage;
 
   @Schema(description = """
-      ID of an open GT_NET_MAINTENANCE_ALL_C message if one exists. An 'open' message is one that has been sent
-      with a toDateTime in the future and has not been cancelled. Null if no open maintenance message exists.
-      Used by the UI to control availability of the maintenance announcement option.""")
+      ID of an open GT_NET_MAINTENANCE_ALL_C message if one exists, the earliest when there are several. An 'open'
+      message is one that has been sent with a toDateTime in the future and has not been cancelled. Null if no open
+      maintenance message exists. Several windows may be announced at once, so this does not gate the announcement
+      option; it only tells the UI that a maintenance is pending.""")
   public Integer idOpenMaintenanceMessage;
+
+  @Schema(description = """
+      Number of announced maintenance windows per domain. Key is idGtNet, value is the count. Lets the maintenance
+      panel of the expanded row show whether it holds anything before it is opened, without loading the windows
+      themselves.""")
+  public Map<Integer, Integer> gtNetMaintenanceWindowCountMap;
 
   @Schema(description = """
       Metadata about all registered exchange kind types. Allows the frontend to dynamically build
@@ -70,7 +77,7 @@ public class GTNetWithMessages {
   public GTNetWithMessages(List<GTNet> gtNetList, Map<Integer, Integer> gtNetMessageCountMap,
       Map<Integer, List<Integer>> outgoingPendingReplies, Map<Integer, List<Integer>> incomingPendingReplies,
       Integer gtNetMyEntryId, Integer idOpenDiscontinuedMessage, Integer idOpenMaintenanceMessage,
-      List<ExchangeKindTypeInfo> exchangeKindTypes) {
+      Map<Integer, Integer> gtNetMaintenanceWindowCountMap, List<ExchangeKindTypeInfo> exchangeKindTypes) {
     this.gtNetList = gtNetList;
     this.gtNetMessageCountMap = gtNetMessageCountMap;
     this.outgoingPendingReplies = outgoingPendingReplies;
@@ -78,6 +85,7 @@ public class GTNetWithMessages {
     this.gtNetMyEntryId = gtNetMyEntryId;
     this.idOpenDiscontinuedMessage = idOpenDiscontinuedMessage;
     this.idOpenMaintenanceMessage = idOpenMaintenanceMessage;
+    this.gtNetMaintenanceWindowCountMap = gtNetMaintenanceWindowCountMap;
     this.exchangeKindTypes = exchangeKindTypes;
   }
 }

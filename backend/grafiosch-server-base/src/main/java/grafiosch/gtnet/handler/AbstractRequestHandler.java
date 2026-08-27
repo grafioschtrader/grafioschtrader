@@ -16,17 +16,17 @@ import grafiosch.gtnet.m2m.model.MessageEnvelope;
  *
  * Request messages expect a response, which may be:
  * <ul>
- *   <li>Immediate: Generated automatically via GTNetMessageAnswer rules</li>
- *   <li>Deferred: Stored for manual admin review and later response</li>
+ * <li>Immediate: Generated automatically via GTNetMessageAnswer rules</li>
+ * <li>Deferred: Stored for manual admin review and later response</li>
  * </ul>
  *
  * This class implements the Template Method pattern, providing a consistent request handling flow:
  * <ol>
- *   <li>Validate the request</li>
- *   <li>Store the incoming message</li>
- *   <li>Process request-specific side effects</li>
- *   <li>Attempt automatic response via GTNetMessageAnswer rules</li>
- *   <li>Return immediate response or await manual handling</li>
+ * <li>Validate the request</li>
+ * <li>Store the incoming message</li>
+ * <li>Process request-specific side effects</li>
+ * <li>Attempt automatic response via GTNetMessageAnswer rules</li>
+ * <li>Return immediate response or await manual handling</li>
  * </ol>
  *
  * Subclasses implement the abstract methods to provide request-specific behavior.
@@ -71,8 +71,8 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
     }
 
     // 5. Try automatic response via GTNetMessageAnswer rules
-    Optional<GTNetResponseResolver.ResolvedResponse> autoResponse = responseResolver.resolveAutoResponse(
-        context.getAutoResponseRules(), context.getRemoteGTNet(), context.getParams());
+    Optional<GTNetResponseResolver.ResolvedResponse> autoResponse = responseResolver
+        .resolveAutoResponse(context.getAutoResponseRules(), context.getRemoteGTNet(), context.getParams());
 
     if (autoResponse.isPresent()) {
       // 6a. Build and return automatic response
@@ -82,6 +82,7 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
       applyResponseSideEffects(context, resolved.responseCode(), storedRequest);
 
       MessageEnvelope response = buildResponse(context, resolved.responseCode(), resolved.message(), storedRequest);
+      applyWaitDaysApply(response, resolved.waitDaysApply());
       return new HandlerResult.ImmediateResponse<>(response);
     } else {
       // 6b. Check for handler default response (e.g., handshake defaults to ACCEPT)
@@ -94,6 +95,20 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
       }
       // 6c. No auto-response, no default, wait for admin
       return new HandlerResult.AwaitingManualResponse<>(storedRequest);
+    }
+  }
+
+  /** Persists and transfers the cooling-off period selected by an automatic response rule. */
+  private void applyWaitDaysApply(MessageEnvelope response, Short waitDaysApply) {
+    if (response == null || waitDaysApply == null) {
+      return;
+    }
+    response.waitDaysApply = waitDaysApply;
+    if (response.idSourceGtNetMessage != null) {
+      gtNetMessageJpaRepository.findById(response.idSourceGtNetMessage).ifPresent(message -> {
+        message.setWaitDaysApply(waitDaysApply);
+        gtNetMessageJpaRepository.save(message);
+      });
     }
   }
 
@@ -141,9 +156,9 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
    *
    * Subclasses should check:
    * <ul>
-   *   <li>Required parameters are present</li>
-   *   <li>Parameter values are valid</li>
-   *   <li>Pre-conditions are met (e.g., remote domain is known)</li>
+   * <li>Required parameters are present</li>
+   * <li>Parameter values are valid</li>
+   * <li>Pre-conditions are met (e.g., remote domain is known)</li>
    * </ul>
    *
    * @param context the message context

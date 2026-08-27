@@ -7,12 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.json.JacksonJsonDecoder;
 import org.springframework.http.codec.json.JacksonJsonEncoder;
-import tools.jackson.databind.json.JsonMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.gtnet.model.msg.ApplicationInfo;
 import grafiosch.rest.RequestMappings;
@@ -21,28 +21,26 @@ import io.netty.resolver.ResolvedAddressTypes;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * HTTP client for machine-to-machine (M2M) communication with remote GTNet instances.
  *
- * Uses Spring WebClient with Reactor Netty for non-blocking HTTP calls (though currently used
- * in blocking mode via .block()). Handles two types of requests:
+ * Uses Spring WebClient with Reactor Netty for non-blocking HTTP calls (though currently used in blocking mode via
+ * .block()). Handles two types of requests:
  * <ul>
- *   <li><b>Actuator Info</b>: GET to /actuator/info for liveness checks and metadata retrieval</li>
- *   <li><b>GTNet Messages</b>: POST to /m2m/gtnet for all GTNet protocol messages</li>
+ * <li><b>Actuator Info</b>: GET to /actuator/info for liveness checks and metadata retrieval</li>
+ * <li><b>GTNet Messages</b>: POST to /m2m/gtnet for all GTNet protocol messages</li>
  * </ul>
  *
- * <h3>Authentication</h3>
- * M2M messages include the remote-supplied token in the Authorization header. This token was
+ * <h3>Authentication</h3> M2M messages include the remote-supplied token in the Authorization header. This token was
  * exchanged during the handshake and must be validated by the receiving endpoint.
  *
- * <h3>Network Configuration</h3>
- * The client is configured to prefer IPv6 addresses, which may need adjustment depending on
- * deployment environments.
+ * <h3>Network Configuration</h3> The client is configured to prefer IPv6 addresses, which may need adjustment depending
+ * on deployment environments.
  *
- * <h3>Error Handling</h3>
- * Currently no explicit error handling - WebClient exceptions will propagate to callers.
- * Future improvements should include retry logic and proper error classification.
+ * <h3>Error Handling</h3> Currently no explicit error handling - WebClient exceptions will propagate to callers. Future
+ * improvements should include retry logic and proper error classification.
  */
 @Service
 public class BaseDataClient {
@@ -59,11 +57,11 @@ public class BaseDataClient {
   }
 
   /**
-   * Result wrapper for M2M message sending operations.
-   * Distinguishes between successful delivery, HTTP errors, and network failures.
+   * Result wrapper for M2M message sending operations. Distinguishes between successful delivery, HTTP errors, and
+   * network failures.
    */
-  public record SendResult(boolean serverReachable, boolean httpError, int httpStatusCode,
-      MessageEnvelope response, boolean serverBusy, String errorMessage) {
+  public record SendResult(boolean serverReachable, boolean httpError, int httpStatusCode, MessageEnvelope response,
+      boolean serverBusy, String errorMessage) {
 
     /**
      * Message was successfully delivered and a response was received.
@@ -82,7 +80,7 @@ public class BaseDataClient {
     /**
      * Server responded with an HTTP error status (4xx, 5xx).
      *
-     * @param statusCode the HTTP status code
+     * @param statusCode   the HTTP status code
      * @param errorMessage the error response body from the server, if available
      */
     public static SendResult httpError(int statusCode, String errorMessage) {
@@ -91,6 +89,7 @@ public class BaseDataClient {
 
     /**
      * Server responded with an HTTP error status (4xx, 5xx).
+     *
      * @deprecated Use {@link #httpError(int, String)} to capture error details.
      */
     @Deprecated
@@ -111,16 +110,37 @@ public class BaseDataClient {
     public boolean isFailed() {
       return !serverReachable || httpError;
     }
+
+    /**
+     * Whether the peer refused the message outright. The envelope is the protocol and the HTTP status stays 200 for
+     * every protocol outcome, so a refusal is only visible in the answering code — which is why
+     * {@link #isDelivered()} alone must never be read as success.
+     *
+     * @return true when the peer answered with GT_NET_ERROR_S
+     */
+    public boolean isRefused() {
+      return isDelivered() && response.messageCode == GNetCoreMessageCode.GT_NET_ERROR_S.getValue();
+    }
+
+    /**
+     * Whether the peer accepted the message: it processed it, took it for later decision, or answered it properly.
+     * This is the semantic counterpart of {@link #isDelivered()}, which only says that the bytes arrived.
+     *
+     * @return true when the answer is anything other than an error
+     */
+    public boolean isAccepted() {
+      return isDelivered() && !isRefused();
+    }
   }
 
   /**
-   * Retrieves application metadata from a remote instance's actuator endpoint.
-   * Uses Reactor Netty default connection timeout.
+   * Retrieves application metadata from a remote instance's actuator endpoint. Uses Reactor Netty default connection
+   * timeout.
    *
    * @param domainName the base URL of the remote instance (e.g., "https://example.com:8080")
    * @return application info including name, version, and user capacity
    * @throws WebClientResponseException if the remote returns an error status
-   * @throws WebClientRequestException if the remote is unreachable
+   * @throws WebClientRequestException  if the remote is unreachable
    */
   public ApplicationInfo getActuatorInfo(String domainName) {
     return getActuatorInfo(domainName, 0);
@@ -129,11 +149,11 @@ public class BaseDataClient {
   /**
    * Retrieves application metadata from a remote instance's actuator endpoint.
    *
-   * @param domainName the base URL of the remote instance (e.g., "https://example.com:8080")
+   * @param domainName               the base URL of the remote instance (e.g., "https://example.com:8080")
    * @param connectionTimeoutSeconds TCP connection timeout in seconds (0 = use Netty default)
    * @return application info including name, version, and user capacity
    * @throws WebClientResponseException if the remote returns an error status
-   * @throws WebClientRequestException if the remote is unreachable
+   * @throws WebClientRequestException  if the remote is unreachable
    */
   public ApplicationInfo getActuatorInfo(String domainName, int connectionTimeoutSeconds) {
     return getWebClientForDomain(domainName, connectionTimeoutSeconds).get()
@@ -144,23 +164,23 @@ public class BaseDataClient {
   /**
    * Sends a GTNet message to a remote instance.
    *
-   * @param tokenRemote the authentication token received from the remote during handshake
-   * @param targetDomain the base URL of the remote instance
+   * @param tokenRemote     the authentication token received from the remote during handshake
+   * @param targetDomain    the base URL of the remote instance
    * @param messageEnvelope the message to send
    * @return the response envelope from the remote
    * @throws WebClientResponseException if the remote returns an error (e.g., 401 for invalid token)
-   * @throws WebClientRequestException if the remote is unreachable
+   * @throws WebClientRequestException  if the remote is unreachable
    */
   public MessageEnvelope sendToMsg(String tokenRemote, String targetDomain, MessageEnvelope messageEnvelope) {
     return sendToMsgWithStatus(tokenRemote, targetDomain, messageEnvelope).response();
   }
 
   /**
-   * Sends a GTNet message to a remote instance and returns detailed status information.
-   * Uses Reactor Netty default connection timeout.
+   * Sends a GTNet message to a remote instance and returns detailed status information. Uses Reactor Netty default
+   * connection timeout.
    *
-   * @param tokenRemote the authentication token received from the remote during handshake
-   * @param targetDomain the base URL of the remote instance
+   * @param tokenRemote     the authentication token received from the remote during handshake
+   * @param targetDomain    the base URL of the remote instance
    * @param messageEnvelope the message to send
    * @return SendResult containing reachability status, response, and remote server's busy flag
    */
@@ -171,13 +191,13 @@ public class BaseDataClient {
   /**
    * Sends a GTNet message to a remote instance and returns detailed status information.
    *
-   * This method wraps the HTTP call with error handling to distinguish between:
-   * - Server reachable and responded (serverReachable=true, response contains data)
-   * - Server unreachable due to network/connection error (serverReachable=false)
+   * This method wraps the HTTP call with error handling to distinguish between: - Server reachable and responded
+   * (serverReachable=true, response contains data) - Server unreachable due to network/connection error
+   * (serverReachable=false)
    *
-   * @param tokenRemote the authentication token received from the remote during handshake
-   * @param targetDomain the base URL of the remote instance
-   * @param messageEnvelope the message to send
+   * @param tokenRemote              the authentication token received from the remote during handshake
+   * @param targetDomain             the base URL of the remote instance
+   * @param messageEnvelope          the message to send
    * @param connectionTimeoutSeconds TCP connection timeout in seconds (0 = use Netty default)
    * @return SendResult containing reachability status, response, and remote server's busy flag
    */
@@ -192,11 +212,8 @@ public class BaseDataClient {
         requestSpec = requestSpec.header(AUTHORIZATION_HEADER, tokenRemote);
       }
 
-      MessageEnvelope response = requestSpec
-          .body(Mono.just(messageEnvelope), MessageEnvelope.class)
-          .retrieve()
-          .bodyToMono(MessageEnvelope.class)
-          .block();
+      MessageEnvelope response = requestSpec.body(Mono.just(messageEnvelope), MessageEnvelope.class).retrieve()
+          .bodyToMono(MessageEnvelope.class).block();
 
       if (response == null) {
         log.warn("GTNet server at {} returned 2xx but empty/null response body", targetDomain);
@@ -211,8 +228,8 @@ public class BaseDataClient {
     } catch (WebClientResponseException e) {
       // Server responded with an error status (4xx, 5xx) - server is reachable but returned error
       String errorBody = e.getResponseBodyAsString();
-      log.warn("GTNet server at {} returned error status {}: {} - Body: {}",
-          targetDomain, e.getStatusCode(), e.getMessage(), errorBody);
+      log.warn("GTNet server at {} returned error status {}: {} - Body: {}", targetDomain, e.getStatusCode(),
+          e.getMessage(), errorBody);
       return SendResult.httpError(e.getStatusCode().value(), errorBody);
     }
   }
@@ -220,7 +237,7 @@ public class BaseDataClient {
   /**
    * Creates a WebClient configured for the specified domain with optional connection timeout.
    *
-   * @param domainName the base URL for the WebClient
+   * @param domainName               the base URL for the WebClient
    * @param connectionTimeoutSeconds TCP connection timeout in seconds (0 = use Netty default)
    * @return configured WebClient instance
    */
@@ -235,13 +252,10 @@ public class BaseDataClient {
           .responseTimeout(Duration.ofSeconds(connectionTimeoutSeconds));
     }
 
-    return WebClient.builder()
-        .clientConnector(new ReactorClientHttpConnector(httpClient))
-        .codecs(configurer -> {
-          configurer.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder((JsonMapper) objectMapper));
-          configurer.defaultCodecs().jacksonJsonEncoder(new JacksonJsonEncoder((JsonMapper) objectMapper));
-        })
-        .baseUrl(domainName).build();
+    return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient)).codecs(configurer -> {
+      configurer.defaultCodecs().jacksonJsonDecoder(new JacksonJsonDecoder((JsonMapper) objectMapper));
+      configurer.defaultCodecs().jacksonJsonEncoder(new JacksonJsonEncoder((JsonMapper) objectMapper));
+    }).baseUrl(domainName).build();
   }
 
 }

@@ -72,6 +72,7 @@ CREATE TABLE `gt_net` (
   `server_busy` tinyint(1) NOT NULL DEFAULT 0,
   `server_online` tinyint(1) NOT NULL DEFAULT 0,
   `last_modified_time` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `close_start_date` date DEFAULT NULL,
   PRIMARY KEY (`id_gt_net`),
   UNIQUE KEY `domainRemoteName` (`domain_remote_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -89,6 +90,9 @@ CREATE TABLE `gt_net_config` (
   `request_violation_count` tinyint(2) NOT NULL DEFAULT 0,
   `handshake_timestamp` timestamp NULL DEFAULT NULL COMMENT 'UTC timestamp when first successful handshake completed',
   `connection_timeout` tinyint(4) DEFAULT NULL,
+  `daily_req_limit_date` date DEFAULT NULL,
+  `token_this_previous` varchar(32) DEFAULT NULL COMMENT 'The token replaced by the last rotation, accepted until token_this_previous_valid_until',
+  `token_this_previous_valid_until` datetime DEFAULT NULL COMMENT 'UTC instant after which token_this_previous is no longer accepted',
   PRIMARY KEY (`id_gt_net`),
   CONSTRAINT `FK_GTNetConfig_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -141,6 +145,22 @@ CREATE TABLE `gt_net_exchange_log` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `gt_net_maintenance_window` (
+  `id_gt_net_maintenance_window` int(11) NOT NULL AUTO_INCREMENT,
+  `id_gt_net` int(11) NOT NULL COMMENT 'The remote whose services are unavailable',
+  `id_gt_net_message` int(11) NOT NULL COMMENT 'The received announcement this window was read from',
+  `from_date_time` datetime NOT NULL COMMENT 'UTC start of the window',
+  `to_date_time` datetime NOT NULL COMMENT 'UTC end of the window',
+  PRIMARY KEY (`id_gt_net_maintenance_window`),
+  UNIQUE KEY `uk_gt_net_maintenance_window` (`id_gt_net`,`from_date_time`,`to_date_time`),
+  KEY `idx_gt_net_maintenance_window_active` (`id_gt_net`,`to_date_time`),
+  KEY `idx_gt_net_maintenance_window_message` (`id_gt_net_message`),
+  CONSTRAINT `fk_maintenance_window_gtnet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
+  CONSTRAINT `fk_maintenance_window_message` FOREIGN KEY (`id_gt_net_message`) REFERENCES `gt_net_message` (`id_gt_net_message`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Announced maintenance windows of remote GTNet instances';
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `gt_net_message` (
   `id_gt_net_message` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -157,6 +177,7 @@ CREATE TABLE `gt_net_message` (
   `wait_days_apply` smallint(4) NOT NULL DEFAULT 0,
   `delivery_status` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_gt_net_message`),
+  UNIQUE KEY `uk_gt_net_message_source` (`id_gt_net`,`send_recv`,`id_source_gt_net_message`),
   KEY `FK_GtNetMessage_GtNet` (`id_gt_net`),
   KEY `FK_GtNetMessage_GtNetMessage` (`reply_to`),
   CONSTRAINT `FK_GtNetMessage_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,

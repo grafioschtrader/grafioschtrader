@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,14 +51,9 @@ class PortfolioResourceTest extends BaseIntegrationTest {
   void setUp() throws IOException {
     RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
     integrationPortfolios = loadIntegrationPortfolios();
-    TradingPlatformPlan[] plans = authenticatedClient(RestTestHelper.ADMIN)
-        .get()
-        .uri(RequestGTMappings.TRADINGPLATFORMPLAND_MAP)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(TradingPlatformPlan[].class)
-        .returnResult()
-        .getResponseBody();
+    TradingPlatformPlan[] plans = authenticatedClient(RestTestHelper.ADMIN).get()
+        .uri(RequestGTMappings.TRADINGPLATFORMPLAND_MAP).exchange().expectStatus().isOk()
+        .expectBody(TradingPlatformPlan[].class).returnResult().getResponseBody();
     tradingPlatformPlans = plans == null ? List.of() : Arrays.asList(plans);
   }
 
@@ -72,15 +67,8 @@ class PortfolioResourceTest extends BaseIntegrationTest {
 
   private void createPortfolioAndAccounts(PortfolioFixture fixture) {
     Portfolio request = new Portfolio(null, fixture.name, fixture.currency);
-    Portfolio portfolio = authenticatedClient(fixture.loginNickname)
-        .post()
-        .uri(RequestGTMappings.PORTFOLIO_MAP)
-        .body(request)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Portfolio.class)
-        .returnResult()
-        .getResponseBody();
+    Portfolio portfolio = authenticatedClient(fixture.loginNickname).post().uri(RequestGTMappings.PORTFOLIO_MAP)
+        .body(request).exchange().expectStatus().isOk().expectBody(Portfolio.class).returnResult().getResponseBody();
 
     assertNotNull(portfolio);
     Assertions.assertThat(portfolio.getIdPortfolio()).isPositive();
@@ -105,15 +93,9 @@ class PortfolioResourceTest extends BaseIntegrationTest {
       payload.put("lowestTransactionCost", accountFixture.lowestTransactionCost);
       payload.put("tradingPeriods", tradingPeriods);
 
-      Securityaccount created = authenticatedClient(fixture.loginNickname)
-          .post()
-          .uri(RequestGTMappings.SECURITYACCOUNT_MAP)
-          .body(payload)
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(Securityaccount.class)
-          .returnResult()
-          .getResponseBody();
+      Securityaccount created = authenticatedClient(fixture.loginNickname).post()
+          .uri(RequestGTMappings.SECURITYACCOUNT_MAP).body(payload).exchange().expectStatus().isOk()
+          .expectBody(Securityaccount.class).returnResult().getResponseBody();
 
       assertNotNull(created);
       Assertions.assertThat(created.getIdSecuritycashAccount()).isPositive();
@@ -142,14 +124,8 @@ class PortfolioResourceTest extends BaseIntegrationTest {
         payload.put("connectIdSecurityaccount", connectedAccount.getIdSecuritycashAccount());
       }
 
-      Cashaccount created = authenticatedClient(fixture.loginNickname)
-          .post()
-          .uri(RequestGTMappings.CASHACCOUNT_MAP)
-          .body(payload)
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(Cashaccount.class)
-          .returnResult()
+      Cashaccount created = authenticatedClient(fixture.loginNickname).post().uri(RequestGTMappings.CASHACCOUNT_MAP)
+          .body(payload).exchange().expectStatus().isOk().expectBody(Cashaccount.class).returnResult()
           .getResponseBody();
 
       assertNotNull(created);
@@ -164,14 +140,9 @@ class PortfolioResourceTest extends BaseIntegrationTest {
 
   private void verifyPortfolioThroughRest(PortfolioFixture fixture, Portfolio portfolio,
       Map<String, Securityaccount> securityaccounts) {
-    String responseBody = authenticatedClient(fixture.loginNickname)
-        .get()
-        .uri(RequestGTMappings.PORTFOLIO_MAP + "/" + portfolio.getIdPortfolio())
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(String.class)
-        .returnResult()
-        .getResponseBody();
+    String responseBody = authenticatedClient(fixture.loginNickname).get()
+        .uri(RequestGTMappings.PORTFOLIO_MAP + "/" + portfolio.getIdPortfolio()).exchange().expectStatus().isOk()
+        .expectBody(String.class).returnResult().getResponseBody();
 
     assertNotNull(responseBody);
     JsonNode response = parseJson(responseBody);
@@ -189,21 +160,18 @@ class PortfolioResourceTest extends BaseIntegrationTest {
     Assertions.assertThat(cashaccountNames)
         .containsExactlyInAnyOrderElementsOf(fixture.cashAccounts.stream().map(a -> a.name).toList());
 
-    fixture.cashAccounts.stream()
-        .filter(account -> account.connectSecurityAccount != null)
-        .forEach(account -> {
-          JsonNode cashaccount = findByName(cashaccountList, account.name);
-          Assertions.assertThat(cashaccount.path("connectIdSecurityaccount").asInt())
-              .isEqualTo(securityaccounts.get(account.connectSecurityAccount).getIdSecuritycashAccount());
-        });
+    fixture.cashAccounts.stream().filter(account -> account.connectSecurityAccount != null).forEach(account -> {
+      JsonNode cashaccount = findByName(cashaccountList, account.name);
+      Assertions.assertThat(cashaccount.path("connectIdSecurityaccount").asInt())
+          .isEqualTo(securityaccounts.get(account.connectSecurityAccount).getIdSecuritycashAccount());
+    });
   }
 
   private TradingPlatformPlan findTradingPlatformPlan(String name) {
     return tradingPlatformPlans.stream()
         .filter(plan -> name.equals(plan.getPlatformPlanNameByLanguage(Language.GERMAN))
             || name.equals(plan.getPlatformPlanNameByLanguage(Language.ENGLISH)))
-        .findFirst()
-        .orElseThrow(() -> new AssertionError("Trading platform plan not found through REST: " + name));
+        .findFirst().orElseThrow(() -> new AssertionError("Trading platform plan not found through REST: " + name));
   }
 
   private List<SecaccountTradingPeriod> createTradingPeriods(List<TradingPeriodFixture> fixtures) {
@@ -219,10 +187,8 @@ class PortfolioResourceTest extends BaseIntegrationTest {
   }
 
   private Set<String> toTradingPeriodKeys(List<SecaccountTradingPeriod> periods) {
-    return periods.stream()
-        .map(period -> period.getSpecInvestInstrument() + "|" + period.getCategoryType() + "|"
-            + period.getDateFrom() + "|" + period.getDateTo())
-        .collect(Collectors.toSet());
+    return periods.stream().map(period -> period.getSpecInvestInstrument() + "|" + period.getCategoryType() + "|"
+        + period.getDateFrom() + "|" + period.getDateTo()).collect(Collectors.toSet());
   }
 
   private Set<String> valuesOf(JsonNode array, String field) {

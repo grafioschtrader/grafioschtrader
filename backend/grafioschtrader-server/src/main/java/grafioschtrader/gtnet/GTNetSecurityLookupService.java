@@ -16,6 +16,7 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.MultilanguageString;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetRequestBudgetService;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
@@ -49,9 +50,8 @@ import grafioschtrader.service.GTNetExchangeLogService;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Service for looking up security metadata from GTNet peers.
- * Queries remote GTNet instances that have SECURITY_METADATA exchange enabled
- * and aggregates results from all responding peers.
+ * Service for looking up security metadata from GTNet peers. Queries remote GTNet instances that have SECURITY_METADATA
+ * exchange enabled and aggregates results from all responding peers.
  */
 @Service
 public class GTNetSecurityLookupService {
@@ -63,7 +63,9 @@ public class GTNetSecurityLookupService {
 
   @Autowired
   private BaseDataClient baseDataClient;
-  
+
+  @Autowired
+  private GTNetRequestBudgetService gtNetRequestBudgetService;
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
@@ -81,8 +83,8 @@ public class GTNetSecurityLookupService {
   private GTNetExchangeLogService gtNetExchangeLogService;
 
   /**
-   * Looks up security metadata by querying GTNet peers that support SECURITY_METADATA exchange.
-   * Sends requests to all available peers and aggregates their responses.
+   * Looks up security metadata by querying GTNet peers that support SECURITY_METADATA exchange. Sends requests to all
+   * available peers and aggregates their responses.
    *
    * @param request the search criteria (ISIN, currency, and/or ticker symbol)
    * @return response containing matching securities from all responding peers and query statistics
@@ -124,9 +126,7 @@ public class GTNetSecurityLookupService {
     List<GTNet> suppliers = gtNetJpaRepository.findSecurityMetadataSuppliers();
 
     // Exclude own entry to prevent self-communication
-    suppliers = suppliers.stream()
-        .filter(supplier -> !supplier.getIdGtNet().equals(myGTNetId))
-        .toList();
+    suppliers = suppliers.stream().filter(supplier -> !supplier.getIdGtNet().equals(myGTNetId)).toList();
 
     if (suppliers.isEmpty()) {
       SecurityGtnetLookupResponse response = new SecurityGtnetLookupResponse(results, 0, 0);
@@ -138,8 +138,8 @@ public class GTNetSecurityLookupService {
     int peersResponded = 0;
 
     // Build request payload
-    SecurityLookupMsg requestPayload = new SecurityLookupMsg(
-        request.getIsin(), request.getCurrency(), request.getTickerSymbol());
+    SecurityLookupMsg requestPayload = new SecurityLookupMsg(request.getIsin(), request.getCurrency(),
+        request.getTickerSymbol());
 
     // Query each peer
     for (GTNet supplier : suppliers) {
@@ -164,11 +164,12 @@ public class GTNetSecurityLookupService {
         log.debug("Sending security lookup request to {}", supplier.getDomainRemoteName());
 
         // Send request
-        SendResult result = baseDataClient.sendToMsgWithStatus(
-            config.getTokenRemote(),
-            supplier.getDomainRemoteName(),
-            requestEnvelope,
-            GTNetTimeoutHelper.resolveTimeout(supplier, globalparametersJpaRepository));
+        if (!gtNetRequestBudgetService.chargeOutgoing(supplier, requestEnvelope.messageCode)) {
+          continue;
+        }
+
+        SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), supplier.getDomainRemoteName(),
+            requestEnvelope, GTNetTimeoutHelper.resolveTimeout(supplier, globalparametersJpaRepository));
 
         if (result.isFailed()) {
           if (result.httpError()) {
@@ -205,8 +206,8 @@ public class GTNetSecurityLookupService {
           continue;
         }
 
-        SecurityLookupResponseMsg responsePayload = objectMapper.treeToValue(
-            response.payload, SecurityLookupResponseMsg.class);
+        SecurityLookupResponseMsg responsePayload = objectMapper.treeToValue(response.payload,
+            SecurityLookupResponseMsg.class);
 
         if (responsePayload == null || responsePayload.isEmpty()) {
           log.debug("No securities in response from {}", supplier.getDomainRemoteName());
@@ -224,8 +225,8 @@ public class GTNetSecurityLookupService {
         log.info("Received {} securities from {}", responsePayload.securities.size(), supplier.getDomainRemoteName());
 
         // Log exchange statistics as consumer
-        gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.SECURITY_METADATA,
-            1, responsePayload.securities.size(), responsePayload.securities.size());
+        gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.SECURITY_METADATA, 1,
+            responsePayload.securities.size(), responsePayload.securities.size());
 
       } catch (Exception e) {
         log.error("Failed to query GTNet server {}", supplier.getDomainRemoteName(), e);
@@ -236,18 +237,18 @@ public class GTNetSecurityLookupService {
     SecurityGtnetLookupResponse response = new SecurityGtnetLookupResponse(results, peersQueried, peersResponded);
     errors.forEach(response::addError);
 
-    log.info("Security lookup complete: {} peers queried, {} responded, {} results",
-        peersQueried, peersResponded, results.size());
+    log.info("Security lookup complete: {} peers queried, {} responded, {} results", peersQueried, peersResponded,
+        results.size());
 
     return response;
   }
 
   /**
-   * Checks if there are accessible GTNet peers that support SECURITY_METADATA exchange.
-   * A peer is considered accessible if:
+   * Checks if there are accessible GTNet peers that support SECURITY_METADATA exchange. A peer is considered accessible
+   * if:
    * <ul>
-   *   <li>It has a SECURITY_METADATA entity with acceptRequest > 0</li>
-   *   <li>The server is online (serverOnline = SOS_ONLINE = 1)</li>
+   * <li>It has a SECURITY_METADATA entity with acceptRequest > 0</li>
+   * <li>The server is online (serverOnline = SOS_ONLINE = 1)</li>
    * </ul>
    *
    * @return true if at least one accessible peer supports security metadata exchange
@@ -257,9 +258,9 @@ public class GTNetSecurityLookupService {
   }
 
   /**
-   * Performs batch lookup for multiple securities across all GTNet peers.
-   * Sends a single batch request to each peer containing all positions, reducing network round-trips.
-   * Results are aggregated and grouped by position ID for easy linking.
+   * Performs batch lookup for multiple securities across all GTNet peers. Sends a single batch request to each peer
+   * containing all positions, reducing network round-trips. Results are aggregated and grouped by position ID for easy
+   * linking.
    *
    * @param positions list of import positions to look up (only those with valid ISIN or ticker)
    * @return map from position ID to list of matching DTOs from all peers
@@ -293,9 +294,7 @@ public class GTNetSecurityLookupService {
     List<GTNet> suppliers = gtNetJpaRepository.findSecurityMetadataSuppliers();
 
     // Exclude own entry to prevent self-communication
-    suppliers = suppliers.stream()
-        .filter(supplier -> !supplier.getIdGtNet().equals(myGTNetId))
-        .toList();
+    suppliers = suppliers.stream().filter(supplier -> !supplier.getIdGtNet().equals(myGTNetId)).toList();
 
     if (suppliers.isEmpty()) {
       log.warn("No GTNet peers available for batch security lookup");
@@ -350,14 +349,16 @@ public class GTNetSecurityLookupService {
         requestEnvelope.timestamp = LocalDateTime.now();
         requestEnvelope.payload = objectMapper.valueToTree(batchRequest);
 
-        log.debug("Sending batch lookup request ({} queries) to {}", batchRequest.size(), supplier.getDomainRemoteName());
+        log.debug("Sending batch lookup request ({} queries) to {}", batchRequest.size(),
+            supplier.getDomainRemoteName());
 
         // Send request
-        SendResult result = baseDataClient.sendToMsgWithStatus(
-            config.getTokenRemote(),
-            supplier.getDomainRemoteName(),
-            requestEnvelope,
-            GTNetTimeoutHelper.resolveTimeout(supplier, globalparametersJpaRepository));
+        if (!gtNetRequestBudgetService.chargeOutgoing(supplier, requestEnvelope.messageCode)) {
+          continue;
+        }
+
+        SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), supplier.getDomainRemoteName(),
+            requestEnvelope, GTNetTimeoutHelper.resolveTimeout(supplier, globalparametersJpaRepository));
 
         if (result.isFailed()) {
           if (result.httpError()) {
@@ -389,8 +390,8 @@ public class GTNetSecurityLookupService {
           continue;
         }
 
-        SecurityBatchLookupResponseMsg responsePayload = objectMapper.treeToValue(
-            response.payload, SecurityBatchLookupResponseMsg.class);
+        SecurityBatchLookupResponseMsg responsePayload = objectMapper.treeToValue(response.payload,
+            SecurityBatchLookupResponseMsg.class);
 
         if (responsePayload == null || responsePayload.isEmpty()) {
           log.debug("No results in batch response from {}", supplier.getDomainRemoteName());
@@ -418,34 +419,32 @@ public class GTNetSecurityLookupService {
             }
 
             // Add to results for this position
-            resultsByPosition
-                .computeIfAbsent(positionId, _ -> new ArrayList<>())
-                .addAll(dtoList);
+            resultsByPosition.computeIfAbsent(positionId, _ -> new ArrayList<>()).addAll(dtoList);
             totalResultsFromPeer += dtoList.size();
           }
         }
 
-        log.info("Received {} securities from {} for batch lookup", totalResultsFromPeer, supplier.getDomainRemoteName());
+        log.info("Received {} securities from {} for batch lookup", totalResultsFromPeer,
+            supplier.getDomainRemoteName());
 
         // Log exchange statistics as consumer
-        gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.SECURITY_METADATA,
-            batchRequest.size(), totalResultsFromPeer, totalResultsFromPeer);
+        gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.SECURITY_METADATA, batchRequest.size(),
+            totalResultsFromPeer, totalResultsFromPeer);
 
       } catch (Exception e) {
         log.error("Failed to query GTNet server {} for batch lookup", supplier.getDomainRemoteName(), e);
       }
     }
 
-    log.info("Batch lookup complete: {} peers queried, {} responded, {} positions with results",
-        peersQueried, peersResponded, resultsByPosition.size());
+    log.info("Batch lookup complete: {} peers queried, {} responded, {} positions with results", peersQueried,
+        peersResponded, resultsByPosition.size());
 
     return resultsByPosition;
   }
 
   /**
-   * Matches connector hints from a peer against local connectors.
-   * For each capability (HISTORY, INTRADAY, DIVIDEND, SPLIT), finds the first matching local connector
-   * and sets the matched connector ID and URL extension on the DTO.
+   * Matches connector hints from a peer against local connectors. For each capability (HISTORY, INTRADAY, DIVIDEND,
+   * SPLIT), finds the first matching local connector and sets the matched connector ID and URL extension on the DTO.
    * Also calculates a match score based on how many connectors were matched.
    *
    * @param dto the security DTO to process
@@ -469,49 +468,49 @@ public class GTNetSecurityLookupService {
       if (hint.getCapabilities() != null) {
         for (ConnectorCapability capability : hint.getCapabilities()) {
           switch (capability) {
-            case HISTORY:
-              if (dto.getMatchedHistoryConnector() == null) {
-                dto.setMatchedHistoryConnector(localConnectorId);
-                dto.setMatchedHistoryUrlExtension(hint.getUrlExtensionPattern());
-                matchScore++;
-              }
-              break;
-            case INTRADAY:
-              if (dto.getMatchedIntraConnector() == null) {
-                dto.setMatchedIntraConnector(localConnectorId);
-                dto.setMatchedIntraUrlExtension(hint.getUrlExtensionPattern());
-                matchScore++;
-              }
-              break;
-            case DIVIDEND:
-              if (dto.getMatchedDividendConnector() == null) {
-                dto.setMatchedDividendConnector(localConnectorId);
-                dto.setMatchedDividendUrlExtension(hint.getUrlExtensionPattern());
-                matchScore++;
-              }
-              break;
-            case SPLIT:
-              if (dto.getMatchedSplitConnector() == null) {
-                dto.setMatchedSplitConnector(localConnectorId);
-                dto.setMatchedSplitUrlExtension(hint.getUrlExtensionPattern());
-                matchScore++;
-              }
-              break;
+          case HISTORY:
+            if (dto.getMatchedHistoryConnector() == null) {
+              dto.setMatchedHistoryConnector(localConnectorId);
+              dto.setMatchedHistoryUrlExtension(hint.getUrlExtensionPattern());
+              matchScore++;
+            }
+            break;
+          case INTRADAY:
+            if (dto.getMatchedIntraConnector() == null) {
+              dto.setMatchedIntraConnector(localConnectorId);
+              dto.setMatchedIntraUrlExtension(hint.getUrlExtensionPattern());
+              matchScore++;
+            }
+            break;
+          case DIVIDEND:
+            if (dto.getMatchedDividendConnector() == null) {
+              dto.setMatchedDividendConnector(localConnectorId);
+              dto.setMatchedDividendUrlExtension(hint.getUrlExtensionPattern());
+              matchScore++;
+            }
+            break;
+          case SPLIT:
+            if (dto.getMatchedSplitConnector() == null) {
+              dto.setMatchedSplitConnector(localConnectorId);
+              dto.setMatchedSplitUrlExtension(hint.getUrlExtensionPattern());
+              matchScore++;
+            }
+            break;
           }
         }
       }
     }
 
     dto.setConnectorMatchScore(matchScore);
-    log.debug("Connector matching for {}: score={}, history={}, intraday={}, dividend={}, split={}",
-        dto.getIsin(), matchScore, dto.getMatchedHistoryConnector(), dto.getMatchedIntraConnector(),
-        dto.getMatchedDividendConnector(), dto.getMatchedSplitConnector());
+    log.debug("Connector matching for {}: score={}, history={}, intraday={}, dividend={}, split={}", dto.getIsin(),
+        matchScore, dto.getMatchedHistoryConnector(), dto.getMatchedIntraConnector(), dto.getMatchedDividendConnector(),
+        dto.getMatchedSplitConnector());
   }
 
   /**
    * Finds a local connector matching the given hint. For built-in connectors (hint has no domainUrl), matches by
-   * connector family only. For generic connectors, additionally verifies that domainUrl and regexUrlPattern match
-   * and that the local connector has the required endpoints for the hint's capabilities.
+   * connector family only. For generic connectors, additionally verifies that domainUrl and regexUrlPattern match and
+   * that the local connector has the required endpoints for the hint's capabilities.
    *
    * @param hint the connector hint from a remote peer
    * @return the full connector ID if a compatible local connector is found, null otherwise
@@ -542,9 +541,11 @@ public class GTNetSecurityLookupService {
             && hasRequiredEndpoints(gfc, hint.getCapabilities())) {
           return expectedId;
         }
-        log.debug("Generic connector {} found locally but config mismatch: domainUrl=[{}] vs [{}], "
-            + "regexUrlPattern=[{}] vs [{}]", connectorFamily, hint.getDomainUrl(), localDef.getDomainUrl(),
-            hint.getRegexUrlPattern(), localDef.getRegexUrlPattern());
+        log.debug(
+            "Generic connector {} found locally but config mismatch: domainUrl=[{}] vs [{}], "
+                + "regexUrlPattern=[{}] vs [{}]",
+            connectorFamily, hint.getDomainUrl(), localDef.getDomainUrl(), hint.getRegexUrlPattern(),
+            localDef.getRegexUrlPattern());
       }
       // Local connector has the same family but is not a GenericFeedConnector — skip
     }
@@ -553,11 +554,11 @@ public class GTNetSecurityLookupService {
   }
 
   /**
-   * Checks whether the local generic connector has endpoints matching every capability in the given set.
-   * Maps each {@link ConnectorCapability} to the corresponding {@link FeedSupport} value and verifies
-   * that at least one endpoint exists for it.
+   * Checks whether the local generic connector has endpoints matching every capability in the given set. Maps each
+   * {@link ConnectorCapability} to the corresponding {@link FeedSupport} value and verifies that at least one endpoint
+   * exists for it.
    *
-   * @param gfc the local generic feed connector
+   * @param gfc          the local generic feed connector
    * @param capabilities the set of capabilities required by the hint
    * @return true if every capability has a matching endpoint, false otherwise
    */
@@ -586,23 +587,23 @@ public class GTNetSecurityLookupService {
   }
 
   /**
-   * Maps a {@link ConnectorCapability} to the corresponding GenericConnectorEndpoint feedSupport string.
-   * Generic connectors only support FS_HISTORY and FS_INTRA; DIVIDEND and SPLIT are not applicable.
+   * Maps a {@link ConnectorCapability} to the corresponding GenericConnectorEndpoint feedSupport string. Generic
+   * connectors only support FS_HISTORY and FS_INTRA; DIVIDEND and SPLIT are not applicable.
    */
   private static String mapCapabilityToFeedSupport(ConnectorCapability capability) {
     return switch (capability) {
-      case HISTORY -> FeedSupport.FS_HISTORY.name();
-      case INTRADAY -> FeedSupport.FS_INTRA.name();
-      case DIVIDEND, SPLIT -> null;
+    case HISTORY -> FeedSupport.FS_HISTORY.name();
+    case INTRADAY -> FeedSupport.FS_INTRA.name();
+    case DIVIDEND, SPLIT -> null;
     };
   }
 
   /**
    * Finds a matching local asset class for the given DTO. Matching priority:
    * <ol>
-   *   <li>Exact match: categoryType + specialInvestmentInstrument + subCategoryNLS (best similarity score)</li>
-   *   <li>Scheme match: categoryType + specialInvestmentInstrument + same categorization scheme</li>
-   *   <li>Partial match: categoryType + specialInvestmentInstrument only</li>
+   * <li>Exact match: categoryType + specialInvestmentInstrument + subCategoryNLS (best similarity score)</li>
+   * <li>Scheme match: categoryType + specialInvestmentInstrument + same categorization scheme</li>
+   * <li>Partial match: categoryType + specialInvestmentInstrument only</li>
    * </ol>
    *
    * @param dto the security DTO to process
@@ -616,8 +617,8 @@ public class GTNetSecurityLookupService {
         dto.getCategoryType().getValue(), dto.getSpecialInvestmentInstrument().getValue());
 
     if (candidates.isEmpty()) {
-      log.debug("No local asset class found for categoryType={}, specialInvestmentInstrument={}",
-          dto.getCategoryType(), dto.getSpecialInvestmentInstrument());
+      log.debug("No local asset class found for categoryType={}, specialInvestmentInstrument={}", dto.getCategoryType(),
+          dto.getSpecialInvestmentInstrument());
       return;
     }
 
@@ -648,8 +649,8 @@ public class GTNetSecurityLookupService {
     if (bestMatch != null) {
       dto.setMatchedAssetClassId(bestMatch.getIdAssetClass());
       dto.setAssetClassMatchType("EXACT");
-      log.debug("Best asset class match for {}: idAssetClass={}, similarity={}",
-          dto.getIsin(), bestMatch.getIdAssetClass(), bestSimilarity);
+      log.debug("Best asset class match for {}: idAssetClass={}, similarity={}", dto.getIsin(),
+          bestMatch.getIdAssetClass(), bestSimilarity);
       return;
     }
 
@@ -657,8 +658,8 @@ public class GTNetSecurityLookupService {
     if (schemeMatch != null) {
       dto.setMatchedAssetClassId(schemeMatch.getIdAssetClass());
       dto.setAssetClassMatchType("SCHEME_MATCH");
-      log.debug("Scheme-based asset class match for {}: idAssetClass={}, scheme={}",
-          dto.getIsin(), schemeMatch.getIdAssetClass(), dtoScheme);
+      log.debug("Scheme-based asset class match for {}: idAssetClass={}, scheme={}", dto.getIsin(),
+          schemeMatch.getIdAssetClass(), dtoScheme);
       return;
     }
 

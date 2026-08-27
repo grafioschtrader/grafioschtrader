@@ -28,17 +28,19 @@ import grafiosch.types.TaskTypeBase;
 /**
  * Scheduled task that aggregates GTNet exchange log entries from shorter to longer periods and deletes old messages.
  *
- * <p>Runs daily at configurable time (default 3 AM) and performs:
+ * <p>
+ * Runs daily at configurable time (default 3 AM) and performs:
  * <ul>
- *   <li>Rolling log aggregation: INDIVIDUAL -> DAILY -> WEEKLY -> MONTHLY -> YEARLY</li>
- *   <li>Deletion of old exchange messages based on configurable retention periods,
- *       driven by registered {@link IMessageRetentionProvider} beans</li>
+ * <li>Rolling log aggregation: INDIVIDUAL -> DAILY -> WEEKLY -> MONTHLY -> YEARLY</li>
+ * <li>Deletion of old exchange messages based on configurable retention periods, driven by registered
+ * {@link IMessageRetentionProvider} beans</li>
  * </ul>
  *
- * <p>Configuration is read from global parameters:
+ * <p>
+ * Configuration is read from global parameters:
  * <ul>
- *   <li>{@code g.gnet.log.aggregate.days}: Log aggregation thresholds (D=1,W=7,M=30,Y=365)</li>
- *   <li>{@code g.gnet.del.message.recv}: Message retention periods per provider config key</li>
+ * <li>{@code g.gnet.log.aggregate.days}: Log aggregation thresholds (D=1,W=7,M=30,Y=365)</li>
+ * <li>{@code g.gnet.del.message.recv}: Message retention periods per provider config key</li>
  * </ul>
  */
 @Component
@@ -67,8 +69,7 @@ public class GNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask 
   }
 
   /**
-   * Scheduled method that creates the aggregation task.
-   * Runs at the configured cron expression (default: 3 AM daily).
+   * Scheduled method that creates the aggregation task. Runs at the configured cron expression (default: 3 AM daily).
    */
   @Scheduled(cron = "${gt.gtnet.log.aggregation.cron:0 0 3 * * ?}", zone = BaseConstants.TIME_ZONE)
   public void createAggregationTask() {
@@ -93,8 +94,8 @@ public class GNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask 
   }
 
   /**
-   * Aggregates GTNet exchange log entries from shorter to longer periods.
-   * Reads configuration from global parameter {@code g.gnet.log.aggregate.days}.
+   * Aggregates GTNet exchange log entries from shorter to longer periods. Reads configuration from global parameter
+   * {@code g.gnet.log.aggregate.days}.
    */
   private void aggregateLogs() {
     PropertyStringParser logConfig = globalparametersJpaRepository.getGTNetLogAggregationConfig();
@@ -107,40 +108,32 @@ public class GNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask 
     int daysBeforeYearly = logConfig.getIntValue("Y", 365);
 
     // Step 1: Aggregate INDIVIDUAL -> DAILY
-    int count = gtNetExchangeLogJpaRepository.aggregateLogs(
-        GTNetExchangeLogPeriodType.INDIVIDUAL,
-        GTNetExchangeLogPeriodType.DAILY,
-        today.minusDays(daysBeforeDaily));
+    int count = gtNetExchangeLogJpaRepository.aggregateLogs(GTNetExchangeLogPeriodType.INDIVIDUAL,
+        GTNetExchangeLogPeriodType.DAILY, today.minusDays(daysBeforeDaily));
     if (count > 0) {
       log.info("Aggregated {} INDIVIDUAL entries to DAILY", count);
       totalAggregated += count;
     }
 
     // Step 2: Aggregate DAILY -> WEEKLY
-    count = gtNetExchangeLogJpaRepository.aggregateLogs(
-        GTNetExchangeLogPeriodType.DAILY,
-        GTNetExchangeLogPeriodType.WEEKLY,
-        today.minusDays(daysBeforeWeekly));
+    count = gtNetExchangeLogJpaRepository.aggregateLogs(GTNetExchangeLogPeriodType.DAILY,
+        GTNetExchangeLogPeriodType.WEEKLY, today.minusDays(daysBeforeWeekly));
     if (count > 0) {
       log.info("Aggregated {} DAILY entries to WEEKLY", count);
       totalAggregated += count;
     }
 
     // Step 3: Aggregate WEEKLY -> MONTHLY
-    count = gtNetExchangeLogJpaRepository.aggregateLogs(
-        GTNetExchangeLogPeriodType.WEEKLY,
-        GTNetExchangeLogPeriodType.MONTHLY,
-        today.minusDays(daysBeforeMonthly));
+    count = gtNetExchangeLogJpaRepository.aggregateLogs(GTNetExchangeLogPeriodType.WEEKLY,
+        GTNetExchangeLogPeriodType.MONTHLY, today.minusDays(daysBeforeMonthly));
     if (count > 0) {
       log.info("Aggregated {} WEEKLY entries to MONTHLY", count);
       totalAggregated += count;
     }
 
     // Step 4: Aggregate MONTHLY -> YEARLY
-    count = gtNetExchangeLogJpaRepository.aggregateLogs(
-        GTNetExchangeLogPeriodType.MONTHLY,
-        GTNetExchangeLogPeriodType.YEARLY,
-        today.minusDays(daysBeforeYearly));
+    count = gtNetExchangeLogJpaRepository.aggregateLogs(GTNetExchangeLogPeriodType.MONTHLY,
+        GTNetExchangeLogPeriodType.YEARLY, today.minusDays(daysBeforeYearly));
     if (count > 0) {
       log.info("Aggregated {} MONTHLY entries to YEARLY", count);
       totalAggregated += count;
@@ -150,9 +143,9 @@ public class GNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask 
   }
 
   /**
-   * Deletes old GTNet exchange messages based on retention configuration.
-   * Iterates over all registered {@link IMessageRetentionProvider} beans and deletes
-   * messages older than the configured retention period for each provider's message codes.
+   * Deletes old GTNet exchange messages based on retention configuration. Iterates over all registered
+   * {@link IMessageRetentionProvider} beans and deletes messages older than the configured retention period for each
+   * provider's message codes.
    */
   private void deleteOldMessages() {
     if (messageRetentionProviders == null || messageRetentionProviders.isEmpty()) {
@@ -172,8 +165,8 @@ public class GNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask 
       int repliesDeleted = gtNetMessageJpaRepository.deleteRepliesToOldMessages(codes, threshold);
       int deleted = gtNetMessageJpaRepository.deleteOldMessagesByCodesAndDate(codes, threshold);
       if (repliesDeleted > 0 || deleted > 0) {
-        log.info("Deleted {} reply rows and {} message rows for '{}' (codes {}) older than {} days",
-            repliesDeleted, deleted, provider.getConfigKey(), codes, retentionDays);
+        log.info("Deleted {} reply rows and {} message rows for '{}' (codes {}) older than {} days", repliesDeleted,
+            deleted, provider.getConfigKey(), codes, retentionDays);
       }
     }
   }

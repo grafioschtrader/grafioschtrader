@@ -139,12 +139,19 @@ test.describe.serial('Seed currency pairs in the currencypair watchlist', () => 
       await expect(intraSelect.locator(`option[value="${row.idConnectorIntra}"]`)).toHaveCount(1, { timeout: 10_000 });
       await intraSelect.selectOption({ value: row.idConnectorIntra });
 
+      const addToWatchlistResponse = page.waitForResponse(
+        (response) =>
+          response.request().method() === 'PUT' &&
+          /\/api\/watchlist\/\d+\/addSecuritycurrency$/.test(new URL(response.url()).pathname),
+        { timeout: 30_000 }
+      );
       await dialog.locator('button[type="submit"]').click();
       await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
+      expect((await addToWatchlistResponse).ok()).toBeTruthy();
 
-      // Generous timeout: the new pair row appears only after the watchlist refetches its rows
-      // and the connector returns first quotes. 10s is too tight for crypto/Yahoo (BTC/USD) under
-      // load — bump to 30s.
+      // The new pair row appears only after the watchlist refetches its rows and the connector returns
+      // first quotes. Keep this separate from awaiting the add-to-watchlist response above so a failed
+      // write is reported as such instead of looking like a table-rendering timeout.
       await expect(page.locator('td').filter({ hasText: pairPattern }).first()).toBeVisible({ timeout: 30_000 });
     });
   }

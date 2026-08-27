@@ -1,6 +1,9 @@
 import { BaseID } from '../../entities/base.id';
 import { MessageComType } from '../../mail/model/mail.send.recv';
 import { BaseParam } from '../../entities/base.param';
+import { GTNetServerOnlineStatusTypes } from './gtnet.server.online.status.types';
+
+export { GTNetServerOnlineStatusTypes };
 
 // Re-exported for the components that import the kind type together with the GTNet models.
 export { GTNetExchangeKindType } from './gtnet-exchange-kind.type';
@@ -77,6 +80,7 @@ export interface GTNetConfig {
   idGtNet: number;
   dailyRequestLimitCount?: number;
   dailyRequestLimitRemoteCount?: number;
+  dailyRequestLimitDate?: string;
   authorizedRemoteEntry?: boolean;
   /**
    * Counter that tracks the number of request violations from this remote domain.
@@ -99,6 +103,8 @@ export class GTNet implements BaseID {
   dailyRequestLimit: number = null;
   serverBusy = false;
   serverOnline: number | GTNetServerOnlineStatusTypes = GTNetServerOnlineStatusTypes.SOS_UNKNOWN;
+  /** Announced day this peer goes out of operation, null when no discontinuation is pending. */
+  closeStartDate: string = null;
   allowServerCreation = false;
   // Collection of entity-specific configurations
   gtNetEntities: GTNetEntity[] = [];
@@ -147,10 +153,13 @@ export interface GTNetWithMessages {
    */
   idOpenDiscontinuedMessage: number;
   /**
-   * ID of an open GT_NET_MAINTENANCE_ALL_C message if one exists.
-   * An open maintenance message has toDateTime in the future and has not been cancelled.
+   * ID of an open GT_NET_MAINTENANCE_ALL_C message if one exists, the earliest when there are several.
+   * An open maintenance message has toDateTime in the future and has not been cancelled. Several windows may be
+   * announced at once, so this does not gate the announcement option.
    */
   idOpenMaintenanceMessage: number;
+  /** Number of announced maintenance windows per idGtNet - lets the panel header show its count unopened. */
+  gtNetMaintenanceWindowCountMap: { [key: number]: number };
   /** Metadata about all registered exchange kind types from the backend. */
   exchangeKindTypes: ExchangeKindTypeInfo[];
 }
@@ -162,10 +171,17 @@ export enum GTNetServerStateTypes {
   SS_MAINTENANCE = 3
 }
 
-export enum GTNetServerOnlineStatusTypes {
-  SOS_UNKNOWN = 0,
-  SOS_ONLINE = 1,
-  SOS_OFFLINE = 2
+/**
+ * One announced maintenance window of a remote GTNet instance. While the current time lies inside a window the remote
+ * is not contacted.
+ */
+export interface GTNetMaintenanceWindow {
+  idGtNetMaintenanceWindow: number;
+  idGtNet: number;
+  /** The received announcement this window was read from. */
+  idGtNetMessage: number;
+  fromDateTime: string;
+  toDateTime: string;
 }
 
 /**

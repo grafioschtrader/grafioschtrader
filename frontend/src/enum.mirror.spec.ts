@@ -12,8 +12,11 @@ import { fileURLToPath } from 'node:url';
  * misses the entry.
  *
  * A mirror enrolls itself by carrying the marker `Corresponds to backend: <path>` in its file comment,
- * where `<path>` is relative to the repository's `backend/` directory. This test finds every such file
- * and asserts that both sides declare exactly the same constant names with the same numeric values.
+ * where `<path>` is relative to the repository's `backend/` directory. Several comma-separated paths may be
+ * named, in which case their constants are unioned — that is how one TypeScript enum mirrors both the core
+ * protocol enum and the application enum that extends it. A file holding more than one enum adds a
+ * `Mirrored enum: <Name>` line naming which of them the marker is about; without it the first enum in the
+ * file is compared.
  */
 
 /** This file lives in `frontend/src`, so the repository root is two levels up. */
@@ -21,8 +24,14 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const FRONTEND_APP = path.join(REPO_ROOT, 'frontend/src/app');
 const BACKEND = path.join(REPO_ROOT, 'backend');
 
-/** Picks up `* Corresponds to backend: grafiosch-base/src/main/java/.../TaskTypeBase.java`. */
-const MARKER = /Corresponds to backend:\s*(\S+\.java)/;
+/**
+ * Picks up `* Corresponds to backend: grafiosch-base/src/main/java/.../TaskTypeBase.java`, and the
+ * comma-separated multi-source form, which may wrap onto the following comment lines.
+ */
+const MARKER = /Corresponds to backend:\s*((?:[^\s,]+\.java)(?:\s*,\s*(?:\*\s*)?[^\s,]+\.java)*)/;
+
+/** Picks up `* Mirrored enum: GTNetMessageCodeType`, naming which enum of the file the marker is about. */
+const MIRRORED_ENUM = /Mirrored enum:\s*(\w+)/;
 
 /** A Java enum constant with an explicit ordinal argument, e.g. `MY_TASK((byte) 54),` or `MY_TASK(54),`. */
 const JAVA_CONSTANT = /^\s*([A-Z][A-Z0-9_]*)\s*\(\s*(?:\(byte\)\s*)?(-?\d+)\s*\)/gm;
@@ -30,16 +39,20 @@ const JAVA_CONSTANT = /^\s*([A-Z][A-Z0-9_]*)\s*\(\s*(?:\(byte\)\s*)?(-?\d+)\s*\)
 /** A TypeScript enum member with an explicit numeric value, e.g. `MY_TASK = 54,`. */
 const TS_CONSTANT = /^\s*([A-Z][A-Z0-9_]*)\s*=\s*(-?\d+)/gm;
 
-/** One mirror file and the backend enum it claims to correspond to. */
+/** One mirror file and the backend enums it claims to correspond to. */
 interface MirrorPair {
   /** Repository-relative path of the TypeScript mirror, used in failure messages. */
   frontendPath: string;
-  /** Repository-relative path of the Java enum, as declared by the marker. */
-  backendPath: string;
+  /** Repository-relative paths of the Java enums, as declared by the marker. */
+  backendPaths: string[];
   /** Absolute path of the TypeScript mirror. */
   frontendFile: string;
-  /** Absolute path of the Java enum. */
-  backendFile: string;
+  /** Absolute paths of the Java enums. */
+  backendFiles: string[];
+  /** Name of the TypeScript enum to compare, or undefined to take the first one in the file. */
+  enumName?: string;
+  /** All backend paths in one string, for the test title. */
+  backendLabel: string;
 }
 
 /**
@@ -69,6 +82,26 @@ function collectConstants(source: string, pattern: RegExp): Map<string, number> 
 }
 
 /**
+ * Finds the body of an enum declaration.
+ *
+ * @param source comment-free source text
+ * @param enumName the enum to look for, or undefined to take the first declaration in the file
+ * @returns the text between the braces of that declaration, or null when it is not there
+ */
+function enumBody(source: string, enumName?: string): string | null {
+  const declaration = enumName ? new RegExp(`\\benum\\s+${enumName}\\b`).exec(source) : /\benum\b/.exec(source);
+  if (!declaration) {
+    return null;
+  }
+  const bodyStart = source.indexOf('{', declaration.index);
+  if (bodyStart < 0) {
+    return null;
+  }
+  const bodyEnd = source.indexOf('}', bodyStart);
+  return source.substring(bodyStart + 1, bodyEnd < 0 ? source.length : bodyEnd);
+}
+
+/**
  * Reads the constants of a Java enum. Only the enum body up to its first `;` is considered, so that
  * static fields and methods below the constant list cannot contribute false matches.
  *
@@ -76,24 +109,53 @@ function collectConstants(source: string, pattern: RegExp): Map<string, number> 
  * @returns map of constant name to numeric value
  */
 function readJavaEnum(file: string): Map<string, number> {
-  const source = stripComments(fs.readFileSync(file, 'utf8'));
-  const bodyStart = source.indexOf('{', source.search(/\benum\b/));
-  const body = source.substring(bodyStart + 1);
+  const body = enumBody(stripComments(fs.readFileSync(file, 'utf8')));
+  if (body === null) {
+    return new Map();
+  }
   const semicolon = body.indexOf(';');
   return collectConstants(semicolon < 0 ? body : body.substring(0, semicolon), JAVA_CONSTANT);
 }
 
 /**
- * Reads the members of the exported TypeScript enum.
+ * Reads the constants of every named Java enum and unions them.
+ *
+ * @param pair the mirror pair whose backend files are read
+ * @returns map of constant name to numeric value across all sources
+ */
+function readJavaEnums(pair: MirrorPair): Map<string, number> {
+  const constants = new Map<string, number>();
+  const origin = new Map<string, string>();
+  pair.backendFiles.forEach((file, index) => {
+    for (const [name, value] of readJavaEnum(file)) {
+      const existing = constants.get(name);
+      expect(
+        existing === undefined,
+        `${name} is declared both in ${origin.get(name)} and in ${pair.backendPaths[index]}; ` +
+          `a mirror cannot union two enums that overlap.`
+      ).toBe(true);
+      const clash = [...constants].find(([, other]) => other === value);
+      expect(
+        clash === undefined,
+        `${pair.backendPaths[index]} reuses value ${value} for ${name}, already taken by ${clash?.[0]}.`
+      ).toBe(true);
+      constants.set(name, value);
+      origin.set(name, pair.backendPaths[index]);
+    }
+  });
+  return constants;
+}
+
+/**
+ * Reads the members of the named TypeScript enum.
  *
  * @param file absolute path of the `.ts` mirror
+ * @param enumName the enum to read, or undefined to take the first one in the file
  * @returns map of member name to numeric value
  */
-function readTypescriptEnum(file: string): Map<string, number> {
-  const source = stripComments(fs.readFileSync(file, 'utf8'));
-  const bodyStart = source.indexOf('{', source.search(/\benum\b/));
-  const bodyEnd = source.indexOf('}', bodyStart);
-  return collectConstants(source.substring(bodyStart + 1, bodyEnd < 0 ? source.length : bodyEnd), TS_CONSTANT);
+function readTypescriptEnum(file: string, enumName?: string): Map<string, number> {
+  const body = enumBody(stripComments(fs.readFileSync(file, 'utf8')), enumName);
+  return body === null ? new Map() : collectConstants(body, TS_CONSTANT);
 }
 
 /**
@@ -108,14 +170,25 @@ function findMirrorPairs(): MirrorPair[] {
       continue;
     }
     const frontendFile = path.join(FRONTEND_APP, entry);
-    const marker = MARKER.exec(fs.readFileSync(frontendFile, 'utf8'));
+    const source = fs.readFileSync(frontendFile, 'utf8');
+    const marker = MARKER.exec(source);
     if (marker) {
-      const backendPath = marker[1].replace(/\\/g, '/');
+      const backendPaths = marker[1]
+        .split(',')
+        .map((declared) =>
+          declared
+            .replace(/^\s*\*?\s*/, '')
+            .trim()
+            .replace(/\\/g, '/')
+        )
+        .filter((declared) => declared.length > 0);
       pairs.push({
         frontendPath: path.relative(REPO_ROOT, frontendFile).replace(/\\/g, '/'),
-        backendPath,
+        backendPaths,
         frontendFile,
-        backendFile: path.join(BACKEND, backendPath)
+        backendFiles: backendPaths.map((backendPath) => path.join(BACKEND, backendPath)),
+        enumName: MIRRORED_ENUM.exec(source)?.[1],
+        backendLabel: backendPaths.map((backendPath) => path.basename(backendPath)).join(' + ')
       });
     }
   }
@@ -158,19 +231,24 @@ describe('backend enums mirrored in the frontend', () => {
     ).toBeGreaterThan(0);
   });
 
-  it.each(mirrorPairs)('$frontendPath matches $backendPath', (pair: MirrorPair) => {
+  it.each(mirrorPairs)('$frontendPath matches $backendLabel', (pair: MirrorPair) => {
+    pair.backendFiles.forEach((backendFile, index) =>
+      expect(
+        fs.existsSync(backendFile),
+        `${pair.frontendPath} points at ${pair.backendPaths[index]}, which does not exist. Update the "Corresponds to backend:" marker.`
+      ).toBe(true)
+    );
+
+    const backendConstants = readJavaEnums(pair);
+    const frontendConstants = readTypescriptEnum(pair.frontendFile, pair.enumName);
+
+    expect(backendConstants.size, `No constants parsed from ${pair.backendLabel}.`).toBeGreaterThan(0);
     expect(
-      fs.existsSync(pair.backendFile),
-      `${pair.frontendPath} points at ${pair.backendPath}, which does not exist. Update the "Corresponds to backend:" marker.`
-    ).toBe(true);
-
-    const backendConstants = readJavaEnum(pair.backendFile);
-    const frontendConstants = readTypescriptEnum(pair.frontendFile);
-
-    expect(backendConstants.size, `No constants parsed from ${pair.backendPath}.`).toBeGreaterThan(0);
-    expect(frontendConstants.size, `No constants parsed from ${pair.frontendPath}.`).toBeGreaterThan(0);
+      frontendConstants.size,
+      `No constants parsed from ${pair.frontendPath}${pair.enumName ? ` (enum ${pair.enumName})` : ''}.`
+    ).toBeGreaterThan(0);
 
     const drift = describeDrift(backendConstants, frontendConstants);
-    expect(drift, `${pair.frontendPath} has drifted from ${pair.backendPath}:\n  ${drift.join('\n  ')}`).toEqual([]);
+    expect(drift, `${pair.frontendPath} has drifted from ${pair.backendLabel}:\n  ${drift.join('\n  ')}`).toEqual([]);
   });
 });

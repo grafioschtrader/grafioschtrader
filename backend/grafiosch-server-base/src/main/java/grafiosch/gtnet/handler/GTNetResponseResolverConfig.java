@@ -8,12 +8,12 @@ import grafiosch.gtnet.GTNetMessageCode;
  *
  * Provides application-specific functionality such as:
  * <ul>
- *   <li>Looking up typed message codes from byte values</li>
- *   <li>Getting the local GTNet entry ID</li>
- *   <li>Getting max limits for entity kinds</li>
+ * <li>Looking up typed message codes from byte values</li>
+ * <li>Getting the local GTNet entry ID</li>
+ * <li>Getting max limits for entity kinds</li>
  * </ul>
  *
- * Applications should implement this interface and inject it into GTNetResponseResolver.
+ * The protocol layer supplies the shared implementation backed by its registries and repositories.
  */
 public interface GTNetResponseResolverConfig {
 
@@ -26,6 +26,15 @@ public interface GTNetResponseResolverConfig {
   GTNetMessageCode lookupMessageCode(byte codeValue);
 
   /**
+   * Whether the protocol registers the response code as an answer to the request code.
+   *
+   * @param requestCodeValue  the wire value of the request an auto-answer rule is for
+   * @param responseCodeValue the wire value of the answer that rule would send
+   * @return true when the pairing is one the protocol allows
+   */
+  boolean isValidResponse(byte requestCodeValue, byte responseCodeValue);
+
+  /**
    * Gets the ID of the local GTNet entry for this server instance.
    *
    * @return the local GTNet ID, or null if not configured
@@ -35,7 +44,7 @@ public interface GTNetResponseResolverConfig {
   /**
    * Gets the max limit for an entity kind from a GTNet entry.
    *
-   * @param gtNet the GTNet entry
+   * @param gtNet           the GTNet entry
    * @param entityKindValue the entity kind byte value
    * @return the max limit, or null if not found
    */

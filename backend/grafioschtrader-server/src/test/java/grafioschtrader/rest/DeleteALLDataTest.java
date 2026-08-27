@@ -20,9 +20,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import grafiosch.entities.BaseID;
-import grafiosch.repository.UserEntityChangeCountJpaRepository;
 import grafiosch.entities.EntityLimit;
 import grafiosch.repository.EntityLimitJpaRepository;
+import grafiosch.repository.UserEntityChangeCountJpaRepository;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Stockexchange;
@@ -79,31 +79,16 @@ class DeleteALLDataTest extends BaseIntegrationTest {
     if (jpaRepository == null) {
       ParameterizedTypeReference<List<T>> listRef = listTypeRef(clazz);
 
-      List<T> all = authenticatedClient(RestTestHelper.ADMIN)
-          .get()
-          .uri(resourceMap + "/")
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(listRef)
-          .returnResult()
-          .getResponseBody();
+      List<T> all = authenticatedClient(RestTestHelper.ADMIN).get().uri(resourceMap + "/").exchange().expectStatus()
+          .isOk().expectBody(listRef).returnResult().getResponseBody();
 
       for (T baseID : all) {
-        authenticatedClient(RestTestHelper.ADMIN)
-            .delete()
-            .uri(resourceMap + "/" + baseID.getId())
-            .exchange()
+        authenticatedClient(RestTestHelper.ADMIN).delete().uri(resourceMap + "/" + baseID.getId()).exchange()
             .expectStatus().isOk();
       }
 
-      List<T> remaining = authenticatedClient(RestTestHelper.ADMIN)
-          .get()
-          .uri(resourceMap + "/")
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(listRef)
-          .returnResult()
-          .getResponseBody();
+      List<T> remaining = authenticatedClient(RestTestHelper.ADMIN).get().uri(resourceMap + "/").exchange()
+          .expectStatus().isOk().expectBody(listRef).returnResult().getResponseBody();
 
       Assertions.assertThat(remaining).isEmpty();
     } else {
@@ -119,10 +104,8 @@ class DeleteALLDataTest extends BaseIntegrationTest {
   }
 
   private Stream<Arguments> resoureClass() {
-    return Stream.of(
-      Arguments.of(RequestGTMappings.SECURITY_MAP, Security.class, securityJpaRepository),
-      Arguments.of(RequestGTMappings.STOCKEXCHANGE_MAP, Stockexchange.class, null),
-      Arguments.of(RequestGTMappings.ASSETCLASS_MAP, Assetclass.class, null)
-    );
+    return Stream.of(Arguments.of(RequestGTMappings.SECURITY_MAP, Security.class, securityJpaRepository),
+        Arguments.of(RequestGTMappings.STOCKEXCHANGE_MAP, Stockexchange.class, null),
+        Arguments.of(RequestGTMappings.ASSETCLASS_MAP, Assetclass.class, null));
   }
 }

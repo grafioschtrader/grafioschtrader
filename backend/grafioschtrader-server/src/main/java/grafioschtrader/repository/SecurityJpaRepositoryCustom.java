@@ -331,4 +331,25 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    */
   void resetRetryCountersByConnector(String connectorId, LocalDate activeOnDate);
 
+  /**
+   * Writes the four GTNet exchange flags of several securities in one go.
+   *
+   * <p>
+   * The flags decide which instruments this instance offers to its GTNet peers and which it wants to receive, so they
+   * are shared data rather than tenant data. Every row is therefore checked against the ordinary editing rights of
+   * the instrument: an administrator and a user with the extended editing right may change any instrument, everybody
+   * else only the instruments they created themselves. A row the caller may not change aborts the whole request with
+   * a {@link SecurityException}, because the user interface never offers such a row.
+   * </p>
+   *
+   * <p>
+   * Ids without a persisted security are skipped silently; only the four {@code gtNet*} flags and the modification
+   * timestamp are written.
+   * </p>
+   *
+   * @param securities the securities carrying the desired flag values, identified by their id
+   * @return the persisted securities, in the order they were accepted
+   */
+  List<Security> batchUpdateGTNetExchange(List<Security> securities);
+
 }

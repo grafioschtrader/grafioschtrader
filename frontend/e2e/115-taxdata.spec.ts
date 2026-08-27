@@ -7,9 +7,11 @@ import {
   deleteNode,
   deleteTaxCountryIfPresent,
   DIFF_ZIP,
+  exchangeRateRow,
   fixturesPresent,
   FULL_ZIP,
   nodeRow,
+  openExchangeRateTable,
   openTaxDataView,
   RX,
   TAX_YEAR,
@@ -26,6 +28,9 @@ const ADMIN = 'admin'; // hg@hugograf.com in users.json
  *
  * Every context menu is opened with a plain right-click on the row, without selecting it first, so
  * the spec also guards the selection fix in ConfigurableTreeTableComponent.onRowContextMenu.
+ *
+ * The first test additionally expands the tax year to check the official exchange rates the Kursliste
+ * carries alongside the securities, including that a differential upload does not remove them again.
  *
  * The Kursliste zips are git-ignored, so the whole file skips when they are missing.
  */
@@ -50,8 +55,21 @@ test.describe.serial('tax data - create, upload, delete and recreate', () => {
     const fullCount = await uploadTaxData(page, container, nodeRow(container, String(TAX_YEAR)), FULL_ZIP);
     expect(fullCount, 'the full Kursliste must match at least one ISIN held in GT').toBeGreaterThan(0);
 
+    // The official exchange rates are imported in full, independently of the ISIN filter above.
+    const rateTable = await openExchangeRateTable(container, nodeRow(container, String(TAX_YEAR)));
+    await expect(exchangeRateRow(rateTable, 'USD'), 'the year-end rate of the tax authority').toContainText('0.79225');
+    // The Kursliste quotes the yen per 100 units, which the denomination column has to state.
+    await expect(exchangeRateRow(rateTable, 'JPY')).toContainText('100');
+
     const diffCount = await uploadTaxData(page, container, nodeRow(container, String(TAX_YEAR)), DIFF_ZIP);
     expect(diffCount, 'the diff Kursliste holds only changed securities and may match none').toBeGreaterThanOrEqual(0);
+
+    // A differential Kursliste carries no exchange rates at all; it must not drop the imported ones.
+    const rateTableAfterDiff = await openExchangeRateTable(container, nodeRow(container, String(TAX_YEAR)));
+    await expect(
+      exchangeRateRow(rateTableAfterDiff, 'USD'),
+      'a diff upload must leave the exchange rates of the year untouched'
+    ).toContainText('0.79225');
   });
 
   test('deletes the uploaded tax data, the tax year and the tax country', async ({ page }) => {

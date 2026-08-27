@@ -29,10 +29,9 @@ import grafioschtrader.service.GTNetExchangeLogService;
 /**
  * Handler for GT_NET_SECURITY_BATCH_LOOKUP_SEL_C requests from remote instances.
  *
- * Processes batch security metadata lookup requests by searching the local database
- * for each query in the batch and returning results grouped by query index.
- * This handler reuses the lookup logic from {@link SecurityLookupHandler} to maintain
- * consistency in search behavior and result formatting.
+ * Processes batch security metadata lookup requests by searching the local database for each query in the batch and
+ * returning results grouped by query index. This handler reuses the lookup logic from {@link SecurityLookupHandler} to
+ * maintain consistency in search behavior and result formatting.
  *
  * @see GTNetMessageCodeType#GT_NET_SECURITY_BATCH_LOOKUP_SEL_C
  * @see SecurityLookupHandler for single security lookup
@@ -86,6 +85,17 @@ public class SecurityBatchLookupHandler extends AbstractGTNetMessageHandler {
       return createEmptyBatchResponse(context, storedRequest);
     }
 
+    // The batch was unbounded: every element caused its own database lookup, so a peer could turn one message into an
+    // arbitrary number of queries. The bound is the same maxLimit the price handlers already enforce.
+    Short maxLimit = metadataEntity.get().getMaxLimit();
+    if (maxLimit != null && request.size() > maxLimit) {
+      log.warn("Batch lookup from {} exceeded max_limit: {} queries requested, limit is {}",
+          context.getRemoteGTNet() != null ? context.getRemoteGTNet().getIdGtNet() : null, request.size(), maxLimit);
+      recordLimitViolation(context);
+      return createRejectedResponse("BATCH_LIMIT_EXCEEDED",
+          String.format("Batch exceeded max_limit: %d queries requested, limit is %d", request.size(), maxLimit));
+    }
+
     log.debug("Received batch security lookup request with {} queries", request.size());
 
     // Process each query in the batch
@@ -95,7 +105,8 @@ public class SecurityBatchLookupHandler extends AbstractGTNetMessageHandler {
     for (int i = 0; i < queries.size(); i++) {
       SecurityLookupMsg query = queries.get(i);
       if (securityLookupHandler.isValidRequest(query)) {
-        List<SecurityGtnetLookupDTO> queryResults = securityLookupHandler.findLocalSecurities(query, context.getRemoteGTNet());
+        List<SecurityGtnetLookupDTO> queryResults = securityLookupHandler.findLocalSecurities(query,
+            context.getRemoteGTNet());
         if (!queryResults.isEmpty()) {
           results.put(i, queryResults);
         }
@@ -103,22 +114,21 @@ public class SecurityBatchLookupHandler extends AbstractGTNetMessageHandler {
     }
 
     int totalSecurities = results.values().stream().mapToInt(List::size).sum();
-    log.info("Batch lookup completed: {} queries, {} with results, {} total securities found",
-        queries.size(), results.size(), totalSecurities);
+    log.info("Batch lookup completed: {} queries, {} with results, {} total securities found", queries.size(),
+        results.size(), totalSecurities);
 
     // Log exchange statistics as supplier
-    gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(),
-        GTNetExchangeKindType.SECURITY_METADATA,
+    gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(), GTNetExchangeKindType.SECURITY_METADATA,
         queries.size(), results.size(), totalSecurities);
 
     // Build and return response
     return createSuccessResponse(context, storedRequest, results);
   }
 
-  private HandlerResult<GTNetMessage, MessageEnvelope> createSuccessResponse(
-      GTNetMessageContext context, GTNetMessage storedRequest, Map<Integer, List<SecurityGtnetLookupDTO>> results) {
-    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S,
-        null, null, storedRequest);
+  private HandlerResult<GTNetMessage, MessageEnvelope> createSuccessResponse(GTNetMessageContext context,
+      GTNetMessage storedRequest, Map<Integer, List<SecurityGtnetLookupDTO>> results) {
+    GTNetMessage responseMsg = storeResponseMessage(context,
+        GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S, null, null, storedRequest);
 
     SecurityBatchLookupResponseMsg responsePayload = new SecurityBatchLookupResponseMsg(results);
 
@@ -126,8 +136,8 @@ public class SecurityBatchLookupHandler extends AbstractGTNetMessageHandler {
     return new HandlerResult.ImmediateResponse<>(envelope);
   }
 
-  private HandlerResult<GTNetMessage, MessageEnvelope> createEmptyBatchResponse(
-      GTNetMessageContext context, GTNetMessage storedRequest) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createEmptyBatchResponse(GTNetMessageContext context,
+      GTNetMessage storedRequest) {
     return createSuccessResponse(context, storedRequest, new HashMap<>());
   }
 

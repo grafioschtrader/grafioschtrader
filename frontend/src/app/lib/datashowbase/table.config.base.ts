@@ -30,12 +30,6 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   /** Locale string for form and date formatting */
   formLocale: string;
 
-  /**
-   * Marker used to indicate when click events are consumed by child components.
-   * Prevents parent components from processing already-handled click events.
-   */
-  readonly consumedGT = 'consumedGT';
-
   /** Number of rows displayed per page */
   rowsPerPage: number;
 

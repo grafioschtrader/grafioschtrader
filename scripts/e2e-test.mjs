@@ -5,8 +5,8 @@
  * Runs the complete end-to-end test roundtrip with a single command. Invoke via the thin wrappers
  * in the repository root:
  *
- *   ./e2eTest.sh  [--lib | --all]      (Linux / macOS / Git Bash)
- *   e2eTest.cmd   [--lib | --all]      (Windows)
+ *   ./e2eTest.sh  [--lib | --gtnet | --gtnet-lib | --gtnet-app | --all]   (Linux / macOS / Git Bash)
+ *   e2eTest.cmd   [--lib | --gtnet | --gtnet-lib | --gtnet-app | --all]   (Windows)
  *
  * Suites
  *   (default)  Main Grafioschtrader suite:
@@ -27,6 +27,11 @@
  *              (registers the users.json users), ensure the grafiosch host on port 4201
  *              (`npm run start:grafiosch`), run `playwright test --config=playwright.lib.config.ts`.
  *   --all      Main suite first, then (after teardown) the lib suite.
+ *   --gtnet    Both isolated two-peer GTNet suites, run one after the other because they share port 8082.
+ *              --gtnet-lib  library peers: grafiosch_t/grafiosch_t1, backends 8081/8082, frontends 4201/4202.
+ *              --gtnet-app  application peers: grafioschtrader_t/grafioschtrader_t1, backends 8080/8082,
+ *                           frontends 4200/4202, started with spring-boot:test-run.
+ *              Neither is part of --all.
  *
  * The backend (and any dev server this script started itself) is stopped again at the end,
  * also on failure or Ctrl+C. A dev server that was already running is left untouched.
@@ -42,9 +47,12 @@
  *     database — one-time setup per suite (grants survive DROP DATABASE):
  *       GRANT ALL PRIVILEGES ON grafioschtrader_t.* TO 'grafioschtrader_t'@'localhost';
  *       GRANT ALL PRIVILEGES ON grafiosch_t.*       TO 'grafiosch_t'@'localhost';
+ *       GRANT ALL PRIVILEGES ON grafiosch_t1.*      TO 'grafiosch_t1'@'localhost';
+ *       GRANT ALL PRIVILEGES ON grafioschtrader_t1.* TO 'grafioschtrader_t1'@'localhost';
  *   - MailHog (or Mailpit with MailHog-compatible API) listening on SMTP 1025 / HTTP 8025.
  *   - Maven, Node/npm on the PATH; `npm install` done in frontend/.
- *   - Port 8080 (main) resp. 8081 (lib) must be free — the script refuses to drop a database
+ *   - Ports 8080 (main / app peer A), 8081 (lib / lib peer A), 8082 (peer B), 4200, 4201 and 4202 must be
+ *     free when their suite owns them — the script refuses to drop a database
  *     while a backend may still hold connections to it.
  *
  * Environment overrides
@@ -53,6 +61,11 @@
  *   E2E_BACKEND_URL       Base URL of the main backend health check (default http://localhost:8080).
  *   LIB_E2E_BACKEND_URL   Base URL of the lib backend health check (default http://localhost:8081).
  *   LIB_E2E_MAIL_API_URL  Mail API base for the lib suite (default http://localhost:8025).
+ *   GTNET_PEER_{A,B}_{BACKEND,FRONTEND}_URL  Written for the two-peer children.
+ *   GTNET_PEER_{A,B}_OWN_URL  Runner-resolved non-loopback identity of each peer.
+ *   GTNET_OWN_URL         Not read but *written*: after the backend is up the runner resolves this peer's own
+ *                         non-loopback address (scripts/gtnet-peer-address.mjs) and exports it, because the
+ *                         GTNet specs register it as the instance's own `domainRemoteName`.
  *   All of these are also inherited by the Playwright child processes.
  */
 
@@ -64,6 +77,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
+
+import { resolveOwnAddress } from './gtnet-peer-address.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BACKEND_DIR = path.join(ROOT, 'backend');
@@ -192,6 +207,76 @@ const SUITES = {
         timingJson: path.join(FRONTEND_DIR, 'e2e', 'lib', 'test-results', 'e2e-timing.json') },
     ],
   },
+};
+
+const GTNET_SUITE = {
+  title: 'Two-peer GTNet library suite',
+  databases: [
+    { name: 'grafiosch_t', user: 'grafiosch_t', password: 'grafiosch_t' },
+    { name: 'grafiosch_t1', user: 'grafiosch_t1', password: 'grafiosch_t1' }
+  ],
+  backends: [
+    {
+      name: 'peer-a',
+      port: 8081,
+      args: ['-pl', 'grafiosch-test-integration', 'spring-boot:run', '-Dspring-boot.run.profiles=e2e',
+        `-Dspring-boot.run.jvmArguments="${E2E_JVM_ARGS}"`],
+      healthUrl: `${process.env.GTNET_PEER_A_BACKEND_URL ?? 'http://localhost:8081'}/api/integration-info`,
+      healthOk: j => j.databaseName === 'grafiosch_t' && j.activeProfiles?.includes('e2e')
+    },
+    {
+      name: 'peer-b',
+      port: 8082,
+      args: ['-pl', 'grafiosch-test-integration', 'spring-boot:run', '-Dspring-boot.run.profiles=e2e,e2e-peer',
+        `-Dspring-boot.run.jvmArguments="${E2E_JVM_ARGS}"`],
+      healthUrl: `${process.env.GTNET_PEER_B_BACKEND_URL ?? 'http://localhost:8082'}/api/integration-info`,
+      healthOk: j => j.databaseName === 'grafiosch_t1' && j.activeProfiles?.includes('e2e-peer')
+    }
+  ],
+  frontends: [
+    { name: 'peer-a', port: 4201, npmArgs: ['run', 'start:grafiosch'] },
+    { name: 'peer-b', port: 4202, npmArgs: ['run', 'start:grafiosch-peer'] }
+  ]
+};
+
+/**
+ * The two application peers. Same shape as GTNET_SUITE, but grafioschtrader-server on both sides, so the payload
+ * codes (last price, history quotes, exchange sync, security lookup) have real instruments to exchange.
+ *
+ * Peer A keeps the ordinary application ports 8080/4200 and peer B takes 8082/4202, which is why this suite and the
+ * library one cannot run at the same time. Both need spring-boot:test-run rather than spring-boot:run: only test-run
+ * puts src/test/resources on the classpath, where Flyway finds db/migration/test.
+ */
+const GTNET_APP_SUITE = {
+  title: 'Two-peer GTNet application suite',
+  databases: [
+    { name: 'grafioschtrader_t', user: 'grafioschtrader_t', password: 'grafioschtrader_t' },
+    { name: 'grafioschtrader_t1', user: 'grafioschtrader_t1', password: 'grafioschtrader_t1' }
+  ],
+  backends: [
+    {
+      name: 'peer-a',
+      port: 8080,
+      args: ['-pl', 'grafioschtrader-server', 'spring-boot:test-run',
+        '-Dspring-boot.run.profiles=e2e,e2e-gtnet', `-Dspring-boot.run.jvmArguments="${E2E_JVM_ARGS}"`],
+      healthUrl: `${process.env.GTNET_PEER_A_BACKEND_URL ?? 'http://localhost:8080'}/api/gtinfo`,
+      // /api/gtinfo reports activeProfile as one comma-joined string, unlike /api/integration-info which returns an
+      // array of activeProfiles.
+      healthOk: j => j.databaseName === 'grafioschtrader_t' && (j.activeProfile ?? '').includes('e2e-gtnet')
+    },
+    {
+      name: 'peer-b',
+      port: 8082,
+      args: ['-pl', 'grafioschtrader-server', 'spring-boot:test-run',
+        '-Dspring-boot.run.profiles=e2e,e2e-gtnet,e2e-peer', `-Dspring-boot.run.jvmArguments="${E2E_JVM_ARGS}"`],
+      healthUrl: `${process.env.GTNET_PEER_B_BACKEND_URL ?? 'http://localhost:8082'}/api/gtinfo`,
+      healthOk: j => j.databaseName === 'grafioschtrader_t1' && (j.activeProfile ?? '').includes('e2e-peer')
+    }
+  ],
+  frontends: [
+    { name: 'peer-a', port: 4200, npmArgs: ['start'] },
+    { name: 'peer-b', port: 4202, npmArgs: ['run', 'start:gt-peer'] }
+  ]
 };
 
 /** Background children this script started; every entry is killed on cleanup. */
@@ -553,6 +638,21 @@ async function runSuite(suiteKey) {
       }
     });
 
+    // GTNet binds this instance's identity to a non-loopback address that it probes from itself, so no spec may
+    // hard-code one and none can use localhost - see scripts/gtnet-peer-address.mjs. Resolved once here, after the
+    // health gate (the probe needs the port listening) and inherited by every child process through process.env.
+    // A failure is not fatal: only the GTNet specs read the variable, and they fail loudly on their own when it is
+    // missing, whereas aborting here would take down suites that have nothing to do with GTNet.
+    await step(suiteKey, 'resolve-gtnet-address', async () => {
+      try {
+        process.env.GTNET_OWN_URL = await resolveOwnAddress(suite.backend.port);
+        console.log(`GTNet own address: ${process.env.GTNET_OWN_URL}`);
+      } catch (error) {
+        delete process.env.GTNET_OWN_URL;
+        console.warn(`WARNING: ${error.message}\n         The GTNet specs of this suite will fail.`);
+      }
+    });
+
     await step(suiteKey, 'ensure-frontend', async () => {
       const url = `http://localhost:${suite.frontend.port}/`;
       if (await isTcpOpen(suite.frontend.port)) {
@@ -603,6 +703,127 @@ async function runSuite(suiteKey) {
   }
 }
 
+/**
+ * Brings up one two-peer topology - two databases, two backends, two frontends - hands control to the caller for the
+ * ordered phases, and tears every process down again. Both GTNet suites use it; they differ only in their peers and
+ * in the phases they run.
+ *
+ * The peer identity of GTNet is bound to a non-loopback address that the instance probes from itself, so the two
+ * GTNET_PEER_*_OWN_URL variables are resolved here, after the health gate, and inherited by every child process.
+ */
+async function runPeerTopology(suiteKey, suite, phases) {
+  const backendHandles = new Map();
+  const frontendHandles = [];
+  console.log(`\n#### ${suite.title} ####`);
+  const startBackend = async backend => {
+    const handle = startBackground(`backend:${suiteKey}:${backend.name}`, 'mvn', backend.args, BACKEND_DIR);
+    backendHandles.set(backend.name, handle);
+    const info = await waitForHttp(backend.healthUrl, {
+      predicate: backend.healthOk,
+      timeoutMs: BACKEND_READY_MS,
+      label: `Backend ${backend.name}`,
+      alive: () => !handle.exited
+    });
+    console.log(`Backend ${backend.name} ready: ${JSON.stringify(info)}`);
+  };
+  const runPhase = async (name, cmd, args, cwd = FRONTEND_DIR) => {
+    banner(`[${suiteKey}] ${name}`);
+    const start = Date.now();
+    const code = await runForeground(cmd, args, cwd);
+    results.push({ suite: suiteKey, name, status: code === 0 ? 'OK' : 'FAILED', ms: Date.now() - start });
+    if (code !== 0) throw new Error(`${name} failed with exit code ${code}`);
+  };
+  const restartBackend = async (name, extraArgs = []) => {
+    await stopHandle(backendHandles.get(name));
+    const backend = suite.backends.find(candidate => candidate.name === name);
+    await startBackend({ ...backend, args: [...backend.args, ...extraArgs] });
+  };
+  try {
+    await step(suiteKey, 'port-guards', async () => {
+      for (const port of [...suite.backends, ...suite.frontends].map(item => item.port)) {
+        if (await isTcpOpen(port)) throw new Error(`Port ${port} is already in use; the ${suiteKey} suite owns it.`);
+      }
+    });
+    for (const database of suite.databases) {
+      await step(suiteKey, `recreate-db-${database.name}`, () => recreateDatabase(database));
+    }
+    for (const backend of suite.backends) {
+      await step(suiteKey, `start-backend-${backend.name}`, () => startBackend(backend));
+    }
+    process.env.GTNET_PEER_A_BACKEND_URL = `http://localhost:${suite.backends[0].port}`;
+    process.env.GTNET_PEER_B_BACKEND_URL = `http://localhost:${suite.backends[1].port}`;
+    process.env.GTNET_PEER_A_FRONTEND_URL = `http://localhost:${suite.frontends[0].port}`;
+    process.env.GTNET_PEER_B_FRONTEND_URL = `http://localhost:${suite.frontends[1].port}`;
+    process.env.GTNET_PEER_A_OWN_URL = await resolveOwnAddress(suite.backends[0].port);
+    process.env.GTNET_PEER_B_OWN_URL = await resolveOwnAddress(suite.backends[1].port);
+    delete process.env.GTNET_SKIP_BOOTSTRAP;
+    console.log(`Peer identities: A=${process.env.GTNET_PEER_A_OWN_URL}, B=${process.env.GTNET_PEER_B_OWN_URL}`);
+
+    for (const frontend of suite.frontends) {
+      await step(suiteKey, `start-frontend-${frontend.name}`, async () => {
+        const handle = startBackground(`ng:${suiteKey}:${frontend.name}`, 'npm', frontend.npmArgs, FRONTEND_DIR);
+        frontendHandles.push(handle);
+        await waitForHttp(`http://localhost:${frontend.port}/`, {
+          timeoutMs: FRONTEND_READY_MS,
+          label: `Frontend ${frontend.name}`,
+          alive: () => !handle.exited
+        });
+      });
+    }
+    await phases({ runPhase, restartBackend, step: (name, fn) => step(suiteKey, name, fn) });
+    return true;
+  } finally {
+    banner(`[${suiteKey}] teardown`);
+    for (const handle of [...backendHandles.values(), ...frontendHandles]) await stopHandle(handle);
+  }
+}
+
+function runGTNetSuite() {
+  return runPeerTopology('gtnet-lib', GTNET_SUITE, async ({ runPhase, restartBackend, step }) => {
+    await runPhase('peer-bootstrap-playwright', 'npx', [
+      'playwright', 'test', 'e2e/gtnet/075-peer-bootstrap.spec.ts', '--config=playwright.gtnet.config.ts'
+    ]);
+    process.env.GTNET_SKIP_BOOTSTRAP = 'true';
+    await runPhase('handshake-playwright', 'npx', [
+      'playwright', 'test', 'e2e/gtnet/080-handshake-rejection.spec.ts',
+      'e2e/gtnet/085-handshake-token.spec.ts', 'e2e/gtnet/086-data-request-approval.spec.ts',
+      '--config=playwright.gtnet.config.ts'
+    ]);
+    await runPhase('client-protocol-suite', 'mvn', [
+      'test', '-pl', 'grafiosch-test-integration', '-Dtest=GTNetLibraryPeerTestSuite',
+      `-DargLine="${E2E_JVM_ARGS}"`
+    ], BACKEND_DIR);
+    await runPhase('two-peer-ui-playwright', 'npx', [
+      'playwright', 'test', 'e2e/gtnet/087-config-ui.spec.ts', 'e2e/gtnet/089-config-entity-ui.spec.ts',
+      'e2e/gtnet/090-admin-message-ui.spec.ts', 'e2e/gtnet/095-exchange-log-ui.spec.ts',
+      '--config=playwright.gtnet.config.ts'
+    ]);
+    await step('restart-peer-b-with-worker',
+      () => restartBackend('peer-b', ['-Dspring-boot.run.arguments=--g.background.worker.enabled=true']));
+    await runPhase('worker-pickup-playwright', 'npx', [
+      'playwright', 'test', 'e2e/gtnet/099-worker-pickup.spec.ts', '--config=playwright.gtnet.config.ts'
+    ]);
+  });
+}
+
+function runGTNetAppSuite() {
+  return runPeerTopology('gtnet-app', GTNET_APP_SUITE, async ({ runPhase }) => {
+    await runPhase('peer-bootstrap-playwright', 'npx', [
+      'playwright', 'test', 'e2e/gtnet-app/070-peer-bootstrap.spec.ts', '--config=playwright.gtnet-app.config.ts'
+    ]);
+    process.env.GTNET_SKIP_BOOTSTRAP = 'true';
+    await runPhase('payload-protocol-suite', 'mvn', [
+      'test', '-pl', 'grafioschtrader-server', '-Dtest=GTNetApplicationPeerTestSuite',
+      `-DargLine="${E2E_JVM_ARGS}"`
+    ], BACKEND_DIR);
+    await runPhase('exchange-approval-playwright', 'npx', [
+      'playwright', 'test', 'e2e/gtnet-app/075-exchange-kind-approval.spec.ts',
+      '--config=playwright.gtnet-app.config.ts'
+    ]);
+  });
+}
+
+
 function printSummary() {
   banner('summary');
   const nameWidth = Math.max(...results.map(r => `${r.suite}/${r.name}`.length), 10);
@@ -623,11 +844,14 @@ function cleanupSync() {
 }
 
 function printHelp() {
-  console.log('Usage: e2eTest[.sh|.cmd] [--lib | --all]\n');
-  console.log('  (no flag)  run the main Grafioschtrader e2e suite');
-  console.log('  --lib      run only the reusable-library suite (grafiosch-test-integration)');
-  console.log('  --all      run the main suite, then the lib suite');
-  console.log('  --help     show this help\n');
+  console.log('Usage: e2eTest[.sh|.cmd] [--lib | --gtnet | --gtnet-lib | --gtnet-app | --all]\n');
+  console.log('  (no flag)    run the main Grafioschtrader e2e suite');
+  console.log('  --lib        run only the reusable-library suite (grafiosch-test-integration)');
+  console.log('  --gtnet      run both two-peer GTNet suites, library first then application');
+  console.log('  --gtnet-lib  run only the two-peer GTNet library suite');
+  console.log('  --gtnet-app  run only the two-peer GTNet application suite');
+  console.log('  --all        run the main suite, then the lib suite');
+  console.log('  --help       show this help\n');
   console.log('See the header of scripts/e2e-test.mjs for prerequisites and environment overrides.');
 }
 
@@ -637,20 +861,28 @@ async function main() {
     printHelp();
     return;
   }
-  const unknown = argv.filter(a => !['--lib', '--all'].includes(a));
+  const unknown = argv.filter(a => !['--lib', '--gtnet', '--gtnet-lib', '--gtnet-app', '--all'].includes(a));
   if (unknown.length > 0) {
     console.error(`Unknown argument(s): ${unknown.join(' ')}`);
     printHelp();
     process.exitCode = 2;
     return;
   }
-  const suiteKeys = argv.includes('--all') ? ['main', 'lib'] : argv.includes('--lib') ? ['lib'] : ['main'];
+  // --gtnet is both suites in turn; they share port 8082 and therefore cannot overlap.
+  const suiteKeys = argv.includes('--all') ? ['main', 'lib']
+    : argv.includes('--lib') ? ['lib']
+    : argv.includes('--gtnet') ? ['gtnet-lib', 'gtnet-app']
+    : argv.includes('--gtnet-lib') ? ['gtnet-lib']
+    : argv.includes('--gtnet-app') ? ['gtnet-app']
+    : ['main'];
 
   let failed = false;
   try {
     await step(suiteKeys.join('+'), 'mailhog-check', () => checkMailhog(suiteKeys));
     for (let i = 0; i < suiteKeys.length; i++) {
-      const ok = await runSuite(suiteKeys[i]);
+      const ok = suiteKeys[i] === 'gtnet-lib' ? await runGTNetSuite()
+        : suiteKeys[i] === 'gtnet-app' ? await runGTNetAppSuite()
+        : await runSuite(suiteKeys[i]);
       if (!ok) {
         failed = true;
         for (const skipped of suiteKeys.slice(i + 1)) {

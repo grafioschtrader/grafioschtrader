@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Represents a single year within the dividends report, containing all dividend and interest data for that calendar
  * year.
- * 
+ *
  * <p>
  * This class aggregates all financial transactions, positions, and valuations for a specific year, including dividend
  * income, interest earnings, fees, taxes, and year-end portfolio valuations. It maintains both security positions and
@@ -82,7 +82,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   /**
    * Creates a new year group for the dividends report.
-   * 
+   *
    * @param year                 the calendar year this group represents
    * @param precisionMC          decimal precision for main currency calculations
    * @param currencyPrecisionMap map of precision settings by currency code
@@ -121,7 +121,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   /**
    * Returns all cash account positions for this year, sorted alphabetically by account name.
-   * 
+   *
    * @return list of cash account positions sorted by name
    */
   public List<CashAccountPosition> getCashAccountPositions() {
@@ -131,7 +131,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   /**
    * Gets or creates a security dividend position for the specified security within this year.
-   * 
+   *
    * @param security          the security to get or create a position for
    * @param securitysplitList list of security splits for calculating split factors
    * @return the security dividend position for the specified security
@@ -149,7 +149,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   /**
    * Gets or creates a cash account position for the specified cash account within this year.
-   * 
+   *
    * @param cashaccount the cash account to get or create a position for
    * @return the cash account position for the specified account
    */
@@ -160,21 +160,24 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   /**
    * Attaches historical quotes for year-end valuations and calculates position totals.
-   * 
+   *
    * <p>
    * This method processes both security positions and cash account positions, applying year-end exchange rates for
    * accurate portfolio valuations and aggregating annual totals for dividends, interest, taxes, and transaction costs.
    * </p>
-   * 
-   * @param historyquoteYearIdMap map of historical quotes by year for portfolio valuations
-   * @param dateCurrencyMap       currency conversion data for calculations
+   *
+   * @param historyquoteYearIdMap  map of historical quotes by year for portfolio valuations
+   * @param dateCurrencyMap        currency conversion data for calculations
+   * @param officialYearEndRateMap official year-end exchange rates published by a tax authority, keyed by year and then
+   *                               by currency, already reduced to main currency per unit; empty when none apply
    */
   public void attachHistoryquoteAndCalcPositionTotal(Map<Integer, Map<Integer, Historyquote>> historyquoteYearIdMap,
-      DateTransactionCurrencypairMap dateCurrencyMap) {
+      DateTransactionCurrencypairMap dateCurrencyMap, Map<Integer, Map<String, Double>> officialYearEndRateMap) {
 
+    final Map<String, Double> officialYearEndRates = officialYearEndRateMap.getOrDefault(year, Map.of());
     groupMap.values().forEach(securityDividendsPosition -> {
-      securityDividendsPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year),
-          dateCurrencyMap);
+      securityDividendsPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year), dateCurrencyMap,
+          officialYearEndRates);
       yearCountPaidTransactions += securityDividendsPosition.countPaidTransactions;
       yearRealReceivedDivInterestMC += securityDividendsPosition.realReceivedDivInterestMC;
       yearAutoPaidTaxMC += securityDividendsPosition.autoPaidTaxMC;
@@ -182,7 +185,8 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     });
     distributeMarginDataToCashAccounts(historyquoteYearIdMap.get(year), dateCurrencyMap);
     cashaccountGroupMap.values().forEach(cashAccountPosition -> {
-      cashAccountPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year), dateCurrencyMap);
+      cashAccountPosition.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap.get(year), dateCurrencyMap,
+          officialYearEndRates);
     });
     cashaccountGroupMap.values().forEach(cap -> {
       cap.cashBalancePlusMarginMC = cap.cashBalanceMC + cap.marginEarningsMC + cap.hypotheticalFinanceCostMC;
@@ -192,12 +196,12 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   /**
    * Fills the year with open security positions that had no transactions during this year.
-   * 
+   *
    * <p>
    * This method ensures that securities with open positions appear in the year group even when no buy/sell or dividend
    * transactions occurred. It applies security split adjustments to maintain accurate unit counts across the year.
    * </p>
-   * 
+   *
    * @param unitsCounterBySecurityMap map of current unit holdings by security
    * @param securitysplitMap          map of security splits for position adjustments
    */
@@ -237,7 +241,7 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
 
   /**
    * Adds interest income to the yearly total.
-   * 
+   *
    * @param interestMC interest amount in main currency to add
    */
   public void addInterest(Double interestMC) {
@@ -264,11 +268,11 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
   }
 
   public double getYearIctaxTotalTaxValueChf() {
-    return DataHelper.round(yearIctaxTotalTaxValueChf, precisionMC) ;
+    return DataHelper.round(yearIctaxTotalTaxValueChf, precisionMC);
   }
 
   public double getYearIctaxTotalPaymentValueChf() {
-    return DataHelper.round(yearIctaxTotalPaymentValueChf, precisionMC) ;
+    return DataHelper.round(yearIctaxTotalPaymentValueChf, precisionMC);
   }
 
   public double getYearTaxableAmountMC() {
@@ -350,8 +354,8 @@ public class SecurityDividendsYearGroup extends MapGroup<Integer, SecurityDivide
     }
 
     /**
-     * Creates a copy of this tracker for a per-year snapshot. The transaction reference is shared (it is not
-     * mutated by the report), while the mutable state is copied so later-year processing cannot alter it.
+     * Creates a copy of this tracker for a per-year snapshot. The transaction reference is shared (it is not mutated by
+     * the report), while the mutable state is copied so later-year processing cannot alter it.
      *
      * @return an independent copy reflecting the current tracker state
      */

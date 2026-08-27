@@ -6,8 +6,8 @@ import grafiosch.gtnet.GTNetServerStateTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Public DTO for GTNetEntity used in M2M communication.
- * Excludes gtNetConfigEntity which contains local exchange configuration.
+ * Public DTO for GTNetEntity used in M2M communication. Excludes gtNetConfigEntity which contains local exchange
+ * configuration.
  */
 @Schema(description = """
     Public representation of a GTNetEntity for M2M communication. Contains the entity kind,

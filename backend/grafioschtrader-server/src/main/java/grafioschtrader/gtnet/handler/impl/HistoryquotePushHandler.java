@@ -36,20 +36,20 @@ import grafioschtrader.service.GTNetExchangeLogService;
 /**
  * Handler for GT_NET_HISTORYQUOTE_PUSH_SEL_C messages from remote instances.
  *
- * Receives pushed historical price data from consumers who expressed interest via "want to receive" markers
- * during the initial EXCHANGE protocol. This completes the bidirectional data flow:
+ * Receives pushed historical price data from consumers who expressed interest via "want to receive" markers during the
+ * initial EXCHANGE protocol. This completes the bidirectional data flow:
  *
  * <ol>
- *   <li>Consumer sends EXCHANGE request with instruments</li>
- *   <li>Supplier responds with data and "want to receive" markers for instruments it needs</li>
- *   <li>Consumer pushes data back via this PUSH message</li>
- *   <li>This handler stores the data and responds with ACK</li>
+ * <li>Consumer sends EXCHANGE request with instruments</li>
+ * <li>Supplier responds with data and "want to receive" markers for instruments it needs</li>
+ * <li>Consumer pushes data back via this PUSH message</li>
+ * <li>This handler stores the data and responds with ACK</li>
  * </ol>
  *
  * Storage routing uses JOIN-based locality lookup:
  * <ul>
- *   <li>Local instruments (matching ISIN+currency exists in local security table): stored in historyquote table</li>
- *   <li>Foreign instruments (no local match): stored in gt_net_historyquote table</li>
+ * <li>Local instruments (matching ISIN+currency exists in local security table): stored in historyquote table</li>
+ * <li>Foreign instruments (no local match): stored in gt_net_historyquote table</li>
  * </ul>
  *
  * @see GTNetMessageCodeType#GT_NET_HISTORYQUOTE_PUSH_SEL_C
@@ -93,10 +93,18 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
     }
 
     // Check if this server accepts historyquote data
-    Optional<GTNetEntity> historyEntity = context.getMyGTNet().getEntityByKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
+    Optional<GTNetEntity> historyEntity = context.getMyGTNet()
+        .getEntityByKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
     if (historyEntity.isEmpty() || !historyEntity.get().isAccepting()) {
       log.debug("Server not accepting historyquote data pushes");
       return new HandlerResult.ProcessingError<>("NOT_ACCEPTING", "This server is not accepting historyquote data");
+    }
+
+    // The accept flag says whether this instance serves the kind at all; the grant says whether it serves it to
+    // this peer. A completed handshake is not an entitlement to data - only an accepted data request is.
+    if (!hasExchangeGrant(context, GTNetExchangeKindType.HISTORICAL_PRICES)) {
+      log.debug("No accepted historyquote exchange with this peer");
+      return noGrantResult(GTNetExchangeKindType.HISTORICAL_PRICES);
     }
 
     // Store incoming message for logging
@@ -115,8 +123,7 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
     int totalRecordCount = pushPayload.getTotalRecordCount();
     log.info("Received historyquote push with {} securities, {} currencypairs ({} total records) from {}",
         pushPayload.securities != null ? pushPayload.securities.size() : 0,
-        pushPayload.currencypairs != null ? pushPayload.currencypairs.size() : 0,
-        totalRecordCount,
+        pushPayload.currencypairs != null ? pushPayload.currencypairs.size() : 0, totalRecordCount,
         context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown");
 
     // Store received data
@@ -132,8 +139,7 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
       acceptedCount += storeCurrencypairHistoryquotes(pushPayload.currencypairs);
     }
 
-    log.info("Accepted {} of {} pushed historyquote records from {}",
-        acceptedCount, totalRecordCount,
+    log.info("Accepted {} of {} pushed historyquote records from {}", acceptedCount, totalRecordCount,
         context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown");
 
     // Log exchange statistics as supplier (we're receiving data)
@@ -163,9 +169,8 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
         String key = dto.getIsin() + ":" + dto.getCurrency();
         if (!instrumentMap.containsKey(key)) {
           GTNetInstrumentSecurity instrument = gtNetInstrumentSecurityJpaRepository
-              .findByIsinAndCurrency(dto.getIsin(), dto.getCurrency())
-              .orElseGet(() -> gtNetInstrumentSecurityJpaRepository
-                  .findOrCreateInstrument(dto.getIsin(), dto.getCurrency()));
+              .findByIsinAndCurrency(dto.getIsin(), dto.getCurrency()).orElseGet(
+                  () -> gtNetInstrumentSecurityJpaRepository.findOrCreateInstrument(dto.getIsin(), dto.getCurrency()));
           instrumentMap.put(key, instrument);
         }
       }
@@ -176,8 +181,7 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
     }
 
     // Determine locality via JOIN - which instruments have local securities
-    List<Integer> instrumentIds = instrumentMap.values().stream()
-        .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
+    List<Integer> instrumentIds = instrumentMap.values().stream().map(GTNetInstrumentSecurity::getIdGtNetInstrument)
         .toList();
     Map<Integer, Integer> localityMap = buildLocalityMap(
         gtNetInstrumentSecurityJpaRepository.findLocalSecurityMappings(instrumentIds));
@@ -221,8 +225,8 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
         if (!instrumentMap.containsKey(key)) {
           GTNetInstrumentCurrencypair instrument = gtNetInstrumentCurrencypairJpaRepository
               .findByFromCurrencyAndToCurrency(dto.getCurrency(), dto.getToCurrency())
-              .orElseGet(() -> gtNetInstrumentCurrencypairJpaRepository
-                  .findOrCreateInstrument(dto.getCurrency(), dto.getToCurrency()));
+              .orElseGet(() -> gtNetInstrumentCurrencypairJpaRepository.findOrCreateInstrument(dto.getCurrency(),
+                  dto.getToCurrency()));
           instrumentMap.put(key, instrument);
         }
       }
@@ -233,8 +237,7 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
     }
 
     // Determine locality via JOIN - which instruments have local currency pairs
-    List<Integer> instrumentIds = instrumentMap.values().stream()
-        .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
+    List<Integer> instrumentIds = instrumentMap.values().stream().map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
         .toList();
     Map<Integer, Integer> localityMap = buildLocalityMap(
         gtNetInstrumentCurrencypairJpaRepository.findLocalCurrencypairMappings(instrumentIds));
@@ -275,13 +278,12 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
   /**
    * Stores historyquotes for an instrument based on whether it's local or foreign.
    *
-   * Storage routing:
-   * - Local instruments (localSecuritycurrencyId != null): stored in historyquote table
-   * - Foreign instruments (localSecuritycurrencyId == null): stored in gt_net_historyquote table
+   * Storage routing: - Local instruments (localSecuritycurrencyId != null): stored in historyquote table - Foreign
+   * instruments (localSecuritycurrencyId == null): stored in gt_net_historyquote table
    *
-   * @param instrument the GTNet instrument (security or currency pair)
+   * @param instrument              the GTNet instrument (security or currency pair)
    * @param localSecuritycurrencyId the local security/currencypair ID (null if foreign)
-   * @param records the historyquote records to store
+   * @param records                 the historyquote records to store
    * @return number of records stored (skips duplicates)
    */
   private int storeHistoryquotesForInstrument(GTNetInstrument instrument, Integer localSecuritycurrencyId,
@@ -292,8 +294,8 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
       // Store in local historyquote table
       for (HistoryquoteRecordDTO record : records) {
         if (record.getDate() != null && record.getClose() != null) {
-          Optional<Historyquote> existing = historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(
-              localSecuritycurrencyId, record.getDate());
+          Optional<Historyquote> existing = historyquoteJpaRepository
+              .findByIdSecuritycurrencyAndDate(localSecuritycurrencyId, record.getDate());
 
           if (existing.isEmpty()) {
             Historyquote hq = new Historyquote();
@@ -339,16 +341,17 @@ public class HistoryquotePushHandler extends AbstractGTNetMessageHandler {
   /**
    * Creates an ACK response with the count of accepted records.
    *
-   * @param context the message context
+   * @param context       the message context
    * @param storedRequest the stored incoming request message
    * @param acceptedCount number of records accepted
    * @return handler result with ACK response
    */
-  private HandlerResult<GTNetMessage, MessageEnvelope> createAckResponse(GTNetMessageContext context, GTNetMessage storedRequest, int acceptedCount) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createAckResponse(GTNetMessageContext context,
+      GTNetMessage storedRequest, int acceptedCount) {
     HistoryquoteExchangeMsg ackPayload = HistoryquoteExchangeMsg.forPushAck(acceptedCount);
 
-    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_ACK_S,
-        null, null, storedRequest);
+    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_ACK_S, null,
+        null, storedRequest);
 
     return new HandlerResult.ImmediateResponse<>(createResponseEnvelopeWithPayload(context, responseMsg, ackPayload));
   }

@@ -65,15 +65,50 @@ export async function openTaxDataView(page: Page): Promise<Locator> {
 }
 
 /**
- * The tree table row whose `name` cell matches the given text. The match is done on the first cell
- * and not on the whole row: a file row also carries the upload date and the record count, and the
- * year row would otherwise collide with the `2025` inside a file name and inside the upload date.
+ * The tree table row whose `name` cell matches the given text. The match is done on that one cell and
+ * not on the whole row: a file row also carries the upload date and the record count, and the year
+ * row would otherwise collide with the `2025` inside a file name and inside the upload date.
+ *
+ * The name cell is addressed through the tree toggler it contains rather than by its position. Since
+ * a tax year can be expanded to show its exchange rates, the table renders a leading expansion cell,
+ * which used to shift the name out of the first column and broke every selector here at once.
  */
 export function nodeRow(container: Locator, text: string | RegExp): Locator {
   const nameRx = typeof text === 'string' ? exactText(text) : text;
   return container
     .locator('.p-treetable-tbody tr')
-    .filter({ has: container.page().locator('td:nth-child(1)').filter({ hasText: nameRx }) })
+    .filter({ has: container.page().locator('td:has(p-treetabletoggler)').filter({ hasText: nameRx }) })
+    .first();
+}
+
+/**
+ * Expands a tax year row and returns the table of official exchange rates rendered below it. The
+ * expansion toggle sits in the leading cell and is only rendered when the year actually holds rates,
+ * so this fails fast when the import did not write any.
+ */
+export async function openExchangeRateTable(container: Locator, yearRow: Locator): Promise<Locator> {
+  const toggle = yearRow.locator('td').first().locator('a');
+  await expect(toggle, 'a tax year with imported exchange rates must offer the expansion toggle').toBeVisible({
+    timeout: 10_000
+  });
+  const rateTable = container.locator('tax-exchange-rate-table');
+  if (!(await rateTable.isVisible())) {
+    await toggle.click();
+  }
+  await rateTable.waitFor({ state: 'visible', timeout: 10_000 });
+  return rateTable;
+}
+
+/** The exchange rate row of one currency, matched on the cell that holds the currency code alone. */
+export function exchangeRateRow(rateTable: Locator, currency: string): Locator {
+  return rateTable
+    .locator('tbody tr')
+    .filter({
+      has: rateTable
+        .page()
+        .locator('td')
+        .filter({ hasText: exactText(currency) })
+    })
     .first();
 }
 

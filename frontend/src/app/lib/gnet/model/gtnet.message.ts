@@ -82,6 +82,17 @@ export enum SendReceivedType {
   ANSWER = 2
 }
 
+/**
+ * Every GTNet message code, core protocol and application payload band in one enum.
+ *
+ * The numeric values are all this mirror carries. What a code means — its category, the answers it accepts, whether an
+ * administrator may send it, whether it may appear in an auto-answer rule — is served by
+ * `GET /api/gtnetmessage/protocol` and read through `GTNetProtocolService`.
+ *
+ * Corresponds to backend: grafiosch-base/src/main/java/grafiosch/gtnet/GNetCoreMessageCode.java,
+ * grafioschtrader-common/src/main/java/grafioschtrader/gtnet/GTNetMessageCodeType.java
+ * Mirrored enum: GTNetMessageCodeType
+ */
 export enum GTNetMessageCodeType {
   GT_NET_PING = 0,
 
@@ -100,13 +111,22 @@ export enum GTNetMessageCodeType {
   GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C = 13,
 
   GT_NET_OFFLINE_ALL_C = 20,
+
+  // Protocol outcomes (21-23): what the transport answers when there is no semantic answer
+  GT_NET_ACK_S = 21,
+  GT_NET_DEFERRED_S = 22,
+  GT_NET_ERROR_S = 23,
+
   GT_NET_MAINTENANCE_ALL_C = 24,
   GT_NET_OPERATION_DISCONTINUED_ALL_C = 25,
   GT_NET_MAINTENANCE_CANCEL_ALL_C = 26,
   GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C = 27,
   GT_NET_SETTINGS_UPDATED_ALL_C = 28,
 
-  // Admin messages (30–34)
+  // Rate limiting (29)
+  GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S = 29,
+
+  // Admin messages (30)
   // Note: value 31 was used by GT_NET_ADMIN_MESSAGE_ALL_C (deprecated) - do not reuse
   GT_NET_ADMIN_MESSAGE_SEL_C = 30,
 
@@ -123,59 +143,26 @@ export enum GTNetMessageCodeType {
   GT_NET_LASTPRICE_PUSH_ACK_S = 63,
   GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S = 64,
 
-  // Exchange sync (30–39)
+  // Exchange sync (70–79)
   GT_NET_EXCHANGE_SYNC_SEL_RR_C = 70,
   GT_NET_EXCHANGE_SYNC_RESPONSE_S = 71,
 
-  // Historyquote exchange (80–84)
+  // Historyquote exchange (80–86)
   GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C = 80,
   GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S = 81,
   GT_NET_HISTORYQUOTE_PUSH_SEL_C = 82,
   GT_NET_HISTORYQUOTE_PUSH_ACK_S = 83,
   GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S = 84,
+  GT_NET_HISTORYQUOTE_COVERAGE_SEL_C = 85,
+  GT_NET_HISTORYQUOTE_COVERAGE_RESPONSE_S = 86,
 
-  // Security lookup (90–93)
+  // Security lookup (90–95)
   GT_NET_SECURITY_LOOKUP_SEL_C = 90,
   GT_NET_SECURITY_LOOKUP_RESPONSE_S = 91,
   GT_NET_SECURITY_LOOKUP_NOT_FOUND_S = 92,
-  GT_NET_SECURITY_LOOKUP_REJECTED_S = 93
-}
-
-/** Maps request codes (_RR_) to their valid response codes */
-export const RESPONSE_CODE_MAP: { [key: number]: GTNetMessageCodeType[] } = {
-  [GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S]: [
-    GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_ACCEPT_S,
-    GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_REJECT_S
-  ],
-  [GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_SEL_RR_C]: [
-    GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_ACCEPT_S,
-    GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_REJECTED_S
-  ],
-  [GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_SEL_RR_C]: [
-    GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_ACCEPT_S,
-    GTNetMessageCodeType.GT_NET_UPDATE_SERVERLIST_REJECTED_S
-  ],
-  [GTNetMessageCodeType.GT_NET_DATA_REQUEST_SEL_RR_C]: [
-    GTNetMessageCodeType.GT_NET_DATA_REQUEST_ACCEPT_S,
-    GTNetMessageCodeType.GT_NET_DATA_REQUEST_REJECTED_S
-  ],
-  // Admin messages can be replied to with another admin message
-  [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C]: [GTNetMessageCodeType.GT_NET_ADMIN_MESSAGE_SEL_C]
-};
-
-/** Checks if a message code is a request that requires a response */
-export function isRequestRequiringResponse(code: GTNetMessageCodeType | string): boolean {
-  const codeName = typeof code === 'string' ? code : GTNetMessageCodeType[code];
-  return codeName?.includes('_RR_') ?? false;
-}
-
-/** Gets valid response codes for a request code */
-export function getValidResponseCodes(requestCode: GTNetMessageCodeType | string): GTNetMessageCodeType[] {
-  const codeValue =
-    typeof requestCode === 'string'
-      ? GTNetMessageCodeType[requestCode as keyof typeof GTNetMessageCodeType]
-      : requestCode;
-  return RESPONSE_CODE_MAP[codeValue] ?? [];
+  GT_NET_SECURITY_LOOKUP_REJECTED_S = 93,
+  GT_NET_SECURITY_BATCH_LOOKUP_SEL_C = 94,
+  GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S = 95
 }
 
 /** Maps announcement codes to their cancellation codes */
@@ -226,9 +213,10 @@ export function getAvailableMessageCodes(params: MsgCallParam): GTNetMessageCode
 function getBroadcastCodes(params: MsgCallParam): GTNetMessageCodeType[] {
   const codes: GTNetMessageCodeType[] = [];
   codes.push(GTNetMessageCodeType.GT_NET_OFFLINE_ALL_C);
-  if (params.idOpenMaintenanceMessage == null) {
-    codes.push(GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C);
-  }
+  // Several maintenance windows may be announced at once, so an already open one does not suppress the option. The
+  // backend rejects a window that overlaps one that is still open.
+  codes.push(GTNetMessageCodeType.GT_NET_MAINTENANCE_ALL_C);
+  // A discontinuation is different: there is only ever one shutdown, so a pending one hides the option.
   if (params.idOpenDiscontinuedMessage == null) {
     codes.push(GTNetMessageCodeType.GT_NET_OPERATION_DISCONTINUED_ALL_C);
   }

@@ -32,14 +32,13 @@ public class GTNetExchangeLogResource {
   /**
    * Returns the hierarchical exchange log tree for a specific GTNet and entity kind.
    *
-   * @param idGtNet the GTNet identifier
+   * @param idGtNet    the GTNet identifier
    * @param entityKind the entity kind (e.g., LAST_PRICE, HISTORICAL_PRICES, SECURITY_METADATA)
    * @return tree structure with supplier and consumer statistics
    */
   @GetMapping(value = "/tree/{idGtNet}", produces = APPLICATION_JSON_VALUE)
   @Operation(summary = "Get exchange log tree for a specific GTNet")
-  public ResponseEntity<GTNetExchangeLogTreeDTO> getExchangeLogTree(
-      @PathVariable Integer idGtNet,
+  public ResponseEntity<GTNetExchangeLogTreeDTO> getExchangeLogTree(@PathVariable Integer idGtNet,
       @RequestParam IExchangeKindType entityKind) {
     GTNetExchangeLogTreeDTO tree = gtNetExchangeLogJpaRepository.getExchangeLogTree(idGtNet, entityKind);
     if (tree == null) {

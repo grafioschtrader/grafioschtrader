@@ -17,11 +17,13 @@ import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessageAnswer;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.gtnet.GTNetMessageCodeRegistry;
+import grafiosch.gtnet.GTNetProtocolDescriptor;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 
 /**
- * Repository implementation for GTNetMessageAnswer entity.
- * Handles validation of EvalEx expressions in responseMsgConditional field.
+ * Repository implementation for GTNetMessageAnswer entity. Handles validation of EvalEx expressions in
+ * responseMsgConditional field.
  */
 public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessageAnswer>
     implements GTNetMessageAnswerJpaRepositoryCustom {
@@ -30,6 +32,9 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
 
   @Autowired
   private GTNetMessageAnswerJpaRepository gtNetMessageAnswerJpaRepository;
+
+  @Autowired
+  private GTNetMessageCodeRegistry messageCodeRegistry;
 
   @Override
   public GTNetMessage getMessageAnswerBy(GTNet myGTNet, GTNet remoteGTNet, MessageEnvelope meRequest) {
@@ -48,6 +53,8 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
   public GTNetMessageAnswer saveOnlyAttributes(GTNetMessageAnswer newEntity, final GTNetMessageAnswer existingEntity,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
 
+    validateCodePair(newEntity);
+
     // Validate responseMsgConditional if present
     String conditional = newEntity.getResponseMsgConditional();
     if (conditional != null && !conditional.isBlank()) {
@@ -59,8 +66,38 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
   }
 
   /**
-   * Validates that the given string is a syntactically valid EvalEx expression.
-   * Does not evaluate the expression, only checks syntax by triggering parsing.
+   * Rejects a rule that pairs a request with an answer the protocol does not accept for it.
+   *
+   * <p>
+   * Both columns are plain bytes and used to take any registered code, so nothing stopped a rule from answering a
+   * handshake with a data-request rejection — and the resolver returned it unchecked. The protocol also marks the
+   * answers a person may not choose at all: {@code GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S} is the refusal for a
+   * domain this server does not know, and configured as a rule it would tell an already stored peer that it is not in
+   * the list.
+   * </p>
+   *
+   * @param rule the rule about to be persisted
+   */
+  private void validateCodePair(GTNetMessageAnswer rule) {
+    GTNetProtocolDescriptor request = messageCodeRegistry.getDescriptor(rule.getRequestMsgCodeValue());
+    if (request == null || !request.autoAnswerRequest()) {
+      throw new DataViolationException("request.msg.code", "gt.gtnet.answer.request.not.allowed",
+          new Object[] { request == null ? rule.getRequestMsgCodeValue() : request.name() });
+    }
+    GTNetProtocolDescriptor response = messageCodeRegistry.getDescriptor(rule.getResponseMsgCodeValue());
+    if (response == null || !response.autoAnswerResponse()) {
+      throw new DataViolationException("response.msg.code", "gt.gtnet.answer.response.not.allowed",
+          new Object[] { response == null ? rule.getResponseMsgCodeValue() : response.name() });
+    }
+    if (!request.isValidResponse(response.value())) {
+      throw new DataViolationException("response.msg.code", "gt.gtnet.answer.response.not.for.request",
+          new Object[] { response.name(), request.name() });
+    }
+  }
+
+  /**
+   * Validates that the given string is a syntactically valid EvalEx expression. Does not evaluate the expression, only
+   * checks syntax by triggering parsing.
    *
    * @param expressionString the expression to validate
    * @throws DataViolationException if the expression is syntactically invalid

@@ -7,10 +7,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 import grafiosch.BaseConstants;
+import grafiosch.gtnet.handler.GTNetCoolingOffService;
 import grafioschtrader.GrafioschtraderApplication;
 import jakarta.annotation.PostConstruct;
 
@@ -18,8 +20,6 @@ import jakarta.annotation.PostConstruct;
  * With tests use a different application context without a tomcat reconfiguration.
  *
  */
-
-
 @SpringBootApplication()
 @EnableAsync
 @EntityScan(basePackages = { "grafiosch.entities", "grafioschtrader.entities" })
@@ -27,13 +27,13 @@ import jakarta.annotation.PostConstruct;
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "grafiosch\\.gtnet\\.handler\\..*"),
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = grafiosch.gtnet.GTNetLifecycleListener.class) })
+@Import(GTNetCoolingOffService.class)
 
 // Since Spring Boot 3.2 it requires and read this properties
 @PropertySource("classpath:application-test.properties")
 @EnableConfigurationProperties
 
 public class GTforTest {
-  
 
   @PostConstruct
   void started() {

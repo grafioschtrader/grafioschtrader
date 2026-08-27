@@ -410,9 +410,11 @@ const APP_ROUTES: Routes = [
         ]
       },
       {
+        // The auto-answer rules publish the terms on which this instance admits a peer, so reading them is restricted
+        // to administrators on the backend as well; without adminGuard a normal user would reach a screen that 403s.
         path: BaseSettings.GT_NET_MESSAGE_ANSWER_KEY,
         component: GTNetMessageAnswerTableComponent,
-        canActivate: [authGuard]
+        canActivate: [adminGuard]
       },
       {
         path: BaseSettings.GT_NET_EXCHANGE_LOG_KEY,
@@ -431,6 +433,11 @@ const APP_ROUTES: Routes = [
           },
           {
             path: BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY,
+            component: GTNetExchangeLogComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: ':entityKind',
             component: GTNetExchangeLogComponent,
             canActivate: [authGuard]
           }

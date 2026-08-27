@@ -30,12 +30,12 @@ import grafioschtrader.service.GTNetExchangeLogService;
 /**
  * Handler for GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C requests from remote instances.
  *
- * Processes historical price data requests and returns quotes within the requested date ranges.
- * Delegates to strategy classes based on the local server's acceptRequest mode:
+ * Processes historical price data requests and returns quotes within the requested date ranges. Delegates to strategy
+ * classes based on the local server's acceptRequest mode:
  * <ul>
- *   <li>{@link PushOpenHistoryquoteQueryStrategy} for AC_PUSH_OPEN: Queries GTNetHistoryquote for foreign
- *       instruments and local historyquote for local instruments</li>
- *   <li>{@link OpenHistoryquoteQueryStrategy} for AC_OPEN: Queries local historyquote table only</li>
+ * <li>{@link PushOpenHistoryquoteQueryStrategy} for AC_PUSH_OPEN: Queries GTNetHistoryquote for foreign instruments and
+ * local historyquote for local instruments</li>
+ * <li>{@link OpenHistoryquoteQueryStrategy} for AC_OPEN: Queries local historyquote table only</li>
  * </ul>
  *
  * @see GTNetMessageCodeType#GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C
@@ -71,7 +71,8 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
   }
 
   @Override
-  public HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> handle(GTNetMessageContext context) throws Exception {
+  public HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> handle(GTNetMessageContext context)
+      throws Exception {
     // Validate request
     GTNet myGTNet = context.getMyGTNet();
     if (myGTNet == null) {
@@ -85,8 +86,20 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
       return new HandlerResult.ProcessingError<>("NOT_ACCEPTING", "This server is not accepting historyquote requests");
     }
 
+    // The accept flag says whether this instance serves the kind at all; the grant says whether it serves it to
+    // this peer. A completed handshake is not an entitlement to data - only an accepted data request is.
+    if (!hasExchangeGrant(context, GTNetExchangeKindType.HISTORICAL_PRICES)) {
+      log.debug("No accepted historyquote exchange with this peer");
+      return noGrantResult(GTNetExchangeKindType.HISTORICAL_PRICES);
+    }
+
     // Store incoming message for logging
     GTNetMessage storedRequest = storeIncomingMessage(context);
+
+    // Refuse a remote that has run past its request-violation budget
+    if (isBlockedByRequestViolations(context)) {
+      return handleViolationBlocked(context, storedRequest);
+    }
 
     // Parse request payload
     if (!context.hasPayload()) {
@@ -102,8 +115,7 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
 
     log.debug("Received historyquote request for {} securities and {} currencypairs (total: {})",
         request.securities != null ? request.securities.size() : 0,
-        request.currencypairs != null ? request.currencypairs.size() : 0,
-        totalInstruments);
+        request.currencypairs != null ? request.currencypairs.size() : 0, totalInstruments);
 
     // Check if request exceeds max_limit
     Short maxLimit = historyEntity.get().getMaxLimit();
@@ -125,11 +137,9 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
     response.currencypairs = strategy.queryCurrencypairs(request.currencypairs, sendableIds);
 
     int responseRecordCount = response.getTotalRecordCount();
-    log.info("Responding with {} records for {} securities and {} currencypairs to {} (mode: {})",
-        responseRecordCount,
+    log.info("Responding with {} records for {} securities and {} currencypairs to {} (mode: {})", responseRecordCount,
         response.securities.size(), response.currencypairs.size(),
-        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
-        acceptMode);
+        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown", acceptMode);
 
     // Log exchange statistics as supplier
     if (context.getRemoteGTNet() != null) {
@@ -138,8 +148,8 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
     }
 
     // Store response message
-    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S,
-        null, null, storedRequest);
+    GTNetMessage responseMsg = storeResponseMessage(context,
+        GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S, null, null, storedRequest);
 
     // Create response envelope with payload
     return new HandlerResult.ImmediateResponse<>(createResponseEnvelopeWithPayload(context, responseMsg, response));
@@ -159,22 +169,41 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
   /**
    * Creates an empty response when no instruments were requested.
    */
-  private HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> createEmptyResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
-    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S,
-        null, null, storedRequest);
+  private HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> createEmptyResponse(
+      GTNetMessageContext context, GTNetMessage storedRequest) {
+    GTNetMessage responseMsg = storeResponseMessage(context,
+        GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S, null, null, storedRequest);
     return new HandlerResult.ImmediateResponse<>(
         createResponseEnvelopeWithPayload(context, responseMsg, new HistoryquoteExchangeMsg()));
   }
 
   /**
-   * Handles requests that exceed the configured max_limit.
-   * Increments the violation counter for the remote domain and returns an error response.
+   * Handles requests that exceed the configured max_limit. Increments the violation counter for the remote domain and
+   * returns an error response.
    */
-  private HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> handleMaxLimitExceeded(GTNetMessageContext context, GTNetMessage storedRequest,
-      int requestedCount, short maxLimit) {
+  /**
+   * Answers a remote that is over its request-violation budget. The counter is not incremented again - it is already at
+   * or above the threshold - so the remote stays refused until an administrator resets it.
+   *
+   * @param context       the message context of the incoming request
+   * @param storedRequest the persisted request this response refers to
+   * @return an immediate response carrying the limit-exceeded code
+   */
+  private HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> handleViolationBlocked(
+      GTNetMessageContext context, GTNetMessage storedRequest) {
+    log.warn("Refusing historyquote request from {}: request violation budget exhausted",
+        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown");
+    GTNetMessage responseMsg = storeResponseMessage(context,
+        GTNetMessageCodeType.GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S,
+        "Requests are refused because too many max_limit violations were recorded", null, storedRequest);
+    return new HandlerResult.ImmediateResponse<>(createResponseEnvelope(context, responseMsg));
+  }
+
+  private HandlerResult<GTNetMessage, grafiosch.gtnet.m2m.model.MessageEnvelope> handleMaxLimitExceeded(
+      GTNetMessageContext context, GTNetMessage storedRequest, int requestedCount, short maxLimit) {
     log.warn("Request from {} exceeded max_limit: {} instruments requested, limit is {}",
-        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
-        requestedCount, maxLimit);
+        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown", requestedCount,
+        maxLimit);
 
     // Increment violation counter for the remote domain
     if (context.getRemoteGTNet() != null && context.getRemoteGTNet().getGtNetConfig() != null) {
@@ -183,8 +212,8 @@ public class HistoryquoteExchangeHandler extends AbstractGTNetMessageHandler {
     }
 
     // Store violation response message
-    String message = String.format("Request exceeded max_limit: %d instruments requested, limit is %d",
-        requestedCount, maxLimit);
+    String message = String.format("Request exceeded max_limit: %d instruments requested, limit is %d", requestedCount,
+        maxLimit);
     GTNetMessage responseMsg = storeResponseMessage(context,
         GTNetMessageCodeType.GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S, message, null, storedRequest);
 

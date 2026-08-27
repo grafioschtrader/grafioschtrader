@@ -1,0 +1,27 @@
+{
+  "_comment": [
+    "Instruments the two-peer GTNet application suite exchanges, addressed by natural key because the ids differ",
+    "between grafioschtrader_t and grafioschtrader_t1. Both peers migrate from db/migration/test, so these rows exist",
+    "on both sides with their four gt_net_* exchange flags already set to 1; the suite only asserts against them and",
+    "never creates them.",
+    "Consumed by GTNetAppLastpriceExchangeTest, GTNetAppHistoryquoteExchangeTest, GTNetAppSecurityLookupTest and",
+    "GTNetAppSupplierDetailTest. The e2e tag is 'd' throughout: every row is already part of the Flyway test data.",
+    "maxLimitProbeCount is the instrument count a request uses to provoke the *_MAX_LIMIT_EXCEEDED_S answer; it must",
+    "stay above the maxLimit the peer bootstrap writes into gt_net_entity (250)."
+  ],
+  "maxLimitProbeCount": 260,
+  "historyquoteRange": {
+    "fromDate": "2024-01-02",
+    "toDate": "2024-03-28"
+  },
+  "securities": [
+    { "isin": "CH0008899764", "currency": "CHF", "tickerSymbol": "CSSMI", "e2e": "d" },
+    { "isin": "CH0237935652", "currency": "CHF", "tickerSymbol": "CHSPI", "e2e": "d" },
+    { "isin": "CH0031768937", "currency": "CHF", "tickerSymbol": "CSSLI", "e2e": "d" }
+  ],
+  "currencypairs": [
+    { "fromCurrency": "EUR", "toCurrency": "CHF", "e2e": "d" },
+    { "fromCurrency": "GBP", "toCurrency": "CHF", "e2e": "d" }
+  ],
+  "unknownSecurity": { "isin": "XX0000000000", "currency": "CHF", "e2e": "d" }
+}

@@ -1,5 +1,6 @@
 package grafiosch.entities;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -15,13 +16,12 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
-
 @Schema(description = """
-This GTNet configuration contains the general configuration and is not transferred externally.
-Once a successful handshake has been made with a GT instance, such an entity is created.""")
+    This GTNet configuration contains the general configuration and is not transferred externally.
+    Once a successful handshake has been made with a GT instance, such an entity is created.""")
 @Entity
 @Table(name = GTNetConfig.TABNAME)
-public class GTNetConfig extends BaseID<Integer>  {
+public class GTNetConfig extends BaseID<Integer> {
 
   public static final String TABNAME = "gt_net_config";
 
@@ -47,18 +47,29 @@ public class GTNetConfig extends BaseID<Integer>  {
   private String tokenRemote;
 
   @Schema(description = """
-      Current count of requests received from the remote domain today. Incremented with each incoming request and
-      compared against dailyRequestLimit to enforce rate limiting. Automatically reset to null at UTC 00:00 by a
-      scheduled background job.""")
+      Count of requests received from the remote domain on the day named by dailyRequestLimitDate. Raised for every
+      incoming request that is charged to the budget and compared against the dailyRequestLimit of the local GTNet
+      entry; once it reaches that limit the remote is answered with GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S. There is
+      no reset job: the first charged request of a new UTC day rolls both counters over together with
+      dailyRequestLimitDate.""")
   @Column(name = "daily_req_limit_count")
   private Integer dailyRequestLimitCount;
 
   @Schema(description = """
-      Current count of requests this server has made to the remote domain today. Used to self-limit outgoing
-      requests before hitting the remote's rate limit. Automatically reset to null at UTC 00:00 by a scheduled
-      background job.""")
+      Count of requests this server has made to the remote domain on the day named by dailyRequestLimitDate. Used to
+      self-limit outgoing requests before running into the remote's refusal, by comparing it against the
+      dailyRequestLimit the remote published to us. Rolls over with the incoming counter on the first charged
+      request of a new UTC day.""")
   @Column(name = "daily_req_limit_remote_count")
   private Integer dailyRequestLimitRemoteCount;
+
+  @Schema(description = """
+      UTC day the two daily request counters belong to. Maintained by the counting statements themselves: when a
+      request is charged and this date is not today, both counters start again from zero. Null as long as no request
+      has ever been charged for this remote.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "daily_req_limit_date")
+  private LocalDate dailyRequestLimitDate;
 
   @Schema(description = """
       Timestamp of the last update when supplier details were fetched from this remote domain.
@@ -77,7 +88,12 @@ public class GTNetConfig extends BaseID<Integer>  {
   @Schema(description = """
       Counter that tracks the number of request violations from this remote domain. Incremented when the remote
       sends a request that exceeds the configured max_limit for an entity kind (e.g., requesting more than 300
-      instruments in a single lastprice request). Used to identify misbehaving clients. Max value is 99.""")
+      instruments in a single lastprice request). Used to identify misbehaving clients. Max value is 99. Once it
+      reaches g.max.limit.request.exceeded.count the remote's exchange requests are refused, so an administrator
+      resets the counter here to admit the peer again.""")
+  @PropertyAlwaysUpdatable
+  @Min(value = 0)
+  @Max(value = 99)
   @Column(name = "request_violation_count")
   private Byte requestViolationCount = 0;
 
@@ -97,6 +113,22 @@ public class GTNetConfig extends BaseID<Integer>  {
       future-oriented messages that were created before the handshake completed.""")
   @Column(name = "handshake_timestamp")
   private LocalDateTime handshakeTimestamp;
+
+  @JsonIgnore
+  @Schema(description = """
+      The token that tokenThis replaced at the last rotation. A token refresh is committed by the answerer while it
+      is still handling the request, so a response lost on the way back would otherwise break both directions at
+      once. Keeping the superseded token acceptable for a bounded window lets the initiator retry with either token
+      until one reply completes the rotation.""")
+  @Column(name = "token_this_previous")
+  private String tokenThisPrevious;
+
+  @JsonIgnore
+  @Schema(description = """
+      UTC instant after which tokenThisPrevious is no longer accepted. Null when no rotation has happened or the
+      overlap has been cleared.""")
+  @Column(name = "token_this_previous_valid_until")
+  private LocalDateTime tokenThisPreviousValidUntil;
 
   @Override
   public Integer getId() {
@@ -143,6 +175,14 @@ public class GTNetConfig extends BaseID<Integer>  {
     this.dailyRequestLimitRemoteCount = dailyRequestLimitRemoteCount;
   }
 
+  public LocalDate getDailyRequestLimitDate() {
+    return dailyRequestLimitDate;
+  }
+
+  public void setDailyRequestLimitDate(LocalDate dailyRequestLimitDate) {
+    this.dailyRequestLimitDate = dailyRequestLimitDate;
+  }
+
   public LocalDateTime getSupplierLastUpdate() {
     return supplierLastUpdate;
   }
@@ -153,6 +193,34 @@ public class GTNetConfig extends BaseID<Integer>  {
 
   public boolean isAuthorizedRemoteEntry() {
     return tokenThis != null && tokenRemote != null;
+  }
+
+  public String getTokenThisPrevious() {
+    return tokenThisPrevious;
+  }
+
+  public void setTokenThisPrevious(String tokenThisPrevious) {
+    this.tokenThisPrevious = tokenThisPrevious;
+  }
+
+  public LocalDateTime getTokenThisPreviousValidUntil() {
+    return tokenThisPreviousValidUntil;
+  }
+
+  public void setTokenThisPreviousValidUntil(LocalDateTime tokenThisPreviousValidUntil) {
+    this.tokenThisPreviousValidUntil = tokenThisPreviousValidUntil;
+  }
+
+  /**
+   * Whether the superseded token is still inside its overlap window and may therefore still authenticate a peer that
+   * has not learned the new one yet.
+   *
+   * @param now the current UTC instant
+   * @return true when a previous token exists and its window has not passed
+   */
+  public boolean isPreviousTokenValid(LocalDateTime now) {
+    return tokenThisPrevious != null && tokenThisPreviousValidUntil != null
+        && now.isBefore(tokenThisPreviousValidUntil);
   }
 
   public boolean isServerlistAccessGranted() {

@@ -13,6 +13,7 @@ import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetTokenRotationService;
 import grafiosch.gtnet.handler.AbstractRequestHandler;
 import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafiosch.gtnet.handler.ValidationResult;
@@ -24,16 +25,25 @@ import grafiosch.repository.GTNetConfigJpaRepository;
  * Handler for GT_NET_TOKEN_REFRESH_SEL_RR_C messages (token refresh requests).
  *
  * Processes requests to regenerate authentication tokens between established peers. Both sides generate new tokens,
- * replacing the existing ones in GTNetConfig. This allows periodic token rotation for security without requiring a
- * full re-handshake.
+ * replacing the existing ones in GTNetConfig. This allows periodic token rotation for security without requiring a full
+ * re-handshake.
  *
  * When no GTNetMessageAnswer rules are configured, defaults to accepting the token refresh.
+ *
+ * <p>
+ * A repeated refresh is not rotated a second time. The reply is stored with its parameters, so the inbound
+ * deduplication answers a redelivery from that stored row and the peer receives the identical token pair. That is what
+ * makes the refresh idempotent; this handler itself needs no repeat detection.
+ * </p>
  */
 @Component
 public class TokenRefreshRequestHandler extends AbstractRequestHandler {
 
   @Autowired
   private GTNetConfigJpaRepository gtNetConfigJpaRepositoryFull;
+
+  @Autowired
+  private GTNetTokenRotationService tokenRotationService;
 
   @Override
   public GTNetMessageCode getSupportedMessageCode() {
@@ -43,8 +53,7 @@ public class TokenRefreshRequestHandler extends AbstractRequestHandler {
   @Override
   protected ValidationResult validateRequest(GTNetMessageContext context) {
     if (context.getRemoteGTNet() == null) {
-      return ValidationResult.invalid("UNKNOWN_REMOTE",
-          "Token refresh from unknown domain - handshake required first");
+      return ValidationResult.invalid("UNKNOWN_REMOTE", "Token refresh from unknown domain - handshake required first");
     }
     GTNet remoteGTNet = context.getRemoteGTNet();
     if (remoteGTNet.getGtNetConfig() == null) {
@@ -75,10 +84,12 @@ public class TokenRefreshRequestHandler extends AbstractRequestHandler {
       // Generate our new token for them
       String ourNewTokenForThem = DataHelper.generateGUID();
 
-      // Update GTNetConfig with both new tokens
+      // Update GTNetConfig with both new tokens. The token we are replacing stays acceptable for the overlap window,
+      // because this commit happens before the response is on the wire: without it a lost response would leave the
+      // peer calling us with a token we no longer know, and the refresh that would repair it is itself authenticated.
       GTNetConfig gtNetConfig = gtNetConfigJpaRepositoryFull.findById(remoteGTNet.getIdGtNet()).orElseThrow();
       gtNetConfig.setTokenRemote(theirNewTokenForUs);
-      gtNetConfig.setTokenThis(ourNewTokenForThem);
+      tokenRotationService.rotateTokenThis(gtNetConfig, ourNewTokenForThem);
       gtNetConfigJpaRepositoryFull.save(gtNetConfig);
 
       // Store the generated token for buildResponse to include in the response
@@ -96,8 +107,8 @@ public class TokenRefreshRequestHandler extends AbstractRequestHandler {
       GTNetMessage responseMsg = storeResponseMessage(context, responseCode, message, responseParams, originalRequest);
       return createResponseEnvelope(context, responseMsg);
     }
-    GTNetMessage responseMsg = storeResponseMessage(context, responseCode, message, buildResponseParams(context,
-        responseCode), originalRequest);
+    GTNetMessage responseMsg = storeResponseMessage(context, responseCode, message,
+        buildResponseParams(context, responseCode), originalRequest);
     return createResponseEnvelope(context, responseMsg);
   }
 

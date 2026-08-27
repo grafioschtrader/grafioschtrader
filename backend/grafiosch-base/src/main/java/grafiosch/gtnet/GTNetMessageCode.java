@@ -3,20 +3,19 @@ package grafiosch.gtnet;
 /**
  * Common interface for GTNet message codes.
  *
- * This interface is implemented by both {@code GNetCoreMessageCode} (library message codes 0-54)
- * and application-specific message code enums (e.g., GTNet app codes 60+). It provides a unified
- * way to work with message codes regardless of whether they are core protocol messages or
- * application-specific messages.
+ * This interface is implemented by both {@code GNetCoreMessageCode} (library message codes 0-54) and
+ * application-specific message code enums (e.g., GTNet app codes 60+). It provides a unified way to work with message
+ * codes regardless of whether they are core protocol messages or application-specific messages.
  *
- * <h3>Naming Conventions</h3>
- * Message code names follow a structured naming pattern:
- * <ul>
- *   <li><b>Contains _RR_</b>: Message expects a response (RR = Requires Response)</li>
- *   <li><b>Suffix _C</b>: Client-initiated messages (triggered from UI or scheduled jobs)</li>
- *   <li><b>Suffix _S</b>: Server response messages (replies to requests)</li>
- *   <li><b>Contains _SEL_</b>: Targeted at a specific selected remote server</li>
- *   <li><b>Contains _ALL_</b>: Broadcast to all applicable remote servers</li>
- * </ul>
+ * <h3>Naming Conventions</h3> Message code names carry {@code _SEL_} for a message aimed at one selected peer and
+ * {@code _ALL_} for a broadcast, and those two are the only facts still read from a name — they decide who a message is
+ * addressed to, which is routing rather than protocol.
+ *
+ * <p>
+ * Nothing else is inferred from a name. The older markers {@code _RR_}, {@code _C} and {@code _S} were unreliable:
+ * {@code GT_NET_FIRST_HANDSHAKE_SEL_RR_S} is user-initiated yet ends in {@code _S}. Category, valid answers, payload
+ * and rule eligibility are declared in {@code GTNetProtocolDescriptor} and read from {@code GTNetMessageCodeRegistry}.
+ * </p>
  *
  * @see GNetCoreMessageCode for core protocol message codes
  */
@@ -35,33 +34,6 @@ public interface GTNetMessageCode {
    * @return the enum constant name
    */
   String name();
-
-  /**
-   * Checks if this message code is a request that requires a response.
-   *
-   * @return true if this is an _RR_ type message code
-   */
-  default boolean isRequestRequiringResponse() {
-    return name().contains("_RR_");
-  }
-
-  /**
-   * Checks if this message code represents a client-initiated message.
-   *
-   * @return true if this message ends with _C (client-initiated)
-   */
-  default boolean isClientInitiated() {
-    return name().endsWith("_C");
-  }
-
-  /**
-   * Checks if this message code represents a server response.
-   *
-   * @return true if this message ends with _S (server response)
-   */
-  default boolean isServerResponse() {
-    return name().endsWith("_S");
-  }
 
   /**
    * Checks if this message code is a broadcast to all peers.

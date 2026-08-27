@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = TaxYear.TABNAME)
@@ -40,6 +41,13 @@ public class TaxYear {
   @OneToMany(mappedBy = "taxYear")
   @OrderBy("uploadDate DESC")
   private List<TaxUpload> taxUploads;
+
+  /**
+   * How many official exchange rates were imported for this year. Not persisted here — it is counted on the tax data
+   * tree so the client can leave the year node unexpandable when there is nothing to show.
+   */
+  @Transient
+  private Integer exchangeRateCount;
 
   public TaxYear() {
   }
@@ -82,5 +90,13 @@ public class TaxYear {
 
   public void setTaxUploads(List<TaxUpload> taxUploads) {
     this.taxUploads = taxUploads;
+  }
+
+  public Integer getExchangeRateCount() {
+    return exchangeRateCount;
+  }
+
+  public void setExchangeRateCount(Integer exchangeRateCount) {
+    this.exchangeRateCount = exchangeRateCount;
   }
 }

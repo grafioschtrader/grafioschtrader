@@ -31,11 +31,11 @@ import grafioschtrader.service.GTNetExchangeLogService;
 /**
  * Handler for GT_NET_LASTPRICE_EXCHANGE_SEL_C requests from remote instances.
  *
- * Processes intraday price data requests and returns prices that are newer than the requester's timestamps.
- * Delegates to strategy classes based on the local server's acceptRequest mode:
+ * Processes intraday price data requests and returns prices that are newer than the requester's timestamps. Delegates
+ * to strategy classes based on the local server's acceptRequest mode:
  * <ul>
- *   <li>{@link PushOpenLastpriceQueryStrategy} for AC_PUSH_OPEN: Queries GTNetLastprice* tables (shared price pool)</li>
- *   <li>{@link OpenLastpriceQueryStrategy} for AC_OPEN: Queries and updates local Security/Currencypair entities</li>
+ * <li>{@link PushOpenLastpriceQueryStrategy} for AC_PUSH_OPEN: Queries GTNetLastprice* tables (shared price pool)</li>
+ * <li>{@link OpenLastpriceQueryStrategy} for AC_OPEN: Queries and updates local Security/Currencypair entities</li>
  * </ul>
  *
  * @see GTNetMessageCodeType#GT_NET_LASTPRICE_EXCHANGE_SEL_C
@@ -85,8 +85,20 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
       return new HandlerResult.ProcessingError<>("NOT_ACCEPTING", "This server is not accepting lastprice requests");
     }
 
+    // The accept flag says whether this instance serves the kind at all; the grant says whether it serves it to
+    // this peer. A completed handshake is not an entitlement to data - only an accepted data request is.
+    if (!hasExchangeGrant(context, GTNetExchangeKindType.LAST_PRICE)) {
+      log.debug("No accepted lastprice exchange with this peer");
+      return noGrantResult(GTNetExchangeKindType.LAST_PRICE);
+    }
+
     // Store incoming message for logging
     GTNetMessage storedRequest = storeIncomingMessage(context);
+
+    // Refuse a remote that has run past its request-violation budget
+    if (isBlockedByRequestViolations(context)) {
+      return handleViolationBlocked(context, storedRequest);
+    }
 
     // Parse request payload
     if (!context.hasPayload()) {
@@ -103,8 +115,7 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
 
     log.debug("Received lastprice request for {} securities and {} currencypairs (total: {})",
         request.securities != null ? request.securities.size() : 0,
-        request.currencypairs != null ? request.currencypairs.size() : 0,
-        totalInstruments);
+        request.currencypairs != null ? request.currencypairs.size() : 0, totalInstruments);
 
     // Check if request exceeds max_limit
     Short maxLimit = lastpriceEntity.get().getMaxLimit();
@@ -123,13 +134,13 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
     // Execute queries using the selected strategy with freshness threshold
     LastpriceExchangeMsg response = new LastpriceExchangeMsg();
     response.securities = strategy.querySecurities(request.securities, sendableIds, request.minAcceptableTimestamp);
-    response.currencypairs = strategy.queryCurrencypairs(request.currencypairs, sendableIds, request.minAcceptableTimestamp);
+    response.currencypairs = strategy.queryCurrencypairs(request.currencypairs, sendableIds,
+        request.minAcceptableTimestamp);
 
     int responseCount = response.securities.size() + response.currencypairs.size();
-    log.info("Responding with {} securities and {} currencypairs to {} (mode: {})",
-        response.securities.size(), response.currencypairs.size(),
-        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
-        acceptMode);
+    log.info("Responding with {} securities and {} currencypairs to {} (mode: {})", response.securities.size(),
+        response.currencypairs.size(),
+        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown", acceptMode);
 
     // Log exchange statistics as supplier
     if (context.getRemoteGTNet() != null) {
@@ -160,7 +171,8 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
   /**
    * Creates an empty response when no instruments were requested.
    */
-  private HandlerResult<GTNetMessage, MessageEnvelope> createEmptyResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createEmptyResponse(GTNetMessageContext context,
+      GTNetMessage storedRequest) {
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S,
         null, null, storedRequest);
     MessageEnvelope envelope = createResponseEnvelopeWithPayload(context, responseMsg, new LastpriceExchangeMsg());
@@ -168,14 +180,31 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
   }
 
   /**
-   * Handles requests that exceed the configured max_limit.
-   * Increments the violation counter for the remote domain and returns an error response.
+   * Answers a remote that is over its request-violation budget. The counter is not incremented again - it is already at
+   * or above the threshold - so the remote stays refused until an administrator resets it.
+   *
+   * @param context       the message context of the incoming request
+   * @param storedRequest the persisted request this response refers to
+   * @return an immediate response carrying the limit-exceeded code
    */
-  private HandlerResult<GTNetMessage, MessageEnvelope> handleMaxLimitExceeded(GTNetMessageContext context, GTNetMessage storedRequest,
-      int requestedCount, short maxLimit) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> handleViolationBlocked(GTNetMessageContext context,
+      GTNetMessage storedRequest) {
+    log.warn("Refusing lastprice request from {}: request violation budget exhausted",
+        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown");
+    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S,
+        "Requests are refused because too many max_limit violations were recorded", null, storedRequest);
+    return new HandlerResult.ImmediateResponse<>(createResponseEnvelope(context, responseMsg));
+  }
+
+  /**
+   * Handles requests that exceed the configured max_limit. Increments the violation counter for the remote domain and
+   * returns an error response.
+   */
+  private HandlerResult<GTNetMessage, MessageEnvelope> handleMaxLimitExceeded(GTNetMessageContext context,
+      GTNetMessage storedRequest, int requestedCount, short maxLimit) {
     log.warn("Request from {} exceeded max_limit: {} instruments requested, limit is {}",
-        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown",
-        requestedCount, maxLimit);
+        context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown", requestedCount,
+        maxLimit);
 
     // Increment violation counter for the remote domain
     if (context.getRemoteGTNet() != null && context.getRemoteGTNet().getGtNetConfig() != null) {
@@ -184,10 +213,10 @@ public class LastpriceExchangeHandler extends AbstractGTNetMessageHandler {
     }
 
     // Store violation response message
-    String message = String.format("Request exceeded max_limit: %d instruments requested, limit is %d",
-        requestedCount, maxLimit);
-    GTNetMessage responseMsg = storeResponseMessage(context,
-        GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S, message, null, storedRequest);
+    String message = String.format("Request exceeded max_limit: %d instruments requested, limit is %d", requestedCount,
+        maxLimit);
+    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S,
+        message, null, storedRequest);
 
     MessageEnvelope envelope = createResponseEnvelope(context, responseMsg);
     return new HandlerResult.ImmediateResponse<>(envelope);

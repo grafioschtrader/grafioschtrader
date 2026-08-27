@@ -3,7 +3,6 @@ package grafioschtrader.rest;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetSupplierDetail;
-import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GTNetSupplierDetailJpaRepository;
@@ -172,8 +171,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   @Operation(summary = "Returns all connectors of data provider with it supported capabilities", description = """
       When gt.force.connector.match is set to 2 (frontend pre-filter), pass assetclassType=CURRENCY_PAIR and
       specInvInstrument=FOREX (or CFD for crypto pairs) so the returned list excludes connectors that cannot
-      serve the currency pair being edited.""", tags = {
-      Currencypair.TABNAME })
+      serve the currency pair being edited.""", tags = { Currencypair.TABNAME })
   @GetMapping(value = "/feedConnectors", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<IFeedConnector>> getFeedConnectors(
       @Parameter(description = "Asset class type; pass CURRENCY_PAIR for currency pairs") @RequestParam(required = false) AssetclassType assetclassType,
@@ -248,7 +246,6 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
         currencypairJpaRepository.getCurrencypairInTransactionByPortfolioId(idPortfolio, idTenant), HttpStatus.OK);
   }
 
-
   // ==================== GTNet Exchange Endpoints ====================
 
   @Operation(summary = "Returns currency pairs with GTNet exchange configuration", description = "Returns all currency pairs with their GTNet exchange fields and IDs of currency pairs that have supplier details", tags = {
@@ -261,35 +258,21 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
     result.securitiescurrenciesList = currencypairs;
 
     // Get IDs of currency pairs that have supplier details
-    List<Integer> allIds = currencypairs.stream()
-        .map(Currencypair::getIdSecuritycurrency)
-        .collect(Collectors.toList());
+    List<Integer> allIds = currencypairs.stream().map(Currencypair::getIdSecuritycurrency).collect(Collectors.toList());
     result.idSecuritycurrenies = gtNetSupplierDetailJpaRepository.findIdEntityWithDetails(allIds);
 
     return new ResponseEntity<>(result, HttpStatus.OK);
   }
 
-  @Operation(summary = "Batch updates GTNet exchange fields for currency pairs", description = "Updates the gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend, gtNetHistoricalSend fields for multiple currency pairs", tags = {
-      Currencypair.TABNAME })
+  @Operation(summary = "Batch updates GTNet exchange fields for currency pairs", description = """
+      Updates the gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend and gtNetHistoricalSend fields for
+      multiple currency pairs. The flags are shared data, so the caller must hold the ordinary editing rights of every
+      currency pair in the list: an administrator and a user with the extended editing right may change any currency
+      pair, everybody else only the currency pairs they created themselves.""", tags = { Currencypair.TABNAME })
   @PostMapping(value = "/gtnetexchange/batch", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Currencypair>> batchUpdateCurrencypairsGTNetExchange(
       @RequestBody List<Currencypair> currencypairs) {
-    List<Currencypair> updatedCurrencypairs = new ArrayList<>();
-    LocalDateTime now = LocalDateTime.now();
-
-    for (Currencypair currencypair : currencypairs) {
-      Currencypair existing = currencypairJpaRepository.findById(currencypair.getIdSecuritycurrency()).orElse(null);
-      if (existing != null) {
-        existing.setGtNetLastpriceRecv(currencypair.isGtNetLastpriceRecv());
-        existing.setGtNetHistoricalRecv(currencypair.isGtNetHistoricalRecv());
-        existing.setGtNetLastpriceSend(currencypair.isGtNetLastpriceSend());
-        existing.setGtNetHistoricalSend(currencypair.isGtNetHistoricalSend());
-        existing.setGtNetLastModifiedTime(now);
-        updatedCurrencypairs.add(currencypairJpaRepository.save(existing));
-      }
-    }
-
-    return new ResponseEntity<>(updatedCurrencypairs, HttpStatus.OK);
+    return new ResponseEntity<>(currencypairJpaRepository.batchUpdateGTNetExchange(currencypairs), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns supplier details for a currency pair", description = "Returns information about which GTNet suppliers can provide price data for this currency pair, including quality settings", tags = {
@@ -298,8 +281,7 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
   public ResponseEntity<List<GTNetSupplierWithDetails>> getCurrencypairSupplierDetails(
       @PathVariable Integer idSecuritycurrency) {
     List<GTNetSupplierDetail> details = gtNetSupplierDetailJpaRepository.findAll().stream()
-        .filter(d -> idSecuritycurrency.equals(d.getIdEntity()))
-        .collect(Collectors.toList());
+        .filter(d -> idSecuritycurrency.equals(d.getIdEntity())).collect(Collectors.toList());
 
     // Batch-load child settings
     List<Integer> detailIds = details.stream().map(GTNetSupplierDetail::getIdGtNetSupplierDetail)
@@ -312,18 +294,16 @@ public class CurrencypairResource extends UpdateCreateResource<Currencypair> {
             .collect(Collectors.toMap(GTNetSupplierDetailLast::getIdGtNetSupplierDetail, l -> l));
 
     // Group by GTNet (supplier)
-    Map<Integer, List<GTNetSupplierDetail>> byGtNet = details.stream()
-        .filter(d -> d.getGtNetConfig() != null)
+    Map<Integer, List<GTNetSupplierDetail>> byGtNet = details.stream().filter(d -> d.getGtNetConfig() != null)
         .collect(Collectors.groupingBy(d -> d.getGtNetConfig().getIdGtNet()));
 
     List<GTNetSupplierWithDetails> result = new ArrayList<>();
     for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : byGtNet.entrySet()) {
       GTNet gtNet = gtNetJpaRepository.findById(entry.getKey()).orElse(null);
       if (gtNet != null) {
-        List<GTNetSupplierDetailWithSettings> detailsWithSettings = entry.getValue().stream()
-            .map(d -> new GTNetSupplierDetailWithSettings(d,
-                histMap.get(d.getIdGtNetSupplierDetail()),
-                lastMap.get(d.getIdGtNetSupplierDetail())))
+        List<GTNetSupplierDetailWithSettings> detailsWithSettings = entry
+            .getValue().stream().map(d -> new GTNetSupplierDetailWithSettings(d,
+                histMap.get(d.getIdGtNetSupplierDetail()), lastMap.get(d.getIdGtNetSupplierDetail())))
             .collect(Collectors.toList());
         result.add(new GTNetSupplierWithDetails(gtNet, detailsWithSettings));
       }

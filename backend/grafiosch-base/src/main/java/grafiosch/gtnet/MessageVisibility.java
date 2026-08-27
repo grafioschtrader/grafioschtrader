@@ -1,5 +1,7 @@
 package grafiosch.gtnet;
 
+import java.util.List;
+
 /**
  * Visibility levels for GTNet admin messages.
  *
@@ -36,6 +38,17 @@ public enum MessageVisibility {
 
   public byte getValue() {
     return value;
+  }
+
+  /**
+   * The visibility values a reader of the given role may see. An administrator sees both, everybody else sees only
+   * {@link #ALL_USERS}. Returned as byte values so it can be passed straight into an {@code IN} clause.
+   *
+   * @param isAdmin whether the reader holds the administrator role
+   * @return the visibility values that reader may see, never empty
+   */
+  public static List<Byte> visibleTo(boolean isAdmin) {
+    return isAdmin ? List.of(ALL_USERS.getValue(), ADMIN_ONLY.getValue()) : List.of(ALL_USERS.getValue());
   }
 
   /**

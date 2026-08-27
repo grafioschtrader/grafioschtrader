@@ -7,7 +7,6 @@ import { MessageToastService } from '../../message/message.toast.service';
 import { LoginService } from '../../login/service/log-in.service';
 import { BaseSettings } from '../../base.settings';
 import { GTNetExchangeLogTree } from '../model/gtnet-exchange-log';
-import { GTNetExchangeKindType } from '../model/gtnet';
 
 /**
  * Service for GTNet exchange log operations.
@@ -24,8 +23,8 @@ export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchange
    * @param idGtNet the GTNet identifier
    * @param entityKind the entity kind (LAST_PRICE, HISTORICAL_PRICES, or SECURITY_METADATA)
    */
-  getExchangeLogTree(idGtNet: number, entityKind: GTNetExchangeKindType): Observable<GTNetExchangeLogTree> {
-    const params = new HttpParams().set('entityKind', this.getEntityKindName(entityKind));
+  getExchangeLogTree(idGtNet: number, entityKind: string): Observable<GTNetExchangeLogTree> {
+    const params = new HttpParams().set('entityKind', entityKind);
     return this.httpClient
       .get<GTNetExchangeLogTree>(`${BaseSettings.API_ENDPOINT}gtnetexchangelog/tree/${idGtNet}`, {
         ...this.getHeaders(),
@@ -39,20 +38,13 @@ export class GTNetExchangeLogService extends AuthServiceWithLogout<GTNetExchange
    *
    * @param entityKind the entity kind (LAST_PRICE, HISTORICAL_PRICES, or SECURITY_METADATA)
    */
-  getAllExchangeLogTrees(entityKind: GTNetExchangeKindType): Observable<GTNetExchangeLogTree[]> {
-    const params = new HttpParams().set('entityKind', this.getEntityKindName(entityKind));
+  getAllExchangeLogTrees(entityKind: string): Observable<GTNetExchangeLogTree[]> {
+    const params = new HttpParams().set('entityKind', entityKind);
     return this.httpClient
       .get<GTNetExchangeLogTree[]>(`${BaseSettings.API_ENDPOINT}gtnetexchangelog/trees`, {
         ...this.getHeaders(),
         params
       })
       .pipe(catchError(this.handleError.bind(this)));
-  }
-
-  /**
-   * Converts enum value to the backend enum name.
-   */
-  private getEntityKindName(entityKind: GTNetExchangeKindType): string {
-    return GTNetExchangeKindType[entityKind];
   }
 }

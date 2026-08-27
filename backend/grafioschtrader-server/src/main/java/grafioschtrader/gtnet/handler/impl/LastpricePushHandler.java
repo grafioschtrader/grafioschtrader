@@ -24,16 +24,15 @@ import grafioschtrader.service.GTNetLastpricePoolService;
 /**
  * Handler for GT_NET_LASTPRICE_PUSH_SEL_C messages from remote instances.
  *
- * Receives pushed intraday price data from AC_OPEN servers that are sharing updated prices
- * after completing their price exchange. This handler is only active on AC_PUSH_OPEN servers
- * which maintain the shared push pool.
+ * Receives pushed intraday price data from AC_OPEN servers that are sharing updated prices after completing their price
+ * exchange. This handler is only active on AC_PUSH_OPEN servers which maintain the shared push pool.
  *
  * Processing flow:
  * <ol>
- *   <li>Validates that the local server is AC_PUSH_OPEN for lastprice</li>
- *   <li>For each pushed instrument: finds or creates GTNetInstrument entry</li>
- *   <li>Updates GTNetLastprice entry only if pushed price is newer</li>
- *   <li>Returns ACK with count of accepted updates</li>
+ * <li>Validates that the local server is AC_PUSH_OPEN for lastprice</li>
+ * <li>For each pushed instrument: finds or creates GTNetInstrument entry</li>
+ * <li>Updates GTNetLastprice entry only if pushed price is newer</li>
+ * <li>Returns ACK with count of accepted updates</li>
  * </ol>
  *
  * @see GTNetMessageCodeType#GT_NET_LASTPRICE_PUSH_SEL_C
@@ -68,10 +67,12 @@ public class LastpricePushHandler extends AbstractGTNetMessageHandler {
     }
 
     // Check if this server is AC_PUSH_OPEN for lastprice (only PUSH_OPEN accepts pushes)
-    Optional<GTNetEntity> lastpriceEntity = context.getMyGTNet().getEntityByKind(GTNetExchangeKindType.LAST_PRICE.getValue());
+    Optional<GTNetEntity> lastpriceEntity = context.getMyGTNet()
+        .getEntityByKind(GTNetExchangeKindType.LAST_PRICE.getValue());
     if (lastpriceEntity.isEmpty()) {
       log.debug("Server has no lastprice entity configured");
-      return new HandlerResult.ProcessingError<>("NOT_CONFIGURED", "This server is not configured for lastprice exchange");
+      return new HandlerResult.ProcessingError<>("NOT_CONFIGURED",
+          "This server is not configured for lastprice exchange");
     }
 
     AcceptRequestTypes acceptMode = lastpriceEntity.get().getAcceptRequest();
@@ -79,6 +80,13 @@ public class LastpricePushHandler extends AbstractGTNetMessageHandler {
       log.debug("Server is not AC_PUSH_OPEN (mode={}), rejecting push", acceptMode);
       return new HandlerResult.ProcessingError<>("NOT_PUSH_OPEN",
           "This server is not accepting lastprice pushes (only AC_PUSH_OPEN mode accepts pushes)");
+    }
+
+    // The accept flag says whether this instance serves the kind at all; the grant says whether it serves it to
+    // this peer. A completed handshake is not an entitlement to data - only an accepted data request is.
+    if (!hasExchangeGrant(context, GTNetExchangeKindType.LAST_PRICE)) {
+      log.debug("No accepted lastprice exchange with this peer");
+      return noGrantResult(GTNetExchangeKindType.LAST_PRICE);
     }
 
     // Store incoming message for logging
@@ -113,14 +121,13 @@ public class LastpricePushHandler extends AbstractGTNetMessageHandler {
       acceptedCount += gtNetLastpricePoolService.updateCurrencypairLastpricesFromDTO(pushPayload.currencypairs);
     }
 
-    log.info("Accepted {} of {} pushed lastprice updates from {}",
-        acceptedCount, totalCount,
+    log.info("Accepted {} of {} pushed lastprice updates from {}", acceptedCount, totalCount,
         context.getRemoteGTNet() != null ? context.getRemoteGTNet().getDomainRemoteName() : "unknown");
 
     // Log exchange statistics as supplier (we're receiving data)
     if (context.getRemoteGTNet() != null) {
-      gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(), GTNetExchangeKindType.LAST_PRICE,
-          totalCount, totalCount, acceptedCount);
+      gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(), GTNetExchangeKindType.LAST_PRICE, totalCount,
+          totalCount, acceptedCount);
     }
 
     return createAckResponse(context, storedRequest, acceptedCount);
@@ -133,8 +140,8 @@ public class LastpricePushHandler extends AbstractGTNetMessageHandler {
       GTNetMessage storedRequest, int acceptedCount) {
     LastpriceExchangeMsg ackPayload = LastpriceExchangeMsg.forPushAck(acceptedCount);
 
-    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S,
-        null, null, storedRequest);
+    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S, null,
+        null, storedRequest);
 
     return new HandlerResult.ImmediateResponse<>(createResponseEnvelopeWithPayload(context, responseMsg, ackPayload));
   }

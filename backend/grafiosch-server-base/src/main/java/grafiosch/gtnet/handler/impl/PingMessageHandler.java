@@ -17,8 +17,8 @@ import grafiosch.gtnet.m2m.model.MessageEnvelope;
 /**
  * Handler for GT_NET_PING messages.
  *
- * Ping is a lightweight health check that always returns an immediate response. It does not require authentication and
- * is not persisted.
+ * Ping is a lightweight health check that always returns an immediate response and is not persisted. It uses normal
+ * GTNet token authentication; only the first-handshake request bypasses incoming-token validation.
  */
 @Component
 public class PingMessageHandler extends AbstractGTNetMessageHandler {

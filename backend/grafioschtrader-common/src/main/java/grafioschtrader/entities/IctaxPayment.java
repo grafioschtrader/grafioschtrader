@@ -3,10 +3,9 @@ package grafioschtrader.entities;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
-import grafiosch.BaseConstants;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

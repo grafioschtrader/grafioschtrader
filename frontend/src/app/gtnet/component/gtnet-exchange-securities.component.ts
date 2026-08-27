@@ -259,9 +259,13 @@ export class GTNetExchangeSecuritiesComponent extends GTNetExchangeBaseComponent
   }
 
   /**
-   * For securities: disable intraday fields if security is inactive.
+   * For securities: on top of the editing rights of the base class, the intraday fields are disabled for an inactive
+   * security.
    */
   override isCheckboxDisabled(item: Security, field: string): boolean {
+    if (super.isCheckboxDisabled(item, field)) {
+      return true;
+    }
     if (field === 'gtNetLastpriceRecv' || field === 'gtNetLastpriceSend') {
       const activeToDate = item.activeToDate;
       if (activeToDate) {

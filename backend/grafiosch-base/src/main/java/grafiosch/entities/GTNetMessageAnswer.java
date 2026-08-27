@@ -1,5 +1,10 @@
 package grafiosch.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+
+import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
@@ -8,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
@@ -20,10 +26,10 @@ import jakarta.validation.constraints.Min;
  *
  * Conditions are evaluated using EvalEx expressions and can reference variables such as:
  * <ul>
- *   <li>Time of day and day of week</li>
- *   <li>Current request load and daily counters</li>
- *   <li>Requester's domain information and timezone</li>
- *   <li>Payload values from the incoming message</li>
+ * <li>Time of day and day of week</li>
+ * <li>Current request load and daily counters</li>
+ * <li>Requester's domain information and timezone</li>
+ * <li>Payload values from the incoming message</li>
  * </ul>
  *
  * If no condition matches across all priority levels, the message waits for manual admin review.
@@ -42,6 +48,33 @@ import jakarta.validation.constraints.Min;
     If no condition matches, the message waits for manual review.""")
 public class GTNetMessageAnswer extends BaseID<Integer> {
   public static final String TABNAME = "gt_net_message_answer";
+
+  /**
+   * Message codes a JSON enum name can be resolved against, seeded with the core protocol codes.
+   *
+   * <p>
+   * The two code columns are bytes, so nothing in the entity itself can turn the name the edit dialog sends into a
+   * value. {@code GTNetMessageCodeRegistry} knows every registered code but is a Spring bean in
+   * {@code grafiosch-server-base}, out of reach of an entity here - the same split {@code GTNetEntity} solves with a
+   * static array for its exchange kinds. Seeding with {@link GNetCoreMessageCode} means a host that adds no codes of
+   * its own needs no registration at all.
+   * </p>
+   */
+  @Transient
+  private static volatile GTNetMessageCode[] messageCodes = GNetCoreMessageCode.values();
+
+  /**
+   * Adds the application's message codes to those a JSON enum name is resolved against. Call during startup, before the
+   * first {@code GTNetMessageAnswer} is deserialized; the core codes are always present.
+   *
+   * @param codes the application's message code enum values
+   */
+  public static void registerMessageCodes(GTNetMessageCode[] codes) {
+    GTNetMessageCode[] merged = new GTNetMessageCode[messageCodes.length + codes.length];
+    System.arraycopy(messageCodes, 0, merged, 0, messageCodes.length);
+    System.arraycopy(codes, 0, merged, messageCodes.length, codes.length);
+    messageCodes = merged;
+  }
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -105,6 +138,7 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
    *
    * @return the request message code byte value
    */
+  @JsonIgnore
   public byte getRequestMsgCodeValue() {
     return requestMsgCode;
   }
@@ -114,6 +148,7 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
    *
    * @param requestMsgCode the message code implementing GTNetMessageCode
    */
+  @JsonIgnore
   public void setRequestMsgCode(GTNetMessageCode requestMsgCode) {
     this.requestMsgCode = requestMsgCode.getValue();
   }
@@ -123,8 +158,30 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
    *
    * @param requestMsgCode the request message code byte value
    */
+  @JsonIgnore
   public void setRequestMsgCodeValue(byte requestMsgCode) {
     this.requestMsgCode = requestMsgCode;
+  }
+
+  /**
+   * Serializes the request message code as its byte value.
+   *
+   * @return the request message code byte value
+   */
+  @JsonProperty("requestMsgCode")
+  public byte getRequestMsgCode() {
+    return requestMsgCode;
+  }
+
+  /**
+   * Sets the request message code from JSON, accepting a numeric value or an enum name.
+   *
+   * @param value the message code as a Number (byte value) or String (enum constant name)
+   * @throws IllegalArgumentException if the value is neither, or the name is not registered
+   */
+  @JsonSetter("requestMsgCode")
+  public void setRequestMsgCode(Object value) {
+    this.requestMsgCode = resolveMessageCode("requestMsgCode", value);
   }
 
   /**
@@ -132,6 +189,7 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
    *
    * @return the response message code byte value
    */
+  @JsonIgnore
   public byte getResponseMsgCodeValue() {
     return responseMsgCode;
   }
@@ -141,6 +199,7 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
    *
    * @param responseMsgCode the message code implementing GTNetMessageCode
    */
+  @JsonIgnore
   public void setResponseMsgCode(GTNetMessageCode responseMsgCode) {
     this.responseMsgCode = responseMsgCode.getValue();
   }
@@ -150,8 +209,56 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
    *
    * @param responseMsgCode the response message code byte value
    */
+  @JsonIgnore
   public void setResponseMsgCodeValue(byte responseMsgCode) {
     this.responseMsgCode = responseMsgCode;
+  }
+
+  /**
+   * Serializes the response message code as its byte value.
+   *
+   * @return the response message code byte value
+   */
+  @JsonProperty("responseMsgCode")
+  public byte getResponseMsgCode() {
+    return responseMsgCode;
+  }
+
+  /**
+   * Sets the response message code from JSON, accepting a numeric value or an enum name.
+   *
+   * @param value the message code as a Number (byte value) or String (enum constant name)
+   * @throws IllegalArgumentException if the value is neither, or the name is not registered
+   */
+  @JsonSetter("responseMsgCode")
+  public void setResponseMsgCode(Object value) {
+    this.responseMsgCode = resolveMessageCode("responseMsgCode", value);
+  }
+
+  /**
+   * Resolves a JSON value to a message code byte.
+   *
+   * <p>
+   * Both fields are declared as {@code byte} but named after {@link GTNetMessageCode}, which is an interface - Jackson
+   * can neither construct it on the way in nor find a property for it on the way out. The edit dialog sends the enum
+   * constant name, so the name has to be resolved here against the registered codes.
+   * </p>
+   */
+  private static byte resolveMessageCode(String field, Object value) {
+    if (value instanceof Number number) {
+      return number.byteValue();
+    }
+    if (value instanceof String name) {
+      for (GTNetMessageCode code : messageCodes) {
+        if (code.name().equals(name)) {
+          return code.getValue();
+        }
+      }
+      throw new IllegalArgumentException("Unknown " + field + ": " + name
+          + ". Ensure GTNetMessageAnswer.registerMessageCodes() was called during application startup.");
+    }
+    throw new IllegalArgumentException(
+        field + " must be a number or string, got: " + (value == null ? "null" : value.getClass().getName()));
   }
 
   public byte getPriority() {

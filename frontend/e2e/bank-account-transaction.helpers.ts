@@ -263,15 +263,56 @@ async function openTransactionDialog(
 
 async function setTransactionDate(dialog: Locator, isoDate: string, loginNickname: string): Promise<void> {
   const locale = getUser(loginNickname).localeStr;
-  const input = dialog.locator('#transactionTime input');
+  const datePicker = dialog.locator('#transactionTime');
+  const input = datePicker.locator('input');
   await input.waitFor({ state: 'visible', timeout: 10_000 });
   const value = `${toShortDate(isoDate, locale)} 12:00`;
-  await input.click();
-  await input.press('Control+a');
-  await input.press('Backspace');
-  await input.pressSequentially(value, { delay: 15 });
-  await input.blur();
+  const [year, month, day] = isoDate.split('-').map(Number);
+
+  // The prefilled date-time input repaints intermediate text from its old model, so select the date and time through
+  // the picker controls. This also verifies that the reactive form receives the same value the input displays.
+  await datePicker.locator('button').click();
+  const panel = dialog.page().locator('.p-datepicker-panel:visible').last();
+  await panel.waitFor({ state: 'visible', timeout: 10_000 });
+  await panel.locator('.p-datepicker-select-year').click();
+
+  const yearView = panel.locator('.p-datepicker-year-view');
+  await yearView.waitFor({ state: 'visible' });
+  for (let attempt = 1; attempt <= 20; attempt++) {
+    const yearOption = yearView.locator(':scope > span').filter({ hasText: new RegExp(`^\\s*${year}\\s*$`) });
+    if ((await yearOption.count()) > 0) {
+      await yearOption.click();
+      break;
+    }
+    const firstYear = Number(await yearView.locator(':scope > span').first().innerText());
+    await panel.locator(year < firstYear ? '.p-datepicker-prev-button' : '.p-datepicker-next-button').click();
+    if (attempt === 20) {
+      throw new Error(`Datepicker did not expose year ${year}`);
+    }
+  }
+
+  const monthView = panel.locator('.p-datepicker-month-view');
+  await monthView.waitFor({ state: 'visible' });
+  await monthView
+    .locator(':scope > span')
+    .nth(month - 1)
+    .click();
+  await setPickerTime(panel.locator('.p-datepicker-hour-picker'), 12, 24);
+  await setPickerTime(panel.locator('.p-datepicker-minute-picker'), 0, 60);
+  await panel.locator(`[data-date="${year}-${month - 1}-${day}"]`).click();
+  await panel.waitFor({ state: 'hidden', timeout: 5_000 });
   await expect(input).toHaveValue(value);
+}
+
+async function setPickerTime(picker: Locator, target: number, modulus: number): Promise<void> {
+  const current = Number(await picker.locator(':scope > span').innerText());
+  const incrementSteps = (target - current + modulus) % modulus;
+  const decrementSteps = (current - target + modulus) % modulus;
+  const button = picker.locator('button').nth(incrementSteps <= decrementSteps ? 0 : 1);
+  const steps = Math.min(incrementSteps, decrementSteps);
+  for (let step = 0; step < steps; step++) {
+    await button.click();
+  }
 }
 
 async function fillNumber(dialog: Locator, field: string, value: number): Promise<void> {

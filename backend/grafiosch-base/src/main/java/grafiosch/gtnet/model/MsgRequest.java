@@ -4,6 +4,10 @@ import java.util.Map;
 
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /**
  * Request DTO for submitting GTNet messages from the UI.
@@ -36,9 +40,13 @@ public class MsgRequest {
 
   @Schema(description = """
       The type of message to send as a string (enum name). Determines the expected gtNetMessageParamMap
-      structure and whether a synchronous response is expected. Must be a client-initiated code
-      (ending with '_C'). Can be either a core protocol code (GNetCoreMessageCode) or an app-specific
-      code (GTNetMessageCodeType). Example: "GT_NET_ADMIN_MESSAGE_SEL_C".""")
+      structure and whether a synchronous response is expected. Must be a code a person may initiate: a request, an
+      announcement, or an answer to a request this instance has received. The suffix is not the test - the first
+      handshake ends in '_S' and is user-initiable, while a system refusal such as
+      GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S is not. Can be either a core protocol code (GNetCoreMessageCode) or
+      an app-specific code (GTNetMessageCodeType). Example: "GT_NET_ADMIN_MESSAGE_SEL_C".""")
+  @NotBlank
+  @Size(max = 64)
   public String messageCode;
 
   @Schema(description = """
@@ -49,12 +57,15 @@ public class MsgRequest {
   @Schema(description = """
       Optional free-text note to include with the message. Displayed alongside structured parameters in the
       recipient's UI. Useful for human context like 'Please respond by Friday' or 'Test message, please ignore'.""")
+  @Size(max = 1000)
   public String message;
 
   @Schema(description = """
       Cooling-off period in days after a negative/rejection response. Only applicable for response messages
       (ACCEPT/REJECT codes). If set, the requesting domain must wait this many days before submitting another
       request of the same type. 0 means no waiting period.""")
+  @Min(0)
+  @Max(365)
   public Short waitDaysApply;
 
   @Schema(description = """

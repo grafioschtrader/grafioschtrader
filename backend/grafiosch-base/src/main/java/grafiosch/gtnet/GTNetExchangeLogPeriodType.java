@@ -3,8 +3,8 @@ package grafiosch.gtnet;
 /**
  * Period types for GTNet exchange log aggregation.
  *
- * Defines the granularity of log entries from individual requests to yearly aggregates.
- * Used to configure how GTNet exchange logs are consolidated for storage and reporting.
+ * Defines the granularity of log entries from individual requests to yearly aggregates. Used to configure how GTNet
+ * exchange logs are consolidated for storage and reporting.
  */
 public enum GTNetExchangeLogPeriodType {
   /** Individual log entry per request/response */

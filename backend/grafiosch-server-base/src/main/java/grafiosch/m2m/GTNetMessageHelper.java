@@ -15,8 +15,8 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 /**
  * Helper class for GTNet message operations.
  *
- * Provides utility methods for common GTNet operations like retrieving the local GTNet entry ID
- * and sending ping messages to remote peers.
+ * Provides utility methods for common GTNet operations like retrieving the local GTNet entry ID and sending ping
+ * messages to remote peers.
  */
 public abstract class GTNetMessageHelper {
 
@@ -42,8 +42,8 @@ public abstract class GTNetMessageHelper {
    * without going through the full message persistence flow.
    *
    * @param baseDataClient the HTTP client for M2M communication
-   * @param sourceGTNet the local GTNet entry (provides serverBusy and domain info)
-   * @param targetGTNet the remote GTNet entry to ping
+   * @param sourceGTNet    the local GTNet entry (provides serverBusy and domain info)
+   * @param targetGTNet    the remote GTNet entry to ping
    * @return SendResult containing reachability status and response
    */
   public static SendResult sendPingWithStatus(BaseDataClient baseDataClient, GTNet sourceGTNet, GTNet targetGTNet,

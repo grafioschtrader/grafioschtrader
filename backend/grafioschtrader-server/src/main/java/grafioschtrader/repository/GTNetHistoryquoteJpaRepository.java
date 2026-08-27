@@ -15,12 +15,12 @@ import grafioschtrader.entities.GTNetHistoryquote;
 /**
  * Repository for GTNetHistoryquote entities.
  *
- * Provides access to historical (EOD) price data for FOREIGN instruments in the GTNet pool.
- * This table is only used for instruments that do NOT exist in the local database
- * (no matching entry exists in security/currencypair table when JOINed).
+ * Provides access to historical (EOD) price data for FOREIGN instruments in the GTNet pool. This table is only used for
+ * instruments that do NOT exist in the local database (no matching entry exists in security/currencypair table when
+ * JOINed).
  *
- * For local instruments, historical data is stored in the standard {@link grafioschtrader.entities.Historyquote}
- * table instead.
+ * For local instruments, historical data is stored in the standard {@link grafioschtrader.entities.Historyquote} table
+ * instead.
  */
 public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHistoryquote, Integer> {
 
@@ -28,7 +28,7 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    * Finds a historical quote by instrument and date.
    *
    * @param idGtNetInstrument the instrument ID
-   * @param date the trading date
+   * @param date              the trading date
    * @return the quote if found
    */
   Optional<GTNetHistoryquote> findByGtNetInstrumentIdGtNetInstrumentAndDate(Integer idGtNetInstrument, LocalDate date);
@@ -46,8 +46,8 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    * Finds historical quotes for an instrument within a date range.
    *
    * @param idGtNetInstrument the instrument ID
-   * @param fromDate the start date (inclusive)
-   * @param toDate the end date (inclusive)
+   * @param fromDate          the start date (inclusive)
+   * @param toDate            the end date (inclusive)
    * @return list of historical quotes within the range, ordered by date ascending
    */
   @Query("""
@@ -56,7 +56,8 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
         AND hq.date >= ?2
         AND hq.date <= ?3
       ORDER BY hq.date ASC""")
-  List<GTNetHistoryquote> findByInstrumentIdAndDateRange(Integer idGtNetInstrument, LocalDate fromDate, LocalDate toDate);
+  List<GTNetHistoryquote> findByInstrumentIdAndDateRange(Integer idGtNetInstrument, LocalDate fromDate,
+      LocalDate toDate);
 
   /**
    * Finds all historical quotes for a list of instrument IDs.
@@ -67,12 +68,12 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
   List<GTNetHistoryquote> findByGtNetInstrumentIdGtNetInstrumentIn(List<Integer> instrumentIds);
 
   /**
-   * Batch query for historical quotes across multiple foreign instruments.
-   * Returns all quotes for the given instrument IDs where the date is greater than or equal to the fromDate.
-   * Results are ordered by instrument ID and date for efficient grouping.
+   * Batch query for historical quotes across multiple foreign instruments. Returns all quotes for the given instrument
+   * IDs where the date is greater than or equal to the fromDate. Results are ordered by instrument ID and date for
+   * efficient grouping.
    *
    * @param instrumentIds list of GTNet instrument IDs to query
-   * @param fromDate the minimum date (inclusive) for quotes
+   * @param fromDate      the minimum date (inclusive) for quotes
    * @return list of GTNetHistoryquotes ordered by instrument ID and date ascending
    */
   @Query("""
@@ -80,8 +81,8 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
       WHERE hq.gtNetInstrument.idGtNetInstrument IN :ids
         AND hq.date >= :fromDate
       ORDER BY hq.gtNetInstrument.idGtNetInstrument, hq.date""")
-  List<GTNetHistoryquote> findByInstrumentIdsAndDateGreaterThanEqual(
-      @Param("ids") List<Integer> instrumentIds, @Param("fromDate") LocalDate fromDate);
+  List<GTNetHistoryquote> findByInstrumentIdsAndDateGreaterThanEqual(@Param("ids") List<Integer> instrumentIds,
+      @Param("fromDate") LocalDate fromDate);
 
   /**
    * Finds the earliest date with historical data for an instrument.
@@ -109,12 +110,18 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    */
   long countByGtNetInstrumentIdGtNetInstrument(Integer idGtNetInstrument);
 
+  /** Returns instrument ID, minimum date, maximum date and record count for pooled instruments. */
+  @Query("SELECT hq.gtNetInstrument.idGtNetInstrument, MIN(hq.date), MAX(hq.date), COUNT(hq) "
+      + "FROM GTNetHistoryquote hq WHERE hq.gtNetInstrument.idGtNetInstrument IN ?1 "
+      + "GROUP BY hq.gtNetInstrument.idGtNetInstrument")
+  List<Object[]> findCoverageByInstrumentIds(List<Integer> idGtNetInstruments);
+
   /**
    * Counts the number of historical quotes for an instrument within a date range.
    *
    * @param idGtNetInstrument the instrument ID
-   * @param fromDate the start date (inclusive)
-   * @param toDate the end date (inclusive)
+   * @param fromDate          the start date (inclusive)
+   * @param toDate            the end date (inclusive)
    * @return the count of quotes in the range
    */
   @Query("""
@@ -138,8 +145,8 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
    * Deletes historical quotes for an instrument within a date range.
    *
    * @param idGtNetInstrument the instrument ID
-   * @param fromDate the start date (inclusive)
-   * @param toDate the end date (inclusive)
+   * @param fromDate          the start date (inclusive)
+   * @param toDate            the end date (inclusive)
    */
   @Transactional
   @Modifying
@@ -151,8 +158,8 @@ public interface GTNetHistoryquoteJpaRepository extends JpaRepository<GTNetHisto
   void deleteByInstrumentIdAndDateRange(Integer idGtNetInstrument, LocalDate fromDate, LocalDate toDate);
 
   /**
-   * Finds all dates that have historical data for an instrument.
-   * Useful for determining gaps in historical data coverage.
+   * Finds all dates that have historical data for an instrument. Useful for determining gaps in historical data
+   * coverage.
    *
    * @param idGtNetInstrument the instrument ID
    * @return list of dates with data, ordered ascending

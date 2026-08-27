@@ -62,9 +62,6 @@ public interface RequestGTMappings {
   public static final String GTNETCONFIGENTITY = "gtnetconfigentity";
   public static final String GTNETCONFIGENTITY_MAP = RequestMappings.API + GTNETCONFIGENTITY;
 
-  public static final String GTNETDATAEXPORT = "gtnetdataexport";
-  public static final String GTNETDATAEXPORT_MAP = RequestMappings.API + GTNETDATAEXPORT;
-
   public static final String GTNETSECURITYLOOKUP = "gtnetsecuritylookup";
   public static final String GTNETSECURITYLOOKUP_MAP = RequestMappings.API + GTNETSECURITYLOOKUP;
 
@@ -110,8 +107,6 @@ public interface RequestGTMappings {
   public static final String STOCKEXCHANGE_MAP = RequestMappings.API + Stockexchange.TABNAME;
 
   public static final String SECURITY_MAP = RequestMappings.API + Security.TABNAME;
-  public static final String SECURITY_M2M = Security.TABNAME + RequestMappings.M2M;
-  public static final String SECURITY_M2M_MAP = RequestMappings.M2M_API + Security.TABNAME;
 
   public static final String SECURITYSPLIT_MAP = RequestMappings.API + Securitysplit.TABNAME;
 

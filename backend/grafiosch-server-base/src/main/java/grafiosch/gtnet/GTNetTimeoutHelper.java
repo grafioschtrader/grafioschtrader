@@ -5,9 +5,8 @@ import grafiosch.entities.GTNetConfig;
 import grafiosch.repository.GlobalparametersJpaRepository;
 
 /**
- * Utility for resolving the TCP connection timeout for a GTNet peer.
- * Checks the per-peer setting on GTNetConfig first, then falls back to the global default
- * from GlobalParameters (g.gnet.connection.timeout).
+ * Utility for resolving the TCP connection timeout for a GTNet peer. Checks the per-peer setting on GTNetConfig first,
+ * then falls back to the global default from GlobalParameters (g.gnet.connection.timeout).
  */
 public final class GTNetTimeoutHelper {
 
@@ -15,10 +14,10 @@ public final class GTNetTimeoutHelper {
   }
 
   /**
-   * Resolves the connection timeout in seconds for a target GTNet peer.
-   * First checks the per-peer setting, then falls back to the global parameter value.
+   * Resolves the connection timeout in seconds for a target GTNet peer. First checks the per-peer setting, then falls
+   * back to the global parameter value.
    *
-   * @param targetGTNet the remote peer (may be null)
+   * @param targetGTNet                   the remote peer (may be null)
    * @param globalparametersJpaRepository repository to read the global default from
    * @return timeout in seconds (per-peer if configured, otherwise the global default)
    */

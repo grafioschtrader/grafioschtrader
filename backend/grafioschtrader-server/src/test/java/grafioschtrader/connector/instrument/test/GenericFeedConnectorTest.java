@@ -74,7 +74,8 @@ public class GenericFeedConnectorTest extends BaseFeedConnectorCheck {
     List<SecurityHistoricalDate> historicalDate = new ArrayList<>();
     try {
       // Rigi Bahnen AG — OTC-X uses ISIN as ticker (urlExtend)
-      // expectedRows needs verification: set printValuesInsteadOfAssert=true in BaseFeedConnectorCheck to get actual count
+      // expectedRows needs verification: set printValuesInsteadOfAssert=true in BaseFeedConnectorCheck to get actual
+      // count
       historicalDate.add(new SecurityHistoricalDate("Rigi Bahnen AG", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
           "CH0016290014", GlobalConstants.STOCK_EX_MIC_SIX, GlobalConstants.MC_CHF, 4912, "2005-12-05", "2026-02-20"));
     } catch (ParseException pe) {
@@ -95,15 +96,16 @@ public class GenericFeedConnectorTest extends BaseFeedConnectorCheck {
 
     List<Historyquote> historyquotes = gettexConnector.getEodSecurityHistory(hd.security, hd.from, hd.to);
 
-    Assertions.assertThat(historyquotes)
-        .as("History quotes should not be null or empty for " + hd.security.getName()).isNotEmpty();
+    Assertions.assertThat(historyquotes).as("History quotes should not be null or empty for " + hd.security.getName())
+        .isNotEmpty();
 
     var firstDate = historyquotes.getFirst().getDate();
     var lastDate = historyquotes.getLast().getDate();
 
     // Discovery mode: print actual values so expectedRows can be filled in later
-    System.out.println(String.format("[gettex] Security: %s, Actual Rows: %d, First Quote Date: %s, Last Quote Date: %s",
-        hd.security.getName(), historyquotes.size(), firstDate, lastDate));
+    System.out
+        .println(String.format("[gettex] Security: %s, Actual Rows: %d, First Quote Date: %s, Last Quote Date: %s",
+            hd.security.getName(), historyquotes.size(), firstDate, lastDate));
   }
 
   @Test
@@ -121,17 +123,17 @@ public class GenericFeedConnectorTest extends BaseFeedConnectorCheck {
     gettexConnector.updateSecurityLastPrice(security);
 
     System.out.println(String.format("[gettex] %s URL: %s last:%f open: %f high: %f low: %f timestamp: %tc",
-        security.getName(), security.getUrlIntraExtend(), security.getSLast(),
-        security.getSOpen(), security.getSHigh(), security.getSLow(), security.getSTimestamp()));
+        security.getName(), security.getUrlIntraExtend(), security.getSLast(), security.getSOpen(), security.getSHigh(),
+        security.getSLow(), security.getSTimestamp()));
 
-    Assertions.assertThat(security.getSLast())
-        .as("Last price for " + security.getName()).isNotNull().isGreaterThan(0.0);
+    Assertions.assertThat(security.getSLast()).as("Last price for " + security.getName()).isNotNull()
+        .isGreaterThan(0.0);
   }
 
   private SecurityHistoricalDate createGettexXeonSecurity() throws ParseException {
     // Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C — RIC on gettex: XEON.GTX
     return new SecurityHistoricalDate("XEON Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C", "LU0290358497",
-        SpecialInvestmentInstruments.ETF, null, "XEON.GTX", "XMUN", GlobalConstants.MC_EUR,
-        0, "2015-01-03", "2026-02-20");
+        SpecialInvestmentInstruments.ETF, null, "XEON.GTX", "XMUN", GlobalConstants.MC_EUR, 0, "2015-01-03",
+        "2026-02-20");
   }
 }

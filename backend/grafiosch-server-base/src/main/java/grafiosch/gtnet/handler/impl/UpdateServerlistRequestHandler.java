@@ -87,8 +87,8 @@ public class UpdateServerlistRequestHandler extends AbstractRequestHandler {
   }
 
   @Override
-  protected MessageEnvelope buildResponse(GTNetMessageContext context, GTNetMessageCode responseCode,
-      String message, GTNetMessage originalRequest) {
+  protected MessageEnvelope buildResponse(GTNetMessageContext context, GTNetMessageCode responseCode, String message,
+      GTNetMessage originalRequest) {
     GTNetMessage responseMsg = storeResponseMessage(context, responseCode, message, null, originalRequest);
     MessageEnvelope envelope = createResponseEnvelope(context, responseMsg);
 

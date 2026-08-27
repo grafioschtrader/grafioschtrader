@@ -8,8 +8,7 @@ import grafiosch.gtnet.GTNetExchangeLogPeriodType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Node in the exchange log tree structure. Represents either a single log entry
- * or an aggregated period with children.
+ * Node in the exchange log tree structure. Represents either a single log entry or an aggregated period with children.
  */
 @Schema(description = "A node in the exchange log tree, representing a period with statistics")
 public class GTNetExchangeLogNodeDTO {

@@ -17,19 +17,19 @@ import jakarta.persistence.Table;
  * Tracks per-target delivery status for future-oriented GTNet broadcast messages.
  *
  * <p>
- * This entity records which remote GTNet instances should receive a specific broadcast message
- * (such as maintenance announcements or operation discontinuation notices) and whether the
- * message has been successfully delivered to each target.
+ * This entity records which remote GTNet instances should receive a specific broadcast message (such as maintenance
+ * announcements or operation discontinuation notices) and whether the message has been successfully delivered to each
+ * target.
  * </p>
  *
  * <p>
  * The delivery mechanism is handled by the GTNetFutureMessageDeliveryTask background job which:
  * <ul>
- *   <li>Runs periodically (every 5 hours) and immediately when future-oriented messages are sent</li>
- *   <li>Creates entries for new communication partners whose handshake completed after the message</li>
- *   <li>Delivers pending messages (hasSend = false) to their targets</li>
- *   <li>Handles cancellation logic for maintenance/discontinuation cancellations</li>
- *   <li>Cleans up entries when message dates are in the past</li>
+ * <li>Runs periodically (every 5 hours) and immediately when future-oriented messages are sent</li>
+ * <li>Creates entries for new communication partners whose handshake completed after the message</li>
+ * <li>Delivers pending messages (hasSend = false) to their targets</li>
+ * <li>Handles cancellation logic for maintenance/discontinuation cancellations</li>
+ * <li>Cleans up entries when message dates are in the past</li>
  * </ul>
  * </p>
  *

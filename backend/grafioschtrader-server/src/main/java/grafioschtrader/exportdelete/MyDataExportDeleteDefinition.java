@@ -29,6 +29,7 @@ import grafioschtrader.entities.GenericConnectorHttpHeader;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.HistoryquoteLegacy;
 import grafioschtrader.entities.HistoryquotePeriod;
+import grafioschtrader.entities.IctaxExchangeRate;
 import grafioschtrader.entities.IctaxPayment;
 import grafioschtrader.entities.IctaxSecurityTaxData;
 import grafioschtrader.entities.ImportTransactionHead;
@@ -269,10 +270,8 @@ public class MyDataExportDeleteDefinition {
   private static String GT_NET_SECURITY_IMP_POS_SELDEL = String.format(
       "p.* FROM %s p JOIN %s h ON p.id_gt_net_security_imp_head = h.id_gt_net_security_imp_head WHERE h.id_tenant = ?",
       GTNetSecurityImpPos.TABNAME, GTNetSecurityImpHead.TABNAME);
-  private static String TRANSACTION_NULL_SECURITY_ACTION_APP =
-      "UPDATE transaction SET id_security_action_app = NULL WHERE id_tenant = ? AND id_security_action_app IS NOT NULL";
-  private static String TRANSACTION_NULL_SECURITY_TRANSFER =
-      "UPDATE transaction SET id_security_transfer = NULL WHERE id_tenant = ? AND id_security_transfer IS NOT NULL";
+  private static String TRANSACTION_NULL_SECURITY_ACTION_APP = "UPDATE transaction SET id_security_action_app = NULL WHERE id_tenant = ? AND id_security_action_app IS NOT NULL";
+  private static String TRANSACTION_NULL_SECURITY_TRANSFER = "UPDATE transaction SET id_security_transfer = NULL WHERE id_tenant = ? AND id_security_transfer IS NOT NULL";
   // Shared reference data. Base sets (id_extends_rule_set IS NULL) must be inserted before the
   // deviation sets that extend them, so the self-referencing FK holds on re-import.
   private static String TRADING_CALENDAR_RULE_SET_SELECT = String.format(
@@ -308,6 +307,8 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       new ExportDefinition(TaxCountry.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(TaxYear.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
+      // Official exchange rates of the Kursliste, including a manually entered override — a child of tax_year
+      new ExportDefinition(IctaxExchangeRate.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(TaxUpload.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(IctaxSecurityTaxData.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(IctaxPayment.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
@@ -361,12 +362,12 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(Watchlist.TABNAME_SEC_CUR, TENANT_USER.NONE, WATCHLIST_SEC_CUR_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       // Standing orders — child tables before parent for delete (array runs backwards on delete)
-      new ExportDefinition(StandingOrderCashaccount.TABNAME, TENANT_USER.NONE,
-          STANDING_ORDER_CASHACCOUNT_SELDEL, ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
-      new ExportDefinition(StandingOrderSecurity.TABNAME, TENANT_USER.NONE,
-          STANDING_ORDER_SECURITY_SELDEL, ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
-      new ExportDefinition(StandingOrderFailure.TABNAME, TENANT_USER.NONE,
-          STANDING_ORDER_FAILURE_SELDEL, ExportDefinition.DELETE_USE),
+      new ExportDefinition(StandingOrderCashaccount.TABNAME, TENANT_USER.NONE, STANDING_ORDER_CASHACCOUNT_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(StandingOrderSecurity.TABNAME, TENANT_USER.NONE, STANDING_ORDER_SECURITY_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(StandingOrderFailure.TABNAME, TENANT_USER.NONE, STANDING_ORDER_FAILURE_SELDEL,
+          ExportDefinition.DELETE_USE),
       new ExportDefinition(StandingOrder.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Transaction.TABNAME, TENANT_USER.ID_TENANT, null,

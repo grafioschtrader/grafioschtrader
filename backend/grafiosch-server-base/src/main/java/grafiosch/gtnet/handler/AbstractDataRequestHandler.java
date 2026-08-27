@@ -18,8 +18,7 @@ import tools.jackson.databind.JsonNode;
  * Abstract base class for handling data exchange request messages.
  *
  * Provides common functionality for parsing entity kinds from DataRequestMsg payloads and updating
- * GTNetEntity/GTNetConfigEntity states. Uses the ExchangeKindTypeRegistry for application-agnostic
- * kind resolution.
+ * GTNetEntity/GTNetConfigEntity states. Uses the ExchangeKindTypeRegistry for application-agnostic kind resolution.
  *
  * Subclasses should implement request validation and can override entity update behavior.
  */
@@ -31,8 +30,8 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
   /**
    * Extracts the entity kinds from the DataRequestMsg payload.
    *
-   * Parses the payload JSON directly and resolves kind names via the registry, because the entityKinds field uses
-   * the IExchangeKindType interface which Jackson cannot deserialize without type info.
+   * Parses the payload JSON directly and resolves kind names via the registry, because the entityKinds field uses the
+   * IExchangeKindType interface which Jackson cannot deserialize without type info.
    *
    * @param context the message context
    * @return set of requested entity kinds, or empty set if payload is missing or has no entity kinds
@@ -80,15 +79,6 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
   }
 
   /**
-   * Returns the default syncable entity kinds when no specific kinds are provided.
-   *
-   * @return set of syncable kinds from the registry
-   */
-  protected Set<IExchangeKindType> getDefaultSyncableKinds() {
-    return exchangeKindRegistry.getSyncableKinds();
-  }
-
-  /**
    * Gets or creates a GTNetEntity for the specified kind.
    *
    * @param gtNet the GTNet to search/create entity in
@@ -96,9 +86,7 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
    * @return existing or newly created GTNetEntity
    */
   protected GTNetEntity getOrCreateEntity(GTNet gtNet, IExchangeKindType kind) {
-    return gtNet.getGtNetEntities().stream()
-        .filter(e -> e.getEntityKindValue() == kind.getValue())
-        .findFirst()
+    return gtNet.getGtNetEntities().stream().filter(e -> e.getEntityKindValue() == kind.getValue()).findFirst()
         .orElseGet(() -> {
           GTNetEntity newEntity = new GTNetEntity();
           newEntity.setIdGtNet(gtNet.getIdGtNet());
@@ -122,20 +110,8 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
   }
 
   /**
-   * Updates an entity for reject: sets state to CLOSED.
-   *
-   * @param gtNet the GTNet containing the entity
-   * @param kind  the exchange kind to update
-   */
-  protected void updateEntityForReject(GTNet gtNet, IExchangeKindType kind) {
-    GTNetEntity entity = getOrCreateEntity(gtNet, kind);
-    entity.setAcceptRequest(AcceptRequestTypes.AC_CLOSED);
-    entity.setServerState(GTNetServerStateTypes.SS_CLOSED);
-  }
-
-  /**
-   * Creates GTNetConfigEntity for entities that were accepted.
-   * Called after initial entity creation to ensure IDs are available.
+   * Creates GTNetConfigEntity for entities that were accepted. Called after initial entity creation to ensure IDs are
+   * available.
    *
    * @param gtNet the GTNet with entities to update
    * @param kinds the entity kinds to create config entities for
@@ -153,8 +129,8 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
   }
 
   /**
-   * Updates myGTNet's entity to reflect that this server offers the specified entity kind.
-   * Only sets acceptRequest to AC_OPEN if currently closed - preserves AC_PUSH_OPEN if already set.
+   * Updates myGTNet's entity to reflect that this server offers the specified entity kind. Only sets acceptRequest to
+   * AC_OPEN if currently closed - preserves AC_PUSH_OPEN if already set.
    *
    * @param myGTNet the local GTNet
    * @param kind    the exchange kind

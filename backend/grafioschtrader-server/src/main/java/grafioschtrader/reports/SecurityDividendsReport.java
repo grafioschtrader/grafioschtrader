@@ -18,9 +18,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.IctaxExchangeRate;
 import grafioschtrader.entities.IctaxSecurityTaxData;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
@@ -39,6 +41,7 @@ import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup.
 import grafioschtrader.reportviews.securitydividends.UnitsCounter;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.repository.IctaxExchangeRateJpaRepository;
 import grafioschtrader.repository.IctaxSecurityTaxDataJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TaxSecurityYearConfigJpaRepository;
@@ -51,13 +54,13 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Service component responsible for generating comprehensive dividend and interest reports grouped by year.
- * 
+ *
  * <p>
  * This report service aggregates all financial transactions for a tenant across specified security and cash accounts,
  * with a primary focus on calculating annual dividend and interest income summaries. The generated report provides
  * detailed breakdowns of investment income, fees, and portfolio valuations organized by calendar year.
  * </p>
- * 
+ *
  * <p>
  * The report organizes data hierarchically:
  * </p>
@@ -66,13 +69,13 @@ import grafioschtrader.types.TransactionType;
  * <li><strong>Year Group Level:</strong> Annual summaries for each calendar year</li>
  * <li><strong>Position Level:</strong> Individual security and cash account positions within each year</li>
  * </ul>
- * 
+ *
  * <p>
  * Key financial metrics include dividend income, interest income, transaction fees, portfolio valuations, and currency
  * conversions to the tenant's main currency. The service handles multi-currency transactions using historical exchange
  * rates for accurate conversions.
  * </p>
- * 
+ *
  * <p>
  * <strong>Important:</strong> This class is designed as a stateless Spring component and should not contain member
  * variables, as only one instance exists in the application context.
@@ -106,19 +109,22 @@ public class SecurityDividendsReport {
   private TaxYearJpaRepository taxYearJpaRepository;
 
   @Autowired
+  private IctaxExchangeRateJpaRepository ictaxExchangeRateJpaRepository;
+
+  @Autowired
   private TaxYearCorrectionJpaRepository taxYearCorrectionJpaRepository;
 
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   /**
    * Generates a comprehensive dividend and interest report for a tenant across specified accounts.
-   * 
+   *
    * <p>
    * This method creates a complete financial report summarizing dividend income, interest earnings, fees, and portfolio
    * valuations organized by calendar year. The report processes all relevant transactions and applies currency
    * conversions to present data in the tenant's main currency.
    * </p>
-   * 
+   *
    * <p>
    * Account Selection:
    * </p>
@@ -126,22 +132,22 @@ public class SecurityDividendsReport {
    * <li>Pass Arrays.asList(-1) to include all security accounts or all cash accounts</li>
    * <li>Provide specific account IDs to limit the report scope</li>
    * </ul>
-   * 
+   *
    * <p>
    * The report includes transactions of types: ACCUMULATE, REDUCE, DIVIDEND, INTEREST_CASHACCOUNT, FEE, and all
    * transactions with type value ≤ FINANCE_COST. Year-end valuations use the latest available historical quotes with
    * split adjustments applied.
    * </p>
-   * 
+   *
    * @param idTenant           the unique identifier of the tenant for whom to generate the report
    * @param idsSecurityaccount list of security account IDs to include in the report. Pass Arrays.asList(-1) to include
    *                           all security accounts
    * @param idsCashaccount     list of cash account IDs to include in the report. Pass Arrays.asList(-1) to include all
    *                           cash accounts
-   * 
+   *
    * @return a SecurityDividendsGrandTotal containing the complete dividend and interest report with annual breakdowns,
    *         position details, and grand totals across all years
-   * 
+   *
    * @throws IllegalArgumentException if the tenant ID is null or invalid
    * @throws SecurityException        if the current user lacks access rights to the specified tenant
    */
@@ -162,30 +168,29 @@ public class SecurityDividendsReport {
     final CompletableFuture<Map<Integer, Map<Integer, Historyquote>>> cfHistoryquotes = CompletableFuture
         .supplyAsync(() -> getSecuritycurrencyHistoryEndOfYearsByIdTenant(idTenant));
 
-    CompletableFuture.allOf(cfSecurityDividendsGrandTotal, cfHistoryquotes)
-        .thenAccept(_ -> createGrandTotal(idTenant, cfSecurityDividendsGrandTotal.join(),
-            cfHistoryquotes.join(), dateCurrencyMap))
+    final Map<Integer, Map<String, Double>> officialYearEndRateMap = getOfficialYearEndRates(tenant);
+
+    CompletableFuture
+        .allOf(cfSecurityDividendsGrandTotal, cfHistoryquotes).thenAccept(_ -> createGrandTotal(idTenant,
+            cfSecurityDividendsGrandTotal.join(), cfHistoryquotes.join(), dateCurrencyMap, officialYearEndRateMap))
         .join();
     securityDividendsGrandTotal.portfolioList = tenant.getPortfolioList();
     securityDividendsGrandTotal.tenantCountry = tenant.getCountry();
     securityDividendsGrandTotal.taxExportSettings = tenant.getTaxExportSettings();
-    securityDividendsGrandTotal.availableTaxYears = taxYearJpaRepository.findAll().stream()
-        .map(TaxYear::getTaxYear)
-        .distinct()
-        .sorted(Comparator.reverseOrder())
-        .toList();
+    securityDividendsGrandTotal.availableTaxYears = taxYearJpaRepository.findAll().stream().map(TaxYear::getTaxYear)
+        .distinct().sorted(Comparator.reverseOrder()).toList();
     return securityDividendsGrandTotal;
   }
 
   /**
    * Retrieves and prepares currency conversion data and historical quotes needed for the report.
-   * 
+   *
    * <p>
    * This method concurrently loads currency pairs and historical quotes for transactions involving different currencies
    * than the tenant's main currency. The data is used for accurate currency conversions throughout the report
    * generation process.
    * </p>
-   * 
+   *
    * @param tenant the tenant entity containing currency and portfolio information
    * @return a DateTransactionCurrencypairMap containing currency conversion data and historical quotes
    */
@@ -202,13 +207,13 @@ public class SecurityDividendsReport {
 
   /**
    * Processes transaction data and calculates position information for the dividend report.
-   * 
+   *
    * <p>
    * This method handles the core transaction processing logic, including security split adjustments, currency
    * conversions, and position calculations. It processes transactions chronologically and groups them by year for the
    * report structure.
    * </p>
-   * 
+   *
    * @param tenant                      the tenant entity
    * @param cashAccountsMap             map of cash accounts included in the report
    * @param transactions                list of transactions to process
@@ -231,13 +236,13 @@ public class SecurityDividendsReport {
 
   /**
    * Creates a map of cash accounts based on the tenant's portfolios and specified account filter.
-   * 
+   *
    * <p>
    * This method filters cash accounts from the tenant's portfolios based on the provided account IDs. If the list
    * contains only -1, all cash accounts are included. Otherwise, only accounts with matching IDs are included in the
    * map.
    * </p>
-   * 
+   *
    * @param tenant         the tenant entity containing portfolio information
    * @param idsCashaccount list of cash account IDs to include, or Arrays.asList(-1) for all accounts
    * @return a map with cash account IDs as keys and Cashaccount entities as values
@@ -281,18 +286,18 @@ public class SecurityDividendsReport {
 
   /**
    * Processes transactions chronologically and calculates position data for the dividend report.
-   * 
+   *
    * <p>
    * This method iterates through transactions in chronological order, grouping them by calendar year and calculating
    * dividend, interest, and fee amounts. It handles year transitions, maintains running position totals, and applies
    * security split adjustments where necessary.
    * </p>
-   * 
+   *
    * <p>
    * The method tracks cash account balances across years and creates year groups for securities with open positions
    * even when no transactions occurred in specific years.
    * </p>
-   * 
+   *
    * @param cashAccountsMap             map of cash accounts included in the report
    * @param dateCurrencyMap             currency conversion data for multi-currency calculations
    * @param securitysplitMap            map of security splits for position adjustments
@@ -322,7 +327,8 @@ public class SecurityDividendsReport {
           int startYear = yearChangeWatcher;
           for (; yearChangeWatcher < year; yearChangeWatcher++) {
             if (yearChangeWatcher > startYear) {
-              adjustUnitsCounterForNewYear(yearChangeWatcher, unitsCounterBySecurityMap, securitysplitMap, marginOpenTransaction);
+              adjustUnitsCounterForNewYear(yearChangeWatcher, unitsCounterBySecurityMap, securitysplitMap,
+                  marginOpenTransaction);
             }
             createFillYearWithOpenPositions(securityDividendsGrandTotal, yearChangeWatcher, unitsCounterBySecurityMap,
                 securitysplitMap, marginOpenTransaction);
@@ -347,7 +353,8 @@ public class SecurityDividendsReport {
       }
     }
     if (year != 0) {
-      createFillYearWithOpenPositions(securityDividendsGrandTotal, year, unitsCounterBySecurityMap, securitysplitMap, marginOpenTransaction);
+      createFillYearWithOpenPositions(securityDividendsGrandTotal, year, unitsCounterBySecurityMap, securitysplitMap,
+          marginOpenTransaction);
       transferCashaccountAmountToNewYear(securityDividendsYearGroup, cashAccountsAmountMap, cashAccountsMap);
     }
     return securityDividendsGrandTotal;
@@ -355,13 +362,13 @@ public class SecurityDividendsReport {
 
   /**
    * Fills in missing year groups for cash accounts when no transactions occurred in certain years.
-   * 
+   *
    * <p>
    * This method ensures that cash accounts appear in the report for every year between the first and last transaction
    * years, even when no transactions occurred. This provides continuity in the year-over-year analysis and maintains
    * accurate cash balance tracking.
    * </p>
-   * 
+   *
    * @param cashAccountsMap             map of cash accounts to process
    * @param securityDividendsGrandTotal the grand total object to update
    * @param yearChangeWatcher           the previous year being processed
@@ -381,13 +388,13 @@ public class SecurityDividendsReport {
 
   /**
    * Transfers cash account balances and fee calculations to a new year group.
-   * 
+   *
    * <p>
    * This method updates the year group with current cash account balances and calculates the total interest and fees
    * for the year. It ensures that cash balances are properly carried forward between years and that annual totals are
    * accurately maintained.
    * </p>
-   * 
+   *
    * @param securityDividendsYearGroup the year group to update
    * @param cashAccountsAmountMap      map of current cash account balances
    * @param cashAccountsMap            map of cash account entities
@@ -407,13 +414,13 @@ public class SecurityDividendsReport {
 
   /**
    * Processes a security transaction and updates the corresponding position data.
-   * 
+   *
    * <p>
    * This method handles buy/sell transactions (ACCUMULATE/REDUCE) and dividend payments for securities. It applies
    * security split adjustments to maintain accurate unit counts and calculates currency conversions for multi-currency
    * portfolios. The method also validates that dividend payments only occur when units are held.
    * </p>
-   * 
+   *
    * @param dateCurrencyMap            currency conversion data for the transaction
    * @param securityDividendsYearGroup the year group to update
    * @param transaction                the security transaction to process
@@ -428,15 +435,14 @@ public class SecurityDividendsReport {
     if (!transaction.getSecurity().equals(security)) {
       security = transaction.getSecurity();
     }
-    
-    
+
     final SecurityDividendsPosition securityDividendsPosition = securityDividendsYearGroup
         .getOrCreateSecurityDividendsPosition(transaction.getSecurity(),
             securitysplitMap.get(security.getIdSecuritycurrency()));
 
     final SplitFactorAfterBefore splitFactorAfterBefore = Securitysplit.calcSplitFatorForFromDateAndToDate(
-        security.getIdSecuritycurrency(), transaction.getTransactionTime().toLocalDate(), dateCurrencyMap.getUntilDate(),
-        securitysplitMap);
+        security.getIdSecuritycurrency(), transaction.getTransactionTime().toLocalDate(),
+        dateCurrencyMap.getUntilDate(), securitysplitMap);
     // Calculates the split factor until the end of the year for this transaction.
     // This allows the units to be calculated at the end of the year.
     final double unitsSplited = transaction.getUnits() * splitFactorAfterBefore.fromToDateFactor;
@@ -465,8 +471,7 @@ public class SecurityDividendsReport {
     case FINANCE_COST:
       securityDividendsPosition.updateFinanceCost(transaction, securityDividendsYearGroup, dateCurrencyMap);
       if (transaction.getConnectedIdTransaction() != null) {
-        Map<Integer, MarginTracker> securityMarginMap = marginOpenTransaction
-            .get(transaction.getSecurity().getId());
+        Map<Integer, MarginTracker> securityMarginMap = marginOpenTransaction.get(transaction.getSecurity().getId());
         if (securityMarginMap != null) {
           MarginTracker mt = securityMarginMap.get(transaction.getConnectedIdTransaction());
           if (mt != null) {
@@ -482,13 +487,13 @@ public class SecurityDividendsReport {
 
   /**
    * Processes cash account transactions such as interest payments and fees.
-   * 
+   *
    * <p>
    * This method handles transactions that affect cash accounts directly, including interest earned on cash deposits and
    * various fees charged to the account. It updates the appropriate cash account position within the year group and
    * applies currency conversions as needed.
    * </p>
-   * 
+   *
    * @param dateCurrencyMap            currency conversion data for the transaction
    * @param securityDividendsYearGroup the year group to update
    * @param transaction                the cash account transaction to process
@@ -506,26 +511,28 @@ public class SecurityDividendsReport {
 
   /**
    * Calculates and finalizes grand total values across all years in the report.
-   * 
+   *
    * <p>
    * This method performs the final calculations for the dividend report, including attaching year-end historical quotes
    * for portfolio valuations and computing overall dividend and interest totals. It ensures all currency conversions
    * are applied and that the report totals are accurate and complete.
    * </p>
-   * 
+   *
    * @param idTenant                    the tenant ID for the report
    * @param securityDividendsGrandTotal the grand total object to finalize
    * @param historyquoteYearIdMap       map of historical quotes by year for portfolio valuations
    * @param dateCurrencyMap             currency conversion data for final calculations
+   * @param officialYearEndRateMap      official year-end exchange rates by year and currency, empty when none apply
    */
   private void createGrandTotal(final Integer idTenant, final SecurityDividendsGrandTotal securityDividendsGrandTotal,
       final Map<Integer, Map<Integer, Historyquote>> historyquoteYearIdMap,
-      final DateTransactionCurrencypairMap dateCurrencyMap) {
-    securityDividendsGrandTotal.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap, dateCurrencyMap);
+      final DateTransactionCurrencypairMap dateCurrencyMap,
+      final Map<Integer, Map<String, Double>> officialYearEndRateMap) {
+    securityDividendsGrandTotal.attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap, dateCurrencyMap,
+        officialYearEndRateMap);
     securityDividendsGrandTotal.calcDivInterest();
     securityDividendsGrandTotal.hasMarginData = securityDividendsGrandTotal.getSecurityDividendsYearGroup().stream()
-        .flatMap(yg -> yg.getSecurityDividendsPositions().stream())
-        .anyMatch(p -> p.security.isMarginInstrument());
+        .flatMap(yg -> yg.getSecurityDividendsPositions().stream()).anyMatch(p -> p.security.isMarginInstrument());
     enrichWithIctaxData(securityDividendsGrandTotal, idTenant);
     markExcludedSecurities(idTenant, securityDividendsGrandTotal);
   }
@@ -568,8 +575,8 @@ public class SecurityDividendsReport {
    */
   private void enrichWithRawIctaxData(SecurityDividendsYearGroup yearGroup, short taxYear) {
     Set<String> isins = yearGroup.getSecurityDividendsPositions().stream()
-        .filter(p -> p.security.getIsin() != null && !p.security.getIsin().isEmpty())
-        .map(p -> p.security.getIsin()).collect(Collectors.toSet());
+        .filter(p -> p.security.getIsin() != null && !p.security.getIsin().isEmpty()).map(p -> p.security.getIsin())
+        .collect(Collectors.toSet());
     if (isins.isEmpty()) {
       return;
     }
@@ -635,12 +642,12 @@ public class SecurityDividendsReport {
   }
 
   /**
-   * Applies the tenant's manual tax year corrections to a year group. Positions with a correction for this tax
-   * year get their {@code ictaxTotalPaymentValueChf} replaced by the position's {@code taxableAmountMC} or the
-   * directly entered taxable income; comment-only records change no value. Every position with a correction in
-   * this or the previous tax year is flagged via {@code taxYearCorrectionNearby} for the ISIN highlight in the
-   * frontend. When at least one value was overridden, the year sum {@code yearIctaxTotalPaymentValueChf} is
-   * recomputed from the corrected position values.
+   * Applies the tenant's manual tax year corrections to a year group. Positions with a correction for this tax year get
+   * their {@code ictaxTotalPaymentValueChf} replaced by the position's {@code taxableAmountMC} or the directly entered
+   * taxable income; comment-only records change no value. Every position with a correction in this or the previous tax
+   * year is flagged via {@code taxYearCorrectionNearby} for the ISIN highlight in the frontend. When at least one value
+   * was overridden, the year sum {@code yearIctaxTotalPaymentValueChf} is recomputed from the corrected position
+   * values.
    *
    * @param yearGroup the year group whose positions are corrected
    * @param taxYear   the tax year of the year group
@@ -739,9 +746,9 @@ public class SecurityDividendsReport {
    * boundaries BEFORE processing any transactions for that year, converting counter units from the previous year-end
    * basis to the new year-end basis.
    *
-   * @param year                       the year whose splits should be applied
-   * @param unitsCounterBySecurityMap  map tracking unit holdings by security
-   * @param securitysplitMap           map of security splits for position adjustments
+   * @param year                      the year whose splits should be applied
+   * @param unitsCounterBySecurityMap map tracking unit holdings by security
+   * @param securitysplitMap          map of security splits for position adjustments
    */
   private void adjustUnitsCounterForNewYear(int year, Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
       Map<Integer, List<Securitysplit>> securitysplitMap,
@@ -749,15 +756,15 @@ public class SecurityDividendsReport {
     LocalDate fromDate = LocalDate.of(year, 1, 1);
     LocalDate toDate = LocalDate.of(year, 12, 31);
     for (var entry : unitsCounterBySecurityMap.entrySet()) {
-      SplitFactorAfterBefore sfab = Securitysplit.calcSplitFatorForFromDateAndToDate(
-          entry.getKey(), fromDate, toDate, securitysplitMap);
+      SplitFactorAfterBefore sfab = Securitysplit.calcSplitFatorForFromDateAndToDate(entry.getKey(), fromDate, toDate,
+          securitysplitMap);
       if (sfab.fromToDateFactor != 1.0) {
         entry.getValue().units *= sfab.fromToDateFactor;
       }
     }
     for (var secEntry : marginOpenTransaction.entrySet()) {
-      SplitFactorAfterBefore sfab = Securitysplit.calcSplitFatorForFromDateAndToDate(
-          secEntry.getKey(), fromDate, toDate, securitysplitMap);
+      SplitFactorAfterBefore sfab = Securitysplit.calcSplitFatorForFromDateAndToDate(secEntry.getKey(), fromDate,
+          toDate, securitysplitMap);
       if (sfab.fromToDateFactor != 1.0) {
         for (MarginTracker mt : secEntry.getValue().values()) {
           mt.applySplitFactor(sfab.fromToDateFactor);
@@ -768,13 +775,13 @@ public class SecurityDividendsReport {
 
   /**
    * Creates year groups for open security positions even when no transactions occurred in a given year.
-   * 
+   *
    * <p>
    * This method ensures that securities with open positions are represented in every year, even when no buy/sell or
    * dividend transactions occurred. This is important for maintaining complete position tracking and accurate year-end
    * valuations. It applies security split adjustments to maintain accurate unit counts across years.
    * </p>
-   * 
+   *
    * @param securityDividendsGrandTotal the grand total object to update
    * @param year                        the year to fill with open positions
    * @param unitsCounterBySecurityMap   map tracking current unit holdings by security
@@ -782,21 +789,23 @@ public class SecurityDividendsReport {
    */
   private void createFillYearWithOpenPositions(final SecurityDividendsGrandTotal securityDividendsGrandTotal,
       final Integer year, final Map<Integer, UnitsCounter> unitsCounterBySecurityMap,
-      final Map<Integer, List<Securitysplit>> securitysplitMap, final Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction) {
+      final Map<Integer, List<Securitysplit>> securitysplitMap,
+      final Map<Integer, Map<Integer, MarginTracker>> marginOpenTransaction) {
     final SecurityDividendsYearGroup securityDividendsYearGroupLast = securityDividendsGrandTotal
         .getOrCreateGroup(year);
-    securityDividendsYearGroupLast.fillYearWithOpenPositions(unitsCounterBySecurityMap, securitysplitMap, marginOpenTransaction);
+    securityDividendsYearGroupLast.fillYearWithOpenPositions(unitsCounterBySecurityMap, securitysplitMap,
+        marginOpenTransaction);
   }
 
   /**
    * Creates or updates a units counter for tracking security position quantities.
-   * 
+   *
    * <p>
    * This method maintains running totals of security units held across all transactions. If a counter already exists
    * for the security, the units are added to the existing total. Otherwise, a new counter is created with the initial
    * unit amount.
    * </p>
-   * 
+   *
    * @param security                  the security entity to track
    * @param addRecudeUntis            the number of units to add (positive) or reduce (negative)
    * @param unitsCounterBySecurityMap map storing units counters by security ID
@@ -846,6 +855,39 @@ public class SecurityDividendsReport {
     return historyquoteJpaRepository.getSecuritycurrencyHistoryEndOfYearsByIdTenant(idTenant).stream()
         .collect(Collectors.groupingBy(historyquote -> historyquote.getDate().getYear(),
             Collectors.toMap(Historyquote::getIdSecuritycurrency, Function.identity())));
+  }
+
+  /**
+   * Reads the official year-end exchange rates of the tenant's tax authority, keyed by year and currency.
+   *
+   * <p>
+   * These rates replace the year-end close of the currency pair in the tax report, because the tax return has to be
+   * filed with the rates the authority published. Today only the Swiss ICTax Kursliste supplies them, and it quotes
+   * against CHF — so a tenant whose main currency is not CHF must keep using the connector quotes, otherwise a CHF rate
+   * would be multiplied into a position of an entirely different currency.
+   * </p>
+   *
+   * @param tenant the tenant the report is built for
+   * @return year to currency to main currency per unit; empty when no official rates apply to this tenant
+   */
+  private Map<Integer, Map<String, Double>> getOfficialYearEndRates(final Tenant tenant) {
+    if (!GlobalConstants.COUNTRY_CODE_SWITZERLAND.equalsIgnoreCase(tenant.getCountry())
+        || !GlobalConstants.MC_CHF.equals(tenant.getCurrency())) {
+      return Map.of();
+    }
+    // The country filter matters because tax_year is not Swiss by definition — only the ICTax Kursliste quotes
+    // against CHF, so rates of another tax country must never reach the CHF valuation.
+    Map<Integer, Integer> yearByIdTaxYear = taxYearJpaRepository.findAll().stream()
+        .filter(ty -> ty.getTaxCountry() != null
+            && GlobalConstants.COUNTRY_CODE_SWITZERLAND.equalsIgnoreCase(ty.getTaxCountry().getCountryCode()))
+        .collect(Collectors.toMap(TaxYear::getIdTaxYear, ty -> (int) ty.getTaxYear().shortValue(), (a, _) -> a));
+    if (yearByIdTaxYear.isEmpty()) {
+      return Map.of();
+    }
+    return ictaxExchangeRateJpaRepository.findByIdTaxYearIn(yearByIdTaxYear.keySet()).stream()
+        .filter(rate -> rate.getEffectiveYearEndRateChfPerUnit() != null)
+        .collect(Collectors.groupingBy(rate -> yearByIdTaxYear.get(rate.getIdTaxYear()), Collectors
+            .toMap(IctaxExchangeRate::getCurrency, IctaxExchangeRate::getEffectiveYearEndRateChfPerUnit, (a, _) -> a)));
   }
 
   /**

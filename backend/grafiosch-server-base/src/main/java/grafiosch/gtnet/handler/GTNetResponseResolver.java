@@ -11,7 +11,6 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.ezylang.evalex.Expression;
@@ -31,13 +30,17 @@ import grafiosch.repository.GTNetMessageAnswerJpaRepositoryBase;
  * variables such as:
  * <ul>
  * <li><b>Time variables:</b> {@code hour} (0-23), {@code dayOfWeek} (1=Monday, 7=Sunday)</li>
- * <li><b>Request counters:</b> {@code dailyCount}, {@code dailyLimit}</li>
+ * <li><b>Request counters:</b> {@code dailyCount} (requests this remote sent us today), {@code dailyLimit} (the budget
+ * we grant it, identical to {@code MyDailyRequestLimit})</li>
  * <li><b>My server:</b> {@code MyDailyRequestLimit}, {@code MyTimezone}</li>
- * <li><b>Remote server:</b> {@code RemoteDailyRequestLimit}, {@code RemoteTimezone}, {@code RemoteDomainRemoteName}</li>
+ * <li><b>Remote server:</b> {@code RemoteDailyRequestLimit}, {@code RemoteTimezone},
+ * {@code RemoteDomainRemoteName}</li>
  * <li><b>Calculated:</b> {@code TimezoneOffsetHours} (decimal hours difference remote - local)</li>
- * <li><b>Connection counts:</b> {@code TotalConnections}, {@code ConnectionsLastPrice}, {@code ConnectionsHistorical}</li>
+ * <li><b>Connection counts:</b> {@code TotalConnections}, {@code ConnectionsLastPrice},
+ * {@code ConnectionsHistorical}</li>
  * <li><b>Message:</b> {@code Message} (free-text message content from the request)</li>
- * <li>Any parameter from the message payload</li>
+ * <li><b>Remote parameters:</b> {@code param.<name>} - every parameter the request carried, in a namespace of its own
+ * so that a value written by the peer can never stand in for one of the trusted variables above</li>
  * </ul>
  *
  * Rules are evaluated in priority order (lowest priority value first). The first matching condition determines the
@@ -50,21 +53,14 @@ public class GTNetResponseResolver {
 
   private static final Logger log = LoggerFactory.getLogger(GTNetResponseResolver.class);
 
-  @Autowired
-  protected GTNetMessageAnswerJpaRepositoryBase gtNetMessageAnswerJpaRepository;
+  protected final GTNetMessageAnswerJpaRepositoryBase gtNetMessageAnswerJpaRepository;
+  protected final GTNetJpaRepository gtNetJpaRepository;
+  private final GTNetResponseResolverConfig config;
 
-  @Autowired
-  protected GTNetJpaRepository gtNetJpaRepository;
-
-  private GTNetResponseResolverConfig config;
-
-  /**
-   * Sets the configuration for this resolver.
-   * Should be called by application-specific configuration.
-   *
-   * @param config the configuration
-   */
-  public void setConfig(GTNetResponseResolverConfig config) {
+  public GTNetResponseResolver(GTNetMessageAnswerJpaRepositoryBase gtNetMessageAnswerJpaRepository,
+      GTNetJpaRepository gtNetJpaRepository, GTNetResponseResolverConfig config) {
+    this.gtNetMessageAnswerJpaRepository = gtNetMessageAnswerJpaRepository;
+    this.gtNetJpaRepository = gtNetJpaRepository;
     this.config = config;
   }
 
@@ -72,8 +68,8 @@ public class GTNetResponseResolver {
    * Attempts to resolve an automatic response for the given request message code.
    *
    * @param requestCodeValue the incoming message code value
-   * @param remoteGTNet the remote GTNet entity (may be null)
-   * @param params      message parameters
+   * @param remoteGTNet      the remote GTNet entity (may be null)
+   * @param params           message parameters
    * @return resolved response if a rule matches, empty if manual handling required
    */
   public Optional<ResolvedResponse> resolveAutoResponse(byte requestCodeValue, GTNet remoteGTNet,
@@ -85,14 +81,15 @@ public class GTNetResponseResolver {
    * Attempts to resolve an automatic response for the given request message code.
    *
    * @param requestCodeValue the incoming message code value
-   * @param remoteGTNet the remote GTNet entity (may be null)
-   * @param params      message parameters
-   * @param message     free-text message content from the request (may be null)
+   * @param remoteGTNet      the remote GTNet entity (may be null)
+   * @param params           message parameters
+   * @param message          free-text message content from the request (may be null)
    * @return resolved response if a rule matches, empty if manual handling required
    */
   public Optional<ResolvedResponse> resolveAutoResponse(byte requestCodeValue, GTNet remoteGTNet,
       Map<String, GTNetMessageParam> params, String message) {
-    List<GTNetMessageAnswer> rules = gtNetMessageAnswerJpaRepository.findByRequestMsgCodeOrderByPriority(requestCodeValue);
+    List<GTNetMessageAnswer> rules = gtNetMessageAnswerJpaRepository
+        .findByRequestMsgCodeOrderByPriority(requestCodeValue);
     return resolveAutoResponse(rules, remoteGTNet, params, message);
   }
 
@@ -133,6 +130,14 @@ public class GTNetResponseResolver {
     // Evaluate each rule in priority order
     for (GTNetMessageAnswer rule : rules) {
       if (evaluateCondition(rule.getResponseMsgConditional(), evalContext)) {
+        if (!isAnswerOfItsRequest(rule)) {
+          // A rule is validated when it is saved, but rows predate the validation and the two columns are plain
+          // bytes. Answering a handshake with something that answers a data request would be worse than not
+          // answering automatically at all, so the rule is skipped and the request waits for an administrator.
+          log.warn("Skipping auto-answer rule {}: response code {} does not answer request code {}",
+              rule.getIdGtNetMessageAnswer(), rule.getResponseMsgCodeValue(), rule.getRequestMsgCodeValue());
+          continue;
+        }
         GTNetMessageCode responseCode = lookupMessageCode(rule.getResponseMsgCodeValue());
         return Optional.of(new ResolvedResponse(responseCode, rule.getResponseMsgMessage(), rule.getWaitDaysApply()));
       }
@@ -143,18 +148,24 @@ public class GTNetResponseResolver {
   }
 
   /**
-   * Looks up a message code by its byte value.
-   * Override in application-specific subclass to provide typed message codes.
+   * Whether the rule pairs a request with one of the answers the protocol registers for it.
+   *
+   * @param rule the auto-answer rule about to be applied
+   * @return true when the pairing is one the protocol allows
+   */
+  protected boolean isAnswerOfItsRequest(GTNetMessageAnswer rule) {
+    return config.isValidResponse(rule.getRequestMsgCodeValue(), rule.getResponseMsgCodeValue());
+  }
+
+  /**
+   * Looks up a message code by its byte value. Override in application-specific subclass to provide typed message
+   * codes.
    *
    * @param codeValue the byte value
    * @return the message code
    */
   protected GTNetMessageCode lookupMessageCode(byte codeValue) {
-    if (config != null) {
-      return config.lookupMessageCode(codeValue);
-    }
-    // Return a simple wrapper if no config is set
-    return new SimpleMessageCode(codeValue);
+    return config.lookupMessageCode(codeValue);
   }
 
   /**
@@ -163,9 +174,6 @@ public class GTNetResponseResolver {
    * @return the local GTNet, or null if not configured
    */
   private GTNet fetchMyGTNet() {
-    if (config == null) {
-      return null;
-    }
     Integer myEntryId = config.getMyGTNetEntryId();
     if (myEntryId == null) {
       return null;
@@ -179,11 +187,8 @@ public class GTNetResponseResolver {
    * @return connection counts record
    */
   private ConnectionCounts fetchConnectionCounts() {
-    return new ConnectionCounts(
-        gtNetJpaRepository.countByAnyAcceptRequest(),
-        gtNetJpaRepository.countByLastPriceAccepting(),
-        gtNetJpaRepository.countByHistoricalAccepting()
-    );
+    return new ConnectionCounts(gtNetJpaRepository.countByAnyAcceptRequest(),
+        gtNetJpaRepository.countByLastPriceAccepting(), gtNetJpaRepository.countByHistoricalAccepting());
   }
 
   private EvalExContext buildEvalContext(GTNet myGTNet, GTNet remoteGTNet, Map<String, GTNetMessageParam> params,
@@ -200,19 +205,14 @@ public class GTNetResponseResolver {
       ctx.remoteDailyRequestLimit = remoteGTNet.getDailyRequestLimit();
       ctx.remoteDomainRemoteName = remoteGTNet.getDomainRemoteName();
 
-      // Get max limits from remote entities if available
-      if (config != null) {
-        ctx.remoteMaxLimitLastPrice = config.getMaxLimitForEntityKind(remoteGTNet, (byte) 0);
-        ctx.remoteMaxLimitHistorical = config.getMaxLimitForEntityKind(remoteGTNet, (byte) 1);
-      }
+      ctx.remoteMaxLimitLastPrice = config.getMaxLimitForEntityKind(remoteGTNet, (byte) 0);
+      ctx.remoteMaxLimitHistorical = config.getMaxLimitForEntityKind(remoteGTNet, (byte) 1);
 
       // Legacy variables for backwards compatibility
       ctx.dailyCount = remoteGTNet.getGtNetConfig() != null
           && remoteGTNet.getGtNetConfig().getDailyRequestLimitCount() != null
               ? remoteGTNet.getGtNetConfig().getDailyRequestLimitCount()
               : 0;
-      ctx.dailyLimit = remoteGTNet.getDailyRequestLimit() != null ? remoteGTNet.getDailyRequestLimit()
-          : Integer.MAX_VALUE;
     }
 
     // Populate local server (My) variables
@@ -220,17 +220,17 @@ public class GTNetResponseResolver {
       ctx.myTimezone = myGTNet.getTimeZone();
       ctx.myDailyRequestLimit = myGTNet.getDailyRequestLimit();
 
-      if (config != null) {
-        ctx.myMaxLimitLastPrice = config.getMaxLimitForEntityKind(myGTNet, (byte) 0);
-        ctx.myMaxLimitHistorical = config.getMaxLimitForEntityKind(myGTNet, (byte) 1);
-      }
+      // dailyCount counts the requests this remote sent us, so the limit it is measured against is ours, not the
+      // one the remote publishes. That figure stays available as RemoteDailyRequestLimit.
+      ctx.dailyLimit = myGTNet.getDailyRequestLimit() != null ? myGTNet.getDailyRequestLimit() : Integer.MAX_VALUE;
+
+      ctx.myMaxLimitLastPrice = config.getMaxLimitForEntityKind(myGTNet, (byte) 0);
+      ctx.myMaxLimitHistorical = config.getMaxLimitForEntityKind(myGTNet, (byte) 1);
     }
 
     // Calculate timezone offset
-    ctx.timezoneOffsetHours = calculateTimezoneOffsetHours(
-        myGTNet != null ? myGTNet.getTimeZone() : null,
-        remoteGTNet != null ? remoteGTNet.getTimeZone() : null
-    );
+    ctx.timezoneOffsetHours = calculateTimezoneOffsetHours(myGTNet != null ? myGTNet.getTimeZone() : null,
+        remoteGTNet != null ? remoteGTNet.getTimeZone() : null);
 
     // Populate connection counts
     if (connectionCounts != null) {
@@ -341,10 +341,12 @@ public class GTNetResponseResolver {
       expression.with("ConnectionsLastPrice", ctx.connectionsLastPrice);
       expression.with("ConnectionsHistorical", ctx.connectionsHistorical);
 
-      // Add message parameters
-      for (Map.Entry<String, String> entry : ctx.messageParams.entrySet()) {
-        expression.with(entry.getKey(), entry.getValue());
-      }
+      // The remote's own parameters go into a namespace of their own, addressed as param.<name>. They are written by
+      // the peer the rule is deciding about, and binding them as bare names let a peer send a parameter called
+      // dailyCount or TotalConnections and overwrite the value the condition was meant to test - on the
+      // unauthenticated first handshake included. As one structure they can never collide with a trusted variable,
+      // and a rule that wants a remote value has to say so.
+      expression.with("param", Map.copyOf(ctx.messageParams));
 
       EvaluationValue result = expression.evaluate();
       return result.getBooleanValue();
@@ -375,8 +377,8 @@ public class GTNetResponseResolver {
   }
 
   /**
-   * Internal context for EvalEx expression evaluation.
-   * Contains all variables available for use in GTNetMessageAnswer conditional expressions.
+   * Internal context for EvalEx expression evaluation. Contains all variables available for use in GTNetMessageAnswer
+   * conditional expressions.
    */
   private static class EvalExContext {
     // Time variables
@@ -385,7 +387,7 @@ public class GTNetResponseResolver {
 
     // Legacy variables (for backwards compatibility)
     int dailyCount;
-    int dailyLimit;
+    int dailyLimit = Integer.MAX_VALUE;
 
     // My (local) server variables
     Integer myDailyRequestLimit;
@@ -415,18 +417,4 @@ public class GTNetResponseResolver {
     Map<String, String> messageParams = new java.util.HashMap<>();
   }
 
-  /**
-   * Simple message code wrapper for when no configuration is provided.
-   */
-  private record SimpleMessageCode(byte value) implements GTNetMessageCode {
-    @Override
-    public byte getValue() {
-      return value;
-    }
-
-    @Override
-    public String name() {
-      return "CODE_" + value;
-    }
-  }
 }

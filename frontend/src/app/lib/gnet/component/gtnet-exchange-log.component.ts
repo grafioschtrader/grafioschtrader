@@ -5,7 +5,6 @@ import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { GTNetExchangeLogService } from '../service/gtnet-exchange-log.service';
 import { GTNetExchangeLogTree, GTNetExchangeLogNode } from '../model/gtnet-exchange-log';
-import { GTNetExchangeKindType } from '../model/gtnet';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ActivatedRoute } from '@angular/router';
 import { BaseSettings } from '../../base.settings';
@@ -102,7 +101,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
   ]
 })
 export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
-  @Input() entityKind: GTNetExchangeKindType = GTNetExchangeKindType.LAST_PRICE;
+  @Input() entityKind = 'LAST_PRICE';
   @ViewChild('expandedContent') expandedContent: TemplateRef<any>;
 
   exchangeLogTrees: GTNetExchangeLogTree[] = [];
@@ -126,14 +125,17 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     // Determine entityKind from route
     const path = this.route.snapshot.url[0]?.path;
     if (path === BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY) {
-      this.entityKind = GTNetExchangeKindType.LAST_PRICE;
+      this.entityKind = 'LAST_PRICE';
       this.titleKey = 'LAST_PRICE';
     } else if (path === BaseSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY) {
-      this.entityKind = GTNetExchangeKindType.HISTORICAL_PRICES;
+      this.entityKind = 'HISTORICAL_PRICES';
       this.titleKey = 'HISTORICAL_PRICES';
     } else if (path === BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY) {
-      this.entityKind = GTNetExchangeKindType.SECURITY_METADATA;
+      this.entityKind = 'SECURITY_METADATA';
       this.titleKey = 'SECURITY_METADATA';
+    } else if (path) {
+      this.entityKind = decodeURIComponent(path).toUpperCase();
+      this.titleKey = this.entityKind;
     }
 
     // Configure main table column (outer table)

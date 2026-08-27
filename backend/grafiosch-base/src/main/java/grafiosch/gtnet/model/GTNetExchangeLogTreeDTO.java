@@ -3,8 +3,7 @@ package grafiosch.gtnet.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Tree structure DTO for GTNet exchange log display.
- * Contains separate trees for supplier and consumer statistics.
+ * Tree structure DTO for GTNet exchange log display. Contains separate trees for supplier and consumer statistics.
  */
 @Schema(description = "Exchange log tree for a single GTNet, with supplier and consumer subtrees")
 public class GTNetExchangeLogTreeDTO {

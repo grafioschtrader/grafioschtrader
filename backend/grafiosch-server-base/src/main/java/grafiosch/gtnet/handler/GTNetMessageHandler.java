@@ -15,11 +15,11 @@ import grafiosch.gtnet.m2m.model.MessageEnvelope;
  *
  * <h3>Implementation Guidelines</h3>
  * <ul>
- *   <li>Annotate implementations with {@code @Component} for Spring auto-discovery</li>
- *   <li>Extend {@link AbstractGTNetMessageHandler} for common functionality</li>
- *   <li>For request handlers, extend {@code AbstractRequestHandler} which integrates auto-response logic</li>
- *   <li>For announcement handlers, extend {@code AbstractAnnouncementHandler}</li>
- *   <li>Override {@link #getSupportedMessageCodes()} to handle multiple related message codes in one handler</li>
+ * <li>Annotate implementations with {@code @Component} for Spring auto-discovery</li>
+ * <li>Extend {@link AbstractGTNetMessageHandler} for common functionality</li>
+ * <li>For request handlers, extend {@code AbstractRequestHandler} which integrates auto-response logic</li>
+ * <li>For announcement handlers, extend {@code AbstractAnnouncementHandler}</li>
+ * <li>Override {@link #getSupportedMessageCodes()} to handle multiple related message codes in one handler</li>
  * </ul>
  *
  * @see GTNetMessageHandlerRegistry for handler lookup

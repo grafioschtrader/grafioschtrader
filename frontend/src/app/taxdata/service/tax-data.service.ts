@@ -7,7 +7,7 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { BaseSettings } from '../../lib/base.settings';
 import { UploadServiceFunction } from '../../lib/generaldialog/model/file.upload.param';
-import { TaxCountry, TaxUpload, TaxYear } from '../model/tax-data.model';
+import { IctaxExchangeRate, TaxCountry, TaxUpload, TaxYear } from '../model/tax-data.model';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 
 @Injectable()
@@ -82,6 +82,22 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
     return this.httpClient
       .delete(`${TaxDataService.BASE_URL}/upload/${id}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  getExchangeRates(idTaxYear: number): Observable<IctaxExchangeRate[]> {
+    return <Observable<IctaxExchangeRate[]>>(
+      this.httpClient
+        .get(`${TaxDataService.BASE_URL}/year/${idTaxYear}/exchangerate`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
+  }
+
+  updateExchangeRate(exchangeRate: IctaxExchangeRate): Observable<IctaxExchangeRate> {
+    return <Observable<IctaxExchangeRate>>(
+      this.httpClient
+        .put(`${TaxDataService.BASE_URL}/exchangerate`, exchangeRate, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   toggleSecurityExclusion(taxYear: number, idSecuritycurrency: number): Observable<{ excluded: boolean }> {

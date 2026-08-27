@@ -346,6 +346,7 @@ export interface ValidationErrorEvent<T> {
           @case (EditInputType.Select) {
             <select
               class="form-control input-sm"
+              [attr.data-field]="field.field"
               [class.required-input]="isFieldRequired(field)"
               [(ngModel)]="rowData[field.field]"
               (ngModelChange)="onFieldChange(field, rowData, $event)"
@@ -383,7 +384,7 @@ export interface ValidationErrorEvent<T> {
               [min]="$safeNavigationMigration(field.cec?.min)"
               [max]="$safeNavigationMigration(field.cec?.max)"
               [placeholder]="field.cec?.placeholder || ''"
-              [inputStyleClass]="isFieldRequired(field) ? 'required-input' : ''">
+              [inputStyleClass]="isFieldRequired(field) ? 'text-end required-input' : 'text-end'">
             </p-inputNumber>
           }
 
@@ -436,6 +437,7 @@ export interface ValidationErrorEvent<T> {
             <input
               pInputText
               type="text"
+              [attr.data-field]="field.field"
               [class.required-input]="isFieldRequired(field)"
               [(ngModel)]="rowData[field.field]"
               (ngModelChange)="onFieldChange(field, rowData, $event)"
@@ -1186,6 +1188,7 @@ export class EditableTableComponent<T = any> implements OnInit, OnChanges {
     return field.dataType === DataType.Numeric ||
       field.dataType === DataType.NumericShowZero ||
       field.dataType === DataType.NumericInteger ||
+      field.dataType === DataType.NumericRaw ||
       field.dataType === DataType.DateTimeNumeric
       ? 'text-end'
       : '';

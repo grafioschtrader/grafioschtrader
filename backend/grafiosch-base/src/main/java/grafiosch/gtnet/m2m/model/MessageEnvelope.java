@@ -7,6 +7,12 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -14,10 +20,10 @@ import tools.jackson.databind.JsonNode;
  *
  * Every HTTP request/response between peers is wrapped in a MessageEnvelope, providing:
  * <ul>
- *   <li>Sender identification (sourceDomain)</li>
- *   <li>Reply correlation (souceIdForReply links to the sender's message ID)</li>
- *   <li>Message type and parameters (messageCode, gtNetMessageParamMap)</li>
- *   <li>Optional arbitrary payload (JSON node for type-specific data like GTNet during handshake)</li>
+ * <li>Sender identification (sourceDomain)</li>
+ * <li>Reply correlation (souceIdForReply links to the sender's message ID)</li>
+ * <li>Message type and parameters (messageCode, gtNetMessageParamMap)</li>
+ * <li>Optional arbitrary payload (JSON node for type-specific data like GTNet during handshake)</li>
  * </ul>
  *
  */
@@ -31,14 +37,23 @@ public class MessageEnvelope {
   @Schema(description = """
       Base URL of the sending domain (e.g., 'https://example.com:8080'). Identifies the origin of the message
       and is used by the receiver to look up the corresponding GTNet entry for token validation.""")
+  @NotBlank
+  @Size(max = 255)
   public String sourceDomain;
 
   @Schema(description = """
       The sender's local message ID (idGtNetMessage). The receiver stores this in their idSourceGtNetMessage field
       when saving the received message, enabling cross-system message correlation.""")
+  @NotNull
   public Integer idSourceGtNetMessage;
 
+  @Schema(description = """
+      For cancellation messages, the sender-local ID of the maintenance or discontinuation announcement being
+      cancelled. The receiver resolves this value against idSourceGtNetMessage and stores its own local original ID.""")
+  public Integer idOriginalMessage;
+
   @Schema(description = "UTC timestamp when the message was created. Used for ordering and staleness detection.")
+  @NotNull
   public LocalDateTime timestamp;
 
   @Schema(description = "Message type code from GTNetMessageCodeType. Determines how the receiver processes this message.")
@@ -47,7 +62,7 @@ public class MessageEnvelope {
   @Schema(description = """
       Typed parameters specific to this message code. Key is parameter name, value contains the actual data.
       Structure defined by GTNetModelHelper for each message type.""")
-  public Map<String, GTNetMessageParam> gtNetMessageParamMap;
+  public Map<@Size(max = 32) String, @Valid GTNetMessageParam> gtNetMessageParamMap;
 
   @Schema(description = """
       Indicates whether the sending server is currently busy. When true, the recipient should limit communication to
@@ -56,6 +71,7 @@ public class MessageEnvelope {
   public boolean serverBusy;
 
   @Schema(description = "Optional free-text message for human-readable context or notes.")
+  @Size(max = 1000)
   public String message;
 
   @Schema(description = """
@@ -86,7 +102,16 @@ public class MessageEnvelope {
       Visibility level for the message. Controls who can see the message on the receiving end:
       0 = ALL_USERS (visible to everyone), 1 = ADMIN_ONLY (visible only to administrators).
       Primarily used for admin-to-admin messages.""")
+  @Min(0)
+  @Max(1)
   public byte visibility;
+
+  @Schema(description = """
+      Stable, machine-readable reason for an outcome that is not a semantic answer. Carried by GT_NET_ERROR_S and by
+      every refusal code, so the sender can distinguish a malformed envelope, a missing grant, an exhausted budget and
+      an active cooling-off period without parsing the free-text message. Null on an ordinary response.""")
+  @Size(max = 50)
+  public String errorMsgCode;
 
   public MessageEnvelope() {
   }
@@ -99,12 +124,13 @@ public class MessageEnvelope {
    * Creates a new MessageEnvelope with the source server's GTNet entry and busy status.
    *
    * @param sourceGtNet the GTNet entry of the sending server (converted to DTO to exclude tokens)
-   * @param gtNetMsg the message to wrap
-   * @param serverBusy whether the source server is currently busy
+   * @param gtNetMsg    the message to wrap
+   * @param serverBusy  whether the source server is currently busy
    */
   public MessageEnvelope(GTNet sourceGtNet, GTNetMessage gtNetMsg, boolean serverBusy) {
     this.sourceDomain = sourceGtNet.getDomainRemoteName();
     this.idSourceGtNetMessage = gtNetMsg.getIdGtNetMessage();
+    this.idOriginalMessage = gtNetMsg.getIdOriginalMessage();
     this.timestamp = gtNetMsg.getTimestamp();
     this.messageCode = gtNetMsg.getMessageCodeValue();
     this.gtNetMessageParamMap = gtNetMsg.getGtNetMessageParamMap();
@@ -113,5 +139,6 @@ public class MessageEnvelope {
     this.sourceGtNet = new GTNetPublicDTO(sourceGtNet);
     this.waitDaysApply = gtNetMsg.getWaitDaysApply();
     this.visibility = gtNetMsg.getVisibilityValue();
+    this.errorMsgCode = gtNetMsg.getErrorMsgCode();
   }
 }

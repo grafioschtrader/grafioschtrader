@@ -33,6 +33,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 
 /**
  * Records messages exchanged between GT-Network instances for handshake, data requests, and notifications.
@@ -420,6 +421,19 @@ public class GTNetMessage extends BaseID<Integer> {
     public GTNetMessageParam(String paramValue) {
       this.paramValue = paramValue;
     }
+
+    /**
+     * The bound belongs here rather than on {@link BaseParam}, because the column widths of the two element collections
+     * differ: {@code gt_net_message_param.param_value} is {@code varchar(255)} while
+     * {@code algo_rule_strategy_param.param_value} is {@code varchar(24)}. Bean Validation aggregates constraints
+     * across the hierarchy, so declaring it on the override adds it for GTNet parameters alone. Without it an over-long
+     * inbound value is a {@code DataException} and an HTTP 500 instead of a protocol rejection.
+     */
+    @Override
+    @Size(max = 255)
+    public String getParamValue() {
+      return super.getParamValue();
+    }
   }
 
   public void checkAndUpdateSomeValues() {
@@ -439,7 +453,7 @@ public class GTNetMessage extends BaseID<Integer> {
         + ", sendRecv=" + sendRecv + ", idSourceGtNetMessage=" + idSourceGtNetMessage + ", replyTo=" + replyTo
         + ", idOriginalMessage=" + idOriginalMessage + ", messageCode=" + messageCode + ", message=" + message
         + ", visibility=" + visibility + ", errorMsgCode=" + errorMsgCode + ", hasBeenRead=" + hasBeenRead
-        + ", deliveryStatus=" + deliveryStatus + ", waitDaysApply=" + waitDaysApply
-        + ", gtNetMessageParamMap=" + paramMapStr + "]";
+        + ", deliveryStatus=" + deliveryStatus + ", waitDaysApply=" + waitDaysApply + ", gtNetMessageParamMap="
+        + paramMapStr + "]";
   }
 }

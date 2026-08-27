@@ -14,7 +14,7 @@ import org.springframework.stereotype.Controller;
 import grafiosch.entities.User;
 import grafiosch.security.UserAuthentication;
 import grafioschtrader.reports.WatchlistReport;
-import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;;
+import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyGroup;
 
 @Controller
 @ConditionalOnExpression("${gt.use.websocket:false}")

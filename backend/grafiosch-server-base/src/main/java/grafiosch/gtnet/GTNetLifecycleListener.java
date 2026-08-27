@@ -27,8 +27,8 @@ import grafiosch.types.TaskTypeBase;
  * On startup, schedules a background task to check peer status via ping. When peers respond to pings, both sides
  * automatically update each other's online status - no explicit online announcement is needed.
  *
- * On shutdown, broadcasts GT_NET_OFFLINE_ALL_C to inform peers the server is going offline (immediate notification
- * is needed since failed pings would take too long to detect).
+ * On shutdown, broadcasts GT_NET_OFFLINE_ALL_C to inform peers the server is going offline (immediate notification is
+ * needed since failed pings would take too long to detect).
  *
  * Both handlers only execute when GTNet is enabled and set up, which requires all of: the deployment property
  * {@code g.use.gtnet} (default true), the global parameter {@code g.gnet.use} in the database, and a configured
@@ -98,8 +98,8 @@ public class GTNetLifecycleListener {
   }
 
   /**
-   * Ensures the local GTNet server entry has SOS_ONLINE status.
-   * The local server is always online when the application is running.
+   * Ensures the local GTNet server entry has SOS_ONLINE status. The local server is always online when the application
+   * is running.
    */
   private void ensureLocalServerOnlineStatus() {
     Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();

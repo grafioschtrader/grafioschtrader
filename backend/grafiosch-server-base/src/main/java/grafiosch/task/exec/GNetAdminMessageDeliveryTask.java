@@ -33,18 +33,18 @@ import grafiosch.types.TaskTypeBase;
  * Background task that delivers pending GTNet admin messages to multiple targets.
  *
  * <p>
- * This task handles delivery of admin messages (GT_NET_ADMIN_MESSAGE_SEL_C) that were created
- * via multi-select in the GTNetAdminMessagesComponent. Unlike immediate delivery, this allows
- * the UI to respond quickly while delivery happens asynchronously.
+ * This task handles delivery of admin messages (GT_NET_ADMIN_MESSAGE_SEL_C) that were created via multi-select in the
+ * GTNetAdminMessagesComponent. Unlike immediate delivery, this allows the UI to respond quickly while delivery happens
+ * asynchronously.
  * </p>
  *
  * <p>
  * The task performs:
  * <ul>
- *   <li>Immediate execution when triggered by submitMsgToMultiple()</li>
- *   <li>Queries pending GTNetMessageAttempt entries for admin messages</li>
- *   <li>Delivers messages via BaseDataClient.sendToMsgWithStatus()</li>
- *   <li>Marks entries as hasSend=true on successful delivery</li>
+ * <li>Immediate execution when triggered by submitMsgToMultiple()</li>
+ * <li>Queries pending GTNetMessageAttempt entries for admin messages</li>
+ * <li>Delivers messages via BaseDataClient.sendToMsgWithStatus()</li>
+ * <li>Marks entries as hasSend=true on successful delivery</li>
  * </ul>
  * </p>
  */
@@ -54,8 +54,8 @@ public class GNetAdminMessageDeliveryTask implements ITask {
   private static final Logger log = LoggerFactory.getLogger(GNetAdminMessageDeliveryTask.class);
 
   /** Message code for admin messages */
-  private static final List<Byte> ADMIN_MESSAGE_CODES = List.of(
-      GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue());
+  private static final List<Byte> ADMIN_MESSAGE_CODES = List
+      .of(GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue());
 
   @Autowired
   private GTNetMessageAttemptJpaRepository gtNetMessageAttemptJpaRepository;
@@ -72,7 +72,6 @@ public class GNetAdminMessageDeliveryTask implements ITask {
   @Autowired
   private BaseDataClient baseDataClient;
 
- 
   @Override
   public ITaskType getTaskType() {
     return TaskTypeBase.GTNET_ADMIN_MESSAGE_DELIVERY;
@@ -138,8 +137,7 @@ public class GNetAdminMessageDeliveryTask implements ITask {
         GTNet targetGTNet = targetOpt.get();
 
         // Check if handshake is complete (tokenRemote exists)
-        if (targetGTNet.getGtNetConfig() == null ||
-            targetGTNet.getGtNetConfig().getTokenRemote() == null) {
+        if (targetGTNet.getGtNetConfig() == null || targetGTNet.getGtNetConfig().getTokenRemote() == null) {
           log.debug("Target {} has no completed handshake, skipping", targetGTNet.getDomainRemoteName());
           continue; // Not counted as fail - handshake may complete later
         }
@@ -166,9 +164,9 @@ public class GNetAdminMessageDeliveryTask implements ITask {
   /**
    * Updates the deliveryStatus on a GTNetMessage based on delivery results.
    *
-   * @param message      the message to update
-   * @param successCount number of successful deliveries
-   * @param failCount    number of failed deliveries
+   * @param message       the message to update
+   * @param successCount  number of successful deliveries
+   * @param failCount     number of failed deliveries
    * @param totalAttempts total number of attempts processed
    */
   private void updateMessageDeliveryStatus(GTNetMessage message, int successCount, int failCount, int totalAttempts) {
@@ -204,14 +202,17 @@ public class GNetAdminMessageDeliveryTask implements ITask {
 
       if (result.isFailed()) {
         log.warn("Failed to deliver admin message {} to {}: httpError={}, statusCode={}, reachable={}, errorMsg={}",
-            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(),
-            result.httpError(), result.httpStatusCode(), result.serverReachable(), result.errorMessage());
+            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(), result.httpError(), result.httpStatusCode(),
+            result.serverReachable(), result.errorMessage());
         return false;
       }
 
-      if (!result.isDelivered()) {
-        log.warn("Admin message {} to {} not delivered: server reachable but response was null or invalid",
-            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName());
+      if (!result.isAccepted()) {
+        // The bytes may well have arrived: the HTTP status is 200 for every protocol outcome, so a refusal shows only
+        // in the answering code. Counting one as sent would retire an attempt the peer never processed.
+        log.warn("Admin message {} to {} not accepted: response was null, invalid, or an error ({})",
+            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(),
+            result.response() != null ? result.response().errorMsgCode : null);
         return false;
       }
 

@@ -1,11 +1,15 @@
 package grafiosch.gtnet.handler.impl;
 
+import java.util.HashMap;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
+import grafiosch.entities.GTNetMessage.GTNetMessageParam;
+import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.IExchangeKindType;
@@ -16,8 +20,8 @@ import grafiosch.gtnet.handler.ValidationResult;
 /**
  * Handler for GT_NET_DATA_REQUEST_SEL_RR_C messages.
  *
- * Processes requests for data exchange via the DataRequestMsg payload. The payload contains an
- * entityKinds set specifying which syncable data types the requester wants to exchange.
+ * Processes requests for data exchange via the DataRequestMsg payload. The payload contains an entityKinds set
+ * specifying which syncable data types the requester wants to exchange.
  */
 @Component
 public class DataRequestHandler extends AbstractDataRequestHandler {
@@ -30,8 +34,7 @@ public class DataRequestHandler extends AbstractDataRequestHandler {
   @Override
   protected ValidationResult validateRequest(GTNetMessageContext context) {
     if (context.getRemoteGTNet() == null) {
-      return ValidationResult.invalid("UNKNOWN_REMOTE",
-          "Data request from unknown domain - handshake required first");
+      return ValidationResult.invalid("UNKNOWN_REMOTE", "Data request from unknown domain - handshake required first");
     }
 
     Set<IExchangeKindType> requestedKinds = getRequestedEntityKinds(context);
@@ -45,7 +48,17 @@ public class DataRequestHandler extends AbstractDataRequestHandler {
 
   @Override
   protected void processRequestSideEffects(GTNetMessageContext context, GTNetMessage storedRequest) {
-    // No side effects on request receipt - side effects applied after response determination
+    // The payload array is the authoritative wire form of the entity kinds; the parameter map is how a message is
+    // persisted, and it is what every later local reader consults - the manual accept in particular. Normalising the
+    // parameter from the payload here means those readers can never disagree with what the peer actually asked for,
+    // and no code path reads a kind list straight off the wire.
+    Set<IExchangeKindType> requestedKinds = getRequestedEntityKinds(context);
+    if (storedRequest.getGtNetMessageParamMap() == null) {
+      storedRequest.setGtNetMessageParamMap(new HashMap<>());
+    }
+    storedRequest.getGtNetMessageParamMap().put(ExchangeKindTypeRegistry.ENTITY_KINDS_PARAM,
+        new GTNetMessageParam(requestedKinds.stream().map(IExchangeKindType::name).collect(Collectors.joining(","))));
+    gtNetMessageJpaRepository.saveMsg(storedRequest);
   }
 
   @Override
@@ -78,12 +91,18 @@ public class DataRequestHandler extends AbstractDataRequestHandler {
         saveRemoteGTNet(myGTNet);
       }
 
-      triggerExchangeSyncTask();
+      triggerExchangeSyncTask(context);
     } else if (responseCode.getValue() == GNetCoreMessageCode.GT_NET_DATA_REQUEST_REJECTED_S.getValue()) {
+      // Only the grant is ended. Writing acceptRequest and serverState on the peer's row would look like a state
+      // change and be undone by the peer's very next envelope, because both fields are re-synchronised from what the
+      // peer publishes about itself. The grant is ours and survives.
+      boolean changed = false;
       for (IExchangeKindType kind : requestedKinds) {
-        updateEntityForReject(remoteGTNet, kind);
+        changed |= grantService.clearGrant(remoteGTNet, kind);
       }
-      saveRemoteGTNet(remoteGTNet);
+      if (changed) {
+        saveRemoteGTNet(remoteGTNet);
+      }
     }
   }
 }

@@ -17,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.rest.helper.RestHelper;
-
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfigEntity;
 import grafiosch.entities.GTNetEntity;
@@ -28,6 +26,7 @@ import grafiosch.gtnet.IExchangeKindType;
 import grafiosch.gtnet.SupplierConsumerLogTypes;
 import grafiosch.gtnet.model.GTNetExchangeLogNodeDTO;
 import grafiosch.gtnet.model.GTNetExchangeLogTreeDTO;
+import grafiosch.rest.helper.RestHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -53,8 +52,8 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
 
   @Override
   @Transactional
-  public void logExchange(GTNet gtNet, IExchangeKindType entityKind, boolean asSupplier,
-      int entitiesSent, int entitiesUpdated, int entitiesInResponse) {
+  public void logExchange(GTNet gtNet, IExchangeKindType entityKind, boolean asSupplier, int entitiesSent,
+      int entitiesUpdated, int entitiesInResponse) {
     // Check if global logging is enabled
     if (!globalparametersJpaRepository.isGTNetLogEnabled()) {
       return;
@@ -74,9 +73,8 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
       return;
     }
 
-    GTNetExchangeLog log = new GTNetExchangeLog(
-        gtNet.getIdGtNet(), entityKind, asSupplier,
-        entitiesSent, entitiesUpdated, entitiesInResponse);
+    GTNetExchangeLog log = new GTNetExchangeLog(gtNet.getIdGtNet(), entityKind, asSupplier, entitiesSent,
+        entitiesUpdated, entitiesInResponse);
     entityManager.persist(log);
   }
 
@@ -92,11 +90,10 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
     }
 
     // Group by (idGtNet, entityKind, logAsSupplier, targetPeriodStart)
-    Map<String, List<GTNetExchangeLog>> grouped = sourceLogs.stream()
-        .collect(Collectors.groupingBy(log -> {
-          LocalDate targetPeriodStart = calculatePeriodStart(log.getPeriodStart(), toPeriod);
-          return log.getIdGtNet() + "-" + log.getEntityKindValue() + "-" + log.isLogAsSupplier() + "-" + targetPeriodStart;
-        }));
+    Map<String, List<GTNetExchangeLog>> grouped = sourceLogs.stream().collect(Collectors.groupingBy(log -> {
+      LocalDate targetPeriodStart = calculatePeriodStart(log.getPeriodStart(), toPeriod);
+      return log.getIdGtNet() + "-" + log.getEntityKindValue() + "-" + log.isLogAsSupplier() + "-" + targetPeriodStart;
+    }));
 
     List<Integer> idsToDelete = new ArrayList<>();
 
@@ -146,14 +143,12 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
     Locale locale = RestHelper.getUserLocale();
 
     // Build supplier tree
-    List<GTNetExchangeLog> supplierLogs = allLogs.stream()
-        .filter(GTNetExchangeLog::isLogAsSupplier)
+    List<GTNetExchangeLog> supplierLogs = allLogs.stream().filter(GTNetExchangeLog::isLogAsSupplier)
         .collect(Collectors.toList());
     buildTree(tree.supplierTotal, supplierLogs, locale);
 
     // Build consumer tree
-    List<GTNetExchangeLog> consumerLogs = allLogs.stream()
-        .filter(log -> !log.isLogAsSupplier())
+    List<GTNetExchangeLog> consumerLogs = allLogs.stream().filter(log -> !log.isLogAsSupplier())
         .collect(Collectors.toList());
     buildTree(tree.consumerTotal, consumerLogs, locale);
 
@@ -201,8 +196,7 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
   }
 
   /**
-   * Builds a hierarchical tree from log entries.
-   * Groups by period type, with shortest periods (most recent) at top.
+   * Builds a hierarchical tree from log entries. Groups by period type, with shortest periods (most recent) at top.
    */
   private void buildTree(GTNetExchangeLogNodeDTO root, List<GTNetExchangeLog> logs, Locale locale) {
     if (logs.isEmpty()) {
@@ -228,10 +222,8 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
         LocalDate periodStart = entry.getKey();
         List<GTNetExchangeLog> periodStartLogs = entry.getValue();
 
-        GTNetExchangeLogNodeDTO node = new GTNetExchangeLogNodeDTO(
-            formatPeriodLabel(periodStart, periodType, locale),
-            periodType,
-            periodStart);
+        GTNetExchangeLogNodeDTO node = new GTNetExchangeLogNodeDTO(formatPeriodLabel(periodStart, periodType, locale),
+            periodType, periodStart);
 
         // Sum statistics for this period
         for (GTNetExchangeLog log : periodStartLogs) {
@@ -250,7 +242,8 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
     root.children.sort((a, b) -> {
       if (a.periodStart != null && b.periodStart != null) {
         int dateCompare = b.periodStart.compareTo(a.periodStart);
-        if (dateCompare != 0) return dateCompare;
+        if (dateCompare != 0)
+          return dateCompare;
       }
       if (a.periodType != null && b.periodType != null) {
         return a.periodType.getValue() - b.periodType.getValue();
@@ -264,10 +257,10 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
    */
   private LocalDate calculatePeriodStart(LocalDate date, GTNetExchangeLogPeriodType periodType) {
     return switch (periodType) {
-      case INDIVIDUAL, DAILY -> date;
-      case WEEKLY -> date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-      case MONTHLY -> date.withDayOfMonth(1);
-      case YEARLY -> date.withDayOfYear(1);
+    case INDIVIDUAL, DAILY -> date;
+    case WEEKLY -> date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+    case MONTHLY -> date.withDayOfMonth(1);
+    case YEARLY -> date.withDayOfYear(1);
     };
   }
 
@@ -279,11 +272,11 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
       return messageSource.getMessage("gt.gtnet.log.period.total", null, locale);
     }
     return switch (periodType) {
-      case INDIVIDUAL, DAILY -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale));
-      case WEEKLY -> messageSource.getMessage("gt.gtnet.log.period.week",
-          new Object[] { date.get(WeekFields.of(locale).weekOfYear()), String.valueOf(date.getYear()) }, locale);
-      case MONTHLY -> date.format(DateTimeFormatter.ofPattern("MMMM yyyy", locale));
-      case YEARLY -> String.valueOf(date.getYear());
+    case INDIVIDUAL, DAILY -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale));
+    case WEEKLY -> messageSource.getMessage("gt.gtnet.log.period.week",
+        new Object[] { date.get(WeekFields.of(locale).weekOfYear()), String.valueOf(date.getYear()) }, locale);
+    case MONTHLY -> date.format(DateTimeFormatter.ofPattern("MMMM yyyy", locale));
+    case YEARLY -> String.valueOf(date.getYear());
     };
   }
 }

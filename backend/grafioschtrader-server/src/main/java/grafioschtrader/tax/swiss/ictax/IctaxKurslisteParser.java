@@ -25,53 +25,60 @@ import grafioschtrader.entities.IctaxSecurityTaxData;
  */
 public class IctaxKurslisteParser {
 
-
   private static final Charset XML_CHARSET = Charset.forName("ISO-8859-1");
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   private static final Set<String> SECURITY_ELEMENTS = Set.of("share", "fund", "bond", "derivative", "coinBullion",
       "currencyNote", "mediumTermBond");
 
+  /** Top level element holding the official year-end and annual mean rate of one currency. */
+  private static final String EXCHANGE_RATE_ELEMENT = "exchangeRateYearEnd";
+
   /**
-   * Selective import: stream-parses the full XML and returns only entries whose ISIN is in the target set.
+   * Selective import: stream-parses the full XML and keeps only securities whose ISIN is in the target set. The
+   * exchange rates are always returned in full — they are per currency, not per security, and there are only a few
+   * hundred of them.
    *
    * @param xmlBytes    full XML file content as byte array
    * @param targetIsins ISINs to extract
    * @param idTaxUpload the upload ID to link extracted data to
-   * @return list of extracted tax data entries matching target ISINs
+   * @return the securities matching the target ISINs and every exchange rate of the file
    */
-  public List<IctaxSecurityTaxData> parseSelective(byte[] xmlBytes, Collection<String> targetIsins,
-      int idTaxUpload) throws XMLStreamException {
+  public KurslisteParseResult parseSelective(byte[] xmlBytes, Collection<String> targetIsins, int idTaxUpload)
+      throws XMLStreamException {
     Set<String> isinSet = Set.copyOf(targetIsins);
-    List<IctaxSecurityTaxData> allData = parseFull(new ByteArrayInputStream(xmlBytes), idTaxUpload);
-    return allData.stream().filter(d -> isinSet.contains(d.getIsin())).toList();
+    KurslisteParseResult all = parseFull(new ByteArrayInputStream(xmlBytes), idTaxUpload);
+    return new KurslisteParseResult(all.securities().stream().filter(d -> isinSet.contains(d.getIsin())).toList(),
+        all.exchangeRates());
   }
 
   /**
-   * Full import: stream-parses the entire XML file and extracts all securities.
+   * Full import: stream-parses the entire XML file and extracts all securities and all exchange rates in one pass.
    *
    * @param xmlStream   input stream for the full XML file
    * @param idTaxUpload the upload ID to link extracted data to
-   * @return list of all extracted tax data entries
+   * @return every tax data entry and every exchange rate of the file
    */
-  public List<IctaxSecurityTaxData> parseFull(InputStream xmlStream, int idTaxUpload) throws XMLStreamException {
+  public KurslisteParseResult parseFull(InputStream xmlStream, int idTaxUpload) throws XMLStreamException {
     XMLInputFactory factory = createSecureXmlFactory();
     XMLStreamReader reader = factory.createXMLStreamReader(new InputStreamReader(xmlStream, XML_CHARSET));
-    List<IctaxSecurityTaxData> results = parseSecurities(reader, idTaxUpload);
+    KurslisteParseResult result = parseSecurities(reader, idTaxUpload);
     reader.close();
-    return results;
+    return result;
   }
 
-  private List<IctaxSecurityTaxData> parseSecurities(XMLStreamReader reader, int idTaxUpload)
-      throws XMLStreamException {
+  private KurslisteParseResult parseSecurities(XMLStreamReader reader, int idTaxUpload) throws XMLStreamException {
     List<IctaxSecurityTaxData> results = new ArrayList<>();
+    List<ParsedExchangeRate> exchangeRates = new ArrayList<>();
     IctaxSecurityTaxData currentData = null;
 
     while (reader.hasNext()) {
       int event = reader.next();
       if (event == XMLStreamConstants.START_ELEMENT) {
         String localName = reader.getLocalName();
-        if (SECURITY_ELEMENTS.contains(localName)) {
+        if (EXCHANGE_RATE_ELEMENT.equals(localName)) {
+          addExchangeRate(reader, exchangeRates);
+        } else if (SECURITY_ELEMENTS.contains(localName)) {
           currentData = new IctaxSecurityTaxData();
           currentData.setIdTaxUpload(idTaxUpload);
           currentData.setPayments(new ArrayList<>());
@@ -100,8 +107,7 @@ public class IctaxKurslisteParser {
           payment.setPaymentValueChf(getAttrDouble(reader, "paymentValueCHF"));
           // Mark non-taxable capital-gain coupons. The valid KEP (Kapitaleinlage / return of
           // capital) coupon carries sign="KEP" and has no capitalGain attribute, so accept both.
-          payment.setCapitalGain(isXmlTrue(getAttr(reader, "capitalGain"))
-              || "KEP".equals(getAttr(reader, "sign")));
+          payment.setCapitalGain(isXmlTrue(getAttr(reader, "capitalGain")) || "KEP".equals(getAttr(reader, "sign")));
           currentData.getPayments().add(payment);
         }
       } else if (event == XMLStreamConstants.END_ELEMENT) {
@@ -114,7 +120,24 @@ public class IctaxKurslisteParser {
         }
       }
     }
-    return results;
+    return new KurslisteParseResult(results, exchangeRates);
+  }
+
+  /**
+   * Reads one {@code exchangeRateYearEnd} element. A row without a year-end rate carries no usable information and is
+   * dropped; a missing denomination means the rates are quoted per single unit.
+   */
+  private void addExchangeRate(XMLStreamReader reader, List<ParsedExchangeRate> exchangeRates) {
+    String currency = getAttr(reader, "currency");
+    Double yearEndRate = getAttrDouble(reader, "value");
+    if (currency == null || currency.isEmpty() || yearEndRate == null) {
+      return;
+    }
+    Integer denomination = getAttrInt(reader, "denomination");
+    Integer year = getAttrInt(reader, "year");
+    exchangeRates.add(new ParsedExchangeRate(currency, year == null ? null : year.shortValue(),
+        denomination == null || denomination == 0 ? 1 : denomination, yearEndRate,
+        getAttrDouble(reader, "valueMiddle")));
   }
 
   private XMLInputFactory createSecureXmlFactory() {

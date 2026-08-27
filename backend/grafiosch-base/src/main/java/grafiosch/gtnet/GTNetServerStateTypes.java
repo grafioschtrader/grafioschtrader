@@ -3,8 +3,8 @@ package grafiosch.gtnet;
 /**
  * Defines the availability states for GTNet data sharing services.
  *
- * Each GTNet domain tracks server states to indicate service availability.
- * Consumer implementations should only attempt to query providers in {@code SS_OPEN} state.
+ * Each GTNet domain tracks server states to indicate service availability. Consumer implementations should only attempt
+ * to query providers in {@code SS_OPEN} state.
  */
 public enum GTNetServerStateTypes {
 

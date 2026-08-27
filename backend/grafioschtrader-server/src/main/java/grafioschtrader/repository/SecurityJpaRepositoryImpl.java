@@ -982,4 +982,33 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     return query.getResultList();
   }
 
+  @Override
+  @Transactional
+  @Modifying
+  public List<Security> batchUpdateGTNetExchange(List<Security> securities) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final List<Security> updatedSecurities = new ArrayList<>();
+    final LocalDateTime now = LocalDateTime.now();
+    for (Security security : securities) {
+      Security existing = securityJpaRepository.findById(security.getIdSecuritycurrency()).orElse(null);
+      if (existing == null) {
+        continue;
+      }
+      if (!UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, existing)) {
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+      }
+      if (existing.getIdTenantPrivate() != null) {
+        throw new DataViolationException("name", "gt.gtnet.exchange.private.security",
+            new Object[] { existing.getName() });
+      }
+      existing.setGtNetLastpriceRecv(security.isGtNetLastpriceRecv());
+      existing.setGtNetHistoricalRecv(security.isGtNetHistoricalRecv());
+      existing.setGtNetLastpriceSend(security.isGtNetLastpriceSend());
+      existing.setGtNetHistoricalSend(security.isGtNetHistoricalSend());
+      existing.setGtNetLastModifiedTime(now);
+      updatedSecurities.add(securityJpaRepository.save(existing));
+    }
+    return updatedSecurities;
+  }
+
 }

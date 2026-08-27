@@ -9,7 +9,9 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -22,14 +24,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import grafioschtrader.entities.IctaxExchangeRate;
 import grafioschtrader.entities.IctaxSecurityTaxData;
 import grafioschtrader.entities.TaxUpload;
 import grafioschtrader.entities.TaxYear;
+import grafioschtrader.repository.IctaxExchangeRateJpaRepository;
 import grafioschtrader.repository.IctaxSecurityTaxDataJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TaxUploadJpaRepository;
 import grafioschtrader.repository.TaxYearJpaRepository;
 import grafioschtrader.tax.swiss.ictax.IctaxKurslisteParser;
+import grafioschtrader.tax.swiss.ictax.KurslisteParseResult;
+import grafioschtrader.tax.swiss.ictax.ParsedExchangeRate;
 
 /**
  * Service for importing ICTax Kursliste XML data from uploaded zip files. Handles file storage, XML parsing, and
@@ -51,6 +57,9 @@ public class IctaxImportService {
 
   @Autowired
   private IctaxSecurityTaxDataJpaRepository ictaxSecurityTaxDataJpaRepository;
+
+  @Autowired
+  private IctaxExchangeRateJpaRepository ictaxExchangeRateJpaRepository;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -98,7 +107,7 @@ public class IctaxImportService {
     Set<String> allIsins = getAllIsinsFromSecurities();
 
     byte[] zipBytes = Files.readAllBytes(zipPath);
-    int count = importFromZipBytes(zipBytes, upload.getIdTaxUpload(), allIsins);
+    int count = importFromZipBytes(zipBytes, upload.getIdTaxUpload(), upload.getTaxYear(), allIsins);
     upload.setRecordCount(count);
     return taxUploadJpaRepository.save(upload);
   }
@@ -135,12 +144,13 @@ public class IctaxImportService {
 
     // Import data from zip
     byte[] zipBytes = Files.readAllBytes(storedPath);
-    int count = importFromZipBytes(zipBytes, upload.getIdTaxUpload(), allIsins);
+    int count = importFromZipBytes(zipBytes, upload.getIdTaxUpload(), taxYear, allIsins);
     upload.setRecordCount(count);
     return taxUploadJpaRepository.save(upload);
   }
 
-  private int importFromZipBytes(byte[] zipBytes, int idTaxUpload, Set<String> allIsins) throws IOException {
+  private int importFromZipBytes(byte[] zipBytes, int idTaxUpload, TaxYear taxYear, Set<String> allIsins)
+      throws IOException {
     byte[] xmlBytes = null;
 
     try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
@@ -157,31 +167,74 @@ public class IctaxImportService {
       return 0;
     }
 
-    List<IctaxSecurityTaxData> dataList;
+    KurslisteParseResult parseResult;
     try {
       if (!allIsins.isEmpty()) {
         // Selective import: full parse then filter by portfolio ISINs
-        dataList = parser.parseSelective(xmlBytes, allIsins, idTaxUpload);
+        parseResult = parser.parseSelective(xmlBytes, allIsins, idTaxUpload);
       } else {
         // Full import
-        dataList = parser.parseFull(new ByteArrayInputStream(xmlBytes), idTaxUpload);
+        parseResult = parser.parseFull(new ByteArrayInputStream(xmlBytes), idTaxUpload);
       }
     } catch (Exception e) {
       log.error("Failed to parse XML for upload {}", idTaxUpload, e);
       return 0;
     }
 
+    List<IctaxSecurityTaxData> dataList = parseResult.securities();
     if (!dataList.isEmpty()) {
       ictaxSecurityTaxDataJpaRepository.saveAll(dataList);
     }
+    upsertExchangeRates(parseResult.exchangeRates(), taxYear);
     log.info("Imported {} securities for upload {}", dataList.size(), idTaxUpload);
     return dataList.size();
   }
 
+  /**
+   * Writes the official exchange rates of the Kursliste into {@code ictax_exchange_rate}, keyed by tax year and
+   * currency.
+   *
+   * <p>
+   * Only the imported values are written; a manually entered override stays untouched, which is why the rates are not
+   * deleted and re-inserted the way the per-security data is. A differential Kursliste carries no rates at all, so an
+   * upload that yields none simply leaves the year as it was.
+   * </p>
+   *
+   * @param rates   the rates found in the XML, possibly empty
+   * @param taxYear the tax year the upload belongs to; rates for a different year are rejected
+   */
+  private void upsertExchangeRates(List<ParsedExchangeRate> rates, TaxYear taxYear) {
+    if (rates.isEmpty() || taxYear == null) {
+      return;
+    }
+    Map<String, IctaxExchangeRate> existingByCurrency = ictaxExchangeRateJpaRepository
+        .findByIdTaxYearOrderByCurrency(taxYear.getIdTaxYear()).stream()
+        .collect(Collectors.toMap(IctaxExchangeRate::getCurrency, Function.identity(), (a, _) -> a));
+    List<IctaxExchangeRate> toSave = new ArrayList<>();
+    int rejected = 0;
+    for (ParsedExchangeRate rate : rates) {
+      if (rate.year() != null && !rate.year().equals(taxYear.getTaxYear())) {
+        rejected++;
+        continue;
+      }
+      IctaxExchangeRate entity = existingByCurrency.get(rate.currency());
+      if (entity == null) {
+        entity = new IctaxExchangeRate(taxYear.getIdTaxYear(), rate.currency(), rate.denomination(), rate.yearEndRate(),
+            rate.annualMeanRate());
+      } else {
+        entity.setDenomination(rate.denomination());
+        entity.setYearEndRate(rate.yearEndRate());
+        entity.setAnnualMeanRate(rate.annualMeanRate());
+      }
+      toSave.add(entity);
+    }
+    ictaxExchangeRateJpaRepository.saveAll(toSave);
+    log.info("Imported {} exchange rates for tax year {}, {} rejected for a different year", toSave.size(),
+        taxYear.getTaxYear(), rejected);
+  }
+
   private Set<String> getAllIsinsFromSecurities() {
-    return securityJpaRepository.findAll().stream()
-        .filter(s -> s.getIsin() != null && !s.getIsin().isEmpty())
-        .map(s -> s.getIsin())
-        .collect(Collectors.toSet());
+    return securityJpaRepository.findAll().stream().filter(s -> s.getIsin() != null && !s.getIsin().isEmpty())
+        .map(s -> s.getIsin()).collect(Collectors.toSet());
   }
 }

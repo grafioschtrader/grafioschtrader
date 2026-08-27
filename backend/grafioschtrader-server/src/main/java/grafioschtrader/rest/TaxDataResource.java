@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,6 +36,7 @@ import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.rest.RequestMappings;
 import grafioschtrader.dto.TaxStatementExportRequest;
+import grafioschtrader.entities.IctaxExchangeRate;
 import grafioschtrader.entities.IctaxSecurityTaxData;
 import grafioschtrader.entities.TaxCountry;
 import grafioschtrader.entities.TaxSecurityYearConfig;
@@ -42,6 +45,7 @@ import grafioschtrader.entities.TaxUpload;
 import grafioschtrader.entities.TaxYear;
 import grafioschtrader.reports.SecurityDividendsReport;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsGrandTotal;
+import grafioschtrader.repository.IctaxExchangeRateJpaRepository;
 import grafioschtrader.repository.IctaxSecurityTaxDataJpaRepository;
 import grafioschtrader.repository.TaxCountryJpaRepository;
 import grafioschtrader.repository.TaxSecurityYearConfigJpaRepository;
@@ -73,32 +77,21 @@ public class TaxDataResource {
       new ValueKeyHtmlSelectOptions("AG", "AG - Aargau"),
       new ValueKeyHtmlSelectOptions("AI", "AI - Appenzell Innerrhoden"),
       new ValueKeyHtmlSelectOptions("AR", "AR - Appenzell Ausserrhoden"),
-      new ValueKeyHtmlSelectOptions("BE", "BE - Bern"),
-      new ValueKeyHtmlSelectOptions("BL", "BL - Basel-Landschaft"),
-      new ValueKeyHtmlSelectOptions("BS", "BS - Basel-Stadt"),
-      new ValueKeyHtmlSelectOptions("FR", "FR - Fribourg"),
-      new ValueKeyHtmlSelectOptions("GE", "GE - Genève"),
-      new ValueKeyHtmlSelectOptions("GL", "GL - Glarus"),
-      new ValueKeyHtmlSelectOptions("GR", "GR - Graubünden"),
-      new ValueKeyHtmlSelectOptions("JU", "JU - Jura"),
-      new ValueKeyHtmlSelectOptions("LU", "LU - Luzern"),
-      new ValueKeyHtmlSelectOptions("NE", "NE - Neuchâtel"),
-      new ValueKeyHtmlSelectOptions("NW", "NW - Nidwalden"),
-      new ValueKeyHtmlSelectOptions("OW", "OW - Obwalden"),
-      new ValueKeyHtmlSelectOptions("SG", "SG - St. Gallen"),
-      new ValueKeyHtmlSelectOptions("SH", "SH - Schaffhausen"),
-      new ValueKeyHtmlSelectOptions("SO", "SO - Solothurn"),
-      new ValueKeyHtmlSelectOptions("SZ", "SZ - Schwyz"),
-      new ValueKeyHtmlSelectOptions("TG", "TG - Thurgau"),
-      new ValueKeyHtmlSelectOptions("TI", "TI - Ticino"),
-      new ValueKeyHtmlSelectOptions("UR", "UR - Uri"),
-      new ValueKeyHtmlSelectOptions("VD", "VD - Vaud"),
-      new ValueKeyHtmlSelectOptions("VS", "VS - Valais"),
-      new ValueKeyHtmlSelectOptions("ZG", "ZG - Zug"),
+      new ValueKeyHtmlSelectOptions("BE", "BE - Bern"), new ValueKeyHtmlSelectOptions("BL", "BL - Basel-Landschaft"),
+      new ValueKeyHtmlSelectOptions("BS", "BS - Basel-Stadt"), new ValueKeyHtmlSelectOptions("FR", "FR - Fribourg"),
+      new ValueKeyHtmlSelectOptions("GE", "GE - Genève"), new ValueKeyHtmlSelectOptions("GL", "GL - Glarus"),
+      new ValueKeyHtmlSelectOptions("GR", "GR - Graubünden"), new ValueKeyHtmlSelectOptions("JU", "JU - Jura"),
+      new ValueKeyHtmlSelectOptions("LU", "LU - Luzern"), new ValueKeyHtmlSelectOptions("NE", "NE - Neuchâtel"),
+      new ValueKeyHtmlSelectOptions("NW", "NW - Nidwalden"), new ValueKeyHtmlSelectOptions("OW", "OW - Obwalden"),
+      new ValueKeyHtmlSelectOptions("SG", "SG - St. Gallen"), new ValueKeyHtmlSelectOptions("SH", "SH - Schaffhausen"),
+      new ValueKeyHtmlSelectOptions("SO", "SO - Solothurn"), new ValueKeyHtmlSelectOptions("SZ", "SZ - Schwyz"),
+      new ValueKeyHtmlSelectOptions("TG", "TG - Thurgau"), new ValueKeyHtmlSelectOptions("TI", "TI - Ticino"),
+      new ValueKeyHtmlSelectOptions("UR", "UR - Uri"), new ValueKeyHtmlSelectOptions("VD", "VD - Vaud"),
+      new ValueKeyHtmlSelectOptions("VS", "VS - Valais"), new ValueKeyHtmlSelectOptions("ZG", "ZG - Zug"),
       new ValueKeyHtmlSelectOptions("ZH", "ZH - Zürich"));
 
-  private static final Set<String> VALID_CANTON_CODES = CANTONS.stream()
-      .map(c -> c.key).collect(java.util.stream.Collectors.toUnmodifiableSet());
+  private static final Set<String> VALID_CANTON_CODES = CANTONS.stream().map(c -> c.key)
+      .collect(java.util.stream.Collectors.toUnmodifiableSet());
 
   @Autowired
   private TaxCountryJpaRepository taxCountryJpaRepository;
@@ -111,6 +104,9 @@ public class TaxDataResource {
 
   @Autowired
   private IctaxSecurityTaxDataJpaRepository ictaxSecurityTaxDataJpaRepository;
+
+  @Autowired
+  private IctaxExchangeRateJpaRepository ictaxExchangeRateJpaRepository;
 
   @Autowired
   private TaxSecurityYearConfigJpaRepository taxSecurityYearConfigJpaRepository;
@@ -146,7 +142,16 @@ public class TaxDataResource {
   @Operation(summary = "Get full tax data tree: countries → years → uploads")
   @GetMapping("/tree")
   public ResponseEntity<List<TaxCountry>> getTree() {
-    return ResponseEntity.ok(taxCountryJpaRepository.findAll());
+    List<TaxCountry> countries = taxCountryJpaRepository.findAll();
+    Map<Integer, Integer> ratesPerYear = ictaxExchangeRateJpaRepository.countGroupedByIdTaxYear().stream()
+        .collect(Collectors.toMap(row -> (Integer) row[0], row -> ((Number) row[1]).intValue()));
+    for (TaxCountry country : countries) {
+      if (country.getTaxYears() != null) {
+        country.getTaxYears()
+            .forEach(year -> year.setExchangeRateCount(ratesPerYear.getOrDefault(year.getIdTaxYear(), 0)));
+      }
+    }
+    return ResponseEntity.ok(countries);
   }
 
   @Operation(summary = "Create a new tax country node")
@@ -180,6 +185,28 @@ public class TaxDataResource {
     return ResponseEntity.ok().build();
   }
 
+  // ==================== Official exchange rates of the Kursliste ====================
+
+  @Operation(summary = "Get the official ICTax exchange rates of one tax year")
+  @GetMapping(value = "/year/{idTaxYear}/exchangerate", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<IctaxExchangeRate>> getExchangeRates(@PathVariable int idTaxYear) {
+    return ResponseEntity.ok(ictaxExchangeRateJpaRepository.findByIdTaxYearOrderByCurrency(idTaxYear));
+  }
+
+  @Operation(summary = """
+      Set or clear the manual override of one exchange rate. The imported values are never writable: the tax authority
+      publishes them and only the two override fields may be corrected, for instance when a published rate is rounded
+      too coarsely. A null override restores the imported rate.""")
+  @PutMapping(value = "/exchangerate", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<IctaxExchangeRate> updateExchangeRateOverride(@RequestBody IctaxExchangeRate exchangeRate) {
+    checkAdmin();
+    IctaxExchangeRate existing = ictaxExchangeRateJpaRepository.findById(exchangeRate.getIdIctaxExchangeRate())
+        .orElseThrow(() -> new IllegalArgumentException("Unknown exchange rate"));
+    existing.setYearEndRateOverride(exchangeRate.getYearEndRateOverride());
+    existing.setAnnualMeanRateOverride(exchangeRate.getAnnualMeanRateOverride());
+    return ResponseEntity.ok(ictaxExchangeRateJpaRepository.save(existing));
+  }
+
   @Operation(summary = "Upload zip files containing Kursliste XML + index")
   @PostMapping("/year/{idTaxYear}/upload")
   public ResponseEntity<List<TaxUpload>> uploadFiles(@PathVariable int idTaxYear,
@@ -207,16 +234,16 @@ public class TaxDataResource {
 
   @Operation(summary = "Export eCH-0196 v2.2.0 Swiss electronic tax statement as ZIP (XML + PDF)")
   @PostMapping(value = "/export/ech0196")
-  public void exportEch0196(@RequestBody TaxStatementExportRequest request,
-      HttpServletResponse response) throws Exception {
+  public void exportEch0196(@RequestBody TaxStatementExportRequest request, HttpServletResponse response)
+      throws Exception {
     if (request.getCanton() == null || !VALID_CANTON_CODES.contains(request.getCanton().toUpperCase())) {
       throw new DataViolationException("canton", "gt.tax.export.invalid.canton", null);
     }
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     int taxYear = request.getTaxYear();
 
-    List<Integer> idsSecurityaccount = (request.getIdsSecurityaccount() == null || request.getIdsSecurityaccount().isEmpty())
-        ? Collections.emptyList() : request.getIdsSecurityaccount();
+    List<Integer> idsSecurityaccount = (request.getIdsSecurityaccount() == null
+        || request.getIdsSecurityaccount().isEmpty()) ? Collections.emptyList() : request.getIdsSecurityaccount();
     SecurityDividendsGrandTotal grandTotal = securityDividendsReport
         .getSecurityDividendsGrandTotalByTenant(user.getIdTenant(), idsSecurityaccount, Arrays.asList(-1));
 
@@ -229,8 +256,7 @@ public class TaxDataResource {
     byte[] pdfBytes = ech0196PdfGenerator.generatePdf(xmlBytes, code128CBytes, pdf417Images);
 
     response.setContentType("application/zip");
-    response.setHeader("Content-Disposition",
-        "attachment; filename=\"tax_statement_" + taxYear + ".zip\"");
+    response.setHeader("Content-Disposition", "attachment; filename=\"tax_statement_" + taxYear + ".zip\"");
 
     try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
       zos.putNextEntry(new ZipEntry("tax_statement_" + taxYear + ".xml"));
@@ -274,8 +300,8 @@ public class TaxDataResource {
    * Accepts only a year the installation knows or a recent one. The composite primary key of
    * {@code tax_security_year_config} makes the toggle idempotent per triple, but it is not a bound in itself: the
    * column is a {@code SMALLINT}, so without this every one of its values would open another row per instrument. This
-   * endpoint is deliberately not admin-only - excluding an own position from an own tax statement is a tenant
-   * operation - so the key space is closed here instead.
+   * endpoint is deliberately not admin-only - excluding an own position from an own tax statement is a tenant operation
+   * - so the key space is closed here instead.
    *
    * @param taxYear the year posted by the client
    * @throws DataViolationException when the year is neither stored nor within the recent window

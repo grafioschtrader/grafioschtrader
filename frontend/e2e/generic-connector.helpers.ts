@@ -284,13 +284,14 @@ export async function setCheckbox(scope: Locator, fieldId: string, desired: bool
 
 /**
  * Selects entries in an Optimus UI p-multiSelect whose item labels are translated enum names.
- * Opens the overlay, clicks each item by its DE/EN label (or raw key), then closes with Escape.
+ * Opens the overlay, clicks each item by its DE/EN label (or raw key), then closes it via the trigger.
  */
 export async function pickMultiSelect(page: Page, scope: Locator, fieldId: string, enumNames: string[]): Promise<void> {
   if (enumNames.length === 0) {
     return;
   }
-  await scope.locator(`#${fieldId}`).first().click();
+  const trigger = scope.locator(`#${fieldId}`).first();
+  await trigger.click();
   const overlay = page.locator('.p-multiselect-overlay, .p-multiselect-panel').first();
   await overlay.waitFor({ state: 'visible', timeout: 5_000 });
   for (const name of enumNames) {
@@ -298,8 +299,13 @@ export async function pickMultiSelect(page: Page, scope: Locator, fieldId: strin
     await item.waitFor({ state: 'visible', timeout: 5_000 });
     await item.click();
   }
-  await page.keyboard.press('Escape');
-  await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
+  // Escape is consumed by the focused filter searchbox. The component also debounces trigger clicks for 150 ms.
+  await page.waitForTimeout(200);
+  await trigger.click();
+  await overlay.waitFor({ state: 'hidden', timeout: 5_000 }).catch(async () => {
+    await page.keyboard.press('Escape');
+    await overlay.waitFor({ state: 'hidden', timeout: 5_000 });
+  });
 }
 
 /**

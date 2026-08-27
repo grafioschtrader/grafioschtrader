@@ -11,11 +11,12 @@ import grafiosch.entities.GTNetEntity;
 /**
  * Base repository interface for GTNetEntity CRUD operations.
  *
- * Provides common query methods for managing GTNetEntity configurations. These entities
- * represent data type configurations (e.g., LAST_PRICE, HISTORICAL_PRICES) for specific
- * GTNet connections.
+ * Provides common query methods for managing GTNetEntity configurations. These entities represent data type
+ * configurations (e.g., LAST_PRICE, HISTORICAL_PRICES) for specific GTNet connections.
  *
- * <p>Application modules should extend this interface to add application-specific queries.</p>
+ * <p>
+ * Application modules should extend this interface to add application-specific queries.
+ * </p>
  */
 @NoRepositoryBean
 public interface GTNetEntityJpaRepositoryBase extends JpaRepository<GTNetEntity, Integer> {
@@ -31,7 +32,7 @@ public interface GTNetEntityJpaRepositoryBase extends JpaRepository<GTNetEntity,
   /**
    * Finds a specific entity configuration by GTNet and entity kind.
    *
-   * @param idGtNet the GTNet identifier
+   * @param idGtNet    the GTNet identifier
    * @param entityKind the entity kind byte value (e.g., 0=LAST_PRICE, 1=HISTORICAL_PRICES)
    * @return Optional containing the matching GTNetEntity, or empty if not found
    */

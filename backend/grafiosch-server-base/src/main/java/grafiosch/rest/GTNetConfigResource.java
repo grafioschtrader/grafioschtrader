@@ -17,9 +17,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 /**
- * REST controller for managing GTNetConfig.
- * Only update of the connectionTimeout field is supported - the entity itself is created
- * during the handshake process.
+ * REST controller for managing GTNetConfig. Only update of the connectionTimeout field is supported - the entity itself
+ * is created during the handshake process.
  *
  * Only administrators can edit GTNetConfig.
  */
@@ -37,12 +36,10 @@ public class GTNetConfigResource extends UpdateCreate<GTNetConfig> {
   }
 
   /**
-   * Updates a GTNetConfig. Only connectionTimeout can be modified by the user.
-   * Restricted to administrators only.
+   * Updates a GTNetConfig. Only connectionTimeout can be modified by the user. Restricted to administrators only.
    */
-  @Operation(summary = "Update GTNetConfig connection settings",
-      description = "Updates connectionTimeout for an existing GTNetConfig. Admin only.",
-      tags = { RequestMappings.GTNETCONFIG })
+  @Operation(summary = "Update GTNetConfig connection settings", description = "Updates connectionTimeout for an existing GTNetConfig. Admin only.", tags = {
+      RequestMappings.GTNETCONFIG })
   @PreAuthorize("hasRole('ADMIN')")
   @PutMapping(produces = APPLICATION_JSON_VALUE)
   @Override

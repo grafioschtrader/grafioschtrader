@@ -24,6 +24,13 @@ import { FilterableTable } from './filterable.table.type';
  */
 export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
   /**
+   * Marker used to indicate when click events are consumed by child components.
+   * Prevents parent components from processing already-handled click events. It lives here rather than on
+   * TableConfigBase because a tree table can host a nested table too, and both hierarchies must agree on the literal.
+   */
+  readonly consumedGT = 'consumedGT';
+
+  /**
    * Exposes FilterType enum for use in Angular templates.
    * Required for template-based filter type comparisons.
    */

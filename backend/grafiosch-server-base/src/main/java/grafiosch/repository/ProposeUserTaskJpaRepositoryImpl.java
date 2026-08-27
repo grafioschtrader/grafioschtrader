@@ -18,11 +18,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.ValueFormatConverter;
+import grafiosch.entities.EntityLimit;
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.Role;
 import grafiosch.entities.User;
-import grafiosch.entities.EntityLimit;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.service.MailExternalService;
 import grafiosch.service.SendMailInternalExternalService;
@@ -110,7 +110,7 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
    * - Extracting property data types from the model<br>
    * - Validating each proposed change field against the model structure<br>
    * - Converting and setting values to verify compatibility
-   * 
+   *
    * @param proposeUserTask the user task proposal containing fields to validate
    */
   private void checkPropertiesInModel(ProposeUserTask proposeUserTask) throws Exception {
@@ -144,10 +144,8 @@ public class ProposeUserTaskJpaRepositoryImpl extends ProposeRequestService<Prop
       return;
     }
     boolean duplicate = proposeUserTaskJpaRepository
-        .findByIdTargetUserAndUserTaskType(proposeUserTask.getIdTargetUser(),
-            UserTaskType.LIMIT_CUD_CHANGE.getValue())
-        .stream()
-        .filter(existing -> !existing.getIdProposeRequest().equals(proposeUserTask.getIdProposeRequest()))
+        .findByIdTargetUserAndUserTaskType(proposeUserTask.getIdTargetUser(), UserTaskType.LIMIT_CUD_CHANGE.getValue())
+        .stream().filter(existing -> !existing.getIdProposeRequest().equals(proposeUserTask.getIdProposeRequest()))
         .anyMatch(existing -> requestedEntity.equals(extractEntityName(existing.getProposeChangeFieldList())));
     if (duplicate) {
       throw new DataViolationException("entity.name", "g.user.entity.change.limit.request.pending",

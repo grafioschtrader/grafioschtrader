@@ -10,8 +10,8 @@ import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Public DTO for GTNet used in M2M communication via MessageEnvelope.
- * Excludes gtNetConfig which contains authentication tokens.
+ * Public DTO for GTNet used in M2M communication via MessageEnvelope. Excludes gtNetConfig which contains
+ * authentication tokens.
  */
 @Schema(description = """
     Public representation of a GTNet entry for M2M communication. Contains domain information,

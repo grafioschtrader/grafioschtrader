@@ -1,16 +1,12 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { SimpleEntityEditBase } from '../../edit/simple.entity.edit.base';
-import {
-  getResponseCodesForRequest,
-  GTNetMessageAnswer,
-  GTNetMessageAnswerCallParam,
-  REQUEST_CODES_FOR_AUTO_RESPONSE
-} from '../model/gtnet.message.answer';
+import { GTNetMessageAnswer, GTNetMessageAnswerCallParam } from '../model/gtnet.message.answer';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { MessageToastService } from '../../message/message.toast.service';
 import { HelpIds } from '../../help/help.ids';
 import { GTNetMessageAnswerService } from '../service/gtnet.message.answer.service';
+import { GTNetProtocolService } from '../service/gtnet.protocol.service';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { Subscription } from 'rxjs';
@@ -115,7 +111,8 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
     translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
-    gtNetMessageAnswerService: GTNetMessageAnswerService
+    gtNetMessageAnswerService: GTNetMessageAnswerService,
+    private gtNetProtocolService: GTNetProtocolService
   ) {
     super(
       HelpIds.HELP_GT_NET_AUTOANSWER,
@@ -149,11 +146,17 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
   }
 
   protected override initialize(): void {
-    // Setup request code options (only RR codes that support auto-response)
+    // Which codes a rule may be written for, and which answers it may send, are the backend's decision: the same
+    // registry rejects the pairing when the rule is saved.
+    this.gtNetProtocolService.whenLoaded().subscribe(() => this.initializeFromProtocol());
+  }
+
+  /** Fills the two dropdowns once the protocol is available. */
+  private initializeFromProtocol(): void {
     this.configObject.requestMsgCode.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService,
       GTNetMessageCodeType,
-      REQUEST_CODES_FOR_AUTO_RESPONSE.map((code) => GTNetMessageCodeType[code]),
+      this.gtNetProtocolService.getAutoAnswerRequestCodes().map((code) => GTNetMessageCodeType[code]),
       false
     );
 
@@ -214,8 +217,7 @@ export class GTNetMessageAnswerEditComponent extends SimpleEntityEditBase<GTNetM
       return;
     }
 
-    const requestCode = GTNetMessageCodeType[requestCodeName as keyof typeof GTNetMessageCodeType];
-    const responseCodes = getResponseCodesForRequest(requestCode);
+    const responseCodes = this.gtNetProtocolService.getAutoAnswerResponseCodes(requestCodeName);
 
     this.configObject.responseMsgCode.valueKeyHtmlOptions = SelectOptionsHelper.createHtmlOptionsFromEnum(
       this.translateService,

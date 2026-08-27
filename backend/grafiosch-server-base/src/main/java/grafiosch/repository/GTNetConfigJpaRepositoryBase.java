@@ -9,6 +9,6 @@ import grafiosch.rest.UpdateCreateJpaRepository;
  * Base repository interface for GTNetConfig entities used by the library handler infrastructure.
  */
 @NoRepositoryBean
-public interface GTNetConfigJpaRepositoryBase extends UpdateCreateJpaRepository<GTNetConfig>,
-    GTNetConfigJpaRepositoryCustom {
+public interface GTNetConfigJpaRepositoryBase
+    extends UpdateCreateJpaRepository<GTNetConfig>, GTNetConfigJpaRepositoryCustom {
 }

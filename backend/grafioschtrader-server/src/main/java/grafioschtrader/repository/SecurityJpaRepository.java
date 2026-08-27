@@ -32,44 +32,63 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
     JpaSpecificationExecutor<Security>, SecurityJpaRepositoryCustom, UpdateCreateJpaRepository<Security> {
 
 
-  List<Security> findByActiveToDateAfterAndIsinIsNotNull(LocalDate date);
+  /**
+   * Securities that may take part in the GTNet price exchange, active ones only. A private security belongs to a
+   * single tenant and is never exchanged with a peer, so it is left out here as everywhere else in GTNet.
+   *
+   * @param date securities whose activeToDate lies after this date are returned
+   * @return the active, non-private securities carrying an ISIN
+   */
+  List<Security> findByActiveToDateAfterAndIsinIsNotNullAndIdTenantPrivateIsNull(LocalDate date);
 
   /**
-   * Returns IDs of securities configured to receive intraday prices via GTNet.
+   * Securities that may take part in the GTNet price exchange, inactive ones included.
+   *
+   * @return the non-private securities carrying an ISIN
    */
-  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetLastpriceRecv = true")
+  List<Security> findByIsinIsNotNullAndIdTenantPrivateIsNull();
+
+  /**
+   * Returns IDs of securities configured to receive intraday prices via GTNet. Private securities are excluded: asking
+   * a peer for the price of an instrument one tenant keeps to itself would disclose that instrument.
+   */
+  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetLastpriceRecv = true AND s.idTenantPrivate IS NULL")
   Set<Integer> findIdsWithGtNetLastpriceRecv();
 
   /**
-   * Returns IDs of securities configured to send intraday prices via GTNet.
+   * Returns IDs of securities configured to send intraday prices via GTNet. Private securities are excluded: they
+   * belong to a single tenant and are never offered to a peer.
    */
-  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetLastpriceSend = true")
+  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetLastpriceSend = true AND s.idTenantPrivate IS NULL")
   Set<Integer> findIdsWithGtNetLastpriceSend();
 
   /**
-   * Returns IDs of securities configured to receive historical prices via GTNet.
+   * Returns IDs of securities configured to receive historical prices via GTNet. Private securities are excluded, for
+   * the reason given on {@link #findIdsWithGtNetLastpriceRecv()}.
    */
-  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetHistoricalRecv = true")
+  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetHistoricalRecv = true AND s.idTenantPrivate IS NULL")
   Set<Integer> findIdsWithGtNetHistoricalRecv();
 
   /**
-   * Returns IDs of securities configured to send historical prices via GTNet.
+   * Returns IDs of securities configured to send historical prices via GTNet. Private securities are excluded, for the
+   * reason given on {@link #findIdsWithGtNetLastpriceSend()}.
    */
-  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetHistoricalSend = true")
+  @Query("SELECT s.idSecuritycurrency FROM Security s WHERE s.gtNetHistoricalSend = true AND s.idTenantPrivate IS NULL")
   Set<Integer> findIdsWithGtNetHistoricalSend();
 
   /**
    * Finds securities modified after the given timestamp for GTNet sync.
-   * Also includes securities where gtNetLastModifiedTime is NULL (never synced before).
+   * Also includes securities where gtNetLastModifiedTime is NULL (never synced before). Private securities are
+   * excluded, because their exchange configuration is never published to a peer.
    */
-  @Query("SELECT s FROM Security s WHERE (s.gtNetLastModifiedTime > ?1 OR s.gtNetLastModifiedTime IS NULL) AND s.isin IS NOT NULL")
+  @Query("SELECT s FROM Security s WHERE (s.gtNetLastModifiedTime > ?1 OR s.gtNetLastModifiedTime IS NULL) AND s.isin IS NOT NULL AND s.idTenantPrivate IS NULL")
   List<Security> findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(LocalDateTime timestamp);
 
   /**
    * Finds all securities with GTNet send flags enabled (lastprice or historical).
-   * Used for full recreation mode where all eligible instruments are synchronized.
+   * Used for full recreation mode where all eligible instruments are synchronized. Private securities are excluded.
    */
-  @Query("SELECT s FROM Security s WHERE s.isin IS NOT NULL AND (s.gtNetLastpriceSend = true OR s.gtNetHistoricalSend = true)")
+  @Query("SELECT s FROM Security s WHERE s.isin IS NOT NULL AND s.idTenantPrivate IS NULL AND (s.gtNetLastpriceSend = true OR s.gtNetHistoricalSend = true)")
   List<Security> findAllWithGtNetSendEnabled();
 
   /**

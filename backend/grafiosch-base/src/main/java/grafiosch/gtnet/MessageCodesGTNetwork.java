@@ -3,8 +3,7 @@ package grafiosch.gtnet;
 /**
  * Simplified message codes for tracking entity data exchange availability.
  *
- * This enum contains only the data availability states needed for tracking
- * individual entity exchanges.
+ * This enum contains only the data availability states needed for tracking individual entity exchanges.
  */
 public enum MessageCodesGTNetwork {
 

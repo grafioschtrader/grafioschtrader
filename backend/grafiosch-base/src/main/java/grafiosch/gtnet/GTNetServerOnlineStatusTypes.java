@@ -3,8 +3,8 @@ package grafiosch.gtnet;
 /**
  * Defines the online status of a GTNet server instance.
  *
- * This status is used to track whether a remote GTNet instance is reachable and available for communication.
- * The status is updated based on communication attempts and explicit announcements during server startup/shutdown.
+ * This status is used to track whether a remote GTNet instance is reachable and available for communication. The status
+ * is updated based on communication attempts and explicit announcements during server startup/shutdown.
  */
 public enum GTNetServerOnlineStatusTypes {
 
@@ -15,7 +15,14 @@ public enum GTNetServerOnlineStatusTypes {
   SOS_ONLINE((byte) 1),
 
   /** Server is offline or unreachable. */
-  SOS_OFFLINE((byte) 2);
+  SOS_OFFLINE((byte) 2),
+
+  /**
+   * The operator of this server announced that it is permanently discontinued, and the announced date has been reached.
+   * Terminal: the peer is never contacted again and neither a status check nor an inbound message may overwrite this
+   * status. An administrator can set the status back by hand, or delete the peer altogether.
+   */
+  SOS_OUT_OF_SERVICE((byte) 3);
 
   private final Byte value;
 

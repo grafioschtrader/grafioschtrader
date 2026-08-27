@@ -19,8 +19,8 @@ import org.junit.platform.suite.api.Suite;
  * below {@code frontend/e2e/lib} expects the users it creates.
  */
 @Suite
-@SelectClasses({ UserResourceTest.class, EntityLimitResourceTest.class, MailSendRecvResourceTest.class,
-    MailSettingForwardResourceTest.class, TaskDataChangeResourceTest.class })
+@SelectClasses({ UserResourceTest.class, EntityLimitResourceTest.class, GTNetAuthorizationTest.class,
+    MailSendRecvResourceTest.class, MailSettingForwardResourceTest.class, TaskDataChangeResourceTest.class })
 public class ResourceTestSuite {
 
 }

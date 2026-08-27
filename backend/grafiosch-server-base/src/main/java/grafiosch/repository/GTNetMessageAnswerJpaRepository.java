@@ -8,8 +8,8 @@ import org.springframework.data.repository.query.Param;
 import grafiosch.entities.GTNetMessageAnswer;
 import grafiosch.rest.UpdateCreateJpaRepository;
 
-public interface GTNetMessageAnswerJpaRepository
-    extends GTNetMessageAnswerJpaRepositoryBase, GTNetMessageAnswerJpaRepositoryCustom, UpdateCreateJpaRepository<GTNetMessageAnswer> {
+public interface GTNetMessageAnswerJpaRepository extends GTNetMessageAnswerJpaRepositoryBase,
+    GTNetMessageAnswerJpaRepositoryCustom, UpdateCreateJpaRepository<GTNetMessageAnswer> {
 
   /**
    * Finds all response rules for a given request message code, ordered by priority (ascending). Lower priority values

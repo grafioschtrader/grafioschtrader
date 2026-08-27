@@ -147,8 +147,10 @@ public class GTNetExchangeSyncTask implements ITask {
       }
     }
 
-    // Update timestamp after job completion (only for incremental mode)
-    if (!fullRecreation) {
+    // The timestamp is the low-water mark of the incremental window, so moving it forward after a run in which a peer
+    // failed would drop everything that changed inside that window: the next run starts after it and those items are
+    // never offered again. A failed run therefore leaves the mark where it is and the window is retried.
+    if (!fullRecreation && failCount == 0) {
       globalparametersService.updateGTNetExchangeSyncTimestamp();
     }
     log.info("GTNet exchange sync completed: {} successful, {} failed out of {} peers (fullRecreation={})",

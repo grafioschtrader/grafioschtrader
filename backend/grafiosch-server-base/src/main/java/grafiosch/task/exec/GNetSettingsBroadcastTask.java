@@ -13,13 +13,12 @@ import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskTypeBase;
 
-
 /**
  * Background task that broadcasts settings changes to all configured GTNet peers.
  *
  * When the local GTNet entity settings change (maxLimit, acceptRequest, serverState, dailyRequestLimit), this task
- * sends GT_NET_SETTINGS_UPDATED_ALL_C notifications to all peers with configured exchange. Running this as a
- * background task prevents the UI from blocking during network operations.
+ * sends GT_NET_SETTINGS_UPDATED_ALL_C notifications to all peers with configured exchange. Running this as a background
+ * task prevents the UI from blocking during network operations.
  *
  * The task is triggered by saving changes to the local GTNet entity via the frontend. Instead of sending broadcasts
  * synchronously during the save operation, a TaskDataChange is created which schedules this task for immediate
@@ -32,7 +31,6 @@ public class GNetSettingsBroadcastTask implements ITask {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
-
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;

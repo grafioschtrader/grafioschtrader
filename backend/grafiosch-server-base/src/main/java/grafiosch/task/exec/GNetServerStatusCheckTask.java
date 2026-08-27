@@ -21,12 +21,13 @@ import grafiosch.types.TaskTypeBase;
 /**
  * Background task that refreshes the online status of every configured GTNet peer.
  *
- * <p>Orchestration only — the actual probe and DB update logic lives in
- * {@link GTNetStatusCheckService} so that an administrator can trigger the same check on a
- * single peer from the UI without duplicating code.
+ * <p>
+ * Orchestration only — the actual probe and DB update logic lives in {@link GTNetStatusCheckService} so that an
+ * administrator can trigger the same check on a single peer from the UI without duplicating code.
  *
- * <p>Scheduling: one run is queued 30 seconds after application startup
- * (see {@code GTNetLifecycleListener}). The task does not schedule itself recurrently.
+ * <p>
+ * Scheduling: one run is queued 30 seconds after application startup (see {@code GTNetLifecycleListener}). The task
+ * does not schedule itself recurrently.
  */
 @Component
 public class GNetServerStatusCheckTask implements ITask {
@@ -69,6 +70,11 @@ public class GNetServerStatusCheckTask implements ITask {
 
     for (GTNet peer : allPeers) {
       if (peer.getIdGtNet().equals(myEntryId)) {
+        continue;
+      }
+      if (peer.isOutOfService() || statusCheckService.isUnderMaintenance(peer)) {
+        // Retired peers are gone for good and peers inside an announced window are deliberately left alone; counting
+        // either of them as "checked" would misreport the result of this run.
         continue;
       }
       if (peer.getGtNetConfig() == null || peer.getGtNetConfig().getTokenRemote() == null) {

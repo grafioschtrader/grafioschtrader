@@ -15,9 +15,8 @@ public interface GTNetSupplierDetailJpaRepository extends JpaRepository<GTNetSup
   Set<Integer> findIdEntityWithDetails(List<Integer> ids);
 
   /**
-   * Deletes all GTNetSupplierDetail entries for a specific GTNet peer.
-   * Uses native query so that DB-level ON DELETE CASCADE triggers cleanup of child tables
-   * (gt_net_supplier_detail_hist, gt_net_supplier_detail_last).
+   * Deletes all GTNetSupplierDetail entries for a specific GTNet peer. Uses native query so that DB-level ON DELETE
+   * CASCADE triggers cleanup of child tables (gt_net_supplier_detail_hist, gt_net_supplier_detail_last).
    *
    * @param idGtNet the GTNet peer ID whose supplier details should be deleted
    */
@@ -26,9 +25,8 @@ public interface GTNetSupplierDetailJpaRepository extends JpaRepository<GTNetSup
   void deleteByIdGtNet(Integer idGtNet);
 
   /**
-   * Finds all GTNetSupplierDetail entries for given instruments and entity kind.
-   * Used for filtering instruments when querying AC_OPEN suppliers, ensuring that
-   * only instruments a supplier is known to support are sent in requests.
+   * Finds all GTNetSupplierDetail entries for given instruments and entity kind. Used for filtering instruments when
+   * querying AC_OPEN suppliers, ensuring that only instruments a supplier is known to support are sent in requests.
    *
    * @param entityKind the entity kind (0=LAST_PRICE, 1=HISTORICAL_PRICES)
    * @param idEntities list of instrument IDs to check

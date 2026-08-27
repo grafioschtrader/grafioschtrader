@@ -154,10 +154,8 @@ export class WatchlistService
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-  addSecurityToWatchlist(idWatchlist: number, security: Security): Observable<Watchlist> {
-    const securitycurrencyLists = new SecuritycurrencyLists();
-    securitycurrencyLists.securityList = [security];
-    return this.addSecuritycurrenciesToList(idWatchlist, securitycurrencyLists);
+  addSecurityToWatchlist(idWatchlist: number, securitycurrency: Security | Currencypair): Observable<Watchlist> {
+    return this.addSecuritycurrenciesToList(idWatchlist, SecuritycurrencyLists.fromSecuritycurrency(securitycurrency));
   }
 
   getDataProviderLinkForUser(idSecuritycurrency: number, isIntraday: boolean, isSecurity: boolean): Observable<string> {

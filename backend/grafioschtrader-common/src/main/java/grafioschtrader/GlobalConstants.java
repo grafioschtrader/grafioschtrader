@@ -8,7 +8,7 @@ public class GlobalConstants extends BaseConstants {
 
   /** GT application prefix for configuration parameters. */
   public static final String GT_PREFIX = "gt.";
-  
+
   public static final String STOCK_EX_MIC_UK = "XLON";
   public static final String STOCK_EX_MIC_NASDAQ = "XNAS";
   public static final String STOCK_EX_MIC_NYSE = "XNYS";
@@ -36,12 +36,15 @@ public class GlobalConstants extends BaseConstants {
   public static final String MC_ZAR = "ZAR";
   public static final String CC_BTC = "BTC";
 
+  /** ISO country code of Switzerland, the only country for which a tax data import exists. */
+  public static final String COUNTRY_CODE_SWITZERLAND = "CH";
+
   /** Prefix for users day entity limits */
   public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
-  
+
   /** Maximum precision digits for currency exchange rates. */
   public static final int FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
-  
+
   /** Maximum fraction digits for currency exchange rates. */
   public static final int FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;
 
@@ -50,13 +53,13 @@ public class GlobalConstants extends BaseConstants {
 
   /** Daily correlation parameters: step, min value and max value. */
   public static final String CORR_DAILY = "10,20,120";
-  
+
   /** Monthly correlation parameters: step, min value and max value. */
   public static final String CORR_MONTHLY = "12,12,60";
-  
+
   /** Annual correlation parameters (not defined). */
   public static final String CORR_ANNUAL = null;
-  
+
   /** Minimum required periods for correlation calculations. */
   public static final byte REQUIRED_MIN_PERIODS = 3;
 

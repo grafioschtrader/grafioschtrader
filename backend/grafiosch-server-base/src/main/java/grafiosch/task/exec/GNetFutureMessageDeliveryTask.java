@@ -1,10 +1,7 @@
 package grafiosch.task.exec;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,15 +17,18 @@ import grafiosch.BaseConstants;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.GTNetMessage;
-import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import grafiosch.entities.GTNetMessageAttempt;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
+import grafiosch.gtnet.AcceptRequestTypes;
 import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.GNetCoreMessageCode;
-import grafiosch.gtnet.GTNetMessageCode;
-import grafiosch.gtnet.GTNetModelHelper;
+import grafiosch.gtnet.GTNetMessageCodeRegistry;
+import grafiosch.gtnet.GTNetProtocolDescriptor;
+import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
+import grafiosch.gtnet.GTNetServerStateTypes;
 import grafiosch.gtnet.GTNetTimeoutHelper;
+import grafiosch.gtnet.MessageParamDateParser;
 import grafiosch.gtnet.SendReceivedType;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.client.BaseDataClient;
@@ -52,22 +52,22 @@ import tools.jackson.databind.ObjectMapper;
  * <p>
  * This task handles delivery of broadcast messages that are future-oriented:
  * <ul>
- *   <li>GT_NET_MAINTENANCE_ALL_C (24) - Maintenance window announcements</li>
- *   <li>GT_NET_OPERATION_DISCONTINUED_ALL_C (25) - Server discontinuation notices</li>
- *   <li>GT_NET_MAINTENANCE_CANCEL_ALL_C (26) - Cancellation of maintenance</li>
- *   <li>GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C (27) - Cancellation of discontinuation</li>
+ * <li>GT_NET_MAINTENANCE_ALL_C (24) - Maintenance window announcements</li>
+ * <li>GT_NET_OPERATION_DISCONTINUED_ALL_C (25) - Server discontinuation notices</li>
+ * <li>GT_NET_MAINTENANCE_CANCEL_ALL_C (26) - Cancellation of maintenance</li>
+ * <li>GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C (27) - Cancellation of discontinuation</li>
  * </ul>
  * </p>
  *
  * <p>
  * The task performs:
  * <ul>
- *   <li>Scheduled execution every 5 hours (configurable via gt.gtnet.future.message.cron)</li>
- *   <li>Immediate execution when any of the four message types is sent</li>
- *   <li>Creates GTNetMessageAttempt entries for remotes whose handshake completed after the message</li>
- *   <li>Delivers pending messages (hasSend = false) to their targets</li>
- *   <li>Handles cancellation logic - deletes pending attempts if original not yet delivered</li>
- *   <li>Cleans up entries when message dates are in the past</li>
+ * <li>Scheduled execution every 5 hours (configurable via gt.gtnet.future.message.cron)</li>
+ * <li>Immediate execution when any of the four message types is sent</li>
+ * <li>Creates GTNetMessageAttempt entries for remotes whose handshake completed after the message</li>
+ * <li>Delivers pending messages (hasSend = false) to their targets</li>
+ * <li>Handles cancellation logic - deletes pending attempts if original not yet delivered</li>
+ * <li>Cleans up entries when message dates are in the past</li>
  * </ul>
  * </p>
  */
@@ -100,7 +100,6 @@ public class GNetFutureMessageDeliveryTask implements ITask {
   @Autowired
   private GTNetConfigJpaRepository gtNetConfigJpaRepository;
 
-
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
@@ -113,14 +112,16 @@ public class GNetFutureMessageDeliveryTask implements ITask {
   @Autowired
   private ObjectMapper objectMapper;
 
+  @Autowired
+  private GTNetMessageCodeRegistry messageCodeRegistry;
+
   @Override
   public ITaskType getTaskType() {
     return TaskTypeBase.GTNET_FUTURE_MESSAGE_DELIVERY;
   }
 
   /**
-   * Scheduled method that creates the delivery task.
-   * Runs at the configured cron expression (default: every 5 hours).
+   * Scheduled method that creates the delivery task. Runs at the configured cron expression (default: every 5 hours).
    */
   @Scheduled(cron = "${gt.gtnet.future.message.cron:0 0 */5 * * ?}", zone = BaseConstants.TIME_ZONE)
   public void createDeliveryTask() {
@@ -159,17 +160,52 @@ public class GNetFutureMessageDeliveryTask implements ITask {
     // Step 4: Cleanup expired messages
     int cleaned = cleanupExpiredMessages();
 
-    log.info("GTNet future message delivery completed. Delivered: {}, Cleaned: {}", delivered, cleaned);
+    // Step 5: Take peers out of service whose announced shutdown date has been reached
+    int retired = applyAnnouncedShutdowns();
+
+    log.info("GTNet future message delivery completed. Delivered: {}, Cleaned: {}, Out of service: {}", delivered,
+        cleaned, retired);
   }
 
   /**
-   * Creates GTNetMessageAttempt entries for remote instances whose handshake completed
-   * after a pending future-oriented message was created.
+   * Puts every peer whose announced shutdown date has been reached permanently out of service.
+   *
+   * <p>
+   * The date itself is cleared in the same step. It has served its purpose — the terminal status carries the fact from
+   * here on — and leaving it would make an administrator who resets the status by hand be overruled at the next run.
+   * All entity kinds of the peer are closed as well, so a supplier query that only looks at the per-kind state drops it
+   * too.
+   * </p>
+   *
+   * @return the number of peers taken out of service in this run
+   */
+  private int applyAnnouncedShutdowns() {
+    List<GTNet> due = gtNetJpaRepository.findByCloseStartDateLessThanEqual(LocalDate.now());
+    int retired = 0;
+    for (GTNet peer : due) {
+      peer.setCloseStartDate(null);
+      if (!peer.isOutOfService()) {
+        peer.setServerOnline(GTNetServerOnlineStatusTypes.SOS_OUT_OF_SERVICE);
+        peer.getGtNetEntities().forEach(entity -> {
+          entity.setServerState(GTNetServerStateTypes.SS_CLOSED);
+          entity.setAcceptRequest(AcceptRequestTypes.AC_CLOSED);
+        });
+        retired++;
+        log.info("Peer {} reached its announced shutdown date and is now out of service", peer.getDomainRemoteName());
+      }
+      gtNetJpaRepository.save(peer);
+    }
+    return retired;
+  }
+
+  /**
+   * Creates GTNetMessageAttempt entries for remote instances whose handshake completed after a pending future-oriented
+   * message was created.
    */
   private void createAttemptsForNewPartners(GTNet myGTNet) {
     // Get all future-oriented messages we sent that are still valid
-    List<GTNetMessage> futureMessages = gtNetMessageJpaRepository.findBySendRecvAndMessageCodeIn(
-        SendReceivedType.SEND.getValue(), ANNOUNCEMENT_MESSAGE_CODES);
+    List<GTNetMessage> futureMessages = gtNetMessageJpaRepository
+        .findBySendRecvAndMessageCodeIn(SendReceivedType.SEND.getValue(), ANNOUNCEMENT_MESSAGE_CODES);
 
     for (GTNetMessage message : futureMessages) {
       // Skip if message dates are in the past
@@ -195,22 +231,20 @@ public class GNetFutureMessageDeliveryTask implements ITask {
         if (existing.isEmpty()) {
           GTNetMessageAttempt attempt = new GTNetMessageAttempt(config.getIdGtNet(), message.getIdGtNetMessage());
           gtNetMessageAttemptJpaRepository.save(attempt);
-          log.info("Created GTNetMessageAttempt for new partner {} for message {}",
-              config.getIdGtNet(), message.getIdGtNetMessage());
+          log.info("Created GTNetMessageAttempt for new partner {} for message {}", config.getIdGtNet(),
+              message.getIdGtNetMessage());
         }
       }
     }
   }
 
   /**
-   * Processes cancellation messages. For recipients who haven't received the original
-   * message, both attempts are deleted. For recipients who received the original,
-   * the cancellation is queued for delivery.
+   * Processes cancellation messages. For recipients who haven't received the original message, both attempts are
+   * deleted. For recipients who received the original, the cancellation is queued for delivery.
    */
   private void processCancellationMessages() {
     List<GTNetMessage> cancellationMessages = gtNetMessageJpaRepository.findBySendRecvAndMessageCodeIn(
-        SendReceivedType.SEND.getValue(),
-        List.of(GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue(),
+        SendReceivedType.SEND.getValue(), List.of(GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue(),
             GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue()));
 
     for (GTNetMessage cancellation : cancellationMessages) {
@@ -230,12 +264,12 @@ public class GNetFutureMessageDeliveryTask implements ITask {
         if (originalAttempt.isPresent()) {
           if (!originalAttempt.get().isHasSend()) {
             // Original not yet delivered - delete both attempts, send neither
-            gtNetMessageAttemptJpaRepository.deleteByIdGtNetMessageAndIdGtNet(
-                originalMessageId, cancellationAttempt.getIdGtNet());
-            gtNetMessageAttemptJpaRepository.deleteByIdGtNetMessageAndIdGtNet(
+            gtNetMessageAttemptJpaRepository.deleteByIdGtNetMessageAndIdGtNet(originalMessageId,
+                cancellationAttempt.getIdGtNet());
+            gtNetMessageAttemptJpaRepository.deleteByIdGtNetMessageAndIdGtNet(cancellation.getIdGtNetMessage(),
+                cancellationAttempt.getIdGtNet());
+            log.info("Deleted pending original {} and cancellation {} for target {} (neither sent)", originalMessageId,
                 cancellation.getIdGtNetMessage(), cancellationAttempt.getIdGtNet());
-            log.info("Deleted pending original {} and cancellation {} for target {} (neither sent)",
-                originalMessageId, cancellation.getIdGtNetMessage(), cancellationAttempt.getIdGtNet());
           }
           // If original was delivered (hasSend = true), keep cancellation for delivery
         }
@@ -289,9 +323,13 @@ public class GNetFutureMessageDeliveryTask implements ITask {
 
         GTNet targetGTNet = targetOpt.get();
 
+        // A peer that has gone out of service is never contacted again; its pending attempts die with the cleanup.
+        if (targetGTNet.isOutOfService()) {
+          continue;
+        }
+
         // Check if handshake is complete (tokenRemote exists)
-        if (targetGTNet.getGtNetConfig() == null ||
-            targetGTNet.getGtNetConfig().getTokenRemote() == null) {
+        if (targetGTNet.getGtNetConfig() == null || targetGTNet.getGtNetConfig().getTokenRemote() == null) {
           continue; // Not counted as fail - handshake may complete later
         }
 
@@ -317,9 +355,9 @@ public class GNetFutureMessageDeliveryTask implements ITask {
   /**
    * Updates the deliveryStatus on a GTNetMessage based on delivery results.
    *
-   * @param message      the message to update
-   * @param successCount number of successful deliveries
-   * @param failCount    number of failed deliveries
+   * @param message       the message to update
+   * @param successCount  number of successful deliveries
+   * @param failCount     number of failed deliveries
    * @param totalAttempts total number of attempts processed
    */
   private void updateMessageDeliveryStatus(GTNetMessage message, int successCount, int failCount, int totalAttempts) {
@@ -329,14 +367,14 @@ public class GNetFutureMessageDeliveryTask implements ITask {
       // At least one successful delivery
       message.setDeliveryStatus(DeliveryStatus.DELIVERED);
       gtNetMessageJpaRepository.save(message);
-      log.debug("Updated message {} deliveryStatus to DELIVERED (success: {}, fail: {})",
-          message.getIdGtNetMessage(), successCount, failCount);
+      log.debug("Updated message {} deliveryStatus to DELIVERED (success: {}, fail: {})", message.getIdGtNetMessage(),
+          successCount, failCount);
     } else if (successCount == 0 && failCount == totalAttempts && failCount > 0) {
       // All attempts failed
       message.setDeliveryStatus(DeliveryStatus.FAILED);
       gtNetMessageJpaRepository.save(message);
-      log.warn("Updated message {} deliveryStatus to FAILED (all {} attempts failed)",
-          message.getIdGtNetMessage(), failCount);
+      log.warn("Updated message {} deliveryStatus to FAILED (all {} attempts failed)", message.getIdGtNetMessage(),
+          failCount);
     }
   }
 
@@ -358,34 +396,36 @@ public class GNetFutureMessageDeliveryTask implements ITask {
 
       if (result.isFailed()) {
         log.warn("Failed to deliver message {} to {}: httpError={}, statusCode={}, reachable={}, errorMsg={}",
-            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(),
-            result.httpError(), result.httpStatusCode(), result.serverReachable(), result.errorMessage());
+            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(), result.httpError(), result.httpStatusCode(),
+            result.serverReachable(), result.errorMessage());
         return false;
       }
 
-      if (!result.isDelivered()) {
-        log.warn("Message {} to {} not delivered: server reachable but response was null or invalid",
-            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName());
+      if (!result.isAccepted()) {
+        // The bytes may well have arrived: the HTTP status is 200 for every protocol outcome, so a refusal shows only
+        // in the answering code. Counting one as sent would retire an attempt the peer never processed.
+        log.warn("Message {} to {} not accepted: response was null, invalid, or an error ({})",
+            message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(),
+            result.response() != null ? result.response().errorMsgCode : null);
         return false;
       }
 
       return true;
     } catch (Exception e) {
-      log.warn("Failed to send message {} to {}: {}", message.getIdGtNetMessage(),
-          targetGTNet.getDomainRemoteName(), e.getMessage());
+      log.warn("Failed to send message {} to {}: {}", message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(),
+          e.getMessage());
       return false;
     }
   }
 
   /**
-   * Builds the payload model for a message based on its parameters.
-   * Converts message parameters to a Map that can be serialized as JSON payload.
+   * Builds the payload model for a message based on its parameters. Converts message parameters to a Map that can be
+   * serialized as JSON payload.
    */
   private Object buildPayloadModel(GTNetMessage message) {
-    GTNetMessageCode codeType = GNetCoreMessageCode.getMessageCodeByValue(message.getMessageCodeValue());
-    GTNetModelHelper.GTNetMsgRequest msgRequest = GTNetModelHelper.getMsgClassByMessageCode(codeType);
+    GTNetProtocolDescriptor descriptor = messageCodeRegistry.getDescriptor(message.getMessageCodeValue());
 
-    if (msgRequest == null || msgRequest.model == null) {
+    if (descriptor == null || descriptor.model() == null) {
       return null;
     }
 
@@ -395,7 +435,7 @@ public class GNetFutureMessageDeliveryTask implements ITask {
           .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getParamValue()));
 
       // Convert the map to the typed model class using ObjectMapper
-      return objectMapper.convertValue(paramValues, msgRequest.model);
+      return objectMapper.convertValue(paramValues, descriptor.model());
     } catch (Exception e) {
       log.warn("Failed to build payload model for message {}: {}", message.getIdGtNetMessage(), e.getMessage());
       return null;
@@ -411,8 +451,8 @@ public class GNetFutureMessageDeliveryTask implements ITask {
     int cleaned = 0;
 
     // Find all announcement messages we sent
-    List<GTNetMessage> announcementMessages = gtNetMessageJpaRepository.findBySendRecvAndMessageCodeIn(
-        SendReceivedType.SEND.getValue(), ANNOUNCEMENT_MESSAGE_CODES);
+    List<GTNetMessage> announcementMessages = gtNetMessageJpaRepository
+        .findBySendRecvAndMessageCodeIn(SendReceivedType.SEND.getValue(), ANNOUNCEMENT_MESSAGE_CODES);
 
     for (GTNetMessage message : announcementMessages) {
       if (isMessageExpired(message)) {
@@ -433,41 +473,12 @@ public class GNetFutureMessageDeliveryTask implements ITask {
 
   /**
    * Checks if a message is expired (its effective date has passed).
+   *
+   * @param message the sent announcement to test
+   * @return true when the window has ended or the shutdown date has passed
    */
   private boolean isMessageExpired(GTNetMessage message) {
-    GTNetMessageCode codeType = GNetCoreMessageCode.getMessageCodeByValue(message.getMessageCodeValue());
-
-    if (codeType == GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C) {
-      // Check toDateTime
-      GTNetMessageParam toDateTimeParam = message.getGtNetMessageParamMap().get("toDateTime");
-      if (toDateTimeParam != null && toDateTimeParam.getParamValue() != null) {
-        try {
-          String value = toDateTimeParam.getParamValue();
-          LocalDateTime toDateTime;
-          if (value.endsWith("Z")) {
-            toDateTime = LocalDateTime.ofInstant(Instant.parse(value), ZoneOffset.UTC);
-          } else {
-            toDateTime = LocalDateTime.parse(value);
-          }
-          return toDateTime.isBefore(LocalDateTime.now());
-        } catch (Exception e) {
-          log.warn("Failed to parse toDateTime for message {}: {}", message.getIdGtNetMessage(), e.getMessage());
-        }
-      }
-    } else if (codeType == GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
-      // Check closeStartDate
-      GTNetMessageParam closeStartDateParam = message.getGtNetMessageParamMap().get("closeStartDate");
-      if (closeStartDateParam != null && closeStartDateParam.getParamValue() != null) {
-        try {
-          LocalDate closeStartDate = LocalDate.from(DateTimeFormatter.ISO_DATE_TIME.parse(closeStartDateParam.getParamValue()));
-          return closeStartDate.isBefore(LocalDate.now());
-        } catch (Exception e) {
-          log.warn("Failed to parse closeStartDate for message {}: {}", message.getIdGtNetMessage(), e.getMessage());
-        }
-      }
-    }
-
-    return false;
+    return MessageParamDateParser.isAnnouncementExpired(message);
   }
 
   /**

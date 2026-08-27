@@ -94,6 +94,16 @@ that list.
 dialog. Both search modes retain existing rows and add only missing instruments, so 070 is safe to rerun. Specs 045,
 050, 060, 065, and 067 consume their `alledit` watchlists but do not create them.
 
+## Currency-pair creation spec (045-*)
+
+`045-create-currencypair.spec.ts` creates the rows tagged `e2e='e'` in
+`backend/grafioschtrader-server/src/test/resources/testdata/currencypair.csv` and adds them to `alledit`'s retained
+`currencypair` watchlist. A rerun accepts an existing watchlist row; if the pair exists globally but is absent from
+the watchlist, the spec adds it through the existing-instrument dialog. Creation involves two sequential writes:
+`POST /api/currencypair`, followed by `PUT /api/watchlist/{id}/addSecuritycurrency`. The spec explicitly awaits the
+second response before waiting for the refreshed row, so a failed association is not misreported as a rendering
+timeout.
+
 ## Security creation spec (050-*)
 
 `050-create-security.spec.ts` recreates the Spanish rows tagged `e2e='e'` in
@@ -649,6 +659,100 @@ including its years and uploads before creating, so it is re-runnable against th
 `grafioschtrader_t` without a reset; the file nodes are removed first so their stored zips go with
 them.
 
+The first test also expands the tax year and checks the official exchange rates that the Kursliste
+carries beside the securities: the year-end rate of `USD` must read `0.79225` and the denomination of
+`JPY` must be `100`, because the tax authority quotes the yen per 100 units. Those rates are imported
+in full, independently of the ISIN filter, so their count does not follow the record count of the
+upload. The check is repeated after the diff upload, since a differential Kursliste carries no
+exchange rates at all and must not remove the ones already imported.
+
+`nodeRow` addresses the name cell through the tree toggler it contains (`td:has(p-treetabletoggler)`)
+rather than by column position. The expansion toggle of a tax year is a leading cell, and while it was
+being introduced it shifted the name out of the first column and broke every selector of this spec at
+once.
+
+## GTNet exchange-flag spec (175-*)
+
+`175-gtnet-exchange-flags.spec.ts` covers `gtnet-exchange-securities` and `gtnet-exchange-currencypairs`: the
+four checkbox columns `gtNetLastpriceRecv`, `gtNetHistoricalRecv`, `gtNetLastpriceSend` and
+`gtNetHistoricalSend`, the header toggle strip that flips a whole column, and the batch save through
+`POST /api/security/gtnetexchange/batch` resp. `/api/currencypair/gtnetexchange/batch`. The flags are columns of
+`securitycurrency`, not rows of a join table, so no GTNet own entry and no peer is needed; the menu is gated
+only by `useGtnet()`. It logs in as `admin`, reads no fixture and works with whatever instruments `050` and
+`045` left behind.
+
+Two things it has to take care of, and one it must not do:
+
+- **Nothing else resets the flags.** Neither `844` nor `888` touches them, so the spec clears all four on every
+  security and currency pair **at the start** of its run and again at the end. Without that a rerun would read
+  the previous run's state, and a later spec reading `gtNetLastpriceSend` would see stale data.
+- **The cells carry no id.** Both the row cells and the header strip are unlabelled `p-checkbox` elements, so
+  they are addressed by column position in the order above. In the securities table the two `*Lastprice*` cells
+  of a security whose `activeToDate` has passed are disabled, and the header toggle skips them.
+- **It must never run against an operational peer.** Leaving the page after a successful save calls
+  `POST /api/security/gtnetexchange/triggersync` from `ngOnDestroy`, which enqueues `GTNET_EXCHANGE_SYNC`. On an
+  instance without an own GTNet entry that task finds nothing to do; on an operational peer it would start a real
+  exchange.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/175-gtnet-exchange-flags.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## GTNet security-import spec (180-*)
+
+`180-gtnet-security-import.spec.ts` covers the tenant-private import staging area: the
+`gtnet-security-import-edit-head` dialog (`input#name`, `textarea#note`), the inline row editor of the position
+table, and its CSV upload. Like `175` it needs neither an own GTNet entry nor a peer.
+
+The head is a non-modal `dynamic-form` whose CRUD entries sit in the context menu of the surrounding
+`.data-container`, and the positions are an `editable-table` with **per-row** persistence — the pencil opens a
+row, the check posts it to `/api/gtnetsecurityimppos`. A row without an ISIN _and_ without a ticker symbol is
+refused by `onRowEditSave` before any request goes out. The CSV upload reuses the shared `upload-file-dialog`,
+so the file input is `input[type=file]#fileToUpload` and its submit button is labelled `UPLOAD`, not `SAVE`.
+The inline controls expose their column through `data-field`; after a new row is saved, the component replaces the
+temporary-keyed row with the server response so Optimus does not reuse its editor bindings for the next append.
+
+Volumes stay far inside the limits seeded in `V4__seed_entity_limits.sql` (200 `GTNetSecurityImpHead` per
+tenant, 200 `GTNetSecurityImpPos` per head). The spec owns exactly one import set, addressed by its name, and
+deletes it with its positions both before the first test and after the last, so an interrupted run is
+repeatable against the same `grafioschtrader_t`.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/180-gtnet-security-import.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## Propose data-change spec (185-*)
+
+`185-propose-data-change.spec.ts` covers the complete approval workflow for shared entities. Its hand-authored
+`backend/grafioschtrader-server/src/test/resources/testdata/propose_data_change.json` fixture identifies users,
+watchlists, entities and referenced rule sets only by natural keys and carries the baseline and proposed values of
+every changed field. The shape is deliberately an array so proposal scenarios share the same loader and three-stage
+workflow while entity-specific drivers open and verify the correct editor.
+
+The current scenario uses Repsol (`ES0173516115` / EUR) in `limit1`'s `Hauptliste`, which is created and populated by
+the earlier watchlist and security specs. `limit1` changes the intraday connector from Finanzen Net to Yahoo USA
+Finance and proposes `REP.MC`; `alledit`, the creator of that shared security, accepts the request; then `limit1`
+checks the accepted state and response note in "Your data change requests". The spec verifies the proposal fields and
+the persisted Security through REST in addition to driving all three user actions through the UI.
+
+The second scenario uses the JUnit-created Vienna Stock Exchange (`XVIE`) and its `Wiener Boerse (XVIE)` trading
+calendar rule set. The backend fixture deliberately creates XVIE with a random user, so the spec resolves the owner at
+runtime and selects whichever of `limit1` and `limit2` is not the owner to propose assigning the previously empty
+rule-set field; `alledit` accepts it, and the selected proposer checks the accepted request. The rule-set database id
+is resolved from the select options at runtime and is never stored in the fixture. The spec explicitly waits for the
+proposal note and button before editing, so an ownership regression fails as a proposal-mode precondition instead of
+timing out on a hidden textarea.
+
+At startup each scenario deletes only its matching leftover proposal and restores its entity as `alledit`; for XVIE,
+both possible proposer accounts are cleaned before selecting the non-owner. It also removes only non-running
+connector-refresh tasks for the Security or rule-set calendar rebuild tasks for XVIE as `admin`; restoring XVIE
+through the Stockexchange REST endpoint removes any derived rule calendar rows. Consequently both manually entered
+accepted requests and an interrupted prior run are safe to retry without resetting `grafioschtrader_t`. After the
+last assertion, the spec deletes its accepted request, restores the entity baseline, and removes its queued refresh
+task, with REST assertions confirming each cleanup. XVIE and `Wiener Boerse` are seeded by the numbered backend suite,
+so spec 185 must remain after that prerequisite.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/185-propose-data-change.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Reusable library suite
 
 Start the services in separate terminals:
@@ -685,6 +789,169 @@ things that differ (which
 `src/app/lib` when the library is extracted. The one screen the library cannot supply is the tenant page — `TenantBase`
 is extended per application — so `registerAndSetupTenant` takes it as a callback, filled by `setupGtTenant` here and by
 `setupGrafioschTenant` in `e2e/lib/auth.setup.ts`.
+
+### GTNet specs of the library suite (040-_, 045-_, 060-_, 065-_, 070-*)
+
+The complete library GTNet UI is routed by `grafiosch-host`, and since the M2M endpoint and the GTNet
+data export moved into `grafiosch-server-base` the standalone backend serves all of it. Five specs drive
+the forms that need no second instance; the two-sided approval flows and the two forms whose row only a
+handshake or a data-request accept can create (`gtnet-config-edit`, `gtnet-config-entity-edit`) belong to
+the two-peer suite.
+
+**`050` and `055` are deliberately unused.** They were meant for `gtnet-config-edit` and
+`gtnet-config-entity-edit`, and neither form can be opened on a single instance. A `gt_net_config` row is
+written only by a handshake — `FirstHandshakeRequestHandler`, and the two handshake-accept branches of
+`GTNetJpaRepositoryImpl` — and the setup table disables that menu entry with
+`disabled: !selectedEntity?.gtNetConfig`. A `gt_net_config_entity` row is written only by a data-request
+accept — `AbstractDataRequestHandler` and `updateEntityForReceive` — and the nested entity table renders
+only when `hasConfigEntity(row)`. Both forms therefore belong to the two-peer suite, where a real
+handshake and a real data-request accept produce the rows they edit. The two numbers are **not reserved**:
+a future library spec may take them.
+
+| Spec                       | Form under test                                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `040-gtnet-own-entry`      | `gtnet-edit`, own entry: the base settings and the batch table over the registered exchange kinds     |
+| `045-gtnet-remote-entry`   | `gtnet-edit`, remote entry (only `domainRemoteName`), and the edit/delete rights of the two row kinds |
+| `060-gtnet-message-answer` | `gtnet-message-answer-edit`, including a condition composed through the variable picker               |
+| `065-gtnet-export-import`  | `GT_NET_EXPORT` / `GT_NET_IMPORT` of the setup table's _View_ menu, as a round trip                   |
+| `070-gtnet-teardown`       | deletes the peers and auto-answer rules of the four above; the own entry is preserved                 |
+
+**`GTNET_OWN_URL` is mandatory.** `GTNetJpaRepositoryImpl.isDomainNameThisMachine` walks the local network
+interfaces and **skips every loopback one**, so an own entry registered as `localhost` or `127.0.0.1` is never
+recognised as this instance and `g.gnet.my.entry.id` is never written. The very first `gt_net` insert
+additionally probes the URL through `BaseDataClient.getActuatorInfo`, so the host has to hairpin to its own
+address. `scripts/e2e-test.mjs` resolves the first private IPv4 that accepts a TCP connection on the backend
+port and exports the variable; the specs throw when it is missing. **The local firewall has to allow the host
+to connect to its own LAN address on port 8081.**
+
+Two consequences of that address being permanent:
+
+- `040` creates the own entry on the first run and _edits_ it afterwards, so the suite is rerunnable without a
+  database reset. But `domainRemoteName` is `@PropertyOnlyCreation` and disabled on update: if the host's
+  address changes, the entry can be repaired through neither the UI nor REST and `040` fails saying so. The
+  escalation is dropping and recreating `grafiosch_t` — the only reset that also clears `g.gnet.my.entry.id`.
+- `070` never deletes the own entry; `deleteGTNet` refuses it with `gt.gtnet.cannot.delete.own.entry`.
+
+`045` registers its peer as `http://192.0.2.10:8082` — RFC 5737 TEST-NET-1, which can never be a local
+interface, so the identity cannot be stolen by it. No reachability probe fires for it, because
+`saveOnlyAttributes` only probes while `gtNetJpaRepository.count() == 0`.
+
+All five log in as `admin`, which is tagged `e2e: "i"` and therefore created by the backend `ResourceTestSuite`
+— run that against `grafiosch_t` first, as `e2eTest --lib` does. `020-nickname-lang-edit` switches that user to
+`de-CH`, so a full run renders German and a lone spec against a fresh database renders English; every text
+selector matches both plus the raw NLS key.
+
+Also note that the exchange kinds the batch table of `040` shows come from `IntegrationExchangeKindType` in
+`grafiosch-test-integration`, not from Grafioschtrader: registering exchange kinds is an application
+obligation, and a host with an empty `ExchangeKindTypeRegistry` renders no batch table at all.
+
+To run one of them by hand against the already-running library stack:
+
+```bash
+# frontend/ — resolve the address once, then run the single spec
+node ../scripts/gtnet-peer-address.mjs 8081
+GTNET_OWN_URL=http://<that address> npx playwright test e2e/lib/040-gtnet-own-entry.spec.ts --config=playwright.lib.config.ts --no-deps
+```
+
+Recovery after a failure: delete only the rows that spec owns — `DELETE /api/gtnet/<id>` for a peer,
+`DELETE /api/gtnetmessageanswer/<id>` for a rule — and rerun. Drop `grafiosch_t` only when the own entry ended
+up with the wrong `domainRemoteName`.
+
+### Two-peer GTNet suite (075-099)
+
+`e2eTest.cmd --gtnet-lib` / `./e2eTest.sh --gtnet-lib` owns an isolated topology: library backends on
+8081 and 8082, databases `grafiosch_t` and `grafiosch_t1`, and standalone frontends on 4201 and 4202. `--gtnet`
+runs this suite and then the application-peer suite below, one after the other because both claim port 8082.
+Neither runs the default or the single-peer library suite, and `--all` retains its existing main-plus-library
+meaning. Both automatic workers and all GTNet crons are disabled during deterministic phases. After those
+phases, peer B is restarted once with `g.background.worker.enabled=true` for `099-worker-pickup`.
+
+The global setup registers `admin`, `alledit` and `limited` independently through each peer's public UI,
+verifies each mail through MailHog/Mailpit, creates each tenant, and assigns the intended roles through user
+administration. The specs then use separate browser contexts and login sessions:
+
+| Spec                        | Coverage                                                                    |
+| --------------------------- | --------------------------------------------------------------------------- |
+| `075-peer-bootstrap`        | own and reciprocal peer entries on both databases                           |
+| `080-handshake-rejection`   | explicit first-handshake rejection                                          |
+| `085-handshake-token`       | accepted handshake, bidirectional authorization, public token secrecy       |
+| `086-data-request-approval` | two-sided data-request approval from the message tree of the answering peer |
+| `087-config-ui`             | handshake-created `GTNetConfig.connectionTimeout`                           |
+| `089-config-entity-ui`      | backend-provided kind names and data-request-created config entity          |
+| `090-admin-message-ui`      | multi-target, admin-only message send                                       |
+| `095-exchange-log-ui`       | registry-driven tabs and exchange-log table                                 |
+| `099-worker-pickup`         | queued task pickup after the single worker-enabled restart                  |
+
+For a focused rerun, keep all four services running with the profiles and databases above, export
+`GTNET_PEER_A_OWN_URL` and `GTNET_PEER_B_OWN_URL` using `scripts/gtnet-peer-address.mjs`, and set
+`GTNET_SKIP_BOOTSTRAP=true` when the users already exist. For example:
+
+```bash
+GTNET_PEER_A_FRONTEND_URL=http://localhost:4201 \
+GTNET_PEER_B_FRONTEND_URL=http://localhost:4202 \
+GTNET_PEER_A_BACKEND_URL=http://localhost:8081 \
+GTNET_PEER_B_BACKEND_URL=http://localhost:8082 \
+GTNET_PEER_A_OWN_URL=http://<address>:8081 \
+GTNET_PEER_B_OWN_URL=http://<address>:8082 \
+GTNET_SKIP_BOOTSTRAP=true \
+npx playwright test e2e/gtnet/087-config-ui.spec.ts --config=playwright.gtnet.config.ts
+```
+
+The client-only JUnit suite runs against those same processes and starts no Spring context:
+
+```bash
+# backend/
+mvn test -pl grafiosch-test-integration -Dtest=GTNetLibraryPeerTestSuite
+```
+
+Every focused test must reconcile only the remote rows, answer or delete pending request-response messages,
+and preserve the own entry. Recreate both databases when an own address is wrong or the graph can no longer be
+untangled.
+
+### Two-peer GTNet application suite (070-075)
+
+`e2eTest.cmd --gtnet-app` / `./e2eTest.sh --gtnet-app` owns the second isolated topology: Grafioschtrader
+backends on 8080 and 8082, databases `grafioschtrader_t` and `grafioschtrader_t1`, and frontends on 4200 and 4202. It exists for the payload codes 60-95, which reach the registries only after `GTStartUp` has run, so a
+library peer cannot carry them.
+
+Both peers start with `spring-boot:test-run` and the profile chain `e2e,e2e-gtnet` - peer B adds `e2e-peer`.
+`application-e2e-gtnet.properties` is what makes them deterministic: it disables the AJP connector, without
+which a second application JVM cannot bind 9090 at all, switches off the background worker, and pins every
+price, calendar and GTNet cron to `-`. The one-time database grant is
+`GRANT ALL PRIVILEGES ON grafioschtrader_t1.* TO 'grafioschtrader_t1'@'localhost';`.
+
+| Spec                         | Coverage                                                           |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `070-peer-bootstrap`         | own and reciprocal entries plus the handshake on both databases    |
+| `075-exchange-kind-approval` | exchange-kind approval and the `GTNET_EXCHANGE_SYNC` row it queues |
+
+Almost all payload coverage is JUnit rather than browser, because two full application peers are expensive:
+
+```bash
+# backend/
+mvn test -pl grafioschtrader-server -Dtest=GTNetApplicationPeerTestSuite
+```
+
+That suite is client-only as well and drives the programmatic codes through a synthetic peer, which is the
+only way to reach them: `getAvailableMessageCodes()` offers core codes only, so no payload code is sendable
+from the message dialog, and the frontend message-code enum stops at 93, so 85/86 and 94/95 have no UI
+representation at all. Its instruments come from
+`backend/grafioschtrader-server/src/test/resources/testdata/gtnet_peer_instruments.json`, addressed by ISIN
+plus currency because the ids differ between the two databases.
+
+For a focused rerun, keep all four services running and export the same peer variables as above, with the
+application ports:
+
+```bash
+GTNET_PEER_A_FRONTEND_URL=http://localhost:4200 \
+GTNET_PEER_B_FRONTEND_URL=http://localhost:4202 \
+GTNET_PEER_A_BACKEND_URL=http://localhost:8080 \
+GTNET_PEER_B_BACKEND_URL=http://localhost:8082 \
+GTNET_PEER_A_OWN_URL=http://<address>:8080 \
+GTNET_PEER_B_OWN_URL=http://<address>:8082 \
+GTNET_SKIP_BOOTSTRAP=true \
+npx playwright test e2e/gtnet-app/075-exchange-kind-approval.spec.ts --config=playwright.gtnet-app.config.ts
+```
 
 ### Users of the library suite
 

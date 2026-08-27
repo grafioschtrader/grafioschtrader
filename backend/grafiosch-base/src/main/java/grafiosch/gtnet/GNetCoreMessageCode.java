@@ -1,23 +1,29 @@
 package grafiosch.gtnet;
 
-
-
 /**
  * Core protocol message codes for GNet peer-to-peer communication.
  *
- * This enum defines the fundamental protocol messages (codes 0-54) that are part of the
- * GNet library. Application-specific message codes (60+) should be defined in separate
- * enums that implement {@link GTNetMessageCode}.
+ * This enum defines the fundamental protocol messages (codes 0-54) that are part of the GNet library.
+ * Application-specific message codes (60+) are defined in separate enums that implement {@link GTNetMessageCode}.
+ *
+ * <p>
+ * The name of a constant describes nothing the system relies on. What each code means — its category, the answers it
+ * accepts, its payload, whether a person may send it — is declared once in {@code CoreProtocolDescriptors} and read
+ * from {@code GTNetMessageCodeRegistry}.
+ * </p>
  *
  * <h3>Message Code Ranges</h3>
- * <ul>T
- *   <li><b>0</b>: Ping/health check</li>
- *   <li><b>1-4</b>: Handshake protocol</li>
- *   <li><b>10-13</b>: Server list exchange</li>
- *   <li><b>20-28</b>: Status announcements (offline, maintenance, discontinued)</li>
- *   <li><b>30-34</b>: Admin-to-admin messaging</li>
- *   <li><b>50-54</b>: Data exchange negotiation</li>
- *   <li><b>60+</b>: Reserved for application-specific messages</li>
+ * <ul>
+ * <li><b>0</b>: Ping/health check</li>
+ * <li><b>1-4</b>: Handshake protocol</li>
+ * <li><b>5-7</b>: Token refresh</li>
+ * <li><b>10-13</b>: Server list exchange</li>
+ * <li><b>20, 24-28</b>: Status announcements (offline, maintenance, discontinued, settings)</li>
+ * <li><b>21-23</b>: Protocol outcomes (acknowledged, deferred, error)</li>
+ * <li><b>29</b>: Rate limiting</li>
+ * <li><b>30</b>: Admin-to-admin messaging</li>
+ * <li><b>50-54</b>: Data exchange negotiation</li>
+ * <li><b>60+</b>: Reserved for application-specific messages</li>
  * </ul>
  *
  * @see GTNetMessageCode for the common interface
@@ -25,9 +31,8 @@ package grafiosch.gtnet;
 public enum GNetCoreMessageCode implements GTNetMessageCode {
 
   /**
-   * Lightweight health check used on server startup to verify peer reachability.
-   * When a peer receives a ping and responds, both sides automatically update
-   * each other's online status.
+   * Lightweight health check used on server startup to verify peer reachability. When a peer receives a ping and
+   * responds, both sides automatically update each other's online status.
    */
   GT_NET_PING((byte) 0),
 
@@ -75,7 +80,7 @@ public enum GNetCoreMessageCode implements GTNetMessageCode {
   /** Server has gone offline - may restart or shut down */
   GT_NET_OFFLINE_ALL_C((byte) 20),
 
-  // Admin messages (30-34)
+  // Admin messages (30)
   // Note: byte value 31 was used by GT_NET_ADMIN_MESSAGE_ALL_C (deprecated) - do not reuse
 
   /** Admin message sent to a specific GTNet domain (targeted or multi-target via background job) */
@@ -95,6 +100,38 @@ public enum GNetCoreMessageCode implements GTNetMessageCode {
 
   /** Server settings have been updated (dailyRequestLimit, acceptRequest, serverState, maxLimit) */
   GT_NET_SETTINGS_UPDATED_ALL_C((byte) 28),
+
+  // Protocol outcomes (21-23)
+
+  /**
+   * The message was received and fully processed and no reply follows. It is what an announcement or a one-way message
+   * is answered with, and it says nothing beyond "this arrived and was dealt with". It is never a valid reply to a
+   * request that expects a semantic answer.
+   */
+  GT_NET_ACK_S((byte) 21),
+
+  /**
+   * The message was accepted but not answered: an administrator has to decide, and the real response arrives later as a
+   * message of its own. The sender keeps the request open — a deferred acknowledgement must never be recorded as the
+   * reply that closes it.
+   */
+  GT_NET_DEFERRED_S((byte) 22),
+
+  /**
+   * The message was not processed. {@code MessageEnvelope.errorMsgCode} carries the stable reason, so the sender can
+   * tell a malformed envelope from a refused one without parsing free text.
+   */
+  GT_NET_ERROR_S((byte) 23),
+
+  // Rate limiting (29)
+
+  /**
+   * The remote has used up the daily request budget this server grants it. The budget is
+   * {@link grafiosch.entities.GTNet#getDailyRequestLimit()} of the local entry, the consumption is
+   * {@code GTNetConfig.dailyRequestLimitCount} of the remote's configuration row. The refusal lasts until the counter
+   * rolls over on the first request of the next UTC day.
+   */
+  GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S((byte) 29),
 
   // Data exchange negotiation (50-54)
 
@@ -122,64 +159,22 @@ public enum GNetCoreMessageCode implements GTNetMessageCode {
   }
 
   /**
-   * Looks up an app-specific message code (60+) by its byte value.
-   *
-   * @param value the byte value to look up
-   * @return the corresponding GTNetMessageCodeType, or null if not found in app-specific codes
-   */
-  public static GNetCoreMessageCode getGTNetMessageCodeTypeByValue(byte value) {
-    for (GNetCoreMessageCode gtNetMessageCodeType : GNetCoreMessageCode.values()) {
-      if (gtNetMessageCodeType.getValue() == value) {
-        return gtNetMessageCodeType;
-      }
-    }
-    return null;
-  }
-  
- 
-  /**
-   * Unified lookup for message codes by byte value. Checks both app-specific codes (60+)
-   * and core protocol codes (0-54).
-   *
-   * @param value the byte value to look up
-   * @return the corresponding GTNetMessageCode, or null if not found
-   */
-  public static GTNetMessageCode getMessageCodeByValue(byte value) {
-    return GNetCoreMessageCode.getGTNetMessageCodeTypeByValue(value);
-  }
-  
-
-  /**
    * Looks up a core message code by its byte value.
    *
+   * <p>
+   * This resolves the codes of this enum alone. Anything that has to resolve an application code as well reads
+   * {@code GTNetMessageCodeRegistry}, which holds the whole protocol; a lookup here cannot, because
+   * {@code grafiosch-base} does not know the application enum.
+   * </p>
+   *
    * @param value the byte value to look up
-   * @return the corresponding GNetCoreMessageCode, or null if not found
+   * @return the corresponding GNetCoreMessageCode, or null if the value is not a core code
    */
   public static GNetCoreMessageCode getByValue(byte value) {
     for (GNetCoreMessageCode code : values()) {
       if (code.getValue() == value) {
         return code;
       }
-    }
-    return null;
-  }
-
-  /**
-   * Looks up a message code by its name. First tries GNetCoreMessageCode, then falls back
-   * to the provided app-specific enum class.
-   *
-   * @param name the enum constant name to look up
-   * @return the corresponding GTNetMessageCode, or null if not found
-   */
-  public static GTNetMessageCode getByName(String name) {
-    if (name == null) {
-      return null;
-    }
-    // First try core message codes
-    try {
-      return GNetCoreMessageCode.valueOf(name);
-    } catch (IllegalArgumentException e) {
-      // Not a core code, will try app-specific codes below
     }
     return null;
   }

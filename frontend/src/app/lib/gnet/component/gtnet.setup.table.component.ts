@@ -1,9 +1,16 @@
 import { Component, Injector, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
-import { AcceptRequestTypes, ExchangeKindTypeInfo, GTNet, GTNetCallParam, GTNetWithMessages } from '../model/gtnet';
+import {
+  AcceptRequestTypes,
+  ExchangeKindTypeInfo,
+  GTNet,
+  GTNetCallParam,
+  GTNetMaintenanceWindow,
+  GTNetWithMessages
+} from '../model/gtnet';
 import { GTNetMessage, MsgCallParam } from '../model/gtnet.message';
 import { GTNetService } from '../service/gtnet.service';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
@@ -17,8 +24,8 @@ import { UserSettingsService } from '../../services/user.settings.service';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { HelpIds } from '../../help/help.ids';
+import { GTNetExpandedComponent } from './gtnet-expanded.component';
 import { GTNetMessageTreeTableComponent } from './gtnet-message-treetable.component';
-import { GTNetConfigEntityTableComponent } from './gtnet-config-entity-table.component';
 import { combineLatest } from 'rxjs';
 import { GTNetMessageService } from '../service/gtnet.message.service';
 import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
@@ -50,8 +57,7 @@ import saveAs from '../../filesaver/filesaver';
     GTNetEditComponent,
     GTNetConfigEditComponent,
     GTNetMessageEditComponent,
-    GTNetMessageTreeTableComponent,
-    GTNetConfigEntityTableComponent,
+    GTNetExpandedComponent,
     UploadFileDialogComponent
   ],
   template: `
@@ -61,7 +67,7 @@ import saveAs from '../../filesaver/filesaver';
       [dataKey]="'idGtNet'"
       [(selection)]="selectedEntity"
       [contextMenuItems]="contextMenuItems"
-      [showContextMenu]="true"
+      [showContextMenu]="canAdministerGTNet"
       [containerClass]="{
         'data-container-full': true,
         'active-border': isActivated(),
@@ -92,25 +98,20 @@ import saveAs from '../../filesaver/filesaver';
     </configurable-table>
 
     <ng-template #expandedRow let-row>
-      @if (hasConfigEntity(row)) {
-        <gtnet-config-entity-table
-          [gtNetEntities]="row.gtNetEntities"
-          (dataChanged)="onConfigEntityDataChanged($event)">
-        </gtnet-config-entity-table>
-      }
-      @if (isLoadingMessages(row.idGtNet)) {
-        <div style="padding: 1rem; text-align: center;">
-          <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
-        </div>
-      } @else if (gtNetMessageMap[row.idGtNet]?.length) {
-        <gtnet-message-treetable
-          [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
-          [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
-          [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
-          [formDefinitions]="formDefinitions"
-          (dataChanged)="onTreeTableDataChanged($event)">
-        </gtnet-message-treetable>
-      }
+      <gtnet-expanded
+        [gtNet]="row"
+        [exchangeKindTypes]="exchangeKindTypes"
+        [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
+        [maintenanceWindows]="gtNetMaintenanceWindowMap[row.idGtNet]"
+        [messageCount]="gtNetMessageCountMap[row.idGtNet] ?? 0"
+        [maintenanceWindowCount]="gtNetMaintenanceWindowCountMap[row.idGtNet] ?? 0"
+        [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
+        [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
+        [formDefinitions]="formDefinitions"
+        [loading]="isLoadingMessages(row.idGtNet)"
+        (configEntityDataChanged)="onConfigEntityDataChanged($event)"
+        (messageDataChanged)="onTreeTableDataChanged($event)">
+      </gtnet-expanded>
     </ng-template>
 
     @if (visibleDialog) {
@@ -143,14 +144,16 @@ import saveAs from '../../filesaver/filesaver';
   providers: [DialogService, GTNetConfigService]
 })
 export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
-  @ViewChildren(GTNetMessageTreeTableComponent)
-  messageTreeTables: QueryList<GTNetMessageTreeTableComponent>;
+  @ViewChildren(GTNetExpandedComponent)
+  expandedRows: QueryList<GTNetExpandedComponent>;
 
   minDate: Date = new Date(
     sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
   );
   maxDate: Date = new Date('2099-12-31');
   private readonly domainRemoteName = 'domainRemoteName';
+  /** Every write on GTNet belongs to an administrator, so a non-administrator gets no context menu at all. */
+  protected readonly canAdministerGTNet: boolean;
   callParam: GTNetCallParam;
   gtNetList: GTNet[];
   gtNetMyEntryId: number;
@@ -162,6 +165,10 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   loadedMessageIds = new Set<number>();
   /** Set of idGtNet values currently being loaded */
   loadingMessageIds = new Set<number>();
+  /** Announced maintenance window count per idGtNet - drives the panel header before the windows are loaded */
+  gtNetMaintenanceWindowCountMap: { [key: number]: number } = {};
+  /** Cache for loaded maintenance windows (lazy loaded when a row is expanded) */
+  gtNetMaintenanceWindowMap: { [key: number]: GTNetMaintenanceWindow[] } = {};
   outgoingPendingReplies: { [key: number]: number[] };
   incomingPendingReplies: { [key: number]: number[] };
   idOpenDiscontinuedMessage: number;
@@ -204,6 +211,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
         ? [CrudMenuOptions.Allow_Create, CrudMenuOptions.Allow_Edit, CrudMenuOptions.Allow_Delete]
         : []
     );
+
+    this.canAdministerGTNet = gps.hasRole(BaseSettings.ROLE_ADMIN);
 
     this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false, {
       width: 200,
@@ -269,8 +278,10 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       this.idOpenMaintenanceMessage = response.idOpenMaintenanceMessage;
       this.createTranslatedValueStoreAndFilterField(this.gtNetList);
       this.gtNetMessageCountMap = response.gtNetMessageCountMap || {};
+      this.gtNetMaintenanceWindowCountMap = response.gtNetMaintenanceWindowCountMap || {};
       // Clear message cache on data refresh
       this.gtNetMessageMap = {};
+      this.gtNetMaintenanceWindowMap = {};
       this.loadedMessageIds.clear();
       this.loadingMessageIds.clear();
       this.outgoingPendingReplies = response.outgoingPendingReplies;
@@ -335,6 +346,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   public override getEditMenuItems(): MenuItem[] {
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return [];
+    }
     const menuItems: MenuItem[] = super.getEditMenuItems(this.selectedEntity);
     menuItems.push({ separator: true });
     menuItems.push({
@@ -358,6 +372,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   private checkPeerStatusNow(): void {
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return;
+    }
     const id = this.selectedEntity.idGtNet;
     this.gtNetService.checkPeerStatus(id).subscribe({
       next: (updated) => {
@@ -380,6 +397,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
    * - Remote peer selected: single-target mode
    */
   private canSendMessage(): boolean {
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return false;
+    }
     if (!this.selectedEntity) {
       return true;
     }
@@ -401,6 +421,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   private sendMsg(): void {
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return;
+    }
     // Broadcast mode: no selection OR own peer selected (broadcast codes describe own server status)
     const isAllMessage = !this.selectedEntity || this.selectedEntity.idGtNet === this.gtNetMyEntryId;
     const idGTNet = this.selectedEntity?.idGtNet ?? null;
@@ -427,7 +450,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   private editConfig(): void {
-    this.visibleDialogConfig = true;
+    if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      this.visibleDialogConfig = true;
+    }
   }
 
   handleCloseDialogConfig(processedActionData: ProcessedActionData): void {
@@ -446,22 +471,30 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
   canExpand(row: GTNet): boolean {
     const hasMessages = (this.gtNetMessageCountMap[row.idGtNet] ?? 0) > 0;
-    return hasMessages || this.hasConfigEntity(row);
+    const hasWindows = (this.gtNetMaintenanceWindowCountMap[row.idGtNet] ?? 0) > 0;
+    return hasMessages || hasWindows || this.hasConfigEntity(row);
   }
 
   /**
-   * Handles row expansion event - lazy loads messages if not already loaded.
+   * Handles row expansion event - lazy loads the messages and the maintenance windows if not already loaded. The
+   * counts the accordion headers show come with the table data, so nothing is fetched only to answer whether a panel
+   * holds anything.
    */
   onRowExpand(event: { data: GTNet }): void {
     const idGtNet = event.data.idGtNet;
     const hasMessages = (this.gtNetMessageCountMap[idGtNet] ?? 0) > 0;
+    const hasWindows = (this.gtNetMaintenanceWindowCountMap[idGtNet] ?? 0) > 0;
 
-    // Only load if there are messages and not already loaded or loading
-    if (hasMessages && !this.loadedMessageIds.has(idGtNet) && !this.loadingMessageIds.has(idGtNet)) {
+    // Only load if there is something to load and it is not already loaded or loading
+    if ((hasMessages || hasWindows) && !this.loadedMessageIds.has(idGtNet) && !this.loadingMessageIds.has(idGtNet)) {
       this.loadingMessageIds.add(idGtNet);
-      this.gtNetService.getMessagesByIdGtNet(idGtNet).subscribe({
-        next: (messages) => {
+      combineLatest([
+        hasMessages ? this.gtNetService.getMessagesByIdGtNet(idGtNet) : of([]),
+        hasWindows ? this.gtNetService.getMaintenanceWindowsByIdGtNet(idGtNet) : of([])
+      ]).subscribe({
+        next: ([messages, maintenanceWindows]) => {
           this.gtNetMessageMap[idGtNet] = messages;
+          this.gtNetMaintenanceWindowMap[idGtNet] = maintenanceWindows;
           this.loadedMessageIds.add(idGtNet);
           this.loadingMessageIds.delete(idGtNet);
           // Clear selection in tree table after messages are loaded
@@ -480,7 +513,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   private clearTreeTableSelection(): void {
     // Use setTimeout to ensure the tree table component is rendered after data update
     setTimeout(() => {
-      this.messageTreeTables?.forEach((treeTable) => treeTable.clearSelection());
+      this.expandedRows?.forEach((expandedRow) => expandedRow.clearMessageSelection());
     });
   }
 
@@ -589,6 +622,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   private async exportGTNet(): Promise<void> {
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return;
+    }
     try {
       const blob = await this.gtNetService.exportGTNetData();
       if (blob) {
@@ -601,6 +637,9 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   private openImportDialog(): void {
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      return;
+    }
     const uploadService: UploadServiceFunction = {
       uploadFiles: (_id: number, formData: FormData): Observable<any> => {
         return this.gtNetService.importGTNetData(formData);

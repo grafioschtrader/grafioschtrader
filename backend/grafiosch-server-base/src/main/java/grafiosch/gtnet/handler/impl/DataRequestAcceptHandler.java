@@ -17,9 +17,8 @@ import grafiosch.gtnet.handler.GTNetMessageContext;
 /**
  * Handler for GT_NET_DATA_REQUEST_ACCEPT_S messages.
  *
- * Processes acceptance responses to our data exchange requests. The remote server has accepted our request
- * to exchange data. Updates the local GTNetConfigEntity exchange status to add RECEIVE capability for the
- * accepted entity kinds.
+ * Processes acceptance responses to our data exchange requests. The remote server has accepted our request to exchange
+ * data. Updates the local GTNetConfigEntity exchange status to add RECEIVE capability for the accepted entity kinds.
  */
 @Component
 public class DataRequestAcceptHandler extends AbstractDataRequestAcceptHandler {
@@ -33,8 +32,8 @@ public class DataRequestAcceptHandler extends AbstractDataRequestAcceptHandler {
 
   @Override
   protected void processResponseSideEffects(GTNetMessageContext context, GTNetMessage storedMessage) {
-    log.info("Data request accepted by {} - message stored with id {}",
-        context.getSourceDomain(), storedMessage.getIdGtNetMessage());
+    log.info("Data request accepted by {} - message stored with id {}", context.getSourceDomain(),
+        storedMessage.getIdGtNetMessage());
 
     GTNet remoteGTNet = context.getRemoteGTNet();
     if (remoteGTNet == null) {
@@ -42,10 +41,13 @@ public class DataRequestAcceptHandler extends AbstractDataRequestAcceptHandler {
       return;
     }
 
-    Set<IExchangeKindType> acceptedKinds = getAcceptedEntityKinds(context);
+    Set<IExchangeKindType> acceptedKinds = getRespondedEntityKinds(context);
 
     if (acceptedKinds.isEmpty()) {
-      log.warn("No entity kinds found in original request for accept from {}", context.getSourceDomain());
+      // Nothing is granted on a decision whose subject cannot be read. Widening this to every syncable kind is
+      // exactly the over-grant the accept path used to perform.
+      log.warn("No entity kinds found in original request for accept from {}, granting nothing",
+          context.getSourceDomain());
       return;
     }
 
@@ -54,9 +56,9 @@ public class DataRequestAcceptHandler extends AbstractDataRequestAcceptHandler {
     }
 
     saveRemoteGTNet(remoteGTNet);
-    log.info("Created GTNetConfigEntity with RECEIVE capability for {} entity kinds from {}",
-        acceptedKinds.size(), context.getSourceDomain());
+    log.info("Created GTNetConfigEntity with RECEIVE capability for {} entity kinds from {}", acceptedKinds.size(),
+        context.getSourceDomain());
 
-    triggerExchangeSyncTask();
+    triggerExchangeSyncTask(context);
   }
 }

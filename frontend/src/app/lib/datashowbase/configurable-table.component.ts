@@ -1064,6 +1064,7 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
     return field.dataType === DataType.Numeric ||
       field.dataType === DataType.NumericShowZero ||
       field.dataType === DataType.NumericInteger ||
+      field.dataType === DataType.NumericRaw ||
       field.dataType === DataType.DateTimeNumeric
       ? 'text-end'
       : '';

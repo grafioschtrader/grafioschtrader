@@ -61,6 +61,20 @@ export interface TreeTableCellEditEvent {
  * </configurable-tree-table>
  * ```
  *
+ * Usage example (with an expanded detail row):
+ * ```html
+ * <configurable-tree-table
+ *   [data]="treeNodes" [fields]="fields" dataKey="nodeKey"
+ *   [expandable]="true"
+ *   [canExpandFn]="canExpandNode.bind(this)"
+ *   [expandedRowTemplate]="expandedContent">
+ * </configurable-tree-table>
+ *
+ * <ng-template #expandedContent let-row>
+ *   <my-detail-component [data]="row"></my-detail-component>
+ * </ng-template>
+ * ```
+ *
  * Usage example (with cell editing):
  * ```html
  * <configurable-tree-table
@@ -119,6 +133,9 @@ export interface TreeTableCellEditEvent {
         <!-- Header template -->
         <ng-template pTemplate="header" let-columns>
           <tr>
+            @if (expandable) {
+              <th [style.width.px]="expansionColumnWidth"></th>
+            }
             @for (field of columns; track field.field) {
               @if (field.visible) {
                 <th
@@ -142,6 +159,15 @@ export interface TreeTableCellEditEvent {
             [ngClass]="getRowClass(rowNode, rowData)"
             [style.background-color]="getRowStyle(rowData)"
             (contextmenu)="onRowContextMenu(rowNode)">
+            @if (expandable) {
+              <td [style.width.px]="expansionColumnWidth">
+                @if (canExpand(rowData)) {
+                  <a href="#" (click)="toggleRow(rowData, $event)">
+                    <i [ngClass]="isRowExpanded(rowData) ? expandedIcon : collapsedIcon"></i>
+                  </a>
+                }
+              </td>
+            }
             @for (field of columns; track field.field; let i = $index) {
               @if (field.visible) {
                 @if (isEditable(field, rowData)) {
@@ -254,6 +280,15 @@ export interface TreeTableCellEditEvent {
               }
             }
           </tr>
+
+          <!-- Expanded detail row. p-treeTable has no rowexpansion slot, so it is rendered here. -->
+          @if (expandable && expandedRowTemplate && canExpand(rowData) && isRowExpanded(rowData)) {
+            <tr>
+              <td [attr.colspan]="getExpandedColspan()">
+                <ng-container *ngTemplateOutlet="expandedRowTemplate; context: { $implicit: rowData }"></ng-container>
+              </td>
+            </tr>
+          }
         </ng-template>
 
         <!-- Footer template (content-projected) -->
@@ -407,6 +442,31 @@ export class ConfigurableTreeTableComponent {
   @Input() rowStyleFn?: (rowData: any) => string | null;
 
   // ============================================================================
+  // Row Expansion Configuration
+  // ============================================================================
+
+  /** Adds a leading toggle column that expands a detail row below the node. */
+  @Input() expandable = false;
+
+  /** Template rendered inside the expanded detail row; receives the node data as $implicit. */
+  @Input() expandedRowTemplate?: TemplateRef<any>;
+
+  /** Callback deciding which nodes may be expanded. Without it every node carries a toggle. */
+  @Input() canExpandFn?: (rowData: any) => boolean;
+
+  /** Icon class of the toggle while the detail row is open. */
+  @Input() expandedIcon = 'fa fa-chevron-down';
+
+  /** Icon class of the toggle while the detail row is closed. */
+  @Input() collapsedIcon = 'fa fa-chevron-right';
+
+  /** Width in pixels of the leading toggle column. */
+  @Input() expansionColumnWidth = 40;
+
+  /** Emits the node data when its detail row is opened. */
+  @Output() rowExpand = new EventEmitter<any>();
+
+  // ============================================================================
   // Locale Configuration
   // ============================================================================
 
@@ -458,9 +518,58 @@ export class ConfigurableTreeTableComponent {
   /** Stores the original cell value when editing begins, for rollback on cancel */
   private editingOriginalValue: any;
 
+  /** dataKey values of the nodes whose detail row is currently open. */
+  private readonly expandedRowKeys = new Set<any>();
+
   // ============================================================================
   // Component Methods
   // ============================================================================
+
+  /**
+   * Reports whether a node may be expanded. Without a callback every node can.
+   *
+   * @param rowData - the node data
+   * @returns true when the toggle is rendered for this node
+   */
+  canExpand(rowData: any): boolean {
+    return this.canExpandFn ? this.canExpandFn(rowData) : true;
+  }
+
+  /**
+   * Reports whether the detail row of a node is currently open.
+   *
+   * @param rowData - the node data
+   * @returns true when the detail row is rendered
+   */
+  isRowExpanded(rowData: any): boolean {
+    return this.expandedRowKeys.has(rowData?.[this.dataKey]);
+  }
+
+  /**
+   * Opens or closes the detail row of a node.
+   *
+   * @param rowData - the node data
+   * @param event - the click event of the toggle, whose default navigation is suppressed
+   */
+  toggleRow(rowData: any, event: Event): void {
+    event.preventDefault();
+    const key = rowData?.[this.dataKey];
+    if (this.expandedRowKeys.has(key)) {
+      this.expandedRowKeys.delete(key);
+    } else {
+      this.expandedRowKeys.add(key);
+      this.rowExpand.emit(rowData);
+    }
+  }
+
+  /**
+   * Number of columns the detail row has to span: every visible column plus the toggle column.
+   *
+   * @returns the colspan of the detail cell
+   */
+  getExpandedColspan(): number {
+    return this.fields.filter((field) => field.visible).length + (this.expandable ? 1 : 0);
+  }
 
   /**
    * Handles container click and contextmenu events.
@@ -632,6 +741,7 @@ export class ConfigurableTreeTableComponent {
     return field.dataType === DataType.Numeric ||
       field.dataType === DataType.NumericShowZero ||
       field.dataType === DataType.NumericInteger ||
+      field.dataType === DataType.NumericRaw ||
       field.dataType === DataType.DateTimeNumeric
       ? 'text-end'
       : '';

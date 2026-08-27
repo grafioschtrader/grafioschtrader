@@ -5,12 +5,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Payload for the initial handshake message (GT_NET_FIRST_HANDSHAKE_S).
  *
- * During the handshake, the initiating domain generates a GUID token and sends it to the remote domain.
- * The remote stores this token as its {@code tokenRemote} for the initiator's GTNet entry, and will
- * include it in the Authorization header when making requests back to the initiator.
+ * During the handshake, the initiating domain generates a GUID token and sends it to the remote domain. The remote
+ * stores this token as its {@code tokenRemote} for the initiator's GTNet entry, and will include it in the
+ * Authorization header when making requests back to the initiator.
  *
- * The MessageEnvelope also includes the full GTNet entity of the sender in its payload field,
- * providing the remote with timezone, capability flags, and other configuration.
+ * The MessageEnvelope also includes the full GTNet entity of the sender in its payload field, providing the remote with
+ * timezone, capability flags, and other configuration.
  */
 @Schema(description = """
     Payload for the initial handshake message between GTNet peers. Contains the locally generated authentication

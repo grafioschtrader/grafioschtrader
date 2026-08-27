@@ -15,7 +15,7 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasses({ UserResourceTest.class, EntityLimitResourceTest.class,
     ImportTransactionPlatformResourceTest.class, TenantResourceTest.class, TradingPlatformPlanResourceTest.class,
     StockexchangeResourceTest.class, TradingCalendarRuleSetResourceTest.class, AssetclassResourceTest.class,
-    SecurityResourceTest.class })
+    SecurityResourceTest.class, GTNetExchangeAuthorizationTest.class })
 public class ResourceTestSuite_1 {
 
 }

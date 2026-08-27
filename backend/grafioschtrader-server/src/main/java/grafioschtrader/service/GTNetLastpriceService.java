@@ -21,6 +21,7 @@ import grafiosch.entities.GTNetEntity;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.gtnet.AcceptRequestTypes;
+import grafiosch.gtnet.GTNetRequestBudgetService;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
@@ -37,6 +38,8 @@ import grafiosch.types.TaskTypeBase;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
+import grafiosch.gtnet.GTNetResponseResult;
+import grafiosch.gtnet.GTNetResponseValidator;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.handler.impl.lastprice.PushOpenLastpriceQueryStrategy;
 import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
@@ -52,12 +55,12 @@ import tools.jackson.databind.ObjectMapper;
  *
  * This service implements the consumer-side flow for intraday price sharing:
  * <ol>
- *   <li>Filter instruments by GTNetExchange.lastpriceRecv configuration</li>
- *   <li>Query push-open servers first (by priority with random selection for same priority)</li>
- *   <li>Query open servers for remaining unfilled instruments</li>
- *   <li>Fall back to connectors (IFeedConnector) for any still-unfilled instruments</li>
- *   <li>If own mode is push-open: push connector-fetched prices back to remote servers</li>
- *   <li>If own mode is AC_OPEN: async push updated prices to previously contacted PUSH_OPEN servers</li>
+ * <li>Filter instruments by GTNetExchange.lastpriceRecv configuration</li>
+ * <li>Query push-open servers first (by priority with random selection for same priority)</li>
+ * <li>Query open servers for remaining unfilled instruments</li>
+ * <li>Fall back to connectors (IFeedConnector) for any still-unfilled instruments</li>
+ * <li>If own mode is push-open: push connector-fetched prices back to remote servers</li>
+ * <li>If own mode is AC_OPEN: async push updated prices to previously contacted PUSH_OPEN servers</li>
  * </ol>
  *
  * @see InstrumentExchangeSet for tracking which instruments have been filled
@@ -69,6 +72,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
   @Autowired
   private GTNetJpaRepository gtNetJpaRepository;
+
+  @Autowired
+  private GTNetResponseValidator responseValidator;
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
@@ -95,6 +101,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   private BaseDataClient baseDataClient;
 
   @Autowired
+  private GTNetRequestBudgetService gtNetRequestBudgetService;
+
+  @Autowired
   private GlobalparametersService globalparametersService;
 
   @Autowired
@@ -113,16 +122,16 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   private ObjectMapper objectMapper;
 
   /**
-   * Main entry point for intraday price update with GTNet integration.
-   * Called from WatchlistReport.executeLastPriceUpdate().
+   * Main entry point for intraday price update with GTNet integration. Called from
+   * WatchlistReport.executeLastPriceUpdate().
    *
-   * @param securities list of securities from the watchlist
-   * @param currencypairs list of currency pairs from the watchlist
+   * @param securities          list of securities from the watchlist
+   * @param currencypairs       list of currency pairs from the watchlist
    * @param currenciesNotInList additional currency pairs needed for calculations
    * @return updated securities and currency pairs
    */
-  public SecurityCurrency updateLastpriceIncludeSupplier(List<Security> securities,
-      List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
+  public SecurityCurrency updateLastpriceIncludeSupplier(List<Security> securities, List<Currencypair> currencypairs,
+      List<Currencypair> currenciesNotInList) {
 
     // Check that GTNet is enabled, set up with an own entry, and has a peer to exchange last prices with.
     // Without a peer nothing can ever be filled, and running the exchange anyway would let step 5b count
@@ -131,8 +140,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
         || !gtNetJpaRepository.existsExchangePeerByEntityKind(GTNetExchangeKindType.LAST_PRICE.getValue())) {
       // GTNet unusable - fall back to connectors only
       currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
-      return new SecurityCurrency(
-          securityJpaRepository.updateLastPriceByList(securities),
+      return new SecurityCurrency(securityJpaRepository.updateLastPriceByList(securities),
           currencypairJpaRepository.updateLastPriceByList(currencypairs));
     }
 
@@ -141,14 +149,13 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     } catch (Exception e) {
       log.error("GTNet exchange failed, falling back to connectors only", e);
       currencypairJpaRepository.updateLastPriceByList(currenciesNotInList);
-      return new SecurityCurrency(
-          securityJpaRepository.updateLastPriceByList(securities),
+      return new SecurityCurrency(securityJpaRepository.updateLastPriceByList(securities),
           currencypairJpaRepository.updateLastPriceByList(currencypairs));
     }
   }
 
-  private SecurityCurrency executeGTNetExchange(List<Security> securities,
-      List<Currencypair> currencypairs, List<Currencypair> currenciesNotInList) {
+  private SecurityCurrency executeGTNetExchange(List<Security> securities, List<Currencypair> currencypairs,
+      List<Currencypair> currenciesNotInList) {
 
     long totalStart = System.nanoTime();
     long stepStart;
@@ -227,20 +234,17 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     if (needsFilling(gtNetInstruments)) {
       stepStart = System.nanoTime();
       List<GTNet> openSuppliers = getSuppliersByScoreWithRandomization(
-          excludeOwnEntry(gtNetJpaRepository.findOpenSuppliers()),
-          GTNetExchangeKindType.LAST_PRICE,
-          scoreCalculator,
-          filter,
-          requestedInstrumentIds);
+          excludeOwnEntry(gtNetJpaRepository.findOpenSuppliers()), GTNetExchangeKindType.LAST_PRICE, scoreCalculator,
+          filter, requestedInstrumentIds);
       queryRemoteServersFiltered(openSuppliers, gtNetInstruments, filter);
       log.debug("Step 5 - Query open servers: {} ms", (System.nanoTime() - stepStart) / 1_000_000);
     }
 
     // 5b. Apply GTNet outcome to retry_intra_load on GTNet-enabled instruments. Filled instruments have their
-    //     counter capped down to gt.intra.retry (preserves the connector-failure signal). Unfilled instruments
-    //     past the connector cap have their counter incremented by 1, capped at gt.intra.retry + gt.gtnet.quote.retry.
-    //     Instruments still within the connector retry budget are left alone — the connector path in step 7
-    //     manages their counter as today.
+    // counter capped down to gt.intra.retry (preserves the connector-failure signal). Unfilled instruments
+    // past the connector cap have their counter incremented by 1, capped at gt.intra.retry + gt.gtnet.quote.retry.
+    // Instruments still within the connector retry budget are left alone — the connector path in step 7
+    // manages their counter as today.
     applyIntradayRetryAfterGTNet(gtNetInstruments);
 
     // 6. Collect unfilled instruments for connector fallback
@@ -298,14 +302,14 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
    *
    * Rules per instrument:
    * <ul>
-   *   <li><b>Filled by GTNet</b>: counter capped down to gt.intra.retry. Below the cap is a no-op (the connector
-   *       hasn't been signalled either way); at or above the cap, this resets the GTNet retry budget back to zero
-   *       used while preserving the connector-failure signal for monitoring.</li>
-   *   <li><b>Unfilled and counter &lt; gt.intra.retry</b>: leave the counter alone. The connector path in step 7
-   *       will try this instrument and bump the counter on its own failure (today's behaviour).</li>
-   *   <li><b>Unfilled and counter in [gt.intra.retry, absoluteCap)</b>: increment by 1, capped at the absolute
-   *       exhaustion cap. This is the GTNet-only fallback band where the connector won't be tried.</li>
-   *   <li><b>Unfilled and counter &gt;= absoluteCap</b>: stuck; leave alone (admin reset required).</li>
+   * <li><b>Filled by GTNet</b>: counter capped down to gt.intra.retry. Below the cap is a no-op (the connector hasn't
+   * been signalled either way); at or above the cap, this resets the GTNet retry budget back to zero used while
+   * preserving the connector-failure signal for monitoring.</li>
+   * <li><b>Unfilled and counter &lt; gt.intra.retry</b>: leave the counter alone. The connector path in step 7 will try
+   * this instrument and bump the counter on its own failure (today's behaviour).</li>
+   * <li><b>Unfilled and counter in [gt.intra.retry, absoluteCap)</b>: increment by 1, capped at the absolute exhaustion
+   * cap. This is the GTNet-only fallback band where the connector won't be tried.</li>
+   * <li><b>Unfilled and counter &gt;= absoluteCap</b>: stuck; leave alone (admin reset required).</li>
    * </ul>
    */
   private void applyIntradayRetryAfterGTNet(InstrumentExchangeSet gtNetInstruments) {
@@ -344,10 +348,10 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Queries remote PUSH_OPEN servers for price data, optionally tracking their responses
-   * for later push-back operations.
+   * Queries remote PUSH_OPEN servers for price data, optionally tracking their responses for later push-back
+   * operations.
    *
-   * @param suppliers list of PUSH_OPEN suppliers to query
+   * @param suppliers   list of PUSH_OPEN suppliers to query
    * @param instruments the instrument exchange set
    * @param pushContext optional context to track server responses (null to disable tracking)
    */
@@ -367,9 +371,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Queries remote servers with instrument filtering (for AC_OPEN suppliers).
-   * Only sends instruments that the supplier is known to support based on GTNetSupplierDetail.
-   * No tracking is performed for AC_OPEN suppliers (they don't receive push-backs).
+   * Queries remote servers with instrument filtering (for AC_OPEN suppliers). Only sends instruments that the supplier
+   * is known to support based on GTNetSupplierDetail. No tracking is performed for AC_OPEN suppliers (they don't
+   * receive push-backs).
    */
   private void queryRemoteServersFiltered(List<GTNet> suppliers, InstrumentExchangeSet instruments,
       SupplierInstrumentFilter filter) {
@@ -389,9 +393,9 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   /**
    * Queries a single remote server for price data, optionally tracking the response.
    *
-   * @param supplier the GTNet supplier to query
+   * @param supplier    the GTNet supplier to query
    * @param instruments the instrument exchange set
-   * @param filter optional filter for AC_OPEN suppliers (null for AC_PUSH_OPEN)
+   * @param filter      optional filter for AC_OPEN suppliers (null for AC_PUSH_OPEN)
    * @param pushContext optional context to track server responses for later push-back (null to skip)
    */
   private void queryRemoteServerWithTracking(GTNet supplier, InstrumentExchangeSet instruments,
@@ -448,15 +452,16 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     requestEnvelope.timestamp = LocalDateTime.now();
     requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
 
-    log.debug("Sending lastprice request to {} with {} securities, {} pairs",
-        supplier.getDomainRemoteName(), securityDTOs.size(), currencypairDTOs.size());
+    log.debug("Sending lastprice request to {} with {} securities, {} pairs", supplier.getDomainRemoteName(),
+        securityDTOs.size(), currencypairDTOs.size());
 
     // Send request
-    SendResult result = baseDataClient.sendToMsgWithStatus(
-        config.getTokenRemote(),
-        supplier.getDomainRemoteName(),
-        requestEnvelope,
-        GTNetTimeoutHelper.resolveTimeout(supplier, globalparametersJpaRepository));
+    if (!gtNetRequestBudgetService.chargeOutgoing(supplier, requestEnvelope.messageCode)) {
+      return;
+    }
+
+    SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), supplier.getDomainRemoteName(),
+        requestEnvelope, GTNetTimeoutHelper.resolveTimeout(supplier, globalparametersJpaRepository));
 
     if (result.isFailed()) {
       if (result.httpError()) {
@@ -470,15 +475,20 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
       return;
     }
 
-    MessageEnvelope response = result.response();
-    if (response == null || response.payload == null) {
-      log.debug("No price data received from {}", supplier.getDomainRemoteName());
+    // Only the registered answer to this request counts. A peer that refuses with
+    // GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S or GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S sends the correct code and no
+    // payload, which is exactly what a peer with nothing to offer sends - reading only the payload makes the two
+    // indistinguishable and hides a misconfigured request behind "no data".
+    GTNetResponseResult<LastpriceExchangeMsg> outcome = responseValidator.validate(result.response(),
+        Set.of(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S.getValue()), LastpriceExchangeMsg.class,
+        "Intraday price exchange with " + supplier.getDomainRemoteName());
+    if (!outcome.isSuccess()) {
       return;
     }
 
     // Parse response
     try {
-      LastpriceExchangeMsg responsePayload = objectMapper.treeToValue(response.payload, LastpriceExchangeMsg.class);
+      LastpriceExchangeMsg responsePayload = outcome.payloadOrNull();
 
       if (responsePayload == null) {
         log.debug("Empty response payload from {}", supplier.getDomainRemoteName());
@@ -505,8 +515,8 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
 
       // Log exchange statistics as consumer
       int entitiesSent = securityDTOs.size() + currencypairDTOs.size();
-      gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.LAST_PRICE,
-          entitiesSent, updatedCount, responseCount);
+      gtNetExchangeLogService.logAsConsumer(supplier, GTNetExchangeKindType.LAST_PRICE, entitiesSent, updatedCount,
+          responseCount);
 
     } catch (Exception e) {
       log.error("Failed to parse lastprice response from {}", supplier.getDomainRemoteName(), e);
@@ -514,8 +524,8 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Queries the local push pool if this server is configured as AC_PUSH_OPEN.
-   * This allows the server to use its own cached prices before contacting remote servers.
+   * Queries the local push pool if this server is configured as AC_PUSH_OPEN. This allows the server to use its own
+   * cached prices before contacting remote servers.
    *
    * @param instruments the instrument set to query and update
    */
@@ -549,8 +559,8 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     // Query local push pool for securities (no freshness threshold for own pool)
     List<InstrumentPriceDTO> securityDTOs = instruments.getUnfilledSecurityDTOs();
     if (!securityDTOs.isEmpty()) {
-      List<InstrumentPriceDTO> securityPrices = pushOpenLastpriceQueryStrategy.querySecurities(
-          securityDTOs, Collections.emptySet(), null);
+      List<InstrumentPriceDTO> securityPrices = pushOpenLastpriceQueryStrategy.querySecurities(securityDTOs,
+          Collections.emptySet(), null);
       if (!securityPrices.isEmpty()) {
         instruments.processResponse(securityPrices, null);
         log.debug("Local push pool: found {} security prices", securityPrices.size());
@@ -560,8 +570,8 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     // Query local push pool for currency pairs (no freshness threshold for own pool)
     List<InstrumentPriceDTO> currencypairDTOs = instruments.getUnfilledCurrencypairDTOs();
     if (!currencypairDTOs.isEmpty()) {
-      List<InstrumentPriceDTO> currencypairPrices = pushOpenLastpriceQueryStrategy.queryCurrencypairs(
-          currencypairDTOs, Collections.emptySet(), null);
+      List<InstrumentPriceDTO> currencypairPrices = pushOpenLastpriceQueryStrategy.queryCurrencypairs(currencypairDTOs,
+          Collections.emptySet(), null);
       if (!currencypairPrices.isEmpty()) {
         instruments.processResponse(null, currencypairPrices);
         log.debug("Local push pool: found {} currencypair prices", currencypairPrices.size());
@@ -570,15 +580,13 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Updates the GTNetLastprice* push pool tables with connector-fetched prices if this server is AC_PUSH_OPEN.
-   * This ensures that prices obtained from connectors are available for remote clients requesting data.
+   * Updates the GTNetLastprice* push pool tables with connector-fetched prices if this server is AC_PUSH_OPEN. This
+   * ensures that prices obtained from connectors are available for remote clients requesting data.
    *
-   * For each instrument:
-   * - If no entry exists in the push pool, creates a new one
-   * - If an entry exists but the connector price is newer, updates it
-   * - If an entry exists with a newer or equal timestamp, skips it
+   * For each instrument: - If no entry exists in the push pool, creates a new one - If an entry exists but the
+   * connector price is newer, updates it - If an entry exists with a newer or equal timestamp, skips it
    *
-   * @param securities list of securities with updated prices from connectors
+   * @param securities    list of securities with updated prices from connectors
    * @param currencypairs list of currency pairs with updated prices from connectors
    */
   private void updatePushPoolIfPushOpen(List<Security> securities, List<Currencypair> currencypairs) {
@@ -626,18 +634,18 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Triggers async push of updated prices to previously contacted PUSH_OPEN servers if the local
-   * server is configured as AC_OPEN (not AC_PUSH_OPEN).
+   * Triggers async push of updated prices to previously contacted PUSH_OPEN servers if the local server is configured
+   * as AC_OPEN (not AC_PUSH_OPEN).
    *
-   * This allows AC_OPEN servers to share updated prices with PUSH_OPEN servers that contributed
-   * to the exchange. The push is fire-and-forget - this method returns immediately.
+   * This allows AC_OPEN servers to share updated prices with PUSH_OPEN servers that contributed to the exchange. The
+   * push is fire-and-forget - this method returns immediately.
    *
-   * @param pushContext context tracking contacted PUSH_OPEN servers and their baseline timestamps
-   * @param allSecurities all securities with final prices
+   * @param pushContext      context tracking contacted PUSH_OPEN servers and their baseline timestamps
+   * @param allSecurities    all securities with final prices
    * @param allCurrencypairs all currency pairs with final prices
    */
-  private void triggerAsyncPushIfOpenMode(PushOpenServerContext pushContext,
-      List<Security> allSecurities, List<Currencypair> allCurrencypairs) {
+  private void triggerAsyncPushIfOpenMode(PushOpenServerContext pushContext, List<Security> allSecurities,
+      List<Currencypair> allCurrencypairs) {
 
     // Check if there are servers to update
     if (pushContext == null || !pushContext.hasServersToUpdate()) {
@@ -689,8 +697,8 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Excludes the local server's own entry from the supplier list.
-   * This prevents the server from attempting to query itself for data, which would fail token validation.
+   * Excludes the local server's own entry from the supplier list. This prevents the server from attempting to query
+   * itself for data, which would fail token validation.
    *
    * @param suppliers list of GTNet supplier entries
    * @return filtered list excluding the local server's entry
@@ -700,9 +708,7 @@ public class GTNetLastpriceService extends BaseGTNetExchangeService {
     if (myEntryId == null) {
       return suppliers;
     }
-    return suppliers.stream()
-        .filter(supplier -> !supplier.getIdGtNet().equals(myEntryId))
-        .collect(Collectors.toList());
+    return suppliers.stream().filter(supplier -> !supplier.getIdGtNet().equals(myEntryId)).collect(Collectors.toList());
   }
 
   /**

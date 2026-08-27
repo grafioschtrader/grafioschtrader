@@ -14,21 +14,20 @@ import jakarta.validation.constraints.NotNull;
 /**
  * Payload for maintenance window announcements (GT_NET_MAINTENANCE_ALL_C).
  *
- * This message is broadcast to all domains that have active data exchange agreements with this server.
- * It informs consumers that the server will be unavailable during the specified time window, allowing
- * them to adjust their data fetching strategies accordingly.
+ * This message is broadcast to all domains that have active data exchange agreements with this server. It informs
+ * consumers that the server will be unavailable during the specified time window, allowing them to adjust their data
+ * fetching strategies accordingly.
  *
- * Upon receiving this message, consumers should:
- * <ul>
- *   <li>Update the sender's lastpriceServerState to SS_MAINTENANCE</li>
- *   <li>Skip querying this provider during the maintenance window</li>
- *   <li>Optionally display a notification to administrators</li>
- * </ul>
+ * Upon receiving this message the consumer records the window as a {@link grafiosch.entities.GTNetMaintenanceWindow}
+ * of the sender and skips the sender for its duration — as a data supplier and as the target of outgoing messages.
+ * The window is evaluated at query time rather than turned into a server state, so it takes effect exactly at
+ * {@code fromDateTime} and ends by itself at {@code toDateTime}. A sender may announce several windows, as long as
+ * they do not overlap.
  */
 @Schema(description = """
     Payload for maintenance window announcements broadcast to all connected domains. Specifies the time window
-    during which the sender's services will be unavailable. Consumers should update the sender's server state
-    to SS_MAINTENANCE and skip queries during this period.""")
+    during which the sender's services will be unavailable. Consumers record the window and do not contact the
+    sender while it is running. Several non-overlapping windows may be announced.""")
 @DateRange(start = "fromDateTime", end = "toDateTime")
 public class MaintenanceMsg implements IMsgDetails {
   private static final long serialVersionUID = 1L;

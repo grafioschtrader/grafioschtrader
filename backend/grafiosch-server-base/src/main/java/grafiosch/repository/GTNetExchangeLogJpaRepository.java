@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.entities.GTNetExchangeLog;
 
 /**
- * Repository for managing GTNet exchange log entries.
- * Provides methods for querying, aggregating, and deleting log entries.
+ * Repository for managing GTNet exchange log entries. Provides methods for querying, aggregating, and deleting log
+ * entries.
  */
 public interface GTNetExchangeLogJpaRepository
     extends JpaRepository<GTNetExchangeLog, Integer>, GTNetExchangeLogJpaRepositoryCustom {
@@ -29,27 +29,27 @@ public interface GTNetExchangeLogJpaRepository
   /**
    * Finds all log entries for a specific GTNet domain and entity kind, ordered by timestamp descending.
    *
-   * @param idGtNet the GTNet identifier
+   * @param idGtNet    the GTNet identifier
    * @param entityKind the entity kind byte value
    * @return list of log entries for the specified GTNet and entity kind
    */
-  @Query("SELECT g FROM GTNetExchangeLog g WHERE g.idGtNet = :idGtNet AND g.entityKind = :entityKind " +
-         "ORDER BY g.timestamp DESC")
-  List<GTNetExchangeLog> findByIdGtNetAndEntityKindOrderByTimestampDesc(
-      @Param("idGtNet") Integer idGtNet, @Param("entityKind") byte entityKind);
+  @Query("SELECT g FROM GTNetExchangeLog g WHERE g.idGtNet = :idGtNet AND g.entityKind = :entityKind "
+      + "ORDER BY g.timestamp DESC")
+  List<GTNetExchangeLog> findByIdGtNetAndEntityKindOrderByTimestampDesc(@Param("idGtNet") Integer idGtNet,
+      @Param("entityKind") byte entityKind);
 
   /**
-   * Finds log entries by period type that started before a specific date.
-   * Used by the aggregation job to find records ready for roll-up.
+   * Finds log entries by period type that started before a specific date. Used by the aggregation job to find records
+   * ready for roll-up.
    *
    * @param periodType the period type byte value
    * @param beforeDate the cutoff date
    * @return list of log entries matching the criteria
    */
-  @Query("SELECT g FROM GTNetExchangeLog g WHERE g.periodType = :periodType AND g.periodStart < :beforeDate " +
-         "ORDER BY g.idGtNet, g.entityKind, g.logAsSupplier, g.periodStart")
-  List<GTNetExchangeLog> findByPeriodTypeAndPeriodStartBefore(
-      @Param("periodType") byte periodType, @Param("beforeDate") LocalDate beforeDate);
+  @Query("SELECT g FROM GTNetExchangeLog g WHERE g.periodType = :periodType AND g.periodStart < :beforeDate "
+      + "ORDER BY g.idGtNet, g.entityKind, g.logAsSupplier, g.periodStart")
+  List<GTNetExchangeLog> findByPeriodTypeAndPeriodStartBefore(@Param("periodType") byte periodType,
+      @Param("beforeDate") LocalDate beforeDate);
 
   /**
    * Deletes log entries by their IDs.
@@ -64,29 +64,25 @@ public interface GTNetExchangeLogJpaRepository
   /**
    * Finds all log entries for a specific GTNet, entity kind, and role.
    *
-   * @param idGtNet the GTNet identifier
-   * @param entityKind the entity kind byte value
+   * @param idGtNet       the GTNet identifier
+   * @param entityKind    the entity kind byte value
    * @param logAsSupplier true for supplier role, false for consumer
    * @return list of matching log entries ordered by period start descending
    */
-  @Query("SELECT g FROM GTNetExchangeLog g WHERE g.idGtNet = :idGtNet AND g.entityKind = :entityKind " +
-         "AND g.logAsSupplier = :logAsSupplier ORDER BY g.periodStart DESC, g.periodType ASC")
-  List<GTNetExchangeLog> findByIdGtNetAndEntityKindAndRole(
-      @Param("idGtNet") Integer idGtNet,
-      @Param("entityKind") byte entityKind,
-      @Param("logAsSupplier") boolean logAsSupplier);
+  @Query("SELECT g FROM GTNetExchangeLog g WHERE g.idGtNet = :idGtNet AND g.entityKind = :entityKind "
+      + "AND g.logAsSupplier = :logAsSupplier ORDER BY g.periodStart DESC, g.periodType ASC")
+  List<GTNetExchangeLog> findByIdGtNetAndEntityKindAndRole(@Param("idGtNet") Integer idGtNet,
+      @Param("entityKind") byte entityKind, @Param("logAsSupplier") boolean logAsSupplier);
 
   /**
-   * Calculates aggregated success rates per GTNet supplier for consumer logs within a date range.
-   * Success rate = SUM(entitiesUpdated) / SUM(entitiesSent). Only includes consumer logs (logAsSupplier = false).
+   * Calculates aggregated success rates per GTNet supplier for consumer logs within a date range. Success rate =
+   * SUM(entitiesUpdated) / SUM(entitiesSent). Only includes consumer logs (logAsSupplier = false).
    *
-   * Named query: GTNetExchangeLog.getSupplierSuccessRates
-   * Parameters:
-   * - entityKind - entity kind byte value
-   * - fromDate - start of period (inclusive)
+   * Named query: GTNetExchangeLog.getSupplierSuccessRates Parameters: - entityKind - entity kind byte value - fromDate
+   * - start of period (inclusive)
    *
    * @param entityKind the entity kind to filter by
-   * @param fromDate only include logs from this date onwards
+   * @param fromDate   only include logs from this date onwards
    * @return list of Object[] where [0]=idGtNet (Integer), [1]=successRate (Double)
    */
   @Query(nativeQuery = true, name = "GTNetExchangeLog.getSupplierSuccessRates")

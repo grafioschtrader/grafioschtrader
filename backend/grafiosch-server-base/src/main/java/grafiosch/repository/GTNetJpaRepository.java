@@ -1,5 +1,6 @@
 package grafiosch.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,16 +13,16 @@ import grafiosch.rest.UpdateCreateJpaRepository;
 /**
  * Repository for managing GTNet domain configurations. Provides CRUD operations plus specialized queries for:
  * <ul>
- *   <li>Finding broadcast targets (domains with any data exchange configured)</li>
- *   <li>Finding active price providers (for consumer-side queries)</li>
- *   <li>Looking up domains by URL (for handshake processing)</li>
- *   <li>Finding open suppliers for various data exchange types</li>
+ * <li>Finding broadcast targets (domains with any data exchange configured)</li>
+ * <li>Finding active price providers (for consumer-side queries)</li>
+ * <li>Looking up domains by URL (for handshake processing)</li>
+ * <li>Finding open suppliers for various data exchange types</li>
  * </ul>
  *
  * @see GTNetJpaRepositoryCustom for complex operations like message submission
  */
-public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
-    GTNetJpaRepositoryCustom, UpdateCreateJpaRepository<GTNet> {
+public interface GTNetJpaRepository
+    extends JpaRepository<GTNet, Integer>, GTNetJpaRepositoryCustom, UpdateCreateJpaRepository<GTNet> {
 
   /**
    * Finds a GTNet entry by its domain name.
@@ -32,9 +33,8 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   GTNet findByDomainRemoteName(String domainRemoteName);
 
   /**
-   * Finds domains that have at least one GTNetEntity accepting requests.
-   * Used to determine broadcast targets for maintenance announcements and shutdown notices.
-   * Checks for acceptRequest > 0 (AC_OPEN=1 or AC_PUSH_OPEN=2).
+   * Finds domains that have at least one GTNetEntity accepting requests. Used to determine broadcast targets for
+   * maintenance announcements and shutdown notices. Checks for acceptRequest > 0 (AC_OPEN=1 or AC_PUSH_OPEN=2).
    *
    * @return list of domains where at least one entity kind accepts requests
    */
@@ -42,23 +42,22 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   List<GTNet> findByAnyAcceptRequest();
 
   /**
-   * Finds domains that have a LAST_PRICE entity with specific consumer usage and server state.
-   * Used to find active price providers when this instance acts as a consumer.
+   * Finds domains that have a LAST_PRICE entity with specific consumer usage and server state. Used to find active
+   * price providers when this instance acts as a consumer.
    *
    * @param consumerUsage the priority level (0 = not used, higher = used with priority)
-   * @param serverState the required server state (typically SS_OPEN = 4)
+   * @param serverState   the required server state (typically SS_OPEN = 4)
    * @return list of domains matching the criteria for LAST_PRICE entity kind
    */
-  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c " +
-         "WHERE e.entityKind = 0 AND c.consumerUsage = :consumerUsage AND e.serverState = :serverState")
-  List<GTNet> findByLastpriceConsumerUsageAndServerState(
-      @Param("consumerUsage") byte consumerUsage,
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e JOIN e.gtNetConfigEntity c "
+      + "WHERE e.entityKind = 0 AND c.consumerUsage = :consumerUsage AND e.serverState = :serverState")
+  List<GTNet> findByLastpriceConsumerUsageAndServerState(@Param("consumerUsage") byte consumerUsage,
       @Param("serverState") byte serverState);
 
   /**
-   * Finds GTNet entries that have data exchange configured.
-   * Returns entries where at least one GTNetEntity has a GTNetConfigEntity with exchange enabled.
-   * Used to determine which remote instances should be notified about this server's online/offline status.
+   * Finds GTNet entries that have data exchange configured. Returns entries where at least one GTNetEntity has a
+   * GTNetConfigEntity with exchange enabled. Used to determine which remote instances should be notified about this
+   * server's online/offline status.
    *
    * @return list of GTNet entries with configured data exchange
    */
@@ -66,14 +65,13 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   List<GTNet> findWithConfiguredExchange();
 
   /**
-   * Finds push-open servers available for intraday price exchange.
-   * Returns domains where:
+   * Finds push-open servers available for intraday price exchange. Returns domains where:
    * <ul>
-   *   <li>LAST_PRICE entity has acceptRequest = AC_PUSH_OPEN (2)</li>
-   *   <li>Server state is SS_OPEN (1)</li>
-   *   <li>Consumer usage priority > 0 (configured for use)</li>
-   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
-   *   <li>Server is not busy</li>
+   * <li>LAST_PRICE entity has acceptRequest = AC_PUSH_OPEN (2)</li>
+   * <li>Server state is SS_OPEN (1)</li>
+   * <li>Consumer usage priority > 0 (configured for use)</li>
+   * <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   * <li>Server is not busy</li>
    * </ul>
    * Results are ordered by consumerUsage ASC (lower value = higher priority).
    *
@@ -85,14 +83,13 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   List<GTNet> findPushOpenSuppliers();
 
   /**
-   * Finds open servers available for intraday price exchange.
-   * Returns domains where:
+   * Finds open servers available for intraday price exchange. Returns domains where:
    * <ul>
-   *   <li>LAST_PRICE entity has acceptRequest = AC_OPEN (1)</li>
-   *   <li>Server state is SS_OPEN (1)</li>
-   *   <li>Consumer usage priority > 0 (configured for use)</li>
-   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
-   *   <li>Server is not busy</li>
+   * <li>LAST_PRICE entity has acceptRequest = AC_OPEN (1)</li>
+   * <li>Server state is SS_OPEN (1)</li>
+   * <li>Consumer usage priority > 0 (configured for use)</li>
+   * <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   * <li>Server is not busy</li>
    * </ul>
    * Results are ordered by consumerUsage ASC (lower value = higher priority).
    *
@@ -104,9 +101,8 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   List<GTNet> findOpenSuppliers();
 
   /**
-   * Finds domains that have spreadCapability enabled and are online.
-   * Used to build the server list for sharing with remote domains that have been granted access.
-   * Excludes the requesting server (by id) from the results.
+   * Finds domains that have spreadCapability enabled and are online. Used to build the server list for sharing with
+   * remote domains that have been granted access. Excludes the requesting server (by id) from the results.
    *
    * @param excludeId the GTNet ID to exclude (typically the requester's entry)
    * @return list of shareable GTNet entries
@@ -115,14 +111,13 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   List<GTNet> findShareableServers(@Param("excludeId") Integer excludeId);
 
   /**
-   * Finds push-open servers available for historical price exchange.
-   * Returns domains where:
+   * Finds push-open servers available for historical price exchange. Returns domains where:
    * <ul>
-   *   <li>HISTORICAL_PRICES entity has acceptRequest = AC_PUSH_OPEN (2)</li>
-   *   <li>Server state is SS_OPEN (1)</li>
-   *   <li>Consumer usage priority > 0 (configured for use)</li>
-   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
-   *   <li>Server is not busy</li>
+   * <li>HISTORICAL_PRICES entity has acceptRequest = AC_PUSH_OPEN (2)</li>
+   * <li>Server state is SS_OPEN (1)</li>
+   * <li>Consumer usage priority > 0 (configured for use)</li>
+   * <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   * <li>Server is not busy</li>
    * </ul>
    * Results are ordered by consumerUsage ASC (lower value = higher priority).
    *
@@ -134,14 +129,13 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   List<GTNet> findHistoryquotePushOpenSuppliers();
 
   /**
-   * Finds open servers available for historical price exchange.
-   * Returns domains where:
+   * Finds open servers available for historical price exchange. Returns domains where:
    * <ul>
-   *   <li>HISTORICAL_PRICES entity has acceptRequest = AC_OPEN (1)</li>
-   *   <li>Server state is SS_OPEN (1)</li>
-   *   <li>Consumer usage priority > 0 (configured for use)</li>
-   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
-   *   <li>Server is not busy</li>
+   * <li>HISTORICAL_PRICES entity has acceptRequest = AC_OPEN (1)</li>
+   * <li>Server state is SS_OPEN (1)</li>
+   * <li>Consumer usage priority > 0 (configured for use)</li>
+   * <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
+   * <li>Server is not busy</li>
    * </ul>
    * Results are ordered by consumerUsage ASC (lower value = higher priority).
    *
@@ -153,8 +147,8 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   List<GTNet> findHistoryquoteOpenSuppliers();
 
   /**
-   * Counts GTNet entries where at least one GTNetEntity has acceptRequest > 0.
-   * Used to calculate TotalConnections variable for EvalEx expressions in GTNetMessageAnswer rules.
+   * Counts GTNet entries where at least one GTNetEntity has acceptRequest > 0. Used to calculate TotalConnections
+   * variable for EvalEx expressions in GTNetMessageAnswer rules.
    *
    * @return count of GTNet entries with active data exchange capability
    */
@@ -162,8 +156,8 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   int countByAnyAcceptRequest();
 
   /**
-   * Counts GTNet entries where LAST_PRICE entity has acceptRequest > 0.
-   * Used to calculate ConnectionsLastPrice variable for EvalEx expressions in GTNetMessageAnswer rules.
+   * Counts GTNet entries where LAST_PRICE entity has acceptRequest > 0. Used to calculate ConnectionsLastPrice variable
+   * for EvalEx expressions in GTNetMessageAnswer rules.
    *
    * @return count of GTNet entries accepting LAST_PRICE requests
    */
@@ -171,8 +165,8 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   int countByLastPriceAccepting();
 
   /**
-   * Counts GTNet entries where HISTORICAL_PRICES entity has acceptRequest > 0.
-   * Used to calculate ConnectionsHistorical variable for EvalEx expressions in GTNetMessageAnswer rules.
+   * Counts GTNet entries where HISTORICAL_PRICES entity has acceptRequest > 0. Used to calculate ConnectionsHistorical
+   * variable for EvalEx expressions in GTNetMessageAnswer rules.
    *
    * @return count of GTNet entries accepting HISTORICAL_PRICES requests
    */
@@ -180,38 +174,48 @@ public interface GTNetJpaRepository extends JpaRepository<GTNet, Integer>,
   int countByHistoricalAccepting();
 
   /**
-   * Counts GTNet entries where SECURITY_METADATA entity has acceptRequest > 0 and server is online.
-   * Used to determine if the GTNet security lookup feature should be available.
+   * Counts GTNet entries where SECURITY_METADATA entity has acceptRequest > 0 and server is online. Used to determine
+   * if the GTNet security lookup feature should be available.
    *
    * @return count of GTNet entries accepting SECURITY_METADATA requests and online
    */
-  @Query("SELECT COUNT(DISTINCT g.idGtNet) FROM GTNet g JOIN g.gtNetEntities e " +
-         "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND g.serverOnline = 1")
+  @Query("SELECT COUNT(DISTINCT g.idGtNet) FROM GTNet g JOIN g.gtNetEntities e "
+      + "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND g.serverOnline = 1")
   int countBySecurityMetadataAcceptingAndOnline();
 
   /**
-   * Finds domains that accept SECURITY_METADATA requests.
-   * Returns domains where:
+   * Finds domains that accept SECURITY_METADATA requests. Returns domains where:
    * <ul>
-   *   <li>SECURITY_METADATA entity has acceptRequest > 0 (AC_OPEN or AC_PUSH_OPEN)</li>
-   *   <li>SECURITY_METADATA entity has serverState = 1 (SS_OPEN)</li>
-   *   <li>Server is online (serverOnline = SOS_ONLINE = 1)</li>
-   *   <li>Server is not busy</li>
+   * <li>SECURITY_METADATA entity has acceptRequest > 0 (AC_OPEN or AC_PUSH_OPEN)</li>
+   * <li>SECURITY_METADATA entity has serverState = 1 (SS_OPEN)</li>
+   * <li>Server is online (serverOnline = SOS_ONLINE = 1), which also excludes SOS_OUT_OF_SERVICE</li>
+   * <li>Server is not busy</li>
+   * <li>Server is not inside one of its announced maintenance windows</li>
    * </ul>
    *
    * @return list of domains accepting security metadata requests
    */
-  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e " +
-         "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND e.serverState = 1 " +
-         "AND g.serverOnline = 1 AND g.serverBusy = false")
+  @Query("SELECT DISTINCT g FROM GTNet g JOIN g.gtNetEntities e "
+      + "WHERE e.entityKind = 2 AND e.acceptRequest > 0 AND e.serverState = 1 "
+      + "AND g.serverOnline = 1 AND g.serverBusy = false "
+      + "AND NOT EXISTS (SELECT 1 FROM GTNetMaintenanceWindow w WHERE w.idGtNet = g.idGtNet "
+      + "AND w.fromDateTime <= CURRENT_TIMESTAMP AND w.toDateTime >= CURRENT_TIMESTAMP)")
   List<GTNet> findSecurityMetadataSuppliers();
 
   /**
-   * Checks whether at least one GTNet peer is configured to exchange data of the given entity kind.
-   * A peer counts as configured when its GTNetConfigEntity has {@code exchange = true} (bidirectional
-   * exchange enabled) or {@code consumerUsage > 0} (remote used as a supplier).
-   * Used to decide whether the matching GTNet send/receive flags should default to true when a new
-   * Security or Currencypair is created.
+   * Finds the peers whose announced shutdown date has been reached, so that they can be taken out of service.
+   * {@code GNetFutureMessageDeliveryTask} clears the date as it acts on it, so a peer is returned at most once.
+   *
+   * @param today the current date
+   * @return the peers that are due to go out of service
+   */
+  List<GTNet> findByCloseStartDateLessThanEqual(LocalDate today);
+
+  /**
+   * Checks whether at least one GTNet peer is configured to exchange data of the given entity kind. A peer counts as
+   * configured when its GTNetConfigEntity has {@code exchange = true} (bidirectional exchange enabled) or
+   * {@code consumerUsage > 0} (remote used as a supplier). Used to decide whether the matching GTNet send/receive flags
+   * should default to true when a new Security or Currencypair is created.
    *
    * @param entityKind the data kind to check (e.g. LAST_PRICE = 0, HISTORICAL_PRICES = 1)
    * @return true if any peer has exchange or consumer usage configured for that kind

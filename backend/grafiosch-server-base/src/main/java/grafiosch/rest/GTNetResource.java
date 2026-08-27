@@ -8,15 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import grafiosch.entities.GTNet;
+import grafiosch.entities.GTNetMaintenanceWindow;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.model.GTNetWithMessages;
 import grafiosch.gtnet.model.MsgRequest;
@@ -62,6 +63,13 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
     return new ResponseEntity<>(gtNetJpaRepository.getMessagesByIdGtNet(idGtNet), HttpStatus.OK);
   }
 
+  @Operation(summary = "Returns the announced maintenance windows of a GTNet domain", description = "Used when the maintenance panel of an expanded row in the GTNet setup table is opened", tags = {
+      RequestMappings.GTNET })
+  @GetMapping(value = "/maintenancewindows/{idGtNet}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<GTNetMaintenanceWindow>> getMaintenanceWindowsByIdGtNet(@PathVariable Integer idGtNet) {
+    return new ResponseEntity<>(gtNetJpaRepository.getMaintenanceWindowsByIdGtNet(idGtNet), HttpStatus.OK);
+  }
+
   @Operation(summary = "Deletes a batch of GTNet messages", description = "Validates that all messages are deletable and cascade-deletes responses", tags = {
       RequestMappings.GTNET })
   @PostMapping(value = "/deletemessagebatch", produces = APPLICATION_JSON_VALUE)
@@ -78,10 +86,9 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
     return ResponseEntity.noContent().build();
   }
 
-  @Operation(summary = "Triggers an immediate online-status check for a single GTNet peer",
-      description = "Sends a ping to the peer when the outbound handshake is complete and returns the updated "
-          + "GTNet entry. Peers without tokenRemote are set to SOS_UNKNOWN. The local entry is returned unchanged.",
-      tags = { RequestMappings.GTNET })
+  @Operation(summary = "Triggers an immediate online-status check for a single GTNet peer", description = "Sends a ping to the peer when the outbound handshake is complete and returns the updated "
+      + "GTNet entry. Peers without tokenRemote are set to SOS_UNKNOWN. The local entry is returned unchanged.", tags = {
+          RequestMappings.GTNET })
   @PreAuthorize("hasRole('ADMIN')")
   @PostMapping(value = "/{idGtNet}/checkstatus", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTNet> checkPeerStatus(@PathVariable final Integer idGtNet) {

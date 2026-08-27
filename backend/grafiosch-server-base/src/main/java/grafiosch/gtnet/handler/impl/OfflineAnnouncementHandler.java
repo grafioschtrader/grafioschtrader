@@ -6,6 +6,7 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import grafiosch.gtnet.GTNetServerStateTypes;
 import grafiosch.gtnet.handler.AbstractAnnouncementHandler;
 import grafiosch.gtnet.handler.GTNetMessageContext;
@@ -16,7 +17,8 @@ import grafiosch.gtnet.handler.GTNetMessageContext;
  * Processes offline announcements from remote servers. The remote server has gone offline and it is unknown when it
  * will be back online. This may be a restart or a shutdown.
  *
- * Updates the remote GTNet server state to closed for all entity kinds.
+ * Records the remote as offline and closes every entity kind, so a graceful shutdown is visible before the next
+ * outbound send fails.
  */
 @Component
 public class OfflineAnnouncementHandler extends AbstractAnnouncementHandler {
@@ -33,9 +35,11 @@ public class OfflineAnnouncementHandler extends AbstractAnnouncementHandler {
       return;
     }
 
-    // Mark all entity kinds as closed - server is offline
-    remoteGTNet.getGtNetEntities().forEach(entity ->
-        entity.setServerState(GTNetServerStateTypes.SS_CLOSED));
+    // Both halves are needed. Closing the entity kinds alone left the peer recorded as online with everything closed,
+    // because the status synchronization that runs ahead of every handler had already forced SOS_ONLINE - the peer had
+    // after all just communicated. That synchronization now skips this code, so the announcement is what decides.
+    remoteGTNet.setServerOnline(GTNetServerOnlineStatusTypes.SOS_OFFLINE);
+    remoteGTNet.getGtNetEntities().forEach(entity -> entity.setServerState(GTNetServerStateTypes.SS_CLOSED));
     saveRemoteGTNet(remoteGTNet);
   }
 }

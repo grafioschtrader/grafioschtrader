@@ -373,16 +373,26 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
     entityToSave.tickerSymbol = entity.tickerSymbol;
     entityToSave.currency = entity.currency;
 
-    // Only set ID if it's a valid number (not a temp string like "new_1")
-    if (entity.idGtNetSecurityImpPos && typeof entity.idGtNetSecurityImpPos === 'number') {
+    // Only set ID if it is a persisted one. A temporary key must never travel: save() branches on the id to choose
+    // between POST and PUT, and an update of a row that does not exist is answered with a security breach, which
+    // counts against the user's g.max.security.breach.count. Two kinds of temporary key occur here - the string
+    // `new_<n>` this component puts into rowKey, and the negative number EditableTableComponent.addNewRow() assigns
+    // as the dataKey of a row whose key is still null - so a positive number is the only thing that may be copied.
+    if (typeof entity.idGtNetSecurityImpPos === 'number' && entity.idGtNetSecurityImpPos > 0) {
       entityToSave.idGtNetSecurityImpPos = entity.idGtNetSecurityImpPos;
     }
 
     this.gtNetSecurityImpPosService.save(entityToSave).subscribe({
       next: (saved: GTNetSecurityImpPos) => {
-        // Update the entity with the saved data (including generated ID)
-        Object.assign(entity, saved);
-        (entity as any).rowKey = `existing_${saved.idGtNetSecurityImpPos}`;
+        // A newly persisted row changes from a temporary negative dataKey to its generated positive ID. Replacing
+        // the row gives Optimus a clean editor context for the next append; mutating that key in place can make the
+        // following row's controls retain bindings from the saved row.
+        const savedEntity = Object.assign(new GTNetSecurityImpPos(), saved);
+        (savedEntity as any).rowKey = `existing_${saved.idGtNetSecurityImpPos}`;
+        this.positions = this.positions.map((position) => (position === entity ? savedEntity : position));
+        if (this.selectedPosition === entity) {
+          this.selectedPosition = savedEntity;
+        }
         this.messageToastService.showMessageI18n(
           InfoLevelType.SUCCESS,
           event.isNew ? 'MSG_RECORD_CREATED' : 'MSG_RECORD_SAVED',

@@ -6,7 +6,6 @@ import { DataType } from '../../dynamic-form/models/data.type';
 import {
   DeliveryStatus,
   getReverseCode,
-  getValidResponseCodes,
   GTNetMessage,
   GTNetMessageCodeType,
   MessageVisibility,
@@ -15,6 +14,7 @@ import {
 } from '../model/gtnet.message';
 import { MsgRequest } from '../model/gtnet';
 import { GTNetService } from '../service/gtnet.service';
+import { GTNetProtocolService } from '../service/gtnet.protocol.service';
 import { FilterService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -81,16 +81,18 @@ import { FilterType } from '../../datashowbase/filter.type';
           showGridlines="true">
           <ng-template #header let-fields>
             <tr>
-              <th style="width: 40px; text-align: center;">
-                @if (hasDeletableMessages()) {
-                  <p-checkbox
-                    [binary]="true"
-                    [ngModel]="areAllDeletableSelected()"
-                    (onChange)="onSelectAllChange($event)"
-                    [pTooltip]="'SELECT_DESELECT_ALL' | translate">
-                  </p-checkbox>
-                }
-              </th>
+              @if (canAdministerGTNet) {
+                <th style="width: 40px; text-align: center;">
+                  @if (hasDeletableMessages()) {
+                    <p-checkbox
+                      [binary]="true"
+                      [ngModel]="areAllDeletableSelected()"
+                      (onChange)="onSelectAllChange($event)"
+                      [pTooltip]="'SELECT_DESELECT_ALL' | translate">
+                    </p-checkbox>
+                  }
+                </th>
+              }
               @for (field of fields; track field) {
                 <th [style.width.px]="field.width">
                   {{ field.headerTranslated }}
@@ -99,7 +101,9 @@ import { FilterType } from '../../datashowbase/filter.type';
             </tr>
             @if (showFilter && hasFilter) {
               <tr>
-                <th></th>
+                @if (canAdministerGTNet) {
+                  <th></th>
+                }
                 @for (field of fields; track field) {
                   <th style="overflow:visible;">
                     @switch (field.filterType) {
@@ -138,15 +142,17 @@ import { FilterType } from '../../datashowbase/filter.type';
           </ng-template>
           <ng-template #body let-rowNode let-rowData="rowData" let-columns="fields">
             <tr [ttSelectableRow]="rowNode" [style.background-color]="getPendingBackgroundColor(rowData)">
-              <td style="width: 40px; text-align: center;">
-                @if (rowData.canDelete && !rowData.replyTo) {
-                  <p-checkbox
-                    [binary]="true"
-                    [ngModel]="selectedDeletableIds.has(rowData.idGtNetMessage)"
-                    (onChange)="onDeleteCheckChange($event, rowData)">
-                  </p-checkbox>
-                }
-              </td>
+              @if (canAdministerGTNet) {
+                <td style="width: 40px; text-align: center;">
+                  @if (rowData.canDelete && !rowData.replyTo) {
+                    <p-checkbox
+                      [binary]="true"
+                      [ngModel]="selectedDeletableIds.has(rowData.idGtNetMessage)"
+                      (onChange)="onDeleteCheckChange($event, rowData)">
+                    </p-checkbox>
+                  }
+                </td>
+              }
               @for (field of fields; track field; let i = $index) {
                 @if (field.visible) {
                   <td
@@ -233,6 +239,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   contextMenuItems: MenuItem[] = [];
   visibleDialogMsg = false;
   msgCallParam: MsgCallParam;
+  protected readonly canAdministerGTNet: boolean;
 
   /** Set of message IDs selected for batch deletion */
   selectedDeletableIds: Set<number> = new Set();
@@ -241,12 +248,14 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     private activePanelService: ActivePanelService,
     private gtNetMessageService: GTNetMessageService,
     private gtNetService: GTNetService,
+    private gtNetProtocolService: GTNetProtocolService,
     private iconReg: SvgIconRegistryService,
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService
   ) {
     super(translateService, gps, filterService);
+    this.canAdministerGTNet = gps.hasRole(BaseSettings.ROLE_ADMIN);
     GTNetMessageTreeTableComponent.registerIcons(this.iconReg);
   }
 
@@ -268,6 +277,8 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   }
 
   ngOnInit(): void {
+    // The reply gate reads which codes answer which; the request is made once for the whole application.
+    this.gtNetProtocolService.load().subscribe();
     this.addColumn(DataType.DateTimeString, 'timestamp', 'SEND_RECV_TIME', true, false, {
       width: 160,
       filterType: FilterType.likeDataType
@@ -389,8 +400,11 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     const isReceived =
       msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
 
-    // Mark as read if it's a received message that hasn't been read
-    if (isReceived && !msg.hasBeenRead) {
+    // Mark as read if it's a received message that hasn't been read. The flag is instance-wide rather than per user,
+    // so setting it is an administrative act and the endpoint requires ROLE_ADMIN. This tree table is also embedded in
+    // the admin-message feed, which every authenticated user may open, so a non-admin selecting a row would otherwise
+    // fire a request that can only come back 403.
+    if (isReceived && !msg.hasBeenRead && this.canAdministerGTNet) {
       this.gtNetMessageService.markAsRead(msg.idGtNetMessage).subscribe(() => {
         // Update local state immediately
         msg.hasBeenRead = true;
@@ -427,6 +441,9 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   private getMenuItems(): MenuItem[] {
     const menuItems: MenuItem[] = [];
+    if (!this.canAdministerGTNet) {
+      return menuItems;
+    }
     if (this.selectedNode?.data && this.canReplyToSelected()) {
       menuItems.push({
         label: 'REPLY',
@@ -453,22 +470,26 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Checks if the selected message can be replied to:
    * - Must be an incoming message (sendRecv === 'RECEIVED', 'RECEIVE', or SendReceivedType.RECEIVE)
    * - Must have valid response codes defined
-   * - For admin messages: always allow reply (supports ongoing conversations)
+   * - For a threadable code: always allow reply (supports ongoing conversations)
    * - For other messages: must be pending (unanswered request)
    */
   private canReplyToSelected(): boolean {
+    if (!this.canAdministerGTNet) {
+      return false;
+    }
     const msg: GTNetMessage = this.selectedNode?.data;
     if (!msg) {
       return false;
     }
     const isIncoming =
       msg.sendRecv === 'RECEIVED' || msg.sendRecv === 'RECEIVE' || msg.sendRecv === SendReceivedType.RECEIVE;
-    const validResponses = getValidResponseCodes(msg.messageCode);
+    const validResponses = this.gtNetProtocolService.getValidResponseCodes(msg.messageCode);
     if (!isIncoming || validResponses.length === 0) {
       return false;
     }
-    // For admin messages, always allow reply to incoming messages (supports ongoing conversations)
-    if (this.isAdminMessageCode(msg.messageCode)) {
+    // A threadable code - the admin message is the only one - continues a conversation instead of closing a request,
+    // so it may always be answered.
+    if (this.gtNetProtocolService.isThreadable(msg.messageCode)) {
       return true;
     }
     // For other message types, require pending status
@@ -476,17 +497,12 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     return isPending;
   }
 
-  /**
-   * Checks if the message code is an admin message type.
-   */
-  private isAdminMessageCode(messageCode: GTNetMessageCodeType | string): boolean {
-    const codeName = typeof messageCode === 'string' ? messageCode : GTNetMessageCodeType[messageCode];
-    return codeName?.startsWith('GT_NET_ADMIN_MESSAGE') ?? false;
-  }
-
   private replyToSelected(): void {
+    if (!this.canAdministerGTNet) {
+      return;
+    }
     const msg: GTNetMessage = this.selectedNode.data;
-    const validResponses = getValidResponseCodes(msg.messageCode);
+    const validResponses = this.gtNetProtocolService.getValidResponseCodes(msg.messageCode);
     // Get parent's visibility for inheritance rules
     const parentVisibility = this.getParentVisibility(msg);
     this.msgCallParam = new MsgCallParam(
@@ -523,6 +539,9 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * - The dates in the message must be in the future
    */
   private canReverseSelected(): boolean {
+    if (!this.canAdministerGTNet) {
+      return false;
+    }
     const msg: GTNetMessage = this.selectedNode?.data;
     if (!msg) {
       return false;
@@ -567,6 +586,9 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Sets idOriginalMessage to link the cancellation to the original message.
    */
   private reverseSelected(): void {
+    if (!this.canAdministerGTNet) {
+      return;
+    }
     const msg: GTNetMessage = this.selectedNode.data;
     const reverseCode = getReverseCode(msg.messageCode);
     if (!reverseCode) {
@@ -615,6 +637,9 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * @param rowData the message being selected/deselected
    */
   onDeleteCheckChange(event: any, rowData: GTNetMessage): void {
+    if (!this.canAdministerGTNet) {
+      return;
+    }
     if (event.checked) {
       this.selectedDeletableIds.add(rowData.idGtNetMessage);
     } else {
@@ -651,7 +676,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Checks if there are any deletable messages in the current view.
    */
   hasDeletableMessages(): boolean {
-    return this.getFilteredDeletableMessages().length > 0;
+    return this.canAdministerGTNet && this.getFilteredDeletableMessages().length > 0;
   }
 
   /**
@@ -670,6 +695,9 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Toggles selection of all deletable messages based on current state.
    */
   onSelectAllChange(event: any): void {
+    if (!this.canAdministerGTNet) {
+      return;
+    }
     const deletable = this.getFilteredDeletableMessages();
     if (event.checked) {
       // Select all deletable messages
@@ -686,7 +714,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
    * Checks if there are any messages selected for deletion.
    */
   canDeleteSelected(): boolean {
-    return this.selectedDeletableIds.size > 0;
+    return this.canAdministerGTNet && this.selectedDeletableIds.size > 0;
   }
 
   /**

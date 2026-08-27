@@ -1,30 +1,20 @@
 package grafioschtrader.gtnet;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
-import grafiosch.gtnet.GTNetModelHelper;
 
 /**
  * Application-specific message codes for Grafioschtrader GTNet communication.
  *
- * This enum contains only Grafioschtrader-specific message codes (60+) for trading-related
- * functionality like price exchange, history quotes, and security lookup. Core protocol
- * messages (0-54) are defined in {@link GNetCoreMessageCode} in the grafiosch-base module.
+ * This enum contains only Grafioschtrader-specific message codes (60+) for trading-related functionality like price
+ * exchange, history quotes, and security lookup. Core protocol messages (0-54) are defined in
+ * {@link GNetCoreMessageCode} in the grafiosch-base module.
  *
- * <h3>Naming Convention</h3>
- * Message codes follow a structured naming pattern that indicates their purpose and behavior:
- * <ul>
- * <li><b>Contains _RR_</b>: Message expects a response (Requires Response)</li>
- * <li><b>Suffix _C</b>: Client-initiated messages (triggered from UI or scheduled jobs)</li>
- * <li><b>Suffix _S</b>: Server response messages (replies to requests)</li>
- * <li><b>Contains _SEL_</b>: Targeted at a specific selected remote server</li>
- * <li><b>Contains _ALL_</b>: Broadcast to all applicable remote servers</li>
- * </ul>
+ * <h3>Naming Convention</h3> {@code _SEL_} marks a message aimed at one selected peer, {@code _ALL_} a broadcast.
+ * Everything else a code does — its category, the answers it accepts, its payload model, whether it may appear in an
+ * auto-answer rule — is declared in {@link GTProtocolDescriptors} and read from {@code GTNetMessageCodeRegistry}, never
+ * derived from the name.
  *
  * <h3>Message Code Ranges</h3>
  * <ol>
@@ -36,7 +26,7 @@ import grafiosch.gtnet.GTNetModelHelper;
  * </ol>
  *
  * @see GNetCoreMessageCode for core protocol messages (0-54)
- * @see GTNetModelHelper for mapping message codes to payload model classes
+ * @see GTProtocolDescriptors for what each of these codes means
  * @see GTNetMessage for message storage and threading
  */
 public enum GTNetMessageCodeType implements GTNetMessageCode {
@@ -52,8 +42,8 @@ public enum GTNetMessageCodeType implements GTNetMessageCode {
   GT_NET_LASTPRICE_PUSH_ACK_S((byte) 63),
   /** Response when the request exceeds the configured max_limit for instruments */
   GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S((byte) 64),
-  
-  //Exchange sync messages (70-79)
+
+  // Exchange sync messages (70-79)
   /** Request exchange configuration sync from remote server, includes local changed entries since last sync */
   GT_NET_EXCHANGE_SYNC_SEL_RR_C((byte) 70),
   /** Response containing remote's changed exchange entries for bidirectional sync */
@@ -89,8 +79,6 @@ public enum GTNetMessageCodeType implements GTNetMessageCode {
   /** Response containing matching security metadata for batch lookup, grouped by query index */
   GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S((byte) 95);
 
-
-
   private final byte value;
 
   private GTNetMessageCodeType(byte value) {
@@ -102,67 +90,18 @@ public enum GTNetMessageCodeType implements GTNetMessageCode {
   }
 
   /**
-   * Looks up an app-specific message code (60+) by its byte value.
-   *
-   * @param value the byte value to look up
-   * @return the corresponding GTNetMessageCodeType, or null if not found in app-specific codes
-   */
-  public static grafioschtrader.gtnet.GTNetMessageCodeType getGTNetMessageCodeTypeByValue(byte value) {
-    for (grafioschtrader.gtnet.GTNetMessageCodeType gtNetMessageCodeType : GTNetMessageCodeType.values()) {
-      if (gtNetMessageCodeType.getValue() == value) {
-        return gtNetMessageCodeType;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Unified lookup for message codes by byte value. Checks both app-specific codes (60+)
-   * and core protocol codes (0-54).
+   * Unified lookup for message codes by byte value. Checks the application codes (60+) first and falls back to the core
+   * protocol codes (0-54).
    *
    * @param value the byte value to look up
    * @return the corresponding GTNetMessageCode, or null if not found
    */
   public static GTNetMessageCode getMessageCodeByValue(byte value) {
-    // First check app-specific codes (60+)
-    GTNetMessageCodeType appCode = GTNetMessageCodeType.getGTNetMessageCodeTypeByValue(value);
-    if (appCode != null) {
-      return appCode;
+    for (GTNetMessageCodeType appCode : values()) {
+      if (appCode.getValue() == value) {
+        return appCode;
+      }
     }
-    // Fallback to core protocol codes (0-54)
     return GNetCoreMessageCode.getByValue(value);
-  }
-  
-  
-  /**
-   * Maps request codes (_RR_) to their valid response codes. Used by the UI to show available response options for
-   * unanswered incoming requests. Uses GTNetMessageCode interface to support both core and app-specific codes.
-   */
-  private static final Map<GTNetMessageCode, List<GTNetMessageCode>> RESPONSE_MAP = Map.of(
-      GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S,
-      List.of(GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_ACCEPT_S, GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_S),
-      GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C,
-      List.of(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S, GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_REJECTED_S),
-      GNetCoreMessageCode.GT_NET_DATA_REQUEST_SEL_RR_C,
-      List.of(GNetCoreMessageCode.GT_NET_DATA_REQUEST_ACCEPT_S, GNetCoreMessageCode.GT_NET_DATA_REQUEST_REJECTED_S),
-      GT_NET_EXCHANGE_SYNC_SEL_RR_C, List.of(GT_NET_EXCHANGE_SYNC_RESPONSE_S));
-
-  /**
-   * Returns the valid response codes for a given request code.
-   *
-   * @param requestCode the request message code (must be an _RR_ type)
-   * @return list of valid response codes, or empty list if not a request type
-   */
-  public static List<GTNetMessageCode> getValidResponses(GTNetMessageCode requestCode) {
-    return RESPONSE_MAP.getOrDefault(requestCode, Collections.emptyList());
-  }
-
-  /**
-   * Checks if this message code is a request that requires a response.
-   *
-   * @return true if this is an _RR_ type message code
-   */
-  public boolean isRequestRequiringResponse() {
-    return this.name().contains("_RR_");
   }
 }

@@ -18,13 +18,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Grand total aggregator for the comprehensive dividends and interest report. This class serves as the top-level
  * container that consolidates dividend and interest data across all years, portfolios, and accounts within the system.
- * 
+ *
  * <p>
  * The class extends {@link SecurityCostGrand} to provide yearly grouping functionality through
  * {@link SecurityDividendsYearGroup} instances. It maintains grand totals for various financial metrics including fees,
  * interest, dividends, and taxable amounts, all converted to the main currency.
  * </p>
- * 
+ *
  * <p>
  * Key responsibilities include:
  * </p>
@@ -73,7 +73,7 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   /**
    * Constructs a new SecurityDividendsGrandTotal with the specified currency settings. Initializes the underlying
    * TreeMap for managing year-based groupings.
-   * 
+   *
    * @param mainCurrency         the main currency code for all calculations and conversions
    * @param currencyPrecisionMap map containing precision settings for different currencies, where key is currency code
    *                             and value is number of decimal places
@@ -85,7 +85,7 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   /**
    * Creates a new SecurityDividendsYearGroup instance for the specified year. This method is called by the parent class
    * when a new year group needs to be created.
-   * 
+   *
    * @param key the year (as Integer) for which to create the group
    * @return a new SecurityDividendsYearGroup instance configured with appropriate precision settings
    */
@@ -117,20 +117,22 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
    * Attaches historical quotes to all year groups and calculates position totals. This method propagates historical
    * quote data and currency information to all SecurityDividendsYearGroup instances, enabling them to calculate
    * position valuations at specific dates (typically end-of-year).
-   * 
+   *
    * <p>
    * After all year groups have processed their historical data, this method calls the grand summary calculation to
    * finalize all totals.
    * </p>
-   * 
-   * @param historyquoteYearIdMap nested map structure containing historical quotes, where outer key is year, inner key
-   *                              is security ID, and value is the quote
-   * @param dateCurrencyMap       currency pair mapping and date information for conversions
+   *
+   * @param historyquoteYearIdMap  nested map structure containing historical quotes, where outer key is year, inner key
+   *                               is security ID, and value is the quote
+   * @param dateCurrencyMap        currency pair mapping and date information for conversions
+   * @param officialYearEndRateMap official year-end exchange rates published by a tax authority, keyed by year and then
+   *                               by currency, already reduced to main currency per unit; empty when none apply
    */
   public void attachHistoryquoteAndCalcPositionTotal(Map<Integer, Map<Integer, Historyquote>> historyquoteYearIdMap,
-      DateTransactionCurrencypairMap dateCurrencyMap) {
+      DateTransactionCurrencypairMap dateCurrencyMap, Map<Integer, Map<String, Double>> officialYearEndRateMap) {
     groupMap.values().forEach(securityDividendsYearGroup -> securityDividendsYearGroup
-        .attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap, dateCurrencyMap));
+        .attachHistoryquoteAndCalcPositionTotal(historyquoteYearIdMap, dateCurrencyMap, officialYearEndRateMap));
     this.caclulateGrandSummary();
   }
 
@@ -146,7 +148,7 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   /**
    * Calculates the total number of security accounts across all portfolios. This method iterates through all portfolios
    * in the portfolioList and sums up the number of security accounts in each portfolio.
-   * 
+   *
    * @return the total count of security accounts across all portfolios
    */
   public Integer getNumberOfSecurityAccounts() {
@@ -156,7 +158,7 @@ public class SecurityDividendsGrandTotal extends SecurityCostGrand<Integer, Secu
   /**
    * Calculates the total number of cash accounts across all portfolios. This method iterates through all portfolios in
    * the portfolioList and sums up the number of cash accounts in each portfolio.
-   * 
+   *
    * @return the total count of cash accounts across all portfolios
    */
   public Integer getNumberOfCashAccounts() {

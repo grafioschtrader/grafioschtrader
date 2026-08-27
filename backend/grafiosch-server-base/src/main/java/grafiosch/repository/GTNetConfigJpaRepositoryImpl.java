@@ -9,8 +9,7 @@ import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.GTNetConfig;
 
 /**
- * Implementation of GTNetConfigJpaRepositoryCustom.
- * Handles selective attribute updates for GTNetConfig, allowing only
+ * Implementation of GTNetConfigJpaRepositoryCustom. Handles selective attribute updates for GTNetConfig, allowing only
  * the connectionTimeout field to be modified (marked with @PropertyAlwaysUpdatable).
  */
 public class GTNetConfigJpaRepositoryImpl extends BaseRepositoryImpl<GTNetConfig>

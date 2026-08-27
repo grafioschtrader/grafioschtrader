@@ -1,0 +1,6 @@
+TS2591: Cannot find name 'node:fs'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+TS2591: Cannot find name 'node:path'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+TS2591: Cannot find name 'node:url'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+TS6306: Referenced project 'C:/SoftwareProjekte/Hugos/grafioschtrader/frontend/tsconfig.app.json' must have setting "composite": true.
+TS6306: Referenced project 'C:/SoftwareProjekte/Hugos/grafioschtrader/frontend/tsconfig.spec.json' must have setting "composite": true.
+TS2339: Property '$safeNavigationMigration' does not exist on type 'WatchlistUdfComponent'.

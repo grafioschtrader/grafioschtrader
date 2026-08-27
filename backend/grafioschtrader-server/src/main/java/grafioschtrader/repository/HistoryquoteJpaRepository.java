@@ -61,17 +61,17 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
       LocalDate toDate);
 
   /**
-   * Batch query for historical quotes across multiple securities/currency pairs.
-   * Returns all quotes for the given IDs where the date is greater than or equal to the fromDate.
-   * Results are ordered by idSecuritycurrency and date for efficient grouping.
+   * Batch query for historical quotes across multiple securities/currency pairs. Returns all quotes for the given IDs
+   * where the date is greater than or equal to the fromDate. Results are ordered by idSecuritycurrency and date for
+   * efficient grouping.
    *
    * @param idSecuritycurrencies list of security/currency pair IDs to query
-   * @param fromDate the minimum date (inclusive) for quotes
+   * @param fromDate             the minimum date (inclusive) for quotes
    * @return list of historyquotes ordered by idSecuritycurrency and date ascending
    */
   @Query("SELECT h FROM Historyquote h WHERE h.idSecuritycurrency IN :ids AND h.date >= :fromDate ORDER BY h.idSecuritycurrency, h.date")
-  List<Historyquote> findByIdSecuritycurrencyInAndDateGreaterThanEqual(
-      @Param("ids") List<Integer> idSecuritycurrencies, @Param("fromDate") LocalDate fromDate);
+  List<Historyquote> findByIdSecuritycurrencyInAndDateGreaterThanEqual(@Param("ids") List<Integer> idSecuritycurrencies,
+      @Param("fromDate") LocalDate fromDate);
 
   /**
    * Retrieves a set of dates for which historical quotes already exist for a given security or currency pair within a
@@ -83,8 +83,8 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * </p>
    *
    * @param idSecuritycurrency The unique identifier of the security or currency pair.
-   * @param fromDate The start date of the range (exclusive - dates after this are included).
-   * @param toDate The end date of the range (exclusive - dates before this are included).
+   * @param fromDate           The start date of the range (exclusive - dates after this are included).
+   * @param toDate             The end date of the range (exclusive - dates before this are included).
    * @return A set of dates that already have historical quotes within the specified range. Returns an empty set if no
    *         quotes exist in the range.
    */
@@ -92,8 +92,8 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
   Set<LocalDate> findDatesByIdSecuritycurrencyAndDateBetweenExclusive(Integer idSecuritycurrency, LocalDate fromDate,
       LocalDate toDate);
 
-  List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency, LocalDate date,
-      Pageable pageable);
+  List<Historyquote> findByIdSecuritycurrencyAndDateGreaterThanOrderByDateAsc(Integer idSecuritycurrency,
+      LocalDate date, Pageable pageable);
 
   void removeByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
 
@@ -145,19 +145,19 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
       Integer idSecuritycurrency);
 
   /**
-   * Checks whether valid OHLC (Open-High-Low-Close) data is available for a given security or currency pair. The
-   * check examines both the oldest and youngest historyquote records (excluding filled non-trade day entries) to
-   * verify that open, high, and low values are non-null and non-zero.
+   * Checks whether valid OHLC (Open-High-Low-Close) data is available for a given security or currency pair. The check
+   * examines both the oldest and youngest historyquote records (excluding filled non-trade day entries) to verify that
+   * open, high, and low values are non-null and non-zero.
    * <p>
-   * This method is used to determine whether candlestick or OHLC charts can be displayed for the instrument. OHLC
-   * data is considered available only if both boundary records contain valid price data.
+   * This method is used to determine whether candlestick or OHLC charts can be displayed for the instrument. OHLC data
+   * is considered available only if both boundary records contain valid price data.
    * </p>
    *
    * Named query: Historyquote.isOhlcAvailable
    *
    * @param idSecuritycurrency The unique identifier of the security or currency pair to check.
-   * @return Integer 1 if OHLC data is available (both oldest and youngest records have valid open/high/low values),
-   *         0 otherwise. MariaDB/MySQL returns 1/0 for boolean expressions.
+   * @return Integer 1 if OHLC data is available (both oldest and youngest records have valid open/high/low values), 0
+   *         otherwise. MariaDB/MySQL returns 1/0 for boolean expressions.
    */
   @Query(nativeQuery = true)
   Integer isOhlcAvailable(Integer idSecuritycurrency);
@@ -173,8 +173,8 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Named query: Historyquote.findOhlcByIdSecuritycurrencyOrderByDateAsc
    *
    * @param idSecuritycurrency The unique identifier of the security or currency pair.
-   * @return A list of HistoryquoteDateOHLC objects sorted chronologically. Returns an empty list if no OHLC data
-   *         exists for the given ID.
+   * @return A list of HistoryquoteDateOHLC objects sorted chronologically. Returns an empty list if no OHLC data exists
+   *         for the given ID.
    */
   @Query(nativeQuery = false)
   List<HistoryquoteDateOHLC> findOhlcByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
@@ -266,8 +266,8 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  List<Historyquote> getHistoryquoteFromDerivedLinksByIdSecurityAndDate(Integer idSecurity, LocalDate fromDate, LocalDate toDate,
-      int requiredDayCount);
+  List<Historyquote> getHistoryquoteFromDerivedLinksByIdSecurityAndDate(Integer idSecurity, LocalDate fromDate,
+      LocalDate toDate, int requiredDayCount);
 
   /**
    * For a given list of security or currencypair identifiers, this method retrieves the earliest (minimum) and latest
@@ -292,9 +292,10 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * {@code fillUpToDate}, limited by its active to date. Existing prices after {@code fillUpToDate} are still returned,
    * so a later real price can close a trailing gap, but no further day is reported as missing.
    * <p>
-   * The caller decides how far the calendar is trusted. {@link grafioschtrader.entities.Stockexchange#getCalendarKnownUntil()}
-   * yields the date up to which the exchange calendar is derived; a date beyond it means the exchange holidays of that
-   * period are unknown, so a day that is in fact a holiday may be reported as missing.
+   * The caller decides how far the calendar is trusted.
+   * {@link grafioschtrader.entities.Stockexchange#getCalendarKnownUntil()} yields the date up to which the exchange
+   * calendar is derived; a date beyond it means the exchange holidays of that period are unknown, so a day that is in
+   * fact a holiday may be reported as missing.
    *
    * Named query: Historyquote.getClosedAndMissingHistoryquoteByIdSecurity
    *
@@ -591,48 +592,53 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    *         an empty list if no such discrepancies are found.
    */
   @Query(nativeQuery = true)
-  List<LocalDate> getMissingEODForSecurityByUpdCalendarIndex(Integer idSecuritycurrencyIndex, Integer idSecuritycurrency);
+  List<LocalDate> getMissingEODForSecurityByUpdCalendarIndex(Integer idSecuritycurrencyIndex,
+      Integer idSecuritycurrency);
 
   /**
    * Retrieves missing end-of-day (EOD) historical quotes for a derived security up to a specified date.
-   * 
-   * <p>A derived security calculates its price based on one or more underlying securities
-   * (defined by {@link Security#idLinkSecuritycurrency} and {@link SecurityDerivedLink}).
-   * This method identifies trading days where all dependent securities have historical data,
-   * but the derived security itself is missing a history quote entry.</p>
-   * 
-   * <p>The query uses a CTE-based approach to:</p>
+   *
+   * <p>
+   * A derived security calculates its price based on one or more underlying securities (defined by
+   * {@link Security#idLinkSecuritycurrency} and {@link SecurityDerivedLink}). This method identifies trading days where
+   * all dependent securities have historical data, but the derived security itself is missing a history quote entry.
+   * </p>
+   *
+   * <p>
+   * The query uses a CTE-based approach to:
+   * </p>
    * <ol>
-   *   <li>Collect all security dependencies (main link + additional links from security_derived_link)</li>
-   *   <li>Find dates where ALL dependencies have complete data (up to maxDate)</li>
-   *   <li>Return historyquote records for those dates where the derived security has no entry</li>
+   * <li>Collect all security dependencies (main link + additional links from security_derived_link)</li>
+   * <li>Find dates where ALL dependencies have complete data (up to maxDate)</li>
+   * <li>Return historyquote records for those dates where the derived security has no entry</li>
    * </ol>
-   * 
-   * <p>The returned historyquote objects contain the source data needed to calculate
-   * the derived security's price using its formula ({@link Security#formulaPrices}).</p>
-   * 
+   *
+   * <p>
+   * The returned historyquote objects contain the source data needed to calculate the derived security's price using
+   * its formula ({@link Security#formulaPrices}).
+   * </p>
+   *
    * @param idSecuritycurrency the ID of the derived security to check for missing data
-   * @param maxDate the maximum date to check (inclusive), typically yesterday or current date
-   * @return list of historyquote records from dependency securities for dates where
-   *         the derived security is missing data, ordered by date (descending) and dependency ID
+   * @param maxDate            the maximum date to check (inclusive), typically yesterday or current date
+   * @return list of historyquote records from dependency securities for dates where the derived security is missing
+   *         data, ordered by date (descending) and dependency ID
    */
   @Query(nativeQuery = true)
   List<Historyquote> getMissingDerivedSecurityEOD(Integer idSecuritycurrency, LocalDate maxDate);
 
   /**
    * Inserts a history quote using INSERT IGNORE to silently skip duplicates without throwing exceptions. This is used
-   * for filling non-trading day gaps where concurrent processes may attempt to insert the same records. Unlike
-   * standard JPA save operations, this native query does not mark the transaction for rollback on duplicate key
-   * conflicts.
+   * for filling non-trading day gaps where concurrent processes may attempt to insert the same records. Unlike standard
+   * JPA save operations, this native query does not mark the transaction for rollback on duplicate key conflicts.
    *
    * @param idSecuritycurrency The security or currency pair identifier.
-   * @param date The date of the history quote.
-   * @param close The closing price.
-   * @param open The opening price (nullable).
-   * @param high The high price (nullable).
-   * @param low The low price (nullable).
-   * @param volume The trading volume (nullable).
-   * @param createType The creation type (e.g., FILLED_NON_TRADE_DAY = 1).
+   * @param date               The date of the history quote.
+   * @param close              The closing price.
+   * @param open               The opening price (nullable).
+   * @param high               The high price (nullable).
+   * @param low                The low price (nullable).
+   * @param volume             The trading volume (nullable).
+   * @param createType         The creation type (e.g., FILLED_NON_TRADE_DAY = 1).
    * @return The number of rows inserted (1 if inserted, 0 if skipped due to duplicate).
    */
   @Modifying
@@ -650,6 +656,11 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    */
   @Query("SELECT MIN(h.date), MAX(h.date), COUNT(h) FROM Historyquote h WHERE h.idSecuritycurrency = ?1")
   Object[] findMinMaxDateAndCount(Integer idSecuritycurrency);
+
+  /** Returns id, minimum date, maximum date and record count for each requested local instrument. */
+  @Query("SELECT h.idSecuritycurrency, MIN(h.date), MAX(h.date), COUNT(h) FROM Historyquote h "
+      + "WHERE h.idSecuritycurrency IN ?1 GROUP BY h.idSecuritycurrency")
+  List<Object[]> findCoverageBySecuritycurrencyIds(List<Integer> idSecuritycurrencies);
 
   public interface SecurityCurrencyIdAndDate {
     Integer getIdSecuritycurrency();

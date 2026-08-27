@@ -20,9 +20,9 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,8 +73,8 @@ class IctaxImportServiceTest {
   void setup() {
     new TransactionTemplate(transactionManager).executeWithoutResult(_ -> {
       TaxCountry country = findOrCreateCountry("CH");
-      Optional<TaxYear> existing = taxYearJpaRepository.findByIdTaxCountryOrderByTaxYearDesc(
-          country.getIdTaxCountry()).stream().filter(y -> y.getTaxYear() == TAX_YEAR).findFirst();
+      Optional<TaxYear> existing = taxYearJpaRepository.findByIdTaxCountryOrderByTaxYearDesc(country.getIdTaxCountry())
+          .stream().filter(y -> y.getTaxYear() == TAX_YEAR).findFirst();
       if (existing.isPresent()) {
         yearId = existing.get().getIdTaxYear();
         yearCreatedByTest = false;
@@ -82,7 +82,10 @@ class IctaxImportServiceTest {
         List<TaxUpload> existingUploads = taxUploadJpaRepository.findAll().stream()
             .filter(u -> yearId.equals(u.getIdTaxYear())).toList();
         for (TaxUpload u : existingUploads) {
-          try { ictaxImportService.deleteUpload(u.getIdTaxUpload()); } catch (Exception ignored) {}
+          try {
+            ictaxImportService.deleteUpload(u.getIdTaxUpload());
+          } catch (Exception ignored) {
+          }
         }
       } else {
         TaxYear year = new TaxYear();
@@ -124,14 +127,13 @@ class IctaxImportServiceTest {
     assertFalse(data.getPayments().isEmpty(), "Tax data should have payment entries");
   }
 
- //  @AfterAll
+  // @AfterAll
   void cleanup() throws IOException {
     for (TaxUpload upload : createdUploads) {
       ictaxImportService.deleteUpload(upload.getIdTaxUpload());
     }
     if (yearCreatedByTest) {
-      new TransactionTemplate(transactionManager).executeWithoutResult(
-          _ -> taxYearJpaRepository.deleteById(yearId));
+      new TransactionTemplate(transactionManager).executeWithoutResult(_ -> taxYearJpaRepository.deleteById(yearId));
     }
   }
 
@@ -150,8 +152,7 @@ class IctaxImportServiceTest {
     MultipartFile[] files = new MultipartFile[resourcePaths.length];
     for (int i = 0; i < resourcePaths.length; i++) {
       ClassPathResource resource = new ClassPathResource(resourcePaths[i]);
-      files[i] = new MockMultipartFile("file", resource.getFilename(), "application/zip",
-          resource.getInputStream());
+      files[i] = new MockMultipartFile("file", resource.getFilename(), "application/zip", resource.getInputStream());
     }
     return files;
   }

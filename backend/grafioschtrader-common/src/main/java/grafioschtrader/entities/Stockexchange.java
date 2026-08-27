@@ -21,13 +21,11 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import tools.jackson.databind.annotation.JsonDeserialize;
-
 import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
-import grafiosch.config.JacksonConfig;
 import grafiosch.common.PropertyOnlyCreation;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
+import grafiosch.config.JacksonConfig;
 import grafiosch.entities.Auditable;
 import grafiosch.validation.WebUrl;
 import grafioschtrader.GlobalConstants;
@@ -44,6 +42,7 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Schema(description = "Contains a stock exchange")
 @Entity
@@ -157,12 +156,11 @@ public class Stockexchange extends Auditable implements Serializable {
 
   public Stockexchange() {
   }
- 
 
-  public Stockexchange(@Size(min = 4, max = 4) String mic,
-      @NotBlank @Size(min = 2, max = 32) String name, @NotBlank String countryCode, boolean noMarketValue,
-      boolean secondaryMarket, @NotNull LocalTime timeOpen, @NotNull LocalTime timeClose,
-      @NotNull @Size(min = 1, max = 50) String timeZone, @Size(max = 128) String website) {
+  public Stockexchange(@Size(min = 4, max = 4) String mic, @NotBlank @Size(min = 2, max = 32) String name,
+      @NotBlank String countryCode, boolean noMarketValue, boolean secondaryMarket, @NotNull LocalTime timeOpen,
+      @NotNull LocalTime timeClose, @NotNull @Size(min = 1, max = 50) String timeZone,
+      @Size(max = 128) String website) {
     super();
     this.mic = mic;
     this.name = name;
@@ -174,8 +172,6 @@ public class Stockexchange extends Auditable implements Serializable {
     this.timeZone = timeZone;
     this.website = website;
   }
-
-
 
   public String getMic() {
     return mic;
@@ -382,9 +378,9 @@ public class Stockexchange extends Auditable implements Serializable {
    * <p>
    * The method compares the most recent market close datetime against the last update timestamp, properly handling:
    * <ul>
-   *   <li>Late close times that result in eligibility windows crossing midnight</li>
-   *   <li>Weekend market closures (Saturday/Sunday)</li>
-   *   <li>Pre-market hours on weekdays</li>
+   * <li>Late close times that result in eligibility windows crossing midnight</li>
+   * <li>Weekend market closures (Saturday/Sunday)</li>
+   * <li>Pre-market hours on weekdays</li>
    * </ul>
    *
    * @return true if the most recent market close occurred after the last price update, false otherwise
@@ -399,8 +395,8 @@ public class Stockexchange extends Auditable implements Serializable {
     LocalDateTime nowLocal = LocalDateTime.now(zoneLocal);
 
     // Convert lastDirectPriceUpdate from UTC to exchange's local timezone
-    LocalDateTime ldpuLocal = lastDirectPriceUpdate.atZone(ZoneOffset.UTC)
-        .withZoneSameInstant(zoneLocal).toLocalDateTime();
+    LocalDateTime ldpuLocal = lastDirectPriceUpdate.atZone(ZoneOffset.UTC).withZoneSameInstant(zoneLocal)
+        .toLocalDateTime();
 
     // Calculate the most recent market close datetime
     LocalDateTime mostRecentClose = calculateMostRecentCloseDateTime(nowLocal);

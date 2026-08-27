@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Injector, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableConfigBase } from '../../datashowbase/table.config.base';
-import { GTNetConfigEntity, GTNetEntity, GTNetExchangeKindType, SupplierConsumerLogTypes } from '../model/gtnet';
+import { ExchangeKindTypeInfo, GTNetConfigEntity, GTNetEntity, SupplierConsumerLogTypes } from '../model/gtnet';
 import { DataType } from '../../dynamic-form/models/data.type';
 import { ColumnConfig, TranslateValue } from '../../datashowbase/column.config';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -15,6 +15,7 @@ import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { GTNetConfigEntityEditComponent } from './gtnet-config-entity-edit.component';
+import { BaseSettings } from '../../base.settings';
 
 /**
  * Table component for displaying GTNetConfigEntity records within the expandedRow of GTNetSetupTableComponent.
@@ -45,7 +46,7 @@ import { GTNetConfigEntityEditComponent } from './gtnet-config-entity-edit.compo
         [(selection)]="selectedEntity"
         [contextMenuItems]="contextMenuItems"
         [contextMenuAppendTo]="'body'"
-        [showContextMenu]="true"
+        [showContextMenu]="canAdministerGTNet"
         [containerClass]="{ 'data-container-full': true, 'nested-table': true }"
         [valueGetterFn]="getValueByPath.bind(this)"
         (selectionChange)="onSelectionChange($event)">
@@ -80,12 +81,14 @@ import { GTNetConfigEntityEditComponent } from './gtnet-config-entity-edit.compo
 })
 export class GTNetConfigEntityTableComponent extends TableConfigBase implements OnInit {
   @Input() gtNetEntities: GTNetEntity[];
+  @Input() exchangeKindTypes: ExchangeKindTypeInfo[] = [];
   @Output() dataChanged = new EventEmitter<ProcessedActionData>();
 
   configEntities: GTNetConfigEntityDisplay[] = [];
   selectedEntity: GTNetConfigEntityDisplay = null;
   contextMenuItems: MenuItem[] = [];
   visibleDialog = false;
+  protected readonly canAdministerGTNet: boolean;
 
   constructor(
     filterService: FilterService,
@@ -95,6 +98,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     injector: Injector
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
+    this.canAdministerGTNet = gps.hasRole(BaseSettings.ROLE_ADMIN);
   }
 
   ngOnInit(): void {
@@ -130,10 +134,11 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
     const configEntity = gtNetEntity.gtNetConfigEntity;
 
     // Convert numeric enum values to string names for translation
-    const entityKindName =
-      typeof gtNetEntity.entityKind === 'number'
-        ? GTNetExchangeKindType[gtNetEntity.entityKind]
-        : gtNetEntity.entityKind;
+    const kindValue =
+      typeof gtNetEntity.entityKind === 'number' ? gtNetEntity.entityKind : Number(gtNetEntity.entityKind);
+    const entityKindName = Number.isNaN(kindValue)
+      ? String(gtNetEntity.entityKind)
+      : (this.exchangeKindTypes.find((kind) => kind.value === kindValue)?.name ?? String(kindValue));
 
     const supplierLogName =
       typeof configEntity.supplierLog === 'number'
@@ -161,7 +166,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
 
   private updateContextMenu(): void {
     this.contextMenuItems = [];
-    if (this.selectedEntity) {
+    if (this.canAdministerGTNet && this.selectedEntity) {
       this.contextMenuItems.push({
         label: 'EDIT_RECORD|GT_NET_CONFIG_ENTITY_EDIT',
         command: () => this.openEditDialog()
@@ -171,7 +176,7 @@ export class GTNetConfigEntityTableComponent extends TableConfigBase implements 
   }
 
   private openEditDialog(): void {
-    if (this.selectedEntity) {
+    if (this.canAdministerGTNet && this.selectedEntity) {
       this.visibleDialog = true;
     }
   }

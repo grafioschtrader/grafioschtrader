@@ -11,6 +11,8 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -29,15 +31,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.common.DataHelper;
+import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.GTNetConfigEntity;
 import grafiosch.entities.GTNetEntity;
+import grafiosch.entities.GTNetMaintenanceWindow;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import grafiosch.entities.GTNetMessageAnswer;
@@ -45,23 +50,32 @@ import grafiosch.entities.GTNetMessageAttempt;
 import grafiosch.entities.GTNetSupplierDetail;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
-import grafiosch.exportdelete.MySqlInsertStatementGenerator;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.exportdelete.MySqlInsertStatementGenerator;
 import grafiosch.gtnet.AcceptRequestTypes;
 import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetCommandValidator;
+import grafiosch.gtnet.GTNetDomainService;
+import grafiosch.gtnet.GTNetEnvelopeValidator;
+import grafiosch.gtnet.GTNetGrantService;
+import grafiosch.gtnet.GTNetIdempotencyService;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
-import grafiosch.gtnet.GTNetModelHelper;
-import grafiosch.gtnet.GTNetModelHelper.GTNetMsgRequest;
+import grafiosch.gtnet.GTNetProtocolDescriptor;
+import grafiosch.gtnet.GTNetRequestBudgetService;
 import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import grafiosch.gtnet.GTNetServerStateTypes;
 import grafiosch.gtnet.GTNetStatusCheckService;
 import grafiosch.gtnet.GTNetTimeoutHelper;
+import grafiosch.gtnet.GTNetTokenRotationService;
 import grafiosch.gtnet.IExchangeKindType;
+import grafiosch.gtnet.MessageCategory;
+import grafiosch.gtnet.MessageParamDateParser;
 import grafiosch.gtnet.MessageVisibility;
 import grafiosch.gtnet.SendReceivedType;
+import grafiosch.gtnet.handler.GTNetCoolingOffService;
 import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafiosch.gtnet.handler.GTNetMessageHandler;
 import grafiosch.gtnet.handler.GTNetMessageHandlerRegistry;
@@ -93,12 +107,6 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   private static final Logger log = LoggerFactory.getLogger(GTNetJpaRepositoryImpl.class);
 
-  /** Message codes that require a response (_RR_ codes) */
-  private static final List<Byte> RR_MESSAGE_CODES = List.of(
-      GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(),
-      GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C.getValue(),
-      GNetCoreMessageCode.GT_NET_DATA_REQUEST_SEL_RR_C.getValue());
-
   /** Message codes for future-oriented messages that use background delivery */
   private static final Set<GTNetMessageCode> FUTURE_ORIENTED_MESSAGE_CODES = Set.of(
       GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C, GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C,
@@ -107,8 +115,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   /** Base GTNet tables in delete order (children first). Insert order is reversed. */
   public static final String[] GTNET_BASE_TABLES_DELETE_ORDER = { GTNetMessageAttempt.TABNAME,
-      GTNetMessage.GT_NET_MESSAGE_PARAM, GTNetMessage.TABNAME, GTNetConfigEntity.TABNAME, GTNetSupplierDetail.TABNAME,
-      GTNetEntity.TABNAME, GTNetConfig.TABNAME, GTNetMessageAnswer.TABNAME, GTNet.TABNAME };
+      GTNetMaintenanceWindow.TABNAME, GTNetMessage.GT_NET_MESSAGE_PARAM, GTNetMessage.TABNAME,
+      GTNetConfigEntity.TABNAME, GTNetSupplierDetail.TABNAME, GTNetEntity.TABNAME, GTNetConfig.TABNAME,
+      GTNetMessageAnswer.TABNAME, GTNet.TABNAME };
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -159,6 +168,33 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Autowired
   private GTNetStatusCheckService statusCheckService;
 
+  @Autowired
+  private GTNetCoolingOffService coolingOffService;
+
+  @Autowired
+  private GTNetRequestBudgetService requestBudgetService;
+
+  @Autowired
+  private GTNetEnvelopeValidator envelopeValidator;
+
+  @Autowired
+  private GTNetIdempotencyService idempotencyService;
+
+  @Autowired
+  private GTNetTokenRotationService tokenRotationService;
+
+  @Autowired
+  private GTNetGrantService grantService;
+
+  @Autowired
+  private GTNetDomainService domainService;
+
+  @Autowired
+  private GTNetCommandValidator commandValidator;
+
+  @Autowired
+  private GTNetMaintenanceWindowJpaRepository gtNetMaintenanceWindowJpaRepository;
+
   @Override
   @Transactional
   public GTNet saveOnlyAttributes(GTNet gtNet) throws Exception {
@@ -170,13 +206,15 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Transactional
   public GTNetWithMessages getAllGTNetsWithMessages() {
     // Fetch all unanswered requests and group by idGtNet
-    Map<Integer, List<Integer>> outgoingPendingReplies = groupPendingByGtNet(
-        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES));
+    Map<Integer, List<Integer>> outgoingPendingReplies = groupPendingByGtNet(gtNetMessageJpaRepository
+        .findUnansweredRequests(SendReceivedType.SEND.getValue(), messageCodeRegistry.requestCodesRequiringResponse()));
     Map<Integer, List<Integer>> incomingPendingReplies = groupPendingByGtNet(
-        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES));
+        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.RECEIVED.getValue(),
+            messageCodeRegistry.requestCodesRequiringResponse()));
 
     // Get message counts per idGtNet (instead of full messages for lazy loading)
-    Map<Integer, Integer> gtNetMessageCountMap = gtNetMessageJpaRepository.countMessagesByIdGtNet();
+    Map<Integer, Integer> gtNetMessageCountMap = gtNetMessageJpaRepository
+        .countMessagesByIdGtNet(visibilitiesForCaller());
 
     // Check for open discontinued message
     Integer idOpenDiscontinuedMessage = gtNetMessageJpaRepository.findOpenDiscontinuedMessage(
@@ -188,24 +226,34 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         SendReceivedType.SEND.getValue(), GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C.getValue(),
         GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue());
 
+    // Announced maintenance windows per domain, so the panel header can show whether it holds anything
+    Map<Integer, Integer> gtNetMaintenanceWindowCountMap = gtNetMaintenanceWindowJpaRepository.countPerGtNet().stream()
+        .collect(Collectors.toMap(row -> (Integer) row[0], row -> ((Number) row[1]).intValue()));
+
     List<ExchangeKindTypeInfo> exchangeKindTypes = exchangeKindTypeRegistry.getAllKinds().stream()
         .map(ExchangeKindTypeInfo::new).collect(Collectors.toList());
 
     return new GTNetWithMessages(gtNetJpaRepository.findAll(), gtNetMessageCountMap, outgoingPendingReplies,
         incomingPendingReplies, globalparametersJpaRepository.getGTNetMyEntryID(), idOpenDiscontinuedMessage,
-        idOpenMaintenanceMessage, exchangeKindTypes);
+        idOpenMaintenanceMessage, gtNetMaintenanceWindowCountMap, exchangeKindTypes);
+  }
+
+  @Override
+  public List<GTNetMaintenanceWindow> getMaintenanceWindowsByIdGtNet(Integer idGtNet) {
+    return gtNetMaintenanceWindowJpaRepository.findByIdGtNetOrderByFromDateTimeDesc(idGtNet);
   }
 
   @Override
   public List<GTNetMessage> getMessagesByIdGtNet(Integer idGtNet) {
-    List<GTNetMessage> messages = gtNetMessageJpaRepository.findByIdGtNetOrderByTimestampDesc(idGtNet);
+    List<GTNetMessage> messages = gtNetMessageJpaRepository.findByIdGtNetAndVisibilityInOrderByTimestampDesc(idGtNet,
+        visibilitiesForCaller());
 
     // Fetch pending IDs for canDelete computation
-    Set<Integer> outgoingPendingIds = groupPendingByGtNet(
-        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES))
+    Set<Integer> outgoingPendingIds = groupPendingByGtNet(gtNetMessageJpaRepository
+        .findUnansweredRequests(SendReceivedType.SEND.getValue(), messageCodeRegistry.requestCodesRequiringResponse()))
             .getOrDefault(idGtNet, List.of()).stream().collect(Collectors.toSet());
-    Set<Integer> incomingPendingIds = groupPendingByGtNet(
-        gtNetMessageJpaRepository.findUnansweredRequests(SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES))
+    Set<Integer> incomingPendingIds = groupPendingByGtNet(gtNetMessageJpaRepository.findUnansweredRequests(
+        SendReceivedType.RECEIVED.getValue(), messageCodeRegistry.requestCodesRequiringResponse()))
             .getOrDefault(idGtNet, List.of()).stream().collect(Collectors.toSet());
 
     // Compute canDelete flags
@@ -328,11 +376,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
     MsgRequest msgRequest = new MsgRequest();
     msgRequest.messageCode = messageCode.name();
-    GTNetModelHelper.GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(messageCode);
+    GTNetProtocolDescriptor descriptor = messageCodeRegistry.getDescriptor(messageCode.getValue());
     List<GTNet> targets = getRemotePeersWithExchange();
 
     if (!targets.isEmpty()) {
-      sendAndSaveMsg(myGTNet, targets, gtNetMsgRequest, msgRequest, messageCode);
+      sendAndSaveMsg(myGTNet, targets, descriptor, msgRequest, messageCode);
     }
     // Save broadcast to own entry for visibility
     saveBroadcastToOwnEntry(myGTNet, msgRequest, messageCode);
@@ -362,6 +410,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
           new Object[] { msgRequest.messageCode });
     }
 
+    // The shape of the command is checked before anything is written or sent: submitMsg picks its path from whether
+    // the code has a payload model, so without this a response code reaches sendResponseMsg and runs the side effects
+    // of an answer even when it answers nothing.
+    commandValidator.validate(msgRequest, messageCode);
+
     // Validate that only one GT_NET_OPERATION_DISCONTINUED_ALL_C can be open at a time
     if (messageCode == GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C) {
       Integer existingOpenDiscontinued = gtNetMessageJpaRepository.findOpenDiscontinuedMessage(
@@ -372,8 +425,16 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       }
     }
 
-    // For response messages, gtNetMsgRequest may be null (responses don't have registered model classes)
-    GTNetMsgRequest gtNetMsgRequest = GTNetModelHelper.getMsgClassByMessageCode(messageCode);
+    // Several maintenance windows may be announced, but they must not overlap: the recipients would not be able to
+    // tell which of two overlapping announcements a later cancellation frees them from.
+    if (messageCode == GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C) {
+      validateMaintenanceWindowFree(msgRequest);
+    }
+
+    rejectMessageToRetiredPeer(msgRequest, messageCode);
+    rejectAdminMessageWithoutHandshake(msgRequest, messageCode);
+
+    GTNetProtocolDescriptor descriptor = messageCodeRegistry.getDescriptor(messageCode.getValue());
 
     List<GTNet> gtNetList = getTargetDomains(msgRequest, messageCode);
     GTNet sourceGTNet = gtNetJpaRepository
@@ -391,17 +452,19 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
     // Future-oriented messages use background delivery via GTNetMessageAttempt
     if (FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode)) {
-      handleFutureOrientedBroadcast(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest, messageCode);
-    } else if (gtNetMsgRequest != null) {
-      // Request message - needs model validation and expects response
-      sendAndSaveMsg(sourceGTNet, gtNetList, gtNetMsgRequest, msgRequest, messageCode);
-    } else {
-      // Response message - no model validation needed, just send the reply
+      handleFutureOrientedBroadcast(sourceGTNet, gtNetList, descriptor, msgRequest, messageCode);
+    } else if (descriptor.category() == MessageCategory.RESPONSE) {
+      // An answer to an open request: no model to validate, and the reply is threaded under that request.
       sendResponseMsg(sourceGTNet, gtNetList, msgRequest, messageCode);
+    } else {
+      // A request or an announcement. Deciding this by category rather than by the presence of a payload model is what
+      // keeps a modelless announcement - the server list revoke, the settings update, the admin message - on the path
+      // that runs its outgoing side effects.
+      sendAndSaveMsg(sourceGTNet, gtNetList, descriptor, msgRequest, messageCode);
     }
 
     // For broadcast messages, save a copy under own server entry for visibility
-    if (messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
+    if (messageCode.isBroadcast()) {
       saveBroadcastToOwnEntry(sourceGTNet, msgRequest, messageCode);
     }
 
@@ -422,7 +485,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    */
   private int countMessagesToWrite(List<GTNet> gtNetList, GTNetMessageCode messageCode) {
     int cost = FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode) ? 1 : gtNetList.size();
-    if (messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
+    if (messageCode.isBroadcast()) {
       cost++;
     }
     return Math.max(cost, 1);
@@ -441,28 +504,41 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   /**
+   * The message visibilities the current caller may see. Reading GTNet is open to every authenticated user, so this is
+   * the only thing that keeps an {@code ADMIN_ONLY} thread out of a non-administrator's view. A background caller with
+   * no security context is treated as a non-administrator; it never consumes the message list.
+   *
+   * @return the visibility values to filter messages by, never empty
+   */
+  private List<Byte> visibilitiesForCaller() {
+    User user = getAuthenticatedUserOrNull();
+    return MessageVisibility.visibleTo(user != null && UserAccessHelper.isAdmin(user));
+  }
+
+  /**
    * Handles future-oriented broadcast messages (maintenance, discontinuation, and their cancellations). Creates a
    * single GTNetMessage under the sender's own entry and GTNetMessageAttempt entries for each target. Delivery is
    * handled asynchronously by GTNetFutureMessageDeliveryTask.
    *
-   * @param sourceGTNet     the local GTNet entry (sender)
-   * @param gtNetList       list of target GTNet entries
-   * @param gtNetMsgRequest metadata about the message type including model class
-   * @param msgRequest      the request containing message parameters
-   * @param messageCode     the resolved message code enum
+   * @param sourceGTNet the local GTNet entry (sender)
+   * @param gtNetList   list of target GTNet entries
+   * @param descriptor  what the protocol says about this code, including its payload model
+   * @param msgRequest  the request containing message parameters
+   * @param messageCode the resolved message code enum
    */
-  private void handleFutureOrientedBroadcast(GTNet sourceGTNet, List<GTNet> gtNetList, GTNetMsgRequest gtNetMsgRequest,
-      MsgRequest msgRequest, GTNetMessageCode messageCode) {
+  private void handleFutureOrientedBroadcast(GTNet sourceGTNet, List<GTNet> gtNetList,
+      GTNetProtocolDescriptor descriptor, MsgRequest msgRequest, GTNetMessageCode messageCode) {
     // Validate model if present
-    if (gtNetMsgRequest != null && gtNetMsgRequest.model != null && msgRequest.gtNetMessageParamMap != null
+    if (descriptor != null && descriptor.model() != null && msgRequest.gtNetMessageParamMap != null
         && !msgRequest.gtNetMessageParamMap.isEmpty()) {
-      Object payloadModel = convertMapToTypedModel(gtNetMsgRequest.model, msgRequest.gtNetMessageParamMap);
+      Object payloadModel = convertMapToTypedModel(descriptor.model(), msgRequest.gtNetMessageParamMap);
       validateModel(payloadModel);
     }
 
     // Create ONE message under sender's own entry (not per target)
-    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
-        msgRequest.replyTo, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), LocalDateTime.now(),
+        SendReceivedType.SEND.getValue(), msgRequest.replyTo, messageCode.getValue(), msgRequest.message,
+        msgRequest.gtNetMessageParamMap);
 
     // For cancellation messages, set idOriginalMessage to link to the original announcement
     if (messageCode == GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C
@@ -471,8 +547,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
-    log.info("Created future-oriented broadcast message {} (code: {})", gtNetMessage.getIdGtNetMessage(),
-        messageCode);
+    log.info("Created future-oriented broadcast message {} (code: {})", gtNetMessage.getIdGtNetMessage(), messageCode);
 
     // Create GTNetMessageAttempt entries for each target with completed handshake
     int attemptsCreated = 0;
@@ -505,17 +580,90 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * broadcast messages in their own server's message list.
    */
   private void saveBroadcastToOwnEntry(GTNet sourceGTNet, MsgRequest msgRequest, GTNetMessageCode messageCode) {
-    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
-        null, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
+    GTNetMessage gtNetMessage = new GTNetMessage(sourceGTNet.getIdGtNet(), LocalDateTime.now(),
+        SendReceivedType.SEND.getValue(), null, messageCode.getValue(), msgRequest.message,
+        msgRequest.gtNetMessageParamMap);
     // Set visibility from request (for admin messages)
     applyVisibility(gtNetMessage, msgRequest.visibility);
     gtNetMessageJpaRepository.saveMsg(gtNetMessage);
   }
 
+  /**
+   * Rejects a point-to-point message aimed at a peer that has gone out of service. A broadcast needs no check here:
+   * {@link #getRemotePeersWithExchange()} already leaves such peers out of the target list.
+   *
+   * @param msgRequest  the submitted request
+   * @param messageCode the resolved message code
+   */
+  private void rejectMessageToRetiredPeer(MsgRequest msgRequest, GTNetMessageCode messageCode) {
+    if (messageCode.isBroadcast() || msgRequest.idGTNetTargetDomain == null) {
+      return;
+    }
+    gtNetJpaRepository.findById(msgRequest.idGTNetTargetDomain).filter(GTNet::isOutOfService).ifPresent(peer -> {
+      throw new DataViolationException("gt.net", "gt.gtnet.peer.out.of.service",
+          new Object[] { peer.getDomainRemoteName() });
+    });
+  }
+
+  /**
+   * Rejects an admin message aimed at a peer this instance has never shaken hands with.
+   *
+   * <p>
+   * Sending one used to establish the connection as a side effect, because the outgoing path calls
+   * {@code hasOrCreateFirstContact} for every code but the handshake itself. A note to an administrator is not a reason
+   * to enter into a relationship with their server. The multi-target path has always skipped such peers; this is the
+   * same rule for the single-target one, stated rather than skipped so the sender learns why nothing was sent.
+   * </p>
+   *
+   * @param msgRequest  the submitted request
+   * @param messageCode the resolved message code
+   */
+  private void rejectAdminMessageWithoutHandshake(MsgRequest msgRequest, GTNetMessageCode messageCode) {
+    if (messageCode != GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C || msgRequest.idGTNetTargetDomain == null) {
+      return;
+    }
+    gtNetJpaRepository.findById(msgRequest.idGTNetTargetDomain)
+        .filter(peer -> peer.getGtNetConfig() == null || peer.getGtNetConfig().getTokenRemote() == null)
+        .ifPresent(peer -> {
+          throw new DataViolationException("gt.net", "gt.gtnet.admin.message.no.handshake",
+              new Object[] { peer.getDomainRemoteName() });
+        });
+  }
+
+  /**
+   * Rejects a maintenance announcement whose window overlaps one this instance has already announced and not cancelled.
+   *
+   * @param msgRequest the submitted request, carrying {@code fromDateTime} and {@code toDateTime}
+   */
+  private void validateMaintenanceWindowFree(MsgRequest msgRequest) {
+    LocalDateTime from = MessageParamDateParser.parseDateTime(msgRequest.gtNetMessageParamMap, "fromDateTime");
+    LocalDateTime to = MessageParamDateParser.parseDateTime(msgRequest.gtNetMessageParamMap, "toDateTime");
+    if (from == null || to == null) {
+      // Missing or unreadable bounds are the business of the model validation that runs afterwards.
+      return;
+    }
+    List<Integer> openIds = gtNetMessageJpaRepository.findOpenMaintenanceMessages(SendReceivedType.SEND.getValue(),
+        GNetCoreMessageCode.GT_NET_MAINTENANCE_ALL_C.getValue(),
+        GNetCoreMessageCode.GT_NET_MAINTENANCE_CANCEL_ALL_C.getValue());
+    for (Integer openId : openIds) {
+      GTNetMessage open = gtNetMessageJpaRepository.findById(openId).orElse(null);
+      if (open == null) {
+        continue;
+      }
+      LocalDateTime openFrom = MessageParamDateParser.parseDateTime(open.getGtNetMessageParamMap(), "fromDateTime");
+      LocalDateTime openTo = MessageParamDateParser.parseDateTime(open.getGtNetMessageParamMap(), "toDateTime");
+      if (openFrom != null && openTo != null && from.isBefore(openTo) && openFrom.isBefore(to)) {
+        throw new DataViolationException("message.code", "gt.gtnet.maintenance.window.overlap",
+            new Object[] { openFrom, openTo });
+      }
+    }
+  }
+
   private List<GTNet> getTargetDomains(MsgRequest msgRequest, GTNetMessageCode messageCode) {
-    if (messageCode.name().contains(GTNetModelHelper.MESSAGE_TO_ALL)) {
+    if (messageCode.isBroadcast()) {
       // All broadcast messages go to remote servers with configured data exchange (excludes own entry)
-      if (messageCode == GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C || FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode)) {
+      if (messageCode == GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C
+          || FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode)) {
         return getRemotePeersWithExchange();
       }
       return List.of();
@@ -534,7 +682,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    */
   private List<GTNet> getRemotePeersWithExchange() {
     Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
-    List<GTNet> allPeers = gtNetJpaRepository.findWithConfiguredExchange();
+    List<GTNet> allPeers = gtNetJpaRepository.findWithConfiguredExchange().stream()
+        .filter(peer -> !peer.isOutOfService()).toList();
     if (myEntryId == null) {
       return allPeers;
     }
@@ -543,6 +692,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   // Send Message
   ///////////////////////////////////////////////////////////////////////
+
   /**
    * Message is created and send to the remote servers.
    *
@@ -556,13 +706,13 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @param msgRequest      the request containing message parameters
    * @param messageCode     the resolved message code enum
    */
-  private void sendAndSaveMsg(GTNet sourceGTNet, List<GTNet> gtNetList, GTNetMsgRequest gtNetMsgRequest,
+  private void sendAndSaveMsg(GTNet sourceGTNet, List<GTNet> gtNetList, GTNetProtocolDescriptor descriptor,
       MsgRequest msgRequest, GTNetMessageCode messageCode) {
     // Convert map to typed model class for validation and payload serialization
     Object payloadModel = null;
-    if (gtNetMsgRequest != null && gtNetMsgRequest.model != null && msgRequest.gtNetMessageParamMap != null
+    if (descriptor != null && descriptor.model() != null && msgRequest.gtNetMessageParamMap != null
         && !msgRequest.gtNetMessageParamMap.isEmpty()) {
-      payloadModel = convertMapToTypedModel(gtNetMsgRequest.model, msgRequest.gtNetMessageParamMap);
+      payloadModel = convertMapToTypedModel(descriptor.model(), msgRequest.gtNetMessageParamMap);
       validateModel(payloadModel);
     }
 
@@ -573,12 +723,18 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       msgRequest.gtNetMessageParamMap = convertPojoToMap(new FirstHandshakeMsg(tokenForRemote));
       if (messageCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S) {
         payloadModel = sourceGTNet;
+      } else {
+        // The answerer adopts this token the moment it handles the request and starts calling us with it, while we
+        // would otherwise only adopt it when the response arrives. Installing it now, with the token it replaces kept
+        // in the overlap window, means neither direction breaks if that response is lost.
+        installRefreshedTokenOptimistically(gtNetList, tokenForRemote);
       }
     }
 
     for (GTNet targetGTNet : gtNetList) {
-      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
-          msgRequest.replyTo, messageCode.getValue(), msgRequest.message, msgRequest.gtNetMessageParamMap);
+      GTNetMessage gtNetMessage = new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(),
+          SendReceivedType.SEND.getValue(), msgRequest.replyTo, messageCode.getValue(), msgRequest.message,
+          msgRequest.gtNetMessageParamMap);
       // Set visibility from request (for admin messages)
       applyVisibility(gtNetMessage, msgRequest.visibility);
       gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
@@ -588,20 +744,30 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       // Update deliveryStatus based on send result
       updateDeliveryStatus(gtNetMessage, sendResult);
 
-      if (gtNetMsgRequest != null && gtNetMsgRequest.responseExpected && meResponse != null) {
+      // A synchronous body closes the request only when it is a registered answer to it. An acknowledgement, a
+      // deferred acknowledgement and an error are outcomes of the transport: filing one as the reply would satisfy
+      // the NOT EXISTS clause of GTNetMessage.findUnansweredRequests, drop the request out of the pending map the
+      // reply gate reads, lift the delete protection, and leave the real decision arriving later as a second child.
+      if (descriptor != null && !descriptor.validResponses().isEmpty() && meResponse != null
+          && messageCodeRegistry.isValidResponse(messageCode.getValue(), meResponse.messageCode)) {
         // Save received response with idSourceGtNetMessage from remote and replyTo pointing to our request
         GTNetMessage responseMsg = new GTNetMessage(targetGTNet.getIdGtNet(), meResponse.timestamp,
             SendReceivedType.RECEIVED.getValue(), gtNetMessage.getIdGtNetMessage(), meResponse.messageCode,
             meResponse.message, meResponse.gtNetMessageParamMap);
         responseMsg.setIdSourceGtNetMessage(meResponse.idSourceGtNetMessage);
+        responseMsg.setErrorMsgCode(meResponse.errorMsgCode);
         // Store waitDaysApply from the response envelope (cooling-off period set by remote admin)
         if (meResponse.waitDaysApply != null) {
           responseMsg.setWaitDaysApply(meResponse.waitDaysApply);
         }
-        gtNetMessageJpaRepository.save(responseMsg);
+        gtNetMessageJpaRepository.saveMsg(responseMsg);
 
         // Process payload from synchronous responses that contain data
         processSynchronousResponsePayload(sourceGTNet, meResponse, targetGTNet, gtNetMessage);
+      } else if (meResponse != null && meResponse.errorMsgCode != null) {
+        // The reason the peer gave is kept against the message we sent, so a refusal is visible without a reply row.
+        gtNetMessage.setErrorMsgCode(meResponse.errorMsgCode);
+        gtNetMessageJpaRepository.saveMsg(gtNetMessage);
       }
 
       // Apply side effects for outgoing announcement messages
@@ -613,12 +779,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * Updates the deliveryStatus on a message based on the send result.
    */
   private void updateDeliveryStatus(GTNetMessage message, SendResult sendResult) {
-    if (sendResult == null) {
+    if (sendResult == null || sendResult.isFailed() || sendResult.isRefused()) {
+      // A refusal reached the peer but was not processed by it, so it is a failed delivery and not a delivered one.
       message.setDeliveryStatus(DeliveryStatus.FAILED);
-    } else if (sendResult.isDelivered()) {
+    } else if (sendResult.isAccepted()) {
       message.setDeliveryStatus(DeliveryStatus.DELIVERED);
-    } else if (sendResult.isFailed()) {
-      message.setDeliveryStatus(DeliveryStatus.FAILED);
     }
     // PENDING status remains if result is unclear (e.g., awaiting retry)
     gtNetMessageJpaRepository.save(message);
@@ -682,10 +847,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // Process remote GTNet entity from payload (contains their entity kinds and settings)
     if (meResponse.payload != null && !meResponse.payload.isNull()) {
       try {
-        GTNet remoteGTNetInfo = objectMapper.treeToValue(meResponse.payload, GTNet.class);
+        GTNetPublicDTO remoteGTNetInfo = objectMapper.treeToValue(meResponse.payload, GTNetPublicDTO.class);
         if (remoteGTNetInfo.getGtNetEntities() != null) {
           for (var remoteEntity : remoteGTNetInfo.getGtNetEntities()) {
-            var localEntity = targetGTNet.getOrCreateEntityByKind(remoteEntity.getEntityKindValue());
+            var localEntity = targetGTNet.getOrCreateEntityByKind(remoteEntity.getEntityKind());
             localEntity.setAcceptRequest(remoteEntity.getAcceptRequest());
             localEntity.setServerState(remoteEntity.getServerState());
           }
@@ -699,9 +864,39 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   /**
-   * Processes a token refresh accept response. Updates both tokens in GTNetConfig.
+   * Installs the token we are about to offer as our own inbound token before the request leaves.
+   *
+   * <p>
+   * A token refresh has no moment at which both peers agree. The answerer commits our new token while it handles the
+   * request and calls us with it from then on; if we waited for its response we would reject exactly those calls when
+   * the response was lost. Rotating now instead keeps the token we are replacing acceptable for the overlap window, so
+   * both the answerer's new-token calls and our own old-token calls succeed until one reply closes the rotation.
+   * </p>
+   *
+   * @param gtNetList      the targets of this refresh, in practice a single peer
+   * @param tokenForRemote the token the peer is to use against us from now on
    */
-  private void processTokenRefreshAcceptResponse(MessageEnvelope meResponse, GTNet targetGTNet, GTNetMessage ourRequest) {
+  private void installRefreshedTokenOptimistically(List<GTNet> gtNetList, String tokenForRemote) {
+    for (GTNet targetGTNet : gtNetList) {
+      gtNetConfigJpaRepository.findById(targetGTNet.getIdGtNet()).ifPresent(gtNetConfig -> {
+        tokenRotationService.rotateTokenThis(gtNetConfig, tokenForRemote);
+        gtNetConfigJpaRepository.save(gtNetConfig);
+        targetGTNet.setGtNetConfig(gtNetConfig);
+      });
+    }
+  }
+
+  /**
+   * Processes a token refresh accept response. The peer's new token is what we did not know yet; our own was already
+   * installed before the request went out, and re-writing it here is an idempotent confirmation.
+   *
+   * <p>
+   * The overlap is deliberately not cleared here. Messages the peer sent before it learned the new token may still be
+   * in flight, and ending the window on the first reply would reject them. It expires on its own.
+   * </p>
+   */
+  private void processTokenRefreshAcceptResponse(MessageEnvelope meResponse, GTNet targetGTNet,
+      GTNetMessage ourRequest) {
     FirstHandshakeMsg responseMsgData = convertMapToPojo(FirstHandshakeMsg.class, meResponse.gtNetMessageParamMap);
     FirstHandshakeMsg ourRequestData = convertMapToPojo(FirstHandshakeMsg.class, ourRequest.getGtNetMessageParamMap());
 
@@ -835,9 +1030,20 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   /**
    * Applies side effects for outgoing announcement messages (like revokes). When we send a revoke, we disable exchange
-   * for the specified entity kinds.
+   * for the specified entity kinds, or withdraw the server-list access we had granted.
    */
   private void applyOutgoingSideEffects(GTNet targetGTNet, MsgRequest msgRequest, GTNetMessageCode messageCode) {
+    if (messageCode == GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C) {
+      // Sending this used to clear nothing on our side, so UpdateServerlistRequestHandler.checkPriorApproval kept
+      // auto-accepting the peer's next request against a grant we had just told it we were withdrawing.
+      GTNetConfig config = targetGTNet.getGtNetConfig();
+      if (config != null && config.isServerlistAccessGranted()) {
+        config.setServerlistAccessGranted(false);
+        gtNetConfigJpaRepository.save(config);
+        log.info("Withdrew server list access from {}", targetGTNet.getDomainRemoteName());
+      }
+      return;
+    }
     if (messageCode == GNetCoreMessageCode.GT_NET_DATA_REVOKE_SEL_C) {
       Set<IExchangeKindType> revokedKinds = parseEntityKinds(msgRequest.gtNetMessageParamMap);
       for (IExchangeKindType kind : revokedKinds) {
@@ -854,31 +1060,23 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   /**
-   * Parses entityKinds from message parameters.
+   * Parses the entity kinds a stored message names.
+   *
+   * <p>
+   * An unresolvable set yields the empty set, never a default. Substituting the syncable kinds is how a request for one
+   * kind used to grant both, in both directions; a message whose kinds cannot be read has to fail rather than be
+   * guessed at.
+   * </p>
+   *
+   * @param paramMap the parameter map of a locally stored message
+   * @return the kinds it names, possibly empty
    */
   private Set<IExchangeKindType> parseEntityKinds(Map<String, GTNetMessage.GTNetMessageParam> paramMap) {
     if (paramMap == null) {
-      return exchangeKindTypeRegistry.getDefaultKinds();
+      return Set.of();
     }
-    GTNetMessage.GTNetMessageParam param = paramMap.get("entityKinds");
-    if (param == null || param.getParamValue() == null || param.getParamValue().isBlank()) {
-      return exchangeKindTypeRegistry.getDefaultKinds();
-    }
-    return Arrays.stream(param.getParamValue().split(",")).map(String::trim).map(v -> {
-      // First try to look up by name
-      IExchangeKindType found = exchangeKindTypeRegistry.getAllKinds().stream()
-          .filter(k -> k.name().equalsIgnoreCase(v))
-          .findFirst().orElse(null);
-      if (found != null) {
-        return found;
-      }
-      // Fallback to byte value lookup
-      try {
-        return exchangeKindTypeRegistry.getByValue(Byte.parseByte(v));
-      } catch (NumberFormatException nfe) {
-        return null;
-      }
-    }).filter(k -> k != null).collect(Collectors.toSet());
+    GTNetMessage.GTNetMessageParam param = paramMap.get(ExchangeKindTypeRegistry.ENTITY_KINDS_PARAM);
+    return param == null ? Set.of() : exchangeKindTypeRegistry.parseAll(param.getParamValue());
   }
 
   /**
@@ -914,13 +1112,18 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       applyVisibility(gtNetMessage, msgRequest.visibility);
       gtNetMessage = gtNetMessageJpaRepository.saveMsg(gtNetMessage);
 
-      // Apply side effects for specific response codes
-      applyManualResponseSideEffects(sourceGTNet, targetGTNet, msgRequest, messageCode);
-
       // Send the response with replyToSourceId so the receiver can link it to their original request
       // Include payload for specific response codes
       Object payload = buildManualResponsePayload(sourceGTNet, targetGTNet, messageCode);
-      sendResponseMessage(sourceGTNet, targetGTNet, gtNetMessage, replyToSourceId, payload);
+      MessageEnvelope peerAnswer = sendResponseMessage(sourceGTNet, targetGTNet, gtNetMessage, replyToSourceId,
+          payload);
+
+      // A grant is only real once the peer holds the answer that created it. Applying the side effects first left this
+      // side believing an exchange had been agreed while the other side never received the response - and because the
+      // grant was committed before the send, it survived even when nothing was delivered at all.
+      if (peerAnswer != null) {
+        applyManualResponseSideEffects(sourceGTNet, targetGTNet, msgRequest, messageCode);
+      }
     }
   }
 
@@ -970,21 +1173,42 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         updateMyEntityForAccept(sourceGTNet, kind);
       }
       gtNetJpaRepository.save(sourceGTNet);
+    } else if (responseCode == GNetCoreMessageCode.GT_NET_DATA_REQUEST_REJECTED_S) {
+      // The auto-reject path has always ended the exchange; a rejection an administrator sends by hand persisted only
+      // waitDaysApply, so the two ways of saying no left the two sides in different states. Only the grant is written,
+      // for the same reason as on the auto path: acceptRequest and serverState on the peer's row are re-synchronised
+      // from what the peer publishes about itself and would not survive its next message.
+      Set<IExchangeKindType> rejectedKinds = getEntityKindsFromOriginalRequest(msgRequest.replyTo);
+      boolean changed = false;
+      for (IExchangeKindType kind : rejectedKinds) {
+        changed |= grantService.clearGrant(targetGTNet, kind);
+      }
+      if (changed) {
+        gtNetJpaRepository.save(targetGTNet);
+        log.info("Ended the exchange grant for {} entity kinds with {} via manual rejection", rejectedKinds.size(),
+            targetGTNet.getDomainRemoteName());
+      }
     }
   }
 
   /**
-   * Gets the entityKinds from the original request message.
+   * The entity kinds the request being answered named.
+   *
+   * <p>
+   * The kinds are read from the locally stored request, whose parameters this instance itself normalized from the
+   * authoritative payload when the request arrived. A request that cannot be found yields no kinds, so an answer to a
+   * message that is gone grants nothing.
+   * </p>
+   *
+   * @param replyToMessageId the local id of the request being answered
+   * @return the kinds it named, possibly empty
    */
   private Set<IExchangeKindType> getEntityKindsFromOriginalRequest(Integer replyToMessageId) {
     if (replyToMessageId == null) {
-      return exchangeKindTypeRegistry.getDefaultKinds();
+      return Set.of();
     }
-    GTNetMessage originalRequest = gtNetMessageJpaRepository.findById(replyToMessageId).orElse(null);
-    if (originalRequest == null || originalRequest.getGtNetMessageParamMap() == null) {
-      return exchangeKindTypeRegistry.getDefaultKinds();
-    }
-    return parseEntityKinds(originalRequest.getGtNetMessageParamMap());
+    return gtNetMessageJpaRepository.findById(replyToMessageId).map(GTNetMessage::getGtNetMessageParamMap)
+        .map(this::parseEntityKinds).orElse(Set.of());
   }
 
   /**
@@ -1065,10 +1289,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       String tokenForRemote = DataHelper.generateGUID();
       Map<String, GTNetMessageParam> msgMap = convertPojoToMap(new FirstHandshakeMsg(tokenForRemote));
       GTNetMessage gtNetMessageRequest = gtNetMessageJpaRepository
-          .saveMsg(new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(), null,
-              GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(), null, msgMap));
-      // Send our GTNet entity in the payload so the receiver can register us
-      SendResult sendResult = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessageRequest, sourceGTNet);
+          .saveMsg(new GTNetMessage(targetGTNet.getIdGtNet(), LocalDateTime.now(), SendReceivedType.SEND.getValue(),
+              null, GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue(), null, msgMap));
+      // Send what we publish about ourselves, not our entity: the receiver builds its row from these fields, and the
+      // entity carries local state such as allowServerCreation that a peer has no business seeing or setting.
+      SendResult sendResult = sendMessageWithResult(sourceGTNet, targetGTNet, gtNetMessageRequest,
+          new GTNetPublicDTO(sourceGTNet));
       MessageEnvelope meResponse = sendResult != null ? sendResult.response() : null;
 
       // Update deliveryStatus based on send result
@@ -1098,7 +1324,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
         if (meResponse.waitDaysApply != null) {
           gtNetMessageResponse.setWaitDaysApply(meResponse.waitDaysApply);
         }
-        gtNetMessageJpaRepository.save(gtNetMessageResponse);
+        gtNetMessageJpaRepository.saveMsg(gtNetMessageResponse);
         return true;
       }
       return false;
@@ -1243,15 +1469,22 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   /**
    * Applies visibility from a string enum name to a GTNetMessage.
    *
+   * <p>
+   * A value that cannot be parsed is refused. Falling back to the entity default meant that a typo published a message
+   * meant to be private, and it did so silently — the only trace was a warning in the log, long after the message had
+   * been sent and was visible to every user.
+   * </p>
+   *
    * @param message    the message to update
-   * @param visibility the visibility as enum name string (e.g., "ADMIN_ONLY"), or null
+   * @param visibility the visibility as enum name string (e.g., "ADMIN_ONLY"), or null to keep the default
+   * @throws DataViolationException when the value names no known visibility
    */
   private void applyVisibility(GTNetMessage message, String visibility) {
     if (visibility != null && !visibility.isBlank()) {
       try {
         message.setVisibility(MessageVisibility.valueOf(visibility));
       } catch (IllegalArgumentException e) {
-        log.warn("Invalid visibility value '{}', using default", visibility);
+        throw new DataViolationException("visibility", "gt.gtnet.invalid.visibility", new Object[] { visibility });
       }
     }
   }
@@ -1282,6 +1515,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       meRequest.payload = objectMapper.convertValue(payLoadObject, JsonNode.class);
     }
 
+    if (!requestBudgetService.chargeOutgoing(targetGTNet, gtNetMessage.getMessageCodeValue())) {
+      return SendResult.httpError(HttpStatus.TOO_MANY_REQUESTS.value(),
+          "Daily request limit of " + targetGTNet.getDomainRemoteName() + " is used up for today");
+    }
+
     String tokenRemote = targetGTNet.getGtNetConfig() != null ? targetGTNet.getGtNetConfig().getTokenRemote() : null;
     SendResult result = baseDataClient.sendToMsgWithStatus(tokenRemote, targetGTNet.getDomainRemoteName(), meRequest,
         GTNetTimeoutHelper.resolveTimeout(targetGTNet, globalparametersJpaRepository));
@@ -1304,6 +1542,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   // Receive Message
   ///////////////////////////////////////////////////////////////////////
+
   /**
    * Processes an incoming GTNet message and returns the appropriate response.
    *
@@ -1334,11 +1573,67 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     }
 
     // Look up remote GTNet (may be null for first handshake)
-    GTNet remoteGTNet = gtNetJpaRepository.findByDomainRemoteName(me.sourceDomain);
+    GTNet remoteGTNet = findPeerByDomain(me.sourceDomain);
 
-    // Update remote server's status from the envelope's sourceGtNet
-    if (remoteGTNet != null) {
+    // The envelope is bounded before anything is synchronized, charged or stored, so an over-long text, an over-sized
+    // payload, an implausible timestamp or a correlation that points at another peer is a protocol rejection the
+    // sender can read rather than a DataException and an HTTP 500 out of the persistence layer.
+    var envelopeViolation = envelopeValidator.validate(me, remoteGTNet);
+    if (envelopeViolation.isPresent()) {
+      var violation = envelopeViolation.get();
+      log.warn("Rejected envelope of code {} from peer {}: {}", me.messageCode,
+          remoteGTNet != null ? remoteGTNet.getIdGtNet() : null, violation.errorMsgCode());
+      return buildErrorResponse(myGTNet, violation.errorMsgCode(), violation.reason());
+    }
+
+    // Synchronize the peer's published state only for a message whose token was validated. The first handshake is the
+    // one code that reaches this point unauthenticated, and anybody may name an existing domain in it, so its envelope
+    // must not be allowed to rewrite that peer's online state, capabilities, limits or entity settings.
+    if (remoteGTNet != null && !isUnauthenticatedCode(me.messageCode)) {
       updateRemoteGTNetFromEnvelope(remoteGTNet, me);
+    }
+
+    // A delivery we have already processed is answered from what the first one produced. It comes before the
+    // cooling-off check and the budget charge on purpose: a repeat must repeat no side effect and no charge, and it
+    // must not be judged against a cooling-off period that the original processing itself established. The status
+    // synchronization above stays in front of it, because it is idempotent and recording that the peer is reachable is
+    // correct for a repeat too.
+    boolean duplicateDelivery = false;
+    if (!isUnauthenticatedCode(me.messageCode)) {
+      var previousDelivery = idempotencyService.findPreviousDelivery(remoteGTNet, me);
+      if (previousDelivery.isPresent()) {
+        duplicateDelivery = true;
+        if (!idempotencyService.prefersReprocessing(me.messageCode)) {
+          log.info("Message {} from {} was already delivered, answering from the stored outcome", messageCode,
+              me.sourceDomain);
+          return addServerBusyToResponse(
+              idempotencyService.replayOutcome(myGTNet, previousDelivery.get(), me.messageCode), myGTNet);
+        }
+        log.info("Message {} from {} was already delivered, re-running it as a side-effect-free query", messageCode,
+            me.sourceDomain);
+      }
+    }
+
+    var coolingOffPeriod = coolingOffService.findActive(remoteGTNet, me.messageCode);
+    if (coolingOffPeriod.isPresent()) {
+      var period = coolingOffPeriod.get();
+      GTNetMessage refusal = new GTNetMessage(remoteGTNet.getIdGtNet(), LocalDateTime.now(ZoneOffset.UTC),
+          SendReceivedType.ANSWER.getValue(), null, period.responseCode().getValue(),
+          "Cooling-off period active: " + period.remainingDays() + " day(s) remaining", null);
+      refusal.setErrorMsgCode("COOLING_OFF_ACTIVE");
+      return new MessageEnvelope(myGTNet, refusal);
+    }
+
+    // Charge the request against the daily budget we grant this peer, before the rules are evaluated so that an
+    // auto-answer rule reading dailyCount sees the request it is deciding about. A repeat of a delivery already
+    // charged is not charged again, whether it is replayed or re-run.
+    if (!duplicateDelivery && !requestBudgetService.chargeIncoming(remoteGTNet, myGTNet, me.messageCode)) {
+      GTNetMessage refusal = new GTNetMessage(remoteGTNet.getIdGtNet(), LocalDateTime.now(ZoneOffset.UTC),
+          SendReceivedType.ANSWER.getValue(), null,
+          GNetCoreMessageCode.GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S.getValue(),
+          "Daily request limit of " + myGTNet.getDailyRequestLimit() + " reached", null);
+      refusal.setErrorMsgCode("DAILY_LIMIT_EXCEEDED");
+      return new MessageEnvelope(myGTNet, refusal);
     }
 
     // Look up auto-response rules for this message code, ordered by priority
@@ -1357,7 +1652,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     case HandlerResult.ImmediateResponse(var response) -> addServerBusyToResponse((MessageEnvelope) response, myGTNet);
     case HandlerResult.AwaitingManualResponse(var _) -> {
       log.info("Message {} from {} awaiting manual response", messageCode, me.sourceDomain);
-      yield buildAckResponse(myGTNet);
+      yield buildDeferredResponse(myGTNet);
     }
     case HandlerResult.NoResponseNeeded() -> buildAckResponse(myGTNet);
     case HandlerResult.ProcessingError(var errorCode, var message) -> {
@@ -1377,8 +1672,18 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   private void updateRemoteGTNetFromEnvelope(GTNet localRemoteEntry, MessageEnvelope envelope) {
     boolean needsSave = false;
 
-    // Server communicated with us, so it's online
-    if (localRemoteEntry.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_ONLINE) {
+    if (localRemoteEntry.isOutOfService()) {
+      // The peer announced that it is gone and the date has passed. It evidently still answers, but reviving it here
+      // would silently undo the retirement on the peer's very next message. Only a cancellation of the announcement,
+      // or an administrator, brings it back.
+      return;
+    }
+
+    // Server communicated with us, so it's online - except when the message it just sent is the announcement that it
+    // is going offline. Forcing SOS_ONLINE there overwrote the very transition being announced, so a graceful shutdown
+    // left every peer recording the instance as online with all entities closed until an outbound send failed.
+    if (envelope.messageCode != GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C.getValue()
+        && localRemoteEntry.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_ONLINE) {
       localRemoteEntry.setServerOnline(GTNetServerOnlineStatusTypes.SOS_ONLINE);
       needsSave = true;
     }
@@ -1488,25 +1793,77 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   /**
-   * Builds an error response envelope with the local server's busy status.
+   * Builds an error response envelope: the message was not processed, and {@code errorMsgCode} carries the stable
+   * reason. Both travel on the envelope, so the sender can tell a malformed envelope from a refusal without reading the
+   * free text.
+   *
+   * @param myGTNet   the local entry, which becomes the envelope's source
+   * @param errorCode the stable reason, translated through the NLS bundle on the receiving side
+   * @param message   the human-readable detail
+   * @return the error envelope
    */
   private MessageEnvelope buildErrorResponse(GTNet myGTNet, String errorCode, String message) {
     GTNetMessage errorMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
-        GNetCoreMessageCode.GT_NET_PING.getValue(), message, null);
+        GNetCoreMessageCode.GT_NET_ERROR_S.getValue(), message, null);
     errorMsg.setErrorMsgCode(errorCode);
-    MessageEnvelope errorEnvelope = new MessageEnvelope(myGTNet, errorMsg);
-    return errorEnvelope;
+    return new MessageEnvelope(myGTNet, errorMsg);
   }
 
   /**
-   * Builds a minimal acknowledgment response envelope for messages that don't require a semantic response
-   * (announcements, one-way messages). The sender can confirm delivery by receiving this envelope.
-   * Uses GT_NET_PING as a lightweight ack code since it's already defined for status/health purposes.
+   * Builds the acknowledgement for a message that needs no semantic answer — an announcement or a one-way message. The
+   * sender learns that it arrived and was dealt with, and nothing more.
+   *
+   * @param myGTNet the local entry, which becomes the envelope's source
+   * @return the acknowledgement envelope
    */
   private MessageEnvelope buildAckResponse(GTNet myGTNet) {
     GTNetMessage ackMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
-        GNetCoreMessageCode.GT_NET_PING.getValue(), null, null);
+        GNetCoreMessageCode.GT_NET_ACK_S.getValue(), null, null);
     return new MessageEnvelope(myGTNet, ackMsg);
+  }
+
+  /**
+   * Builds the answer for a request that was accepted but not decided: an administrator has to act, and the real
+   * response follows later as a message of its own. Distinct from an acknowledgement, because the sender must keep its
+   * request open rather than record this as the reply that closes it.
+   *
+   * @param myGTNet the local entry, which becomes the envelope's source
+   * @return the deferred-acknowledgement envelope
+   */
+  private MessageEnvelope buildDeferredResponse(GTNet myGTNet) {
+    GTNetMessage deferredMsg = new GTNetMessage(null, LocalDateTime.now(), SendReceivedType.ANSWER.getValue(), null,
+        GNetCoreMessageCode.GT_NET_DEFERRED_S.getValue(), null, null);
+    return new MessageEnvelope(myGTNet, deferredMsg);
+  }
+
+  /**
+   * Whether a message code reaches {@code getMsgResponse} without a validated token. Only the first handshake does,
+   * because the caller has no token yet; every other code passed {@code validateIncomingToken} in the M2M resource.
+   *
+   * @param messageCode the code of the incoming message
+   * @return true when the message was not authenticated
+   */
+  private boolean isUnauthenticatedCode(byte messageCode) {
+    return messageCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue();
+  }
+
+  /**
+   * Finds the peer entry for a domain supplied by a caller. The stored value is matched as it is first, so entries
+   * written before domains were canonicalized keep resolving, and only then by canonical form.
+   *
+   * @param domain the domain as it arrived from the caller
+   * @return the peer entry, or null when no entry names that domain
+   */
+  private GTNet findPeerByDomain(String domain) {
+    if (domain == null || domain.isBlank()) {
+      return null;
+    }
+    GTNet peer = gtNetJpaRepository.findByDomainRemoteName(domain);
+    if (peer != null) {
+      return peer;
+    }
+    String canonical = domainService.canonicalize(domain);
+    return canonical == null || canonical.equals(domain) ? null : gtNetJpaRepository.findByDomainRemoteName(canonical);
   }
 
   @Override
@@ -1515,16 +1872,41 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       throw new SecurityException("Missing authentication token");
     }
 
-    GTNet remoteGTNet = gtNetJpaRepository.findByDomainRemoteName(sourceDomain);
+    GTNet remoteGTNet = findPeerByDomain(sourceDomain);
     if (remoteGTNet == null) {
-      throw new SecurityException("Unknown source domain: " + sourceDomain);
+      // The domain is caller-supplied; logging it verbatim would echo arbitrary text into the log.
+      throw new SecurityException("Unknown source domain");
     }
 
     GTNetConfig gtNetConfig = remoteGTNet.getGtNetConfig();
-    String expectedToken = gtNetConfig != null ? gtNetConfig.getTokenThis() : null;
-    if (expectedToken == null || !expectedToken.equals(authToken)) {
-      throw new SecurityException("Invalid authentication token for domain: " + sourceDomain);
+    if (gtNetConfig == null) {
+      throw new SecurityException("Invalid authentication token");
     }
+    if (tokenMatches(gtNetConfig.getTokenThis(), authToken)) {
+      return;
+    }
+    // A peer whose token refresh response was lost still holds the token we replaced. Accepting it for the bounded
+    // overlap window is what lets that peer reach us at all, so that a retry can complete the rotation. The peer is
+    // named by its id rather than by the caller-supplied domain, which must not be echoed into the log.
+    if (gtNetConfig.isPreviousTokenValid(LocalDateTime.now(ZoneOffset.UTC))
+        && tokenMatches(gtNetConfig.getTokenThisPrevious(), authToken)) {
+      log.warn("Peer {} authenticated with the superseded token; its token refresh has not completed",
+          remoteGTNet.getIdGtNet());
+      return;
+    }
+    throw new SecurityException("Invalid authentication token");
+  }
+
+  /**
+   * Constant-time comparison of a stored token against the one a caller presented.
+   *
+   * @param expectedToken the token on record, may be null
+   * @param authToken     the token the caller presented
+   * @return true when both are present and equal
+   */
+  private static boolean tokenMatches(String expectedToken, String authToken) {
+    return expectedToken != null && MessageDigest.isEqual(expectedToken.getBytes(StandardCharsets.UTF_8),
+        authToken.getBytes(StandardCharsets.UTF_8));
   }
 
   @Override
@@ -1542,11 +1924,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   public void deleteMessageBatch(List<Integer> idGtNetMessageList) {
     // Fetch all pending IDs for validation
     Set<Integer> outgoingPendingIds = gtNetMessageJpaRepository
-        .findUnansweredRequests(SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES).stream()
-        .map(row -> ((Number) row[1]).intValue()).collect(Collectors.toSet());
+        .findUnansweredRequests(SendReceivedType.SEND.getValue(), messageCodeRegistry.requestCodesRequiringResponse())
+        .stream().map(row -> ((Number) row[1]).intValue()).collect(Collectors.toSet());
     Set<Integer> incomingPendingIds = gtNetMessageJpaRepository
-        .findUnansweredRequests(SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES).stream()
-        .map(row -> ((Number) row[1]).intValue()).collect(Collectors.toSet());
+        .findUnansweredRequests(SendReceivedType.RECEIVED.getValue(),
+            messageCodeRegistry.requestCodesRequiringResponse())
+        .stream().map(row -> ((Number) row[1]).intValue()).collect(Collectors.toSet());
 
     // Delegate to GTNetMessageJpaRepository for actual deletion with validation
     gtNetMessageJpaRepository.deleteBatch(idGtNetMessageList, outgoingPendingIds, incomingPendingIds);
@@ -1655,11 +2038,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       throw new DataViolationException("gt.net", "gt.gtnet.cannot.delete.own.entry", null);
     }
     boolean hasPending = gtNetMessageJpaRepository
-        .findUnansweredRequests(SendReceivedType.SEND.getValue(), RR_MESSAGE_CODES).stream()
-        .anyMatch(row -> ((Number) row[0]).intValue() == idGtNet)
+        .findUnansweredRequests(SendReceivedType.SEND.getValue(), messageCodeRegistry.requestCodesRequiringResponse())
+        .stream().anyMatch(row -> ((Number) row[0]).intValue() == idGtNet)
         || gtNetMessageJpaRepository
-            .findUnansweredRequests(SendReceivedType.RECEIVED.getValue(), RR_MESSAGE_CODES).stream()
-            .anyMatch(row -> ((Number) row[0]).intValue() == idGtNet);
+            .findUnansweredRequests(SendReceivedType.RECEIVED.getValue(),
+                messageCodeRegistry.requestCodesRequiringResponse())
+            .stream().anyMatch(row -> ((Number) row[0]).intValue() == idGtNet);
     if (hasPending) {
       throw new DataViolationException("gt.net", "gt.gtnet.pending.messages.exist", null);
     }

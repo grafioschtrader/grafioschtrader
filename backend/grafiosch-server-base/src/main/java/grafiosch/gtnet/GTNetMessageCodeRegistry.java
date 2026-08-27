@@ -1,92 +1,120 @@
 package grafiosch.gtnet;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Registry for GTNet message codes that supports both core and application-specific codes.
+ * The one authority on the GTNet protocol: one {@link GTNetProtocolDescriptor} per message code.
  *
- * This registry provides a unified lookup mechanism for message codes, allowing both the
- * core library codes ({@link GNetCoreMessageCode}) and application-specific codes to be
- * registered and retrieved by their byte value.
+ * <p>
+ * Category, request/response relationship, payload model, form eligibility, retry policy, delete protection and rule
+ * eligibility are all answered from here. Nothing else in the system may restate any of them — the frontend receives
+ * the descriptor set over the API instead of keeping its own copy, and the repository derives the list of codes that
+ * await a reply instead of hardcoding it.
+ * </p>
  *
- * <h3>Usage</h3>
- * The core message codes are automatically registered during construction. Application-specific
- * codes should be registered at startup via {@link #registerMessageCode(GTNetMessageCode)}.
- *
- * <h3>Response Mapping</h3>
- * The registry also maintains a mapping from request codes to their valid response codes.
- * This is used by the UI to show available response options for unanswered incoming requests.
+ * <p>
+ * The core codes are registered during construction from {@link CoreProtocolDescriptors}. An application adds its own
+ * codes at start-up with {@link #register(GTNetProtocolDescriptor)}. {@code GTNetProtocolStartupValidator} then checks
+ * that the result is complete before the server starts serving.
+ * </p>
  */
 @Component
 public class GTNetMessageCodeRegistry {
 
   private static final Logger log = LoggerFactory.getLogger(GTNetMessageCodeRegistry.class);
 
-  private final Map<Byte, GTNetMessageCode> codesByValue = new ConcurrentHashMap<>();
-  private final Map<GTNetMessageCode, List<GTNetMessageCode>> responseMap = new ConcurrentHashMap<>();
+  private final Map<Byte, GTNetProtocolDescriptor> descriptors = new ConcurrentHashMap<>();
 
-  /**
-   * Creates the registry and registers all core message codes.
-   */
+  /** Derived from the descriptors on every registration, because it is read on every message overview. */
+  private volatile List<Byte> requestCodesRequiringResponse = List.of();
+
+  /** Creates the registry and registers the core protocol. */
   public GTNetMessageCodeRegistry() {
-    // Register all core message codes
-    for (GNetCoreMessageCode code : GNetCoreMessageCode.values()) {
-      registerMessageCode(code);
-    }
-
-    // Register core response mappings
-    registerResponseMapping(GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S,
-        GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_ACCEPT_S,
-        GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_S);
-
-    registerResponseMapping(GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_SEL_RR_C,
-        GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_ACCEPT_S,
-        GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_REJECTED_S);
-
-    registerResponseMapping(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C,
-        GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S,
-        GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_REJECTED_S);
-
-    registerResponseMapping(GNetCoreMessageCode.GT_NET_DATA_REQUEST_SEL_RR_C,
-        GNetCoreMessageCode.GT_NET_DATA_REQUEST_ACCEPT_S,
-        GNetCoreMessageCode.GT_NET_DATA_REQUEST_REJECTED_S);
-
-    log.info("GTNet message code registry initialized with {} core codes", GNetCoreMessageCode.values().length);
+    CoreProtocolDescriptors.all().forEach(this::register);
+    log.info("GTNet protocol registry initialized with {} core codes", descriptors.size());
   }
 
   /**
-   * Registers a message code in the registry.
+   * Registers one descriptor.
    *
-   * @param code the message code to register
-   * @throws IllegalStateException if a code with the same value is already registered
+   * @param descriptor the descriptor to register
+   * @throws IllegalStateException if another code is already registered under the same wire value
    */
-  public void registerMessageCode(GTNetMessageCode code) {
-    GTNetMessageCode existing = codesByValue.putIfAbsent(code.getValue(), code);
-    if (existing != null && existing != code) {
-      throw new IllegalStateException(String.format(
-          "Duplicate message code value %d: existing=%s, new=%s",
-          code.getValue(), existing.name(), code.name()));
+  public void register(GTNetProtocolDescriptor descriptor) {
+    GTNetProtocolDescriptor existing = descriptors.putIfAbsent(descriptor.value(), descriptor);
+    if (existing != null && existing.code() != descriptor.code()) {
+      throw new IllegalStateException(String.format("Duplicate message code value %d: existing=%s, new=%s",
+          descriptor.value(), existing.name(), descriptor.name()));
     }
-    log.debug("Registered message code {} with value {}", code.name(), code.getValue());
+    requestCodesRequiringResponse = descriptors.values().stream().filter(GTNetProtocolDescriptor::requiresResponse)
+        .map(GTNetProtocolDescriptor::value).sorted().toList();
+    log.debug("Registered message code {} with value {}", descriptor.name(), descriptor.value());
   }
 
   /**
-   * Registers a request-to-response mapping.
+   * The descriptor of a code, by wire value.
    *
-   * @param requestCode the request code (must be an _RR_ type)
-   * @param responseCodes the valid response codes for this request
+   * @param value the byte value to look up
+   * @return the descriptor, or null when the code is unknown
    */
-  public void registerResponseMapping(GTNetMessageCode requestCode, GTNetMessageCode... responseCodes) {
-    responseMap.put(requestCode, List.of(responseCodes));
-    log.debug("Registered response mapping for {} with {} responses", requestCode.name(), responseCodes.length);
+  public GTNetProtocolDescriptor getDescriptor(byte value) {
+    return descriptors.get(value);
+  }
+
+  /**
+   * The descriptor of a code, by enum constant name.
+   *
+   * @param name the constant name, for example {@code GT_NET_ADMIN_MESSAGE_SEL_C}
+   * @return the descriptor, or null when the name is unknown
+   */
+  public GTNetProtocolDescriptor getDescriptorByName(String name) {
+    if (name == null) {
+      return null;
+    }
+    return descriptors.values().stream().filter(descriptor -> descriptor.name().equals(name)).findFirst().orElse(null);
+  }
+
+  /**
+   * Every registered descriptor.
+   *
+   * @return an unmodifiable view, in no particular order
+   */
+  public Collection<GTNetProtocolDescriptor> getAllDescriptors() {
+    return Collections.unmodifiableCollection(descriptors.values());
+  }
+
+  /**
+   * The wire values of all requests that stay open until an answer arrives.
+   *
+   * <p>
+   * This replaces the hardcoded three-element list the repository used to carry, which omitted the token refresh and
+   * the exchange sync — so a pending request of either kind never appeared in the pending map the reply gate reads, was
+   * not delete-protected, and did not block the deletion of its peer.
+   * </p>
+   *
+   * @return the codes, sorted by value
+   */
+  public List<Byte> requestCodesRequiringResponse() {
+    return requestCodesRequiringResponse;
+  }
+
+  /**
+   * The descriptors whose payload the user fills in, keyed by code.
+   *
+   * @return the form-eligible descriptors
+   */
+  public List<GTNetProtocolDescriptor> getFormEligibleDescriptors() {
+    return descriptors.values().stream().filter(GTNetProtocolDescriptor::formEligible)
+        .sorted((a, b) -> Byte.compare(a.value(), b.value())).collect(Collectors.toList());
   }
 
   /**
@@ -96,60 +124,57 @@ public class GTNetMessageCodeRegistry {
    * @return the corresponding GTNetMessageCode, or null if not found
    */
   public GTNetMessageCode getByValue(byte value) {
-    return codesByValue.get(value);
+    GTNetProtocolDescriptor descriptor = descriptors.get(value);
+    return descriptor == null ? null : descriptor.code();
   }
 
   /**
    * Looks up a message code by its enum constant name.
    *
-   * @param name the enum constant name to look up (e.g., "GT_NET_ADMIN_MESSAGE_SEL_C")
+   * @param name the enum constant name to look up
    * @return the corresponding GTNetMessageCode, or null if not found
    */
   public GTNetMessageCode getByName(String name) {
-    if (name == null) {
-      return null;
-    }
-    return codesByValue.values().stream()
-        .filter(code -> code.name().equals(name))
-        .findFirst()
-        .orElse(null);
+    GTNetProtocolDescriptor descriptor = getDescriptorByName(name);
+    return descriptor == null ? null : descriptor.code();
   }
 
   /**
    * Returns the valid response codes for a given request code.
    *
-   * @param requestCode the request message code (must be an _RR_ type)
-   * @return list of valid response codes, or empty list if not a request type
+   * @param requestCode the request message code
+   * @return list of valid response codes, or empty list when the code answers nothing
    */
   public List<GTNetMessageCode> getValidResponses(GTNetMessageCode requestCode) {
-    return responseMap.getOrDefault(requestCode, Collections.emptyList());
+    GTNetProtocolDescriptor descriptor = requestCode == null ? null : descriptors.get(requestCode.getValue());
+    return descriptor == null ? List.of() : descriptor.validResponses();
   }
 
   /**
-   * Checks if a message code with the given value is registered.
+   * Whether a response code is a registered valid answer to a request code, compared by wire value.
    *
-   * @param value the byte value to check
-   * @return true if a code with this value is registered
+   * <p>
+   * This is what separates an answer from a receipt. {@code GT_NET_ACK_S}, {@code GT_NET_DEFERRED_S} and
+   * {@code GT_NET_ERROR_S} are outcomes of the transport and are never valid answers to a request, so a sender that
+   * records only registered responses keeps a manually approved request open until the real decision arrives.
+   * </p>
+   *
+   * @param requestCodeValue  the wire value of the request
+   * @param responseCodeValue the wire value of the answer that came back
+   * @return true when the answer is a registered valid response for that request
    */
-  public boolean hasCode(byte value) {
-    return codesByValue.containsKey(value);
+  public boolean isValidResponse(byte requestCodeValue, byte responseCodeValue) {
+    GTNetProtocolDescriptor descriptor = descriptors.get(requestCodeValue);
+    return descriptor != null && descriptor.isValidResponse(responseCodeValue);
   }
 
   /**
-   * Returns all registered message codes.
+   * Whether the code is registered as an answer to some request.
    *
-   * @return unmodifiable collection of all registered codes
+   * @param responseCodeValue the wire value to classify
+   * @return true when some registered request accepts this code as an answer
    */
-  public java.util.Collection<GTNetMessageCode> getAllCodes() {
-    return Collections.unmodifiableCollection(codesByValue.values());
-  }
-
-  /**
-   * Returns all registered response mappings.
-   *
-   * @return unmodifiable map of request codes to their response codes
-   */
-  public Map<GTNetMessageCode, List<GTNetMessageCode>> getAllResponseMappings() {
-    return Collections.unmodifiableMap(new HashMap<>(responseMap));
+  public boolean isRegisteredResponse(byte responseCodeValue) {
+    return descriptors.values().stream().anyMatch(descriptor -> descriptor.isValidResponse(responseCodeValue));
   }
 }

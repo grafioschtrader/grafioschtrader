@@ -10,8 +10,8 @@ import grafiosch.entities.Auditable;
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryCustom;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
-import grafioschtrader.dto.HistoryquoteDeleteBounds;
 import grafioschtrader.dto.HistoryquoteChartResponse;
+import grafioschtrader.dto.HistoryquoteDeleteBounds;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
@@ -61,19 +61,20 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
   /**
    * Fills missing historical quotes for non-trading days (weekends and holidays) between two existing quotes.
    * <p>
-   * Currency pairs require continuous daily price data for accurate transaction calculations on any calendar day.
-   * This method creates placeholder quotes for dates between two existing quotes, copying price data from the day
-   * before the gap. Each created quote is marked with {@code HistoryquoteCreateType.FILLED_NON_TRADE_DAY}.
+   * Currency pairs require continuous daily price data for accurate transaction calculations on any calendar day. This
+   * method creates placeholder quotes for dates between two existing quotes, copying price data from the day before the
+   * gap. Each created quote is marked with {@code HistoryquoteCreateType.FILLED_NON_TRADE_DAY}.
    * </p>
    * <p>
    * <b>Concurrency Safety:</b> This method checks for existing dates before inserting to prevent duplicate key
    * violations when concurrent processes (scheduled EOD updates, user actions) attempt to fill the same gaps.
    * </p>
    *
-   * @param dayBeforHoleHistoryquote The historical quote immediately before the gap. Its closing price and other
-   *        values are copied to fill the missing days. Must not be null and must have a valid idSecuritycurrency.
+   * @param dayBeforHoleHistoryquote The historical quote immediately before the gap. Its closing price and other values
+   *                                 are copied to fill the missing days. Must not be null and must have a valid
+   *                                 idSecuritycurrency.
    * @param dayAfterHoleHistoryquote The historical quote immediately after the gap. Defines the exclusive upper bound
-   *        for the date range to fill. Must not be null.
+   *                                 for the date range to fill. Must not be null.
    */
   void fillMissingPeriodWithHistoryquotes(Historyquote dayBeforHoleHistoryquote, Historyquote dayAfterHoleHistoryquote);
 
@@ -89,10 +90,10 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
    * Retrieves historical quote data for chart rendering, automatically selecting between OHLC and simple date/close
    * formats based on data availability.
    * <p>
-   * This method first checks whether valid OHLC (Open-High-Low-Close) data exists for the security or currency pair
-   * by examining the oldest and youngest historyquote records. If both records have non-null, non-zero open/high/low
-   * values, it returns full OHLC data suitable for candlestick and OHLC charts. Otherwise, it returns simple
-   * date/close data for line charts.
+   * This method first checks whether valid OHLC (Open-High-Low-Close) data exists for the security or currency pair by
+   * examining the oldest and youngest historyquote records. If both records have non-null, non-zero open/high/low
+   * values, it returns full OHLC data suitable for candlestick and OHLC charts. Otherwise, it returns simple date/close
+   * data for line charts.
    * </p>
    * <p>
    * The method ensures user access validation before fetching data.
@@ -168,7 +169,7 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
    * boundary dates belong to the period. Restricting the deletion to a period allows a part of a linear filling to be
    * withdrawn, for example when a new price level applies from a certain date on.
    *
-   * @param idSecuritycurreny             the security or currency pair whose quotes are deleted
+   * @param idSecuritycurreny              the security or currency pair whose quotes are deleted
    * @param historyquoteCreateTypesAsBytes create types to delete, only 2 (MANUAL_IMPORTED) and 3
    *                                       (FILLED_CLOSED_LINEAR_TRADING_DAY) are accepted
    * @param dateFrom                       first date of the deleted period, inclusive

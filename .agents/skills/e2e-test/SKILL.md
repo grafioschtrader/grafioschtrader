@@ -185,6 +185,48 @@ registration. The backend suite must therefore run before the browser suite.
 `e2e/lib/` must never import from `e2e/` — the dependency points only the other way, so the library
 tests can move with `src/app/lib` when it is extracted.
 
+## Two-peer GTNet suites (`e2e/gtnet/`, `e2e/gtnet-app/`)
+
+GTNet is peer to peer, so its tests need two real instances. Two isolated topologies exist, and because both
+claim port 8082 they never overlap:
+
+| Selection | Backends | Databases | Frontends | Profiles |
+|---|---|---|---|---|
+| `--gtnet-lib` | 8081 / 8082 | `grafiosch_t` / `grafiosch_t1` | 4201 / 4202 | `e2e` / `e2e,e2e-peer` |
+| `--gtnet-app` | 8080 / 8082 | `grafioschtrader_t` / `grafioschtrader_t1` | 4200 / 4202 | `e2e,e2e-gtnet` / `e2e,e2e-gtnet,e2e-peer` |
+
+`--gtnet` runs both, library first. All of them obey Rule 0: only on explicit user request.
+
+Three things bite when a spec is run by hand:
+
+- **The identity address must be a non-loopback literal IPv4.** `GTNetJpaRepositoryImpl.saveOnlyAttributes`
+  writes `g.gnet.my.entry.id` only when `isDomainNameThisMachine` matches, and that method skips every loopback
+  interface, so `localhost` leaves the instance non-operational however the form is filled in. Resolve it with
+  `node scripts/gtnet-peer-address.mjs` and export it as `GTNET_PEER_A_OWN_URL` / `GTNET_PEER_B_OWN_URL`.
+  A hostname does not do either: `BaseDataClient` builds its `WebClient` with `IPV6_PREFERRED`.
+- **The two health endpoints have different shapes.** `GET /api/integration-info` returns `activeProfiles` as an
+  array; `GET /api/gtinfo` returns `activeProfile` as a comma-joined string. A predicate cannot be copied between
+  the two suites.
+- **One application context per database at a time.** The GTNet suites are client-only for that reason: they
+  start no Spring context, they drive the running peers over HTTP. Two contexts on one database would share
+  `g.gnet.my.entry.id` and one `domainRemoteName`, which is not a two-peer topology at all.
+
+One-time database grants, in addition to the existing ones:
+
+```sql
+GRANT ALL PRIVILEGES ON grafiosch_t1.*       TO 'grafiosch_t1'@'localhost';
+GRANT ALL PRIVILEGES ON grafioschtrader_t1.* TO 'grafioschtrader_t1'@'localhost';
+```
+
+Both peer profiles disable the background worker and pin every GTNet cron to `-`; the application one also
+disables the AJP connector, without which a second application JVM cannot bind 9090 at all. Queued tasks are
+therefore executed on request, through the e2e-only trigger of each stack, never by waiting on the 15 second
+poll. `frontend/e2e/README.md` carries the per-spec rerun commands.
+
+Cleanup has one rule of its own: `deleteGTNet` refuses a peer that still has an unanswered request-response
+message, so a spec or test that leaves one behind blocks the next run's bootstrap. Answer or delete those rows,
+and preserve the own entry.
+
 ## Checklist before reporting an E2E task as done
 
 - [ ] Ran only the affected spec, against already-running services
@@ -194,4 +236,5 @@ tests can move with `src/app/lib` when it is extracted.
 - [ ] Spec deletes its own data at the **start** of the run and is rerunnable
 - [ ] Number chosen by prerequisites, before `844` / `888`, gaps left intact
 - [ ] Fixture in `testdata/` (not `testdata/generated/`), natural keys, `e2e` tag present
+- [ ] For a GTNet suite: pending request-response messages answered or deleted, own entry preserved
 - [ ] Reported honestly which specs ran and which did not

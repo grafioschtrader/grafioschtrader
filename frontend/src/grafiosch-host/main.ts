@@ -31,6 +31,7 @@ import { GTNetTabMenuComponent } from '../app/lib/gnet/component/gtnet-tabmenu.c
 import { GTNetConfigEntityService } from '../app/lib/gnet/service/gtnet.config.entity.service';
 import { GTNetConfigService } from '../app/lib/gnet/service/gtnet.config.service';
 import { GTNetMessageAnswerService } from '../app/lib/gnet/service/gtnet.message.answer.service';
+import { GTNetProtocolService } from '../app/lib/gnet/service/gtnet.protocol.service';
 import { GTNetMessageService } from '../app/lib/gnet/service/gtnet.message.service';
 import { GTNetService } from '../app/lib/gnet/service/gtnet.service';
 import { MailForwardSettingTableEditComponent } from '../app/lib/mail/component/mail.forward.setting.table.edit.component';
@@ -170,7 +171,7 @@ const routes: Routes = [
       {
         path: BaseSettings.GT_NET_MESSAGE_ANSWER_KEY,
         component: GTNetMessageAnswerTableComponent,
-        canActivate: [authGuard]
+        canActivate: [adminGuard]
       },
       {
         path: BaseSettings.GT_NET_EXCHANGE_LOG_KEY,
@@ -189,6 +190,11 @@ const routes: Routes = [
           },
           {
             path: BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY,
+            component: GTNetExchangeLogComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: ':entityKind',
             component: GTNetExchangeLogComponent,
             canActivate: [authGuard]
           }
@@ -291,6 +297,7 @@ bootstrapApplication(GrafioschAppComponent, {
     GTNetConfigEntityService,
     GTNetConfigService,
     GTNetMessageAnswerService,
+    GTNetProtocolService,
     GTNetMessageService,
     GTNetService,
 

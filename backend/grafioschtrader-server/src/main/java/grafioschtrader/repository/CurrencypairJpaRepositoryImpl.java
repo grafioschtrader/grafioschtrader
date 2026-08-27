@@ -26,7 +26,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
+import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
 import grafiosch.repository.TaskDataChangeJpaRepository;
@@ -559,6 +561,31 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     }
 
     return query.getResultList();
+  }
+
+  @Override
+  @Transactional
+  @Modifying
+  public List<Currencypair> batchUpdateGTNetExchange(List<Currencypair> currencypairs) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    final List<Currencypair> updatedCurrencypairs = new ArrayList<>();
+    final LocalDateTime now = LocalDateTime.now();
+    for (Currencypair currencypair : currencypairs) {
+      Currencypair existing = currencypairJpaRepository.findById(currencypair.getIdSecuritycurrency()).orElse(null);
+      if (existing == null) {
+        continue;
+      }
+      if (!UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, existing)) {
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+      }
+      existing.setGtNetLastpriceRecv(currencypair.isGtNetLastpriceRecv());
+      existing.setGtNetHistoricalRecv(currencypair.isGtNetHistoricalRecv());
+      existing.setGtNetLastpriceSend(currencypair.isGtNetLastpriceSend());
+      existing.setGtNetHistoricalSend(currencypair.isGtNetHistoricalSend());
+      existing.setGtNetLastModifiedTime(now);
+      updatedCurrencypairs.add(currencypairJpaRepository.save(existing));
+    }
+    return updatedCurrencypairs;
   }
 
 }

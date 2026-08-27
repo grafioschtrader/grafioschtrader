@@ -35,17 +35,14 @@ public class ServerlistRevokeHandler extends AbstractAnnouncementHandler {
       return;
     }
 
-    // Disable spread capability for this remote (they no longer share with us)
-    remoteGTNet.setSpreadCapability(false);
-
-    // Also revoke their access to our server list
+    // Only our own grant is cleared. Writing spreadCapability here was the mirror image of what the sender meant: that
+    // flag is the peer's own published property - whether its entry may be redistributed - and it is re-synchronised
+    // from the peer's DTO on its very next message, so the write was undone anyway.
     GTNetConfig config = remoteGTNet.getGtNetConfig();
     if (config != null && config.isServerlistAccessGranted()) {
       config.setServerlistAccessGranted(false);
       saveGTNetConfig(config);
       log.info("Revoked server list access for {} due to their revoke message", context.getSourceDomain());
     }
-
-    saveRemoteGTNet(remoteGTNet);
   }
 }

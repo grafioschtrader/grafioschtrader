@@ -46,8 +46,8 @@ import grafioschtrader.service.GTNetExchangeLogService;
 /**
  * Handler for GT_NET_SECURITY_LOOKUP_SEL_C requests from remote instances.
  *
- * Processes security metadata lookup requests by searching the local database
- * for matching securities and returning them in an instance-agnostic format.
+ * Processes security metadata lookup requests by searching the local database for matching securities and returning
+ * them in an instance-agnostic format.
  *
  * @see GTNetMessageCodeType#GT_NET_SECURITY_LOOKUP_SEL_C
  */
@@ -71,7 +71,6 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
   @Autowired
   private GTNetExchangeLogService gtNetExchangeLogService;
 
-
   @Override
   public GTNetMessageCodeType getSupportedMessageCode() {
     return GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C;
@@ -90,15 +89,16 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
       return new HandlerResult.ProcessingError<>("NO_LOCAL_GTNET", "Local GTNet configuration not found");
     }
 
+    // Store the incoming message before the accept check, because a refusal is answered with
+    // GT_NET_SECURITY_LOOKUP_REJECTED_S and that response has to reference the stored request.
+    GTNetMessage storedRequest = storeIncomingMessage(context);
+
     // Check if this server accepts security metadata requests
     Optional<GTNetEntity> metadataEntity = myGTNet.getEntityByKind(GTNetExchangeKindType.SECURITY_METADATA.getValue());
     if (metadataEntity.isEmpty() || !metadataEntity.get().isAccepting()) {
       log.debug("Server not accepting security metadata requests");
-      return createRejectedResponse(context, "NOT_ACCEPTING", "This server is not accepting security metadata requests");
+      return createRejectedResponse(context, storedRequest, "This server is not accepting security metadata requests");
     }
-
-    // Store incoming message for logging
-    GTNetMessage storedRequest = storeIncomingMessage(context);
 
     // Parse request payload
     if (!context.hasPayload()) {
@@ -110,16 +110,16 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
       return createNotFoundResponse(context, storedRequest);
     }
 
-    log.debug("Received security lookup request: isin={}, currency={}, ticker={}",
-        request.isin, request.currency, request.tickerSymbol);
+    log.debug("Received security lookup request: isin={}, currency={}, ticker={}", request.isin, request.currency,
+        request.tickerSymbol);
 
     // Search local database
     List<SecurityGtnetLookupDTO> results = findLocalSecurities(request, context.getRemoteGTNet());
 
     // Log exchange statistics as supplier
     if (context.getRemoteGTNet() != null) {
-      gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(),
-          GTNetExchangeKindType.SECURITY_METADATA, 1, results.size(), results.size());
+      gtNetExchangeLogService.logAsSupplier(context.getRemoteGTNet(), GTNetExchangeKindType.SECURITY_METADATA, 1,
+          results.size(), results.size());
     }
 
     if (results.isEmpty()) {
@@ -155,19 +155,14 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     if (securities.isEmpty() && request.tickerSymbol != null && !request.tickerSymbol.isBlank()) {
       List<Security> byTicker = securityJpaRepository.findByTickerSymbol(request.tickerSymbol);
       if (request.currency != null && !request.currency.isBlank()) {
-        byTicker.stream()
-            .filter(s -> request.currency.equals(s.getCurrency()))
-            .forEach(securities::add);
+        byTicker.stream().filter(s -> request.currency.equals(s.getCurrency())).forEach(securities::add);
       } else {
         securities.addAll(byTicker);
       }
     }
 
     // Convert to DTOs, excluding private securities
-    return securities.stream()
-        .filter(s -> s.getIdTenantPrivate() == null)
-        .map(this::toDTO)
-        .toList();
+    return securities.stream().filter(s -> s.getIdTenantPrivate() == null).map(this::toDTO).toList();
   }
 
   protected SecurityGtnetLookupDTO toDTO(Security security) {
@@ -250,9 +245,7 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
     // History connector
     if (security.getIdConnectorHistory() != null) {
-      ConnectorHint hint = createConnectorHint(
-          security.getIdConnectorHistory(),
-          security.getUrlHistoryExtend(),
+      ConnectorHint hint = createConnectorHint(security.getIdConnectorHistory(), security.getUrlHistoryExtend(),
           ConnectorCapability.HISTORY);
       if (hint != null) {
         hints.add(hint);
@@ -261,9 +254,7 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
     // Intraday connector
     if (security.getIdConnectorIntra() != null) {
-      ConnectorHint hint = createConnectorHint(
-          security.getIdConnectorIntra(),
-          security.getUrlIntraExtend(),
+      ConnectorHint hint = createConnectorHint(security.getIdConnectorIntra(), security.getUrlIntraExtend(),
           ConnectorCapability.INTRADAY);
       if (hint != null) {
         mergeOrAddHint(hints, hint, ConnectorCapability.INTRADAY);
@@ -272,9 +263,7 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
     // Dividend connector
     if (security.getIdConnectorDividend() != null) {
-      ConnectorHint hint = createConnectorHint(
-          security.getIdConnectorDividend(),
-          security.getUrlDividendExtend(),
+      ConnectorHint hint = createConnectorHint(security.getIdConnectorDividend(), security.getUrlDividendExtend(),
           ConnectorCapability.DIVIDEND);
       if (hint != null) {
         mergeOrAddHint(hints, hint, ConnectorCapability.DIVIDEND);
@@ -283,9 +272,7 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
 
     // Split connector
     if (security.getIdConnectorSplit() != null) {
-      ConnectorHint hint = createConnectorHint(
-          security.getIdConnectorSplit(),
-          security.getUrlSplitExtend(),
+      ConnectorHint hint = createConnectorHint(security.getIdConnectorSplit(), security.getUrlSplitExtend(),
           ConnectorCapability.SPLIT);
       if (hint != null) {
         mergeOrAddHint(hints, hint, ConnectorCapability.SPLIT);
@@ -296,12 +283,8 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
   }
 
   private void mergeOrAddHint(List<ConnectorHint> hints, ConnectorHint newHint, ConnectorCapability capability) {
-    hints.stream()
-        .filter(h -> h.getConnectorFamily().equals(newHint.getConnectorFamily()))
-        .findFirst()
-        .ifPresentOrElse(
-            existing -> existing.getCapabilities().add(capability),
-            () -> hints.add(newHint));
+    hints.stream().filter(h -> h.getConnectorFamily().equals(newHint.getConnectorFamily())).findFirst()
+        .ifPresentOrElse(existing -> existing.getCapabilities().add(capability), () -> hints.add(newHint));
   }
 
   private ConnectorHint createConnectorHint(String connectorId, String urlExtension, ConnectorCapability capability) {
@@ -346,17 +329,16 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
   }
 
   /**
-   * Finds a feed connector by its full ID (e.g., "gt.datafeed.yahoo") from the complete connector list
-   * including dynamically registered generic connectors.
+   * Finds a feed connector by its full ID (e.g., "gt.datafeed.yahoo") from the complete connector list including
+   * dynamically registered generic connectors.
    */
   private IFeedConnector findFeedConnectorById(String connectorId) {
-    return securityJpaRepository.getFeedConnectors().stream()
-        .filter(fc -> fc.getID().equals(connectorId))
-        .findFirst().orElse(null);
+    return securityJpaRepository.getFeedConnectors().stream().filter(fc -> fc.getID().equals(connectorId)).findFirst()
+        .orElse(null);
   }
 
-  private HandlerResult<GTNetMessage, MessageEnvelope> createSuccessResponse(GTNetMessageContext context, GTNetMessage storedRequest,
-      List<SecurityGtnetLookupDTO> results) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createSuccessResponse(GTNetMessageContext context,
+      GTNetMessage storedRequest, List<SecurityGtnetLookupDTO> results) {
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S,
         null, null, storedRequest);
 
@@ -366,7 +348,8 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     return new HandlerResult.ImmediateResponse<>(envelope);
   }
 
-  private HandlerResult<GTNetMessage, MessageEnvelope> createNotFoundResponse(GTNetMessageContext context, GTNetMessage storedRequest) {
+  private HandlerResult<GTNetMessage, MessageEnvelope> createNotFoundResponse(GTNetMessageContext context,
+      GTNetMessage storedRequest) {
     GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S,
         null, null, storedRequest);
 
@@ -374,7 +357,21 @@ public class SecurityLookupHandler extends AbstractGTNetMessageHandler {
     return new HandlerResult.ImmediateResponse<>(envelope);
   }
 
-  private HandlerResult<GTNetMessage, MessageEnvelope> createRejectedResponse(GTNetMessageContext context, String errorCode, String message) {
-    return new HandlerResult.ProcessingError<>(errorCode, message);
+  /**
+   * Answers a refused lookup with GT_NET_SECURITY_LOOKUP_REJECTED_S. A refusal is a protocol answer the requester can
+   * tell apart from "not found", so it is persisted and returned as a response rather than as a transport error.
+   *
+   * @param context       the message context of the incoming request
+   * @param storedRequest the persisted request this response refers to
+   * @param message       human readable reason, carried in the response envelope
+   * @return an immediate response carrying the rejection code
+   */
+  private HandlerResult<GTNetMessage, MessageEnvelope> createRejectedResponse(GTNetMessageContext context,
+      GTNetMessage storedRequest, String message) {
+    GTNetMessage responseMsg = storeResponseMessage(context, GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S,
+        message, null, storedRequest);
+
+    MessageEnvelope envelope = createResponseEnvelope(context, responseMsg);
+    return new HandlerResult.ImmediateResponse<>(envelope);
   }
 }

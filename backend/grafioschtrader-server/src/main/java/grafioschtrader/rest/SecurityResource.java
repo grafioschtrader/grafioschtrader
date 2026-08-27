@@ -351,18 +351,16 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   // ==================== GTNet Exchange Endpoints ====================
 
-  @Operation(summary = "Returns securities with GTNet exchange configuration", description = "Returns all securities with their GTNet exchange fields and IDs of securities that have supplier details", tags = {
-      Security.TABNAME })
+  @Operation(summary = "Returns securities with GTNet exchange configuration", description = """
+      Returns the securities with their GTNet exchange fields and the IDs of the securities that have supplier
+      details. A private security belongs to a single tenant and is never exchanged with a peer, so it is not part of
+      the list.""", tags = { Security.TABNAME })
   @GetMapping(value = "/gtnetexchange", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTSecuritiyCurrencyExchange<Security>> getSecuritiesWithGTNetExchange(
       @RequestParam(defaultValue = "true") boolean activeOnly) {
-    List<Security> securities;
-    if (activeOnly) {
-      securities = securityJpaRepository.findByActiveToDateAfterAndIsinIsNotNull(LocalDate.now());
-    } else {
-      securities = securityJpaRepository.findAll().stream().filter(s -> s.getIsin() != null)
-          .collect(Collectors.toList());
-    }
+    List<Security> securities = activeOnly
+        ? securityJpaRepository.findByActiveToDateAfterAndIsinIsNotNullAndIdTenantPrivateIsNull(LocalDate.now())
+        : securityJpaRepository.findByIsinIsNotNullAndIdTenantPrivateIsNull();
 
     GTSecuritiyCurrencyExchange<Security> result = new GTSecuritiyCurrencyExchange<>();
     result.securitiescurrenciesList = securities;
@@ -374,26 +372,14 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return new ResponseEntity<>(result, HttpStatus.OK);
   }
 
-  @Operation(summary = "Batch updates GTNet exchange fields for securities", description = "Updates the gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend, gtNetHistoricalSend fields for multiple securities", tags = {
-      Security.TABNAME })
+  @Operation(summary = "Batch updates GTNet exchange fields for securities", description = """
+      Updates the gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend and gtNetHistoricalSend fields for
+      multiple securities. The flags are shared data, so the caller must hold the ordinary editing rights of every
+      security in the list: an administrator and a user with the extended editing right may change any security,
+      everybody else only the securities they created themselves.""", tags = { Security.TABNAME })
   @PostMapping(value = "/gtnetexchange/batch", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Security>> batchUpdateSecuritiesGTNetExchange(@RequestBody List<Security> securities) {
-    List<Security> updatedSecurities = new ArrayList<>();
-    LocalDateTime now = LocalDateTime.now();
-
-    for (Security security : securities) {
-      Security existing = securityJpaRepository.findById(security.getIdSecuritycurrency()).orElse(null);
-      if (existing != null) {
-        existing.setGtNetLastpriceRecv(security.isGtNetLastpriceRecv());
-        existing.setGtNetHistoricalRecv(security.isGtNetHistoricalRecv());
-        existing.setGtNetLastpriceSend(security.isGtNetLastpriceSend());
-        existing.setGtNetHistoricalSend(security.isGtNetHistoricalSend());
-        existing.setGtNetLastModifiedTime(now);
-        updatedSecurities.add(securityJpaRepository.save(existing));
-      }
-    }
-
-    return new ResponseEntity<>(updatedSecurities, HttpStatus.OK);
+    return new ResponseEntity<>(securityJpaRepository.batchUpdateGTNetExchange(securities), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns supplier details for a security", description = "Returns information about which GTNet suppliers can provide price data for this security, including quality settings", tags = {

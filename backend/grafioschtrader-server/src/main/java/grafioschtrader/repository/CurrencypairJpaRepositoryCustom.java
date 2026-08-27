@@ -249,4 +249,25 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
    */
   // double getCurrencyExchangeRate(String fromCurrency, String toCurrency, Map<String, Currencypair> currencypairMap);
 
+  /**
+   * Writes the four GTNet exchange flags of several currency pairs in one go.
+   *
+   * <p>
+   * The flags decide which instruments this instance offers to its GTNet peers and which it wants to receive, so they
+   * are shared data rather than tenant data. Every row is therefore checked against the ordinary editing rights of
+   * the instrument: an administrator and a user with the extended editing right may change any currency pair,
+   * everybody else only the currency pairs they created themselves. A row the caller may not change aborts the whole
+   * request with a {@link SecurityException}, because the user interface never offers such a row.
+   * </p>
+   *
+   * <p>
+   * Ids without a persisted currency pair are skipped silently; only the four {@code gtNet*} flags and the
+   * modification timestamp are written.
+   * </p>
+   *
+   * @param currencypairs the currency pairs carrying the desired flag values, identified by their id
+   * @return the persisted currency pairs, in the order they were accepted
+   */
+  List<Currencypair> batchUpdateGTNetExchange(List<Currencypair> currencypairs);
+
 }

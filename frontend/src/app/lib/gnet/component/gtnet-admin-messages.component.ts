@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { TableCrudSupportMenu } from '../../datashowbase/table.crud.support.menu';
 import { GTNet, GTNetWithMessages } from '../model/gtnet';
 import {
-  getValidResponseCodes,
   GTNetMessage,
   GTNetMessageCodeType,
   MessageVisibility,
@@ -25,6 +24,7 @@ import { HelpIds } from '../../help/help.ids';
 import { GTNetMessageTreeTableComponent } from './gtnet-message-treetable.component';
 import { combineLatest } from 'rxjs';
 import { GTNetMessageService } from '../service/gtnet.message.service';
+import { GTNetProtocolService } from '../service/gtnet.protocol.service';
 import { ClassDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
 import { BaseSettings } from '../../base.settings';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
@@ -60,7 +60,7 @@ import { ProcessedActionData } from '../../types/processed.action.data';
       [selectionMode]="'multiple'"
       [(selection)]="selectedEntities"
       [contextMenuItems]="contextMenuItems"
-      [showContextMenu]="true"
+      [showContextMenu]="isUserAdmin"
       [containerClass]="{
         'data-container-full': true,
         'active-border': isActivated(),
@@ -134,11 +134,12 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   /** All admin messages loaded from backend */
   private allAdminMessages: GTNetMessage[] = [];
   /** Whether current user has admin role (only admins can send admin messages) */
-  private isUserAdmin: boolean;
+  protected isUserAdmin: boolean;
 
   constructor(
     private gtNetService: GTNetService,
     private gtNetMessageService: GTNetMessageService,
+    private gtNetProtocolService: GTNetProtocolService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
     activePanelService: ActivePanelService,
@@ -192,7 +193,9 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   protected override readData(): void {
+    // The protocol comes first because calculatePendingReplies() below asks it which codes expect an answer.
     const observable = [
+      this.gtNetProtocolService.load(),
       this.gtNetService.getAllGTNetsWithMessages(),
       this.gtNetMessageService.getAdminMessages(),
       this.gtNetMessageService.getAdminMessageCounts(),
@@ -200,10 +203,10 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
     ];
 
     combineLatest(observable).subscribe((data) => {
-      const gtNetWithMessages = <GTNetWithMessages>data[0];
-      this.allAdminMessages = <GTNetMessage[]>data[1];
-      this.gtNetMessageCountMap = <{ [key: number]: number }>data[2];
-      this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[3];
+      const gtNetWithMessages = <GTNetWithMessages>data[1];
+      this.allAdminMessages = <GTNetMessage[]>data[2];
+      this.gtNetMessageCountMap = <{ [key: number]: number }>data[3];
+      this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[4];
 
       // Show all GTNet domains so admins can send messages to any of them
       this.gtNetList = gtNetWithMessages.gtNetList;
@@ -255,7 +258,7 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
 
     this.allAdminMessages.forEach((msg) => {
       // Check if this message type supports replies
-      const validResponses = getValidResponseCodes(msg.messageCode);
+      const validResponses = this.gtNetProtocolService.getValidResponseCodes(msg.messageCode);
       if (validResponses.length === 0) {
         return;
       }
@@ -307,6 +310,9 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   private sendAdminMsg(): void {
+    if (!this.isUserAdmin) {
+      return;
+    }
     const targetIds = this.selectedEntities.map((e) => e.idGtNet);
     this.msgCallParam = new MsgCallParam(this.formDefinitions, null, null, null, false, null, null);
     this.msgCallParam.targetIds = targetIds;

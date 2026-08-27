@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AuthServiceWithLogout } from '../../login/service/base.auth.service.with.logout';
-import { GTNet, GTNetWithMessages, MsgRequest } from '../model/gtnet';
+import { GTNet, GTNetMaintenanceWindow, GTNetWithMessages, MsgRequest } from '../model/gtnet';
 import { GTNetMessage } from '../model/gtnet.message';
 import { MultiTargetMsgRequest } from '../model/multi-target-msg-request';
 import { ServiceEntityUpdate } from '../../edit/service.entity.update';
@@ -10,7 +10,6 @@ import { catchError } from 'rxjs/operators';
 import { LoginService } from '../../login/service/log-in.service';
 import { HttpClient } from '@angular/common/http';
 import { MessageToastService } from '../../message/message.toast.service';
-import { ApplicationInfo } from '../../services/actuator.service';
 import { BaseSettings } from '../../base.settings';
 
 @Injectable()
@@ -23,17 +22,6 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
     return <Observable<GTNetWithMessages>>(
       this.httpClient
         .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/gtnetwithmessage`, this.getHeaders())
-        .pipe(catchError(this.handleError.bind(this)))
-    );
-  }
-
-  checkRemoteDomainWithApplicationInfo(remoteDomainName: string): Observable<ApplicationInfo> {
-    return <Observable<ApplicationInfo>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/remotetest/${remoteDomainName}`,
-          this.getHeaders()
-        )
         .pipe(catchError(this.handleError.bind(this)))
     );
   }
@@ -92,6 +80,24 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
     return <Observable<GTNetMessage[]>>(
       this.httpClient
         .get(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/messages/${idGtNet}`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
+  }
+
+  /**
+   * Loads the announced maintenance windows of one GTNet domain. Called when the maintenance panel of the expanded
+   * row is opened; the counts that drive the panel header already come with {@link getAllGTNetsWithMessages}.
+   *
+   * @param idGtNet the GTNet domain ID
+   * @returns the announced windows, most recent first
+   */
+  getMaintenanceWindowsByIdGtNet(idGtNet: number): Observable<GTNetMaintenanceWindow[]> {
+    return <Observable<GTNetMaintenanceWindow[]>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/maintenancewindows/${idGtNet}`,
+          this.getHeaders()
+        )
         .pipe(catchError(this.handleError.bind(this)))
     );
   }

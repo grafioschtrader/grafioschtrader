@@ -3,6 +3,7 @@ package grafioschtrader.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
+import grafiosch.gtnet.GTNetRequestBudgetService;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
@@ -27,6 +29,8 @@ import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
+import grafiosch.gtnet.GTNetResponseResult;
+import grafiosch.gtnet.GTNetResponseValidator;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.m2m.model.HistoryquoteRecordDTO;
 import grafioschtrader.gtnet.m2m.model.InstrumentHistoryquoteDTO;
@@ -60,14 +64,19 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
   private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
+  private GTNetResponseValidator responseValidator;
+
+  @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
- 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
   private BaseDataClient baseDataClient;
+
+  @Autowired
+  private GTNetRequestBudgetService gtNetRequestBudgetService;
 
   @Autowired
   private GlobalparametersService globalparametersService;
@@ -92,8 +101,7 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     // Build coverage query
     List<InstrumentIdentifier> securityIdentifiers = securities.stream()
         .filter(s -> s.getIsin() != null && s.getCurrency() != null)
-        .map(s -> InstrumentIdentifier.forSecurity(s.getIsin(), s.getCurrency()))
-        .toList();
+        .map(s -> InstrumentIdentifier.forSecurity(s.getIsin(), s.getCurrency())).toList();
 
     if (securityIdentifiers.isEmpty()) {
       return Collections.emptyMap();
@@ -212,27 +220,31 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     envelope.timestamp = LocalDateTime.now();
     envelope.payload = objectMapper.valueToTree(request);
 
-    log.debug("Fetching historyquotes from {} for {} ({}) from {} to {}", peer.getDomainRemoteName(), security.getIsin(),
-        security.getCurrency(), fromDate, toDate);
+    log.debug("Fetching historyquotes from {} for {} ({}) from {} to {}", peer.getDomainRemoteName(),
+        security.getIsin(), security.getCurrency(), fromDate, toDate);
 
     // Send request
+    if (!gtNetRequestBudgetService.chargeOutgoing(peer, envelope.messageCode)) {
+      return Collections.emptyList();
+    }
+
     SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), peer.getDomainRemoteName(),
         envelope, GTNetTimeoutHelper.resolveTimeout(peer, globalparametersJpaRepository));
 
     if (result.isFailed()) {
-      log.warn("Failed to fetch historyquotes from {}: HTTP {}",
-          peer.getDomainRemoteName(), result.httpStatusCode());
+      log.warn("Failed to fetch historyquotes from {}: HTTP {}", peer.getDomainRemoteName(), result.httpStatusCode());
       return Collections.emptyList();
     }
 
-    MessageEnvelope response = result.response();
-    if (response == null || response.payload == null) {
-      log.debug("No historyquote data received from {}", peer.getDomainRemoteName());
+    GTNetResponseResult<HistoryquoteExchangeMsg> outcome = responseValidator.validate(result.response(),
+        Set.of(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S.getValue()), HistoryquoteExchangeMsg.class,
+        "Historical price import from " + peer.getDomainRemoteName());
+    if (!outcome.isSuccess()) {
       return Collections.emptyList();
     }
 
     try {
-      HistoryquoteExchangeMsg responsePayload = objectMapper.treeToValue(response.payload, HistoryquoteExchangeMsg.class);
+      HistoryquoteExchangeMsg responsePayload = outcome.payloadOrNull();
       if (responsePayload == null || responsePayload.securities == null || responsePayload.securities.isEmpty()) {
         return Collections.emptyList();
       }
@@ -332,6 +344,10 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     envelope.timestamp = LocalDateTime.now();
     envelope.payload = objectMapper.valueToTree(query);
 
+    if (!gtNetRequestBudgetService.chargeOutgoing(peer, envelope.messageCode)) {
+      return null;
+    }
+
     SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), peer.getDomainRemoteName(),
         envelope, GTNetTimeoutHelper.resolveTimeout(peer, globalparametersJpaRepository));
 
@@ -341,7 +357,11 @@ public class GTNetHistoricalImportService extends BaseGTNetExchangeService {
     }
 
     MessageEnvelope response = result.response();
-    if (response == null || response.payload == null) {
+    if (response == null
+        || response.messageCode != GTNetMessageCodeType.GT_NET_HISTORYQUOTE_COVERAGE_RESPONSE_S.getValue()
+        || response.payload == null || response.payload.isNull()) {
+      log.debug("Ignoring invalid coverage response from {}: code={}", peer.getDomainRemoteName(),
+          response != null ? response.messageCode : null);
       return null;
     }
 

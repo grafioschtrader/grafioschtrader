@@ -23,6 +23,7 @@ import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TaxCountryCreateComponent } from './tax-country-create.component';
 import { TaxYearCreateComponent } from './tax-year-create.component';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
+import { TaxExchangeRateTableComponent } from './tax-exchange-rate-table.component';
 
 enum NodeLevel {
   COUNTRY,
@@ -54,8 +55,16 @@ enum NodeLevel {
         (nodeUnselect)="onNodeUnselect($event)"
         [contextMenuItems]="contextMenuItems"
         [showContextMenu]="!!contextMenuItems"
+        [expandable]="true"
+        [canExpandFn]="canExpandNode.bind(this)"
+        [expandedRowTemplate]="expandedContent"
         [valueGetterFn]="getValueByPath.bind(this)">
       </configurable-tree-table>
+
+      <!-- One table of the official exchange rates per tax year -->
+      <ng-template #expandedContent let-node>
+        <tax-exchange-rate-table [taxYear]="node.entity"></tax-exchange-rate-table>
+      </ng-template>
       @if (visibleUploadFileDialog) {
         <upload-file-dialog
           [visibleDialog]="visibleUploadFileDialog"
@@ -66,7 +75,15 @@ enum NodeLevel {
     </div>
   `,
   standalone: true,
-  imports: [NgClass, TranslatePipe, Panel, SharedModule, ConfigurableTreeTableComponent, UploadFileDialogComponent],
+  imports: [
+    NgClass,
+    TranslatePipe,
+    Panel,
+    SharedModule,
+    ConfigurableTreeTableComponent,
+    UploadFileDialogComponent,
+    TaxExchangeRateTableComponent
+  ],
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
 })
@@ -127,8 +144,26 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
     return HelpIds.HELP_TAX_DATA;
   }
 
+  /**
+   * Rebuilds the menu, unless a nested component — the exchange rate table of an expanded year — already handled the
+   * click. Without that guard the tree would replace the child's active panel registration and its menu would vanish.
+   *
+   * @param event - the DOM click event
+   */
   onComponentClick(event): void {
-    this.resetMenu();
+    if (!event[this.consumedGT]) {
+      this.resetMenu();
+    }
+  }
+
+  /**
+   * Only a tax year that actually carries imported exchange rates can be expanded.
+   *
+   * @param node - the tree node data
+   * @returns true when the year has at least one rate to show
+   */
+  canExpandNode(node: any): boolean {
+    return node.nodeLevel === NodeLevel.YEAR && node.entity?.exchangeRateCount > 0;
   }
 
   onNodeSelect(event): void {

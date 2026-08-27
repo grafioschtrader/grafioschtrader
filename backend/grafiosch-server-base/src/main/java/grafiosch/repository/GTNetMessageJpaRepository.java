@@ -3,6 +3,7 @@ package grafiosch.repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,28 +13,31 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.rest.UpdateCreateJpaRepository;
 
-public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase,
-    GTNetMessageJpaRepositoryCustom, UpdateCreateJpaRepository<GTNetMessage> {
+public interface GTNetMessageJpaRepository
+    extends GTNetMessageJpaRepositoryBase, GTNetMessageJpaRepositoryCustom, UpdateCreateJpaRepository<GTNetMessage> {
 
   /**
-   * Marks a message as read by setting hasBeenRead to true.
+   * Marks a message as read by setting hasBeenRead to true, but only when its visibility is one the caller may see.
+   * Without that predicate the flag of an {@code ADMIN_ONLY} message could be cleared through a bare id.
    *
    * @param idGtNetMessage the ID of the message to mark as read
-   * @return number of rows updated (0 or 1)
+   * @param visibilities   the visibility values the caller may see, from {@code MessageVisibility.visibleTo(boolean)}
+   * @return number of rows updated, 0 when the id does not exist or the caller may not see it
    */
   @Modifying
-  @Query("UPDATE GTNetMessage m SET m.hasBeenRead = true WHERE m.idGtNetMessage = ?1")
-  int markAsRead(Integer idGtNetMessage);
+  @Query("UPDATE GTNetMessage m SET m.hasBeenRead = true WHERE m.idGtNetMessage = ?1 AND m.visibility IN ?2")
+  int markAsRead(Integer idGtNetMessage, List<Byte> visibilities);
 
   List<GTNetMessage> findAllByOrderByIdGtNetAscTimestampDesc();
 
   /**
    * Finds unanswered request messages based on direction and message codes.
    *
-   * <p>Outgoing (SEND) requests whose delivery permanently failed (delivery_status = 2 / FAILED)
-   * are excluded, because the peer never received them and no reply can ever arrive. Incoming
-   * (RECEIVED) rows are returned regardless of delivery_status — that column is not applicable
-   * to received messages.</p>
+   * <p>
+   * Outgoing (SEND) requests whose delivery permanently failed (delivery_status = 2 / FAILED) are excluded, because the
+   * peer never received them and no reply can ever arrive. Incoming (RECEIVED) rows are returned regardless of
+   * delivery_status — that column is not applicable to received messages.
+   * </p>
    *
    * Named query: GTNetMessage.findUnansweredRequests
    *
@@ -57,30 +61,24 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   List<GTNetMessage> findBySendRecvAndMessageCodeIn(byte sendRecv, List<Byte> messageCodes);
 
   /**
-   * Finds an open GT_NET_OPERATION_DISCONTINUED_ALL_C message if one exists.
-   * An 'open' message is one that:
-   * - Was sent by this instance (send_recv = 0)
-   * - Has message_code = 25 (GT_NET_OPERATION_DISCONTINUED_ALL_C)
-   * - Has closeStartDate in the future
-   * - Has not been cancelled (no message with message_code = 27 and id_original_message pointing to it)
+   * Finds an open GT_NET_OPERATION_DISCONTINUED_ALL_C message if one exists. An 'open' message is one that: - Was sent
+   * by this instance (send_recv = 0) - Has message_code = 25 (GT_NET_OPERATION_DISCONTINUED_ALL_C) - Has closeStartDate
+   * in the future - Has not been cancelled (no message with message_code = 27 and id_original_message pointing to it)
    *
    * Named query: GTNetMessage.findOpenDiscontinuedMessage
    *
-   * @param sendMessageCode        the SEND direction value (0)
-   * @param discontinuedCode       the GT_NET_OPERATION_DISCONTINUED_ALL_C value (25)
-   * @param cancelCode             the GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C value (27)
+   * @param sendMessageCode  the SEND direction value (0)
+   * @param discontinuedCode the GT_NET_OPERATION_DISCONTINUED_ALL_C value (25)
+   * @param cancelCode       the GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C value (27)
    * @return the ID of the open discontinued message, or null if none exists
    */
   @Query(name = "GTNetMessage.findOpenDiscontinuedMessage", nativeQuery = true)
   Integer findOpenDiscontinuedMessage(byte sendMessageCode, byte discontinuedCode, byte cancelCode);
 
   /**
-   * Finds an open GT_NET_MAINTENANCE_ALL_C message if one exists.
-   * An 'open' message is one that:
-   * - Was sent by this instance (send_recv = 0)
-   * - Has message_code = 24 (GT_NET_MAINTENANCE_ALL_C)
-   * - Has toDateTime in the future
-   * - Has not been cancelled (no message with message_code = 26 and id_original_message pointing to it)
+   * Finds an open GT_NET_MAINTENANCE_ALL_C message if one exists. An 'open' message is one that: - Was sent by this
+   * instance (send_recv = 0) - Has message_code = 24 (GT_NET_MAINTENANCE_ALL_C) - Has toDateTime in the future - Has
+   * not been cancelled (no message with message_code = 26 and id_original_message pointing to it)
    *
    * Named query: GTNetMessage.findOpenMaintenanceMessage
    *
@@ -93,41 +91,70 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   Integer findOpenMaintenanceMessage(byte sendMessageCode, byte maintenanceCode, byte cancelCode);
 
   /**
-   * Counts messages grouped by idGtNet for lazy loading support.
-   * Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
+   * Returns the IDs of every maintenance announcement of this instance whose window has not ended yet and which was not
+   * cancelled. Unlike {@code findOpenMaintenanceMessage} it does not stop at the first hit, because a peer may announce
+   * several windows and a new one has to be checked against all of them for overlap.
    *
+   * Named query: GTNetMessage.findOpenMaintenanceMessages Parameters in SQL: - ?1 (sendMessageCode) - send_recv
+   * discriminator, SendReceivedType.SEND for our own announcements - ?2 (maintenanceCode) - GT_NET_MAINTENANCE_ALL_C -
+   * ?3 (cancelCode) - GT_NET_MAINTENANCE_CANCEL_ALL_C, used to exclude cancelled announcements
+   *
+   * @param sendMessageCode the send/received discriminator
+   * @param maintenanceCode the maintenance announcement code
+   * @param cancelCode      the maintenance cancellation code
+   * @return the IDs of the still open announcements, empty when none is open
+   */
+  @Query(name = "GTNetMessage.findOpenMaintenanceMessages", nativeQuery = true)
+  List<Integer> findOpenMaintenanceMessages(byte sendMessageCode, byte maintenanceCode, byte cancelCode);
+
+  /**
+   * Counts messages grouped by idGtNet for lazy loading support, restricted to the visibilities the caller may see, so
+   * the badge count matches the rows the peer message endpoint will actually return. Returns list of Object[] where [0]
+   * = idGtNet (Integer), [1] = count (Long).
+   *
+   * @param visibilities the visibility values the caller may see
    * @return list of [idGtNet, count] pairs
    */
-  @Query("SELECT m.idGtNet, COUNT(m) FROM GTNetMessage m GROUP BY m.idGtNet")
-  List<Object[]> countMessagesGroupedByIdGtNet();
+  @Query("SELECT m.idGtNet, COUNT(m) FROM GTNetMessage m WHERE m.visibility IN ?1 GROUP BY m.idGtNet")
+  List<Object[]> countMessagesGroupedByIdGtNet(List<Byte> visibilities);
 
   /**
-   * Finds all messages for a specific GTNet domain, ordered by timestamp descending.
-   * Used for lazy loading when a row is expanded in the UI.
+   * Finds the messages of a GTNet domain that the caller may see, ordered by timestamp descending. Used for lazy
+   * loading when a row is expanded in the UI. The visibility predicate is what keeps an {@code ADMIN_ONLY} thread out
+   * of a non-administrator's view, because the endpoint itself is open to every authenticated user.
    *
-   * @param idGtNet the GTNet domain ID
+   * @param idGtNet      the GTNet domain ID
+   * @param visibilities the visibility values the caller may see
    * @return list of messages ordered by timestamp descending (newest first)
    */
-  List<GTNetMessage> findByIdGtNetOrderByTimestampDesc(Integer idGtNet);
+  List<GTNetMessage> findByIdGtNetAndVisibilityInOrderByTimestampDesc(Integer idGtNet, List<Byte> visibilities);
 
   /**
-   * Finds all messages that are replies to a given message. Used for cascade deletion of response messages
-   * when their parent request is deleted.
+   * Finds all messages that are replies to a given message. Used for cascade deletion of response messages when their
+   * parent request is deleted.
    *
    * @param replyTo the ID of the parent message
    * @return list of response messages that reply to the specified message
    */
   List<GTNetMessage> findByReplyTo(Integer replyTo);
 
+  /** Finds the local copy of a received announcement by the message ID assigned by its sender. */
+  Optional<GTNetMessage> findByIdGtNetAndSendRecvAndIdSourceGtNetMessageAndMessageCode(Integer idGtNet, byte sendRecv,
+      Integer idSourceGtNetMessage, byte messageCode);
+
+  /** Finds the latest response that establishes a cooling-off period for a peer and request code. */
+  @Query(name = "GTNetMessage.findLatestCoolingOffResponse", nativeQuery = true)
+  GTNetMessage findLatestCoolingOffResponse(Integer idGtNet, byte requestCode, byte received, byte sent);
+
   /**
-   * Deletes reply messages that reference old GTNet messages being deleted.
-   * Must be called BEFORE deleteOldMessagesByCodesAndDate to avoid FK constraint violations.
-   * Uses multi-table DELETE to cascade delete associated parameters from gt_net_message_param.
+   * Deletes reply messages that reference old GTNet messages being deleted. Must be called BEFORE
+   * deleteOldMessagesByCodesAndDate to avoid FK constraint violations. Uses multi-table DELETE to cascade delete
+   * associated parameters from gt_net_message_param.
    *
    * Named query: GTNetMessage.deleteRepliesToOldMessages
    *
    * @param messageCodes list of parent message codes whose replies should be deleted
-   * @param beforeDate delete replies to messages with timestamp before this date
+   * @param beforeDate   delete replies to messages with timestamp before this date
    * @return number of affected rows (may be greater than deleted messages due to params)
    */
   @Transactional
@@ -136,14 +163,14 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   int deleteRepliesToOldMessages(List<Byte> messageCodes, LocalDateTime beforeDate);
 
   /**
-   * Deletes old GTNet messages by message codes and timestamp threshold.
-   * Uses multi-table DELETE to cascade delete associated parameters from gt_net_message_param.
-   * IMPORTANT: Call deleteRepliesToOldMessages first to avoid FK constraint violations on reply_to.
+   * Deletes old GTNet messages by message codes and timestamp threshold. Uses multi-table DELETE to cascade delete
+   * associated parameters from gt_net_message_param. IMPORTANT: Call deleteRepliesToOldMessages first to avoid FK
+   * constraint violations on reply_to.
    *
    * Named query: GTNetMessage.deleteOldMessagesByCodesAndDate
    *
    * @param messageCodes list of message codes to delete (e.g., 60, 61 for LastPrice, 80, 81 for HistoryPrice)
-   * @param beforeDate delete messages with timestamp before this date
+   * @param beforeDate   delete messages with timestamp before this date
    * @return number of affected rows (may be greater than deleted messages due to params)
    */
   @Transactional
@@ -154,22 +181,20 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   /**
    * Converts the count query result to a Map for efficient lookup.
    *
+   * @param visibilities the visibility values the caller may see
    * @return Map with idGtNet as key and message count as value
    */
-  default Map<Integer, Integer> countMessagesByIdGtNet() {
-    return countMessagesGroupedByIdGtNet().stream()
-        .collect(Collectors.toMap(
-            row -> (Integer) row[0],
-            row -> ((Long) row[1]).intValue()
-        ));
+  default Map<Integer, Integer> countMessagesByIdGtNet(List<Byte> visibilities) {
+    return countMessagesGroupedByIdGtNet(visibilities).stream()
+        .collect(Collectors.toMap(row -> (Integer) row[0], row -> ((Long) row[1]).intValue()));
   }
 
   /**
-   * Finds all admin messages (messageCode=30) with specific visibility, ordered by idGtNet and timestamp.
-   * Used for the admin messages tab to display messages filtered by visibility level.
+   * Finds all admin messages (messageCode=30) with specific visibility, ordered by idGtNet and timestamp. Used for the
+   * admin messages tab to display messages filtered by visibility level.
    *
    * @param messageCode the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
-   * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
+   * @param visibility  the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
    * @return list of admin messages with the specified visibility, ordered by idGtNet ASC, timestamp DESC
    */
   @Query("SELECT m FROM GTNetMessage m WHERE m.messageCode = ?1 AND m.visibility = ?2 ORDER BY m.idGtNet ASC, m.timestamp DESC")
@@ -183,16 +208,15 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
    */
   default List<GTNetMessage> findAdminMessagesByVisibility(byte visibility) {
     return findAdminMessagesByCodeAndVisibility(
-        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
-        visibility);
+        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(), visibility);
   }
 
   /**
-   * Finds all admin messages (messageCode=30) for administrators (both ALL_USERS and ADMIN_ONLY visibility).
-   * Used for the admin messages tab when an admin user is viewing.
+   * Finds all admin messages (messageCode=30) for administrators (both ALL_USERS and ADMIN_ONLY visibility). Used for
+   * the admin messages tab when an admin user is viewing.
    *
-   * @param messageCode the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
-   * @param allUsersVisibility the ALL_USERS visibility value (0)
+   * @param messageCode         the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
+   * @param allUsersVisibility  the ALL_USERS visibility value (0)
    * @param adminOnlyVisibility the ADMIN_ONLY visibility value (1)
    * @return list of admin messages with either visibility, ordered by idGtNet ASC, timestamp DESC
    */
@@ -205,19 +229,17 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
    * @return list of admin messages with ALL_USERS or ADMIN_ONLY visibility, ordered by idGtNet ASC, timestamp DESC
    */
   default List<GTNetMessage> findAdminMessagesForAdmin() {
-    return findAdminMessagesForAdmin(
-        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
+    return findAdminMessagesForAdmin(grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
         grafiosch.gtnet.MessageVisibility.ALL_USERS.getValue(),
         grafiosch.gtnet.MessageVisibility.ADMIN_ONLY.getValue());
   }
 
   /**
-   * Counts admin messages (messageCode=30) grouped by idGtNet for a specific visibility level.
-   * Used for badge counts in the admin messages tab.
-   * Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
+   * Counts admin messages (messageCode=30) grouped by idGtNet for a specific visibility level. Used for badge counts in
+   * the admin messages tab. Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
    *
    * @param messageCode the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
-   * @param visibility the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
+   * @param visibility  the visibility level (0 = ALL_USERS, 1 = ADMIN_ONLY)
    * @return list of [idGtNet, count] pairs for admin messages with the specified visibility
    */
   @Query("SELECT m.idGtNet, COUNT(m) FROM GTNetMessage m WHERE m.messageCode = ?1 AND m.visibility = ?2 GROUP BY m.idGtNet")
@@ -231,26 +253,22 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
    */
   default Map<Integer, Integer> countAdminMessagesByVisibility(byte visibility) {
     return countAdminMessagesGroupedByIdGtNetAndVisibility(
-        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
-        visibility
-    ).stream()
-        .collect(Collectors.toMap(
-            row -> (Integer) row[0],
-            row -> ((Long) row[1]).intValue()
-        ));
+        grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(), visibility).stream()
+            .collect(Collectors.toMap(row -> (Integer) row[0], row -> ((Long) row[1]).intValue()));
   }
 
   /**
-   * Counts admin messages (messageCode=30) grouped by idGtNet for administrators (both ALL_USERS and ADMIN_ONLY visibility).
-   * Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
+   * Counts admin messages (messageCode=30) grouped by idGtNet for administrators (both ALL_USERS and ADMIN_ONLY
+   * visibility). Returns list of Object[] where [0] = idGtNet (Integer), [1] = count (Long).
    *
-   * @param messageCode the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
-   * @param allUsersVisibility the ALL_USERS visibility value (0)
+   * @param messageCode         the message code (30 = GT_NET_ADMIN_MESSAGE_SEL_C)
+   * @param allUsersVisibility  the ALL_USERS visibility value (0)
    * @param adminOnlyVisibility the ADMIN_ONLY visibility value (1)
    * @return list of [idGtNet, count] pairs for admin messages with either visibility
    */
   @Query("SELECT m.idGtNet, COUNT(m) FROM GTNetMessage m WHERE m.messageCode = ?1 AND m.visibility IN (?2, ?3) GROUP BY m.idGtNet")
-  List<Object[]> countAdminMessagesGroupedByIdGtNetForAdmin(byte messageCode, byte allUsersVisibility, byte adminOnlyVisibility);
+  List<Object[]> countAdminMessagesGroupedByIdGtNetForAdmin(byte messageCode, byte allUsersVisibility,
+      byte adminOnlyVisibility);
 
   /**
    * Convenience method to count admin messages (messageCode=30) for administrators using enum values.
@@ -260,13 +278,8 @@ public interface GTNetMessageJpaRepository extends GTNetMessageJpaRepositoryBase
   default Map<Integer, Integer> countAdminMessagesForAdmin() {
     return countAdminMessagesGroupedByIdGtNetForAdmin(
         grafiosch.gtnet.GNetCoreMessageCode.GT_NET_ADMIN_MESSAGE_SEL_C.getValue(),
-        grafiosch.gtnet.MessageVisibility.ALL_USERS.getValue(),
-        grafiosch.gtnet.MessageVisibility.ADMIN_ONLY.getValue()
-    ).stream()
-        .collect(Collectors.toMap(
-            row -> (Integer) row[0],
-            row -> ((Long) row[1]).intValue()
-        ));
+        grafiosch.gtnet.MessageVisibility.ALL_USERS.getValue(), grafiosch.gtnet.MessageVisibility.ADMIN_ONLY.getValue())
+            .stream().collect(Collectors.toMap(row -> (Integer) row[0], row -> ((Long) row[1]).intValue()));
   }
 
   /**

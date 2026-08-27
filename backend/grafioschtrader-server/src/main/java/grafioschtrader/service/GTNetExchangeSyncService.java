@@ -2,6 +2,7 @@ package grafioschtrader.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetConfig;
 import grafiosch.entities.GTNetSupplierDetail;
+import grafiosch.gtnet.GTNetRequestBudgetService;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
@@ -30,6 +32,8 @@ import grafioschtrader.entities.GTNetSupplierDetailLast;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
+import grafiosch.gtnet.GTNetResponseResult;
+import grafiosch.gtnet.GTNetResponseValidator;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg;
 import grafioschtrader.gtnet.model.msg.ExchangeSyncMsg.ExchangeSyncItem;
@@ -63,6 +67,9 @@ public class GTNetExchangeSyncService {
   private GTNetJpaRepository gtNetJpaRepository;
 
   @Autowired
+  private GTNetResponseValidator responseValidator;
+
+  @Autowired
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
 
   @Autowired
@@ -90,12 +97,15 @@ public class GTNetExchangeSyncService {
   private BaseDataClient baseDataClient;
 
   @Autowired
+  private GTNetRequestBudgetService gtNetRequestBudgetService;
+
+  @Autowired
   private ObjectMapper objectMapper;
 
   /**
    * Synchronizes exchange configuration with a single peer using incremental mode.
    *
-   * @param peer the remote GTNet server
+   * @param peer           the remote GTNet server
    * @param sinceTimestamp only include changes after this timestamp
    * @return true if sync was successful
    */
@@ -106,7 +116,7 @@ public class GTNetExchangeSyncService {
   /**
    * Synchronizes exchange configuration with a single peer.
    *
-   * @param peer the remote GTNet server
+   * @param peer           the remote GTNet server
    * @param sinceTimestamp only include changes after this timestamp (ignored in full recreation mode)
    * @param fullRecreation if true, ignores timestamp and recreates all GTNetSupplierDetail entries for this peer
    * @return true if sync was successful
@@ -120,11 +130,9 @@ public class GTNetExchangeSyncService {
     }
 
     // Build request with local items (all items in full recreation mode, changed items otherwise)
-    List<ExchangeSyncItem> itemsToSend = fullRecreation
-        ? getAllExchangeItems()
+    List<ExchangeSyncItem> itemsToSend = fullRecreation ? getAllExchangeItems()
         : getChangedExchangeItems(sinceTimestamp);
-    ExchangeSyncMsg requestPayload = ExchangeSyncMsg.forRequest(
-        fullRecreation ? null : sinceTimestamp, itemsToSend);
+    ExchangeSyncMsg requestPayload = ExchangeSyncMsg.forRequest(fullRecreation ? null : sinceTimestamp, itemsToSend);
 
     // Get local GTNet entry
     Integer myGTNetId = GTNetMessageHelper.getGTNetMyEntryIDOrThrow(globalparametersJpaRepository);
@@ -140,38 +148,50 @@ public class GTNetExchangeSyncService {
     requestEnvelope.timestamp = LocalDateTime.now();
     requestEnvelope.payload = objectMapper.valueToTree(requestPayload);
 
-    log.debug("Sending exchange sync to {} with {} items (fullRecreation={})",
-        peer.getDomainRemoteName(), itemsToSend.size(), fullRecreation);
+    log.debug("Sending exchange sync to {} with {} items (fullRecreation={})", peer.getDomainRemoteName(),
+        itemsToSend.size(), fullRecreation);
 
-    SendResult result = baseDataClient.sendToMsgWithStatus(
-        config.getTokenRemote(), peer.getDomainRemoteName(), requestEnvelope,
-        GTNetTimeoutHelper.resolveTimeout(peer, globalparametersJpaRepository));
+    if (!gtNetRequestBudgetService.chargeOutgoing(peer, requestEnvelope.messageCode)) {
+      return false;
+    }
+
+    SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), peer.getDomainRemoteName(),
+        requestEnvelope, GTNetTimeoutHelper.resolveTimeout(peer, globalparametersJpaRepository));
 
     if (result.isFailed()) {
       if (result.httpError()) {
-        log.warn("Peer {} returned HTTP error {} for exchange sync", peer.getDomainRemoteName(), result.httpStatusCode());
+        log.warn("Peer {} returned HTTP error {} for exchange sync", peer.getDomainRemoteName(),
+            result.httpStatusCode());
       } else {
         log.warn("Peer {} is unreachable for exchange sync", peer.getDomainRemoteName());
       }
       return false;
     }
 
-    MessageEnvelope response = result.response();
-    if (response == null || response.payload == null) {
+    // An empty body is only an empty result set when the peer actually answered the exchange sync. Treating any empty
+    // body as "successful but no data" reported a refused sync as a completed one, and the window it covered was then
+    // never offered again.
+    GTNetResponseResult<ExchangeSyncMsg> outcome = responseValidator.validate(result.response(),
+        Set.of(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S.getValue()), ExchangeSyncMsg.class,
+        "Exchange sync with " + peer.getDomainRemoteName());
+    if (!outcome.isSuccess()) {
+      return false;
+    }
+    if (outcome.payloadOrNull() == null) {
       log.debug("No exchange sync data received from {}", peer.getDomainRemoteName());
-      return true; // Successful but no data
+      return true;
     }
 
     // Process response - update or recreate supplier details based on mode
     try {
-      ExchangeSyncMsg responsePayload = objectMapper.treeToValue(response.payload, ExchangeSyncMsg.class);
+      ExchangeSyncMsg responsePayload = outcome.payloadOrNull();
       if (fullRecreation) {
         recreateSupplierDetails(peer, responsePayload.items);
       } else {
         updateSupplierDetails(peer, responsePayload.items);
       }
-      log.info("Exchange sync with {} complete: sent {}, received {} (fullRecreation={})",
-          peer.getDomainRemoteName(), itemsToSend.size(), responsePayload.getItemCount(), fullRecreation);
+      log.info("Exchange sync with {} complete: sent {}, received {} (fullRecreation={})", peer.getDomainRemoteName(),
+          itemsToSend.size(), responsePayload.getItemCount(), fullRecreation);
       return true;
     } catch (Exception e) {
       log.error("Failed to parse exchange sync response from {}", peer.getDomainRemoteName(), e);
@@ -180,8 +200,8 @@ public class GTNetExchangeSyncService {
   }
 
   /**
-   * Gets exchange items that have changed since the given timestamp.
-   * Populates history/intra settings fields based on send flags.
+   * Gets exchange items that have changed since the given timestamp. Populates history/intra settings fields based on
+   * send flags.
    *
    * @param sinceTimestamp the timestamp after which to find changes
    * @return list of exchange sync items with send flags and settings enabled
@@ -190,11 +210,11 @@ public class GTNetExchangeSyncService {
     List<ExchangeSyncItem> items = new java.util.ArrayList<>();
 
     // Get changed securities with GTNet send enabled
-    List<Security> changedSecurities = securityJpaRepository.findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(sinceTimestamp);
+    List<Security> changedSecurities = securityJpaRepository
+        .findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(sinceTimestamp);
     for (Security security : changedSecurities) {
       if (security.isGtNetLastpriceSend() || security.isGtNetHistoricalSend()) {
-        ExchangeSyncItem item = ExchangeSyncItem.forSecurity(
-            security.getIsin(), security.getCurrency(),
+        ExchangeSyncItem item = ExchangeSyncItem.forSecurity(security.getIsin(), security.getCurrency(),
             security.isGtNetLastpriceSend(), security.isGtNetHistoricalSend());
         populateSettingsFromSecuritycurrency(item, security);
         items.add(item);
@@ -202,11 +222,11 @@ public class GTNetExchangeSyncService {
     }
 
     // Get changed currency pairs with GTNet send enabled
-    List<Currencypair> changedCurrencypairs = currencypairJpaRepository.findByGtNetLastModifiedTimeAfter(sinceTimestamp);
+    List<Currencypair> changedCurrencypairs = currencypairJpaRepository
+        .findByGtNetLastModifiedTimeAfter(sinceTimestamp);
     for (Currencypair cp : changedCurrencypairs) {
       if (cp.isGtNetLastpriceSend() || cp.isGtNetHistoricalSend()) {
-        ExchangeSyncItem item = ExchangeSyncItem.forCurrencypair(
-            cp.getFromCurrency(), cp.getToCurrency(),
+        ExchangeSyncItem item = ExchangeSyncItem.forCurrencypair(cp.getFromCurrency(), cp.getToCurrency(),
             cp.isGtNetLastpriceSend(), cp.isGtNetHistoricalSend());
         populateSettingsFromSecuritycurrency(item, cp);
         items.add(item);
@@ -217,9 +237,8 @@ public class GTNetExchangeSyncService {
   }
 
   /**
-   * Gets ALL exchange items with send flags enabled, ignoring timestamps.
-   * Populates history/intra settings fields based on send flags.
-   * Used for full recreation mode where all eligible instruments are synchronized.
+   * Gets ALL exchange items with send flags enabled, ignoring timestamps. Populates history/intra settings fields based
+   * on send flags. Used for full recreation mode where all eligible instruments are synchronized.
    *
    * @return list of all exchange sync items with at least one send flag enabled
    */
@@ -229,8 +248,7 @@ public class GTNetExchangeSyncService {
     // All securities with GTNet send enabled
     List<Security> allSecurities = securityJpaRepository.findAllWithGtNetSendEnabled();
     for (Security security : allSecurities) {
-      ExchangeSyncItem item = ExchangeSyncItem.forSecurity(
-          security.getIsin(), security.getCurrency(),
+      ExchangeSyncItem item = ExchangeSyncItem.forSecurity(security.getIsin(), security.getCurrency(),
           security.isGtNetLastpriceSend(), security.isGtNetHistoricalSend());
       populateSettingsFromSecuritycurrency(item, security);
       items.add(item);
@@ -239,8 +257,7 @@ public class GTNetExchangeSyncService {
     // All currency pairs with GTNet send enabled
     List<Currencypair> allCurrencypairs = currencypairJpaRepository.findAllWithGtNetSendEnabled();
     for (Currencypair cp : allCurrencypairs) {
-      ExchangeSyncItem item = ExchangeSyncItem.forCurrencypair(
-          cp.getFromCurrency(), cp.getToCurrency(),
+      ExchangeSyncItem item = ExchangeSyncItem.forCurrencypair(cp.getFromCurrency(), cp.getToCurrency(),
           cp.isGtNetLastpriceSend(), cp.isGtNetHistoricalSend());
       populateSettingsFromSecuritycurrency(item, cp);
       items.add(item);
@@ -253,7 +270,7 @@ public class GTNetExchangeSyncService {
    * Populates the history and intra settings fields on an ExchangeSyncItem from the Securitycurrency entity.
    *
    * @param item the sync item to populate
-   * @param sc the security or currency pair entity
+   * @param sc   the security or currency pair entity
    */
   private void populateSettingsFromSecuritycurrency(ExchangeSyncItem item, Securitycurrency<?> sc) {
     if (item.lastpriceSend) {
@@ -263,8 +280,8 @@ public class GTNetExchangeSyncService {
     if (item.historicalSend) {
       item.retryHistoryLoad = sc.getRetryHistoryLoad();
       try {
-        IHistoryquoteQuality quality = historyquoteJpaRepository.getMissingsDaysCountByIdSecurity(
-            sc.getIdSecuritycurrency());
+        IHistoryquoteQuality quality = historyquoteJpaRepository
+            .getMissingsDaysCountByIdSecurity(sc.getIdSecuritycurrency());
         if (quality != null) {
           if (quality.getMinDate() != null) {
             item.historyMinDate = quality.getMinDate().toString();
@@ -281,12 +298,11 @@ public class GTNetExchangeSyncService {
   }
 
   /**
-   * Recreates ALL GTNetSupplierDetail entries for a peer.
-   * Deletes all existing entries first, then creates new ones from response items.
-   * Used for full recreation mode to ensure complete synchronization.
+   * Recreates ALL GTNetSupplierDetail entries for a peer. Deletes all existing entries first, then creates new ones
+   * from response items. Used for full recreation mode to ensure complete synchronization.
    *
    * @param supplier the remote GTNet server that sent the items
-   * @param items the list of exchange sync items from the remote server
+   * @param items    the list of exchange sync items from the remote server
    */
   @Transactional
   public void recreateSupplierDetails(GTNet supplier, List<ExchangeSyncItem> items) {
@@ -340,10 +356,10 @@ public class GTNetExchangeSyncService {
   /**
    * Creates a new GTNetSupplierDetail entry with its child settings entity.
    *
-   * @param config the GTNet config for the supplier
-   * @param sc the security or currency pair
+   * @param config     the GTNet config for the supplier
+   * @param sc         the security or currency pair
    * @param entityKind the entity kind (LAST_PRICE or HISTORICAL_PRICES)
-   * @param item the sync item containing settings data
+   * @param item       the sync item containing settings data
    */
   private void createSupplierDetailWithSettings(GTNetConfig config, Securitycurrency<?> sc,
       GTNetExchangeKindType entityKind, ExchangeSyncItem item) {
@@ -359,9 +375,9 @@ public class GTNetExchangeSyncService {
   /**
    * Saves the appropriate child settings entity for a supplier detail.
    *
-   * @param detail the saved supplier detail (with generated ID)
+   * @param detail     the saved supplier detail (with generated ID)
    * @param entityKind the entity kind determining which child table to use
-   * @param item the sync item containing the settings values
+   * @param item       the sync item containing the settings values
    */
   private void saveChildSettings(GTNetSupplierDetail detail, GTNetExchangeKindType entityKind, ExchangeSyncItem item) {
     if (entityKind == GTNetExchangeKindType.HISTORICAL_PRICES) {
@@ -395,7 +411,7 @@ public class GTNetExchangeSyncService {
    * </ul>
    *
    * @param supplier the remote GTNet server that sent the items
-   * @param items the list of exchange sync items from the remote server
+   * @param items    the list of exchange sync items from the remote server
    */
   @Transactional
   public void updateSupplierDetails(GTNet supplier, List<ExchangeSyncItem> items) {
@@ -450,8 +466,8 @@ public class GTNetExchangeSyncService {
     config.setSupplierLastUpdate(java.time.LocalDateTime.now());
     gtNetConfigJpaRepository.save(config);
 
-    log.debug("Updated supplier details for {}: {} created/updated, {} deleted",
-        supplier.getDomainRemoteName(), created, deleted);
+    log.debug("Updated supplier details for {}: {} created/updated, {} deleted", supplier.getDomainRemoteName(),
+        created, deleted);
   }
 
   /**
@@ -471,8 +487,8 @@ public class GTNetExchangeSyncService {
    *
    * @return true if a new entry was created, false if updated
    */
-  private boolean upsertSupplierDetail(GTNetConfig config, Securitycurrency<?> sc,
-      GTNetExchangeKindType entityKind, ExchangeSyncItem item) {
+  private boolean upsertSupplierDetail(GTNetConfig config, Securitycurrency<?> sc, GTNetExchangeKindType entityKind,
+      ExchangeSyncItem item) {
     Optional<GTNetSupplierDetail> existing = findSupplierDetail(config, sc, entityKind);
     if (existing.isPresent()) {
       // Update existing child settings
@@ -531,10 +547,8 @@ public class GTNetExchangeSyncService {
   private Optional<GTNetSupplierDetail> findSupplierDetail(GTNetConfig config, Securitycurrency<?> sc,
       GTNetExchangeKindType entityKind) {
     return gtNetSupplierDetailJpaRepository.findAll().stream()
-        .filter(d -> d.getGtNetConfig() != null
-            && d.getGtNetConfig().getIdGtNet().equals(config.getIdGtNet())
-            && sc.getIdSecuritycurrency().equals(d.getIdEntity())
-            && d.getEntityKind() == entityKind.getValue())
+        .filter(d -> d.getGtNetConfig() != null && d.getGtNetConfig().getIdGtNet().equals(config.getIdGtNet())
+            && sc.getIdSecuritycurrency().equals(d.getIdEntity()) && d.getEntityKind() == entityKind.getValue())
         .findFirst();
   }
 }

@@ -17,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import grafiosch.repository.ProposeUserTaskJpaRepository;
+import grafiosch.rest.RequestMappings;
 import grafiosch.security.SecurityConfig;
 import grafiosch.security.filter.StatelessAuthenticationFilter;
 import grafiosch.security.filter.StatelessLoginFilter;
@@ -45,7 +46,13 @@ public class SecurityIntegrationConfig {
     http.csrf(csrf -> csrf.disable());
     http.authorizeHttpRequests(authz -> authz
         .requestMatchers(HttpMethod.GET, "/api/integration-info", "/api/actuator/**", "/swagger-ui/**", "/api-docs/**")
-        .permitAll());
+        .permitAll()
+        // GTNet M2M traffic authenticates itself with the handshake token inside GTNetM2MResource, so the endpoint
+        // has to be reachable unauthenticated. Registered here and not after configureGlobalParameters: the broad
+        // /api/** rule that call adds wins over anything registered later, so a narrower rule added afterwards would
+        // be dead code - the same constraint SecurityGTConfig documents.
+        .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
+        .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll());
     SecurityConfig.configureGlobalParameters(http);
     http.addFilterBefore(new StatelessLoginFilter("/api/login", tokenAuthentication, userService, authenticationManager,
         proposeUserTaskJpaRepository, messages), UsernamePasswordAuthenticationFilter.class);

@@ -7,18 +7,18 @@ import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.ConnectorApiKey;
+import grafiosch.entities.GTNetMessageAnswer;
 import grafiosch.entities.MailEntity;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.exportdelete.ExportDeleteHelper;
 import grafiosch.gtnet.ExchangeKindTypeRegistry;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
-import grafiosch.gtnet.GTNetModelHelper;
 import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.exportdelete.MyDataExportDeleteDefinition;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 import grafioschtrader.gtnet.GTNetMessageCodeType;
-import grafioschtrader.gtnet.model.msg.SecurityLookupMsg;
+import grafioschtrader.gtnet.GTProtocolDescriptors;
 import grafioschtrader.types.MailSendForwardDefault;
 import grafioschtrader.types.MessageGTComType;
 import grafioschtrader.types.SubscriptionType;
@@ -30,8 +30,8 @@ import jakarta.annotation.PostConstruct;
  * Application startup component responsible for performing critical initialization tasks when the GrafioschTrader
  * application boots up. This component ensures that all global configurations, type registries, and system-wide
  * settings are properly established before the application begins normal operation.
- * 
- * 
+ *
+ *
  * <h3>Execution Timing</h3>
  * <p>
  * This component uses Spring's @PostConstruct mechanism to ensure initialization occurs after Spring dependency
@@ -50,7 +50,7 @@ public class GTStartUp {
    * Performs comprehensive application initialization tasks after Spring context setup. This method is automatically
    * called by Spring after dependency injection is complete and ensures that all global configurations and type
    * registries are properly initialized.
-   * 
+   *
    * <p>
    * The initialization sequence includes:
    * </p>
@@ -68,7 +68,7 @@ public class GTStartUp {
    * <li><strong>Export Definitions:</strong> Registers data export and import definitions for the data management
    * system</li>
    * </ol>
-   * 
+   *
    * <p>
    * <strong>Type Registry Initialization:</strong>
    * </p>
@@ -82,14 +82,14 @@ public class GTStartUp {
    * <li><code>MailEntity.MESSAGE_COM_TYPES_REGISTRY</code> - Communication type definitions for mail and messaging
    * systems</li>
    * </ul>
-   * 
+   *
    * <p>
    * <strong>Critical Dependencies:</strong> This method depends on various global constants and configuration classes
    * being available on the classpath. Any missing dependencies will cause application startup to fail.
    * </p>
-   * 
+   *
    * @throws RuntimeException if any initialization step fails, preventing application startup
-   * 
+   *
    * @see PostConstruct
    * @see BaseConstants#TIME_ZONE
    * @see GlobalConstants#GT_PREFIX
@@ -108,24 +108,28 @@ public class GTStartUp {
     MailEntity.MESSAGE_COM_TYPES_REGISTRY.addTypes(MessageGTComType.values());
     ExportDeleteHelper.addExportDefinitions(MyDataExportDeleteDefinition.exportDefinitions);
 
-    // Register GT-specific GTNet message codes (60+)
-    registerGTNetMessageCodes();
-
-    // Register GT-specific GTNet message models (60+)
-    registerGTNetMessageModels();
+    // Register the GT-specific part of the GTNet protocol (codes 60+)
+    registerGTNetProtocol();
 
     // Register GT-specific exchange kind types
     registerExchangeKindTypes();
   }
 
   /**
-   * Registers Grafioschtrader-specific GTNet message codes (60+) to the central registry.
-   * This enables the message code registry to resolve app-specific codes in addition to core codes.
+   * Registers the Grafioschtrader part of the GTNet protocol with the shared registry.
+   *
+   * <p>
+   * One descriptor per code carries everything the system needs to know about it — category, valid answers, payload
+   * model, form eligibility, retry policy and rule eligibility — so the code registry, the response map and the model
+   * map that used to be filled separately here are now a single statement each. {@code GTNetProtocolStartupValidator}
+   * verifies the result before the server serves anything.
+   * </p>
    */
-  private void registerGTNetMessageCodes() {
-    for (GTNetMessageCodeType code : GTNetMessageCodeType.values()) {
-      messageCodeRegistry.registerMessageCode(code);
-    }
+  private void registerGTNetProtocol() {
+    GTProtocolDescriptors.all().forEach(messageCodeRegistry::register);
+    // The auto-answer entity resolves the enum name its edit dialog sends against a static array, because an entity
+    // in grafiosch-base cannot reach the registry bean. The core codes are already seeded there.
+    GTNetMessageAnswer.registerMessageCodes(GTNetMessageCodeType.values());
   }
 
   /**
@@ -135,36 +139,6 @@ public class GTStartUp {
     for (GTNetExchangeKindType kind : GTNetExchangeKindType.values()) {
       exchangeKindTypeRegistry.registerExchangeKind(kind);
     }
-  }
-
-  /**
-   * Registers Grafioschtrader-specific GTNet message models for trading-related functionality.
-   *
-   * These message models are for codes 60+ which handle intraday prices, historical quotes,
-   * exchange sync, and security metadata lookup.
-   */
-  private void registerGTNetMessageModels() {
-    // Lastprice exchange - programmatic M2M, not UI-initiated
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C, null, true, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S, null, false, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_SEL_C, null, true, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_LASTPRICE_PUSH_ACK_S, null, false, (byte) 1);
-
-    // Exchange sync - programmatic M2M
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_SEL_RR_C, null, true, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_EXCHANGE_SYNC_RESPONSE_S, null, false, (byte) 1);
-
-    // Historyquote exchange - programmatic M2M
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C, null, true, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S, null, false, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_SEL_C, null, true, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_PUSH_ACK_S, null, false, (byte) 1);
-
-    // Security metadata lookup - programmatic M2M
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C, SecurityLookupMsg.class, true, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S, null, false, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S, null, false, (byte) 1);
-    GTNetModelHelper.registerModel(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S, null, false, (byte) 1);
   }
 
 }

@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router';
 
 import { SharedTabMenuComponent } from '../../tabmenu/component/shared.tab.menu.component';
 import { TabItem } from '../../types/tab.item';
-import { BaseSettings } from '../../base.settings';
+import { GTNetService } from '../service/gtnet.service';
 
 /**
  * Tab menu component for GTNet Exchange Log.
@@ -15,30 +15,27 @@ import { BaseSettings } from '../../base.settings';
   imports: [SharedTabMenuComponent, RouterModule],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
-    <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
-      <router-outlet></router-outlet>
-    </app-shared-tab-menu>
+    @if (tabs.length) {
+      <app-shared-tab-menu [tabs]="tabs" [defaultRoute]="defaultRoute">
+        <router-outlet></router-outlet>
+      </app-shared-tab-menu>
+    }
   `
 })
 export class GTNetExchangeLogTabMenuComponent implements OnInit {
   tabs: TabItem[] = [];
-  defaultRoute: string = BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY;
+  defaultRoute = '';
+
+  constructor(private gtNetService: GTNetService) {}
 
   ngOnInit(): void {
-    this.initializeTabs();
-  }
-
-  private initializeTabs(): void {
-    const tabsConfig: [string, string][] = [
-      ['LAST_PRICE', BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY],
-      ['HISTORICAL_PRICES', BaseSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY],
-      ['SECURITY_METADATA', BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY]
-    ];
-
-    this.tabs = tabsConfig.map(([label, route]) => ({
-      label,
-      route,
-      icon: ''
-    }));
+    this.gtNetService.getAllGTNetsWithMessages().subscribe((response) => {
+      this.tabs = response.exchangeKindTypes.map((kind) => ({
+        label: kind.name,
+        route: kind.name.toLowerCase(),
+        icon: ''
+      }));
+      this.defaultRoute = this.tabs[0]?.route ?? '';
+    });
   }
 }

@@ -30,6 +30,39 @@ import grafiosch.rest.RequestMappings;
  */
 public class SecurityConfig {
 
+  /**
+   * GTNet administration paths whose write endpoints are restricted to {@link Role#ADMIN}. Reading GTNet state stays
+   * open to every authenticated user, because knowing which peers this instance talks to is not an administrative act,
+   * while changing that instance-wide state is.
+   *
+   * <p>
+   * Each path appears twice, bare and with {@code /**}, on purpose. A single {@code /api/gtnet**} pattern would also
+   * match {@code /api/gtnetsecuritylookup} and {@code /api/gtnetexchange}, which are ordinary user actions on the
+   * instrument dialog and must stay reachable for {@link Role#USER}.
+   * </p>
+   *
+   * <p>
+   * The matchers are registered by path and HTTP method rather than by {@code @PreAuthorize}, because the unguarded
+   * create and update endpoints are inherited from {@code UpdateCreate} and are not overridden in the GTNet resources,
+   * so there is no method there to annotate.
+   * </p>
+   */
+  private static final String[] GTNET_ADMIN_WRITE_PATHS = { RequestMappings.GTNET_MAP,
+      RequestMappings.GTNET_MAP + "/**", RequestMappings.GTNET_MESSAGE_MAP, RequestMappings.GTNET_MESSAGE_MAP + "/**",
+      RequestMappings.GTNET_MESSAGE_ANSWER_MAP, RequestMappings.GTNET_MESSAGE_ANSWER_MAP + "/**",
+      RequestMappings.GTNETCONFIG_MAP, RequestMappings.GTNETCONFIG_MAP + "/**", RequestMappings.GTNETCONFIGENTITY_MAP,
+      RequestMappings.GTNETCONFIGENTITY_MAP + "/**", RequestMappings.GTNETEXCHANGELOG_MAP,
+      RequestMappings.GTNETEXCHANGELOG_MAP + "/**", RequestMappings.GTNETDATAEXPORT_MAP,
+      RequestMappings.GTNETDATAEXPORT_MAP + "/**" };
+
+  /**
+   * The two GTNet reads that stay administrator-only. The auto-answer rules publish the terms on which this instance
+   * admits a peer, and the data export is a bulk dump of the whole GTNet state.
+   */
+  private static final String[] GTNET_ADMIN_READ_PATHS = { RequestMappings.GTNET_MESSAGE_ANSWER_MAP,
+      RequestMappings.GTNET_MESSAGE_ANSWER_MAP + "/**", RequestMappings.GTNETDATAEXPORT_MAP,
+      RequestMappings.GTNETDATAEXPORT_MAP + "/**" };
+
   public static void configureGlobalParameters(HttpSecurity http) {
     try {
       http.authorizeHttpRequests(
@@ -48,6 +81,11 @@ public class SecurityConfig {
               .requestMatchers(RequestMappings.CONNECTOR_API_KEY_MAP + "/**").hasRole(Role.ADMIN)
               .requestMatchers(RequestMappings.ENTITY_LIMIT_MAP + "/**").hasRole(Role.ADMIN)
               .requestMatchers(RequestMappings.USERADMIN_MAP + "/**").hasRole(Role.ADMIN)
+              .requestMatchers(HttpMethod.POST, GTNET_ADMIN_WRITE_PATHS).hasRole(Role.ADMIN)
+              .requestMatchers(HttpMethod.PUT, GTNET_ADMIN_WRITE_PATHS).hasRole(Role.ADMIN)
+              .requestMatchers(HttpMethod.PATCH, GTNET_ADMIN_WRITE_PATHS).hasRole(Role.ADMIN)
+              .requestMatchers(HttpMethod.DELETE, GTNET_ADMIN_WRITE_PATHS).hasRole(Role.ADMIN)
+              .requestMatchers(HttpMethod.GET, GTNET_ADMIN_READ_PATHS).hasRole(Role.ADMIN)
               .requestMatchers(RequestMappings.API + "**").hasAnyRole(Role.USER, Role.LIMIT_EDIT));
     } catch (Exception e) {
       throw new SecurityConfigCustomRuntimeException("Error configuring global parameters", e);

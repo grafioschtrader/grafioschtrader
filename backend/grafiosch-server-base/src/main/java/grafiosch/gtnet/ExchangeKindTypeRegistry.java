@@ -12,20 +12,19 @@ import org.springframework.stereotype.Component;
 /**
  * Registry for exchange kind types that supports application-specific implementations.
  *
- * This registry provides a unified lookup mechanism for exchange kinds, allowing application
- * modules to register their own {@link IExchangeKindType} implementations and retrieve them
- * by their byte value.
+ * This registry provides a unified lookup mechanism for exchange kinds, allowing application modules to register their
+ * own {@link IExchangeKindType} implementations and retrieve them by their byte value.
  *
- * <h3>Usage</h3>
- * Application-specific exchange kinds should be registered at startup via
- * {@link #registerExchangeKind(IExchangeKindType)}. Use {@link #getByValue(byte)} to retrieve
- * exchange kinds by their byte value.
+ * <h3>Usage</h3> Application-specific exchange kinds should be registered at startup via
+ * {@link #registerExchangeKind(IExchangeKindType)}. Use {@link #getByValue(byte)} to retrieve exchange kinds by their
+ * byte value.
  *
  * <h3>Example</h3>
+ *
  * <pre>
  * // At startup (e.g., in GTStartUp)
  * for (GTNetExchangeKindType kind : GTNetExchangeKindType.values()) {
- *     exchangeKindTypeRegistry.registerExchangeKind(kind);
+ *   exchangeKindTypeRegistry.registerExchangeKind(kind);
  * }
  *
  * // Later in code
@@ -34,6 +33,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ExchangeKindTypeRegistry {
+
+  /**
+   * The name under which a data request, accept or revoke carries its exchange kinds, both as a message parameter and
+   * as the authoritative field of the request payload.
+   */
+  public static final String ENTITY_KINDS_PARAM = "entityKinds";
 
   private static final Logger log = LoggerFactory.getLogger(ExchangeKindTypeRegistry.class);
 
@@ -48,8 +53,7 @@ public class ExchangeKindTypeRegistry {
   public void registerExchangeKind(IExchangeKindType kind) {
     IExchangeKindType existing = kindsByValue.putIfAbsent(kind.getValue(), kind);
     if (existing != null && existing != kind) {
-      throw new IllegalStateException(String.format(
-          "Duplicate exchange kind value %d: existing=%s, new=%s",
+      throw new IllegalStateException(String.format("Duplicate exchange kind value %d: existing=%s, new=%s",
           kind.getValue(), existing.name(), kind.name()));
     }
     log.debug("Registered exchange kind {} with value {}", kind.name(), kind.getValue());
@@ -68,7 +72,7 @@ public class ExchangeKindTypeRegistry {
   /**
    * Looks up an exchange kind by its byte value with a default fallback.
    *
-   * @param value the byte value to look up
+   * @param value       the byte value to look up
    * @param defaultKind the default kind to return if not found
    * @return the corresponding IExchangeKindType, or defaultKind if not found
    */
@@ -106,27 +110,16 @@ public class ExchangeKindTypeRegistry {
   }
 
   /**
-   * Returns the default exchange kinds used when no specific kinds are requested.
-   * Returns kinds where {@link IExchangeKindType#isSyncable()} returns true.
+   * Returns all exchange kinds that participate in bulk synchronization. These are kinds where
+   * {@link IExchangeKindType#isSyncable()} returns true.
    *
-   * @return set of syncable exchange kinds, or empty set if none registered
-   */
-  public java.util.Set<IExchangeKindType> getDefaultKinds() {
-    return getSyncableKinds();
-  }
-
-  /**
-   * Returns all exchange kinds that participate in bulk synchronization.
-   * These are kinds where {@link IExchangeKindType#isSyncable()} returns true.
-   *
-   * Syncable kinds participate in data request/accept/revoke flows. Non-syncable kinds
-   * (like SECURITY_METADATA) use on-demand lookup patterns.
+   * Syncable kinds participate in data request/accept/revoke flows. Non-syncable kinds (like SECURITY_METADATA) use
+   * on-demand lookup patterns.
    *
    * @return set of syncable exchange kinds
    */
   public java.util.Set<IExchangeKindType> getSyncableKinds() {
-    return kindsByValue.values().stream()
-        .filter(IExchangeKindType::isSyncable)
+    return kindsByValue.values().stream().filter(IExchangeKindType::isSyncable)
         .collect(java.util.stream.Collectors.toSet());
   }
 
@@ -141,9 +134,7 @@ public class ExchangeKindTypeRegistry {
       return null;
     }
     String upperName = name.trim().toUpperCase();
-    return kindsByValue.values().stream()
-        .filter(kind -> kind.name().equalsIgnoreCase(upperName))
-        .findFirst()
+    return kindsByValue.values().stream().filter(kind -> kind.name().equalsIgnoreCase(upperName)).findFirst()
         .orElse(null);
   }
 
@@ -163,5 +154,25 @@ public class ExchangeKindTypeRegistry {
     } catch (NumberFormatException e) {
       return getByName(value);
     }
+  }
+
+  /**
+   * Parses a comma-separated list of exchange kinds, dropping what cannot be resolved.
+   *
+   * <p>
+   * The result is empty when the list is missing, blank or entirely unparseable, and it is deliberately never
+   * substituted by a default. Substituting the syncable kinds is how a request for one kind used to grant both, in both
+   * directions; a caller that cannot say which kinds it means has to fail rather than be guessed at.
+   * </p>
+   *
+   * @param csv the stored comma-separated list, may be null
+   * @return the kinds named in it, possibly empty, never null
+   */
+  public java.util.Set<IExchangeKindType> parseAll(String csv) {
+    if (csv == null || csv.isBlank()) {
+      return java.util.Set.of();
+    }
+    return java.util.Arrays.stream(csv.split(",")).map(this::parse).filter(kind -> kind != null)
+        .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
   }
 }

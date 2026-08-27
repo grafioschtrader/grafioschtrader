@@ -38,10 +38,10 @@ import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.DeleteHistoryquotesSuccess;
-import grafioschtrader.dto.HistoryquoteDeleteBounds;
 import grafioschtrader.dto.HistoryquoteChartResponse;
 import grafioschtrader.dto.HistoryquoteDateClose;
 import grafioschtrader.dto.HistoryquoteDateOHLC;
+import grafioschtrader.dto.HistoryquoteDeleteBounds;
 import grafioschtrader.dto.HistoryquotesWithMissings;
 import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
@@ -297,8 +297,8 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   /**
    * Fills missing historical quotes for non-trading days (weekends and holidays) between two existing quotes.
    * <p>
-   * Currency pairs require continuous daily price data for accurate transaction calculations on any calendar day.
-   * This method creates placeholder quotes for dates between two existing quotes, using the closing price from the day
+   * Currency pairs require continuous daily price data for accurate transaction calculations on any calendar day. This
+   * method creates placeholder quotes for dates between two existing quotes, using the closing price from the day
    * before the gap. Each created quote is marked with {@link HistoryquoteCreateType#FILLED_NON_TRADE_DAY} to
    * distinguish it from actual trading day data.
    * </p>
@@ -312,20 +312,20 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
    * avoids the "Record has changed since last read" errors that can occur on some MariaDB configurations when using
    * JPA/Hibernate for inserts during concurrent access.</li>
    * </ol>
-   * This ensures all valid records are saved even under concurrent access, while gracefully handling duplicates
-   * without causing transaction rollback issues.
+   * This ensures all valid records are saved even under concurrent access, while gracefully handling duplicates without
+   * causing transaction rollback issues.
    * </p>
    * <p>
-   * <b>Performance Note:</b> The method fetches only date values (not full entities) to efficiently filter out
-   * existing records. Individual INSERT IGNORE operations via JdbcTemplate are used to ensure compatibility across
-   * different MariaDB configurations.
+   * <b>Performance Note:</b> The method fetches only date values (not full entities) to efficiently filter out existing
+   * records. Individual INSERT IGNORE operations via JdbcTemplate are used to ensure compatibility across different
+   * MariaDB configurations.
    * </p>
    *
-   * @param dayBeforHoleHistoryquote The historical quote immediately before the gap. Its closing price and other
-   *        values are copied to fill the missing days. Must not be null and must have a valid
-   *        {@code idSecuritycurrency}.
+   * @param dayBeforHoleHistoryquote The historical quote immediately before the gap. Its closing price and other values
+   *                                 are copied to fill the missing days. Must not be null and must have a valid
+   *                                 {@code idSecuritycurrency}.
    * @param dayAfterHoleHistoryquote The historical quote immediately after the gap. Defines the exclusive upper bound
-   *        for the date range to fill. Must not be null.
+   *                                 for the date range to fill. Must not be null.
    */
   @Override
   public void fillMissingPeriodWithHistoryquotes(final Historyquote dayBeforHoleHistoryquote,
@@ -335,8 +335,8 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     LocalDate toDate = dayAfterHoleHistoryquote.getDate();
 
     // Query existing dates to avoid duplicate inserts during concurrent processing
-    Set<LocalDate> existingDates = historyquoteJpaRepository.findDatesByIdSecuritycurrencyAndDateBetweenExclusive(
-        idSecuritycurrency, fromDate, toDate);
+    Set<LocalDate> existingDates = historyquoteJpaRepository
+        .findDatesByIdSecuritycurrencyAndDateBetweenExclusive(idSecuritycurrency, fromDate, toDate);
 
     LocalDate targetDate = fromDate.plusDays(1);
     List<Historyquote> toCreateHistoryquotes = new ArrayList<>();
@@ -365,8 +365,8 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       }
       int skippedCount = toCreateHistoryquotes.size() - insertedCount;
       if (skippedCount > 0) {
-        log.info("Filled non-trade days for security {}: inserted={}, skipped={} (already existed)",
-            idSecuritycurrency, insertedCount, skippedCount);
+        log.info("Filled non-trade days for security {}: inserted={}, skipped={} (already existed)", idSecuritycurrency,
+            insertedCount, skippedCount);
       }
     }
   }
@@ -425,8 +425,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     if (Integer.valueOf(1).equals(ohlcAvailable)) {
       List<HistoryquoteDateOHLC> ohlcList = historyquoteJpaRepository
           .findOhlcByIdSecuritycurrencyOrderByDateAsc(idSecuritycurrency);
-      boolean volumeAvailable = ohlcList.stream()
-          .anyMatch(ohlc -> ohlc.getVolume() != null && ohlc.getVolume() > 0);
+      boolean volumeAvailable = ohlcList.stream().anyMatch(ohlc -> ohlc.getVolume() != null && ohlc.getVolume() > 0);
       HistoryquoteChartResponse response = HistoryquoteChartResponse.ofOhlc(ohlcList);
       response.setVolumeAvailable(volumeAvailable);
       return response;

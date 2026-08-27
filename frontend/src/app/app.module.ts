@@ -192,6 +192,7 @@ import { GTNetMessageEditComponent } from './lib/gnet/component/gtnet-message-ed
 import { GTNetMessageService } from './lib/gnet/service/gtnet.message.service';
 import { GTNetMessageAnswerTableComponent } from './lib/gnet/component/gtnet-message-answer-table.component';
 import { GTNetMessageAnswerService } from './lib/gnet/service/gtnet.message.answer.service';
+import { GTNetProtocolService } from './lib/gnet/service/gtnet.protocol.service';
 import { GtnetSecurityLookupService } from './gtnet/service/gtnet-security-lookup.service';
 import { GTNetSecurityImpHeadService } from './shared/gtnet/service/gtnet-security-imp-head.service';
 import { GTNetSecurityImpPosService } from './shared/gtnet/service/gtnet-security-imp-pos.service';
@@ -460,6 +461,7 @@ const createTranslateLoader = (http: HttpClient) =>
     TabMenuService,
     ReleaseNoteService,
     GTNetMessageAnswerService,
+    GTNetProtocolService,
     GTNetService,
     GtnetSecurityLookupService,
     GTNetSecurityImpHeadService,

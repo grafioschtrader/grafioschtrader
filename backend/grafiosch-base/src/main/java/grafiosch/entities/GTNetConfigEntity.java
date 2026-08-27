@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 @Schema(description = "Entity-specific configuration for exchange settings, logging, and consumer usage priority.")
 @Entity
 @Table(name = GTNetConfigEntity.TABNAME)
-public class GTNetConfigEntity extends BaseID<Integer>  {
+public class GTNetConfigEntity extends BaseID<Integer> {
   public static final String TABNAME = "gt_net_config_entity";
 
   @Id
@@ -24,7 +24,6 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
       data exchange is active. Set to true when exchange requests are accepted.""")
   @Column(name = "exchange")
   private boolean exchange = true;
-
 
   @Schema(description = """
       Logging level for this server acting as supplier (receiving requests from remote).
@@ -47,7 +46,6 @@ public class GTNetConfigEntity extends BaseID<Integer>  {
   @Column(name = "consumer_usage")
   @PropertyAlwaysUpdatable
   private byte consumerUsage = 10;
-
 
   public boolean isExchange() {
     return exchange;

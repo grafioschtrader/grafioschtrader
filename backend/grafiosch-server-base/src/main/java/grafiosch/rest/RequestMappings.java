@@ -6,7 +6,7 @@ import grafiosch.entities.User;
 public class RequestMappings {
   public static final String M2M = "_m2m";
   public static final String M2M_API = "/m2m/";
-  
+
   public static final String API = "/api/";
   public static final String GLOBALPARAMETERS_MAP = API + Globalparameters.TABNAME;
 
@@ -26,7 +26,7 @@ public class RequestMappings {
 
   public static final String RELEASE_NOTE = "releasenote";
   public static final String RELEASE_NOTE_MAP = API + RELEASE_NOTE;
-  
+
   public static final String TASK_DATA_CHANGE = "taskdatachange";
   public static final String TASK_DATA_CHANGE_MAP = API + TASK_DATA_CHANGE;
 
@@ -63,8 +63,9 @@ public class RequestMappings {
   public static final String GTNETCONFIGENTITY_MAP = API + GTNETCONFIGENTITY;
   public static final String GTNETEXCHANGELOG = "gtnetexchangelog";
   public static final String GTNETEXCHANGELOG_MAP = API + GTNETEXCHANGELOG;
+  public static final String GTNETDATAEXPORT = "gtnetdataexport";
+  public static final String GTNETDATAEXPORT_MAP = API + GTNETDATAEXPORT;
 
   public static final String ACTUATOR_MAP = API + "actuator";
- 
 
 }

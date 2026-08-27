@@ -15,6 +15,8 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { AuditHelper } from '../../lib/helper/audit.helper';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Abstract base component for GTNet exchange configuration tables.
@@ -38,6 +40,12 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
 
   /** Tracks if any saves occurred during component lifetime for triggering sync on destroy */
   private savesOccurred: boolean = false;
+
+  /** The entity list the cached multi select decision was taken for */
+  private multiSelectAllowedForList: T[] = null;
+
+  /** Cached result of the scan for at least one editable row */
+  private multiSelectAllowed = false;
 
   /** Entity for dialog calls (required by base class) */
   callParam: T;
@@ -119,11 +127,25 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   }
 
   /**
-   * Check if a checkbox should be disabled.
-   * Override in derived classes for specific logic.
+   * Whether the current user may change the exchange flags of this instrument. The flags are shared data, not tenant
+   * data, so the ordinary editing rights of the instrument decide: an administrator and a user with the extended
+   * editing right may change every instrument, everybody else only the instruments they created themselves. The
+   * backend refuses anything else with a security breach, which is why a row the user may not change must not be
+   * offered at all.
+   *
+   * @param item The instrument row to check
+   * @returns True if the current user may change this row
+   */
+  protected canEditRow(item: T): boolean {
+    return AuditHelper.hasRightsForEditingOrDeleteAuditable(this.gps, item);
+  }
+
+  /**
+   * Check if a checkbox should be disabled. A row the user may not change is disabled as a whole; derived classes add
+   * their instrument-specific rules on top of this one.
    */
   isCheckboxDisabled(item: T, field: string): boolean {
-    return false;
+    return !this.canEditRow(item);
   }
 
   /**
@@ -238,10 +260,20 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   }
 
   /**
-   * Check if the current user has ROLE_ADMIN or ROLE_ALL_EDIT.
+   * Whether the header checkboxes are offered at all. They walk the filtered rows and skip every disabled cell, so
+   * they act only on the instruments the user may change; the strip is therefore useless only for a user who may
+   * change nothing in the current list. The template asks on every change detection cycle, so the scan over the list
+   * is remembered until the next load replaces it.
    */
   isUserAllowedToMultiSelect(): boolean {
-    return this.gps.hasRole('ROLE_ADMIN') || this.gps.hasRole('ROLE_ALL_EDIT');
+    if (AuditHelper.hasHigherPrivileges(this.gps)) {
+      return true;
+    }
+    if (this.multiSelectAllowedForList !== this.entityList) {
+      this.multiSelectAllowedForList = this.entityList;
+      this.multiSelectAllowed = (this.entityList ?? []).some((item) => this.canEditRow(item));
+    }
+    return this.multiSelectAllowed;
   }
 
   /**
@@ -299,10 +331,13 @@ export abstract class GTNetExchangeBaseComponent<T extends Securitycurrency & GT
   }
 
   /**
-   * Triggers the exchange sync background job if saves occurred.
+   * Triggers the exchange sync background job if saves occurred. Enqueuing that job concerns the whole instance, so
+   * the endpoint requires ROLE_ADMIN. A user who may only change the instruments they created themselves would
+   * otherwise fire a request that can only come back 403; their change reaches the peers with the daily
+   * synchronisation instead.
    */
   private triggerSyncIfNeeded(): void {
-    if (this.savesOccurred) {
+    if (this.savesOccurred && this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       this.gtNetExchangeService.triggerSync().subscribe({
         error: (err) => {
           console.error('Failed to trigger exchange sync:', err);

@@ -145,8 +145,10 @@ The same thing by hand:
 ```bash
 # 1. Back up the database first — migrations cannot be undone
 source .env
-docker compose exec mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
-  --single-transaction grafioschtrader | gzip > gt-backup-$(date +%F)-pre-update.sql.gz
+DB_NAME="${DB_NAME:-grafioschtrader}"
+docker compose exec -T mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
+  --single-transaction --routines --events "$DB_NAME" \
+  | gzip > gt-backup-$(date +%F)-pre-update.sql.gz
 
 # 2. Only when GT_VERSION pins a version: set the new one in .env
 #    (with GT_VERSION=latest, skip this step)
@@ -175,16 +177,100 @@ means restoring the dump from step 1 (see [Backup and restore](#backup-and-resto
 ```bash
 # Backup (uses DB_ROOT_PASSWORD from .env)
 source .env
-docker compose exec mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
-  grafioschtrader | gzip > gt-backup-$(date +%F).sql.gz
+DB_NAME="${DB_NAME:-grafioschtrader}"
+docker compose exec -T mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
+  --single-transaction --routines --events "$DB_NAME" \
+  | gzip > gt-backup-$(date +%F).sql.gz
 
 # Restore into a fresh instance
 gunzip -c gt-backup-YYYY-MM-DD.sql.gz | \
-  docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" grafioschtrader
+  docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" "$DB_NAME"
 ```
+
+`-T` and `--routines` are both load-bearing: without `-T` the pseudo-TTY that
+`docker compose exec` allocates by default corrupts the compressed dump, and
+without `--routines` the stored procedures are silently left out of it.
+`install.sh` does not write `DB_NAME` into `.env`, hence the default above.
 
 Also back up the `.env` file — it contains the passwords matching the database
 volume.
+
+### Import personal data from another instance
+
+Grafioschtrader can hand you your own data back as a file, so that you can leave
+a shared instance and carry on by yourself. What the export contains, and what it
+deliberately leaves out, is described under *Export personal data* in the
+[user manual](https://grafioschtrader.github.io/gt-user-manual/en/intro/settings/).
+Bringing such an export into a Docker installation is the one operation that
+differs noticeably from the classic one, because the database lives in a
+container and there is no `mysql` command and no systemd service to work with.
+
+**The export itself needs nothing special.** It is an ordinary browser download,
+not a file produced on the server: log in, choose the export entry in the user
+menu and save `gtPersonalData.zip`. Nothing has to be mounted, and the archive
+never touches the container. Inside it are `gt_ddl.sql` (the empty schema),
+`gt_data.sql` (your data) and `broken_history_connectors.txt` (a report).
+
+**The import replaces the entire database**, so it belongs on a fresh
+installation — one you have just set up with `install.sh` and into which you have
+not yet entered anything. Whatever this instance already holds is lost. The
+target must also run the **same release as the source instance or a newer one**;
+an export from a newer instance cannot be imported into an older one, which with
+the default `GT_VERSION=latest` is never a concern.
+
+```bash
+cd grafioschtrader/docker
+source .env
+DB_NAME="${DB_NAME:-grafioschtrader}"   # install.sh does not write these two
+DB_USER="${DB_USER:-grafioschtrader}"
+unzip gtPersonalData.zip                # gt_ddl.sql, gt_data.sql, broken_history_connectors.txt
+
+# 1. Stop the application, leave the database running
+docker compose stop backend web
+
+# 2. Replace the database and restore the privileges of both accounts
+docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" <<SQL
+DROP DATABASE IF EXISTS \`$DB_NAME\`;
+CREATE DATABASE \`$DB_NAME\`;
+GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'%';
+GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO 'grafioschtrader'@'localhost';
+SQL
+
+# 3. The schema first, then the data
+docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" \
+  --default-character-set=utf8mb4 "$DB_NAME" < gt_ddl.sql
+docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" \
+  --default-character-set=utf8mb4 "$DB_NAME" < gt_data.sql
+
+# 4. MariaDB-InnoDB has a bug, see MDEV-28327 — rebuild the statistics
+docker compose exec -T mariadb mariadb-check -uroot -p"$DB_ROOT_PASSWORD" -a "$DB_NAME"
+
+# 5. Start the application again and watch it come up
+docker compose up -d
+docker compose logs -f backend
+```
+
+Two details in there are easy to get wrong. `-T` is not optional: without it
+`docker compose exec` allocates a pseudo-TTY and the SQL piped into it arrives
+mangled. And the scripts are fed in as `root` because `gt_ddl.sql` creates
+triggers and stored procedures owned by `grafioschtrader@localhost` — that
+account exists because `mariadb-init/10-gt-definer.sh` created it when the
+database volume was first initialized.
+
+**You log in with the credentials of the source instance.** The export carries
+your user account and gives it administrator rights in the new instance, so you
+do not register again, and `ADMIN_EMAIL` in `.env` — which only decides who
+becomes administrator upon *registration* — does not have to match.
+
+The first start then does the rest by itself, and takes its time doing so. The
+database migrations of any newer release are applied, your holdings are
+recalculated from the transactions, and a few minutes later the connectors begin
+fetching the historical prices that were deliberately left out of the export. The
+backend therefore stays `starting` for a while and the price history fills in over
+the following minutes rather than at once.
+
+Once the instance is running, its own backups are made as described under
+[Backup and restore](#backup-and-restore).
 
 ### Changing settings
 
@@ -317,3 +403,19 @@ services:
   on UTC. The morning jobs additionally sit on a slot drawn at random for this
   installation, so that not every instance queries the free data providers in
   the same minute; see *Changing settings*.
+- **`Access denied; you need SUPER or SET USER privilege` while importing an
+  export** — `gt_ddl.sql` creates triggers and stored procedures owned by
+  `grafioschtrader@localhost`. Feed the scripts in as `root` as shown under
+  *Import personal data from another instance*, and check that the account is
+  actually there:
+  ```bash
+  docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" \
+    -e "SELECT user, host FROM mysql.user WHERE user='grafioschtrader'"
+  ```
+  It is created by `mariadb-init/10-gt-definer.sh` only when the database volume
+  is first initialized, so a stack that was not set up with `install.sh` may lack
+  it.
+- **An imported instance does not start, or the migrations stop at an unknown
+  version** — the export came from a *newer* Grafioschtrader than this
+  installation. Raise `GT_VERSION` in `.env` (or set it to `latest`), then
+  `docker compose up -d` and let the migrations run.

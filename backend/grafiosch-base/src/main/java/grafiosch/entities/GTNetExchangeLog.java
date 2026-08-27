@@ -80,8 +80,8 @@ public class GTNetExchangeLog {
   public GTNetExchangeLog() {
   }
 
-  public GTNetExchangeLog(Integer idGtNet, IExchangeKindType entityKind, boolean logAsSupplier,
-      int entitiesSent, int entitiesUpdated, int entitiesInResponse) {
+  public GTNetExchangeLog(Integer idGtNet, IExchangeKindType entityKind, boolean logAsSupplier, int entitiesSent,
+      int entitiesUpdated, int entitiesInResponse) {
     this.idGtNet = idGtNet;
     this.entityKind = entityKind.getValue();
     this.logAsSupplier = logAsSupplier;
