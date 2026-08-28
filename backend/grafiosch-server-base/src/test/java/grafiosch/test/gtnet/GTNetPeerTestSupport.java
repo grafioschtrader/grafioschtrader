@@ -102,7 +102,7 @@ public final class GTNetPeerTestSupport {
 
   public static int remoteId(JsonNode state, String remoteDomain) {
     for (JsonNode entry : state.path("gtNetList")) {
-      if (remoteDomain.equals(entry.path("domainRemoteName").asText())) {
+      if (remoteDomain.equals(entry.path("domainRemoteName").asString())) {
         return entry.path("idGtNet").asInt();
       }
     }

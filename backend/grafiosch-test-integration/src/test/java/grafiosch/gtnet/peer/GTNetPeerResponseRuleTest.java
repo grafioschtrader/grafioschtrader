@@ -101,7 +101,7 @@ class GTNetPeerResponseRuleTest {
 
     JsonNode pending = newestReceivedRequest(GTNetPeerTestSupport.PEER_B, jwtB, remoteA);
     assertThat(pending).isNotNull();
-    assertThat(pending.path("messageCode").asText()).isEqualTo(REQUEST_CODE);
+    assertThat(pending.path("messageCode").asString()).isEqualTo(REQUEST_CODE);
 
     // Answering it is the administrator action the ack was waiting for.
     var answer = GTNetPeerTestSupport.JSON.createObjectNode();
@@ -126,8 +126,8 @@ class GTNetPeerResponseRuleTest {
     // Second attempt inside the window: the dispatcher repeats the rejection before any handler runs, and says how
     // much of the window is left.
     JsonNode refusal = sendDataRequestMessage();
-    assertThat(refusal.path("messageCode").asText()).isEqualTo(REJECT_CODE);
-    assertThat(refusal.path("message").asText()).contains("Cooling-off period active");
+    assertThat(refusal.path("messageCode").asString()).isEqualTo(REJECT_CODE);
+    assertThat(refusal.path("message").asString()).contains("Cooling-off period active");
   }
 
   /**
@@ -136,7 +136,7 @@ class GTNetPeerResponseRuleTest {
    * @return the message code name of the answer peer A stored for this request
    */
   private static String sendDataRequest() throws Exception {
-    return sendDataRequestMessage().path("messageCode").asText();
+    return sendDataRequestMessage().path("messageCode").asString();
   }
 
   private static JsonNode sendDataRequestMessage() throws Exception {
@@ -149,7 +149,7 @@ class GTNetPeerResponseRuleTest {
     int newest = before;
     for (JsonNode message : messages(GTNetPeerTestSupport.PEER_A, jwtA, remoteB)) {
       int id = message.path("idGtNetMessage").asInt();
-      if (id > newest && !REQUEST_CODE.equals(message.path("messageCode").asText())) {
+      if (id > newest && !REQUEST_CODE.equals(message.path("messageCode").asString())) {
         newest = id;
         answer = message;
       }
@@ -170,8 +170,8 @@ class GTNetPeerResponseRuleTest {
       }
     }
     for (JsonNode message : messages(peer, jwt, remoteId)) {
-      if (REQUEST_CODE.equals(message.path("messageCode").asText())
-          && "RECEIVED".equals(message.path("sendRecv").asText())
+      if (REQUEST_CODE.equals(message.path("messageCode").asString())
+          && "RECEIVED".equals(message.path("sendRecv").asString())
           && !answered.contains(message.path("idGtNetMessage").asInt())) {
         candidate = message;
       }

@@ -122,7 +122,7 @@ class GTNetAppExchangeSyncTest {
     assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
     int id = 0;
     for (JsonNode task : GTNetPeerTestSupport.JSON.readTree(response.body())) {
-      if ("GTNET_EXCHANGE_SYNC".equals(task.path("idTask").asText())) {
+      if ("GTNET_EXCHANGE_SYNC".equals(task.path("idTask").asString())) {
         id = Math.max(id, task.path("idTaskDataChange").asInt());
       }
     }

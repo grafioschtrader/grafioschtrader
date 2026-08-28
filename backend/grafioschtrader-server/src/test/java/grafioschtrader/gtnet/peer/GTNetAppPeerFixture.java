@@ -40,8 +40,8 @@ final class GTNetAppPeerFixture {
   List<Instrument> securities() {
     List<Instrument> securities = new ArrayList<>();
     for (JsonNode node : root.path("securities")) {
-      securities.add(new Instrument(node.path("isin").asText(), node.path("currency").asText(),
-          node.path("tickerSymbol").asText(null)));
+      securities.add(new Instrument(node.path("isin").asString(), node.path("currency").asString(),
+          node.path("tickerSymbol").asString(null)));
     }
     return securities;
   }
@@ -50,14 +50,14 @@ final class GTNetAppPeerFixture {
   List<CurrencyPair> currencypairs() {
     List<CurrencyPair> pairs = new ArrayList<>();
     for (JsonNode node : root.path("currencypairs")) {
-      pairs.add(new CurrencyPair(node.path("fromCurrency").asText(), node.path("toCurrency").asText()));
+      pairs.add(new CurrencyPair(node.path("fromCurrency").asString(), node.path("toCurrency").asString()));
     }
     return pairs;
   }
 
   Instrument unknownSecurity() {
     JsonNode node = root.path("unknownSecurity");
-    return new Instrument(node.path("isin").asText(), node.path("currency").asText(), null);
+    return new Instrument(node.path("isin").asString(), node.path("currency").asString(), null);
   }
 
   /** @return how many instruments a request must carry to exceed the max_limit the peer bootstrap wrote */
@@ -66,11 +66,11 @@ final class GTNetAppPeerFixture {
   }
 
   LocalDate historyFromDate() {
-    return LocalDate.parse(root.path("historyquoteRange").path("fromDate").asText());
+    return LocalDate.parse(root.path("historyquoteRange").path("fromDate").asString());
   }
 
   LocalDate historyToDate() {
-    return LocalDate.parse(root.path("historyquoteRange").path("toDate").asText());
+    return LocalDate.parse(root.path("historyquoteRange").path("toDate").asString());
   }
 
   record Instrument(String isin, String currency, String tickerSymbol) {

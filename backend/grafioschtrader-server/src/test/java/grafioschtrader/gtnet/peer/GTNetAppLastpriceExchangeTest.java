@@ -99,7 +99,7 @@ class GTNetAppLastpriceExchangeTest {
 
     assertThat(reply.path("messageCode").asInt())
         .isEqualTo(GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S.getValue());
-    assertThat(reply.path("message").asText()).contains("max_limit");
+    assertThat(reply.path("message").asString()).contains("max_limit");
     assertThat(violationCount()).isEqualTo(before + 1);
   }
 
@@ -113,7 +113,7 @@ class GTNetAppLastpriceExchangeTest {
 
     assertThat(reply.path("messageCode").asInt())
         .isEqualTo(GTNetMessageCodeType.GT_NET_LASTPRICE_MAX_LIMIT_EXCEEDED_S.getValue());
-    assertThat(reply.path("message").asText()).contains("max_limit violations");
+    assertThat(reply.path("message").asString()).contains("max_limit violations");
     // Refusing must not raise the counter any further; it already saturated.
     assertThat(violationCount()).isEqualTo(99);
 
@@ -161,7 +161,7 @@ class GTNetAppLastpriceExchangeTest {
 
   private static JsonNode syntheticEntry() throws Exception {
     for (JsonNode entry : GTNetPeerTestSupport.readGTNet(GTNetPeerTestSupport.PEER_B, jwtB).path("gtNetList")) {
-      if (SYNTHETIC_DOMAIN.equals(entry.path("domainRemoteName").asText())) {
+      if (SYNTHETIC_DOMAIN.equals(entry.path("domainRemoteName").asString())) {
         return entry;
       }
     }

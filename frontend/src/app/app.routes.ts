@@ -422,21 +422,6 @@ const APP_ROUTES: Routes = [
         canActivate: [authGuard],
         children: [
           {
-            path: BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY,
-            component: GTNetExchangeLogComponent,
-            canActivate: [authGuard]
-          },
-          {
-            path: BaseSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY,
-            component: GTNetExchangeLogComponent,
-            canActivate: [authGuard]
-          },
-          {
-            path: BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY,
-            component: GTNetExchangeLogComponent,
-            canActivate: [authGuard]
-          },
-          {
             path: ':entityKind',
             component: GTNetExchangeLogComponent,
             canActivate: [authGuard]

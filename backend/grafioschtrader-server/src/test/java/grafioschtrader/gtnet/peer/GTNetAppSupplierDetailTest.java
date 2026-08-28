@@ -40,8 +40,8 @@ class GTNetAppSupplierDetailTest {
     var fixtureSecurity = fixture.securities().get(0);
     JsonNode match = null;
     for (JsonNode security : securities) {
-      if (fixtureSecurity.isin().equals(security.path("isin").asText())
-          && fixtureSecurity.currency().equals(security.path("currency").asText())) {
+      if (fixtureSecurity.isin().equals(security.path("isin").asString())
+          && fixtureSecurity.currency().equals(security.path("currency").asString())) {
         match = security;
         break;
       }
@@ -74,7 +74,7 @@ class GTNetAppSupplierDetailTest {
     var response = GTNetPeerTestSupport.getApi(GTNetPeerTestSupport.PEER_B, "/api/security/gtnetexchange", jwtB);
     assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
     for (JsonNode security : GTNetPeerTestSupport.JSON.readTree(response.body()).path("securitiescurrenciesList")) {
-      if (isin.equals(security.path("isin").asText()) && currency.equals(security.path("currency").asText())) {
+      if (isin.equals(security.path("isin").asString()) && currency.equals(security.path("currency").asString())) {
         return security.path("idSecuritycurrency").asInt();
       }
     }

@@ -81,7 +81,7 @@ class GTNetPeerDailyRequestLimitTest {
     int before = chargedIncomingCount();
     publishLimitOfPeerB(before + 1);
 
-    assertThat(sendDataRequest().path("messageCode").asText()).isEqualTo(ACCEPT_CODE);
+    assertThat(sendDataRequest().path("messageCode").asString()).isEqualTo(ACCEPT_CODE);
     assertThat(chargedIncomingCount()).isEqualTo(before + 1);
   }
 
@@ -106,8 +106,8 @@ class GTNetPeerDailyRequestLimitTest {
     raiseStoredLimitOfRemoteB(originalOwnB.path("dailyRequestLimit").asInt(1000) + 1000);
 
     JsonNode refusal = sendDataRequest();
-    assertThat(refusal.path("messageCode").asText()).isEqualTo(LIMIT_CODE);
-    assertThat(refusal.path("message").asText()).contains("Daily request limit");
+    assertThat(refusal.path("messageCode").asString()).isEqualTo(LIMIT_CODE);
+    assertThat(refusal.path("message").asString()).contains("Daily request limit");
   }
 
   @Test
@@ -117,7 +117,7 @@ class GTNetPeerDailyRequestLimitTest {
         jwtA, "null");
     assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
 
-    assertThat(remoteEntry(GTNetPeerTestSupport.PEER_A, jwtA, remoteB).path("serverOnline").asText())
+    assertThat(remoteEntry(GTNetPeerTestSupport.PEER_A, jwtA, remoteB).path("serverOnline").asString())
         .contains("SOS_ONLINE");
   }
 
@@ -162,7 +162,7 @@ class GTNetPeerDailyRequestLimitTest {
     int newest = baselineId;
     for (JsonNode message : messages(GTNetPeerTestSupport.PEER_A, jwtA, remoteB)) {
       int id = message.path("idGtNetMessage").asInt();
-      if (id > newest && !REQUEST_CODE.equals(message.path("messageCode").asText())) {
+      if (id > newest && !REQUEST_CODE.equals(message.path("messageCode").asString())) {
         newest = id;
         answer = message;
       }

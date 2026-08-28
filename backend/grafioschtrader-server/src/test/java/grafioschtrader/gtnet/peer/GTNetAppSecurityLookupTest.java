@@ -107,7 +107,7 @@ class GTNetAppSecurityLookupTest {
 
       assertThat(reply.path("messageCode").asInt())
           .isEqualTo(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S.getValue());
-      assertThat(reply.path("message").asText()).contains("not accepting");
+      assertThat(reply.path("message").asString()).contains("not accepting");
     } finally {
       setMetadataAcceptRequest("AC_OPEN");
     }
@@ -136,7 +136,7 @@ class GTNetAppSecurityLookupTest {
       if (entry.path("idGtNet").asInt() == ownId) {
         ObjectNode ownEntry = ((ObjectNode) entry).deepCopy();
         for (JsonNode entity : ownEntry.path("gtNetEntities")) {
-          if ("SECURITY_METADATA".equals(entity.path("entityKind").asText())) {
+          if ("SECURITY_METADATA".equals(entity.path("entityKind").asString())) {
             ((ObjectNode) entity).put("acceptRequest", acceptRequest);
           }
         }

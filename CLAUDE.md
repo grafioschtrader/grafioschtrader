@@ -637,6 +637,12 @@ covers writing one, incorporating concerns raised by someone else, staged update
   let the formatter settle it. Configuration: `gt-code-style/backend/eclipse/gt-java-formatting.xml` and
   `frontend/.prettierrc.json`; see `gt-code-style/README.md`.
 - **Line length**: Code is formatted with a line break at 120 characters; comments should respect this limit
+- **Never use a deprecated API**: an IDE strikes deprecated members through, so a developer sees them and reaches for
+  the replacement. Nothing on the command line shows that by itself, which is why the backend build now passes
+  `-Xlint:deprecation` (`<showDeprecation>` in `backend/pom.xml`): **`mvn clean install -DskipTests` must end with zero
+  `[WARNING]` compiler lines**, and any that appear are fixed, not tolerated. TypeScript has no such flag — `tsc` never
+  reports a JSDoc `@deprecated` — so on the frontend read the `.d.ts` of the symbol in `node_modules` before using an
+  API that has a newer sibling, and treat a `"deprecated"` field in `package-lock.json` as a package that must go.
 - **Method length**: Keep methods under 50 lines of code when possible. If a method exceeds this limit, extract logical blocks (such as loop bodies or complex conditionals) into separate, well-named helper methods
 - **Purpose over mechanics**: Explain *why* and *what for*, not just *what* the code does
 - **HTML tags**: Use sparingly and only when necessary for formatting (lists, code examples, emphasis)

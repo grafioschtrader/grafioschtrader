@@ -91,6 +91,18 @@
   <build>
     <pluginManagement>
       <plugins>
+        <!-- Deprecation warnings are printed on every compile, for main and test sources alike.
+             Without this javac stays silent about them, so a deprecated call is invisible to
+             anyone who does not read the source in an IDE: the strikethrough is the only other
+             signal there is. The tree compiles free of them - keep "mvn clean install -DskipTests"
+             free of [WARNING] lines rather than letting them accumulate. -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <showDeprecation>true</showDeprecation>
+          </configuration>
+        </plugin>
         <!-- Code formatting. Deliberately NOT bound to a lifecycle phase: "mvn clean install"
              must never rewrite sources and must never fail because of formatting. Run it
              explicitly with "mvn spotless:apply", check with "mvn spotless:check".

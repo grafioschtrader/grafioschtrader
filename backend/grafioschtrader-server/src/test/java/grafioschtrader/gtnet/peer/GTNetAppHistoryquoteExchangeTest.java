@@ -128,7 +128,7 @@ class GTNetAppHistoryquoteExchangeTest {
 
     assertThat(reply.path("messageCode").asInt())
         .isEqualTo(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S.getValue());
-    assertThat(reply.path("message").asText()).contains("max_limit");
+    assertThat(reply.path("message").asString()).contains("max_limit");
   }
 
   @Test

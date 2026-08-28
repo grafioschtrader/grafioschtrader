@@ -1,9 +1,6 @@
 package grafiosch.test.rest;
 
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
@@ -150,7 +147,7 @@ public class RestTestHelperBase {
             .returnResult();
         HttpHeaders headers = result.getResponseHeaders();
         user.authToken = headers.getFirst("x-auth-token");
-        assertThat(user.authToken, is(not(nullValue())));
+        assertThat(user.authToken).isNotNull();
         user.idUser = jwtTokenHandler.getUserId(user.authToken);
       }
     }

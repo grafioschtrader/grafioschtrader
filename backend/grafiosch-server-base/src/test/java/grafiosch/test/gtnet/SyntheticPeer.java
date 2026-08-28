@@ -64,7 +64,7 @@ public final class SyntheticPeer {
     JsonNode reply = synthetic.post(handshake, null);
     assertThat(reply.path("messageCode").asInt()).as("handshake of %s was accepted", domain)
         .isEqualTo(FIRST_HANDSHAKE_ACCEPT);
-    synthetic.token = reply.path("gtNetMessageParamMap").path("tokenThis").path("paramValue").asText();
+    synthetic.token = reply.path("gtNetMessageParamMap").path("tokenThis").path("paramValue").asString();
     assertThat(synthetic.token).isNotBlank();
     return synthetic;
   }
@@ -171,7 +171,7 @@ public final class SyntheticPeer {
   /** Removes this synthetic peer from the instance it connected to; safe to call when it was never created. */
   public void disconnect(String jwt) throws Exception {
     for (JsonNode entry : GTNetPeerTestSupport.readGTNet(peer, jwt).path("gtNetList")) {
-      if (domain.equals(entry.path("domainRemoteName").asText())) {
+      if (domain.equals(entry.path("domainRemoteName").asString())) {
         GTNetPeerTestSupport.deleteApi(peer, "/api/gtnet/" + entry.path("idGtNet").asInt(), jwt);
         return;
       }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TreeNode } from '@openng/optimus-ui/api';
 import { TreeTableConfigBase } from '../../datashowbase/tree.table.config.base';
@@ -6,8 +6,8 @@ import { GlobalparameterService } from '../../services/globalparameter.service';
 import { GTNetExchangeLogService } from '../service/gtnet-exchange-log.service';
 import { GTNetExchangeLogTree, GTNetExchangeLogNode } from '../model/gtnet-exchange-log';
 import { DataType } from '../../dynamic-form/models/data.type';
-import { ActivatedRoute } from '@angular/router';
-import { BaseSettings } from '../../base.settings';
+import { ActivatedRoute, Params } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ConfigurableTableComponent } from '../../datashowbase/configurable-table.component';
 import { ConfigurableTreeTableComponent } from '../../datashowbase/configurable-tree-table.component';
 import { ColumnConfig } from '../../datashowbase/column.config';
@@ -100,7 +100,7 @@ import { ActivePanelService } from '../../mainmenubar/service/active.panel.servi
     `
   ]
 })
-export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, IGlobalMenuAttach {
+export class GTNetExchangeLogComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
   @Input() entityKind = 'LAST_PRICE';
   @ViewChild('expandedContent') expandedContent: TemplateRef<any>;
 
@@ -108,6 +108,7 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
   mainTableFields: ColumnConfig[] = [];
   titleKey: string = 'GT_NET_EXCHANGE_LOG';
 
+  private routeSubscription: Subscription;
   private supplierNodesCache: Map<number, TreeNode[]> = new Map();
   private consumerNodesCache: Map<number, TreeNode[]> = new Map();
 
@@ -122,22 +123,6 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
   }
 
   ngOnInit(): void {
-    // Determine entityKind from route
-    const path = this.route.snapshot.url[0]?.path;
-    if (path === BaseSettings.GT_NET_EXCHANGE_LOG_LASTPRICE_KEY) {
-      this.entityKind = 'LAST_PRICE';
-      this.titleKey = 'LAST_PRICE';
-    } else if (path === BaseSettings.GT_NET_EXCHANGE_LOG_HISTORICAL_KEY) {
-      this.entityKind = 'HISTORICAL_PRICES';
-      this.titleKey = 'HISTORICAL_PRICES';
-    } else if (path === BaseSettings.GT_NET_EXCHANGE_LOG_METADATA_KEY) {
-      this.entityKind = 'SECURITY_METADATA';
-      this.titleKey = 'SECURITY_METADATA';
-    } else if (path) {
-      this.entityKind = decodeURIComponent(path).toUpperCase();
-      this.titleKey = this.entityKind;
-    }
-
     // Configure main table column (outer table)
     this.mainTableFields = [
       ShowRecordConfigBase.createColumnConfig(DataType.String, 'domainRemoteName', 'DOMAIN_REMOTE_NAME', true, false)
@@ -154,7 +139,20 @@ export class GTNetExchangeLogComponent extends TreeTableConfigBase implements On
     this.addColumnFeqH(DataType.NumericInteger, 'entitiesInResponse', true, false);
     this.addColumnFeqH(DataType.NumericInteger, 'requestCount', true, false);
     this.translateHeadersAndColumns();
-    this.loadData();
+
+    // The three tabs of GTNetExchangeLogTabMenuComponent all resolve to the same ':entityKind' route,
+    // so Angular reuses this component instance and ngOnInit runs only once. The entity kind must
+    // therefore be re-derived on every parameter change, not read from the route snapshot.
+    this.routeSubscription = this.route.params.subscribe((params: Params) => {
+      const entityKindParam = params['entityKind'];
+      this.entityKind = entityKindParam ? decodeURIComponent(entityKindParam).toUpperCase() : 'LAST_PRICE';
+      this.titleKey = this.entityKind;
+      this.loadData();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.routeSubscription?.unsubscribe();
   }
 
   getMainTableValue(row: GTNetExchangeLogTree, field: ColumnConfig): any {

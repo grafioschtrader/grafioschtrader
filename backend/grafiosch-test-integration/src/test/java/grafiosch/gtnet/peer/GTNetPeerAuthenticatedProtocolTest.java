@@ -219,7 +219,7 @@ class GTNetPeerAuthenticatedProtocolTest {
     assertOk(response.statusCode(), response.body());
     int id = 0;
     for (JsonNode task : GTNetPeerTestSupport.JSON.readTree(response.body())) {
-      if (taskName.equals(task.path("idTask").asText())) {
+      if (taskName.equals(task.path("idTask").asString())) {
         id = Math.max(id, task.path("idTaskDataChange").asInt());
       }
     }

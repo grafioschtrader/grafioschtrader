@@ -87,7 +87,7 @@ class GTNetPeerFutureDeliveryTest {
     for (JsonNode attempt : attempts) {
       assertThat(attempt.path("hasSend").asBoolean()).as("attempt to peer %s", attempt.path("idGtNet").asInt())
           .isTrue();
-      assertThat(attempt.path("sendTimestamp").asText()).isNotBlank();
+      assertThat(attempt.path("sendTimestamp").asString()).isNotBlank();
     }
     assertThat(deliveryStatusOf(announcementId)).isEqualTo("DELIVERED");
   }
@@ -111,7 +111,7 @@ class GTNetPeerFutureDeliveryTest {
   private static int newestSentAnnouncementId() throws Exception {
     int newest = 0;
     for (JsonNode message : messages(ownA)) {
-      if ("GT_NET_MAINTENANCE_ALL_C".equals(message.path("messageCode").asText())) {
+      if ("GT_NET_MAINTENANCE_ALL_C".equals(message.path("messageCode").asString())) {
         newest = Math.max(newest, message.path("idGtNetMessage").asInt());
       }
     }
@@ -122,7 +122,7 @@ class GTNetPeerFutureDeliveryTest {
   private static String deliveryStatusOf(int idGtNetMessage) throws Exception {
     for (JsonNode message : messages(ownA)) {
       if (message.path("idGtNetMessage").asInt() == idGtNetMessage) {
-        return message.path("deliveryStatus").asText();
+        return message.path("deliveryStatus").asString();
       }
     }
     throw new IllegalStateException("Message " + idGtNetMessage + " not found");
@@ -152,7 +152,7 @@ class GTNetPeerFutureDeliveryTest {
 
   private static int idOf(String domain) throws Exception {
     for (JsonNode entry : GTNetPeerTestSupport.readGTNet(GTNetPeerTestSupport.PEER_A, jwtA).path("gtNetList")) {
-      if (domain.equals(entry.path("domainRemoteName").asText())) {
+      if (domain.equals(entry.path("domainRemoteName").asString())) {
         return entry.path("idGtNet").asInt();
       }
     }
@@ -164,7 +164,7 @@ class GTNetPeerFutureDeliveryTest {
     assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
     int id = 0;
     for (JsonNode task : GTNetPeerTestSupport.JSON.readTree(response.body())) {
-      if (taskName.equals(task.path("idTask").asText())) {
+      if (taskName.equals(task.path("idTask").asString())) {
         id = Math.max(id, task.path("idTaskDataChange").asInt());
       }
     }

@@ -60,10 +60,10 @@ class GTNetPeerPingMetadataTest {
     ping();
 
     JsonNode storedRemote = remoteEntry(GTNetPeerTestSupport.PEER_A, jwtA, remoteB);
-    assertThat(storedRemote.path("timeZone").asText()).isEqualTo(PEER_B_TIME_ZONE);
+    assertThat(storedRemote.path("timeZone").asString()).isEqualTo(PEER_B_TIME_ZONE);
     assertThat(storedRemote.path("spreadCapability").asBoolean()).isTrue();
     assertThat(storedRemote.path("dailyRequestLimit").asInt()).isEqualTo(PEER_B_DAILY_REQUEST_LIMIT);
-    assertThat(storedRemote.path("serverOnline").asText()).contains("SOS_ONLINE");
+    assertThat(storedRemote.path("serverOnline").asString()).contains("SOS_ONLINE");
   }
 
   @Test
@@ -76,7 +76,7 @@ class GTNetPeerPingMetadataTest {
     JsonNode entities = remoteEntry(GTNetPeerTestSupport.PEER_A, jwtA, remoteB).path("gtNetEntities");
     assertThat(entities).isNotEmpty();
     for (JsonNode entity : entities) {
-      assertThat(entity.path("serverState").asText()).as("entity %s", entity.path("entityKind").asText())
+      assertThat(entity.path("serverState").asString()).as("entity %s", entity.path("entityKind").asString())
           .isEqualTo("SS_CLOSED");
     }
   }
@@ -92,9 +92,9 @@ class GTNetPeerPingMetadataTest {
     assertThat(entities).isNotEmpty();
     boolean anyAccepting = false;
     for (JsonNode entity : entities) {
-      if (!"AC_CLOSED".equals(entity.path("acceptRequest").asText())) {
+      if (!"AC_CLOSED".equals(entity.path("acceptRequest").asString())) {
         anyAccepting = true;
-        assertThat(entity.path("serverState").asText()).as("entity %s", entity.path("entityKind").asText())
+        assertThat(entity.path("serverState").asString()).as("entity %s", entity.path("entityKind").asString())
             .isEqualTo("SS_OPEN");
       }
     }

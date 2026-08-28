@@ -81,7 +81,7 @@ class GTNetPeerHandshakeWireTest {
     JsonNode reply = send(handshakeEnvelope(ourTokenForPeerB), null);
 
     assertThat(reply.path("messageCode").asInt()).isEqualTo(FIRST_HANDSHAKE_ACCEPT);
-    tokenForPeerB = reply.path("gtNetMessageParamMap").path("tokenThis").path("paramValue").asText();
+    tokenForPeerB = reply.path("gtNetMessageParamMap").path("tokenThis").path("paramValue").asString();
     assertThat(tokenForPeerB).isNotBlank();
 
     // The accept payload is the GTNet entity of the answering peer, with its EAGER gtNetConfig. Neither token field
@@ -123,7 +123,7 @@ class GTNetPeerHandshakeWireTest {
     JsonNode reply = send(refresh, supersededTokenForPeerB);
 
     assertThat(reply.path("messageCode").asInt()).isEqualTo(TOKEN_REFRESH_ACCEPT);
-    tokenForPeerB = reply.path("gtNetMessageParamMap").path("tokenThis").path("paramValue").asText();
+    tokenForPeerB = reply.path("gtNetMessageParamMap").path("tokenThis").path("paramValue").asString();
     assertThat(tokenForPeerB).isNotBlank().isNotEqualTo(supersededTokenForPeerB);
 
     assertThat(GTNetPeerTestSupport
@@ -158,7 +158,7 @@ class GTNetPeerHandshakeWireTest {
     JsonNode reply = send(refresh, beforeSecondRotation);
 
     assertThat(reply.path("messageCode").asInt()).isEqualTo(TOKEN_REFRESH_ACCEPT);
-    tokenForPeerB = reply.path("gtNetMessageParamMap").path("tokenThis").path("paramValue").asText();
+    tokenForPeerB = reply.path("gtNetMessageParamMap").path("tokenThis").path("paramValue").asString();
 
     assertThat(GTNetPeerTestSupport
         .postJson(GTNetPeerTestSupport.PEER_B, "/m2m/gtnet", supersededTokenForPeerB, envelope(PING).toString())
@@ -187,7 +187,7 @@ class GTNetPeerHandshakeWireTest {
     JsonNode reply = send(handshake, null);
 
     assertThat(reply.path("messageCode").asInt()).isEqualTo(ERROR);
-    assertThat(reply.path("errorMsgCode").asText()).isEqualTo("DOMAIN_MISMATCH");
+    assertThat(reply.path("errorMsgCode").asString()).isEqualTo("DOMAIN_MISMATCH");
     // Neither of the two names may have been created: the handshake is unauthenticated, so a caller that cannot even
     // agree with itself about who it is must not leave a peer entry behind.
     String gtNet = GTNetPeerTestSupport.readGTNet(GTNetPeerTestSupport.PEER_B, jwtB).toString();
@@ -202,7 +202,7 @@ class GTNetPeerHandshakeWireTest {
     JsonNode reply = send(takeover, null);
 
     assertThat(reply.path("messageCode").asInt()).isEqualTo(ERROR);
-    assertThat(reply.path("errorMsgCode").asText()).isEqualTo("HANDSHAKE_ALREADY_ESTABLISHED");
+    assertThat(reply.path("errorMsgCode").asString()).isEqualTo("HANDSHAKE_ALREADY_ESTABLISHED");
     // The token issued by the accepted handshake still works, so the takeover attempt changed nothing. Were the
     // handshake allowed to mint a fresh pair, this ping would fail and the legitimate peer would be locked out.
     assertThat(GTNetPeerTestSupport
@@ -276,7 +276,7 @@ class GTNetPeerHandshakeWireTest {
    */
   private static void deleteSyntheticPeer() throws Exception {
     for (JsonNode entry : GTNetPeerTestSupport.readGTNet(GTNetPeerTestSupport.PEER_B, jwtB).path("gtNetList")) {
-      if (SYNTHETIC_DOMAIN.equals(entry.path("domainRemoteName").asText())) {
+      if (SYNTHETIC_DOMAIN.equals(entry.path("domainRemoteName").asString())) {
         GTNetPeerTestSupport.deleteApi(GTNetPeerTestSupport.PEER_B, "/api/gtnet/" + entry.path("idGtNet").asInt(),
             jwtB);
         return;
