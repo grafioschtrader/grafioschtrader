@@ -20,6 +20,7 @@ grafiosch.udfalluserfields
 grafiosch.service
 grafiosch.m2m
 grafiosch.m2m.client
+grafiosch.m2m.rest
 grafiosch.repository
 grafiosch.rest
 grafiosch.rest.helper
@@ -115,7 +116,6 @@ grafioschtrader.connector.instrument.fxubc
 grafioschtrader.connector.instrument.divvydiary
 grafioschtrader.connector.instrument.coinmarketcap
 grafioschtrader.connector.yahoo
-grafioschtrader.m2m.rest
 grafioschtrader.tax.swiss.ech0196
 grafioschtrader.tax.swiss.ech0196.model
 grafioschtrader.tax.swiss.ictax
@@ -147,3 +147,4 @@ grafiosch.integration.rest
 grafiosch.integration.security
 grafiosch.integration.entities
 grafiosch.integration.config
+grafiosch.integration.gtnet

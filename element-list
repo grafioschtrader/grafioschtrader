@@ -18,12 +18,14 @@ grafiosch.gtnet.model
 grafiosch.gtnet.model.msg
 grafiosch.integration.config
 grafiosch.integration.entities
+grafiosch.integration.gtnet
 grafiosch.integration.repository
 grafiosch.integration.rest
 grafiosch.integration.security
 grafiosch.limit
 grafiosch.m2m
 grafiosch.m2m.client
+grafiosch.m2m.rest
 grafiosch.nls
 grafiosch.repository
 grafiosch.rest
@@ -101,7 +103,6 @@ grafioschtrader.gtnet.m2m.model
 grafioschtrader.gtnet.model
 grafioschtrader.gtnet.model.msg
 grafioschtrader.instrument
-grafioschtrader.m2m.rest
 grafioschtrader.platform
 grafioschtrader.platform.cornertrader
 grafioschtrader.platform.degiro
