@@ -20,7 +20,8 @@ import org.junit.platform.suite.api.Suite;
  */
 @Suite
 @SelectClasses({ UserResourceTest.class, EntityLimitResourceTest.class, GTNetAuthorizationTest.class,
-    MailSendRecvResourceTest.class, MailSettingForwardResourceTest.class, TaskDataChangeResourceTest.class })
+    GTNetDeleteResourceTest.class, MailSendRecvResourceTest.class, MailSettingForwardResourceTest.class,
+    TaskDataChangeResourceTest.class })
 public class ResourceTestSuite {
 
 }

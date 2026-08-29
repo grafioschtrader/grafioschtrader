@@ -175,6 +175,14 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * Imports GTNet configuration from a SQL export string. Validates the header marker and each statement before
    * execution. Runs within a single transaction — rolls back on any failure.
    *
+   * <p>
+   * The uploaded file carries GTNet tables only, never {@code globalparameters}, so the own-entry parameter
+   * {@code g.gnet.my.entry.id} is re-resolved from the imported rows as part of the import: by the domain name this
+   * instance identified itself with before the import, otherwise by matching an imported domain against this machine's
+   * network interfaces. When neither identifies an entry the parameter is left as it is and the failure is logged, so
+   * that a host whose public domain resolves to no locally bound address does not lose an import over it.
+   * </p>
+   *
    * @param sqlStatements  the SQL export content to import
    * @param expectedHeader the expected header comment (e.g., "-- GTNET_EXPORT_V1_BASE")
    */

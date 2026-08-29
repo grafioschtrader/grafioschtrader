@@ -11,6 +11,11 @@ import { ToastModule } from '@openng/optimus-ui/toast';
  * Component that bridges application messages to the Optimus UI toast service.
  * Subscribes to message events from MessageToastService and renders the shared toast outlet.
  *
+ * Duplicates are suppressed with `preventOpenDuplicates`, never with `preventDuplicates`: the latter matches against
+ * an archive that Optimus UI appends to and never clears, so a message would be shown at most once for the lifetime
+ * of the browser session. Repeating an action that keeps failing has to keep saying so, which `preventOpenDuplicates`
+ * allows - it only hides a message while an identical one is still on screen.
+ *
  * Usage: Include once in the root component template (app.component.ts):
  * ```html
  * <toast-message></toast-message>
@@ -19,7 +24,7 @@ import { ToastModule } from '@openng/optimus-ui/toast';
 @Component({
   selector: 'toast-message',
   template: `
-    <p-toast position="top-right" [preventDuplicates]="true">
+    <p-toast position="top-right" [preventOpenDuplicates]="true">
       <ng-template pTemplate="message" let-message>
         <div class="p-toast-message-text">
           <div class="p-toast-summary">{{ message.summary }}</div>

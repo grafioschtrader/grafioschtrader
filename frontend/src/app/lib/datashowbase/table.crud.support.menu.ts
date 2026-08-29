@@ -146,12 +146,17 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
       'MSG_CONFIRM_DELETE_RECORD|' + this.entityNameUpper,
       () => {
         entity = this.beforeDelete(entity);
-        this.deleteService.deleteEntity(entity[this.entityKeyName]).subscribe((response) => {
-          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: this.entityNameUpper
-          });
-          this.resetMenu(null);
-          this.readData();
+        // An error branch is required: the toast is written by BaseAuthService.handleError, but without it the
+        // rejected observable is rethrown as an unhandled error and the menu keeps offering the failed action.
+        this.deleteService.deleteEntity(entity[this.entityKeyName]).subscribe({
+          next: () => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
+              i18nRecord: this.entityNameUpper
+            });
+            this.resetMenu(null);
+            this.readData();
+          },
+          error: () => this.resetMenu(null)
         });
       }
     );

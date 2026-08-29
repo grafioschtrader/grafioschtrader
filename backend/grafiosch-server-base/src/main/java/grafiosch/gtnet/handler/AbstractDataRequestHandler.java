@@ -120,9 +120,7 @@ public abstract class AbstractDataRequestHandler extends AbstractRequestHandler 
     for (IExchangeKindType kind : kinds) {
       gtNet.getEntityByKind(kind.getValue()).ifPresent(entity -> {
         if (entity.getGtNetConfigEntity() == null) {
-          GTNetConfigEntity configEntity = new GTNetConfigEntity();
-          configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
-          entity.setGtNetConfigEntity(configEntity);
+          entity.setGtNetConfigEntity(new GTNetConfigEntity());
         }
       });
     }

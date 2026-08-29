@@ -1,0 +1,18 @@
+Request URL
+https://gt16o.duckdns.org/api/gtnet/16
+Request Method
+DELETE
+Status Code
+500 500
+Remote Address
+[2a02:aa14:a207:ec00:b368:e8e3:c93f:ca69]:443
+Referrer Policy
+strict-origin-when-cross-origin
+
+Response:
+{
+    "error": {
+        "message": "StaleStateException: Unexpected row count (expected row count 1 but was 0) [delete from gt_net_config_entity where id_gt_net_entity=?]"
+    },
+    "className": "SingleNativeMsgError"
+}

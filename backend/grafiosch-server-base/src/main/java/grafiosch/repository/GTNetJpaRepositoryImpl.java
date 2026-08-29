@@ -918,11 +918,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     entity.setServerState(GTNetServerStateTypes.SS_OPEN);
 
     if (entity.getGtNetConfigEntity() == null) {
-      GTNetConfigEntity configEntity = new GTNetConfigEntity();
-      if (entity.getIdGtNetEntity() != null) {
-        configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
-      }
-      entity.setGtNetConfigEntity(configEntity);
+      entity.setGtNetConfigEntity(new GTNetConfigEntity());
     }
     // Config entity defaults to exchange=true, no need to set explicitly
   }
@@ -1159,9 +1155,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       for (IExchangeKindType kind : acceptedKinds) {
         GTNetEntity entity = targetGTNet.getEntityByKind(kind.getValue()).orElse(null);
         if (entity != null && entity.getGtNetConfigEntity() == null) {
-          GTNetConfigEntity configEntity = new GTNetConfigEntity();
-          configEntity.setIdGtNetEntity(entity.getIdGtNetEntity());
-          entity.setGtNetConfigEntity(configEntity);
+          entity.setGtNetConfigEntity(new GTNetConfigEntity());
         }
       }
       gtNetJpaRepository.save(targetGTNet);
@@ -2110,6 +2104,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     if (!trimmed.startsWith(expectedHeader)) {
       throw new DataViolationException("g.net", "g.gtnet.import.invalid.header", null);
     }
+    // Read before the first DELETE: afterwards the row this instance identified itself with is gone. A domain name
+    // survives an id renumbering, an id does not, so the domain is what carries the identity across the import.
+    String previousOwnDomain = readOwnDomainBeforeImport();
     String[] statements = trimmed.split(";\\s*\n");
     for (String stmt : statements) {
       String cleaned = stmt.strip();
@@ -2119,6 +2116,121 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       validateImportStatement(cleaned);
       jdbcTemplate.execute(cleaned);
     }
+    resolveOwnEntryAfterImport(previousOwnDomain);
+  }
+
+  /**
+   * Reads the domain name of the entry {@code g.gnet.my.entry.id} names at the moment the import starts.
+   *
+   * <p>
+   * Deliberately a JDBC read rather than {@code gtNetJpaRepository.findById}: the import writes through
+   * {@link JdbcTemplate}, so the persistence context of this transaction would keep handing back rows the import has
+   * already deleted.
+   * </p>
+   *
+   * @return the own domain name before the import, or null when this instance has no own entry
+   */
+  private String readOwnDomainBeforeImport() {
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
+    if (myEntryId == null) {
+      return null;
+    }
+    List<String> domains = jdbcTemplate.queryForList(
+        "SELECT `domain_remote_name` FROM `" + GTNet.TABNAME + "` WHERE `id_gt_net` = ?", String.class, myEntryId);
+    return domains.isEmpty() ? null : domains.get(0);
+  }
+
+  /**
+   * Re-points {@code g.gnet.my.entry.id} at the imported row that is this instance.
+   *
+   * <p>
+   * The import replaces every GTNet table but must not carry {@code globalparameters} rows in the uploaded file, so the
+   * own-entry parameter is resolved here instead. Without it a restore into a database whose parameter was nulled -
+   * which every freshly built database is - brings the own entry back into {@code gt_net} while the instance keeps
+   * reporting that it has no GTNet identity, and a restore that renumbers ids makes the instance treat a foreign peer
+   * as itself.
+   * </p>
+   *
+   * <p>
+   * Resolution is by the domain name held before the import first, and only then by
+   * {@link #isDomainNameThisMachine(String)} - the same rule {@code saveOnlyAttributes} uses to claim the own entry.
+   * That method has a known false negative behind NAT or a reverse proxy, where the public host name resolves to no
+   * locally bound address, so failing to resolve leaves the parameter untouched rather than rolling the import back.
+   * </p>
+   *
+   * @param previousOwnDomain the own domain name read before the import, or null when there was none
+   */
+  private void resolveOwnEntryAfterImport(String previousOwnDomain) {
+    Map<Integer, String> importedDomains = readImportedDomains();
+    Integer resolved = findIdByDomain(importedDomains, previousOwnDomain);
+    if (resolved == null) {
+      resolved = findIdByThisMachine(importedDomains);
+    }
+    Integer currentEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
+    if (resolved == null) {
+      log.error("GTNet import could not identify the own entry among the imported domains {}; g.gnet.my.entry.id stays "
+          + "{}. Set it to the id of this instance's own entry.", importedDomains.values(), currentEntryId);
+      return;
+    }
+    if (!resolved.equals(currentEntryId)) {
+      globalparametersJpaRepository.saveGTNetMyEntryID(resolved);
+      log.info("GTNet import moved g.gnet.my.entry.id from {} to {} ({})", currentEntryId, resolved,
+          importedDomains.get(resolved));
+    }
+  }
+
+  /**
+   * Reads id and domain name of every row the import has just written.
+   *
+   * @return the imported entries by id, never null
+   */
+  private Map<Integer, String> readImportedDomains() {
+    Map<Integer, String> importedDomains = new HashMap<>();
+    jdbcTemplate.queryForList("SELECT `id_gt_net`, `domain_remote_name` FROM `" + GTNet.TABNAME + "`").forEach(
+        row -> importedDomains.put(((Number) row.get("id_gt_net")).intValue(), (String) row.get("domain_remote_name")));
+    return importedDomains;
+  }
+
+  /**
+   * Finds the imported row carrying exactly the given domain name.
+   *
+   * @param importedDomains  the imported entries by id
+   * @param domainRemoteName the domain name to look for, may be null
+   * @return the id of the matching entry, or null when there is none
+   */
+  private Integer findIdByDomain(Map<Integer, String> importedDomains, String domainRemoteName) {
+    if (domainRemoteName == null) {
+      return null;
+    }
+    return importedDomains.entrySet().stream().filter(entry -> domainRemoteName.equals(entry.getValue()))
+        .map(Map.Entry::getKey).findFirst().orElse(null);
+  }
+
+  /**
+   * Finds the imported row whose domain name resolves to an address of this machine. A domain that cannot be resolved
+   * belongs to a peer and is skipped rather than failing the import. Two matching rows leave the decision open, because
+   * picking one of them would be a guess about this instance's identity.
+   *
+   * @param importedDomains the imported entries by id
+   * @return the id of the single entry that is this machine, or null when none or more than one matches
+   */
+  private Integer findIdByThisMachine(Map<Integer, String> importedDomains) {
+    List<Integer> matches = new ArrayList<>();
+    for (Map.Entry<Integer, String> entry : importedDomains.entrySet()) {
+      try {
+        if (entry.getValue() != null && isDomainNameThisMachine(entry.getValue())) {
+          matches.add(entry.getKey());
+        }
+      } catch (SocketException | UnknownHostException | URISyntaxException _) {
+        log.debug("GTNet import cannot resolve {}, so it is not this machine", entry.getValue());
+      }
+    }
+    if (matches.size() > 1) {
+      log.error("GTNet import found {} imported entries pointing at this machine; g.gnet.my.entry.id left unchanged",
+          matches.size());
+      return null;
+    }
+    return matches.isEmpty() ? null : matches.get(0);
   }
 
   private void validateImportStatement(String statement) {

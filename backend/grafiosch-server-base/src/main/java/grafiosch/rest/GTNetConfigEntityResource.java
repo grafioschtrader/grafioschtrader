@@ -42,7 +42,9 @@ public class GTNetConfigEntityResource extends UpdateCreate<GTNetConfigEntity> {
 
   /**
    * Allows upsert: if the GTNetConfigEntity does not exist yet but the parent GTNetEntity does, create the config
-   * entity instead of returning 404.
+   * entity instead of returning 404. The incoming object carries the parent only as an id, so the association that
+   * {@code @MapsId} derives the primary key from has to be set here - this is the one place a configuration is built
+   * without going through {@code GTNetEntity.setGtNetConfigEntity}.
    */
   @Override
   protected ResponseEntity<GTNetConfigEntity> updateSpecialEntity(User user, GTNetConfigEntity entity)
@@ -50,7 +52,7 @@ public class GTNetConfigEntityResource extends UpdateCreate<GTNetConfigEntity> {
     GTNetConfigEntity existingEntity = gtNetConfigEntityJpaRepository.findById(entity.getId()).orElse(null);
     if (existingEntity == null && gtNetEntityJpaRepository.existsById(entity.getIdGtNetEntity())) {
       // Parent entity exists but config entity does not — allow creation
-      existingEntity = null;
+      entity.setGtNetEntity(gtNetEntityJpaRepository.getReferenceById(entity.getIdGtNetEntity()));
     } else if (existingEntity == null) {
       return ResponseEntity.notFound().build();
     }

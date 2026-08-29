@@ -21,10 +21,13 @@ import { clickShowMenuItem, GTNET_RX, openGTNetSetup, readGTNet, visibleDialog }
  *    `ActivePanelService`, which routes them to the top menu bar's "View" / "Ansicht" menu. A right click on a
  *    row only ever yields the CRUD items.
  *  - **The export is a real browser download** (`saveAs`), so it is captured through `page.waitForEvent`.
- *  - **The import replaces the GTNet tables wholesale** — `DELETE` for every table, then the `INSERT`s — but it
- *    does not touch `globalparameters`. `g.gnet.my.entry.id` therefore survives, and because the export carries
- *    the own entry with its original id the identity still resolves afterwards. That is exactly why the
- *    captured baseline has to contain a valid own entry, and why this spec runs after `040`.
+ *  - **The import replaces the GTNet tables wholesale** — `DELETE` for every table, then the `INSERT`s — and the
+ *    uploaded file never carries `globalparameters`. `g.gnet.my.entry.id` is therefore re-resolved by
+ *    `importGTNetConfig` itself: it remembers the own `domainRemoteName` before the first `DELETE` and points the
+ *    parameter back at whichever imported row carries that domain, falling back to matching an imported domain
+ *    against this machine's interfaces. On this round trip the ids are unchanged, so the value stays the same —
+ *    what the assertions below check is that the identity still resolves. That is why the captured baseline has to
+ *    contain a valid own entry, and why this spec runs after `040`.
  *
  * The negative case is the header check in `importGTNetConfig`: a file that does not begin with this host's
  * marker is refused with `gt.gtnet.import.invalid.header`, so an application export can never be dropped into

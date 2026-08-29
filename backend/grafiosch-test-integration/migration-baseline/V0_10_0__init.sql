@@ -93,6 +93,7 @@ CREATE TABLE `gt_net_config` (
   `daily_req_limit_date` date DEFAULT NULL,
   `token_this_previous` varchar(32) DEFAULT NULL COMMENT 'The token replaced by the last rotation, accepted until token_this_previous_valid_until',
   `token_this_previous_valid_until` datetime DEFAULT NULL COMMENT 'UTC instant after which token_this_previous is no longer accepted',
+  `reconnect_requested_time` timestamp NULL DEFAULT NULL COMMENT 'UTC instant of the last first contact refused because a handshake with this peer already exists',
   PRIMARY KEY (`id_gt_net`),
   CONSTRAINT `FK_GTNetConfig_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -17,7 +17,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Max;
@@ -83,9 +82,13 @@ public class GTNetEntity extends BaseID<Integer> {
   @Max(value = 999)
   private Short maxLimit = 300;
 
+  /**
+   * The entity-specific configuration, which shares this row's primary key. {@code mappedBy} is what states that the
+   * foreign key lives in {@code gt_net_config_entity} - the direction the database constraint has - so that Hibernate
+   * writes the configuration after this row and deletes it before it.
+   */
   @Schema(description = "Entity-specific configuration for exchange settings, logging, and consumer usage")
-  @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-  @PrimaryKeyJoinColumn(name = "id_gt_net_entity", referencedColumnName = "id_gt_net_entity")
+  @OneToOne(mappedBy = "gtNetEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
   private GTNetConfigEntity gtNetConfigEntity;
 
   /**
@@ -201,22 +204,28 @@ public class GTNetEntity extends BaseID<Integer> {
     return gtNetConfigEntity;
   }
 
+  /**
+   * Attaches a configuration to this entity and points it back at this entity. The back reference is what carries the
+   * shared primary key, so every caller must go through this setter rather than assigning the field.
+   *
+   * @param gtNetConfigEntity the configuration to attach, null to detach
+   */
   public void setGtNetConfigEntity(GTNetConfigEntity gtNetConfigEntity) {
     this.gtNetConfigEntity = gtNetConfigEntity;
+    if (gtNetConfigEntity != null) {
+      gtNetConfigEntity.setGtNetEntity(this);
+    }
   }
 
   /**
-   * Returns the existing GTNetConfigEntity or creates a new one if none exists. For persisted entities, sets the config
-   * entity's ID; for new entities, the ID must be set after persistence.
+   * Returns the existing GTNetConfigEntity or creates a new one if none exists. The identifier of a newly created
+   * configuration is derived from this entity by {@code @MapsId} when it is written, so it needs no id of its own.
    *
    * @return the existing or newly created GTNetConfigEntity
    */
   public GTNetConfigEntity getOrCreateConfigEntity() {
     if (gtNetConfigEntity == null) {
-      gtNetConfigEntity = new GTNetConfigEntity();
-      if (idGtNetEntity != null) {
-        gtNetConfigEntity.setIdGtNetEntity(idGtNetEntity);
-      }
+      setGtNetConfigEntity(new GTNetConfigEntity());
     }
     return gtNetConfigEntity;
   }
