@@ -58,3 +58,11 @@ ALTER TABLE tenant DROP COLUMN IF EXISTS id_gt_import_platform;
 -- handshake. The administrator action that re-admits a peer which lost its tokens has to restore exactly that
 -- never-handshaked state, so the constraint has to go.
 ALTER TABLE gt_net_config MODIFY COLUMN token_remote VARCHAR(32) NULL;
+
+-- A peer that lost its own credentials cannot reach us any more: its first contact is refused because we still
+-- hold a token for it, and an admin message needs the very handshake it cannot complete. Until now that refusal
+-- left nothing behind but a line in the server log, so the administrator on this side had no way of learning
+-- that someone wants back in. The refusal now stamps this column, and the GTNet setup table turns it into a
+-- visible marker on the peer's row.
+ALTER TABLE gt_net_config ADD COLUMN IF NOT EXISTS reconnect_requested_time TIMESTAMP NULL DEFAULT NULL
+  COMMENT 'UTC instant of the last first contact refused because a handshake with this peer already exists';

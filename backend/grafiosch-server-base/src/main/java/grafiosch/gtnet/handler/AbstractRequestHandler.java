@@ -46,6 +46,7 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
     // 1. Validate the request
     ValidationResult validation = validateRequest(context);
     if (!validation.valid()) {
+      onValidationFailed(context, validation);
       return new HandlerResult.ProcessingError<>(validation.errorCode(), validation.message());
     }
 
@@ -165,6 +166,24 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
    * @return validation result indicating success or failure with error details
    */
   protected abstract ValidationResult validateRequest(GTNetMessageContext context);
+
+  /**
+   * Records whatever a refused request should still leave behind, called after {@link #validateRequest} has rejected
+   * the message and before the error is returned. The message itself is deliberately not stored - a caller that was
+   * refused must not appear as a partner - so this hook exists for the cases where the refusal is nevertheless worth
+   * knowing about on this side.
+   *
+   * <p>
+   * The default does nothing. An override must be cheap and must not throw: it runs on a request that is already
+   * being refused, and an exception here would turn a clean refusal into a failed request.
+   * </p>
+   *
+   * @param context    the message context
+   * @param validation the failed result, carrying the error code that says why
+   */
+  protected void onValidationFailed(GTNetMessageContext context, ValidationResult validation) {
+    // Nothing by default; a refused request usually leaves no trace.
+  }
 
   /**
    * Processes request-specific side effects before response determination.

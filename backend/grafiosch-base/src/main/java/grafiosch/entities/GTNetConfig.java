@@ -114,6 +114,17 @@ public class GTNetConfig extends BaseID<Integer> {
   @Column(name = "handshake_timestamp")
   private LocalDateTime handshakeTimestamp;
 
+  @Schema(description = """
+      UTC instant of the last first contact this peer sent that was refused because a handshake with it already
+      exists. A peer whose own credentials are gone - a rebuilt database, a restored backup, a moved instance -
+      cannot repair the connection by itself and cannot even ask, because an administrative message requires the
+      very handshake it is being refused. This stamp is what tells the administrator on this side that someone
+      wants back in, and the GTNet setup table turns it into a visible marker on the peer's row. It is cleared
+      once the peer has handshaked again or the administrator has allowed a new handshake.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME)
+  @Column(name = "reconnect_requested_time")
+  private LocalDateTime reconnectRequestedTime;
+
   @JsonIgnore
   @Schema(description = """
       The token that tokenThis replaced at the last rotation. A token refresh is committed by the answerer while it
@@ -264,5 +275,13 @@ public class GTNetConfig extends BaseID<Integer> {
 
   public void setHandshakeTimestamp(LocalDateTime handshakeTimestamp) {
     this.handshakeTimestamp = handshakeTimestamp;
+  }
+
+  public LocalDateTime getReconnectRequestedTime() {
+    return reconnectRequestedTime;
+  }
+
+  public void setReconnectRequestedTime(LocalDateTime reconnectRequestedTime) {
+    this.reconnectRequestedTime = reconnectRequestedTime;
   }
 }

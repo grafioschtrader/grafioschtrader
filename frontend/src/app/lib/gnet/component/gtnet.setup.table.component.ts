@@ -95,6 +95,22 @@ import saveAs from '../../filesaver/filesaver';
           </div>
         }
       </h4>
+
+      <!-- The peer asked to start over and was refused because we still hold its token. It cannot tell us any other
+           way, so the marker is the message: clicking it allows the new handshake, exactly as the context menu does. -->
+      <ng-template #svgIconCell let-row let-field="field" let-value="value">
+        @if (value) {
+          <button
+            type="button"
+            class="reconnect-flag"
+            [disabled]="!canAdministerGTNet"
+            [pTooltip]="'GT_NET_RECONNECT_REQUESTED_TOOLTIP' | translate: { date: value }"
+            tooltipPosition="top"
+            (click)="resetHandshake(row)">
+            <i class="fa fa-handshake-o" aria-hidden="true"></i>
+          </button>
+        }
+      </ng-template>
     </configurable-table>
 
     <ng-template #expandedRow let-row>
@@ -140,6 +156,42 @@ import saveAs from '../../filesaver/filesaver';
       </upload-file-dialog>
     }
   `,
+  styles: [
+    `
+      /* The marker has to be found without being hunted for: it is the only warm colour in a table of ticks and
+         numbers, and it is a button because pressing it is the whole point. */
+      .reconnect-flag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.6rem;
+        height: 1.6rem;
+        padding: 0;
+        border: 1px solid #c2610f;
+        border-radius: 50%;
+        background: #fdf0e3;
+        color: #a8500c;
+        cursor: pointer;
+        font-size: 0.85rem;
+        line-height: 1;
+      }
+      .reconnect-flag:hover:not(:disabled) {
+        background: #c2610f;
+        color: #ffffff;
+      }
+      .reconnect-flag:disabled {
+        cursor: default;
+        opacity: 0.6;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .reconnect-flag {
+          transition:
+            background-color 120ms ease,
+            color 120ms ease;
+        }
+      }
+    `
+  ],
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService, GTNetConfigService]
 })
@@ -239,6 +291,14 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       templateName: 'check',
       fieldValueFN: this.isAuthorizedRemote.bind(this)
     });
+    this.addColumn(
+      DataType.DateTimeNumeric,
+      'gtNetConfig.reconnectRequestedTime',
+      'GT_NET_RECONNECT_REQUESTED',
+      true,
+      false,
+      { templateName: 'svgIcon', width: 70 }
+    );
     this.addColumnFeqH(DataType.NumericInteger, 'connectionTimeout', true, false, {
       fieldValueFN: this.getConnectionTimeout.bind(this)
     });
@@ -378,19 +438,22 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   /**
-   * Discards the tokens shared with the selected peer so that it may hand shake again.
+   * Discards the tokens shared with a peer so that it may handshake again.
    *
    * A peer whose own copy of the tokens is gone - after a rebuilt database, a restored backup or a moved instance -
    * cannot repair the connection from its side: its first handshake arrives unauthenticated and is refused as long as
    * a token for it is on record here. Re-admitting it is a decision of this administrator, which is why it is
    * confirmed by name before anything is discarded.
+   *
+   * @param gtNet the peer to re-admit; omitted when called from the context menu, which acts on the selected row
    */
-  private resetHandshake(): void {
-    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN) || !this.selectedEntity) {
+  resetHandshake(gtNet?: GTNet): void {
+    const peer = gtNet ?? this.selectedEntity;
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN) || !peer) {
       return;
     }
-    const id = this.selectedEntity.idGtNet;
-    const domain = this.selectedEntity.domainRemoteName;
+    const id = peer.idGtNet;
+    const domain = peer.domainRemoteName;
     this.confirmationService.confirm({
       header: this.translateService.instant('MSG_GENERAL_HEADER'),
       message: this.translateService.instant('GT_NET_RESET_HANDSHAKE_CONFIRM', { domain }),

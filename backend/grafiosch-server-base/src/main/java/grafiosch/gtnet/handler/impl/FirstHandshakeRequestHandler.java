@@ -1,5 +1,6 @@
 package grafiosch.gtnet.handler.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -121,6 +122,50 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
           "A handshake with this domain is already established");
     }
     return ValidationResult.ok();
+  }
+
+  /**
+   * Records that this peer tried to start over, so the administrator on this side can see it and act.
+   *
+   * <p>
+   * A peer whose own credentials are gone is in a corner: its first contact is refused here, and it cannot ask for
+   * help either, because an administrative message requires the very handshake it is being refused. Until this stamp
+   * existed, the refusal left nothing but a line in the server log, and nobody was told. The GTNet setup table turns
+   * the stamp into a marker on the peer's row, from which the administrator allows a new handshake.
+   * </p>
+   *
+   * <p>
+   * Only the newest attempt is kept, and only one write per hour: a caller that retries in a loop is answered exactly
+   * as before and costs a single row update at most once an hour. The stamp is cleared as soon as the peer has
+   * handshaked again, or the administrator has allowed it to.
+   * </p>
+   */
+  @Override
+  protected void onValidationFailed(GTNetMessageContext context, ValidationResult validation) {
+    if (!"HANDSHAKE_ALREADY_ESTABLISHED".equals(validation.errorCode())) {
+      return;
+    }
+    try {
+      String canonicalDomain = domainService
+          .canonicalize(context.getPayloadAs(GTNetPublicDTO.class).getDomainRemoteName());
+      GTNet existing = gtNetJpaRepository.findByDomainRemoteName(canonicalDomain);
+      if (existing == null || existing.getGtNetConfig() == null) {
+        return;
+      }
+      GTNetConfig gtNetConfig = existing.getGtNetConfig();
+      LocalDateTime now = GTNetTime.now();
+      LocalDateTime last = gtNetConfig.getReconnectRequestedTime();
+      if (last != null && last.isAfter(now.minusHours(1))) {
+        return;
+      }
+      gtNetConfig.setReconnectRequestedTime(now);
+      gtNetConfigJpaRepositoryFull.save(gtNetConfig);
+      log.info("Peer {} asked to handshake again but a handshake is still on record; marked for the administrator",
+          existing.getIdGtNet());
+    } catch (RuntimeException e) {
+      // The request is being refused anyway. Failing to note it down must not turn that into a failed request.
+      log.warn("Could not record the reconnect request of a refused handshake", e);
+    }
   }
 
   @Override
@@ -282,6 +327,8 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
     }
     gtNetConfig.setTokenRemote(theirTokenForUs);
     gtNetConfig.setHandshakeTimestamp(GTNetTime.now());
+    // The peer is back; whatever earlier attempt was noted for the administrator has been answered by this one.
+    gtNetConfig.setReconnectRequestedTime(null);
     gtNetConfig = gtNetConfigJpaRepositoryFull.save(gtNetConfig);
     peer.setGtNetConfig(gtNetConfig);
     return peer;

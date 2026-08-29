@@ -2066,6 +2066,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       gtNetConfig.setTokenThisPrevious(null);
       gtNetConfig.setTokenThisPreviousValidUntil(null);
       gtNetConfig.setHandshakeTimestamp(null);
+      gtNetConfig.setReconnectRequestedTime(null);
       gtNetConfigJpaRepository.save(gtNetConfig);
       log.info("Handshake reset for peer {}; it may handshake again", peer.getDomainRemoteName());
     }
