@@ -2052,6 +2052,30 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   @Override
+  @Transactional
+  public GTNetWithMessages resetHandshake(Integer idGtNet) {
+    Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
+    if (idGtNet.equals(myEntryId)) {
+      throw new DataViolationException("g.net", "g.gtnet.cannot.reset.own.entry", null);
+    }
+    GTNet peer = gtNetJpaRepository.findById(idGtNet).orElseThrow();
+    GTNetConfig gtNetConfig = peer.getGtNetConfig();
+    if (gtNetConfig != null) {
+      gtNetConfig.setTokenThis(null);
+      gtNetConfig.setTokenRemote(null);
+      gtNetConfig.setTokenThisPrevious(null);
+      gtNetConfig.setTokenThisPreviousValidUntil(null);
+      gtNetConfig.setHandshakeTimestamp(null);
+      gtNetConfigJpaRepository.save(gtNetConfig);
+      log.info("Handshake reset for peer {}; it may handshake again", peer.getDomainRemoteName());
+    }
+    // Without a token the peer can no longer be probed, so it is put into the state of a peer that was never
+    // handshaked rather than left at the status its last successful contact wrote.
+    statusCheckService.markUnverifiable(peer);
+    return this.getAllGTNetsWithMessages();
+  }
+
+  @Override
   public String exportGTNetConfig(String exportHeader, String[] deleteOnlyTables, String[] exportAndDeleteTables) {
     StringBuilder sql = new StringBuilder();
     sql.append(exportHeader).append("\n");

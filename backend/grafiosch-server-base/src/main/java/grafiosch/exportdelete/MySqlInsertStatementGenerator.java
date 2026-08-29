@@ -1,5 +1,6 @@
 package grafiosch.exportdelete;
 
+import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -9,7 +10,9 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  * Utility class for generating SQL INSERT and DELETE statements from database table data. Used for exporting database
@@ -24,6 +27,30 @@ public class MySqlInsertStatementGenerator {
   private static final int ROWS_PER_INSERT = 500;
 
   /**
+   * Reads the rows of an export query. MariaDB maps a {@code TINYINT(1)} column to {@code java.lang.Boolean}
+   * ({@code tinyInt1isBit}), which is wrong for every column that stores an enum ordinal in a {@code tinyint(1)} -
+   * {@code gt_net_entity.entity_kind}, {@code historyquote.create_type}, {@code correlation_set.sampling_period} and
+   * others. {@code ResultSet#getObject} collapses 2, 3 and 5 all to {@code true}, so the export writes back 1 and the
+   * value is lost; on {@code gt_net_entity} the collapse additionally violates {@code UQ_gt_net_entity_kind} at import
+   * time. {@code getInt} bypasses the mapping and yields the stored number. A genuine boolean column comes out as 0 or
+   * 1, which MariaDB accepts unchanged.
+   *
+   * <p>Everything else stays exactly what {@code JdbcTemplate.queryForList} produced: {@link ColumnMapRowMapper}
+   * keeps the case-insensitive map and the column keys from {@code JdbcUtils.lookupColumnName}.</p>
+   */
+  public static final RowMapper<Map<String, Object>> EXPORT_ROW_MAPPER = new ColumnMapRowMapper() {
+    @Override
+    protected Object getColumnValue(ResultSet rs, int index) throws SQLException {
+      int columnType = rs.getMetaData().getColumnType(index);
+      if (columnType == Types.BIT || columnType == Types.BOOLEAN) {
+        int value = rs.getInt(index);
+        return rs.wasNull() ? null : value;
+      }
+      return super.getColumnValue(rs, index);
+    }
+  };
+
+  /**
    * Generates SQL INSERT statements for all rows in the specified table.
    *
    * @param jdbcTemplate the JDBC template for querying the database
@@ -33,7 +60,7 @@ public class MySqlInsertStatementGenerator {
   public static StringBuilder generateInsertStatements(JdbcTemplate jdbcTemplate, String tableName) {
     StringBuilder sqlStatement = new StringBuilder();
     String query = "SELECT * FROM " + tableName;
-    final List<Map<String, Object>> rows = jdbcTemplate.queryForList(query);
+    final List<Map<String, Object>> rows = jdbcTemplate.query(query, EXPORT_ROW_MAPPER);
     if (!rows.isEmpty()) {
       ResultSetMetaData metaData = jdbcTemplate
           .query(query + " LIMIT 1", (resultSet, _) -> resultSet.getMetaData()).get(0);
@@ -134,8 +161,8 @@ public class MySqlInsertStatementGenerator {
     String queryWithRef = baseQuery + " WHERE `" + selfRefColumn + "` IS NOT NULL";
 
     ResultSetMetaData metaData = null;
-    List<Map<String, Object>> rowsNoRef = jdbcTemplate.queryForList(queryNoRef);
-    List<Map<String, Object>> rowsWithRef = jdbcTemplate.queryForList(queryWithRef);
+    List<Map<String, Object>> rowsNoRef = jdbcTemplate.query(queryNoRef, EXPORT_ROW_MAPPER);
+    List<Map<String, Object>> rowsWithRef = jdbcTemplate.query(queryWithRef, EXPORT_ROW_MAPPER);
 
     if (rowsNoRef.isEmpty() && rowsWithRef.isEmpty()) {
       return sqlStatement;

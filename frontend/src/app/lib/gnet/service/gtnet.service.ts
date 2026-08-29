@@ -106,6 +106,27 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
     return this.updateEntity(gtNet, gtNet.idGtNet, BaseSettings.GT_NET_KEY);
   }
 
+  /**
+   * Discards the tokens this instance shares with one peer, so that the peer may complete a first handshake again.
+   * Needed when the peer lost its own copy of the tokens - a rebuilt database, a restored backup, a migrated
+   * instance - because its handshake is otherwise refused with HANDSHAKE_ALREADY_ESTABLISHED. The peer entry, its
+   * messages and its settings are kept.
+   *
+   * @param idGtNet the ID of the remote GTNet entry whose handshake is reset
+   * @returns every GTNet entry with its messages, so the table can be refreshed
+   */
+  resetHandshake(idGtNet: number): Observable<GTNetWithMessages> {
+    return <Observable<GTNetWithMessages>>(
+      this.httpClient
+        .post(
+          `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/${idGtNet}/resethandshake`,
+          null,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
+  }
+
   deleteEntity(idGtNet: number): Observable<any> {
     return this.httpClient
       .delete(`${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}/${idGtNet}`, this.getHeaders())

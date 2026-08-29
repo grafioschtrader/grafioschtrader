@@ -95,7 +95,8 @@ public class MySqlExportMyData {
     Object[] idArray = ExportDeleteHelper.getParamArrayOfStatementForIdTenantOrIdUser(exportDefinition, query, user);
 
     log.debug("Execute: query={}, param={}", query, idArray);
-    final List<Map<String, Object>> rows = jdbcTemplate.queryForList(query, idArray);
+    final List<Map<String, Object>> rows = jdbcTemplate.query(query,
+        MySqlInsertStatementGenerator.EXPORT_ROW_MAPPER, idArray);
     if (!rows.isEmpty()) {
       query = query + " LIMIT 1";
       java.sql.ResultSetMetaData metaData = jdbcTemplate
@@ -126,7 +127,7 @@ public class MySqlExportMyData {
   private StringBuilder getDataAndCreateInsertStatementRaw(String tableName, String sql) throws Exception {
     StringBuilder sqlStatement = new StringBuilder();
     log.debug("Execute additional export query: table={}, query={}", tableName, sql);
-    final List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+    final List<Map<String, Object>> rows = jdbcTemplate.query(sql, MySqlInsertStatementGenerator.EXPORT_ROW_MAPPER);
     if (!rows.isEmpty()) {
       java.sql.ResultSetMetaData metaData = jdbcTemplate
           .query(sql + " LIMIT 1", (resultSet, _) -> resultSet.getMetaData()).get(0);

@@ -82,7 +82,7 @@ CREATE TABLE `gt_net` (
 CREATE TABLE `gt_net_config` (
   `id_gt_net` int(11) NOT NULL,
   `token_this` varchar(32) DEFAULT NULL,
-  `token_remote` varchar(32) NOT NULL,
+  `token_remote` varchar(32) DEFAULT NULL,
   `daily_req_limit_count` int(11) DEFAULT NULL,
   `daily_req_limit_remote_count` int(11) DEFAULT NULL,
   `supplier_last_update` timestamp NULL DEFAULT NULL,

@@ -49,3 +49,12 @@ DROP PROCEDURE IF EXISTS MigrateGtImportPlatformToGlobalparameter;
 
 ALTER TABLE tenant DROP FOREIGN KEY IF EXISTS FK_Tenant_GtImportPlatform;
 ALTER TABLE tenant DROP COLUMN IF EXISTS id_gt_import_platform;
+
+-- gt_net_config.token_remote becomes nullable.
+--
+-- Every reader already treats a null token_remote as "the outbound handshake is not complete": the status
+-- check skips such a peer and marks it SOS_UNKNOWN, and an admin message to it is refused. Only the column
+-- definition disagreed, because until now a configuration row was written exclusively by a completed
+-- handshake. The administrator action that re-admits a peer which lost its tokens has to restore exactly that
+-- never-handshaked state, so the constraint has to go.
+ALTER TABLE gt_net_config MODIFY COLUMN token_remote VARCHAR(32) NULL;

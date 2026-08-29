@@ -95,6 +95,16 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
     return new ResponseEntity<>(gtNetJpaRepository.checkPeerStatusNow(idGtNet), HttpStatus.OK);
   }
 
+  @Operation(summary = "Clears the tokens shared with one GTNet peer so it can handshake again", description = "Admin-only. Re-admits a peer that lost its own copy of the tokens and is therefore refused with "
+      + "HANDSHAKE_ALREADY_ESTABLISHED. The peer row, its messages, its exchange kinds and its settings are kept; "
+      + "only the credentials are dropped and the peer is left SOS_UNKNOWN until it handshakes again.", tags = {
+          RequestMappings.GTNET })
+  @PreAuthorize("hasRole('ADMIN')")
+  @PostMapping(value = "/{idGtNet}/resethandshake", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<GTNetWithMessages> resetHandshake(@PathVariable final Integer idGtNet) {
+    return new ResponseEntity<>(gtNetJpaRepository.resetHandshake(idGtNet), HttpStatus.OK);
+  }
+
   @Override
   protected UpdateCreateJpaRepository<GTNet> getUpdateCreateJpaRepository() {
     return gtNetJpaRepository;

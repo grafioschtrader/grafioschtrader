@@ -368,7 +368,43 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       command: () => this.checkPeerStatusNow(),
       disabled: !this.selectedEntity || this.selectedEntity.idGtNet === this.gtNetMyEntryId
     });
+    menuItems.push({
+      label: 'GT_NET_RESET_HANDSHAKE',
+      command: () => this.resetHandshake(),
+      disabled:
+        !this.selectedEntity || this.selectedEntity.idGtNet === this.gtNetMyEntryId || !this.selectedEntity.gtNetConfig
+    });
     return menuItems;
+  }
+
+  /**
+   * Discards the tokens shared with the selected peer so that it may hand shake again.
+   *
+   * A peer whose own copy of the tokens is gone - after a rebuilt database, a restored backup or a moved instance -
+   * cannot repair the connection from its side: its first handshake arrives unauthenticated and is refused as long as
+   * a token for it is on record here. Re-admitting it is a decision of this administrator, which is why it is
+   * confirmed by name before anything is discarded.
+   */
+  private resetHandshake(): void {
+    if (!this.gps.hasRole(BaseSettings.ROLE_ADMIN) || !this.selectedEntity) {
+      return;
+    }
+    const id = this.selectedEntity.idGtNet;
+    const domain = this.selectedEntity.domainRemoteName;
+    this.confirmationService.confirm({
+      header: this.translateService.instant('MSG_GENERAL_HEADER'),
+      message: this.translateService.instant('GT_NET_RESET_HANDSHAKE_CONFIRM', { domain }),
+      accept: () =>
+        this.gtNetService.resetHandshake(id).subscribe({
+          next: () => {
+            this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'GT_NET_RESET_HANDSHAKE_SUCCESS', {
+              domain
+            });
+            this.resetMenu(null);
+            this.readData();
+          }
+        })
+    });
   }
 
   private checkPeerStatusNow(): void {
