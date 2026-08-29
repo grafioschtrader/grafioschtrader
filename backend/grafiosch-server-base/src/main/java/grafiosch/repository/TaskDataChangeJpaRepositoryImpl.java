@@ -71,17 +71,17 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
   }
 
   /**
-   * Builds the task-scoped {@code entityIdOptions} map from the staging maps. For every task and each of its
-   * allowed entities, a task-specific override wins over a shared option list. Tasks with no matching options are
-   * left out so the frontend falls back to a numeric input for those entities.
+   * Builds the task-scoped {@code entityIdOptions} map from the staging maps. For every task and each of its allowed
+   * entities, a task-specific override wins over a shared option list. Tasks with no matching options are left out so
+   * the frontend falls back to a numeric input for those entities.
    *
    * @param constraints the form constraints whose {@code entityIdOptions} is assembled
    */
   private void composeEntityIdOptions(TaskDataChangeFormConstraints constraints) {
     constraints.taskTypeConfig.forEach((taskType, allowedEntities) -> {
       Map<String, List<ValueKeyHtmlSelectOptions>> perTask = new HashMap<>();
-      Map<String, List<ValueKeyHtmlSelectOptions>> taskSpecific = constraints.taskEntityIdOptions
-          .getOrDefault(taskType, Map.of());
+      Map<String, List<ValueKeyHtmlSelectOptions>> taskSpecific = constraints.taskEntityIdOptions.getOrDefault(taskType,
+          Map.of());
       for (String entity : allowedEntities) {
         List<ValueKeyHtmlSelectOptions> options = taskSpecific.containsKey(entity) ? taskSpecific.get(entity)
             : constraints.sharedEntityIdOptions.get(entity);
@@ -98,7 +98,7 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
   private void checkTaskDataChange(final TaskDataChange taskDataChange, final TaskDataChangeFormConstraints tdcfc) {
     if (taskDataChange.getIdTask().getValue() > tdcfc.maxUserCreateTask
         && taskDataChange.getEarliestStartTime().minusDays(tdcfc.maxDaysInFuture).isAfter(LocalDateTime.now())) {
-      throw new GeneralNotTranslatedWithArgumentsException("gt.taskdatachange.user.definition", null);
+      throw new GeneralNotTranslatedWithArgumentsException("g.taskdatachange.user.definition", null);
     }
 
   }

@@ -8,8 +8,8 @@ interface TenantEditTarget {
   excludeDivTax: boolean;
   /** English natural key from the fixture; the de-CH UI renders this country as "Schweiz". */
   country: string;
-  /** Natural key of the import platform; its database id differs between test databases. */
-  idGtImportPlatform: string;
+  /** Opt-in to the Grafioschtrader import templates; the platform itself is configured instance wide. */
+  useGtImportTemplates: boolean;
 }
 
 interface TenantEditUserFixture extends UserFixture {
@@ -20,7 +20,7 @@ interface SavedTenant {
   tenantName: string;
   excludeDivTax: boolean;
   country: string;
-  idGtImportPlatform: number;
+  useGtImportTemplates: boolean;
 }
 
 const COUNTRY_CODE_SWITZERLAND = 'CH';
@@ -53,7 +53,9 @@ async function openTenantEditDialog(page: Page): Promise<Locator> {
   const dialog = page.locator('.p-dialog:visible');
   await dialog.waitFor({ state: 'visible', timeout: 10_000 });
   await expect(dialog.locator('select#country option')).not.toHaveCount(0, { timeout: 10_000 });
-  await expect(dialog.locator('select#idGtImportPlatform option')).not.toHaveCount(0, { timeout: 10_000 });
+  // The opt-in is only rendered once an administrator has chosen the import platform of this instance, which the
+  // backend integration suite does before these specs run.
+  await dialog.locator('input#useGtImportTemplates').waitFor({ state: 'visible', timeout: 10_000 });
   return dialog;
 }
 
@@ -63,17 +65,6 @@ async function fillText(dialog: Locator, fieldId: string, value: string): Promis
   await input.fill(value);
   await input.dispatchEvent('input');
   await input.blur();
-}
-
-/** Selects an option by its fixture label and returns the option's generated database-id value. */
-async function selectOptionByLabel(select: Locator, label: string): Promise<string> {
-  const option = select.locator('option').filter({ hasText: label }).first();
-  await option.waitFor({ state: 'attached', timeout: 10_000 });
-  const value = await option.getAttribute('value');
-  expect(value, `option '${label}' has no value`).not.toBeNull();
-  await select.selectOption({ value: value as string });
-  await select.dispatchEvent('change');
-  return value as string;
 }
 
 /** Selects Switzerland by ISO code while checking the localized option label. */
@@ -93,7 +84,7 @@ async function expectTenantTarget(dialog: Locator, target: TenantEditTarget): Pr
   await expect(dialog.locator('select#country option:checked')).toHaveText(
     new RegExp(`^\\s*(${target.country}|Schweiz)\\s*$`, 'i')
   );
-  await expect(dialog.locator('select#idGtImportPlatform option:checked')).toHaveText(target.idGtImportPlatform);
+  await expect(dialog.locator('input#useGtImportTemplates')).toBeChecked({ checked: target.useGtImportTemplates });
 }
 
 test.describe.serial('edit tenant settings', () => {
@@ -107,10 +98,7 @@ test.describe.serial('edit tenant settings', () => {
       await fillText(dialog, 'tenantName', target.tenantName);
       await dialog.locator('input#excludeDivTax').setChecked(target.excludeDivTax);
       await selectSwitzerland(dialog.locator('select#country'), target.country);
-      const importPlatformValue = await selectOptionByLabel(
-        dialog.locator('select#idGtImportPlatform'),
-        target.idGtImportPlatform
-      );
+      await dialog.locator('input#useGtImportTemplates').setChecked(target.useGtImportTemplates);
 
       const updateResponsePromise = page.waitForResponse(
         (response) => response.url().endsWith('/api/tenant') && response.request().method() === 'PUT',
@@ -124,7 +112,7 @@ test.describe.serial('edit tenant settings', () => {
       expect(savedTenant.tenantName).toBe(target.tenantName);
       expect(savedTenant.excludeDivTax).toBe(target.excludeDivTax);
       expect(savedTenant.country).toBe(COUNTRY_CODE_SWITZERLAND);
-      expect(savedTenant.idGtImportPlatform).toBe(Number(importPlatformValue));
+      expect(savedTenant.useGtImportTemplates).toBe(target.useGtImportTemplates);
       await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
     });
 

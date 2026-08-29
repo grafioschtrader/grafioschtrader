@@ -163,11 +163,35 @@ introduced the table.
 
 Pick the prefix by the module that owns the **code** reading/defining the key — not by where the value happens to be configured. A key read by `grafiosch-server-base` must be `g.`, even if grafioschtrader is the only current consumer.
 
+### Enforced by
+
+Two guard tests, because nothing else notices a wrongly prefixed key:
+
+- `NlsBaseBundleGuardTest.baseBundleCarriesNoApplicationPrefix` — no `gt.` key in `grafiosch-base/…/i18n/messages*.properties`.
+- `NlsModuleOwnershipTest.applicationBundleCarriesNoLibraryPrefix` — no `g.` key in `grafioschtrader-common/…/message/messages*.properties`.
+
+Deployment properties have no such guard; `grafiosch-base` declares only `g.` in its
+`META-INF/grafiosch/nls-mapping.properties`, so a `gt.` key added to the library would map one way in the
+full application and another way in a library-only deployment.
+
 ### Exception — connector IDs stay `gt.`
 
 The `gt.datafeed.` connector ID prefix (`BaseFeedConnector.ID_PREFIX`) is **not** subject to this rule and must **not** be renamed. Connectors live entirely in the application layer (`grafioschtrader-server`), so `gt.datafeed.` is the correct application prefix, and it is persisted in `securitycurrency.id_connector_history` / `id_connector_intra` and in `globalparameters` connector defaults (see the "should not be changed, otherwise the persistence must also be adjusted" comment in `BaseFeedConnector`).
 
-> Tracking issue: migrating the remaining library-owned `gt.` keys to `g.` is tracked in GitHub issue #75.
+### Sweep completed in V0.36.9 (issue #75)
+
+Nine library-owned deployment properties were renamed: `g.jwt.secret`, `g.main.user.admin.mail`,
+`g.allowed.users`, `g.demo.account.pattern.de` / `.en`, `g.purge.cron.expression`, `g.purge.task.data`,
+`g.gnet.log.aggregation.cron`, `g.gnet.future.message.cron`. Two things exist only because of that rename
+and may be deleted one release later:
+
+- `grafiosch.config.LegacyGtPropertyEnvironmentPostProcessor` (+ its `META-INF/spring.factories` entry) —
+  accepts the legacy `gt.` names, for Docker hosts whose `docker-compose.yml` is never refreshed by
+  `docker/update.sh`.
+- `util/shellscripts/gt_to_g_rename.sh` — migrates the property files of a classic installation before
+  `merger.sh` runs, wired into `gtupdate.sh` and `docker/update.sh`.
+
+Their mapping tables must stay identical.
 
 ## SQL Statement Placement
 

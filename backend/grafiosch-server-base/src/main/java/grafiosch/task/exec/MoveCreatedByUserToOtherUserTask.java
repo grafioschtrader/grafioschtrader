@@ -33,7 +33,7 @@ public class MoveCreatedByUserToOtherUserTask implements ITask {
       userJpaRepository.moveCreatedByUserToOtherUser(taskDataChange.getOldValueNumber().intValue(),
           taskDataChange.getIdEntity());
     } catch (SQLException sqle) {
-      throw new TaskBackgroundException("gt.move.createdby.procedure.failure", true);
+      throw new TaskBackgroundException("g.move.createdby.procedure.failure", true);
     }
   }
 

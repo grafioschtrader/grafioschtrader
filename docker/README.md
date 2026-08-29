@@ -191,6 +191,10 @@ gunzip -c gt-backup-YYYY-MM-DD.sql.gz | \
 `docker compose exec` allocates by default corrupts the compressed dump, and
 without `--routines` the stored procedures are silently left out of it.
 `install.sh` does not write `DB_NAME` into `.env`, hence the default above.
+An `.env` written before this note has `JAVA_OPTS` unquoted, on which `source .env`
+reports `-Xmx…: command not found` — harmless, because the line comes after the
+passwords and `source` carries on, but `sed -i 's/^JAVA_OPTS=\(.*\)$/JAVA_OPTS="\1"/' .env`
+silences it. Docker Compose reads the file either way.
 
 Also back up the `.env` file — it contains the passwords matching the database
 volume.
@@ -256,6 +260,18 @@ mangled. And the scripts are fed in as `root` because `gt_ddl.sql` creates
 triggers and stored procedures owned by `grafioschtrader@localhost` — that
 account exists because `mariadb-init/10-gt-definer.sh` created it when the
 database volume was first initialized.
+
+An export written by a source instance older than 0.36.9 stops on
+`ERROR 1452 … FK_Tenant_GtImportPlatform`, because `gt_data.sql` inserted the
+`tenant` row before the import platform it points to. Newer exports switch the
+foreign-key checks off themselves; an older file is loaded by prepending that
+switch to it, and the aborted attempt is discarded by repeating step 2 first:
+
+```bash
+sed -i '1i SET FOREIGN_KEY_CHECKS=0;' gt_data.sql
+docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" \
+  --default-character-set=utf8mb4 "$DB_NAME" < gt_data.sql
+```
 
 **You log in with the credentials of the source instance.** The export carries
 your user account and gives it administrator rights in the new instance, so you

@@ -31,12 +31,14 @@ export class GtAfterLoginHandler extends AfterLoginHandler {
     // Store tenant-level closed-until date for transaction period locking
     sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, configurationWithLogin.tenantClosedUntil || '');
 
-    // Store the tenant's Grafioschtrader import platform reference for the transaction import entry points
+    // Store the instance's Grafioschtrader import platform and this tenant's opt-in to its templates
     sessionStorage.setItem(
-      GlobalGTSessionNames.TENANT_ID_GT_IMPORT_PLATFORM,
-      configurationWithLogin.tenantIdGtImportPlatform != null
-        ? String(configurationWithLogin.tenantIdGtImportPlatform)
-        : ''
+      GlobalGTSessionNames.GT_IMPORT_PLATFORM_ID,
+      configurationWithLogin.gtImportPlatformId != null ? String(configurationWithLogin.gtImportPlatformId) : ''
+    );
+    sessionStorage.setItem(
+      GlobalGTSessionNames.TENANT_USE_GT_IMPORT_TEMPLATES,
+      String(!!configurationWithLogin.useGtImportTemplates)
     );
 
     // Store earliest trading day supported by the backend

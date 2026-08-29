@@ -22,28 +22,26 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
  *
  * <p>
  * Provides {@link SecretKey}, {@link JwtEncoder} and {@link JwtDecoder} beans backed by Nimbus JOSE, using the
- * application's HMAC-SHA256 secret key configured via {@code gt.jwt.secret}. These beans replace the former JJWT
- * library after the Spring Boot 4 migration.
+ * application's HMAC-SHA256 secret key configured via {@code g.jwt.secret}. These beans replace the former JJWT library
+ * after the Spring Boot 4 migration.
  * </p>
  */
 @Configuration
 public class JwtConfig {
 
   @Bean
-  SecretKey jwtSecretKey(@Value("${gt.jwt.secret}") String secret) {
+  SecretKey jwtSecretKey(@Value("${g.jwt.secret}") String secret) {
     return new SecretKeySpec(secret.getBytes(), "HmacSHA256");
   }
 
   @Bean
   JwtEncoder jwtEncoder(SecretKey jwtSecretKey) {
-    OctetSequenceKey jwk = new OctetSequenceKey.Builder(jwtSecretKey)
-        .algorithm(JWSAlgorithm.HS256).build();
+    OctetSequenceKey jwk = new OctetSequenceKey.Builder(jwtSecretKey).algorithm(JWSAlgorithm.HS256).build();
     return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(jwk)));
   }
 
   @Bean
   JwtDecoder jwtDecoder(SecretKey jwtSecretKey) {
-    return NimbusJwtDecoder.withSecretKey(jwtSecretKey)
-        .macAlgorithm(MacAlgorithm.HS256).build();
+    return NimbusJwtDecoder.withSecretKey(jwtSecretKey).macAlgorithm(MacAlgorithm.HS256).build();
   }
 }

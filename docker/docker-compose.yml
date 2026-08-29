@@ -33,9 +33,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/${DB_NAME:-grafioschtrader}
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-grafioschtrader}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      GT_JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
-      GT_MAIN_USER_ADMIN_MAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL in .env}
-      GT_ALLOWED_USERS: ${GT_ALLOWED_USERS:-20}
+      G_JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      G_MAIN_USER_ADMIN_MAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL in .env}
+      G_ALLOWED_USERS: ${GT_ALLOWED_USERS:-20}
       GT_USE_WEBSOCKET: ${GT_USE_WEBSOCKET:-false}
       # Secrets are supplied as plain env vars above, which override the ENC(...) values in
       # application.properties — Jasypt is never used, the value below is a placeholder.

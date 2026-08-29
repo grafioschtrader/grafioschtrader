@@ -6,9 +6,9 @@
       "sourceType": "grafioschtrader.connector.instrument.alphavantage.AlphaVantageFeedConnector"
     },
     {
-      "name": "gt.jwt",
-      "type": "grafioschtrader.security.JwtTokenHandler",
-      "sourceType": "grafioschtrader.security.JwtTokenHandler"
+      "name": "g.jwt",
+      "type": "grafiosch.security.JwtConfig",
+      "sourceType": "grafiosch.security.JwtConfig"
     }
   ],
   "properties": [
@@ -18,9 +18,9 @@
       "sourceType": "grafioschtrader.connector.instrument.alphavantage.AlphaVantageFeedConnector"
     },
     {
-      "name": "gt.jwt.secret",
+      "name": "g.jwt.secret",
       "type": "java.lang.String",
-      "sourceType": "grafioschtrader.security.JwtTokenHandler"
+      "sourceType": "grafiosch.security.JwtConfig"
     }
   ],
   "hints": []

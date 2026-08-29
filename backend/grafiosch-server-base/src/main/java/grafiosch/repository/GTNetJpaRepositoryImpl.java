@@ -353,7 +353,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       if (entity.getAcceptRequest() == AcceptRequestTypes.AC_PUSH_OPEN) {
         IExchangeKindType kind = exchangeKindTypeRegistry.getByValue(entity.getEntityKindValue());
         if (kind != null && !kind.supportsPush()) {
-          throw new DataViolationException("accept.request", "gt.gtnet.entity.push.not.supported",
+          throw new DataViolationException("accept.request", "g.gtnet.entity.push.not.supported",
               new Object[] { kind.name() });
         }
       }
@@ -407,7 +407,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     // Resolve message code from string to enum
     GTNetMessageCode messageCode = messageCodeRegistry.getByName(msgRequest.messageCode);
     if (messageCode == null) {
-      throw new DataViolationException("message.code", "gt.gtnet.invalid.message.code",
+      throw new DataViolationException("message.code", "g.gtnet.invalid.message.code",
           new Object[] { msgRequest.messageCode });
     }
 
@@ -422,7 +422,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
           SendReceivedType.SEND.getValue(), GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C.getValue(),
           GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C.getValue());
       if (existingOpenDiscontinued != null) {
-        throw new DataViolationException("message.code", "gt.gtnet.discontinued.already.open", null);
+        throw new DataViolationException("message.code", "g.gtnet.discontinued.already.open", null);
       }
     }
 
@@ -601,7 +601,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       return;
     }
     gtNetJpaRepository.findById(msgRequest.idGTNetTargetDomain).filter(GTNet::isOutOfService).ifPresent(peer -> {
-      throw new DataViolationException("gt.net", "gt.gtnet.peer.out.of.service",
+      throw new DataViolationException("g.net", "g.gtnet.peer.out.of.service",
           new Object[] { peer.getDomainRemoteName() });
     });
   }
@@ -626,7 +626,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     gtNetJpaRepository.findById(msgRequest.idGTNetTargetDomain)
         .filter(peer -> peer.getGtNetConfig() == null || peer.getGtNetConfig().getTokenRemote() == null)
         .ifPresent(peer -> {
-          throw new DataViolationException("gt.net", "gt.gtnet.admin.message.no.handshake",
+          throw new DataViolationException("g.net", "g.gtnet.admin.message.no.handshake",
               new Object[] { peer.getDomainRemoteName() });
         });
   }
@@ -654,7 +654,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       LocalDateTime openFrom = MessageParamDateParser.parseDateTime(open.getGtNetMessageParamMap(), "fromDateTime");
       LocalDateTime openTo = MessageParamDateParser.parseDateTime(open.getGtNetMessageParamMap(), "toDateTime");
       if (openFrom != null && openTo != null && from.isBefore(openTo) && openFrom.isBefore(to)) {
-        throw new DataViolationException("message.code", "gt.gtnet.maintenance.window.overlap",
+        throw new DataViolationException("message.code", "g.gtnet.maintenance.window.overlap",
             new Object[] { openFrom, openTo });
       }
     }
@@ -1485,7 +1485,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       try {
         message.setVisibility(MessageVisibility.valueOf(visibility));
       } catch (IllegalArgumentException e) {
-        throw new DataViolationException("visibility", "gt.gtnet.invalid.visibility", new Object[] { visibility });
+        throw new DataViolationException("visibility", "g.gtnet.invalid.visibility", new Object[] { visibility });
       }
     }
   }
@@ -1940,7 +1940,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   @Transactional
   public GTNetWithMessages submitMsgToMultiple(MultiTargetMsgRequest multiTargetMsgRequest) {
     if (multiTargetMsgRequest.idGTNetTargetDomains == null || multiTargetMsgRequest.idGTNetTargetDomains.isEmpty()) {
-      throw new DataViolationException("id.gtnet.target.domains", "gt.gtnet.multi.target.empty", null);
+      throw new DataViolationException("id.gtnet.target.domains", "g.gtnet.multi.target.empty", null);
     }
 
     GTNet sourceGTNet = gtNetJpaRepository
@@ -2036,7 +2036,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   public void deleteGTNet(Integer idGtNet) {
     Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (idGtNet.equals(myEntryId)) {
-      throw new DataViolationException("gt.net", "gt.gtnet.cannot.delete.own.entry", null);
+      throw new DataViolationException("g.net", "g.gtnet.cannot.delete.own.entry", null);
     }
     boolean hasPending = gtNetMessageJpaRepository
         .findUnansweredRequests(SendReceivedType.SEND.getValue(), messageCodeRegistry.requestCodesRequiringResponse())
@@ -2046,7 +2046,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
                 messageCodeRegistry.requestCodesRequiringResponse())
             .stream().anyMatch(row -> ((Number) row[0]).intValue() == idGtNet);
     if (hasPending) {
-      throw new DataViolationException("gt.net", "gt.gtnet.pending.messages.exist", null);
+      throw new DataViolationException("g.net", "g.gtnet.pending.messages.exist", null);
     }
     gtNetJpaRepository.deleteById(idGtNet);
   }
@@ -2083,7 +2083,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   public void importGTNetConfig(String sqlStatements, String expectedHeader) {
     String trimmed = sqlStatements.strip();
     if (!trimmed.startsWith(expectedHeader)) {
-      throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.header", null);
+      throw new DataViolationException("g.net", "g.gtnet.import.invalid.header", null);
     }
     String[] statements = trimmed.split(";\\s*\n");
     for (String stmt : statements) {
@@ -2100,11 +2100,11 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     String upper = statement.toUpperCase().strip();
     if (upper.startsWith("DELETE FROM") || upper.startsWith("INSERT INTO") || upper.startsWith("UPDATE")) {
       if (!statement.contains("gt_net")) {
-        throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.statement", null);
+        throw new DataViolationException("g.net", "g.gtnet.import.invalid.statement", null);
       }
       return;
     }
-    throw new DataViolationException("gt.net", "gt.gtnet.import.invalid.statement", null);
+    throw new DataViolationException("g.net", "g.gtnet.import.invalid.statement", null);
   }
 
   @Override

@@ -71,7 +71,7 @@ public class GNetExchangeLogAggregationAndDelGTNetMessagesTask implements ITask 
   /**
    * Scheduled method that creates the aggregation task. Runs at the configured cron expression (default: 3 AM daily).
    */
-  @Scheduled(cron = "${gt.gtnet.log.aggregation.cron:0 0 3 * * ?}", zone = BaseConstants.TIME_ZONE)
+  @Scheduled(cron = "${g.gnet.log.aggregation.cron:0 0 3 * * ?}", zone = BaseConstants.TIME_ZONE)
   public void createAggregationTask() {
     if (!globalparametersJpaRepository.isGTNetOperational()) {
       log.debug("GTNet is disabled or has no own entry configured, skipping log aggregation");

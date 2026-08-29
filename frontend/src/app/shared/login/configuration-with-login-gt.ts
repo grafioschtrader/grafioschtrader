@@ -47,9 +47,14 @@ export interface ConfigurationWithLoginGT extends ConfigurationWithLogin {
   forceConnectorMatch: number;
 
   /**
-   * Reference to the tenant's Grafioschtrader import platform holding the GT authored import templates
-   * (receipt PDFs, transaction CSV export). Null when the tenant has not configured it; when set, the
+   * The import platform of this instance holding the GT authored import templates (receipt PDFs, transaction
+   * CSV export), chosen by an administrator. Null when no platform is configured.
+   */
+  gtImportPlatformId: number | null;
+
+  /**
+   * Whether this tenant opted in to those templates. Together with a configured gtImportPlatformId it makes the
    * transaction import entry points offer the "use GT platform" choice.
    */
-  tenantIdGtImportPlatform: number | null;
+  useGtImportTemplates: boolean;
 }

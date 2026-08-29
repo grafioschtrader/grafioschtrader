@@ -423,10 +423,8 @@ CREATE TABLE `tenant` (
   `id_algo_top` int(11) DEFAULT NULL,
   `country` varchar(2) DEFAULT NULL,
   `tax_export_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tax_export_settings`)),
-  `id_gt_import_platform` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id_tenant`),
-  KEY `FK_Tenant_GtImportPlatform` (`id_gt_import_platform`),
-  CONSTRAINT `FK_Tenant_GtImportPlatform` FOREIGN KEY (`id_gt_import_platform`) REFERENCES `imp_trans_platform` (`id_trans_imp_platform`) ON DELETE SET NULL
+  `use_gt_import_templates` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id_tenant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

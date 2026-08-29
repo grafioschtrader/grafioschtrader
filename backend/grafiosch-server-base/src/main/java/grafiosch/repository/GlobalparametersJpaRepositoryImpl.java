@@ -111,8 +111,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     return globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_MY_ENTRY_ID)
         .map(Globalparameters::getPropertyInt).orElse(null);
   }
-  
-  
+
   /**
    * Checks whether GTNet functionality is enabled.
    *
@@ -123,13 +122,12 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
    *
    * @return true if GTNet is enabled, false otherwise
    */
-   @Override
-   public boolean isGTNetEnabled() {
-    return baseFeatureConfig.isGtnet()
-        && globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_USE)
-            .flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
-            .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE) != 0;
-   }
+  @Override
+  public boolean isGTNetEnabled() {
+    return baseFeatureConfig.isGtnet() && globalparametersJpaRepository
+        .findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_USE).flatMap(g -> Optional.ofNullable(g.getPropertyInt()))
+        .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_USE) != 0;
+  }
 
   /**
    * Checks whether GTNet is not only enabled but also operable on this instance.
@@ -161,20 +159,18 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
 
   @Override
   public PropertyStringParser getGTNetLogAggregationConfig() {
-    return PropertyStringParser.parse(
-        globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS)
-            .map(Globalparameters::getPropertyString)
-            .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_LOG_AGGREGATE_DAYS));
+    return PropertyStringParser.parse(globalparametersJpaRepository
+        .findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS).map(Globalparameters::getPropertyString)
+        .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_LOG_AGGREGATE_DAYS));
   }
 
   @Override
   public PropertyStringParser getGTNetMessageDeletionConfig() {
-    return PropertyStringParser.parse(
-        globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_DEL_MESSAGE_RECV)
-            .map(Globalparameters::getPropertyString)
-            .orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_DEL_MESSAGE_RECV));
+    return PropertyStringParser
+        .parse(globalparametersJpaRepository.findById(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_DEL_MESSAGE_RECV)
+            .map(Globalparameters::getPropertyString).orElse(GlobalParamKeyBaseDefault.DEFAULT_GTNET_DEL_MESSAGE_RECV));
   }
-  
+
   @Override
   public int getMaxSecurityBreachCount() {
     return globalparametersJpaRepository.findById(BaseConstants.GLOB_KEY_MAX_SECURITY_BREACH_COUNT)
@@ -241,7 +237,7 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     }
     throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
   }
-  
+
   @Override
   public Globalparameters saveGTNetMyEntryID(Integer idGtNet) {
     Globalparameters gp = new Globalparameters(GlobalParamKeyBaseDefault.GLOB_KEY_GTNET_MY_ENTRY_ID);
@@ -249,13 +245,12 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     gp.setChangedBySystem(true);
     return globalparametersJpaRepository.save(gp);
   }
-  
 
   /**
    * Validates blob properties before saving by deserializing and checking configuration objects. Uses
    * propertiesClassMap to determine the appropriate validation class for blob properties. Performs syntax validation
    * and completeness checks using the IPropertiesSelfCheck interface.
-   * 
+   *
    * @param updGp the global parameters entity containing blob property data to validate
    * @throws Exception if blob property validation fails, object instantiation fails, or localized error message
    *                   retrieval fails
@@ -311,9 +306,9 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
         .findById(GlobalParamKeyBaseDefault.GLOB_KEY_PASSWORT_REGEX);
     PasswordRegexProperties prp = new PasswordRegexProperties();
     if (globalparametersOpt.isEmpty()) {
-      prp = new PasswordRegexProperties(BaseConstants.STANDARD_PASSWORD_REGEX,
-          BaseConstants.G_LANGUAGE_CODES.stream().collect(
-              Collectors.toMap(lang -> lang, lang -> messages.getMessage("gt.password.regex", null, Locale.of(lang)))),
+      prp = new PasswordRegexProperties(
+          BaseConstants.STANDARD_PASSWORD_REGEX, BaseConstants.G_LANGUAGE_CODES.stream().collect(Collectors
+              .toMap(lang -> lang, lang -> messages.getMessage("g.password.regex.default", null, Locale.of(lang)))),
           false);
       Globalparameters gp = new Globalparameters(GlobalParamKeyBaseDefault.GLOB_KEY_PASSWORT_REGEX);
       gp.transformClassIntoBlobPropertis(prp);

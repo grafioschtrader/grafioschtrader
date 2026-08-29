@@ -152,7 +152,7 @@ Angular 22 application organized by functional modules:
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI spec: `http://localhost:8080/api-docs`
 
-**Authentication**: JWT tokens via Bearer header (configured with `gt.jwt.secret` property)
+**Authentication**: JWT tokens via Bearer header (configured with `g.jwt.secret` property)
 
 ## Configuration
 
@@ -180,7 +180,7 @@ mvn jasypt:encrypt -Djasypt.encryptor.password="YOUR_SECRET"
 
 **Key encrypted properties**:
 - `spring.mail.password` - Email account password
-- `gt.jwt.secret` - JWT signing key (32+ chars minimum)
+- `g.jwt.secret` - JWT signing key (32+ chars minimum)
 - `spring.datasource.password` - Database password
 
 ### Critical Configuration

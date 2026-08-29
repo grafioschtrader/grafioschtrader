@@ -8,7 +8,6 @@ import { MessageToastService } from '../../lib/message/message.toast.service';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TenantService } from '../service/tenant.service';
 import { TenantEditComponent } from './tenant.edit.component';
-import { ImportTransactionPlatformService } from '../../imptranstemplate/service/import.transaction.platform.service';
 
 /**
  * Edit tenant fields on a full page layout used for a new tenant.
@@ -40,10 +39,9 @@ export class TenantEditFullPageComponent extends TenantEditComponent implements 
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
     tenantService: TenantService,
-    translateService: TranslateService,
-    importTransactionPlatformService: ImportTransactionPlatformService
+    translateService: TranslateService
   ) {
-    super(gpsGT, gps, messageToastService, tenantService, translateService, importTransactionPlatformService, true, 4);
+    super(gpsGT, gps, messageToastService, tenantService, translateService, true, 4);
   }
 
   ngOnInit(): void {

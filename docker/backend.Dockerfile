@@ -31,7 +31,7 @@ USER gt
 # useless across containers) and the actuator health endpoint exposed for healthchecks.
 # The mail health indicator is off: SMTP is optional and an unreachable mail server
 # must not mark the container unhealthy (would cause restart loops).
-# All secrets (SPRING_DATASOURCE_PASSWORD, GT_JWT_SECRET, ...) come from docker-compose.
+# All secrets (SPRING_DATASOURCE_PASSWORD, G_JWT_SECRET, ...) come from docker-compose.
 ENV JAVA_OPTS="-Xms256m -Xmx1792m" \
     GT_CONNECTOR_HTTP_ENABLED=true \
     GT_CONNECTOR_AJP_ENABLED=false \

@@ -62,7 +62,7 @@ import tools.jackson.databind.ObjectMapper;
  * <p>
  * The task performs:
  * <ul>
- * <li>Scheduled execution every 5 hours (configurable via gt.gtnet.future.message.cron)</li>
+ * <li>Scheduled execution every 5 hours (configurable via g.gnet.future.message.cron)</li>
  * <li>Immediate execution when any of the four message types is sent</li>
  * <li>Creates GTNetMessageAttempt entries for remotes whose handshake completed after the message</li>
  * <li>Delivers pending messages (hasSend = false) to their targets</li>
@@ -123,7 +123,7 @@ public class GNetFutureMessageDeliveryTask implements ITask {
   /**
    * Scheduled method that creates the delivery task. Runs at the configured cron expression (default: every 5 hours).
    */
-  @Scheduled(cron = "${gt.gtnet.future.message.cron:0 0 */5 * * ?}", zone = BaseConstants.TIME_ZONE)
+  @Scheduled(cron = "${g.gnet.future.message.cron:0 0 */5 * * ?}", zone = BaseConstants.TIME_ZONE)
   public void createDeliveryTask() {
     if (!globalparametersJpaRepository.isGTNetOperational()) {
       log.debug("GTNet is disabled or has no own entry configured, skipping future message delivery");

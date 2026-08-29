@@ -10,7 +10,7 @@
 # fail the build, so the file cannot rot.
 
 # --- Deliberate: proper nouns and words that are identical in German ---
-gt.net
+g.net
 ID
 id.task.data.change
 PRIO_NORMAL

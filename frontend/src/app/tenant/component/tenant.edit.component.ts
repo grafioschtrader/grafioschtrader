@@ -21,8 +21,6 @@ import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { BaseSettings } from '../../lib/base.settings';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
-import { ImportTransactionPlatformService } from '../../imptranstemplate/service/import.transaction.platform.service';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 
 /**
  * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
@@ -46,7 +44,6 @@ export abstract class TenantEditComponent {
     protected messageToastService: MessageToastService,
     protected tenantService: TenantService,
     public translateService: TranslateService,
-    protected importTransactionPlatformService: ImportTransactionPlatformService,
     private nonModal: boolean,
     private labelColumns: number
   ) {}
@@ -78,11 +75,8 @@ export abstract class TenantEditComponent {
         const tenantNew: Tenant = Object.assign(new Tenant(), newTenant);
         // Update sessionStorage with new closedUntil value
         sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, tenantNew.closedUntil || '');
-        // Update sessionStorage with the Grafioschtrader import platform reference
-        sessionStorage.setItem(
-          GlobalGTSessionNames.TENANT_ID_GT_IMPORT_PLATFORM,
-          tenantNew.idGtImportPlatform != null ? String(tenantNew.idGtImportPlatform) : ''
-        );
+        // Update sessionStorage with the opt-in to the Grafioschtrader import templates
+        this.gpsGT.setTenantUseGtImportTemplates(tenantNew.useGtImportTemplates);
         this.closeInputDialog(tenantNew);
       },
       error: () => (this.configObject.submit.disabled = false)
@@ -96,24 +90,11 @@ export abstract class TenantEditComponent {
   }
 
   protected loadData() {
-    forkJoin([
-      this.gpsGT.getCurrencies(),
-      this.gps.getCountriesForSelectBox(),
-      this.importTransactionPlatformService.getAllImportTransactionPlatforms()
-    ]).subscribe(([currencies, countries, importTransactionPlatforms]) => {
+    forkJoin([this.gpsGT.getCurrencies(), this.gps.getCountriesForSelectBox()]).subscribe(([currencies, countries]) => {
       this.form.setDefaultValuesAndEnableSubmit();
       this.configObject.currency.valueKeyHtmlOptions = currencies;
       if (this.configObject.country) {
         this.configObject.country.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions(null, ''), ...countries];
-      }
-      if (this.configObject.idGtImportPlatform) {
-        this.configObject.idGtImportPlatform.valueKeyHtmlOptions =
-          SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-            'idTransactionImportPlatform',
-            'name',
-            importTransactionPlatforms,
-            true
-          );
       }
       if (this.existingTenant) {
         this.form.transferBusinessObjectToForm(this.existingTenant);
@@ -139,7 +120,7 @@ export abstract class TenantEditComponent {
         }
       }),
       DynamicFieldHelper.createFieldSelectStringHeqF('country', false),
-      DynamicFieldHelper.createFieldSelectNumberHeqF('idGtImportPlatform', false),
+      DynamicFieldHelper.createFieldCheckboxHeqF('useGtImportTemplates'),
       DynamicFieldHelper.createSubmitButton()
     ];
     if (onlyCurrency) {
@@ -147,6 +128,10 @@ export abstract class TenantEditComponent {
     }
     if (isRegistration) {
       return [fieldConfig[0], fieldConfig[1], fieldConfig[2], fieldConfig[4], fieldConfig[6]];
+    }
+    if (this.gpsGT.getGtImportPlatformId() == null) {
+      // No administrator has chosen the import platform of this instance, so there is nothing to opt in to.
+      fieldConfig.splice(5, 1);
     }
     return fieldConfig;
   }

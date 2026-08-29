@@ -10,8 +10,9 @@ import org.junit.jupiter.api.Test;
  *
  * <p>
  * When only the library is on the class path, the registry must already contain everything the library's own keys need
- * -- in particular the {@code gt.} prefix, because grafiosch-base still ships {@code gt.*} keys and their mapping must
- * not depend on whether the grafioschtrader application happens to be deployed alongside.
+ * -- the {@code g.} prefix, which the library owns. The application prefix {@code gt.} is deliberately absent here: it
+ * is declared by grafioschtrader-common, and since issue #75 no library key carries it, so no library key maps
+ * differently depending on whether the application happens to be deployed alongside.
  * </p>
  */
 class NlsMappingRegistryTest {
@@ -19,7 +20,13 @@ class NlsMappingRegistryTest {
   @Test
   @DisplayName("Descriptor of grafiosch-base declares the expected pass-through prefixes")
   void declaresPassThroughPrefixes() {
-    assertThat(NlsMappingRegistry.passThroughPrefixes()).contains("g.", "gt.", "UDF_");
+    assertThat(NlsMappingRegistry.passThroughPrefixes()).contains("g.", "UDF_");
+  }
+
+  @Test
+  @DisplayName("The application prefix is not declared by the library")
+  void doesNotDeclareApplicationPrefix() {
+    assertThat(NlsMappingRegistry.passThroughPrefixes()).doesNotContain("gt.");
   }
 
   @Test
@@ -29,8 +36,8 @@ class NlsMappingRegistryTest {
   }
 
   @Test
-  @DisplayName("Library-owned gt.* keys keep their dotted form without the application module")
-  void libraryOwnedGtKeysStayDotted() {
-    assertThat(NlsKeyMapper.mapToString("gt.input.rule.min.violation")).isEqualTo("gt.input.rule.min.violation");
+  @DisplayName("Library-owned g.* keys keep their dotted form without the application module")
+  void libraryOwnedKeysStayDotted() {
+    assertThat(NlsKeyMapper.mapToString("g.input.rule.min.violation")).isEqualTo("g.input.rule.min.violation");
   }
 }

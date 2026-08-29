@@ -52,12 +52,12 @@ public class GTNetCommandValidator {
   public void validate(MsgRequest msgRequest, GTNetMessageCode messageCode) {
     GTNetProtocolDescriptor descriptor = messageCodeRegistry.getDescriptor(messageCode.getValue());
     if (descriptor == null) {
-      throw new DataViolationException(FIELD_MESSAGE_CODE, "gt.gtnet.invalid.message.code",
+      throw new DataViolationException(FIELD_MESSAGE_CODE, "g.gtnet.invalid.message.code",
           new Object[] { messageCode.name() });
     }
     if (!descriptor.userInitiable()) {
       // Codes the peers exchange among themselves - price queries, sync, acknowledgements - are not commands.
-      throw new DataViolationException(FIELD_MESSAGE_CODE, "gt.gtnet.command.not.user.initiable",
+      throw new DataViolationException(FIELD_MESSAGE_CODE, "g.gtnet.command.not.user.initiable",
           new Object[] { messageCode.name() });
     }
 
@@ -67,7 +67,7 @@ public class GTNetCommandValidator {
     } else if (msgRequest.replyTo != null) {
       if (!descriptor.threadable()) {
         // A request or an announcement answers nothing, so a replyTo on it would build a thread that has no reply.
-        throw new DataViolationException(FIELD_REPLY_TO, "gt.gtnet.command.reply.to.not.allowed",
+        throw new DataViolationException(FIELD_REPLY_TO, "g.gtnet.command.reply.to.not.allowed",
             new Object[] { messageCode.name() });
       }
       validateThreadedReply(msgRequest, descriptor);
@@ -75,7 +75,7 @@ public class GTNetCommandValidator {
 
     if (msgRequest.waitDaysApply != null && msgRequest.waitDaysApply > 0 && !isResponse) {
       // The cooling-off period is what a refusal imposes on the requester; it is meaningless on anything else.
-      throw new DataViolationException("wait.days.apply", "gt.gtnet.command.wait.days.only.on.response",
+      throw new DataViolationException("wait.days.apply", "g.gtnet.command.wait.days.only.on.response",
           new Object[] { messageCode.name() });
     }
   }
@@ -90,10 +90,10 @@ public class GTNetCommandValidator {
   private void validateResponse(MsgRequest msgRequest, GTNetProtocolDescriptor descriptor) {
     GTNetMessage answeredRequest = requireAnsweredMessage(msgRequest, descriptor);
     if (!gtNetMessageJpaRepository.findByReplyTo(answeredRequest.getIdGtNetMessage()).isEmpty()) {
-      throw new DataViolationException(FIELD_REPLY_TO, "gt.gtnet.command.reply.to.already.answered", null);
+      throw new DataViolationException(FIELD_REPLY_TO, "g.gtnet.command.reply.to.already.answered", null);
     }
     if (!messageCodeRegistry.isValidResponse(answeredRequest.getMessageCodeValue(), descriptor.value())) {
-      throw new DataViolationException(FIELD_MESSAGE_CODE, "gt.gtnet.command.not.a.valid.response",
+      throw new DataViolationException(FIELD_MESSAGE_CODE, "g.gtnet.command.not.a.valid.response",
           new Object[] { descriptor.name() });
     }
   }
@@ -109,7 +109,7 @@ public class GTNetCommandValidator {
   private void validateThreadedReply(MsgRequest msgRequest, GTNetProtocolDescriptor descriptor) {
     GTNetMessage parent = requireAnsweredMessage(msgRequest, descriptor);
     if (!messageCodeRegistry.isValidResponse(parent.getMessageCodeValue(), descriptor.value())) {
-      throw new DataViolationException(FIELD_MESSAGE_CODE, "gt.gtnet.command.not.a.valid.response",
+      throw new DataViolationException(FIELD_MESSAGE_CODE, "g.gtnet.command.not.a.valid.response",
           new Object[] { descriptor.name() });
     }
   }
@@ -124,15 +124,15 @@ public class GTNetCommandValidator {
    */
   private GTNetMessage requireAnsweredMessage(MsgRequest msgRequest, GTNetProtocolDescriptor descriptor) {
     if (msgRequest.replyTo == null) {
-      throw new DataViolationException(FIELD_REPLY_TO, "gt.gtnet.command.reply.to.required",
+      throw new DataViolationException(FIELD_REPLY_TO, "g.gtnet.command.reply.to.required",
           new Object[] { descriptor.name() });
     }
     GTNetMessage referenced = gtNetMessageJpaRepository.findByIdGtNetMessage(msgRequest.replyTo);
     if (referenced == null || referenced.getSendRecv() != SendReceivedType.RECEIVED) {
-      throw new DataViolationException(FIELD_REPLY_TO, "gt.gtnet.command.reply.to.not.received", null);
+      throw new DataViolationException(FIELD_REPLY_TO, "g.gtnet.command.reply.to.not.received", null);
     }
     if (msgRequest.idGTNetTargetDomain != null && !msgRequest.idGTNetTargetDomain.equals(referenced.getIdGtNet())) {
-      throw new DataViolationException(FIELD_REPLY_TO, "gt.gtnet.command.reply.to.other.peer", null);
+      throw new DataViolationException(FIELD_REPLY_TO, "g.gtnet.command.reply.to.other.peer", null);
     }
     return referenced;
   }

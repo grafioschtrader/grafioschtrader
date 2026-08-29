@@ -51,7 +51,7 @@ import grafiosch.types.TenantAccessLevel;
  *
  * <h3>Configuration:</h3>
  * <p>
- * Configured via Spring Boot properties with "gt.jwt" prefix, allowing environment-specific JWT settings for different
+ * Configured via Spring Boot properties with "g.jwt" prefix, allowing environment-specific JWT settings for different
  * deployment scenarios.
  * </p>
  */
@@ -106,10 +106,10 @@ public final class JwtTokenHandler {
    * request (not stored in the JWT) so that revoking or downgrading a grant takes effect on the next request.
    *
    * <p>
-   * When the current tenant is the user's home tenant, the {@code home_tenant_read_only} flag decides. When the user has
-   * switched into another tenant, the {@code tenant_access} grant decides: {@link TenantAccessLevel#READ} is read-only,
-   * {@link TenantAccessLevel#MANAGE} is read/write. An absent grant (a simulation child, already validated at switch
-   * time) is treated as read/write so simulation switching keeps working unchanged.
+   * When the current tenant is the user's home tenant, the {@code home_tenant_read_only} flag decides. When the user
+   * has switched into another tenant, the {@code tenant_access} grant decides: {@link TenantAccessLevel#READ} is
+   * read-only, {@link TenantAccessLevel#MANAGE} is read/write. An absent grant (a simulation child, already validated
+   * at switch time) is treated as read/write so simulation switching keeps working unchanged.
    * </p>
    *
    * @param user the authenticated user with its tenant context already resolved
@@ -175,12 +175,9 @@ public final class JwtTokenHandler {
     Integer userTenantId = overrideIdTenant != null ? overrideIdTenant : ((User) user).getIdTenant();
 
     JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
-    JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
-        .subject(user.getUsername())
-        .claim(ID_USER, ((User) user).getIdUser())
-        .claim("localeStr", ((User) user).getLocaleStr())
-        .claim("roles", roles)
-        .expiresAt(expiry);
+    JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder().subject(user.getUsername())
+        .claim(ID_USER, ((User) user).getIdUser()).claim("localeStr", ((User) user).getLocaleStr())
+        .claim("roles", roles).expiresAt(expiry);
     if (userTenantId != null) {
       claimsBuilder.claim("idTenant", userTenantId);
     }

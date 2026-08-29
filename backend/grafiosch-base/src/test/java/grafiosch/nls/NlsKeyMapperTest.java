@@ -20,8 +20,7 @@ class NlsKeyMapperTest {
   static Stream<Arguments> mappings() {
     return Stream.of(
         // Rule 4 - the dotted field labels the backend resolves for validation errors.
-        Arguments.of("readable.name", "READABLE_NAME"),
-        Arguments.of("rate.limit.type", "RATE_LIMIT_TYPE"),
+        Arguments.of("readable.name", "READABLE_NAME"), Arguments.of("rate.limit.type", "RATE_LIMIT_TYPE"),
         // Rule 4 - field labels that are a single lower-case word. A rule keyed off "contains a dot" breaks these.
         Arguments.of("name", "NAME"), Arguments.of("email", "EMAIL"), Arguments.of("isin", "ISIN"),
         Arguments.of("cryptocurrency", "CRYPTOCURRENCY"),
@@ -35,8 +34,8 @@ class NlsKeyMapperTest {
         Arguments.of("c.patternEmail", "patternEmail"), Arguments.of("c.login.failure", "login.failure"),
         Arguments.of("c.login.ipaddress.locked", "login.ipaddress.locked"),
         // Rule 2 - configuration and metadata prefixes pass through untouched.
-        Arguments.of("g.jwt.expiration.minutes", "g.jwt.expiration.minutes"), Arguments.of("gt.net", "gt.net"),
-        Arguments.of("gt.input.rule.min.violation", "gt.input.rule.min.violation"),
+        Arguments.of("g.jwt.expiration.minutes", "g.jwt.expiration.minutes"), Arguments.of("g.net", "g.net"),
+        Arguments.of("g.input.rule.min.violation", "g.input.rule.min.violation"),
         Arguments.of("UDF_URLString", "UDF_URLString"), Arguments.of("UDF_DateTimeNumeric", "UDF_DateTimeNumeric"));
   }
 
@@ -63,7 +62,7 @@ class NlsKeyMapperTest {
   @Test
   @DisplayName("Rule 1 wins over rule 2, so a client key is never mistaken for a configuration key")
   void clientPrefixTakesPrecedenceOverPassThroughPrefix() {
-    assertThat(NlsKeyMapper.mapToString("c.gt.someClientKey")).isEqualTo("gt.someClientKey");
+    assertThat(NlsKeyMapper.mapToString("c.g.someClientKey")).isEqualTo("g.someClientKey");
   }
 
   @Test

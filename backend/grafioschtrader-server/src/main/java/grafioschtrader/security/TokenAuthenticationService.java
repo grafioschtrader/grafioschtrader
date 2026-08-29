@@ -26,25 +26,28 @@ import grafioschtrader.service.GlobalparametersService;
 import jakarta.transaction.Transactional;
 
 /**
-* JWT token authentication service implementation for GrafioschTrader application.
-* 
-* <p>This service extends the base TokenAuthentication class to provide
-* application-specific authentication and configuration functionality. It handles
-* JWT token validation for both HTTP requests and WebSocket connections, and
-* provides comprehensive configuration data tailored for the trading application.</p>
-* 
-* <h3>Authentication Support:</h3>
-* <ul>
-*   <li><strong>HTTP Authentication:</strong> Standard JWT token validation for REST APIs</li>
-*   <li><strong>WebSocket Authentication:</strong> STOMP header-based token validation</li>
-*   <li><strong>Configuration Delivery:</strong> Trading-specific frontend configuration</li>
-* </ul>
-* 
-* <h3>Configuration Features:</h3>
-* <p>Provides specialized configuration data including currency precision settings,
-* feature toggles for partially implemented functionality, supported cryptocurrencies,
-* and field size constraints specific to the trading application.</p>
-*/
+ * JWT token authentication service implementation for GrafioschTrader application.
+ *
+ * <p>
+ * This service extends the base TokenAuthentication class to provide application-specific authentication and
+ * configuration functionality. It handles JWT token validation for both HTTP requests and WebSocket connections, and
+ * provides comprehensive configuration data tailored for the trading application.
+ * </p>
+ *
+ * <h3>Authentication Support:</h3>
+ * <ul>
+ * <li><strong>HTTP Authentication:</strong> Standard JWT token validation for REST APIs</li>
+ * <li><strong>WebSocket Authentication:</strong> STOMP header-based token validation</li>
+ * <li><strong>Configuration Delivery:</strong> Trading-specific frontend configuration</li>
+ * </ul>
+ *
+ * <h3>Configuration Features:</h3>
+ * <p>
+ * Provides specialized configuration data including currency precision settings, feature toggles for partially
+ * implemented functionality, supported cryptocurrencies, and field size constraints specific to the trading
+ * application.
+ * </p>
+ */
 @Service
 public class TokenAuthenticationService extends TokenAuthentication {
 
@@ -62,18 +65,20 @@ public class TokenAuthenticationService extends TokenAuthentication {
 
   /**
    * Generates authentication from STOMP WebSocket connection headers.
-   * 
-   * <p>This method handles JWT token authentication for WebSocket connections
-   * using STOMP protocol. It extracts the authentication token from the native
-   * headers and validates it to create an Authentication object for WebSocket
-   * session security.</p>
-   * 
+   *
+   * <p>
+   * This method handles JWT token authentication for WebSocket connections using STOMP protocol. It extracts the
+   * authentication token from the native headers and validates it to create an Authentication object for WebSocket
+   * session security.
+   * </p>
+   *
    * <h3>Usage:</h3>
-   * <p>Used by WebSocket interceptors and handlers to authenticate STOMP
-   * connections, enabling secure real-time communication for trading data,
-   * notifications, and live updates.</p>
-   * 
-   * @param message the WebSocket message containing connection information
+   * <p>
+   * Used by WebSocket interceptors and handlers to authenticate STOMP connections, enabling secure real-time
+   * communication for trading data, notifications, and live updates.
+   * </p>
+   *
+   * @param message  the WebSocket message containing connection information
    * @param accessor STOMP header accessor for extracting authentication headers
    * @return Authentication object if token is valid, null if authentication fails
    */
@@ -98,17 +103,17 @@ public class TokenAuthenticationService extends TokenAuthentication {
       boolean passwordRegexOk, Integer idTenant) {
     Tenant tenant = (idTenant != null) ? tenantJpaRepository.findById(idTenant).orElse(null) : null;
     LocalDate tenantClosedUntil = (tenant != null) ? tenant.getClosedUntil() : null;
-    Integer tenantIdGtImportPlatform = (tenant != null) ? tenant.getIdGtImportPlatform() : null;
+    boolean useGtImportTemplates = (tenant != null) && tenant.isUseGtImportTemplates();
     ConfigurationWithLoginGT configurationWithLogin = new ConfigurationWithLoginGT(getAllEntitiyNamesWithTheirKeys(),
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FIELD_SIZE"), uiShowMyProperty,
         mostPrivilegedRole, passwordRegexOk, globalparametersService.getCurrencyPrecision(),
         getGlobalConstantsFieldsByFieldPrefix(GlobalConstants.class, "FID"), featureConfig.getEnabledFeatures(),
-        tenantClosedUntil, tenantIdGtImportPlatform);
+        tenantClosedUntil, globalparametersService.getGtImportPlatformId(), useGtImportTemplates);
     // gtNetLogEnabled is set by TokenAuthentication.addJwtTokenToHeader, together with the GTNET feature flag.
     configurationWithLogin.forceConnectorMatch = globalparametersService.getForceConnectorMatch();
     boolean gtNetEnabled = featureConfig.isGtnet();
-    configurationWithLogin.gtNetHasHistoricalExchangePeer = gtNetEnabled && gtNetJpaRepository
-        .existsExchangePeerByEntityKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
+    configurationWithLogin.gtNetHasHistoricalExchangePeer = gtNetEnabled
+        && gtNetJpaRepository.existsExchangePeerByEntityKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
     configurationWithLogin.gtNetHasLastpriceExchangePeer = gtNetEnabled
         && gtNetJpaRepository.existsExchangePeerByEntityKind(GTNetExchangeKindType.LAST_PRICE.getValue());
     return configurationWithLogin;
@@ -116,7 +121,7 @@ public class TokenAuthenticationService extends TokenAuthentication {
 
   /**
    * Extended configuration class for GrafioschTrader-specific login settings.
-   * 
+   *
    * <p>
    * This inner class extends the base ConfigurationWithLogin to include trading application-specific configuration data
    * such as feature toggles, cryptocurrency support, and currency precision settings.
@@ -126,14 +131,15 @@ public class TokenAuthenticationService extends TokenAuthentication {
     /**
      * List of supported cryptocurrencies for trading operations.
      *
-     * <p>Contains the cryptocurrencies that the application supports for trading,
-     * portfolio management, and price tracking. This list is used by the frontend
-     * to validate and display available cryptocurrency options.</p>
+     * <p>
+     * Contains the cryptocurrencies that the application supports for trading, portfolio management, and price
+     * tracking. This list is used by the frontend to validate and display available cryptocurrency options.
+     * </p>
      */
     public final List<String> cryptocurrencies = GlobalConstants.CRYPTO_CURRENCY_SUPPORTED;
     /**
-     * Earliest trading day that GT supports for transactions and historical prices.
-     * Passed to the frontend so hardcoded dates can be avoided.
+     * Earliest trading day that GT supports for transactions and historical prices. Passed to the frontend so hardcoded
+     * dates can be avoided.
      */
     public final String oldestTradingDay = GlobalConstants.OLDEST_TRADING_DAY;
     /**
@@ -144,69 +150,83 @@ public class TokenAuthenticationService extends TokenAuthentication {
     /**
      * Tenant-level closed-until date for transaction period locking.
      *
-     * <p>Transactions on or before this date are protected from modification at the tenant level.
-     * Individual portfolios can override this with their own closedUntil value, which takes priority.
-     * If both portfolio and tenant closedUntil are null, there is no date restriction.</p>
+     * <p>
+     * Transactions on or before this date are protected from modification at the tenant level. Individual portfolios
+     * can override this with their own closedUntil value, which takes priority. If both portfolio and tenant
+     * closedUntil are null, there is no date restriction.
+     * </p>
      */
     @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
     public final LocalDate tenantClosedUntil;
 
     /**
-     * Reference to the tenant's Grafioschtrader import platform holding the GT authored import templates. The
-     * frontend uses it to offer the "use GT platform" choice at the transaction import entry points; null when the
-     * tenant has not configured it.
+     * The import platform of this instance holding the GT authored import templates, chosen by an administrator (global
+     * parameter {@link grafioschtrader.GlobalParamKeyDefault#GLOB_KEY_GT_IMPORT_PLATFORM_ID}); null when no platform is
+     * configured. The frontend needs the id to load those templates.
      */
-    public final Integer tenantIdGtImportPlatform;
+    public final Integer gtImportPlatformId;
 
     /**
-     * Indicates whether at least one GTNet peer is configured to exchange historical price data.
-     * Drives the default value of the historical send/receive checkboxes when creating a new Security
-     * or Currencypair. False when GTNet is disabled globally.
+     * Whether this tenant opted in to the GT authored import templates. Together with a configured
+     * {@link #gtImportPlatformId} it decides whether the "use GT platform" choice is offered at the transaction import
+     * entry points.
+     */
+    public final boolean useGtImportTemplates;
+
+    /**
+     * Indicates whether at least one GTNet peer is configured to exchange historical price data. Drives the default
+     * value of the historical send/receive checkboxes when creating a new Security or Currencypair. False when GTNet is
+     * disabled globally.
      */
     public boolean gtNetHasHistoricalExchangePeer;
 
     /**
-     * Indicates whether at least one GTNet peer is configured to exchange intraday (last price) data.
-     * Drives the default value of the lastprice send/receive checkboxes when creating a new Security
-     * or Currencypair. False when GTNet is disabled globally.
+     * Indicates whether at least one GTNet peer is configured to exchange intraday (last price) data. Drives the
+     * default value of the lastprice send/receive checkboxes when creating a new Security or Currencypair. False when
+     * GTNet is disabled globally.
      */
     public boolean gtNetHasLastpriceExchangePeer;
 
     /**
      * Connector / asset class compatibility enforcement mode (see
-     * {@link grafioschtrader.GlobalParamKeyDefault#GLOB_KEY_FORCE_CONNECTOR_MATCH}). The frontend uses this to
-     * decide whether to request the pre-filtered connector list (mode 2) or accept the full list (modes 0 and 1).
+     * {@link grafioschtrader.GlobalParamKeyDefault#GLOB_KEY_FORCE_CONNECTOR_MATCH}). The frontend uses this to decide
+     * whether to request the pre-filtered connector list (mode 2) or accept the full list (modes 0 and 1).
      */
     public int forceConnectorMatch;
 
     /**
      * Creates a comprehensive GrafioschTrader configuration object.
      *
-     * <p>Constructs the complete configuration with all necessary data for the
-     * trading application frontend, including entity metadata, field constraints,
-     * user preferences, financial precision settings, feature toggles, and
-     * tenant-level period locking configuration.</p>
+     * <p>
+     * Constructs the complete configuration with all necessary data for the trading application frontend, including
+     * entity metadata, field constraints, user preferences, financial precision settings, feature toggles, and
+     * tenant-level period locking configuration.
+     * </p>
      *
      * @param entityNameWithKeyNameList JPA entity metadata for frontend integration
-     * @param fieldSize field size constraints from application constants
-     * @param uiShowMyProperty user's UI property display preference
-     * @param mostPrivilegedRole user's highest authorization role
-     * @param passwordRegexOk password policy compliance status
-     * @param currencyPrecision currency-specific decimal precision mapping
-     * @param standardPrecision standard precision constants for field formatting
-     * @param useFeatures set of enabled features for partial functionality control
-     * @param tenantClosedUntil tenant-level date before which transactions are locked
-     * @param tenantIdGtImportPlatform the tenant's Grafioschtrader import platform reference, or null
+     * @param fieldSize                 field size constraints from application constants
+     * @param uiShowMyProperty          user's UI property display preference
+     * @param mostPrivilegedRole        user's highest authorization role
+     * @param passwordRegexOk           password policy compliance status
+     * @param currencyPrecision         currency-specific decimal precision mapping
+     * @param standardPrecision         standard precision constants for field formatting
+     * @param useFeatures               set of enabled features for partial functionality control
+     * @param tenantClosedUntil         tenant-level date before which transactions are locked
+     * @param gtImportPlatformId        the instance's Grafioschtrader import platform, or null when none is configured
+     * @param useGtImportTemplates      whether this tenant opted in to the Grafioschtrader import templates
      */
     public ConfigurationWithLoginGT(List<EntityNameWithKeyName> entityNameWithKeyNameList,
         Map<String, Integer> fieldSize, boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk,
-        Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision, Set<? extends FeatureType> useFeatures,
-        LocalDate tenantClosedUntil, Integer tenantIdGtImportPlatform) {
-      super(entityNameWithKeyNameList, fieldSize, uiShowMyProperty, mostPrivilegedRole, passwordRegexOk, standardPrecision);
+        Map<String, Integer> currencyPrecision, Map<String, Integer> standardPrecision,
+        Set<? extends FeatureType> useFeatures, LocalDate tenantClosedUntil, Integer gtImportPlatformId,
+        boolean useGtImportTemplates) {
+      super(entityNameWithKeyNameList, fieldSize, uiShowMyProperty, mostPrivilegedRole, passwordRegexOk,
+          standardPrecision);
       this.useFeatures = useFeatures;
       this.currencyPrecision = currencyPrecision;
       this.tenantClosedUntil = tenantClosedUntil;
-      this.tenantIdGtImportPlatform = tenantIdGtImportPlatform;
+      this.gtImportPlatformId = gtImportPlatformId;
+      this.useGtImportTemplates = useGtImportTemplates;
     }
   }
 

@@ -2,55 +2,74 @@ package grafioschtrader.rest;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.Tenant;
 
+@TestMethodOrder(OrderAnnotation.class)
 @TestInstance(Lifecycle.PER_CLASS)
 class TenantResourceTest extends BaseIntegrationTest {
 
   private static final String FIXTURE = "/testdata/users.json";
 
   private List<TenantEditFixture> tenantEdits;
-  private List<ImportTransactionPlatform> importTransactionPlatforms;
 
   @BeforeAll
   void setUp() throws IOException {
     RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
     tenantEdits = loadIntegrationTenantEdits();
-
-    ImportTransactionPlatform[] platforms = authenticatedClient(RestTestHelper.ALLEDIT)
-        .get()
-        .uri(RequestGTMappings.IMPORTTRANSACTION_PLATFORM_MAP)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(ImportTransactionPlatform[].class)
-        .returnResult()
-        .getResponseBody();
-    importTransactionPlatforms = platforms == null ? List.of() : Arrays.asList(platforms);
   }
 
   @Test
-  @DisplayName("Update integration tenants with country and Grafioschtrader import platform through REST")
+  @Order(1)
+  @DisplayName("Update integration tenants with country and the Grafioschtrader import template opt-in through REST")
   void updateTenantSettings() {
     Assertions.assertThat(tenantEdits).isNotEmpty();
     tenantEdits.forEach(this::updateTenantSettings);
+  }
+
+  @Test
+  @Order(2)
+  @DisplayName("Personal data export disables and restores foreign-key checks around its inserts")
+  void exportPersonalDataWrapsForeignKeyChecks() throws IOException {
+    byte[] zip = authenticatedClient(RestTestHelper.USER).get()
+        .uri(RequestGTMappings.TENANT_MAP + "/exportpersonaldataaszip").exchange().expectStatus().isOk()
+        .expectBody(byte[].class).returnResult().getResponseBody();
+    assertNotNull(zip);
+
+    String sql = readZipEntry(zip, "gt_data.sql");
+    int rememberChecks = sql.indexOf("SET @old_foreign_key_checks = @@SESSION.foreign_key_checks;");
+    int disableChecks = sql.indexOf("SET SESSION foreign_key_checks = 0;");
+    int firstInsert = sql.indexOf("INSERT INTO");
+    int restoreChecks = sql.lastIndexOf("SET SESSION foreign_key_checks = @old_foreign_key_checks;");
+    int restoreSqlMode = sql.lastIndexOf("SET SESSION sql_mode = @old_sql_mode;");
+
+    Assertions.assertThat(rememberChecks).isGreaterThanOrEqualTo(0).isLessThan(disableChecks);
+    Assertions.assertThat(disableChecks).isLessThan(firstInsert);
+    Assertions.assertThat(firstInsert).isGreaterThanOrEqualTo(0).isLessThan(restoreChecks);
+    Assertions.assertThat(restoreChecks).isLessThan(restoreSqlMode);
   }
 
   private void updateTenantSettings(TenantEditFixture fixture) {
@@ -60,46 +79,31 @@ class TenantResourceTest extends BaseIntegrationTest {
     boolean expectedExcludeDivTax = tenant.isExcludeDivTax();
 
     String countryCode = resolveCountryCode(fixture.country);
-    ImportTransactionPlatform platform = resolveImportTransactionPlatform(fixture.idGtImportPlatform);
     tenant.setCountry(countryCode);
-    tenant.setIdGtImportPlatform(platform.getIdTransactionImportPlatform());
+    tenant.setUseGtImportTemplates(fixture.useGtImportTemplates);
 
-    Tenant updated = authenticatedClient(fixture.loginNickname)
-        .put()
-        .uri(RequestGTMappings.TENANT_MAP)
-        .body(tenant)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Tenant.class)
-        .returnResult()
-        .getResponseBody();
+    Tenant updated = authenticatedClient(fixture.loginNickname).put().uri(RequestGTMappings.TENANT_MAP).body(tenant)
+        .exchange().expectStatus().isOk().expectBody(Tenant.class).returnResult().getResponseBody();
 
     assertNotNull(updated);
-    assertTenantSettings(updated, fixture, countryCode, platform, expectedTenantName, expectedCurrency,
+    assertTenantSettings(updated, fixture, countryCode, expectedTenantName, expectedCurrency, expectedExcludeDivTax);
+    assertTenantSettings(getTenant(fixture.loginNickname), fixture, countryCode, expectedTenantName, expectedCurrency,
         expectedExcludeDivTax);
-    assertTenantSettings(getTenant(fixture.loginNickname), fixture, countryCode, platform, expectedTenantName,
-        expectedCurrency, expectedExcludeDivTax);
   }
 
   private Tenant getTenant(String loginNickname) {
-    Tenant tenant = authenticatedClient(loginNickname)
-        .get()
-        .uri(RequestGTMappings.TENANT_MAP)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Tenant.class)
-        .returnResult()
-        .getResponseBody();
+    Tenant tenant = authenticatedClient(loginNickname).get().uri(RequestGTMappings.TENANT_MAP).exchange().expectStatus()
+        .isOk().expectBody(Tenant.class).returnResult().getResponseBody();
     assertNotNull(tenant);
     return tenant;
   }
 
   private void assertTenantSettings(Tenant tenant, TenantEditFixture fixture, String countryCode,
-      ImportTransactionPlatform platform, String expectedTenantName, String expectedCurrency,
-      boolean expectedExcludeDivTax) {
+      String expectedTenantName, String expectedCurrency, boolean expectedExcludeDivTax) {
     Assertions.assertThat(tenant.getCountry()).as("country for %s", fixture.loginNickname).isEqualTo(countryCode);
-    Assertions.assertThat(tenant.getIdGtImportPlatform()).as("GT import platform for %s", fixture.loginNickname)
-        .isEqualTo(platform.getIdTransactionImportPlatform());
+    Assertions.assertThat(tenant.isUseGtImportTemplates())
+        .as("Grafioschtrader import template opt-in for %s", fixture.loginNickname)
+        .isEqualTo(fixture.useGtImportTemplates);
     Assertions.assertThat(tenant.getTenantName()).isEqualTo(expectedTenantName);
     Assertions.assertThat(tenant.getCurrency()).isEqualTo(expectedCurrency);
     Assertions.assertThat(tenant.isExcludeDivTax()).isEqualTo(expectedExcludeDivTax);
@@ -111,17 +115,20 @@ class TenantResourceTest extends BaseIntegrationTest {
       return normalizedCountry;
     }
     return Arrays.stream(Locale.getISOCountries())
-        .filter(countryCode -> Locale.of("", countryCode).getDisplayCountry(Locale.ENGLISH).equals(country))
-        .findFirst()
+        .filter(countryCode -> Locale.of("", countryCode).getDisplayCountry(Locale.ENGLISH).equals(country)).findFirst()
         .orElseThrow(() -> new AssertionError("Country not found: " + country));
   }
 
-  private ImportTransactionPlatform resolveImportTransactionPlatform(String name) {
-    List<ImportTransactionPlatform> matches = importTransactionPlatforms.stream()
-        .filter(platform -> name.equals(platform.getName()))
-        .toList();
-    Assertions.assertThat(matches).as("import transaction platform resolved by name: %s", name).hasSize(1);
-    return matches.getFirst();
+  private String readZipEntry(byte[] zip, String expectedEntry) throws IOException {
+    try (ZipInputStream zipInput = new ZipInputStream(new ByteArrayInputStream(zip), StandardCharsets.UTF_8)) {
+      ZipEntry entry;
+      while ((entry = zipInput.getNextEntry()) != null) {
+        if (expectedEntry.equals(entry.getName())) {
+          return new String(zipInput.readAllBytes(), StandardCharsets.UTF_8);
+        }
+      }
+    }
+    throw new AssertionError("ZIP entry not found: " + expectedEntry);
   }
 
   private List<TenantEditFixture> loadIntegrationTenantEdits() throws IOException {
@@ -133,13 +140,13 @@ class TenantResourceTest extends BaseIntegrationTest {
         JsonNode tenantEdit = user.path("tenantEdit");
         if ("i".equals(user.path("e2e").asText()) && tenantEdit.isObject()) {
           fixtures.add(new TenantEditFixture(user.required("nickname").asText(),
-              tenantEdit.required("country").asText(), tenantEdit.required("idGtImportPlatform").asText()));
+              tenantEdit.required("country").asText(), tenantEdit.required("useGtImportTemplates").asBoolean()));
         }
       }
       return fixtures;
     }
   }
 
-  private record TenantEditFixture(String loginNickname, String country, String idGtImportPlatform) {
+  private record TenantEditFixture(String loginNickname, String country, boolean useGtImportTemplates) {
   }
 }

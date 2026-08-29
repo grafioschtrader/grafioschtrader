@@ -25,9 +25,9 @@ import jakarta.servlet.http.HttpServletResponse;
  * account-self paths (for example changing the own password) and the tenant switch-back path is exempt.
  *
  * <p>
- * Must run after {@code StatelessAuthenticationFilter}, which populates the security context with the {@link User} whose
- * {@link User#isTenantAccessReadOnly()} flag was resolved during token parsing. This filter is the hard guarantee that a
- * read-only user mutates nothing; the frontend additionally hides write actions for usability only.
+ * Must run after {@code StatelessAuthenticationFilter}, which populates the security context with the {@link User}
+ * whose {@link User#isTenantAccessReadOnly()} flag was resolved during token parsing. This filter is the hard guarantee
+ * that a read-only user mutates nothing; the frontend additionally hides write actions for usability only.
  * </p>
  *
  * <p>
@@ -42,7 +42,8 @@ public class TenantReadOnlyFilter extends OncePerRequestFilter {
   private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
   /**
-   * @param messages                  message source for the localized rejection message ({@code gt.tenant.access.readonly})
+   * @param messages                  message source for the localized rejection message
+   *                                  ({@code g.tenant.access.readonly})
    * @param writeAllowListAntPatterns Ant-style path patterns that remain writable for a read-only user (account-self
    *                                  endpoints such as the change-password path, and the tenant switch-back path)
    */
@@ -56,7 +57,7 @@ public class TenantReadOnlyFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     if (isBlockedWrite(request)) {
       User user = currentUser();
-      String message = messages.getMessage("gt.tenant.access.readonly", null,
+      String message = messages.getMessage("g.tenant.access.readonly", null,
           user != null ? user.createAndGetJavaLocale() : null);
       RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.FORBIDDEN, new SingleNativeMsgError(message));
       return;

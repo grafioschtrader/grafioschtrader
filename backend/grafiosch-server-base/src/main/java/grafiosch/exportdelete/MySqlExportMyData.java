@@ -47,6 +47,14 @@ public class MySqlExportMyData {
    * {@link ExportDefinition}-driven export but before the user-role grant, so they stay within the
    * {@code NO_AUTO_VALUE_ON_ZERO} sql_mode wrapper and benefit from all parent rows already inserted.
    *
+   * The whole script is additionally wrapped in {@code foreign_key_checks = 0}, the way {@code mysqldump} does it. The
+   * export definitions are ordered so that parents precede their children, but that order cannot be complete: the
+   * library owns the first definitions and knows nothing about the foreign keys an application adds to a library table
+   * later on. The tenant table is the example - it is exported by this library, while a table it gained a foreign key
+   * to is contributed by the application and therefore exported afterwards. Since the script restores a self-consistent
+   * snapshot into an empty schema, deferring the checks is safe and makes the export independent of the definition
+   * order.
+   *
    * @param additionalExportQueries extra queries whose rows are appended as INSERT statements; may be empty
    * @return A {@link StringBuilder} containing the SQL INSERT statements for the exported data.
    * @throws Exception if an error occurs during data fetching or statement creation.
@@ -55,16 +63,19 @@ public class MySqlExportMyData {
     StringBuilder sqlStatement = new StringBuilder();
     sqlStatement.append("SET @old_sql_mode = @@SESSION.sql_mode;\n");
     sqlStatement.append("SET SESSION sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'NO_AUTO_VALUE_ON_ZERO');\n");
+    sqlStatement.append("SET @old_foreign_key_checks = @@SESSION.foreign_key_checks;\n");
+    sqlStatement.append("SET SESSION foreign_key_checks = 0;\n");
     for (ExportDefinition exportDefinition : ExportDeleteHelper.exportDefinitions) {
       if (exportDefinition.isExport()) {
         sqlStatement.append(getDataAndCreateInsertStatement(exportDefinition));
       }
     }
     for (AdditionalExportQuery additionalExportQuery : additionalExportQueries) {
-      sqlStatement.append(
-          getDataAndCreateInsertStatementRaw(additionalExportQuery.getTableName(), additionalExportQuery.getSelectSql()));
+      sqlStatement.append(getDataAndCreateInsertStatementRaw(additionalExportQuery.getTableName(),
+          additionalExportQuery.getSelectSql()));
     }
     sqlStatement.append(createInsertUserRole(user.getIdUser()));
+    sqlStatement.append("SET SESSION foreign_key_checks = @old_foreign_key_checks;\n");
     sqlStatement.append("SET SESSION sql_mode = @old_sql_mode;\n");
     return sqlStatement;
   }

@@ -9,8 +9,8 @@ export class Tenant extends TenantBase {
   portfolioList: Portfolio[];
   tenantKindType: TenantKindType | string;
   idWatchlistPerformance: number = null;
-  /** Reference to the tenant's Grafioschtrader import platform holding the GT authored import templates. */
-  idGtImportPlatform: number = null;
+  /** Opt-in of this tenant to the GT authored import templates; which platform carries them is set instance wide. */
+  useGtImportTemplates = false;
 
   public override getId(): number {
     return this.idTenant;

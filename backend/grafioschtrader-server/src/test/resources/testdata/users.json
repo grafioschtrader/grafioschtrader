@@ -29,7 +29,7 @@
     "role": "USER",
     "tenantEdit": {
       "country": "United States",
-      "idGtImportPlatform": "Grafioschtrader"
+      "useGtImportTemplates": true
     },
     "e2e": "i"
   },
@@ -43,7 +43,7 @@
     "role": "LIMITEDIT",
     "tenantEdit": {
       "country": "DE",
-      "idGtImportPlatform": "Grafioschtrader"
+      "useGtImportTemplates": true
     },
     "e2e": "i"
   },
@@ -59,7 +59,7 @@
       "tenantName": "Tenant limit2",
       "excludeDivTax": true,
       "country": "Switzerland",
-      "idGtImportPlatform": "Grafioschtrader"
+      "useGtImportTemplates": true
     },
     "e2e": "i"
   },

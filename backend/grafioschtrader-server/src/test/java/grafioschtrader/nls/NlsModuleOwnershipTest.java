@@ -53,8 +53,25 @@ class NlsModuleOwnershipTest {
     for (String key : INTENTIONAL_OVERRIDES) {
       assertThat(library).as("stale entry in INTENTIONAL_OVERRIDES: '%s' is no longer in grafiosch-base", key)
           .contains(key);
-      assertThat(application).as("stale entry in INTENTIONAL_OVERRIDES: '%s' is no longer in grafioschtrader-common",
-          key).contains(key);
+      assertThat(application)
+          .as("stale entry in INTENTIONAL_OVERRIDES: '%s' is no longer in grafioschtrader-common", key).contains(key);
+    }
+  }
+
+  /**
+   * The counterpart of the {@code gt.}-guard in {@code NlsBaseBundleGuardTest}: a {@code g.} key in the application
+   * bundle claims the library prefix for text the library cannot see, so the same key would be missing in any other
+   * application built on grafiosch. Move such a key into the library bundle instead.
+   */
+  @Test
+  @DisplayName("No application key carries the library prefix 'g.'")
+  void applicationBundleCarriesNoLibraryPrefix() {
+    for (String language : NlsNamespaces.LANGUAGES) {
+      Bundle application = NlsBundleInspector.load(NlsBundleInspector.COMMON_BUNDLE, language);
+      assertThat(application.keys().stream().filter(key -> key.startsWith("g.")).toList()).as(
+          "Language '%s': 'g.' is owned by grafiosch-base / grafiosch-server-base. Move the key into the "
+              + "library bundle, or give it the application prefix 'gt.' - see backend/CLAUDE.md.",
+          NlsNamespaces.languageName(language)).isEmpty();
     }
   }
 }

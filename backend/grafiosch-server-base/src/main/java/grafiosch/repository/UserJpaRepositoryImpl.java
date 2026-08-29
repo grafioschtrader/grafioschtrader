@@ -47,7 +47,7 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  @Value("${gt.allowed.users}")
+  @Value("${g.allowed.users}")
   private int allowed;
 
   @Override
@@ -98,8 +98,8 @@ public class UserJpaRepositoryImpl extends BaseRepositoryImpl<User>
     String url = jdbcTemplate.getDataSource().getConnection().getMetaData().getURL();
     String databaseName = StringUtils.substringAfterLast(url, "/");
     if (databaseName.contains("?")) {
-       databaseName = StringUtils.substringBefore(databaseName, "?");
-     }
+      databaseName = StringUtils.substringBefore(databaseName, "?");
+    }
     return userJpaRepository.moveCreatedByUserToOtherUser(fromIdUser, toIdUser, databaseName);
   }
 

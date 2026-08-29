@@ -21,6 +21,7 @@ import { fillText, openContextMenu, selectByValue } from './generic-connector.he
  */
 
 const CREATOR = 'alledit';
+const ADMIN = 'admin';
 const GRAFIOSCHTRADER_GROUP_NAME = 'Grafioschtrader';
 
 const TEMPLATE_ROOT_DIR = path.resolve(
@@ -35,6 +36,8 @@ const CREATE_GROUP_RX =
   /(Create|Erstellen)\s*(Import template set|Import Vorlagengruppe)|CREATE\|IMPORT_TRANSACTION_PLATFORM/i;
 const CREATE_TEMPLATE_RX =
   /^\s*((Create|Erstellen)\s+(Import template|Importvorlage)|CREATE\|IMPORT_TRANSACTION_TEMPLATE)\s*(\.\.\.)?\s*$/i;
+const SET_GT_PLATFORM_RX =
+  /^(Use as Grafioschtrader template set|Als Grafioschtrader-Vorlagengruppe verwenden|SET_AS_GT_IMPORT_PLATFORM)$/i;
 
 interface TemplateFileData {
   fileName: string;
@@ -118,9 +121,26 @@ async function selectGroup(page: Page, name: string): Promise<void> {
   const select = page.locator('select#idTransactionImportPlatform');
   const option = select.locator('option', { hasText: name }).first();
   await option.waitFor({ state: 'attached', timeout: 10_000 });
-  await select.selectOption({ value: await option.getAttribute('value') });
+  const value = await option.getAttribute('value');
+  expect(value, `import template group '${name}' has no option value`).not.toBeNull();
+  await select.selectOption({ value: value! });
   await select.dispatchEvent('change');
   await page.waitForTimeout(500);
+}
+
+async function authHeaders(page: Page): Promise<Record<string, string>> {
+  const token = await page.evaluate(() => sessionStorage.getItem('jwt'));
+  expect(token, 'JWT in sessionStorage after login').toBeTruthy();
+  return { 'x-auth-token': token!, Accept: 'application/json' };
+}
+
+async function getConfiguredGtPlatformId(page: Page): Promise<number | null> {
+  const response = await page.request.get('/api/importtransactionplatform/gtplatform', {
+    headers: await authHeaders(page)
+  });
+  const body = await response.text();
+  expect(response.ok(), `loading configured GT import platform: ${body}`).toBeTruthy();
+  return body ? Number(body) : null;
 }
 
 /** Waits for a save response and reports a rejected request immediately with its response body. */
@@ -182,7 +202,7 @@ async function createTemplate(page: Page, t: TemplateFileData): Promise<void> {
   await page.waitForTimeout(500);
 }
 
-test.describe.serial('import template group — create group and templates as alledit', () => {
+test.describe.serial('import template group — create templates and configure the instance platform', () => {
   // The template dialog holds a 30-row textarea — keep the submit button inside the viewport.
   test.use({ viewport: { width: 1400, height: 1800 } });
 
@@ -213,6 +233,45 @@ test.describe.serial('import template group — create group and templates as al
     await expect(
       page.locator('select#idTransactionImportPlatform option', { hasText: GRAFIOSCHTRADER_GROUP_NAME })
     ).toHaveCount(1, { timeout: 10_000 });
+  });
+
+  test('does not offer the instance-wide platform setting to a non-administrator', async ({ page }) => {
+    await loginAsFixtureUser(page, CREATOR);
+    await openImportTemplateView(page);
+    await selectGroup(page, GRAFIOSCHTRADER_GROUP_NAME);
+
+    const menu = await openContextMenu(page);
+    await expect(menu.getByText(SET_GT_PLATFORM_RX)).toHaveCount(0);
+  });
+
+  test(`configures '${GRAFIOSCHTRADER_GROUP_NAME}' as the instance-wide template set`, async ({ page }) => {
+    await loginAsFixtureUser(page, ADMIN);
+    await openImportTemplateView(page);
+    await selectGroup(page, GRAFIOSCHTRADER_GROUP_NAME);
+
+    const selectedValue = await page.locator('select#idTransactionImportPlatform').inputValue();
+    const idGtPlatform = Number(selectedValue);
+    expect(idGtPlatform, 'selected Grafioschtrader platform id').toBeGreaterThan(0);
+
+    const menu = await openContextMenu(page);
+    const actionItem = menu.locator('li.p-contextmenu-item').filter({ hasText: SET_GT_PLATFORM_RX }).first();
+    await expect(actionItem).toHaveCount(1);
+
+    if ((await getConfiguredGtPlatformId(page)) === idGtPlatform) {
+      await expect(actionItem).toHaveClass(/p-disabled/);
+      return;
+    }
+
+    const updateResponsePromise = page.waitForResponse(
+      (response) =>
+        response.url().includes('/api/importtransactionplatform/gtplatform') && response.request().method() === 'PUT'
+    );
+    await actionItem.getByText(SET_GT_PLATFORM_RX).click();
+    const updateResponse = await updateResponsePromise;
+    const updateBody = await updateResponse.text();
+    expect(updateResponse.ok(), `configuring GT import platform: ${updateBody}`).toBeTruthy();
+    expect(Number(updateBody)).toBe(idGtPlatform);
+    expect(await getConfiguredGtPlatformId(page)).toBe(idGtPlatform);
   });
 
   test('creates one import template per platform-specific .tmpl file via the edit dialog', async ({ page }) => {

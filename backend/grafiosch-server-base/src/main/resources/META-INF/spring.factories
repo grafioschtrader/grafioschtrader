@@ -1,0 +1,4 @@
+# Accepts the legacy "gt." spelling of the nine library-owned deployment properties that were renamed to
+# "g." with GitHub issue #75. May be removed together with the class in the release after the rename.
+org.springframework.boot.EnvironmentPostProcessor=\
+grafiosch.config.LegacyGtPropertyEnvironmentPostProcessor

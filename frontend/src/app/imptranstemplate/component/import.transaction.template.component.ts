@@ -16,6 +16,7 @@ import { ParentChildRowSelection } from '../../lib/datashowbase/parent.child.row
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { plainToInstance } from 'class-transformer';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
@@ -124,11 +125,14 @@ export class ImportTransactionTemplateComponent
   visibleTransformPDFToTxtDialog: boolean;
   visibleTemplateFormCheckDialog: boolean;
   platformTransactionImportHtmlOptions: ValueKeyHtmlSelectOptions[];
+  /** The platform of this instance holding the Grafioschtrader authored import templates, null when unset. */
+  gtImportPlatformId: number | null;
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private importTransactionPlatformService: ImportTransactionPlatformService,
     private importTransactionTemplateService: ImportTransactionTemplateService,
+    private gpsGT: GlobalparameterGTService,
     gps: GlobalparameterService,
     confirmationService: ConfirmationService,
     messageToastService: MessageToastService,
@@ -162,6 +166,7 @@ export class ImportTransactionTemplateComponent
   }
 
   ngOnInit(): void {
+    this.gtImportPlatformId = this.gpsGT.getGtImportPlatformId();
     this.importTransactionPlatformService
       .getPlatformTransactionImport()
       .subscribe((platformTransactionImports: IPlatformTransactionImport[]) => {
@@ -212,6 +217,14 @@ export class ImportTransactionTemplateComponent
       command: () => this.exportAllTemplates(this.selectedEntity),
       disabled: this.ittdc.isEmpty()
     });
+    if (this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
+      // Which platform carries the Grafioschtrader templates is instance wide, so only an administrator sets it.
+      menuItems.push({
+        label: 'SET_AS_GT_IMPORT_PLATFORM',
+        command: () => this.setAsGtImportPlatform(this.selectedEntity),
+        disabled: !this.selectedEntity || this.selectedEntity.idTransactionImportPlatform === this.gtImportPlatformId
+      });
+    }
 
     menuItems.push({ separator: true });
     menuItems.push({
@@ -263,6 +276,19 @@ export class ImportTransactionTemplateComponent
   */
   protected prepareCallParam(entity: ImportTransactionPlatform): void {
     this.callParam = new CallParam(null, entity);
+  }
+
+  private setAsGtImportPlatform(itp: ImportTransactionPlatform): void {
+    this.importTransactionPlatformService
+      .setGtImportPlatform(itp.idTransactionImportPlatform)
+      .subscribe((idTransactionImportPlatform: number | null) => {
+        this.gtImportPlatformId = idTransactionImportPlatform;
+        this.gpsGT.setGtImportPlatformId(idTransactionImportPlatform);
+        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'SET_AS_GT_IMPORT_PLATFORM_SUCCESS', {
+          name: itp.name
+        });
+        this.refreshMenus();
+      });
   }
 
   private async exportAllTemplates(itp: ImportTransactionPlatform): Promise<void> {

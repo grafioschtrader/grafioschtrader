@@ -16,32 +16,31 @@ import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 /**
- * Validation annotation that ensures a date field value is on or after a specified minimum date.
- * Supports {@link java.time.LocalDate} and {@link java.time.LocalDateTime} field types.
- * Null values are considered valid (use @NotNull for mandatory fields).
+ * Validation annotation that ensures a date field value is on or after a specified minimum date. Supports
+ * {@link java.time.LocalDate} and {@link java.time.LocalDateTime} field types. Null values are considered valid
+ * (use @NotNull for mandatory fields).
  */
 @Documented
-@Constraint(validatedBy = {AfterEqualLocalDateValidator.class, AfterEqualLocalDateTimeValidator.class})
-@Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+@Constraint(validatedBy = { AfterEqualLocalDateValidator.class, AfterEqualLocalDateTimeValidator.class })
+@Target({ METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE })
 @Retention(RUNTIME)
 public @interface AfterEqual {
 
   /**
-   * The minimum date value in the format specified by {@link #format()}.
-   * The validated field must be on or after this date.
+   * The minimum date value in the format specified by {@link #format()}. The validated field must be on or after this
+   * date.
    */
   String value();
 
-  String message() default "{gt.afterEqual}";
+  String message() default "{g.afterEqual}";
 
   Class<?>[] groups() default {};
 
   Class<? extends Payload>[] payload() default {};
 
   /**
-   * The date format pattern used to parse the {@link #value()}.
-   * For LocalDate fields, only the date portion (yyyy-MM-dd) is used.
-   * Default format supports ISO date-time with timezone.
+   * The date format pattern used to parse the {@link #value()}. For LocalDate fields, only the date portion
+   * (yyyy-MM-dd) is used. Default format supports ISO date-time with timezone.
    */
   String format() default "yyyy-MM-dd";
 }

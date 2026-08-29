@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.TenantBase;
 import grafiosch.entities.User;
-import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.repository.TenantBaseImpl;
 import grafiosch.repository.UserJpaRepository;
@@ -44,9 +43,6 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
-
-  @Autowired
-  private ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
 
   @Override
   @Transactional
@@ -80,10 +76,6 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
   public Tenant saveOnlyAttributes(final Tenant tenant, Tenant existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
     Tenant createEditTenant = tenant;
-    if (tenant.getIdGtImportPlatform() != null
-        && !importTransactionPlatformJpaRepository.existsById(tenant.getIdGtImportPlatform())) {
-      throw new DataViolationException("id.gt.import.platform", "gt.tenant.gtplatform.notexists", null);
-    }
     boolean currencyChanged = existingEntity == null
         || !Objects.equals(existingEntity.getCurrency(), tenant.getCurrency());
     User user = null;

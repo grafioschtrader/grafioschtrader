@@ -81,16 +81,16 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
   private void validateCodePair(GTNetMessageAnswer rule) {
     GTNetProtocolDescriptor request = messageCodeRegistry.getDescriptor(rule.getRequestMsgCodeValue());
     if (request == null || !request.autoAnswerRequest()) {
-      throw new DataViolationException("request.msg.code", "gt.gtnet.answer.request.not.allowed",
+      throw new DataViolationException("request.msg.code", "g.gtnet.answer.request.not.allowed",
           new Object[] { request == null ? rule.getRequestMsgCodeValue() : request.name() });
     }
     GTNetProtocolDescriptor response = messageCodeRegistry.getDescriptor(rule.getResponseMsgCodeValue());
     if (response == null || !response.autoAnswerResponse()) {
-      throw new DataViolationException("response.msg.code", "gt.gtnet.answer.response.not.allowed",
+      throw new DataViolationException("response.msg.code", "g.gtnet.answer.response.not.allowed",
           new Object[] { response == null ? rule.getResponseMsgCodeValue() : response.name() });
     }
     if (!request.isValidResponse(response.value())) {
-      throw new DataViolationException("response.msg.code", "gt.gtnet.answer.response.not.for.request",
+      throw new DataViolationException("response.msg.code", "g.gtnet.answer.response.not.for.request",
           new Object[] { response.name(), request.name() });
     }
   }
@@ -111,12 +111,12 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
     } catch (ParseException e) {
       log.warn("Invalid EvalEx expression: {} - Error: {}", expressionString, e.getMessage());
       String localeStr = getLocaleString();
-      throw new DataViolationException("response.msg.conditional", "gt.evalex.invalid.expression",
+      throw new DataViolationException("response.msg.conditional", "g.evalex.invalid.expression",
           new Object[] { e.getMessage() }, localeStr);
     } catch (Exception e) {
       log.warn("Error parsing expression: {} - Error: {}", expressionString, e.getMessage());
       String localeStr = getLocaleString();
-      throw new DataViolationException("response.msg.conditional", "gt.evalex.parse.error",
+      throw new DataViolationException("response.msg.conditional", "g.evalex.parse.error",
           new Object[] { e.getMessage() }, localeStr);
     }
   }

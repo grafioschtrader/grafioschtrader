@@ -40,6 +40,28 @@ export class ImportTransactionPlatformService
     );
   }
 
+  /**
+   * Chooses the import platform of this instance holding the Grafioschtrader authored import templates. Reserved for
+   * an administrator, because which platform carries those templates is a property of the instance and not of a
+   * client - a client only opts in through its tenant setting.
+   *
+   * @param idTransactionImportPlatform The platform to use, or null to clear the setting
+   * @returns The platform id now configured, or null when the setting was cleared
+   */
+  setGtImportPlatform(idTransactionImportPlatform: number | null): Observable<number | null> {
+    const params =
+      idTransactionImportPlatform == null ? '' : `?idTransactionImportPlatform=${idTransactionImportPlatform}`;
+    return <Observable<number | null>>(
+      this.httpClient
+        .put(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.IMP_TRANS_PLATFORM_KEY}/gtplatform${params}`,
+          null,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
+  }
+
   update(importTransactionPlatform: ImportTransactionPlatform): Observable<ImportTransactionPlatform> {
     return this.updateEntity(
       importTransactionPlatform,

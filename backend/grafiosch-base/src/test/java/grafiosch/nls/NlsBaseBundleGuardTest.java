@@ -23,8 +23,8 @@ class NlsBaseBundleGuardTest {
   void baseBundlePairIsSound() {
     List<String> violations = NlsBundleGuard.checkBundlePair(NlsBundleInspector.BASE_BUNDLE,
         NlsResourceLists.readLines(NlsResourceLists.BASE_EN_REUSE));
-    assertThat(violations).as("NLS guard violations in grafiosch-base:%n%s", String.join(System.lineSeparator(),
-        violations)).isEmpty();
+    assertThat(violations)
+        .as("NLS guard violations in grafiosch-base:%n%s", String.join(System.lineSeparator(), violations)).isEmpty();
   }
 
   @Test
@@ -35,6 +35,23 @@ class NlsBaseBundleGuardTest {
       assertThat(NlsPayloadBuilder.validateNesting(bundle.keys()))
           .as("nesting contract violated in %s", bundle.resource()).isEmpty();
       NlsPayloadBuilder.build(bundle.entries());
+    }
+  }
+
+  /**
+   * The prefix convention of GitHub issue #75 has no other automatic protection. A {@code gt.} key added to the library
+   * bundle would resolve today and break the moment the library is reused without grafioschtrader, because only
+   * grafioschtrader-common declares {@code gt.} as a pass-through prefix.
+   */
+  @Test
+  @DisplayName("No library key carries the application prefix 'gt.'")
+  void baseBundleCarriesNoApplicationPrefix() {
+    for (String language : new String[] { null, "de" }) {
+      var bundle = NlsBundleInspector.load(NlsBundleInspector.BASE_BUNDLE, language);
+      assertThat(bundle.keys().stream().filter(key -> key.startsWith("gt.")).toList())
+          .as("%s: 'gt.' is owned by the application layer. A key read by grafiosch-base or grafiosch-server-base "
+              + "must be prefixed 'g.' - see the convention in backend/CLAUDE.md.", bundle.resource())
+          .isEmpty();
     }
   }
 }

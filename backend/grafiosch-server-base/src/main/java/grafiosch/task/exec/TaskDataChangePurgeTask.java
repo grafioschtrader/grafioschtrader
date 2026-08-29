@@ -21,7 +21,7 @@ public class TaskDataChangePurgeTask {
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
 
-  @Scheduled(cron = "${gt.purge.task.data}", zone = BaseConstants.TIME_ZONE)
+  @Scheduled(cron = "${g.purge.task.data}", zone = BaseConstants.TIME_ZONE)
   public void purgeExpired() {
     taskDataChangeJpaRepository.removeByExecEndTimeBefore(
         LocalDateTime.now().minusDays(globalparametersJpaRepository.getTaskDataDaysPreserve()));

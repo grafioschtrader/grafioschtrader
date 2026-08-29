@@ -35,7 +35,7 @@ import jakarta.servlet.http.HttpServletResponse;
 /**
  * Abstract base implementation for tenant-specific data operations. Provides concrete implementations for data deletion
  * and export functionality.
- * 
+ *
  * @param <T> the entity type handled by this repository
  */
 public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements TenantBaseCustom {
@@ -43,10 +43,10 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  @Value("${gt.demo.account.pattern.de}")
+  @Value("${g.demo.account.pattern.de}")
   private String demoAccountPatternDE;
 
-  @Value("${gt.demo.account.pattern.en}")
+  @Value("${g.demo.account.pattern.en}")
   private String demoAccountPatternEN;
 
   @Autowired
@@ -59,8 +59,8 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   private UserJpaRepository userJpaRepository;
 
   /**
-   * Optional application-specific contributors that add extra rows and/or plain-text documents to the export ZIP. May be
-   * empty when no module provides one.
+   * Optional application-specific contributors that add extra rows and/or plain-text documents to the export ZIP. May
+   * be empty when no module provides one.
    */
   @Autowired(required = false)
   private List<IExportMyDataAddon> exportMyDataAddons;
@@ -84,7 +84,8 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
    * cannot be bypassed by a non-frontend caller.
    *
    * @param user the user requesting deletion of their own account
-   * @throws GeneralNotTranslatedWithArgumentsException if the user still manages clients or still shares their portfolio
+   * @throws GeneralNotTranslatedWithArgumentsException if the user still manages clients or still shares their
+   *                                                    portfolio
    */
   private void assertNoDependentClientsOrViewers(User user) {
     switch (getAccountDeletionEligibility(user).getStatus()) {
@@ -177,7 +178,7 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   /**
    * Adds a new entry to the ZIP output stream from an input stream. Reads data from the input stream and writes it to
    * the ZIP entry using a buffer.
-   * 
+   *
    * @param zos       the ZIP output stream to write to
    * @param in        the input stream to read data from
    * @param entryName the name of the ZIP entry

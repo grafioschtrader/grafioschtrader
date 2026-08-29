@@ -178,7 +178,7 @@ public class GTNetMessageJpaRepositoryImpl extends BaseRepositoryImpl<GTNetMessa
         continue;
       }
       if (!canDeleteMessage(msg, outgoingPendingIds, incomingPendingIds, now)) {
-        throw new DataViolationException("id.gtnet.message", "gt.gtnet.message.cannot.delete", new Object[] { id });
+        throw new DataViolationException("id.gtnet.message", "g.gtnet.message.cannot.delete", new Object[] { id });
       }
       messagesToDelete.add(msg);
     }

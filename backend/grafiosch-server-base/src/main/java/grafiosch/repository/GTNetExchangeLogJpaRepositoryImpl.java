@@ -269,11 +269,11 @@ public class GTNetExchangeLogJpaRepositoryImpl implements GTNetExchangeLogJpaRep
    */
   private String formatPeriodLabel(LocalDate date, GTNetExchangeLogPeriodType periodType, Locale locale) {
     if (date == null) {
-      return messageSource.getMessage("gt.gtnet.log.period.total", null, locale);
+      return messageSource.getMessage("g.gtnet.log.period.total", null, locale);
     }
     return switch (periodType) {
     case INDIVIDUAL, DAILY -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale));
-    case WEEKLY -> messageSource.getMessage("gt.gtnet.log.period.week",
+    case WEEKLY -> messageSource.getMessage("g.gtnet.log.period.week",
         new Object[] { date.get(WeekFields.of(locale).weekOfYear()), String.valueOf(date.getYear()) }, locale);
     case MONTHLY -> date.format(DateTimeFormatter.ofPattern("MMMM yyyy", locale));
     case YEARLY -> String.valueOf(date.getYear());

@@ -40,46 +40,50 @@ import jakarta.mail.MessagingException;
 
 /**
  * Comprehensive implementation of user management and authentication services.
- * 
- * <p>This service class provides a complete implementation of the UserService interface,
- * handling all aspects of user lifecycle management from registration through authentication
- * to profile maintenance. It integrates Spring Security authentication with custom business
- * logic for user limits, security monitoring, and administrative features.</p>
- * 
+ *
+ * <p>
+ * This service class provides a complete implementation of the UserService interface, handling all aspects of user
+ * lifecycle management from registration through authentication to profile maintenance. It integrates Spring Security
+ * authentication with custom business logic for user limits, security monitoring, and administrative features.
+ * </p>
+ *
  * <h3>Administrative Features:</h3>
  * <ul>
- *   <li><strong>Main Admin Detection:</strong> Automatic identification and role assignment
- *       for the primary administrator account</li>
- *   <li><strong>User Limit Enforcement:</strong> Configurable limits on total active users
- *       to manage system resources and licensing</li>
- *   <li><strong>Data Migration Support:</strong> Automated task scheduling for admin account
- *       data consolidation and ownership transfer</li>
+ * <li><strong>Main Admin Detection:</strong> Automatic identification and role assignment for the primary administrator
+ * account</li>
+ * <li><strong>User Limit Enforcement:</strong> Configurable limits on total active users to manage system resources and
+ * licensing</li>
+ * <li><strong>Data Migration Support:</strong> Automated task scheduling for admin account data consolidation and
+ * ownership transfer</li>
  * </ul>
- * 
+ *
  * <h3>Security Architecture:</h3>
- * <p>Implements a comprehensive security model with password encryption using BCrypt,
- * configurable password policies, demo account protection, and detailed violation tracking
- * for monitoring and automated security responses.</p>
- * 
+ * <p>
+ * Implements a comprehensive security model with password encryption using BCrypt, configurable password policies, demo
+ * account protection, and detailed violation tracking for monitoring and automated security responses.
+ * </p>
+ *
  * <h3>Internationalization Support:</h3>
- * <p>Full support for multi-language environments with locale-aware messaging, timezone
- * handling, and user preference management for consistent international user experiences.</p>
+ * <p>
+ * Full support for multi-language environments with locale-aware messaging, timezone handling, and user preference
+ * management for consistent international user experiences.
+ * </p>
  */
 @Service
 public class UserServiceImpl implements UserService {
 
   private final MessageSource messages;
 
-  @Value("${gt.main.user.admin.mail}")
+  @Value("${g.main.user.admin.mail}")
   private String mainUserAdminMail;
 
-  @Value("${gt.allowed.users}")
+  @Value("${g.allowed.users}")
   private int allowedUsers;
 
-  @Value("${gt.demo.account.pattern.de}")
+  @Value("${g.demo.account.pattern.de}")
   private String demoAccountPatternDE;
 
-  @Value("${gt.demo.account.pattern.en}")
+  @Value("${g.demo.account.pattern.en}")
   private String demoAccountPatternEN;
 
   @Autowired
@@ -181,37 +185,45 @@ public class UserServiceImpl implements UserService {
 
   /**
    * Initiates the email verification process for newly registered users.
-   * 
-   * <p>This private method handles the complete email verification workflow including
-   * token generation, email composition, and delivery. It creates a secure verification
-   * link that users must access to activate their accounts, ensuring email address
-   * ownership and reducing fraudulent registrations.</p>
-   * 
-   * <p><strong>Verification Process:</strong></p>
+   *
+   * <p>
+   * This private method handles the complete email verification workflow including token generation, email composition,
+   * and delivery. It creates a secure verification link that users must access to activate their accounts, ensuring
+   * email address ownership and reducing fraudulent registrations.
+   * </p>
+   *
+   * <p>
+   * <strong>Verification Process:</strong>
+   * </p>
    * <ol>
-   *   <li>Generates a unique UUID-based verification token</li>
-   *   <li>Stores the token in the database linked to the user account</li>
-   *   <li>Composes localized email subject and message content</li>
-   *   <li>Constructs verification URL with the generated token</li>
-   *   <li>Sends the verification email to the user's registered address</li>
+   * <li>Generates a unique UUID-based verification token</li>
+   * <li>Stores the token in the database linked to the user account</li>
+   * <li>Composes localized email subject and message content</li>
+   * <li>Constructs verification URL with the generated token</li>
+   * <li>Sends the verification email to the user's registered address</li>
    * </ol>
-   * 
-   * <p><strong>Security Features:</strong></p>
+   *
+   * <p>
+   * <strong>Security Features:</strong>
+   * </p>
    * <ul>
-   *   <li><strong>Unique Token Generation:</strong> Uses UUID for cryptographically secure,
-   *       unique verification tokens that cannot be predicted or forged</li>
-   *   <li><strong>Database Token Storage:</strong> Links tokens to specific user accounts
-   *       with appropriate expiration and usage tracking</li>
-   *   <li><strong>Secure URL Construction:</strong> Builds verification URLs with the
-   *       provided hostname and base path for proper domain verification</li>
+   * <li><strong>Unique Token Generation:</strong> Uses UUID for cryptographically secure, unique verification tokens
+   * that cannot be predicted or forged</li>
+   * <li><strong>Database Token Storage:</strong> Links tokens to specific user accounts with appropriate expiration and
+   * usage tracking</li>
+   * <li><strong>Secure URL Construction:</strong> Builds verification URLs with the provided hostname and base path for
+   * proper domain verification</li>
    * </ul>
-   * 
-   * <p><strong>Internationalization:</strong></p>
-   * <p>Email content is fully localized based on the user's locale preference, including
-   * both the subject line and message body. This ensures that verification emails are
-   * sent in the user's preferred language for better user experience.</p>
-   * 
-   * @param user the User entity for whom to send the verification email
+   *
+   * <p>
+   * <strong>Internationalization:</strong>
+   * </p>
+   * <p>
+   * Email content is fully localized based on the user's locale preference, including both the subject line and message
+   * body. This ensures that verification emails are sent in the user's preferred language for better user experience.
+   * </p>
+   *
+   * @param user               the User entity for whom to send the verification email
    * @param hostNameAndBaseNam the hostname and base path for constructing the verification URL
    * @throws MessagingException if email composition or delivery fails
    */
@@ -228,12 +240,13 @@ public class UserServiceImpl implements UserService {
 
   /**
    * Validates that the application has not exceeded the configured user limit.
-   * 
-   * <p>This private method enforces application-wide user limits to manage system resources,
-   * licensing constraints, and operational capacity. It prevents new user registrations
-   * when the maximum allowed number of active users has been reached, ensuring system
-   * stability and compliance with usage agreements.</p>
-   * 
+   *
+   * <p>
+   * This private method enforces application-wide user limits to manage system resources, licensing constraints, and
+   * operational capacity. It prevents new user registrations when the maximum allowed number of active users has been
+   * reached, ensuring system stability and compliance with usage agreements.
+   * </p>
+   *
    * @param localeStr the locale string for localizing the error message if limit is exceeded
    * @throws DataViolationException if the number of enabled users meets or exceeds the configured limit
    */
@@ -303,10 +316,10 @@ public class UserServiceImpl implements UserService {
 
   /**
    * Validates a password against the configured security regex pattern.
-   * 
+   *
    * @param password the password string to validate against the configured regex pattern
    * @throws SecurityException if the password does not match the required regex pattern
-   * @throws Exception if password policy retrieval or validation processing fails
+   * @throws Exception         if password policy retrieval or validation processing fails
    */
   private void checkPasswordAgainstRegex(String password) throws Exception {
     String regex = globalparametersJpaRepository.getPasswordRegexProperties().regex;

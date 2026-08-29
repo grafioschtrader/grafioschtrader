@@ -108,14 +108,50 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
   }
 
   /**
-   * Gets the tenant's Grafioschtrader import platform reference stored at login and refreshed by the tenant edit
-   * dialog. When set, the transaction import entry points offer the "use GT platform" choice.
+   * Gets the import platform of this instance holding the Grafioschtrader authored import templates, chosen by an
+   * administrator and stored at login.
    *
-   * @returns The ID of the tenant's Grafioschtrader import platform, or null if not configured
+   * @returns The ID of the instance's Grafioschtrader import platform, or null if no platform is configured
+   */
+  public getGtImportPlatformId(): number | null {
+    const raw = sessionStorage.getItem(GlobalGTSessionNames.GT_IMPORT_PLATFORM_ID);
+    return raw ? Number(raw) : null;
+  }
+
+  /**
+   * Records the import platform an administrator has just chosen for this instance. Only this session is updated;
+   * every other session picks the new platform up at its next login.
+   *
+   * @param gtImportPlatformId the platform now configured, or null when the setting was cleared
+   */
+  public setGtImportPlatformId(gtImportPlatformId: number | null): void {
+    sessionStorage.setItem(
+      GlobalGTSessionNames.GT_IMPORT_PLATFORM_ID,
+      gtImportPlatformId != null ? String(gtImportPlatformId) : ''
+    );
+  }
+
+  /**
+   * Records whether this tenant opted in to the Grafioschtrader import templates. Written at login and refreshed
+   * by the tenant edit dialog.
+   *
+   * @param useGtImportTemplates the tenant's opt-in
+   */
+  public setTenantUseGtImportTemplates(useGtImportTemplates: boolean): void {
+    sessionStorage.setItem(GlobalGTSessionNames.TENANT_USE_GT_IMPORT_TEMPLATES, String(!!useGtImportTemplates));
+  }
+
+  /**
+   * Gets the Grafioschtrader import platform usable by the current tenant. Two independent settings have to agree:
+   * an administrator must have chosen the platform for this instance, and the tenant must have opted in. When both
+   * hold, the transaction import entry points offer the "use GT platform" choice.
+   *
+   * @returns The ID of the Grafioschtrader import platform, or null when it is not available to this tenant
    */
   public getTenantGtImportPlatformId(): number | null {
-    const raw = sessionStorage.getItem(GlobalGTSessionNames.TENANT_ID_GT_IMPORT_PLATFORM);
-    return raw ? Number(raw) : null;
+    return sessionStorage.getItem(GlobalGTSessionNames.TENANT_USE_GT_IMPORT_TEMPLATES) === 'true'
+      ? this.getGtImportPlatformId()
+      : null;
   }
 
   /**

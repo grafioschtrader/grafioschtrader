@@ -7,20 +7,22 @@ import grafiosch.GlobalParamKeyBaseDefault;
 
 /**
  * GrafioschTrader-specific global parameter keys and default values extending base configuration.
- * 
- * <p>This class defines trading platform-specific configuration parameters including connector settings,
- * data feed configurations, market data processing parameters, tenant limits, and trading-related constraints.
- * It extends the base global parameters with domain-specific settings for financial data management,
- * price updates, and trading platform operations.</p>
+ *
+ * <p>
+ * This class defines trading platform-specific configuration parameters including connector settings, data feed
+ * configurations, market data processing parameters, tenant limits, and trading-related constraints. It extends the
+ * base global parameters with domain-specific settings for financial data management, price updates, and trading
+ * platform operations.
+ * </p>
  */
 public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
 
   /** Default currency precision configuration. */
   public static final String DEFAULT_CURRENCY_PRECISION = "BTC=8,ETH=7,JPY=0,ZAR=0";
-  
+
   /** Default number of retry attempts for intraday price updates. */
   public static final short DEFAULT_INTRA_RETRY = 4;
-  
+
   /** Default number of retry attempts for historical price updates. */
   public static final short DEFAULT_HISTORY_RETRY = 4;
 
@@ -30,13 +32,13 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
    * historical and intraday flows.
    */
   public static final short DEFAULT_GTNET_QUOTE_RETRY = 8;
-  
+
   /** Default number of retry attempts for dividend data updates. */
   public static final short DEFAULT_DIVIDEND_RETRY = 2;
-  
+
   /** Default number of retry attempts for stock split data updates. */
   public static final short DEFAULT_SPLIT_RETRY = 2;
-  
+
   /** Default timeout in seconds for security intraday update operations. */
   public static final int DEFAULT_SC_INTRA_UPDATE_TIMEOUT_SECONDS = 300;
   public static final int DEFAULT_W_INTRA_UPDATE_TIMEOUT_SECONDS = 1200;
@@ -119,20 +121,26 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final String GLOB_KEY_YOUNGEST_DIVIDEND_APPEND_DATE = GlobalConstants.GT_PREFIX
       + "securitydividend.append.date";
   public static final String GLOB_KEY_UDF_GENERAL_RECREATE = GlobalConstants.GT_PREFIX + "udf.general.recreate";
-  
-  
-  
-  
+
   /** Timestamp of last GTNet exchange synchronization with peers. */
-  public static final String GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP = GlobalConstants.GT_PREFIX + "gtnet.exchange.sync.timestamp";
+  public static final String GLOB_KEY_GTNET_EXCHANGE_SYNC_TIMESTAMP = GlobalConstants.GT_PREFIX
+      + "gtnet.exchange.sync.timestamp";
   /** Default value for GTNet exchange sync timestamp - epoch start means never synced. */
   public static final LocalDateTime DEFAULT_GTNET_EXCHANGE_SYNC_TIMESTAMP = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
   public static final String GLOB_KEY_UPDATE_PRICE_BY_EXCHANGE = GlobalConstants.GT_PREFIX + "update.price.by.exchange";
   /**
-   * Three-state switch for connector ↔ asset class compatibility checking, evaluated against
-   * only, 2 enforces server-side AND tells the frontend dropdown to hide incompatible connectors.
+   * Three-state switch for connector ↔ asset class compatibility checking, evaluated against only, 2 enforces
+   * server-side AND tells the frontend dropdown to hide incompatible connectors.
    */
   public static final String GLOB_KEY_FORCE_CONNECTOR_MATCH = GlobalConstants.GT_PREFIX + "force.connector.match";
+
+  /**
+   * Id of the import platform holding the Grafioschtrader authored import templates (receipt PDFs, transaction CSV
+   * export). A property of the instance rather than of a client: an administrator picks the platform in the import
+   * template screen, a tenant only opts in through its use GT import templates flag. Without this row the option is not
+   * offered at all.
+   */
+  public static final String GLOB_KEY_GT_IMPORT_PLATFORM_ID = GlobalConstants.GT_PREFIX + "import.platform.id";
 
   public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_DE = GlobalConstants.GT_PREFIX + "source.demo.idtenant.de";
   public static final String GLOB_KEY_SOURCE_DEMO_ID_TENANT_EN = GlobalConstants.GT_PREFIX + "source.demo.idtenant.en";

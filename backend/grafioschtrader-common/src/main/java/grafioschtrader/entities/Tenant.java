@@ -105,11 +105,12 @@ public class Tenant extends TenantBase implements Serializable {
   private TaxStatementExportRequest taxExportSettings;
 
   @Schema(description = """
-      Reference to the import transaction platform holding the Grafioschtrader authored import templates (receipt
-      PDFs, transaction CSV export). When set, an import session can choose this platform's templates instead of the
-      securities account's trading platform mapping, so GT exports can be re-imported into any account.""")
-  @Column(name = "id_gt_import_platform")
-  private Integer idGtImportPlatform;
+      Opt-in to the Grafioschtrader authored import templates (receipt PDFs, transaction CSV export). When set, an
+      import session can choose those templates instead of the securities account's trading platform mapping, so GT
+      exports can be re-imported into any account. Which import platform holds them is not a property of the client
+      but of the instance and is configured by an administrator in the global parameter gt.import.platform.id.""")
+  @Column(name = "use_gt_import_templates")
+  private boolean useGtImportTemplates;
 
   @JsonCreator
   public Tenant() {
@@ -155,8 +156,7 @@ public class Tenant extends TenantBase implements Serializable {
   public void setTenantKindType(TenantKindType tenantKindType) {
     this.tenantKindType = tenantKindType.getValue();
   }
-  
-  
+
   @JsonIgnore
   public List<Watchlist> getWatchlistList() {
     return watchlistList;
@@ -214,12 +214,12 @@ public class Tenant extends TenantBase implements Serializable {
     this.taxExportSettings = taxExportSettings;
   }
 
-  public Integer getIdGtImportPlatform() {
-    return idGtImportPlatform;
+  public boolean isUseGtImportTemplates() {
+    return useGtImportTemplates;
   }
 
-  public void setIdGtImportPlatform(Integer idGtImportPlatform) {
-    this.idGtImportPlatform = idGtImportPlatform;
+  public void setUseGtImportTemplates(boolean useGtImportTemplates) {
+    this.useGtImportTemplates = useGtImportTemplates;
   }
 
   public void updateThis(Tenant sourceTenant) {
@@ -228,7 +228,7 @@ public class Tenant extends TenantBase implements Serializable {
     this.setExcludeDivTax(sourceTenant.isExcludeDivTax());
     this.setClosedUntil(sourceTenant.getClosedUntil());
     this.setCountry(sourceTenant.getCountry());
-    this.setIdGtImportPlatform(sourceTenant.getIdGtImportPlatform());
+    this.setUseGtImportTemplates(sourceTenant.isUseGtImportTemplates());
   }
 
   @Override

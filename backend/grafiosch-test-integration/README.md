@@ -43,7 +43,7 @@ Grafioschtrader fixture. The `e2e` property decides which suite creates each use
 Registration values remain at the top level. Optional `nicknameLangEdit` and `passwordEdit` objects contain the target
 values exercised later by the correspondingly named Playwright components, keeping those test inputs in this fixture.
 
-`admin@test.local` must stay the first object: `application.properties` names it in `gt.main.user.admin.mail`, and
+`admin@test.local` must stay the first object: `application.properties` names it in `g.main.user.admin.mail`, and
 `UserServiceImpl.createUser` grants `ROLE_ADMIN` to exactly that address. Every other user starts as `LIMITEDIT` and is
 promoted according to its `role` property.
 
@@ -122,7 +122,7 @@ Verify which one you hit before writing anything: `GET http://localhost:8081/api
 `{"activeProfiles":[],"databaseName":"grafiosch"}` or `{"activeProfiles":["e2e"],"databaseName":"grafiosch_t"}`.
 
 A fresh `grafiosch` has roles and global parameters from the migrations but no users. Register
-`admin@test.local` through the UI — `gt.main.user.admin.mail` names that address, and `UserServiceImpl` grants
+`admin@test.local` through the UI — `g.main.user.admin.mail` names that address, and `UserServiceImpl` grants
 it `ROLE_ADMIN`.
 
 > The `schemagen` profile runs Hibernate with `ddl-auto=create` and therefore points at its own throwaway

@@ -27,7 +27,7 @@ public class TokensPurgeTask implements ITask {
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 
-  @Scheduled(cron = "${gt.purge.cron.expression}", zone = BaseConstants.TIME_ZONE)
+  @Scheduled(cron = "${g.purge.cron.expression}", zone = BaseConstants.TIME_ZONE)
   public void purgeExpired() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_LOW);
     taskDataChangeRepository.save(taskDataChange);

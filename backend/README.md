@@ -19,10 +19,10 @@ GT has some properties in the configuration file `backend/grafioschtrader-server
 - spring.datasource.password
 - gt.eod.cron.quotation
 - gt.dividend.update.data
-- gt.main.user.admin.mail
-- gt.allowed.users
+- g.main.user.admin.mail
+- g.allowed.users
 - spring.mail.*
-- gt.jwt.secret
+- g.jwt.secret
 
 Some propertis are encrypted with **Jasypt**. Those properties values starts with "ENC(" replace it with your secrect value like "spring.datasource.password = DEC(YOUR_DB_PASSWORD)" and when your propties are all set, execute the following:
 

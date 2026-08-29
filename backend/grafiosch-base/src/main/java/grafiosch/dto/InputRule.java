@@ -108,15 +108,15 @@ public class InputRule {
     }
 
     if (min != null && value < min) {
-      return "gt.input.rule.min.violation";
+      return "g.input.rule.min.violation";
     }
 
     if (max != null && value > max) {
-      return "gt.input.rule.max.violation";
+      return "g.input.rule.max.violation";
     }
 
     if (enumValues != null && !enumValues.contains(value)) {
-      return "gt.input.rule.enum.violation";
+      return "g.input.rule.enum.violation";
     }
 
     return null;
@@ -134,7 +134,7 @@ public class InputRule {
     }
 
     if (pattern != null && !pattern.matcher(value).matches()) {
-      return "gt.input.rule.pattern.violation";
+      return "g.input.rule.pattern.violation";
     }
 
     return null;
@@ -155,8 +155,8 @@ public class InputRule {
       descriptions.add(RULE_MAX + ": " + max);
     }
     if (enumValues != null) {
-      descriptions.add(RULE_ENUM + ": " + enumValues.stream().sorted().map(String::valueOf)
-          .collect(Collectors.joining(", ")));
+      descriptions
+          .add(RULE_ENUM + ": " + enumValues.stream().sorted().map(String::valueOf).collect(Collectors.joining(", ")));
     }
     if (patternString != null) {
       descriptions.add(RULE_PATTERN + ": " + patternString);

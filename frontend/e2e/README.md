@@ -221,22 +221,23 @@ rows between the Playwright ('e') and JUnit ('i') sides like the CSV testdata fi
 edit dialog (not the drag-and-drop upload zone). The `.tmpl` filenames encode the dialog metadata as
 `{category}-{format}-{yyyyMMdd}-{language}.tmpl` — the same convention the backend upload endpoint
 parses — and each file body ends with a `templatePurpose=` line that provides the purpose field.
-The file content itself is pasted verbatim into the `templateAsTxt` textarea.
+The file content itself is pasted verbatim into the `templateAsTxt` textarea. The spec also proves that
+`alledit` cannot see the instance-wide platform command, then logs in as `admin` and marks `Grafioschtrader`
+as the template set offered by this installation. A rerun accepts that platform already being selected.
 
 ## Tenant edit spec (020-*)
 
 `020-edit-tenant.spec.ts` exercises Grafioschtrader's `TenantEditComponent` through the dynamic tenant dialog. It
-reads complete `tenantEdit` targets (tenant name, dividend-tax exclusion, country and import platform) such as the
+reads complete `tenantEdit` targets (tenant name, dividend-tax exclusion, country and GT-template opt-in) such as the
 one on the `limit2` object in
 `backend/grafioschtrader-server/src/test/resources/testdata/users.json`, saves the tenant name, dividend-tax exclusion,
-country and Grafioschtrader import platform, then logs in again and verifies that every value persisted. The country
-and import platform are fixture natural keys: the test selects Switzerland as ISO code `CH` while accepting its
-English/German label, and resolves the platform's generated database id from the option named `Grafioschtrader`.
-Partial `tenantEdit` targets containing only country and import platform are reserved for the backend integration test
+country and `useGtImportTemplates` checkbox, then logs in again and verifies that every value persisted. The test
+selects Switzerland as ISO code `CH` while accepting its English/German label. Partial `tenantEdit` targets containing
+only country and the opt-in are reserved for the backend integration test
 and are deliberately ignored by this UI workflow.
 
-The spec runs after `010-import-template-group.spec.ts`, which creates that import platform, and before the portfolio
-workflow. Updating to the same fixture state is safe, so `020` can be rerun against an already populated
+The spec runs after `010-import-template-group.spec.ts`, which configures the instance-wide platform, and before the
+portfolio workflow. Updating to the same fixture state is safe, so `020` can be rerun against an already populated
 `grafioschtrader_t` without cleanup.
 
 ## Portfolio specs (025-* create / 888-* teardown)
@@ -347,8 +348,9 @@ drop it deletes matching transactions and any failed computer-generated import h
 runs repeatable against the same `grafioschtrader_t`.
 
 The first scenario is `e2e/user/Swissquote`: its buy and dividend receipts both use the Grafioschtrader templates
-created by `010-import-template-group.spec.ts` and configured for user `user` by `020-edit-tenant.spec.ts`. With the
-backend and frontend still active, execute only this spec with
+created and configured instance-wide by `010-import-template-group.spec.ts`. `TenantResourceTest` opts the integration
+user `user` into those templates from `users.json`; `020` separately exercises the same checkbox through the UI for
+the complete `limit2` fixture. With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/130-import-transactions.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
 ## CSV transaction-import spec (132-*)

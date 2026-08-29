@@ -32,6 +32,7 @@ import grafioschtrader.platform.IPlatformTransactionImport;
 import grafioschtrader.platformimport.ImportTransactionHelper;
 import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.CreatedTransactionsResult;
 import grafioschtrader.repository.ImportTransactionPosJpaRepositoryImpl.SavedImpPosAndTransaction;
+import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TemplateFormatType;
 import jakarta.transaction.Transactional;
 
@@ -68,6 +69,9 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   @Autowired
   private ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
 
+  @Autowired
+  private GlobalparametersService globalparametersService;
+
   @Autowired(required = false)
   public List<IPlatformTransactionImport> platformTransactionImportList = new ArrayList<>();
 
@@ -102,15 +106,16 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   }
 
   /**
-   * Ensures the tenant has its Grafioschtrader import platform reference configured; required whenever an import head
-   * carries the use GT platform flag.
+   * Ensures the Grafioschtrader import templates are available for this import head; required whenever the head carries
+   * the use GT platform flag. Two independent settings have to agree: an administrator must have chosen the import
+   * platform holding those templates for this instance, and the tenant must have opted in.
    *
    * @param idTenant the tenant of the import head
-   * @return the tenant's Grafioschtrader import platform ID
+   * @return the instance wide Grafioschtrader import platform ID
    */
   private Integer checkGtPlatformConfigured(Integer idTenant) {
-    Integer idGtImportPlatform = tenantJpaRepository.getReferenceById(idTenant).getIdGtImportPlatform();
-    if (idGtImportPlatform == null) {
+    Integer idGtImportPlatform = globalparametersService.getGtImportPlatformId();
+    if (idGtImportPlatform == null || !tenantJpaRepository.getReferenceById(idTenant).isUseGtImportTemplates()) {
       throw new DataViolationException("use.gt.platform", "gt.imphead.gtplatform.notconfigured", null);
     }
     return idGtImportPlatform;
@@ -223,9 +228,9 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
   /**
    * Resolves the import platform whose templates parse the uploaded documents. With the head's use GT platform flag
-   * set, the tenant's Grafioschtrader import platform is used (the GT platform has no platform specific import
-   * implementation, so the generic import applies); otherwise the securities account's trading platform mapping,
-   * which must exist in that case.
+   * set, the instance's Grafioschtrader import platform is used (the GT platform has no platform specific import
+   * implementation, so the generic import applies); otherwise the securities account's trading platform mapping, which
+   * must exist in that case.
    *
    * @param importTransactionHead the import head of this upload
    * @return the platform providing the import templates
@@ -336,8 +341,7 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
    */
   private void checkRoomForOneFurtherPosition() {
     User user = entityLimitService.getCurrentUserOrNull();
-    if (user != null
-        && !entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_IMPORT_TRANSACTION_POS, null, 1)) {
+    if (user != null && !entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_IMPORT_TRANSACTION_POS, null, 1)) {
       throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
     }
   }

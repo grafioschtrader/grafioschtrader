@@ -30,7 +30,7 @@ import grafioschtrader.types.TaskTypeExtended;
  * accounts according to the specifications in application.properties and the global settings. Two different source
  * accounts are provided so that, for example, German and English demo user accounts can be served.
  * <ul>
- * <li>gt.demo.account.pattern.de and gt.demo.account.pattern.en in application.properties: This pattern is used to
+ * <li>g.demo.account.pattern.de and g.demo.account.pattern.en in application.properties: This pattern is used to
  * express the target accounts. This pattern is used to search for the target accounts. If no demo user account is
  * desired, only this search pattern in the user's e-mail may not result in a hit.</li>
  * <li>gt.source.demo.idtenant.de and gt.source.demo.idtenant.de in global settings: These are the IDs of the source
@@ -52,10 +52,10 @@ public class CopyTenantToDemoAccountsTask implements ITask {
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeRepository;
 
-  @Value("${gt.demo.account.pattern.de}")
+  @Value("${g.demo.account.pattern.de}")
   private String demoAccountPatternDE;
 
-  @Value("${gt.demo.account.pattern.en}")
+  @Value("${g.demo.account.pattern.en}")
   private String demoAccountPatternEN;
 
   @Override
