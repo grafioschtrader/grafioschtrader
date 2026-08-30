@@ -37,7 +37,7 @@
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.36.9</version>	
+	        <version>0.36.9</version>
 		</dependency>
 
  		<dependency>
