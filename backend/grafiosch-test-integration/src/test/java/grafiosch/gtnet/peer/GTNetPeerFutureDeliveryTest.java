@@ -22,10 +22,8 @@ import tools.jackson.databind.JsonNode;
  * The peers run with the background worker disabled, so the task is invoked explicitly instead of being picked up by
  * the 15 second poll; waiting on that poll is never an assertion strategy.
  *
- * The FAILED classification is deliberately not staged here. It requires every attempt of a message to fail, and a
- * broadcast only ever targets peers with a configured exchange, so it would take peer B being down while this suite
- * runs. What is asserted instead is that an attempt exists per configured target and that a peer without a configured
- * exchange never receives one, which is the reason an unreachable stranger cannot produce that state.
+ * The e2e-only control endpoint can mark the local view of peer B out of service without stopping its JVM. That stages
+ * the terminal skip deterministically and is reset before the test ends, so the topology remains reusable.
  */
 @TestMethodOrder(OrderAnnotation.class)
 class GTNetPeerFutureDeliveryTest {
@@ -62,6 +60,8 @@ class GTNetPeerFutureDeliveryTest {
     for (JsonNode attempt : attempts) {
       assertThat(attempt.path("hasSend").asBoolean()).isFalse();
       assertThat(attempt.path("sendTimestamp").isNull() || attempt.path("sendTimestamp").isMissingNode()).isTrue();
+      assertThat(attempt.path("attemptStatus").asString()).isEqualTo("QUEUED");
+      assertThat(attempt.path("tryCount").asInt()).isZero();
     }
     assertThat(targetIds(attempts)).contains(remoteB);
   }
@@ -87,9 +87,45 @@ class GTNetPeerFutureDeliveryTest {
     for (JsonNode attempt : attempts) {
       assertThat(attempt.path("hasSend").asBoolean()).as("attempt to peer %s", attempt.path("idGtNet").asInt())
           .isTrue();
+      assertThat(attempt.path("attemptStatus").asString()).isEqualTo("DELIVERED");
+      assertThat(attempt.path("tryCount").asInt()).isEqualTo(1);
       assertThat(attempt.path("sendTimestamp").asString()).isNotBlank();
     }
     assertThat(deliveryStatusOf(announcementId)).isEqualTo("DELIVERED");
+
+    var productionView = GTNetPeerTestSupport.getApi(GTNetPeerTestSupport.PEER_A, "/api/gtnet/messageattempts/" + ownA,
+        jwtA);
+    assertThat(productionView.statusCode()).as(productionView.body()).isBetween(200, 299);
+    assertThat(productionView.body()).contains("\"attemptStatus\":\"DELIVERED\"");
+  }
+
+  @Test
+  @Order(4)
+  void aRetiredOnlyTargetMakesItsAttemptAndMessageFailed() throws Exception {
+    submitCancellation(announcementId, "GTNet peer future maintenance cancellation");
+    runNewestWaitingTask("GTNET_FUTURE_MESSAGE_DELIVERY");
+
+    String from = LocalDateTime.now().plusDays(4).truncatedTo(ChronoUnit.SECONDS).toString();
+    String to = LocalDateTime.now().plusDays(5).truncatedTo(ChronoUnit.SECONDS).toString();
+    var response = GTNetPeerTestSupport.submit(GTNetPeerTestSupport.PEER_A, jwtA, null, "GT_NET_MAINTENANCE_ALL_C",
+        Map.of("fromDateTime", from, "toDateTime", to), "GTNet peer retired-target maintenance");
+    assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
+    int retiredAnnouncementId = newestAttemptOwningAnnouncementId();
+
+    setRemoteBOnlineStatus(3);
+    try {
+      runNewestWaitingTask("GTNET_FUTURE_MESSAGE_DELIVERY");
+      JsonNode retiredAttempts = attempts(retiredAnnouncementId);
+      assertThat(retiredAttempts).hasSize(1);
+      assertThat(retiredAttempts.get(0).path("attemptStatus").asString()).isEqualTo("PEER_OUT_OF_SERVICE");
+      assertThat(retiredAttempts.get(0).path("tryCount").asInt()).isZero();
+      assertThat(deliveryStatusOf(retiredAnnouncementId)).isEqualTo("FAILED");
+    } finally {
+      setRemoteBOnlineStatus(1);
+    }
+
+    submitCancellation(retiredAnnouncementId, "GTNet peer retired-target maintenance cancellation");
+    runNewestWaitingTask("GTNET_FUTURE_MESSAGE_DELIVERY");
   }
 
   private static java.util.List<Integer> targetIds(JsonNode attempts) {
@@ -107,12 +143,17 @@ class GTNetPeerFutureDeliveryTest {
     return GTNetPeerTestSupport.JSON.readTree(response.body());
   }
 
-  /** Broadcast messages are stored against the own entry, which is where the announcement is read back from. */
+  /** Selects the source message that owns attempts, never a legacy visibility copy with a higher identity. */
   private static int newestSentAnnouncementId() throws Exception {
+    return newestAttemptOwningAnnouncementId();
+  }
+
+  private static int newestAttemptOwningAnnouncementId() throws Exception {
     int newest = 0;
     for (JsonNode message : messages(ownA)) {
-      if ("GT_NET_MAINTENANCE_ALL_C".equals(message.path("messageCode").asString())) {
-        newest = Math.max(newest, message.path("idGtNetMessage").asInt());
+      int candidate = message.path("idGtNetMessage").asInt();
+      if ("GT_NET_MAINTENANCE_ALL_C".equals(message.path("messageCode").asString()) && !attempts(candidate).isEmpty()) {
+        newest = Math.max(newest, candidate);
       }
     }
     assertThat(newest).as("the maintenance announcement was stored").isPositive();
@@ -173,6 +214,23 @@ class GTNetPeerFutureDeliveryTest {
         "/api/integration-gtnet-test/tasks/" + id + "/run", jwtA, "null");
     assertThat(run.statusCode()).as(run.body()).isBetween(200, 299);
     assertThat(run.body()).contains("PROG_PROCESSED");
+  }
+
+  private static void submitCancellation(int originalId, String message) throws Exception {
+    var request = GTNetPeerTestSupport.JSON.createObjectNode();
+    request.put("messageCode", "GT_NET_MAINTENANCE_CANCEL_ALL_C");
+    request.put("idOriginalMessage", originalId);
+    request.put("message", message);
+    request.putObject("gtNetMessageParamMap");
+    var response = GTNetPeerTestSupport.postApi(GTNetPeerTestSupport.PEER_A, "/api/gtnet/submitmsg", jwtA,
+        request.toString());
+    assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
+  }
+
+  private static void setRemoteBOnlineStatus(int status) throws Exception {
+    var response = GTNetPeerTestSupport.postApi(GTNetPeerTestSupport.PEER_A,
+        "/api/integration-gtnet-test/peers/" + remoteB + "/online-status/" + status, jwtA, "null");
+    assertThat(response.statusCode()).as(response.body()).isBetween(200, 299);
   }
 
   private static String requiredEnv(String name) {

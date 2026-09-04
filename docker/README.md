@@ -5,6 +5,10 @@ automatic HTTPS — with a few commands. No Java, Node.js, Maven or web server
 setup required. Works on x86-64 servers and on a Raspberry Pi 4/5 (64-bit OS,
 ARM64) alike.
 
+For an overview of the containers, their communication paths and the locations
+of persistent data and configuration, see [Docker Architecture in the
+Grafioschtrader user manual](https://grafioschtrader.github.io/gt-user-manual/en/intro/installationupdate/dockerarchitecture/index.html).
+
 ## Quickstart
 
 Requirements: [Docker Engine](https://docs.docker.com/engine/install/) with the
@@ -93,6 +97,76 @@ To keep the other web server terminating TLS on 80/443 and have it reverse-proxy
 to Grafioschtrader, point it at `http://127.0.0.1:${GT_HTTP_PORT}` and leave GT
 in local-HTTP mode.
 
+### IPv6 for the containers
+
+The Docker bridge network carries IPv4 only, so a container has no IPv6 address
+and no route into the IPv6 internet. Incoming traffic does not care — it arrives
+on the host and is published into the container either way — which is why most
+installations never notice.
+
+Two things do notice. If your domain has an `AAAA` record but no `A` record, the
+backend cannot reach its own address, and creating the first GTNet entry, which
+probes the URL from inside the container, fails with
+
+```
+io.netty.channel.AbstractChannel$AnnotatedSocketException: Network is unreachable:
+  myhost.duckdns.org/[2a02:...]:443
+```
+
+And GTNet peers that are only reachable over IPv6 stay unreachable.
+
+Give the project network a Unique Local Address prefix. Docker masquerades it
+onto the host's global address — which is exactly the address your domain
+resolves to, so peers see you under the address they also reach you at:
+
+```yaml
+# docker-compose.override.yml
+networks:
+  default:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16          # the subnet the network already has
+        - subnet: fd4f:9c2a:71e3::/64    # any ULA prefix out of fd00::/8
+```
+
+Repeating the IPv4 subnet keeps the container addresses where they are; read the
+current one with `docker network inspect grafioschtrader_default`. The host has
+to route the new prefix, which it only does with IPv6 forwarding on:
+
+```bash
+echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee /etc/sysctl.d/99-docker-ipv6.conf
+sudo sysctl --system
+```
+
+Changing a network's addressing means recreating the network, and compose can
+only do that with the containers stopped:
+
+```bash
+docker compose down && docker compose up -d
+```
+
+Then confirm that the container really has IPv6, and that it reaches your own
+domain through it:
+
+```bash
+docker compose exec backend curl -s -6 -m 15 https://ifconfig.co
+docker compose exec backend curl -s -m 15 -o /dev/null \
+  -w 'http=%{http_code} via %{remote_ip}\n' https://myhost.duckdns.org/api/actuator/info
+```
+
+The first command should print the host's global IPv6 address, the second
+`http=200` via that same address.
+
+**One caveat, on hosts where the kernel processes router advertisements.**
+Switching `net.ipv6.conf.all.forwarding` on makes the kernel ignore RAs, and the
+host then loses the default route and the global address it learned from them —
+usually noticed only after the next reboot. Add
+`net.ipv6.conf.<uplink>.accept_ra = 2` to the same file there. Raspberry Pi OS
+with NetworkManager is not affected, because it handles RAs in userspace and
+leaves the kernel's `accept_ra` at `0`, but check `ip -6 route show default` and
+`ip -6 addr show scope global` after the change regardless.
+
 ## Everyday operations
 
 All commands from the `docker/` directory.
@@ -107,7 +181,7 @@ docker compose up -d               # start / apply .env changes
 ### Update to a new release
 
 ```bash
-./update.sh 0.36.8     # or: ./update.sh latest
+./update.sh 0.36.10     # or: ./update.sh latest
 ```
 
 `update.sh` does the whole update: it backs up the database, `.env` and
@@ -137,7 +211,7 @@ older release with a new version number:
 
 ```bash
 git -C .. fetch --depth 1 origin master && git -C .. reset --hard FETCH_HEAD
-./update.sh 0.36.8 --build
+./update.sh 0.36.10 --build
 ```
 
 The same thing by hand:
@@ -152,7 +226,7 @@ docker compose exec -T mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
 
 # 2. Only when GT_VERSION pins a version: set the new one in .env
 #    (with GT_VERSION=latest, skip this step)
-sed -i 's/^GT_VERSION=.*/GT_VERSION=0.36.8/' .env
+sed -i 's/^GT_VERSION=.*/GT_VERSION=0.36.10/' .env
 
 # 3. Fetch the new images and restart
 docker compose pull
@@ -164,7 +238,7 @@ docker compose logs -f backend
 
 Database migrations run automatically on startup, so the backend can stay in
 `starting` for a while after a release with many migrations. `GT_VERSION=latest`
-(the installer's default) tracks the newest release; set `GT_VERSION=0.36.8` to
+(the installer's default) tracks the newest release; set `GT_VERSION=0.36.10` to
 pin an exact version, which is worth doing if you want an update to be a
 deliberate, reversible step.
 
@@ -249,7 +323,11 @@ docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" \
 # 4. MariaDB-InnoDB has a bug, see MDEV-28327 — rebuild the statistics
 docker compose exec -T mariadb mariadb-check -uroot -p"$DB_ROOT_PASSWORD" -a "$DB_NAME"
 
-# 5. Start the application again and watch it come up
+# 5. Clear the pointer to the source instance's own GTNet entry — see below
+docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" "$DB_NAME" \
+  -e "UPDATE globalparameters SET property_int = NULL WHERE property_name = 'g.gnet.my.entry.id'"
+
+# 6. Start the application again and watch it come up
 docker compose up -d
 docker compose logs -f backend
 ```
@@ -272,6 +350,15 @@ sed -i '1i SET FOREIGN_KEY_CHECKS=0;' gt_data.sql
 docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" \
   --default-character-set=utf8mb4 "$DB_NAME" < gt_data.sql
 ```
+
+**The export carries the whole `globalparameters` table**, including values that
+described the *source* instance. Most of them are harmless, but
+`g.gnet.my.entry.id` is not: it names the source instance's own GTNet entry,
+while the `gt_net` tables are not exported at all, so after the import it points
+at a row that does not exist. GTNet then reports itself as configured and every
+access to the own entry fails with `My GTNet entry not found with ID: …`. `NULL`
+is the fresh-install state — GTNet simply waits until an own entry is created —
+which is what step 5 above restores.
 
 **You log in with the credentials of the source instance.** The export carries
 your user account and gives it administrator rights in the new instance, so you
@@ -337,6 +424,73 @@ environment variables always take precedence in Spring Boot; change those in
 variable in a `docker-compose.override.yml`
 (e.g. `GT_EOD_CRON_QUOTATION=0 30 22 * * ?`).
 
+### Memory and storage on Raspberry Pi and SBC hosts
+
+The [installation guide for Raspberry Pi 4 or
+5](https://github.com/grafioschtrader/grafioschtrader/wiki/Installation-on-Raspberry-Pi-4-or-5)
+describes Java, MariaDB, swap and storage tuning for the classic installation.
+The same resource limits apply to Docker, but the files and restart commands are
+different because Java and MariaDB run inside containers.
+
+`install.sh` reads the host's total RAM once and writes these presets to `.env`:
+
+| Host RAM | `JAVA_OPTS` for the backend | `DB_INNODB_BUFFER_POOL_SIZE` |
+|----------|-----------------------------|------------------------------|
+| About 2 GB | `-Xms128m -Xmx896m` | `384M` |
+| About 4 GB | `-Xms256m -Xmx1792m` | `1G` |
+| 8 GB or more | `-Xms512m -Xmx2048m` | `2G` |
+
+Edit these two `.env` values if GT must share the host with other applications,
+or after the host's RAM has changed. Apply them by recreating the affected
+containers:
+
+```bash
+docker compose up -d --force-recreate mariadb backend
+```
+
+The host's `/etc/mysql/my.cnf` does **not** configure the MariaDB container.
+For additional MariaDB settings, create `mariadb-config/99-local.cnf` next to
+`docker-compose.yml`, for example:
+
+```ini
+[mariadb]
+tmp_table_size=64M
+max_heap_table_size=64M
+innodb_lock_wait_timeout=100
+```
+
+Then mount it with a `docker-compose.override.yml` in the same directory:
+
+```yaml
+services:
+  mariadb:
+    volumes:
+      - ./mariadb-config/99-local.cnf:/etc/mysql/conf.d/99-local.cnf:ro
+```
+
+Recreate `mariadb` and `backend` with the command above. Keep
+`innodb_buffer_pool_size` in `.env`: the compose command-line option deliberately
+takes precedence over a value in the custom file. Set `tmp_table_size` and
+`max_heap_table_size` together because MariaDB uses the lower value as the
+limit, and remember that this memory can be consumed per connection. Start with
+conservative values and measure before increasing them. Other settings from the
+classic guide, especially the query cache, are version- and workload-dependent
+and should not be copied into the MariaDB 11.4 container without verification.
+
+Swap remains a setting of the Docker **host**, not of an individual container.
+It may help a low-memory Raspberry Pi finish a local Angular image build, but
+pulling the published images avoids that roughly 4 GB build requirement and is
+normally preferable. Heavy swapping during normal operation makes GT slow and
+increases writes to a microSD card.
+
+The `db_data` volume follows Docker's data-root. For a new installation on an
+SSD or NVMe host, place Docker's data-root there before installing, or define a
+deliberate bind-backed replacement for that volume. Moving an existing database
+volume is a migration: take and verify a database backup first, then restore it
+at the new location rather than copying files from a running MariaDB container.
+The log-size limit under [Troubleshooting](#troubleshooting) further reduces
+writes on microSD installations.
+
 ## Building images locally (developers)
 
 Instead of pulling the published images from GHCR:
@@ -400,6 +554,50 @@ services:
   logs the ACME errors: `docker compose logs web`. If your ISP blocks port 80,
   a DNS-01 challenge is possible but requires a custom Caddy build with the
   DuckDNS DNS plugin (not covered by the standard image).
+- **Java rejects a data provider's certificate** — an error such as `PKIX path
+  building failed` concerns an *outbound* HTTPS connection from the backend. It
+  is unrelated to the certificate that Caddy obtains for incoming browser
+  connections. Obtain and inspect the missing X.509 certificate as described in
+  the [general problem-solving
+  guide](https://github.com/grafioschtrader/grafioschtrader/wiki/Problem-solving),
+  then import the local PEM or DER file from the `docker/` directory:
+
+  ```bash
+  bash import-java-certificate.sh /path/to/fx-sauder-ubc.crt fx-sauder-ubc
+  ```
+
+  Prefer the issuing CA or intermediate certificate over a short-lived server
+  certificate, and never import a certificate that you have not verified. On
+  its first run the helper copies the backend image's complete standard Java
+  truststore to `config/gt-cacerts`; later runs preserve it and add further
+  certificates. The generated truststore lives on the host and therefore
+  survives container replacement and normal Grafioschtrader updates.
+
+  The helper validates and imports the certificate, but deliberately does not
+  change the installation or restart it. Append the following two options
+  inside the existing `JAVA_OPTS` value in `.env`, preserving the current
+  `-Xms` and `-Xmx` settings. For example:
+
+  ```properties
+  JAVA_OPTS="-Xms256m -Xmx1792m -Djavax.net.ssl.trustStore=/config/gt-cacerts -Djavax.net.ssl.trustStorePassword=changeit"
+  ```
+
+  Recreate the backend so that Java reads the setting, follow its log, and then
+  retry the affected price or currency update:
+
+  ```bash
+  docker compose up -d --force-recreate backend
+  docker compose logs --since=5m backend
+  ```
+
+  Do not work around certificate failures by disabling TLS verification. After
+  a major Java runtime upgrade, rebuild `config/gt-cacerts` from the new backend
+  image and re-import the locally required certificates; otherwise the copied
+  standard CA collection remains frozen at the older Java version. Keep the
+  certificate files, move `config/gt-cacerts` to a backup name, and run the
+  helper once for each certificate; the first run then takes a fresh copy from
+  the upgraded backend. Delete the backup only after the affected connections
+  work again.
 - **Registration email never arrives** — check the SMTP values in `.env`
   (`MAIL_*`), then `docker compose up -d` and watch
   `docker compose logs -f backend` while registering. Note: port 465 uses
@@ -407,6 +605,30 @@ services:
 - **Registration link broken** — the confirmation link is derived from the
   browser's `Referer` header; strict privacy extensions that strip it can break
   registration.
+- **GTNet does not recognize this instance's own entry** — the GTNet setup keeps
+  showing the red communication-requirement hint after the own entry was saved,
+  and the log complains `My GTNet entry not found with ID: …`. Grafioschtrader
+  claims an entry as its own by resolving its address and comparing the result
+  against the machine's own network interfaces. Inside a container those are the
+  bridge address (`172.18.0.x`) and nothing else — never the host's LAN address,
+  never the public address the domain resolves to. The match therefore fails
+  silently and the global parameter `g.gnet.my.entry.id` is never written. Set it
+  by hand under *Administration → Global settings*, using the id of the own
+  entry — the GTNet setup shows it in the tooltip of the URL column, and the
+  database answers too:
+
+  ```bash
+  docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" "$DB_NAME" \
+    -e "SELECT id_gt_net, domain_remote_name FROM gt_net"
+  ```
+
+  Two things follow from this that are easy to run into. The address of an entry
+  is write-once, so an entry created with the wrong URL cannot be corrected, only
+  deleted and recreated — and deleting it is refused as long as
+  `g.gnet.my.entry.id` points at it, so clear the parameter first. And creating
+  the very first entry probes the URL *from inside the container*, which needs
+  the host to answer its own domain; see [IPv6 for the
+  containers](#ipv6-for-the-containers) when that address is IPv6-only.
 - **Raspberry Pi SD-card wear** — limit container log size in
   `docker-compose.override.yml`:
   ```yaml

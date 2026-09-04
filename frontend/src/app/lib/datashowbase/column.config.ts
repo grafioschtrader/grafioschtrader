@@ -44,6 +44,18 @@ export interface ColumnConfig extends BaseFieldDefinition {
    */
   fieldValueFN?: (dataobject: any, field: ColumnConfig, valueField: any) => any;
 
+  /**
+   * Custom function producing the cell's hover text. Without it the tooltip repeats the displayed value, which is
+   * what a truncated column needs; set it where the row carries something the cell cannot show, for example a
+   * technical id an administrator has to read off somewhere else.
+   *
+   * @param dataobject - The source data object
+   * @param field - The current column configuration
+   * @param valueField - The displayed value, as returned by the table's value getter
+   * @returns The tooltip text
+   */
+  cellTooltipFN?: (dataobject: any, field: ColumnConfig, valueField: any) => string;
+
   /** Text to append after the header text */
   headerSuffix?: string;
 
@@ -171,6 +183,9 @@ export interface OptionalParams {
 
   /** Custom value transformation function */
   fieldValueFN?: (dataobject: any, field: ColumnConfig, valueField: any) => any;
+
+  /** Custom function producing the cell's hover text; defaults to the displayed value */
+  cellTooltipFN?: (dataobject: any, field: ColumnConfig, valueField: any) => string;
 
   /** Text to append after the header text */
   headerSuffix?: string;

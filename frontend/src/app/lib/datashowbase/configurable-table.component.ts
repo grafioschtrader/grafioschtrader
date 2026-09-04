@@ -359,14 +359,14 @@ interface HeaderGroupItem {
                     </ng-container>
                   } @else if (field.templateName === 'owner') {
                     <span
-                      [pTooltip]="getValue(rowData, field)"
+                      [pTooltip]="getCellTooltip(rowData, field)"
                       [style]="isOwnerHighlighted(rowData, field) ? 'font-weight:700' : null"
                       tooltipPosition="top">
                       {{ getValue(rowData, field) }}
                     </span>
                   } @else if (field.templateName === 'greenRed') {
                     <span
-                      [pTooltip]="getValue(rowData, field)"
+                      [pTooltip]="getCellTooltip(rowData, field)"
                       [style.color]="isNegativeValue(rowData, field) ? 'red' : 'inherit'"
                       tooltipPosition="top">
                       {{ getValue(rowData, field) }}
@@ -417,7 +417,7 @@ interface HeaderGroupItem {
                     }
                   } @else {
                     <!-- Default: plain text with tooltip -->
-                    <span [pTooltip]="getValue(rowData, field)" tooltipPosition="top">
+                    <span [pTooltip]="getCellTooltip(rowData, field)" tooltipPosition="top">
                       {{ getValue(rowData, field) }}
                     </span>
                   }
@@ -1108,6 +1108,19 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    */
   isOwnerHighlighted(row: T, field: ColumnConfig): boolean {
     return this.ownerHighlightFn ? this.ownerHighlightFn(row, field) : false;
+  }
+
+  /**
+   * Returns the cell's hover text. It repeats the displayed value unless the column defines a
+   * {@link ColumnConfig.cellTooltipFN}, which lets a column surface something the cell itself has no room for.
+   *
+   * @param row - Row data object
+   * @param field - Column configuration
+   * @returns The tooltip text
+   */
+  getCellTooltip(row: T, field: ColumnConfig): any {
+    const value = this.getValue(row, field);
+    return field.cellTooltipFN ? field.cellTooltipFN(row, field, value) : value;
   }
 
   /**

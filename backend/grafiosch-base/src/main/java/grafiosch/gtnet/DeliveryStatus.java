@@ -16,7 +16,7 @@ public enum DeliveryStatus {
   /** Message was successfully delivered. At least one transmission attempt succeeded. */
   DELIVERED((byte) 1),
 
-  /** Message delivery permanently failed. All retry attempts have been exhausted. */
+  /** Message delivery permanently failed because every target became terminally unavailable or the message expired. */
   FAILED((byte) 2);
 
   private final Byte value;

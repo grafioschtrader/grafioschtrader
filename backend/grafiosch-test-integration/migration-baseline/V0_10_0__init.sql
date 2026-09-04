@@ -207,11 +207,15 @@ CREATE TABLE `gt_net_message_attempt` (
   `id_gt_net_message` int(11) NOT NULL COMMENT 'The broadcast message to deliver',
   `has_send` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Whether delivery succeeded',
   `send_timestamp` timestamp NULL DEFAULT NULL COMMENT 'When successfully delivered (UTC)',
+  `attempt_status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '0 queued, 1 waiting handshake, 2 retryable failure, 3 delivered, 4 peer retired, 5 expired',
+  `try_count` int(11) NOT NULL DEFAULT 0 COMMENT 'Number of actual HTTP transmissions',
+  `last_attempt_timestamp` datetime DEFAULT NULL COMMENT 'UTC time of the latest actual HTTP transmission',
+  `last_error` varchar(1000) DEFAULT NULL COMMENT 'Sanitized diagnostic from the latest failed transmission',
   PRIMARY KEY (`id_gt_net_message_attempt`),
   UNIQUE KEY `uk_message_gtnet` (`id_gt_net_message`,`id_gt_net`),
   KEY `idx_attempt_message` (`id_gt_net_message`),
   KEY `idx_attempt_gtnet` (`id_gt_net`),
-  KEY `idx_attempt_pending` (`has_send`,`id_gt_net_message`),
+  KEY `idx_attempt_pending` (`attempt_status`,`id_gt_net_message`),
   CONSTRAINT `fk_attempt_gtnet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
   CONSTRAINT `fk_attempt_message` FOREIGN KEY (`id_gt_net_message`) REFERENCES `gt_net_message` (`id_gt_net_message`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tracks per-target delivery status for future-oriented GTNet broadcast messages';

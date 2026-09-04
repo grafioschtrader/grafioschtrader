@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
     specified criteria (currency, portfolio, asset class, etc.) with all values converted to main currency""")
 public class AccountPositionGroupSummary {
 
-  @Schema(description = "Total account management fees charged within this group")
+  @Schema(description = "Total separately booked account and depot fees of this group")
   public double groupAccountFeesMC;
 
   @Schema(description = "Total interest earned on cash accounts within this group")

@@ -137,6 +137,21 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   Set<String> getSecurityTransactionCurrenciesForTenantExclude(Integer idTenant, String excludeCurrency);
 
   /**
+   * Retrieves the distinct currencies of all cash accounts of the specified tenant, excluding the given currency.
+   * Together with {@link #getSecurityTransactionCurrenciesForTenantExclude(Integer, String)} this covers every currency
+   * that has to be convertible into the tenant currency, which is what the holdings tables denormalise into their
+   * currency pair columns.
+   *
+   * Named query: Currencypair.getCashaccountCurrenciesForTenantExclude
+   *
+   * @param idTenant        the tenant ID whose cash account currencies are fetched
+   * @param excludeCurrency the currency code to exclude from the results, normally the tenant currency
+   * @return a set of cash account currency codes of the tenant, excluding excludeCurrency
+   */
+  @Query(nativeQuery = true)
+  Set<String> getCashaccountCurrenciesForTenantExclude(Integer idTenant, String excludeCurrency);
+
+  /**
    * Retrieves distinct security currencies that have been transacted in the specified portfolio, excluding the given
    * currency.
    *
@@ -146,6 +161,21 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
    */
   @Query(nativeQuery = true)
   Set<String> getSecurityTransactionCurrenciesForPortfolioExclude(Integer idPortfolio, String excludCurrency);
+
+  /**
+   * Retrieves the distinct currencies of the cash accounts of the specified portfolio, excluding the given currency.
+   * Together with {@link #getSecurityTransactionCurrenciesForPortfolioExclude(Integer, String)} this covers every
+   * currency that has to be convertible into the portfolio currency, which is what the holdings tables denormalise into
+   * their currency pair columns.
+   *
+   * Named query: Currencypair.getCashaccountCurrenciesForPortfolioExclude
+   *
+   * @param idPortfolio    the portfolio ID whose cash account currencies are fetched
+   * @param excludCurrency the currency code to exclude from the results, normally the portfolio currency
+   * @return a set of cash account currency codes of the portfolio, excluding excludCurrency
+   */
+  @Query(nativeQuery = true)
+  Set<String> getCashaccountCurrenciesForPortfolioExclude(Integer idPortfolio, String excludCurrency);
 
   /**
    * Retrieves all currency pairs that have been used in transactions for the specified portfolio (and scoped by
@@ -226,10 +256,14 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   List<Currencypair> findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency(String c1, String c2);
 
   /**
-   * For a tenant it gets all used currency pairs of all accounts and securities, without the currency pairs used in
-   * transactions. The main currency is taken from the tenant.
+   * For a tenant it gets all currency pairs its holdings need, without the currency pairs used in transactions. This is
+   * the lookup map behind {@code id_currency_pair_tenant} / {@code id_currency_pair_portfolio} of
+   * {@code hold_securityaccount_security} and {@code hold_cashaccount_balance}, so it returns all four conversion
+   * directions those two columns can hold: security currency to tenant currency, cash account currency to tenant
+   * currency, security currency to portfolio currency and cash account currency to portfolio currency. A pair whose two
+   * currencies are equal is never returned, because such a holding is already held in the reporting currency.
    *
-   * TODO it does not work correctly for HoldCashaccountBalanceJpaRepositoryImpl
+   * Named query: Currencypair.getAllCurrencypairsByTenantInPortfolioAndAccounts
    *
    * @param idTenant the tenant ID whose currency pairs are fetched
    * @return a list of Currencypair entities used within the tenant’s holdings

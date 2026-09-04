@@ -80,10 +80,13 @@ public class Stockexchange extends Auditable implements Serializable {
   @PropertyAlwaysUpdatable
   private String countryCode;
 
-  @Schema(description = "For an exchange without publicly available quote data, the period quotes entered by the user are used")
+  @Schema(description = """
+      For an exchange without publicly available quote data, the period quotes entered by the user are used. It stays
+      changeable as long as no security references this exchange; the first assigned security locks it, because the
+      already recorded prices would otherwise become unusable.""")
   @Basic(optional = false)
   @Column(name = "no_market_value")
-  @PropertySelectiveUpdatableOrWhenNull
+  @PropertyAlwaysUpdatable
   private boolean noMarketValue;
 
   @Schema(description = "Defines whether secondary trading is supported by this exchange")

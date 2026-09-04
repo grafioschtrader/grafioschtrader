@@ -39,7 +39,11 @@ public class AccountPositionGrandSummary {
   @Schema(description = "Total foreign exchange gains/losses from currency fluctuations on multi-currency positions")
   public double grandGainLossCurrencyMC = 0.0;
   
-  @Schema(description = "Total account management fees charged across all accounts")
+  @Schema(description = """
+      Total separately booked account and depot fees across all accounts. Trading costs contained in a purchase or sale
+      and the financing costs of margin positions are not included; both are part of the securities result. Every
+      booking is converted with the exchange rate of its own date, unlike the cumulative fee figure of the period
+      performance report, which is revalued with the rate of the reporting day.""")
   public double grandAccountFeesMC = 0.0;
   
   @Schema(description = "Total interest earned on cash account balances")

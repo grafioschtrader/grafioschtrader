@@ -44,6 +44,7 @@ import { TranslateHelper } from '../../helper/translate.helper';
 import { UploadFileDialogComponent } from '../../generaldialog/component/upload-file-dialog.component';
 import { FileUploadParam, UploadServiceFunction } from '../../generaldialog/model/file.upload.param';
 import saveAs from '../../filesaver/filesaver';
+import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
 
 @Component({
   standalone: true,
@@ -119,8 +120,11 @@ import saveAs from '../../filesaver/filesaver';
         [exchangeKindTypes]="exchangeKindTypes"
         [gtNetMessages]="gtNetMessageMap[row.idGtNet]"
         [maintenanceWindows]="gtNetMaintenanceWindowMap[row.idGtNet]"
+        [messageAttempts]="gtNetMessageAttemptMap[row.idGtNet]"
         [messageCount]="gtNetMessageCountMap[row.idGtNet] ?? 0"
         [maintenanceWindowCount]="gtNetMaintenanceWindowCountMap[row.idGtNet] ?? 0"
+        [messageAttemptCount]="gtNetMessageAttemptCountMap[row.idGtNet] ?? 0"
+        [canAdministerGTNet]="canAdministerGTNet"
         [incomingPendingIds]="getIncomingPendingIds(row.idGtNet)"
         [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
         [formDefinitions]="formDefinitions"
@@ -204,6 +208,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   );
   maxDate: Date = new Date('2099-12-31');
   private readonly domainRemoteName = 'domainRemoteName';
+  /** Translated label of the id in the domain tooltip; resolved on first use, when the bundle is loaded. */
+  private idLabel: string;
   /** Every write on GTNet belongs to an administrator, so a non-administrator gets no context menu at all. */
   protected readonly canAdministerGTNet: boolean;
   callParam: GTNetCallParam;
@@ -221,6 +227,10 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   gtNetMaintenanceWindowCountMap: { [key: number]: number } = {};
   /** Cache for loaded maintenance windows (lazy loaded when a row is expanded) */
   gtNetMaintenanceWindowMap: { [key: number]: GTNetMaintenanceWindow[] } = {};
+  /** Administrator-only attempt count per source idGtNet. */
+  gtNetMessageAttemptCountMap: { [key: number]: number } = {};
+  /** Cache for lazily loaded per-target delivery outcomes. */
+  gtNetMessageAttemptMap: { [key: number]: GTNetMessageAttemptView[] } = {};
   outgoingPendingReplies: { [key: number]: number[] };
   incomingPendingReplies: { [key: number]: number[] };
   idOpenDiscontinuedMessage: number;
@@ -268,7 +278,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
 
     this.addColumnFeqH(DataType.String, this.domainRemoteName, true, false, {
       width: 200,
-      templateName: 'owner'
+      templateName: 'owner',
+      cellTooltipFN: this.getDomainTooltip.bind(this)
     });
     this.addColumnFeqH(DataType.String, 'timeZone', true, false, {
       width: 120
@@ -339,9 +350,11 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       this.createTranslatedValueStoreAndFilterField(this.gtNetList);
       this.gtNetMessageCountMap = response.gtNetMessageCountMap || {};
       this.gtNetMaintenanceWindowCountMap = response.gtNetMaintenanceWindowCountMap || {};
+      this.gtNetMessageAttemptCountMap = response.gtNetMessageAttemptCountMap || {};
       // Clear message cache on data refresh
       this.gtNetMessageMap = {};
       this.gtNetMaintenanceWindowMap = {};
+      this.gtNetMessageAttemptMap = {};
       this.loadedMessageIds.clear();
       this.loadingMessageIds.clear();
       this.outgoingPendingReplies = response.outgoingPendingReplies;
@@ -545,7 +558,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   }
 
   public override getHelpContextId(): string {
-    return HelpIds.HELP_GT_NET;
+    return HelpIds.HELP_GT_NET_SETUP;
   }
 
   private editConfig(): void {
@@ -571,7 +584,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   canExpand(row: GTNet): boolean {
     const hasMessages = (this.gtNetMessageCountMap[row.idGtNet] ?? 0) > 0;
     const hasWindows = (this.gtNetMaintenanceWindowCountMap[row.idGtNet] ?? 0) > 0;
-    return hasMessages || hasWindows || this.hasConfigEntity(row);
+    const hasAttempts = (this.gtNetMessageAttemptCountMap[row.idGtNet] ?? 0) > 0;
+    return hasMessages || hasWindows || hasAttempts || this.hasConfigEntity(row);
   }
 
   /**
@@ -583,17 +597,24 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     const idGtNet = event.data.idGtNet;
     const hasMessages = (this.gtNetMessageCountMap[idGtNet] ?? 0) > 0;
     const hasWindows = (this.gtNetMaintenanceWindowCountMap[idGtNet] ?? 0) > 0;
+    const hasAttempts = this.canAdministerGTNet && (this.gtNetMessageAttemptCountMap[idGtNet] ?? 0) > 0;
 
     // Only load if there is something to load and it is not already loaded or loading
-    if ((hasMessages || hasWindows) && !this.loadedMessageIds.has(idGtNet) && !this.loadingMessageIds.has(idGtNet)) {
+    if (
+      (hasMessages || hasWindows || hasAttempts) &&
+      !this.loadedMessageIds.has(idGtNet) &&
+      !this.loadingMessageIds.has(idGtNet)
+    ) {
       this.loadingMessageIds.add(idGtNet);
       combineLatest([
         hasMessages ? this.gtNetService.getMessagesByIdGtNet(idGtNet) : of([]),
-        hasWindows ? this.gtNetService.getMaintenanceWindowsByIdGtNet(idGtNet) : of([])
+        hasWindows ? this.gtNetService.getMaintenanceWindowsByIdGtNet(idGtNet) : of([]),
+        hasAttempts ? this.gtNetService.getMessageAttemptsByIdGtNet(idGtNet) : of([])
       ]).subscribe({
-        next: ([messages, maintenanceWindows]) => {
+        next: ([messages, maintenanceWindows, messageAttempts]) => {
           this.gtNetMessageMap[idGtNet] = messages;
           this.gtNetMaintenanceWindowMap[idGtNet] = maintenanceWindows;
+          this.gtNetMessageAttemptMap[idGtNet] = messageAttempts;
           this.loadedMessageIds.add(idGtNet);
           this.loadingMessageIds.delete(idGtNet);
           // Clear selection in tree table after messages are loaded
@@ -621,6 +642,22 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
    */
   isLoadingMessages(idGtNet: number): boolean {
     return this.loadingMessageIds.has(idGtNet);
+  }
+
+  /**
+   * Puts the numeric id in front of the domain in the cell's tooltip. The id has no column of its own, but an
+   * administrator needs to read it off somewhere: where the own entry cannot be detected automatically - the
+   * application in a container never matches its public address against a local interface - the global parameter
+   * 'g.gnet.my.entry.id' has to be set to that id by hand.
+   *
+   * @param gtNet - The peer of this row
+   * @param field - The column configuration of the domain column
+   * @param value - The displayed domain
+   * @returns The tooltip text, for example 'ID=17, https://example.com'
+   */
+  getDomainTooltip(gtNet: GTNet, field: ColumnConfig, value: any): string {
+    this.idLabel ??= this.translateService.instant('ID');
+    return `${this.idLabel}=${gtNet.idGtNet}, ${value}`;
   }
 
   isMyEntry(row: GTNet, field: ColumnConfig): boolean {
@@ -682,9 +719,14 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     this.loadedMessageIds.delete(idGtNet);
     this.loadingMessageIds.add(idGtNet);
 
-    this.gtNetService.getMessagesByIdGtNet(idGtNet).subscribe({
-      next: (messages) => {
+    combineLatest([
+      this.gtNetService.getMessagesByIdGtNet(idGtNet),
+      this.canAdministerGTNet ? this.gtNetService.getMessageAttemptsByIdGtNet(idGtNet) : of([])
+    ]).subscribe({
+      next: ([messages, messageAttempts]) => {
         this.gtNetMessageMap[idGtNet] = messages;
+        this.gtNetMessageAttemptMap[idGtNet] = messageAttempts;
+        this.gtNetMessageAttemptCountMap[idGtNet] = messageAttempts.length;
         this.loadedMessageIds.add(idGtNet);
         this.loadingMessageIds.delete(idGtNet);
         // Clear selection in tree table after messages are loaded
@@ -745,7 +787,7 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       }
     };
     this.fileUploadParam = new FileUploadParam(
-      HelpIds.HELP_GT_NET,
+      HelpIds.HELP_GT_NET_SETUP,
       null,
       'sql',
       'GT_NET_IMPORT',

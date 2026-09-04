@@ -55,12 +55,11 @@ import jakarta.mail.MessagingException;
 public class HoldTableConsistencyCheckTask implements ITask {
 
   /**
-   * Absolute tolerance for the cash amount comparisons. It applies to the columns the writer stores unrounded, where it
-   * only has to absorb floating point noise. {@code hold_cashaccount_balance.balance} is the exception: it is rounded
-   * to the account currency's precision on write, so its query derives its own tolerance of one currency unit from
-   * {@code gt.currency.precision} and ignores this value.
+   * Absolute floor of the tolerance for the cash amount comparisons. Every column of both cash hold tables is stored
+   * unrounded, so it only has to absorb the noise of double addition; where the running total is large enough for that
+   * noise to exceed the floor, the queries raise it to a relative tolerance of the expected value.
    */
-  private static final double CASH_TOLERANCE = 0.005;
+  private static final double CASH_TOLERANCE = 0.000001;
 
   /** Relative tolerance for the holdings comparison, absorbing the float error of the split factor product. */
   private static final double HOLDINGS_TOLERANCE = 0.000001;

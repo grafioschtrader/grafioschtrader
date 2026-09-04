@@ -352,4 +352,22 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    */
   List<Security> batchUpdateGTNetExchange(List<Security> securities);
 
+  /**
+   * Checks whether the given instrument is bound to the kind of stock exchange it currently belongs to. That is the
+   * case as soon as something depends on where its prices come from: a history quote exists, a period was entered by
+   * the user, or the instrument was traded at least once. A traded instrument counts even without any recorded price,
+   * because its positions are valued from the price source its kind of exchange implies.
+   *
+   * <p>
+   * The system created period which every instrument on a stock exchange without market value carries does not count
+   * on its own, because it is written by {@code adjustHistoryquotePeriod} on every save and would therefore lock such
+   * an instrument right after its creation. A wrongly chosen exchange stays correctable as long as nothing was
+   * recorded and nothing was traded.
+   * </p>
+   *
+   * @param idSecuritycurrency the security to check
+   * @return true when the instrument may only move to a stock exchange of its own kind
+   */
+  boolean isStockexchangeCategoryLocked(Integer idSecuritycurrency);
+
 }

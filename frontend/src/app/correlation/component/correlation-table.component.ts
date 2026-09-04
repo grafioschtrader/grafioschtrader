@@ -650,7 +650,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   private getChartLayout(minDate: string, maxDate: string): any {
     const layout = {
-      title: 'CORRELATION_ROLLING|' + this.childToParent.getPeriodAndRollingWithParamPrefix().join('|'),
+      title: { text: 'CORRELATION_ROLLING|' + this.childToParent.getPeriodAndRollingWithParamPrefix().join('|') },
       showlegend: true,
       legend: PlotlyHelper.getLegendUnderChart(11),
       xaxis: {

@@ -46,10 +46,16 @@ public class PeriodHoldingAndDiff {
   @Schema(description = "Cumulative realized dividends in main currency.")
   private double dividendRealMC;
 
-  @Schema(description = "Total security account costs and account costs in tenant currency")
+  @Schema(description = """
+      Cumulative separately booked account and depot fees, in main currency, delivered as a positive value. Trading
+      costs contained in a purchase or sale are part of accumulateReduceMC and the financing costs of margin positions
+      are reported through the securities result, so neither is included here. Revalued with the exchange rate of the
+      reporting day, unlike the cash account summary, which converts each booking with the rate of its own date.""")
   private double feeRealMC;
 
-  @Schema(description = "Cumulative interest earned on cash accounts in main currency.")
+  @Schema(description = """
+      Cumulative interest earned on cash accounts in main currency. Revalued with the exchange rate of the reporting
+      day, unlike the cash account summary, which converts each booking with the rate of its own date.""")
   private double interestCashaccountRealMC;
 
   @Schema(description = "Net accumulation/reduction amount from security transactions in main currency.")

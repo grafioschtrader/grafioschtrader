@@ -87,6 +87,11 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
       requiredFromCurrency.add(tenant.getCurrency());
       requiredFromCurrency.addAll(currencypairJpaRepository
           .getSecurityTransactionCurrenciesForPortfolioExclude(idPortfolio, portfolio.getCurrency()));
+      // The cash account currencies belong here as well: hold_cashaccount_balance denormalises the pair account
+      // currency to portfolio currency, and without this the holdings rebuild would create it itself, without a
+      // price history load.
+      requiredFromCurrency.addAll(
+          currencypairJpaRepository.getCashaccountCurrenciesForPortfolioExclude(idPortfolio, portfolio.getCurrency()));
       requiredFromCurrency.remove(portfolio.getCurrency());
       requiredFromCurrency.removeAll(existingFromCurrency);
       requiredFromCurrency.forEach(fromCurrency -> currencypairJpaRepository.createNonExistingCurrencypair(fromCurrency,

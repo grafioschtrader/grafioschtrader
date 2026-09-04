@@ -233,6 +233,7 @@ export abstract class ShowRecordConfigBase {
     if (optionalParams) {
       cc.width = optionalParams.width;
       cc.fieldValueFN = optionalParams.fieldValueFN;
+      cc.cellTooltipFN = optionalParams.cellTooltipFN;
       cc.headerSuffix = optionalParams.headerSuffix;
       cc.translateValues = optionalParams.translateValues;
       cc.headerPrefix = optionalParams.headerPrefix;

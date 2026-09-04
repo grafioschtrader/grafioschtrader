@@ -33,6 +33,13 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
    */
   public static final short DEFAULT_GTNET_QUOTE_RETRY = 8;
 
+  /**
+   * Default weight of the OHL richness preference when ranking GTNet historical price suppliers, expressed in percent.
+   * 50 means a peer reporting 100% complete open/high/low data scores 1.5 times a peer reporting none of it, while
+   * instrument coverage and reliability remain the dominant factors. 0 disables the preference.
+   */
+  public static final int DEFAULT_GTNET_OHL_WEIGHT = 50;
+
   /** Default number of retry attempts for dividend data updates. */
   public static final short DEFAULT_DIVIDEND_RETRY = 2;
 
@@ -98,6 +105,11 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   /** Additional delay in seconds for GTNet lastprice freshness threshold calculation. */
   public static final String GLOB_KEY_GTNET_LASTPRICE_DELAY_SECONDS = GlobalConstants.GT_PREFIX
       + "gtnet.lastprice.delay.seconds";
+  /**
+   * Weight in percent of the OHL richness preference used when ranking GTNet historical price suppliers. Applies to
+   * securities only; currency pairs never report an OHL percentage and are therefore ranked without this factor.
+   */
+  public static final String GLOB_KEY_GTNET_OHL_WEIGHT = GlobalConstants.GT_PREFIX + "gtnet.ohl.weight";
   public static final String GLOB_KEY_HISTORY_MAX_FILLDAYS_CURRENCY = GlobalConstants.GT_PREFIX
       + "history.max.filldays.currency";
   public static final String GLOB_KEY_INTRADAY_OBSERVATION_OR_DAYS_BACK = GlobalConstants.GT_PREFIX

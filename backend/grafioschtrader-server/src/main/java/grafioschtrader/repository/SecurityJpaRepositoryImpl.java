@@ -49,6 +49,7 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
 import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.priceupdate.historyquote.BaseHistoryquoteThru;
 import grafioschtrader.priceupdate.historyquote.HistoryquoteThruCalculation;
@@ -75,6 +76,7 @@ import grafioschtrader.search.SecuritycurrencySearch;
 import grafioschtrader.service.GTNetHistoryquoteService;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.HistoryquoteCreateType;
+import grafioschtrader.types.HistoryquotePeriodCreateType;
 import grafioschtrader.types.SeasonalPeriodType;
 import grafioschtrader.types.TaskTypeExtended;
 import jakarta.annotation.PostConstruct;
@@ -719,6 +721,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     checkAssetclassAndSpezInstrumentForExisting(security, existingSecurity);
+    checkStockexchangeCategoryForExisting(security, existingSecurity);
     security.clearProperties();
     ThruCalculationHelper.checkFormulaAgainstInstrumetLinks(security, user.getLocaleStr());
     if (existingSecurity != null && existingSecurity.isDerivedInstrument()) {
@@ -734,6 +737,54 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     }
 
     return cloneSecurity;
+  }
+
+  /**
+   * Rejects a move of an instrument to a stock exchange of the other kind once prices were recorded for it or it was
+   * traded. The {@code noMarketValue} flag of the exchange decides where those prices live: an instrument on an
+   * ordinary exchange owns history quotes, one on an exchange without market value owns the periods entered by the
+   * user. Crossing that boundary would leave the instrument with rows in one table while the application reads the
+   * other, and it may end up carrying both kinds at once; a traded instrument would additionally lose the valuation of
+   * its positions. As long as nothing is recorded and nothing is traded there is nothing to invalidate, so a wrongly
+   * chosen exchange stays correctable.
+   *
+   * <p>
+   * The target exchange is read from the database instead of being taken from the submitted instrument, because a
+   * newly picked exchange arrives as its ID alone and its flag would not be filled.
+   * </p>
+   *
+   * @param security         the instrument as it was submitted
+   * @param existingSecurity the persisted instrument, {@code null} while it is being created
+   */
+  private void checkStockexchangeCategoryForExisting(Security security, Security existingSecurity) {
+    if (existingSecurity == null || security.getStockexchange() == null
+        || security.getStockexchange().getIdStockexchange() == null) {
+      return;
+    }
+    Stockexchange target = stockexchangeJpaRepository.findById(security.getStockexchange().getIdStockexchange())
+        .orElseThrow(() -> new IllegalArgumentException("The stock exchange does not exists!"));
+    if (existingSecurity.getStockexchange().isNoMarketValue() != target.isNoMarketValue()
+        && isStockexchangeCategoryLocked(existingSecurity.getIdSecuritycurrency())) {
+      throw new DataViolationException("STOCKEXCHANGE", "gt.security.stockexchange.category.locked", null);
+    }
+  }
+
+  @Override
+  public boolean isStockexchangeCategoryLocked(Integer idSecuritycurrency) {
+    return hasPriceData(idSecuritycurrency) || securityJpaRepository.hasSecurityTransaction(idSecuritycurrency);
+  }
+
+  /**
+   * Tells whether prices were already recorded for the instrument. The system created period every instrument on a
+   * stock exchange without market value carries is left out, it says nothing about what the user recorded.
+   *
+   * @param idSecuritycurrency the security to check
+   * @return true when a history quote or a period entered by the user exists
+   */
+  private boolean hasPriceData(Integer idSecuritycurrency) {
+    return historyquoteJpaRepository.existsByIdSecuritycurrency(idSecuritycurrency)
+        || historyquotePeriodJpaRepository.existsByIdSecuritycurrencyAndCreateType(idSecuritycurrency,
+            HistoryquotePeriodCreateType.USER_CREATED.getValue());
   }
 
   private void checkAssetclassAndSpezInstrumentForExisting(Security security, Security existingSecurity) {
@@ -768,6 +819,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {
+    deleteObsoleteHistoryquotePeriods(security, securityBefore);
     if (historyAccessHasChanged) {
       archivePreviousHistoryIfConnectorChanged(security, securityBefore);
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA,
@@ -793,6 +845,35 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
       taskDataChangeJpaRepository.save(
           new TaskDataChange(TaskTypeExtended.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY, TaskDataExecPriority.PRIO_NORMAL,
               LocalDateTime.now().plusMinutes(5), security.getIdSecuritycurrency(), Security.class.getSimpleName()));
+    }
+  }
+
+  /**
+   * Removes the periods an instrument carried while it belonged to a stock exchange without market value, after it was
+   * moved to an exchange which delivers quotes. Every such instrument owns at least the period
+   * {@code adjustHistoryquotePeriod} creates for it, and that period would otherwise stay behind invisibly: the tab
+   * offering it disappears with the move, while {@code Historyquote.getIdDateCloseByIdsAndDate} keeps reading it and
+   * would return it a second time next to the quote of the same day.
+   *
+   * <p>
+   * A period entered by the user cannot be reached here, because {@link #checkStockexchangeCategoryForExisting} rejects
+   * the move as soon as one exists. The target exchange is read from the database for the reason given there: a newly
+   * picked exchange arrives as its ID alone.
+   * </p>
+   *
+   * @param security       the saved instrument
+   * @param securityBefore the instrument as it was persisted before this save, {@code null} on creation
+   */
+  private void deleteObsoleteHistoryquotePeriods(Security security, Security securityBefore) {
+    if (securityBefore == null || securityBefore.getStockexchange() == null
+        || !securityBefore.getStockexchange().isNoMarketValue() || security.getStockexchange() == null
+        || security.getStockexchange().getIdStockexchange() == null) {
+      return;
+    }
+    Stockexchange target = stockexchangeJpaRepository.findById(security.getStockexchange().getIdStockexchange())
+        .orElseThrow(() -> new IllegalArgumentException("The stock exchange does not exists!"));
+    if (!target.isNoMarketValue()) {
+      historyquotePeriodJpaRepository.deleteByIdSecuritycurrency(security.getIdSecuritycurrency());
     }
   }
 

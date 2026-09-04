@@ -15,6 +15,7 @@ import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.ProposeChangeEntity;
 import grafiosch.entities.ProposeChangeField;
 import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.ProposeChangeEntityJpaRepository;
 import grafiosch.repository.ProposeChangeFieldJpaRepository;
@@ -93,6 +94,13 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
     Security security = securityJpaRepository.findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(
         hpdacm.idSecuritycurrency, user.getIdTenant());
     if (security != null) {
+      // Periods are the price source of an instrument whose stock exchange delivers no quotes. Attaching them to an
+      // instrument which has a quote delivering exchange would give it prices of both kinds at once, of which the
+      // application then reads the wrong ones. The dialog does not offer the tab in that case, this closes the
+      // remaining way through the interface.
+      if (!security.getStockexchange().isNoMarketValue()) {
+        throw new DataViolationException("STOCKEXCHANGE", "gt.security.period.needs.no.market.value", null);
+      }
       final BiPredicate<HistoryquotePeriod, HistoryquotePeriod> hpCompare = (hp1,
           hp2) -> hp1.getFromDate().equals(hp2.getFromDate()) && hp1.getPrice() == hp2.getPrice();
 

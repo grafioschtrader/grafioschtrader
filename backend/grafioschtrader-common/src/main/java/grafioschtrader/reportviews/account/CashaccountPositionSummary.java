@@ -27,8 +27,9 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   public boolean hasTransaction;
 
   @Schema(description = """
-      Account management fees charged for maintaining the cash account and associated depot,
-      excluding transaction-specific costs""")
+      Separately booked fees of this cash account and its depot. Trading costs contained in a purchase or sale are not
+      here, and neither are the financing costs of margin positions: both are part of the securities result. Every
+      booking is converted with the exchange rate of its own date.""")
   public double accountFeesMC;
 
   @Schema(description = "Interest earned on cash balances held in this account")

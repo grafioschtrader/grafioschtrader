@@ -52,7 +52,8 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * <p>
    * Checked are: periods starting on a date that is neither a transaction nor a split ({@code ORPHAN_DATE}), every row's
    * {@code holdings} against the split-adjusted signed unit sum as of that row's own {@code from_hold_date}
-   * ({@code ROW_HOLDINGS}), period chaining and the denormalised tenant/portfolio ids. The complete expected row set is
+   * ({@code ROW_HOLDINGS}), period chaining, the denormalised tenant/portfolio ids and the two denormalised currency
+   * pair ids. The complete expected row set is
    * <em>not</em> predicted: a row is only written while the position is non-zero and same-day margin transactions
    * collapse into one, so an absent row cannot be distinguished from a legitimately closed position in SQL.
    * {@code margin_real_holdings}, {@code margin_average_price} and {@code split_price_factor} are out of scope because
@@ -81,6 +82,13 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * The split adjustment multiplies each transaction by the product of {@code to_factor / from_factor} of every split
    * between it and the row date, computed as {@code EXP(SUM(LOG(...)))}; the factors are ratios of positive integers,
    * so the tolerance is applied relative to the expected holdings to absorb the floating point error.
+   * <p>
+   * {@code CURRENCYPAIR} compares the two denormalised currency pair ids against the pair the writer resolves for the
+   * row: the currency of the position converted into the tenant currency and into the portfolio currency, and
+   * {@code NULL} where the two currencies are equal. The comparison uses {@code <=>}, and a currency pair row that does
+   * not exist at all leaves the expected side {@code NULL}, so a dangling id is reported as well. Neither column has a
+   * foreign key, and the reporting queries join the historical rates through them, so a wrong id would otherwise
+   * convert at the wrong rate without any complaint.
    * <p>
    * Named query: HoldSecurityaccountSecurity.countConsistencyDefects
    *
@@ -166,6 +174,18 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * - Applies currency conversion to tenant currency using historical quotes.
    * - Includes external cash transfers to compute net gain per day.
    *
+   *
+   * <p>
+   * A day is only reported when it can be valued completely. Beside {@code countQuotes = countSecurities}, which drops
+   * a day on which a held security has no price, the query counts every hold row whose currency pair is set but carries
+   * no rate for that day, in {@code missingFxSecurities} for the security positions and in {@code missingFxCash} for
+   * the cash balances, and the two {@code HAVING} clauses remove such a day as well. The
+   * {@code IFNULL(hqc0.close, 1)} and {@code IFNULL(hqc1.close, 1)} of the conversion are therefore not a silent
+   * fallback: they apply the factor one only to a hold row that has no currency pair at all, because it is already held
+   * in the reporting currency. Neither the {@code IFNULL} nor the two counters may be removed on their own - without
+   * the counters a missing rate would add the foreign currency amount unconverted, without the {@code IFNULL} every
+   * position already held in the reporting currency would become NULL.
+   * </p>
    * @param idTenant the ID of the tenant
    * @param dateFrom the start date of the period (inclusive)
    * @param dateTo   the end date of the period (inclusive)
@@ -183,6 +203,18 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * - Applies currency conversion to portfolio currency using historical quotes.
    * - Includes external cash transfers to compute net gain per day.
    *
+   *
+   * <p>
+   * A day is only reported when it can be valued completely. Beside {@code countQuotes = countSecurities}, which drops
+   * a day on which a held security has no price, the query counts every hold row whose currency pair is set but carries
+   * no rate for that day, in {@code missingFxSecurities} for the security positions and in {@code missingFxCash} for
+   * the cash balances, and the two {@code HAVING} clauses remove such a day as well. The
+   * {@code IFNULL(hqc0.close, 1)} and {@code IFNULL(hqc1.close, 1)} of the conversion are therefore not a silent
+   * fallback: they apply the factor one only to a hold row that has no currency pair at all, because it is already held
+   * in the reporting currency. Neither the {@code IFNULL} nor the two counters may be removed on their own - without
+   * the counters a missing rate would add the foreign currency amount unconverted, without the {@code IFNULL} every
+   * position already held in the reporting currency would become NULL.
+   * </p>
    * @param idPortfolio the ID of the portfolio
    * @param dateFrom    the start date of the period (inclusive)
    * @param dateTo      the end date of the period (inclusive)
@@ -239,6 +271,14 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * dividends, interest and fees are read from hold_cashaccount_balance and converted with the closing rate of that day
    * exactly like {@link #getPeriodHoldingsByTenant(Integer, LocalDate, LocalDate)} does, so the row can be prepended to
    * that result without a unit break.
+   *
+   * <p>
+   * The baseline row is only delivered when every cash balance of that day can be converted. The query counts the hold
+   * rows whose currency pair is set but has no rate in {@code missingFxCash} and suppresses the row when the counter is
+   * not zero, so a foreign currency balance never enters the baseline unconverted. The {@code IFNULL(hqc1.close, 1)} of
+   * the conversion therefore applies the factor one only to a cash account that has no currency pair because it is
+   * already held in the reporting currency.
+   * </p>
    *
    * Named query: HoldSecurityaccountSecurity.getPeriodHoldingZeroBaseByTenant
    * Parameters in SQL:

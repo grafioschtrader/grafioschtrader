@@ -120,6 +120,11 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
       tenant.getPortfolioList().forEach(p -> requiredFromCurrency.add(p.getCurrency()));
       requiredFromCurrency.addAll(
           currencypairJpaRepository.getSecurityTransactionCurrenciesForTenantExclude(idTenant, tenant.getCurrency()));
+      // The cash account currencies belong here as well: hold_cashaccount_balance denormalises the pair account
+      // currency to tenant currency, and without this the holdings rebuild would create it itself, without a price
+      // history load.
+      requiredFromCurrency
+          .addAll(currencypairJpaRepository.getCashaccountCurrenciesForTenantExclude(idTenant, tenant.getCurrency()));
       requiredFromCurrency.remove(tenant.getCurrency());
       requiredFromCurrency.removeAll(existingFromCurrency);
       requiredFromCurrency.forEach(fromCurrency -> currencypairJpaRepository.createNonExistingCurrencypair(fromCurrency,

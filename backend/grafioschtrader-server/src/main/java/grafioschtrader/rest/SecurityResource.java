@@ -210,6 +210,18 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return new ResponseEntity<>("Take many minutes", HttpStatus.OK);
   }
 
+  @Operation(summary = "Returns whether the specified instrument is bound to its kind of stock exchange", description = """
+      True when the instrument owns at least one history quote, one period entered by the user, or was traded at least
+      once. The system created period of an instrument on a stock exchange without market value does not count on its
+      own. The edit dialog uses it to decide whether the instrument may still be moved to a stock exchange of the other
+      kind.
+      """, tags = { Security.TABNAME })
+  @GetMapping(value = "/{idSecuritycurrency}/stockexchangecategorylocked", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Boolean> isStockexchangeCategoryLocked(@PathVariable final Integer idSecuritycurrency) {
+    return new ResponseEntity<>(securityJpaRepository.isStockexchangeCategoryLocked(idSecuritycurrency),
+        HttpStatus.OK);
+  }
+
   @Operation(summary = "Returns all transactions for specified security", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
       Security.TABNAME })
   @GetMapping(value = "/tenantsecurity/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)

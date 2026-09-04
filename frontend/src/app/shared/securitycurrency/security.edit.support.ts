@@ -7,8 +7,7 @@ import { Subscription } from 'rxjs';
 import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
-import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { GroupItem, ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { Stockexchange } from '../../entities/stockexchange';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -77,9 +76,10 @@ export class SecurityEditSupport {
     );
 
     fc.push(
-      DynamicFieldHelper.createFieldSelectNumberHeqF(AppSettings.STOCKEXCHANGE.toLowerCase(), true, {
+      DynamicFieldHelper.createFieldDropdownNumberHeqF(AppSettings.STOCKEXCHANGE.toLowerCase(), true, {
         dataproperty: 'stockexchange.idStockexchange',
-        fieldsetName: 'BASE_DATA'
+        fieldsetName: 'BASE_DATA',
+        filter: true
       })
     );
 
@@ -303,12 +303,7 @@ export class SecurityEditSupport {
     assetclasses: Assetclass[]
   ): void {
     configObject.stockexchange.referencedDataObject = stockexchanges;
-    configObject.stockexchange.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-      'idStockexchange',
-      'name',
-      configObject.stockexchange.referencedDataObject,
-      true
-    );
+    this.setStockexchangeOptions(configObject, null);
 
     configObject.currency.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')].concat(vksoCurrency);
     configObject.dividendCurrency &&
@@ -321,6 +316,53 @@ export class SecurityEditSupport {
       this.translateService,
       configObject.assetClass.referencedDataObject
     );
+  }
+
+  /**
+   * Builds the offered stock exchanges from the list kept on the field, every entry with the flag of its country. The
+   * full list stays on referencedDataObject, only the offer is narrowed.
+   *
+   * An instrument for which prices were already recorded, or which was traded, may only move to a stock exchange of
+   * its own kind, because that kind decides whether its prices live in the history quotes or in the periods entered by
+   * the user. As long as nothing was recorded and nothing was traded every stock exchange is offered, so a wrongly
+   * chosen one stays correctable.
+   *
+   * @param configObject the field configurations of the dialog
+   * @param restrictToNoMarketValue null offers every stock exchange, true or false only those of that kind
+   */
+  setStockexchangeOptions(
+    configObject: { [name: string]: FieldConfig },
+    restrictToNoMarketValue: boolean | null
+  ): void {
+    const stockexchanges = <Stockexchange[]>configObject.stockexchange.referencedDataObject;
+    const offered =
+      restrictToNoMarketValue === null
+        ? stockexchanges
+        : stockexchanges.filter((stockexchange) => stockexchange.noMarketValue === restrictToNoMarketValue);
+    configObject.stockexchange.groupItem = [new GroupItem('', '', '', null)].concat(
+      offered.map(
+        (stockexchange) =>
+          new GroupItem(
+            stockexchange.idStockexchange,
+            stockexchange.name,
+            stockexchange.name,
+            'fi fi-' + (stockexchange.countryCode ? stockexchange.countryCode.toLowerCase() : 'xx')
+          )
+      )
+    );
+  }
+
+  /**
+   * Checks whether the given stock exchange is among the ones currently offered by the dropdown. Used before a stock
+   * exchange is set from the outside, such as by the GTNet lookup, because a value without a matching option would
+   * leave the dropdown empty.
+   *
+   * @param configObject     the field configurations of the dialog
+   * @param idStockexchange  the stock exchange to check
+   * @return true when the stock exchange can be selected
+   */
+  isStockexchangeOffered(configObject: { [name: string]: FieldConfig }, idStockexchange: number): boolean {
+    return configObject.stockexchange.groupItem.some((groupItem) => groupItem.key === idStockexchange);
   }
 
   removeFilterAssetclass(configObject: { [name: string]: FieldConfig }): void {

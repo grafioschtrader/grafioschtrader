@@ -3,7 +3,7 @@
 # Update a Docker-based Grafioschtrader installation.
 #
 #   ./update.sh              update to the version currently set in .env
-#   ./update.sh 0.36.8       switch to an exact version
+#   ./update.sh 0.36.10      switch to an exact version
 #   ./update.sh latest       track the newest release
 #   ./update.sh --build      build the images from source instead of pulling
 #

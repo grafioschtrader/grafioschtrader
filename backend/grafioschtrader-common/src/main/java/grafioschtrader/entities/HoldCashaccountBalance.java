@@ -57,11 +57,21 @@ public class HoldCashaccountBalance extends HoldBase {
   private Double interestCashaccount;
 
   /**
-   * Running total of fees debited from the cash account, accumulated up to and including this period. This includes
-   * FINANCE_COST on finance instruments, so that the five category columns add up to {@link #balance}.
+   * Running total of fees debited from the cash account, accumulated up to and including this period. Only separately
+   * booked account and depot fees; the financing costs of margin positions are held by {@link #financeCost}, because
+   * they are a cost of the position and not of the bank account.
    */
   @Column(name = "fee")
   private Double fee;
+
+  /**
+   * Running total of the financing costs of margin positions settled over this cash account, accumulated up to and
+   * including this period. It exists so that the six category columns still add up to {@link #balance} while
+   * {@link #fee} means bank account and depot costs alone. The performance report does not show it as a figure of its
+   * own; the amount is reported through the securities result and it lowers the cash balance like any other booking.
+   */
+  @Column(name = "finance_cost")
+  private Double financeCost;
 
   /**
    * Running net cash effect of security buy (accumulate) and sell (reduce) transactions, accumulated up to and
@@ -77,8 +87,10 @@ public class HoldCashaccountBalance extends HoldBase {
   private Double dividend;
 
   /**
-   * End-of-period cash balance in the cash account's own currency, rounded to that currency's precision. Equals the sum
-   * of the five category columns above.
+   * End-of-period cash balance in the cash account's own currency. Like the six category columns above it is stored
+   * unrounded, so it is the exact running total and equals their sum; a consumer that needs a presentable figure rounds
+   * it itself, as the performance report queries do. Rounding it here would be read back as the seed of the next
+   * incremental replay and would offset the remainder of the series against a full rebuild.
    */
   @Column(name = "balance")
   private double balance;
@@ -99,6 +111,7 @@ public class HoldCashaccountBalance extends HoldBase {
    * @param withdrawlDeposit        net deposits/withdrawals
    * @param interestCashaccount     interest amount
    * @param fee                     fees amount
+   * @param financeCost             financing costs of margin positions
    * @param accumulateReduce        net accumulate/reduce amount
    * @param dividend                dividends amount
    * @param balance                 end-of-period balance
@@ -106,13 +119,14 @@ public class HoldCashaccountBalance extends HoldBase {
    * @param idCurrencypairPortoflio portfolio currency pair ID
    */
   public HoldCashaccountBalance(Integer idTenant, Integer idPortfolio, Integer idCashaccount, LocalDate fromHoldDate,
-      Double withdrawlDeposit, Double interestCashaccount, Double fee, Double accumulateReduce, Double dividend,
-      double balance, Integer idCurrencypairTenant, Integer idCurrencypairPortoflio) {
+      Double withdrawlDeposit, Double interestCashaccount, Double fee, Double financeCost, Double accumulateReduce,
+      Double dividend, double balance, Integer idCurrencypairTenant, Integer idCurrencypairPortoflio) {
     super(idTenant, idPortfolio);
     this.idEm = new HoldCashaccountBalanceKey(idCashaccount, fromHoldDate);
     this.withdrawlDeposit = withdrawlDeposit;
     this.interestCashaccount = interestCashaccount;
     this.fee = fee;
+    this.financeCost = financeCost;
     this.accumulateReduce = accumulateReduce;
     this.dividend = dividend;
     this.balance = balance;
@@ -160,6 +174,13 @@ public class HoldCashaccountBalance extends HoldBase {
    */
   public Double getFee() {
     return fee;
+  }
+
+  /**
+   * @return financing costs of margin positions for period
+   */
+  public Double getFinanceCost() {
+    return financeCost;
   }
 
   /**

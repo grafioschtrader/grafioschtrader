@@ -51,7 +51,7 @@ export class GTNetConfigEditComponent extends SimpleEntityEditBase<GTNetConfig> 
     messageToastService: MessageToastService,
     private gtNetConfigService: GTNetConfigService
   ) {
-    super(HelpIds.HELP_GT_NET, 'GT_NET_CONFIG_EDIT', translateService, gps, messageToastService, gtNetConfigService);
+    super(HelpIds.HELP_GT_NET_SETUP, 'GT_NET_CONFIG_EDIT', translateService, gps, messageToastService, gtNetConfigService);
   }
 
   ngOnInit(): void {

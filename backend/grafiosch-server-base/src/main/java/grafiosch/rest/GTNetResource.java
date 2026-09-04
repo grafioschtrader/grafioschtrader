@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMaintenanceWindow;
 import grafiosch.entities.GTNetMessage;
+import grafiosch.gtnet.model.GTNetMessageAttemptView;
 import grafiosch.gtnet.model.GTNetWithMessages;
 import grafiosch.gtnet.model.MsgRequest;
 import grafiosch.gtnet.model.MultiTargetMsgRequest;
@@ -68,6 +69,14 @@ public class GTNetResource extends UpdateCreateResource<GTNet> {
   @GetMapping(value = "/maintenancewindows/{idGtNet}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<GTNetMaintenanceWindow>> getMaintenanceWindowsByIdGtNet(@PathVariable Integer idGtNet) {
     return new ResponseEntity<>(gtNetJpaRepository.getMaintenanceWindowsByIdGtNet(idGtNet), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns per-target delivery outcomes for messages stored under a GTNet domain", description = "Administrator-only lazy-loading endpoint for the delivery-attempt panel", tags = {
+      RequestMappings.GTNET })
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping(value = "/messageattempts/{idGtNet}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<GTNetMessageAttemptView>> getMessageAttemptsByIdGtNet(@PathVariable Integer idGtNet) {
+    return new ResponseEntity<>(gtNetJpaRepository.getMessageAttemptsByIdGtNet(idGtNet), HttpStatus.OK);
   }
 
   @Operation(summary = "Deletes a batch of GTNet messages", description = "Validates that all messages are deletable and cascade-deletes responses", tags = {

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { loginAsFixtureUser } from './helpers';
 import { toShortDate } from './portfolio.helpers';
+import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
 
 /**
  * Create-time business values from generated/securities.json. References to the stock exchange and asset class use
@@ -174,16 +175,7 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       await assetClassSelect.selectOption(assetClassOptionValue);
       await assetClassSelect.dispatchEvent('change');
 
-      // Stockexchange select — options are value=idStockexchange, label=name. Match by partial text.
-      const stockexchangeSelect = dialog.locator('select#stockexchange').first();
-      await expect(stockexchangeSelect.locator('option')).not.toHaveCount(0, { timeout: 10_000 });
-      const stockexchangeOptionValue = await stockexchangeSelect
-        .locator('option')
-        .filter({ hasText: row.stockexchangeName })
-        .first()
-        .getAttribute('value');
-      await stockexchangeSelect.selectOption(stockexchangeOptionValue);
-      await stockexchangeSelect.dispatchEvent('change');
+      await selectDynamicFormOptionByText(page, dialog, 'stockexchange', row.stockexchangeName);
 
       if (hasText(row.isin)) {
         const isinInput = dialog.locator('#isin');

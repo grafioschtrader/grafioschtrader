@@ -57,6 +57,16 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   List<SecurityCurrencyIdAndDate> findByIdSecuritycurrency(Integer idSecuritycurrency);
 
+  /**
+   * Checks whether at least one historical price exists for the given instrument. Used where only the presence of price
+   * data matters and neither the rows nor their number are needed, such as the guard which keeps an instrument with
+   * recorded prices on a stock exchange of its own kind.
+   *
+   * @param idSecuritycurrency the security or currency pair to check
+   * @return true when the instrument has at least one history quote
+   */
+  boolean existsByIdSecuritycurrency(Integer idSecuritycurrency);
+
   List<Historyquote> findByIdSecuritycurrencyAndDateBetweenOrderByDate(Integer idSecuritycurrency, LocalDate fromDate,
       LocalDate toDate);
 

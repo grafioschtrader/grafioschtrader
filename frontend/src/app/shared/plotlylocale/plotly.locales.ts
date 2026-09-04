@@ -3,6 +3,10 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 export class PlotlyLocales {
   public static setPlotyLocales(plotly: any, gps: GlobalparameterService): any {
     const config: any = {
+      // Plotly 4 turns 'showSendToCloud' on by default and ships a default 'plotlyServerURL'. That
+      // would put a "Share chart..." button in every mode bar which uploads the chart data to an
+      // external server - never acceptable for tenant portfolio data.
+      showSendToCloud: false,
       locale: gps.getLocale(),
       locales: {
         de: {
@@ -20,7 +24,6 @@ export class PlotlyLocales {
             'Double-click on legend to isolate one trace': 'Daten isolieren durch Doppelklick in der Legende',
             'Double-click to zoom back out': 'Herauszoomen durch Doppelklick',
             'Download plot as a png': 'Download als PNG',
-            'Edit in Chart Studio': 'Im Chart Studio bearbeiten',
             'IE only supports svg.  Changing format to svg.':
               'IE unterstützt nur SVG-Dateien.  Format wird zu SVG gewechselt.',
             'Lasso Select': 'Lassoauswahl',

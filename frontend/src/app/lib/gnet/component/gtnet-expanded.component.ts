@@ -9,16 +9,16 @@ import { GTNetMessage } from '../model/gtnet.message';
 import { GTNetConfigEntityTableComponent } from './gtnet-config-entity-table.component';
 import { GTNetMaintenanceWindowTableComponent } from './gtnet-maintenance-window-table.component';
 import { GTNetMessageTreeTableComponent } from './gtnet-message-treetable.component';
+import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
+import { GTNetMessageAttemptTableComponent } from './gtnet-message-attempt-table.component';
 
 /**
- * Content of an expanded row in the GTNet setup table. It offers the three things a peer carries — its entity
- * configuration, its messages and the maintenance windows it announced — in three accordion panels, all closed
- * initially.
+ * Content of an expanded row in the GTNet setup table. It offers the peer's entity configuration, messages,
+ * administrator-visible delivery attempts and announced maintenance windows in accordion panels, all closed initially.
  *
  * <p>
- * Every panel header states how many records its panel holds, so whether there is anything to see is answered
- * without opening it. A panel with nothing in it is disabled rather than hidden, which keeps the three panels in a
- * stable order from row to row.
+ * Every panel header states how many records its panel holds, so whether there is anything to see is answered without
+ * opening it. A panel with nothing in it is disabled rather than hidden, which keeps the panels in a stable order.
  * </p>
  *
  * <p>
@@ -36,7 +36,8 @@ import { GTNetMessageTreeTableComponent } from './gtnet-message-treetable.compon
     AccordionModule,
     GTNetConfigEntityTableComponent,
     GTNetMaintenanceWindowTableComponent,
-    GTNetMessageTreeTableComponent
+    GTNetMessageTreeTableComponent,
+    GTNetMessageAttemptTableComponent
   ],
   template: `
     <p-accordion [multiple]="true" [value]="openPanels" (valueChange)="onPanelsChange($event)">
@@ -78,6 +79,25 @@ import { GTNetMessageTreeTableComponent } from './gtnet-message-treetable.compon
         </p-accordion-content>
       </p-accordion-panel>
 
+      @if (canAdministerGTNet) {
+        <p-accordion-panel [value]="PANEL_ATTEMPTS" [disabled]="messageAttemptCount === 0">
+          <p-accordion-header>
+            <h5>{{ 'DELIVERY_ATTEMPTS' | translate }} ({{ messageAttemptCount }})</h5>
+          </p-accordion-header>
+          <p-accordion-content>
+            @if (isOpen(PANEL_ATTEMPTS)) {
+              @if (loading) {
+                <div style="padding: 1rem; text-align: center;">
+                  <i class="fa fa-spinner fa-spin"></i> {{ 'LOADING' | translate }}...
+                </div>
+              } @else if (messageAttempts?.length) {
+                <gtnet-message-attempt-table [messageAttempts]="messageAttempts"> </gtnet-message-attempt-table>
+              }
+            }
+          </p-accordion-content>
+        </p-accordion-panel>
+      }
+
       <p-accordion-panel [value]="PANEL_WINDOWS" [disabled]="maintenanceWindowCount === 0">
         <p-accordion-header>
           <h5>{{ 'GT_NET_MAINTENANCE_WINDOW' | translate }} ({{ maintenanceWindowCount }})</h5>
@@ -107,10 +127,14 @@ export class GTNetExpandedComponent {
   @Input() gtNetMessages: GTNetMessage[] = [];
   /** Maintenance windows of this peer, loaded by the parent when the row was expanded. */
   @Input() maintenanceWindows: GTNetMaintenanceWindow[] = [];
+  /** Per-target outcomes of outgoing messages stored under this row. */
+  @Input() messageAttempts: GTNetMessageAttemptView[] = [];
   /** Number of messages, known before they are loaded so the header can show it. */
   @Input() messageCount = 0;
   /** Number of announced windows, likewise known in advance. */
   @Input() maintenanceWindowCount = 0;
+  @Input() messageAttemptCount = 0;
+  @Input() canAdministerGTNet = false;
   @Input() incomingPendingIds: number[] = [];
   @Input() outgoingPendingIds: number[] = [];
   @Input() formDefinitions: { [type: string]: ClassDescriptorInputAndShow };
@@ -128,9 +152,10 @@ export class GTNetExpandedComponent {
 
   readonly PANEL_ENTITIES = 'entities';
   readonly PANEL_MESSAGES = 'messages';
+  readonly PANEL_ATTEMPTS = 'attempts';
   readonly PANEL_WINDOWS = 'windows';
 
-  /** The panels the user has opened. All three start closed. */
+  /** The panels the user has opened. All panels start closed. */
   openPanels: string[] = [];
 
   /** Number of entity configurations of this peer. */

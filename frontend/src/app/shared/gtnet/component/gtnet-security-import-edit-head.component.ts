@@ -51,7 +51,7 @@ export class GTNetSecurityImportEditHeadComponent extends SimpleEntityEditBase<G
     gtNetSecurityImpHeadService: GTNetSecurityImpHeadService
   ) {
     super(
-      HelpIds.HELP_BASEDATA_GTNET,
+      HelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY,
       'GTNET_SECURITY_IMP_HEAD',
       translateService,
       gps,

@@ -15,8 +15,8 @@ import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessageAttempt;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.TaskBackgroundException;
-import grafiosch.gtnet.DeliveryStatus;
 import grafiosch.gtnet.GNetCoreMessageCode;
+import grafiosch.gtnet.GTNetMessageAttemptService;
 import grafiosch.gtnet.GTNetTimeoutHelper;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.m2m.client.BaseDataClient;
@@ -72,6 +72,9 @@ public class GNetAdminMessageDeliveryTask implements ITask {
   @Autowired
   private BaseDataClient baseDataClient;
 
+  @Autowired
+  private GTNetMessageAttemptService messageAttemptService;
+
   @Override
   public ITaskType getTaskType() {
     return TaskTypeBase.GTNET_ADMIN_MESSAGE_DELIVERY;
@@ -124,75 +127,51 @@ public class GNetAdminMessageDeliveryTask implements ITask {
 
       GTNetMessage message = messageOpt.get();
 
-      int successCount = 0;
-      int failCount = 0;
-
       for (GTNetMessageAttempt attempt : attempts) {
         Optional<GTNet> targetOpt = gtNetJpaRepository.findById(attempt.getIdGtNet());
         if (targetOpt.isEmpty()) {
-          failCount++;
           continue;
         }
 
         GTNet targetGTNet = targetOpt.get();
 
+        if (targetGTNet.isOutOfService()) {
+          attempt.markPeerOutOfService();
+          gtNetMessageAttemptJpaRepository.save(attempt);
+          continue;
+        }
+
         // Check if handshake is complete (tokenRemote exists)
         if (targetGTNet.getGtNetConfig() == null || targetGTNet.getGtNetConfig().getTokenRemote() == null) {
           log.debug("Target {} has no completed handshake, skipping", targetGTNet.getDomainRemoteName());
-          continue; // Not counted as fail - handshake may complete later
+          attempt.markWaitingForHandshake();
+          gtNetMessageAttemptJpaRepository.save(attempt);
+          continue;
         }
 
-        boolean success = sendMessageToTarget(myGTNet, targetGTNet, message);
-        if (success) {
-          attempt.markAsSent();
-          gtNetMessageAttemptJpaRepository.save(attempt);
+        String failure = sendMessageToTarget(myGTNet, targetGTNet, message);
+        if (failure == null) {
+          attempt.recordSuccessfulTry();
           delivered++;
-          successCount++;
           log.info("Delivered admin message {} to target {}", messageId, targetGTNet.getDomainRemoteName());
         } else {
-          failCount++;
+          attempt.recordFailedTry(failure);
         }
+        gtNetMessageAttemptJpaRepository.save(attempt);
       }
 
-      // Update deliveryStatus based on results
-      updateMessageDeliveryStatus(message, successCount, failCount, attempts.size());
+      messageAttemptService.refreshDeliveryStatus(message);
     }
 
     return delivered;
   }
 
   /**
-   * Updates the deliveryStatus on a GTNetMessage based on delivery results.
-   *
-   * @param message       the message to update
-   * @param successCount  number of successful deliveries
-   * @param failCount     number of failed deliveries
-   * @param totalAttempts total number of attempts processed
-   */
-  private void updateMessageDeliveryStatus(GTNetMessage message, int successCount, int failCount, int totalAttempts) {
-    DeliveryStatus currentStatus = message.getDeliveryStatus();
-
-    if (successCount > 0 && currentStatus != DeliveryStatus.DELIVERED) {
-      // At least one successful delivery
-      message.setDeliveryStatus(DeliveryStatus.DELIVERED);
-      gtNetMessageJpaRepository.save(message);
-      log.debug("Updated admin message {} deliveryStatus to DELIVERED (success: {}, fail: {})",
-          message.getIdGtNetMessage(), successCount, failCount);
-    } else if (successCount == 0 && failCount == totalAttempts && failCount > 0) {
-      // All attempts failed
-      message.setDeliveryStatus(DeliveryStatus.FAILED);
-      gtNetMessageJpaRepository.save(message);
-      log.warn("Updated admin message {} deliveryStatus to FAILED (all {} attempts failed)",
-          message.getIdGtNetMessage(), failCount);
-    }
-  }
-
-  /**
    * Sends a message to a specific target.
    *
-   * @return true if delivery was successful
+   * @return null on success, otherwise a bounded diagnostic for the persisted attempt
    */
-  private boolean sendMessageToTarget(GTNet myGTNet, GTNet targetGTNet, GTNetMessage message) {
+  private String sendMessageToTarget(GTNet myGTNet, GTNet targetGTNet, GTNetMessage message) {
     try {
       MessageEnvelope envelope = new MessageEnvelope(myGTNet, message);
 
@@ -204,7 +183,7 @@ public class GNetAdminMessageDeliveryTask implements ITask {
         log.warn("Failed to deliver admin message {} to {}: httpError={}, statusCode={}, reachable={}, errorMsg={}",
             message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(), result.httpError(), result.httpStatusCode(),
             result.serverReachable(), result.errorMessage());
-        return false;
+        return GTNetMessageAttemptService.describeFailure(result);
       }
 
       if (!result.isAccepted()) {
@@ -213,14 +192,14 @@ public class GNetAdminMessageDeliveryTask implements ITask {
         log.warn("Admin message {} to {} not accepted: response was null, invalid, or an error ({})",
             message.getIdGtNetMessage(), targetGTNet.getDomainRemoteName(),
             result.response() != null ? result.response().errorMsgCode : null);
-        return false;
+        return GTNetMessageAttemptService.describeFailure(result);
       }
 
-      return true;
+      return null;
     } catch (Exception e) {
       log.warn("Failed to send admin message {} to {}: {}", message.getIdGtNetMessage(),
           targetGTNet.getDomainRemoteName(), e.getMessage());
-      return false;
+      return GTNetMessageAttemptService.describeFailure(e);
     }
   }
 

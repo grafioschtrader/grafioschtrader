@@ -71,7 +71,7 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
     private gtNetService: GTNetService,
     gps: GlobalparameterService
   ) {
-    super(HelpIds.HELP_GT_NET, gps);
+    super(HelpIds.HELP_GT_NET_SETUP, gps);
   }
 
   ngOnInit(): void {

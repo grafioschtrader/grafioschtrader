@@ -108,7 +108,7 @@ export class SecurityaccountCurrencyGroup extends SecurityaccountGroupBase<
     ];
 
     const layout = {
-      title
+      title: { text: title }
     };
 
     return { data, layout };

@@ -48,6 +48,7 @@ import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetHistoryquoteJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
+import grafioschtrader.repository.GTNetSupplierDetailHistJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -94,6 +95,9 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
   @Autowired
   private GTNetSupplierDetailJpaRepository gtNetSupplierDetailJpaRepository;
+
+  @Autowired
+  private GTNetSupplierDetailHistJpaRepository gtNetSupplierDetailHistJpaRepository;
 
   @Autowired
   private GTNetInstrumentSecurityJpaRepository gtNetInstrumentSecurityJpaRepository;
@@ -240,20 +244,16 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
     log.info("Starting GTNet historyquote exchange for {} instruments", exchangeSet.getTotalCount());
 
-    // Load supplier details for filtering AC_OPEN requests
-    SupplierInstrumentFilter filter = null;
+    // Load supplier details for filtering AC_OPEN requests, together with the OHL quality each supplier reported
     List<Integer> allInstrumentIds = exchangeSet.getAllInstrumentIds();
-    if (!allInstrumentIds.isEmpty()) {
-      List<GTNetSupplierDetail> supplierDetails = gtNetSupplierDetailJpaRepository
-          .findByEntityKindAndInstrumentIds(GTNetExchangeKindType.HISTORICAL_PRICES.getValue(), allInstrumentIds);
-      filter = new SupplierInstrumentFilter(supplierDetails);
-    }
+    SupplierInstrumentFilter filter = buildSupplierFilter(allInstrumentIds);
 
     // Load success rates for AC_OPEN supplier scoring (past 30 days)
     LocalDate fromDate = LocalDate.now().minusDays(30);
     List<Object[]> successRateData = gtNetExchangeLogJpaRepository
         .getSupplierSuccessRates(GTNetExchangeKindType.HISTORICAL_PRICES.getValue(), fromDate);
-    SupplierScoreCalculator scoreCalculator = new SupplierScoreCalculator(successRateData);
+    SupplierScoreCalculator scoreCalculator = new SupplierScoreCalculator(successRateData,
+        globalparametersService.getGTNetOhlWeight());
     Set<Integer> requestedInstrumentIds = new HashSet<>(allInstrumentIds);
 
     // Query PUSH_OPEN servers first (excluding own entry to prevent self-communication)
@@ -516,9 +516,19 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
         GTNetExchangeKindType.HISTORICAL_PRICES);
     totalReceived += queryRemoteServersWithWantTracking(pushOpenSuppliers, request, wantToReceiveMap);
 
-    // 2. Query open servers for remaining (excluding own entry to prevent self-communication)
-    List<GTNet> openSuppliers = getSuppliersByPriorityWithRandomization(
-        excludeOwnEntry(gtNetJpaRepository.findHistoryquoteOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES);
+    // 2. Query open servers for remaining (excluding own entry to prevent self-communication).
+    // AC_OPEN uses score-based selection here as well: coverage x success_rate x OHL richness, then priority, then
+    // random. Without this the direct request path would ignore both reliability and OHL preference.
+    List<Integer> requestedInstrumentIds = resolveLocalInstrumentIds(request);
+    SupplierInstrumentFilter filter = buildSupplierFilter(requestedInstrumentIds);
+    List<Object[]> successRateData = gtNetExchangeLogJpaRepository
+        .getSupplierSuccessRates(GTNetExchangeKindType.HISTORICAL_PRICES.getValue(), LocalDate.now().minusDays(30));
+    SupplierScoreCalculator scoreCalculator = new SupplierScoreCalculator(successRateData,
+        globalparametersService.getGTNetOhlWeight());
+
+    List<GTNet> openSuppliers = getSuppliersByScoreWithRandomization(
+        excludeOwnEntry(gtNetJpaRepository.findHistoryquoteOpenSuppliers()), GTNetExchangeKindType.HISTORICAL_PRICES,
+        scoreCalculator, filter, new HashSet<>(requestedInstrumentIds));
     totalReceived += queryRemoteServersWithWantTracking(openSuppliers, request, wantToReceiveMap);
 
     // 3. Push historical data back to servers that expressed "want to receive"
@@ -801,6 +811,68 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
    */
   private LocalDate getYesterday() {
     return LocalDate.now().minusDays(1);
+  }
+
+  /**
+   * Builds the AC_OPEN instrument filter for the given local instrument IDs, including the OHL quality percentage each
+   * supplier reported for them.
+   *
+   * The OHL percentages are loaded from the application-side child table gt_net_supplier_detail_hist, because the
+   * library repository that serves the supplier details cannot join to a grafioschtrader entity. Only securities ever
+   * carry a percentage; currency pairs are absent by design, which the score calculator treats as neutral.
+   *
+   * @param instrumentIds the local securitycurrency IDs being requested
+   * @return the filter, empty when no instrument IDs were resolved
+   */
+  private SupplierInstrumentFilter buildSupplierFilter(List<Integer> instrumentIds) {
+    if (instrumentIds == null || instrumentIds.isEmpty()) {
+      return new SupplierInstrumentFilter(null, null);
+    }
+    byte entityKind = GTNetExchangeKindType.HISTORICAL_PRICES.getValue();
+    List<GTNetSupplierDetail> supplierDetails = gtNetSupplierDetailJpaRepository
+        .findByEntityKindAndInstrumentIds(entityKind, instrumentIds);
+    List<Object[]> ohlRows = gtNetSupplierDetailHistJpaRepository
+        .findOhlPercentagesByEntityKindAndInstrumentIds(entityKind, instrumentIds);
+    return new SupplierInstrumentFilter(supplierDetails, ohlRows);
+  }
+
+  /**
+   * Resolves the instruments of a direct request to their local securitycurrency IDs.
+   *
+   * The direct request path addresses instruments by ISIN plus currency or by currency pair, while supplier details and
+   * OHL percentages are keyed by local ID. Instruments unknown locally are skipped: they can never match a supplier
+   * detail, so they would contribute no coverage anyway.
+   *
+   * @param request the request whose instruments should be resolved
+   * @return the local IDs, possibly empty
+   */
+  private List<Integer> resolveLocalInstrumentIds(HistoryquoteExchangeMsg request) {
+    List<Integer> ids = new ArrayList<>();
+
+    if (request.securities != null) {
+      for (InstrumentHistoryquoteDTO dto : request.securities) {
+        if (dto.getIsin() != null && dto.getCurrency() != null) {
+          Security security = securityJpaRepository.findByIsinAndCurrency(dto.getIsin(), dto.getCurrency());
+          if (security != null) {
+            ids.add(security.getIdSecuritycurrency());
+          }
+        }
+      }
+    }
+
+    if (request.currencypairs != null) {
+      for (InstrumentHistoryquoteDTO dto : request.currencypairs) {
+        if (dto.getCurrency() != null && dto.getToCurrency() != null) {
+          Currencypair pair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(dto.getCurrency(),
+              dto.getToCurrency());
+          if (pair != null) {
+            ids.add(pair.getIdSecuritycurrency());
+          }
+        }
+      }
+    }
+
+    return ids;
   }
 
   /**

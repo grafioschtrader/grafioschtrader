@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.common.DataHelper;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.HoldCashaccountBalance;
 import grafioschtrader.entities.Tenant;
@@ -19,7 +18,6 @@ import grafioschtrader.reportviews.FromToCurrency;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository.CashaccountBalanceChangeTransaction;
 import grafioschtrader.repository.helper.HoldingsHelper;
 import grafioschtrader.repository.helper.TransactionPreImage;
-import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Implementation of custom repository methods for managing cash account balance holdings.
@@ -56,9 +54,6 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
-
-  @Autowired
-  private GlobalparametersService globalparametersService;
 
   @Override
   @Transactional
@@ -194,7 +189,6 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
    * <ul>
    * <li>Currency conversion setup for tenant and portfolio currencies</li>
    * <li>Accumulation of various transaction types</li>
-   * <li>Precision rounding based on account currency</li>
    * <li>Creation of holding entity with proper currency references</li>
    * </ul>
    * 
@@ -230,12 +224,12 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     cashaccountSum.withdrawlDeposit += cbct.getWithdrawlDeposit();
     cashaccountSum.interestCashaccount += cbct.getInterestCashaccount();
     cashaccountSum.fee += cbct.getFee();
+    cashaccountSum.financeCost += cbct.getFinanceCost();
 
-    int precision = globalparametersService.getPrecisionForCurrency(cbct.getAccountCurrency());
     return new HoldCashaccountBalance(tenant.getIdTenant(), cbct.getIdPortfolio(), cbct.getIdCashaccount(),
         cbct.getFromDate(), cashaccountSum.withdrawlDeposit, cashaccountSum.interestCashaccount, cashaccountSum.fee,
-        cashaccountSum.accumulateReduce, cashaccountSum.dividend,
-        DataHelper.round(cashaccountSum.cashBalance, precision), idCurrencyTenant, idCurrencyPortfolio);
+        cashaccountSum.financeCost, cashaccountSum.accumulateReduce, cashaccountSum.dividend,
+        cashaccountSum.cashBalance, idCurrencyTenant, idCurrencyPortfolio);
   }
 
   /**
@@ -278,8 +272,10 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     public double withdrawlDeposit = 0.0;
     /** Running total of interest earned. */
     public double interestCashaccount = 0.0;
-    /** Running total of fees charged. */
+    /** Running total of separately booked account and depot fees. */
     public double fee = 0.0;
+    /** Running total of the financing costs of margin positions. */
+    public double financeCost = 0.0;
 
     public CashaccountSum() {
     }
@@ -288,8 +284,10 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
      * Creates a new accumulator initialized from an existing balance holding.
      * 
      * <p>
-     * This constructor is used for incremental updates where processing continues from a known previous state rather
-     * than starting from zero.
+     * This constructor is used for incremental updates where processing continues from the previous state rather than
+     * starting from zero. All seven columns are stored unrounded, so the seed is the exact running total a full rebuild
+     * would hold at that point and both paths produce the same values from here on. Rounding any of them on write would
+     * re-enter the accumulator here and offset the whole remainder of the series against a rebuild.
      * </p>
      * 
      * @param hcb the existing balance holding to initialize from, or null for zero values
@@ -302,6 +300,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
         withdrawlDeposit = hcb.getWithdrawlDeposit();
         interestCashaccount = hcb.getInterestCashaccount();
         fee = hcb.getFee();
+        financeCost = hcb.getFinanceCost();
       }
     }
 

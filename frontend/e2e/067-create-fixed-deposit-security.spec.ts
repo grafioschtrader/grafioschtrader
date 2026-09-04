@@ -5,6 +5,7 @@ import { fillText, selectByValue } from './generic-connector.helpers';
 import { loginAsFixtureUser } from './helpers';
 import { expectToast } from './manage-client.helpers';
 import { toShortDate } from './portfolio.helpers';
+import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
 
 type HistoryquotePeriodCreateType = 'SYSTEM_CREATED' | 'USER_CREATED';
 
@@ -204,15 +205,6 @@ async function openSecurityDialog(page: Page, security: FixedDepositSecurity, ex
   return dialog;
 }
 
-async function selectByOptionText(scope: Locator, fieldId: string, text: string): Promise<void> {
-  const select = scope.locator(`select#${fieldId}`).first();
-  await expect(select.locator('option')).not.toHaveCount(0, { timeout: 15_000 });
-  const option = select.locator('option').filter({ hasText: text }).first();
-  await expect(option, `no option containing "${text}" in select#${fieldId}`).toHaveCount(1, { timeout: 10_000 });
-  await select.selectOption(await option.getAttribute('value'));
-  await select.dispatchEvent('change');
-}
-
 async function typeDate(scope: Locator, fieldId: string, isoDate: string, locale: string): Promise<void> {
   const value = toShortDate(isoDate, locale);
   const input = scope.locator(`#${fieldId} input, input#${fieldId}`).first();
@@ -233,10 +225,15 @@ async function typeNumber(scope: Locator, fieldId: string, value: number): Promi
   await input.press('Tab');
 }
 
-async function reconcileBaseData(dialog: Locator, security: FixedDepositSecurity, locale: string): Promise<void> {
+async function reconcileBaseData(
+  page: Page,
+  dialog: Locator,
+  security: FixedDepositSecurity,
+  locale: string
+): Promise<void> {
   await fillText(dialog, 'input#name', security.name);
-  await selectByOptionText(dialog, 'assetClass', security.assetclassSubCategoryDE);
-  await selectByOptionText(dialog, 'stockexchange', security.stockexchangeName);
+  await selectDynamicFormOptionByText(page, dialog, 'assetClass', security.assetclassSubCategoryDE);
+  await selectDynamicFormOptionByText(page, dialog, 'stockexchange', security.stockexchangeName);
 
   const currency = dialog.locator('select#currency');
   if (await currency.isEnabled()) {
@@ -341,7 +338,7 @@ test.describe.serial('fixed-deposit security with manual price periods', () => {
       const existing = await ensureSecurityInWatchlist(page, scenario.security);
       const dialog = await openSecurityDialog(page, scenario.security, existing);
 
-      await reconcileBaseData(dialog, scenario.security, credentials.locale);
+      await reconcileBaseData(page, dialog, scenario.security, credentials.locale);
       const periodsTab = dialog.locator('p-tab[value="periods"]');
       await expect(periodsTab).toBeVisible({ timeout: 10_000 });
       await periodsTab.click();

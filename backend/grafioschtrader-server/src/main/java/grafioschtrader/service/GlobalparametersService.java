@@ -218,6 +218,22 @@ public class GlobalparametersService {
   }
 
   /**
+   * Gets the weight of the OHL richness preference used when ranking GTNet historical price suppliers.
+   *
+   * The stored value is a percentage because global parameters have no floating point column; it is returned as the
+   * factor the scoring formula expects, so a stored 50 becomes 0.5 and makes a peer delivering complete open/high/low
+   * data score 1.5 times an otherwise identical close-only peer. A stored 0 disables the preference and restores the
+   * pure coverage x success rate ordering.
+   *
+   * @return the weight as a factor, defaults to {@link GlobalParamKeyDefault#DEFAULT_GTNET_OHL_WEIGHT} / 100
+   * @see GlobalParamKeyDefault#GLOB_KEY_GTNET_OHL_WEIGHT
+   */
+  public double getGTNetOhlWeight() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_GTNET_OHL_WEIGHT)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_GTNET_OHL_WEIGHT) / 100.0;
+  }
+
+  /**
    * Calculates the minimum acceptable timestamp for GTNet last price requests.
    *
    * The threshold is calculated as: current_time - watchlist_timeout - gtnet_delay. Any price data older than this

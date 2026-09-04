@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMessageAttempt;
 import grafiosch.entities.TaskDataChange;
+import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
+import grafiosch.repository.GTNetJpaRepository;
 import grafiosch.repository.GTNetMessageAttemptJpaRepository;
 import grafiosch.task.TaskExecutionService;
 
@@ -19,8 +22,8 @@ import grafiosch.task.TaskExecutionService;
  * Deterministic controls for the two-peer browser and protocol tests. It is absent from every non-e2e runtime.
  *
  * Both endpoints exist because the peers run with the background worker disabled: a task is executed when the test asks
- * for it rather than when a 15 second poll happens to pick it up, and the delivery attempts it produced can be read
- * back, which no production endpoint exposes.
+ * for it rather than when a 15 second poll happens to pick it up. It also offers test-only state controls and direct
+ * entity reads, while production exposes only the administrator-facing attempt view.
  */
 @Profile("e2e")
 @RestController
@@ -30,11 +33,13 @@ public class GTNetTestTaskResource {
 
   private final TaskExecutionService taskExecutionService;
   private final GTNetMessageAttemptJpaRepository gtNetMessageAttemptJpaRepository;
+  private final GTNetJpaRepository gtNetJpaRepository;
 
   public GTNetTestTaskResource(TaskExecutionService taskExecutionService,
-      GTNetMessageAttemptJpaRepository gtNetMessageAttemptJpaRepository) {
+      GTNetMessageAttemptJpaRepository gtNetMessageAttemptJpaRepository, GTNetJpaRepository gtNetJpaRepository) {
     this.taskExecutionService = taskExecutionService;
     this.gtNetMessageAttemptJpaRepository = gtNetMessageAttemptJpaRepository;
+    this.gtNetJpaRepository = gtNetJpaRepository;
   }
 
   /**
@@ -58,5 +63,13 @@ public class GTNetTestTaskResource {
   @GetMapping("/messages/{idGtNetMessage}/attempts")
   public List<GTNetMessageAttempt> getAttempts(@PathVariable Integer idGtNetMessage) {
     return gtNetMessageAttemptJpaRepository.findByIdGtNetMessage(idGtNetMessage);
+  }
+
+  /** Changes one remote's online status so terminal delivery paths can be staged without stopping a peer process. */
+  @PostMapping("/peers/{idGtNet}/online-status/{status}")
+  public GTNet setOnlineStatus(@PathVariable Integer idGtNet, @PathVariable byte status) {
+    GTNet peer = gtNetJpaRepository.findById(idGtNet).orElseThrow();
+    peer.setServerOnline(GTNetServerOnlineStatusTypes.getGTNetServerOnlineStatusType(status));
+    return gtNetJpaRepository.save(peer);
   }
 }

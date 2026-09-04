@@ -160,6 +160,8 @@ export interface GTNetWithMessages {
   idOpenMaintenanceMessage: number;
   /** Number of announced maintenance windows per idGtNet - lets the panel header show its count unopened. */
   gtNetMaintenanceWindowCountMap: { [key: number]: number };
+  /** Administrator-only delivery-attempt count per source idGtNet. */
+  gtNetMessageAttemptCountMap: { [key: number]: number };
   /** Metadata about all registered exchange kind types from the backend. */
   exchangeKindTypes: ExchangeKindTypeInfo[];
 }

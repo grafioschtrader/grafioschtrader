@@ -95,7 +95,7 @@ public interface HoldCashaccountDepositJpaRepository extends
    * <p>
    * Named query: HoldCashaccountDeposit.countConsistencyDefects
    *
-   * @param tolerance absolute tolerance for the {@code deposit} comparison, see the sibling method on
+   * @param tolerance absolute floor of the tolerance for the {@code deposit} comparison, see the sibling method on
    *                  {@code HoldCashaccountBalanceJpaRepository}
    * @return one row per tenant and defect kind, empty when everything agrees
    */

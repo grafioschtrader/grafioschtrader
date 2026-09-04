@@ -506,8 +506,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private getHoldingLayout() {
     return {
       yaxis2: {
-        title: 'HOLDING',
-        titlefont: { color: 'rgb(148, 103, 189)' },
+        title: { text: 'HOLDING', font: { color: 'rgb(148, 103, 189)' } },
         tickfont: { color: 'rgb(148, 103, 189)' },
         overlaying: 'y',
         side: 'right'
@@ -1392,7 +1391,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
 
     const layout: any = {
-      title: chartTitle,
+      title: { text: chartTitle },
       showlegend: true,
       legend: PlotlyHelper.getLegendUnderChart(11),
       xaxis: {

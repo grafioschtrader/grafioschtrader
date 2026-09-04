@@ -12,33 +12,57 @@ import grafiosch.entities.GTNet;
 import grafioschtrader.gtnet.GTNetExchangeKindType;
 
 /**
- * Calculates supplier scores based on coverage and success rate for optimized AC_OPEN supplier selection.
+ * Calculates supplier scores based on coverage, success rate and OHL data richness for optimized AC_OPEN supplier
+ * selection.
  *
- * The scoring formula is: score = coverageCount x successRate
- * - coverageCount: number of requested instruments this supplier supports (from GTNetSupplierDetail)
- * - successRate: entitiesUpdated / entitiesSent from recent exchange logs (default 1.0 if no history)
+ * The scoring formula is: score = coverageCount x successRate x ohlFactor - coverageCount: number of requested
+ * instruments this supplier supports (from GTNetSupplierDetail) - successRate: entitiesUpdated / entitiesSent from
+ * recent exchange logs (default 1.0 if no history) - ohlFactor: 1 + ohlWeight x avgOhl/100, where avgOhl is the average
+ * OHL percentage the supplier reported for the requested instruments; exactly 1.0 when the weight is zero or nothing is
+ * known
  *
- * Suppliers are sorted by score descending, then priority ascending, with random shuffle for ties
- * within the same score+priority bucket.
+ * Coverage and reliability stay dominant: the OHL factor is a bounded secondary multiplier, so a peer with wide
+ * coverage is never displaced by a peer that merely holds richer data for a single instrument.
  *
- * Note: This calculator is only used for AC_OPEN servers. AC_PUSH_OPEN servers continue to use
- * the priority+random algorithm in BaseGTNetExchangeService.getSuppliersByPriorityWithRandomization().
+ * Suppliers are sorted by score descending, then priority ascending, with random shuffle for ties within the same
+ * score+priority bucket.
+ *
+ * Note: This calculator is only used for AC_OPEN servers. AC_PUSH_OPEN servers continue to use the priority+random
+ * algorithm in BaseGTNetExchangeService.getSuppliersByPriorityWithRandomization().
  */
 public class SupplierScoreCalculator {
 
   /** Default success rate when no historical data exists */
   private static final double DEFAULT_SUCCESS_RATE = 1.0;
 
+  /** Score rounding used to build tie groups, so that a continuous OHL factor does not defeat the shuffle. */
+  private static final double SCORE_TIE_PRECISION = 1000.0;
+
   /** Map: supplierId -> success rate (0.0 to 1.0) */
   private final Map<Integer, Double> successRates;
 
+  /** Weight of the OHL preference; 0.0 disables it and reproduces the pure coverage x success rate ordering. */
+  private final double ohlWeight;
+
   /**
-   * Creates a new score calculator with preloaded success rates.
+   * Creates a new score calculator with preloaded success rates and no OHL preference.
    *
    * @param successRateData list of [idGtNet, successRate] from database query
    */
   public SupplierScoreCalculator(List<Object[]> successRateData) {
+    this(successRateData, 0.0);
+  }
+
+  /**
+   * Creates a new score calculator with preloaded success rates and an OHL preference weight.
+   *
+   * @param successRateData list of [idGtNet, successRate] from database query
+   * @param ohlWeight       weight of the OHL richness preference; 0.0 disables it. A supplier reporting 100% OHL is
+   *                        scored (1 + ohlWeight) times a supplier reporting 0%.
+   */
+  public SupplierScoreCalculator(List<Object[]> successRateData, double ohlWeight) {
     this.successRates = new HashMap<>();
+    this.ohlWeight = Math.max(0.0, ohlWeight);
 
     if (successRateData != null) {
       for (Object[] row : successRateData) {
@@ -50,15 +74,29 @@ public class SupplierScoreCalculator {
   }
 
   /**
-   * Calculates the score for a supplier.
+   * Calculates the score for a supplier without an OHL contribution.
    *
    * @param idGtNet the supplier ID
    * @param coverageCount the number of requested instruments this supplier supports
    * @return the score (coverageCount x successRate)
    */
   public double calculateScore(Integer idGtNet, int coverageCount) {
+    return calculateScore(idGtNet, coverageCount, null);
+  }
+
+  /**
+   * Calculates the score for a supplier.
+   *
+   * @param idGtNet the supplier ID
+   * @param coverageCount the number of requested instruments this supplier supports
+   * @param avgOhl        the average OHL percentage (0..100) the supplier reported for the requested instruments, or
+   *                      null when unknown. Unknown is neutral, never a penalty - a peer that has not been synchronised
+   *                      yet, an intraday peer, and a currency pair all arrive here as null.
+   * @return the score (coverageCount x successRate x ohlFactor)
+   */
+  public double calculateScore(Integer idGtNet, int coverageCount, Double avgOhl) {
     double successRate = successRates.getOrDefault(idGtNet, DEFAULT_SUCCESS_RATE);
-    return coverageCount * successRate;
+    return coverageCount * successRate * getOhlFactor(avgOhl);
   }
 
   /**
@@ -72,19 +110,30 @@ public class SupplierScoreCalculator {
   }
 
   /**
+   * Returns the multiplier applied for OHL richness.
+   *
+   * @param avgOhl the average OHL percentage (0..100), or null when unknown
+   * @return 1.0 when the preference is disabled or nothing is known, otherwise 1 + ohlWeight x avgOhl/100
+   */
+  public double getOhlFactor(Double avgOhl) {
+    if (ohlWeight <= 0.0 || avgOhl == null) {
+      return 1.0;
+    }
+    double bounded = Math.min(100.0, Math.max(0.0, avgOhl));
+    return 1.0 + ohlWeight * bounded / 100.0;
+  }
+
+  /**
    * Sorts AC_OPEN suppliers by score (descending), priority (ascending), with random shuffle for ties.
    *
    * @param suppliers list of suppliers to sort
    * @param exchangeKind the exchange kind for priority lookup
-   * @param filter the instrument filter for coverage calculation
+   * @param filter                 the instrument filter for coverage and OHL calculation
    * @param requestedInstrumentIds the set of instruments being requested
    * @return sorted list of suppliers
    */
-  public List<GTNet> sortSuppliersByScore(
-      List<GTNet> suppliers,
-      GTNetExchangeKindType exchangeKind,
-      SupplierInstrumentFilter filter,
-      Set<Integer> requestedInstrumentIds) {
+  public List<GTNet> sortSuppliersByScore(List<GTNet> suppliers, GTNetExchangeKindType exchangeKind,
+      SupplierInstrumentFilter filter, Set<Integer> requestedInstrumentIds) {
 
     if (suppliers == null || suppliers.size() <= 1) {
       return suppliers != null ? suppliers : new ArrayList<>();
@@ -93,8 +142,10 @@ public class SupplierScoreCalculator {
     // Calculate scores for each supplier
     List<ScoredSupplier> scored = new ArrayList<>();
     for (GTNet supplier : suppliers) {
-      int coverage = calculateCoverage(supplier, filter, requestedInstrumentIds);
-      double score = calculateScore(supplier.getIdGtNet(), coverage);
+      Set<Integer> supported = getSupportedInstruments(supplier, filter, requestedInstrumentIds);
+      int coverage = supported.size();
+      Double avgOhl = filter == null ? null : filter.getAverageOhl(supplier.getIdGtNet(), supported);
+      double score = calculateScore(supplier.getIdGtNet(), coverage, avgOhl);
       byte priority = getConsumerUsage(supplier, exchangeKind);
       scored.add(new ScoredSupplier(supplier, score, priority, coverage));
     }
@@ -108,10 +159,11 @@ public class SupplierScoreCalculator {
       return Byte.compare(a.priority, b.priority);
     });
 
-    // Group by (score, priority) and shuffle within groups
+    // Group by (rounded score, priority) and shuffle within groups. Rounding matters: the OHL factor makes raw scores
+    // almost always unique, which would silently disable the load-spreading shuffle.
     Map<String, List<ScoredSupplier>> groups = new LinkedHashMap<>();
     for (ScoredSupplier ss : scored) {
-      String key = ss.score + ":" + ss.priority;
+      String key = Math.round(ss.score * SCORE_TIE_PRECISION) + ":" + ss.priority;
       groups.computeIfAbsent(key, _ -> new ArrayList<>()).add(ss);
     }
 
@@ -128,26 +180,23 @@ public class SupplierScoreCalculator {
   }
 
   /**
-   * Calculates coverage count for a supplier based on how many requested instruments it supports.
+   * Determines which of the requested instruments a supplier supports.
    */
-  private int calculateCoverage(GTNet supplier, SupplierInstrumentFilter filter, Set<Integer> requestedInstrumentIds) {
+  private Set<Integer> getSupportedInstruments(GTNet supplier, SupplierInstrumentFilter filter,
+      Set<Integer> requestedInstrumentIds) {
     if (filter == null || requestedInstrumentIds == null || requestedInstrumentIds.isEmpty()) {
-      return 0;
+      return Set.of();
     }
     // AC_OPEN: filter to only supported instruments (isPushOpen = false)
-    Set<Integer> supported = filter.getInstrumentsForSupplier(supplier.getIdGtNet(), requestedInstrumentIds, false);
-    return supported.size();
+    return filter.getInstrumentsForSupplier(supplier.getIdGtNet(), requestedInstrumentIds, false);
   }
 
   /**
    * Gets the consumerUsage priority value for a supplier and exchange kind.
    */
   private byte getConsumerUsage(GTNet supplier, GTNetExchangeKindType exchangeKind) {
-    return supplier.getGtNetEntities().stream()
-        .filter(e -> e.getEntityKindValue() == exchangeKind.getValue())
-        .findFirst()
-        .map(e -> e.getGtNetConfigEntity().getConsumerUsage())
-        .orElse((byte) 0);
+    return supplier.getGtNetEntities().stream().filter(e -> e.getEntityKindValue() == exchangeKind.getValue())
+        .findFirst().map(e -> e.getGtNetConfigEntity().getConsumerUsage()).orElse((byte) 0);
   }
 
   /**

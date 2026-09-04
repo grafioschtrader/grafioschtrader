@@ -1,7 +1,6 @@
 import { HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { importProvidersFrom, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Routes } from '@angular/router';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -230,7 +229,6 @@ bootstrapApplication(GrafioschAppComponent, {
     // never happens, the resulting exception is routed to the subscribe error handler, applicationInfo is reset to
     // null and the page shows nothing but "server unavailable". The main application passes the same provider.
     provideZoneChangeDetection(),
-    provideAnimations(),
     provideHttpClient(withXhr(), withInterceptorsFromDi()),
     provideRouter(routes),
     importProvidersFrom(

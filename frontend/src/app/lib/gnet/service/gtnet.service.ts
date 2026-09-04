@@ -11,6 +11,7 @@ import { LoginService } from '../../login/service/log-in.service';
 import { HttpClient } from '@angular/common/http';
 import { MessageToastService } from '../../message/message.toast.service';
 import { BaseSettings } from '../../base.settings';
+import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
 
 @Injectable()
 export class GTNetService extends AuthServiceWithLogout<GTNet> implements ServiceEntityUpdate<GTNet> {
@@ -96,6 +97,18 @@ export class GTNetService extends AuthServiceWithLogout<GTNet> implements Servic
       this.httpClient
         .get(
           `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/maintenancewindows/${idGtNet}`,
+          this.getHeaders()
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
+  }
+
+  /** Loads administrator-visible delivery outcomes for messages stored under one GTNet entry. */
+  getMessageAttemptsByIdGtNet(idGtNet: number): Observable<GTNetMessageAttemptView[]> {
+    return <Observable<GTNetMessageAttemptView[]>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${BaseSettings.GT_NET_KEY}` + `/messageattempts/${idGtNet}`,
           this.getHeaders()
         )
         .pipe(catchError(this.handleError.bind(this)))

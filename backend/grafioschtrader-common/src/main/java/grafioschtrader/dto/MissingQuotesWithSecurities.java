@@ -60,7 +60,7 @@ public class MissingQuotesWithSecurities {
   public final Map<Integer, Integer> countIdSecurityMissingsMap = new HashMap<>();
 
   @Schema(description = "Securities that have missing historical quotes in the analyzed period")
-  public List<Security> securties;
+  public List<Security> securities;
 
   @Schema(description = """
       Currency pairs that have missing historical exchange rates in the analyzed period. A held position can only be
@@ -106,8 +106,8 @@ public class MissingQuotesWithSecurities {
     countIdSecurityMissingsMap.merge(idSecuritycurrency, 1, Integer::sum);
   }
 
-  public void setSecurties(List<Security> securties) {
-    this.securties = securties;
+  public void setSecurities(List<Security> securities) {
+    this.securities = securities;
   }
 
   public void setCurrencypairs(List<Currencypair> currencypairs) {
@@ -131,7 +131,7 @@ public class MissingQuotesWithSecurities {
   }
 
   public List<Security> getSecurities() {
-    return securties;
+    return securities;
   }
 
 }

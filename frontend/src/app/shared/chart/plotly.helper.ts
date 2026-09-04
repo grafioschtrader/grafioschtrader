@@ -1,6 +1,5 @@
 import { TranslateService } from '@ngx-translate/core';
 import { Helper } from '../../lib/helper/helper';
-import { Legend } from 'plotly.js';
 import { ElementRef } from '@angular/core';
 import tippy from 'tippy.js';
 
@@ -12,6 +11,21 @@ export interface ChartData {
   options: any;
   legendTooltipMap: Map<string, string>;
   callBackFN?: (traceIndex: number, dataPointIndex: number) => void;
+}
+
+/**
+ * Minimal shape of a Plotly legend layout object, limited to the properties Grafioschtrader sets.
+ * Declared locally rather than imported from 'plotly.js': the library is loaded as a global UMD
+ * script and consumed through `declare let Plotly: any`, so this single type is the only reason a
+ * module import would exist at all.
+ */
+export interface PlotlyLegend {
+  xanchor: 'auto' | 'left' | 'center' | 'right';
+  yanchor: 'auto' | 'top' | 'middle' | 'bottom';
+  orientation: 'v' | 'h';
+  x: number;
+  y: number;
+  font: { family?: string; size?: number; color?: string };
 }
 
 export interface ChartTrace {
@@ -69,13 +83,21 @@ export class PlotlyHelper {
     );
   }
 
+  /**
+   * Translates every title in the layout tree. Plotly expects a title as the object form
+   * <code>{text: '…'}</code>; <code>findPropertyNamesInObjectTree</code> reports the path of the
+   * <code>title</code> node itself, so a path whose value is not a string is redirected to its
+   * <code>text</code> child. Paths that resolve to neither are skipped.
+   */
   private static translateLayoutTitles(translateService: TranslateService, layout: any): void {
     const TITLE = 'title';
-    const founds: any = [];
 
-    Helper.findPropertyNamesInObjectTree(layout, TITLE).forEach((keywordPath) =>
-      this.translateLayoutTitle(translateService, layout, keywordPath)
-    );
+    Helper.findPropertyNamesInObjectTree(layout, TITLE)
+      .map((keywordPath) =>
+        typeof Helper.getValueByPath(layout, keywordPath) === 'string' ? keywordPath : `${keywordPath}.text`
+      )
+      .filter((keywordPath) => typeof Helper.getValueByPath(layout, keywordPath) === 'string')
+      .forEach((keywordPath) => this.translateLayoutTitle(translateService, layout, keywordPath));
   }
 
   private static translateLayoutTitle(translateService: TranslateService, layout: any, keywordPath: string): void {
@@ -131,7 +153,7 @@ export class PlotlyHelper {
     });
   }
 
-  public static getLegendUnderChart(fontSize: number): Partial<Legend> {
+  public static getLegendUnderChart(fontSize: number): Partial<PlotlyLegend> {
     return {
       xanchor: 'left',
       yanchor: 'top',

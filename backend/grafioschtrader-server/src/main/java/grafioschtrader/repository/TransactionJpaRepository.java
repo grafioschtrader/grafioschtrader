@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -184,6 +185,18 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdTenantOrderByTransactionTimeDesc(Integer idTenant);
 
   Transaction findByIdTransactionAndIdTenant(Integer idTransaction, Integer idTenant);
+
+  /**
+   * Loads both sides of every connected cash-account transfer for the requested tenants. Deposit holding replay uses
+   * the counterpart to value a pair independently of which account happens to be processed first.
+   *
+   * @param idTenants tenant identifiers whose connected cash transfers are required
+   * @return connected deposits and withdrawals with their cash accounts eagerly loaded
+   */
+  @Query(value = """
+      SELECT t FROM Transaction t JOIN FETCH t.cashaccount WHERE t.idTenant IN ?1
+      AND t.connectedIdTransaction IS NOT NULL AND t.transactionType <= 1""")
+  List<Transaction> findConnectedCashTransfersByIdTenantIn(Set<Integer> idTenants);
 
   List<Transaction> findByCashaccount_idSecuritycashAccountAndIdTenantOrderByTransactionTimeDesc(
       Integer idSecuritycashAccount, Integer idTenant);

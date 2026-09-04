@@ -120,6 +120,24 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
   }
 
   /**
+   * Returns whether this instrument is bound to the kind of stock exchange it belongs to, that is at least one history
+   * quote, one period entered by the user, or one transaction exists. The system created period of an instrument on a
+   * stock exchange without market value does not count on its own. Once it is true the instrument may only move to a
+   * stock exchange of its own kind.
+   *
+   * @param idSecuritycurrency the instrument to check
+   * @returns true when the instrument may only move within its own kind
+   */
+  isStockexchangeCategoryLocked(idSecuritycurrency: number): Observable<boolean> {
+    return <Observable<boolean>>this.httpClient
+      .get(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/stockexchangecategorylocked`,
+        { headers: this.prepareHeaders() }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
    * Update the passed security.
    */
   update(security: Security): Observable<Security> {

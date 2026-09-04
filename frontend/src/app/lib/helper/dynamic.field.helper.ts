@@ -316,6 +316,54 @@ export class DynamicFieldHelper {
   }
 
   /**
+   * Creates a numeric dropdown field with auto-generated label key. The numeric counterpart of
+   * createFieldDropdownStringHeqF, for a dropdown whose option keys are entity ids.
+   *
+   * @param fieldName Unique field identifier (also used for label key generation)
+   * @param required Whether selection is mandatory
+   * @param fieldOptions Additional configuration options including dropdown items
+   * @returns FieldConfig for dropdown component
+   */
+  public static createFieldDropdownNumberHeqF(
+    fieldName: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldDropdownNumber(
+      fieldName,
+      AppHelper.removeSomeStringAndToUpperCaseWithUnderscore(fieldName),
+      required,
+      fieldOptions
+    );
+  }
+
+  /**
+   * Creates a numeric dropdown field with a custom label key. Unlike a plain select this one is an Optimus dropdown, so
+   * its options are taken from the group items of the field and may carry a leading image or icon. No empty default
+   * value is forced, because the bound value is a number.
+   *
+   * @param fieldName Unique field identifier
+   * @param labelKey Translation key for field label
+   * @param required Whether selection is mandatory
+   * @param fieldOptions Additional configuration options including dropdown items
+   * @returns FieldConfig for dropdown component
+   */
+  public static createFieldDropdownNumber(
+    fieldName: string,
+    labelKey: string,
+    required: boolean,
+    fieldOptions?: FieldOptions
+  ): FieldConfig {
+    return DynamicFieldHelper.createFieldDropdownNumberString(
+      DataType.Numeric,
+      fieldName,
+      labelKey,
+      required,
+      fieldOptions
+    );
+  }
+
+  /**
    * Creates a dropdown field with auto-generated label key.
    * Convenience method that generates label key from field name using naming conventions.
    *

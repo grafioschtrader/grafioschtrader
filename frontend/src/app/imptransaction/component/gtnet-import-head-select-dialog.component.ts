@@ -67,7 +67,7 @@ export class GTNetImportHeadSelectDialogComponent extends SimpleEditBase impleme
     private gtNetSecurityImpHeadService: GTNetSecurityImpHeadService,
     private gtNetSecurityImpPosService: GTNetSecurityImpPosService
   ) {
-    super(HelpIds.HELP_BASEDATA_GTNET, gps);
+    super(HelpIds.HELP_BASEDATA_GT_NET_IMPORT_SECURITY, gps);
   }
 
   ngOnInit(): void {

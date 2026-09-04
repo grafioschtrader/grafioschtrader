@@ -81,7 +81,11 @@ export const AppHelpIds: Record<string, string> = {
   HELP_HISTORYQUOTE_QUALITY: 'admindata/historyquotequality/',
   HELP_TAX_DATA: 'admindata/taxdata/',
 
+  // The GTNet landing page is the architectural overview of the network; it describes no single view. Every screen
+  // therefore points at the page that documents it, HELP_GT_NET_SETUP being the one for the server overview, its
+  // dialogs and the message history.
   HELP_GT_NET: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet',
+  HELP_GT_NET_SETUP: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/setup',
   HELP_GT_NET_ADMIN_MGS: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/setup/msgadmin',
   HELP_GT_NET_AUTOANSWER: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/autoanswer',
   HELP_GT_NET_EXCHANGE: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/exchange',

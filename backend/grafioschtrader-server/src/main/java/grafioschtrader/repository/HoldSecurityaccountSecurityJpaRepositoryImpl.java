@@ -854,7 +854,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       // exchange rate into the reporting currency is missing. Both kinds are resolved from the same set of ids, which
       // is possible because a securitycurrency id identifies exactly one of the two.
       List<Security> securities = this.securityJpaRepository.findByIdSecuritycurrencyInOrderByName(idsSecuritycurrency);
-      missingQuotesWithSecurities.setSecurties(securities);
+      missingQuotesWithSecurities.setSecurities(securities);
       Set<Integer> idsCurrencypair = new HashSet<>(idsSecuritycurrency);
       securities.forEach(security -> idsCurrencypair.remove(security.getIdSecuritycurrency()));
       missingQuotesWithSecurities.setCurrencypairs(

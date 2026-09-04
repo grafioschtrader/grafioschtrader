@@ -25,14 +25,25 @@ public interface IPeriodHolding {
   double getDividendRealMC();
 
   /**
-   * Cumulative realized fees (negative values) from the start date up to and including this date, converted to the
-   * relevant currency (MC).
+   * Cumulative realized fees from the account's first transaction up to and including this date, converted to the
+   * relevant currency (MC). The query negates the sum, so a cost is delivered as a positive value. It contains the
+   * separately booked account and depot fees alone. The trading costs contained in a purchase or sale are part of
+   * {@link #getAccumulateReduceMC()}, and the financing costs of margin positions are reported through the securities
+   * result; neither is here, so this figure covers the same bookings as the fee column of the cash account summary.
+   *
+   * <p>
+   * Like every cumulative column of this projection except the external cash transfers, the running total is kept in
+   * the cash account's own currency and revalued once with the currency-pair close of the reporting day. The cash
+   * account summary converts each booking with the rate of its own date instead, so the two figures differ for
+   * foreign-currency accounts by the currency movement since the bookings were made.
+   * </p>
    */
   double getFeeRealMC();
 
   /**
-   * Cumulative interest earned on cash accounts from the start date up to and including this date, converted to the
-   * relevant currency (MC).
+   * Cumulative interest earned on cash accounts from the account's first transaction up to and including this date,
+   * converted to the relevant currency (MC). Revalued with the currency-pair close of the reporting day, unlike the
+   * cash account summary, which converts each booking with the rate of its own date.
    */
   double getInterestCashaccountRealMC();
 

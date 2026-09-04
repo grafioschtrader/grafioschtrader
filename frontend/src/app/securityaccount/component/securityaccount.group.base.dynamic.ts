@@ -131,7 +131,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
     const data = [barChartNet, circleChartGross];
 
     const layout = {
-      title,
+      title: { text: title },
       grid: { rows: 1, columns: 2 },
       yaxis: {
         automargin: true

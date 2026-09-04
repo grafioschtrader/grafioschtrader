@@ -4,7 +4,7 @@
  * table they are derived from. Nothing is written — every statement is a SELECT.
  *
  *   node scripts/check-hold-tables.mjs --user=grafioschtrader --password=... \
- *        --database=grafioschtrader [--tenant=7] [--tolerance=0.005] [--limit=20] [--json]
+ *        --database=grafioschtrader [--tenant=7] [--tolerance=1e-6] [--limit=20] [--json]
  *
  * Why this exists: `hold_cashaccount_balance`, `hold_cashaccount_deposit` and
  * `hold_securityaccount_security` are maintained incrementally by TransactionJpaRepositoryImpl on
@@ -24,10 +24,9 @@
  * ---------------------------------------------------------------------------------------------
  * hold_cashaccount_balance — EXACT. Every column is a running total over `transaction` in the cash
  *   account's own currency; no exchange rates and no historical quotes are involved, so the whole
- *   table is reproducible with a window function. Extra rows, missing rows, all six value columns,
- *   period chaining and id_tenant/id_portfolio are verified. `balance` is the one column stored
- *   rounded — to the account currency's precision — and is therefore compared with a tolerance of one
- *   currency unit instead of --tolerance; see ACCT_CTE and balanceSql.
+ *   table is reproducible with a window function. Extra rows, missing rows, all seven value columns,
+ *   period chaining and id_tenant/id_portfolio are verified. All seven columns are stored unrounded,
+ *   so --tolerance only has to absorb the noise of double addition; see balanceSql.
  *
  * hold_cashaccount_deposit — the `deposit` column only (account currency), plus row set and period
  *   chaining. `deposit_portfolio_currency` and `deposit_tenant_currency` are converted with the FX
@@ -44,15 +43,20 @@
  *   closes the last one. `margin_real_holdings`, `margin_average_price` and `split_price_factor` are
  *   out of scope — they come from the holdSecuritySplit* stored procedures.
  *
- * id_currency_pair_tenant / id_currency_pair_portfolio are checked in no table: the query that
- * resolves them (CurrencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts)
- * carries a TODO saying it is wrong for HoldCashaccountBalanceJpaRepositoryImpl, so a check would
- * report noise rather than drift.
+ * id_currency_pair_tenant / id_currency_pair_portfolio are checked in hold_cashaccount_balance and
+ * in hold_securityaccount_security. The writer resolves the pair from the currency of the position
+ * — the cash account currency respectively the security currency — to the tenant currency and to the
+ * portfolio currency, and writes NULL where the two currencies are equal; that rule is reproduced
+ * here. A currency pair row that does not exist leaves the expected side NULL, so a dangling id is
+ * reported too. Neither column has a foreign key and the reporting queries join the historical rates
+ * through them, so nothing else would notice a wrong value.
  *
- * FINANCE_COST (transaction_type 7) counts towards `fee`, matching
- * HoldCashaccountBalance.getCashaccountBalanceByTenant. Rows written before that grouping was
- * introduced had FINANCE_COST in `balance` but in no category column, so they legitimately report a
- * FEE mismatch here; a rebuild of the tenant repairs them.
+ * FINANCE_COST (transaction_type 7) has its own running total in `finance_cost` since V0_36_10, so
+ * `fee` covers transaction_type 3 alone — the financing of a margin position is a cost of that
+ * position and is already reported through the securities result. Rows written before that migration
+ * carry FINANCE_COST inside `fee` and therefore report a FEE and a FINANCE_COST deviation until the
+ * rebuild of all tenants that the migration enqueues has run; while that task is pending the check
+ * reports them as explained anyway.
  *
  * Tenants with a pending REBUILD/CURRENCY_CHANGED task are reported as "explained" and do not
  * affect the exit code — their drift is already scheduled to be repaired.
@@ -155,20 +159,14 @@ function queryJsonRows(ctx, label, sql) {
  * Maps a cash account to its portfolio and tenant the same way the rebuild query does
  * (HoldCashaccountBalance.getCashaccountBalanceByTenant joins portfolio -> securitycashaccount ->
  * cashaccount), so a wrong id_tenant/id_portfolio in the hold row is detectable.
- *
- * `prec` decodes the account currency's number of decimals from the `gt.currency.precision`
- * globalparameter (format `BTC=8,ETH=7,JPY=0,KWD=3`, everything else two digits), mirroring
- * GlobalparametersJpaRepositoryImpl.getPrecisionForCurrency. Only the `balance` comparison needs it.
  */
 const ACCT_CTE = `acct AS (
     SELECT c.id_securitycash_account AS ca, sc.id_portfolio AS pf, p.id_tenant AS tn,
-           IFNULL(CAST(NULLIF(SUBSTRING_INDEX(
-             REGEXP_SUBSTR(g.property_string, CONCAT(c.currency, '=[0-9]+')), '=', -1), '')
-             AS UNSIGNED), 2) AS prec
+           c.currency AS cc, p.currency AS pc, te.currency AS tc
     FROM cashaccount c
     JOIN securitycashaccount sc ON sc.id_securitycash_account = c.id_securitycash_account
     JOIN portfolio p ON p.id_portfolio = sc.id_portfolio
-    LEFT JOIN globalparameters g ON g.property_name = 'gt.currency.precision')`;
+    JOIN tenant te ON te.id_tenant = p.id_tenant)`;
 
 /**
  * Reproduces HoldCashaccountBalanceJpaRepositoryImpl: one row per (cash account, tt_date) with at
@@ -181,7 +179,8 @@ function balanceSql(tenantFilter, tol) {
            SUM(t.cashaccount_amount) AS total,
            SUM(IF(t.transaction_type <= 1, t.cashaccount_amount, 0)) AS wd,
            SUM(IF(t.transaction_type = 2, t.cashaccount_amount, 0)) AS ic,
-           SUM(IF(t.transaction_type IN (3, 7), t.cashaccount_amount, 0)) AS fe,
+           SUM(IF(t.transaction_type = 3, t.cashaccount_amount, 0)) AS fe,
+           SUM(IF(t.transaction_type = 7, t.cashaccount_amount, 0)) AS fc,
            SUM(IF(t.transaction_type BETWEEN 4 AND 5, t.cashaccount_amount, 0)) AS ar,
            SUM(IF(t.transaction_type = 6, t.cashaccount_amount, 0)) AS dv
     FROM transaction t${tenantFilter ? `\n    WHERE t.id_tenant = ${tenantFilter}` : ''}
@@ -189,7 +188,8 @@ function balanceSql(tenantFilter, tol) {
   ), expected AS (
     SELECT ca, d,
            SUM(total) OVER w AS balance, SUM(wd) OVER w AS wd, SUM(ic) OVER w AS ic,
-           SUM(fe) OVER w AS fe, SUM(ar) OVER w AS ar, SUM(dv) OVER w AS dv,
+           SUM(fe) OVER w AS fe, SUM(fc) OVER w AS fc, SUM(ar) OVER w AS ar,
+           SUM(dv) OVER w AS dv,
            LEAD(d) OVER w AS next_d
     FROM daily WINDOW w AS (PARTITION BY ca ORDER BY d)
   ), ${ACCT_CTE}
@@ -207,25 +207,24 @@ function balanceSql(tenantFilter, tol) {
     LEFT JOIN expected e ON e.ca = h.id_securitycash_account AND e.d = h.from_hold_date
    WHERE e.ca IS NULL
 ${[
-    // `balance` is the only column the writer rounds, to the account currency's precision, so it is
-    // compared against the unrounded running sum with a tolerance of one currency unit instead of the
-    // caller's. Rounding the expected sum here instead would flip every balance landing exactly on
-    // half a unit, because the decimal window aggregate and the writer's double accumulation round it
-    // in opposite directions.
-    ['BALANCE', 'e.balance', 'h.balance', 'GREATEST(POW(10, -a.prec), ABS(e.balance) * 1e-9)'],
-    ['WITHDRAWL_DEPOSIT', 'e.wd', 'h.withdrawl_deposit', tol],
-    ['INTEREST', 'e.ic', 'h.interest_cashaccount', tol],
-    ['FEE', 'e.fe', 'h.fee', tol],
-    ['ACCUMULATE_REDUCE', 'e.ar', 'h.accumulate_reduce', tol],
-    ['DIVIDEND', 'e.dv', 'h.dividend', tol],
-  ].map(([defect, exp, act, colTol]) => `
+    // All seven columns are stored unrounded, so each is compared against the running sum with the same
+    // rule: the caller's absolute floor, raised to a relative one where the sum is large enough for
+    // double addition noise to exceed it.
+    ['BALANCE', 'e.balance', 'h.balance'],
+    ['WITHDRAWL_DEPOSIT', 'e.wd', 'h.withdrawl_deposit'],
+    ['INTEREST', 'e.ic', 'h.interest_cashaccount'],
+    ['FEE', 'e.fe', 'h.fee'],
+    ['FINANCE_COST', 'e.fc', 'h.finance_cost'],
+    ['ACCUMULATE_REDUCE', 'e.ar', 'h.accumulate_reduce'],
+    ['DIVIDEND', 'e.dv', 'h.dividend'],
+  ].map(([defect, exp, act]) => `
   UNION ALL
   SELECT JSON_OBJECT('tenant', a.tn, 'account', e.ca, 'date', e.d, 'defect', '${defect}',
                      'expected', ROUND(${exp}, 4), 'actual', ROUND(${act}, 4))
     FROM expected e JOIN acct a ON a.ca = e.ca
     JOIN hold_cashaccount_balance h
       ON h.id_securitycash_account = e.ca AND h.from_hold_date = e.d
-   WHERE ABS(${act} - ${exp}) > ${colTol}`).join('')}
+   WHERE ABS(${act} - ${exp}) > GREATEST(${tol}, ABS(${exp}) * 1e-9)`).join('')}
   UNION ALL
   SELECT JSON_OBJECT('tenant', a.tn, 'account', e.ca, 'date', e.d, 'defect', 'PERIOD_CHAIN',
                      'expected', DATE_SUB(e.next_d, INTERVAL 1 DAY), 'actual', h.to_hold_date)
@@ -240,7 +239,20 @@ ${[
     FROM expected e JOIN acct a ON a.ca = e.ca
     JOIN hold_cashaccount_balance h
       ON h.id_securitycash_account = e.ca AND h.from_hold_date = e.d
-   WHERE h.id_tenant <> a.tn OR h.id_portfolio <> a.pf`;
+   WHERE h.id_tenant <> a.tn OR h.id_portfolio <> a.pf
+${[
+    ['CURRENCYPAIR_TENANT', 'a.tc', 'h.id_currency_pair_tenant'],
+    ['CURRENCYPAIR_PORTFOLIO', 'a.pc', 'h.id_currency_pair_portfolio'],
+  ].map(([defect, toCur, act]) => `
+  UNION ALL
+  SELECT JSON_OBJECT('tenant', a.tn, 'account', e.ca, 'date', e.d, 'defect', '${defect}',
+                     'expected', IF(a.cc = ${toCur}, NULL, cp.id_securitycurrency),
+                     'actual', ${act})
+    FROM expected e JOIN acct a ON a.ca = e.ca
+    JOIN hold_cashaccount_balance h
+      ON h.id_securitycash_account = e.ca AND h.from_hold_date = e.d
+    LEFT JOIN currencypair cp ON cp.from_currency = a.cc AND cp.to_currency = ${toCur}
+   WHERE NOT (${act} <=> IF(a.cc = ${toCur}, NULL, cp.id_securitycurrency))`).join('')}`;
 }
 
 /**
@@ -276,7 +288,7 @@ function depositSql(tenantFilter, tol) {
     FROM expected e JOIN acct a ON a.ca = e.ca
     JOIN hold_cashaccount_deposit h
       ON h.id_securitycash_account = e.ca AND h.from_hold_date = e.d
-   WHERE ABS(h.deposit - e.deposit) > ${tol}
+   WHERE ABS(h.deposit - e.deposit) > GREATEST(${tol}, ABS(e.deposit) * 1e-9)
   UNION ALL
   SELECT JSON_OBJECT('tenant', a.tn, 'account', e.ca, 'date', e.d, 'defect', 'PERIOD_CHAIN',
                      'expected', DATE_SUB(e.next_d, INTERVAL 1 DAY), 'actual', h.to_hold_date)
@@ -346,10 +358,12 @@ function securitySql(tenantFilter, tol) {
                AND tx.d <= h.from_hold_date) AS units
     FROM hold_securityaccount_security h
   ), sec_acct AS (
-    SELECT sac.id_securitycash_account AS sa, sc.id_portfolio AS pf, p.id_tenant AS tn
+    SELECT sac.id_securitycash_account AS sa, sc.id_portfolio AS pf, p.id_tenant AS tn,
+           p.currency AS pc, te.currency AS tc
     FROM securityaccount sac
     JOIN securitycashaccount sc ON sc.id_securitycash_account = sac.id_securitycash_account
     JOIN portfolio p ON p.id_portfolio = sc.id_portfolio
+    JOIN tenant te ON te.id_tenant = p.id_tenant
   )
   SELECT JSON_OBJECT('tenant', x.tn, 'account', h.id_securitycash_account,
                      'security', h.id_securitycurrency, 'date', h.from_hold_date,
@@ -396,7 +410,22 @@ function securitySql(tenantFilter, tol) {
                      'actual', CONCAT(h.id_tenant, '/', h.id_portfolio))
     FROM hold_securityaccount_security h
     JOIN sec_acct x ON x.sa = h.id_securitycash_account
-   WHERE h.id_tenant <> x.tn OR h.id_portfolio <> x.pf`;
+   WHERE h.id_tenant <> x.tn OR h.id_portfolio <> x.pf
+${[
+    ['CURRENCYPAIR_TENANT', 'x.tc', 'h.id_currency_pair_tenant'],
+    ['CURRENCYPAIR_PORTFOLIO', 'x.pc', 'h.id_currency_pair_portfolio'],
+  ].map(([defect, toCur, act]) => `
+  UNION ALL
+  SELECT JSON_OBJECT('tenant', x.tn, 'account', h.id_securitycash_account,
+                     'security', h.id_securitycurrency, 'date', h.from_hold_date,
+                     'defect', '${defect}',
+                     'expected', IF(s.currency = ${toCur}, NULL, cp.id_securitycurrency),
+                     'actual', ${act})
+    FROM hold_securityaccount_security h
+    JOIN sec_acct x ON x.sa = h.id_securitycash_account
+    JOIN security s ON s.id_securitycurrency = h.id_securitycurrency
+    LEFT JOIN currencypair cp ON cp.from_currency = s.currency AND cp.to_currency = ${toCur}
+   WHERE NOT (${act} <=> IF(s.currency = ${toCur}, NULL, cp.id_securitycurrency))`).join('')}`;
 }
 
 /** Pending repair tasks — their target tenants are reported as "explained". */
@@ -448,7 +477,7 @@ function printSamples(rows, limit) {
 
 function main() {
   const args = parseArgs();
-  const tol = Number(args.tolerance ?? 0.005);
+  const tol = Number(args.tolerance ?? 1e-6);
   if (!Number.isFinite(tol) || tol < 0) {
     fail(`--tolerance must be a non-negative number, got ${args.tolerance}`);
   }

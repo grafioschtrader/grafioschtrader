@@ -123,7 +123,7 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     private gtNetService: GTNetService
   ) {
     super(
-      HelpIds.HELP_GT_NET,
+      HelpIds.HELP_GT_NET_SETUP,
       BaseSettings.GT_NET.toUpperCase(),
       translateService,
       gps,

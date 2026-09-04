@@ -85,6 +85,7 @@ import grafiosch.gtnet.m2m.model.GTNetEntityPublicDTO;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 import grafiosch.gtnet.model.ExchangeKindTypeInfo;
+import grafiosch.gtnet.model.GTNetMessageAttemptView;
 import grafiosch.gtnet.model.GTNetWithMessages;
 import grafiosch.gtnet.model.MsgRequest;
 import grafiosch.gtnet.model.MultiTargetMsgRequest;
@@ -231,17 +232,26 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     Map<Integer, Integer> gtNetMaintenanceWindowCountMap = gtNetMaintenanceWindowJpaRepository.countPerGtNet().stream()
         .collect(Collectors.toMap(row -> (Integer) row[0], row -> ((Number) row[1]).intValue()));
 
+    Map<Integer, Integer> gtNetMessageAttemptCountMap = isAdminCaller()
+        ? gtNetMessageAttemptJpaRepository.countBySourceIdGtNet()
+        : Map.of();
+
     List<ExchangeKindTypeInfo> exchangeKindTypes = exchangeKindTypeRegistry.getAllKinds().stream()
         .map(ExchangeKindTypeInfo::new).collect(Collectors.toList());
 
     return new GTNetWithMessages(gtNetJpaRepository.findAll(), gtNetMessageCountMap, outgoingPendingReplies,
         incomingPendingReplies, globalparametersJpaRepository.getGTNetMyEntryID(), idOpenDiscontinuedMessage,
-        idOpenMaintenanceMessage, gtNetMaintenanceWindowCountMap, exchangeKindTypes);
+        idOpenMaintenanceMessage, gtNetMaintenanceWindowCountMap, gtNetMessageAttemptCountMap, exchangeKindTypes);
   }
 
   @Override
   public List<GTNetMaintenanceWindow> getMaintenanceWindowsByIdGtNet(Integer idGtNet) {
     return gtNetMaintenanceWindowJpaRepository.findByIdGtNetOrderByFromDateTimeDesc(idGtNet);
+  }
+
+  @Override
+  public List<GTNetMessageAttemptView> getMessageAttemptsByIdGtNet(Integer idGtNet) {
+    return gtNetMessageAttemptJpaRepository.findViewsBySourceIdGtNet(idGtNet);
   }
 
   @Override
@@ -464,8 +474,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       sendAndSaveMsg(sourceGTNet, gtNetList, descriptor, msgRequest, messageCode);
     }
 
-    // For broadcast messages, save a copy under own server entry for visibility
-    if (messageCode.isBroadcast()) {
+    // Future-oriented broadcasts already store their attempt-owning message under the own entry. Other broadcasts
+    // still need a visibility copy because their actual messages are stored under the individual targets.
+    if (messageCode.isBroadcast() && !FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode)) {
       saveBroadcastToOwnEntry(sourceGTNet, msgRequest, messageCode);
     }
 
@@ -477,8 +488,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   /**
    * Counts the {@link GTNetMessage} rows one {@code submitMsg} request writes. A future-oriented broadcast creates a
-   * single message and one delivery attempt per target; every other code writes one message per target. A broadcast
-   * additionally keeps a copy under the own entry for visibility.
+   * single message and one delivery attempt per target; every other code writes one message per target. A
+   * non-future-oriented broadcast additionally keeps a copy under the own entry for visibility.
    *
    * @param gtNetList   the resolved target domains
    * @param messageCode the code being sent
@@ -486,7 +497,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    */
   private int countMessagesToWrite(List<GTNet> gtNetList, GTNetMessageCode messageCode) {
     int cost = FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode) ? 1 : gtNetList.size();
-    if (messageCode.isBroadcast()) {
+    if (messageCode.isBroadcast() && !FUTURE_ORIENTED_MESSAGE_CODES.contains(messageCode)) {
       cost++;
     }
     return Math.max(cost, 1);
@@ -512,8 +523,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    * @return the visibility values to filter messages by, never empty
    */
   private List<Byte> visibilitiesForCaller() {
+    return MessageVisibility.visibleTo(isAdminCaller());
+  }
+
+  private boolean isAdminCaller() {
     User user = getAuthenticatedUserOrNull();
-    return MessageVisibility.visibleTo(user != null && UserAccessHelper.isAdmin(user));
+    return user != null && UserAccessHelper.isAdmin(user);
   }
 
   /**

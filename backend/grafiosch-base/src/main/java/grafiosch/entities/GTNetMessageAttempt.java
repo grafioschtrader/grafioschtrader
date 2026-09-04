@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
+import grafiosch.gtnet.GTNetMessageAttemptStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +30,7 @@ import jakarta.persistence.Table;
  * <li>Creates entries for new communication partners whose handshake completed after the message</li>
  * <li>Delivers pending messages (hasSend = false) to their targets</li>
  * <li>Handles cancellation logic for maintenance/discontinuation cancellations</li>
- * <li>Cleans up entries when message dates are in the past</li>
+ * <li>Marks unresolved entries expired when message dates are in the past</li>
  * </ul>
  * </p>
  *
@@ -43,8 +44,10 @@ import jakarta.persistence.Table;
 @Schema(description = """
     Tracks per-target delivery status for future-oriented GTNet broadcast messages such as
     maintenance announcements and operation discontinuation notices. Each entry represents
-    a specific message-to-target delivery, with hasSend indicating whether delivery succeeded.""")
+    a specific message-to-target delivery, including retryable and terminal outcomes.""")
 public class GTNetMessageAttempt extends BaseID<Integer> {
+
+  private static final int MAX_ERROR_LENGTH = 1000;
 
   public static final String TABNAME = "gt_net_message_attempt";
 
@@ -79,6 +82,23 @@ public class GTNetMessageAttempt extends BaseID<Integer> {
   @Column(name = "send_timestamp")
   private LocalDateTime sendTimestamp;
 
+  @Schema(description = "Current per-target delivery outcome.")
+  @Column(name = "attempt_status", nullable = false)
+  private byte attemptStatus = GTNetMessageAttemptStatus.QUEUED.getValue();
+
+  @Schema(description = "Number of actual HTTP transmissions, including the successful one when delivered.")
+  @Column(name = "try_count", nullable = false)
+  private int tryCount;
+
+  @Schema(description = "UTC timestamp of the most recent actual HTTP transmission.")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  @Column(name = "last_attempt_timestamp")
+  private LocalDateTime lastAttemptTimestamp;
+
+  @Schema(description = "Sanitized diagnostic text from the most recent failed transmission.")
+  @Column(name = "last_error", length = MAX_ERROR_LENGTH)
+  private String lastError;
+
   public GTNetMessageAttempt() {
   }
 
@@ -93,6 +113,10 @@ public class GTNetMessageAttempt extends BaseID<Integer> {
     this.idGtNetMessage = idGtNetMessage;
     this.hasSend = hasSend;
     this.sendTimestamp = sendTimestamp;
+    this.attemptStatus = hasSend ? GTNetMessageAttemptStatus.DELIVERED.getValue()
+        : GTNetMessageAttemptStatus.QUEUED.getValue();
+    this.tryCount = hasSend ? 1 : 0;
+    this.lastAttemptTimestamp = hasSend ? sendTimestamp : null;
   }
 
   @Override
@@ -140,12 +164,87 @@ public class GTNetMessageAttempt extends BaseID<Integer> {
     this.sendTimestamp = sendTimestamp;
   }
 
+  public GTNetMessageAttemptStatus getAttemptStatus() {
+    return GTNetMessageAttemptStatus.getByValue(attemptStatus);
+  }
+
+  public void setAttemptStatus(GTNetMessageAttemptStatus attemptStatus) {
+    this.attemptStatus = attemptStatus == null ? GTNetMessageAttemptStatus.QUEUED.getValue() : attemptStatus.getValue();
+  }
+
+  public int getTryCount() {
+    return tryCount;
+  }
+
+  public void setTryCount(int tryCount) {
+    this.tryCount = tryCount;
+  }
+
+  public LocalDateTime getLastAttemptTimestamp() {
+    return lastAttemptTimestamp;
+  }
+
+  public void setLastAttemptTimestamp(LocalDateTime lastAttemptTimestamp) {
+    this.lastAttemptTimestamp = lastAttemptTimestamp;
+  }
+
+  public String getLastError() {
+    return lastError;
+  }
+
+  public void setLastError(String lastError) {
+    this.lastError = truncate(lastError);
+  }
+
   /**
    * Marks this entry as successfully delivered and records the timestamp.
    */
   public void markAsSent() {
+    recordSuccessfulTry();
+  }
+
+  /** Records an actual transmission which the peer accepted. */
+  public void recordSuccessfulTry() {
+    LocalDateTime now = LocalDateTime.now();
+    this.tryCount++;
+    this.lastAttemptTimestamp = now;
     this.hasSend = true;
-    this.sendTimestamp = LocalDateTime.now();
+    this.sendTimestamp = now;
+    this.attemptStatus = GTNetMessageAttemptStatus.DELIVERED.getValue();
+    this.lastError = null;
+  }
+
+  /** Records an actual transmission which may be retried later. */
+  public void recordFailedTry(String error) {
+    this.tryCount++;
+    this.lastAttemptTimestamp = LocalDateTime.now();
+    this.hasSend = false;
+    this.attemptStatus = GTNetMessageAttemptStatus.RETRYABLE_FAILURE.getValue();
+    this.lastError = truncate(error);
+  }
+
+  /** Records that no transmission can start until the handshake is complete. */
+  public void markWaitingForHandshake() {
+    this.attemptStatus = GTNetMessageAttemptStatus.WAITING_HANDSHAKE.getValue();
+  }
+
+  /** Records that the target has permanently left GTNet. */
+  public void markPeerOutOfService() {
+    this.attemptStatus = GTNetMessageAttemptStatus.PEER_OUT_OF_SERVICE.getValue();
+  }
+
+  /** Records that the announcement expired before this target accepted it. */
+  public void markExpired() {
+    if (!getAttemptStatus().isTerminal()) {
+      this.attemptStatus = GTNetMessageAttemptStatus.EXPIRED.getValue();
+    }
+  }
+
+  private static String truncate(String value) {
+    if (value == null || value.length() <= MAX_ERROR_LENGTH) {
+      return value;
+    }
+    return value.substring(0, MAX_ERROR_LENGTH);
   }
 
 }

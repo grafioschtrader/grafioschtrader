@@ -64,6 +64,8 @@ public class StockexchangeJpaRepositoryImpl extends BaseRepositoryImpl<Stockexch
       throw new DataViolationException("id.index.upd.calendar", "gt.calendar.source.exclusive", null);
     }
 
+    checkNoMarketValueChangeable(stockexchange, existingEntity);
+
     // Read the previous calendar source before the save overwrites the existing entity's fields.
     Integer oldIndex = existingEntity == null ? null : existingEntity.getIdIndexUpdCalendar();
     Integer oldRuleSet = existingEntity == null ? null : existingEntity.getIdTradingCalendarRuleSet();
@@ -73,6 +75,22 @@ public class StockexchangeJpaRepositoryImpl extends BaseRepositoryImpl<Stockexch
 
     enqueueCalendarRebuildOnSourceChange(saved, oldIndex, oldRuleSet);
     return saved;
+  }
+
+  /**
+   * Rejects a change of the "no market value" flag once the exchange is in use. The flag decides where the prices of
+   * its instruments come from - downloaded quotes or periods entered by the user - so switching it on an exchange that
+   * already carries instruments would make their recorded prices unusable. As long as no instrument references the
+   * exchange there is nothing to invalidate and the flag stays correctable.
+   *
+   * @param stockexchange  the exchange as it was submitted
+   * @param existingEntity the persisted exchange, {@code null} while it is being created
+   */
+  private void checkNoMarketValueChangeable(Stockexchange stockexchange, Stockexchange existingEntity) {
+    if (existingEntity != null && existingEntity.isNoMarketValue() != stockexchange.isNoMarketValue()
+        && stockexchangeJpaRepository.stockexchangeHasSecurity(existingEntity.getIdStockexchange()) != 0) {
+      throw new DataViolationException("no.market.value", "gt.stockexchange.no.market.value.locked", null);
+    }
   }
 
   /**

@@ -45,7 +45,9 @@ export class StockexchangePrepareEdit
         entityMapping.callParam = new StockexchangeCallParam();
         entityMapping.callParam.stockexchange = new Stockexchange();
         Object.assign(entityMapping.callParam.stockexchange, entity);
-        entityMapping.callParam.hasSecurity = sbd.hasSecurity;
+        entityMapping.callParam.hasSecurity = sbd.hasSecurity.some(
+          (hs) => hs.id === entity.idStockexchange && hs.s !== 0
+        );
         entityMapping.callParam.countriesAsHtmlOptions = sbd.countries;
         entityMapping.callParam.stockexchangeMics = sbd.stockexchangeMics;
         entityMapping.callParam.existingMic = new Set(sbd.stockexchanges.map((se) => se.mic));

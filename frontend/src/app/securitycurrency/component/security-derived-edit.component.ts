@@ -230,34 +230,54 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
     this.securityEditSupport.registerValueOnChanged(SecurityDerived.Derived, this.configObject);
     this.valueChangedOnFormula();
     const observables: Observable<
-      Stockexchange[] | ValueKeyHtmlSelectOptions[] | Assetclass[] | IFeedConnector[] | SecurityCurrencypairDerivedLinks
+      | Stockexchange[]
+      | ValueKeyHtmlSelectOptions[]
+      | Assetclass[]
+      | IFeedConnector[]
+      | SecurityCurrencypairDerivedLinks
+      | boolean
     >[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
     observables.push(this.gpsGT.getCurrencies());
     observables.push(this.assetclassService.getAllAssetclass());
+    // The offer of stock exchanges is narrowed to the own kind once this instrument carries prices or transactions.
+    let idxCategoryLocked = -1;
+    let idxDerivedLinks = -1;
     if (this.securityCallParam) {
+      idxCategoryLocked = observables.length;
+      observables.push(this.securityService.isStockexchangeCategoryLocked(this.securityCallParam.idSecuritycurrency));
+      idxDerivedLinks = observables.length;
       observables.push(
         this.securityService.getDerivedInstrumentsLinksForSecurity(this.securityCallParam.idSecuritycurrency)
       );
     }
 
-    combineLatest(observables).subscribe(
-      (data: [Stockexchange[], ValueKeyHtmlSelectOptions[], Assetclass[], SecurityCurrencypairDerivedLinks]) => {
-        this.securityEditSupport.assignLoadedValues(this.configObject, data[0], data[1], data[2]);
-        this.form.setDefaultValuesAndEnableSubmit();
-        AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
-          this.translateService,
-          this.gps,
-          this.securityCallParam,
-          this.form,
-          this.configObject,
-          this.proposeChangeEntityWithEntity
-        );
-        this.securityCallParam &&
-          this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[data.length - 1]);
-        this.disableEnableInputForExisting(!!this.securityCallParam);
-      }
-    );
+    combineLatest(observables).subscribe((data: any[]) => {
+      this.securityEditSupport.assignLoadedValues(
+        this.configObject,
+        <Stockexchange[]>data[0],
+        <ValueKeyHtmlSelectOptions[]>data[1],
+        <Assetclass[]>data[2]
+      );
+      this.securityEditSupport.setStockexchangeOptions(
+        this.configObject,
+        idxCategoryLocked >= 0 && <boolean>data[idxCategoryLocked]
+          ? this.securityCallParam.stockexchange.noMarketValue
+          : null
+      );
+      this.form.setDefaultValuesAndEnableSubmit();
+      AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
+        this.translateService,
+        this.gps,
+        this.securityCallParam,
+        this.form,
+        this.configObject,
+        this.proposeChangeEntityWithEntity
+      );
+      this.securityCallParam &&
+        this.setInstrumentsForExistingSecurity(<SecurityCurrencypairDerivedLinks>data[idxDerivedLinks]);
+      this.disableEnableInputForExisting(!!this.securityCallParam);
+    });
   }
 
   private addInvestmentInstrumentFieldRow(): void {

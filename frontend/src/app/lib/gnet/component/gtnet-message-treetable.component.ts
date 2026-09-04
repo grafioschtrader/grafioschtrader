@@ -436,7 +436,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
   }
 
   public getHelpContextId(): string {
-    return HelpIds.HELP_GT_NET;
+    return HelpIds.HELP_GT_NET_SETUP;
   }
 
   private getMenuItems(): MenuItem[] {
@@ -612,7 +612,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
 
   /**
    * Returns the background color for messages based on their status:
-   * - red: delivery failed (all retry attempts exhausted)
+   * - red: delivery failed (all targets are terminally unavailable or the message expired)
    * - greenyellow: incoming pending requests (I need to answer)
    * - yellow: outgoing pending requests (awaiting answer from recipient)
    * - null: normal state

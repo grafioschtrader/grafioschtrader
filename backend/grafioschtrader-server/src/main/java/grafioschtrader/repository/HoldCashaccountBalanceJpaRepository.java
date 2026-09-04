@@ -73,14 +73,17 @@ public interface HoldCashaccountBalanceJpaRepository extends
    * <ul>
    *   <li>withdrawals and deposits (transaction_type ≤ WITHDRAWAL/DEPOSIT)</li>
    *   <li>interest (transaction_type = INTEREST_CASHACCOUNT)</li>
-   *   <li>fees (transaction_type = FEE or FINANCE_COST)</li>
+   *   <li>fees (transaction_type = FEE)</li>
+   *   <li>financing costs of margin positions (transaction_type = FINANCE_COST)</li>
    *   <li>net buys/sells (transaction_type BETWEEN ACCUMULATE and REDUCE)</li>
    *   <li>dividends (transaction_type = DIVIDEND)</li>
    *   <li>total net change</li>
    * </ul>
-   * The five categories together add up to the total; FINANCE_COST is grouped with FEE because it is
-   * a cost on a finance instrument, and because leaving it out of every category made the breakdown
-   * shown by the performance report silently disagree with the balance.
+   * The six categories together add up to the total. FINANCE_COST has a bucket of its own rather than
+   * sharing the fee bucket: it is a cost of a margin position and not of the bank account, and it is
+   * already reported through the securities result, so counting it as a fee would make the fee figure
+   * of the performance report disagree with the fee column of the cash account summary. It cannot be
+   * left out of every category either, because then the breakdown no longer adds up to the balance.
    * Results are grouped by cash account and date, ordered by account and date.
    *
    * @param idTenant the tenant ID whose cash account transactions are aggregated
@@ -127,20 +130,24 @@ public interface HoldCashaccountBalanceJpaRepository extends
    * The expected content is reproduced entirely from the {@code transaction} table with a window function: every column
    * is a running total in the cash account's own currency, so neither exchange rates nor historical quotes are involved
    * and the comparison is exact. Checked are surplus rows, absent rows, all six value columns, the chaining of
-   * {@code to_hold_date} to the next {@code from_hold_date}, and the denormalised tenant/portfolio ids.
+   * {@code to_hold_date} to the next {@code from_hold_date}, the denormalised tenant/portfolio ids and the two
+   * denormalised currency pair ids.
    * <p>
-   * {@code balance} is the one column the writer rounds, to the account currency's precision
-   * ({@code HoldCashaccountBalanceJpaRepositoryImpl} via {@code getPrecisionForCurrency}), so it gets its own tolerance
-   * of one currency unit, decoded from the {@code gt.currency.precision} globalparameter inside the query and defaulting
-   * to two digits. Comparing the stored value against the <em>unrounded</em> running sum with that tolerance is
-   * deliberate: rounding the expected sum in SQL instead makes every balance that lands exactly on half a currency unit
-   * flip, because MariaDB's decimal window aggregate and the writer's double accumulation round it in opposite
-   * directions. The remaining five columns are stored unrounded and keep the caller's tolerance.
+   * {@code CURRENCYPAIR} compares the two denormalised currency pair ids against the pair the writer resolves for the
+   * row: the currency of the position converted into the tenant currency and into the portfolio currency, and
+   * {@code NULL} where the two currencies are equal. The comparison uses {@code <=>}, and a currency pair row that does
+   * not exist at all leaves the expected side {@code NULL}, so a dangling id is reported as well. Neither column has a
+   * foreign key, and the reporting queries join the historical rates through them, so a wrong id would otherwise
+   * convert at the wrong rate without any complaint.
+   * <p>
+   * All six value columns are stored unrounded, so each is compared by the same rule and the tolerance only has to
+   * absorb the noise of double addition: {@code GREATEST(tolerance, ABS(expected) * 1e-9)}, which raises the caller's
+   * absolute floor to a relative one where the running total is large enough for that noise to exceed it. Nothing is
+   * rounded on either side of the comparison, so no currency precision is decoded here.
    * <p>
    * Named query: HoldCashaccountBalance.countConsistencyDefects
    *
-   * @param tolerance absolute tolerance for the five unrounded category columns, e.g. 0.005; the {@code balance}
-   *                  comparison ignores it and uses the currency's own unit instead
+   * @param tolerance absolute floor of the tolerance for all six value columns, e.g. 0.000001
    * @return one row per tenant and defect kind, empty when everything agrees
    */
   //@formatter:on
@@ -223,6 +230,13 @@ public interface HoldCashaccountBalanceJpaRepository extends
      * @return the fee amount
      */
     Double getFee();
+
+    /**
+     * The financing costs of margin positions booked on that date.
+     *
+     * @return the summed FINANCE_COST amounts
+     */
+    Double getFinanceCost();
 
     /**
      * The net amount of share buys (positive) and sells (negative) affecting cash.

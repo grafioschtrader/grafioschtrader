@@ -6,6 +6,7 @@ import grafiosch.entities.GTNet;
 import grafiosch.entities.GTNetMaintenanceWindow;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
+import grafiosch.gtnet.model.GTNetMessageAttemptView;
 import grafiosch.gtnet.model.GTNetWithMessages;
 import grafiosch.gtnet.model.MsgRequest;
 import grafiosch.gtnet.model.MultiTargetMsgRequest;
@@ -58,6 +59,9 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * @return the windows of that domain, empty when it announced none
    */
   List<GTNetMaintenanceWindow> getMaintenanceWindowsByIdGtNet(Integer idGtNet);
+
+  /** Returns the per-target outcomes of messages stored under one GTNet entry. */
+  List<GTNetMessageAttemptView> getMessageAttemptsByIdGtNet(Integer idGtNet);
 
   /**
    * Retrieves all messages for a specific GTNet domain. Used for lazy loading when a row is expanded in the UI.

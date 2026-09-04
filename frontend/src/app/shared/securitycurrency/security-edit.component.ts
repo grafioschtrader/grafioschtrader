@@ -480,11 +480,15 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       }
     }
 
-    // Map stock exchange by MIC code
+    // Map stock exchange by MIC code. The match is taken from the full list, so it may be one the dropdown does not
+    // offer because the instrument is bound to stock exchanges of its own kind; such a value is not set.
     if (dto.stockexchangeMic) {
       const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];
       const matchingExchange = stockexchanges?.find((se) => se.mic === dto.stockexchangeMic);
-      if (matchingExchange) {
+      if (
+        matchingExchange &&
+        this.securityEditSupport.isStockexchangeOffered(this.configObject, matchingExchange.idStockexchange)
+      ) {
         this.configObject.stockexchange.formControl.setValue(matchingExchange.idStockexchange);
       }
     }
@@ -573,6 +577,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       | IFeedConnector[]
       | Securitysplit[]
       | HistoryquotePeriod[]
+      | boolean
     >[] = [];
     observables.push(this.stockexchangeService.getAllStockexchanges(false));
     observables.push(this.gpsGT.getCurrencies());
@@ -604,6 +609,16 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         .noMarketValue;
     }
 
+    // The offer of stock exchanges is narrowed to the own kind once this instrument carries prices or transactions.
+    let idxCategoryLocked = -1;
+    if (this.securityCurrencypairCallParam) {
+      idxCategoryLocked = observables.length;
+      observables.push(
+        this.securityService.isStockexchangeCategoryLocked(this.securityCurrencypairCallParam.idSecuritycurrency)
+      );
+    }
+
+    let idxSplitPeriod = -1;
     if (this.securityCurrencypairCallParam) {
       if (this.securityEditSupport.hasMarketValue) {
         // Only load security splits for an existing security
@@ -611,6 +626,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
           // Propose change
           this.seetc.setDataList((<Security>this.securityCurrencypairCallParam).splitPropose, true);
         } else {
+          idxSplitPeriod = observables.length;
           observables.push(
             this.securitysplitService.getSecuritysplitsByIdSecuritycurrency(
               this.securityCurrencypairCallParam.idSecuritycurrency
@@ -621,6 +637,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         if ((<Security>this.securityCurrencypairCallParam).hpPropose) {
           this.shpetc.setDataList((<Security>this.securityCurrencypairCallParam).hpPropose, true);
         } else {
+          idxSplitPeriod = observables.length;
           observables.push(
             this.historyquotePeriodService.getHistoryquotePeriodByIdSecuritycurrency(
               this.securityCurrencypairCallParam.idSecuritycurrency
@@ -630,44 +647,55 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       }
     }
 
-    combineLatest(observables).subscribe(
-      (
-        data: [
-          Stockexchange[],
-          ValueKeyHtmlSelectOptions[],
-          Assetclass[],
-          IFeedConnector[],
-          Securitysplit[] | HistoryquotePeriod[]
-        ]
-      ) => {
-        this.securityEditSupport.assignLoadedValues(this.configObject, data[0], data[1], data[2]);
+    combineLatest(observables).subscribe((data: any[]) => {
+      this.securityEditSupport.assignLoadedValues(
+        this.configObject,
+        <Stockexchange[]>data[0],
+        <ValueKeyHtmlSelectOptions[]>data[1],
+        <Assetclass[]>data[2]
+      );
+      this.restrictStockexchangeOptions(idxCategoryLocked >= 0 && <boolean>data[idxCategoryLocked]);
 
-        this.prepareFeedConnectors(data[3], false);
-        this.prepareSplitDividendConnector(data[3]);
-        this.prepareExistingSecuritycurrency(this.configObject.name);
-        const isPrivatePaper =
-          this.securityCurrencypairCallParam && (<Security>this.securityCurrencypairCallParam).idTenantPrivate !== null;
-        this.configObject.isTenantPrivate.formControl.setValue(isPrivatePaper);
+      this.prepareFeedConnectors(<IFeedConnector[]>data[3], false);
+      this.prepareSplitDividendConnector(<IFeedConnector[]>data[3]);
+      this.prepareExistingSecuritycurrency(this.configObject.name);
+      const isPrivatePaper =
+        this.securityCurrencypairCallParam && (<Security>this.securityCurrencypairCallParam).idTenantPrivate !== null;
+      this.configObject.isTenantPrivate.formControl.setValue(isPrivatePaper);
 
-        if (data.length === 5) {
-          if (this.securityEditSupport.hasMarketValue) {
-            this.seetc.setDataList(<Securitysplit[]>data[4], false);
-          } else {
-            this.shpetc.setDataList(<HistoryquotePeriod[]>data[4], false);
-          }
+      if (idxSplitPeriod >= 0) {
+        if (this.securityEditSupport.hasMarketValue) {
+          this.seetc.setDataList(<Securitysplit[]>data[idxSplitPeriod], false);
+        } else {
+          this.shpetc.setDataList(<HistoryquotePeriod[]>data[idxSplitPeriod], false);
         }
-        this.dataLoaded = true;
-        this.disableEnableInputForExisting();
-        this.securityEditSupport.disableEnableFieldsOnAssetclass(
-          SecurityDerived.Security,
-          this.configObject,
-          this.configObject.assetClass.formControl.value
-        );
-        this.securityEditSupport.setPrivatePaper(SecurityDerived.Security, isPrivatePaper, this.configObject);
-
-        // Check for accessible GTNet peers and show lookup button if available
-        this.checkGtnetLookupAvailability();
       }
+      this.dataLoaded = true;
+      this.disableEnableInputForExisting();
+      this.securityEditSupport.disableEnableFieldsOnAssetclass(
+        SecurityDerived.Security,
+        this.configObject,
+        this.configObject.assetClass.formControl.value
+      );
+      this.securityEditSupport.setPrivatePaper(SecurityDerived.Security, isPrivatePaper, this.configObject);
+
+      // Check for accessible GTNet peers and show lookup button if available
+      this.checkGtnetLookupAvailability();
+    });
+  }
+
+  /**
+   * Narrows the offered stock exchanges to the kind the edited instrument already belongs to. The kind of a stock
+   * exchange decides whether the prices of its instruments are history quotes or periods entered by the user, so an
+   * instrument which already carries prices, or which was traded, must stay on its side of that boundary. A new
+   * instrument, and one for which nothing was recorded and nothing was traded yet, is offered every stock exchange.
+   *
+   * @param categoryLocked whether the edited instrument is already bound to its kind of stock exchange
+   */
+  private restrictStockexchangeOptions(categoryLocked: boolean): void {
+    this.securityEditSupport.setStockexchangeOptions(
+      this.configObject,
+      categoryLocked ? (<Security>this.securityCurrencypairCallParam).stockexchange.noMarketValue : null
     );
   }
 

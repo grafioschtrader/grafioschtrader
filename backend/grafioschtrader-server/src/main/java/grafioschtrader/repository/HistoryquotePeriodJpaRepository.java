@@ -18,6 +18,17 @@ public interface HistoryquotePeriodJpaRepository
   List<HistoryquotePeriod> findByIdSecuritycurrencyAndCreateTypeOrderByFromDate(Integer idSecuritycurrency,
       byte createType);
 
+  /**
+   * Checks whether the given instrument owns at least one period of the given create type. Only the user created
+   * periods say that prices were really entered: a security on a stock exchange without market value always carries a
+   * system created period, which {@code adjustHistoryquotePeriod} writes on every save.
+   *
+   * @param idSecuritycurrency the security to check
+   * @param createType         the create type, see {@code HistoryquotePeriodCreateType}
+   * @return true when at least one period of that create type exists
+   */
+  boolean existsByIdSecuritycurrencyAndCreateType(Integer idSecuritycurrency, byte createType);
+
   long deleteByIdSecuritycurrency(Integer idSecuritycurrency);
 
   @Query(nativeQuery = true)

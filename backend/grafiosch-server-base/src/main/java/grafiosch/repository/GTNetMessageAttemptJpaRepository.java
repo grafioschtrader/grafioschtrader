@@ -1,13 +1,16 @@
 package grafiosch.repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import grafiosch.entities.GTNetMessageAttempt;
+import grafiosch.gtnet.model.GTNetMessageAttemptView;
 import jakarta.transaction.Transactional;
 
 /**
@@ -97,6 +100,41 @@ public interface GTNetMessageAttemptJpaRepository extends JpaRepository<GTNetMes
    */
   @Query(nativeQuery = true)
   List<GTNetMessageAttempt> findPendingFutureMessages(List<Byte> messageCodes);
+
+  /** Returns administrator-facing attempt rows for messages stored under one GTNet entry. */
+  @Query("""
+      SELECT a.idGtNetMessageAttempt, a.idGtNetMessage, m.messageCode, m.timestamp, a.idGtNet,
+             target.domainRemoteName, a.attemptStatus, a.tryCount, a.lastAttemptTimestamp, a.sendTimestamp, a.lastError
+        FROM GTNetMessageAttempt a
+        JOIN GTNetMessage m ON m.idGtNetMessage = a.idGtNetMessage
+        JOIN GTNet target ON target.idGtNet = a.idGtNet
+       WHERE m.idGtNet = ?1
+       ORDER BY m.timestamp DESC, target.domainRemoteName ASC
+      """)
+  List<Object[]> findViewRowsBySourceIdGtNet(Integer idGtNet);
+
+  /** Counts attempts by the GTNet entry under which their source message is stored. */
+  @Query("""
+      SELECT m.idGtNet, COUNT(a)
+        FROM GTNetMessageAttempt a
+        JOIN GTNetMessage m ON m.idGtNetMessage = a.idGtNetMessage
+       GROUP BY m.idGtNet
+      """)
+  List<Object[]> countGroupedBySourceIdGtNet();
+
+  default List<GTNetMessageAttemptView> findViewsBySourceIdGtNet(Integer idGtNet) {
+    return findViewRowsBySourceIdGtNet(idGtNet).stream()
+        .map(row -> new GTNetMessageAttemptView((Integer) row[0], (Integer) row[1], ((Number) row[2]).byteValue(),
+            (java.time.LocalDateTime) row[3], (Integer) row[4], (String) row[5], ((Number) row[6]).byteValue(),
+            ((Number) row[7]).intValue(), (java.time.LocalDateTime) row[8], (java.time.LocalDateTime) row[9],
+            (String) row[10]))
+        .toList();
+  }
+
+  default Map<Integer, Integer> countBySourceIdGtNet() {
+    return countGroupedBySourceIdGtNet().stream()
+        .collect(Collectors.toMap(row -> (Integer) row[0], row -> ((Number) row[1]).intValue()));
+  }
 
   /**
    * Checks if any pending delivery attempts exist for a specific message. Used to quickly determine if a message has

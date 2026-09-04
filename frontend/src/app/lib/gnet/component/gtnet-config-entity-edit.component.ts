@@ -54,7 +54,7 @@ export class GTNetConfigEntityEditComponent extends SimpleEntityEditBase<GTNetCo
     gtNetConfigEntityService: GTNetConfigEntityService
   ) {
     super(
-      HelpIds.HELP_GT_NET,
+      HelpIds.HELP_GT_NET_SETUP,
       'GT_NET_CONFIG_ENTITY_EDIT',
       translateService,
       gps,

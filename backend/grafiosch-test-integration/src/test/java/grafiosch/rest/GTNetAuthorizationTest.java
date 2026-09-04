@@ -58,7 +58,7 @@ class GTNetAuthorizationTest extends BaseIntegrationTest {
    * a bulk dump of the whole GTNet state.
    */
   private static final List<String> ADMIN_READS = List.of(RequestMappings.GTNET_MESSAGE_ANSWER_MAP,
-      RequestMappings.GTNETDATAEXPORT_MAP + "/export");
+      RequestMappings.GTNETDATAEXPORT_MAP + "/export", RequestMappings.GTNET_MAP + "/messageattempts/1");
 
   @BeforeAll
   void setUpUserToken() {

@@ -77,6 +77,10 @@ public class BaseDataClient {
       return new SendResult(false, false, 0, null, false, null);
     }
 
+    public static SendResult unreachable(String errorMessage) {
+      return new SendResult(false, false, 0, null, false, errorMessage);
+    }
+
     /**
      * Server responded with an HTTP error status (4xx, 5xx).
      *
@@ -224,7 +228,7 @@ public class BaseDataClient {
     } catch (WebClientRequestException e) {
       // Connection error - server is unreachable
       log.warn("GTNet server unreachable at {}: {}", targetDomain, e.getMessage());
-      return SendResult.unreachable();
+      return SendResult.unreachable(e.getMessage());
     } catch (WebClientResponseException e) {
       // Server responded with an error status (4xx, 5xx) - server is reachable but returned error
       String errorBody = e.getResponseBodyAsString();

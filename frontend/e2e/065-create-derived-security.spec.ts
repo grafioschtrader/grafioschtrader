@@ -4,6 +4,7 @@ import * as path from 'path';
 import { loginAsFixtureUser } from './helpers';
 import { expectToast } from './manage-client.helpers';
 import { fillText, selectByValue } from './generic-connector.helpers';
+import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
 
 /**
  * A linked instrument of a derived security. Instruments are referenced by name because the
@@ -98,16 +99,6 @@ const RX = {
 function toDeChShortDate(isoDate: string): string {
   const [year, month, day] = isoDate.split('-');
   return `${day}.${month}.${year.slice(2)}`;
-}
-
-/** Selects a native <select> option by a substring of its visible label. */
-async function selectByOptionText(scope: Locator, fieldId: string, text: string): Promise<void> {
-  const select = scope.locator(`select#${fieldId}`).first();
-  await expect(select.locator('option')).not.toHaveCount(0, { timeout: 15_000 });
-  const option = select.locator('option').filter({ hasText: text }).first();
-  await expect(option, `no option containing "${text}" in select#${fieldId}`).toHaveCount(1, { timeout: 10_000 });
-  await select.selectOption(await option.getAttribute('value'));
-  await select.dispatchEvent('change');
 }
 
 /**
@@ -300,8 +291,8 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
       await fillText(dlg, 'input#name', row.name);
       // Asset class option labels are composed as "{categoryType} / {subCategoryNLS[de]} /
       // {specialInvestmentInstrument}", so the German sub category is the discriminator.
-      await selectByOptionText(dlg, 'assetClass', row.assetclassSubCategoryDE);
-      await selectByOptionText(dlg, 'stockexchange', row.stockexchangeName);
+      await selectDynamicFormOptionByText(page, dlg, 'assetClass', row.assetclassSubCategoryDE);
+      await selectDynamicFormOptionByText(page, dlg, 'stockexchange', row.stockexchangeName);
       await selectByValue(dlg, 'currency', row.currency);
       await selectByValue(dlg, 'distributionFrequency', row.distributionFrequency);
       await typeNumberIfVisible(dlg, 'leverageFactor', row.leverageFactor);

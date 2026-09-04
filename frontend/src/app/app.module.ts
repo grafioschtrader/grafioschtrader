@@ -34,7 +34,6 @@ import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-transla
 import { firstValueFrom } from 'rxjs';
 import { UserSettingsService } from './lib/services/user.settings.service';
 import { UserDataService } from './lib/mainmenubar/service/user.data.service';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { DynamicFormModule } from './lib/dynamic-form/dynamic-form.module';
 import { ActivePanelService } from './lib/mainmenubar/service/active.panel.service';
 import { TenantService } from './tenant/service/tenant.service';
@@ -435,7 +434,6 @@ const createTranslateLoader = (http: HttpClient) =>
     PortfolioEditDynamicComponent
   ],
   providers: [
-    provideAnimations(),
     provideHttpClient(withXhr(), withInterceptorsFromDi()),
     ActivePanelService,
     ActuatorService,

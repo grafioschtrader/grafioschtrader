@@ -288,7 +288,10 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       if (transaction.getTransactionType() == TransactionType.FEE
           || transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT) {
         // Probing the rate first keeps a fee on an unconvertible cash account from aborting the report. The amount is
-        // still taken from the entity, so the sign conventions of fee and interest stay in one place.
+        // still taken from the entity, so the sign conventions of fee and interest stay in one place. FINANCE_COST is
+        // deliberately not here: it is a cost of a margin position, not of the bank account, and it is reported
+        // through the securities result. Counting it here as well would double it in the identity that
+        // AccountPositionGroupSummaryReportTest checks against the account value.
         if (transaction.getExchangeRateOnCurrencyOrNull(mainCurrency, dateCurrencyMap) == null) {
           accountPositionSummary.priceMissing = true;
         } else if (transaction.getTransactionType() == TransactionType.FEE) {

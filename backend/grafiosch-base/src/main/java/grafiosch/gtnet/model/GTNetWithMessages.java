@@ -69,6 +69,9 @@ public class GTNetWithMessages {
       themselves.""")
   public Map<Integer, Integer> gtNetMaintenanceWindowCountMap;
 
+  @Schema(description = "Administrator-only delivery-attempt count per source GTNet domain ID.")
+  public Map<Integer, Integer> gtNetMessageAttemptCountMap;
+
   @Schema(description = """
       Metadata about all registered exchange kind types. Allows the frontend to dynamically build
       entity kind lists and determine per-kind capabilities without hardcoding enum values.""")
@@ -77,7 +80,8 @@ public class GTNetWithMessages {
   public GTNetWithMessages(List<GTNet> gtNetList, Map<Integer, Integer> gtNetMessageCountMap,
       Map<Integer, List<Integer>> outgoingPendingReplies, Map<Integer, List<Integer>> incomingPendingReplies,
       Integer gtNetMyEntryId, Integer idOpenDiscontinuedMessage, Integer idOpenMaintenanceMessage,
-      Map<Integer, Integer> gtNetMaintenanceWindowCountMap, List<ExchangeKindTypeInfo> exchangeKindTypes) {
+      Map<Integer, Integer> gtNetMaintenanceWindowCountMap, Map<Integer, Integer> gtNetMessageAttemptCountMap,
+      List<ExchangeKindTypeInfo> exchangeKindTypes) {
     this.gtNetList = gtNetList;
     this.gtNetMessageCountMap = gtNetMessageCountMap;
     this.outgoingPendingReplies = outgoingPendingReplies;
@@ -86,6 +90,7 @@ public class GTNetWithMessages {
     this.idOpenDiscontinuedMessage = idOpenDiscontinuedMessage;
     this.idOpenMaintenanceMessage = idOpenMaintenanceMessage;
     this.gtNetMaintenanceWindowCountMap = gtNetMaintenanceWindowCountMap;
+    this.gtNetMessageAttemptCountMap = gtNetMessageAttemptCountMap;
     this.exchangeKindTypes = exchangeKindTypes;
   }
 }
