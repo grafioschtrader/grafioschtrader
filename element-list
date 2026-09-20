@@ -2,6 +2,7 @@ grafiosch
 grafiosch.alert
 grafiosch.common
 grafiosch.config
+grafiosch.dashboard
 grafiosch.dto
 grafiosch.dynamic.model
 grafiosch.dynamic.model.udf
@@ -69,6 +70,7 @@ grafioschtrader.connector.instrument.cryptocompare
 grafioschtrader.connector.instrument.divvydiary
 grafioschtrader.connector.instrument.ecb
 grafioschtrader.connector.instrument.eodhistoricaldata
+grafioschtrader.connector.instrument.eulerpool
 grafioschtrader.connector.instrument.euronext
 grafioschtrader.connector.instrument.finanzen
 grafioschtrader.connector.instrument.finanzench
@@ -89,6 +91,7 @@ grafioschtrader.connector.instrument.warsawgpw
 grafioschtrader.connector.instrument.xetra
 grafioschtrader.connector.instrument.yahoo
 grafioschtrader.connector.yahoo
+grafioschtrader.dashboard
 grafioschtrader.dto
 grafioschtrader.entities
 grafioschtrader.entities.projection
@@ -120,6 +123,7 @@ grafioschtrader.reports.udfalluserfields
 grafioschtrader.reportviews
 grafioschtrader.reportviews.account
 grafioschtrader.reportviews.currencypair
+grafioschtrader.reportviews.dashboard
 grafioschtrader.reportviews.historyquotequality
 grafioschtrader.reportviews.performance
 grafioschtrader.reportviews.securityaccount

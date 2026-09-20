@@ -20,6 +20,7 @@ grafiosch.udfalluserfields
 grafiosch.repository
 grafiosch.rest
 grafiosch.rest.helper
+grafiosch.dashboard
 grafiosch.gtnet.handler.impl
 grafiosch.config
 grafiosch.limit
@@ -48,6 +49,7 @@ grafioschtrader.search
 grafioschtrader.reportviews.transaction
 grafioschtrader.reportviews
 grafioschtrader.reportviews.securityaccount
+grafioschtrader.reportviews.dashboard
 grafioschtrader.reportviews.securitydividends
 grafioschtrader.reportviews.currencypair
 grafioschtrader.reportviews.transactioncost
@@ -106,6 +108,7 @@ grafioschtrader.connector.instrument.coinmarketcap
 grafioschtrader.connector.instrument.euronext
 grafioschtrader.connector.instrument.divvydiary
 grafioschtrader.connector.instrument.ecb
+grafioschtrader.connector.instrument.eulerpool
 grafioschtrader.connector.instrument.consorsbank
 grafioschtrader.connector.instrument.six
 grafioschtrader.connector
@@ -115,6 +118,7 @@ grafioschtrader.connector.calendar.investing
 grafioschtrader.connector.calendar.divvydiary
 grafioschtrader.websocket
 grafioschtrader.rest
+grafioschtrader.dashboard
 grafioschtrader.gtnet.handler.impl
 grafioschtrader.gtnet.handler.impl.historyquote
 grafioschtrader.gtnet.handler.impl.lastprice
