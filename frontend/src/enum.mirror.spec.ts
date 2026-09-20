@@ -39,6 +39,24 @@ const JAVA_CONSTANT = /^\s*([A-Z][A-Z0-9_]*)\s*\(\s*(?:\(byte\)\s*)?(-?\d+)\s*\)
 /** A TypeScript enum member with an explicit numeric value, e.g. `MY_TASK = 54,`. */
 const TS_CONSTANT = /^\s*([A-Z][A-Z0-9_]*)\s*=\s*(-?\d+)/gm;
 
+/**
+ * A Java enum constant without an ordinal argument, e.g. `COPY_PORTFOLIO,`. Such an enum is serialized by name, so its
+ * identity is the name itself. Deliberately not anchored to the start of a line, because a short name-only enum is
+ * usually written as one comma-separated line; the negative lookahead keeps a constant that does carry an argument
+ * out, so a numeric enum never falls back to this pattern by accident.
+ */
+const JAVA_NAME_ONLY_CONSTANT = /\b([A-Z][A-Z0-9_]*)\b(?!\s*\()/g;
+
+/** A TypeScript enum member with a string value, e.g. `COPY_PORTFOLIO = 'COPY_PORTFOLIO',`. */
+const TS_STRING_CONSTANT = /^\s*([A-Z][A-Z0-9_]*)\s*=\s*'([^']*)'/gm;
+
+/**
+ * What identifies a constant on the wire: the ordinal of a numeric enum, or the name of an enum that Jackson
+ * serializes by name. A name-only Java constant therefore compares against the string value of its mirror member,
+ * which catches a mirror that renames the value it sends.
+ */
+type EnumValue = number | string;
+
 /** One mirror file and the backend enums it claims to correspond to. */
 interface MirrorPair {
   /** Repository-relative path of the TypeScript mirror, used in failure messages. */
@@ -70,13 +88,14 @@ function stripComments(source: string): string {
  * Extracts `name -> value` pairs with the given pattern.
  *
  * @param source comment-free source text
- * @param pattern a global regex whose first group is the constant name and second group its numeric value
- * @returns map of constant name to numeric value, in declaration order
+ * @param pattern a global regex whose first group is the constant name and second group its value
+ * @param numeric whether the second group is an ordinal rather than a name
+ * @returns map of constant name to value, in declaration order
  */
-function collectConstants(source: string, pattern: RegExp): Map<string, number> {
-  const constants = new Map<string, number>();
+function collectConstants(source: string, pattern: RegExp, numeric = true): Map<string, EnumValue> {
+  const constants = new Map<string, EnumValue>();
   for (const match of source.matchAll(new RegExp(pattern))) {
-    constants.set(match[1], Number(match[2]));
+    constants.set(match[1], numeric ? Number(match[2]) : (match[2] ?? match[1]));
   }
   return constants;
 }
@@ -106,15 +125,17 @@ function enumBody(source: string, enumName?: string): string | null {
  * static fields and methods below the constant list cannot contribute false matches.
  *
  * @param file absolute path of the `.java` file
- * @returns map of constant name to numeric value
+ * @returns map of constant name to value
  */
-function readJavaEnum(file: string): Map<string, number> {
+function readJavaEnum(file: string): Map<string, EnumValue> {
   const body = enumBody(stripComments(fs.readFileSync(file, 'utf8')));
   if (body === null) {
     return new Map();
   }
   const semicolon = body.indexOf(';');
-  return collectConstants(semicolon < 0 ? body : body.substring(0, semicolon), JAVA_CONSTANT);
+  const constants = body.substring(0, semicolon < 0 ? body.length : semicolon);
+  const numbered = collectConstants(constants, JAVA_CONSTANT);
+  return numbered.size > 0 ? numbered : collectConstants(constants, JAVA_NAME_ONLY_CONSTANT, false);
 }
 
 /**
@@ -123,8 +144,8 @@ function readJavaEnum(file: string): Map<string, number> {
  * @param pair the mirror pair whose backend files are read
  * @returns map of constant name to numeric value across all sources
  */
-function readJavaEnums(pair: MirrorPair): Map<string, number> {
-  const constants = new Map<string, number>();
+function readJavaEnums(pair: MirrorPair): Map<string, EnumValue> {
+  const constants = new Map<string, EnumValue>();
   const origin = new Map<string, string>();
   pair.backendFiles.forEach((file, index) => {
     for (const [name, value] of readJavaEnum(file)) {
@@ -151,11 +172,15 @@ function readJavaEnums(pair: MirrorPair): Map<string, number> {
  *
  * @param file absolute path of the `.ts` mirror
  * @param enumName the enum to read, or undefined to take the first one in the file
- * @returns map of member name to numeric value
+ * @returns map of member name to value
  */
-function readTypescriptEnum(file: string, enumName?: string): Map<string, number> {
+function readTypescriptEnum(file: string, enumName?: string): Map<string, EnumValue> {
   const body = enumBody(stripComments(fs.readFileSync(file, 'utf8')), enumName);
-  return body === null ? new Map() : collectConstants(body, TS_CONSTANT);
+  if (body === null) {
+    return new Map();
+  }
+  const numbered = collectConstants(body, TS_CONSTANT);
+  return numbered.size > 0 ? numbered : collectConstants(body, TS_STRING_CONSTANT, false);
 }
 
 /**
@@ -202,7 +227,7 @@ function findMirrorPairs(): MirrorPair[] {
  * @param frontendConstants constants of the TypeScript mirror
  * @returns one line per deviation, empty when both sides agree
  */
-function describeDrift(backendConstants: Map<string, number>, frontendConstants: Map<string, number>): string[] {
+function describeDrift(backendConstants: Map<string, EnumValue>, frontendConstants: Map<string, EnumValue>): string[] {
   const drift: string[] = [];
   for (const [name, value] of backendConstants) {
     if (!frontendConstants.has(name)) {

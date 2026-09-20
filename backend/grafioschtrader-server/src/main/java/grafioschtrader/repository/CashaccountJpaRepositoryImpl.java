@@ -71,8 +71,7 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
       return;
     }
     transactionJpaRepository.findMaxTransactionTimeByCashaccount(existingEntity.getIdSecuritycashAccount())
-        .map(LocalDateTime::toLocalDate)
-        .filter(maxDate -> maxDate.isAfter(cashaccount.getActiveToDate()))
+        .map(LocalDateTime::toLocalDate).filter(maxDate -> maxDate.isAfter(cashaccount.getActiveToDate()))
         .ifPresent(maxDate -> {
           throw new DataViolationException("active.to.date", "gt.account.active.before.transaction",
               new Object[] { maxDate });

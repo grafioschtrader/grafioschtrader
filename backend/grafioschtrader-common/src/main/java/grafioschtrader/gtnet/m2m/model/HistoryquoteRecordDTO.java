@@ -9,8 +9,8 @@ import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * DTO for a single historical price record in GTNet M2M communication.
- * Represents one day's OHLCV data for an instrument.
+ * DTO for a single historical price record in GTNet M2M communication. Represents one day's OHLCV data for an
+ * instrument.
  */
 @Schema(description = """
     Historical (EOD) price data for a single trading day. Contains OHLCV values with a date.

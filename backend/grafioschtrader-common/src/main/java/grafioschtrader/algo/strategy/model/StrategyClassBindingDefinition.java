@@ -19,8 +19,8 @@ public class StrategyClassBindingDefinition {
   public final Class<?> algoSecurityModel;
 
   /**
-   * For complex strategies that store their configuration as JSON in {@code AlgoStrategy.strategyConfig}. When non-null,
-   * indicates that a YAML/visual editor should be used instead of auto-generated DynamicModelHelper forms.
+   * For complex strategies that store their configuration as JSON in {@code AlgoStrategy.strategyConfig}. When
+   * non-null, indicates that a YAML/visual editor should be used instead of auto-generated DynamicModelHelper forms.
    */
   @JsonIgnore
   public final Class<?> complexConfigClass;

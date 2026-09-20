@@ -25,6 +25,7 @@ import grafioschtrader.reportviews.FromToCurrency;
 import grafioschtrader.reportviews.FromToCurrencyWithDate;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository.CashaccountForeignExChangeRate;
 import grafioschtrader.repository.helper.HoldingsHelper;
+import grafioschtrader.repository.helper.TenantHoldRebuildRunner;
 import grafioschtrader.repository.helper.TransactionPreImage;
 import grafioschtrader.types.TransactionType;
 
@@ -73,11 +74,9 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
   private TransactionJpaRepository transactionJpaRepository;
 
   @Override
-  @Transactional
-  @Modifying
   public void createCashaccountDepositTimeFrameForAllTenant() {
-    List<Tenant> tenants = tenantJpaRepository.findAll();
-    tenants.forEach(this::createCashaccountDepositTimeFrameByTenant);
+    TenantHoldRebuildRunner.rebuildPerTenant(tenantJpaRepository.findAll().stream().map(Tenant::getIdTenant).toList(),
+        holdCashaccountDepositJpaRepository::createCashaccountDepositTimeFrameByTenant, "hold_cashaccount_deposit");
   }
 
   @Transactional

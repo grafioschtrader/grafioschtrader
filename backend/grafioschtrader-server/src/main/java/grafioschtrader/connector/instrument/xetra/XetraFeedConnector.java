@@ -78,7 +78,8 @@ public class XetraFeedConnector extends BaseFeedConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(getSecurityIntradayDownloadLink(security));
+    final HttpResponse<String> response = FeedConnectorHelper
+        .getByHttpClient(getSecurityIntradayDownloadLink(security));
     if (response.statusCode() != 200) {
       throw new RuntimeException(
           "Failed to fetch intraday data from Xetra connector. HTTP status: " + response.statusCode());
@@ -103,7 +104,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
       security.setSTimestamp(parseIso8601Timestamp(priceInfo.timestampLastPrice));
     }
     if (priceInfo.changeToPrevDayInPercent != null) {
-      security.setSChangePercentage(DataBusinessHelper.roundStandard(priceInfo.changeToPrevDayInPercent));
+      security.setSChangePercentage(DataBusinessHelper.roundPercentage(priceInfo.changeToPrevDayInPercent));
     }
   }
 
@@ -116,8 +117,8 @@ public class XetraFeedConnector extends BaseFeedConnector {
   private String buildIntradayApiUrl(final Security security) {
     String isin = extractIsin(security.getUrlIntraExtend());
     String mic = security.getStockexchange().getMic();
-    return DOMAIN_INTRADAY + "?isin=" + URLEncoder.encode(isin, StandardCharsets.UTF_8)
-        + "&mic=" + URLEncoder.encode(mic, StandardCharsets.UTF_8);
+    return DOMAIN_INTRADAY + "?isin=" + URLEncoder.encode(isin, StandardCharsets.UTF_8) + "&mic="
+        + URLEncoder.encode(mic, StandardCharsets.UTF_8);
   }
 
   /**
@@ -191,8 +192,7 @@ public class XetraFeedConnector extends BaseFeedConnector {
           for (int i = 0; i < quotes.t.length; i++) {
             final Historyquote historyquote = new Historyquote();
             // Add only if the date is within the requested range (can happen with chunking)
-            LocalDate quoteDate = Instant.ofEpochSecond(quotes.t[i])
-                .atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate quoteDate = Instant.ofEpochSecond(quotes.t[i]).atZone(ZoneId.systemDefault()).toLocalDate();
             if (!quoteDate.isBefore(from) && !quoteDate.isAfter(to)) {
               historyquotes.add(historyquote);
               historyquote.setDate(quoteDate);

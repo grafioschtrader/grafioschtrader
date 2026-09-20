@@ -46,6 +46,36 @@ export class SecurityaccountService
     );
   }
 
+  /**
+   * The same positions and cash accounts as the asset class report, grouped by the buckets of one strategy and
+   * extended with target share, actual share, deviation and the recommended action.
+   *
+   * @param idAlgoTop - The strategy whose allocation the portfolio is compared against
+   * @param includeClosedPosition - Whether positions that are no longer held are listed
+   * @param untilDate - Requested valuation day; the backend moves it back to the last completed day when needed and
+   *                    reports what it used in valuationDate
+   * @returns The report with the allocation comparison written onto every row, group and total
+   */
+  getRebalancingSummaryTenant(
+    idAlgoTop: number,
+    includeClosedPosition: boolean,
+    untilDate: Date
+  ): Observable<SecurityPositionGrandSummary> {
+    return <Observable<SecurityPositionGrandSummary>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/` +
+            `tenantsecurityaccountsummary/rebalancing/${idAlgoTop}`,
+          AppHelper.getOptionsWithIncludeClosedPositionAndUntilDate(
+            includeClosedPosition,
+            untilDate,
+            this.prepareHeaders()
+          )
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
+  }
+
   getSecurityPositionSummaryPortfolio(
     idPortfolio: number,
     group: string,

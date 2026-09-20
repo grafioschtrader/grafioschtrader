@@ -65,11 +65,11 @@ public class HistoryquoteQualityGroup extends HistoryquoteQualityIds {
 
   public double getQualityPercentage() {
     return DataBusinessHelper
-        .roundStandard(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
+        .roundPercentage(averageCounter > 0 ? qualityPercentage / averageCounter : qualityPercentage);
   }
 
   public double getOhlPercentage() {
-    return DataBusinessHelper.roundStandard(averageCounter > 0 ? ohlPercentage / averageCounter : ohlPercentage);
+    return DataBusinessHelper.roundPercentage(averageCounter > 0 ? ohlPercentage / averageCounter : ohlPercentage);
   }
 
 }

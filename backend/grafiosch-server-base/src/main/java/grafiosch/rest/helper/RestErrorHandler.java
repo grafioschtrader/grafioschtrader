@@ -47,13 +47,13 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Global exception handler for REST controllers in the Grafiosch application framework.
- * 
+ *
  * <p>
  * This class provides centralized exception handling for all REST controllers using Spring's RestControllerAdvice
  * annotation. It intercepts various types of exceptions that can occur during REST API operations and converts them
  * into appropriate HTTP responses with standardized error formats.
  * </p>
- * 
+ *
  * <h3>Key Features:</h3>
  * <ul>
  * <li><strong>Comprehensive Exception Coverage:</strong> Handles database exceptions, validation errors, security
@@ -66,7 +66,7 @@ import tools.jackson.databind.ObjectMapper;
  * handling</li>
  * <li><strong>Logging Integration:</strong> Provides appropriate logging for debugging and monitoring</li>
  * </ul>
- * 
+ *
  * <h3>Error Response Structure:</h3>
  * <p>
  * All error responses follow a consistent structure using ErrorWrapper, which includes:
@@ -76,7 +76,7 @@ import tools.jackson.databind.ObjectMapper;
  * <li>Specific error object containing detailed error information</li>
  * <li>Appropriate HTTP status codes (400, 401, 429, 500, etc.)</li>
  * </ul>
- * 
+ *
  * <h3>Security Features:</h3>
  * <p>
  * The handler includes security-aware features:
@@ -107,13 +107,13 @@ public class RestErrorHandler {
 
   /**
    * Handles general exceptions that are not specifically caught by other handlers.
-   * 
+   *
    * <p>
    * This is the catch-all exception handler that processes any uncaught exceptions in REST controllers. It logs the
    * full exception details and returns a generic error response to avoid exposing sensitive system information to
    * clients.
    * </p>
-   * 
+   *
    * @param ex the exception that was thrown
    * @return ErrorWrapper containing a generic error message with the root cause
    */
@@ -126,12 +126,12 @@ public class RestErrorHandler {
 
   /**
    * Handles NoSuchElementException thrown when requested resources are not found.
-   * 
+   *
    * <p>
    * Typically occurs when trying to access entities that don't exist in the database or when Optional.get() is called
    * on an empty Optional.
    * </p>
-   * 
+   *
    * @param ex the NoSuchElementException that was thrown
    * @return ErrorWrapper with BAD_REQUEST status containing the exception message
    */
@@ -159,13 +159,13 @@ public class RestErrorHandler {
 
   /**
    * Handles database integrity constraint violations.
-   * 
+   *
    * <p>
    * This handler processes exceptions that occur when database operations violate integrity constraints such as foreign
    * key violations, unique constraint violations, or check constraint failures. The error message is extracted from the
    * root cause to provide meaningful feedback.
    * </p>
-   * 
+   *
    * @param ex the DataIntegrityViolationException from Spring Data
    * @return ErrorWrapper with BAD_REQUEST status containing the root cause message
    */
@@ -178,12 +178,12 @@ public class RestErrorHandler {
 
   /**
    * Handles request limit and security breach exceptions.
-   * 
+   *
    * <p>
    * This handler processes exceptions thrown when users exceed rate limits or violate security policies. It returns a
    * TOO_MANY_REQUESTS status and includes a logout instruction to force user re-authentication.
    * </p>
-   * 
+   *
    * @param ex the RequestLimitAndSecurityBreachException indicating rate limit violation
    * @return ErrorWrapper with TOO_MANY_REQUESTS status and logout enforcement
    */
@@ -196,12 +196,12 @@ public class RestErrorHandler {
 
   /**
    * Handles entity transaction limit exceptions.
-   * 
+   *
    * <p>
    * Processes exceptions thrown when users exceed their allowed number of create/update/delete operations for specific
    * entity types within the configured time period.
    * </p>
-   * 
+   *
    * @param ex the LimitEntityTransactionException containing limit violation details
    * @return ErrorWrapper with BAD_REQUEST status containing transaction limit information
    */
@@ -214,12 +214,12 @@ public class RestErrorHandler {
 
   /**
    * Handles internal authentication service exceptions.
-   * 
+   *
    * <p>
    * Processes authentication failures that occur within the Spring Security authentication system. Forces user logout
    * to ensure security.
    * </p>
-   * 
+   *
    * @param ex the SecurityException related to authentication failure
    * @return ErrorWrapper with UNAUTHORIZED status and logout enforcement
    */
@@ -231,13 +231,13 @@ public class RestErrorHandler {
 
   /**
    * Handles general security exceptions with breach tracking.
-   * 
+   *
    * <p>
    * This handler processes security violations such as unauthorized access attempts, tenant data breaches, or privilege
    * escalation attempts. It automatically increments the user's security breach counter and provides localized error
    * messages.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Security Features:</strong>
    * </p>
@@ -247,7 +247,7 @@ public class RestErrorHandler {
    * <li>Provides localized error messages</li>
    * <li>Forces user logout with UNAUTHORIZED status</li>
    * </ul>
-   * 
+   *
    * @param ex the SecurityException indicating a security policy violation
    * @return ErrorWrapper with UNAUTHORIZED status containing localized security breach message
    */
@@ -289,18 +289,18 @@ public class RestErrorHandler {
   public ErrorWrapper processAccessDeniedException(final AccessDeniedException ex) {
     log.warn("Authorization denied: {}", ex.getMessage());
     final Locale currentLocale = LocaleContextHolder.getLocale();
-    return new ErrorWrapper(new SingleNativeMsgError(
-        messageSource.getMessage(BaseConstants.RIGHTS_SECURITY_BREACH, null, currentLocale)));
+    return new ErrorWrapper(
+        new SingleNativeMsgError(messageSource.getMessage(BaseConstants.RIGHTS_SECURITY_BREACH, null, currentLocale)));
   }
 
   /**
    * Handles optimistic locking conflicts.
-   * 
+   *
    * <p>
    * Processes StaleObjectStateException thrown by Hibernate when optimistic locking fails due to concurrent
    * modifications. This typically occurs when two users try to update the same entity simultaneously.
    * </p>
-   * 
+   *
    * @param ex the StaleObjectStateException from Hibernate
    * @return ErrorWrapper with BAD_REQUEST status containing localized version conflict message
    */
@@ -315,13 +315,13 @@ public class RestErrorHandler {
 
   /**
    * Handles transaction system exceptions, particularly validation errors.
-   * 
+   *
    * <p>
    * This handler processes TransactionSystemException and checks if the root cause is a ConstraintViolationException
    * (Bean Validation). If so, it delegates to the constraint violation handler; otherwise, it returns a generic error
    * message.
    * </p>
-   * 
+   *
    * @param ex the TransactionSystemException from Spring
    * @return ErrorWrapper containing either validation errors or generic error message
    */
@@ -336,12 +336,12 @@ public class RestErrorHandler {
 
   /**
    * Handles Spring REST validation errors from @Valid annotations.
-   * 
+   *
    * <p>
    * Processes MethodArgumentNotValidException thrown when request body validation fails using Spring's @Valid
    * annotation. Converts validation errors into a structured format for client consumption.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Validation Error Processing:</strong>
    * </p>
@@ -350,7 +350,7 @@ public class RestErrorHandler {
    * <li>Global object errors are mapped with empty field names</li>
    * <li>All errors include descriptive messages for client display</li>
    * </ul>
-   * 
+   *
    * @param ex the MethodArgumentNotValidException from Spring MVC
    * @return ErrorWrapper with BAD_REQUEST status containing structured validation errors
    */
@@ -375,11 +375,13 @@ public class RestErrorHandler {
 
   /**
    * Handles general exceptions with translatable messages and arguments.
-   * 
-   * <p>Processes GeneralNotTranslatedWithArgumentsException which contains message keys
-   * and arguments that need to be translated using the user's locale. This handler
-   * supports translation features including nested argument translation.</p>
-   * 
+   *
+   * <p>
+   * Processes GeneralNotTranslatedWithArgumentsException which contains message keys and arguments that need to be
+   * translated using the user's locale. This handler supports translation features including nested argument
+   * translation.
+   * </p>
+   *
    * @param ex the GeneralNotTranslatedWithArgumentsException containing message key and arguments
    * @return ErrorWrapper with BAD_REQUEST status containing translated message
    */
@@ -394,11 +396,12 @@ public class RestErrorHandler {
 
   /**
    * Handles Bean Validation constraint violations.
-   * 
-   * <p>Processes ConstraintViolationException thrown by Bean Validation (JSR-303/380)
-   * when entity validation fails. Converts constraint violations into structured
-   * validation errors with field paths and violation messages.</p>
-   * 
+   *
+   * <p>
+   * Processes ConstraintViolationException thrown by Bean Validation (JSR-303/380) when entity validation fails.
+   * Converts constraint violations into structured validation errors with field paths and violation messages.
+   * </p>
+   *
    * @param ex the ConstraintViolationException from Bean Validation
    * @return ErrorWrapper with BAD_REQUEST status containing structured validation errors
    */
@@ -415,11 +418,12 @@ public class RestErrorHandler {
 
   /**
    * Handles application-specific data validation exceptions.
-   * 
-   * <p>Processes DataViolationException which contains custom validation errors
-   * from the application's business logic. These exceptions can contain multiple
-   * field-specific errors with localized messages.</p>
-   * 
+   *
+   * <p>
+   * Processes DataViolationException which contains custom validation errors from the application's business logic.
+   * These exceptions can contain multiple field-specific errors with localized messages.
+   * </p>
+   *
    * @param dvex the DataViolationException containing application validation errors
    * @return ErrorWrapper with BAD_REQUEST status containing localized validation errors
    */
@@ -431,23 +435,25 @@ public class RestErrorHandler {
 
   /**
    * Creates standardized error responses for servlet-level error handling.
-   * 
-   * <p>This static utility method provides a way to create consistent error responses
-   * outside of the controller advice context, such as in filters or custom servlet
-   * error handling. It ensures the same error format is used throughout the application.</p>
-   * 
-   * <p><strong>Usage Example:</strong></p>
+   *
+   * <p>
+   * This static utility method provides a way to create consistent error responses outside of the controller advice
+   * context, such as in filters or custom servlet error handling. It ensures the same error format is used throughout
+   * the application.
+   * </p>
+   *
+   * <p>
+   * <strong>Usage Example:</strong>
+   * </p>
+   *
    * <pre>{@code
-   * RestErrorHandler.createErrorResponseForServlet(
-   *     response, 
-   *     HttpStatus.UNAUTHORIZED, 
-   *     new SecurityBreachError("Access denied")
-   * );
+   * RestErrorHandler.createErrorResponseForServlet(response, HttpStatus.UNAUTHORIZED,
+   *     new SecurityBreachError("Access denied"));
    * }</pre>
-   * 
+   *
    * @param httpResponse the HttpServletResponse to write the error to
-   * @param status the HTTP status code for the error response
-   * @param error the error object to be wrapped and serialized
+   * @param status       the HTTP status code for the error response
+   * @param error        the error object to be wrapped and serialized
    * @throws IOException if an I/O error occurs while writing the response
    */
   public static void createErrorResponseForServlet(HttpServletResponse httpResponse, HttpStatus status, Object error)
@@ -461,28 +467,34 @@ public class RestErrorHandler {
 
   /**
    * Translates message arguments with support for nested translation.
-   * 
-   * <p>This method provides message translation capabilities where arguments
-   * themselves can be marked for translation. Arguments marked with the pattern
-   * ":{argument}:T" will be recursively translated using the MessageSource.</p>
-   * 
-   * <p><strong>Translation Pattern:</strong></p>
+   *
+   * <p>
+   * This method provides message translation capabilities where arguments themselves can be marked for translation.
+   * Arguments marked with the pattern ":{argument}:T" will be recursively translated using the MessageSource.
+   * </p>
+   *
+   * <p>
+   * <strong>Translation Pattern:</strong>
+   * </p>
    * <ul>
-   *   <li>Normal arguments: "{0}", "{1}", etc. - used as-is</li>
-   *   <li>Translatable arguments: ":{messageKey}:T" - messageKey is translated</li>
-   *   <li>Supports multiple levels of nested translation</li>
+   * <li>Normal arguments: "{0}", "{1}", etc. - used as-is</li>
+   * <li>Translatable arguments: ":{messageKey}:T" - messageKey is translated</li>
+   * <li>Supports multiple levels of nested translation</li>
    * </ul>
-   * 
-   * <p><strong>Example:</strong></p>
+   *
+   * <p>
+   * <strong>Example:</strong>
+   * </p>
+   *
    * <pre>{@code
    * // Message: "Error in :field.name:T: {0}"
    * // Will translate "field.name" and substitute the result
    * // Then substitute {0} with the provided argument
    * }</pre>
-   * 
+   *
    * @param messageKey the base message key to translate
-   * @param args the arguments for message substitution (may include translatable arguments)
-   * @param locale the locale for translation
+   * @param args       the arguments for message substitution (may include translatable arguments)
+   * @param locale     the locale for translation
    * @return the fully translated message with all arguments resolved
    */
   private String translateArguments(String messageKey, Object[] args, Locale locale) {

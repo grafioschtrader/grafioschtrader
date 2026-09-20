@@ -15,7 +15,7 @@ public class StatisticsSummary {
   public final static String MIN = "min";
   public final static String MAX = "max";
   @Schema(description = """
-      A map where the key is the time period type (e.g., DAILY, MONTHLY, ANNUAL) and the value is a list 
+      A map where the key is the time period type (e.g., DAILY, MONTHLY, ANNUAL) and the value is a list
       of statistical properties for that period.""")
   public final Map<TimePeriodType, List<StatsProperty>> statsPropertyMap = new HashMap<>();
 
@@ -46,7 +46,6 @@ public class StatisticsSummary {
 
   }
 
-  
   public StatsProperty getPropertyValue(final List<StatsProperty> properties, final String property) {
     return properties.stream().filter(p -> p.property.equals(property)).findAny().get();
   }
@@ -65,11 +64,11 @@ public class StatisticsSummary {
     }
 
     public double getValue() {
-      return DataBusinessHelper.roundStandard(value);
+      return DataBusinessHelper.roundPercentage(value);
     }
 
     public double getValueMC() {
-      return DataBusinessHelper.roundStandard(valueMC);
+      return DataBusinessHelper.roundPercentage(valueMC);
     }
   }
 }

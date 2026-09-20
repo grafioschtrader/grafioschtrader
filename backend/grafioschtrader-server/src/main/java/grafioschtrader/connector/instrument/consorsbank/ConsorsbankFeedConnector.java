@@ -42,7 +42,8 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
 
   public ConsorsbankFeedConnector() {
     super(supportedFeed, "consorsbank", "Consorsbank", "^_[0-9]+,[A-Z,@]+$", EnumSet.of(UrlCheck.INTRADAY));
-    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF);
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME,
+        AssetclassCategory.ETF);
   }
 
   @Override
@@ -76,13 +77,12 @@ public class ConsorsbankFeedConnector extends BaseFeedConnector {
     parseJsonData(security, response.body());
   }
 
-  private void parseJsonData(final Security security, final String jsonData)
-      throws Exception {
+  private void parseJsonData(final Security security, final String jsonData) throws Exception {
     ObjectMapper mapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
     RootData[] rootData = mapper.readValue(jsonData, RootData[].class);
     PriceV2 priceV2 = rootData[0].PriceV2;
     security.setSLast(priceV2.PRICE);
-    security.setSChangePercentage(DataBusinessHelper.roundStandard(priceV2.PERFORMANCE_PCT));
+    security.setSChangePercentage(DataBusinessHelper.roundPercentage(priceV2.PERFORMANCE_PCT));
     security.setSPrevClose(priceV2.PREVIOUS_LAST);
     security.setSLow(priceV2.LOW);
     security.setSHigh(priceV2.HIGH);

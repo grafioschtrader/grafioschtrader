@@ -71,7 +71,7 @@ public class MailExternalService {
   /**
    * Sends a simple email message synchronously to one or more recipients. This is the core method that handles the
    * actual email creation and sending.
-   * 
+   *
    * For single recipients, the email is sent directly to the target address. For multiple recipients, the sender's own
    * email is used as the primary recipient and all target emails are added as BCC recipients to maintain privacy and
    * prevent recipients from seeing each other's email addresses.

@@ -7,7 +7,12 @@ import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { LoginService } from '../../lib/login/service/log-in.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { QuoteToleranceRange, StandingOrder, StandingOrderFailure } from '../../entities/standing.order';
+import {
+  QuoteToleranceRange,
+  StandingOrder,
+  StandingOrderCapabilities,
+  StandingOrderFailure
+} from '../../entities/standing.order';
 import { Transaction } from '../../entities/transaction';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
@@ -63,6 +68,14 @@ export class StandingOrderService
     return <Observable<QuoteToleranceRange>>(
       this.httpClient
         .get(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/quotetolerancerange`, this.getHeaders())
+        .pipe(catchError(this.handleError.bind(this)))
+    );
+  }
+
+  getCapabilities(): Observable<StandingOrderCapabilities> {
+    return <Observable<StandingOrderCapabilities>>(
+      this.httpClient
+        .get(`${BaseSettings.API_ENDPOINT}${AppSettings.STANDING_ORDER_KEY}/capabilities`, this.getHeaders())
         .pipe(catchError(this.handleError.bind(this)))
     );
   }

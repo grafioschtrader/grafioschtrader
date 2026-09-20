@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
@@ -32,6 +33,11 @@ public abstract class DataBusinessHelper {
 
   public static double roundStandard(double valueToRound) {
     return DataHelper.round(valueToRound, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
+  }
+
+  /** Rounds an output expressed in percent (12.345 means 12.345%, not a ratio). */
+  public static double roundPercentage(double valueToRound) {
+    return DataHelper.round(valueToRound, GlobalConstants.FID_PERCENTAGE_FRACTION);
   }
 
   public static double round(double valueToRound) {

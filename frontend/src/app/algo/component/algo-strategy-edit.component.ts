@@ -27,28 +27,22 @@ import { ButtonModule } from '@openng/optimus-ui/button';
 import * as yaml from 'js-yaml';
 
 /** Default YAML template for the Mean Reversion Dip strategy */
-const STRATEGY_TEMPLATE_YAML = `strategy_name: dip_buy_with_scale_out_and_stop_or_average_down
+const STRATEGY_TEMPLATE_YAML = `strategy_name: daily_dip_with_stop
 version: "1.0"
-
 universe:
-  mode: single_asset
-  assets: ["AAPL"]
+  mode: watchlist
   direction: long_only
-
 data:
   price_field: close
   timeframe: 1d
-
 execution:
   order_type: market
   slippage_model: none
   fees_model: none
-
 cooldowns:
   after_buy_days: 2
   after_sell_days: 2
   max_trades_per_asset_per_30d: 10
-
 entry:
   type: dip_buy
   lookback_T: 10
@@ -58,92 +52,59 @@ entry:
   initial_buy_sizing:
     mode: pct_portfolio
     pct: 0.03
-    amount: null
-
 profit_management:
-  scale_out_enabled: true
-  sell_fraction_basis: initial_position
+  # Partial profit taking. Switch scale_out_enabled on to give the position back in the tranches below;
+  # each of them executes at most once per position, and the last one closes whatever is left.
+  scale_out_enabled: false
+  sell_fraction_basis: current_position
   scale_out_plan:
     - id: t1
-      trigger: { type: pct_gain, value: 0.07, reference: avg_cost }
-      sell_fraction: 0.30
+      trigger:
+        type: pct_gain
+        value: 0.04
+        reference: avg_cost
+      sell_fraction: 0.33
     - id: t2
-      trigger: { type: pct_gain, value: 0.12, reference: avg_cost }
-      sell_fraction: 0.30
-    - id: t3
-      trigger: { type: pct_gain, value: 0.18, reference: avg_cost }
-      sell_fraction: 1.00
+      trigger:
+        type: pct_gain
+        value: 0.07
+        reference: avg_cost
       sell_remainder: true
   take_profit:
     mode: pct_gain
     pct: 0.10
-    profit_amount: null
     reference: avg_cost
     action: sell_all_remaining
-
 downside_management:
   trigger:
     down_reference: avg_cost
     down_threshold_pct: -0.10
-    decision_basis: hybrid
-    indicator_rules:
-      - id: rsi_exit
-        type: rsi
-        params: { length: 14, condition: "<", value: 20 }
-    statistical_rules:
-      - id: zscore_extreme
-        type: zscore
-        params: { lookback: 60, condition: "<", value: -2.5 }
-  loss_action: B_average_down
+    decision_basis: simple_threshold
+  loss_action: A_sell_loss
   variant_A_sell_loss:
-    enabled: false
+    enabled: true
     stop_type: hard_stop
     stop_reference: avg_cost
     stop_threshold_pct: -0.10
     order_type: market
     action: sell_all_remaining
   variant_B_average_down:
-    enabled: true
+    enabled: false
     add_sizing:
       mode: pct_portfolio
-      pct: 0.02
-      amount: null
-    max_adds: 2
+      pct: 0.01
+    max_adds: 3
     add_step_rule:
       type: each_n_pct_drop
-      drop_pct_step: 0.10
       reference: initial_entry_price
+      drop_pct_step: 0.05
     recalculate_avg_cost: true
-
 risk_controls:
   max_position_exposure_pct: 0.10
   max_position_drawdown_pct: 0.25
   force_exit_on_risk_breach: true
   block_entry_if_exposure_exceeded: true
   block_add_if_exposure_exceeded: true
-
-outputs:
-  emit_events:
-    - ENTRY
-    - BUY
-    - ADD_1
-    - ADD_2
-    - SCALE_OUT_1
-    - SCALE_OUT_2
-    - TAKE_PROFIT_EXIT
-    - STOP_EXIT
-    - SELL_ALL
-  track_metrics:
-    - avg_cost
-    - position_qty
-    - position_value
-    - exposure
-    - unrealized_pnl
-    - realized_pnl
-    - max_drawdown
-    - holding_period_days
-    - adds_done
-    - scale_outs_done
 `;
 
 /**
@@ -170,7 +131,10 @@ outputs:
     </dynamic-form>
 
     @if (isComplexStrategy) {
-      <yaml-editor [(value)]="yamlContent" [height]="'500px'" [schema]="yamlSchema" />
+      <yaml-editor
+        [(value)]="yamlContent"
+        [height]="'500px'"
+        [schema]="configObject.activatable?.formControl?.value === false ? draftYamlSchema : yamlSchema" />
       <div class="mt-2 text-end">
         <p-button [label]="'LOAD_TEMPLATE' | translate" severity="secondary" (click)="loadTemplate()" styleClass="me-2">
           <i class="pi pi-file" pButtonIcon></i>
@@ -202,6 +166,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   /** JSON Schema for the Mean Reversion Dip strategy, loaded from assets */
   yamlSchema: any;
+  draftYamlSchema: any;
 
   private static readonly FIELD_STRATEGY_CONFIG = 'strategyConfig';
 
@@ -211,7 +176,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     messageToastService: MessageToastService,
     private algoStrategyService: AlgoStrategyService
   ) {
-    super(HelpIds.HELP_ALGO, 'ALGO_SECURITY', translateService, gps, messageToastService, algoStrategyService);
+    super(HelpIds.HELP_ALGO_STRATEGY, 'ALGO_STRATEGY', translateService, gps, messageToastService, algoStrategyService);
     this.loadYamlSchema();
   }
 
@@ -263,11 +228,33 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   /**
    * Submits the complex strategy form by combining the selector value from the dynamic form
    * with the YAML content from the Monaco editor.
+   *
+   * The YAML is parsed here rather than only during the save, so that unparseable content reports itself and leaves
+   * the dialog open. Letting the error escape out of the save instead left the dialog in a state the user could not
+   * submit from again.
    */
   submitComplexStrategy(): void {
+    if (this.yamlContent && this.parseYaml(this.yamlContent) === undefined) {
+      return;
+    }
     const value = { ...this.form.value };
     value[AlgoStrategyEditComponent.FIELD_STRATEGY_CONFIG] = this.yamlContent;
     this.submit(value);
+  }
+
+  /**
+   * Parses the editor content, reporting a syntax error to the user instead of raising it.
+   *
+   * @param yamlStr the editor content
+   * @returns the parsed object, or undefined when the content is not valid YAML
+   */
+  private parseYaml(yamlStr: string): any {
+    try {
+      return yaml.load(yamlStr);
+    } catch (e) {
+      this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'YAML_PARSE_ERROR');
+      return undefined;
+    }
   }
 
   private preparePossibleStrategies(): void {
@@ -309,6 +296,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
             this.algoCallParam.parentObject,
             iasd
           );
+          this.strategyDefaults = iasd.defaultValues ?? {};
           this.createDynamicInputFields();
         }
       });
@@ -322,6 +310,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
           this.algoCallParam.parentObject,
           inputAndShowDefinition
         );
+        this.strategyDefaults = inputAndShowDefinition.defaultValues ?? {};
         this.createDynamicInputFields();
       }
     }
@@ -336,11 +325,17 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.dialogWidth = '1100px';
     const submitButton = this.config[this.config.length - 1];
     submitButton.invisible = true;
-    this.config = [this.config[0], submitButton];
+    this.config = [
+      this.config[0],
+      DynamicFieldHelper.createFieldCheckboxHeqF('activatable', { defaultValue: true }),
+      submitButton
+    ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
 
     if (this.algoCallParam.thisObject) {
       setTimeout(() => this.setExistingComplexModel());
+    } else {
+      this.loadTemplate();
     }
   }
 
@@ -351,6 +346,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.ignoreValueChanged = true;
     const algoStrategy = <AlgoStrategy>this.algoCallParam.thisObject;
     const model: any = {};
+    model.activatable = algoStrategy.activatable;
     model[AlgoStrategyHelper.FIELD_STRATEGY_IMPL] = algoStrategy.algoStrategyImplementations;
     if (algoStrategy.strategyConfig) {
       try {
@@ -365,6 +361,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     this.ignoreValueChanged = false;
   }
 
+  private strategyDefaults: Record<string, number> = {};
+
   private createDynamicInputFields(): void {
     this.dialogWidth = '700px';
     const submitButton = this.config[this.config.length - 1];
@@ -376,6 +374,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       false
     );
 
+    fieldConfig.forEach((field) => {
+      if (this.strategyDefaults[field.field] != null) field.defaultValue = this.strategyDefaults[field.field];
+    });
     this.config = [this.config[0], ...fieldConfig, submitButton];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
 
@@ -393,6 +394,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       this.fieldDescriptorInputAndShows,
       true
     );
+    Object.entries(this.strategyDefaults).forEach(([field, value]) => {
+      if (dynamicModel[field] == null) dynamicModel[field] = value;
+    });
     this.form.transferBusinessObjectToForm(dynamicModel);
     this.configObject[AlgoStrategyHelper.FIELD_STRATEGY_IMPL].formControl.disable();
     this.ignoreValueChanged = false;
@@ -407,18 +411,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
     algoStrategy.idAlgoAssetclassSecurity = this.algoCallParam.parentObject.idAlgoAssetclassSecurity;
 
     if (this.isComplexStrategy) {
-      const yamlStr = this.yamlContent;
-      if (yamlStr) {
-        try {
-          const jsonObj = yaml.load(yamlStr);
-          algoStrategy.strategyConfig = JSON.stringify(jsonObj);
-        } catch (e) {
-          this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'YAML_PARSE_ERROR');
-          throw e;
-        }
-      } else {
-        algoStrategy.strategyConfig = null;
-      }
+      // submitComplexStrategy has already rejected unparseable content, so this parse cannot fail on the normal path.
+      const parsed = this.yamlContent ? this.parseYaml(this.yamlContent) : undefined;
+      algoStrategy.strategyConfig = parsed === undefined ? null : JSON.stringify(parsed);
       algoStrategy.algoRuleStrategyParamMap = {};
     } else {
       algoStrategy.algoRuleStrategyParamMap = {};
@@ -436,6 +431,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   /** Loads the JSON Schema for YAML autocompletion from the assets directory */
   private loadYamlSchema(): void {
+    fetch(new URL('assets/schemas/mean-reversion-dip-draft-schema.json', document.baseURI).toString())
+      .then((res) => res.json())
+      .then((schema) => (this.draftYamlSchema = schema));
     const schemaUrl = new URL('assets/schemas/mean-reversion-dip-schema.json', document.baseURI).toString();
     fetch(schemaUrl)
       .then((res) => res.json())

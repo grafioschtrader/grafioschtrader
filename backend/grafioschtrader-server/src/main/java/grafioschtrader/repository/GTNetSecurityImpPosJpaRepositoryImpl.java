@@ -38,8 +38,8 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
 /**
- * Implementation of custom repository operations for GTNetSecurityImpPos.
- * All operations verify tenant access through the parent header entity.
+ * Implementation of custom repository operations for GTNetSecurityImpPos. All operations verify tenant access through
+ * the parent header entity.
  */
 public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPosJpaRepositoryCustom {
 
@@ -86,8 +86,7 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
 
     // Populate gaps for positions without linked security
     if (!positions.isEmpty()) {
-      List<Integer> positionIds = positions.stream()
-          .map(GTNetSecurityImpPos::getIdGtNetSecurityImpPos)
+      List<Integer> positionIds = positions.stream().map(GTNetSecurityImpPos::getIdGtNetSecurityImpPos)
           .collect(Collectors.toList());
       List<GTNetSecurityImpGap> allGaps = gtNetSecurityImpGapJpaRepository.findByIdGtNetSecurityImpPosIn(positionIds);
 
@@ -146,8 +145,8 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
    *
    * <p>
    * {@code GTNetSecurityImpPos} extends plain {@code BaseID} and its resource never touches {@code UpdateCreate}, so
-   * neither the generic create path nor the generic daily check ever sees these rows. The whole batch is checked
-   * before the first insert, so an upload over budget writes nothing at all rather than stopping halfway.
+   * neither the generic create path nor the generic daily check ever sees these rows. The whole batch is checked before
+   * the first insert, so an upload over budget writes nothing at all rather than stopping halfway.
    * </p>
    *
    * @param idGtNetSecurityImpHead the import set the new positions go into
@@ -197,28 +196,30 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
   /**
    * Uploads and processes a CSV file containing GTNet security import positions.
    *
-   * <p>The CSV file must have a header row with column names that map to entity fields:
+   * <p>
+   * The CSV file must have a header row with column names that map to entity fields:
    * <ul>
-   *   <li>{@code isin} - International Securities Identification Number</li>
-   *   <li>{@code tickerSymbol} (or {@code ticker_symbol}, {@code ticker}) - Stock ticker symbol</li>
-   *   <li>{@code currency} - ISO 4217 currency code (required)</li>
+   * <li>{@code isin} - International Securities Identification Number</li>
+   * <li>{@code tickerSymbol} (or {@code ticker_symbol}, {@code ticker}) - Stock ticker symbol</li>
+   * <li>{@code currency} - ISO 4217 currency code (required)</li>
    * </ul>
    *
-   * <p>Processing rules:
+   * <p>
+   * Processing rules:
    * <ul>
-   *   <li>At least ISIN or tickerSymbol must be provided for each row</li>
-   *   <li>Currency is always required</li>
-   *   <li>Duplicate entries (same ISIN + currency) already in the database are skipped</li>
-   *   <li>Duplicate entries within the file are skipped</li>
-   *   <li>All string values are converted to uppercase</li>
+   * <li>At least ISIN or tickerSymbol must be provided for each row</li>
+   * <li>Currency is always required</li>
+   * <li>Duplicate entries (same ISIN + currency) already in the database are skipped</li>
+   * <li>Duplicate entries within the file are skipped</li>
+   * <li>All string values are converted to uppercase</li>
    * </ul>
    *
    * @param idGtNetSecurityImpHead the header ID to associate positions with
-   * @param uploadFiles array of uploaded CSV files (only first file is processed)
-   * @param idTenant the tenant ID for access verification
+   * @param uploadFiles            array of uploaded CSV files (only first file is processed)
+   * @param idTenant               the tenant ID for access verification
    * @return upload result statistics
    * @throws SecurityException if tenant doesn't have access to the header
-   * @throws Exception if file processing fails
+   * @throws Exception         if file processing fails
    */
   @Override
   @Transactional
@@ -240,9 +241,7 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
 
     // Get existing positions for duplicate detection (key = ISIN|currency, case-insensitive)
     Set<String> existingKeys = gtNetSecurityImpPosJpaRepository.findByIdGtNetSecurityImpHead(idGtNetSecurityImpHead)
-        .stream()
-        .map(pos -> createDuplicateKey(pos.getIsin(), pos.getCurrency()))
-        .collect(Collectors.toSet());
+        .stream().map(pos -> createDuplicateKey(pos.getIsin(), pos.getCurrency())).collect(Collectors.toSet());
 
     Set<String> keysInFile = new HashSet<>();
     List<GTNetSecurityImpPos> positionsToSave = new ArrayList<>();
@@ -320,7 +319,7 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
   /**
    * Creates a case-insensitive key for duplicate detection based on ISIN and currency.
    *
-   * @param isin the ISIN value (may be null)
+   * @param isin     the ISIN value (may be null)
    * @param currency the currency value (may be null)
    * @return a normalized key string in format "ISIN|CURRENCY"
    */
@@ -369,8 +368,8 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
 
   @Override
   @Transactional
-  public GTNetSecurityImpHead createFromImportTransactionHead(Integer idTransactionHead,
-      Integer idGtNetSecurityImpHead, String headName, Integer idTenant) {
+  public GTNetSecurityImpHead createFromImportTransactionHead(Integer idTransactionHead, Integer idGtNetSecurityImpHead,
+      String headName, Integer idTenant) {
 
     List<ImportTransactionPos> missingSecurityPositions = findMissingSecurityPositions(idTransactionHead, idTenant);
     GTNetSecurityImpHead header = getOrCreateHeader(idGtNetSecurityImpHead, headName, idTenant);
@@ -448,10 +447,8 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
   private List<GTNetSecurityImpPos> buildPositionsToSave(List<ImportTransactionPos> importPositions,
       GTNetSecurityImpHead header) {
     Set<String> existingKeys = gtNetSecurityImpPosJpaRepository
-        .findByIdGtNetSecurityImpHead(header.getIdGtNetSecurityImpHead())
-        .stream()
-        .map(pos -> createDuplicateKey(pos.getIsin(), pos.getCurrency()))
-        .collect(Collectors.toSet());
+        .findByIdGtNetSecurityImpHead(header.getIdGtNetSecurityImpHead()).stream()
+        .map(pos -> createDuplicateKey(pos.getIsin(), pos.getCurrency())).collect(Collectors.toSet());
 
     Set<String> processedKeys = new HashSet<>();
     List<GTNetSecurityImpPos> positionsToSave = new ArrayList<>();

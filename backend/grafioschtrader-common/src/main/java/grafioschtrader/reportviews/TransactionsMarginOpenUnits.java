@@ -7,12 +7,12 @@ import grafioschtrader.types.TransactionType;
  * Represents an individual open margin transaction with its associated close transactions for sophisticated margin
  * position tracking. Maintains the relationship between opening and closing trades for accurate gain/loss calculation
  * in trading scenarios involving partial position closures and variable leverage.
- * 
- * This class handles the intricate calculations required for margin trading where positions can be opened and
- * closed in multiple transactions, each with potentially different prices, costs, and leverage factors. It maintains
- * the necessary state to accurately attribute gains and losses to specific opening transactions when positions are
- * closed partially or completely.
- * 
+ *
+ * This class handles the intricate calculations required for margin trading where positions can be opened and closed in
+ * multiple transactions, each with potentially different prices, costs, and leverage factors. It maintains the
+ * necessary state to accurately attribute gains and losses to specific opening transactions when positions are closed
+ * partially or completely.
+ *
  */
 public class TransactionsMarginOpenUnits implements Comparable<TransactionsMarginOpenUnits> {
 
@@ -23,15 +23,15 @@ public class TransactionsMarginOpenUnits implements Comparable<TransactionsMargi
   public double openUnits;
 
   /**
-   * Counter for real units adjusted for corporate actions and position changes. Maintains accurate unit tracking
-   * across stock splits events that affect the quantity of securities in the open position.
+   * Counter for real units adjusted for corporate actions and position changes. Maintains accurate unit tracking across
+   * stock splits events that affect the quantity of securities in the open position.
    */
   public double realUntisCounter;
 
   /**
-   * Price per unit for the open portion of the position, always zero or positive. Represents the effective entry
-   * price for this specific open position component, used as the reference point for gain/loss calculations when the
-   * position is closed.
+   * Price per unit for the open portion of the position, always zero or positive. Represents the effective entry price
+   * for this specific open position component, used as the reference point for gain/loss calculations when the position
+   * is closed.
    */
   public double openPartPrice;
 
@@ -42,15 +42,15 @@ public class TransactionsMarginOpenUnits implements Comparable<TransactionsMargi
   public double expenseIncome;
 
   /**
-   * Flag indicating whether this open position should be removed from tracking. Set to true when the position has
-   * been fully closed and all associated calculations have been completed for final cleanup operations.
+   * Flag indicating whether this open position should be removed from tracking. Set to true when the position has been
+   * fully closed and all associated calculations have been completed for final cleanup operations.
    */
   public boolean markForRemove;
 
   /**
-   * Split factor adjustment from the original base transaction to this open position. Ensures consistent unit and
-   * price calculations across corporate actions that occurred between the base transaction date and the opening of
-   * this position.
+   * Split factor adjustment from the original base transaction to this open position. Ensures consistent unit and price
+   * calculations across corporate actions that occurred between the base transaction date and the opening of this
+   * position.
    */
   private final double splitFactorFromBaseTransaction;
 
@@ -62,9 +62,8 @@ public class TransactionsMarginOpenUnits implements Comparable<TransactionsMargi
   private double splitFactorSinceOpen = 1.0;
 
   /**
-   * Direction multiplier for the position: +1 for long (accumulate) positions, -1 for short (reduce) positions.
-   * Ensures correct gain/loss calculation direction based on whether the position benefits from price increases or
-   * decreases.
+   * Direction multiplier for the position: +1 for long (accumulate) positions, -1 for short (reduce) positions. Ensures
+   * correct gain/loss calculation direction based on whether the position benefits from price increases or decreases.
    */
   private double shortFactor = 1.0;
 
@@ -110,10 +109,10 @@ public class TransactionsMarginOpenUnits implements Comparable<TransactionsMargi
   }
 
   /**
-   * Calculates gain or loss for closing a specified quantity of this open position. Performs sophisticated
-   * calculations that account for corporate actions, leverage factors, and partial position closures to provide
-   * accurate performance attribution for margin trading scenarios.
-   * 
+   * Calculates gain or loss for closing a specified quantity of this open position. Performs sophisticated calculations
+   * that account for corporate actions, leverage factors, and partial position closures to provide accurate performance
+   * attribution for margin trading scenarios.
+   *
    * @param price             closing price for the position portion
    * @param transactionCost   transaction costs associated with the closure
    * @param unitsSplited      number of units being closed (split-adjusted)

@@ -15,12 +15,12 @@ import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { HelpIds } from '../../lib/help/help.ids';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { BaseSettings } from '../../lib/base.settings';
-import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 
 /**
  * Form for editing the tenant. It also supports changing the currency of the tenant and its portfolios.
@@ -94,7 +94,10 @@ export abstract class TenantEditComponent {
       this.form.setDefaultValuesAndEnableSubmit();
       this.configObject.currency.valueKeyHtmlOptions = currencies;
       if (this.configObject.country) {
-        this.configObject.country.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions(null, ''), ...countries];
+        this.configObject.country.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
+          countries,
+          true
+        );
       }
       if (this.existingTenant) {
         this.form.transferBusinessObjectToForm(this.existingTenant);
@@ -112,6 +115,7 @@ export abstract class TenantEditComponent {
       DynamicFieldHelper.createFieldInputStringHeqF('tenantName', 25, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', true),
       DynamicFieldHelper.createFieldCheckboxHeqF('excludeDivTax'),
+      DynamicFieldHelper.createFieldCheckboxHeqF('feeInterestFxAtCutOffDate'),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'closedUntil', false, {
         calendarConfig: {
           minDate: new Date(
@@ -119,19 +123,20 @@ export abstract class TenantEditComponent {
           )
         }
       }),
-      DynamicFieldHelper.createFieldSelectStringHeqF('country', false),
+      DynamicFieldHelper.createFieldDropdownStringHeqF('country', false, { filter: true }),
       DynamicFieldHelper.createFieldCheckboxHeqF('useGtImportTemplates'),
       DynamicFieldHelper.createSubmitButton()
     ];
+    const submitButton = fieldConfig[fieldConfig.length - 1];
     if (onlyCurrency) {
-      return [fieldConfig[1], fieldConfig[6]];
+      return [fieldConfig[1], submitButton];
     }
     if (isRegistration) {
-      return [fieldConfig[0], fieldConfig[1], fieldConfig[2], fieldConfig[4], fieldConfig[6]];
+      return [fieldConfig[0], fieldConfig[1], fieldConfig[2], fieldConfig[5], submitButton];
     }
     if (this.gpsGT.getGtImportPlatformId() == null) {
       // No administrator has chosen the import platform of this instance, so there is nothing to opt in to.
-      fieldConfig.splice(5, 1);
+      fieldConfig.splice(6, 1);
     }
     return fieldConfig;
   }

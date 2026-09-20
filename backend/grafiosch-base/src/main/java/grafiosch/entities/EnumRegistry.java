@@ -32,10 +32,10 @@ public class EnumRegistry<S, T extends IBaseEnum<S>> {
   }
 
   /**
-   * Adds new enum types to the registry. Each value must be unique across all types already
-   * registered, otherwise {@link #getTypeByValue(Object)} would silently resolve a value to the first
-   * registered type and mask the conflict. This guard fails fast on a cross-enum value collision (for
-   * example when a base enum and an application enum are merged into the same registry).
+   * Adds new enum types to the registry. Each value must be unique across all types already registered, otherwise
+   * {@link #getTypeByValue(Object)} would silently resolve a value to the first registered type and mask the conflict.
+   * This guard fails fast on a cross-enum value collision (for example when a base enum and an application enum are
+   * merged into the same registry).
    *
    * @param newTypes an array of enum types to be added
    * @throws IllegalStateException if a type's value duplicates one that is already registered
@@ -44,9 +44,9 @@ public class EnumRegistry<S, T extends IBaseEnum<S>> {
     for (T newType : newTypes) {
       T existing = getTypeByValue(newType.getValue());
       if (existing != null) {
-        throw new IllegalStateException(String.format(
-            "Duplicate value %s in enum registry: %s collides with already registered %s",
-            newType.getValue(), ((Enum<?>) newType).name(), ((Enum<?>) existing).name()));
+        throw new IllegalStateException(
+            String.format("Duplicate value %s in enum registry: %s collides with already registered %s",
+                newType.getValue(), ((Enum<?>) newType).name(), ((Enum<?>) existing).name()));
       }
       types.add(newType);
     }

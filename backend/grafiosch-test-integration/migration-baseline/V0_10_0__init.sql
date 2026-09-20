@@ -429,6 +429,9 @@ CREATE TABLE `tenant` (
   `country` varchar(2) DEFAULT NULL,
   `tax_export_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tax_export_settings`)),
   `use_gt_import_templates` tinyint(1) NOT NULL DEFAULT 0,
+  `simulation_start_date` date DEFAULT NULL,
+  `simulation_initialization_mode` varchar(24) DEFAULT NULL,
+  `fee_interest_fx_at_cut_off_date` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_tenant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -519,6 +522,16 @@ CREATE TABLE `user` (
   KEY `FK_User_Tenant` (`id_tenant`),
   CONSTRAINT `FK_User_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_dashboard` (
+  `id_user` int(11) NOT NULL,
+  `layout` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`layout`)),
+  `revision` bigint(20) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id_user`),
+  CONSTRAINT `FK_UserDashboard_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;

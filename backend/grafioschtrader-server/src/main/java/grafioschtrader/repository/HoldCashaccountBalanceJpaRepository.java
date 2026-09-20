@@ -35,12 +35,16 @@ public interface HoldCashaccountBalanceJpaRepository extends
   List<HoldCashaccountBalance> findCashBalancesAtDate(@Param("idTenant") Integer idTenant,
       @Param("refDate") LocalDate refDate);
 
+  /** All cash balance periods overlapping the inclusive reporting interval. */
+  @Query
+  List<HoldCashaccountBalance> findBalancesInPeriod(Integer idTenant, LocalDate from, LocalDate through);
+
   void removeByIdTenantAndIdEmIdSecuritycashAccountAndIdEmFromHoldDateGreaterThanEqual(Integer idTenant,
       Integer idSecuritycashAccount, LocalDate fromHoldDate);
 
   /**
-   * Retrieves the balance from the most recent record strictly before the given date.
-   * Returns null if no record exists before the date (balance is implicitly 0).
+   * Retrieves the balance from the most recent record strictly before the given date. Returns null if no record exists
+   * before the date (balance is implicitly 0).
    *
    * Named query: HoldCashaccountBalance.getBalanceBeforeDate
    *
@@ -52,8 +56,8 @@ public interface HoldCashaccountBalanceJpaRepository extends
   Double getBalanceBeforeDate(Integer idCashaccount, LocalDate beforeDate);
 
   /**
-   * Retrieves the minimum balance from all records at or after the given date.
-   * Returns null if no records exist at or after the date.
+   * Retrieves the minimum balance from all records at or after the given date. Returns null if no records exist at or
+   * after the date.
    *
    * Named query: HoldCashaccountBalance.getMinBalanceFromDate
    *
@@ -224,8 +228,7 @@ public interface HoldCashaccountBalanceJpaRepository extends
     Double getInterestCashaccount();
 
     /**
-     * The total fees charged to the cash account on this date, including FINANCE_COST on finance
-     * instruments.
+     * The total fees charged to the cash account on this date, including FINANCE_COST on finance instruments.
      *
      * @return the fee amount
      */

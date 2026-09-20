@@ -15,8 +15,8 @@ import grafioschtrader.service.GTNetLastpricePoolService;
 /**
  * Implementation of custom repository methods for GTNetInstrumentCurrencypair.
  *
- * Handles batch queries for instrument matching. Price pool updates are delegated to
- * {@link GTNetLastpricePoolService} for unified handling.
+ * Handles batch queries for instrument matching. Price pool updates are delegated to {@link GTNetLastpricePoolService}
+ * for unified handling.
  */
 public class GTNetInstrumentCurrencypairJpaRepositoryImpl implements GTNetInstrumentCurrencypairJpaRepositoryCustom {
 
@@ -33,10 +33,8 @@ public class GTNetInstrumentCurrencypairJpaRepositoryImpl implements GTNetInstru
     }
 
     // Convert tuples to composite keys for JPQL query
-    List<String> keys = currencyPairs.stream()
-        .filter(pair -> pair[0] != null && pair[1] != null)
-        .map(pair -> pair[0] + "|" + pair[1])
-        .collect(Collectors.toList());
+    List<String> keys = currencyPairs.stream().filter(pair -> pair[0] != null && pair[1] != null)
+        .map(pair -> pair[0] + "|" + pair[1]).collect(Collectors.toList());
 
     if (keys.isEmpty()) {
       return Collections.emptyList();

@@ -42,6 +42,15 @@ public class GlobalConstants extends BaseConstants {
   /** Prefix for users day entity limits */
   public static final String GT_LIMIT_DAY = GT_PREFIX + "limit.day.";
 
+  /** Decimal places for output values expressed in percent, independent of currency precision. */
+  public static final int FID_PERCENTAGE_FRACTION = 2;
+
+  /** Expected sum of target percentages within an algorithmic allocation level. */
+  public static final double EXPECTED_ADDED_PERCENTAGE = 100;
+
+  /** Floating point tolerance when checking an allocation total, in percentage points. */
+  public static final double ADDED_PERCENTAGE_TOLERANCE = 0.005;
+
   /** Maximum precision digits for currency exchange rates. */
   public static final int FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
 

@@ -14,6 +14,7 @@ import { Portfolio } from '../../entities/portfolio';
 import { AlgoTop } from '../model/algo.top';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { AlgoAssetclassSecurityBaseEdit } from './algo.assetclass.security.base.edit';
+import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
@@ -63,6 +64,12 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.ASSETCLASS_KEY, true, {
         dataproperty: 'assetclass.idAssetClass'
       }),
+      ...DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
+        this.translateService,
+        this.algoCallParam.formDefinition.fieldDescriptorInputAndShows,
+        '',
+        false
+      ).map((field) => ({ ...field, labelHelpText: 'REBALANCE_OVERRIDE_HELP' })),
       ...this.getFieldDefinition()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -128,9 +135,9 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       this.disableAndClearField('name');
       this.enableField('assetclass', true);
     }
-    // Disable customCategory checkbox in edit mode
+    // Disabling must not re-enter the checkbox's valueChanges subscription.
     if (this.algoCallParam.thisObject != null) {
-      this.configObject.customCategory.formControl.disable();
+      this.configObject.customCategory.formControl.disable({ emitEvent: false });
     }
   }
 

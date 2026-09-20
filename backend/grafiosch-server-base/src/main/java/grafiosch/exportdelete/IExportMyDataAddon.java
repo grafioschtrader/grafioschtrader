@@ -18,8 +18,8 @@ import grafiosch.entities.User;
  * <ul>
  * <li>add extra rows to {@code gt_data.sql} via {@link #getAdditionalExportQueries(User)} — useful when the rows to
  * export depend on a runtime decision that a static {@link ExportDefinition} cannot express;</li>
- * <li>add standalone plain-text documents to the ZIP via {@link #getZipTextEntries(User)} — for example a human-readable
- * report about the exported data.</li>
+ * <li>add standalone plain-text documents to the ZIP via {@link #getZipTextEntries(User)} — for example a
+ * human-readable report about the exported data.</li>
  * </ul>
  *
  * <p>

@@ -16,26 +16,26 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Generates the re-importable transaction CSV of one export file (one securities account). The produced text follows
- * the wire format defined in {@link GtCsvExportDefs} and is parsed back by the CSV transaction import using the
- * paired templates <code>csv_base-csv-20000101-de|en.tmpl</code>; the round-trip test
+ * the wire format defined in {@link GtCsvExportDefs} and is parsed back by the CSV transaction import using the paired
+ * templates <code>csv_base-csv-20000101-de|en.tmpl</code>; the round-trip test
  * <code>TransactionCsvExportRoundTripTest</code> guards both sides.
  *
  * <p>
  * Rules applied per row:
  * </p>
  * <ul>
- * <li><b>Order numbers:</b> the two sides of a cash transfer whose counterpart lands in the same file share a
- * synthetic order number that is unique within their calendar day, so the import's order grouping re-pairs them
+ * <li><b>Order numbers:</b> the two sides of a cash transfer whose counterpart lands in the same file share a synthetic
+ * order number that is unique within their calendar day, so the import's order grouping re-pairs them
  * (accountTransferSamePortfolio). All other rows carry {@link GtCsvExportDefs#ORDER_NONE}.</li>
  * <li><b>Exchange rate suppression:</b> WITHDRAWAL/DEPOSIT rows without a same-file counterpart are written without
  * exchange rate — the import cannot resolve a currency pair for an unconnected transfer side; the post-import relink
  * step recreates rate and currency pair. Other cash rows never carry an exchange rate.</li>
- * <li><b>Margin marker:</b> margin-instrument open/close rows (ACCUMULATE/REDUCE) get {@link GtCsvExportDefs#MARGIN_MARKER}
- * in the Marker column and are skipped by the import (securityRisk and the close-to-open link cannot be
- * reconstructed). FINANCE_COST rows are exported without the marker; the import links them to the open margin
- * position or fails the row visibly.</li>
- * <li><b>Accrued interest</b> is only written for non-margin instruments; on margin transactions
- * assetInvestmentValue1 holds the security risk instead.</li>
+ * <li><b>Margin marker:</b> margin-instrument open/close rows (ACCUMULATE/REDUCE) get
+ * {@link GtCsvExportDefs#MARGIN_MARKER} in the Marker column and are skipped by the import (securityRisk and the
+ * close-to-open link cannot be reconstructed). FINANCE_COST rows are exported without the marker; the import links them
+ * to the open margin position or fails the row visibly.</li>
+ * <li><b>Accrued interest</b> is only written for non-margin instruments; on margin transactions assetInvestmentValue1
+ * holds the security risk instead.</li>
  * </ul>
  */
 public class TransactionCsvExportGenerator {
@@ -54,8 +54,8 @@ public class TransactionCsvExportGenerator {
     DecimalFormat amountFormat = GtCsvExportDefs.createAmountFormat();
     DecimalFormat unitsFormat = GtCsvExportDefs.createUnitsFormat();
     List<Transaction> sorted = new ArrayList<>(transactionsOfFile);
-    sorted.sort(Comparator.comparing(Transaction::getTransactionTime)
-        .thenComparing(Transaction::getIdTransaction, Comparator.nullsLast(Comparator.naturalOrder())));
+    sorted.sort(Comparator.comparing(Transaction::getTransactionTime).thenComparing(Transaction::getIdTransaction,
+        Comparator.nullsLast(Comparator.naturalOrder())));
     Map<Integer, String> transferOrders = assignTransferOrders(sorted, idsInThisFile);
 
     StringBuilder sb = new StringBuilder();
@@ -119,8 +119,8 @@ public class TransactionCsvExportGenerator {
 
   /**
    * Security rows keep their stored exchange rate. Cash rows only carry one when they are a transfer pair within this
-   * file: an unconnected WITHDRAWAL/DEPOSIT with an exchange rate cannot be processed by the import (no counterpart
-   * to derive the currency pair from), and FEE/INTEREST_CASHACCOUNT rows have no currency conversion.
+   * file: an unconnected WITHDRAWAL/DEPOSIT with an exchange rate cannot be processed by the import (no counterpart to
+   * derive the currency pair from), and FEE/INTEREST_CASHACCOUNT rows have no currency conversion.
    */
   private boolean writeExchangeRate(Transaction transaction, Map<Integer, String> transferOrders) {
     if (transaction.getSecurity() != null) {

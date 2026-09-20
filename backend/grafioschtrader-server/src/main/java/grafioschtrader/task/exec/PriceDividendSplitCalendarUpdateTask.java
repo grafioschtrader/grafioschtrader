@@ -14,6 +14,7 @@ import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.connector.calendar.SplitCalendarAppender;
+import grafioschtrader.priceupdate.historyquote.BankruptSecurityFillService;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquotePeriodJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
@@ -59,6 +60,9 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
   @Autowired
   private GlobalparametersService globalparametersService;
 
+  @Autowired
+  private BankruptSecurityFillService bankruptSecurityFillService;
+
   @Scheduled(cron = "${gt.eod.cron.quotation}", zone = BaseConstants.TIME_ZONE)
   public void createPriceDividendSplitCalendarUpdateTask() {
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_HIGH);
@@ -73,6 +77,10 @@ public class PriceDividendSplitCalendarUpdateTask implements ITask {
     if (globalparametersService.getUpdatePriceByStockexchange() == 0) {
       securityJpaRepository.catchAllUpSecurityHistoryquote(null);
     }
+    // After the connectors, so a price a provider did deliver is already in place and wins, and before the quality
+    // metrics below, so those see the created rows. Without this step one instrument that has gone silent removes
+    // every recent day from the period performance report of everybody holding it.
+    bankruptSecurityFillService.fillMarkedSecurities();
     historyquotePeriodJpaRepository.updatLastPriceFromHistoricalPeriod();
     try {
       securityJpaRepository.deleteUpdateHistoryQuality();

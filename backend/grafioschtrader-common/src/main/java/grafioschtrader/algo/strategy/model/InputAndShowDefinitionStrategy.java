@@ -13,6 +13,7 @@ public class InputAndShowDefinitionStrategy implements Serializable {
   public List<FieldDescriptorInputAndShow> assetclassFormDefinitionList;
   public List<FieldDescriptorInputAndShow> securityFormDefinitionList;
   public boolean isComplexStrategy;
+  public java.util.Map<String, Object> defaultValues = java.util.Map.of();
 
   public InputAndShowDefinitionStrategy(List<FieldDescriptorInputAndShow> topFormDefinitionList,
       List<FieldDescriptorInputAndShow> assetclassFormDefinitionList,

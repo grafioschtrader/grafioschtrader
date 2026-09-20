@@ -10,7 +10,9 @@ import jakarta.validation.constraints.Pattern;
  * price crosses above or below the specified moving average. The indicator is computed from the most recent
  * {@code period} daily closing prices loaded from the history-quote table.
  *
- * <p>Evaluated by Tier 2 (scheduled indicator evaluation) because it requires historical price data.</p>
+ * <p>
+ * Evaluated by Tier 2 (scheduled indicator evaluation) because it requires historical price data.
+ * </p>
  */
 public class MaCrossingAlert {
 
@@ -26,8 +28,8 @@ public class MaCrossingAlert {
   Integer period;
 
   /**
-   * Direction of the crossing that triggers the alert: "ABOVE" fires when the last price crosses above the MA,
-   * "BELOW" fires when the last price crosses below the MA.
+   * Direction of the crossing that triggers the alert: "ABOVE" fires when the last price crosses above the MA, "BELOW"
+   * fires when the last price crosses below the MA.
    */
   @NotNull
   @Pattern(regexp = "BELOW|ABOVE")

@@ -1,14 +1,51 @@
 package grafioschtrader.reportviews.securityaccount;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Portfolio-level grand summary aggregating all security positions with multi-currency normalization")
 public class SecurityPositionGrandSummary {
+  public java.util.List<grafioschtrader.algo.RebalancingPlan.ClassAdjustment> classAdjustments;
+
+  /**
+   * Figures of the rebalancing comparison that describe the book as a whole. They are deliberately separate numbers
+   * rather than one total: net equity, the cash actually on the accounts and gross exposure answer different questions,
+   * and for a short or margin book they are not even close to each other.
+   */
+  @Schema(description = "Net equity: signed position values, cash and liabilities")
+  public Double grandNetEquityMC;
+
+  @Schema(description = "Cash actually held across all cash accounts, shown separately from equity")
+  public Double grandActualCashMC;
+
+  @Schema(description = "Sum of absolute position exposures, before offsetting long against short")
+  public Double grandGrossExposureMC;
+
+  @Schema(description = "Maximum investment budget: net equity times the AlgoTop ceiling")
+  public Double grandInvestmentBudgetMC;
+
+  @Schema(description = "Budget of tactical buckets that a rebalancing may not spend")
+  public Double grandUnusedTacticalBudgetMC;
+
+  @Schema(description = "Class trigger tolerance in percentage points of the target investment budget")
+  public Double toleranceThreshold;
+
+  @Schema(description = """
+      Gross exposure is above the permitted ceiling, or net equity is not positive. Exposure increasing
+      recommendations are blocked while this holds; reductions remain available.""")
+  public boolean exposureBreach;
+
+  @Schema(description = "Closing day the comparison was calculated from")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public LocalDate valuationDate;
 
   @Schema(description = "Main reporting currency for all normalized monetary values")
   public String currency;

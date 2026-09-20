@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Simulation tax model",
+  "description": "Country tax-estimation rules for trades and securities income. Rules are evaluated from top to bottom and the first matching rule contributes to the estimate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version"
+  ],
+  "anyOf": [
+    {
+      "required": [
+        "transactionTaxes"
+      ]
+    },
+    {
+      "required": [
+        "incomeWithholding"
+      ]
+    }
+  ],
+  "properties": {
+    "version": {
+      "const": 1,
+      "description": "Tax model format version. Version 1 is currently supported."
+    },
+    "transactionTaxes": {
+      "$ref": "#/definitions/section",
+      "description": "Taxes charged on BUY and SELL events."
+    },
+    "incomeWithholding": {
+      "$ref": "#/definitions/section",
+      "description": "Withholding deducted from DIVIDEND and SECURITY_INTEREST events."
+    }
+  },
+  "definitions": {
+    "rule": {
+      "description": "One named tax rule. The first rule whose optional condition is true supplies the country contribution.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "expression"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable rule name shown in estimate details."
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional EvalEx boolean expression. Omit it for an unconditional fallback rule."
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1,
+          "description": "EvalEx numeric expression returning a finite, nonnegative tax amount in instrument currency."
+        }
+      }
+    },
+    "section": {
+      "description": "A tax section with either undated rules or dated periods, never both.",
+      "type": "object",
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "rules"
+          ],
+          "not": {
+            "required": [
+              "periods"
+            ]
+          }
+        },
+        {
+          "required": [
+            "periods"
+          ],
+          "not": {
+            "required": [
+              "rules"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "requiredInputs": {
+          "type": "array",
+          "uniqueItems": true,
+          "description": "Optional metadata that must be known before this country's section can contribute.",
+          "items": {
+            "enum": [
+              "instrument",
+              "assetclass",
+              "mic",
+              "issuerCountry",
+              "dealerCountry",
+              "exchangeCountry",
+              "exemptInvestor"
+            ]
+          }
+        },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Undated rules evaluated in document order.",
+          "items": {
+            "$ref": "#/definitions/rule"
+          }
+        },
+        "periods": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Non-overlapping date ranges. The event date selects one period before its rules are evaluated.",
+          "items": {
+            "type": "object",
+            "description": "An inclusive validity period with its own ordered rules.",
+            "additionalProperties": false,
+            "required": [
+              "validFrom",
+              "rules"
+            ],
+            "properties": {
+              "validFrom": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                "description": "First event date covered by the period, inclusive, in YYYY-MM-DD format."
+              },
+              "validTo": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                "description": "Last event date covered by the period, inclusive, in YYYY-MM-DD format. Omit for an open-ended period."
+              },
+              "rules": {
+                "type": "array",
+                "minItems": 1,
+                "description": "Rules evaluated in document order for this period.",
+                "items": {
+                  "$ref": "#/definitions/rule"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -45,13 +45,13 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Global parameters entity for storing application-wide configuration settings.
- * 
+ *
  * <p>
  * This entity provides a flexible key-value store for various types of configuration data including integers, strings,
  * dates, and binary objects. It supports complex configuration through blob properties that can be transformed to/from
  * Java objects using reflection-based serialization.
  * </p>
- * 
+ *
  * <h3>Supported Data Types:</h3>
  * <ul>
  * <li><strong>Integer:</strong> Numeric configuration values</li>
@@ -185,7 +185,7 @@ public class Globalparameters implements Serializable {
 
   /**
    * Gets the blob property as UTF-8 text for properties ending with blob suffix.
-   * 
+   *
    * @return text representation of blob data, null if not a text blob
    */
   public String getPropertyBlobAsText() {
@@ -221,7 +221,7 @@ public class Globalparameters implements Serializable {
 
   /**
    * Replaces the existing property value with a new value of the same type.
-   * 
+   *
    * @param gpNew new global parameter with updated value
    * @throws IllegalArgumentException if property types don't match
    */
@@ -243,7 +243,7 @@ public class Globalparameters implements Serializable {
 
   /**
    * Validates blob property by converting text to binary and checking object validity.
-   * 
+   *
    * @param targetObj object implementing self-check validation
    * @return validation error message or null if valid
    * @throws IOException if blob conversion fails
@@ -256,7 +256,7 @@ public class Globalparameters implements Serializable {
 
   /**
    * Transforms blob properties into a Java object using reflection.
-   * 
+   *
    * @param targetObj target object to populate with property values
    * @return populated target object
    */
@@ -273,7 +273,7 @@ public class Globalparameters implements Serializable {
 
   /**
    * Transforms blob properties into a Java object using reflection.
-   * 
+   *
    * @param targetObj target object to populate with property values
    * @return populated target object
    */
@@ -294,11 +294,11 @@ public class Globalparameters implements Serializable {
 
   /**
    * Sets a property value on target object using reflection with type conversion.
-   * 
-   * @param targetObj target object
-   * @param allFields all fields of target class
-   * @param mapFields map fields of target class
-   * @param propertyName property name to set
+   *
+   * @param targetObj     target object
+   * @param allFields     all fields of target class
+   * @param mapFields     map fields of target class
+   * @param propertyName  property name to set
    * @param propertyValue property value as string
    */
   private void setPropertyToClass(Object targetObj, List<Field> allFields, List<Field> mapFields, String propertyName,
@@ -328,7 +328,7 @@ public class Globalparameters implements Serializable {
 
   /**
    * Transforms Java object into blob properties using reflection.
-   * 
+   *
    * @param soruceObj source object to serialize
    * @throws Exception if transformation fails
    */
@@ -342,7 +342,7 @@ public class Globalparameters implements Serializable {
 
   /**
    * Transforms Java object into Properties using reflection.
-   * 
+   *
    * @param soruceObj source object to convert
    * @return Properties object with field values
    */

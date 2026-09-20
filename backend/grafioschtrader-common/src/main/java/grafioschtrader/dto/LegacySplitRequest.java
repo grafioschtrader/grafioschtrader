@@ -8,11 +8,10 @@ import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Request body for the bulk split adjustment endpoint
- * {@code POST /historyquotes/legacy/{idSecuritycurrency}/split}. The post-split factor is
- * {@code toFactor / fromFactor}; a 2/1 split is therefore {@code fromFactor = 1, toFactor = 2}.
- * Rows with {@code date < splitDate} are adjusted; rows on or after {@code splitDate} are left
- * untouched because they are assumed to already reflect the post-split scale.
+ * Request body for the bulk split adjustment endpoint {@code POST /historyquotes/legacy/{idSecuritycurrency}/split}.
+ * The post-split factor is {@code toFactor / fromFactor}; a 2/1 split is therefore
+ * {@code fromFactor = 1, toFactor = 2}. Rows with {@code date < splitDate} are adjusted; rows on or after
+ * {@code splitDate} are left untouched because they are assumed to already reflect the post-split scale.
  */
 @Schema(description = """
     Request body for applying a forgotten split to archived (historyquote_legacy) rows. Only rows

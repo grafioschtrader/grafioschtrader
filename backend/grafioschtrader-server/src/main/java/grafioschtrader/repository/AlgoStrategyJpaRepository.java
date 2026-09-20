@@ -1,5 +1,6 @@
 package grafioschtrader.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +15,10 @@ public interface AlgoStrategyJpaRepository extends JpaRepository<AlgoStrategy, I
     AlgoStrategyJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<AlgoStrategy> {
 
   List<AlgoStrategy> findByIdAlgoAssetclassSecurityAndIdTenant(Integer idAlgoAssetclassSecurity, Integer idTenant);
+
+  /** Reads a hierarchy's strategies in one tenant-scoped query instead of querying each instrument node. */
+  List<AlgoStrategy> findByIdTenantAndIdAlgoAssetclassSecurityInOrderByIdAlgoRuleStrategy(Integer idTenant,
+      Collection<Integer> nodeIds);
 
   @Query(value = "SELECT dtype FROM algo_top_asset_security WHERE id_algo_assetclass_security = ?1 AND id_tenant = ?2", nativeQuery = true)
   String getAlgoLevelType(Integer idAlgoAssetclassSecurity, Integer idTenant);

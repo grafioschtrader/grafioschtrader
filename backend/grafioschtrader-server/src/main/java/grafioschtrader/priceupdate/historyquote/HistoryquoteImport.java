@@ -38,33 +38,37 @@ import jakarta.validation.Validator;
 /**
  * Imports end-of-day (EOD) historical quotes from delimited CSV files into the database.
  *
- * <p>This class provides functionality to upload and process CSV files containing historical
- * price data for securities. The CSV format requires:
+ * <p>
+ * This class provides functionality to upload and process CSV files containing historical price data for securities.
+ * The CSV format requires:
  * <ul>
- *   <li>First row must be column headers matching {@link Historyquote} field names</li>
- *   <li>Semicolon (;) as field separator</li>
- *   <li>Required fields marked with {@link grafiosch.common.ImportDataRequired}</li>
+ * <li>First row must be column headers matching {@link Historyquote} field names</li>
+ * <li>Semicolon (;) as field separator</li>
+ * <li>Required fields marked with {@link grafiosch.common.ImportDataRequired}</li>
  * </ul>
  *
- * <p>Example CSV format:
+ * <p>
+ * Example CSV format:
+ *
  * <pre>
  * date;close;open;high;low;volume
  * 2024-01-15;150.25;148.50;151.00;148.00;1000000
  * 2024-01-16;152.00;150.50;153.00;150.00;1200000
  * </pre>
  *
- * <p>Processing features:
+ * <p>
+ * Processing features:
  * <ul>
- *   <li>Automatic header-to-field mapping using entity annotations</li>
- *   <li>Configurable date and number formats via {@link SupportedCSVFormat}</li>
- *   <li>Duplicate detection (skips dates already in database)</li>
- *   <li>Date range validation against security active period</li>
- *   <li>Bean validation for imported records</li>
+ * <li>Automatic header-to-field mapping using entity annotations</li>
+ * <li>Configurable date and number formats via {@link SupportedCSVFormat}</li>
+ * <li>Duplicate detection (skips dates already in database)</li>
+ * <li>Date range validation against security active period</li>
+ * <li>Bean validation for imported records</li>
  * </ul>
  *
- * <p>The class uses {@link CSVImportHelper} for header-to-field mapping, which inspects
- * the entity class for fields annotated with {@link grafiosch.common.PropertyAlwaysUpdatable}
- * or {@link grafiosch.common.PropertyOnlyCreation}.
+ * <p>
+ * The class uses {@link CSVImportHelper} for header-to-field mapping, which inspects the entity class for fields
+ * annotated with {@link grafiosch.common.PropertyAlwaysUpdatable} or {@link grafiosch.common.PropertyOnlyCreation}.
  *
  * @see Historyquote
  * @see CSVImportHelper
@@ -80,8 +84,8 @@ public class HistoryquoteImport {
    * Creates a new history quote importer.
    *
    * @param historyquoteJpaRepository repository for accessing and persisting history quotes
-   * @param validator Jakarta Bean Validation validator for validating imported records
-   * @param dailyLimitService enforces and books the daily budget of the instrument the quotes belong to
+   * @param validator                 Jakarta Bean Validation validator for validating imported records
+   * @param dailyLimitService         enforces and books the daily budget of the instrument the quotes belong to
    */
   public HistoryquoteImport(HistoryquoteJpaRepository historyquoteJpaRepository, Validator validator,
       DailyLimitService dailyLimitService) {
@@ -93,24 +97,25 @@ public class HistoryquoteImport {
   /**
    * Uploads and processes a CSV file containing historical EOD quotes for a security.
    *
-   * <p>This method performs the following steps:
+   * <p>
+   * This method performs the following steps:
    * <ol>
-   *   <li>Verifies user access to the target security</li>
-   *   <li>Parses the CSV file using configurable format settings</li>
-   *   <li>Maps CSV columns to {@link Historyquote} fields based on header names</li>
-   *   <li>Validates each record and checks for duplicates</li>
-   *   <li>Persists valid records to the database</li>
+   * <li>Verifies user access to the target security</li>
+   * <li>Parses the CSV file using configurable format settings</li>
+   * <li>Maps CSV columns to {@link Historyquote} fields based on header names</li>
+   * <li>Validates each record and checks for duplicates</li>
+   * <li>Persists valid records to the database</li>
    * </ol>
    *
    * @param idSecuritycurrency the ID of the security to import quotes for
-   * @param uploadFiles array of uploaded CSV files (only the first file is processed)
-   * @param supportedCSVFormat format configuration specifying decimal separator, thousand
-   *        separator, and date format to use when parsing values
-   * @return statistics about the import operation including success count, validation errors,
-   *         duplicates skipped, and out-of-range records
-   * @throws SecurityException if the user doesn't have access to the specified security
+   * @param uploadFiles        array of uploaded CSV files (only the first file is processed)
+   * @param supportedCSVFormat format configuration specifying decimal separator, thousand separator, and date format to
+   *                           use when parsing values
+   * @return statistics about the import operation including success count, validation errors, duplicates skipped, and
+   *         out-of-range records
+   * @throws SecurityException      if the user doesn't have access to the specified security
    * @throws DataViolationException if required columns are missing from the CSV header
-   * @throws Exception if file reading or processing fails
+   * @throws Exception              if file reading or processing fails
    */
   @Transactional
   @Modifying
@@ -145,15 +150,15 @@ public class HistoryquoteImport {
   /**
    * Reads and processes all lines from the CSV file.
    *
-   * <p>The first line is treated as headers and used to create field mappings.
-   * Subsequent lines are parsed as data records. Each record is validated and
-   * checked for duplicates before being added to the result collection.
+   * <p>
+   * The first line is treated as headers and used to create field mappings. Subsequent lines are parsed as data
+   * records. Each record is validated and checked for duplicates before being added to the result collection.
    *
-   * @param idSecuritycurrency the security ID to associate quotes with
-   * @param userAuditable contains user info and the auditable security entity
-   * @param reader buffered reader for the CSV input stream
+   * @param idSecuritycurrency         the security ID to associate quotes with
+   * @param userAuditable              contains user info and the auditable security entity
+   * @param reader                     buffered reader for the CSV input stream
    * @param uploadHistoryquotesSuccess statistics collector for tracking import results
-   * @param valueFormatConverter converter for parsing dates and numbers
+   * @param valueFormatConverter       converter for parsing dates and numbers
    * @return collection of valid history quotes to be persisted
    * @throws Exception if parsing fails
    */
@@ -215,16 +220,16 @@ public class HistoryquoteImport {
   /**
    * Parses a single CSV data line and creates a history quote entity.
    *
-   * <p>Uses the provided field mappings to extract values from the CSV line
-   * and populate the corresponding fields in the history quote. Values are
-   * converted using the provided format converter.
+   * <p>
+   * Uses the provided field mappings to extract values from the CSV line and populate the corresponding fields in the
+   * history quote. Values are converted using the provided format converter.
    *
-   * @param idSecuritycurrency the security ID to associate the quote with
+   * @param idSecuritycurrency   the security ID to associate the quote with
    * @param valueFormatConverter converter for parsing dates and numbers
-   * @param line the CSV data line to parse
-   * @param lineCounter the line number (for error reporting)
-   * @param user the current user (for locale in error messages)
-   * @param fieldColumnMappings mappings from CSV columns to entity fields
+   * @param line                 the CSV data line to parse
+   * @param lineCounter          the line number (for error reporting)
+   * @param user                 the current user (for locale in error messages)
+   * @param fieldColumnMappings  mappings from CSV columns to entity fields
    * @return a populated history quote entity
    * @throws DataViolationException if a value cannot be parsed
    */
@@ -254,4 +259,3 @@ public class HistoryquoteImport {
   }
 
 }
-

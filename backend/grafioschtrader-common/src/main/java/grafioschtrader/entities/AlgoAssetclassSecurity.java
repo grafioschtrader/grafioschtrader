@@ -18,13 +18,12 @@ public abstract class AlgoAssetclassSecurity extends AlgoTopAssetSecurity implem
 
   private static final long serialVersionUID = 1L;
 
-  /**
-   * In a case of simulation this security account is used at first priority.
-   */
+  /** Security account used with first priority when a simulation executes this node. */
   @Column(name = "id_securitycash_account_1")
   @PropertyAlwaysUpdatable
   protected Integer idSecurityaccount1;
 
+  /** Security account used with second priority when the first account cannot execute the simulation transaction. */
   @Column(name = "id_securitycash_account_2")
   @PropertyAlwaysUpdatable
   protected Integer idSecurityaccount2;

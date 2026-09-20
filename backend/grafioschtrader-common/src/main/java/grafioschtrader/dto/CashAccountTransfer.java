@@ -43,21 +43,74 @@ public class CashAccountTransfer {
     this.depositTransaction = depositTransaction;
   }
 
+  /**
+   * Creates a cash account transfer from a list of exactly two transactions, assigning the sides by transaction type
+   * rather than by position.
+   *
+   * @param transactions list holding the two sides in either order
+   * @throws DataViolationException if the two do not form a withdrawal/deposit pair
+   */
   public CashAccountTransfer(List<Transaction> transactions) {
-    this.withdrawalTransaction = transactions.get(0);
-    this.depositTransaction = transactions.get(1);
+    assignByType(transactions.get(0), transactions.get(1));
   }
 
   /**
    * Creates a cash account transfer from an array of transactions. Automatically determines which transaction is the
    * withdrawal and which is the deposit.
-   * 
-   * @param transactions array containing exactly two transactions (one withdrawal, one deposit)
+   *
+   * @param transactions array containing exactly two transactions (one withdrawal, one deposit); one {@code null}
+   *                     element is tolerated, because the existing pair of an update may carry only the persisted side
+   * @throws DataViolationException if both are present and do not form a withdrawal/deposit pair
    */
   public CashAccountTransfer(Transaction[] transactions) {
-    int i = (transactions[0].getTransactionType() == TransactionType.WITHDRAWAL) ? 0 : 1;
-    this.withdrawalTransaction = transactions[i];
-    this.depositTransaction = transactions[(i + 1) % 2];
+    assignByType(transactions[0], transactions[1]);
+  }
+
+  /**
+   * Assigns the two sides by transaction type instead of by position, so that a caller which does not know the order
+   * cannot label a deposit as the withdrawal. A {@code null} element is kept on the side the present one does not
+   * claim, because the existing pair of an update may carry only the side that is already persisted.
+   *
+   * @param first  one side of the transfer, or {@code null}
+   * @param second the other side of the transfer, or {@code null}
+   * @throws DataViolationException if both sides are present and do not form a withdrawal/deposit pair
+   */
+  private void assignByType(Transaction first, Transaction second) {
+    if (first == null && second == null) {
+      return;
+    }
+    if (first != null && second != null) {
+      validatePair(first, second);
+    }
+    boolean firstIsWithdrawal = first == null ? second.getTransactionType() != TransactionType.WITHDRAWAL
+        : first.getTransactionType() == TransactionType.WITHDRAWAL;
+    this.withdrawalTransaction = firstIsWithdrawal ? first : second;
+    this.depositTransaction = firstIsWithdrawal ? second : first;
+  }
+
+  /**
+   * Rejects the two shapes that {@link #connectTransactions()} would turn into a corrupt {@code con_id_transaction}:
+   * two sides that are in fact the same row, and a pair that is not exactly one withdrawal and one deposit. The first
+   * writes {@code con_id_transaction = id_transaction}, the second links two transactions of the same type; neither is
+   * forbidden by a database constraint and both later abort the rebuild of the cash account deposit holdings, because
+   * that rebuild resolves the counterpart and insists on a real withdrawal/deposit pair.
+   *
+   * @param first  one side of the transfer, never {@code null}
+   * @param second the other side of the transfer, never {@code null}
+   * @throws DataViolationException if the two do not form a usable transfer pair
+   */
+  public static void validatePair(Transaction first, Transaction second) {
+    if (first.getIdTransaction() != null && first.getIdTransaction().equals(second.getIdTransaction())) {
+      throw new DataViolationException("transaction.type", "gt.transfer.same.transaction",
+          new Object[] { first.getIdTransaction() });
+    }
+    boolean withdrawalAndDeposit = first.getTransactionType() == TransactionType.WITHDRAWAL
+        && second.getTransactionType() == TransactionType.DEPOSIT
+        || first.getTransactionType() == TransactionType.DEPOSIT
+            && second.getTransactionType() == TransactionType.WITHDRAWAL;
+    if (!withdrawalAndDeposit) {
+      throw new DataViolationException("transaction.type", "gt.transfer.not.pair", new Object[] {});
+    }
   }
 
   public Transaction[] getTransactionsAsArray() {
@@ -100,7 +153,7 @@ public class CashAccountTransfer {
   /**
    * Validates that the withdrawal amount matches the calculated amount based on the deposit and exchange rate. Performs
    * currency conversion calculations and optionally auto-corrects exchange rates when enabled.
-   * 
+   *
    * @param withdrawalCurrencyFraction the number of decimal places for the withdrawal currency
    * @throws DataViolationException if calculated and actual withdrawal amounts don't match
    */
@@ -136,7 +189,7 @@ public class CashAccountTransfer {
   /**
    * Corrects the exchange rate to match the exact transaction amounts. This method is called when auto-correction is
    * enabled and there's a small difference between calculated and actual amounts due to rounding.
-   * 
+   *
    * @param withdrawalCurrencyFraction the number of decimal places for the withdrawal currency
    * @param difference                 the difference between calculated and rounded amounts
    */

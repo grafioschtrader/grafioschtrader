@@ -26,7 +26,7 @@ public class SecurityCostGroup {
   /**
    * Adds the costs from an individual security cost position to the group totals. Accumulates both transaction costs
    * and tax costs for comprehensive cost tracking.
-   * 
+   *
    * @param securityCostPosition the individual cost position to add to group totals
    */
   public void sumPositionToGroupTotal(SecurityCostPosition securityCostPosition) {
@@ -37,7 +37,7 @@ public class SecurityCostGroup {
   /**
    * Calculates average costs based on the number of cost-bearing transactions. Computes meaningful per-transaction
    * averages to enable cost efficiency analysis.
-   * 
+   *
    * @param size the number of transactions that contributed to the group totals
    */
   public void calcAverages(int size) {
@@ -52,7 +52,7 @@ public class SecurityCostGroup {
    * Calculates the aggregated totals and averages for all transaction cost positions within this security account
    * group. Processes each individual position to build comprehensive group statistics including total costs, average
    * costs per transaction, and cost efficiency metrics.
-   * 
+   *
    * <p>
    * This method iterates through all transaction cost positions, summing the costs and calculating meaningful averages
    * that help users understand the cost characteristics of their trading activity with this particular security

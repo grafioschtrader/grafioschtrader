@@ -26,9 +26,8 @@ public class TaxYearCorrectionJpaRepositoryImpl extends BaseRepositoryImpl<TaxYe
   private IctaxSecurityTaxDataJpaRepository ictaxSecurityTaxDataJpaRepository;
 
   @Override
-  public TaxYearCorrection saveOnlyAttributes(TaxYearCorrection taxYearCorrection,
-      TaxYearCorrection existingEntity, Set<Class<? extends Annotation>> updatePropertyLevelClasses)
-      throws Exception {
+  public TaxYearCorrection saveOnlyAttributes(TaxYearCorrection taxYearCorrection, TaxYearCorrection existingEntity,
+      Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     validateBeforeSave(taxYearCorrection);
     return RepositoryHelper.saveOnlyAttributes(taxYearCorrectionJpaRepository, taxYearCorrection, existingEntity,
         updatePropertyLevelClasses);
@@ -41,19 +40,17 @@ public class TaxYearCorrectionJpaRepositoryImpl extends BaseRepositoryImpl<TaxYe
   }
 
   /**
-   * Validates a correction before it is persisted: only one correction may exist per tenant, security and tax
-   * year; the two override fields are mutually exclusive; and an override is only allowed when ICTax data exists
-   * for the security's ISIN in that tax year (otherwise only a comment may be stored).
+   * Validates a correction before it is persisted: only one correction may exist per tenant, security and tax year; the
+   * two override fields are mutually exclusive; and an override is only allowed when ICTax data exists for the
+   * security's ISIN in that tax year (otherwise only a comment may be stored).
    *
    * @param tyc the correction to validate
    */
   private void validateBeforeSave(TaxYearCorrection tyc) {
-    Optional<TaxYearCorrection> existing = taxYearCorrectionJpaRepository
-        .findByIdTenantAndIdSecuritycurrencyAndTaxYear(tyc.getIdTenant(), tyc.getIdSecuritycurrency(),
-            tyc.getTaxYear());
+    Optional<TaxYearCorrection> existing = taxYearCorrectionJpaRepository.findByIdTenantAndIdSecuritycurrencyAndTaxYear(
+        tyc.getIdTenant(), tyc.getIdSecuritycurrency(), tyc.getTaxYear());
     if (existing.isPresent() && !existing.get().getIdTaxYearCorrection().equals(tyc.getIdTaxYearCorrection())) {
-      throw new DataViolationException("tax.year", "gt.taxyearcorrection.exists",
-          new Object[] { tyc.getTaxYear() });
+      throw new DataViolationException("tax.year", "gt.taxyearcorrection.exists", new Object[] { tyc.getTaxYear() });
     }
     if (tyc.isUseTaxableAmount() && tyc.getTaxableIncome() != null) {
       throw new DataViolationException("taxable.income", "gt.taxyearcorrection.mutual.exclusive", null);

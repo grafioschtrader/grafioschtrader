@@ -34,7 +34,6 @@ public abstract class UDFFieldsHelper {
   private static ObjectMapper objectMapper = new ObjectMapper();
   private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-
   /**
    * Inserts or updates a value in a JSON-formatted string based on the provided UDF metadata and returns the updated
    * JSON string.

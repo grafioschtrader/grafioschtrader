@@ -270,7 +270,7 @@ export class GenericConnectorComponent
     if (this.selectedEntity && !this.selectedEntity.activated && this.gps.hasRole(BaseSettings.ROLE_ADMIN)) {
       menuItems.push({ separator: true });
       menuItems.push({
-        label: 'ACTIVATE' + BaseSettings.DIALOG_MENU_SUFFIX,
+        label: 'ACTIVATE',
         command: () => this.handleActivate(this.selectedEntity)
       });
     }

@@ -9,9 +9,9 @@ import grafiosch.gtnet.m2m.model.MessageEnvelope;
  *
  * Announcement messages are one-way notifications that do not expect a response. Examples include:
  * <ul>
- *   <li>Maintenance window announcements</li>
- *   <li>Service discontinuation notices</li>
- *   <li>Revoke messages (canceling previous agreements)</li>
+ * <li>Maintenance window announcements</li>
+ * <li>Service discontinuation notices</li>
+ * <li>Revoke messages (canceling previous agreements)</li>
  * </ul>
  *
  * The handler stores the announcement for admin visibility and optionally updates local state.
@@ -58,9 +58,9 @@ public abstract class AbstractAnnouncementHandler extends AbstractGTNetMessageHa
    *
    * Called after the announcement is stored. Use for operations like:
    * <ul>
-   *   <li>Updating GTNet server state (e.g., mark as maintenance)</li>
-   *   <li>Scheduling local tasks based on announcement content</li>
-   *   <li>Revoking previously granted permissions</li>
+   * <li>Updating GTNet server state (e.g., mark as maintenance)</li>
+   * <li>Scheduling local tasks based on announcement content</li>
+   * <li>Revoking previously granted permissions</li>
    * </ul>
    *
    * @param context       the message context

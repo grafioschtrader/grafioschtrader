@@ -21,8 +21,8 @@ import org.springframework.stereotype.Component;
  * </p>
  *
  * <p>
- * The value is also the target of later outbound calls in {@code BaseDataClient.getWebClientForDomain}, which is why
- * a malformed or hostless value is refused outright rather than stored.
+ * The value is also the target of later outbound calls in {@code BaseDataClient.getWebClientForDomain}, which is why a
+ * malformed or hostless value is refused outright rather than stored.
  * </p>
  */
 @Component
@@ -54,8 +54,7 @@ public class GTNetDomainService {
         return null;
       }
       String scheme = uri.getScheme().toLowerCase(Locale.ROOT);
-      StringBuilder canonical = new StringBuilder(scheme).append("://")
-          .append(uri.getHost().toLowerCase(Locale.ROOT));
+      StringBuilder canonical = new StringBuilder(scheme).append("://").append(uri.getHost().toLowerCase(Locale.ROOT));
       if (uri.getPort() != -1 && uri.getPort() != defaultPortOf(scheme)) {
         canonical.append(':').append(uri.getPort());
       }
@@ -94,8 +93,7 @@ public class GTNetDomainService {
     if (canonicalDomain == null) {
       return false;
     }
-    String scheme = canonicalDomain.substring(0, Math.max(canonicalDomain.indexOf(':'), 0))
-        .toLowerCase(Locale.ROOT);
+    String scheme = canonicalDomain.substring(0, Math.max(canonicalDomain.indexOf(':'), 0)).toLowerCase(Locale.ROOT);
     if (!"http".equals(scheme) && !"https".equals(scheme)) {
       return false;
     }

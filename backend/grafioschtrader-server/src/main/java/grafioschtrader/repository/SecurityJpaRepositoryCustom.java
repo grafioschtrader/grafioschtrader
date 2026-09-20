@@ -23,8 +23,8 @@ import grafioschtrader.types.SeasonalPeriodType;
 public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Security> {
 
   /**
-   * Batch query to find securities by ISIN+currency tuples in a single database query.
-   * Used by GTNet lastprice exchange to efficiently query multiple securities.
+   * Batch query to find securities by ISIN+currency tuples in a single database query. Used by GTNet lastprice exchange
+   * to efficiently query multiple securities.
    *
    * @param isinCurrencyPairs list of [isin, currency] pairs to query
    * @return list of matching Security entities
@@ -71,9 +71,9 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   List<Security> getTradableSecuritiesByTenantAndIdWatschlist(Integer idWatchlist);
 
   /**
-   * Attempts to update the intraday data for securities in a specific watchlist, whereby the number of failed
-   * intraday loads must be greater than 0. The user could trigger this action to force an intraday update of a
-   * previously unsuccessful update.
+   * Attempts to update the intraday data for securities in a specific watchlist, whereby the number of failed intraday
+   * loads must be greater than 0. The user could trigger this action to force an intraday update of a previously
+   * unsuccessful update.
    *
    * @param idTenant    The tenant's ID, for security reasons.
    * @param idWatchlist The ID of the watchlist.
@@ -141,7 +141,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * @param idWatchlist            ID of the watchlist whose existing instruments are no longer offered
    * @param idCorrelationSet       ID of the correlation set whose existing instruments are no longer offered
    * @param securitycurrencySearch The search criteria.
-   * @param idTenant               Securities with an active open position may be selected; this ID is required for this purpose
+   * @param idTenant               Securities with an active open position may be selected; this ID is required for this
+   *                               purpose
    * @return A list of securities matching the criteria.
    */
   List<Security> searchBuilderWithExclusion(Integer idWatchlist, Integer idCorrelationSet,
@@ -178,7 +179,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * The user interface receives a link to check the price data provider of a security. If an API key is required, only
    * the backend can evaluate this link and return the corresponding content. The content of the provider may also be
    * determined in the backend for other reasons.
-   * 
+   *
    * @param idSecuritycurrency The ID of the security.
    * @param isIntraday         True if intraday data is requested, false for historical data.
    * @return The raw response string from the data provider.
@@ -189,7 +190,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * Gets the direct link to the data provider for a security's price data (historical or intraday) for user display.
    *
    * @param idSecuritycurrency The ID of the security.
-   * @param isIntraday True if intraday data is requested, false for historical data.
+   * @param isIntraday         True if intraday data is requested, false for historical data.
    * @return The URL string for the data provider.
    */
   String getDataProviderLinkForUser(final Integer idSecuritycurrency, final boolean isIntraday);
@@ -198,7 +199,7 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * Retrieves the raw response from the data provider for a security's dividend or split information.
    *
    * @param idSecuritycurrency The ID of the security.
-   * @param isDiv True if dividend data is requested, false for split data.
+   * @param isDiv              True if dividend data is requested, false for split data.
    * @return The raw response string from the data provider.
    */
   String getDivSplitProviderResponseForUser(final Integer idSecuritycurrency, final boolean isDiv);
@@ -309,8 +310,8 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
   Map<Integer, String> getSecurityCurrencyPairInfo();
 
   /**
-   * Checks whether the configured intraday, historical, dividend, and split connectors support the security and
-   * clears URL extension fields that are not used by the corresponding connector.
+   * Checks whether the configured intraday, historical, dividend, and split connectors support the security and clears
+   * URL extension fields that are not used by the corresponding connector.
    * <p>
    * This method is exposed through the repository interface only for {@code ConnectorUrlExtenstionTest}. Remove this
    * public test hook when that data-verification test is removed or redesigned; the protected save-path implementation
@@ -336,10 +337,10 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    *
    * <p>
    * The flags decide which instruments this instance offers to its GTNet peers and which it wants to receive, so they
-   * are shared data rather than tenant data. Every row is therefore checked against the ordinary editing rights of
-   * the instrument: an administrator and a user with the extended editing right may change any instrument, everybody
-   * else only the instruments they created themselves. A row the caller may not change aborts the whole request with
-   * a {@link SecurityException}, because the user interface never offers such a row.
+   * are shared data rather than tenant data. Every row is therefore checked against the ordinary editing rights of the
+   * instrument: an administrator and a user with the extended editing right may change any instrument, everybody else
+   * only the instruments they created themselves. A row the caller may not change aborts the whole request with a
+   * {@link SecurityException}, because the user interface never offers such a row.
    * </p>
    *
    * <p>
@@ -359,10 +360,10 @@ public interface SecurityJpaRepositoryCustom extends ISecuritycurrencyService<Se
    * because its positions are valued from the price source its kind of exchange implies.
    *
    * <p>
-   * The system created period which every instrument on a stock exchange without market value carries does not count
-   * on its own, because it is written by {@code adjustHistoryquotePeriod} on every save and would therefore lock such
-   * an instrument right after its creation. A wrongly chosen exchange stays correctable as long as nothing was
-   * recorded and nothing was traded.
+   * The system created period which every instrument on a stock exchange without market value carries does not count on
+   * its own, because it is written by {@code adjustHistoryquotePeriod} on every save and would therefore lock such an
+   * instrument right after its creation. A wrongly chosen exchange stays correctable as long as nothing was recorded
+   * and nothing was traded.
    * </p>
    *
    * @param idSecuritycurrency the security to check

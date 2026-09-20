@@ -1,0 +1,26 @@
+Detail der Kontobewegungen
+Nummer der Kundenbeziehung 999999
+Konto 01 EUR
+Datum 19.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+Verkauf Aktien 29/07/26 31/07/26 24.682,09+
+Depot 999999/01
+Ihr Auftrag vom 29.07.2026
+NOVO NORDISK A/S SHS -B-
+Valorennummer 129508879.1
+ISIN Nummer DK0062498333
+Ausführungsdatum 29.07.2026
+Ausführungszeit (GMT + 1) 13.27.45
+Anzahl 550,00
+Zum Kurs von 44,98 EUR
+Börsenplatz XETRA
+Bruttobetrag 24.739,00+ EUR
+Handelsgebühr 14,85- EUR
+Fremdgebühren 4,95- EUR
+Stempel 37,11- EUR
+Totalbetrag 24.682,09+ EUR
+Unsere Ref: EXAMPLE/2026/1
+Via e-banking gedruckt Cornèr Bank AG
+Im Falle von Abweichungen zwischen den vom Cornèronline-System zur Verfügung gestellten Daten oder Dokumenten
+und jenen, die von der Bank in ihrer Buchhaltung registriert werden, sind auf alle Fälle letztere massgebend. mail@corneronline.ch
+1/1

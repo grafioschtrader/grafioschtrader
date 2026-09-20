@@ -21,7 +21,8 @@ import grafioschtrader.types.SubscriptionType;
 
 /**
  * Service for managing API key operations and subscription types for feed connectors. Provides functionality to reset
- * connector API keys and retrieve subscription type mappings for API key-based connectors, including generic connectors.
+ * connector API keys and retrieve subscription type mappings for API key-based connectors, including generic
+ * connectors.
  */
 @Service
 public class FeedConnectorApiKeyService implements IConnectorApiKeyReset {
@@ -37,8 +38,8 @@ public class FeedConnectorApiKeyService implements IConnectorApiKeyReset {
 
   @Override
   public void resetConnectorApiKey(String idProvider) {
-    Optional<IFeedConnector> found = feedConnectorbeans.stream()
-        .filter(fc -> fc.getShortID().equals(idProvider)).findFirst();
+    Optional<IFeedConnector> found = feedConnectorbeans.stream().filter(fc -> fc.getShortID().equals(idProvider))
+        .findFirst();
     if (found.isPresent()) {
       IFeedConnector fc = found.get();
       if (fc instanceof BaseFeedApiKeyConnector) {

@@ -26,10 +26,8 @@ public abstract class DividendSplitsHelper {
   public static <S extends DividendSplit> List<S> updateDividendSplitData(Security security, List<S> dividendSplitsRead,
       List<S> existingDividendsSplits, JpaRepository<S, Integer> jpaRepository) {
 
-    List<S> canCreateDividendSplits = dividendSplitsRead.stream()
-        .filter(ns -> existingDividendsSplits.stream()
-            .filter(es -> es.getEventDate().isEqual(ns.getEventDate())).findFirst().isEmpty())
-        .peek(ns -> {
+    List<S> canCreateDividendSplits = dividendSplitsRead.stream().filter(ns -> existingDividendsSplits.stream()
+        .filter(es -> es.getEventDate().isEqual(ns.getEventDate())).findFirst().isEmpty()).peek(ns -> {
           ns.setCreateType(CreateType.CONNECTOR_CREATED);
           ns.setCreateModifyTime(LocalDateTime.now());
         }).collect(Collectors.toList());

@@ -10,14 +10,14 @@ import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.task.ITask;
 import grafiosch.types.ITaskType;
+import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.service.AlgoAlarmEvaluationService;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
- * Scheduled task for Tier 2 alarm evaluation: indicator-based alerts (MA crossing, RSI threshold, EvalEx expression).
- * Triggers on cron schedule configured via {@code gt.algo.alarm.indicator.evaluation} property. Before evaluation,
- * securities with stale prices (>4 hours old) are refreshed.
+ * Five-minute eligibility scan for all rule based alerts. The configured GlobalParameters interval controls actual
+ * work; the existing queue worker executes at most one pending/running task. Task ID 50 is retained for compatibility.
  */
 @Component
 public class AlgoAlarmIndicatorEvaluationTask implements ITask {
@@ -33,8 +33,14 @@ public class AlgoAlarmIndicatorEvaluationTask implements ITask {
     return TaskTypeExtended.ALGO_ALARM_INDICATOR_EVALUATION;
   }
 
-  @Scheduled(cron = "${gt.algo.alarm.indicator.evaluation}", zone = BaseConstants.TIME_ZONE)
-  public void triggerAlgoAlarmIndicatorEvaluation() {
+  @Scheduled(cron = "${gt.algo.alarm.evaluation.scan:0 */5 * * * ?}", zone = BaseConstants.TIME_ZONE)
+  public synchronized void triggerAlgoAlarmIndicatorEvaluation() {
+    if (taskDataChangeRepository.existsByIdTaskAndProgressStateType(getTaskType().getValue(),
+        ProgressStateType.PROG_WAITING.getValue())
+        || taskDataChangeRepository.existsByIdTaskAndProgressStateType(getTaskType().getValue(),
+            ProgressStateType.PROG_RUNNING.getValue())
+        || !algoAlarmEvaluationService.hasDueAlerts())
+      return;
     TaskDataChange taskDataChange = new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_VERY_LOW);
     taskDataChangeRepository.save(taskDataChange);
   }

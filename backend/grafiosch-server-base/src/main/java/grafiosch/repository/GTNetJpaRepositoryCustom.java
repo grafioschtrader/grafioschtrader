@@ -219,16 +219,16 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
    * <p>
    * A peer that has lost its own copy of the tokens - a rebuilt database, a restored backup, a migrated instance -
    * cannot repair the relationship by itself: the first handshake is the one unauthenticated code, and since it may
-   * create a relationship but never replace one, it is refused with {@code HANDSHAKE_ALREADY_ESTABLISHED} as long as
-   * a token is on record here. Rotation through the authenticated token refresh is closed to that peer for the same
+   * create a relationship but never replace one, it is refused with {@code HANDSHAKE_ALREADY_ESTABLISHED} as long as a
+   * token is on record here. Rotation through the authenticated token refresh is closed to that peer for the same
    * reason. Re-admitting it is therefore a deliberate act of the administrator on this side, and this is that act.
    * </p>
    *
    * <p>
-   * Only the credentials are dropped. The peer row, its messages, its exchange kinds and the operator's settings for
-   * it - connection timeout, server list grant, violation count - all survive, which is what separates this from
-   * deleting the peer. Because the peer can no longer be reached, it is left {@code SOS_UNKNOWN} with its entities
-   * closed, exactly as a peer that was never handshaked.
+   * Only the credentials are dropped. The peer row, its messages, its exchange kinds and the operator's settings for it
+   * - connection timeout, server list grant, violation count - all survive, which is what separates this from deleting
+   * the peer. Because the peer can no longer be reached, it is left {@code SOS_UNKNOWN} with its entities closed,
+   * exactly as a peer that was never handshaked.
    * </p>
    *
    * @param idGtNet the ID of the remote GTNet entry whose handshake is to be reset

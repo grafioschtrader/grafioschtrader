@@ -113,9 +113,8 @@ public final class NlsMappingRegistry {
     Set<String> unknown = new LinkedHashSet<>(properties.stringPropertyNames());
     unknown.removeAll(KNOWN_PROPERTIES);
     if (!unknown.isEmpty()) {
-      throw new IllegalStateException(
-          "Unknown propert" + (unknown.size() == 1 ? "y " : "ies ") + unknown + " in " + descriptor + ", expected one of "
-              + new TreeSet<>(KNOWN_PROPERTIES));
+      throw new IllegalStateException("Unknown propert" + (unknown.size() == 1 ? "y " : "ies ") + unknown + " in "
+          + descriptor + ", expected one of " + new TreeSet<>(KNOWN_PROPERTIES));
     }
   }
 

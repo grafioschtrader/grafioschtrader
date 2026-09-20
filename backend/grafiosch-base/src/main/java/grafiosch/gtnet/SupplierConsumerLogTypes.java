@@ -1,8 +1,8 @@
 package grafiosch.gtnet;
 
 /**
- * Defines logging levels for GTNet exchange operations, separate for supplier and consumer roles.
- * This enum controls the granularity of logging for each role in the data exchange process.
+ * Defines logging levels for GTNet exchange operations, separate for supplier and consumer roles. This enum controls
+ * the granularity of logging for each role in the data exchange process.
  */
 public enum SupplierConsumerLogTypes {
 

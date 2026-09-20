@@ -81,9 +81,9 @@ class HolidayRuleEngineTest {
   void nyseClosures2026Test() {
     SortedSet<LocalDate> closures = ruleSet("XNYS").closureDatesForYear(2026);
 
-    assertThat(closures).containsExactly(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 19),
-        LocalDate.of(2026, 2, 16), LocalDate.of(2026, 4, 3), LocalDate.of(2026, 5, 25), LocalDate.of(2026, 6, 19),
-        LocalDate.of(2026, 7, 3), LocalDate.of(2026, 9, 7), LocalDate.of(2026, 11, 26), LocalDate.of(2026, 12, 25));
+    assertThat(closures).containsExactly(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 19), LocalDate.of(2026, 2, 16),
+        LocalDate.of(2026, 4, 3), LocalDate.of(2026, 5, 25), LocalDate.of(2026, 6, 19), LocalDate.of(2026, 7, 3),
+        LocalDate.of(2026, 9, 7), LocalDate.of(2026, 11, 26), LocalDate.of(2026, 12, 25));
   }
 
   @Test
@@ -133,12 +133,11 @@ class HolidayRuleEngineTest {
   @DisplayName("Shanghai 2026 matches the complete announced SSE schedule")
   void shanghaiClosures2026Test() {
     assertThat(ruleSet("XSHG").closureDatesForYear(2026)).containsExactly(LocalDate.of(2026, 1, 1),
-        LocalDate.of(2026, 1, 2), LocalDate.of(2026, 2, 16), LocalDate.of(2026, 2, 17),
-        LocalDate.of(2026, 2, 18), LocalDate.of(2026, 2, 19), LocalDate.of(2026, 2, 20),
-        LocalDate.of(2026, 2, 23), LocalDate.of(2026, 4, 6), LocalDate.of(2026, 5, 1),
-        LocalDate.of(2026, 5, 4), LocalDate.of(2026, 5, 5), LocalDate.of(2026, 6, 19),
-        LocalDate.of(2026, 9, 25), LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 2),
-        LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 6), LocalDate.of(2026, 10, 7));
+        LocalDate.of(2026, 1, 2), LocalDate.of(2026, 2, 16), LocalDate.of(2026, 2, 17), LocalDate.of(2026, 2, 18),
+        LocalDate.of(2026, 2, 19), LocalDate.of(2026, 2, 20), LocalDate.of(2026, 2, 23), LocalDate.of(2026, 4, 6),
+        LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 4), LocalDate.of(2026, 5, 5), LocalDate.of(2026, 6, 19),
+        LocalDate.of(2026, 9, 25), LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 2), LocalDate.of(2026, 10, 5),
+        LocalDate.of(2026, 10, 6), LocalDate.of(2026, 10, 7));
   }
 
   @Test
@@ -146,10 +145,10 @@ class HolidayRuleEngineTest {
   void shanghaiHistoricalExceptionsTest() {
     HolidayRuleSet shanghai = ruleSet("XSHG");
 
-    assertThat(shanghai.closureDates(2000, 2026)).contains(LocalDate.of(2000, 1, 31),
-        LocalDate.of(2018, 4, 30), LocalDate.of(2018, 12, 31), LocalDate.of(2020, 1, 31))
-        .doesNotContain(LocalDate.of(2003, 3, 11), LocalDate.of(2010, 12, 20), LocalDate.of(2019, 4, 29),
-            LocalDate.of(2019, 4, 30), LocalDate.of(2026, 10, 8));
+    assertThat(shanghai.closureDates(2000, 2026)).contains(LocalDate.of(2000, 1, 31), LocalDate.of(2018, 4, 30),
+        LocalDate.of(2018, 12, 31), LocalDate.of(2020, 1, 31)).doesNotContain(LocalDate.of(2003, 3, 11),
+            LocalDate.of(2010, 12, 20), LocalDate.of(2019, 4, 29), LocalDate.of(2019, 4, 30),
+            LocalDate.of(2026, 10, 8));
   }
 
   @Test
@@ -248,8 +247,8 @@ class HolidayRuleEngineTest {
     SortedSet<LocalDate> closures = ruleSet("XLIS").closureDates(2000, 2026);
 
     // Carnival Tuesday, Liberty Day, Portugal Day and the Immaculate Conception in years where each is a weekday.
-    assertThat(closures).doesNotContain(LocalDate.of(2018, 2, 13), LocalDate.of(2018, 4, 25),
-        LocalDate.of(2019, 6, 10), LocalDate.of(2021, 12, 8));
+    assertThat(closures).doesNotContain(LocalDate.of(2018, 2, 13), LocalDate.of(2018, 4, 25), LocalDate.of(2019, 6, 10),
+        LocalDate.of(2021, 12, 8));
   }
 
   @Test

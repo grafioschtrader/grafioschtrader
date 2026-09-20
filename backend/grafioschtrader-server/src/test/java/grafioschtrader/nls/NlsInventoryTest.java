@@ -19,8 +19,8 @@ import grafiosch.nls.NlsBundleInspector.Bundle;
 import grafiosch.nls.NlsKeyMapper;
 
 /**
- * Emits the inventory of keys each module actually serves, which is the machine-readable answer to "who owns this
- * text and what does the client call it".
+ * Emits the inventory of keys each module actually serves, which is the machine-readable answer to "who owns this text
+ * and what does the client call it".
  *
  * <p>
  * The inventory is produced here, in Java, rather than by the migration script, so that {@link NlsKeyMapper} stays the

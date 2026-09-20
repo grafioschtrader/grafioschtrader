@@ -3,13 +3,13 @@ package grafioschtrader.rest;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Minimal public diagnostic DTO describing the runtime environment of the backend. Intended to be consumed by
- * automated setups (in particular the Playwright E2E globalSetup) so that a test suite can fail fast when the
- * backend is connected to the wrong database or is running under an unexpected Spring profile.
+ * Minimal public diagnostic DTO describing the runtime environment of the backend. Intended to be consumed by automated
+ * setups (in particular the Playwright E2E globalSetup) so that a test suite can fail fast when the backend is
+ * connected to the wrong database or is running under an unexpected Spring profile.
  *
  * The endpoint returning this DTO is intentionally unauthenticated and deliberately exposes only non-sensitive
- * identifiers — the active profile list and the database name parsed from the JDBC URL — never credentials,
- * hosts, ports, or other configuration values.
+ * identifiers — the active profile list and the database name parsed from the JDBC URL — never credentials, hosts,
+ * ports, or other configuration values.
  */
 @Schema(description = """
     Minimal public diagnostic payload used to identify which database and Spring profile the backend is currently \

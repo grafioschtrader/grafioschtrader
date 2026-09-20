@@ -19,12 +19,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * Defines which instrument types a security account is allowed to trade, and optionally within which date range.
- * The {@code specInvestInstrument} field is always required and identifies the specific instrument type.
- * A NULL value in {@code categoryType} acts as a wildcard matching all asset class categories.
- * {@code dateFrom} defaults to {@link GlobalConstants#OLDEST_TRADING_DAY} (the earliest trading day GT supports).
- * A NULL {@code dateTo} means "forever".
- * If a security account has no trading period rows at all, all trading is allowed (backward compatibility).
+ * Defines which instrument types a security account is allowed to trade, and optionally within which date range. The
+ * {@code specInvestInstrument} field is always required and identifies the specific instrument type. A NULL value in
+ * {@code categoryType} acts as a wildcard matching all asset class categories. {@code dateFrom} defaults to
+ * {@link GlobalConstants#OLDEST_TRADING_DAY} (the earliest trading day GT supports). A NULL {@code dateTo} means
+ * "forever". If a security account has no trading period rows at all, all trading is allowed (backward compatibility).
  */
 @Entity
 @Table(name = SecaccountTradingPeriod.TABNAME)

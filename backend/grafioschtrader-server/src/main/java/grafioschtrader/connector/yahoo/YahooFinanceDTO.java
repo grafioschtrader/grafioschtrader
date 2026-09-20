@@ -5,9 +5,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Data Transfer Objects for Yahoo Finance Visualization API
- * Used for various endpoints like earnings, splits, dividends, etc.
- * All classes use public fields instead of getters/setters for simplicity
+ * Data Transfer Objects for Yahoo Finance Visualization API Used for various endpoints like earnings, splits,
+ * dividends, etc. All classes use public fields instead of getters/setters for simplicity
  */
 public class YahooFinanceDTO {
   public String sortType;

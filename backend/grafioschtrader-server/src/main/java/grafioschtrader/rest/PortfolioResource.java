@@ -128,6 +128,4 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
     return portfolioJpaRepository;
   }
 
-  
-
 }

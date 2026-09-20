@@ -31,11 +31,7 @@ import grafioschtrader.test.start.GTforTest;
 @SpringBootTest(classes = GTforTest.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
 @ActiveProfiles("test")
-@TestPropertySource(properties = {
-    "spring.flyway.enabled=true",
-    "spring.flyway.locations=classpath:db/migration/test",
-    "spring.flyway.baseline-on-migrate=true",
-    "spring.flyway.clean-disabled=false"
-})
+@TestPropertySource(properties = { "spring.flyway.enabled=true", "spring.flyway.locations=classpath:db/migration/test",
+    "spring.flyway.baseline-on-migrate=true", "spring.flyway.clean-disabled=false" })
 public @interface GTIntegrationTestContext {
 }

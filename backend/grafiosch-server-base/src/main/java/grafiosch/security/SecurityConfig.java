@@ -8,20 +8,20 @@ import grafiosch.rest.RequestMappings;
 
 /**
  * Utility class for configuring common Spring Security authorization rules.
- * 
+ *
  * <p>
  * This class provides reusable security configuration methods that can be shared across different security
  * configurations. It centralizes authorization rules for global parameters, user management, and administrative
  * endpoints to ensure consistent security policies throughout the application.
  * </p>
- * 
+ *
  * <h3>Configuration Areas:</h3>
  * <ul>
  * <li><strong>Public Endpoints:</strong> Global parameters, user registration, and authentication</li>
  * <li><strong>Administrative Functions:</strong> Task management, API keys, and user administration</li>
  * <li><strong>General API Access:</strong> Role-based access for authenticated users</li>
  * </ul>
- * 
+ *
  * <h3>Security Principles:</h3>
  * <p>
  * Implements least-privilege access control with public access limited to essential endpoints, administrative functions
@@ -96,12 +96,12 @@ public class SecurityConfig {
 
   /**
    * Custom runtime exception for security configuration errors.
-   * 
+   *
    * <p>
    * This exception class provides specific error handling for security configuration failures, allowing for clear
    * identification and handling of security setup issues during application startup or configuration changes.
    * </p>
-   * 
+   *
    * <h3>Usage:</h3>
    * <p>
    * Thrown when security configuration methods encounter exceptions during the setup process, providing a wrapped
@@ -113,12 +113,12 @@ public class SecurityConfig {
 
     /**
      * Creates a security configuration exception with message and cause.
-     * 
+     *
      * <p>
      * Wraps the underlying security configuration exception with a descriptive message to provide context about the
      * configuration failure for easier debugging and error resolution.
      * </p>
-     * 
+     *
      * @param message descriptive error message explaining the configuration failure
      * @param cause   the underlying exception that caused the configuration failure
      */

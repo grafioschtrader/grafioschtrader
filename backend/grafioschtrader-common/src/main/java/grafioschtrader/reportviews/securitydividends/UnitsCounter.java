@@ -14,7 +14,8 @@ public class UnitsCounter {
   private static final double EPSILON = 1e-8;
 
   /** Per-transaction delta: date and signed unit change (+buy, -sell). */
-  public record UnitMutation(LocalDate date, double delta) {}
+  public record UnitMutation(LocalDate date, double delta) {
+  }
 
   /** The security for which units are being tracked. */
   public Security security;
@@ -72,8 +73,8 @@ public class UnitsCounter {
 
   /**
    * Units held going into maturity for a bond redeemed at or after maturity. Returns the cumulative units held
-   * immediately before the first reducing (sell/redeem) mutation dated on or after the given maturity date, or 0.0 if no
-   * reducing mutation occurs on/after that date (i.e. the position was not redeemed at maturity).
+   * immediately before the first reducing (sell/redeem) mutation dated on or after the given maturity date, or 0.0 if
+   * no reducing mutation occurs on/after that date (i.e. the position was not redeemed at maturity).
    *
    * <p>
    * Bonds do not split, so the running sum of mutations equals the recorded unit timeline; no split-basis
@@ -112,9 +113,9 @@ public class UnitsCounter {
   }
 
   /**
-   * Determines whether the holding was 0 units both at the beginning (end of previous year) and at the end of the
-   * given year — a position opened and fully closed within the year, or a row present only because of a trailing
-   * dividend after a complete sale in an earlier year.
+   * Determines whether the holding was 0 units both at the beginning (end of previous year) and at the end of the given
+   * year — a position opened and fully closed within the year, or a row present only because of a trailing dividend
+   * after a complete sale in an earlier year.
    *
    * @param year the calendar year to check
    * @return true when no units were held at the start and at the end of that year

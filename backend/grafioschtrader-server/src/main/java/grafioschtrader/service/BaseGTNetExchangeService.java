@@ -15,8 +15,8 @@ import grafioschtrader.gtnet.GTNetExchangeKindType;
  *
  * Provides shared functionality for:
  * <ul>
- *   <li>Supplier priority ordering with randomization</li>
- *   <li>Common exchange patterns</li>
+ * <li>Supplier priority ordering with randomization</li>
+ * <li>Common exchange patterns</li>
  * </ul>
  *
  * @see GTNetLastpriceService for intraday price exchange
@@ -25,11 +25,11 @@ import grafioschtrader.gtnet.GTNetExchangeKindType;
 public abstract class BaseGTNetExchangeService {
 
   /**
-   * Randomizes suppliers within the same priority level.
-   * Suppliers are grouped by their consumerUsage priority value, sorted by priority ascending,
-   * and randomized within each group to balance load across suppliers at the same priority level.
+   * Randomizes suppliers within the same priority level. Suppliers are grouped by their consumerUsage priority value,
+   * sorted by priority ascending, and randomized within each group to balance load across suppliers at the same
+   * priority level.
    *
-   * @param suppliers list of suppliers to organize
+   * @param suppliers    list of suppliers to organize
    * @param exchangeKind the exchange kind to determine which entity's consumerUsage to use
    * @return list of suppliers randomized within priority groups
    */
@@ -40,52 +40,42 @@ public abstract class BaseGTNetExchangeService {
     }
 
     // Group by priority (consumerUsage value from GTNetConfigEntity)
-    Map<Byte, List<GTNet>> byPriority = suppliers.stream()
-        .collect(Collectors.groupingBy(gtNet -> {
-          return gtNet.getGtNetEntities().stream()
-              .filter(e -> e.getEntityKindValue() == exchangeKind.getValue())
-              .findFirst()
-              .map(e -> e.getGtNetConfigEntity().getConsumerUsage())
-              .orElse((byte) 0);
-        }));
+    Map<Byte, List<GTNet>> byPriority = suppliers.stream().collect(Collectors.groupingBy(gtNet -> {
+      return gtNet.getGtNetEntities().stream().filter(e -> e.getEntityKindValue() == exchangeKind.getValue())
+          .findFirst().map(e -> e.getGtNetConfigEntity().getConsumerUsage()).orElse((byte) 0);
+    }));
 
     // Shuffle within each priority group and flatten
     List<GTNet> result = new ArrayList<>();
-    byPriority.keySet().stream()
-        .sorted()
-        .forEach(priority -> {
-          List<GTNet> group = byPriority.get(priority);
-          Collections.shuffle(group);
-          result.addAll(group);
-        });
+    byPriority.keySet().stream().sorted().forEach(priority -> {
+      List<GTNet> group = byPriority.get(priority);
+      Collections.shuffle(group);
+      result.addAll(group);
+    });
 
     return result;
   }
 
   /**
-   * Sorts AC_OPEN suppliers using optimized scoring algorithm: coverage x success_rate as primary,
-   * priority as secondary, and random shuffle as tertiary for ties.
+   * Sorts AC_OPEN suppliers using optimized scoring algorithm: coverage x success_rate as primary, priority as
+   * secondary, and random shuffle as tertiary for ties.
    *
-   * This method provides better supplier selection than priority-only by considering:
-   * - How many of the requested instruments each supplier actually supports (coverage)
-   * - How reliable each supplier has been historically (success rate)
+   * This method provides better supplier selection than priority-only by considering: - How many of the requested
+   * instruments each supplier actually supports (coverage) - How reliable each supplier has been historically (success
+   * rate)
    *
-   * Note: This method is ONLY for AC_OPEN suppliers. AC_PUSH_OPEN suppliers should continue
-   * using getSuppliersByPriorityWithRandomization().
+   * Note: This method is ONLY for AC_OPEN suppliers. AC_PUSH_OPEN suppliers should continue using
+   * getSuppliersByPriorityWithRandomization().
    *
-   * @param suppliers list of AC_OPEN suppliers to organize
-   * @param exchangeKind the exchange kind for priority lookup
-   * @param scoreCalculator the pre-initialized score calculator with success rates
-   * @param filter the instrument filter for coverage calculation
+   * @param suppliers              list of AC_OPEN suppliers to organize
+   * @param exchangeKind           the exchange kind for priority lookup
+   * @param scoreCalculator        the pre-initialized score calculator with success rates
+   * @param filter                 the instrument filter for coverage calculation
    * @param requestedInstrumentIds the set of instrument IDs being requested
    * @return list of suppliers sorted by score desc, priority asc, with random shuffle for ties
    */
-  protected List<GTNet> getSuppliersByScoreWithRandomization(
-      List<GTNet> suppliers,
-      GTNetExchangeKindType exchangeKind,
-      SupplierScoreCalculator scoreCalculator,
-      SupplierInstrumentFilter filter,
-      Set<Integer> requestedInstrumentIds) {
+  protected List<GTNet> getSuppliersByScoreWithRandomization(List<GTNet> suppliers, GTNetExchangeKindType exchangeKind,
+      SupplierScoreCalculator scoreCalculator, SupplierInstrumentFilter filter, Set<Integer> requestedInstrumentIds) {
 
     if (scoreCalculator == null) {
       // Fallback to priority-only if no score calculator provided

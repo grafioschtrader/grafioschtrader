@@ -20,8 +20,9 @@ public interface TenantBaseCustom {
 
   /**
    * Read-only evaluation of whether the given user may delete their own account. Returns the same conditions that
-   * {@link #deleteMyDataAndUserAccount()} enforces (still managing clients, or others still reading the home tenant), so
-   * the frontend can warn the user up front instead of submitting a deletion that would be rejected. Changes no data.
+   * {@link #deleteMyDataAndUserAccount()} enforces (still managing clients, or others still reading the home tenant),
+   * so the frontend can warn the user up front instead of submitting a deletion that would be rejected. Changes no
+   * data.
    *
    * @param user the user whose self-deletion eligibility is evaluated
    * @return the deletion eligibility (DELETABLE, HAS_CLIENTS or HAS_VIEWERS)
@@ -42,7 +43,7 @@ public interface TenantBaseCustom {
   /**
    * Exports all personal data for the currently authenticated user as a ZIP file. The ZIP contains SQL scripts with
    * table structures and user data.
-   * 
+   *
    * @param response the HTTP response to write the ZIP file to
    * @throws Exception if the export operation fails or user is not authenticated
    */

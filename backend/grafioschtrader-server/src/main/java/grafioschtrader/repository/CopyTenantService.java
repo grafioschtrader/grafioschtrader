@@ -41,21 +41,22 @@ import jakarta.persistence.TypedQuery;
  * Copies all tenant-owned data from a source tenant to a target tenant. Used by
  * {@link grafioschtrader.task.exec.CopyTenantToDemoAccountsTask} to refresh demo accounts daily.
  *
- * <p>The copy runs inside a single transaction. It first deletes all existing data in the target tenant
- * (respecting FK ordering), then copies entities one by one from the source, remapping all tenant-specific
- * foreign keys to the newly persisted target entities. Global references (securities, currency pairs) are
- * shared and left unchanged.
+ * <p>
+ * The copy runs inside a single transaction. It first deletes all existing data in the target tenant (respecting FK
+ * ordering), then copies entities one by one from the source, remapping all tenant-specific foreign keys to the newly
+ * persisted target entities. Global references (securities, currency pairs) are shared and left unchanged.
  *
- * <p>Entity copy order follows FK dependencies:
+ * <p>
+ * Entity copy order follows FK dependencies:
  * <ol>
- *   <li>Portfolio (no FK dependencies within tenant)</li>
- *   <li>Securityaccount (FK to Portfolio, cascade-persists SecaccountTradingPeriod)</li>
- *   <li>Cashaccount (FK to Portfolio, optional FK to Securityaccount)</li>
- *   <li>StandingOrder (FK to Cashaccount, StandingOrderSecurity FK to Securityaccount)</li>
- *   <li>Watchlist (no tenant-internal FK dependencies)</li>
- *   <li>Transaction (FK to Cashaccount, Securityaccount, StandingOrder, self-referential connectedIdTransaction)</li>
- *   <li>CorrelationSet (references global securities only)</li>
- *   <li>UDF metadata and data (keyed by user ID, not tenant ID)</li>
+ * <li>Portfolio (no FK dependencies within tenant)</li>
+ * <li>Securityaccount (FK to Portfolio, cascade-persists SecaccountTradingPeriod)</li>
+ * <li>Cashaccount (FK to Portfolio, optional FK to Securityaccount)</li>
+ * <li>StandingOrder (FK to Cashaccount, StandingOrderSecurity FK to Securityaccount)</li>
+ * <li>Watchlist (no tenant-internal FK dependencies)</li>
+ * <li>Transaction (FK to Cashaccount, Securityaccount, StandingOrder, self-referential connectedIdTransaction)</li>
+ * <li>CorrelationSet (references global securities only)</li>
+ * <li>UDF metadata and data (keyed by user ID, not tenant ID)</li>
  * </ol>
  */
 @Service
@@ -69,9 +70,9 @@ public class CopyTenantService {
   private JdbcTemplate jdbcTemplate;
 
   /**
-   * Copies all data from the source user's tenant to the target user's tenant. Existing data in the target
-   * tenant is deleted first. Each entity type is copied with its tenant-specific FKs remapped via ID maps
-   * built during earlier copy steps.
+   * Copies all data from the source user's tenant to the target user's tenant. Existing data in the target tenant is
+   * deleted first. Each entity type is copied with its tenant-specific FKs remapped via ID maps built during earlier
+   * copy steps.
    *
    * @param sourceUser the user whose tenant data is copied from
    * @param targetUser the user whose tenant data is replaced
@@ -83,8 +84,8 @@ public class CopyTenantService {
         targetUser.getIdTenant(), portfolioMap);
     Map<Integer, Cashaccount> cashaccoutMap = copyCashaccount(sourceUser.getIdTenant(), targetUser.getIdTenant(),
         portfolioMap, securityaccountMap);
-    Map<Integer, StandingOrder> standingOrderMap = copyStandingOrder(sourceUser.getIdTenant(),
-        targetUser.getIdTenant(), securityaccountMap, cashaccoutMap);
+    Map<Integer, StandingOrder> standingOrderMap = copyStandingOrder(sourceUser.getIdTenant(), targetUser.getIdTenant(),
+        securityaccountMap, cashaccoutMap);
     Map<Integer, Watchlist> watchlistMap = copyWatchlist(sourceUser.getIdTenant(), targetUser.getIdTenant());
     copyTransaction(sourceUser.getIdTenant(), targetUser.getIdTenant(), securityaccountMap, cashaccoutMap,
         standingOrderMap);
@@ -96,11 +97,11 @@ public class CopyTenantService {
   }
 
   /**
-   * Deletes all tenant-owned data from the target tenant in FK-safe order. Child rows (import positions,
-   * transactions) are deleted before parent rows (accounts, portfolios). Standing order child tables
+   * Deletes all tenant-owned data from the target tenant in FK-safe order. Child rows (import positions, transactions)
+   * are deleted before parent rows (accounts, portfolios). Standing order child tables
    * ({@code standing_order_cashaccount}, {@code standing_order_security}, {@code standing_order_failure})
-   * cascade-delete automatically via {@code ON DELETE CASCADE} when the parent {@code standing_order} row
-   * is removed. UDF tables use {@code id_user} instead of {@code id_tenant}.
+   * cascade-delete automatically via {@code ON DELETE CASCADE} when the parent {@code standing_order} row is removed.
+   * UDF tables use {@code id_user} instead of {@code id_tenant}.
    *
    * @param targetIdTenant the tenant ID whose data is deleted
    * @param targetIdUser   the user ID for UDF-related tables
@@ -109,9 +110,9 @@ public class CopyTenantService {
     DelTab[] tables = new DelTab[] { new DelTab(ImportTransactionPos.TABNAME, true),
         new DelTab(ImportTransactionHead.TABNAME, true), new DelTab(Transaction.TABNAME, true),
         new DelTab(StandingOrder.TABNAME, true), new DelTab(Watchlist.TABNAME, true),
-        new DelTab(Securitycashaccount.TABNAME, true),
-        new DelTab(Portfolio.TABNAME, true), new DelTab(CorrelationSet.TABNAME, true),
-        new DelTab(UDFData.TABNAME, false), new DelTab(UDFMetadata.TABNAME, false) };
+        new DelTab(Securitycashaccount.TABNAME, true), new DelTab(Portfolio.TABNAME, true),
+        new DelTab(CorrelationSet.TABNAME, true), new DelTab(UDFData.TABNAME, false),
+        new DelTab(UDFMetadata.TABNAME, false) };
     for (DelTab delTab : tables) {
       String deleteSQL = "DELETE FROM " + delTab.tabName + " WHERE " + (delTab.useIdTenant ? "id_tenant" : "id_user")
           + "=?";
@@ -120,10 +121,9 @@ public class CopyTenantService {
   }
 
   /**
-   * Copies all portfolios from the source tenant, resetting PKs and reassigning to the target tenant.
-   * The {@code securitycashaccountList} is cleared to avoid cascading stale references — accounts are
-   * copied separately. After {@code em.clear()}, loaded entities become detached; nulling the PK lets
-   * JPA treat them as new inserts.
+   * Copies all portfolios from the source tenant, resetting PKs and reassigning to the target tenant. The
+   * {@code securitycashaccountList} is cleared to avoid cascading stale references — accounts are copied separately.
+   * After {@code em.clear()}, loaded entities become detached; nulling the PK lets JPA treat them as new inserts.
    *
    * @param sourceIdTenant the source tenant ID
    * @param targetIdTenant the target tenant ID
@@ -147,14 +147,15 @@ public class CopyTenantService {
   }
 
   /**
-   * Copies all security accounts from the source tenant. The portfolio FK is remapped via {@code portfolioMap}.
-   * The transaction list is cleared to avoid stale cascade references.
+   * Copies all security accounts from the source tenant. The portfolio FK is remapped via {@code portfolioMap}. The
+   * transaction list is cleared to avoid stale cascade references.
    *
-   * <p>Trading periods require special handling: after {@code em.clear()}, the {@code tradingPeriods} field
-   * holds a Hibernate PersistentBag from the old persistence context. The regular setter preserves this
-   * reference (for orphanRemoval tracking), which causes "Don't change the reference to a collection with
-   * delete-orphan enabled" on {@code em.persist()}. {@code replaceTradingPeriods()} replaces the PersistentBag
-   * with a plain ArrayList. Each period's PK is nulled to let JPA auto-generate new IDs.
+   * <p>
+   * Trading periods require special handling: after {@code em.clear()}, the {@code tradingPeriods} field holds a
+   * Hibernate PersistentBag from the old persistence context. The regular setter preserves this reference (for
+   * orphanRemoval tracking), which causes "Don't change the reference to a collection with delete-orphan enabled" on
+   * {@code em.persist()}. {@code replaceTradingPeriods()} replaces the PersistentBag with a plain ArrayList. Each
+   * period's PK is nulled to let JPA auto-generate new IDs.
    *
    * @param sourceIdTenant the source tenant ID
    * @param targetIdTenant the target tenant ID
@@ -188,13 +189,13 @@ public class CopyTenantService {
   }
 
   /**
-   * Copies all cash accounts from the source tenant. The portfolio FK is remapped via {@code portfolioMap}.
-   * The optional {@code connectIdSecurityaccount} (margin account link) is remapped via
-   * {@code securityaccountMap}. The transaction list is cleared to prevent stale cascade references.
+   * Copies all cash accounts from the source tenant. The portfolio FK is remapped via {@code portfolioMap}. The
+   * optional {@code connectIdSecurityaccount} (margin account link) is remapped via {@code securityaccountMap}. The
+   * transaction list is cleared to prevent stale cascade references.
    *
-   * @param sourceIdTenant    the source tenant ID
-   * @param targetIdTenant    the target tenant ID
-   * @param portfolioMap      mapping from source portfolio IDs to target Portfolio entities
+   * @param sourceIdTenant     the source tenant ID
+   * @param targetIdTenant     the target tenant ID
+   * @param portfolioMap       mapping from source portfolio IDs to target Portfolio entities
    * @param securityaccountMap mapping from source security account IDs to target Securityaccount entities
    * @return map from source cash account ID to the newly persisted target Cashaccount
    */
@@ -223,19 +224,18 @@ public class CopyTenantService {
 
   /**
    * Copies all standing orders from the source tenant. Uses a polymorphic JPA query that returns both
-   * {@link StandingOrderCashaccount} and {@link StandingOrderSecurity} subtypes via JOINED inheritance.
-   * The cash account FK is remapped for all standing orders. For {@code StandingOrderSecurity}, the
-   * {@code idSecurityaccount} is additionally remapped. Global references ({@code security},
-   * {@code idCurrencypair}) are left unchanged.
+   * {@link StandingOrderCashaccount} and {@link StandingOrderSecurity} subtypes via JOINED inheritance. The cash
+   * account FK is remapped for all standing orders. For {@code StandingOrderSecurity}, the {@code idSecurityaccount} is
+   * additionally remapped. Global references ({@code security}, {@code idCurrencypair}) are left unchanged.
    *
-   * <p>Child tables ({@code standing_order_cashaccount}, {@code standing_order_security}) are auto-persisted
-   * by JPA JOINED inheritance. {@code StandingOrderFailure} rows (runtime failure history) are intentionally
-   * not copied.
+   * <p>
+   * Child tables ({@code standing_order_cashaccount}, {@code standing_order_security}) are auto-persisted by JPA JOINED
+   * inheritance. {@code StandingOrderFailure} rows (runtime failure history) are intentionally not copied.
    *
-   * @param sourceIdTenant    the source tenant ID
-   * @param targetIdTenant    the target tenant ID
+   * @param sourceIdTenant     the source tenant ID
+   * @param targetIdTenant     the target tenant ID
    * @param securityaccountMap mapping from source security account IDs to target Securityaccount entities
-   * @param cashaccountMap    mapping from source cash account IDs to target Cashaccount entities
+   * @param cashaccountMap     mapping from source cash account IDs to target Cashaccount entities
    * @return map from source standing order ID to the newly persisted target StandingOrder
    */
   private Map<Integer, StandingOrder> copyStandingOrder(Integer sourceIdTenant, Integer targetIdTenant,
@@ -251,8 +251,7 @@ public class CopyTenantService {
       so.setIdTenant(targetIdTenant);
       so.setCashaccount(cashaccountMap.get(so.getCashaccount().getIdSecuritycashAccount()));
       if (so instanceof StandingOrderSecurity sos) {
-        sos.setIdSecurityaccount(
-            securityaccountMap.get(sos.getIdSecurityaccount()).getIdSecuritycashAccount());
+        sos.setIdSecurityaccount(securityaccountMap.get(sos.getIdSecurityaccount()).getIdSecuritycashAccount());
       }
       em.persist(so);
       standingOrderMap.put(oldId, so);
@@ -262,9 +261,9 @@ public class CopyTenantService {
   }
 
   /**
-   * Copies all watchlists from the source tenant. Creates new Watchlist instances for the target tenant
-   * and copies the security/currency-pair associations. Does not use {@code em.clear()} because the
-   * security list must remain managed for the many-to-many join table insert.
+   * Copies all watchlists from the source tenant. Creates new Watchlist instances for the target tenant and copies the
+   * security/currency-pair associations. Does not use {@code em.clear()} because the security list must remain managed
+   * for the many-to-many join table insert.
    *
    * @param sourceIdTenant the source tenant ID
    * @param targetIdTenant the target tenant ID
@@ -288,8 +287,8 @@ public class CopyTenantService {
   }
 
   /**
-   * Copies all correlation sets from the source tenant, preserving the security/currency-pair
-   * associations and date/sampling configuration.
+   * Copies all correlation sets from the source tenant, preserving the security/currency-pair associations and
+   * date/sampling configuration.
    *
    * @param sourceIdTenant the source tenant ID
    * @param targetIdTenant the target tenant ID
@@ -334,8 +333,8 @@ public class CopyTenantService {
   }
 
   /**
-   * Copies security-specific UDF metadata definitions from the source user to the target user.
-   * Updates {@code fieldMap} in-place with the new mappings.
+   * Copies security-specific UDF metadata definitions from the source user to the target user. Updates {@code fieldMap}
+   * in-place with the new mappings.
    *
    * @param fieldMap     map from source UDF metadata ID to target UDF metadata ID (updated in-place)
    * @param sourceIdUser the source user ID
@@ -356,8 +355,8 @@ public class CopyTenantService {
   }
 
   /**
-   * Copies UDF data rows from the source user to the target user, remapping field ID references
-   * in the JSON values map using {@code fieldMap}.
+   * Copies UDF data rows from the source user to the target user, remapping field ID references in the JSON values map
+   * using {@code fieldMap}.
    *
    * @param fieldMap     map from source UDF metadata ID to target UDF metadata ID
    * @param sourceIdUser the source user ID
@@ -381,20 +380,19 @@ public class CopyTenantService {
   /**
    * Copies all transactions from the source tenant, remapping tenant-specific FKs:
    * <ul>
-   *   <li>{@code cashaccount} — remapped via {@code cashaccoutMap}</li>
-   *   <li>{@code idSecurityaccount} — remapped via {@code securityaccountMap}</li>
-   *   <li>{@code idStandingOrder} — remapped via {@code standingOrderMap} (set to null if not found)</li>
-   *   <li>{@code connectedIdTransaction} — remapped using a two-pass algorithm: the first pass resolves
-   *       backward references (connected transaction already copied), while forward references are deferred
-   *       to the second pass</li>
+   * <li>{@code cashaccount} — remapped via {@code cashaccoutMap}</li>
+   * <li>{@code idSecurityaccount} — remapped via {@code securityaccountMap}</li>
+   * <li>{@code idStandingOrder} — remapped via {@code standingOrderMap} (set to null if not found)</li>
+   * <li>{@code connectedIdTransaction} — remapped using a two-pass algorithm: the first pass resolves backward
+   * references (connected transaction already copied), while forward references are deferred to the second pass</li>
    * </ul>
    * Global references ({@code security}, {@code idCurrencypair}) are left unchanged.
    *
-   * @param sourceIdTenant    the source tenant ID
-   * @param targetIdTenant    the target tenant ID
+   * @param sourceIdTenant     the source tenant ID
+   * @param targetIdTenant     the target tenant ID
    * @param securityaccountMap mapping from source security account IDs to target Securityaccount entities
-   * @param cashaccoutMap     mapping from source cash account IDs to target Cashaccount entities
-   * @param standingOrderMap  mapping from source standing order IDs to target StandingOrder entities
+   * @param cashaccoutMap      mapping from source cash account IDs to target Cashaccount entities
+   * @param standingOrderMap   mapping from source standing order IDs to target StandingOrder entities
    */
   private void copyTransaction(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityaccountMap, Map<Integer, Cashaccount> cashaccoutMap,
@@ -445,8 +443,8 @@ public class CopyTenantService {
   }
 
   /**
-   * Updates the target tenant's performance watchlist reference to point to the copied watchlist
-   * that corresponds to the source tenant's performance watchlist.
+   * Updates the target tenant's performance watchlist reference to point to the copied watchlist that corresponds to
+   * the source tenant's performance watchlist.
    *
    * @param sourceIdTenant the source tenant ID
    * @param targetIdTenant the target tenant ID
@@ -465,8 +463,8 @@ public class CopyTenantService {
   }
 
   /**
-   * Helper record for the deletion table list. Each entry specifies a table name and whether to filter
-   * by {@code id_tenant} (true) or {@code id_user} (false).
+   * Helper record for the deletion table list. Each entry specifies a table name and whether to filter by
+   * {@code id_tenant} (true) or {@code id_user} (false).
    */
   private static class DelTab {
     public String tabName;

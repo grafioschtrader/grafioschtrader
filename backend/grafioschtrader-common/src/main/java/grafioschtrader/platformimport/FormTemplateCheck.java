@@ -12,13 +12,13 @@ public class FormTemplateCheck {
 
   @Schema(description = "Identifier of the transaction import platform")
   private Integer idTransactionImportPlatform;
-  
+
   @Schema(description = "Transaction position information including file details and import status")
   private ImportTransactionPos importTransactionPos;
-  
+
   @Schema(description = "Template that successfully parsed the form data, if any")
   private ParsedTemplateState successParsedTemplateState;
-  
+
   @Schema(description = "List of templates that failed to parse the form data with diagnostic information")
   private List<FailedParsedTemplateState> failedParsedTemplateStateList;
 

@@ -1,3 +1,4 @@
+import { AppSettings } from '../../shared/app.settings';
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -184,7 +185,7 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
         'MEAN_RELATIVE_ERROR',
         true,
         false,
-        { maxFractionDigits: 2 }
+        { maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION }
       ),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'rmse', 'RMSE', true, false, { maxFractionDigits: 2 })
     ];

@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Locale;
 
+import org.hibernate.annotations.Type;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,6 +35,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.validation.NonZeroFloatConstraint;
 import grafioschtrader.validation.ValidCurrencyCode;
 import grafioschtrader.validation.ValidISIN;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -46,6 +49,7 @@ import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.NamedStoredProcedureQuery;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -63,6 +67,35 @@ public class Security extends Securitycurrency<Security>
     implements Serializable, IFormulaInSecurity, IUDFSupport, AdditionalRights {
 
   public static final String TABNAME = "security";
+
+  @Column(name = "issuer_country")
+  @PropertyAlwaysUpdatable
+  @grafioschtrader.validation.ValidTaxCountryCode
+  private String issuerCountry;
+
+  public String getIssuerCountry() {
+    return issuerCountry;
+  }
+
+  public void setIssuerCountry(String issuerCountry) {
+    this.issuerCountry = issuerCountry == null || issuerCountry.isBlank() ? null
+        : issuerCountry.trim().toUpperCase(Locale.ROOT);
+  }
+
+  @Schema(description = "Optional simulation-only assumptions. Bond terms describe regular fixed-rate coupons.")
+  @Type(JsonType.class)
+  @Column(name = "simulation_metadata", columnDefinition = "json")
+  @PropertyAlwaysUpdatable
+  @Valid
+  private SecuritySimulationMetadata simulationMetadata;
+
+  public SecuritySimulationMetadata getSimulationMetadata() {
+    return simulationMetadata;
+  }
+
+  public void setSimulationMetadata(SecuritySimulationMetadata simulationMetadata) {
+    this.simulationMetadata = simulationMetadata;
+  }
 
   public static final String SPLIT_ARRAY = "splitPropose";
   public static final String HISTORYQUOTE_PERIOD_ARRAY = "hpPropose";
@@ -257,8 +290,8 @@ public class Security extends Securitycurrency<Security>
     this.stockexchange = stockexchange;
     this.activeFromDate = activeFromDate;
     this.activeToDate = activeToDate;
-    this.distributionFrequency = (distributionFrequency != null ? distributionFrequency
-        : DistributionFrequency.DF_NONE).getValue();
+    this.distributionFrequency = (distributionFrequency != null ? distributionFrequency : DistributionFrequency.DF_NONE)
+        .getValue();
     this.tickerSymbol = tickerSymbol;
     this.isin = isin;
   }
@@ -347,8 +380,8 @@ public class Security extends Securitycurrency<Security>
   }
 
   public void setDistributionFrequency(DistributionFrequency distributionFrequency) {
-    this.distributionFrequency = (distributionFrequency != null ? distributionFrequency
-        : DistributionFrequency.DF_NONE).getValue();
+    this.distributionFrequency = (distributionFrequency != null ? distributionFrequency : DistributionFrequency.DF_NONE)
+        .getValue();
   }
 
   public float getLeverageFactor() {
@@ -435,9 +468,35 @@ public class Security extends Securitycurrency<Security>
   }
 
   @JsonIgnore
+  public boolean isIssuerBearingInstrument() {
+    if (getAssetClass() == null || getAssetClass().getSpecialInvestmentInstrument() == null) {
+      return false;
+    }
+    return switch (getAssetClass().getSpecialInvestmentInstrument()) {
+    case CFD, FOREX, NON_INVESTABLE_INDICES -> false;
+    default -> true;
+    };
+  }
+
+  @JsonIgnore
   public boolean isMarginInstrument() {
     return getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.CFD
         || getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.FOREX;
+  }
+
+  /** Whether a simulation must liquidate this instrument and exclude it from subsequent orders. */
+  @Transient
+  @Schema(description = "CFD, Forex and securities whose leverage factor differs from one are excluded from simulation trading", accessMode = Schema.AccessMode.READ_ONLY)
+  @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
+  public boolean isSimulationTradingExcluded() {
+    return simulationTradingExcluded(getAssetClass() == null ? null : getAssetClass().getSpecialInvestmentInstrument(),
+        leverageFactor);
+  }
+
+  /** Shared rule for current securities and frozen replay inputs; inverse instruments are excluded as well. */
+  public static boolean simulationTradingExcluded(SpecialInvestmentInstruments instrument, double leverage) {
+    return instrument == SpecialInvestmentInstruments.CFD || instrument == SpecialInvestmentInstruments.FOREX
+        || leverage != 1;
   }
 
   @JsonIgnore
@@ -577,6 +636,12 @@ public class Security extends Securitycurrency<Security>
     }
     if (this.stockexchange.isNoMarketValue() || leverageFactor == 0f) {
       this.leverageFactor = 1;
+    }
+    if (!isBondDirectInvestment()) {
+      simulationMetadata = null;
+    }
+    if (!isIssuerBearingInstrument()) {
+      issuerCountry = null;
     }
   }
 

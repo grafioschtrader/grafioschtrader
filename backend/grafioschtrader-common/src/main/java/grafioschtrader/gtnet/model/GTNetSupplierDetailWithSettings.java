@@ -6,9 +6,8 @@ import grafioschtrader.entities.GTNetSupplierDetailLast;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Wraps a {@link GTNetSupplierDetail} with its optional child settings.
- * Since the parent entity (in grafiosch-base) cannot hold direct references to these grafioschtrader-common
- * entities, this DTO combines them for the REST response.
+ * Wraps a {@link GTNetSupplierDetail} with its optional child settings. Since the parent entity (in grafiosch-base)
+ * cannot hold direct references to these grafioschtrader-common entities, this DTO combines them for the REST response.
  */
 @Schema(description = """
     Combines a GTNetSupplierDetail with its optional historical and intraday settings.

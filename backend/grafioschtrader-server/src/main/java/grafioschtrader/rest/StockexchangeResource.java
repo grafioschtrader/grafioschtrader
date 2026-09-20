@@ -66,5 +66,4 @@ public class StockexchangeResource extends UpdateCreateDeleteAuditResource<Stock
     return stockexchangeJpaRepository;
   }
 
-
 }

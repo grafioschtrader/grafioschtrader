@@ -29,9 +29,8 @@ public class AlgoSecurityResource extends AlgoBaseResource<AlgoSecurity> {
   @Autowired
   private AlgoSecurityJpaRepository algoSecurityJpaRepository;
 
-  @Operation(summary = "Returns all AlgoSecurity entries for the current tenant",
-      description = "Returns all alert securities with their strategies for the tenant alert overview.",
-      tags = { RequestGTMappings.ALGOSECURITY })
+  @Operation(summary = "Returns all AlgoSecurity entries for the current tenant", description = "Returns all alert securities with their strategies for the tenant alert overview.", tags = {
+      RequestGTMappings.ALGOSECURITY })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AlgoSecurity>> getAllForTenant() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -55,6 +54,5 @@ public class AlgoSecurityResource extends AlgoBaseResource<AlgoSecurity> {
   protected UpdateCreateDeleteWithTenantJpaRepository<AlgoSecurity> getUpdateCreateJpaRepository() {
     return algoSecurityJpaRepository;
   }
-
 
 }

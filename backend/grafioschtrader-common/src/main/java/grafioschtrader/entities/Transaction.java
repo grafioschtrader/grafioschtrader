@@ -56,6 +56,66 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   @Column(name = "id_transaction")
   private Integer idTransaction;
 
+  @Schema(description = "Explicit strategy assignment for a security fill; null means unassigned")
+  @Column(name = "id_algo_strategy")
+  private Integer idAlgoStrategy;
+
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  @Column(name = "algo_fill_id")
+  private String algoFillId;
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  @Column(name = "algo_signal_id")
+  private String algoSignalId;
+
+  /** Internal fill evidence: tranche quantities fixed by the executed signal, never writable through REST. */
+  @JsonIgnore
+  @Column(name = "algo_tranche_targets")
+  private String algoTrancheTargets;
+
+  public String getAlgoTrancheTargets() {
+    return algoTrancheTargets;
+  }
+
+  public void setAlgoTrancheTargets(String value) {
+    algoTrancheTargets = value;
+  }
+
+  public String getAlgoFillId() {
+    return algoFillId;
+  }
+
+  public void setAlgoFillId(String value) {
+    algoFillId = value;
+  }
+
+  public String getAlgoSignalId() {
+    return algoSignalId;
+  }
+
+  public void setAlgoSignalId(String value) {
+    algoSignalId = value;
+  }
+
+  public Integer getIdAlgoStrategy() {
+    return idAlgoStrategy;
+  }
+
+  public void setIdAlgoStrategy(Integer value) {
+    idAlgoStrategy = value;
+  }
+
+  @Column(name = "simulation_opening")
+  private boolean simulationOpening;
+
+  @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
+  public boolean isSimulationOpening() {
+    return simulationOpening;
+  }
+
+  public void setSimulationOpening(boolean opening) {
+    simulationOpening = opening;
+  }
+
   @Schema(description = """
       Quantity when buying and selling securities or the number of days when financing costs
       The value is always positive when selling or buying a position.""")
@@ -209,10 +269,10 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   private Double splitFactorFromBaseTransaction = 1.0;
 
   /**
-   * Maximum cash-amount difference accepted as a rounding artifact during cash-amount validation (the import
-   * template's calcRounding tolerance). When set and the calculated amount deviates from the booked amount by no
-   * more than this value, the residual is recorded in {@link #cashaccountRoundingDiff} instead of failing. Null
-   * (the default for manually entered transactions) means strict validation.
+   * Maximum cash-amount difference accepted as a rounding artifact during cash-amount validation (the import template's
+   * calcRounding tolerance). When set and the calculated amount deviates from the booked amount by no more than this
+   * value, the residual is recorded in {@link #cashaccountRoundingDiff} instead of failing. Null (the default for
+   * manually entered transactions) means strict validation.
    */
   @JsonIgnore
   @Transient
@@ -257,7 +317,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   /**
    * Main constructor for creating comprehensive security transactions with all possible parameters. Used for
    * transactions involving securities, currency exchanges, and various costs.
-   * 
+   *
    * @param idSecurityaccount     the security account ID for the transaction
    * @param cashAccount           the cash account affected by the transaction
    * @param security              the security being traded (null for cash-only transactions)
@@ -424,8 +484,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * The business date of this transaction. It is the authoritative date for everything that is derived from a
    * transaction — in particular the period boundaries of the {@code hold_*} tables — because it is frozen when the
    * entity is written and, unlike {@code transactionTime}, never re-derived. {@code transactionTime} is stored in a
-   * {@code TIMESTAMP} column and is therefore rendered in the database session's time zone, so moving the database to
-   * a host in another zone silently shifts it.
+   * {@code TIMESTAMP} column and is therefore rendered in the database session's time zone, so moving the database to a
+   * host in another zone silently shifts it.
    *
    * <p>
    * Falls back to the date part of {@code transactionTime} while the entity has not been persisted yet, because
@@ -434,8 +494,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * @return the transaction date, or null when neither date nor time is set
    */
   public LocalDate getTransactionDate() {
-    return transactionDate != null ? transactionDate
-        : (transactionTime == null ? null : transactionTime.toLocalDate());
+    return transactionDate != null ? transactionDate : (transactionTime == null ? null : transactionTime.toLocalDate());
   }
 
   @JsonIgnore
@@ -655,8 +714,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
   }
 
   /**
-   * Same as {@link #getExchangeRateOnCurrency(String, DateTransactionCurrencypairMap)}, but reports an unavailable
-   * rate as null instead of aborting.
+   * Same as {@link #getExchangeRateOnCurrency(String, DateTransactionCurrencypairMap)}, but reports an unavailable rate
+   * as null instead of aborting.
    *
    * <p>
    * A report that shows several currencies side by side uses this to keep going when one of them cannot be converted,
@@ -728,7 +787,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * Calculates cost and tax amounts in the main currency and optionally computes the base price. Converts transaction
    * costs and tax costs using appropriate exchange rates and populates the security cost position object with the
    * calculated values.
-   * 
+   *
    * @param mc                         the main currency for conversions
    * @param securityCostPosition       the cost position object to populate with calculated values
    * @param dateTransactionCurrencyMap currency mapping context for exchange rate lookups
@@ -800,7 +859,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * Validates that the cash account amount matches the calculated amount based on transaction details. Performs
    * different validation logic for margin instruments versus general securities and can optionally auto-correct small
    * discrepancies by adjusting quotation or exchange rate.
-   * 
+   *
    * @param openPositionMarginTransaction the original margin position transaction (for margin closures)
    * @param currencyFraction              the number of decimal places for currency rounding
    * @throws DataViolationException if calculated amount doesn't match the recorded amount
@@ -840,9 +899,8 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
     // "Accept difference total" action) or bounded by the template's calcRounding tolerance. Differences that are
     // neither explicitly accepted nor within the tolerance still fail below.
     if (roundCashaccountAmount != calcCashaccountAmount && cashaccountRoundingDiff == null
-        && (roundingDiffExplicitlyAccepted || (acceptableRoundingStep != null
-            && Math.abs(calcCashaccountAmount - roundCashaccountAmount) <= acceptableRoundingStep
-                + ROUNDING_STEP_EPSILON))) {
+        && (roundingDiffExplicitlyAccepted || (acceptableRoundingStep != null && Math
+            .abs(calcCashaccountAmount - roundCashaccountAmount) <= acceptableRoundingStep + ROUNDING_STEP_EPSILON))) {
       cashaccountRoundingDiff = calcCashaccountAmount - roundCashaccountAmount;
       calcCashaccountAmount = roundCashaccountAmount;
     }
@@ -871,7 +929,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * Validates and calculates the cash account amount for margin instrument transactions. Handles different scenarios:
    * opening new positions, closing positions, and finance costs. For new positions, calculates security risk and
    * ensures cash account reflects only costs.
-   * 
+   *
    * @param openPositionMarginTransaction the original margin position transaction (for closures)
    * @return the calculated cash account amount for the margin transaction
    * @throws DataViolationException if calculated security risk doesn't match the recorded value
@@ -910,7 +968,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * Corrects small discrepancies in transaction amounts by adjusting either the currency exchange rate or the quotation
    * price. Prioritizes adjusting exchange rate if a currency pair is involved, otherwise adjusts the quotation. Logs
    * the correction for audit purposes.
-   * 
+   *
    * @param diff         the amount difference that needs to be corrected
    * @param buyQuotation the original buy quotation for margin calculations
    */
@@ -944,7 +1002,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * Calculates the transaction amount in the security's currency before applying exchange rate conversion. Handles the
    * sign convention where accumulate transactions are negative (cash outflow) and reduce/dividend transactions are
    * positive (cash inflow). Includes all associated costs.
-   * 
+   *
    * @param buyQuotation the original buy quotation for margin position calculations
    * @return transaction amount in security currency including all costs and fees
    */

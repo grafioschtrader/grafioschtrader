@@ -12,12 +12,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * Concrete standing order subclass for security transactions (ACCUMULATE and REDUCE). Supports two mutually
- * exclusive purchasing modes:
+ * Concrete standing order subclass for security transactions (ACCUMULATE and REDUCE). Supports two mutually exclusive
+ * purchasing modes:
  * <ul>
- *   <li><b>Unit-based</b>: {@code units} is set, {@code investAmount} is null — buys/sells a fixed number of units</li>
- *   <li><b>Amount-based</b>: {@code investAmount} is set, {@code units} is null — invests a fixed cash amount,
- *       units are calculated at execution time from the current price</li>
+ * <li><b>Unit-based</b>: {@code units} is set, {@code investAmount} is null — buys/sells a fixed number of units</li>
+ * <li><b>Amount-based</b>: {@code investAmount} is set, {@code units} is null — invests a fixed cash amount, units are
+ * calculated at execution time from the current price</li>
  * </ul>
  * Maps to the {@code standing_order_security} join table in the JOINED inheritance hierarchy.
  */

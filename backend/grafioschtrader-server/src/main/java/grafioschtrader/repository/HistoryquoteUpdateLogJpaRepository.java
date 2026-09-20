@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import grafioschtrader.entities.HistoryquoteUpdateLog;
 
 /**
- * Repository for managing historical price update log entries. Provides methods to query
- * the update history per stock exchange and retrieve recent update records for monitoring.
+ * Repository for managing historical price update log entries. Provides methods to query the update history per stock
+ * exchange and retrieve recent update records for monitoring.
  */
 public interface HistoryquoteUpdateLogJpaRepository extends JpaRepository<HistoryquoteUpdateLog, Integer> {
 
@@ -21,8 +21,8 @@ public interface HistoryquoteUpdateLogJpaRepository extends JpaRepository<Histor
   List<HistoryquoteUpdateLog> findByIdStockexchangeOrderByUpdateTimestampDesc(Integer idStockexchange);
 
   /**
-   * Retrieves the most recent 100 update log entries across all exchanges.
-   * Useful for monitoring overall system activity and recent update history.
+   * Retrieves the most recent 100 update log entries across all exchanges. Useful for monitoring overall system
+   * activity and recent update history.
    *
    * @return list of the 100 most recent update log entries, ordered by timestamp descending
    */

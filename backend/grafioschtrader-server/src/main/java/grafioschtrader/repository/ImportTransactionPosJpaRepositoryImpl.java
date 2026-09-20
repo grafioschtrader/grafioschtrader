@@ -28,11 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DataHelper;
 import grafiosch.entities.User;
 import grafiosch.error.ValidationError;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
-import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.rest.helper.RestHelper;
 import grafiosch.service.DailyLimitService;
 import grafiosch.service.EntityLimitService;
@@ -58,11 +58,13 @@ import jakarta.persistence.PersistenceContext;
 
 /**
  * Implementation of custom repository operations for import transaction position management and lifecycle processing.
- * 
- * <p>This class serves as the core business logic layer for converting imported financial transaction data
- * into validated, permanent transaction records. It handles the entire import transaction lifecycle from
- * initial data validation through final transaction creation, including sophisticated correction mechanisms,
- * duplicate detection, and multi-currency support.</p>
+ *
+ * <p>
+ * This class serves as the core business logic layer for converting imported financial transaction data into validated,
+ * permanent transaction records. It handles the entire import transaction lifecycle from initial data validation
+ * through final transaction creation, including sophisticated correction mechanisms, duplicate detection, and
+ * multi-currency support.
+ * </p>
  */
 public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionPosJpaRepositoryCustom {
 
@@ -95,9 +97,6 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
-
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
@@ -197,7 +196,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Generic utility method for setting values on multiple import transaction positions with security validation. This
    * method provides a reusable pattern for batch updates while ensuring tenant security and proper readiness status
    * recalculation after each modification.
-   * 
+   *
    * @param <V>                  The type of value being set on the import positions
    * @param idTenant             The tenant ID for security validation
    * @param idTransactionPosList List of import position IDs to update
@@ -251,12 +250,12 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Applies data correction functions to import positions with calculation discrepancies. This utility method provides
    * a reusable pattern for correction operations that only apply to positions with non-zero cash account amount
    * differences.
-   * 
+   *
    * <p>
    * The method filters positions to only process those belonging to the authenticated user and having actual
    * calculation differences, then applies the specified correction function and updates the readiness status.
    * </p>
-   * 
+   *
    * @param <V>                  Generic type parameter for flexibility
    * @param idTransactionPosList List of import position IDs to process
    * @param adjuster             Consumer function that applies the specific correction logic
@@ -285,12 +284,12 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * automatically identifies existing transactions that may match the import positions based on security, transaction
    * type, cash account, date, units, and amounts. It helps users identify potential duplicates before creating new
    * transactions.
-   * 
+   *
    * <p>
    * The method queries for potential matches and updates only positions that haven't been explicitly marked as "not
    * duplicates" (idTransactionMaybe != 0). Positions with confirmed non-duplicate status retain their setting.
    * </p>
-   * 
+   *
    * @param idTransactionHead        The transaction header ID to process
    * @param importTransactionPosList List of import positions to check for duplicates
    */
@@ -317,7 +316,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Saves import transaction positions and updates their readiness status with duplicate detection. This method
    * performs the critical step of determining transaction readiness while also identifying potential duplicate
    * transactions for user review.
-   * 
+   *
    * <p>
    * The method:
    * </p>
@@ -328,7 +327,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * <li>Preserves user-confirmed non-duplicate settings (idTransactionMaybe = 0)</li>
    * <li>Saves all positions with updated status</li>
    * </ul>
-   * 
+   *
    * @param importTransactionPosList List of import positions to save and validate
    * @return Updated list of saved import transaction positions with readiness and duplicate status
    */
@@ -389,10 +388,10 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
   /**
    * Automatically accepts a small calculation difference when it lies within the rounding tolerance configured in the
-   * import template (calcRounding). Such differences originate from rounding on the trading platform's document
-   * (e.g. {@code 175 * 1.2546 = 219.555} booked as {@code 219.56}). When accepted, the imported amount is booked to
-   * the cash account and the residual difference is later recorded on the transaction. Has no effect when the
-   * template configures no tolerance, the difference is zero, or the user already decided on the difference.
+   * import template (calcRounding). Such differences originate from rounding on the trading platform's document (e.g.
+   * {@code 175 * 1.2546 = 219.555} booked as {@code 219.56}). When accepted, the imported amount is booked to the cash
+   * account and the residual difference is later recorded on the transaction. Has no effect when the template
+   * configures no tolerance, the difference is zero, or the user already decided on the difference.
    *
    * @param itp the import position whose calculation difference is evaluated
    */
@@ -409,7 +408,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Adjusts weekend dates for dividend payments to ensure compliance with business day requirements. Since dividend
    * payments typically occur on business days, this method moves Saturday payments to Friday and Sunday payments to
    * Monday to align with standard trading calendar practices.
-   * 
+   *
    * @param date Date to be checked and potentially adjusted
    * @return Adjusted date: Friday for Saturday dates, Monday for Sunday dates, unchanged for weekdays
    */
@@ -426,6 +425,9 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   @Override
   public void addPossibleExchangeRateForDividend(ImportTransactionHead importTransactionHead,
       ImportTransactionPos itp) {
+    if (convertDividendToCashCurrency(itp)) {
+      setCheckReadyForSingleTransaction(itp);
+    }
     if (itp.isReadyForTransaction() && itp.getTransactionType() == TransactionType.DIVIDEND
         && itp.getCurrencyExRate() == null
         && !itp.getSecurity().getCurrency().equals(itp.getCashaccount().getCurrency())) {
@@ -448,12 +450,12 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Validates that all connected import transactions are included in the processing batch. This method ensures that
    * cash account transfer transactions, which require both withdrawal and deposit positions, have all their connected
    * components available for processing.
-   * 
+   *
    * <p>
    * Connected transactions represent paired operations like cash transfers between accounts where both sides must be
    * processed together to maintain transaction integrity.
    * </p>
-   * 
+   *
    * @param importTransactionPosList List of import positions to validate for connected transactions
    * @return Map of position IDs to import positions for efficient connected transaction lookup
    * @throws GeneralNotTranslatedWithArgumentsException if connected transactions are missing from the batch
@@ -504,6 +506,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
               && itp.getIdTransactionHead().equals(importTransactionHead.getIdTransactionHead())
               && itp.getCashaccount().getIdTenant().equals(user.getIdTenant())) {
             adjustBondUnitsAndQuotation(importTransactionHead, itp);
+            convertDividendToCashCurrency(itp);
             correctSecurityCurrencyMissmatch(importTransactionHead, itp);
             idCurrencypair = setPossibleMissingCurrencyExRate(itp);
 
@@ -621,13 +624,13 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Adjusts bond transaction units and quotations based on existing portfolio holdings. This method handles the
    * scenario where bond transactions are imported with unit=1 but should reflect the actual holding quantity. It looks
    * up existing holdings and adjusts both units and quotation to match the portfolio position.
-   * 
+   *
    * <p>
    * This correction is necessary because some trading platforms report bond transactions differently than the actual
    * holding structure, requiring adjustment based on the current portfolio state to maintain accurate transaction
    * records.
    * </p>
-   * 
+   *
    * @param importTransactionHead The transaction header containing portfolio context
    * @param itp                   The import transaction position to potentially adjust
    */
@@ -647,13 +650,13 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Resolves security currency mismatches by selecting the correct security based on portfolio holdings. When a
    * security exists in multiple currencies (same ISIN, different currencies), this method determines the correct
    * security by examining the portfolio's actual holdings and matching against the ISIN/currency combination.
-   * 
+   *
    * <p>
    * This resolution is necessary when import templates cannot distinguish between securities with the same ISIN but
    * different trading currencies. The method uses portfolio holdings as the authoritative source for determining the
    * correct security currency.
    * </p>
-   * 
+   *
    * @param importTransactionHead The transaction header containing portfolio context
    * @param itp                   The import transaction position with potential currency mismatch
    */
@@ -669,10 +672,66 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   /**
+   * Represents a foreign-currency dividend entirely in the document's cash account currency. The payout currency
+   * supplies the units for the amounts, while ISIN and cash currency identify the target security independently of
+   * holdings. The explicit document rate converts quotation and costs; the cash credit must reconcile after rounding.
+   * Also runs on retries of positions imported before this correction.
+   */
+  private boolean convertDividendToCashCurrency(ImportTransactionPos itp) {
+    Double rate = itp.getCurrencyExRate();
+    String sourceCurrency = itp.getCurrencySecurity();
+    if (itp.getIdTransaction() != null || itp.getTransactionType() != TransactionType.DIVIDEND || itp.getIsin() == null
+        || itp.getCashaccount() == null || itp.getQuotation() == null || itp.getUnits() == null
+        || itp.getCashaccountAmount() == null || itp.getAccruedInterest() != null || sourceCurrency == null
+        || rate == null || !Double.isFinite(rate) || rate <= 0
+        || !Objects.equals(itp.getCurrencyAccount(), itp.getCashaccount().getCurrency())
+        || sourceCurrency.equals(itp.getCurrencyAccount())) {
+      return false;
+    }
+    String costCurrency = itp.getCurrencyCost();
+    if (costCurrency != null && !costCurrency.equals(sourceCurrency)
+        && !costCurrency.equals(itp.getCurrencyAccount())) {
+      return false;
+    }
+    Security target = securityJpaRepository.findByIsinAndCurrency(itp.getIsin(), itp.getCurrencyAccount());
+    if (target == null) {
+      return false;
+    }
+    return normalizeDividendToCashCurrency(itp, target, rate, costCurrency);
+  }
+
+  private boolean normalizeDividendToCashCurrency(ImportTransactionPos itp, Security target, double rate,
+      String costCurrency) {
+    double quotation = DataHelper.round(itp.getQuotation() * rate, BaseConstants.FID_MAX_FRACTION_DIGITS);
+    double costRate = costCurrency == null || costCurrency.equals(itp.getCurrencySecurity()) ? rate : 1;
+    Double tax = convertDividendCost(itp.getTaxCost(), costRate);
+    Double fees = convertDividendCost(itp.getTransactionCost(), costRate);
+    double cash = DataBusinessHelper.roundStandard(DataBusinessHelper.roundStandard(itp.getUnits() * quotation)
+        - (tax == null ? 0 : tax) - (fees == null ? 0 : fees));
+    if (!Double.isFinite(cash) || Math.abs(cash - itp.getCashaccountAmount()) > ROUNDING_TOLERANCE_EPSILON) {
+      return false;
+    }
+    itp.setQuotation(quotation);
+    itp.setTaxCost(tax, null, false);
+    itp.setTransactionCost(fees);
+    itp.setCurrencyCost(costCurrency == null ? null : target.getCurrency());
+    itp.setCurrencySecurity(target.getCurrency());
+    itp.setCurrencyExRate(null);
+    itp.setSecurityRemoveFromFlag(target);
+    itp.removeKnowOtherFlags(ImportKnownOtherFlags.CAN_CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE);
+    itp.calcDiffCashaccountAmountWhenPossible();
+    return true;
+  }
+
+  private Double convertDividendCost(Double cost, double rate) {
+    return cost == null ? null : DataBusinessHelper.roundStandard(cost * rate);
+  }
+
+  /**
    * Retrieves security holdings from the portfolio for validation and correction purposes. This method looks up
    * holdings based on ISIN, security account, and date to support various correction scenarios like currency mismatch
    * resolution and bond adjustments.
-   * 
+   *
    * @param importTransactionHead The transaction header containing portfolio context
    * @param itp                   The import transaction position requiring holdings lookup
    * @param unitsMustMatch        Whether to filter holdings by exact unit match (for bond adjustments)
@@ -680,7 +739,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    */
   private Optional<HoldSecurityaccountSecurity> getHoldings(ImportTransactionHead importTransactionHead,
       ImportTransactionPos itp, boolean unitsMustMatch) {
-    LocalDate exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate() : itp.getTransactionTime().toLocalDate();
+    LocalDate exDateOrTransactionDate = itp.getExDate() != null ? itp.getExDate()
+        : itp.getTransactionTime().toLocalDate();
     List<HoldSecurityaccountSecurity> hssList = holdSecurityaccountSecurityJpaRepository
         .getByISINAndSecurityAccountAndDate(itp.getIsin(),
             importTransactionHead.getSecurityaccount().getIdSecuritycashAccount(), exDateOrTransactionDate);
@@ -692,7 +752,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Automatically sets missing currency exchange rates for dividend transactions in foreign currencies. This method
    * handles ETF and fund dividends that are paid in a different currency than the security's trading currency,
    * requiring automatic exchange rate lookup and application.
-   * 
+   *
    * <p>
    * The method:
    * </p>
@@ -702,7 +762,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * <li>Applies exchange rates to dividend amounts and tax costs</li>
    * <li>Adjusts quotations for currency conversion</li>
    * </ul>
-   * 
+   *
    * @param itp The import transaction position requiring exchange rate calculation
    * @return The currency pair ID used for the exchange rate, or null if no rate was needed
    */
@@ -718,7 +778,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       Integer idCurrencypair = this.currencypairJpaRepository.findOrCreateCurrencypairByFromAndToCurrency(
           currencypair.getFromCurrency(), currencypair.getToCurrency(), true).getIdSecuritycurrency();
       ISecuritycurrencyIdDateClose idc = historyquoteJpaRepository
-          .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime().toLocalDate(), false);
+          .getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(idCurrencypair, itp.getTransactionTime().toLocalDate(),
+              false);
       itp.setCurrencyExRate(idc.getClose());
       if (itp.getTaxCost() != null) {
         itp.setTaxCost(itp.getTaxCost() / idc.getClose(), 0.0, false);
@@ -733,7 +794,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Determines and loads currency pairs for multi-currency transactions with exchange rates. This method identifies the
    * appropriate currency pair based on transaction type and manages efficient currency pair loading for batch
    * operations.
-   * 
+   *
    * <p>
    * Currency pair determination logic:
    * </p>
@@ -742,7 +803,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * <li><b>DEPOSIT:</b> From connected transaction currency to transaction currency</li>
    * <li><b>Other types:</b> From security currency to cash account currency</li>
    * </ul>
-   * 
+   *
    * @param itp                            The import transaction position with exchange rate information
    * @param idItpMap                       Map of connected import positions for transfer transactions
    * @param currencypairs                  Pre-loaded currency pairs for efficiency (may be null)
@@ -787,7 +848,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * Creates and saves cash account transfer transactions from paired import positions. This method handles the
    * coordination of withdrawal and deposit transactions that represent money transfers between cash accounts, ensuring
    * both sides are created atomically with proper transaction linking.
-   * 
+   *
    * <p>
    * The method:
    * </p>
@@ -797,7 +858,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * <li>Ensures proper transaction sequencing and reference linking</li>
    * <li>Updates import positions with created transaction IDs</li>
    * </ul>
-   * 
+   *
    * @param importTransactionHead The transaction header containing context
    * @param itpList               Array of exactly two import positions (withdrawal and deposit)
    * @param user                  The authenticated user for tenant validation
@@ -841,24 +902,25 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     return sip;
   }
 
-
   /**
-   * Creates and saves a single financial transaction from an import position with error handling.
-   * This method converts a validated import position into a permanent transaction record,
-   * applying proper transactional boundaries and comprehensive error handling for data violations.
-   * 
-   * <p>The method executes within a transaction template to ensure:</p>
+   * Creates and saves a single financial transaction from an import position with error handling. This method converts
+   * a validated import position into a permanent transaction record, applying proper transactional boundaries and
+   * comprehensive error handling for data violations.
+   *
+   * <p>
+   * The method executes within a transaction template to ensure:
+   * </p>
    * <ul>
-   *   <li>Atomic transaction creation or update</li>
-   *   <li>Proper rollback on validation errors</li>
-   *   <li>Error capture and storage for user feedback</li>
-   *   <li>Import position updates with transaction references</li>
+   * <li>Atomic transaction creation or update</li>
+   * <li>Proper rollback on validation errors</li>
+   * <li>Error capture and storage for user feedback</li>
+   * <li>Import position updates with transaction references</li>
    * </ul>
-   * 
+   *
    * @param importTransactionHead The transaction header containing context
-   * @param itp The import transaction position to convert
-   * @param user The authenticated user for tenant validation
-   * @param idCurrencypair The currency pair ID for multi-currency transactions
+   * @param itp                   The import transaction position to convert
+   * @param user                  The authenticated user for tenant validation
+   * @param idCurrencypair        The currency pair ID for multi-currency transactions
    * @return Optional containing the saved transaction and position pair, empty if creation failed
    */
   private Optional<SavedImpPosAndTransaction> saveSingleTransaction(ImportTransactionHead importTransactionHead,
@@ -917,8 +979,8 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * margin instrument must reference the opening transaction via connectedIdTransaction, otherwise the transaction
    * validation treats it as an opening position and fails. Since import documents carry no reference to the opening
    * transaction, the open position is determined from the existing margin transactions of the security account: the
-   * link is set only when exactly one position is open at the transaction time. With none or several open positions
-   * the import position is failed with a translated error, so the user creates the transaction manually.
+   * link is set only when exactly one position is open at the transaction time. With none or several open positions the
+   * import position is failed with a translated error, so the user creates the transaction manually.
    *
    * @param importTransactionHead the transaction header providing the target security account
    * @param itp                   the import position of type FINANCE_COST
@@ -946,19 +1008,21 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   /**
-   * Captures and stores detailed error information for failed transaction creation attempts.
-   * This method processes validation exceptions and converts them into user-friendly error
-   * messages stored on the import position for troubleshooting and correction guidance.
-   * 
-   * <p>Error information includes:</p>
+   * Captures and stores detailed error information for failed transaction creation attempts. This method processes
+   * validation exceptions and converts them into user-friendly error messages stored on the import position for
+   * troubleshooting and correction guidance.
+   *
+   * <p>
+   * Error information includes:
+   * </p>
    * <ul>
-   *   <li>Field-specific validation failure details</li>
-   *   <li>Constraint violation descriptions</li>
-   *   <li>Business rule validation messages</li>
-   *   <li>Formatted error text for user display</li>
+   * <li>Field-specific validation failure details</li>
+   * <li>Constraint violation descriptions</li>
+   * <li>Business rule validation messages</li>
+   * <li>Formatted error text for user display</li>
    * </ul>
-   * 
-   * @param itp The import transaction position that failed transaction creation
+   *
+   * @param itp  The import transaction position that failed transaction creation
    * @param dvex The data violation exception containing detailed error information
    */
   private void saveTransactionErrors(ImportTransactionPos itp, DataViolationException dvex) {
@@ -1006,32 +1070,36 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
   }
 
   /**
-   * Data holder class that links a successfully created transaction with its corresponding import position.
-   * This class serves as a return type for transaction creation operations, providing both the
-   * permanent transaction record and the updated import position that references it.
-   * 
-   * <p>This pairing is essential for:</p>
+   * Data holder class that links a successfully created transaction with its corresponding import position. This class
+   * serves as a return type for transaction creation operations, providing both the permanent transaction record and
+   * the updated import position that references it.
+   *
+   * <p>
+   * This pairing is essential for:
+   * </p>
    * <ul>
-   *   <li>Tracking the relationship between import data and created transactions</li>
-   *   <li>Providing feedback on successful transaction creation</li>
-   *   <li>Supporting rollback operations if needed</li>
-   *   <li>Maintaining audit trails for import processing</li>
+   * <li>Tracking the relationship between import data and created transactions</li>
+   * <li>Providing feedback on successful transaction creation</li>
+   * <li>Supporting rollback operations if needed</li>
+   * <li>Maintaining audit trails for import processing</li>
    * </ul>
-   * 
-   * <p>The class uses public fields for simplicity and performance, as it serves as a
-   * data transfer object within the import processing workflow.</p>
+   *
+   * <p>
+   * The class uses public fields for simplicity and performance, as it serves as a data transfer object within the
+   * import processing workflow.
+   * </p>
    */
   public static class SavedImpPosAndTransaction {
     /** The successfully created or updated transaction record */
     public Transaction transaction;
-    
+
     /** The import position that was converted to the transaction, now containing transaction reference */
     public ImportTransactionPos importTransactionPos;
 
     /**
      * Creates a new link between a saved transaction and its corresponding import position.
-     * 
-     * @param transaction The successfully created or updated transaction
+     *
+     * @param transaction          The successfully created or updated transaction
      * @param importTransactionPos The import position that was converted, updated with transaction ID
      */
     public SavedImpPosAndTransaction(Transaction transaction, ImportTransactionPos importTransactionPos) {

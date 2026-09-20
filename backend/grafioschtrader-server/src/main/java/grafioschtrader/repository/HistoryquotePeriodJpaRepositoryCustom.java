@@ -26,7 +26,6 @@ public interface HistoryquotePeriodJpaRepositoryCustom {
    */
   void adjustHistoryquotePeriod(Security security);
 
- 
   /**
    * Deletes existing user-created history quote periods for a security and creates new ones based on the provided list.
    * If the user has direct editing rights for the security, changes are applied immediately. Otherwise, a change

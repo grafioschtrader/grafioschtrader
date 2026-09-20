@@ -14,6 +14,7 @@ import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Security;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
 import grafioschtrader.reportviews.TransactionsMarginOpenUnits;
+import grafioschtrader.types.AlgoRecommendationAction;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -22,7 +23,34 @@ import io.swagger.v3.oas.annotations.media.Schema;
  *
  */
 public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Security> {
-  
+
+  /**
+   * Target share of total net equity in percentage points, from the AlgoTop selected on the report. Null on every
+   * report that is not a rebalancing comparison, which is what keeps its columns out of the other groupings.
+   */
+  @Schema(description = "Target share of total net equity in percentage points; only set on the rebalancing report")
+  public Double targetPercentage;
+  public Double parentDeviation;
+  public Double securityDeviationPercentage;
+
+  @Schema(description = "Actual share of total net equity in percentage points, measured as gross exposure")
+  public Double actualPercentage;
+
+  @Schema(description = "Actual minus target, in percentage points")
+  public Double deviationPercentage;
+
+  @Schema(description = "Direction of the proposed trade, not of the exposure")
+  public AlgoRecommendationAction recommendedAction;
+
+  @Schema(description = "Size of the proposed trade in main currency")
+  public Double recommendedAmount;
+
+  @Schema(description = "Size of the proposed trade in units; null when the instrument cannot be priced")
+  public Double recommendedUnits;
+
+  @Schema(description = "Locale independent reason token explaining the recommended action")
+  public String recommendationReason;
+
   @Schema(description = "Main portfolio currency for multi-currency normalization")
   public final String mainCurrency;
 
@@ -250,7 +278,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     } else {
       gainLossSecurity = gainLossSecurity + valueSecurity - units * adjustedCostBase / units;
     }
-    transactionGainLossPercentage = DataBusinessHelper.roundStandard(gainLossSecurity * 100 / adjustedCostBase);
+    transactionGainLossPercentage = DataBusinessHelper.roundPercentage(gainLossSecurity * 100 / adjustedCostBase);
   }
 
   /**
@@ -278,9 +306,9 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    * <p>
    * Everything here is valued at the one reporting date rate, which is what makes {@link #gainLossSecurityMC} and
    * {@link #gainLossCurrencyMC} add up to the actual main currency result of the position: the first carries the
-   * performance measured in the security currency, the second the drift of the invested money against the rates it
-   * was originally booked at. The cash account side computes its own currency result the same way, so the two
-   * reports measure with the same ruler.
+   * performance measured in the security currency, the second the drift of the invested money against the rates it was
+   * originally booked at. The cash account side computes its own currency result the same way, so the two reports
+   * measure with the same ruler.
    * </p>
    *
    * @param currencyExchangeRate exchange rate from security currency to main currency
@@ -317,7 +345,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public double getPositionGainLossPercentage() {
     return DataBusinessHelper
-        .roundStandard(securitycurrency.isMarginInstrument() ? (this.gainLossSecurity / this.adjustedCostBase * 100)
+        .roundPercentage(securitycurrency.isMarginInstrument() ? (this.gainLossSecurity / this.adjustedCostBase * 100)
             : transactionGainLossPercentage);
   }
 
@@ -362,5 +390,4 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
         + transactionFlowSC + "]";
   }
 
-  
 }

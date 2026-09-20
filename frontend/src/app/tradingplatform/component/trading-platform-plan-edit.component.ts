@@ -1,4 +1,5 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { TaxMetadataFieldsComponent } from '../../taxdata/component/tax-metadata-fields.component';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -28,6 +29,7 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
+    <tax-metadata-fields entityName="TradingPlatformPlan" [entity]="callParam" />
     <dynamic-form
       [config]="config"
       [formConfig]="formConfig"
@@ -38,9 +40,18 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   </p-dialog>`,
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [DialogModule, DynamicFormModule, TranslateModule]
+  imports: [DialogModule, DynamicFormModule, TranslateModule, TaxMetadataFieldsComponent]
 })
 export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<TradingPlatformPlan> implements OnInit {
+  @ViewChild(TaxMetadataFieldsComponent) taxMetadata: TaxMetadataFieldsComponent;
+
+  override submit(value: { [name: string]: any }): void {
+    if (!this.taxMetadata.transfer({})) {
+      this.configObject.submit.disabled = false;
+      return;
+    }
+    super.submit(value);
+  }
   @Input() callParam: TradingPlatformPlan;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
@@ -118,6 +129,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
     const tradingPlatformPlan = new TradingPlatformPlan();
     this.copyFormToPublicBusinessObject(tradingPlatformPlan, this.callParam, this.proposeChangeEntityWithEntity);
     this.form.cleanMaskAndTransferValuesToBusinessObject(tradingPlatformPlan);
+    this.taxMetadata.transfer(tradingPlatformPlan);
     tradingPlatformPlan.importTransactionPlatform = this.importTransactionPlatformList.find(
       (importTransactionPlatform) =>
         importTransactionPlatform.idTransactionImportPlatform === +value.idTransactionImportPlatform

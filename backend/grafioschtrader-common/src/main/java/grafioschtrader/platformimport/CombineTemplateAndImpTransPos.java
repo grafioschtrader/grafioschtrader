@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class CombineTemplateAndImpTransPos {
   @Schema(description = "The transaction position containing file information and import status")
   public final ImportTransactionPos importTransactionPos;
-  
+
   @Schema(description = "The template used for parsing the transaction document")
   public final ImportTransactionTemplate importTransactionTemplate;
 
@@ -19,7 +19,6 @@ public class CombineTemplateAndImpTransPos {
     this.importTransactionTemplate = importTransactionTemplate;
   }
 
-  
   public boolean isFullPath() {
     return importTransactionPos.getFileNameOriginal().contains("\\")
         || importTransactionPos.getFileNameOriginal().startsWith("/");

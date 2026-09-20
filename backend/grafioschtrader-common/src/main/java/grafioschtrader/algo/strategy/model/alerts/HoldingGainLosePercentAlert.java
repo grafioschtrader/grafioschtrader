@@ -26,15 +26,31 @@ public class HoldingGainLosePercentAlert {
     return gainPercentage;
   }
 
+  public void setGainPercentage(Integer gainPercentage) {
+    this.gainPercentage = gainPercentage;
+  }
+
   public Integer getLosePercentage() {
     return losePercentage;
+  }
+
+  public void setLosePercentage(Integer losePercentage) {
+    this.losePercentage = losePercentage;
   }
 
   public Double getUpperValue() {
     return upperValue;
   }
 
+  public void setUpperValue(Double upperValue) {
+    this.upperValue = upperValue;
+  }
+
   public Double getLowerValue() {
     return lowerValue;
+  }
+
+  public void setLowerValue(Double lowerValue) {
+    this.lowerValue = lowerValue;
   }
 }

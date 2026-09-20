@@ -31,6 +31,8 @@ TWELVEDATA_FREE
 TWELVEDATA_GROW_55
 TWELVEDATA_GROW_144
 TWELVEDATA_GROW_377
+EULERPOOL_FREE
+EULERPOOL_PAID
 
 # --- Deliberate: proper nouns, financial abbreviations and words identical in German ---
 CFD
@@ -80,3 +82,12 @@ c.showOnlyParam1
 # 'Instrument' and 'Split' are the established German terms in this application.
 SECURITYCURRENCY
 SECURITYSPLIT
+
+# --- Deliberate: the movers dashboard cards.
+# 'Instrument' is the established German term here, 'Intraday' the established loan word.
+DASHBOARD_MOVERS_INSTRUMENT
+DASHBOARD_MOVERS_INTRADAY
+
+# --- Deliberate: the status column of the historical replay.
+# "Status" is the identical, established word in German.
+STATUS

@@ -31,7 +31,7 @@ export abstract class AlgoAssetclassSecurityBaseEdit<T> extends SimpleEntityEdit
     messageToastService: MessageToastService,
     serviceEntityUpdate: ServiceEntityUpdate<T>
   ) {
-    super(HelpIds.HELP_ALGO, i18nRecord, translateService, gps, messageToastService, serviceEntityUpdate);
+    super(HelpIds.HELP_ALGO_TREE, i18nRecord, translateService, gps, messageToastService, serviceEntityUpdate);
   }
 
   override onHide(event): void {

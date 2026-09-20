@@ -247,6 +247,15 @@ public class HoldCashaccountBalance extends HoldBase {
     /**
      * Default constructor for JPA.
      */
+    /** Account owning this dated cash balance. */
+    public Integer getIdSecuritycashAccount() {
+      return idSecuritycashAccount;
+    }
+
+    public LocalDate getFromHoldDate() {
+      return fromHoldDate;
+    }
+
     public HoldCashaccountBalanceKey() {
     }
 

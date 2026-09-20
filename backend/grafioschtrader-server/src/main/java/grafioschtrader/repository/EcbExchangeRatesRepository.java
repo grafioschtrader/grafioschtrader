@@ -18,7 +18,8 @@ public interface EcbExchangeRatesRepository extends JpaRepository<EcbExchangeRat
   List<CalcRates> getRatesByFromToDate(String currency, LocalDate fromDate, LocalDate toDate, boolean euroBase);
 
   @Query(nativeQuery = true)
-  List<CalcRates> getCrossCurrencyRateForPeriod(String fromCurrency, String toCurrency, LocalDate fromDate, LocalDate toDate);
+  List<CalcRates> getCrossCurrencyRateForPeriod(String fromCurrency, String toCurrency, LocalDate fromDate,
+      LocalDate toDate);
 
   @Query(nativeQuery = true)
   String[] checkForExistenceCurrencies(String currency1, String currency2);

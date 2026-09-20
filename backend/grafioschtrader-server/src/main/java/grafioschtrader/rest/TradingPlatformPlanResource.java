@@ -61,5 +61,4 @@ public class TradingPlatformPlanResource extends UpdateCreateDeleteAuditResource
     return tradingPlatformPlanJpaRepository;
   }
 
-
 }

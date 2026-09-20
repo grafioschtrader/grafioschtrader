@@ -3,8 +3,8 @@ package grafiosch.gtnet.model.msg;
 /**
  * Application information included in handshake messages.
  *
- * Provides basic metadata about the GTNet server instance including
- * name, description, version, and user capacity information.
+ * Provides basic metadata about the GTNet server instance including name, description, version, and user capacity
+ * information.
  */
 public class ApplicationInfo {
   public String name;

@@ -39,8 +39,8 @@ class ImportTransactionLimitPrePassTest {
   }
 
   /**
-   * The reason an update-only batch can never fail: it adds nothing, so it must succeed however close the tenant is
-   * to its cap.
+   * The reason an update-only batch can never fail: it adds nothing, so it must succeed however close the tenant is to
+   * its cap.
    */
   @Test
   @DisplayName("An update-only batch sums to zero")

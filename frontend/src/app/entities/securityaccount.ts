@@ -8,4 +8,5 @@ export class Securityaccount extends Securitycashaccount {
   tradingPeriods: SecaccountTradingPeriod[] = [];
   lowestTransactionCost = null;
   feeModelYaml?: string = null;
+  taxExemptInvestor?: boolean = null;
 }

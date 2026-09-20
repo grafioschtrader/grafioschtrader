@@ -74,9 +74,9 @@ public class InvestingConnector extends BaseFeedConnector {
 
   public InvestingConnector() {
     super(supportedFeed, INVESTING, "Investing.com", null, EnumSet.of(UrlCheck.INTRADAY));
-    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.NON_INVESTABLE_INDICES,
-        AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF,
-        AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR,
+        AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME,
+        AssetclassCategory.ETF, AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
   }
 
   @Override
@@ -158,8 +158,8 @@ public class InvestingConnector extends BaseFeedConnector {
     // Investing.com displays LSE quotes in pence (labeled "GBP" but numerically GBX); divide to the major currency.
     final double divider = FeedConnectorHelper.getMinorUnitDivider(securitycurrency);
     securitycurrency.setSLast(FeedConnectorHelper.parseDoubleUS(numbers[0 + offset]) / divider);
-    securitycurrency.setSOpen(DataBusinessHelper.round(
-        securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset]) / divider));
+    securitycurrency.setSOpen(DataBusinessHelper
+        .round(securitycurrency.getSLast() - FeedConnectorHelper.parseDoubleUS(numbers[1 + offset]) / divider));
     securitycurrency.setSChangePercentage(FeedConnectorHelper.parseDoubleUS(numbers[2 + offset]));
     securitycurrency.setSTimestamp(LocalDateTime.now().minusSeconds(getIntradayDelayedSeconds()));
   }
@@ -208,8 +208,8 @@ public class InvestingConnector extends BaseFeedConnector {
 
     if (historyquotes.size() >= MAX_ROWS_DELIVERD - 1
         && ChronoUnit.DAYS.between(historyquotes.get(0).getDate(), to) > 2) {
-      historyquotes.addAll(getEodHistoryLimitedRows(securitycurreny,
-          historyquotes.get(0).getDate().plusDays(1), to, guid, expectVolume));
+      historyquotes.addAll(getEodHistoryLimitedRows(securitycurreny, historyquotes.get(0).getDate().plusDays(1), to,
+          guid, expectVolume));
     }
     return historyquotes;
   }

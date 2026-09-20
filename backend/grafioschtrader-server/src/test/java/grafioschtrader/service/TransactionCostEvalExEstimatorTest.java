@@ -11,8 +11,8 @@ import grafioschtrader.dto.TransactionCostEstimateRequest;
 import grafioschtrader.dto.TransactionCostEstimateResult;
 
 /**
- * Tests for EvalEx-based fee model evaluation without Spring context.
- * Uses {@link TransactionCostEvalExEstimator#evaluateYaml(String, TransactionCostEstimateRequest)} directly.
+ * Tests for EvalEx-based fee model evaluation without Spring context. Uses
+ * {@link TransactionCostEvalExEstimator#evaluateYaml(String, TransactionCostEstimateRequest)} directly.
  */
 class TransactionCostEvalExEstimatorTest {
 
@@ -502,16 +502,15 @@ class TransactionCostEvalExEstimatorTest {
 
   // ---------- Helper ----------
 
-  private TransactionCostEstimateRequest buildRequest(Double tradeValue, Double units,
-      Integer specInvestInstrument, Integer categoryType, String mic, String currency,
-      Double fixedAssets, Integer tradeDirection) {
-    return buildRequest(tradeValue, units, specInvestInstrument, categoryType, mic, currency,
-        fixedAssets, tradeDirection, null);
+  private TransactionCostEstimateRequest buildRequest(Double tradeValue, Double units, Integer specInvestInstrument,
+      Integer categoryType, String mic, String currency, Double fixedAssets, Integer tradeDirection) {
+    return buildRequest(tradeValue, units, specInvestInstrument, categoryType, mic, currency, fixedAssets,
+        tradeDirection, null);
   }
 
-  private TransactionCostEstimateRequest buildRequest(Double tradeValue, Double units,
-      Integer specInvestInstrument, Integer categoryType, String mic, String currency,
-      Double fixedAssets, Integer tradeDirection, String transactionDate) {
+  private TransactionCostEstimateRequest buildRequest(Double tradeValue, Double units, Integer specInvestInstrument,
+      Integer categoryType, String mic, String currency, Double fixedAssets, Integer tradeDirection,
+      String transactionDate) {
     TransactionCostEstimateRequest req = new TransactionCostEstimateRequest();
     req.setTradeValue(tradeValue);
     req.setUnits(units);

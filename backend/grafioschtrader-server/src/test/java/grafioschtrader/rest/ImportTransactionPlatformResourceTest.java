@@ -67,8 +67,7 @@ class ImportTransactionPlatformResourceTest extends BaseIntegrationTest {
     Integer idAlternativePlatform = resolvePlatformId(platforms, ALTERNATIVE_PLATFORM_NAME);
 
     authenticatedClient(RestTestHelper.LIMIT1).put()
-        .uri(GT_PLATFORM_URI + "?idTransactionImportPlatform=" + idGtPlatform).exchange().expectStatus()
-        .isForbidden();
+        .uri(GT_PLATFORM_URI + "?idTransactionImportPlatform=" + idGtPlatform).exchange().expectStatus().isForbidden();
 
     authenticatedClient(RestTestHelper.ADMIN).put()
         .uri(GT_PLATFORM_URI + "?idTransactionImportPlatform=" + Integer.MAX_VALUE).exchange().expectStatus()

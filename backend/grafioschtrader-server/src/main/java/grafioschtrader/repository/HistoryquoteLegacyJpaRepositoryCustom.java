@@ -13,7 +13,7 @@ public interface HistoryquoteLegacyJpaRepositoryCustom extends BaseRepositoryCus
    * the propose-change flow.
    *
    * @param user               the acting user (reserved for future per-tenant scoping)
-   * @param idSecuritycurrency  the owning security/currencypair id of the archived row
+   * @param idSecuritycurrency the owning security/currencypair id of the archived row
    * @return the parent security or currency pair as an {@link Auditable}
    */
   Auditable getParentSecurityCurrency(User user, Integer idSecuritycurrency);

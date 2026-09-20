@@ -17,17 +17,18 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.FromToCurrency;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository.CashaccountBalanceChangeTransaction;
 import grafioschtrader.repository.helper.HoldingsHelper;
+import grafioschtrader.repository.helper.TenantHoldRebuildRunner;
 import grafioschtrader.repository.helper.TransactionPreImage;
 
 /**
  * Implementation of custom repository methods for managing cash account balance holdings.
- * 
+ *
  * <p>
  * This class handles the creation and maintenance of time-based cash account balance records that track all
  * cash-affecting transactions over time. The implementation is designed to respond to transaction changes and maintain
  * accurate balance histories for performance analysis and reporting.
  * </p>
- * 
+ *
  * <p>
  * <strong>Transaction Impact:</strong>
  * </p>
@@ -35,7 +36,7 @@ import grafioschtrader.repository.helper.TransactionPreImage;
  * Balance holdings are automatically updated whenever transactions are added, modified, or removed, ensuring that
  * historical balance data remains accurate for analysis.
  * </p>
- * 
+ *
  * <p>
  * <strong>Multi-Currency Processing:</strong>
  * </p>
@@ -56,11 +57,9 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
   private TenantJpaRepository tenantJpaRepository;
 
   @Override
-  @Transactional
-  @Modifying
   public void createCashaccountBalanceEntireForAllTenants() {
-    List<Tenant> tenants = tenantJpaRepository.findAll();
-    tenants.forEach(this::createCashaccountBalanceEntireByTenant);
+    TenantHoldRebuildRunner.rebuildPerTenant(tenantJpaRepository.findAll().stream().map(Tenant::getIdTenant).toList(),
+        holdCashaccountBalanceJpaRepository::createCashaccountBalanceEntireByTenant, "hold_cashaccount_balance");
   }
 
   @Override
@@ -72,7 +71,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
   /**
    * Creates complete cash account balance holdings for a specific tenant entity.
-   * 
+   *
    * <p>
    * This method performs a full rebuild of balance holdings by:
    * </p>
@@ -83,7 +82,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
    * <li>Creating time-period holdings with proper start/end dates</li>
    * <li>Accumulating balances across transaction types</li>
    * </ul>
-   * 
+   *
    * <p>
    * <strong>Time Period Management:</strong>
    * </p>
@@ -91,7 +90,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
    * The method creates holding periods by setting end dates on previous periods when new transactions occur, ensuring
    * continuous coverage without gaps.
    * </p>
-   * 
+   *
    * @param tenant the tenant entity for which to rebuild holdings
    */
   private void createCashaccountBalanceEntireByTenant(Tenant tenant) {
@@ -182,7 +181,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
   /**
    * Creates a cash account balance holding record from transaction data and accumulated sums.
-   * 
+   *
    * <p>
    * This method handles the core logic for building balance holdings including:
    * </p>
@@ -191,7 +190,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
    * <li>Accumulation of various transaction types</li>
    * <li>Creation of holding entity with proper currency references</li>
    * </ul>
-   * 
+   *
    * <p>
    * <strong>Currency Conversion:</strong>
    * </p>
@@ -199,7 +198,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
    * If the account currency differs from tenant or portfolio currencies, the method identifies and stores the
    * appropriate currency pair references for later conversion during analysis.
    * </p>
-   * 
+   *
    * @param tenant                        the tenant context for currency and entity references
    * @param cbct                          the balance change transaction containing daily aggregated data
    * @param cashaccountSum                the running accumulator for balance components
@@ -234,12 +233,12 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
   /**
    * Retrieves the currency pair ID for conversion between two currencies.
-   * 
+   *
    * <p>
    * This method looks up or creates the necessary currency pair for converting from the account currency to the target
    * currency (tenant or portfolio currency).
    * </p>
-   * 
+   *
    * @param currencypairFromToCurrencyMap map of available currency pairs
    * @param fromCurrency                  the source currency (account currency)
    * @param toCurrency                    the target currency (tenant or portfolio currency)
@@ -255,7 +254,7 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
   /**
    * Accumulator class for tracking running totals of different transaction types.
-   * 
+   *
    * <p>
    * This class maintains running sums of various cash account components as transactions are processed chronologically.
    * It supports initialization from existing balance holdings for incremental updates.
@@ -282,14 +281,14 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
     /**
      * Creates a new accumulator initialized from an existing balance holding.
-     * 
+     *
      * <p>
      * This constructor is used for incremental updates where processing continues from the previous state rather than
      * starting from zero. All seven columns are stored unrounded, so the seed is the exact running total a full rebuild
      * would hold at that point and both paths produce the same values from here on. Rounding any of them on write would
      * re-enter the accumulator here and offset the whole remainder of the series against a rebuild.
      * </p>
-     * 
+     *
      * @param hcb the existing balance holding to initialize from, or null for zero values
      */
     public CashaccountSum(HoldCashaccountBalance hcb) {

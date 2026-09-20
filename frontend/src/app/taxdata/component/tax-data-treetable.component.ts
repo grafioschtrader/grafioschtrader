@@ -24,6 +24,7 @@ import { TaxCountryCreateComponent } from './tax-country-create.component';
 import { TaxYearCreateComponent } from './tax-year-create.component';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { TaxExchangeRateTableComponent } from './tax-exchange-rate-table.component';
+import { TaxModelEditComponent } from './tax-model-edit.component';
 
 enum NodeLevel {
   COUNTRY,
@@ -72,6 +73,9 @@ enum NodeLevel {
           (closeDialog)="onUploadDialogClose()">
         </upload-file-dialog>
       }
+      @if (modelCountry) {
+        <tax-model-edit [visibleDialog]="true" [country]="modelCountry" (closeDialog)="closeModel()" />
+      }
     </div>
   `,
   standalone: true,
@@ -82,7 +86,8 @@ enum NodeLevel {
     SharedModule,
     ConfigurableTreeTableComponent,
     UploadFileDialogComponent,
-    TaxExchangeRateTableComponent
+    TaxExchangeRateTableComponent,
+    TaxModelEditComponent
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DialogService]
@@ -94,6 +99,13 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   fileUploadParam: FileUploadParam;
   visibleUploadFileDialog = false;
   isAdmin: boolean;
+  modelCountry: TaxCountry;
+  existingCountries: string[] = [];
+
+  closeModel(): void {
+    this.modelCountry = null;
+    this.readData();
+  }
 
   private selectedNode: TreeNode;
   private countryNames: Intl.DisplayNames;
@@ -112,6 +124,9 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
       type: 'region'
     });
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 300 });
+    this.addColumnFeqH(DataType.Boolean, 'hasTaxModel', true, false, {
+      templateName: 'check'
+    });
     this.addColumnFeqH(DataType.DateString, 'uploadDate', true, false, {
       width: 200
     });
@@ -184,6 +199,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
 
   private readData(): void {
     this.taxDataService.getTree().subscribe((countries: TaxCountry[]) => {
+      this.existingCountries = countries.map((country) => country.countryCode);
       this.treeNodes = this.buildTree(countries);
     });
   }
@@ -194,6 +210,8 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
         name: this.countryNames.of(country.countryCode) || country.countryCode,
         nodeLevel: NodeLevel.COUNTRY,
         entity: country,
+        hasTaxModel: country.hasTaxModel,
+        ictaxSupported: country.ictaxSupported,
         nodeKey: 'c_' + country.idTaxCountry
       },
       children: (country.taxYears || []).map((year) => ({
@@ -201,6 +219,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
           name: String(year.taxYear),
           nodeLevel: NodeLevel.YEAR,
           entity: year,
+          ictaxSupported: country.ictaxSupported,
           nodeKey: 'y_' + year.idTaxYear
         },
         children: (year.taxUploads || []).map((upload) => ({
@@ -210,6 +229,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
             recordCount: upload.recordCount,
             nodeLevel: NodeLevel.FILE,
             entity: upload,
+            ictaxSupported: country.ictaxSupported,
             nodeKey: 'f_' + upload.idTaxUpload
           },
           leaf: true
@@ -239,7 +259,12 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
       const level: NodeLevel = this.selectedNode.data.nodeLevel;
       if (level === NodeLevel.COUNTRY) {
         menuItems.push({
+          label: 'TAX_MODEL_YAML' + BaseSettings.DIALOG_MENU_SUFFIX,
+          command: () => (this.modelCountry = this.selectedNode.data.entity)
+        });
+        menuItems.push({
           label: 'CREATE_TAX_YEAR' + BaseSettings.DIALOG_MENU_SUFFIX,
+          visible: !!this.selectedNode.data.ictaxSupported,
           command: () => this.createYear()
         });
         menuItems.push({
@@ -249,6 +274,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
       } else if (level === NodeLevel.YEAR) {
         menuItems.push({
           label: 'UPLOAD_TAX_DATA' + BaseSettings.DIALOG_MENU_SUFFIX,
+          visible: !!this.selectedNode.data.ictaxSupported,
           command: () => this.showUploadDialog()
         });
         menuItems.push({
@@ -258,6 +284,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
       } else if (level === NodeLevel.FILE) {
         menuItems.push({
           label: 'REIMPORT_TAX_DATA' + BaseSettings.DIALOG_MENU_SUFFIX,
+          visible: !!this.selectedNode.data.ictaxSupported,
           command: () => this.reimportFile()
         });
         menuItems.push({
@@ -273,6 +300,8 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   private createCountry(): void {
     this.translateService.get('CREATE_TAX_COUNTRY').subscribe((title) => {
       const ref = this.dialogService.open(TaxCountryCreateComponent, {
+        data: { existingCountries: this.existingCountries },
+        closeOnEscape: true,
         header: title,
         width: '400px',
         modal: true,

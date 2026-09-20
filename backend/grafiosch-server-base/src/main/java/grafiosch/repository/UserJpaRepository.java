@@ -20,9 +20,13 @@ public interface UserJpaRepository
 
   Optional<User> findByIdTenant(Integer idTenant);
 
+  /** All writable home owners, so notification routing can reject ambiguous ownership. */
+  List<User> findByIdTenantAndHomeTenantReadOnlyFalse(Integer idTenant);
+
   /**
-   * Returns all pure read-only viewer logins co-resident on the given tenant: users whose home tenant is this tenant and
-   * who are flagged read-only on it. Used to list the people a tenant owner has granted a dedicated read-only login to.
+   * Returns all pure read-only viewer logins co-resident on the given tenant: users whose home tenant is this tenant
+   * and who are flagged read-only on it. Used to list the people a tenant owner has granted a dedicated read-only login
+   * to.
    *
    * @param idTenant the tenant whose read-only viewer logins are requested
    * @return the list of read-only viewer users, possibly empty

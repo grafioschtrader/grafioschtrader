@@ -30,64 +30,67 @@ import grafioschtrader.repository.HistoryquoteUpdateLogJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
+
 /**
- * Background worker service responsible for automatically updating historical price quotes
- * for securities across different stock exchanges. This component runs as a long-lived
- * background thread that periodically checks for stock exchanges that require price updates
- * and processes securities associated with those exchanges.
- * 
+ * Background worker service responsible for automatically updating historical price quotes for securities across
+ * different stock exchanges. This component runs as a long-lived background thread that periodically checks for stock
+ * exchanges that require price updates and processes securities associated with those exchanges.
+ *
  * <h3>Update Strategy</h3>
  * <p>
  * The worker employs an intelligent update strategy that:
  * </p>
  * <ul>
- *   <li><strong>Exchange-Based Processing:</strong> Groups securities by stock exchange for efficient processing</li>
- *   <li><strong>Time-Aware Updates:</strong> Only processes exchanges after they have been closed for a minimum time</li>
- *   <li><strong>Weekend Scheduling:</strong> Adjusts sleep periods to skip weekends when markets are typically closed</li>
- *   <li><strong>Configurable Operation:</strong> Can be enabled/disabled via global parameters</li>
+ * <li><strong>Exchange-Based Processing:</strong> Groups securities by stock exchange for efficient processing</li>
+ * <li><strong>Time-Aware Updates:</strong> Only processes exchanges after they have been closed for a minimum time</li>
+ * <li><strong>Weekend Scheduling:</strong> Adjusts sleep periods to skip weekends when markets are typically
+ * closed</li>
+ * <li><strong>Configurable Operation:</strong> Can be enabled/disabled via global parameters</li>
  * </ul>
- * 
+ *
  * <h3>Processing Logic</h3>
  * <p>
  * The update cycle follows this pattern:
  * </p>
  * <ol>
- *   <li>Query all active stock exchanges (excluding those marked as no market value)</li>
- *   <li>Filter exchanges that have been closed for at least the minimum wait time</li>
- *   <li>Further filter exchanges that may have price updates since last close</li>
- *   <li>Retrieve securities associated with the filtered exchanges</li>
- *   <li>Process price updates for the securities</li>
- *   <li>Sleep for a calculated period before the next cycle</li>
+ * <li>Query all active stock exchanges (excluding those marked as no market value)</li>
+ * <li>Filter exchanges that have been closed for at least the minimum wait time</li>
+ * <li>Further filter exchanges that may have price updates since last close</li>
+ * <li>Retrieve securities associated with the filtered exchanges</li>
+ * <li>Process price updates for the securities</li>
+ * <li>Sleep for a calculated period before the next cycle</li>
  * </ol>
- * 
+ *
  * <h3>Timing and Scheduling</h3>
  * <p>
  * The worker uses adaptive scheduling:
  * </p>
  * <ul>
- *   <li><strong>Dynamic Sleep:</strong> Calculates when the next exchange becomes eligible and sleeps until then</li>
- *   <li><strong>Weekend Handling:</strong> Extended sleep until next Monday when markets reopen</li>
- *   <li><strong>Grace Period:</strong> Waits a configurable time after exchange close before processing</li>
- *   <li><strong>Random Variation:</strong> Adds ±10 minutes to avoid predictable query patterns</li>
+ * <li><strong>Dynamic Sleep:</strong> Calculates when the next exchange becomes eligible and sleeps until then</li>
+ * <li><strong>Weekend Handling:</strong> Extended sleep until next Monday when markets reopen</li>
+ * <li><strong>Grace Period:</strong> Waits a configurable time after exchange close before processing</li>
+ * <li><strong>Random Variation:</strong> Adds ±10 minutes to avoid predictable query patterns</li>
  * </ul>
- * 
+ *
  * <h3>Configuration</h3>
  * <p>
  * The worker behavior is controlled by:
  * </p>
  * <ul>
- *   <li><code>globalparametersService.getUpdatePriceByStockexchange()</code> - Enables/disables the worker (0 = disabled)</li>
- *   <li><code>GlobalConstants.WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES</code> - Minimum wait time after exchange close</li>
+ * <li><code>globalparametersService.getUpdatePriceByStockexchange()</code> - Enables/disables the worker (0 =
+ * disabled)</li>
+ * <li><code>GlobalConstants.WAIT_AFTER_SE_CLOSE_FOR_UPDATE_IN_MINUTES</code> - Minimum wait time after exchange
+ * close</li>
  * </ul>
- * 
+ *
  * <h3>Thread Safety</h3>
  * <p>
  * The class implements proper thread management:
  * </p>
  * <ul>
- *   <li>Uses volatile boolean for thread coordination</li>
- *   <li>Implements DisposableBean for clean shutdown</li>
- *   <li>Handles InterruptedException gracefully</li>
+ * <li>Uses volatile boolean for thread coordination</li>
+ * <li>Implements DisposableBean for clean shutdown</li>
+ * <li>Handles InterruptedException gracefully</li>
  * </ul>
  */
 @Component
@@ -113,22 +116,22 @@ public class QuoteBackgroundUpdateWorker
 
   /** The background thread that runs the update loop */
   private Thread backgroundThread;
-  
-  /** Volatile flag controlling the main update loop. Set to false to signal thread shutdown.  */
+
+  /** Volatile flag controlling the main update loop. Set to false to signal thread shutdown. */
   private volatile boolean runningLoop;
 
   /**
-   * Constructs a new QuoteBackgroundUpdateWorker and initializes the background thread.
-   * The thread is created but not started until the application is ready.
+   * Constructs a new QuoteBackgroundUpdateWorker and initializes the background thread. The thread is created but not
+   * started until the application is ready.
    */
   QuoteBackgroundUpdateWorker() {
     backgroundThread = new Thread(this);
   }
 
   /**
-   * Application event handler that starts the background update worker when the application is fully initialized.
-   * The worker only starts if price updates are enabled in the global configuration.
-   * 
+   * Application event handler that starts the background update worker when the application is fully initialized. The
+   * worker only starts if price updates are enabled in the global configuration.
+   *
    * @param event the ApplicationReadyEvent indicating the application has finished starting up
    */
   @Override
@@ -141,22 +144,22 @@ public class QuoteBackgroundUpdateWorker
   }
 
   /**
-   * Main execution loop for the background update worker.
-   * Continuously processes stock exchanges for price updates until the runningLoop flag is set to false.
-   * 
+   * Main execution loop for the background update worker. Continuously processes stock exchanges for price updates
+   * until the runningLoop flag is set to false.
+   *
    * <p>
    * The loop performs the following steps:
    * </p>
    * <ol>
-   *   <li>Retrieve all active stock exchanges</li>
-   *   <li>Filter exchanges eligible for updates based on timing criteria</li>
-   *   <li>Process price updates for securities on filtered exchanges</li>
-   *   <li>Sleep for a calculated period before the next iteration</li>
+   * <li>Retrieve all active stock exchanges</li>
+   * <li>Filter exchanges eligible for updates based on timing criteria</li>
+   * <li>Process price updates for securities on filtered exchanges</li>
+   * <li>Sleep for a calculated period before the next iteration</li>
    * </ol>
-   * 
+   *
    * <p>
-   * The loop handles InterruptedException gracefully and will exit cleanly
-   * when the thread is interrupted during shutdown.
+   * The loop handles InterruptedException gracefully and will exit cleanly when the thread is interrupted during
+   * shutdown.
    * </p>
    */
   @Override
@@ -177,18 +180,18 @@ public class QuoteBackgroundUpdateWorker
   }
 
   /**
-   * Processes price updates for securities associated with the specified stock exchanges.
-   * Retrieves all securities that need historical quote updates for the given exchanges
-   * and logs information about the update process to both the application log and the database.
+   * Processes price updates for securities associated with the specified stock exchanges. Retrieves all securities that
+   * need historical quote updates for the given exchanges and logs information about the update process to both the
+   * application log and the database.
    *
    * <p>
    * This method performs the following:
    * </p>
    * <ul>
-   *   <li>Creates database log entries for each exchange before starting the update</li>
-   *   <li>Calls the security repository to fetch and update historical quotes</li>
-   *   <li>Groups updated securities by exchange to track per-exchange statistics</li>
-   *   <li>Updates database log entries with final counts and success/failure status</li>
+   * <li>Creates database log entries for each exchange before starting the update</li>
+   * <li>Calls the security repository to fetch and update historical quotes</li>
+   * <li>Groups updated securities by exchange to track per-exchange statistics</li>
+   * <li>Updates database log entries with final counts and success/failure status</li>
    * </ul>
    *
    * @param stockexchanges list of stock exchanges that are eligible for price updates
@@ -201,10 +204,8 @@ public class QuoteBackgroundUpdateWorker
     // Create log entries for each exchange before starting update
     Map<Integer, HistoryquoteUpdateLog> logEntries = new HashMap<>();
     for (Stockexchange stockexchange : stockexchanges) {
-      HistoryquoteUpdateLog logEntry = new HistoryquoteUpdateLog(
-          stockexchange.getIdStockexchange(),
-          stockexchange.getClosedMinuntes(),
-          0 // securities count will be updated after the query
+      HistoryquoteUpdateLog logEntry = new HistoryquoteUpdateLog(stockexchange.getIdStockexchange(),
+          stockexchange.getClosedMinuntes(), 0 // securities count will be updated after the query
       );
       logEntry = historyquoteUpdateLogJpaRepository.save(logEntry);
       logEntries.put(stockexchange.getIdStockexchange(), logEntry);
@@ -216,9 +217,7 @@ public class QuoteBackgroundUpdateWorker
 
       // Group securities by exchange to get per-exchange counts
       Map<Integer, Long> securitiesPerExchange = securities.stream()
-          .collect(Collectors.groupingBy(
-              s -> s.getStockexchange().getIdStockexchange(),
-              Collectors.counting()));
+          .collect(Collectors.groupingBy(s -> s.getStockexchange().getIdStockexchange(), Collectors.counting()));
 
       // Update log entries with results
       for (Stockexchange stockexchange : stockexchanges) {
@@ -248,13 +247,12 @@ public class QuoteBackgroundUpdateWorker
   }
 
   /**
-   * Retrieves the latest historical quote date for a stock exchange's index security.
-   * This information is used to track when the exchange's index was last updated
-   * and can help determine if fresh market data is available.
-   * 
+   * Retrieves the latest historical quote date for a stock exchange's index security. This information is used to track
+   * when the exchange's index was last updated and can help determine if fresh market data is available.
+   *
    * @param stockexchange the stock exchange to check for index update information
-   * @return the date of the most recent historical quote for the exchange's index security,
-   *         or null if no index security is configured or no quotes are available
+   * @return the date of the most recent historical quote for the exchange's index security, or null if no index
+   *         security is configured or no quotes are available
    */
   private LocalDate getIndexOfStockexchange(Stockexchange stockexchange) {
     return stockexchange.getIdIndexUpdCalendar() == null ? null
@@ -262,20 +260,20 @@ public class QuoteBackgroundUpdateWorker
   }
 
   /**
-   * Calculates the optimal sleep time in minutes before the next update cycle.
-   * Finds when the next exchange reaches eligibility (close time + wait period).
+   * Calculates the optimal sleep time in minutes before the next update cycle. Finds when the next exchange reaches
+   * eligibility (close time + wait period).
    *
    * <p>
    * For each exchange, calculates when it will next be eligible:
    * </p>
    * <ul>
-   *   <li>If current time is before today's eligibility time → use today's eligibility</li>
-   *   <li>If current time is after today's eligibility time → use tomorrow's eligibility</li>
+   * <li>If current time is before today's eligibility time → use today's eligibility</li>
+   * <li>If current time is after today's eligibility time → use tomorrow's eligibility</li>
    * </ul>
    *
    * <p>
-   * The method then sleeps until the soonest eligibility time, with ±10 minutes random
-   * variation to avoid predictable query patterns.
+   * The method then sleeps until the soonest eligibility time, with ±10 minutes random variation to avoid predictable
+   * query patterns.
    * </p>
    *
    * @param stockexchanges list of all active stock exchanges to consider for scheduling
@@ -337,8 +335,8 @@ public class QuoteBackgroundUpdateWorker
       // Ensure minimum sleep time (avoid busy-waiting)
       sleepMinutes = Math.max(sleepMinutes, 5);
 
-      log.info("Next exchange '{}' eligible in {} minutes (including {}min random variation)",
-          nextExchangeName, sleepMinutes, randomVariation);
+      log.info("Next exchange '{}' eligible in {} minutes (including {}min random variation)", nextExchangeName,
+          sleepMinutes, randomVariation);
       return sleepMinutes;
     }
 
@@ -351,12 +349,12 @@ public class QuoteBackgroundUpdateWorker
   }
 
   /**
-   * Cleanup method called during Spring application shutdown.
-   * Signals the background thread to stop its execution loop, allowing for graceful shutdown.
-   * 
+   * Cleanup method called during Spring application shutdown. Signals the background thread to stop its execution loop,
+   * allowing for graceful shutdown.
+   *
    * <p>
-   * This method is automatically called by Spring when the application context is being destroyed,
-   * ensuring that the background thread does not continue running after the application shuts down.
+   * This method is automatically called by Spring when the application context is being destroyed, ensuring that the
+   * background thread does not continue running after the application shuts down.
    * </p>
    */
   @Override

@@ -47,36 +47,91 @@ public class Ech0196Stock {
   @XmlAttribute
   private Double reductionCost;
 
-  public LocalDate getReferenceDate() { return referenceDate; }
-  public void setReferenceDate(LocalDate referenceDate) { this.referenceDate = referenceDate; }
+  public LocalDate getReferenceDate() {
+    return referenceDate;
+  }
 
-  public boolean isMutation() { return mutation; }
-  public void setMutation(boolean mutation) { this.mutation = mutation; }
+  public void setReferenceDate(LocalDate referenceDate) {
+    this.referenceDate = referenceDate;
+  }
 
-  public String getQuotationType() { return quotationType; }
-  public void setQuotationType(String quotationType) { this.quotationType = quotationType; }
+  public boolean isMutation() {
+    return mutation;
+  }
 
-  public Double getQuantity() { return quantity; }
-  public void setQuantity(Double quantity) { this.quantity = quantity; }
+  public void setMutation(boolean mutation) {
+    this.mutation = mutation;
+  }
 
-  public String getBalanceCurrency() { return balanceCurrency; }
-  public void setBalanceCurrency(String balanceCurrency) { this.balanceCurrency = balanceCurrency; }
+  public String getQuotationType() {
+    return quotationType;
+  }
 
-  public Double getUnitPrice() { return unitPrice; }
-  public void setUnitPrice(Double unitPrice) { this.unitPrice = unitPrice; }
+  public void setQuotationType(String quotationType) {
+    this.quotationType = quotationType;
+  }
 
-  public Double getBalance() { return balance; }
-  public void setBalance(Double balance) { this.balance = balance; }
+  public Double getQuantity() {
+    return quantity;
+  }
 
-  public Double getExchangeRate() { return exchangeRate; }
-  public void setExchangeRate(Double exchangeRate) { this.exchangeRate = exchangeRate; }
+  public void setQuantity(Double quantity) {
+    this.quantity = quantity;
+  }
 
-  public Double getValue() { return value; }
-  public void setValue(Double value) { this.value = value; }
+  public String getBalanceCurrency() {
+    return balanceCurrency;
+  }
 
-  public String getName() { return name; }
-  public void setName(String name) { this.name = name; }
+  public void setBalanceCurrency(String balanceCurrency) {
+    this.balanceCurrency = balanceCurrency;
+  }
 
-  public Double getReductionCost() { return reductionCost; }
-  public void setReductionCost(Double reductionCost) { this.reductionCost = reductionCost; }
+  public Double getUnitPrice() {
+    return unitPrice;
+  }
+
+  public void setUnitPrice(Double unitPrice) {
+    this.unitPrice = unitPrice;
+  }
+
+  public Double getBalance() {
+    return balance;
+  }
+
+  public void setBalance(Double balance) {
+    this.balance = balance;
+  }
+
+  public Double getExchangeRate() {
+    return exchangeRate;
+  }
+
+  public void setExchangeRate(Double exchangeRate) {
+    this.exchangeRate = exchangeRate;
+  }
+
+  public Double getValue() {
+    return value;
+  }
+
+  public void setValue(Double value) {
+    this.value = value;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public Double getReductionCost() {
+    return reductionCost;
+  }
+
+  public void setReductionCost(Double reductionCost) {
+    this.reductionCost = reductionCost;
+  }
 }

@@ -43,8 +43,8 @@ public class ExposedResourceBundleMessageSource extends ReloadableResourceBundle
    * Honours {@code cacheSeconds} explicitly, because the inherited implementation does not:
    * {@code getMergedProperties(Locale)} answers from its own {@code cachedMergedProperties} map and never consults the
    * configured cache interval, so a merged bundle stays in memory until {@link #clearCache()} is called. Setting
-   * {@code cacheSeconds} alone would therefore let {@code getMessage(...)} pick up an edited text while this method, and
-   * with it the entire client payload, stayed pinned to the texts read at startup.
+   * {@code cacheSeconds} alone would therefore let {@code getMessage(...)} pick up an edited text while this method,
+   * and with it the entire client payload, stayed pinned to the texts read at startup.
    * </p>
    *
    * @param locale user request's locale

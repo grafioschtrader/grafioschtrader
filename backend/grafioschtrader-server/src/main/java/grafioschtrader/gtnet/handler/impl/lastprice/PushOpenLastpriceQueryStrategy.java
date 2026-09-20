@@ -25,11 +25,11 @@ import grafioschtrader.repository.GTNetLastpriceJpaRepository;
  *
  * Behavior:
  * <ul>
- *   <li>Queries GTNetInstrumentSecurity/GTNetInstrumentCurrencypair and GTNetLastprice tables</li>
- *   <li>Returns prices from the shared pool that are newer than requested</li>
- *   <li>For instruments NOT found in the pool: creates new entries in GTNetInstrument* and GTNetLastprice
- *       if the request has a non-null last price, then returns the created entry</li>
- *   <li>Does NOT update local Security/Currencypair entities</li>
+ * <li>Queries GTNetInstrumentSecurity/GTNetInstrumentCurrencypair and GTNetLastprice tables</li>
+ * <li>Returns prices from the shared pool that are newer than requested</li>
+ * <li>For instruments NOT found in the pool: creates new entries in GTNetInstrument* and GTNetLastprice if the request
+ * has a non-null last price, then returns the created entry</li>
+ * <li>Does NOT update local Security/Currencypair entities</li>
  * </ul>
  */
 @Component
@@ -71,9 +71,7 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
     List<GTNetInstrumentSecurity> instruments = gtNetInstrumentSecurityJpaRepository.findByIsinCurrencyTuples(tuples);
 
     // Get lastprice entries for found instruments
-    List<Integer> instrumentIds = instruments.stream()
-        .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
-        .toList();
+    List<Integer> instrumentIds = instruments.stream().map(GTNetInstrumentSecurity::getIdGtNetInstrument).toList();
     Map<Integer, GTNetLastprice> lastpriceMap = new HashMap<>();
     if (!instrumentIds.isEmpty()) {
       gtNetLastpriceJpaRepository.findByGtNetInstrumentIdGtNetInstrumentIn(instrumentIds)
@@ -143,12 +141,11 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
     }
 
     // Single batch query for all currency pair instruments from pool
-    List<GTNetInstrumentCurrencypair> instruments = gtNetInstrumentCurrencypairJpaRepository.findByCurrencyTuples(tuples);
+    List<GTNetInstrumentCurrencypair> instruments = gtNetInstrumentCurrencypairJpaRepository
+        .findByCurrencyTuples(tuples);
 
     // Get lastprice entries for found instruments
-    List<Integer> instrumentIds = instruments.stream()
-        .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
-        .toList();
+    List<Integer> instrumentIds = instruments.stream().map(GTNetInstrumentCurrencypair::getIdGtNetInstrument).toList();
     Map<Integer, GTNetLastprice> lastpriceMap = new HashMap<>();
     if (!instrumentIds.isEmpty()) {
       gtNetLastpriceJpaRepository.findByGtNetInstrumentIdGtNetInstrumentIn(instrumentIds)
@@ -207,7 +204,7 @@ public class PushOpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
   /**
    * Checks if the local timestamp meets the freshness threshold.
    *
-   * @param localTimestamp the timestamp to check
+   * @param localTimestamp         the timestamp to check
    * @param minAcceptableTimestamp the minimum acceptable timestamp (null means no threshold)
    * @return true if the timestamp is fresh enough or no threshold is set
    */

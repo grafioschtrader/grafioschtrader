@@ -24,8 +24,8 @@ import grafioschtrader.calendar.rule.HolidayRuleSetYamlParser;
  * The rules used to be classpath files whose mistakes surfaced at startup. They are edited by users now, so the same
  * strictness has to be applied before saving. Validation runs in three stages, each reporting all of its findings
  * before the next one is attempted, so the editor can show everything that is wrong at once: YAML syntax, the JSON
- * Schema that also drives the editor's completions, and finally binding to the rule model, which is what catches a
- * rule missing a field its type requires.
+ * Schema that also drives the editor's completions, and finally binding to the rule model, which is what catches a rule
+ * missing a field its type requires.
  * </p>
  */
 @Service

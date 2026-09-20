@@ -18,7 +18,15 @@ public class AbsoluteValuePriceAlert {
     return lowerValue;
   }
 
+  public void setLowerValue(Double lowerValue) {
+    this.lowerValue = lowerValue;
+  }
+
   public Double getUpperValue() {
     return upperValue;
+  }
+
+  public void setUpperValue(Double upperValue) {
+    this.upperValue = upperValue;
   }
 }

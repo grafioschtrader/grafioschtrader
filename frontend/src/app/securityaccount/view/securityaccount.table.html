@@ -5,6 +5,17 @@
   [ngClass]="{'active-border': isActivated(), 'passiv-border': !isActivated()}"
   class="data-container">
   <div class="datatable">
+    @if (rebalancingSummaryFields && securityPositionSummary?.valuationDate) {
+    <div class="rebalancing-summary">
+      @for (rsf of rebalancingSummaryFields; track rsf.field) {
+      <span class="rebalancing-summary-item">
+        <strong>{{ rsf.headerTranslated }}:</strong> {{ getValueByPath(securityPositionSummary, rsf) }}
+      </span>
+      } @if (securityPositionSummary.exposureBreach) {
+      <span class="rebalancing-summary-item rebalancing-breach">{{ 'EXPOSURE_BREACH' | translate }}</span>
+      }
+    </div>
+    }
     <p-table
       [(contextMenuSelection)]="selectedSecurityPositionSummary"
       [(selection)]="selectedSecurityPositionSummary"
@@ -22,6 +33,18 @@
             <h4 #title>
               {{ 'SECURITYACCOUNT' | translate }}: {{ portfolio?.name }} {{ securityAccount?.name }}
               <p-select (onChange)="handleChangeGroup($event)" [(ngModel)]="selectedGroup" [options]="groupOptions">
+              </p-select>
+            </h4>
+            }
+            <!-- Only the asset class report offers a strategy to compare against; the other reports that share this
+                 template never define algoTopOptions and are therefore unaffected. -->
+            @if (algoTopOptions) {
+            <h4 #title>
+              {{ 'REBALANCING_SELECT_STRATEGY' | translate }}:
+              <p-select
+                (onChange)="handleChangeAlgoTop($event)"
+                [(ngModel)]="selectedIdAlgoTop"
+                [options]="algoTopOptions">
               </p-select>
             </h4>
             }
@@ -89,7 +112,7 @@
           <td
             [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
             [style.max-width.px]="field.width"
-            [ngStyle]="field.width? {'flex-basis': '0 0 ' + field.width + 'px'}: {}">
+            [ngStyle]="getCellStyle(el, field)">
             @switch (field.templateName) { @case ('check') {
             <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
             } @case ('greenRed') {

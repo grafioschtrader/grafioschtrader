@@ -3,8 +3,8 @@ package grafiosch.gtnet;
 /**
  * Indicates the direction of a GTNet message from the local instance's perspective.
  *
- * This enum is crucial for displaying message threads correctly in the UI, where sent and received
- * messages need different visual treatment (similar to a chat interface).
+ * This enum is crucial for displaying message threads correctly in the UI, where sent and received messages need
+ * different visual treatment (similar to a chat interface).
  */
 public enum SendReceivedType {
 
@@ -15,8 +15,8 @@ public enum SendReceivedType {
   RECEIVED((byte) 1),
 
   /**
-   * Transient state for response messages being constructed. Not typically persisted; used during
-   * message processing to distinguish immediate responses from stored messages.
+   * Transient state for response messages being constructed. Not typically persisted; used during message processing to
+   * distinguish immediate responses from stored messages.
    */
   ANSWER((byte) 2);
 

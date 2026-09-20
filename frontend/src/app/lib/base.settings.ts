@@ -1,4 +1,5 @@
 export class BaseSettings {
+  public static readonly DASHBOARD_KEY = 'dashboard';
   public static readonly API_ENDPOINT = '/api/';
 
   public static readonly ACTUATOR = 'actuator';

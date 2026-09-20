@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
  * <p>
  * No URL is configured by default, which leaves the connector deactivated and therefore absent from every connector
  * selection in the user interface. Setting {@code gt.datafeed.gtfrankfurter.url} to the root of the instance is all
- * that is needed to make it selectable, next to and independent of the public
- * {@link FrankfurterFeedConnector}.
+ * that is needed to make it selectable, next to and independent of the public {@link FrankfurterFeedConnector}.
  * </p>
  */
 @Component

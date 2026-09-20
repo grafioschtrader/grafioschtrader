@@ -41,30 +41,75 @@ public class Ech0196TaxValue {
   @XmlAttribute
   private Boolean kursliste;
 
-  public LocalDate getReferenceDate() { return referenceDate; }
-  public void setReferenceDate(LocalDate referenceDate) { this.referenceDate = referenceDate; }
+  public LocalDate getReferenceDate() {
+    return referenceDate;
+  }
 
-  public String getQuotationType() { return quotationType; }
-  public void setQuotationType(String quotationType) { this.quotationType = quotationType; }
+  public void setReferenceDate(LocalDate referenceDate) {
+    this.referenceDate = referenceDate;
+  }
 
-  public Double getQuantity() { return quantity; }
-  public void setQuantity(Double quantity) { this.quantity = quantity; }
+  public String getQuotationType() {
+    return quotationType;
+  }
 
-  public String getBalanceCurrency() { return balanceCurrency; }
-  public void setBalanceCurrency(String balanceCurrency) { this.balanceCurrency = balanceCurrency; }
+  public void setQuotationType(String quotationType) {
+    this.quotationType = quotationType;
+  }
 
-  public Double getUnitPrice() { return unitPrice; }
-  public void setUnitPrice(Double unitPrice) { this.unitPrice = unitPrice; }
+  public Double getQuantity() {
+    return quantity;
+  }
 
-  public Double getBalance() { return balance; }
-  public void setBalance(Double balance) { this.balance = balance; }
+  public void setQuantity(Double quantity) {
+    this.quantity = quantity;
+  }
 
-  public Double getExchangeRate() { return exchangeRate; }
-  public void setExchangeRate(Double exchangeRate) { this.exchangeRate = exchangeRate; }
+  public String getBalanceCurrency() {
+    return balanceCurrency;
+  }
 
-  public Double getValue() { return value; }
-  public void setValue(Double value) { this.value = value; }
+  public void setBalanceCurrency(String balanceCurrency) {
+    this.balanceCurrency = balanceCurrency;
+  }
 
-  public Boolean getKursliste() { return kursliste; }
-  public void setKursliste(Boolean kursliste) { this.kursliste = kursliste; }
+  public Double getUnitPrice() {
+    return unitPrice;
+  }
+
+  public void setUnitPrice(Double unitPrice) {
+    this.unitPrice = unitPrice;
+  }
+
+  public Double getBalance() {
+    return balance;
+  }
+
+  public void setBalance(Double balance) {
+    this.balance = balance;
+  }
+
+  public Double getExchangeRate() {
+    return exchangeRate;
+  }
+
+  public void setExchangeRate(Double exchangeRate) {
+    this.exchangeRate = exchangeRate;
+  }
+
+  public Double getValue() {
+    return value;
+  }
+
+  public void setValue(Double value) {
+    this.value = value;
+  }
+
+  public Boolean getKursliste() {
+    return kursliste;
+  }
+
+  public void setKursliste(Boolean kursliste) {
+    this.kursliste = kursliste;
+  }
 }

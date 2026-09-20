@@ -35,11 +35,11 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * <p>
  * Grouping rules: security transactions go to the file of their securities account. Cash-only transactions
- * (DEPOSIT/WITHDRAWAL/FEE/INTEREST_CASHACCOUNT carry no securities account) are assigned to the file of the
- * designated securities account of their cash account's portfolio — the one with the lowest ID. On re-import the
- * head's securities account is irrelevant for cash rows since the cash account is resolved per row by currency
- * within the portfolio. Transactions of a portfolio without any securities account land in a portfolio-named
- * fallback file that documents the rows but cannot be imported without creating a securities account first.
+ * (DEPOSIT/WITHDRAWAL/FEE/INTEREST_CASHACCOUNT carry no securities account) are assigned to the file of the designated
+ * securities account of their cash account's portfolio — the one with the lowest ID. On re-import the head's securities
+ * account is irrelevant for cash rows since the cash account is resolved per row by currency within the portfolio.
+ * Transactions of a portfolio without any securities account land in a portfolio-named fallback file that documents the
+ * rows but cannot be imported without creating a securities account first.
  * </p>
  *
  * <p>
@@ -174,8 +174,8 @@ public class TransactionCsvExportService {
   }
 
   /**
-   * Grouping key of one export file: the securities account, or the portfolio (ID and name) for the fallback file of
-   * a portfolio without securities accounts.
+   * Grouping key of one export file: the securities account, or the portfolio (ID and name) for the fallback file of a
+   * portfolio without securities accounts.
    */
   private record FileKey(Integer idSecurityaccount, Integer idPortfolio, String portfolioName) {
   }

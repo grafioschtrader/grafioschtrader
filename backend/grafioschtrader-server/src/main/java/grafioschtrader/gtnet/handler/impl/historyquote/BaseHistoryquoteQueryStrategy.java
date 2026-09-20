@@ -19,11 +19,11 @@ import grafioschtrader.repository.HistoryquoteJpaRepository;
  *
  * Shared functionality includes:
  * <ul>
- *   <li>Tuple building for batch queries (ISIN+currency or fromCurrency+toCurrency)</li>
- *   <li>Request map creation for O(1) lookup by instrument key</li>
- *   <li>Conversion of Historyquote and GTNetHistoryquote to HistoryquoteRecordDTO</li>
- *   <li>Response DTO building with instrument identification and records</li>
- *   <li>Date utility methods including 10-day threshold optimization</li>
+ * <li>Tuple building for batch queries (ISIN+currency or fromCurrency+toCurrency)</li>
+ * <li>Request map creation for O(1) lookup by instrument key</li>
+ * <li>Conversion of Historyquote and GTNetHistoryquote to HistoryquoteRecordDTO</li>
+ * <li>Response DTO building with instrument identification and records</li>
+ * <li>Date utility methods including 10-day threshold optimization</li>
  * </ul>
  *
  * @see OpenHistoryquoteQueryStrategy for AC_OPEN mode implementation
@@ -32,8 +32,8 @@ import grafioschtrader.repository.HistoryquoteJpaRepository;
 public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQueryStrategy {
 
   /**
-   * Threshold in days for batch query optimization.
-   * Requests older than this threshold use the threshold date to avoid excessive data fetching.
+   * Threshold in days for batch query optimization. Requests older than this threshold use the threshold date to avoid
+   * excessive data fetching.
    */
   protected static final int THRESHOLD_DAYS = 10;
 
@@ -43,7 +43,7 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
   /**
    * Container for tuples and request map, used for batch processing.
    *
-   * @param tuples list of [isin, currency] or [fromCurrency, toCurrency] pairs
+   * @param tuples     list of [isin, currency] or [fromCurrency, toCurrency] pairs
    * @param requestMap map from composite key (e.g., "ISIN:currency") to the original request DTO
    */
   protected record TuplesAndRequestMap(List<String[]> tuples, Map<String, InstrumentHistoryquoteDTO> requestMap) {
@@ -98,12 +98,7 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
   protected List<HistoryquoteRecordDTO> convertHistoryquotes(List<Historyquote> quotes) {
     List<HistoryquoteRecordDTO> records = new ArrayList<>();
     for (Historyquote hq : quotes) {
-      records.add(new HistoryquoteRecordDTO(
-          hq.getDate(),
-          hq.getOpen(),
-          hq.getHigh(),
-          hq.getLow(),
-          hq.getClose(),
+      records.add(new HistoryquoteRecordDTO(hq.getDate(), hq.getOpen(), hq.getHigh(), hq.getLow(), hq.getClose(),
           hq.getVolume()));
     }
     return records;
@@ -118,12 +113,7 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
   protected List<HistoryquoteRecordDTO> convertGtNetHistoryquotes(List<GTNetHistoryquote> quotes) {
     List<HistoryquoteRecordDTO> records = new ArrayList<>();
     for (GTNetHistoryquote hq : quotes) {
-      records.add(new HistoryquoteRecordDTO(
-          hq.getDate(),
-          hq.getOpen(),
-          hq.getHigh(),
-          hq.getLow(),
-          hq.getClose(),
+      records.add(new HistoryquoteRecordDTO(hq.getDate(), hq.getOpen(), hq.getHigh(), hq.getLow(), hq.getClose(),
           hq.getVolume()));
     }
     return records;
@@ -132,15 +122,15 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
   /**
    * Builds a response DTO for a security.
    *
-   * @param isin the ISIN code
+   * @param isin     the ISIN code
    * @param currency the currency
    * @param fromDate the start date of the range
-   * @param toDate the end date of the range
-   * @param records the historyquote records
+   * @param toDate   the end date of the range
+   * @param records  the historyquote records
    * @return populated InstrumentHistoryquoteDTO or null if records is empty
    */
-  protected InstrumentHistoryquoteDTO buildSecurityResponse(String isin, String currency, LocalDate fromDate, LocalDate toDate,
-      List<HistoryquoteRecordDTO> records) {
+  protected InstrumentHistoryquoteDTO buildSecurityResponse(String isin, String currency, LocalDate fromDate,
+      LocalDate toDate, List<HistoryquoteRecordDTO> records) {
     if (records.isEmpty()) {
       return null;
     }
@@ -158,14 +148,14 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
    * Builds a response DTO for a currency pair.
    *
    * @param fromCurrency the source currency
-   * @param toCurrency the target currency
-   * @param fromDate the start date of the range
-   * @param toDate the end date of the range
-   * @param records the historyquote records
+   * @param toCurrency   the target currency
+   * @param fromDate     the start date of the range
+   * @param toDate       the end date of the range
+   * @param records      the historyquote records
    * @return populated InstrumentHistoryquoteDTO or null if records is empty
    */
-  protected InstrumentHistoryquoteDTO buildCurrencypairResponse(String fromCurrency, String toCurrency, LocalDate fromDate,
-      LocalDate toDate, List<HistoryquoteRecordDTO> records) {
+  protected InstrumentHistoryquoteDTO buildCurrencypairResponse(String fromCurrency, String toCurrency,
+      LocalDate fromDate, LocalDate toDate, List<HistoryquoteRecordDTO> records) {
     if (records.isEmpty()) {
       return null;
     }
@@ -193,13 +183,13 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
   /**
    * Filters historyquote records to keep only those within the specified date range.
    *
-   * @param records list of records to filter
+   * @param records  list of records to filter
    * @param fromDate start date (inclusive)
-   * @param toDate end date (inclusive)
+   * @param toDate   end date (inclusive)
    * @return filtered list containing only records within the date range
    */
-  protected List<HistoryquoteRecordDTO> filterRecordsByDateRange(List<HistoryquoteRecordDTO> records, LocalDate fromDate,
-      LocalDate toDate) {
+  protected List<HistoryquoteRecordDTO> filterRecordsByDateRange(List<HistoryquoteRecordDTO> records,
+      LocalDate fromDate, LocalDate toDate) {
     List<HistoryquoteRecordDTO> filtered = new ArrayList<>();
     for (HistoryquoteRecordDTO record : records) {
       LocalDate recordDate = record.getDate();
@@ -213,14 +203,14 @@ public abstract class BaseHistoryquoteQueryStrategy implements HistoryquoteQuery
   /**
    * Determines the optimal batch fromDate using the 10-day threshold optimization.
    *
-   * If all requested fromDates are within the threshold, uses the oldest fromDate.
-   * Otherwise, uses the threshold date to avoid fetching excessive data for all instruments.
+   * If all requested fromDates are within the threshold, uses the oldest fromDate. Otherwise, uses the threshold date
+   * to avoid fetching excessive data for all instruments.
    *
-   * @param <T> the instrument type
-   * @param instruments list of instruments
-   * @param requestMap map of requests
+   * @param <T>           the instrument type
+   * @param instruments   list of instruments
+   * @param requestMap    map of requests
    * @param thresholdDate the threshold date (typically THRESHOLD_DAYS ago)
-   * @param keyExtractor function to extract the lookup key from an instrument
+   * @param keyExtractor  function to extract the lookup key from an instrument
    * @return the optimal batch fromDate
    */
   protected <T> LocalDate determineBatchFromDate(List<T> instruments, Map<String, InstrumentHistoryquoteDTO> requestMap,

@@ -65,8 +65,7 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
       return;
     }
     transactionJpaRepository.findMaxTransactionTimeBySecurityaccount(existingEntity.getIdSecuritycashAccount())
-        .map(LocalDateTime::toLocalDate)
-        .filter(maxDate -> maxDate.isAfter(securityaccount.getActiveToDate()))
+        .map(LocalDateTime::toLocalDate).filter(maxDate -> maxDate.isAfter(securityaccount.getActiveToDate()))
         .ifPresent(maxDate -> {
           throw new DataViolationException("active.to.date", "gt.account.active.before.transaction",
               new Object[] { maxDate });
@@ -87,13 +86,12 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
     // and secaccount_trading_period carries no limit key of its own. Forty covers every instrument/asset class window
     // with room for a handful of date slices; beyond that the list is no longer a configuration.
     if (newPeriods.size() > MAX_TRADING_PERIODS) {
-      throw new DataViolationException("date.from", "gt.trading.period.too.many",
-          new Object[] { MAX_TRADING_PERIODS });
+      throw new DataViolationException("date.from", "gt.trading.period.too.many", new Object[] { MAX_TRADING_PERIODS });
     }
 
     // 1. Overlap validation: group by (specInvestInstrument, categoryType)
-    var grouped = newPeriods.stream().collect(Collectors.groupingBy(
-        p -> p.getSpecInvestInstrument().name() + "|" + (p.getCategoryType() == null ? "null" : p.getCategoryType().name())));
+    var grouped = newPeriods.stream().collect(Collectors.groupingBy(p -> p.getSpecInvestInstrument().name() + "|"
+        + (p.getCategoryType() == null ? "null" : p.getCategoryType().name())));
 
     for (var entry : grouped.entrySet()) {
       List<SecaccountTradingPeriod> group = new ArrayList<>(entry.getValue());
@@ -113,15 +111,14 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
       List<TradingPeriodTransactionSummary> summaries = transactionJpaRepository
           .getTransactionSummariesBySecurityaccount(existingEntity.getIdSecuritycashAccount());
       for (TradingPeriodTransactionSummary summary : summaries) {
-        boolean covered = newPeriods.stream().anyMatch(p ->
-            p.getSpecInvestInstrument() == summary.getSpecInvestInstrument()
+        boolean covered = newPeriods.stream()
+            .anyMatch(p -> p.getSpecInvestInstrument() == summary.getSpecInvestInstrument()
                 && (p.getCategoryType() == null || p.getCategoryType() == summary.getCategoryType())
                 && !p.getDateFrom().isAfter(summary.getMaxTransactionDate())
                 && (p.getDateTo() == null || !p.getDateTo().isBefore(summary.getMaxTransactionDate())));
         if (!covered) {
-          throw new DataViolationException("date.to", "gt.trading.period.transaction.conflict",
-              new Object[] { summary.getSpecInvestInstrument(), summary.getCategoryType(),
-                  summary.getMaxTransactionDate() });
+          throw new DataViolationException("date.to", "gt.trading.period.transaction.conflict", new Object[] {
+              summary.getSpecInvestInstrument(), summary.getCategoryType(), summary.getMaxTransactionDate() });
         }
       }
     }
@@ -136,8 +133,8 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
   public List<TradingPeriodTransactionSummary> getTransactionSummaries(Integer idSecuritycashAccount) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     // Verify the account belongs to the current tenant
-    Securityaccount sa = securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(
-        idSecuritycashAccount, user.getIdTenant());
+    Securityaccount sa = securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(idSecuritycashAccount,
+        user.getIdTenant());
     if (sa == null) {
       return List.of();
     }

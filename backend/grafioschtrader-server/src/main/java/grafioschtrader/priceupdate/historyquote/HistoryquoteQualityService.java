@@ -4,6 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -24,6 +25,7 @@ import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TradingDaysPlus;
+import grafioschtrader.repository.BankruptSecurityJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
@@ -47,15 +49,21 @@ public class HistoryquoteQualityService {
   @Autowired
   private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
+  @Autowired
+  private BankruptSecurityJpaRepository bankruptSecurityJpaRepository;
+
+  /**
+   * Fills the missing closing prices of an instrument on behalf of a user, with the rights check and the daily budget
+   * that a manual edit of that instrument carries.
+   *
+   * @param idSecuritycurrency the instrument whose prices are completed
+   * @param fillGapsParam      the end date the user chose and whether weekend rows are moved to the Friday before
+   * @return what was created, moved and removed
+   */
   @Transactional
   public HisotryqouteLinearFilledSummary fillHistoryquoteGapsLinear(final Integer idSecuritycurrency,
       final HistoryquoteFillGapsParam fillGapsParam) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final Double[] firstLastPrice = new Double[2];
-    final List<LocalDate> missingDays = new ArrayList<>();
-    final List<Historyquote> missingHistoryquoteList = new ArrayList<>();
-    HisotryqouteLinearFilledSummary hisotryqouteLinearFilledSummary = new HisotryqouteLinearFilledSummary();
-
     Security security = securityJpaRepository.getReferenceById(idSecuritycurrency);
     assertMayFillGaps(user, security);
     // The end date is chosen by the user, so the limit the dialog offers has to be enforced here as well. A date beyond
@@ -69,12 +77,49 @@ public class HistoryquoteQualityService {
     // Filling the gaps of an instrument is accounted as a single edit of that instrument, so it consumes the same
     // daily budget as a manual change to it. Checked before the first row is written or moved.
     dailyLimitService.check(user, Security.class.getSimpleName(), 1);
-    if (fillGapsParam.moveWeekendToFriday) {
+    HisotryqouteLinearFilledSummary summary = fillGapsLinearInternal(idSecuritycurrency, fillGapsParam.fillUpToDate,
+        fillGapsParam.moveWeekendToFriday, user.createAndGetJavaLocale());
+    dailyLimitService.log(user.getIdUser(), Security.class.getSimpleName(), OperationType.UPDATE, 1);
+    return summary;
+  }
+
+  /**
+   * The filling itself, without an acting user: no rights check, no daily budget and no dialog boundary.
+   *
+   * <p>
+   * A scheduled task has none of those three - it runs without a security context, it is not somebody's edit, and its
+   * end date is derived rather than chosen - which is why this is separated from the user facing method above. Both
+   * paths create the same rows, so an instrument filled by the task is indistinguishable from one filled by hand.
+   * </p>
+   *
+   * <p>
+   * Days already carrying a price are invisible here, because the underlying query returns a day only when its close is
+   * null. A day an earlier run filled is therefore never touched again, and a real price arriving later applies from
+   * its own date onwards instead of rewriting the days before it. That is what keeps a figure a report showed yesterday
+   * valid today.
+   * </p>
+   *
+   * @param idSecuritycurrency  the instrument whose prices are completed
+   * @param fillUpToDate        last day that may receive a price
+   * @param moveWeekendToFriday whether Saturday and Sunday rows are moved to the Friday before, which deletes and
+   *                            rewrites existing rows and therefore belongs to a deliberate user action only
+   * @param locale              language of the summary message
+   * @return what was created, moved and removed
+   */
+  @Transactional
+  public HisotryqouteLinearFilledSummary fillGapsLinearInternal(final Integer idSecuritycurrency,
+      final LocalDate fillUpToDate, final boolean moveWeekendToFriday, final Locale locale) {
+    final Double[] firstLastPrice = new Double[2];
+    final List<LocalDate> missingDays = new ArrayList<>();
+    final List<Historyquote> missingHistoryquoteList = new ArrayList<>();
+    HisotryqouteLinearFilledSummary hisotryqouteLinearFilledSummary = new HisotryqouteLinearFilledSummary();
+
+    if (moveWeekendToFriday) {
       moveWeekendDayToBusinessDay(idSecuritycurrency, hisotryqouteLinearFilledSummary);
     }
 
     List<IDateAndClose> dateAndClose = historyquoteJpaRepository
-        .getClosedAndMissingHistoryquoteByIdSecurity(idSecuritycurrency, fillGapsParam.fillUpToDate);
+        .getClosedAndMissingHistoryquoteByIdSecurity(idSecuritycurrency, fillUpToDate);
     dateAndClose.forEach(dac -> {
       hisotryqouteLinearFilledSummary.requiredClosing++;
       if (dac.getClose() == null) {
@@ -89,9 +134,8 @@ public class HistoryquoteQualityService {
       }
     });
 
-    this.hisotryqouteLinearFill(user, idSecuritycurrency, firstLastPrice, missingDays, hisotryqouteLinearFilledSummary,
-        missingHistoryquoteList);
-    dailyLimitService.log(user.getIdUser(), Security.class.getSimpleName(), OperationType.UPDATE, 1);
+    this.hisotryqouteLinearFill(locale, idSecuritycurrency, firstLastPrice, missingDays,
+        hisotryqouteLinearFilledSummary, missingHistoryquoteList);
 
     return hisotryqouteLinearFilledSummary;
   }
@@ -170,15 +214,34 @@ public class HistoryquoteQualityService {
    * @param security the instrument whose prices would be touched
    */
   private void assertMayFillGaps(final User user, final Security security) {
-    if (!((UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, security)
-        && security.getActiveToDate().isBefore(LocalDate.now()) && security.getIdTenantPrivate() == null)
-        || UserAccessHelper.isAdmin(user))) {
+    if (UserAccessHelper.isAdmin(user)) {
+      return;
+    }
+    boolean mayEditInstrument = UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete(user, security)
+        && security.getIdTenantPrivate() == null;
+    if (!(mayEditInstrument && hasReachedItsEndOrIsMarked(security))) {
       throw new SecurityException(BaseConstants.STEAL_DATA_SECURITY_BREACH);
     }
   }
 
-  private void hisotryqouteLinearFill(final User user, final Integer idSecuritycurrency, final Double[] firstLastPrice,
-      final List<LocalDate> missingDays, HisotryqouteLinearFilledSummary hisotryqouteLinearFilledSummary,
+  /**
+   * Whether prices may be created for this instrument at all. One past its active to date qualifies, because nothing
+   * further will ever be delivered for it. So does one carrying a {@code bankrupt_security} marker, and that second
+   * case is not covered by the first: a bond of a bankrupt issuer keeps its maturity as active to date, so waiting for
+   * that day would leave the gap - and with it the broken performance reports of everyone holding it - in place for
+   * years.
+   *
+   * @param security the instrument whose prices would be created
+   * @return true when filling is permitted for this instrument
+   */
+  private boolean hasReachedItsEndOrIsMarked(final Security security) {
+    return security.getActiveToDate().isBefore(LocalDate.now())
+        || bankruptSecurityJpaRepository.findByIdSecuritycurrency(security.getIdSecuritycurrency()).isPresent();
+  }
+
+  private void hisotryqouteLinearFill(final Locale locale, final Integer idSecuritycurrency,
+      final Double[] firstLastPrice, final List<LocalDate> missingDays,
+      HisotryqouteLinearFilledSummary hisotryqouteLinearFilledSummary,
       final List<Historyquote> missingHistoryquoteList) {
     if (!missingDays.isEmpty()) {
       if (firstLastPrice[0] != null || firstLastPrice[1] != null) {
@@ -186,13 +249,12 @@ public class HistoryquoteQualityService {
             hisotryqouteLinearFilledSummary);
       } else {
         // Not a single day with a close price was found
-        hisotryqouteLinearFilledSummary.message = messages.getMessage("gt.not.single.valid.close", null,
-            user.createAndGetJavaLocale());
+        hisotryqouteLinearFilledSummary.message = messages.getMessage("gt.not.single.valid.close", null, locale);
         hisotryqouteLinearFilledSummary.warning = true;
       }
     }
     if (!hisotryqouteLinearFilledSummary.warning) {
-      hisotryqouteLinearFilledSummary.message = messages.getMessage("gt.success", null, user.createAndGetJavaLocale());
+      hisotryqouteLinearFilledSummary.message = messages.getMessage("gt.success", null, locale);
     }
     historyquoteJpaRepository.saveAll(missingHistoryquoteList);
     hisotryqouteLinearFilledSummary.createdHistoryquotes = missingHistoryquoteList.size();
@@ -256,9 +318,8 @@ public class HistoryquoteQualityService {
     }
     if (slope != null) {
       for (int i = 0; i < missingDays.size(); i++) {
-        missingHistoryquoteList
-            .add(new Historyquote(idSecuritycurrency, HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY,
-                missingDays.get(i), startPrice + (i + 1) * slope));
+        missingHistoryquoteList.add(new Historyquote(idSecuritycurrency,
+            HistoryquoteCreateType.FILLED_CLOSED_LINEAR_TRADING_DAY, missingDays.get(i), startPrice + (i + 1) * slope));
       }
       hisotryqouteLinearFilledSummary.gapsTotalFilled++;
       missingDays.clear();

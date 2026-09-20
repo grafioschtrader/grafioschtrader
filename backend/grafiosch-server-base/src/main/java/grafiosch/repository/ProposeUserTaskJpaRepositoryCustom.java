@@ -13,7 +13,7 @@ public interface ProposeUserTaskJpaRepositoryCustom extends BaseRepositoryCustom
    * Creates a release logout proposal for a user who has violated system policies. This method generates a proposal
    * request that can be reviewed and approved by administrators to reset user violation counters and restore normal
    * access privileges.
-   * 
+   *
    * The proposal includes the specified field to be reset and sends notification to the main administrator about the
    * user's request for reinstatement.
    *
@@ -26,7 +26,7 @@ public interface ProposeUserTaskJpaRepositoryCustom extends BaseRepositoryCustom
   /**
    * Rejects a pending user task proposal and notifies the requesting user. This method permanently removes the proposal
    * from the system and sends an email notification to the user explaining why their request was denied.
-   * 
+   *
    * The rejection is processed by an administrator and includes a personalized rejection message that will be sent to
    * the user's registered email address.
    *

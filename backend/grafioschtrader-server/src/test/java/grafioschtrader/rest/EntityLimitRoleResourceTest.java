@@ -36,8 +36,8 @@ import grafiosch.types.OwnerScope;
  *
  * <p>
  * This class deliberately runs at the end of {@link ResourceTestSuite_25}: the migration owns only the mandatory MAX
- * defaults, while the two test layers divide the production ROLE_LIMITEDIT rows through the fixture's
- * {@code e2e} routing column.
+ * defaults, while the two test layers divide the production ROLE_LIMITEDIT rows through the fixture's {@code e2e}
+ * routing column.
  * </p>
  */
 @TestInstance(Lifecycle.PER_CLASS)
@@ -45,9 +45,8 @@ import grafiosch.types.OwnerScope;
 class EntityLimitRoleResourceTest extends BaseIntegrationTest {
 
   private static final String FIXTURE = "/testdata/limit_entity.csv";
-  private static final List<String> EXPECTED_HEADER =
-      List.of("limitType", "entityName", "relationEntityName", "countScope", "ownerScope", "roleName",
-          "limitValue", "validUntil", "e2e");
+  private static final List<String> EXPECTED_HEADER = List.of("limitType", "entityName", "relationEntityName",
+      "countScope", "ownerScope", "roleName", "limitValue", "validUntil", "e2e");
 
   @BeforeAll
   void setUpUserToken() {
@@ -61,8 +60,8 @@ class EntityLimitRoleResourceTest extends BaseIntegrationTest {
     List<LimitFixtureRow> allRows = loadFixture();
     List<LimitFixtureRow> integrationRows = allRows.stream().filter(row -> "i".equals(row.routing())).toList();
 
-    assertThat(allRows).hasSize(32);
-    assertThat(integrationRows).hasSize(26);
+    assertThat(allRows).hasSize(33);
+    assertThat(integrationRows).hasSize(27);
     assertThat(allRows.stream().filter(row -> "e2e".equals(row.routing()))).hasSize(6);
     assertThat(allRows).extracting(LimitFixtureRow::roleName).containsOnly("ROLE_LIMITEDIT");
     Integer idRole = resolveRoleId(integrationRows.getFirst().roleName());
@@ -84,11 +83,10 @@ class EntityLimitRoleResourceTest extends BaseIntegrationTest {
 
     EntityLimit[] persisted = readAllLimits();
     for (LimitFixtureRow row : integrationRows) {
-      assertThat(persisted).filteredOn(limit -> matches(limit, row, idRole)).singleElement()
-          .satisfies(limit -> {
-            assertThat(limit.getLimitValue()).isEqualTo(row.limitValue());
-            assertThat(limit.getValidUntil()).isEqualTo(row.validUntil());
-          });
+      assertThat(persisted).filteredOn(limit -> matches(limit, row, idRole)).singleElement().satisfies(limit -> {
+        assertThat(limit.getLimitValue()).isEqualTo(row.limitValue());
+        assertThat(limit.getValidUntil()).isEqualTo(row.validUntil());
+      });
     }
   }
 
@@ -150,16 +148,14 @@ class EntityLimitRoleResourceTest extends BaseIntegrationTest {
           String relationEntityName = columns[2].isBlank() ? null : columns[2];
           CountScope countScope = parseNullableEnum(columns[3], CountScope.class, "countScope", lineNumber);
           OwnerScope ownerScope = parseNullableEnum(columns[4], OwnerScope.class, "ownerScope", lineNumber);
-          assertThat(columns[5]).as("roleName in %s line %d", FIXTURE, lineNumber)
-              .isEqualTo("ROLE_LIMITEDIT");
+          assertThat(columns[5]).as("roleName in %s line %d", FIXTURE, lineNumber).isEqualTo("ROLE_LIMITEDIT");
           int limitValue = parsePositiveInt(columns[6], lineNumber);
           LocalDate validUntil = columns[7].isBlank() ? null : LocalDate.parse(columns[7]);
           assertThat(columns[8]).as("routing value in %s line %d", FIXTURE, lineNumber).isIn("i", "e2e");
 
           LimitKey key = new LimitKey(limitType, columns[1], relationEntityName, countScope, ownerScope);
           String naturalKey = key.keyId() + "|" + columns[5];
-          assertThat(naturalKeys.add(naturalKey)).as("duplicate natural key in %s: %s", FIXTURE, naturalKey)
-              .isTrue();
+          assertThat(naturalKeys.add(naturalKey)).as("duplicate natural key in %s: %s", FIXTURE, naturalKey).isTrue();
           rows.add(new LimitFixtureRow(key, columns[5], limitValue, validUntil, columns[8]));
         }
         return rows;
@@ -184,8 +180,7 @@ class EntityLimitRoleResourceTest extends BaseIntegrationTest {
     try {
       return Enum.valueOf(enumType, value);
     } catch (IllegalArgumentException ex) {
-      throw new AssertionError("Invalid " + column + " in " + FIXTURE + " line " + lineNumber + ": " + value,
-          ex);
+      throw new AssertionError("Invalid " + column + " in " + FIXTURE + " line " + lineNumber + ": " + value, ex);
     }
   }
 

@@ -1,8 +1,8 @@
 package grafioschtrader.types;
 
 /**
- * Kind of manual tax year correction applied to a security dividends position. Serialized by name to the
- * frontend, which uses it to highlight the affected report cells.
+ * Kind of manual tax year correction applied to a security dividends position. Serialized by name to the frontend,
+ * which uses it to highlight the affected report cells.
  */
 public enum TaxYearCorrectionType {
   /** The position's computed taxableAmountMC replaced the ICTax payment total. */

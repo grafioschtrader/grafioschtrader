@@ -75,9 +75,8 @@ public class MailSettingForwardJpaRepositoryImpl extends BaseRepositoryImpl<Mail
     List<ValueKeyHtmlSelectOptions> vkhsoList = new ArrayList<>();
     var isAdmin = user.getMostPrivilegedRole().equals(Role.ROLE_ADMIN);
     if (isAdmin) {
-      userJpaRepository.getIdUserAndNicknameByRoleExcludeUser(Role.ROLE_ADMIN, user.getIdUser())
-          .forEach(rs -> vkhsoList
-              .add(new ValueKeyHtmlSelectOptions(String.valueOf(rs.getIdUser()), rs.getNickname())));
+      userJpaRepository.getIdUserAndNicknameByRoleExcludeUser(Role.ROLE_ADMIN, user.getIdUser()).forEach(
+          rs -> vkhsoList.add(new ValueKeyHtmlSelectOptions(String.valueOf(rs.getIdUser()), rs.getNickname())));
     }
     return new MailSendForwardDefaultBase(vkhsoList, isAdmin);
   }

@@ -9,9 +9,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = """
-Parameters of the linear gap filling of the historical prices of a single instrument. Both settings are chosen by the
-user in the corresponding dialog.
-""")
+    Parameters of the linear gap filling of the historical prices of a single instrument. Both settings are chosen by the
+    user in the corresponding dialog.
+    """)
 public class HistoryquoteFillGapsParam {
 
   @Schema(description = "True if an existing weekend price is moved to a missing Friday before the gaps are filled")

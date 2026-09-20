@@ -1,34 +1,50 @@
 package grafioschtrader.repository;
 
 import java.lang.annotation.Annotation;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.BaseRepositoryImpl;
+import grafiosch.service.EntityLimitService;
 import grafioschtrader.algo.AlgoTopCreate;
 import grafioschtrader.algo.AlgoTopCreate.AssetclassPercentage;
 import grafioschtrader.algo.AlgoTopCreateFromPortfolio;
-import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
+import grafioschtrader.algo.AlgoTopCreateFromWatchlist;
+import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.AlgoTopAssetSecurity;
 import grafioschtrader.entities.Assetclass;
-import grafioschtrader.entities.HoldCashaccountBalance;
-import grafioschtrader.entities.HoldSecurityaccountSecurity;
 import grafioschtrader.entities.Security;
+import grafioschtrader.service.AlgoAlertScopeLifecycle;
+import grafioschtrader.service.AlgoAllocationWeights;
+import grafioschtrader.service.AlgoHierarchyWriteGuard;
+import grafioschtrader.service.AlgoHistoricalValuationService;
 
 public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implements AlgoTopJpaRepositoryCustom {
 
+  @Autowired
+  private AlgoHistoricalValuationService historicalValuation;
+  @Autowired
+  private SimulationSourceRepository source;
+  @Autowired
+  private WatchlistJpaRepository watchlists;
+  @Autowired
+  private EntityLimitService limits;
   @Autowired
   private AlgoTopJpaRepository algoTopJpaRepository;
   @Autowired
@@ -37,20 +53,22 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
   private AlgoSecurityJpaRepository algoSecurityJpaRepository;
   @Autowired
   AssetclassJpaRepository assetclassJpaRepository;
+
   @Autowired
-  private HoldSecurityaccountSecurityJpaRepository holdSecurityRepo;
+  private AlgoAlertScopeLifecycle alertScopeLifecycle;
+
   @Autowired
-  private HoldCashaccountBalanceJpaRepository holdCashRepo;
-  @Autowired
-  private HistoryquoteJpaRepository historyquoteJpaRepository;
-  @Autowired
-  private SecurityJpaRepository securityJpaRepository;
+  private AlgoHierarchyWriteGuard hierarchyWriteGuard;
 
   @Override
+  @Transactional(rollbackFor = Exception.class)
   public AlgoTop saveOnlyAttributes(AlgoTop algoTopOrAlgoTopCreate, AlgoTop existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
+    hierarchyWriteGuard.assertHierarchyWritable();
     if (algoTopOrAlgoTopCreate instanceof AlgoTopCreateFromPortfolio atcfp) {
       return createFromPortfolioHoldings(atcfp);
+    } else if (algoTopOrAlgoTopCreate instanceof AlgoTopCreateFromWatchlist atcfw) {
+      return createFromWatchlist(atcfw);
     } else if (algoTopOrAlgoTopCreate instanceof AlgoTopCreate) {
       // When new
       var algoTop = new AlgoTop();
@@ -70,155 +88,140 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
       return algoTop;
     } else {
       // When changed
-      return algoTopJpaRepository.save(algoTopOrAlgoTopCreate);
+      var before = alertScopeLifecycle.snapshot(algoTopOrAlgoTopCreate.getIdTenant());
+      AlgoTop saved = algoTopJpaRepository.save(algoTopOrAlgoTopCreate);
+      alertScopeLifecycle.changed(saved.getIdTenant(), before);
+      return saved;
     }
   }
 
   /**
-   * Creates an AlgoTop hierarchy from the tenant's portfolio holdings at the given reference date.
-   * Calculates invested value vs. cash to determine AlgoTop percentage, then groups securities by
-   * asset class to create AlgoAssetclass and AlgoSecurity children with proportional weightings.
+   * Creates an AlgoTop hierarchy from the tenant's portfolio holdings at the given reference date. Calculates invested
+   * value vs. cash to determine AlgoTop percentage, then groups securities by asset class to create AlgoAssetclass and
+   * AlgoSecurity children with proportional weightings.
    */
   private AlgoTop createFromPortfolioHoldings(AlgoTopCreateFromPortfolio dto) {
     Integer idTenant = dto.getIdTenant();
-    LocalDate refDate = dto.getReferenceDate();
-
-    // Validate reference date is after first transaction
-    LocalDate firstTradeDate = holdSecurityRepo.findByIdTenantMinFromHoldDate(idTenant);
-    if (firstTradeDate == null || refDate.isBefore(firstTradeDate)) {
+    AlgoHistoricalValuationService.validateDate(dto.getReferenceDate());
+    var firstDate = source.firstTransactionDate(idTenant);
+    if (firstDate == null || dto.getReferenceDate().isBefore(firstDate))
       throw new DataViolationException("reference.date", "algo.reference.date.before.first.transaction", null);
-    }
+    var snapshot = historicalValuation.value(idTenant, dto.getReferenceDate());
+    snapshot.requireAvailable();
+    double topPercentage = AlgoAllocationWeights.topPercentage(snapshot.equity(), snapshot.grossExposure());
+    Map<Integer, Double> exposure = new TreeMap<>();
+    Map<Integer, Security> securities = new TreeMap<>();
+    snapshot.positions().forEach(p -> {
+      securities.put(p.security().getId(), p.security());
+      exposure.merge(p.security().getId(), p.grossExposure() * snapshot.fx().get(p.security().getCurrency()),
+          Double::sum);
+    });
+    if (securities.values().stream().anyMatch(s -> s.getAssetClass() == null))
+      throw AlgoHistoricalValuationService.invalid("algo.allocation.invalid", "");
+    var groups = securities.values().stream()
+        .collect(Collectors.groupingBy(s -> s.getAssetClass().getId(), TreeMap::new, Collectors.toList()));
+    var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (!limits.fitsWithinLimit(user, LimitKeyConfig.KEY_ALGO_TOP, null, 1)
+        || !limits.fitsWithinLimit(user, LimitKeyConfig.KEY_ALGO_ASSETCLASS, null, groups.size())
+        || !limits.fitsWithinLimit(user, LimitKeyConfig.KEY_ALGO_SECURITY, null, securities.size()))
+      throw AlgoHistoricalValuationService.invalid("algo.allocation.limit", "");
+    Map<Integer, Double> groupExposure = new TreeMap<>();
+    groups.forEach((id, list) -> groupExposure.put(id, list.stream().mapToDouble(s -> exposure.get(s.getId())).sum()));
+    var groupWeights = AlgoAllocationWeights.normalize(groupExposure);
+    AlgoTop top = new AlgoTop();
+    BeanUtils.copyProperties(dto, top);
+    // Older clients may still submit a watchlist, but this hierarchy comes exclusively from dated holdings.
+    top.setIdWatchlist(null);
+    top.setPercentage((float) topPercentage);
+    top = algoTopJpaRepository.save(top);
+    persistBucketsAndMembers(idTenant, top, groups, groupWeights, group -> {
+      Map<Integer, Double> values = new TreeMap<>();
+      group.forEach(s -> values.put(s.getId(), exposure.get(s.getId())));
+      return AlgoAllocationWeights.normalize(values);
+    });
+    return top;
+  }
 
-    // 1. Get open security positions at reference date
-    List<HoldSecurityaccountSecurity> positions = holdSecurityRepo.findOpenPositionsAtDate(idTenant, refDate);
-    if (positions.isEmpty()) {
-      throw new DataViolationException("reference.date", "algo.no.positions.at.date",
-          new Object[] { refDate.toString() });
-    }
+  /**
+   * Creates a complete AlgoTop hierarchy from the instruments of the linked watchlist. A watchlist carries no amounts,
+   * so nothing can be read off it the way the portfolio variant reads exposures: both generated levels are weighted
+   * equally, the asset classes among themselves and the instruments within their asset class. The AlgoTop itself is
+   * fully invested, and the reference date stays empty because it is the provenance of derived weights and equal
+   * weights have none.
+   */
+  private AlgoTop createFromWatchlist(AlgoTopCreateFromWatchlist dto) {
+    Integer idTenant = dto.getIdTenant();
+    var watchlist = watchlists.findById(dto.getIdWatchlist()).orElse(null);
+    if (watchlist == null || !idTenant.equals(watchlist.getIdTenant()))
+      throw new SecurityException(grafiosch.BaseConstants.CLIENT_SECURITY_BREACH);
+    // Not the lazy securitycurrencyList: this query keeps the currency pairs of the watchlist out of the hierarchy,
+    // which can only hold instruments, and orders by instrument id so the generation is reproducible.
+    List<Security> securities = watchlists.securitiesOfWatchlist(dto.getIdWatchlist());
+    if (securities.isEmpty())
+      throw AlgoHistoricalValuationService.invalid("algo.watchlist.empty", "");
+    var withoutAssetclass = securities.stream().filter(s -> s.getAssetClass() == null).map(Security::getName).distinct()
+        .sorted().toList();
+    if (!withoutAssetclass.isEmpty())
+      throw AlgoHistoricalValuationService.invalid("algo.allocation.invalid", String.join(", ", withoutAssetclass));
+    var groups = securities.stream()
+        .collect(Collectors.groupingBy(s -> s.getAssetClass().getId(), TreeMap::new, Collectors.toList()));
+    var user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (!limits.fitsWithinLimit(user, LimitKeyConfig.KEY_ALGO_TOP, null, 1)
+        || !limits.fitsWithinLimit(user, LimitKeyConfig.KEY_ALGO_ASSETCLASS, null, groups.size())
+        || !limits.fitsWithinLimit(user, LimitKeyConfig.KEY_ALGO_SECURITY, null, securities.size()))
+      throw AlgoHistoricalValuationService.invalid("algo.allocation.limit", "");
+    AlgoTop top = new AlgoTop();
+    BeanUtils.copyProperties(dto, top);
+    top.setPercentage(100f);
+    top = algoTopJpaRepository.save(top);
+    persistBucketsAndMembers(idTenant, top, groups, AlgoAllocationWeights.normalize(equalValues(groups.keySet())),
+        group -> AlgoAllocationWeights.normalize(equalValues(group.stream().map(Security::getId).toList())));
+    return top;
+  }
 
-    // 2. Aggregate holdings by idSecuritycurrency (sum across security accounts)
-    Map<Integer, Double> holdingsBySecId = new HashMap<>();
-    Map<Integer, Integer> currencyPairBySecId = new HashMap<>();
-    for (HoldSecurityaccountSecurity pos : positions) {
-      Integer secId = pos.getHssk().getIdSecuritycurrency();
-      holdingsBySecId.merge(secId, pos.getHodlings(), Double::sum);
-      // Keep currency pair for tenant conversion (last one wins, they should be the same per security)
-      currencyPairBySecId.put(secId, pos.getIdCurrencypairTenant());
-    }
-
-    // 3. Get closing prices for all securities at reference date
-    List<Integer> allIds = new ArrayList<>(holdingsBySecId.keySet());
-    // Also collect currency pair ids for FX conversion
-    List<Integer> fxPairIds = currencyPairBySecId.values().stream()
-        .filter(id -> id != null).distinct().collect(Collectors.toList());
-    List<Integer> allPriceIds = new ArrayList<>(allIds);
-    allPriceIds.addAll(fxPairIds);
-
-    List<ISecuritycurrencyIdDateClose> priceResults = historyquoteJpaRepository.getIdDateCloseByIdsAndDate(
-        allPriceIds, refDate);
-
-    Map<Integer, Double> priceById = new HashMap<>();
-    for (ISecuritycurrencyIdDateClose pc : priceResults) {
-      priceById.put(pc.getIdSecuritycurrency(), pc.getClose());
-    }
-
-    // 4. Calculate total invested value in tenant currency
-    double totalInvested = 0.0;
-    Map<Integer, Double> valueBySecId = new HashMap<>();
-    for (Map.Entry<Integer, Double> entry : holdingsBySecId.entrySet()) {
-      Integer secId = entry.getKey();
-      double holdings = entry.getValue();
-      Double closePrice = priceById.get(secId);
-      if (closePrice == null) {
-        continue; // Skip securities without price data
-      }
-      double posValue = Math.abs(holdings) * closePrice;
-
-      // Currency conversion to tenant currency
-      Integer fxPairId = currencyPairBySecId.get(secId);
-      if (fxPairId != null) {
-        Double fxRate = priceById.get(fxPairId);
-        if (fxRate != null && fxRate != 0.0) {
-          posValue *= fxRate;
-        }
-      }
-      valueBySecId.put(secId, posValue);
-      totalInvested += posValue;
-    }
-
-    // 5. Calculate total cash in tenant currency
-    List<HoldCashaccountBalance> cashBalances = holdCashRepo.findCashBalancesAtDate(idTenant, refDate);
-    double totalCash = 0.0;
-    for (HoldCashaccountBalance cb : cashBalances) {
-      double cashValue = cb.getBalance();
-      Integer fxPairId = cb.getIdCurrencypairTenant();
-      if (fxPairId != null) {
-        Double fxRate = priceById.get(fxPairId);
-        if (fxRate != null && fxRate != 0.0) {
-          cashValue *= fxRate;
-        }
-      }
-      totalCash += cashValue;
-    }
-
-    double totalPortfolio = totalInvested + totalCash;
-    if (totalPortfolio <= 0.0) {
-      throw new DataViolationException("reference.date", "algo.no.positions.at.date",
-          new Object[] { refDate.toString() });
-    }
-
-    // 6. Save AlgoTop
-    var algoTop = new AlgoTop();
-    BeanUtils.copyProperties(dto, algoTop);
-    algoTop.setPercentage((float) (totalInvested / totalPortfolio * 100.0));
-    algoTop.setReferenceDate(refDate);
-    algoTop = algoTopJpaRepository.save(algoTop);
-
-    // 7. Load Security entities and group by asset class
-    List<Security> securities = securityJpaRepository.findAllById(new ArrayList<>(valueBySecId.keySet()));
-    Map<Integer, List<Security>> secByAssetclass = securities.stream()
-        .filter(s -> s.getAssetClass() != null)
-        .collect(Collectors.groupingBy(s -> s.getAssetClass().getIdAssetClass()));
-
-    // 8. For each asset class group, save AlgoAssetclass and AlgoSecurity children
-    for (Map.Entry<Integer, List<Security>> acEntry : secByAssetclass.entrySet()) {
-      List<Security> groupSecurities = acEntry.getValue();
-      double groupValue = groupSecurities.stream()
-          .mapToDouble(s -> valueBySecId.getOrDefault(s.getIdSecuritycurrency(), 0.0))
-          .sum();
-
-      if (groupValue <= 0.0) {
-        continue;
-      }
-
-      // Use the asset class from the first security in the group
-      Assetclass assetclass = groupSecurities.get(0).getAssetClass();
-      float acPercentage = (float) (groupValue / totalInvested * 100.0);
-
-      AlgoAssetclass algoAc = algoAssetclassJpaRepository.save(new AlgoAssetclass(
-          algoTop.getIdTenant(), algoTop.getIdAlgoAssetclassSecurity(), assetclass, acPercentage));
-
-      // Save individual AlgoSecurity entries
-      for (Security sec : groupSecurities) {
-        Double secValue = valueBySecId.get(sec.getIdSecuritycurrency());
-        if (secValue == null || secValue <= 0.0) {
-          continue;
-        }
-        float secPercentage = (float) (secValue / groupValue * 100.0);
-        AlgoSecurity algoSec = new AlgoSecurity();
-        algoSec.setIdTenant(algoTop.getIdTenant());
-        algoSec.setIdAlgoSecurityParent(algoAc.getIdAlgoAssetclassSecurity());
-        algoSec.setSecurity(sec);
-        algoSec.setPercentage(secPercentage);
-        algoSecurityJpaRepository.save(algoSec);
+  /**
+   * Saves the two generated levels below an already persisted AlgoTop: one bucket per asset class group, and one
+   * instrument node below each bucket.
+   *
+   * @param idTenant      owner of every generated node
+   * @param top           the saved AlgoTop the buckets hang below
+   * @param groups        the instruments of the hierarchy, grouped by asset class id
+   * @param groupWeights  parent-relative percentage of each bucket, keyed by asset class id
+   * @param memberWeights parent-relative percentages of one bucket's instruments, keyed by instrument id
+   */
+  private void persistBucketsAndMembers(Integer idTenant, AlgoTop top, Map<Integer, List<Security>> groups,
+      Map<Integer, Float> groupWeights, Function<List<Security>, Map<Integer, Float>> memberWeights) {
+    for (var entry : groups.entrySet()) {
+      var bucket = algoAssetclassJpaRepository.save(new AlgoAssetclass(idTenant, top.getId(),
+          entry.getValue().getFirst().getAssetClass(), groupWeights.get(entry.getKey())));
+      var weights = memberWeights.apply(entry.getValue());
+      for (Security security : entry.getValue()) {
+        AlgoSecurity child = new AlgoSecurity();
+        child.setIdTenant(idTenant);
+        child.setIdAlgoSecurityParent(bucket.getId());
+        child.setSecurity(security);
+        child.setPercentage(weights.get(security.getId()));
+        algoSecurityJpaRepository.save(child);
       }
     }
+  }
 
-    return algoTop;
+  /**
+   * The input of {@link AlgoAllocationWeights#normalize(Map)} for siblings that carry no amount to weight them by, so
+   * that they are split equally with the residual hundredths still assigned by largest remainder.
+   *
+   * @param ids the siblings to weight
+   * @return the same weight for each of them
+   */
+  private static Map<Integer, Double> equalValues(Collection<Integer> ids) {
+    Map<Integer, Double> values = new TreeMap<>();
+    ids.forEach(id -> values.put(id, 1.0));
+    return values;
   }
 
   @Override
   public void normalizeChildPercentages(Integer idAlgoAssetclassSecurity, Integer idTenant) {
+    hierarchyWriteGuard.assertHierarchyWritable();
     // Try AlgoAssetclass children first (parent is AlgoTop)
     List<AlgoAssetclass> assetclassChildren = algoAssetclassJpaRepository
         .findByIdTenantAndIdAlgoAssetclassParent(idTenant, idAlgoAssetclassSecurity);
@@ -238,6 +241,7 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
 
   @Override
   public void normalizeAllPercentages(Integer idAlgoAssetclassSecurity, Integer idTenant) {
+    hierarchyWriteGuard.assertHierarchyWritable();
     List<AlgoAssetclass> assetclassChildren = algoAssetclassJpaRepository
         .findByIdTenantAndIdAlgoAssetclassParent(idTenant, idAlgoAssetclassSecurity);
     if (assetclassChildren.isEmpty()) {
@@ -257,9 +261,7 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
   }
 
   private void normalizeList(List<? extends AlgoTopAssetSecurity> children) {
-    double sum = children.stream()
-        .mapToDouble(c -> c.getPercentage() != null ? c.getPercentage() : 0.0)
-        .sum();
+    double sum = children.stream().mapToDouble(c -> c.getPercentage() != null ? c.getPercentage() : 0.0).sum();
     if (sum == 0.0) {
       return;
     }
@@ -268,17 +270,23 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
       AlgoTopAssetSecurity child = children.get(i);
       float oldPct = child.getPercentage() != null ? child.getPercentage() : 0.0f;
       if (i < children.size() - 1) {
-        float normalized = (float) (Math.round(oldPct / sum * 10000.0) / 100.0);
+        float normalized = (float) DataBusinessHelper.roundPercentage(oldPct / sum * 100.0);
         child.setPercentage(normalized);
         runningTotal += normalized;
       } else {
-        child.setPercentage((float) (Math.round((100.0 - runningTotal) * 100.0) / 100.0));
+        child.setPercentage((float) DataBusinessHelper.roundPercentage(100.0 - runningTotal));
       }
     }
   }
 
+  @Autowired
+  private AlgoTradingRepository tradingRepository;
+
   public int delEntityWithTenant(Integer idAlgoAssetclassSecurity, Integer idTenant) {
-    return algoTopJpaRepository.deleteByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity, idTenant);
+    hierarchyWriteGuard.assertHierarchyWritable();
+    int deleted = algoTopJpaRepository.deleteByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity, idTenant);
+    tradingRepository.clearRemovedAssignments(idTenant);
+    return deleted;
   }
 
 }

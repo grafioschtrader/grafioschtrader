@@ -7,12 +7,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Payload for requesting a list of known GTNet servers (GT_NET_UPDATE_SERVERLIST_SEL_C).
  *
- * This message enables network discovery beyond direct connections. When a domain has spreadCapability
- * enabled, it can share its list of known GTNet peers with requesters, expanding the network's reach.
+ * This message enables network discovery beyond direct connections. When a domain has spreadCapability enabled, it can
+ * share its list of known GTNet peers with requesters, expanding the network's reach.
  *
- * The request includes filter criteria to help the responder return only relevant servers. For example,
- * a requester interested only in intraday prices can set lastpriceServerState to SS_OPEN to receive
- * only providers currently offering that service.
+ * The request includes filter criteria to help the responder return only relevant servers. For example, a requester
+ * interested only in intraday prices can set lastpriceServerState to SS_OPEN to receive only providers currently
+ * offering that service.
  */
 @Schema(description = """
     Payload for requesting a list of known GTNet servers from a peer. Enables network discovery beyond direct

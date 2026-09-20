@@ -37,15 +37,9 @@ class TaskDataChangeResourceTest extends BaseIntegrationTest {
     TaskDataChange taskDataChange = new TaskDataChange(TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX,
         TaskDataExecPriority.PRIO_NORMAL, earliestStartTime);
 
-    TaskDataChange createdTask = authenticatedClient(RestTestHelper.ADMIN)
-        .post()
-        .uri(RequestMappings.TASK_DATA_CHANGE_MAP)
-        .body(taskDataChange)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(TaskDataChange.class)
-        .returnResult()
-        .getResponseBody();
+    TaskDataChange createdTask = authenticatedClient(RestTestHelper.ADMIN).post()
+        .uri(RequestMappings.TASK_DATA_CHANGE_MAP).body(taskDataChange).exchange().expectStatus().isOk()
+        .expectBody(TaskDataChange.class).returnResult().getResponseBody();
 
     assertThat(createdTask).isNotNull();
     assertThat(createdTask.getIdTaskDataChange()).isPositive();
@@ -66,15 +60,10 @@ class TaskDataChangeResourceTest extends BaseIntegrationTest {
   }
 
   private TaskDataChange getTaskById(Integer idTaskDataChange) {
-    TaskDataChange[] tasks = authenticatedClient(RestTestHelper.ADMIN)
-        .get()
+    TaskDataChange[] tasks = authenticatedClient(RestTestHelper.ADMIN).get()
         .uri(uriBuilder -> uriBuilder.path(RequestMappings.TASK_DATA_CHANGE_MAP)
             .queryParam("idTasks", TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX.getValue()).build())
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(TaskDataChange[].class)
-        .returnResult()
-        .getResponseBody();
+        .exchange().expectStatus().isOk().expectBody(TaskDataChange[].class).returnResult().getResponseBody();
 
     assertThat(tasks).isNotNull();
     return Arrays.stream(tasks).filter(task -> idTaskDataChange.equals(task.getIdTaskDataChange())).findFirst()

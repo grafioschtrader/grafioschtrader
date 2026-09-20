@@ -26,6 +26,45 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
     );
   }
 
+  getTaxModel(id: number): Observable<{ yaml: string }> {
+    return this.httpClient
+      .get<{ yaml: string }>(`${TaxDataService.BASE_URL}/country/${id}/taxmodelyaml`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  saveTaxModel(id: number, yaml: string): Observable<{ yaml: string }> {
+    return this.httpClient
+      .put<{ yaml: string }>(`${TaxDataService.BASE_URL}/country/${id}/taxmodelyaml`, { yaml }, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  validateTaxModel(yaml: string): Observable<string[]> {
+    return this.httpClient
+      .post<string[]>(`${TaxDataService.BASE_URL}/taxmodelyaml/validate`, { yaml }, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  estimateTax(request: object): Observable<any> {
+    return this.httpClient
+      .post(`${TaxDataService.BASE_URL}/estimatetaxyaml`, request, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  taxOptions(kind: 'eventkinds' | 'coupondaycounts'): Observable<ValueKeyHtmlSelectOptions[]> {
+    return this.httpClient.get<ValueKeyHtmlSelectOptions[]>(`${TaxDataService.BASE_URL}/${kind}`, this.getHeaders());
+  }
+
+  /**
+   * Loads the usual coupon day-count convention per bond currency, which the bond terms of a security propose.
+   *
+   * @returns the fallback convention and the currencies deviating from it
+   */
+  getCouponDayCountDefaults(): Observable<CouponDayCountDefaults> {
+    return this.httpClient
+      .get<CouponDayCountDefaults>(`${TaxDataService.BASE_URL}/coupondaycounts/defaults`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   getTree(): Observable<TaxCountry[]> {
     return <Observable<TaxCountry[]>>(
       this.httpClient
@@ -118,6 +157,14 @@ export class TaxDataService extends AuthServiceWithLogout<TaxCountry> implements
       })
       .pipe(catchError(this.handleError.bind(this))) as Observable<Blob>;
   }
+}
+
+/** Usual coupon day-count convention per bond currency, served by the backend. */
+export interface CouponDayCountDefaults {
+  /** Convention for every currency not listed in byCurrency. */
+  fallback: string;
+  /** Deviating conventions keyed by ISO 4217 currency code. */
+  byCurrency: { [currency: string]: string };
 }
 
 export interface TaxStatementExportRequest {

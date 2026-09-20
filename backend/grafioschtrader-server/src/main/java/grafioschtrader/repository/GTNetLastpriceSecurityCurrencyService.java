@@ -6,9 +6,8 @@ import grafioschtrader.entities.Securitycurrency;
 /**
  * Abstract base service for GTNet instrument pool operations.
  *
- * This class provides common functionality for managing instrument entries in the GTNet pool
- * and their associated price data. It is extended by the repository implementations for
- * security and currency pair instruments.
+ * This class provides common functionality for managing instrument entries in the GTNet pool and their associated price
+ * data. It is extended by the repository implementations for security and currency pair instruments.
  *
  * @param <I> the instrument type (GTNetInstrumentSecurity or GTNetInstrumentCurrencypair)
  * @param <T> the local entity type (Security or Currencypair)

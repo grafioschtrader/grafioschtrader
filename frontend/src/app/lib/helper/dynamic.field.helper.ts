@@ -1294,7 +1294,7 @@ export class DynamicFieldHelper {
    * @param fieldName Unique field identifier (also used for label key generation)
    * @param required Whether input is mandatory
    * @param min Minimum allowed value
-   * @param max Maximum allowed value
+   * @param max Maximum allowed value (null for no maximum)
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for number input with range validation and auto-sized width
    */
@@ -1326,7 +1326,7 @@ export class DynamicFieldHelper {
    * @param labelKey Translation key for field label
    * @param required Whether input is mandatory
    * @param min Minimum allowed value (null for no minimum)
-   * @param max Maximum allowed value
+   * @param max Maximum allowed value (null for no maximum)
    * @param fieldOptions Additional configuration options
    * @returns FieldConfig for number input with range validation and calculated width
    */
@@ -1341,15 +1341,19 @@ export class DynamicFieldHelper {
   ): FieldConfig {
     const validations: ValidatorFn[] = required ? [Validators.required] : [];
     const errorMessageRules: ErrorMessageRules[] = required ? [this.RULE_REQUIRED_TOUCHED] : [];
-    if (min !== null && max) {
+    if (min != null && max != null) {
       validations.push(range([min, max]));
       errorMessageRules.push({ name: 'range', keyi18n: 'range', param1: min, param2: max, rules: [RuleEvent.DIRTY] });
-    } else if (max) {
+    } else if (max != null) {
       validations.push(maxValue(max));
       errorMessageRules.push({ name: 'max', keyi18n: 'max', param1: max, rules: [RuleEvent.DIRTY] });
+    } else if (min != null) {
+      validations.push(Validators.min(min));
+      errorMessageRules.push({ name: 'min', keyi18n: 'gte', param1: min, rules: [RuleEvent.DIRTY] });
     }
-    const maxLength = Math.max(min ? min.toString().length : 0, max.toString().length);
-    (fieldOptions = fieldOptions || {}).inputWidth = maxLength + 2;
+    // A minimum alone cannot determine the maximum input length.
+    const maxLength = max != null ? Math.max(min?.toString().length ?? 0, max.toString().length) : undefined;
+    (fieldOptions = fieldOptions || {}).inputWidth = (maxLength ?? 10) + 2;
     return this.setFieldBaseAndOptions(
       {
         dataType,

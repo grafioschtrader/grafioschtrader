@@ -4,7 +4,10 @@ import { AlgoSecurity } from './algo.security';
 import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
 import { InputAndShowDefinitionStrategy } from './input.and.show.definition.strategy';
 import { AlgoStrategy } from './algo.strategy';
-import { FieldDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import {
+  ClassDescriptorInputAndShow,
+  FieldDescriptorInputAndShow
+} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 
 export enum AlgoDialogVisible {
   ALGO_ASSETCLASS = 1,
@@ -19,11 +22,13 @@ export class AlgoStrategyDefinitionForm {
 }
 
 export class AlgoCallParam {
+  formDefinition?: ClassDescriptorInputAndShow;
   constructor(
     public parentObject: AlgoTop | AlgoAssetclass | AlgoSecurity,
     public thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,
     public algoStrategyDefinitionForm?: AlgoStrategyDefinitionForm,
-    public idWatchlist?: number
+    public idWatchlist?: number,
+    public referenceDate?: Date | string
   ) {}
 }
 

@@ -27,8 +27,10 @@ import uk.org.okapibarcode.output.Java2DRenderer;
  * content and CODE128C for page identification, as specified in "Beilage 2 zu eCH-0196 V2.2.0 – Barcode Generierung –
  * Technische Wegleitung".
  *
- * <p>The XML is ZLIB-compressed (Deflater.BEST_COMPRESSION) before being split into PDF417 Structured Append symbols
- * with 13 data columns, EC level 4, and byte compaction mode.</p>
+ * <p>
+ * The XML is ZLIB-compressed (Deflater.BEST_COMPRESSION) before being split into PDF417 Structured Append symbols with
+ * 13 data columns, EC level 4, and byte compaction mode.
+ * </p>
  */
 @Service
 public class Ech0196BarcodeGenerator {

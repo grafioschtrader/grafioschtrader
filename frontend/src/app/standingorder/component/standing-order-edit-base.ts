@@ -126,16 +126,22 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
    * replaced, which keeps the dialog from offering a value the server would reject on save.
    */
   private applyQuoteToleranceRange(): void {
-    (<StandingOrderService>this.serviceEntityUpdate).getQuoteToleranceRange().subscribe((range) => {
+    (<StandingOrderService>this.serviceEntityUpdate).getCapabilities().subscribe((capabilities) => {
       const fieldConfig = this.configObject.quoteToleranceDays;
-      fieldConfig.min = range.min;
-      fieldConfig.max = range.max;
+      fieldConfig.min = capabilities.minQuoteTolerance;
+      fieldConfig.max = capabilities.maxQuoteTolerance;
       DynamicFieldHelper.resetValidator(
         fieldConfig,
-        [Validators.required, rangeValidator([range.min, range.max])],
+        [Validators.required, rangeValidator([capabilities.minQuoteTolerance, capabilities.maxQuoteTolerance])],
         [
           DynamicFieldHelper.RULE_REQUIRED_TOUCHED,
-          { name: 'range', keyi18n: 'range', param1: range.min, param2: range.max, rules: [RuleEvent.DIRTY] }
+          {
+            name: 'range',
+            keyi18n: 'range',
+            param1: capabilities.minQuoteTolerance,
+            param2: capabilities.maxQuoteTolerance,
+            rules: [RuleEvent.DIRTY]
+          }
         ]
       );
     });
@@ -198,7 +204,7 @@ export abstract class StandingOrderEditBase extends SimpleEntityEditBase<Standin
     // transactionType has no update annotation in the backend — never updatable after creation
     FormHelper.disableEnableFieldConfigs(true, [this.configObject.transactionType]);
     // @LockedWhenUsed fields — locked once the standing order has created transactions
-    if (so?.hasTransactions) {
+    if (so?.hasTransactions && !this.callParam?.simulationTenant) {
       FormHelper.disableEnableFieldConfigs(
         true,
         this.config.filter((f) => f.fieldsetName === StandingOrderEditBase.FS_TRANSACTION)

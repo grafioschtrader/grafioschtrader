@@ -64,8 +64,8 @@ public class SecurityCurrencypairDerivedLinks {
   public LocalDateTime getNewestIntradayTimestamp() {
     LocalDateTime oldestDate = DateBusinessHelper.getOldestTradingDayAsLocalDateTime();
 
-    LocalDateTime maxDateSecurity = securities.stream().map(Security::getSTimestamp)
-        .max(LocalDateTime::compareTo).orElse(oldestDate);
+    LocalDateTime maxDateSecurity = securities.stream().map(Security::getSTimestamp).max(LocalDateTime::compareTo)
+        .orElse(oldestDate);
     LocalDateTime maxDateCurrencypair = currencypairs.stream().map(Currencypair::getSTimestamp)
         .max(LocalDateTime::compareTo).orElse(oldestDate);
     return maxDateSecurity.isAfter(maxDateCurrencypair) ? maxDateSecurity : maxDateCurrencypair;

@@ -48,7 +48,7 @@ import jakarta.persistence.criteria.Root;
  * <p>
  *
  * SQL equivalent examples:
- * 
+ *
  * SELECT s.name FROM security s where s.name LIKE "%Gold%" AND s.id_securitycurrency NOT IN (Select
  * w.id_securitycurrency FROM watchlist_sec_cur w where w.id_watchlist = 7)
  *
@@ -74,7 +74,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
 
   /**
    * Constructs a new SecuritySearchBuilder with the specified search parameters.
-   * 
+   *
    * @param idWatchlist            the ID of a watchlist to exclude securities from, or null if not filtering by
    *                               watchlist
    * @param idCorrelationSet       the ID of a correlation set to exclude securities from, or null if not filtering by
@@ -107,7 +107,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
    * The method uses helper methods to organize filtering logic for dates, asset classes, and stock exchanges.
    * Multilanguage support is provided for asset class subcategories using the current user's language preference.
    * </p>
-   * 
+   *
    * @param securityRoot the root entity for the query (Security)
    * @param query        the criteria query being built
    * @param builder      the criteria builder for constructing predicates and expressions
@@ -227,11 +227,11 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
    * <li>The date is on or before the security's active-to date</li>
    * </ul>
    * </p>
-   * 
+   *
    * @param securityRoot   the root entity for the query
    * @param builder        the criteria builder for constructing predicates
    * @param mainPredicates the list to add the date predicates to
-   * 
+   *
    * @see SecuritycurrencySearch#getActiveDate()
    */
   private void addActiveDate(final Root<Security> securityRoot, final CriteriaBuilder builder,
@@ -254,7 +254,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
    * </ul>
    * This ensures that any security that was active for any part of the specified period is included.
    * </p>
-   * 
+   *
    * @param securityRoot   the root entity for the query
    * @param builder        the criteria builder for constructing predicates
    * @param mainPredicates the list to add the date range predicates to
@@ -283,7 +283,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
    * <strong>Multilanguage Support:</strong> When filtering by subcategory, the method automatically uses the current
    * authenticated user's language preference from the security context.
    * </p>
-   * 
+   *
    * @param securityRoot   the root entity for the query
    * @param builder        the criteria builder for constructing predicates
    * @param mainPredicates the list to add the asset class predicates to
@@ -322,7 +322,7 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
    * <li><strong>Geographic location:</strong> Filter by stock exchange country code</li>
    * </ul>
    * </p>
-   * 
+   *
    * @param securityRoot   the root entity for the query
    * @param builder        the criteria builder for constructing predicates
    * @param mainPredicates the list to add the stock exchange predicates to

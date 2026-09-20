@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Payload for batch security metadata lookup request (GT_NET_SECURITY_BATCH_LOOKUP_SEL_C).
  *
- * Used in M2M communication to request security information for multiple securities from a remote GTNet peer
- * in a single request, reducing network round-trips for bulk operations.
+ * Used in M2M communication to request security information for multiple securities from a remote GTNet peer in a
+ * single request, reducing network round-trips for bulk operations.
  */
 @Schema(description = """
     Payload for batch security metadata lookup request. Contains multiple search criteria entries,

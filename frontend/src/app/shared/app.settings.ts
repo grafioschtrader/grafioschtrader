@@ -106,6 +106,8 @@ export class AppSettings {
   public static readonly STOCKEXCHANGE_TAB_RULE_SETS_KEY = 'rulesets';
   public static readonly IMP_TRANS_PLATFORM_KEY = AppSettings.IMPORT_TRANSACTION_PLATFORM.toLowerCase();
   public static readonly IMP_TRANS_TEMPLATE_KEY = AppSettings.IMPORT_TRANSACTION_TEMPLATE.toLowerCase();
+  public static readonly BANKRUPT_SECURITY = 'BankruptSecurity';
+  public static readonly BANKRUPT_SECURITY_KEY = 'bankruptsecurity';
   public static readonly RISK_FREE_RATE_MAPPING_KEY = 'riskfreeratemapping';
   public static readonly CASHACCOUNT_KEY = AppSettings.CASHACCOUNT.toLowerCase();
   public static readonly CURRENCYPAIR_KEY = AppSettings.CURRENCYPAIR.toLowerCase();
@@ -144,7 +146,8 @@ export class AppSettings {
   public static readonly TRANSACTION_COST_SUMMARY_KEY = 'transcostsummary';
   public static readonly FEE_MODEL_COMPARISON_KEY = 'feemodelcomparison';
   public static readonly STRATEGY_KEY = 'strategy';
-  public static readonly STRATEGY_OVERVIEW_KEY = 'strategyoverview';
+  public static readonly ALGO_OVERVIEW_KEY = 'algooverview';
+  public static readonly SIMULATION_RUN_KEY = 'simulationrun';
   public static readonly STANDING_ORDER_KEY = AppSettings.STANDING_ORDER.toLowerCase();
   public static readonly STANDING_ORDER_TAB_KEY = 'standingordertabmenu';
   public static readonly TENANT_STANDING_ORDER_CASHACCOUNT = 'tenantstandingordercashaccount';
@@ -209,6 +212,9 @@ export class AppSettings {
    */
   public static readonly DISTRIBUTION_HEADER = 'DISTRIBUTION_HEADER';
 
+  /** Decimal places for percentage output; populated from the backend login precision map. */
+  public static FID_PERCENTAGE_FRACTION = 2;
+
   public static FID_MAX_CURRENCY_EX_RATE_PRECISION = 20;
   public static FID_MAX_CURRENCY_EX_RATE_FRACTION = 10;
   public static FID_MAX_DIGITS = 22;
@@ -222,4 +228,10 @@ export class AppSettings {
 
   public static readonly FIELD_SIZE_MAX_G_WEB_URL = 'FIELD_SIZE_MAX_G_WEB_URL';
   public static readonly FIELD_SIZE_MAX_Stockexchange_Website = 'FIELD_SIZE_MAX_Stockexchange_Website';
+
+  /**
+   * Session key holding the id of the simulation environment the user entered. Kept apart from
+   * GlobalSessionNames.MAIN_ID_TENANT, which is also set for a managed client and therefore cannot tell the two apart.
+   */
+  public static readonly SIMULATION_ID_TENANT = 'simulationIdTenant';
 }

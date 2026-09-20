@@ -15,8 +15,8 @@ import grafiosch.gtnet.handler.GTNetMessageContext;
 /**
  * Handler for GT_NET_DATA_REVOKE_SEL_C messages.
  *
- * Processes revocations for any combination of syncable data types via the entityKinds parameter.
- * If no entityKinds parameter is provided, all syncable entity kinds are revoked.
+ * Processes revocations for any combination of syncable data types via the entityKinds parameter. If no entityKinds
+ * parameter is provided, all syncable entity kinds are revoked.
  */
 @Component
 public class DataRevokeHandler extends AbstractDataRevokeHandler {

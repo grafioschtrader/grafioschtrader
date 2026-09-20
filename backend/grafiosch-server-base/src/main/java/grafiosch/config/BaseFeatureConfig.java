@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 import grafiosch.types.FeatureTypeBase;
 
 /**
- * Binds the library-level feature toggles from the {@code g.use.*} properties (for example in {@code application.yaml}).
+ * Binds the library-level feature toggles from the {@code g.use.*} properties (for example in
+ * {@code application.yaml}).
  *
  * <p>
  * This is the reusable-library counterpart of an application's own feature configuration (such as GrafioschTrader's
@@ -20,6 +21,17 @@ import grafiosch.types.FeatureTypeBase;
 @Component
 @ConfigurationProperties(prefix = "g.use")
 public class BaseFeatureConfig {
+
+  /** Enables the personal dashboard in every application built on the library. */
+  private boolean dashboard = true;
+
+  public boolean isDashboard() {
+    return dashboard;
+  }
+
+  public void setDashboard(boolean dashboard) {
+    this.dashboard = dashboard;
+  }
 
   /** Whether the manage-client feature (advisor manages additional tenants with read-only client logins) is enabled. */
   private boolean manageclient;
@@ -39,6 +51,9 @@ public class BaseFeatureConfig {
    */
   public Set<FeatureTypeBase> getEnabledFeatures() {
     EnumSet<FeatureTypeBase> features = EnumSet.noneOf(FeatureTypeBase.class);
+    if (dashboard) {
+      features.add(FeatureTypeBase.DASHBOARD);
+    }
     if (manageclient) {
       features.add(FeatureTypeBase.MANAGECLIENT);
     }

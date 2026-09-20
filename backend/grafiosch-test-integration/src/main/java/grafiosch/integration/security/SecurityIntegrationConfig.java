@@ -20,6 +20,7 @@ import grafiosch.repository.ProposeUserTaskJpaRepository;
 import grafiosch.rest.RequestMappings;
 import grafiosch.security.SecurityConfig;
 import grafiosch.security.filter.StatelessAuthenticationFilter;
+import grafiosch.security.filter.TenantContextAccessFilter;
 import grafiosch.security.filter.StatelessLoginFilter;
 import grafiosch.service.UserService;
 
@@ -58,6 +59,10 @@ public class SecurityIntegrationConfig {
         proposeUserTaskJpaRepository, messages), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(new StatelessAuthenticationFilter(tokenAuthentication, messages, userService, limitRequest),
         UsernamePasswordAuthenticationFilter.class);
+    // Mirrors SecurityGTConfig: a token naming a tenant the user may no longer use is rejected on every request, with
+    // only the way back to the home tenant and the account-self endpoints left open.
+    http.addFilterAfter(new TenantContextAccessFilter(messages, TenantContextAccessFilter.RECOVERY_ALLOW_LIST),
+        StatelessAuthenticationFilter.class);
     return http.build();
   }
 

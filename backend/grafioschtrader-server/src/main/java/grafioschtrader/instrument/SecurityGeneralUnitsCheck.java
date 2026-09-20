@@ -16,7 +16,7 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Units integrity checker for general securities (stocks, bonds, ETFs).
- * 
+ *
  * <p>
  * This class validates that security transactions maintain proper units integrity by ensuring:
  * <ul>
@@ -25,7 +25,7 @@ import grafioschtrader.types.TransactionType;
  * <li>Security splits are properly accounted for in calculations</li>
  * <li>Transaction ordering respects business rules for same-day transactions</li>
  * </ul>
- * 
+ *
  * <p>
  * The validation considers security splits and adjusts units accordingly to ensure historical transactions remain valid
  * after split events.
@@ -35,7 +35,7 @@ public class SecurityGeneralUnitsCheck {
 
   /**
    * Validates units integrity for a security transaction within the context of all related transactions.
-   * 
+   *
    * <p>
    * This method performs comprehensive validation by:
    * <ul>
@@ -44,7 +44,7 @@ public class SecurityGeneralUnitsCheck {
    * <li>Calculating running units balances with security split adjustments</li>
    * <li>Validating that units never go negative and dividends have sufficient backing units</li>
    * </ul>
-   * 
+   *
    * @param securitysplitJpaRepository repository for retrieving security split data
    * @param operationType              the type of operation being performed (ADD, UPDATE, DELETE)
    * @param transactions               existing transactions for the security in the same security account
@@ -80,7 +80,7 @@ public class SecurityGeneralUnitsCheck {
   /**
    * Applies the target transaction to the transaction list based on the operation type. For ADD/UPDATE operations,
    * inserts the transaction in chronological order. For DELETE operations, excludes the transaction from the list.
-   * 
+   *
    * @param operationType     the type of operation (ADD, UPDATE, DELETE)
    * @param transactions      the existing list of transactions
    * @param targetTransaction the transaction to add, update, or remove
@@ -113,7 +113,7 @@ public class SecurityGeneralUnitsCheck {
    * Validates a single transaction's impact on units integrity within the transaction sequence. Calculates
    * split-adjusted units and updates the running balance for ACCUMULATE/REDUCE transactions. For DIVIDEND transactions,
    * validates that sufficient units exist at the ex-dividend date.
-   * 
+   *
    * @param securitySplitMap       map of security splits by security ID for split factor calculations
    * @param security               the security being transacted
    * @param transaction            the transaction to validate
@@ -149,7 +149,7 @@ public class SecurityGeneralUnitsCheck {
    * Validates that sufficient units exist for a dividend payment. Checks the transaction history to ensure enough units
    * were held at the ex-dividend date. Uses the transaction's ex-date if available, otherwise falls back to transaction
    * time.
-   * 
+   *
    * @param requiredUnits        the number of units for which dividend is being paid (split-adjusted)
    * @param transaction          the dividend transaction being validated
    * @param transactionTimeUnits chronological list of transaction units to check against
@@ -160,11 +160,12 @@ public class SecurityGeneralUnitsCheck {
 
     final java.time.LocalDate transactionExDate = (transaction.getExDate() != null) ? transaction.getExDate()
         : transaction.getTransactionTime().toLocalDate();
+    final double roundedRequiredUnits = DataBusinessHelper.round(requiredUnits);
 
     for (final TransactionTimeUnits ttU : transactionTimeUnits) {
-      if (ttU.units >= requiredUnits || ttU.transaction.getTransactionType() == TransactionType.REDUCE
-          && ttU.units >= requiredUnits
-          && ttU.transaction.getTransactionTime().toLocalDate().isAfter(transactionExDate)) {
+      if (ttU.units >= roundedRequiredUnits
+          || ttU.transaction.getTransactionType() == TransactionType.REDUCE && ttU.units >= roundedRequiredUnits
+              && ttU.transaction.getTransactionTime().toLocalDate().isAfter(transactionExDate)) {
         return true;
       }
     }
@@ -173,19 +174,19 @@ public class SecurityGeneralUnitsCheck {
 
   /**
    * Reorders transactions that occur on the same day to ensure proper business logic sequence.
-   * 
+   *
    * <p>
    * Applies these ordering rules for same-day transactions:
    * <ul>
    * <li>ACCUMULATE transactions come before DIVIDEND transactions</li>
    * <li>DIVIDEND transactions come before REDUCE transactions</li>
    * </ul>
-   * 
+   *
    * <p>
    * This ensures that dividends are calculated after stock purchases but before sales when they occur on the same
    * trading day.
    * </p>
-   * 
+   *
    * @param transactions the list of transactions to reorder (modified in place)
    */
   private static void reorderTransactionForDividends(final List<Transaction> transactions) {
@@ -217,7 +218,7 @@ class TransactionTimeUnits {
 
   /**
    * Creates a transaction-units pair with rounded units for precision.
-   * 
+   *
    * @param transaction the transaction
    * @param units       the calculated units balance (will be rounded)
    */

@@ -12,12 +12,11 @@ import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * DTO for historical price data of a single instrument in GTNet M2M communication.
- * Contains instrument identification plus a list of historical price records.
+ * DTO for historical price data of a single instrument in GTNet M2M communication. Contains instrument identification
+ * plus a list of historical price records.
  *
- * Instrument identification:
- * - Security: isin + currency (toCurrency is null)
- * - Currency pair: currency (fromCurrency) + toCurrency (isin is null)
+ * Instrument identification: - Security: isin + currency (toCurrency is null) - Currency pair: currency (fromCurrency)
+ * + toCurrency (isin is null)
  */
 @Schema(description = """
     Historical price data for a single instrument. In requests, contains date range to query.
@@ -90,11 +89,11 @@ public class InstrumentHistoryquoteDTO implements Serializable {
   }
 
   /**
-   * Creates a "want to receive" response DTO for a security.
-   * Used by AC_OPEN servers to indicate interest in receiving historical data they cannot provide.
+   * Creates a "want to receive" response DTO for a security. Used by AC_OPEN servers to indicate interest in receiving
+   * historical data they cannot provide.
    *
-   * @param isin the ISIN of the security
-   * @param currency the currency of the security
+   * @param isin          the ISIN of the security
+   * @param currency      the currency of the security
    * @param wantsFromDate the date from which data is wanted (typically most recent local data + 1 day)
    */
   public static InstrumentHistoryquoteDTO forSecurityWantToReceive(String isin, String currency,
@@ -108,11 +107,11 @@ public class InstrumentHistoryquoteDTO implements Serializable {
   }
 
   /**
-   * Creates a "want to receive" response DTO for a currency pair.
-   * Used by AC_OPEN servers to indicate interest in receiving historical data they cannot provide.
+   * Creates a "want to receive" response DTO for a currency pair. Used by AC_OPEN servers to indicate interest in
+   * receiving historical data they cannot provide.
    *
-   * @param fromCurrency the source currency
-   * @param toCurrency the target currency
+   * @param fromCurrency  the source currency
+   * @param toCurrency    the target currency
    * @param wantsFromDate the date from which data is wanted (typically most recent local data + 1 day)
    */
   public static InstrumentHistoryquoteDTO forCurrencypairWantToReceive(String fromCurrency, String toCurrency,

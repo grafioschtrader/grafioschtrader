@@ -86,16 +86,13 @@ public class HistoryquoteLegacyResource extends HistoryquoteResourceBase<History
     return ResponseEntity.ok().build();
   }
 
-  @Operation(summary = "Import CSV into historyquote_legacy",
-      description = "Round-trip counterpart of the legacy view's CSV export. Inserts rows with INSERT IGNORE on (id_securitycurrency, date); rows already archived are counted as notOverridden. Missing transferDate defaults to today; create_type is fixed to MANUAL_IMPORTED.",
-      tags = { HistoryquoteLegacy.TABNAME })
+  @Operation(summary = "Import CSV into historyquote_legacy", description = "Round-trip counterpart of the legacy view's CSV export. Inserts rows with INSERT IGNORE on (id_securitycurrency, date); rows already archived are counted as notOverridden. Missing transferDate defaults to today; create_type is fixed to MANUAL_IMPORTED.", tags = {
+      HistoryquoteLegacy.TABNAME })
   @PostMapping(value = "/security/{idSecuritycurrency}/uploadhistoryquotes", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<UploadHistoryquotesSuccess> uploadHistoryquotesLegacy(
-      @PathVariable Integer idSecuritycurrency,
-      @RequestParam("file") MultipartFile[] uploadFiles,
-      @RequestParam(required = false) char decimalSeparator,
-      @RequestParam(required = false) char thousandSeparator,
-      @RequestParam(required = false) String dateFormat) throws Exception {
+  public ResponseEntity<UploadHistoryquotesSuccess> uploadHistoryquotesLegacy(@PathVariable Integer idSecuritycurrency,
+      @RequestParam("file") MultipartFile[] uploadFiles, @RequestParam(required = false) char decimalSeparator,
+      @RequestParam(required = false) char thousandSeparator, @RequestParam(required = false) String dateFormat)
+      throws Exception {
     requireEditOrDeleteRights(idSecuritycurrency);
     HistoryquoteLegacyImport importer = new HistoryquoteLegacyImport(historyquoteLegacyJpaRepository,
         dailyLimitService);

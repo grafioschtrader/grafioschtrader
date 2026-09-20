@@ -16,9 +16,8 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 /**
- * Stores historical price data quality settings for a GTNet supplier detail entry.
- * Uses a shared primary key with {@link GTNetSupplierDetail} (one-to-one relationship).
- * Cleanup is handled by ON DELETE CASCADE at the database level.
+ * Stores historical price data quality settings for a GTNet supplier detail entry. Uses a shared primary key with
+ * {@link GTNetSupplierDetail} (one-to-one relationship). Cleanup is handled by ON DELETE CASCADE at the database level.
  */
 @Entity
 @Table(name = GTNetSupplierDetailHist.TABNAME)

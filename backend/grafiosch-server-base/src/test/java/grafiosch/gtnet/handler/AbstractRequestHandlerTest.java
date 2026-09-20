@@ -41,7 +41,7 @@ class AbstractRequestHandlerTest {
       message.setIdGtNetMessage(ids.incrementAndGet());
       return message;
     });
-    when(messageRepository.findById(any())).thenAnswer(invocation -> java.util.Optional.of(new GTNetMessage()));
+    when(messageRepository.findById(any())).thenAnswer(_ -> java.util.Optional.of(new GTNetMessage()));
 
     GTNet remote = gtNet(2, "https://remote");
     MessageEnvelope request = new MessageEnvelope();

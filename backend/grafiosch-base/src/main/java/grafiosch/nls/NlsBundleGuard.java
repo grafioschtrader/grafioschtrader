@@ -37,8 +37,8 @@ public final class NlsBundleGuard {
   /**
    * Runs every per-bundle-pair check.
    *
-   * @param bundleBaseName    class path base name, for example {@link NlsBundleInspector#BASE_BUNDLE}
-   * @param enReuseAllowlist  keys whose German value may deliberately equal the English one
+   * @param bundleBaseName   class path base name, for example {@link NlsBundleInspector#BASE_BUNDLE}
+   * @param enReuseAllowlist keys whose German value may deliberately equal the English one
    * @return one description per violation, empty when the pair is sound
    */
   public static List<String> checkBundlePair(String bundleBaseName, Set<String> enReuseAllowlist) {
@@ -61,8 +61,8 @@ public final class NlsBundleGuard {
    * duplicate is invisible at runtime and shows up only as a text that will not change no matter which entry is edited.
    */
   public static List<String> checkDuplicates(Bundle bundle) {
-    return bundle.duplicateKeys().stream().map(key -> bundle.resource() + ": key '" + key + "' is defined more than once")
-        .toList();
+    return bundle.duplicateKeys().stream()
+        .map(key -> bundle.resource() + ": key '" + key + "' is defined more than once").toList();
   }
 
   /**
@@ -70,9 +70,9 @@ public final class NlsBundleGuard {
    * be grepped for as written.
    */
   public static List<String> checkKeyCharset(Bundle bundle) {
-    return bundle.keys().stream().filter(key -> !LEGAL_KEY.matcher(key).matches())
-        .map(key -> bundle.resource() + ": key '" + key + "' contains a character that is not allowed in a key; "
-            + "allowed are letters, digits, '_', '.' and '|'")
+    return bundle
+        .keys().stream().filter(key -> !LEGAL_KEY.matcher(key).matches()).map(key -> bundle.resource() + ": key '" + key
+            + "' contains a character that is not allowed in a key; " + "allowed are letters, digits, '_', '.' and '|'")
         .toList();
   }
 
@@ -87,10 +87,10 @@ public final class NlsBundleGuard {
     onlyEnglish.removeAll(german.keys());
     Set<String> onlyGerman = new TreeSet<>(german.keys());
     onlyGerman.removeAll(english.keys());
-    onlyEnglish.forEach(key -> violations.add(german.resource() + ": missing key '" + key + "' (present in "
-        + english.resource() + ")"));
-    onlyGerman.forEach(key -> violations.add(english.resource() + ": missing key '" + key + "' (present in "
-        + german.resource() + ")"));
+    onlyEnglish.forEach(key -> violations
+        .add(german.resource() + ": missing key '" + key + "' (present in " + english.resource() + ")"));
+    onlyGerman.forEach(key -> violations
+        .add(english.resource() + ": missing key '" + key + "' (present in " + german.resource() + ")"));
     return violations;
   }
 
@@ -114,9 +114,8 @@ public final class NlsBundleGuard {
             + "\"). Translate it, or list the key in the module's nls-en-reuse.txt if the equal value is intended.");
       }
     }
-    unusedAllowlistEntries
-        .forEach(key -> violations.add("nls-en-reuse.txt for " + english.resource() + ": stale entry '" + key
-            + "' -- the key no longer exists or the values are no longer equal."));
+    unusedAllowlistEntries.forEach(key -> violations.add("nls-en-reuse.txt for " + english.resource()
+        + ": stale entry '" + key + "' -- the key no longer exists or the values are no longer equal."));
     return violations;
   }
 

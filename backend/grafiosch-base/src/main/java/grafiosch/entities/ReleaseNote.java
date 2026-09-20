@@ -9,9 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * Represents a release note entry for a specific application version and language. Release notes are stored
- * per language to support multi-language display. The combination of version and language is unique, enforced
- * by a database constraint.
+ * Represents a release note entry for a specific application version and language. Release notes are stored per
+ * language to support multi-language display. The combination of version and language is unique, enforced by a database
+ * constraint.
  */
 @Entity
 @Table(name = ReleaseNote.TABNAME)

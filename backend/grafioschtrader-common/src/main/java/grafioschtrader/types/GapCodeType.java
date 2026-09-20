@@ -1,15 +1,14 @@
 package grafioschtrader.types;
 
 /**
- * Enum constants representing types of gaps (mismatches) that can occur during GTNet security import.
- * When a security cannot be fully matched from GTNet peers, gap records document what specifically
- * didn't match.
+ * Enum constants representing types of gaps (mismatches) that can occur during GTNet security import. When a security
+ * cannot be fully matched from GTNet peers, gap records document what specifically didn't match.
  */
 public enum GapCodeType {
 
   /**
-   * Asset class combination (categoryType, specialInvestmentInstrument, subCategoryNLS) does not match
-   * any local asset class configuration.
+   * Asset class combination (categoryType, specialInvestmentInstrument, subCategoryNLS) does not match any local asset
+   * class configuration.
    */
   ASSET_CLASS((byte) 0),
 

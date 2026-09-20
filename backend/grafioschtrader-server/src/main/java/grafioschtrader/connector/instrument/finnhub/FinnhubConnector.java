@@ -73,8 +73,8 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
 
   private String getSecurityHistoricalDownloadLink(final Security security, LocalDate from, LocalDate to) {
     return DOMAIN_NAME_WITH_VERSION + "stock/candle?symbol=" + security.getUrlHistoryExtend().toUpperCase() + "&from="
-        + DateHelper.LocalDateToEpocheSeconds(from) + "&to=" + DateHelper.LocalDateToEpocheSeconds(to)
-        + "&resolution=D" + getTokenParam();
+        + DateHelper.LocalDateToEpocheSeconds(from) + "&to=" + DateHelper.LocalDateToEpocheSeconds(to) + "&resolution=D"
+        + getTokenParam();
   }
 
   @Override

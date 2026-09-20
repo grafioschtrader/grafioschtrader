@@ -30,17 +30,17 @@ import grafioschtrader.service.GlobalparametersService;
  *
  * This task supports two execution modes:
  * <ul>
- *   <li><b>Incremental mode</b> (idEntity = null): Only syncs changes since last sync timestamp.
- *       Used after data exchange acceptance.</li>
- *   <li><b>Full recreation mode</b> (idEntity = 1): Ignores timestamps and recreates all
- *       GTNetSupplierDetail entries for each peer. Used for daily scheduled sync and frontend-triggered sync.</li>
+ * <li><b>Incremental mode</b> (idEntity = null): Only syncs changes since last sync timestamp. Used after data exchange
+ * acceptance.</li>
+ * <li><b>Full recreation mode</b> (idEntity = 1): Ignores timestamps and recreates all GTNetSupplierDetail entries for
+ * each peer. Used for daily scheduled sync and frontend-triggered sync.</li>
  * </ul>
  *
  * The task is triggered by:
  * <ul>
- *   <li>Daily cron schedule (configured via {@code gt.gtnet.exchange.sync.cron}) - full recreation mode</li>
- *   <li>Frontend trigger when user manually requests sync - full recreation mode</li>
- *   <li>After data exchange acceptance - incremental mode</li>
+ * <li>Daily cron schedule (configured via {@code gt.gtnet.exchange.sync.cron}) - full recreation mode</li>
+ * <li>Frontend trigger when user manually requests sync - full recreation mode</li>
+ * <li>After data exchange acceptance - incremental mode</li>
  * </ul>
  *
  * @see GTNetExchangeSyncService for the core sync logic
@@ -51,8 +51,8 @@ public class GTNetExchangeSyncTask implements ITask {
   private static final Logger log = LoggerFactory.getLogger(GTNetExchangeSyncTask.class);
 
   /**
-   * Entity type name for sync mode selection. Used in getAllowedEntities() and
-   * GTNetExchangeSyncEntityIdOptionsProvider to allow admin to choose between sync modes.
+   * Entity type name for sync mode selection. Used in getAllowedEntities() and GTNetExchangeSyncEntityIdOptionsProvider
+   * to allow admin to choose between sync modes.
    */
   public static final String SYNC_MODE_ENTITY = "SyncMode";
 
@@ -64,7 +64,7 @@ public class GTNetExchangeSyncTask implements ITask {
 
   @Autowired
   private GlobalparametersJpaRepository globalparametersJpaRepository;
-  
+
   @Autowired
   private GlobalparametersService globalparametersService;
 
@@ -83,8 +83,8 @@ public class GTNetExchangeSyncTask implements ITask {
   }
 
   /**
-   * Daily scheduled method that triggers full recreation sync.
-   * Creates a TaskDataChange with FULL_RECREATION_MODE to be processed asynchronously.
+   * Daily scheduled method that triggers full recreation sync. Creates a TaskDataChange with FULL_RECREATION_MODE to be
+   * processed asynchronously.
    */
   @Scheduled(cron = "${gt.gtnet.exchange.sync.cron}", zone = BaseConstants.TIME_ZONE)
   public void scheduledGTNetExchangeSync() {
@@ -92,13 +92,8 @@ public class GTNetExchangeSyncTask implements ITask {
       log.debug("GTNet is disabled or has no own entry configured, skipping exchange sync");
       return;
     }
-    taskDataChangeJpaRepository.save(new TaskDataChange(
-        getTaskType(),
-        TaskDataExecPriority.PRIO_NORMAL,
-        LocalDateTime.now(),
-        FULL_RECREATION_MODE,
-        SYNC_MODE_ENTITY
-    ));
+    taskDataChangeJpaRepository.save(new TaskDataChange(getTaskType(), TaskDataExecPriority.PRIO_NORMAL,
+        LocalDateTime.now(), FULL_RECREATION_MODE, SYNC_MODE_ENTITY));
     log.info("Scheduled GTNet exchange sync task created (full recreation mode)");
   }
 
@@ -118,8 +113,7 @@ public class GTNetExchangeSyncTask implements ITask {
     // Get all accessible AC_OPEN suppliers, excluding own entry to prevent self-communication
     Integer myEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     List<GTNet> allSuppliers = gtNetJpaRepository.findAll().stream()
-        .filter(peer -> myEntryId == null || !peer.getIdGtNet().equals(myEntryId))
-        .collect(Collectors.toList());
+        .filter(peer -> myEntryId == null || !peer.getIdGtNet().equals(myEntryId)).collect(Collectors.toList());
 
     if (allSuppliers.isEmpty()) {
       log.info("No accessible peers configured for exchange sync");
@@ -141,8 +135,7 @@ public class GTNetExchangeSyncTask implements ITask {
           failCount++;
         }
       } catch (Exception e) {
-        log.warn("Failed to sync exchange config with {}: {}",
-            peer.getDomainRemoteName(), e.getMessage());
+        log.warn("Failed to sync exchange config with {}: {}", peer.getDomainRemoteName(), e.getMessage());
         failCount++;
       }
     }

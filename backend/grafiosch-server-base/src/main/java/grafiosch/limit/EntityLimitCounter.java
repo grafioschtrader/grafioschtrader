@@ -14,8 +14,8 @@ import jakarta.persistence.EntityManager;
  * </p>
  *
  * <p>
- * The counters in {@link LimitCounters} cover the flat cases. Anything that needs a join or a non-standard owner
- * column is supplied as a lambda at registration time.
+ * The counters in {@link LimitCounters} cover the flat cases. Anything that needs a join or a non-standard owner column
+ * is supplied as a lambda at registration time.
  * </p>
  */
 @FunctionalInterface

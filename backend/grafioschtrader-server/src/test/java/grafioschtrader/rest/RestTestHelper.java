@@ -8,10 +8,10 @@ import grafioschtrader.entities.Assetclass;
 
 /**
  * Grafioschtrader view on the shared integration test fixture. Everything generic — loading
- * {@code testdata/users.json}, {@code users} / {@code ALL_USERS} / {@code LIMIT_USERS},
- * {@code getUserByNickname}, {@code inizializeUserTokens}, {@code getDiffPropertiesOfTwoObjects} — is inherited from
- * {@link RestTestHelperBase} and stays reachable through this class name, so existing call sites such as
- * {@code RestTestHelper.users} are unaffected.
+ * {@code testdata/users.json}, {@code users} / {@code ALL_USERS} / {@code LIMIT_USERS}, {@code getUserByNickname},
+ * {@code inizializeUserTokens}, {@code getDiffPropertiesOfTwoObjects} — is inherited from {@link RestTestHelperBase}
+ * and stays reachable through this class name, so existing call sites such as {@code RestTestHelper.users} are
+ * unaffected.
  *
  * <p>
  * Only the nickname constants of {@code users.json} and the Grafioschtrader specific lookups live here.
@@ -28,9 +28,9 @@ public class RestTestHelper extends RestTestHelperBase {
    * Picks the asset class matching a category / subcategory / instrument triple, because the generated ids differ per
    * database.
    *
-   * @param assetclasses               the asset classes as returned by the endpoint
-   * @param categoryType               the {@code AssetclassType} value
-   * @param subCategoryDE              the German subcategory label, which is the stable identifier of a row
+   * @param assetclasses                the asset classes as returned by the endpoint
+   * @param categoryType                the {@code AssetclassType} value
+   * @param subCategoryDE               the German subcategory label, which is the stable identifier of a row
    * @param specialInvestmentInstrument the {@code SpecialInvestmentInstruments} value
    * @return the single matching asset class
    * @throws java.util.NoSuchElementException when no asset class matches

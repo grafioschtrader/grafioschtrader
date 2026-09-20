@@ -87,6 +87,9 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   private SecurityJpaRepository securityJpaRepository;
 
   @Autowired
+  private grafioschtrader.service.AlgoSecurityEligibility securityEligibility;
+
+  @Autowired
   private SecruityTransactionsReport secruityTransactionsReport;
 
   @Autowired
@@ -109,7 +112,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
-  
+
   @Operation(summary = "Returns a security by its Id", description = "Only public securities and the user private security will be returned", tags = {
       Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}", produces = APPLICATION_JSON_VALUE)
@@ -126,18 +129,19 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     List<Security> securities = securityJpaRepository.getUnusedSecurityForAlgo(user.getIdTenant(),
         idAlgoAssetclassSecurity);
+    securities = securityEligibility.filterCandidates(user.getIdTenant(), idAlgoAssetclassSecurity, securities);
     return new ResponseEntity<>(securities, HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns unused securities from a watchlist for a custom category AlgoAssetclass",
-      description = "For custom categories (name-based), any watchlist security can be assigned regardless of asset class",
-      tags = { Security.TABNAME })
+  @Operation(summary = "Returns unused securities from a watchlist for a custom category AlgoAssetclass", description = "For custom categories (name-based), any watchlist security can be assigned regardless of asset class", tags = {
+      Security.TABNAME })
   @GetMapping(value = "/algounusedcustom/{idWatchlist}/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Security>> getUnusedSecurityForAlgoCustom(
-      @PathVariable final Integer idWatchlist, @PathVariable final Integer idAlgoAssetclassSecurity) {
+  public ResponseEntity<List<Security>> getUnusedSecurityForAlgoCustom(@PathVariable final Integer idWatchlist,
+      @PathVariable final Integer idAlgoAssetclassSecurity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    List<Security> securities = securityJpaRepository.getUnusedSecurityForAlgoCustom(idWatchlist,
-        user.getIdTenant(), idAlgoAssetclassSecurity);
+    List<Security> securities = securityJpaRepository.getUnusedSecurityForAlgoCustom(idWatchlist, user.getIdTenant(),
+        idAlgoAssetclassSecurity);
+    securities = securityEligibility.filterCandidates(user.getIdTenant(), idAlgoAssetclassSecurity, securities);
     return new ResponseEntity<>(securities, HttpStatus.OK);
   }
 
@@ -215,11 +219,11 @@ public class SecurityResource extends UpdateCreateResource<Security> {
       once. The system created period of an instrument on a stock exchange without market value does not count on its
       own. The edit dialog uses it to decide whether the instrument may still be moved to a stock exchange of the other
       kind.
-      """, tags = { Security.TABNAME })
+      """, tags = {
+      Security.TABNAME })
   @GetMapping(value = "/{idSecuritycurrency}/stockexchangecategorylocked", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> isStockexchangeCategoryLocked(@PathVariable final Integer idSecuritycurrency) {
-    return new ResponseEntity<>(securityJpaRepository.isStockexchangeCategoryLocked(idSecuritycurrency),
-        HttpStatus.OK);
+    return new ResponseEntity<>(securityJpaRepository.isStockexchangeCategoryLocked(idSecuritycurrency), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns all transactions for specified security", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
@@ -234,8 +238,10 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions = forchart
         ? EnumSet.of(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)
         : EnumSet.noneOf(SecruityTransactionsReportOptions.class);
-    return new ResponseEntity<>(secruityTransactionsReport.getTransactionsByIdTenantAndIdSecurityAndClearSecurity(
-        user.getIdTenant(), idSecuritycurrency, untilDate != null ? untilDate : LocalDate.now(), secruityTransactionsReportOptions), HttpStatus.OK);
+    return new ResponseEntity<>(
+        secruityTransactionsReport.getTransactionsByIdTenantAndIdSecurityAndClearSecurity(user.getIdTenant(),
+            idSecuritycurrency, untilDate != null ? untilDate : LocalDate.now(), secruityTransactionsReportOptions),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the transactions for specified security in specified portfolio", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
@@ -249,8 +255,10 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     final Set<SecruityTransactionsReportOptions> secruityTransactionsReportOptions = forchart
         ? EnumSet.of(SecruityTransactionsReportOptions.QUTATION_SPLIT_CORRECTION)
         : EnumSet.noneOf(SecruityTransactionsReportOptions.class);
-    return new ResponseEntity<>(secruityTransactionsReport.getTransactionsByIdPortfolioAndIdSecurityAndClearSecurity(
-        idPortfolio, idSecuritycurrency, untilDate != null ? untilDate : LocalDate.now(), secruityTransactionsReportOptions), HttpStatus.OK);
+    return new ResponseEntity<>(
+        secruityTransactionsReport.getTransactionsByIdPortfolioAndIdSecurityAndClearSecurity(idPortfolio,
+            idSecuritycurrency, untilDate != null ? untilDate : LocalDate.now(), secruityTransactionsReportOptions),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the transactions for specified security in specified security account", description = "Chart is shown with split adjusted data, for that reason transactions data is also adjusted to match it charts historical data", tags = {
@@ -331,8 +339,9 @@ public class SecurityResource extends UpdateCreateResource<Security> {
       @RequestParam(required = false, defaultValue = "MONTHLY") final SeasonalPeriodType periodType,
       @RequestParam(required = false, defaultValue = "false") final boolean includeDividends,
       @RequestParam(required = false, defaultValue = "false") final boolean inTenantCurrency) {
-    return new ResponseEntity<>(securityJpaRepository.getSeasonalReturns(idSecuritycurrency, periodType,
-        includeDividends, inTenantCurrency), HttpStatus.OK);
+    return new ResponseEntity<>(
+        securityJpaRepository.getSeasonalReturns(idSecuritycurrency, periodType, includeDividends, inTenantCurrency),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "For a derived instrument it returns base instruments", description = "", tags = {
@@ -359,7 +368,6 @@ public class SecurityResource extends UpdateCreateResource<Security> {
   public ResponseEntity<Map<Integer, String>> getSecurityCurrencyPairInfo() {
     return new ResponseEntity<>(securityJpaRepository.getSecurityCurrencyPairInfo(), HttpStatus.OK);
   }
-
 
   // ==================== GTNet Exchange Endpoints ====================
 
@@ -404,8 +412,7 @@ public class SecurityResource extends UpdateCreateResource<Security> {
 
   private List<GTNetSupplierWithDetails> buildSupplierWithDetails(Integer idSecuritycurrency) {
     List<GTNetSupplierDetail> details = gtNetSupplierDetailJpaRepository.findAll().stream()
-        .filter(d -> idSecuritycurrency.equals(d.getIdEntity()))
-        .collect(Collectors.toList());
+        .filter(d -> idSecuritycurrency.equals(d.getIdEntity())).collect(Collectors.toList());
 
     // Batch-load child settings
     List<Integer> detailIds = details.stream().map(GTNetSupplierDetail::getIdGtNetSupplierDetail)
@@ -425,10 +432,9 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     for (Map.Entry<Integer, List<GTNetSupplierDetail>> entry : byGtNet.entrySet()) {
       GTNet gtNet = gtNetJpaRepository.findById(entry.getKey()).orElse(null);
       if (gtNet != null) {
-        List<GTNetSupplierDetailWithSettings> detailsWithSettings = entry.getValue().stream()
-            .map(d -> new GTNetSupplierDetailWithSettings(d,
-                histMap.get(d.getIdGtNetSupplierDetail()),
-                lastMap.get(d.getIdGtNetSupplierDetail())))
+        List<GTNetSupplierDetailWithSettings> detailsWithSettings = entry
+            .getValue().stream().map(d -> new GTNetSupplierDetailWithSettings(d,
+                histMap.get(d.getIdGtNetSupplierDetail()), lastMap.get(d.getIdGtNetSupplierDetail())))
             .collect(Collectors.toList());
         result.add(new GTNetSupplierWithDetails(gtNet, detailsWithSettings));
       }
@@ -437,15 +443,12 @@ public class SecurityResource extends UpdateCreateResource<Security> {
     return result;
   }
 
-  @Operation(summary = "Triggers GTNet exchange sync",
-      description = "Creates a background task to sync GTNet exchange configurations with GTNet peers. "
-          + "Use fullRecreation=true to recreate all supplier details, or false (default) for incremental sync. "
-          + "Requires ROLE_ADMIN and refuses a second sync while one is still waiting.",
-      tags = { Security.TABNAME })
+  @Operation(summary = "Triggers GTNet exchange sync", description = "Creates a background task to sync GTNet exchange configurations with GTNet peers. "
+      + "Use fullRecreation=true to recreate all supplier details, or false (default) for incremental sync. "
+      + "Requires ROLE_ADMIN and refuses a second sync while one is still waiting.", tags = { Security.TABNAME })
   @PostMapping(value = "/gtnetexchange/triggersync", produces = APPLICATION_JSON_VALUE)
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<Void> triggerGTNetExchangeSync(
-      @RequestParam(defaultValue = "false") boolean fullRecreation) {
+  public ResponseEntity<Void> triggerGTNetExchangeSync(@RequestParam(defaultValue = "false") boolean fullRecreation) {
     // Two guards, because this mapping writes task_data_change from a URL that the ADMIN matcher on
     // TASK_DATA_CHANGE_MAP does not cover. Without the role every authenticated user could enqueue tasks through it,
     // and without the waiting check a single user could enqueue an unbounded number of identical ones - the table has
@@ -454,12 +457,10 @@ public class SecurityResource extends UpdateCreateResource<Security> {
         ProgressStateType.PROG_WAITING.getValue())) {
       return new ResponseEntity<>(HttpStatus.CONFLICT);
     }
-    Integer modeId = fullRecreation
-        ? GTNetExchangeSyncTask.FULL_RECREATION_MODE
+    Integer modeId = fullRecreation ? GTNetExchangeSyncTask.FULL_RECREATION_MODE
         : GTNetExchangeSyncTask.INCREMENTAL_MODE;
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeBase.GTNET_EXCHANGE_SYNC,
-        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(),
-        modeId, GTNetExchangeSyncTask.SYNC_MODE_ENTITY));
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), modeId, GTNetExchangeSyncTask.SYNC_MODE_ENTITY));
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

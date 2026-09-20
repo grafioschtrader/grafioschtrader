@@ -13,8 +13,8 @@ public interface TaxYearCorrectionJpaRepository extends JpaRepository<TaxYearCor
     TaxYearCorrectionJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<TaxYearCorrection> {
 
   /**
-   * Finds all corrections of a tenant for the given tax years. Used by the dividends report to apply overrides
-   * for the report year and to flag securities with a correction in the previous year.
+   * Finds all corrections of a tenant for the given tax years. Used by the dividends report to apply overrides for the
+   * report year and to flag securities with a correction in the previous year.
    *
    * @param idTenant the tenant identifier
    * @param taxYears the tax years to load, typically the report year and the previous year
@@ -23,19 +23,19 @@ public interface TaxYearCorrectionJpaRepository extends JpaRepository<TaxYearCor
   List<TaxYearCorrection> findByIdTenantAndTaxYearIn(Integer idTenant, Collection<Short> taxYears);
 
   /**
-   * Finds all corrections of a tenant for one security across all tax years, newest year first. Feeds the
-   * maintenance dialog in the frontend.
+   * Finds all corrections of a tenant for one security across all tax years, newest year first. Feeds the maintenance
+   * dialog in the frontend.
    *
-   * @param idTenant            the tenant identifier
-   * @param idSecuritycurrency  the security identifier
+   * @param idTenant           the tenant identifier
+   * @param idSecuritycurrency the security identifier
    * @return matching corrections ordered by tax year descending
    */
   List<TaxYearCorrection> findByIdTenantAndIdSecuritycurrencyOrderByTaxYearDesc(Integer idTenant,
       Integer idSecuritycurrency);
 
   /**
-   * Finds the single correction of a tenant for one security and tax year. Used for the uniqueness validation
-   * before saving.
+   * Finds the single correction of a tenant for one security and tax year. Used for the uniqueness validation before
+   * saving.
    *
    * @param idTenant           the tenant identifier
    * @param idSecuritycurrency the security identifier

@@ -29,8 +29,8 @@ public enum EndpointOption implements StableEnum {
 
   /**
    * For intraday endpoints whose response is a chronological array of OHLC bars (e.g. BX Swiss
-   * {@code /candlestick/week/{ISIN}}), pick the last element of the array instead of the first. The default behavior
-   * of {@code parseJsonIntraday} takes element 0 — correct for snapshot-style endpoints, wrong for time-series-style
+   * {@code /candlestick/week/{ISIN}}), pick the last element of the array instead of the first. The default behavior of
+   * {@code parseJsonIntraday} takes element 0 — correct for snapshot-style endpoints, wrong for time-series-style
    * endpoints where the latest tick lives at the end of the array.
    */
   INTRADAY_USE_LAST_BAR((byte) 2, "FS_INTRA");
@@ -56,9 +56,7 @@ public enum EndpointOption implements StableEnum {
    * Returns the subset of constants valid for the given feed type (e.g. "FS_HISTORY" or "FS_INTRA").
    */
   public static List<EndpointOption> getApplicableOptions(String feedSupport) {
-    return Arrays.stream(values())
-        .filter(o -> o.applicableFeedSupports.contains(feedSupport))
-        .toList();
+    return Arrays.stream(values()).filter(o -> o.applicableFeedSupports.contains(feedSupport)).toList();
   }
 
   public static long encode(EnumSet<EndpointOption> set) {

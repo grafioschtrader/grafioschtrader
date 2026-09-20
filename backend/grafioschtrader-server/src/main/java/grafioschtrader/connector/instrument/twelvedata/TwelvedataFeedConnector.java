@@ -225,7 +225,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     waitForTokenOrGo(bucket);
-    var quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(), Quote.class);
+    var quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(),
+        Quote.class);
     quote.setValues(security, FeedConnectorHelper.getMinorUnitDivider(security), getIntradayDelayedSeconds());
   }
 
@@ -241,7 +242,8 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
     waitForTokenOrGo(bucket);
-    var quote = objectMapper.readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL().openStream(), Quote.class);
+    var quote = objectMapper.readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL().openStream(),
+        Quote.class);
     quote.setValues(currencypair, 1.0, getIntradayDelayedSeconds());
   }
 

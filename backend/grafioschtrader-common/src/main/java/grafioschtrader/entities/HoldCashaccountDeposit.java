@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 
 /**
  * Entity tracking cash deposits and withdrawals in account cash balances over time periods.
- * 
+ *
  * <p>
  * <strong>Cash Flow Tracking:</strong>
  * </p>
@@ -20,7 +20,7 @@ import jakarta.persistence.Table;
  * time-based tracking of cash movements, representing deposit/withdrawal transactions as time frames with corresponding
  * balance changes.
  * </p>
- * 
+ *
  * <p>
  * <strong>Multi-Currency Support:</strong>
  * </p>
@@ -32,7 +32,7 @@ import jakarta.persistence.Table;
  * <li><strong>Portfolio Currency</strong> - Converted to the portfolio's base currency</li>
  * <li><strong>Tenant Currency</strong> - Converted to the tenant's global base currency</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Time-Frame Management:</strong>
  * </p>
@@ -41,7 +41,7 @@ import jakarta.persistence.Table;
  * records are created when additional cash transactions occur, and previous records receive end dates to maintain
  * temporal continuity.
  * </p>
- * 
+ *
  * <p>
  * <strong>Balance Interpretation:</strong>
  * </p>
@@ -50,7 +50,7 @@ import jakarta.persistence.Table;
  * <li><strong>Negative Values</strong> - Net withdrawals (money removed from account)</li>
  * <li><strong>Zero Values</strong> - No net cash movement during the period</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Portfolio Performance Analysis:</strong>
  * </p>
@@ -59,7 +59,7 @@ import jakarta.persistence.Table;
  * gains/losses and external cash contributions/withdrawals. Performance calculations must account for cash flows to
  * determine true investment returns.
  * </p>
- * 
+ *
  * <p>
  * <strong>Data Access:</strong>
  * </p>
@@ -81,12 +81,12 @@ public class HoldCashaccountDeposit extends HoldBase {
 
   /**
    * Net deposit amount in the account's native currency during this time period.
-   * 
+   *
    * <p>
    * This value represents the cumulative net cash flow (deposits minus withdrawals) that occurred during this holding
    * period, expressed in the cash account's native currency.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Value Interpretation:</strong>
    * </p>
@@ -101,13 +101,13 @@ public class HoldCashaccountDeposit extends HoldBase {
 
   /**
    * Deposit amount converted to the portfolio's base currency.
-   * 
+   *
    * <p>
    * This field contains the same deposit amount as the {@code deposit} field, but converted to the portfolio's base
    * currency using the exchange rate applicable during the deposit period. This enables portfolio-level cash flow
    * analysis when accounts use different currencies.
    * </p>
-   * 
+   *
    * <p>
    * If the account currency matches the portfolio currency, this value will be identical to the {@code deposit} field.
    * </p>
@@ -117,13 +117,13 @@ public class HoldCashaccountDeposit extends HoldBase {
 
   /**
    * Deposit amount converted to the tenant's global base currency.
-   * 
+   *
    * <p>
    * This field contains the deposit amount converted to the tenant's global base currency using the exchange rate
    * applicable during the deposit period. This enables tenant-wide cash flow analysis and consolidated reporting across
    * all portfolios and currencies.
    * </p>
-   * 
+   *
    * <p>
    * If the account currency matches the tenant currency, this value will be identical to the {@code deposit} field.
    * </p>
@@ -137,12 +137,12 @@ public class HoldCashaccountDeposit extends HoldBase {
 
   /**
    * Creates a new cash deposit holding record with specified parameters.
-   * 
+   *
    * <p>
    * This constructor initializes a complete deposit record including multi-currency values and time period boundaries.
    * The portfolio currency deposit amount should be calculated and provided by the caller.
    * </p>
-   * 
+   *
    * @param idTenant              the tenant identifier (inherited from HoldBase)
    * @param idPortfolio           the portfolio identifier (inherited from HoldBase)
    * @param idSecuritycashAccount the cash account identifier

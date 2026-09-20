@@ -30,37 +30,38 @@ import grafioschtrader.repository.HistoryquoteLegacyJpaRepository;
 import grafioschtrader.types.HistoryquoteCreateType;
 
 /**
- * Round-trip counterpart of the legacy view's CSV export: imports rows into
- * {@code historyquote_legacy} from a CSV file produced by the legacy view (or hand-written
- * with the same column shape).
+ * Round-trip counterpart of the legacy view's CSV export: imports rows into {@code historyquote_legacy} from a CSV file
+ * produced by the legacy view (or hand-written with the same column shape).
  *
- * <p>Expected CSV (first line is the header, separator is {@code ;}, columns may be in any
- * order; case-insensitive matching):
+ * <p>
+ * Expected CSV (first line is the header, separator is {@code ;}, columns may be in any order; case-insensitive
+ * matching):
+ *
  * <pre>
  *   date;transferDate;close;open;high;low;volume
  *   2020-01-15;2024-03-10;150.25;148.50;151.00;148.00;1000000
  *   2020-01-16;2024-03-10;152.00;150.50;153.00;150.00;1200000
  * </pre>
  *
- * <p>Field semantics:
+ * <p>
+ * Field semantics:
  * <ul>
- *   <li>{@code date} (REQUIRED) — the trading date the quote belongs to.</li>
- *   <li>{@code close} (REQUIRED) — the closing price.</li>
- *   <li>{@code open}, {@code high}, {@code low}, {@code volume} — optional; missing values
- *       are stored as NULL.</li>
- *   <li>{@code transferDate} — the archival batch date; defaults to {@link LocalDate#now()}
- *       when the column is absent or the cell is blank. Determines the post-archival split
- *       factor applied at supplement time.</li>
+ * <li>{@code date} (REQUIRED) — the trading date the quote belongs to.</li>
+ * <li>{@code close} (REQUIRED) — the closing price.</li>
+ * <li>{@code open}, {@code high}, {@code low}, {@code volume} — optional; missing values are stored as NULL.</li>
+ * <li>{@code transferDate} — the archival batch date; defaults to {@link LocalDate#now()} when the column is absent or
+ * the cell is blank. Determines the post-archival split factor applied at supplement time.</li>
  * </ul>
  *
- * <p>Provenance: imported rows always land in legacy with {@code create_type =
- * MANUAL_IMPORTED}. When later supplemented back into live, that origin label is preserved
- * (per {@link HistoryquoteLegacyJpaRepository#insertLegacyIntoLive insertLegacyIntoLive}).
+ * <p>
+ * Provenance: imported rows always land in legacy with {@code create_type =
+ * MANUAL_IMPORTED}. When later supplemented back into live, that origin label is preserved (per
+ * {@link HistoryquoteLegacyJpaRepository#insertLegacyIntoLive insertLegacyIntoLive}).
  *
- * <p>Conflict handling: insertion is {@code INSERT IGNORE} on the unique key
- * {@code (id_securitycurrency, date)}. A row already present in the shadow keeps its
- * existing {@code transfer_date} and {@code create_type}; the importer counts that case as
- * {@code notOverridden}.
+ * <p>
+ * Conflict handling: insertion is {@code INSERT IGNORE} on the unique key {@code (id_securitycurrency, date)}. A row
+ * already present in the shadow keeps its existing {@code transfer_date} and {@code create_type}; the importer counts
+ * that case as {@code notOverridden}.
  */
 public class HistoryquoteLegacyImport {
 
@@ -128,8 +129,8 @@ public class HistoryquoteLegacyImport {
 
   private void importLine(Integer idSecuritycurrency, UserAuditable userAuditable, ValueFormatConverter converter,
       LocalDate today, LocalDate oldestTradingDay, Set<LocalDate> seenInImport, Set<LocalDate> existingDates,
-      List<HistoryquoteLegacy> toInsert, ColumnIndex idx, int lineNumber, String line,
-      UploadHistoryquotesSuccess stats) throws Exception {
+      List<HistoryquoteLegacy> toInsert, ColumnIndex idx, int lineNumber, String line, UploadHistoryquotesSuccess stats)
+      throws Exception {
     final String[] data = CSVImportHelper.splitCSVLine(line);
     LegacyImportRow row = new LegacyImportRow();
 
@@ -140,8 +141,8 @@ public class HistoryquoteLegacyImport {
       assignCell(converter, row, "high", data, idx.high, Double.class, lineNumber, userAuditable.user, false);
       assignCell(converter, row, "low", data, idx.low, Double.class, lineNumber, userAuditable.user, false);
       assignCell(converter, row, "volume", data, idx.volume, Long.class, lineNumber, userAuditable.user, false);
-      assignCell(converter, row, "transferDate", data, idx.transferDate, LocalDate.class, lineNumber, userAuditable.user,
-          false);
+      assignCell(converter, row, "transferDate", data, idx.transferDate, LocalDate.class, lineNumber,
+          userAuditable.user, false);
     } catch (DataViolationException e) {
       stats.validationErrors++;
       return;
@@ -151,9 +152,8 @@ public class HistoryquoteLegacyImport {
       stats.validationErrors++;
       return;
     }
-    if (row.getDate().isBefore(oldestTradingDay)
-        || (userAuditable.auditable instanceof Security s
-            && (row.getDate().isBefore(s.getActiveFromDate()) || row.getDate().isAfter(s.getActiveToDate())))) {
+    if (row.getDate().isBefore(oldestTradingDay) || (userAuditable.auditable instanceof Security s
+        && (row.getDate().isBefore(s.getActiveFromDate()) || row.getDate().isAfter(s.getActiveToDate())))) {
       stats.outOfDateRange++;
       return;
     }
@@ -224,14 +224,15 @@ public class HistoryquoteLegacyImport {
           name = name.substring(1, name.length() - 1);
         }
         switch (name.toLowerCase()) {
-          case "date" -> idx.date = i;
-          case "close" -> idx.close = i;
-          case "open" -> idx.open = i;
-          case "high" -> idx.high = i;
-          case "low" -> idx.low = i;
-          case "volume" -> idx.volume = i;
-          case "transferdate" -> idx.transferDate = i;
-          default -> { /* unknown column ignored */ }
+        case "date" -> idx.date = i;
+        case "close" -> idx.close = i;
+        case "open" -> idx.open = i;
+        case "high" -> idx.high = i;
+        case "low" -> idx.low = i;
+        case "volume" -> idx.volume = i;
+        case "transferdate" -> idx.transferDate = i;
+        default -> {
+          /* unknown column ignored */ }
         }
       }
       if (idx.date < 0) {
@@ -245,10 +246,9 @@ public class HistoryquoteLegacyImport {
   }
 
   /**
-   * Mutable JavaBean used as the target of {@link ValueFormatConverter#convertAndSetValue},
-   * which delegates to Apache Commons {@code PropertyUtils.setSimpleProperty} — that helper
-   * resolves properties via JavaBean introspection (getters/setters), NOT via public fields,
-   * so the bean must expose proper accessors.
+   * Mutable JavaBean used as the target of {@link ValueFormatConverter#convertAndSetValue}, which delegates to Apache
+   * Commons {@code PropertyUtils.setSimpleProperty} — that helper resolves properties via JavaBean introspection
+   * (getters/setters), NOT via public fields, so the bean must expose proper accessors.
    */
   public static final class LegacyImportRow {
     private LocalDate date;
@@ -259,25 +259,60 @@ public class HistoryquoteLegacyImport {
     private Long volume;
     private LocalDate transferDate;
 
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
+    public LocalDate getDate() {
+      return date;
+    }
 
-    public Double getClose() { return close; }
-    public void setClose(Double close) { this.close = close; }
+    public void setDate(LocalDate date) {
+      this.date = date;
+    }
 
-    public Double getOpen() { return open; }
-    public void setOpen(Double open) { this.open = open; }
+    public Double getClose() {
+      return close;
+    }
 
-    public Double getHigh() { return high; }
-    public void setHigh(Double high) { this.high = high; }
+    public void setClose(Double close) {
+      this.close = close;
+    }
 
-    public Double getLow() { return low; }
-    public void setLow(Double low) { this.low = low; }
+    public Double getOpen() {
+      return open;
+    }
 
-    public Long getVolume() { return volume; }
-    public void setVolume(Long volume) { this.volume = volume; }
+    public void setOpen(Double open) {
+      this.open = open;
+    }
 
-    public LocalDate getTransferDate() { return transferDate; }
-    public void setTransferDate(LocalDate transferDate) { this.transferDate = transferDate; }
+    public Double getHigh() {
+      return high;
+    }
+
+    public void setHigh(Double high) {
+      this.high = high;
+    }
+
+    public Double getLow() {
+      return low;
+    }
+
+    public void setLow(Double low) {
+      this.low = low;
+    }
+
+    public Long getVolume() {
+      return volume;
+    }
+
+    public void setVolume(Long volume) {
+      this.volume = volume;
+    }
+
+    public LocalDate getTransferDate() {
+      return transferDate;
+    }
+
+    public void setTransferDate(LocalDate transferDate) {
+      this.transferDate = transferDate;
+    }
   }
 }

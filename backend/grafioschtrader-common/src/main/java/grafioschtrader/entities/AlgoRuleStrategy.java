@@ -25,6 +25,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.Table;
 
+/**
+ * Persistent base for rules attached to an AlgoTop, AlgoAssetclass or AlgoSecurity node. Common parameters are stored
+ * in a name-keyed collection; concrete entities define how the rule is evaluated.
+ */
 @Entity
 @Table(name = AlgoRuleStrategy.TABNAME)
 @Inheritance(strategy = JOINED)
@@ -36,19 +40,23 @@ public abstract class AlgoRuleStrategy extends TenantBaseID implements Serializa
 
   private static final long serialVersionUID = 1L;
 
+  /** Auto-generated primary key shared by concrete rule strategies. */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
   @Column(name = "id_algo_rule_strategy")
   protected Integer idAlgoRuleStrategy;
 
+  /** Algo hierarchy node to which this rule is assigned. */
   @Basic(optional = false)
   @Column(name = "id_algo_assetclass_security")
   protected Integer idAlgoAssetclassSecurity;
 
+  /** Tenant that owns the rule. */
   @Column(name = "id_tenant")
   protected Integer idTenant;
 
+  /** Legacy name-keyed parameters shared by rule implementations. */
   @ElementCollection(fetch = FetchType.EAGER)
   @MapKeyColumn(name = "param_name")
   @CollectionTable(name = ALGO_RULE_STRATEGY_PARAM, joinColumns = @JoinColumn(name = "id_algo_rule_strategy"))

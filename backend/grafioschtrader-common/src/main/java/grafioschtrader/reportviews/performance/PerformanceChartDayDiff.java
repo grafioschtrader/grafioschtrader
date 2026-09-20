@@ -9,13 +9,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Data point for charting daily performance differences in period performance analysis.
- * 
+ *
  * <p>
  * This class represents a single day's performance metrics as differences from a baseline (typically the first day of
  * the analysis period). It is specifically designed for time-series charting and visualization of portfolio
  * performance.
  * </p>
- * 
+ *
  * <p>
  * <strong>Difference Calculation:</strong>
  * </p>
@@ -23,7 +23,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * All "Diff" fields represent the change from the baseline period, calculated as (current day value - baseline value).
  * This allows charts to show cumulative changes over time starting from zero.
  * </p>
- * 
+ *
  * <p>
  * <strong>Currency Context:</strong>
  * </p>
@@ -59,12 +59,12 @@ public class PerformanceChartDayDiff {
 
   /**
    * Creates a complete data point with all performance differences.
-   * 
+   *
    * <p>
    * This constructor is used for all days after the baseline, where differences from the first day have been
    * calculated.
    * </p>
-   * 
+   *
    * @param date                       the date for this data point
    * @param externalCashTransferDiffMC change in external transfers from baseline
    * @param gainDiffMC                 change in investment gains from baseline

@@ -18,15 +18,15 @@ import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 
 /**
- * Strategy for AC_OPEN mode: queries local Security/Currencypair entities and updates them
- * if incoming prices are newer.
+ * Strategy for AC_OPEN mode: queries local Security/Currencypair entities and updates them if incoming prices are
+ * newer.
  *
  * Behavior:
  * <ul>
- *   <li>Queries local Security and Currencypair entities</li>
- *   <li>If incoming request prices are newer than local, updates local entities</li>
- *   <li>Returns local prices that are newer than what was requested</li>
- *   <li>Does NOT interact with GTNetLastprice* tables</li>
+ * <li>Queries local Security and Currencypair entities</li>
+ * <li>If incoming request prices are newer than local, updates local entities</li>
+ * <li>Returns local prices that are newer than what was requested</li>
+ * <li>Does NOT interact with GTNetLastprice* tables</li>
  * </ul>
  *
  * This enables bidirectional price exchange: the server both receives updates and shares its own data.
@@ -151,7 +151,7 @@ public class OpenLastpriceQueryStrategy implements LastpriceQueryStrategy {
   /**
    * Checks if the local timestamp meets the freshness threshold.
    *
-   * @param localTimestamp the timestamp to check
+   * @param localTimestamp         the timestamp to check
    * @param minAcceptableTimestamp the minimum acceptable timestamp (null means no threshold)
    * @return true if the timestamp is fresh enough or no threshold is set
    */

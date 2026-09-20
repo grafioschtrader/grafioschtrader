@@ -151,17 +151,14 @@ public abstract class BaseFeedConnectorCheck {
           Historyquote curr = historyquotes.get(i);
           Historyquote next = i < historyquotes.size() - 1 ? historyquotes.get(i + 1) : null;
           System.out.printf("Weekend quote [%s] ISIN=%s: prev=%s close=%.4f | %s %s close=%.4f | next=%s close=%.4f%n",
-              hd.security.getName(), hd.security.getIsin(),
-              prev != null ? prev.getDate() : "N/A",
-              prev != null ? prev.getClose() : 0.0,
-              dow, quoteDate, curr.getClose(),
-              next != null ? next.getDate() : "N/A",
-              next != null ? next.getClose() : 0.0);
+              hd.security.getName(), hd.security.getIsin(), prev != null ? prev.getDate() : "N/A",
+              prev != null ? prev.getClose() : 0.0, dow, quoteDate, curr.getClose(),
+              next != null ? next.getDate() : "N/A", next != null ? next.getClose() : 0.0);
         }
       }
 
-      Assertions.assertThat(weekendCount)
-          .as("Weekend Historyquotes for Security " + hd.security.getName()).isEqualTo(0);
+      Assertions.assertThat(weekendCount).as("Weekend Historyquotes for Security " + hd.security.getName())
+          .isEqualTo(0);
     });
   }
 
@@ -214,8 +211,7 @@ public abstract class BaseFeedConnectorCheck {
             .as("Number of history quotes for CurrencyPair " + cphd.currencypair.getName())
             .isEqualTo(cphd.expectedRows);
         Assertions.assertThat(firstQuoteDate)
-            .as("Start date of the first quote for CurrencyPair " + cphd.currencypair.getName())
-            .isEqualTo(cphd.from);
+            .as("Start date of the first quote for CurrencyPair " + cphd.currencypair.getName()).isEqualTo(cphd.from);
         Assertions.assertThat(lastQuoteDate)
             .as("End date of the last quote for CurrencyPair " + cphd.currencypair.getName()).isEqualTo(cphd.to);
       }

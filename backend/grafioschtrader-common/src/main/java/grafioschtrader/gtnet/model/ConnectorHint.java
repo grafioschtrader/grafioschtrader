@@ -55,8 +55,8 @@ public class ConnectorHint {
   public ConnectorHint() {
   }
 
-  public ConnectorHint(String connectorFamily, Set<ConnectorCapability> capabilities,
-                       String urlExtensionPattern, boolean requiresApiKey) {
+  public ConnectorHint(String connectorFamily, Set<ConnectorCapability> capabilities, String urlExtensionPattern,
+      boolean requiresApiKey) {
     this.connectorFamily = connectorFamily;
     this.capabilities = capabilities;
     this.urlExtensionPattern = urlExtensionPattern;
@@ -112,8 +112,8 @@ public class ConnectorHint {
   }
 
   /**
-   * Returns true when this hint describes a generic (user-defined) connector. Generic connectors carry a domainUrl
-   * so that the receiving instance can verify configuration compatibility beyond just the family name.
+   * Returns true when this hint describes a generic (user-defined) connector. Generic connectors carry a domainUrl so
+   * that the receiving instance can verify configuration compatibility beyond just the family name.
    */
   @JsonIgnore
   public boolean isGenericConnector() {

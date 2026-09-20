@@ -86,8 +86,7 @@ class ConnectorApiKeyCsvExportTest {
   @Test
   @DisplayName("Export connector_apikey of the real database to the git-ignored CSV fixture")
   void exportConnectorApiKeysToCsv() throws IOException {
-    assumeTrue(Boolean.getBoolean(ENABLE_PROPERTY),
-        () -> "Export is opt-in, run with -D" + ENABLE_PROPERTY + "=true");
+    assumeTrue(Boolean.getBoolean(ENABLE_PROPERTY), () -> "Export is opt-in, run with -D" + ENABLE_PROPERTY + "=true");
     assumeTrue(System.getenv("JASYPT_ENCRYPTOR_PASSWORD") != null,
         "JASYPT_ENCRYPTOR_PASSWORD is not set, the API keys could not be decrypted");
     assertRealDatabase();
@@ -148,8 +147,8 @@ class ConnectorApiKeyCsvExportTest {
     final Path output = Path.of(OUTPUT_RELATIVE);
     if (!Files.isDirectory(Path.of("src/test/resources"))) {
       fail("Working directory is " + Path.of("").toAbsolutePath() + ", expected the grafioschtrader-server module "
-          + "directory. Start the export with: mvn -pl grafioschtrader-server test -Dtest="
-          + getClass().getSimpleName() + " -D" + ENABLE_PROPERTY + "=true");
+          + "directory. Start the export with: mvn -pl grafioschtrader-server test -Dtest=" + getClass().getSimpleName()
+          + " -D" + ENABLE_PROPERTY + "=true");
     }
     return output;
   }

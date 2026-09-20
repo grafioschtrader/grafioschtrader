@@ -10,8 +10,8 @@ import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.entities.GTNetSecurityImpHead;
 
 /**
- * Repository for managing GTNet security import header records. Provides CRUD operations
- * with tenant-level access control.
+ * Repository for managing GTNet security import header records. Provides CRUD operations with tenant-level access
+ * control.
  */
 public interface GTNetSecurityImpHeadJpaRepository extends JpaRepository<GTNetSecurityImpHead, Integer>,
     GTNetSecurityImpHeadJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<GTNetSecurityImpHead> {
@@ -28,7 +28,7 @@ public interface GTNetSecurityImpHeadJpaRepository extends JpaRepository<GTNetSe
    * Finds a specific import header by ID and tenant.
    *
    * @param idGtNetSecurityImpHead the header ID
-   * @param idTenant the tenant ID
+   * @param idTenant               the tenant ID
    * @return the matching header or null if not found
    */
   GTNetSecurityImpHead findByIdGtNetSecurityImpHeadAndIdTenant(Integer idGtNetSecurityImpHead, Integer idTenant);
@@ -37,7 +37,7 @@ public interface GTNetSecurityImpHeadJpaRepository extends JpaRepository<GTNetSe
    * Deletes a header by ID and tenant, returning the number of deleted rows.
    *
    * @param idGtNetSecurityImpHead the header ID
-   * @param idTenant the tenant ID
+   * @param idTenant               the tenant ID
    * @return number of deleted rows (0 or 1)
    */
   @Transactional

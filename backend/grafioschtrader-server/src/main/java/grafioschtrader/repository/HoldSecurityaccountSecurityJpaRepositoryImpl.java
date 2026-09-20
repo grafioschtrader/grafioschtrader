@@ -39,11 +39,12 @@ import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository.IHold
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository.ITransactionSecuritySplit;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository.TransactionSecuritySplit;
 import grafioschtrader.repository.helper.HoldingsHelper;
+import grafioschtrader.repository.helper.TenantHoldRebuildRunner;
 import grafioschtrader.types.TransactionType;
 
 /**
  * Implementation of custom repository methods for managing security holdings and position calculations.
- * 
+ *
  * <p>
  * <strong>Security Holdings Management:</strong>
  * </p>
@@ -52,7 +53,7 @@ import grafioschtrader.types.TransactionType;
  * from buy/sell transactions, corporate actions, and stock splits. Holdings are automatically updated when securities
  * transactions occur.
  * </p>
- * 
+ *
  * <p>
  * <strong>Holdings Impact Scenarios:</strong>
  * </p>
@@ -61,7 +62,7 @@ import grafioschtrader.types.TransactionType;
  * <li>When a tenant's global main currency or portfolio currency changes</li>
  * <li>When security splits occur (affects all tenants holding the security)</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Margin vs. Regular Transactions:</strong>
  * </p>
@@ -69,7 +70,7 @@ import grafioschtrader.types.TransactionType;
  * Margin transactions are handled differently - every single transaction is processed individually, while regular
  * transactions use combined daily results from database queries grouped by security and security account.
  * </p>
- * 
+ *
  * <p>
  * <strong>Position Management:</strong>
  * </p>
@@ -101,11 +102,9 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   private TransactionJpaRepository transactionJpaRepository;
 
   @Override
-  @Transactional
-  @Modifying
   public void createSecurityHoldingsEntireForAllTenant() {
-    List<Tenant> tenants = tenantJpaRepository.findAll();
-    tenants.stream().forEach(this::createSecurityHoldingsEntireByTenant);
+    TenantHoldRebuildRunner.rebuildPerTenant(tenantJpaRepository.findAll().stream().map(Tenant::getIdTenant).toList(),
+        holdSecurityaccountSecurityRepository::createSecurityHoldingsEntireByTenant, "hold_securityaccount_security");
   }
 
   @Transactional
@@ -120,12 +119,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Creates complete security holdings for a specific tenant entity.
-   * 
+   *
    * <p>
    * This method delegates to portfolio-level processing, loading currency conversion data and security split
    * information needed for accurate position calculations.
    * </p>
-   * 
+   *
    * @param tenant the tenant entity for which to rebuild holdings
    */
   private void createSecurityHoldingsEntireByTenant(Tenant tenant) {
@@ -172,12 +171,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Rebuilds holdings for a specific security across all accounts and tenants.
-   * 
+   *
    * <p>
    * This method processes holdings grouped by tenant and security account, handling both margin and regular securities.
    * It removes existing holdings before recreating them with updated data.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Processing Strategy:</strong>
    * </p>
@@ -187,7 +186,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
    * <li>Processes transactions chronologically with margin handling</li>
    * <li>Maintains time-frame continuity across account changes</li>
    * </ul>
-   * 
+   *
    * @param security             the security for which to rebuild holdings
    * @param hstbsList            list of holdings, splits, and transactions for the security
    * @param marginTransactionMap map of margin transactions (null for regular securities)
@@ -240,12 +239,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Determines if the next margin transaction occurs on the same date as the current one.
-   * 
+   *
    * <p>
    * This method helps optimize margin transaction processing by identifying when multiple margin transactions for the
    * same security account occur on the same trading day.
    * </p>
-   * 
+   *
    * @param hstbs                current holding/split/transaction record
    * @param hstbsNext            next holding/split/transaction record
    * @param marginTransactionMap map of margin transactions for lookup
@@ -264,12 +263,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Creates currency conversion and security split context for a specific security.
-   * 
+   *
    * <p>
    * This method loads the currency pairs and stock splits needed for accurate position calculations and currency
    * conversions for the security.
    * </p>
-   * 
+   *
    * @param security the security for which to create the context
    * @return context object containing currency pairs and split information
    */
@@ -285,12 +284,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Creates security holdings for all portfolios within a tenant.
-   * 
+   *
    * <p>
    * This method processes each portfolio and its security accounts to create complete holdings. It delegates to
    * security account level processing with the necessary currency and split context.
    * </p>
-   * 
+   *
    * @param allTenantPortfolios           list of portfolios for the tenant
    * @param tenantCurrency                the tenant's base currency
    * @param loadCurrencypairSecuritySplit currency and split context for conversions
@@ -307,7 +306,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Loads currency conversion and security split data for a tenant.
-   * 
+   *
    * @param idTenant the tenant identifier
    * @return context object with currency pairs and security splits for the tenant
    */
@@ -319,11 +318,11 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Create holdings for a security account of a portfolio and tenant.
-   * 
+   *
    * <p>
    * Every query runs on the calling thread and therefore on the connection of the current database transaction, so it
-   * sees rows that were written but not yet committed. See
-   * {@link #loadForSecurityHoldingsBySecurityaccountAndSecurity} for why that matters.
+   * sees rows that were written but not yet committed. See {@link #loadForSecurityHoldingsBySecurityaccountAndSecurity}
+   * for why that matters.
    * </p>
    *
    * @param idTenant              the tenant identifier
@@ -339,20 +338,19 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
     holdSecurityaccountSecurityRepository.removeAllByIdSecuritycashAccount(idSecuritycashAccount);
 
     createSecurityHoldingsBySecurityaccount(idTenant, idPortfolio, idSecuritycashAccount, tenantCurrency,
-        portfolioCurrency, css,
-        holdSecurityaccountSecurityRepository.getBuySellTransWithSecuritySplitByIdSecurityaccount(
-            idSecuritycashAccount),
+        portfolioCurrency, css, holdSecurityaccountSecurityRepository
+            .getBuySellTransWithSecuritySplitByIdSecurityaccount(idSecuritycashAccount),
         getMarginTransactionByIdSecurityaccount(idSecuritycashAccount));
   }
 
   /**
    * Creates security holdings for a single security account using loaded transaction data.
-   * 
+   *
    * <p>
    * This method processes transactions grouped by security, maintaining position continuity and handling both regular
    * and margin transactions with proper time-frame management.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Processing Flow:</strong>
    * </p>
@@ -362,7 +360,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
    * <li>Manages margin transaction grouping for same-day trades</li>
    * <li>Creates holdings only for non-zero positions</li>
    * </ul>
-   * 
+   *
    * @param idTenant                     the tenant identifier
    * @param idPortfolio                  the portfolio identifier
    * @param idSecuritycashAccount        the security account identifier
@@ -431,7 +429,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Retrieves margin transactions for a specific security account.
-   * 
+   *
    * @param idSecuritycashAccount the security account identifier
    * @return map of transaction IDs to margin transaction entities
    */
@@ -482,9 +480,8 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
   private List<ITransactionSecuritySplit> getMarginNormalTransactions(Securityaccount securityaccount,
       Security security) {
     if (security.isMarginInstrument()) {
-      return holdSecurityaccountSecurityRepository
-          .getBuySellTransWithSecuritySplitByIdSecurityaccountAndSecurityMargin(
-              securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency());
+      return holdSecurityaccountSecurityRepository.getBuySellTransWithSecuritySplitByIdSecurityaccountAndSecurityMargin(
+          securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency());
     } else {
       return holdSecurityaccountSecurityRepository.getBuySellTransWithSecuritySplitByIdSecurityaccountAndSecurity(
           securityaccount.getIdSecuritycashAccount(), security.getIdSecuritycurrency());
@@ -510,8 +507,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
    */
   private void createSecurityHoldingsForSecurityaccountAndSecurity(Securityaccount securityaccount,
       String tenantCurrency, String portfolioCurrency, CurrencypairSecuritySplit css,
-      List<ITransactionSecuritySplit> transactionSecuritySplitList,
-      Map<Integer, Transaction> marginTransactionMap) {
+      List<ITransactionSecuritySplit> transactionSecuritySplitList, Map<Integer, Transaction> marginTransactionMap) {
 
     HoldPositionTimeFrameSecurity holdPositionTimeFrameSecurity = new HoldPositionTimeFrameSecurity(
         currencypairJpaRepository, tenantCurrency, portfolioCurrency, css, marginTransactionMap);
@@ -533,7 +529,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Retrieves margin transactions for a specific security account and security combination.
-   * 
+   *
    * @param idSecuritycashAccount the security account identifier
    * @param idSecurity            the security identifier
    * @return map of transaction IDs to margin transaction entities
@@ -547,13 +543,13 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Position calculator and holdings manager for security time-frame processing.
-   * 
+   *
    * <p>
    * This class manages the calculations required for security position tracking, including unit calculations, margin
    * averaging, stock split adjustments, and currency conversions. It maintains running totals and creates holding
    * records as positions change.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Core Responsibilities:</strong>
    * </p>
@@ -564,7 +560,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
    * <li>Time-frame management with proper start/end dates</li>
    * <li>Batch processing optimization for same-day margin transactions</li>
    * </ul>
-   * 
+   *
    * <p>
    * <strong>Margin Transaction Handling:</strong>
    * </p>
@@ -622,7 +618,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     /**
      * Processes a single transaction or split and creates a holding record if position is non-zero.
-     * 
+     *
      * <p>
      * This method handles the core logic for transaction processing including:
      * </p>
@@ -632,7 +628,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
      * <li>Margin position calculations and average price tracking</li>
      * <li>Time-frame management with proper end date setting</li>
      * </ul>
-     * 
+     *
      * @param idTenant              the tenant identifier
      * @param idPortfolio           the portfolio identifier
      * @param idSecuritycashAccount the security account identifier
@@ -681,7 +677,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     /**
      * Calculates and updates margin position values including average price and position tracking.
-     * 
+     *
      * <p>
      * This method handles margin calculations including:
      * </p>
@@ -691,7 +687,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
      * <li>Partial position closures</li>
      * <li>Running cost basis maintenance</li>
      * </ul>
-     * 
+     *
      * @param marginTransaction the margin transaction being processed
      * @param tss               the transaction/split context
      */
@@ -728,7 +724,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     /**
      * Prepares for the next security by consolidating current security holdings.
-     * 
+     *
      * <p>
      * This method is called when switching to a different security within the same security account, resetting position
      * calculations while preserving completed holdings.
@@ -746,12 +742,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     /**
      * Prepares for the next security account and saves all accumulated holdings.
-     * 
+     *
      * <p>
      * This method finalizes processing for the current security account by saving all holdings to the repository and
      * resetting for the next account.
      * </p>
-     * 
+     *
      * @param holdSecurityaccountSecurityRepository repository for saving holdings
      */
     public void prepareNextSecurityaccountAndSaveAll(
@@ -793,12 +789,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     /**
      * Applies stock split adjustments to position units and margin calculations.
-     * 
+     *
      * <p>
      * This method adjusts position quantities and related margin values when stock splits occur, maintaining accurate
      * position tracking across corporate actions.
      * </p>
-     * 
+     *
      * @param tss the split transaction containing the split factor
      */
     private void divideMulitplieUnitsBySplit(ITransactionSecuritySplit tss) {
@@ -813,7 +809,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
     /**
      * Returns the most recent holding record for the current security.
-     * 
+     *
      * @return the last holding record, or null if no holdings exist
      */
     private HoldSecurityaccountSecurity getLastTransSplit() {
@@ -857,8 +853,8 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
       missingQuotesWithSecurities.setSecurities(securities);
       Set<Integer> idsCurrencypair = new HashSet<>(idsSecuritycurrency);
       securities.forEach(security -> idsCurrencypair.remove(security.getIdSecuritycurrency()));
-      missingQuotesWithSecurities.setCurrencypairs(
-          idsCurrencypair.isEmpty() ? Collections.emptyList() : this.currencypairJpaRepository.findAllById(idsCurrencypair));
+      missingQuotesWithSecurities.setCurrencypairs(idsCurrencypair.isEmpty() ? Collections.emptyList()
+          : this.currencypairJpaRepository.findAllById(idsCurrencypair));
     }
 
     return missingQuotesWithSecurities;
@@ -866,12 +862,12 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
 
   /**
    * Context class containing currency conversion mappings and security split information.
-   * 
+   *
    * <p>
    * This class provides the necessary data for accurate position calculations across different currencies and time
    * periods, including historical stock split adjustments.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Currency Support:</strong>
    * </p>
@@ -879,7 +875,7 @@ public class HoldSecurityaccountSecurityJpaRepositoryImpl implements HoldSecurit
    * Contains mappings for currency pair conversions needed when securities, portfolios, and tenants use different
    * currencies.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Split Adjustments:</strong>
    * </p>

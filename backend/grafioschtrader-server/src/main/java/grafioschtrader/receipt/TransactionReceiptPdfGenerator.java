@@ -75,11 +75,11 @@ public class TransactionReceiptPdfGenerator {
         Writer w = new Writer(cs, PDRectangle.A4.getHeight() - PAGE_MARGIN - 10);
         drawHeader(w, labels, context);
         switch (transaction.getTransactionType()) {
-          case ACCUMULATE, REDUCE -> drawBuySell(w, transaction, labels);
-          case DIVIDEND -> drawDividend(w, transaction, labels);
-          case FINANCE_COST -> drawFinanceCost(w, transaction, labels);
-          default -> throw new IllegalArgumentException(
-              "No receipt support for transaction type " + transaction.getTransactionType());
+        case ACCUMULATE, REDUCE -> drawBuySell(w, transaction, labels);
+        case DIVIDEND -> drawDividend(w, transaction, labels);
+        case FINANCE_COST -> drawFinanceCost(w, transaction, labels);
+        default -> throw new IllegalArgumentException(
+            "No receipt support for transaction type " + transaction.getTransactionType());
         }
         drawFooter(w, labels);
       }

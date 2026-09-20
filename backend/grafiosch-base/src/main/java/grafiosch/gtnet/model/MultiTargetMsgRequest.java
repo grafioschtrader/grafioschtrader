@@ -10,14 +10,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Request DTO for submitting GTNet admin messages to multiple targets via multi-select.
  *
  * <p>
- * Unlike {@link MsgRequest} which targets a single domain, this DTO allows selecting multiple
- * target domains for a single admin message. The message is created once and delivered to all
- * targets via background processing using {@code GTNetMessageAttempt} entries.
+ * Unlike {@link MsgRequest} which targets a single domain, this DTO allows selecting multiple target domains for a
+ * single admin message. The message is created once and delivered to all targets via background processing using
+ * {@code GTNetMessageAttempt} entries.
  * </p>
  *
  * <p>
- * This approach is used for admin messages (GT_NET_ADMIN_MESSAGE_SEL_C) when the administrator
- * selects multiple peers using checkboxes in the GTNetAdminMessagesComponent.
+ * This approach is used for admin messages (GT_NET_ADMIN_MESSAGE_SEL_C) when the administrator selects multiple peers
+ * using checkboxes in the GTNetAdminMessagesComponent.
  * </p>
  */
 @Schema(description = """

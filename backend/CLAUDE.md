@@ -394,6 +394,37 @@ private LocalDateTime createdAt;
 | `STANDARD_LOCAL_DATE_TIME` | `"yyyy-MM-dd HH:mm"` | `LocalDateTime` (no seconds) |
 | `STANDARD_LOCAL_DATE_TIME_SECOND` | `"yyyy-MM-dd HH:mm:ss"` | `LocalDateTime` (with seconds) |
 
+## Numeric Types — `double`, Never `BigDecimal`
+
+Money, quantities, prices, rates, percentages and factors are `double` / `Double` **everywhere** — entity
+fields, DTOs, records, service signatures, report views — and their columns are `double`, never `DECIMAL`.
+`BigDecimal` and `BigInteger` are not used in GT: they are slower, and their exactness buys nothing here
+because every amount is rounded to the standard money precision before it is stored or shown. The released
+schema contains not one `DECIMAL` column; keep it that way.
+
+**Rounding** goes through the existing helpers — `DataBusinessHelper.roundStandard(double)` and
+`DataHelper.round(double, int)` (`grafioschtrader-common/.../common/DataBusinessHelper.java`,
+`grafiosch-base/.../common/DataHelper.java`) — never `BigDecimal.setScale`.
+
+**The one admissible use** is adapting to a third-party API that demands it, and only inside the method
+that touches that library:
+
+- EvalEx — `expression.with(name, BigDecimal.valueOf(value))` and `EvaluationValue.getNumberValue()`.
+  Reference shape: `AlgoAlarmEvaluationService:387` and `TransactionCostEvalExEstimator:215`, which take
+  `double` arguments and convert only at the `with(...)` call; `TaxEvalExEstimator` converts the result
+  back with `doubleValue()` immediately and sums in `double`.
+- Jackson DTOs that mirror a provider's JSON (`FrankfurterApiFeedConnector`, `CoinMarketCapFeedConnector`)
+  — converted to `double` as the value leaves the connector.
+- `DataTypeJava.BigDecimal` in the dynamic-form type mapping, which exists to map foreign types.
+
+A `BigDecimal` must never reach an entity field, a DTO, a record component or a service signature.
+
+**Consequence for form annotations**: `@Digits(integer, fraction)` makes Hibernate derive a SQL *scale*,
+which is invalid on a floating point column and fails at startup with *"scale has no meaning for SQL
+floating point types"*. Since GT has no decimal columns, `@Digits` is effectively unusable — put numeric
+precision on `@DynamicFormField(integerLimit = …, fractionLimit = …)` instead (see *Dynamic Form
+Definitions* below). `@DecimalMin` / `@DecimalMax` are fine on `Double`.
+
 ## New Entity or Table — Export/Delete Definition and Entity Limit
 
 **IMPORTANT**: A new entity owes two things that **no test and no compiler checks**. Both are about
@@ -626,10 +657,11 @@ source of truth.
    `@DecimalMin`/`@DecimalMax` (numeric bounds), `@Pattern` (regex), `@AfterEqual` (minimum date),
    `@Future` (future date). Inherited fields are included —
    `DynamicModelHelper.getFormDefinitionOfEntityClass()` walks the whole class hierarchy.
-   - **Numeric precision**: `@Digits(integer, fraction)` is honoured, **but only use it on
-     `BigDecimal`/integer columns**. On a `Double`/`Float` column Hibernate derives a SQL *scale* from
-     `@Digits` and startup fails with *"scale has no meaning for SQL floating point types"*. For
-     floating point fields put the precision on the form annotation instead:
+   - **Numeric precision**: `@Digits(integer, fraction)` is honoured **only on integer columns**. On a
+     `Double`/`Float` column Hibernate derives a SQL *scale* from `@Digits` and startup fails with
+     *"scale has no meaning for SQL floating point types"* — and since GT has no decimal columns at all
+     (see *Numeric Types — `double`, Never `BigDecimal`*), every fractional field is affected. Put the
+     precision on the form annotation instead:
      `@DynamicFormField(uiOrder = "…", integerLimit = 3, fractionLimit = 4)`.
 
 3. **Register the entity in the allow-list** so it can be requested by name. Add it in the

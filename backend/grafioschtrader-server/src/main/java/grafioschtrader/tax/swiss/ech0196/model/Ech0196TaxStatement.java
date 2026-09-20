@@ -77,54 +77,139 @@ public class Ech0196TaxStatement {
 
   // Getters and setters
 
-  public Ech0196Institution getInstitution() { return institution; }
-  public void setInstitution(Ech0196Institution institution) { this.institution = institution; }
+  public Ech0196Institution getInstitution() {
+    return institution;
+  }
 
-  public List<Ech0196Client> getClients() { return clients; }
-  public void setClients(List<Ech0196Client> clients) { this.clients = clients; }
+  public void setInstitution(Ech0196Institution institution) {
+    this.institution = institution;
+  }
 
-  public Ech0196ListOfSecurities getListOfSecurities() { return listOfSecurities; }
-  public void setListOfSecurities(Ech0196ListOfSecurities listOfSecurities) { this.listOfSecurities = listOfSecurities; }
+  public List<Ech0196Client> getClients() {
+    return clients;
+  }
 
-  public String getId() { return id; }
-  public void setId(String id) { this.id = id; }
+  public void setClients(List<Ech0196Client> clients) {
+    this.clients = clients;
+  }
 
-  public LocalDateTime getCreationDate() { return creationDate; }
-  public void setCreationDate(LocalDateTime creationDate) { this.creationDate = creationDate; }
+  public Ech0196ListOfSecurities getListOfSecurities() {
+    return listOfSecurities;
+  }
 
-  public Integer getTaxPeriod() { return taxPeriod; }
-  public void setTaxPeriod(Integer taxPeriod) { this.taxPeriod = taxPeriod; }
+  public void setListOfSecurities(Ech0196ListOfSecurities listOfSecurities) {
+    this.listOfSecurities = listOfSecurities;
+  }
 
-  public LocalDate getPeriodFrom() { return periodFrom; }
-  public void setPeriodFrom(LocalDate periodFrom) { this.periodFrom = periodFrom; }
+  public String getId() {
+    return id;
+  }
 
-  public LocalDate getPeriodTo() { return periodTo; }
-  public void setPeriodTo(LocalDate periodTo) { this.periodTo = periodTo; }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-  public String getCountry() { return country; }
-  public void setCountry(String country) { this.country = country; }
+  public LocalDateTime getCreationDate() {
+    return creationDate;
+  }
 
-  public String getCanton() { return canton; }
-  public void setCanton(String canton) { this.canton = canton; }
+  public void setCreationDate(LocalDateTime creationDate) {
+    this.creationDate = creationDate;
+  }
 
-  public Double getTotalTaxValue() { return totalTaxValue; }
-  public void setTotalTaxValue(Double totalTaxValue) { this.totalTaxValue = totalTaxValue; }
+  public Integer getTaxPeriod() {
+    return taxPeriod;
+  }
 
-  public Double getTotalGrossRevenueA() { return totalGrossRevenueA; }
-  public void setTotalGrossRevenueA(Double totalGrossRevenueA) { this.totalGrossRevenueA = totalGrossRevenueA; }
+  public void setTaxPeriod(Integer taxPeriod) {
+    this.taxPeriod = taxPeriod;
+  }
 
-  public Double getTotalGrossRevenueACanton() { return totalGrossRevenueACanton; }
-  public void setTotalGrossRevenueACanton(Double totalGrossRevenueACanton) { this.totalGrossRevenueACanton = totalGrossRevenueACanton; }
+  public LocalDate getPeriodFrom() {
+    return periodFrom;
+  }
 
-  public Double getTotalGrossRevenueB() { return totalGrossRevenueB; }
-  public void setTotalGrossRevenueB(Double totalGrossRevenueB) { this.totalGrossRevenueB = totalGrossRevenueB; }
+  public void setPeriodFrom(LocalDate periodFrom) {
+    this.periodFrom = periodFrom;
+  }
 
-  public Double getTotalGrossRevenueBCanton() { return totalGrossRevenueBCanton; }
-  public void setTotalGrossRevenueBCanton(Double totalGrossRevenueBCanton) { this.totalGrossRevenueBCanton = totalGrossRevenueBCanton; }
+  public LocalDate getPeriodTo() {
+    return periodTo;
+  }
 
-  public Double getTotalWithHoldingTaxClaim() { return totalWithHoldingTaxClaim; }
-  public void setTotalWithHoldingTaxClaim(Double totalWithHoldingTaxClaim) { this.totalWithHoldingTaxClaim = totalWithHoldingTaxClaim; }
+  public void setPeriodTo(LocalDate periodTo) {
+    this.periodTo = periodTo;
+  }
 
-  public Integer getMinorVersion() { return minorVersion; }
-  public void setMinorVersion(Integer minorVersion) { this.minorVersion = minorVersion; }
+  public String getCountry() {
+    return country;
+  }
+
+  public void setCountry(String country) {
+    this.country = country;
+  }
+
+  public String getCanton() {
+    return canton;
+  }
+
+  public void setCanton(String canton) {
+    this.canton = canton;
+  }
+
+  public Double getTotalTaxValue() {
+    return totalTaxValue;
+  }
+
+  public void setTotalTaxValue(Double totalTaxValue) {
+    this.totalTaxValue = totalTaxValue;
+  }
+
+  public Double getTotalGrossRevenueA() {
+    return totalGrossRevenueA;
+  }
+
+  public void setTotalGrossRevenueA(Double totalGrossRevenueA) {
+    this.totalGrossRevenueA = totalGrossRevenueA;
+  }
+
+  public Double getTotalGrossRevenueACanton() {
+    return totalGrossRevenueACanton;
+  }
+
+  public void setTotalGrossRevenueACanton(Double totalGrossRevenueACanton) {
+    this.totalGrossRevenueACanton = totalGrossRevenueACanton;
+  }
+
+  public Double getTotalGrossRevenueB() {
+    return totalGrossRevenueB;
+  }
+
+  public void setTotalGrossRevenueB(Double totalGrossRevenueB) {
+    this.totalGrossRevenueB = totalGrossRevenueB;
+  }
+
+  public Double getTotalGrossRevenueBCanton() {
+    return totalGrossRevenueBCanton;
+  }
+
+  public void setTotalGrossRevenueBCanton(Double totalGrossRevenueBCanton) {
+    this.totalGrossRevenueBCanton = totalGrossRevenueBCanton;
+  }
+
+  public Double getTotalWithHoldingTaxClaim() {
+    return totalWithHoldingTaxClaim;
+  }
+
+  public void setTotalWithHoldingTaxClaim(Double totalWithHoldingTaxClaim) {
+    this.totalWithHoldingTaxClaim = totalWithHoldingTaxClaim;
+  }
+
+  public Integer getMinorVersion() {
+    return minorVersion;
+  }
+
+  public void setMinorVersion(Integer minorVersion) {
+    this.minorVersion = minorVersion;
+  }
 }

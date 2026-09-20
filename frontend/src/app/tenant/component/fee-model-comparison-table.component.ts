@@ -90,11 +90,11 @@ export class FeeModelComparisonTableComponent extends TableConfigBase implements
       maxFractionDigits: 2
     });
     this.addColumnFeqH(DataType.Numeric, 'relativeError', true, true, {
-      maxFractionDigits: 2,
+      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
       fieldValueFN: (dataobject: any, field: ColumnConfig, valueField: any) => {
         const rawValue = Helper.getValueByPath(dataobject, field.field);
         if (rawValue != null) {
-          return Number(rawValue).toFixed(2).split('.').join(gps.getDecimalSymbol());
+          return Number(rawValue).toFixed(AppSettings.FID_PERCENTAGE_FRACTION).split('.').join(gps.getDecimalSymbol());
         }
         return rawValue;
       }

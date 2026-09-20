@@ -8,8 +8,8 @@ import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Data transfer object for OHLC (Open-High-Low-Close) historical quote data used in candlestick and OHLC charts.
- * This DTO extends the basic date/close structure with open, high, and low price fields needed for advanced chart
+ * Data transfer object for OHLC (Open-High-Low-Close) historical quote data used in candlestick and OHLC charts. This
+ * DTO extends the basic date/close structure with open, high, and low price fields needed for advanced chart
  * visualization.
  */
 @Schema(description = """

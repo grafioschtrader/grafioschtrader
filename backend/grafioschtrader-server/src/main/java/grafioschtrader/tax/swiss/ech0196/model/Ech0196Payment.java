@@ -71,57 +71,147 @@ public class Ech0196Payment {
 
   // Getters and setters
 
-  public LocalDate getPaymentDate() { return paymentDate; }
-  public void setPaymentDate(LocalDate paymentDate) { this.paymentDate = paymentDate; }
+  public LocalDate getPaymentDate() {
+    return paymentDate;
+  }
 
-  public LocalDate getExDate() { return exDate; }
-  public void setExDate(LocalDate exDate) { this.exDate = exDate; }
+  public void setPaymentDate(LocalDate paymentDate) {
+    this.paymentDate = paymentDate;
+  }
 
-  public String getQuotationType() { return quotationType; }
-  public void setQuotationType(String quotationType) { this.quotationType = quotationType; }
+  public LocalDate getExDate() {
+    return exDate;
+  }
 
-  public Double getQuantity() { return quantity; }
-  public void setQuantity(Double quantity) { this.quantity = quantity; }
+  public void setExDate(LocalDate exDate) {
+    this.exDate = exDate;
+  }
 
-  public String getAmountCurrency() { return amountCurrency; }
-  public void setAmountCurrency(String amountCurrency) { this.amountCurrency = amountCurrency; }
+  public String getQuotationType() {
+    return quotationType;
+  }
 
-  public Double getAmountPerUnit() { return amountPerUnit; }
-  public void setAmountPerUnit(Double amountPerUnit) { this.amountPerUnit = amountPerUnit; }
+  public void setQuotationType(String quotationType) {
+    this.quotationType = quotationType;
+  }
 
-  public Double getAmount() { return amount; }
-  public void setAmount(Double amount) { this.amount = amount; }
+  public Double getQuantity() {
+    return quantity;
+  }
 
-  public Double getExchangeRate() { return exchangeRate; }
-  public void setExchangeRate(Double exchangeRate) { this.exchangeRate = exchangeRate; }
+  public void setQuantity(Double quantity) {
+    this.quantity = quantity;
+  }
 
-  public Double getGrossRevenueA() { return grossRevenueA; }
-  public void setGrossRevenueA(Double grossRevenueA) { this.grossRevenueA = grossRevenueA; }
+  public String getAmountCurrency() {
+    return amountCurrency;
+  }
 
-  public Double getGrossRevenueACanton() { return grossRevenueACanton; }
-  public void setGrossRevenueACanton(Double grossRevenueACanton) { this.grossRevenueACanton = grossRevenueACanton; }
+  public void setAmountCurrency(String amountCurrency) {
+    this.amountCurrency = amountCurrency;
+  }
 
-  public Double getGrossRevenueB() { return grossRevenueB; }
-  public void setGrossRevenueB(Double grossRevenueB) { this.grossRevenueB = grossRevenueB; }
+  public Double getAmountPerUnit() {
+    return amountPerUnit;
+  }
 
-  public Double getGrossRevenueBCanton() { return grossRevenueBCanton; }
-  public void setGrossRevenueBCanton(Double grossRevenueBCanton) { this.grossRevenueBCanton = grossRevenueBCanton; }
+  public void setAmountPerUnit(Double amountPerUnit) {
+    this.amountPerUnit = amountPerUnit;
+  }
 
-  public Double getWithHoldingTaxClaim() { return withHoldingTaxClaim; }
-  public void setWithHoldingTaxClaim(Double withHoldingTaxClaim) { this.withHoldingTaxClaim = withHoldingTaxClaim; }
+  public Double getAmount() {
+    return amount;
+  }
 
-  public Boolean getLumpSumTaxCredit() { return lumpSumTaxCredit; }
-  public void setLumpSumTaxCredit(Boolean lumpSumTaxCredit) { this.lumpSumTaxCredit = lumpSumTaxCredit; }
+  public void setAmount(Double amount) {
+    this.amount = amount;
+  }
 
-  public Double getLumpSumTaxCreditPercent() { return lumpSumTaxCreditPercent; }
-  public void setLumpSumTaxCreditPercent(Double lumpSumTaxCreditPercent) { this.lumpSumTaxCreditPercent = lumpSumTaxCreditPercent; }
+  public Double getExchangeRate() {
+    return exchangeRate;
+  }
 
-  public Double getLumpSumTaxCreditAmount() { return lumpSumTaxCreditAmount; }
-  public void setLumpSumTaxCreditAmount(Double lumpSumTaxCreditAmount) { this.lumpSumTaxCreditAmount = lumpSumTaxCreditAmount; }
+  public void setExchangeRate(Double exchangeRate) {
+    this.exchangeRate = exchangeRate;
+  }
 
-  public Boolean getKursliste() { return kursliste; }
-  public void setKursliste(Boolean kursliste) { this.kursliste = kursliste; }
+  public Double getGrossRevenueA() {
+    return grossRevenueA;
+  }
 
-  public String getSign() { return sign; }
-  public void setSign(String sign) { this.sign = sign; }
+  public void setGrossRevenueA(Double grossRevenueA) {
+    this.grossRevenueA = grossRevenueA;
+  }
+
+  public Double getGrossRevenueACanton() {
+    return grossRevenueACanton;
+  }
+
+  public void setGrossRevenueACanton(Double grossRevenueACanton) {
+    this.grossRevenueACanton = grossRevenueACanton;
+  }
+
+  public Double getGrossRevenueB() {
+    return grossRevenueB;
+  }
+
+  public void setGrossRevenueB(Double grossRevenueB) {
+    this.grossRevenueB = grossRevenueB;
+  }
+
+  public Double getGrossRevenueBCanton() {
+    return grossRevenueBCanton;
+  }
+
+  public void setGrossRevenueBCanton(Double grossRevenueBCanton) {
+    this.grossRevenueBCanton = grossRevenueBCanton;
+  }
+
+  public Double getWithHoldingTaxClaim() {
+    return withHoldingTaxClaim;
+  }
+
+  public void setWithHoldingTaxClaim(Double withHoldingTaxClaim) {
+    this.withHoldingTaxClaim = withHoldingTaxClaim;
+  }
+
+  public Boolean getLumpSumTaxCredit() {
+    return lumpSumTaxCredit;
+  }
+
+  public void setLumpSumTaxCredit(Boolean lumpSumTaxCredit) {
+    this.lumpSumTaxCredit = lumpSumTaxCredit;
+  }
+
+  public Double getLumpSumTaxCreditPercent() {
+    return lumpSumTaxCreditPercent;
+  }
+
+  public void setLumpSumTaxCreditPercent(Double lumpSumTaxCreditPercent) {
+    this.lumpSumTaxCreditPercent = lumpSumTaxCreditPercent;
+  }
+
+  public Double getLumpSumTaxCreditAmount() {
+    return lumpSumTaxCreditAmount;
+  }
+
+  public void setLumpSumTaxCreditAmount(Double lumpSumTaxCreditAmount) {
+    this.lumpSumTaxCreditAmount = lumpSumTaxCreditAmount;
+  }
+
+  public Boolean getKursliste() {
+    return kursliste;
+  }
+
+  public void setKursliste(Boolean kursliste) {
+    this.kursliste = kursliste;
+  }
+
+  public String getSign() {
+    return sign;
+  }
+
+  public void setSign(String sign) {
+    this.sign = sign;
+  }
 }

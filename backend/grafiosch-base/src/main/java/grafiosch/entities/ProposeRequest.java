@@ -124,14 +124,12 @@ public abstract class ProposeRequest extends Auditable {
   public void setProposeChangeFieldList(List<ProposeChangeField> proposeChangeFieldList) {
     this.proposeChangeFieldList = proposeChangeFieldList;
   }
-  
-  
+
   @Override
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
   public LocalDateTime getCreationTime() {
     return creationTime;
   }
-  
 
   @Override
   public boolean equals(Object o) {

@@ -302,7 +302,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @JsonProperty("sChangePercentage")
   public Double getSChangePercentage() {
-    return sChangePercentage == null ? null : DataBusinessHelper.roundStandard(sChangePercentage);
+    return sChangePercentage == null ? null : DataBusinessHelper.roundPercentage(sChangePercentage);
   }
 
   public LocalDateTime getFullLoadTimestamp() {

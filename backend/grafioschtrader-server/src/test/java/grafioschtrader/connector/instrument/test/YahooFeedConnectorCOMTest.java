@@ -51,6 +51,11 @@ class YahooFeedConnectorCOMTest extends BaseFeedConnectorCheck {
       hisoricalDate.add(new SecurityHistoricalDate("UBSFund Solutions - CMCI Oil SF ETF",
           SpecialInvestmentInstruments.ETF, "OILUSA.SW", GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_USD,
           3282, "2010-06-15", "2023-07-24"));
+      if (histroricalIntra == HistoricalIntra.INTRADAY) {
+        // Yahoo sends firstTradeDate: null for this FTSE index; Jackson 3 would reject a primitive long.
+        hisoricalDate.add(new SecurityHistoricalDate("FTSE China 50 Index",
+            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, "XIN0.FGI"));
+      }
     } catch (ParseException pe) {
       pe.printStackTrace();
     }

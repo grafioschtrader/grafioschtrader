@@ -349,7 +349,24 @@ export class TransactionCashaccountEditDoubleComponent extends TransactionCashac
     this.valueChangedOnCalcFields();
   }
 
+  /**
+   * Loads the counterpart of an existing transfer and puts the two sides into the withdrawal/deposit order the form
+   * expects.
+   *
+   * A transaction whose connectedIdTransaction points at its own row would otherwise be pushed into both slots, and
+   * saving the dialog would post the same idTransaction twice and write that self reference back. Such a row cannot be
+   * edited as a transfer, so the dialog is closed instead of offering a form that corrupts it further.
+   *
+   * @param transaction1 the transfer side the user opened
+   */
   private setupModifyExistingTransaction(transaction1: Transaction) {
+    if (transaction1.connectedIdTransaction === transaction1.idTransaction) {
+      this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'GT_TRANSFER_SELF_CONNECTED', {
+        idTransaction: transaction1.idTransaction
+      });
+      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+      return;
+    }
     this.transactionService.getTransactionByIdTransaction(transaction1.connectedIdTransaction).subscribe((data) => {
       this.transactions = [];
       this.transactions.push(transaction1);

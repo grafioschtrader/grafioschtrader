@@ -42,13 +42,13 @@ class CoinMarketCapFeedConnectorTest extends BaseFeedConnectorCheck {
   @Test
   void updateCurrencyPairLastPriceTest() throws Exception {
     Currencypair currencypair = createCurrencyPair(GlobalConstants.CC_BTC, GlobalConstants.MC_CHF);
-    LocalDateTime earliestTimestamp =
-        LocalDateTime.now().minusSeconds(coinMarketCapFeedConnector.getIntradayDelayedSeconds());
+    LocalDateTime earliestTimestamp = LocalDateTime.now()
+        .minusSeconds(coinMarketCapFeedConnector.getIntradayDelayedSeconds());
 
     coinMarketCapFeedConnector.updateCurrencyPairLastPrice(currencypair);
 
-    LocalDateTime latestTimestamp =
-        LocalDateTime.now().minusSeconds(coinMarketCapFeedConnector.getIntradayDelayedSeconds());
+    LocalDateTime latestTimestamp = LocalDateTime.now()
+        .minusSeconds(coinMarketCapFeedConnector.getIntradayDelayedSeconds());
     Assertions.assertThat(currencypair.getSLast()).isNotNull().isGreaterThan(0.0);
     Assertions.assertThat(currencypair.getSTimestamp()).isBetween(earliestTimestamp, latestTimestamp);
     assertRounded(currencypair.getSLast(), 2);
@@ -95,8 +95,9 @@ class CoinMarketCapFeedConnectorTest extends BaseFeedConnectorCheck {
     Currencypair currencypair = new Currencypair(GlobalConstants.CC_BTC, GlobalConstants.MC_USD);
     currencypair.setUrlHistoryExtend(BTC_CHF_MAPPING);
 
-    Assertions.assertThatThrownBy(() -> coinMarketCapFeedConnector.checkAndClearSecuritycurrencyUrlExtend(currencypair,
-        FeedSupport.FS_HISTORY)).isInstanceOf(GeneralNotTranslatedWithArgumentsException.class);
+    Assertions.assertThatThrownBy(
+        () -> coinMarketCapFeedConnector.checkAndClearSecuritycurrencyUrlExtend(currencypair, FeedSupport.FS_HISTORY))
+        .isInstanceOf(GeneralNotTranslatedWithArgumentsException.class);
   }
 
   @Test
@@ -104,20 +105,21 @@ class CoinMarketCapFeedConnectorTest extends BaseFeedConnectorCheck {
     Currencypair currencypair = new Currencypair(GlobalConstants.CC_BTC, GlobalConstants.MC_CHF);
     currencypair.setUrlHistoryExtend("BTC=1:CHF=2785");
 
-    Assertions.assertThatThrownBy(() -> coinMarketCapFeedConnector.checkAndClearSecuritycurrencyUrlExtend(currencypair,
-        FeedSupport.FS_HISTORY)).isInstanceOf(GeneralNotTranslatedWithArgumentsException.class);
+    Assertions.assertThatThrownBy(
+        () -> coinMarketCapFeedConnector.checkAndClearSecuritycurrencyUrlExtend(currencypair, FeedSupport.FS_HISTORY))
+        .isInstanceOf(GeneralNotTranslatedWithArgumentsException.class);
   }
 
   @Override
   protected List<CurrencyPairHistoricalDate> getHistoricalCurrencies() {
     List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
     try {
-      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_CHF, 1098,
-          "2020-01-01", "2023-01-02", BTC_CHF_MAPPING));
-      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_CHF, GlobalConstants.CC_BTC, 1098,
-          "2020-01-01", "2023-01-02", BTC_CHF_MAPPING));
-      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 5870,
-          "2010-07-13", "2026-08-07", BTC_USD_MAPPING));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_CHF, 1098, "2020-01-01",
+          "2023-01-02", BTC_CHF_MAPPING));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_CHF, GlobalConstants.CC_BTC, 1098, "2020-01-01",
+          "2023-01-02", BTC_CHF_MAPPING));
+      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.CC_BTC, GlobalConstants.MC_USD, 5870, "2010-07-13",
+          "2026-08-07", BTC_USD_MAPPING));
       currencies.add(new CurrencyPairHistoricalDate("ETH", GlobalConstants.MC_USD, 3872, "2016-01-01", "2026-08-07",
           ETH_USD_MAPPING));
     } catch (Exception e) {

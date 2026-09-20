@@ -44,7 +44,6 @@ public abstract class TenantBase extends TenantBaseID implements Serializable {
   @Column(name = "create_id_user")
   private Integer createIdUser;
 
- 
   @JoinColumn(name = "id_tenant")
   @OneToMany()
   private List<User> userList;
@@ -91,8 +90,6 @@ public abstract class TenantBase extends TenantBaseID implements Serializable {
   public void setCreateIdUser(Integer createIdUser) {
     this.createIdUser = createIdUser;
   }
-
- 
 
   @JsonIgnore
   public List<User> getUsergroupList() {

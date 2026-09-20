@@ -22,6 +22,12 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   long countByIdStandingOrder(Integer idStandingOrder);
 
+  /** Detaches replay output before a simulation standing order is deleted. */
+  @Transactional
+  @Modifying
+  @Query("UPDATE Transaction t SET t.idStandingOrder = NULL WHERE t.idStandingOrder = ?1 AND t.idTenant = ?2")
+  int detachStandingOrder(Integer idStandingOrder, Integer idTenant);
+
   /**
    * Counts all transactions belonging to a tenant. Used to enforce the total (lifetime) transaction limit
    * {@code gt.max.transaction} per tenant.
@@ -32,8 +38,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   int countByIdTenant(Integer idTenant);
 
   /**
-   * Counts the number of transactions per standing order for a batch of standing order IDs.
-   * Used to populate the transactionCount transient field without N+1 queries.
+   * Counts the number of transactions per standing order for a batch of standing order IDs. Used to populate the
+   * transactionCount transient field without N+1 queries.
    *
    * @param ids list of standing order IDs
    * @return list of [idStandingOrder, count] pairs
@@ -52,9 +58,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdStandingOrderWithDetails(@Param("idStandingOrder") Integer idStandingOrder);
 
   /**
-   * Returns transaction summaries grouped by (specialInvestmentInstrument, categoryType)
-   * for a given security account. Used to prevent deletion or shortening of trading periods
-   * that still cover existing transactions.
+   * Returns transaction summaries grouped by (specialInvestmentInstrument, categoryType) for a given security account.
+   * Used to prevent deletion or shortening of trading periods that still cover existing transactions.
    *
    * @param idSecurityaccount the security account id
    * @return list of summaries with max transaction date and count per instrument/category group
@@ -68,7 +73,6 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<TradingPeriodTransactionSummary> getTransactionSummariesBySecurityaccount(
       @Param("idSecurityaccount") Integer idSecurityaccount);
 
- 
   /**
    * Finds the latest transaction date for a specific security in a given security account, excluding system-created
    * transfer transactions. Used to validate that a new transfer date is after all existing transactions.
@@ -77,28 +81,28 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * @param idSecuritycurrency the security ID
    * @return the latest transaction time, or empty if no non-transfer transactions exist
    */
-  @Query("SELECT MAX(t.transactionTime) FROM Transaction t JOIN t.security s " +
-      "WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 AND t.idSecurityTransfer IS NULL")
-  Optional<LocalDateTime> findMaxTransactionTimeBySecurityaccountAndSecurity(
-      Integer idSecurityaccount, Integer idSecuritycurrency);
+  @Query("SELECT MAX(t.transactionTime) FROM Transaction t JOIN t.security s "
+      + "WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 AND t.idSecurityTransfer IS NULL")
+  Optional<LocalDateTime> findMaxTransactionTimeBySecurityaccountAndSecurity(Integer idSecurityaccount,
+      Integer idSecuritycurrency);
 
   /**
-   * Counts non-transfer transactions after a given date for a specific security in a security account.
-   * Used to determine if a transfer can be reversed (no subsequent transactions should exist in the target account).
+   * Counts non-transfer transactions after a given date for a specific security in a security account. Used to
+   * determine if a transfer can be reversed (no subsequent transactions should exist in the target account).
    *
    * @param idSecurityaccount  the security account ID
    * @param idSecuritycurrency the security ID
    * @param afterDate          the date after which to count transactions
    * @return number of non-transfer transactions after the given date
    */
-  @Query("SELECT COUNT(t) FROM Transaction t JOIN t.security s " +
-      "WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 " +
-      "AND t.transactionTime > ?3 AND t.idSecurityTransfer IS NULL")
+  @Query("SELECT COUNT(t) FROM Transaction t JOIN t.security s "
+      + "WHERE t.idSecurityaccount = ?1 AND s.idSecuritycurrency = ?2 "
+      + "AND t.transactionTime > ?3 AND t.idSecurityTransfer IS NULL")
   long countTransactionsAfterDate(Integer idSecurityaccount, Integer idSecuritycurrency, LocalDateTime afterDate);
 
   /**
-   * Finds the latest transaction time booked against the given cash account. Used to ensure an account's
-   * active-until date cannot be set earlier than its most recent transaction.
+   * Finds the latest transaction time booked against the given cash account. Used to ensure an account's active-until
+   * date cannot be set earlier than its most recent transaction.
    *
    * @param idCashaccount the cash account id
    * @return the latest transaction time, or empty if the account has no transactions
@@ -121,8 +125,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   List<Transaction> findByIdSecurityActionApp(Integer idSecurityActionApp);
 
   /**
-   * Reassigns all transactions for a given old security to a new security after a specified date.
-   * Used during ISIN change (SecurityAction) to move post-action-date transactions to the new security.
+   * Reassigns all transactions for a given old security to a new security after a specified date. Used during ISIN
+   * change (SecurityAction) to move post-action-date transactions to the new security.
    * <p>
    * The action date itself is <b>excluded</b>: the system SELL/BUY pair is priced with the closing quote of the
    * <i>old</i> security on that day, so the action date still belongs to the old security. Were it included, a user
@@ -130,11 +134,11 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * the residual-units sum, so its units would never be converted by the split ratio of the action.
    * </p>
    *
-   * @param idTenant       the tenant owning the transactions
-   * @param oldSecurityId  the old security ID to match
-   * @param newSecurityId  the new security ID to assign
-   * @param appId          the SecurityActionApplication ID to tag reassigned transactions
-   * @param fromDate       the action date (exclusive) after which transactions are reassigned
+   * @param idTenant      the tenant owning the transactions
+   * @param oldSecurityId the old security ID to match
+   * @param newSecurityId the new security ID to assign
+   * @param appId         the SecurityActionApplication ID to tag reassigned transactions
+   * @param fromDate      the action date (exclusive) after which transactions are reassigned
    * @return number of rows updated
    */
   @Transactional
@@ -147,8 +151,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
       @Param("appId") Integer appId, @Param("fromDate") LocalDate fromDate);
 
   /**
-   * Reverts reassigned transactions back to the old security during ISIN change reversal.
-   * Only reverts non-system-created transactions (those that were bulk-reassigned, not the SELL/BUY pair).
+   * Reverts reassigned transactions back to the old security during ISIN change reversal. Only reverts
+   * non-system-created transactions (those that were bulk-reassigned, not the SELL/BUY pair).
    * <p>
    * The note is compared with the NULL-safe {@code <=>} operator, because an ordinary user transaction usually carries
    * no note at all and {@code NULL != 'System-Created'} evaluates to NULL rather than TRUE. With a plain {@code !=}
@@ -163,8 +167,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   @Modifying
   @Query(value = "UPDATE transaction SET id_securitycurrency = :oldSecurityId, id_security_action_app = NULL "
       + "WHERE id_security_action_app = :appId AND NOT (note <=> 'System-Created')", nativeQuery = true)
-  int revertReassignedTransactions(@Param("oldSecurityId") Integer oldSecurityId,
-      @Param("appId") Integer appId);
+  int revertReassignedTransactions(@Param("oldSecurityId") Integer oldSecurityId, @Param("appId") Integer appId);
 
   List<Transaction> findBySecurity_idSecuritycurrency(Integer idSecuritycurrency);
 
@@ -279,9 +282,9 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Loads the security transactions with the given IDs for the transaction receipt PDF generation. The inner fetch
-   * joins restrict the result to security transactions and eagerly load the security with its asset class and the
-   * cash account, which the receipt generator accesses outside a persistence context. Transactions of other tenants
-   * are silently excluded by the tenant condition.
+   * joins restrict the result to security transactions and eagerly load the security with its asset class and the cash
+   * account, which the receipt generator accesses outside a persistence context. Transactions of other tenants are
+   * silently excluded by the tenant condition.
    *
    * @param idTenant       the tenant of the authenticated user
    * @param idTransactions the IDs of the requested transactions
@@ -294,8 +297,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   /**
    * Loads all transactions of a tenant for the re-importable CSV export. The security with its asset class is left
    * fetch joined (cash-only transactions have no security; the asset class decides the margin marker) and the cash
-   * account with its portfolio is fetch joined for the per-securities-account file grouping of cash rows. Everything
-   * is loaded eagerly because the CSV generator runs outside a persistence context.
+   * account with its portfolio is fetch joined for the per-securities-account file grouping of cash rows. Everything is
+   * loaded eagerly because the CSV generator runs outside a persistence context.
    *
    * @param idTenant the tenant of the authenticated user
    * @return all transactions of the tenant ordered by transaction time

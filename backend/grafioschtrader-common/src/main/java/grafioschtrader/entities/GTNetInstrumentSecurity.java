@@ -12,15 +12,16 @@ import jakarta.persistence.Table;
 /**
  * Instrument pool entry for securities in the GT-Network.
  *
- * Securities are identified by their ISIN (International Securities Identification Number) and currency,
- * enabling cross-system matching regardless of internal IDs. This allows different Grafioschtrader instances
- * to share price data for the same security even if they have different idSecurity values.
+ * Securities are identified by their ISIN (International Securities Identification Number) and currency, enabling
+ * cross-system matching regardless of internal IDs. This allows different Grafioschtrader instances to share price data
+ * for the same security even if they have different idSecurity values.
  *
  * <h3>Usage</h3>
  * <ul>
- *   <li>Used by {@link GTNetLastprice} for intraday price data</li>
- *   <li>Used by {@link GTNetHistoryquote} for historical price data (foreign instruments only)</li>
- *   <li>When instrument exists locally (JOIN matches security table), historical data goes to {@link Historyquote} instead</li>
+ * <li>Used by {@link GTNetLastprice} for intraday price data</li>
+ * <li>Used by {@link GTNetHistoryquote} for historical price data (foreign instruments only)</li>
+ * <li>When instrument exists locally (JOIN matches security table), historical data goes to {@link Historyquote}
+ * instead</li>
  * </ul>
  *
  * @see GTNetInstrument for base fields and local/foreign distinction

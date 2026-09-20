@@ -18,17 +18,17 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Abstract base class for configuring and parsing transaction import templates from PDF or CSV text sources.
- * 
+ *
  * <p>
  * This class handles configuration parsing, number formatting, date/time patterns, transaction type mappings, and
  * locale-specific formatting rules.
  * </p>
- * 
+ *
  * <h3>Template Structure</h3>
  * <p>
  * Templates contain property definitions followed by a configuration section marked by the [END] delimiter.
  * </p>
- * 
+ *
  * <h3>Configuration Options</h3>
  * <p>
  * Configuration keys supported in the [END] section:
@@ -41,7 +41,7 @@ import grafioschtrader.types.TransactionType;
  * <li>otherFlagOptions - Feature flags separated by "|"</li>
  * <li>ignoreTaxOnDivInt - Transaction type for tax exemption</li>
  * </ul>
- * 
+ *
  * <p>
  * This class is not thread-safe. Parsing errors are collected in a DataViolationException.
  * </p>
@@ -72,12 +72,14 @@ public abstract class TemplateConfiguration {
   /** Configuration key for optional feature flags. */
   private static final String CONF_OTHER_FLAG_OPTIONS = "otherFlagOptions";
 
-  /** Configuration key for the accepted calculation rounding tolerance (default plus optional per-currency overrides). */
+  /**
+   * Configuration key for the accepted calculation rounding tolerance (default plus optional per-currency overrides).
+   */
   private static final String CONF_CALC_ROUNDING = "calcRounding";
 
   /**
-   * Map key under which the default (currency-independent) rounding tolerance is stored in {@link #calcRoundingMap}.
-   * A real per-currency override is keyed by the three-letter ISO currency code, so this sentinel cannot collide.
+   * Map key under which the default (currency-independent) rounding tolerance is stored in {@link #calcRoundingMap}. A
+   * real per-currency override is keyed by the three-letter ISO currency code, so this sentinel cannot collide.
    */
   public static final String CALC_ROUNDING_DEFAULT_KEY = "*";
 
@@ -103,9 +105,9 @@ public abstract class TemplateConfiguration {
   protected String ignoreTaxOnDivInt;
 
   /**
-   * Accepted rounding tolerance between the calculated cash amount and the imported amount. The default value is
-   * stored under {@link #CALC_ROUNDING_DEFAULT_KEY}; per-currency overrides are keyed by the upper-case ISO currency
-   * code of the cash account. Empty when the template does not configure calcRounding.
+   * Accepted rounding tolerance between the calculated cash amount and the imported amount. The default value is stored
+   * under {@link #CALC_ROUNDING_DEFAULT_KEY}; per-currency overrides are keyed by the upper-case ISO currency code of
+   * the cash account. Empty when the template does not configure calcRounding.
    */
   protected Map<String, Double> calcRoundingMap = new HashMap<>();
 
@@ -146,7 +148,7 @@ public abstract class TemplateConfiguration {
   /**
    * Abstract method that subclasses must implement to read template-specific properties. This method is called after
    * the configuration section has been parsed.
-   * 
+   *
    * @param templateLines          Array of template lines, already normalized
    * @param startRowConfig         Index where the configuration section begins (after [END])
    * @param dataViolationException Exception object to collect any validation errors
@@ -156,7 +158,7 @@ public abstract class TemplateConfiguration {
 
   /**
    * Constructs a new template configuration with the specified import template and user locale.
-   * 
+   *
    * @param importTransactionTemplate The import template containing the raw template text
    * @param userLocale                The user's locale for formatting numbers and dates
    */
@@ -167,7 +169,7 @@ public abstract class TemplateConfiguration {
 
   /**
    * Parses the template and immediately throws an exception if any validation errors are found.
-   * 
+   *
    * @param forSaving Whether this parsing is for saving the template (enables additional validation)
    * @throws DataViolationException if any validation errors are found during parsing
    */
@@ -182,7 +184,7 @@ public abstract class TemplateConfiguration {
    * Parses an import template for financial transaction documents and extracts field mappings and configuration.
    * Handles the complete template processing workflow: normalization, configuration parsing, field mapping setup, and
    * validation.
-   * 
+   *
    * @param forSaving Whether this parsing is for template validation before saving
    * @return A DataViolationException containing any validation errors found (may be empty)
    */
@@ -206,7 +208,7 @@ public abstract class TemplateConfiguration {
   /**
    * Reads and parses the configuration section of the template (after the [END] marker). Processes configuration
    * key-value pairs for date/time formats, transaction types, number separators, and feature flags.
-   * 
+   *
    * @param templateLines Array of all template lines
    * @return Index of the line containing [END], or -1 if not found
    */
@@ -238,7 +240,8 @@ public abstract class TemplateConfiguration {
           break;
         case CONF_TIME_FORMAT:
           timeFormat = splitEqual[1];
-          timeTypeRegex = timeFormat.replaceFirst("hh|HH", "\\\\d{1,2}").replaceAll("dd|MM|yy|mm|ss", "\\\\d{2}").replaceFirst("a", "[AaPp][Mm]");
+          timeTypeRegex = timeFormat.replaceFirst("hh|HH", "\\\\d{1,2}").replaceAll("dd|MM|yy|mm|ss", "\\\\d{2}")
+              .replaceFirst("a", "[AaPp][Mm]");
           break;
         case CONF_OVER_RULE_SEPARATORS:
           separators = splitEqual[1];
@@ -266,7 +269,7 @@ public abstract class TemplateConfiguration {
   /**
    * Processes optional feature flags that modify transaction import behavior. Flags enable special handling for
    * different trading platform quirks and document formats.
-   * 
+   *
    * <p>
    * Available flags include:
    * </p>
@@ -276,7 +279,7 @@ public abstract class TemplateConfiguration {
    * <li>BASE_CURRENCY_MAYBE_INVERSE - Handles reverse currency pair scenarios</li>
    * <li>CASH_SECURITY_CURRENCY_MISMATCH_BUT_EXCHANGE_RATE - Auto-calculates missing exchange rates</li>
    * </ul>
-   * 
+   *
    * @param flagOptionsStr Pipe-separated list of flag names
    */
   private void processOtherFlagOptions(String flagOptionsStr) {
@@ -293,7 +296,7 @@ public abstract class TemplateConfiguration {
   /**
    * Creates number format separator patterns for parsing monetary amounts from trading platform documents. Different
    * regions and platforms use varying thousands/decimal separators, requiring flexible parsing.
-   * 
+   *
    * <p>
    * Supports configurations like:
    * </p>
@@ -302,7 +305,7 @@ public abstract class TemplateConfiguration {
    * <li>"de-CH<'|.>" - Swiss format (apostrophe thousands, period decimal)</li>
    * <li>"de-DE<.|,>" - German format (period thousands, comma decimal)</li>
    * </ul>
-   * 
+   *
    * @param separatorsConfig Separator configuration string, or null to use locale defaults
    */
   private void createSeparatorPattern(String separatorsConfig) {
@@ -336,7 +339,7 @@ public abstract class TemplateConfiguration {
 
   /**
    * Parses separator configuration and applies overrides if they match the current locale.
-   * 
+   *
    * @param separatorsConfig Separator configuration string (e.g., "de-CH<'|.>")
    * @return Separators object with parsed values, or null if no match found
    */
@@ -357,7 +360,7 @@ public abstract class TemplateConfiguration {
 
   /**
    * Extracts separator values from a locale-specific configuration match.
-   * 
+   *
    * @param localMatch A matched separator configuration (e.g., "de-CH<'|.>")
    * @return Separators object with extracted thousand and decimal separators
    */
@@ -374,8 +377,8 @@ public abstract class TemplateConfiguration {
 
   /**
    * Parses the calcRounding configuration value into {@link #calcRoundingMap}. The value is a comma separated list
-   * where a bare number sets the default tolerance and every {@code CUR=value} token sets a per-currency override,
-   * e.g. {@code 0.01,JPY=1,CHF=0.05}. The decimal separator is always a dot, independent of the user locale.
+   * where a bare number sets the default tolerance and every {@code CUR=value} token sets a per-currency override, e.g.
+   * {@code 0.01,JPY=1,CHF=0.05}. The decimal separator is always a dot, independent of the user locale.
    *
    * @param value the raw configuration value (right-hand side of {@code calcRounding=})
    * @throws IllegalArgumentException if a number cannot be parsed, is not positive, or a currency code is malformed
@@ -427,7 +430,7 @@ public abstract class TemplateConfiguration {
   /**
    * Validates that the import template has the minimum required configuration for processing financial transaction
    * documents. Ensures date formats are valid and transaction type mappings are defined.
-   * 
+   *
    * @param dataViolationException Exception object to collect validation errors
    */
   protected void validateTemplate(final DataViolationException dataViolationException) {
@@ -522,7 +525,7 @@ public abstract class TemplateConfiguration {
   private static class Separators {
     /** Thousand separator characters as a string. */
     public String thousandSeparators;
-    
+
     /** Decimal separator character. */
     public char decimalSeparator;
 

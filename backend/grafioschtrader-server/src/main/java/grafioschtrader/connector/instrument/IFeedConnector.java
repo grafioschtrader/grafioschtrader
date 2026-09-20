@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * historical prices, intraday prices, dividends, and stock splits for both securities and currency pairs from external
  * data sources.
  * </p>
- * 
+ *
  * <h3>Supported Data Types</h3>
  * <ul>
  * <li><strong>Historical Data (FS_HISTORY):</strong> End-of-day price data over time periods</li>
@@ -33,7 +33,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <li><strong>Dividend Data (FS_DIVIDEND):</strong> Dividend payment information for securities</li>
  * <li><strong>Split Data (FS_SPLIT):</strong> Stock split events and ratios</li>
  * </ul>
- * 
+ *
  * <h3>Data Provider Integration</h3>
  * <p>
  * Implementations should handle:
@@ -45,7 +45,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <li>Data format parsing and validation</li>
  * <li>URL construction for different data types</li>
  * </ul>
- * 
+ *
  * <h3>Validation and Quality Control</h3>
  * <p>
  * Connectors provide validation capabilities including:
@@ -113,8 +113,8 @@ public interface IFeedConnector {
    * to a combination of {@link AssetclassType} and {@link SpecialInvestmentInstruments}.
    */
   public enum AssetclassCategory {
-    CURRENCY_PAIR, CRYPTOCURRENCY, NON_INVESTABLE_INDICES, EQUITIES, FIXED_INCOME, ETF, MUTUAL_FUND,
-    REAL_ESTATE_FUND, ISSUER_RISK_PRODUCT, CFD_DERIVATIVE, PENSION_FUND;
+    CURRENCY_PAIR, CRYPTOCURRENCY, NON_INVESTABLE_INDICES, EQUITIES, FIXED_INCOME, ETF, MUTUAL_FUND, REAL_ESTATE_FUND,
+    ISSUER_RISK_PRODUCT, CFD_DERIVATIVE, PENSION_FUND;
 
     /**
      * Determines whether the given asset class type and special investment instrument combination matches this
@@ -126,17 +126,18 @@ public interface IFeedConnector {
      */
     public boolean matches(AssetclassType act, SpecialInvestmentInstruments specIns) {
       return switch (this) {
-        case CURRENCY_PAIR -> act == AssetclassType.CURRENCY_PAIR && specIns == SpecialInvestmentInstruments.FOREX;
-        case CRYPTOCURRENCY -> act == AssetclassType.CURRENCY_PAIR && specIns == SpecialInvestmentInstruments.CFD;
-        case NON_INVESTABLE_INDICES -> specIns == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES;
-        case EQUITIES -> act == AssetclassType.EQUITIES && specIns == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
-        case FIXED_INCOME -> act == AssetclassType.FIXED_INCOME && specIns == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
-        case ETF -> specIns == SpecialInvestmentInstruments.ETF;
-        case MUTUAL_FUND -> specIns == SpecialInvestmentInstruments.MUTUAL_FUND;
-        case REAL_ESTATE_FUND -> act == AssetclassType.REAL_ESTATE && specIns == SpecialInvestmentInstruments.MUTUAL_FUND;
-        case ISSUER_RISK_PRODUCT -> specIns == SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT;
-        case CFD_DERIVATIVE -> specIns == SpecialInvestmentInstruments.CFD && act != AssetclassType.CURRENCY_PAIR;
-        case PENSION_FUND -> specIns == SpecialInvestmentInstruments.PENSION_FUNDS;
+      case CURRENCY_PAIR -> act == AssetclassType.CURRENCY_PAIR && specIns == SpecialInvestmentInstruments.FOREX;
+      case CRYPTOCURRENCY -> act == AssetclassType.CURRENCY_PAIR && specIns == SpecialInvestmentInstruments.CFD;
+      case NON_INVESTABLE_INDICES -> specIns == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES;
+      case EQUITIES -> act == AssetclassType.EQUITIES && specIns == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
+      case FIXED_INCOME -> act == AssetclassType.FIXED_INCOME
+          && specIns == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
+      case ETF -> specIns == SpecialInvestmentInstruments.ETF;
+      case MUTUAL_FUND -> specIns == SpecialInvestmentInstruments.MUTUAL_FUND;
+      case REAL_ESTATE_FUND -> act == AssetclassType.REAL_ESTATE && specIns == SpecialInvestmentInstruments.MUTUAL_FUND;
+      case ISSUER_RISK_PRODUCT -> specIns == SpecialInvestmentInstruments.ISSUER_RISK_PRODUCT;
+      case CFD_DERIVATIVE -> specIns == SpecialInvestmentInstruments.CFD && act != AssetclassType.CURRENCY_PAIR;
+      case PENSION_FUND -> specIns == SpecialInvestmentInstruments.PENSION_FUNDS;
       };
     }
   }
@@ -298,8 +299,8 @@ public interface IFeedConnector {
   List<Historyquote> getEodSecurityHistory(Security security, LocalDate from, LocalDate to) throws Exception;
 
   /**
-   * Updates the security with the latest intraday price information including
-   * last price, volume, daily high/low, and percentage change.
+   * Updates the security with the latest intraday price information including last price, volume, daily high/low, and
+   * percentage change.
    *
    * @param security the security to update with latest price data
    * @throws Exception if the price update fails due to connectivity or data provider issues
@@ -307,8 +308,8 @@ public interface IFeedConnector {
   void updateSecurityLastPrice(Security security) throws Exception;
 
   /**
-   * Returns the delay in seconds for intraday data provided by this connector.
-   * Real-time data has 0 delay, while delayed feeds may have 15-20 minute delays.
+   * Returns the delay in seconds for intraday data provided by this connector. Real-time data has 0 delay, while
+   * delayed feeds may have 15-20 minute delays.
    *
    * @return delay in seconds for intraday data
    */
@@ -318,8 +319,8 @@ public interface IFeedConnector {
    * Retrieves historical exchange rate data for a currency pair within the specified date range.
    *
    * @param currencyPair the currency pair for which to retrieve historical exchange rates
-   * @param from the start date (inclusive) for the historical data range
-   * @param to the end date (inclusive) for the historical data range
+   * @param from         the start date (inclusive) for the historical data range
+   * @param to           the end date (inclusive) for the historical data range
    * @return list of historical exchange rate quotes sorted by date
    * @throws Exception if data retrieval fails
    */
@@ -334,8 +335,8 @@ public interface IFeedConnector {
   void updateCurrencyPairLastPrice(Currencypair currencyPair) throws Exception;
 
   /**
-   * Indicates whether dividend data from this connector is already adjusted for stock splits.
-   * If true, dividend amounts reflect post-split values; if false, raw dividend amounts are provided.
+   * Indicates whether dividend data from this connector is already adjusted for stock splits. If true, dividend amounts
+   * reflect post-split values; if false, raw dividend amounts are provided.
    *
    * @return true if dividends are split-adjusted, false otherwise
    */
@@ -351,8 +352,8 @@ public interface IFeedConnector {
   String getDividendHistoricalDownloadLink(Security security);
 
   /**
-   * Retrieves dividend payment history for a security starting from the specified date.
-   * The returned list must be sorted in ascending order by ex-dividend date.
+   * Retrieves dividend payment history for a security starting from the specified date. The returned list must be
+   * sorted in ascending order by ex-dividend date.
    *
    * @param security the security for which to retrieve dividend history
    * @param fromDate the start date from which to retrieve dividend data
@@ -370,9 +371,8 @@ public interface IFeedConnector {
   String getSplitHistoricalDownloadLink(Security security);
 
   /**
-   * Calculates the number of days to wait before the next attempt to check if historical
-   * price data reflects a stock split. Recent splits may take several days to be reflected
-   * in adjusted historical prices from data providers.
+   * Calculates the number of days to wait before the next attempt to check if historical price data reflects a stock
+   * split. Recent splits may take several days to be reflected in adjusted historical prices from data providers.
    *
    * @param splitDate the date when the stock split occurred
    * @return number of days to wait before next check, or null if no further checks needed
@@ -393,19 +393,19 @@ public interface IFeedConnector {
    * The user interface receives a link to check the price data provider of a security. If an API key is required, only
    * the backend can evaluate this link and return the corresponding content. The content of the provider may also be
    * determined in the backend for other reasons.
-  *
+   *
    * @param httpPageUrl the URL to fetch content from
    * @return the content of the requested page, typically formatted for HTML display
    */
   String getContentOfPageRequest(String httpPageUrl);
 
   /**
-   * Retrieves stock split history for a security within the specified date range.
-   * The returned data includes split ratios and effective dates.
+   * Retrieves stock split history for a security within the specified date range. The returned data includes split
+   * ratios and effective dates.
    *
    * @param security the security for which to retrieve split history
    * @param fromDate the start date for the split data range
-   * @param toDate the end date for the split data range
+   * @param toDate   the end date for the split data range
    * @return list of stock split events within the specified date range
    * @throws Exception if split data retrieval fails
    */
@@ -416,9 +416,9 @@ public interface IFeedConnector {
    * class type, and special investment instrument. Connectors may restrict support by geography and/or asset class
    * category. If the connector has no category metadata, this method returns true (backward-compatible).
    *
-   * @param mic                         the Market Identifier Code (4-char) of the stock exchange, may be null
-   * @param countryCode                 the 2-char ISO country code, may be null
-   * @param assetclassType              the asset class type of the instrument
+   * @param mic                          the Market Identifier Code (4-char) of the stock exchange, may be null
+   * @param countryCode                  the 2-char ISO country code, may be null
+   * @param assetclassType               the asset class type of the instrument
    * @param specialInvestmentInstruments the special investment instrument type
    * @return true if the connector supports this instrument
    */

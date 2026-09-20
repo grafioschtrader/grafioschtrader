@@ -1,5 +1,48 @@
 # Frontend E2E suites
 
+## Dashboard (225-*)
+
+`225-dashboard.spec.ts` exercises the real dashboard catalogue, configuration forms and persistence for the existing
+`admin`, `alledit`, `user` and `limit1` accounts from `testdata/users.json`. Admin sees six widgets; the other roles
+see five and cannot add `USER_LIMIT_REQUESTS`, including through a forged REST save. Both English and German UI
+labels are supported. No dashboard responses or role checks are mocked, and assertions do not depend on live prices,
+inbox counts or proposal counts.
+
+The eleven scenarios cover numeric settings (`maxRows`, `topN`, `days`), required/min/max validation, closing and
+reopening configuration dialogs, save/reload persistence, widths, movement buttons, drag-and-drop, removing and
+re-adding a card without losing its settings, cancelling edits, draft/saved reset, isolation between users, atomic
+rejection of string-valued numbers, and a real revision conflict between two browser sessions. The numeric request
+assertions and dialog-unmount assertions protect against the dashboard bugs where edited integers were sent as
+strings and a closed dialog prevented later configuration dialogs from opening.
+
+`dashboard.helpers.ts` owns the setup and cleanup: before each scenario and again in teardown it resets only the
+participating fixture users' personal dashboards to their role-specific defaults through `/api/userdashboard`, using
+the current revision. This deliberately replaces any manual dashboard customization of those four **test** accounts.
+A retry therefore recovers from a failed run without deleting accounts, messages, portfolios or other shared data.
+The accounts and their tenants must already exist; this spec does not register them or start backend suites.
+
+Before login, the spec checks both the backend URL and the frontend's proxied `/api/gtinfo`: both must report
+`grafioschtrader_t` with the `e2e` profile. Run only this spec against the test services:
+
+```bash
+cd frontend
+npx playwright test e2e/225-dashboard.spec.ts --project=grafioschtrader-e2e --no-deps
+```
+
+For an isolated stack, set `E2E_BACKEND_URL` and `E2E_FRONTEND_URL` to its respective URLs and point that frontend's
+proxy at the test backend. The URL overrides alone do not change the proxy. The production stack must remain
+untouched. Run the spec a second time to verify cleanup and repeatability; the full roundtrip is not required.
+
+## Alert diagnostics (200-*)
+
+`200-alert-diagnostics.spec.ts` checks the Evaluation, Trading decisions and Notifications tabs, missing-data diagnostics,
+row selection and explicit retry. It uses the `alledit` fixture login and deterministic intercepted alert
+responses, creates no records and sends no messages. It refuses to log in unless `/api/gtinfo` reports
+`grafioschtrader_t`. The backend tests cover actual signal transactions, routing and delivery recovery.
+
+Run against the test services with
+`npx playwright test e2e/200-alert-diagnostics.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## One-command run
 
 From the repository root, `e2eTest.cmd` (Windows) or `./e2eTest.sh` (Linux/macOS/Git Bash) runs the
@@ -232,7 +275,8 @@ reads complete `tenantEdit` targets (tenant name, dividend-tax exclusion, countr
 one on the `limit2` object in
 `backend/grafioschtrader-server/src/test/resources/testdata/users.json`, saves the tenant name, dividend-tax exclusion,
 country and `useGtImportTemplates` checkbox, then logs in again and verifies that every value persisted. The test
-selects Switzerland as ISO code `CH` while accepting its English/German label. Partial `tenantEdit` targets containing
+selects Switzerland in the filterable country dropdown (`p-select#country`) by its English/German label; the PUT body
+is still asserted as ISO code `CH`. Partial `tenantEdit` targets containing
 only country and the opt-in are reserved for the backend integration test
 and are deliberately ignored by this UI workflow.
 
@@ -502,6 +546,39 @@ table and the persisted REST payload, so a completed or interrupted run is repea
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/190-create-entity-limits.spec.ts --project=grafioschtrader-e2e --no-deps`.
 
+## Simulation-opening spec (195-*)
+
+`195-simulation-opening.spec.ts` covers the three ways a simulation environment establishes its opening ledger.
+It has no CSV fixture. As `alledit` it creates, through REST, one watchlist and one AlgoTop both named `Opening e2e`,
+gives the watchlist a member taken from an existing watchlist, and then drives the strategy node's _Create simulation
+environment_ dialog. The five tests cover copy-portfolio (including switching into the environment and checking that
+only the linked watchlist came along), manual cash (asserting the single opening `DEPOSIT` in the created tenant), the
+liquidation preview, two environments of one strategy with different immutable dates, and deletion leaving the shared
+strategy behind. Everything it created is removed before and after each test, so an interrupted run does not break the
+retry.
+
+Full liquidation _creation_ is deliberately not driven here — it needs a historical close for every held instrument,
+which is background-loaded — and lives in `SimulationTenantIntegrationTest` instead.
+
+Four things bite in this dialog:
+
+- **The date picker and `p-inputNumber` ignore `fill()`.** Optimus' `DatePicker.onUserInput` returns early without a
+  preceding keydown and `InputNumber.onUserInput` never updates the model at all, so both must be typed with
+  `pressSequentially` and read back. The date is mandatory, so a `fill()` there hangs the run on a disabled submit
+  button; the cash balance is optional, so a `fill()` there fails _silently_ and books a zero opening ledger.
+- **Both components carry their id on the host element.** `#simulationStartDate input` and
+  `[id^="cashBalance_"] input` are the real controls — `input#simulationStartDate` matches nothing, and `toBeHidden()`
+  against it would pass on absence.
+- **The picker's display format has a two-digit year** (`dd.mm.y`, so `24.07.26`), like the history-quote specs.
+- **The dialog assigns `tenantName` and `initializationMode` from a `setTimeout`** in `ngAfterViewInit`; typing before
+  that lands is overwritten, so `openCreateDialog` waits for both values first.
+
+Prerequisites: the `ALGO` feature must be enabled for the instance, and 025 must have left portfolios with cash
+accounts, because manual mode needs at least one cash-balance field.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/195-simulation-opening.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## History quote spec (060-*)
 
 `060-historyquote-table.spec.ts` covers the end-of-day price views of `Nestlé AG` (CH0038863350): it
@@ -637,7 +714,8 @@ makes both a completed rerun and a security left outside the watchlist converge 
 `115-taxdata.spec.ts` covers the tax data administration view (Administrative data -> Tax data) as the
 admin user, in three tests that mirror the lifecycle: create the tax country `Switzerland` and the
 tax year `2025` and upload both Kursliste files, delete the uploads, the year and the country again,
-then recreate everything. Only the admin sees the context menu at all (`AuditHelper.hasAdminRole`)
+then recreate everything. The create-country dialog uses a filterable Optimus dropdown (`p-select#countryCode`);
+the spec picks Switzerland by its English/German label. Only the admin sees the context menu at all (`AuditHelper.hasAdminRole`)
 and every mutating endpoint of `TaxDataResource` calls `checkAdmin()`.
 
 Its fixtures are `backend/grafioschtrader-server/src/test/resources/ictax/kursliste_2025.zip` (~37 MB)
@@ -974,3 +1052,75 @@ password.
 `playwright.lib.config.ts` raises the viewport to 1280x1024. The library's dialogs are `position: fixed`, so a control
 below the fold can never be scrolled into view and every click on it fails as "element is not stable" — in Playwright's
 720px default the send button of the mail dialog sits at y=751.
+
+## Strategy activation specs (205-_, 210-_, 215-*)
+
+The three specs share one shape and differ only in the rule set they activate. Each of them logs in as `alledit`,
+creates one watchlist and one AlgoTop under its own name, borrows an existing instrument by ISIN from another
+watchlist of the tenant, writes a strategy configuration through `/api/algostrategy` and then tries to activate
+deliberately defective variations of it. None of them books a trade, creates an instrument or sends a message, and
+each deletes its own two objects at the start of the run as well as at the end, so an interrupted run does not break
+the retry. The configuration is written through REST rather than through the YAML editor because a rejected
+activation has to be observed as an HTTP status rather than as a toast - the editor path is covered once, in 215.
+
+| Spec                                  | Rule set                                             | Owner name         | Fixture                                 |
+| ------------------------------------- | ---------------------------------------------------- | ------------------ | --------------------------------------- |
+| `205-dip-strategy-activation.spec.ts` | Buy after a dip, one take-profit, one hard stop      | `Dip strategy e2e` | `testdata/mean-reversion-strategy.json` |
+| `210-scale-out-plan.spec.ts`          | Exit in tranches, the last one closing the remainder | `Scale-out e2e`    | `testdata/scale-out-strategy.json`      |
+| `215-average-down.spec.ts`            | Answer a falling price by buying more, bounded       | `Average-down e2e` | `testdata/average-down-strategy.json`   |
+
+The rule they all probe is the same: a strategy may only become `activatable` when the engine can execute every part
+of it, while a draft (`activatable: false`) may describe anything. 205 refuses two enabled downside variants, an
+intraday timeframe and an unknown configuration key, and additionally checks that the buy dialog offers the active
+strategy as an assignment. 210 refuses a duplicate tranche identifier, a remainder tranche that is not the last one,
+a tranche with neither fraction nor remainder, fractions of the initial position adding beyond the whole position, an
+enabled plan without tranches or without a sizing basis, and both mismatches between trigger type and indicator
+rules - and it accepts the same overflowing fractions once the basis is `current_position`. 215 refuses custom
+addition steps, disabled cost reconciliation, zero maximum additions, a zero step, two enabled downside variants and
+an indicator step without indicator confirmation.
+
+215 additionally covers the YAML editor, which has two traps: Monaco's value cannot be typed or filled, so the text
+is set on the model through Monaco's own API and the **last** model in the list is the one the open dialog owns; and
+the editor renders YAML while the backend stores JSON, so the edited object is dumped with `js-yaml` on the way in.
+The tree node is addressed with `.last()` because the owner name belongs to both the watchlist and the AlgoTop, and
+the hierarchy branch carrying the strategy rows is the second occurrence.
+
+The fixture files are shared with the backend decision and module tests. They hold configuration only, no database
+identity.
+
+Prerequisites: the `ALGO` feature must be enabled for the instance, and a watchlist holding at least one instrument
+with an ISIN must exist - 040 together with 050 provide it.
+
+For isolated services, set `E2E_BACKEND_URL` and `E2E_FRONTEND_URL`; both default to the usual 8080/4200 pair, and
+the backend must report `grafioschtrader_t`. With the backend and frontend still active, execute only the affected
+spec with `npx playwright test e2e/<spec> --project=grafioschtrader-e2e --no-deps`.
+
+## Historical replay spec (220-*)
+
+`220-historical-replay.spec.ts` drives the replay of a simulation environment from that environment's tree node. As
+`alledit` it creates, through REST, one watchlist and one AlgoTop both named `Replay e2e` plus a simulation
+environment `Replay e2e run`, opened with **manual cash** on purpose: a cash-only ledger is the one case whose
+replayed result is known without a single price, so the run must complete with no trades, no drawdown and no Sharpe
+ratio. What a replay does with prices belongs to 205-215 and to the pure backend tests; this spec covers the workflow
+
+- the "Start replay…" menu entry of the environment node, the start dialog that only collects the inputs, the
+  background job, the replay panel the tree navigates to once the run is accepted (status and the two optional
+  estimates in its "Run" card), the conventions the run records (`NEXT_CLOSE_FILL`, `NO_TRANSACTION_COST`) and the
+  `RUN_START` / `RUN_END` audit trail. Its three tests also check that repeating a
+  replay replaces the previous result instead of appending to it, and that an end date on or before the opening date is
+  refused.
+
+Three things bite here:
+
+- **The replay is started from the main tenant, never from inside a switched-in simulation.** The backend books the
+  fills as the owner of the environment, so the menu entry is deliberately absent while a simulation is entered.
+- **The end date must be typed with `pressSequentially` in the de-CH short form** and read back - the same picker
+  trap as in 195.
+- **The run is asynchronous**, and it finishes in well under a second over two weeks of trading days. Its status is
+  therefore polled through the REST endpoint; an assertion on a rendered "running" state would lose the race.
+
+Everything it created is removed before and after each test. Prerequisites: the `ALGO` feature must be enabled, and
+025 must have left a portfolio with a cash account, because the opening balance needs one.
+
+With the backend and frontend still active, execute only this spec with
+`npx playwright test e2e/220-historical-replay.spec.ts --project=grafioschtrader-e2e --no-deps`.

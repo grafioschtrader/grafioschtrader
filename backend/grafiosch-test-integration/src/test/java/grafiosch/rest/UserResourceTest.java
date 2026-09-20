@@ -33,15 +33,8 @@ class UserResourceTest extends AbstractUserResourceTest {
     tenant.setTenantName("Tenant " + user.nickname);
     tenant.setCreateIdUser(user.idUser);
 
-    Tenant created = authenticatedClient(user.nickname)
-        .post()
-        .uri(RequestIntegrationMappings.TENANT_MAP)
-        .body(tenant)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Tenant.class)
-        .returnResult()
-        .getResponseBody();
+    Tenant created = authenticatedClient(user.nickname).post().uri(RequestIntegrationMappings.TENANT_MAP).body(tenant)
+        .exchange().expectStatus().isOk().expectBody(Tenant.class).returnResult().getResponseBody();
     Assertions.assertThat(created.getIdTenant()).isGreaterThan(0);
   }
 }

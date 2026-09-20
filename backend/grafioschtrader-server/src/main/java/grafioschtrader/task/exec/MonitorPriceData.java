@@ -47,13 +47,14 @@ abstract class MonitorPriceData {
         name = ifeedConnector.getReadableName();
       } else {
         name = mfc.getConnector() == null ? "[unknown connector]" : "[unregistered] " + mfc.getConnector();
-        log.warn("Failed-connector monitor: no registered IFeedConnector for id='{}' feedSupport={}; "
-            + "row likely from a stale securitycurrency.{} reference",
+        log.warn(
+            "Failed-connector monitor: no registered IFeedConnector for id='{}' feedSupport={}; "
+                + "row likely from a stale securitycurrency.{} reference",
             mfc.getConnector(), feedSupport,
             feedSupport == FeedSupport.FS_HISTORY ? "id_connector_history" : "id_connector_intra");
       }
-      messageArg += String.format("%-30s %6d %6d %3d" + BaseConstants.RETURN_AND_NEW_LINE,
-          name, mfc.getTotal(), mfc.getFailed(), mfc.getPercentageFailed());
+      messageArg += String.format("%-30s %6d %6d %3d" + BaseConstants.RETURN_AND_NEW_LINE, name, mfc.getTotal(),
+          mfc.getFailed(), mfc.getPercentageFailed());
     }
     applicationEventPublisher.publishEvent(new AlertEvent(this, alertType, messageArg));
   }

@@ -75,8 +75,7 @@ public class GTNetSecurityImpHeadJpaRepositoryImpl extends BaseRepositoryImpl<GT
 
     // Check for existing pending job
     Optional<TaskDataChange> existingJob = taskDataChangeJpaRepository.findByIdTaskAndIdEntityAndProgressStateType(
-        TaskTypeExtended.GTNET_SECURITY_IMPORT_POSITIONS.getValue(),
-        idGtNetSecurityImpHead,
+        TaskTypeExtended.GTNET_SECURITY_IMPORT_POSITIONS.getValue(), idGtNetSecurityImpHead,
         ProgressStateType.PROG_WAITING.getValue());
 
     if (existingJob.isPresent()) {
@@ -84,11 +83,8 @@ public class GTNetSecurityImpHeadJpaRepositoryImpl extends BaseRepositoryImpl<GT
     }
 
     // Create new task
-    TaskDataChange task = new TaskDataChange(
-        TaskTypeExtended.GTNET_SECURITY_IMPORT_POSITIONS,
-        TaskDataExecPriority.PRIO_NORMAL,
-        LocalDateTime.now(),
-        idGtNetSecurityImpHead,
+    TaskDataChange task = new TaskDataChange(TaskTypeExtended.GTNET_SECURITY_IMPORT_POSITIONS,
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), idGtNetSecurityImpHead,
         GTNetSecurityImpHead.class.getSimpleName());
 
     // Store user ID for created_by field on imported securities

@@ -56,14 +56,14 @@ import grafioschtrader.types.TransactionType;
  * <ol>
  * <li><b>A — replay agreement.</b> Does {@code B}, {@code S}, {@code D}, {@code V} as enumerated here reproduce the
  * {@code gainLossSecurity} the production calculation arrives at? It uses no exchange rate at all, so it validates the
- * flow enumeration on its own; a deviation is a finding about the replay, not about the model, and the later checks
- * are meaningless without it.</li>
+ * flow enumeration on its own; a deviation is a finding about the replay, not about the model, and the later checks are
+ * meaningless without it.</li>
  * <li><b>B — the identity.</b> {@code gainLossSecurityMC + gainLossCurrencyMC} against the true main currency result.
  * The left side comes from {@code SecurityGeneralCalc}, the right side from the replay, so this is a genuine
  * cross-check of the implementation and not an algebraic tautology.</li>
  * <li><b>C — per-transaction shares.</b> They must sum to the position total.</li>
- * <li><b>D — main currency instruments.</b> A security denominated in the main currency must report exactly zero.
- * This is the guard against the ambiguous rate helper of specification §4.9.</li>
+ * <li><b>D — main currency instruments.</b> A security denominated in the main currency must report exactly zero. This
+ * is the guard against the ambiguous rate helper of specification §4.9.</li>
  * <li><b>E — non-finite values.</b> The replaced calculation divided by an accumulator that reached zero; the
  * replacement has no division, so this must stay at zero.</li>
  * </ol>
@@ -79,8 +79,8 @@ import grafioschtrader.types.TransactionType;
 class CurrencyGainLossAttributionTest {
 
   /** Reporting dates to sweep. A single recent date plus a few older ones exposes the rate-date mismatch. */
-  private static final List<LocalDate> REPORT_DATES = List.of(LocalDate.now().minusDays(1),
-      LocalDate.of(2024, 6, 28), LocalDate.of(2022, 6, 30), LocalDate.of(2020, 6, 30));
+  private static final List<LocalDate> REPORT_DATES = List.of(LocalDate.now().minusDays(1), LocalDate.of(2024, 6, 28),
+      LocalDate.of(2022, 6, 30), LocalDate.of(2020, 6, 30));
 
   /** Below this many main currency units a deviation is rounding, not model error. */
   private static final double TOLERANCE = 0.05;
@@ -400,8 +400,8 @@ class CurrencyGainLossAttributionTest {
     if (categoryType == AssetclassType.FIXED_INCOME || categoryType == AssetclassType.CONVERTIBLE_BOND) {
       causes.add("bond");
     }
-    if (transactions.stream().anyMatch(t -> t.getAssetInvestmentValue1() != null
-        && t.getAssetInvestmentValue1() != 0.0)) {
+    if (transactions.stream()
+        .anyMatch(t -> t.getAssetInvestmentValue1() != null && t.getAssetInvestmentValue1() != 0.0)) {
       causes.add("accruedInterest");
     }
     if (transactions.stream().anyMatch(t -> t.getTransactionType() == TransactionType.HYPOTHETICAL_BUY
@@ -477,8 +477,7 @@ class CurrencyGainLossAttributionTest {
       System.out.printf("B  attribution breaks the identity              %6d   <- must be 0%n", identityBroken);
       System.out.printf("     sum of absolute error (main currency)      %14.2f%n", sumAbsError);
       System.out.printf("     largest single error                       %14.2f%n", maxAbsError);
-      System.out.printf("C  per-transaction shares do not add up         %6d   <- must be 0%n",
-          perTransactionBroken);
+      System.out.printf("C  per-transaction shares do not add up         %6d   <- must be 0%n", perTransactionBroken);
       System.out.printf("D  main-ccy instrument with non-zero FX         %6d   <- must be 0%n", mainCurrencyNonZero);
       System.out.printf("E  FX is NaN or Infinite                        %6d   <- must be 0%n", nonFinite);
       System.out.println();

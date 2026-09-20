@@ -1,3 +1,4 @@
+import { AppSettings } from '../../shared/app.settings';
 import { Component, Injector, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -105,7 +106,7 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
     '',
     true,
     true,
-    { minFractionDigits: 2, maxFractionDigits: 2 }
+    { minFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION, maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION }
   );
 
   constructor(
@@ -158,15 +159,15 @@ export class SeasonalityTableComponent extends TableConfigBase implements OnChan
         width: 64,
         fieldValueFN: this.getPeriodReturn.bind(this),
         userValue: index,
-        minFractionDigits: 2,
-        maxFractionDigits: 2
+        minFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
+        maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
       });
       cc.headerTranslated = label;
     });
     this.addColumn(DataType.Numeric, 'annualReturn', 'ANNUAL_RETURN', true, false, {
       width: 72,
-      minFractionDigits: 2,
-      maxFractionDigits: 2
+      minFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
+      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
     });
     this.translateHeadersAndColumns();
     // Month/quarter headers are not NLS keys, so restore them after the translation pass overwrote them.

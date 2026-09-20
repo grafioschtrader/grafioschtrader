@@ -156,10 +156,9 @@ public class EuronextFeedConnector extends BaseFeedConnector {
 
   private Document getIntraDoc(String url) throws IOException {
     String encryptedResponse = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .header("Accept-Language", "en")
-        .header("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
-        .requestBody("theme_name=euronext_live").method(org.jsoup.Connection.Method.POST)
-        .ignoreContentType(true).execute().body();
+        .header("Accept-Language", "en").header("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
+        .requestBody("theme_name=euronext_live").method(org.jsoup.Connection.Method.POST).ignoreContentType(true)
+        .execute().body();
     String decryptedHtml = decrypt(encryptedResponse);
     return Jsoup.parse(decryptedHtml);
   }
@@ -213,7 +212,8 @@ public class EuronextFeedConnector extends BaseFeedConnector {
       int offset = 0;
       while (offset < 32) {
         md5.reset();
-        if (block != null) md5.update(block);
+        if (block != null)
+          md5.update(block);
         md5.update(passBytes);
         md5.update(salt);
         block = md5.digest();

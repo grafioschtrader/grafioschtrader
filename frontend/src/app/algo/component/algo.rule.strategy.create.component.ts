@@ -89,7 +89,7 @@ export class AlgoRuleStrategyCreateDynamicComponent
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 2, this.helpLink.bind(this));
     this.callParam = this.dynamicDialogConfig.data.callParam;
     this.config = [
-      DynamicFieldHelper.createFieldInputString('name', 'NAME', 32, true),
+      DynamicFieldHelper.createFieldInputString('name', 'NAME', 40, true),
       DynamicFieldHelper.createFieldMinMaxNumber(
         DataType.Numeric,
         'percentage',
@@ -110,7 +110,7 @@ export class AlgoRuleStrategyCreateDynamicComponent
 
   ngAfterViewInit(): void {
     this.algoTopCreate = <AlgoTopCreate>this.callParam.thisObject;
-    this.helpId = HelpIds.HELP_ALGO_STRATEGY;
+    this.helpId = HelpIds.HELP_ALGO_TREE;
     this.assetsclasses = [];
     this.valueChangedOnWatchlist();
     this.watchlistService.getWatchlistsByIdTenant().subscribe((watchlists) => {
@@ -150,7 +150,7 @@ export class AlgoRuleStrategyCreateDynamicComponent
       DynamicFieldHelper.createFieldMinMaxNumber(
         DataType.Numeric,
         AlgoRuleStrategyCreateDynamicComponent.PERCENTAGE_FIELD + this.assetclassCounter,
-        'ALGO_F_WEIGHTING_PERCENTAGE',
+        'ALGO_PERCENTAGE',
         true,
         0.5,
         100,
@@ -213,7 +213,7 @@ export class AlgoRuleStrategyCreateDynamicComponent
       this.algoTopCreate.assetclassPercentageList.push(
         new AssetclassPercentage(
           parseInt(value[AlgoRuleStrategyCreateDynamicComponent.ASSETCLASS_FIELD + i], 10),
-          parseInt(value[AlgoRuleStrategyCreateDynamicComponent.PERCENTAGE_FIELD + i], 10)
+          Number(value[AlgoRuleStrategyCreateDynamicComponent.PERCENTAGE_FIELD + i])
         )
       );
     }

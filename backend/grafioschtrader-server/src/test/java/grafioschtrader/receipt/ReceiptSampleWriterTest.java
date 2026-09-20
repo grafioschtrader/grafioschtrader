@@ -19,8 +19,8 @@ import grafioschtrader.types.TransactionType;
 /**
  * Writes sample receipt PDFs to <code>target/receipt-samples</code> (overridable with the system property
  * <code>receipt.sample.dir</code>) for visual inspection of the layout. The machine readability of the receipts is
- * covered by {@link TransactionReceiptRoundTripTest}; this test only ensures generation does not throw and provides
- * the documents a developer looks at when adjusting the layout.
+ * covered by {@link TransactionReceiptRoundTripTest}; this test only ensures generation does not throw and provides the
+ * documents a developer looks at when adjusting the layout.
  */
 class ReceiptSampleWriterTest {
 
@@ -31,13 +31,15 @@ class ReceiptSampleWriterTest {
     TransactionReceiptPdfGenerator generator = new TransactionReceiptPdfGenerator();
     ReceiptContext ctx = new ReceiptContext("hugo", "Hauptdepot", "Konto CHF");
 
-    Transaction buy = tx(TransactionType.ACCUMULATE, sec("NL0009690239", "VanEck Global Real Estate ETF", "CHF",
-        AssetclassType.EQUITIES), 61.0, 35.68, 9.85, 3.26, -2189.59);
+    Transaction buy = tx(TransactionType.ACCUMULATE,
+        sec("NL0009690239", "VanEck Global Real Estate ETF", "CHF", AssetclassType.EQUITIES), 61.0, 35.68, 9.85, 3.26,
+        -2189.59);
     Files.write(dir.resolve("buy_de.pdf"), generator.generate(buy, Locale.GERMAN, ctx));
     Files.write(dir.resolve("buy_en.pdf"), generator.generate(buy, Locale.ENGLISH, ctx));
 
-    Transaction dividend = tx(TransactionType.DIVIDEND, sec("NL0009690239", "VanEck Global Real Estate ETF", "EUR",
-        AssetclassType.EQUITIES), 500.0, 0.42, null, 31.5, 164.63);
+    Transaction dividend = tx(TransactionType.DIVIDEND,
+        sec("NL0009690239", "VanEck Global Real Estate ETF", "EUR", AssetclassType.EQUITIES), 500.0, 0.42, null, 31.5,
+        164.63);
     dividend.setCurrencyExRate(0.9223);
     dividend.setExDate(LocalDate.of(2026, 6, 3));
     Files.write(dir.resolve("dividend_de.pdf"), generator.generate(dividend, Locale.GERMAN, ctx));

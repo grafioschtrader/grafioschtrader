@@ -52,7 +52,7 @@ export abstract class TableCrudSupportMenu<T extends BaseID>
 {
   /**
    * Predefined configuration allowing all CRUD operations.
-   * Convenience constant for common use cases where all operations are permitted.
+   * Convenience constant for the common situation where all operations are permitted.
    */
   public static readonly ALLOW_ALL_CRUD_OPERATIONS = [
     CrudMenuOptions.Allow_Create,

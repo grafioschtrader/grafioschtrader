@@ -10,6 +10,8 @@ export class ValueKeyHtmlSelectOptions {
 export class GroupItem {
   disabled: boolean;
   children: GroupItem[];
+  /** Optional styled text fragments; plain value/optionsText remain available for searching and accessibility. */
+  textSegments?: SelectTextSegment[];
 
   /**
    *  Description of the constructor.
@@ -29,4 +31,11 @@ export class GroupItem {
     public img: string,
     public iconClass?: string
   ) {}
+}
+
+/** A text-only dropdown fragment, optionally styled and explained by a native tooltip. */
+export interface SelectTextSegment {
+  text: string;
+  cssClass?: string;
+  title?: string;
 }

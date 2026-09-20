@@ -67,8 +67,7 @@ class TransactionResourceTest extends BaseIntegrationTest {
         Transaction created = createSingleTransaction(fixture.loginNickname, portfolio, transactionFixture);
         createdTransactionIds.add(created.getIdTransaction());
       } else if ("transfer".equals(transactionFixture.kind)) {
-        CashAccountTransfer created = createTransfer(fixture.loginNickname, portfolio, portfolios,
-            transactionFixture);
+        CashAccountTransfer created = createTransfer(fixture.loginNickname, portfolio, portfolios, transactionFixture);
         createdTransactionIds.add(created.getWithdrawalTransaction().getIdTransaction());
         createdTransactionIds.add(created.getDepositTransaction().getIdTransaction());
       } else {
@@ -85,23 +84,17 @@ class TransactionResourceTest extends BaseIntegrationTest {
     Transaction request = new Transaction(cashaccount, fixture.amount, transactionType,
         LocalDate.parse(fixture.date).atTime(12, 0));
 
-    Transaction created = authenticatedClient(loginNickname)
-        .post()
-        .uri(RequestGTMappings.TRANSACTION_MAP + "/singlecashtrans")
-        .body(request)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Transaction.class)
-        .returnResult()
-        .getResponseBody();
+    Transaction created = authenticatedClient(loginNickname).post()
+        .uri(RequestGTMappings.TRANSACTION_MAP + "/singlecashtrans").body(request).exchange().expectStatus().isOk()
+        .expectBody(Transaction.class).returnResult().getResponseBody();
 
     assertNotNull(created);
     Assertions.assertThat(created.getIdTransaction()).isPositive();
     Assertions.assertThat(created.getTransactionType()).isEqualTo(transactionType);
     Assertions.assertThat(created.getCashaccount().getIdSecuritycashAccount())
         .isEqualTo(cashaccount.getIdSecuritycashAccount());
-    Assertions.assertThat(created.getCashaccountAmount()).isEqualTo(expectedStoredAmount(fixture.amount,
-        transactionType));
+    Assertions.assertThat(created.getCashaccountAmount())
+        .isEqualTo(expectedStoredAmount(fixture.amount, transactionType));
     Assertions.assertThat(created.getTransactionTime()).isEqualTo(request.getTransactionTime());
     return created;
   }
@@ -115,41 +108,30 @@ class TransactionResourceTest extends BaseIntegrationTest {
     Cashaccount creditCashaccount = creditPortfolio.cashAccounts.get(fixture.creditCashAccount);
     assertNotNull(creditCashaccount, "Cash account not returned through REST: " + fixture.creditCashAccount);
 
-    Transaction withdrawal = new Transaction(debitCashaccount, fixture.expectedDebitAmount,
-        TransactionType.WITHDRAWAL, LocalDate.parse(fixture.date).atTime(12, 0));
+    Transaction withdrawal = new Transaction(debitCashaccount, fixture.expectedDebitAmount, TransactionType.WITHDRAWAL,
+        LocalDate.parse(fixture.date).atTime(12, 0));
     Transaction deposit = new Transaction(creditCashaccount, fixture.creditAmount, TransactionType.DEPOSIT,
         withdrawal.getTransactionTime());
     setCurrencyPair(loginNickname, withdrawal, deposit, fixture.exchangeRate);
 
-    CashAccountTransfer created = authenticatedClient(loginNickname)
-        .post()
+    CashAccountTransfer created = authenticatedClient(loginNickname).post()
         .uri(RequestGTMappings.TRANSACTION_MAP + "/cashaccounttransfer")
-        .body(new CashAccountTransfer(withdrawal, deposit))
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(CashAccountTransfer.class)
-        .returnResult()
-        .getResponseBody();
+        .body(new CashAccountTransfer(withdrawal, deposit)).exchange().expectStatus().isOk()
+        .expectBody(CashAccountTransfer.class).returnResult().getResponseBody();
 
     assertNotNull(created);
     assertTransfer(created, fixture, debitCashaccount, creditCashaccount);
     return created;
   }
 
-  private void setCurrencyPair(String loginNickname, Transaction withdrawal, Transaction deposit,
-      Double exchangeRate) {
+  private void setCurrencyPair(String loginNickname, Transaction withdrawal, Transaction deposit, Double exchangeRate) {
     String debitCurrency = withdrawal.getCashaccount().getCurrency();
     String creditCurrency = deposit.getCashaccount().getCurrency();
     if (!debitCurrency.equals(creditCurrency)) {
       assertNotNull(exchangeRate, "A cross-currency transfer requires an exchange rate");
-      Currencypair currencypair = authenticatedClient(loginNickname)
-          .get()
-          .uri(RequestGTMappings.CURRENCYPAIR_MAP + "/" + debitCurrency + "/" + creditCurrency)
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(Currencypair.class)
-          .returnResult()
-          .getResponseBody();
+      Currencypair currencypair = authenticatedClient(loginNickname).get()
+          .uri(RequestGTMappings.CURRENCYPAIR_MAP + "/" + debitCurrency + "/" + creditCurrency).exchange()
+          .expectStatus().isOk().expectBody(Currencypair.class).returnResult().getResponseBody();
       assertNotNull(currencypair);
       withdrawal.setIdCurrencypair(currencypair.getIdSecuritycurrency());
       withdrawal.setCurrencyExRate(exchangeRate);
@@ -189,14 +171,8 @@ class TransactionResourceTest extends BaseIntegrationTest {
   }
 
   private Map<String, PortfolioContext> loadPortfolioContexts(String loginNickname) {
-    String responseBody = authenticatedClient(loginNickname)
-        .get()
-        .uri(RequestGTMappings.PORTFOLIO_MAP + "/tenant")
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(String.class)
-        .returnResult()
-        .getResponseBody();
+    String responseBody = authenticatedClient(loginNickname).get().uri(RequestGTMappings.PORTFOLIO_MAP + "/tenant")
+        .exchange().expectStatus().isOk().expectBody(String.class).returnResult().getResponseBody();
 
     assertNotNull(responseBody);
     Map<String, PortfolioContext> contexts = new HashMap<>();
@@ -210,18 +186,11 @@ class TransactionResourceTest extends BaseIntegrationTest {
   }
 
   private void verifyTransactionsThroughRest(String loginNickname, List<Integer> createdTransactionIds) {
-    Transaction[] transactions = authenticatedClient(loginNickname)
-        .get()
-        .uri(RequestGTMappings.TRANSACTION_MAP)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Transaction[].class)
-        .returnResult()
-        .getResponseBody();
+    Transaction[] transactions = authenticatedClient(loginNickname).get().uri(RequestGTMappings.TRANSACTION_MAP)
+        .exchange().expectStatus().isOk().expectBody(Transaction[].class).returnResult().getResponseBody();
 
     assertNotNull(transactions);
-    Assertions.assertThat(transactions).extracting(Transaction::getIdTransaction)
-        .containsAll(createdTransactionIds);
+    Assertions.assertThat(transactions).extracting(Transaction::getIdTransaction).containsAll(createdTransactionIds);
   }
 
   private JsonNode parseJson(String responseBody) {
@@ -236,9 +205,8 @@ class TransactionResourceTest extends BaseIntegrationTest {
     try (InputStream input = TransactionResourceTest.class.getResourceAsStream(FIXTURE)) {
       assertNotNull(input, "Missing fixture " + FIXTURE);
       PortfolioFixtureFile fixtureFile = new ObjectMapper().readValue(input, PortfolioFixtureFile.class);
-      return fixtureFile.portfolios.stream()
-          .filter(portfolio -> "i".equals(portfolio.e2e) && portfolio.transactions != null
-              && !portfolio.transactions.isEmpty())
+      return fixtureFile.portfolios.stream().filter(
+          portfolio -> "i".equals(portfolio.e2e) && portfolio.transactions != null && !portfolio.transactions.isEmpty())
           .toList();
     }
   }

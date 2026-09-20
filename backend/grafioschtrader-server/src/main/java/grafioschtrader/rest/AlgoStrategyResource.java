@@ -67,6 +67,5 @@ public class AlgoStrategyResource extends AlgoBaseResource<AlgoStrategy> {
   protected UpdateCreateDeleteWithTenantJpaRepository<AlgoStrategy> getUpdateCreateJpaRepository() {
     return algoStrategyJpaRepository;
   }
-  
 
 }

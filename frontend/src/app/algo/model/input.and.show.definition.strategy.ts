@@ -5,4 +5,5 @@ export class InputAndShowDefinitionStrategy {
   assetclassFormDefinitionList: FieldDescriptorInputAndShow[];
   securityFormDefinitionList: FieldDescriptorInputAndShow[];
   isComplexStrategy: boolean;
+  defaultValues?: Record<string, number>;
 }

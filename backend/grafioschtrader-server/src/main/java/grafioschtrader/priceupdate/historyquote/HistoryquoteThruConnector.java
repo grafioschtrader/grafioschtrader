@@ -121,9 +121,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Saves pre-fetched historical quotes (e.g., from GTNet) for a security/currency.
-   * This method performs the same entity updates as createHistoryQuotesAndSave but uses provided historyquotes
-   * instead of fetching from a connector.
+   * Saves pre-fetched historical quotes (e.g., from GTNet) for a security/currency. This method performs the same
+   * entity updates as createHistoryQuotesAndSave but uses provided historyquotes instead of fetching from a connector.
    *
    * @param securitycurrencyService the service for saving
    * @param securitycurrency        the security or currency pair
@@ -139,9 +138,9 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Variant of {@link #savePrefetchedHistoryQuotes} for the GTNet-only fallback path. The retry counter is capped
-   * down to {@code connectorRetryCap} (i.e. gt.history.retry) instead of being reset to zero — this preserves the
-   * "connector is broken" signal for monitoring while granting GTNet a fresh fallback budget.
+   * Variant of {@link #savePrefetchedHistoryQuotes} for the GTNet-only fallback path. The retry counter is capped down
+   * to {@code connectorRetryCap} (i.e. gt.history.retry) instead of being reset to zero — this preserves the "connector
+   * is broken" signal for monitoring while granting GTNet a fresh fallback budget.
    *
    * @param connectorRetryCap the connector retry cap; counter is set to {@code min(currentValue, connectorRetryCap)}
    */
@@ -212,15 +211,15 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Marks the generic connector endpoint as successfully used if the feed connector is a GenericFeedConnector.
-   * Also transfers ownership to system (createdBy=0) if all endpoints of the connector have been used.
+   * Marks the generic connector endpoint as successfully used if the feed connector is a GenericFeedConnector. Also
+   * transfers ownership to system (createdBy=0) if all endpoints of the connector have been used.
    */
   private void markGenericEndpointUsed(IFeedConnector feedConnector, S securitycurrency) {
     if (genericConnectorEndpointJpaRepository != null && feedConnector instanceof GenericFeedConnector gfc) {
       String instrumentType = securitycurrency instanceof Security ? "SECURITY" : "CURRENCY";
       Integer idConnector = gfc.getConnectorDef().getIdGenericConnector();
-      int updated = genericConnectorEndpointJpaRepository.markEndpointUsedSuccessfully(
-          idConnector, IFeedConnector.FeedSupport.FS_HISTORY.name(), instrumentType);
+      int updated = genericConnectorEndpointJpaRepository.markEndpointUsedSuccessfully(idConnector,
+          IFeedConnector.FeedSupport.FS_HISTORY.name(), instrumentType);
       if (updated > 0) {
         genericConnectorEndpointJpaRepository.transferOwnershipIfAllEndpointsUsed(idConnector);
       }
@@ -249,8 +248,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Delegation method for decorators to call fillEmptyHistoryquote.
-   * Used by HistoryquoteThruGTNet to properly integrate GTNet into the flow.
+   * Delegation method for decorators to call fillEmptyHistoryquote. Used by HistoryquoteThruGTNet to properly integrate
+   * GTNet into the flow.
    *
    * @return list of securities/currencies that were filled from empty state
    */
@@ -259,8 +258,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Gets the list of securities/currencies that need partial history updates.
-   * Used by HistoryquoteThruGTNet to properly integrate GTNet into the flow.
+   * Gets the list of securities/currencies that need partial history updates. Used by HistoryquoteThruGTNet to properly
+   * integrate GTNet into the flow.
    *
    * @param idsStockexchange list of stock exchange IDs to filter by (null = all exchanges)
    * @return the corrected calendar for EOD date calculation, and the list of instruments needing updates
@@ -274,13 +273,12 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
   }
 
   /**
-   * Corrects date for day-after-update scenarios (Sunday/Monday adjustments).
-   * Exposed for decorator usage.
+   * Corrects date for day-after-update scenarios (Sunday/Monday adjustments). Exposed for decorator usage.
    */
   private LocalDate correctToDateForDayAfterUpdate(boolean adjustForDayAfterUpd) {
     LocalDate currentDate = LocalDate.now();
-    if (adjustForDayAfterUpd && (currentDate.getDayOfWeek() == DayOfWeek.SUNDAY
-        || currentDate.getDayOfWeek() == DayOfWeek.MONDAY)) {
+    if (adjustForDayAfterUpd
+        && (currentDate.getDayOfWeek() == DayOfWeek.SUNDAY || currentDate.getDayOfWeek() == DayOfWeek.MONDAY)) {
       currentDate = currentDate.minusDays(currentDate.getDayOfWeek().getValue() % 7);
     }
     return currentDate;
@@ -293,7 +291,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
     private final LocalDate currentDate;
     private final List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList;
 
-    public PartialFillData(LocalDate currentDate, List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList) {
+    public PartialFillData(LocalDate currentDate,
+        List<SecurityCurrencyMaxHistoryquoteData<S>> historySecurityCurrencyList) {
       this.currentDate = currentDate;
       this.historySecurityCurrencyList = historySecurityCurrencyList;
     }
@@ -354,7 +353,8 @@ public class HistoryquoteThruConnector<S extends Securitycurrency<S>> extends Ba
    * @param toDateCalc
    * @return
    */
-  private LocalDate getFirstGapFillByAfterLastRealEOD(Security security, boolean needGapFiller, LocalDate correctedFromDate) {
+  private LocalDate getFirstGapFillByAfterLastRealEOD(Security security, boolean needGapFiller,
+      LocalDate correctedFromDate) {
     if (needGapFiller && security.getHistoryquoteList() != null) {
       int i = security.getHistoryquoteList().size();
       do {

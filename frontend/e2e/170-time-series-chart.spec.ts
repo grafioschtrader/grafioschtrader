@@ -65,8 +65,22 @@ function exactText(value: string): RegExp {
 async function openWatchlist(page: Page, name: Instrument['watchlist']): Promise<void> {
   const node = page.getByRole('treeitem', { name, exact: true }).first();
   await node.waitFor({ state: 'visible', timeout: 15_000 });
-  await node.click();
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await node.locator(':scope > .p-tree-node-content').click();
+  const dataContainer = page.locator('.data-container').first();
+  if (
+    !(await dataContainer
+      .waitFor({ state: 'visible', timeout: 2_000 })
+      .then(() => true)
+      .catch(() => false))
+  ) {
+    // PrimeNG does not emit a new selection event when the requested watchlist is still selected in the tree while a
+    // chart occupies the content area. Select the other fixture watchlist once, then return to the requested one.
+    const alternateName: Instrument['watchlist'] = name === '_USA' ? '_Switzerland' : '_USA';
+    const alternate = page.getByRole('treeitem', { name: alternateName, exact: true }).first();
+    await alternate.locator(':scope > .p-tree-node-content').click();
+    await node.locator(':scope > .p-tree-node-content').click();
+  }
+  await dataContainer.waitFor({ state: 'visible', timeout: 15_000 });
   await page.waitForTimeout(1200);
 }
 

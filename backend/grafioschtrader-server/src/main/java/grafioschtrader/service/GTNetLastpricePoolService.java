@@ -27,19 +27,18 @@ import grafioschtrader.repository.GTNetLastpriceJpaRepository;
 /**
  * Service for managing the GTNet lastprice push pool.
  *
- * Provides unified methods for updating the push pool (GTNetInstrument* + GTNetLastprice tables)
- * from various sources:
+ * Provides unified methods for updating the push pool (GTNetInstrument* + GTNetLastprice tables) from various sources:
  * <ul>
- *   <li>Connector-fetched prices (Security/Currencypair entities)</li>
- *   <li>Pushed prices from remote servers (InstrumentPriceDTO)</li>
- *   <li>Prices received during exchange requests (InstrumentPriceDTO)</li>
+ * <li>Connector-fetched prices (Security/Currencypair entities)</li>
+ * <li>Pushed prices from remote servers (InstrumentPriceDTO)</li>
+ * <li>Prices received during exchange requests (InstrumentPriceDTO)</li>
  * </ul>
  *
  * All methods follow the same pattern:
  * <ol>
- *   <li>Find or create GTNetInstrument entry</li>
- *   <li>Find or create GTNetLastprice entry</li>
- *   <li>Update only if the new price has a newer timestamp</li>
+ * <li>Find or create GTNetInstrument entry</li>
+ * <li>Find or create GTNetLastprice entry</li>
+ * <li>Update only if the new price has a newer timestamp</li>
  * </ol>
  */
 @Service
@@ -72,8 +71,8 @@ public class GTNetLastpricePoolService {
 
     // Filter securities that have valid ISIN, currency, and timestamp
     List<Security> validSecurities = securities.stream()
-        .filter(s -> s.getIsin() != null && !s.getIsin().isEmpty()
-            && s.getCurrency() != null && s.getSTimestamp() != null)
+        .filter(
+            s -> s.getIsin() != null && !s.getIsin().isEmpty() && s.getCurrency() != null && s.getSTimestamp() != null)
         .collect(Collectors.toList());
 
     if (validSecurities.isEmpty()) {
@@ -81,16 +80,13 @@ public class GTNetLastpricePoolService {
     }
 
     // Get existing instrument entries from pool
-    List<String[]> pairs = validSecurities.stream()
-        .map(s -> new String[] { s.getIsin(), s.getCurrency() })
+    List<String[]> pairs = validSecurities.stream().map(s -> new String[] { s.getIsin(), s.getCurrency() })
         .collect(Collectors.toList());
     Map<String, GTNetInstrumentSecurity> instrumentMap = buildSecurityInstrumentMap(pairs);
 
     // Get existing lastprice entries
-    Map<Integer, GTNetLastprice> lastpriceMap = buildLastpriceMap(
-        instrumentMap.values().stream()
-            .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
-            .collect(Collectors.toList()));
+    Map<Integer, GTNetLastprice> lastpriceMap = buildLastpriceMap(instrumentMap.values().stream()
+        .map(GTNetInstrumentSecurity::getIdGtNetInstrument).collect(Collectors.toList()));
 
     int updatedCount = 0;
 
@@ -100,16 +96,15 @@ public class GTNetLastpricePoolService {
 
       // Create instrument if it doesn't exist
       if (instrument == null) {
-        instrument = gtNetInstrumentSecurityJpaRepository
-            .findOrCreateInstrument(security.getIsin(), security.getCurrency());
+        instrument = gtNetInstrumentSecurityJpaRepository.findOrCreateInstrument(security.getIsin(),
+            security.getCurrency());
         instrumentMap.put(key, instrument);
         log.debug("Created new instrument pool entry for security ISIN={}", security.getIsin());
       }
 
       // Update lastprice if newer
-      if (updateLastpriceIfNewer(instrument, lastpriceMap, security.getSTimestamp(),
-          security.getSOpen(), security.getSHigh(), security.getSLow(),
-          security.getSLast(), security.getSVolume())) {
+      if (updateLastpriceIfNewer(instrument, lastpriceMap, security.getSTimestamp(), security.getSOpen(),
+          security.getSHigh(), security.getSLow(), security.getSLast(), security.getSVolume())) {
         updatedCount++;
       }
     }
@@ -143,16 +138,13 @@ public class GTNetLastpricePoolService {
     }
 
     // Get existing instrument entries from pool
-    List<String[]> pairs = validDTOs.stream()
-        .map(dto -> new String[] { dto.getIsin(), dto.getCurrency() })
+    List<String[]> pairs = validDTOs.stream().map(dto -> new String[] { dto.getIsin(), dto.getCurrency() })
         .collect(Collectors.toList());
     Map<String, GTNetInstrumentSecurity> instrumentMap = buildSecurityInstrumentMap(pairs);
 
     // Get existing lastprice entries
-    Map<Integer, GTNetLastprice> lastpriceMap = buildLastpriceMap(
-        instrumentMap.values().stream()
-            .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
-            .collect(Collectors.toList()));
+    Map<Integer, GTNetLastprice> lastpriceMap = buildLastpriceMap(instrumentMap.values().stream()
+        .map(GTNetInstrumentSecurity::getIdGtNetInstrument).collect(Collectors.toList()));
 
     int updatedCount = 0;
 
@@ -162,15 +154,14 @@ public class GTNetLastpricePoolService {
 
       // Create instrument if it doesn't exist
       if (instrument == null) {
-        instrument = gtNetInstrumentSecurityJpaRepository
-            .findOrCreateInstrument(dto.getIsin(), dto.getCurrency());
+        instrument = gtNetInstrumentSecurityJpaRepository.findOrCreateInstrument(dto.getIsin(), dto.getCurrency());
         instrumentMap.put(key, instrument);
         log.debug("Created new instrument pool entry for security ISIN={}", dto.getIsin());
       }
 
       // Update lastprice if newer
-      if (updateLastpriceIfNewer(instrument, lastpriceMap, dto.getTimestamp(),
-          dto.getOpen(), dto.getHigh(), dto.getLow(), dto.getLast(), dto.getVolume())) {
+      if (updateLastpriceIfNewer(instrument, lastpriceMap, dto.getTimestamp(), dto.getOpen(), dto.getHigh(),
+          dto.getLow(), dto.getLast(), dto.getVolume())) {
         updatedCount++;
       }
     }
@@ -197,10 +188,9 @@ public class GTNetLastpricePoolService {
     }
 
     // Filter currency pairs that have valid currencies and timestamp
-    List<Currencypair> validPairs = currencypairs.stream()
-        .filter(cp -> cp.getFromCurrency() != null && !cp.getFromCurrency().isEmpty()
-            && cp.getToCurrency() != null && !cp.getToCurrency().isEmpty()
-            && cp.getSTimestamp() != null)
+    List<Currencypair> validPairs = currencypairs
+        .stream().filter(cp -> cp.getFromCurrency() != null && !cp.getFromCurrency().isEmpty()
+            && cp.getToCurrency() != null && !cp.getToCurrency().isEmpty() && cp.getSTimestamp() != null)
         .collect(Collectors.toList());
 
     if (validPairs.isEmpty()) {
@@ -208,16 +198,13 @@ public class GTNetLastpricePoolService {
     }
 
     // Get existing instrument entries from pool
-    List<String[]> pairs = validPairs.stream()
-        .map(cp -> new String[] { cp.getFromCurrency(), cp.getToCurrency() })
+    List<String[]> pairs = validPairs.stream().map(cp -> new String[] { cp.getFromCurrency(), cp.getToCurrency() })
         .collect(Collectors.toList());
     Map<String, GTNetInstrumentCurrencypair> instrumentMap = buildCurrencypairInstrumentMap(pairs);
 
     // Get existing lastprice entries
-    Map<Integer, GTNetLastprice> lastpriceMap = buildLastpriceMap(
-        instrumentMap.values().stream()
-            .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
-            .collect(Collectors.toList()));
+    Map<Integer, GTNetLastprice> lastpriceMap = buildLastpriceMap(instrumentMap.values().stream()
+        .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument).collect(Collectors.toList()));
 
     int updatedCount = 0;
 
@@ -227,17 +214,16 @@ public class GTNetLastpricePoolService {
 
       // Create instrument if it doesn't exist
       if (instrument == null) {
-        instrument = gtNetInstrumentCurrencypairJpaRepository
-            .findOrCreateInstrument(currencypair.getFromCurrency(), currencypair.getToCurrency());
+        instrument = gtNetInstrumentCurrencypairJpaRepository.findOrCreateInstrument(currencypair.getFromCurrency(),
+            currencypair.getToCurrency());
         instrumentMap.put(key, instrument);
-        log.debug("Created new instrument pool entry for currencypair {}/{}",
-            currencypair.getFromCurrency(), currencypair.getToCurrency());
+        log.debug("Created new instrument pool entry for currencypair {}/{}", currencypair.getFromCurrency(),
+            currencypair.getToCurrency());
       }
 
       // Update lastprice if newer (currencypairs don't have volume)
-      if (updateLastpriceIfNewer(instrument, lastpriceMap, currencypair.getSTimestamp(),
-          currencypair.getSOpen(), currencypair.getSHigh(), currencypair.getSLow(),
-          currencypair.getSLast(), null)) {
+      if (updateLastpriceIfNewer(instrument, lastpriceMap, currencypair.getSTimestamp(), currencypair.getSOpen(),
+          currencypair.getSHigh(), currencypair.getSLow(), currencypair.getSLast(), null)) {
         updatedCount++;
       }
     }
@@ -271,16 +257,13 @@ public class GTNetLastpricePoolService {
     }
 
     // Get existing instrument entries from pool
-    List<String[]> pairs = validDTOs.stream()
-        .map(dto -> new String[] { dto.getCurrency(), dto.getToCurrency() })
+    List<String[]> pairs = validDTOs.stream().map(dto -> new String[] { dto.getCurrency(), dto.getToCurrency() })
         .collect(Collectors.toList());
     Map<String, GTNetInstrumentCurrencypair> instrumentMap = buildCurrencypairInstrumentMap(pairs);
 
     // Get existing lastprice entries
-    Map<Integer, GTNetLastprice> lastpriceMap = buildLastpriceMap(
-        instrumentMap.values().stream()
-            .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
-            .collect(Collectors.toList()));
+    Map<Integer, GTNetLastprice> lastpriceMap = buildLastpriceMap(instrumentMap.values().stream()
+        .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument).collect(Collectors.toList()));
 
     int updatedCount = 0;
 
@@ -290,16 +273,15 @@ public class GTNetLastpricePoolService {
 
       // Create instrument if it doesn't exist
       if (instrument == null) {
-        instrument = gtNetInstrumentCurrencypairJpaRepository
-            .findOrCreateInstrument(dto.getCurrency(), dto.getToCurrency());
+        instrument = gtNetInstrumentCurrencypairJpaRepository.findOrCreateInstrument(dto.getCurrency(),
+            dto.getToCurrency());
         instrumentMap.put(key, instrument);
-        log.debug("Created new instrument pool entry for currencypair {}/{}",
-            dto.getCurrency(), dto.getToCurrency());
+        log.debug("Created new instrument pool entry for currencypair {}/{}", dto.getCurrency(), dto.getToCurrency());
       }
 
       // Update lastprice if newer
-      if (updateLastpriceIfNewer(instrument, lastpriceMap, dto.getTimestamp(),
-          dto.getOpen(), dto.getHigh(), dto.getLow(), dto.getLast(), dto.getVolume())) {
+      if (updateLastpriceIfNewer(instrument, lastpriceMap, dto.getTimestamp(), dto.getOpen(), dto.getHigh(),
+          dto.getLow(), dto.getLast(), dto.getVolume())) {
         updatedCount++;
       }
     }
@@ -318,10 +300,7 @@ public class GTNetLastpricePoolService {
    */
   private Map<String, GTNetInstrumentSecurity> buildSecurityInstrumentMap(List<String[]> pairs) {
     List<GTNetInstrumentSecurity> existing = gtNetInstrumentSecurityJpaRepository.findByIsinCurrencyTuples(pairs);
-    return existing.stream()
-        .collect(Collectors.toMap(
-            e -> e.getIsin() + "|" + e.getCurrency(),
-            Function.identity()));
+    return existing.stream().collect(Collectors.toMap(e -> e.getIsin() + "|" + e.getCurrency(), Function.identity()));
   }
 
   /**
@@ -330,9 +309,7 @@ public class GTNetLastpricePoolService {
   private Map<String, GTNetInstrumentCurrencypair> buildCurrencypairInstrumentMap(List<String[]> pairs) {
     List<GTNetInstrumentCurrencypair> existing = gtNetInstrumentCurrencypairJpaRepository.findByCurrencyTuples(pairs);
     return existing.stream()
-        .collect(Collectors.toMap(
-            e -> e.getFromCurrency() + "|" + e.getToCurrency(),
-            Function.identity()));
+        .collect(Collectors.toMap(e -> e.getFromCurrency() + "|" + e.getToCurrency(), Function.identity()));
   }
 
   /**
@@ -343,22 +320,20 @@ public class GTNetLastpricePoolService {
       return new HashMap<>();
     }
     return gtNetLastpriceJpaRepository.findByGtNetInstrumentIdGtNetInstrumentIn(instrumentIds).stream()
-        .collect(Collectors.toMap(
-            lp -> lp.getGtNetInstrument().getIdGtNetInstrument(),
-            Function.identity()));
+        .collect(Collectors.toMap(lp -> lp.getGtNetInstrument().getIdGtNetInstrument(), Function.identity()));
   }
 
   /**
    * Updates or creates a lastprice entry if the new timestamp is newer.
    *
-   * @param instrument the GTNet instrument (security or currencypair)
+   * @param instrument   the GTNet instrument (security or currencypair)
    * @param lastpriceMap map of existing lastprice entries (will be updated with new entries)
-   * @param timestamp the new timestamp
-   * @param open the new open price
-   * @param high the new high price
-   * @param low the new low price
-   * @param last the new last price
-   * @param volume the new volume (may be null for currencypairs)
+   * @param timestamp    the new timestamp
+   * @param open         the new open price
+   * @param high         the new high price
+   * @param low          the new low price
+   * @param last         the new last price
+   * @param volume       the new volume (may be null for currencypairs)
    * @return true if the entry was created or updated
    */
   private boolean updateLastpriceIfNewer(GTNetInstrument instrument, Map<Integer, GTNetLastprice> lastpriceMap,
@@ -385,8 +360,8 @@ public class GTNetLastpricePoolService {
     return false;
   }
 
-  private void updateLastpriceFields(GTNetLastprice lastprice, LocalDateTime timestamp,
-      Double open, Double high, Double low, Double last, Long volume) {
+  private void updateLastpriceFields(GTNetLastprice lastprice, LocalDateTime timestamp, Double open, Double high,
+      Double low, Double last, Long volume) {
     lastprice.setTimestamp(timestamp);
     lastprice.setOpen(open);
     lastprice.setHigh(high);

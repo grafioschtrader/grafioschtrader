@@ -13,7 +13,7 @@ import grafioschtrader.validation.ISINValidator;
 
 /**
  * Container for financial transaction data extracted from trading platform documents (PDF or CSV).
- * 
+ *
  * <p>
  * This class holds all the parsed transaction information including dates, security identification, quantities, prices,
  * costs, taxes, and currencies. It provides validation for critical fields like ISIN codes and transaction types, and
@@ -73,6 +73,9 @@ public class ImportProperties {
   /** Secondary transaction cost if multiple fees apply. */
   private Double tc2;
 
+  /** Third transaction cost, for example an additional exchange execution fee. */
+  private Double tc3;
+
   /** Discount amount deducted from transaction costs. */
   private Double reduce;
 
@@ -117,7 +120,7 @@ public class ImportProperties {
 
   /**
    * Creates transaction properties with the specified configuration.
-   * 
+   *
    * @param transactionTypesMap Mapping from document text to transaction types
    * @param knownOtherFlags     Processing flags for special transaction handling
    * @param ignoreTaxOnDivInt   Transaction type text for tax exemption
@@ -131,7 +134,7 @@ public class ImportProperties {
 
   /**
    * Creates transaction properties with source tracking information.
-   * 
+   *
    * @param transactionTypesMap Mapping from document text to transaction types
    * @param knownOtherFlags     Processing flags for special transaction handling
    * @param fileOrLineNumber    Source file or line number for tracking
@@ -145,7 +148,7 @@ public class ImportProperties {
 
   /**
    * Returns the transaction date and time, combining separate date/time components if needed.
-   * 
+   *
    * @return Complete transaction timestamp
    */
   public LocalDateTime getDatetime() {
@@ -190,7 +193,7 @@ public class ImportProperties {
   /**
    * Sets and validates the transaction type text against the configured mapping. Automatically applies tax exemption
    * flags if applicable.
-   * 
+   *
    * @param transType Transaction type text from document
    * @throws IllegalArgumentException if transaction type is not in the mapping
    */
@@ -214,7 +217,7 @@ public class ImportProperties {
 
   /**
    * Sets and validates the ISIN code.
-   * 
+   *
    * @param isin ISIN code to validate and set
    * @throws IllegalArgumentException if ISIN format is invalid
    */
@@ -307,6 +310,14 @@ public class ImportProperties {
     this.tc2 = tc2;
   }
 
+  public Double getTc3() {
+    return tc3;
+  }
+
+  public void setTc3(Double tc3) {
+    this.tc3 = tc3;
+  }
+
   public Double getTt1() {
     return tt1;
   }
@@ -371,9 +382,9 @@ public class ImportProperties {
    * Normalizes minor-unit currency codes to their ISO 4217 major currency. Some trading platforms document trades on
    * the London or Johannesburg Stock Exchange in the minor unit (e.g. SaxoTrader uses "GBp" pence where Migros Bank
    * uses "GBP" pounds). Since GT stores securities and transactions exclusively in the major currency, the security
-   * currency and the price per unit must be converted before the security is matched and the position is validated.
-   * If the document also carried the pence/pounds factor as a pseudo exchange rate, that rate is cleared because no
-   * real currency conversion takes place. Costs and taxes quoted in a minor unit are converted the same way.
+   * currency and the price per unit must be converted before the security is matched and the position is validated. If
+   * the document also carried the pence/pounds factor as a pseudo exchange rate, that rate is cleared because no real
+   * currency conversion takes place. Costs and taxes quoted in a minor unit are converted the same way.
    */
   public void normalizeMinorCurrencyUnits() {
     if (MinorCurrencyUnit.isMinorUnit(cin)) {
@@ -381,8 +392,8 @@ public class ImportProperties {
       if (quotation != null) {
         quotation /= MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER;
       }
-      if (cex != null && cin.equals(cac) && (cex == MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER
-          || cex == 1 / MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER)) {
+      if (cex != null && cin.equals(cac)
+          && (cex == MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER || cex == 1 / MinorCurrencyUnit.MINOR_TO_MAJOR_DIVIDER)) {
         cex = null;
       }
     }
@@ -390,6 +401,7 @@ public class ImportProperties {
       cct = MinorCurrencyUnit.getMajorCurrency(cct);
       tc1 = divideByMinorUnit(tc1);
       tc2 = divideByMinorUnit(tc2);
+      tc3 = divideByMinorUnit(tc3);
       tt1 = divideByMinorUnit(tt1);
       tt2 = divideByMinorUnit(tt2);
       reduce = divideByMinorUnit(reduce);
@@ -424,8 +436,8 @@ public class ImportProperties {
   public String toString() {
     return "ImportProperties [date=" + datetime + ", transType=" + transType + ", isin=" + isin + ", units=" + units
         + ", quotation=" + quotation + ", ac=" + ac + ", cin=" + cin + ", cac=" + cac + ", cex=" + cex + ", tc1=" + tc1
-        + ", tc2=" + tc2 + ", tt1=" + tt1 + ", tt2=" + tt2 + ", ta=" + ta + ", sf1=" + sf1 + ", per=" + per
-        + ", transactionTypesMap=" + transactionTypesMap + "]";
+        + ", tc2=" + tc2 + ", tc3=" + tc3 + ", tt1=" + tt1 + ", tt2=" + tt2 + ", ta=" + ta + ", sf1=" + sf1 + ", per="
+        + per + ", transactionTypesMap=" + transactionTypesMap + "]";
   }
 
 }

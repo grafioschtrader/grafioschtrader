@@ -123,15 +123,15 @@ public class HistoryquotePeriodJpaRepositoryImpl implements HistoryquotePeriodJp
   }
 
   /**
-   * Creates a system-generated {@link HistoryquotePeriod} for a security, covering its entire active date range
-   * and using its denomination as the price.
+   * Creates a system-generated {@link HistoryquotePeriod} for a security, covering its entire active date range and
+   * using its denomination as the price.
    *
    * @param security The {@link Security} for which to create the period.
    * @return A new {@link HistoryquotePeriod} instance.
    */
   private HistoryquotePeriod getSystemCreatedPeriod(Security security) {
-    return new HistoryquotePeriod(security.getIdSecuritycurrency(),
-        security.getActiveFromDate(), security.getActiveToDate(), security.getDenomination());
+    return new HistoryquotePeriod(security.getIdSecuritycurrency(), security.getActiveFromDate(),
+        security.getActiveToDate(), security.getDenomination());
   }
 
   /**

@@ -16,8 +16,8 @@ import grafioschtrader.repository.GenericConnectorDefJpaRepository;
 import grafioschtrader.types.TickerBuildStrategy;
 
 /**
- * Orchestrates a test request against a persisted generic connector endpoint. Loads the connector definition from
- * the database, verifies ownership or admin access, builds the ticker string, creates a temporary GenericFeedConnector
+ * Orchestrates a test request against a persisted generic connector endpoint. Loads the connector definition from the
+ * database, verifies ownership or admin access, builds the ticker string, creates a temporary GenericFeedConnector
  * instance, and delegates to its testEndpoint() method. No side effects on activation or endpoint usage state.
  */
 @Service
@@ -41,7 +41,8 @@ public class GenericConnectorTestService {
     GenericConnectorDef def = genericConnectorDefJpaRepository.findById(request.getIdGenericConnector())
         .orElseThrow(() -> new SecurityException("Connector not found"));
 
-    if (!UserAccessHelper.hasHigherPrivileges(user) && !UserAccessHelper.hasRightsForEditingOrDeleteOnEntity(user, def)) {
+    if (!UserAccessHelper.hasHigherPrivileges(user)
+        && !UserAccessHelper.hasRightsForEditingOrDeleteOnEntity(user, def)) {
       throw new SecurityException("No access to test this connector");
     }
 
@@ -82,8 +83,8 @@ public class GenericConnectorTestService {
   private String buildTestTicker(GenericConnectorEndpoint endpoint, GenericConnectorTestRequest request) {
     String ticker;
     if (endpoint.getTickerBuildStrategy() == TickerBuildStrategy.CURRENCY_PAIR
-        && "CURRENCY".equals(request.getInstrumentType())
-        && request.getFromCurrency() != null && request.getToCurrency() != null) {
+        && "CURRENCY".equals(request.getInstrumentType()) && request.getFromCurrency() != null
+        && request.getToCurrency() != null) {
       String sep = endpoint.getCurrencyPairSeparator() != null ? endpoint.getCurrencyPairSeparator() : "";
       String suffix = endpoint.getCurrencyPairSuffix() != null ? endpoint.getCurrencyPairSuffix() : "";
       ticker = request.getFromCurrency() + sep + request.getToCurrency() + suffix;

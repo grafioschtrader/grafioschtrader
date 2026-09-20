@@ -13,8 +13,8 @@ public interface IHistoryquoteEntityAccess<S extends Securitycurrency<S>> extend
   /**
    * Gets the new prices and creates history quotes for adding to the security or currency pair.
    */
-  List<Historyquote> getHistoryQuote(S securitycurrency, LocalDate fromDate, LocalDate toDate, IFeedConnector feedConector)
-      throws Exception;
+  List<Historyquote> getHistoryQuote(S securitycurrency, LocalDate fromDate, LocalDate toDate,
+      IFeedConnector feedConector) throws Exception;
 
   HistoryquoteJpaRepository getHistoryquoteJpaRepository();
 }

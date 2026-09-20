@@ -2,13 +2,12 @@ import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/
 import { TreeTableConfigBase } from '../../lib/datashowbase/tree.table.config.base';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { SimulationContextService } from '../service/simulation.context.service';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { ConfirmationService, MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { concat, Subscription } from 'rxjs';
 import { toArray } from 'rxjs/operators';
 import { ActivatedRoute, Params } from '@angular/router';
-import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
-import { BaseSettings } from '../../lib/base.settings';
 import { AlgoTop } from '../model/algo.top';
 import { AlgoAssetclassService } from '../service/algo.assetclass.service';
 import { AlgoAssetclass } from '../model/algo.assetclass';
@@ -75,7 +74,7 @@ import {
         [(selection)]="selectedNode"
         (nodeSelect)="onNodeSelect($event)"
         (nodeUnselect)="onNodeUnselect($event)"
-        [showContextMenu]="true"
+        [showContextMenu]="!hierarchyReadOnly"
         [contextMenuItems]="contextMenuItems"
         [valueGetterFn]="getValueByPath.bind(this)"
         [baseLocale]="baseLocale"
@@ -85,9 +84,11 @@ import {
         (checkboxChange)="onCheckboxChangeHandler($event)"
         (componentClick)="onComponentClick($event)"
         [rowClassFn]="getAlgoRowClass.bind(this)"
+        [cellClassFn]="getAlgoCellClass.bind(this)"
         [enableSort]="false">
         <h4 caption>{{ 'ALGO_OVERVIEW' | translate }}</h4>
       </configurable-tree-table>
+      <p>{{ 'ALGO_SIMULATION_EXCLUDED_HINT' | translate }}</p>
       @if (algoStrategyShowParamCall.algoStrategy) {
         <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall"> </strategy-detail>
       }
@@ -134,6 +135,11 @@ import {
   ]
 })
 export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
+  /** Backend-selected property paths to highlight, keyed by hierarchy node ID. */
+  private invalidFields: Record<number, string[]> = {};
+  /** Backend-selected property paths to display on a yellow background. */
+  private warningFields: Record<number, string[]> = {};
+
   // Otherwise enum DialogVisible can't be used in a html template
   AlgoDialogVisible: typeof AlgoDialogVisible = AlgoDialogVisible;
 
@@ -152,10 +158,11 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   // Detail Show param
   algoStrategyShowParamCall: AlgoStrategyParamCall = new AlgoStrategyParamCall();
   private routeSubscribe: Subscription;
+  /** True when no create, update or delete action on the hierarchy may be offered. */
+  hierarchyReadOnly: boolean;
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private treeNavState: TreeNavigationStateService,
     private activePanelService: ActivePanelService,
     private algoTopService: AlgoTopService,
     private algoAssetclassService: AlgoAssetclassService,
@@ -164,62 +171,70 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     private dataChangedService: DataChangedService,
     protected messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
+    private simulationContext: SimulationContextService,
     translateService: TranslateService,
     gps: GlobalparameterService
   ) {
     super(translateService, gps);
+    // The strategy hierarchy belongs to the home tenant: inside a simulation environment it is shown but not
+    // edited, and a read-only user may not change it either. Resolved once, because entering or leaving an
+    // environment reloads the application.
+    this.hierarchyReadOnly = this.simulationContext.isInSimulation() || gps.isReadOnlyUser();
 
     this.addColumn(DataType.String, 'name', 'NAME', true, false, {
       fieldValueFN: this.getReadableUniqueName.bind(this)
     });
-    this.addColumn(DataType.Boolean, '_selected', '', true, false, {
-      templateName: 'editableCheck',
-      width: 40
+
+    const percentageCol = this.addColumn(DataType.Numeric, 'percentage', 'ALGO_PERCENTAGE', true, false, {
+      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
     });
-    const percentageCol = this.addColumn(DataType.Numeric, 'percentage', 'ALGO_PERCENTAGE', true, false);
     percentageCol.cec = {
       inputType: EditInputType.InputNumber,
       min: 0,
       max: 100,
       maxFractionDigits: 2
     };
-    this.addColumnFeqH(DataType.NumericShowZero, 'addedPercentage', true, false);
+    this.addColumnFeqH(DataType.NumericShowZero, 'addedPercentage', true, false, {
+      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
+    });
+    this.addColumnFeqH(DataType.DateString, 'security.activeFromDate', true, false);
+    this.addColumnFeqH(DataType.DateString, 'security.activeToDate', true, false);
     this.addColumn(DataType.String, 'idTree', 'ID', true, false);
   }
 
   ngOnInit(): void {
     this.routeSubscribe = this.activatedRoute.params.subscribe((params: Params) => {
       const id = +params['id'];
-      this.algoTop = this.treeNavState.getEntity<AlgoTop>(
-        BaseSettings.MAINVIEW_KEY + '/' + AppSettings.ALGO_TOP_KEY,
-        id
-      );
       this.translateHeadersAndColumns();
-      this.readDataWithoutTopLevel();
+      this.readHierarchy(id);
     });
   }
 
   readDataWithTopLevel(): void {
-    this.algoTopService
-      .getAlgoTopByIdAlgoAssetclassSecurity(this.algoTop.idAlgoAssetclassSecurity)
-      .subscribe((algoTop) => {
-        this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
-        this.algoTop = algoTop;
-        this.readDataWithoutTopLevel();
-      });
+    this.readHierarchy(this.algoTop.idAlgoAssetclassSecurity, true);
   }
 
   readDataWithoutTopLevel(): void {
-    this.algoAssetclassService
-      .getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(this.algoTop.idAlgoAssetclassSecurity)
-      .subscribe((algoAssetclassList: AlgoAssetclass[]) => {
-        this.algoTop.algoAssetclassList = algoAssetclassList;
-        this.algoTop = plainToClass(AlgoTop, this.algoTop);
-        this.treeNodes = [new TreeAlgoTop(this.algoTop)];
-        this.translateDataForAssetclass();
-        this.translateDataForStrategy();
-        this.refreshSelectedEntity();
+    this.readHierarchy(this.algoTop.idAlgoAssetclassSecurity);
+  }
+
+  /** Refreshes the hierarchy and warnings together after every edit, deletion or normalization. */
+  private readHierarchy(idAlgoTop: number, notifyNavigation = false): void {
+    this.algoTopService.getHierarchy(idAlgoTop).subscribe((hierarchy) => {
+      this.algoTop = plainToClass(AlgoTop, {
+        ...hierarchy.algoTop,
+        algoAssetclassList: hierarchy.algoAssetclassList
       });
+      this.invalidFields = hierarchy.invalidFields;
+      this.warningFields = hierarchy.warningFields;
+      this.treeNodes = [new TreeAlgoTop(this.algoTop)];
+      this.translateDataForAssetclass();
+      this.translateDataForStrategy();
+      this.refreshSelectedEntity();
+      if (notifyNavigation) {
+        this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
+      }
+    });
   }
 
   getReadableUniqueName(dataobject: AlgoTreeName, field: ColumnConfig, valueField: any): string {
@@ -244,7 +259,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
    * @returns true if the cell should be editable
    */
   canEditCell(rowData: any, field: ColumnConfig): boolean {
-    return 'percentage' in rowData;
+    return !this.hierarchyReadOnly && 'percentage' in rowData;
   }
 
   /**
@@ -254,7 +269,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
    * @param event - The cell edit event containing rowData, field, originalValue, and newValue
    */
   onCellEditComplete(event: TreeTableCellEditEvent): void {
-    if (event.originalValue === event.newValue) {
+    if (this.hierarchyReadOnly || event.originalValue === event.newValue) {
       return;
     }
     const rowData = event.rowData;
@@ -277,6 +292,27 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   }
 
   /**
+   * Highlights fields selected by backend validation without repeating business rules in the client.
+   *
+   * @param rowData - The row data object
+   * @param field - The column configuration
+   * @returns CSS class string or null
+   */
+  getAlgoCellClass(rowData: any, field: ColumnConfig): string | null {
+    if (!(rowData instanceof AlgoTopAssetSecurity)) {
+      return null;
+    }
+    const classes: string[] = [];
+    if (this.invalidFields[rowData.idAlgoAssetclassSecurity]?.includes(field.field)) {
+      classes.push('algo-value-invalid');
+    }
+    if (this.warningFields[rowData.idAlgoAssetclassSecurity]?.includes(field.field)) {
+      classes.push('algo-value-warning');
+    }
+    return classes.join(' ') || null;
+  }
+
+  /**
    * Returns CSS class for tree table rows.
    * AlgoAssetclass rows are displayed in bold to distinguish them visually.
    *
@@ -293,7 +329,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
    * Only AlgoSecurity rows get checkboxes for batch selection.
    */
   isSecurityRow(rowData: any, field: ColumnConfig): boolean {
-    return rowData instanceof AlgoSecurity;
+    return !this.hierarchyReadOnly && rowData instanceof AlgoSecurity;
   }
 
   /**
@@ -342,7 +378,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       () => {
         deleteService.deleteEntity(entity.getId()).subscribe((response) => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: entity.constructor.name
+            i18nRecord: AppHelper.toUpperCaseWithUnderscore(entity.constructor.name)
           });
           this.resetMenu();
           this.readDataWithoutTopLevel();
@@ -383,7 +419,7 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   callMeDeactivate(): void {}
 
   getHelpContextId(): string {
-    return HelpIds.HELP_ALGO;
+    return HelpIds.HELP_ALGO_TREE;
   }
 
   onNodeSelect(event) {
@@ -507,6 +543,18 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
     });
   }
 
+  /**
+   * Switches the live evaluation of the whole hierarchy on or off. The rebalancing and every alert and strategy below
+   * the top level only run while it is active; the change is rolled back on the client when saving fails.
+   */
+  private handleToggleActivatable(): void {
+    this.algoTop.activatable = !this.algoTop.activatable;
+    this.algoTopService.update(this.algoTop).subscribe({
+      next: () => this.readDataWithTopLevel(),
+      error: () => (this.algoTop.activatable = !this.algoTop.activatable)
+    });
+  }
+
   private resetMenu(): void {
     this.contextMenuItems = this.getEditMenu(this.selectedNode);
     this.activePanelService.activatePanel(this, {
@@ -516,6 +564,9 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
   }
 
   private getEditMenu(selectedNode: TreeNode): MenuItem[] {
+    if (this.hierarchyReadOnly) {
+      return [];
+    }
     const menuItems: MenuItem[] = [];
     const checkedSecurities = this.getCheckedSecurities();
     if (checkedSecurities.length > 0) {
@@ -526,6 +577,11 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       menuItems.push({ separator: true });
     }
     if (selectedNode instanceof TreeAlgoTop) {
+      menuItems.push({
+        label: this.algoTop.activatable ? 'DEACTIVATE' : 'ACTIVATE',
+        command: () => this.handleToggleActivatable()
+      });
+      menuItems.push({ separator: true });
       menuItems.push({
         label: 'ADD_RECORD|ASSETCLASS',
         command: (e) => this.addEdit(AlgoDialogVisible.ALGO_ASSETCLASS, this.algoTop, null)
@@ -609,8 +665,21 @@ export class AlgoTopDataViewComponent extends TreeTableConfigBase implements IGl
       parent.isCustomCategory()
         ? this.algoTop.idWatchlist
         : undefined;
-    this.algoCallParam = new AlgoCallParam(parent, thisObject, algoStrategyDefinitionForm, idWatchlist);
-    this.visibleDialogs[algoDialogVisible] = true;
+    this.algoCallParam = new AlgoCallParam(
+      parent,
+      thisObject,
+      algoStrategyDefinitionForm,
+      idWatchlist,
+      this.algoTop.referenceDate
+    );
+    if (algoDialogVisible === AlgoDialogVisible.ALGO_ASSETCLASS) {
+      this.gps.getEntityFormDefinition('AlgoAssetclass').subscribe((definition) => {
+        this.algoCallParam.formDefinition = definition;
+        this.visibleDialogs[algoDialogVisible] = true;
+      });
+    } else {
+      this.visibleDialogs[algoDialogVisible] = true;
+    }
   }
 
   private refreshSelectedEntity(): void {

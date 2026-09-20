@@ -38,19 +38,26 @@ public abstract class AlgoTopAssetSecurity extends TenantBaseID implements Seria
 
   private static final long serialVersionUID = 1L;
 
+  /** Auto-generated primary key shared by every node in the algo hierarchy. */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
   @Column(name = "id_algo_assetclass_security")
   protected Integer idAlgoAssetclassSecurity;
 
-  @JoinColumn(name = "id_algo_assetclass_security")
+  /**
+   * Rules and strategies assigned directly to this hierarchy node. The strategy owns this required reference, so
+   * deletion cascades to the strategies without nulling their parent.
+   */
+  @JoinColumn(name = "id_algo_assetclass_security", nullable = false, insertable = false, updatable = false)
   @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
   private List<AlgoRuleStrategy> algoRuleStrategyList;
 
+  /** Tenant that owns this hierarchy node. */
   @Column(name = "id_tenant")
   protected Integer idTenant;
 
+  /** Target allocation of this node within its parent, in percentage points. */
   @Column(name = "percentage")
   protected Float percentage;
 

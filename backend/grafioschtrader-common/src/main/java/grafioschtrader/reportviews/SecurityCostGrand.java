@@ -10,13 +10,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Abstract base class for creating grand totals and comprehensive summaries of security-related costs across multiple
  * groupings. Provides the foundation for enterprise-level cost analysis by aggregating costs from various group
  * summaries and calculating meaningful statistics for cost optimization and trend analysis.
- * 
+ *
  * <p>
  * This generic base class establishes the pattern for creating comprehensive cost reports that span multiple dimensions
  * (accounts, currencies, time periods, etc.) while maintaining proper currency precision and providing standardized
  * statistical calculations for cost analysis.
  * </p>
- * 
+ *
  * <h3>Core Capabilities:</h3>
  * <ul>
  * <li>Aggregation of costs across multiple group summaries</li>
@@ -61,7 +61,7 @@ public abstract class SecurityCostGrand<S, T> extends MapGroup<S, T> {
    * Abstract method that extracts the security cost group from a specific group summary. Enables polymorphic access to
    * cost group functionality regardless of the specific group summary implementation, supporting flexible grouping
    * strategies.
-   * 
+   *
    * @param groupSummary the group summary from which to extract the cost group
    * @return the security cost group for aggregation and calculation operations
    */
@@ -87,9 +87,9 @@ public abstract class SecurityCostGrand<S, T> extends MapGroup<S, T> {
   }
 
   /**
-   * Calculates comprehensive grand totals by aggregating costs from all group summaries.
-   * This method coordinates the calculation process across all groups, ensuring each
-   * group's totals are current before performing enterprise-level aggregation.
+   * Calculates comprehensive grand totals by aggregating costs from all group summaries. This method coordinates the
+   * calculation process across all groups, ensuring each group's totals are current before performing enterprise-level
+   * aggregation.
    */
   public void caclulateGrandSummary() {
     this.groupMap.forEach((_, groupSummary) -> {

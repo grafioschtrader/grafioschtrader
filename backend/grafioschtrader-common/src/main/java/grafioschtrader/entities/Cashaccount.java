@@ -55,8 +55,8 @@ public class Cashaccount extends Securitycashaccount implements Serializable {
       This prevents ambiguities in portfolio evaluations. Therefore, this assignment should be made if there
       are multiple deposits and bank accounts with the same currency.""")
   @Column(name = "connect_id_securityaccount")
-  @DynamicFormField(uiOrder = "1.3", helps = { DynamicFormPropertyHelps.SELECT_OPTIONS },
-      labelKey = "SECURITYACCOUNT_ASSIGNMENT")
+  @DynamicFormField(uiOrder = "1.3", helps = {
+      DynamicFormPropertyHelps.SELECT_OPTIONS }, labelKey = "SECURITYACCOUNT_ASSIGNMENT")
   private Integer connectIdSecurityaccount;
 
   public Cashaccount() {

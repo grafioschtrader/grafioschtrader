@@ -129,12 +129,14 @@ export class SecurityService extends SecurityCurrencyService<Security> implement
    * @returns true when the instrument may only move within its own kind
    */
   isStockexchangeCategoryLocked(idSecuritycurrency: number): Observable<boolean> {
-    return <Observable<boolean>>this.httpClient
-      .get(
-        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/stockexchangecategorylocked`,
-        { headers: this.prepareHeaders() }
-      )
-      .pipe(catchError(this.handleError.bind(this)));
+    return <Observable<boolean>>(
+      this.httpClient
+        .get(
+          `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITY_KEY}/${idSecuritycurrency}/stockexchangecategorylocked`,
+          { headers: this.prepareHeaders() }
+        )
+        .pipe(catchError(this.handleError.bind(this)))
+    );
   }
 
   /**

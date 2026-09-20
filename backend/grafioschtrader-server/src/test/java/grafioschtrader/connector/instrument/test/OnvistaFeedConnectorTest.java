@@ -44,8 +44,9 @@ class OnvistaFeedConnectorTest extends BaseFeedConnectorCheck {
               "FUND/20982583/eod_history?idNotation=26071169", 3934, "2008-11-18", toDate));
       hisoricalDate.add(new SecurityHistoricalDate("Amazon", SpecialInvestmentInstruments.MUTUAL_FUND,
           "STOCK/90929/eod_history?idNotation=9386187", 5436, "2004-03-17", toDate));
-      hisoricalDate.add(new SecurityHistoricalDate("Luzerner Kantonalbank AG SF-Anl. 2021(29/31)", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-          "BOND/197305892/eod_history?idNotation=334772886", 723, "2021-05-12", toDate));
+      hisoricalDate.add(new SecurityHistoricalDate("Luzerner Kantonalbank AG SF-Anl. 2021(29/31)",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, "BOND/197305892/eod_history?idNotation=334772886", 723,
+          "2021-05-12", toDate));
     } catch (ParseException pe) {
       pe.printStackTrace();
     }

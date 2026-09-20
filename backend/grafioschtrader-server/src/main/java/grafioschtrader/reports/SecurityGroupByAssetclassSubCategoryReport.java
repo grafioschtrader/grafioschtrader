@@ -12,7 +12,7 @@ import grafioschtrader.entities.Security;
  * Specialized security position report that groups portfolio holdings by asset class subcategory with
  * internationalization support. Provides detailed portfolio allocation analysis at the subcategory level, displaying
  * results in the user's preferred language for enhanced accessibility and regional compliance requirements.
- * 
+ *
  * <p>
  * This report extends the basic grouping function to focus specifically on subcategories of asset classes that offer a
  * more detailed classification than the main asset classes. Within the EQUITIES asset class, subcategories could

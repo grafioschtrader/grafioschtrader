@@ -15,7 +15,7 @@ export class TransactionSecurityEditDividendReduce implements ITransactionEditTy
    * Creates a new dividend/reduce transaction handler.
    * @param transactionCallParam Configuration parameters containing transaction context and security details
    */
-  constructor(private transactionCallParam: TransactionCallParam) {}
+  constructor(protected transactionCallParam: TransactionCallParam) {}
 
   /**
    * Calculates the total position value for dividend or security reduction transactions.
@@ -91,6 +91,25 @@ export class TransactionSecurityEditFinanceCost
   extends TransactionSecurityEditDividendReduce
   implements ITransactionEditType
 {
+  /** Financing costs stay with their position's account, including after the position has been fully closed. */
+  override acceptSecurityaccount(
+    securitycashaccount: Securityaccount | Cashaccount,
+    securityaccountOpenPositionUnits: SecurityaccountOpenPositionUnits[],
+    isSellBuyMarginInstrument: boolean,
+    closeMarginIdSecurityaccount: number
+  ): boolean {
+    const idSecurityaccount = this.transactionCallParam.transaction?.idSecurityaccount;
+    if (idSecurityaccount != null && !securitycashaccount.hasOwnProperty('currency')) {
+      return securitycashaccount.idSecuritycashAccount === idSecurityaccount;
+    }
+    return super.acceptSecurityaccount(
+      securitycashaccount,
+      securityaccountOpenPositionUnits,
+      isSellBuyMarginInstrument,
+      closeMarginIdSecurityaccount
+    );
+  }
+
   /**
    * Calculates the total position value for finance cost transactions on margin instruments.
    * @param quotation The financing rate or cost per unit

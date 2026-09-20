@@ -33,7 +33,7 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.connector.ConnectorHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
-import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
+import grafioschtrader.dto.ISecuritycurrencyIdDateCloseCreateType;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -48,6 +48,7 @@ import grafioschtrader.reportviews.securitycurrency.ISecurityDataProviderUrls;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.LastpriceOrigin;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -118,10 +119,9 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
   }
 
   /**
-   * Supplements the live historyquote table with archived rows from historyquote_legacy
-   * that the current connector does not cover. Default implementation is a no-op — only
-   * {@link SecurityJpaRepositoryImpl} produces shadow rows; currency-pair flows never do.
-   * Called from {@link SecurityServiceAsyncExectuion#asyncLoadHistoryIntraData} after a
+   * Supplements the live historyquote table with archived rows from historyquote_legacy that the current connector does
+   * not cover. Default implementation is a no-op — only {@link SecurityJpaRepositoryImpl} produces shadow rows;
+   * currency-pair flows never do. Called from {@link SecurityServiceAsyncExectuion#asyncLoadHistoryIntraData} after a
    * wipe-and-reload so the shadow is re-merged on the async path the same way the sync
    * {@code rebuildSecurityCurrencypairHisotry} does.
    */
@@ -136,8 +136,8 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
 
   @Override
   public void setSecuritycurrencyHistoricalDownloadLink(S securitycurrency, ISecurityDataProviderUrls urlHolder) {
-    urlHolder.setHistoricalUrl(getHistorquoteLoad(securitycurrency)
-        .getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(securitycurrency));
+    urlHolder.setHistoricalUrl(
+        getHistorquoteLoad(securitycurrency).getSecuritycurrencyHistoricalDownloadLinkAsUrlStr(securitycurrency));
   }
 
   protected S updateLastPriceSecurityCurrency(final S securitycurrency, final short maxIntraRetry,
@@ -173,30 +173,34 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         .collect(Collectors.toList());
 
     if (!idSecurityList.isEmpty()) {
-      final List<ISecuritycurrencyIdDateClose> queryResult = historyquoteJpaRepository
+      final List<ISecuritycurrencyIdDateCloseCreateType> queryResult = historyquoteJpaRepository
           .getIdDateCloseByIdsAndDate(idSecurityList, untilDate);
-      final Map<Integer, ISecuritycurrencyIdDateClose> historyquotes = queryResult.stream()
-          .collect(Collectors.toMap(ISecuritycurrencyIdDateClose::getIdSecuritycurrency, Function.identity()));
+      final Map<Integer, ISecuritycurrencyIdDateCloseCreateType> historyquotes = queryResult.stream().collect(
+          Collectors.toMap(ISecuritycurrencyIdDateCloseCreateType::getIdSecuritycurrency, Function.identity()));
       for (final U securityPositionSummary : securitycurrencyPositionSummaryList) {
-        final ISecuritycurrencyIdDateClose historyquote = historyquotes
+        final ISecuritycurrencyIdDateCloseCreateType historyquote = historyquotes
             .get(securityPositionSummary.securitycurrency.getIdSecuritycurrency());
 
         Double price = securityPositionSummary.securitycurrency.getSLast();
         LocalDate date = securityPositionSummary.securitycurrency.getSTimestamp() != null
-            ? securityPositionSummary.securitycurrency.getSTimestamp().toLocalDate() : null;
-        if (historyquote != null
-            && (price == null || (date != null && (historyquote.getDate().isAfter(date)
-                || untilDate.isBefore(date))))) {
+            ? securityPositionSummary.securitycurrency.getSTimestamp().toLocalDate()
+            : null;
+        if (historyquote != null && (price == null
+            || (date != null && (historyquote.getDate().isAfter(date) || untilDate.isBefore(date))))) {
           price = historyquote.getClose();
           date = historyquote.getDate();
+          // The intraday price of this instrument is gone or too young for the reporting date, so what is shown is a
+          // closing price. Whether that price was traded or was produced by filling gaps has to reach the user.
+          securityPositionSummary.closePriceOrigin = LastpriceOrigin
+              .ofHistoryquoteCreateType(historyquote.getCreateType());
         }
         if (price == null) {
           // The substitute keeps the downstream calculation from failing, but it is not a price. Marking it as such is
           // what allows a report to leave the position out of its totals instead of valuing it at zero or at one.
           price = (securityPositionSummary.closePrice != null) ? securityPositionSummary.closePrice : 0.0;
           securityPositionSummary.priceMissing = true;
-          log.warn("No price for instrument {} on {}",
-              securityPositionSummary.securitycurrency.getIdSecuritycurrency(), untilDate);
+          log.warn("No price for instrument {} on {}", securityPositionSummary.securitycurrency.getIdSecuritycurrency(),
+              untilDate);
         }
         price = (securityPositionSummary instanceof SecurityPositionSummary)
             ? price * ((SecurityPositionSummary) securityPositionSummary).closePriceFactor
@@ -228,8 +232,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     List<IFeedConnector> base = getFeedConnectors(isCurrency);
     // Context-aware filter is only applied in mode 2 and only when the caller actually supplied enough context.
     // Mode 0/1 and the legacy no-context call path keep the unfiltered behaviour so non-UI callers are unaffected.
-    if (globalparametersService.getForceConnectorMatch() != 2 || assetclassType == null
-        || specInvInstrument == null) {
+    if (globalparametersService.getForceConnectorMatch() != 2 || assetclassType == null || specInvInstrument == null) {
       return base;
     }
     final String mic;
@@ -242,8 +245,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
       mic = null;
       country = null;
     }
-    return base.stream()
-        .filter(fc -> fc.supports(mic, country, assetclassType, specInvInstrument))
+    return base.stream().filter(fc -> fc.supports(mic, country, assetclassType, specInvInstrument))
         .collect(Collectors.toList());
   }
 
@@ -305,11 +307,11 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
    * {@link DataViolationException} keyed by the slot ({@code id.connector.history/intra/dividend/split}) so the
    * frontend's validation-error pipeline can localize the message.
    *
-   * <p>Skipped silently in mode 0, or when the connector reference is unresolved (orphan connector id — already
-   * tolerated elsewhere), or when the entity lacks the metadata to evaluate (no asset class / unresolvable
-   * stockexchange). The (mic, country) tuple is derived from the security's stock exchange; for currency pairs the
-   * tuple is null and the instrument flag is {@code CFD} when either leg is a supported cryptocurrency,
-   * {@code FOREX} otherwise.
+   * <p>
+   * Skipped silently in mode 0, or when the connector reference is unresolved (orphan connector id — already tolerated
+   * elsewhere), or when the entity lacks the metadata to evaluate (no asset class / unresolvable stockexchange). The
+   * (mic, country) tuple is derived from the security's stock exchange; for currency pairs the tuple is null and the
+   * instrument flag is {@code CFD} when either leg is a supported cryptocurrency, {@code FOREX} otherwise.
    */
   protected void validateConnectorSupports(final S securitycurrency, IFeedConnector connector, FeedSupport slot) {
     if (connector == null || globalparametersService.getForceConnectorMatch() < 1) {
@@ -338,10 +340,10 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
     }
     if (!connector.supports(mic, country, act, specInst)) {
       String fieldKey = switch (slot) {
-        case FS_HISTORY -> "id.connector.history";
-        case FS_INTRA -> "id.connector.intra";
-        case FS_DIVIDEND -> "id.connector.dividend";
-        case FS_SPLIT -> "id.connector.split";
+      case FS_HISTORY -> "id.connector.history";
+      case FS_INTRA -> "id.connector.intra";
+      case FS_DIVIDEND -> "id.connector.dividend";
+      case FS_SPLIT -> "id.connector.split";
       };
       throw new DataViolationException(fieldKey, "gt.connector.unsupported.assetclass",
           new Object[] { connector.getReadableName() });

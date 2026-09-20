@@ -27,8 +27,8 @@ public enum TaIndicators {
   /**
    * Relative Strength Index (RSI).
    * <p>
-   * A momentum oscillator that measures the speed and magnitude of price changes. It oscillates between 0 and 100,
-   * with values above 70 typically indicating overbought conditions and values below 30 indicating oversold conditions.
+   * A momentum oscillator that measures the speed and magnitude of price changes. It oscillates between 0 and 100, with
+   * values above 70 typically indicating overbought conditions and values below 30 indicating oversold conditions.
    * Displayed in a separate panel below the price chart.
    * </p>
    */
@@ -43,9 +43,9 @@ public enum TaIndicators {
   /**
    * Indicates whether this indicator is an oscillator type.
    * <p>
-   * Oscillator indicators (like RSI) have bounded output ranges (typically 0-100) and should be displayed in a
-   * separate panel below the price chart. Non-oscillator indicators (like SMA, EMA) follow the price and should be
-   * displayed as overlays on the main price chart.
+   * Oscillator indicators (like RSI) have bounded output ranges (typically 0-100) and should be displayed in a separate
+   * panel below the price chart. Non-oscillator indicators (like SMA, EMA) follow the price and should be displayed as
+   * overlays on the main price chart.
    * </p>
    *
    * @return true if this is an oscillator indicator, false otherwise

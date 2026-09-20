@@ -57,45 +57,115 @@ public class Ech0196Security {
 
   // Getters and setters
 
-  public Ech0196TaxValue getTaxValue() { return taxValue; }
-  public void setTaxValue(Ech0196TaxValue taxValue) { this.taxValue = taxValue; }
+  public Ech0196TaxValue getTaxValue() {
+    return taxValue;
+  }
 
-  public List<Ech0196Payment> getPayments() { return payments; }
-  public void setPayments(List<Ech0196Payment> payments) { this.payments = payments; }
+  public void setTaxValue(Ech0196TaxValue taxValue) {
+    this.taxValue = taxValue;
+  }
 
-  public List<Ech0196Stock> getStocks() { return stocks; }
-  public void setStocks(List<Ech0196Stock> stocks) { this.stocks = stocks; }
+  public List<Ech0196Payment> getPayments() {
+    return payments;
+  }
 
-  public int getPositionId() { return positionId; }
-  public void setPositionId(int positionId) { this.positionId = positionId; }
+  public void setPayments(List<Ech0196Payment> payments) {
+    this.payments = payments;
+  }
 
-  public Integer getValorNumber() { return valorNumber; }
-  public void setValorNumber(Integer valorNumber) { this.valorNumber = valorNumber; }
+  public List<Ech0196Stock> getStocks() {
+    return stocks;
+  }
 
-  public String getIsin() { return isin; }
-  public void setIsin(String isin) { this.isin = isin; }
+  public void setStocks(List<Ech0196Stock> stocks) {
+    this.stocks = stocks;
+  }
 
-  public String getCountry() { return country; }
-  public void setCountry(String country) { this.country = country; }
+  public int getPositionId() {
+    return positionId;
+  }
 
-  public String getCity() { return city; }
-  public void setCity(String city) { this.city = city; }
+  public void setPositionId(int positionId) {
+    this.positionId = positionId;
+  }
 
-  public String getCurrency() { return currency; }
-  public void setCurrency(String currency) { this.currency = currency; }
+  public Integer getValorNumber() {
+    return valorNumber;
+  }
 
-  public String getQuotationType() { return quotationType; }
-  public void setQuotationType(String quotationType) { this.quotationType = quotationType; }
+  public void setValorNumber(Integer valorNumber) {
+    this.valorNumber = valorNumber;
+  }
 
-  public Double getNominalValue() { return nominalValue; }
-  public void setNominalValue(Double nominalValue) { this.nominalValue = nominalValue; }
+  public String getIsin() {
+    return isin;
+  }
 
-  public String getSecurityCategory() { return securityCategory; }
-  public void setSecurityCategory(String securityCategory) { this.securityCategory = securityCategory; }
+  public void setIsin(String isin) {
+    this.isin = isin;
+  }
 
-  public String getSecurityType() { return securityType; }
-  public void setSecurityType(String securityType) { this.securityType = securityType; }
+  public String getCountry() {
+    return country;
+  }
 
-  public String getSecurityName() { return securityName; }
-  public void setSecurityName(String securityName) { this.securityName = securityName; }
+  public void setCountry(String country) {
+    this.country = country;
+  }
+
+  public String getCity() {
+    return city;
+  }
+
+  public void setCity(String city) {
+    this.city = city;
+  }
+
+  public String getCurrency() {
+    return currency;
+  }
+
+  public void setCurrency(String currency) {
+    this.currency = currency;
+  }
+
+  public String getQuotationType() {
+    return quotationType;
+  }
+
+  public void setQuotationType(String quotationType) {
+    this.quotationType = quotationType;
+  }
+
+  public Double getNominalValue() {
+    return nominalValue;
+  }
+
+  public void setNominalValue(Double nominalValue) {
+    this.nominalValue = nominalValue;
+  }
+
+  public String getSecurityCategory() {
+    return securityCategory;
+  }
+
+  public void setSecurityCategory(String securityCategory) {
+    this.securityCategory = securityCategory;
+  }
+
+  public String getSecurityType() {
+    return securityType;
+  }
+
+  public void setSecurityType(String securityType) {
+    this.securityType = securityType;
+  }
+
+  public String getSecurityName() {
+    return securityName;
+  }
+
+  public void setSecurityName(String securityName) {
+    this.securityName = securityName;
+  }
 }

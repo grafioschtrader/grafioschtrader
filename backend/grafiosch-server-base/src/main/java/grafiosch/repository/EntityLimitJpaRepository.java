@@ -9,15 +9,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import grafiosch.entities.EntityLimit;
 import grafiosch.rest.UpdateCreateJpaRepository;
 
-public interface EntityLimitJpaRepository
-    extends JpaRepository<EntityLimit, Integer>, EntityLimitJpaRepositoryCustom, UpdateCreateJpaRepository<EntityLimit> {
+public interface EntityLimitJpaRepository extends JpaRepository<EntityLimit, Integer>, EntityLimitJpaRepositoryCustom,
+    UpdateCreateJpaRepository<EntityLimit> {
 
   /**
    * Loads every row configured for one limit type and entity name. The remaining key parts and the role/user scope are
    * filtered in the resolver rather than in the query, because they are nullable and a JPQL predicate over nullable
    * parameters would be considerably harder to read than the handful of rows this returns.
    *
-   * @param limitType the {@code byte} value of the limit type
+   * @param limitType  the {@code byte} value of the limit type
    * @param entityName entity or pseudo entity name of the key
    * @return all rows sharing that limit type and entity name, over every key variant and every scope
    */
@@ -36,8 +36,8 @@ public interface EntityLimitJpaRepository
    * {@code (id_user, limit_type, entity_name)} identifies the row unambiguously.
    * </p>
    *
-   * @param idUser the user the row belongs to
-   * @param limitType the {@code byte} value of the limit type
+   * @param idUser     the user the row belongs to
+   * @param limitType  the {@code byte} value of the limit type
    * @param entityName entity or pseudo entity name of the key
    * @return the existing row, or empty when the user has none for this key
    */

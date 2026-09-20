@@ -1,4 +1,4 @@
-import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
+import { GroupItem, ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
 import { TranslateService } from '@ngx-translate/core';
 import { EnumI } from './enumI';
 import { SelectItem } from '@openng/optimus-ui/api';
@@ -241,6 +241,22 @@ export class SelectOptionsHelper {
   public static prependEmptyOption(options: ValueKeyHtmlSelectOptions[]): ValueKeyHtmlSelectOptions[] {
     options.unshift(new ValueKeyHtmlSelectOptions('', ''));
     return options;
+  }
+
+  /**
+   * Converts native-select options to Optimus dropdown group items so the overlay filter can search
+   * by the visible label ({@code optionsText}). Both the closed control and the list show {@code value}.
+   *
+   * @param options Options as returned by REST endpoints such as {@code getCountriesForSelectBox}
+   * @param addEmpty Whether to prepend an empty "no selection" row (default false)
+   * @returns GroupItem array for {@code FieldConfig.groupItem}
+   */
+  public static createGroupItemsFromValueKeyHtmlSelectOptions(
+    options: ValueKeyHtmlSelectOptions[],
+    addEmpty = false
+  ): GroupItem[] {
+    const items = options.map((option) => new GroupItem(option.key, option.value, option.value, null));
+    return addEmpty ? [new GroupItem('', '', '', null), ...items] : items;
   }
 
   /**

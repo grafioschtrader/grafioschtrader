@@ -1,3 +1,4 @@
+import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { Injectable } from '@angular/core';
 import { Observable, of, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -20,10 +21,14 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
 import { FeatureType } from '../../lib/login/model/configuration-with-login';
 import { AlgoRuleStrategyCreateDynamicComponent } from '../component/algo.rule.strategy.create.component';
 import { AlgoCreateFromPortfolioDynamicComponent } from '../component/algo-create-from-portfolio.component';
-import { AlgoTopCreateFromPortfolio } from '../../entities/backend/algo.top.create';
+import { AlgoCreateFromWatchlistDynamicComponent } from '../component/algo-create-from-watchlist.component';
+import { AlgoTopCreateFromPortfolio, AlgoTopCreateFromWatchlist } from '../../entities/backend/algo.top.create';
 import { TenantService } from '../../tenant/service/tenant.service';
+import { ManageClientService } from '../../lib/manageclient/service/manage-client.service';
+import { SimulationContextService } from '../service/simulation.context.service';
 import { SimulationTenantInfo } from '../model/simulation.tenant';
 import { AlgoSimulationCreateDynamicComponent } from '../component/algo-simulation-create.component';
+import { AlgoSimulationRunStartDynamicComponent } from '../component/algo-simulation-run-start.component';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { Cashaccount } from '../../entities/cashaccount';
 
@@ -37,8 +42,11 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   private simulationTenants: SimulationTenantInfo[] = [];
 
   constructor(
+    private gps: GlobalparameterService,
     private algoTopService: AlgoTopService,
     private tenantService: TenantService,
+    private manageClientService: ManageClientService,
+    private simulationContext: SimulationContextService,
     private portfolioService: PortfolioService,
     private messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
@@ -63,7 +71,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
     this.rootNode = {
       expanded: true,
       children: [],
-      data: new TypeNodeData(TreeNodeType.AlgoRoot, this.addMainRoute(AppSettings.STRATEGY_OVERVIEW_KEY), null, null)
+      data: new TypeNodeData(TreeNodeType.AlgoRoot, this.addMainRoute(AppSettings.ALGO_OVERVIEW_KEY), null, null)
     };
     this.setLangTrans('ALGO_OVERVIEW', this.rootNode);
     return of([this.rootNode]);
@@ -101,11 +109,13 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             treeNode.children = [];
             for (const sim of sims) {
               treeNode.children.push({
-                label: sim.tenantName,
+                label: `${sim.tenantName} — ${sim.simulationStartDate ?? this.translateService.instant('SIMULATION_RECREATE_REQUIRED')}${sim.initializationMode ? ' / ' + this.translateService.instant(sim.initializationMode) : ''}`,
                 icon: 'pi pi-box',
                 data: new TypeNodeData(
                   TreeNodeType.SimulationEnvironment,
-                  this.addMainRoute(AppSettings.STRATEGY_OVERVIEW_KEY),
+                  this.addMainRoute(AppSettings.SIMULATION_RUN_KEY),
+                  // The replay panel addresses the environment by its tenant, so the node carries that id into the
+                  // route. The serialized entity stays: the switch and delete actions of the context menu read it.
                   sim.idTenant,
                   null,
                   JSON.stringify(sim)
@@ -131,7 +141,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             label: 'SWITCH_TO_MAIN',
             command: () => this.switchToMainTenant()
           });
-        } else {
+        } else if (!this.gps.isReadOnlyUser()) {
           menuItems.push({
             label: 'CREATE|ALGO_PORTFOLIO_STRATEGY' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: () =>
@@ -164,6 +174,22 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
                   }
                 })
           });
+          menuItems.push({
+            label: 'CREATE_STRATEGY_FROM_WATCHLIST' + BaseSettings.DIALOG_MENU_SUFFIX,
+            command: () =>
+              this.callbacks
+                ?.handleEdit(
+                  AlgoCreateFromWatchlistDynamicComponent,
+                  null,
+                  new AlgoTopCreateFromWatchlist(),
+                  'CREATE_STRATEGY_FROM_WATCHLIST'
+                )
+                ?.subscribe((result) => {
+                  if (result) {
+                    this.callbacks?.refreshTree();
+                  }
+                })
+          });
         }
         break;
 
@@ -173,7 +199,10 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             label: 'CREATE_SIMULATION' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: () => {
               const algoTop: AlgoTop = JSON.parse(typeNodeData.entityObject);
-              this.portfolioService.getPortfoliosForTenantOrderByName().subscribe((portfolios) => {
+              forkJoin([
+                this.portfolioService.getPortfoliosForTenantOrderByName(),
+                this.gps.getEntityFormDefinition('SimulationTenantCreateDTO')
+              ]).subscribe(([portfolios, formDefinition]) => {
                 const cashAccounts: Cashaccount[] = [];
                 for (const portfolio of portfolios) {
                   if (portfolio.cashaccountList) {
@@ -181,7 +210,12 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
                   }
                 }
                 this.callbacks
-                  ?.handleEdit(AlgoSimulationCreateDynamicComponent, { cashAccounts }, algoTop, 'CREATE_SIMULATION')
+                  ?.handleEdit(
+                    AlgoSimulationCreateDynamicComponent,
+                    { cashAccounts, formDefinition },
+                    algoTop,
+                    'CREATE_SIMULATION'
+                  )
                   ?.subscribe((result) => {
                     if (result) {
                       this.callbacks?.refreshTree();
@@ -190,29 +224,41 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
               });
             }
           });
+          // The strategy hierarchy is read only inside an environment: it is edited in the user's own portfolio and
+          // the simulation is replayed from there.
+          if (!this.gps.isReadOnlyUser()) {
+            menuItems.push({
+              label: 'DELETE|STRATEGY',
+              command: () => this.handleDeleteStrategy(treeNode, selectedNodeData.idAlgoAssetclassSecurity)
+            });
+          }
         }
-        menuItems.push({
-          label: 'DELETE|STRATEGY',
-          command: () => this.handleDeleteStrategy(treeNode, selectedNodeData.idAlgoAssetclassSecurity)
-        });
         break;
 
-      case TreeNodeType.SimulationEnvironment:
-        menuItems.push({
-          label: 'SWITCH_TO_SIMULATION',
-          command: () => {
-            const sim: SimulationTenantInfo = JSON.parse(typeNodeData.entityObject);
-            this.switchToSimulationTenant(sim.idTenant);
-          }
-        });
-        menuItems.push({
-          label: 'DELETE_SIMULATION',
-          command: () => {
-            const sim: SimulationTenantInfo = JSON.parse(typeNodeData.entityObject);
-            this.handleDeleteSimulation(treeNode, sim.idTenant);
-          }
-        });
+      case TreeNodeType.SimulationEnvironment: {
+        const simulation: SimulationTenantInfo = JSON.parse(typeNodeData.entityObject);
+        // A replay is started from the main tenant by a user who may write; the backend books its fills as the owner.
+        if (!this.isInSimulation() && !this.gps.isReadOnlyUser() && !simulation.active) {
+          menuItems.push({
+            label: 'SIMULATION_RUN_START' + BaseSettings.DIALOG_MENU_SUFFIX,
+            command: () => this.handleStartReplay(typeNodeData)
+          });
+          menuItems.push({ separator: true });
+        }
+        // While the replay is booking its fills and rebuilding the holdings, the environment can neither be entered
+        // nor deleted; the backend refuses both, so neither is offered. The node stays selectable for its figures.
+        if (!simulation.active) {
+          menuItems.push({
+            label: 'SWITCH_TO_SIMULATION',
+            command: () => this.switchToSimulationTenant(simulation.idTenant)
+          });
+          menuItems.push({
+            label: 'DELETE_SIMULATION',
+            command: () => this.handleDeleteSimulation(treeNode, simulation.idTenant)
+          });
+        }
         break;
+      }
 
       default:
         return null;
@@ -250,44 +296,47 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   }
 
   private isInSimulation(): boolean {
-    return sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT) != null;
+    return this.simulationContext.isInSimulation();
   }
 
+  /**
+   * Enters a simulation environment. The session is only rewritten once the backend has authorized the switch, so a
+   * rejected request leaves the previous context untouched, and the application is reloaded afterwards: menus, the
+   * navigation tree and every open panel are then rebuilt from the new token instead of showing home data under a
+   * simulation session.
+   *
+   * @param simIdTenant - The simulation environment to enter
+   */
   private switchToSimulationTenant(simIdTenant: number): void {
-    // Save main tenant ID if not already saved
-    if (!sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT)) {
-      sessionStorage.setItem(GlobalSessionNames.MAIN_ID_TENANT, sessionStorage.getItem(GlobalSessionNames.ID_TENANT));
-    }
-
-    this.tenantService.switchTenant(simIdTenant).subscribe({
-      next: (response) => {
-        sessionStorage.setItem(GlobalSessionNames.JWT, response.token);
-        sessionStorage.setItem(GlobalSessionNames.ID_TENANT, simIdTenant.toString());
-        sessionStorage.setItem(GlobalSessionNames.TENANT_READ_ONLY, JSON.stringify(response.readOnly === 'true'));
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'SIMULATION_SWITCHED');
-        this.callbacks?.refreshTree();
-      },
-      error: (err) => console.error('Error switching to simulation:', err)
-    });
+    this.manageClientService.switchAndReload(simIdTenant, false, () => this.simulationContext.enter(simIdTenant));
   }
 
+  /** Leaves the simulation environment and returns to the user's own tenant, reloading the application. */
   private switchToMainTenant(): void {
     const mainIdTenant = sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT);
     if (!mainIdTenant) {
       return;
     }
+    this.manageClientService.switchAndReload(+mainIdTenant, true, () => this.simulationContext.leave());
+  }
 
-    this.tenantService.switchTenant(parseInt(mainIdTenant, 10)).subscribe({
-      next: (response) => {
-        sessionStorage.setItem(GlobalSessionNames.JWT, response.token);
-        sessionStorage.setItem(GlobalSessionNames.ID_TENANT, mainIdTenant);
-        sessionStorage.setItem(GlobalSessionNames.TENANT_READ_ONLY, JSON.stringify(response.readOnly === 'true'));
-        sessionStorage.removeItem(GlobalSessionNames.MAIN_ID_TENANT);
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MAIN_TENANT_SWITCHED');
-        this.callbacks?.refreshTree();
-      },
-      error: (err) => console.error('Error switching to main tenant:', err)
-    });
+  /**
+   * Opens the start dialog of a historical replay and shows the replay panel of the environment once the run was
+   * accepted. A panel that is already open learns about the start through the data changed service.
+   *
+   * @param typeNodeData the node data of the simulation environment, carrying the serialized environment
+   */
+  private handleStartReplay(typeNodeData: TypeNodeData): void {
+    const sim: SimulationTenantInfo = JSON.parse(typeNodeData.entityObject);
+    this.gps.getEntityFormDefinition('SimulationRunRequestDTO').subscribe((formDefinition) =>
+      this.callbacks
+        ?.handleEdit(AlgoSimulationRunStartDynamicComponent, { formDefinition }, sim, 'SIMULATION_RUN')
+        ?.subscribe((result) => {
+          if (result) {
+            this.callbacks?.navigateToNode(typeNodeData);
+          }
+        })
+    );
   }
 
   private handleDeleteSimulation(treeNode: TreeNode, idSimTenant: number): void {
@@ -301,7 +350,13 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
               i18nRecord: 'SIMULATION_ENVIRONMENT'
             });
-            this.callbacks?.refreshTree();
+            // Deleting the environment the session is in would leave the token naming a tenant that no longer exists,
+            // and every following request would be refused. Return home instead of merely rebuilding the tree.
+            if (sessionStorage.getItem(GlobalSessionNames.ID_TENANT) === idSimTenant.toString()) {
+              this.switchToMainTenant();
+            } else {
+              this.callbacks?.refreshTree();
+            }
           },
           error: (err) => console.error('Error deleting simulation:', err)
         });

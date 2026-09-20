@@ -56,8 +56,8 @@ public class TransactionReceiptService {
    * Generates the receipts for the given transaction IDs of the authenticated tenant and writes a single PDF or a ZIP
    * archive to the response.
    *
-   * @param idTransactions the selected transaction IDs; every ID must belong to a supported security transaction of
-   *                       the user's tenant
+   * @param idTransactions the selected transaction IDs; every ID must belong to a supported security transaction of the
+   *                       user's tenant
    * @param response       the HTTP response the document is streamed to
    * @throws Exception if a transaction is missing/unsupported or PDF generation fails
    */
@@ -103,9 +103,8 @@ public class TransactionReceiptService {
   }
 
   private byte[] generate(Transaction transaction, Locale locale, User user) throws Exception {
-    return pdfGenerator.generate(transaction, locale,
-        new ReceiptContext(user.getNickname(), getSecurityaccountName(transaction, user),
-            transaction.getCashaccount().getName()));
+    return pdfGenerator.generate(transaction, locale, new ReceiptContext(user.getNickname(),
+        getSecurityaccountName(transaction, user), transaction.getCashaccount().getName()));
   }
 
   private String getSecurityaccountName(Transaction transaction, User user) {

@@ -2,6 +2,7 @@ limitType|entityName|relationEntityName|countScope|ownerScope|roleName|limitValu
 MAX|GTNetSecurityImpHead|||TENANT|ROLE_LIMITEDIT|50||i
 MAX|GTNetSecurityImpHead|GTNetSecurityImpPos|ALL|TENANT|ROLE_LIMITEDIT|250||e2e
 MAX|GTNetSecurityImpHead|GTNetSecurityImpPos|SINGLE|TENANT|ROLE_LIMITEDIT|50||e2e
+DAY_CUD|BankruptSecurity||||ROLE_LIMITEDIT|3||i
 DAY_CUD|Assetclass||||ROLE_LIMITEDIT|10||i
 DAY_CUD|Currencypair||||ROLE_LIMITEDIT|15||i
 DAY_CUD|GenericConnectorDef||||ROLE_LIMITEDIT|10||e2e

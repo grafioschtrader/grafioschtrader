@@ -42,8 +42,8 @@ public interface TradingCalendarRuleSetJpaRepositoryCustom extends BaseRepositor
   HolidayRuleSet getResolvedRuleSet(Integer idTradingCalendarRuleSet);
 
   /**
-   * Resolves a rule set and returns the closures of one year together with the name of the rule that produced each
-   * one. Drives the preview in the rule editor, so the user sees the effect of a rule before saving it.
+   * Resolves a rule set and returns the closures of one year together with the name of the rule that produced each one.
+   * Drives the preview in the rule editor, so the user sees the effect of a rule before saving it.
    *
    * @param idTradingCalendarRuleSet the rule set to evaluate
    * @param ruleYaml                 unsaved YAML to evaluate instead of the persisted text, may be null
@@ -54,8 +54,8 @@ public interface TradingCalendarRuleSetJpaRepositoryCustom extends BaseRepositor
 
   /**
    * Refuses the deletion of a rule set that is still referenced, either by a stock exchange whose trading calendar it
-   * produces or by another rule set that extends it. Deleting it would leave the exchange without a calendar source
-   * or the extending set without its inherited rules.
+   * produces or by another rule set that extends it. Deleting it would leave the exchange without a calendar source or
+   * the extending set without its inherited rules.
    *
    * @param idTradingCalendarRuleSet the rule set about to be deleted
    */

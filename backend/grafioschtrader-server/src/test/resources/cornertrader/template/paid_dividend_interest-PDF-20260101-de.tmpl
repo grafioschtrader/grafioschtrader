@@ -1,0 +1,22 @@
+Konto 01 {cac|SL|N}
+Datum 19.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+{transType|PL|P} Gutschrift (?:.*?) {datetime|PL|P} 18/08/26 {ta|PL|Nc}+
+Depot 999999/01
+BEISPIEL AKTIE
+Valorennummer 1234567
+ISIN Nummer {isin|SL|P|N}
+Anzahl {units|SL|P|N}
+Ausschüttung {quotation|SL|P} {cin|SL|N}
+Eingang Vorbehalten
+Bruttobetrag 1.000,00+ CHF
+Schweiz.Rückh.Steu. {tt2|SL|P|Nc|O}- CHF
+Verrechnungs-/Quellensteuer (?:\d+(?:,\d+)?%) {tt1|SL|P|Nc|O}- CHF
+Totalbetrag 730,00+ CHF
+Wechselkurs {cex|SL|P|N|O}
+[END]
+templatePurpose=Coupon und Dividende (Corneronline)
+transType=DIVIDEND|Coupon
+dateFormat=dd/MM/yy
+overRuleSeparators=All<.|,>
+otherFlagOptions=BASE_CURRENCY_MAYBE_INVERSE

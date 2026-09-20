@@ -1,81 +1,212 @@
 package grafioschtrader.entities;
 
-import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DataHelper;
 import grafiosch.entities.TenantBaseID;
+import grafioschtrader.GlobalConstants;
+import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.types.AlgoSimulationRunStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * Stores aggregated performance metrics from a simulation run. Includes return, drawdown, Sharpe ratio, and trade
- * statistics.
- */
-@Schema(description = "Simulation result metrics for a specific algo top configuration")
+@Schema(description = """
+    Definition, progress and metrics of one historical replay of a simulation environment. The effective strategy
+    configuration, dates and calculation conventions are captured when the run is submitted so later edits cannot
+    change its meaning. A repeat run replaces the environment's previous result. Metrics are present only for a
+    completed run.""")
 @Entity
 @Table(name = AlgoSimulationResult.TABNAME)
-public class AlgoSimulationResult extends TenantBaseID implements Serializable {
+public class AlgoSimulationResult extends TenantBaseID {
 
   public static final String TABNAME = "algo_simulation_result";
 
-  private static final long serialVersionUID = 1L;
+  @jakarta.persistence.Column(name = "apply_tax_models")
+  private boolean applyTaxModels;
 
+  public boolean isApplyTaxModels() {
+    return applyTaxModels;
+  }
+
+  public void setApplyTaxModels(boolean applyTaxModels) {
+    this.applyTaxModels = applyTaxModels;
+  }
+
+  @jakarta.persistence.Column(name = "generate_bond_coupons")
+  private boolean generateBondCoupons;
+
+  public boolean isGenerateBondCoupons() {
+    return generateBondCoupons;
+  }
+
+  public void setGenerateBondCoupons(boolean generateBondCoupons) {
+    this.generateBondCoupons = generateBondCoupons;
+  }
+
+  @jakarta.persistence.Column(name = "input_assumptions_json", columnDefinition = "LONGTEXT")
+  private String inputAssumptionsJson;
+
+  public String getInputAssumptionsJson() {
+    return inputAssumptionsJson;
+  }
+
+  public void setInputAssumptionsJson(String inputAssumptionsJson) {
+    this.inputAssumptionsJson = inputAssumptionsJson;
+  }
+
+  @jakarta.persistence.Column(name = "tax_income_summary_json", columnDefinition = "LONGTEXT")
+  private String taxIncomeSummaryJson;
+
+  public String getTaxIncomeSummaryJson() {
+    return taxIncomeSummaryJson;
+  }
+
+  public void setTaxIncomeSummaryJson(String taxIncomeSummaryJson) {
+    this.taxIncomeSummaryJson = taxIncomeSummaryJson;
+  }
+
+  @Schema(description = "Auto-generated primary key")
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Basic(optional = false)
   @Column(name = "id_simulation_result")
   private Integer idSimulationResult;
 
-  @Basic(optional = false)
+  @Schema(description = "The simulation environment the run belongs to, never the main tenant")
   @Column(name = "id_tenant")
   private Integer idTenant;
 
-  @Basic(optional = false)
-  @Column(name = "id_algo_top")
+  @Schema(description = "The AlgoTop the environment was created from")
+  @Column(name = "id_algo_assetclass_security")
   private Integer idAlgoTop;
 
-  @Schema(description = "Cumulative return over the simulation period as a decimal (e.g. 0.15 = 15%)")
+  @Schema(description = """
+      Immutable opening date of the environment. Copied from the tenant when the run is submitted, so that the
+      recorded run keeps its meaning.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "opening_date")
+  private LocalDate openingDate;
+
+  @Schema(description = "Last day the replay evaluates; always before the current day")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "end_date")
+  private LocalDate endDate;
+
+  @Schema(description = "Current lifecycle status of the replay")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
+  private AlgoSimulationRunStatus status;
+
+  @Schema(description = "Time at which replay processing started")
+  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
+  @Column(name = "started_at")
+  private LocalDateTime startedAt;
+
+  @Schema(description = "Time at which replay processing completed, failed or was cancelled")
+  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND)
+  @Column(name = "finished_at")
+  private LocalDateTime finishedAt;
+
+  @Schema(description = "Number of trading days the replay has to evaluate, known before the first one is evaluated")
+  @Column(name = "trading_days_total")
+  private int tradingDaysTotal;
+
+  @Schema(description = "Trading days evaluated so far; together with the total this is the progress of a running job")
+  @Column(name = "trading_days_done")
+  private int tradingDaysDone;
+
+  @Schema(description = """
+      Effective configuration of every strategy of the hierarchy at submit time, as a JSON object keyed by strategy
+      id. Later edits of the shared strategies cannot change what this run recorded.""")
+  @Column(name = "strategy_snapshot")
+  private String strategySnapshot;
+
+  @Schema(description = """
+      Space separated message keys of the price, cost and metric conventions the run was calculated under, for
+      example NEXT_CLOSE_FILL NO_TRANSACTION_COST. The result view resolves and lists them.""")
+  @Column(name = "conventions", length = 1000)
+  private String conventions;
+
+  @Schema(description = "Return over the whole run as a decimal, 0.15 being 15 percent")
   @Column(name = "total_return")
   private Double totalReturn;
 
-  @Schema(description = "Annualized return normalized to a 252-trading-day year, as a decimal")
+  @Schema(description = "Total return scaled to a calendar year, as a decimal")
   @Column(name = "annualized_return")
   private Double annualizedReturn;
 
-  @Schema(description = "Maximum peak-to-trough decline during the simulation, as a negative decimal (e.g. -0.12 = -12%)")
+  @Schema(description = "Largest peak to trough decline of the daily equity series, as a negative decimal")
   @Column(name = "max_drawdown")
   private Double maxDrawdown;
 
-  @Schema(description = "Sharpe ratio: (annualized return - risk-free rate) / annualized standard deviation of returns")
+  @Schema(description = """
+      Mean daily return divided by its standard deviation, annualized with the square root of 252 and calculated
+      against a risk free rate of zero. Empty when fewer than two daily returns exist or they do not vary.""")
   @Column(name = "sharpe_ratio")
   private Double sharpeRatio;
 
-  @Schema(description = "Total number of round-trip trades executed during the simulation")
+  @Schema(description = "Closed round trips the replay produced; an open position at the end date counts for none")
   @Column(name = "total_trades")
   private Integer totalTrades;
 
-  @Schema(description = "Number of trades that resulted in a profit")
+  @Schema(description = "Closed round trips that produced a positive result")
   @Column(name = "winning_trades")
   private Integer winningTrades;
 
-  @Schema(description = "Number of trades that resulted in a loss")
+  @Schema(description = "Closed round trips that produced a negative result")
   @Column(name = "losing_trades")
   private Integer losingTrades;
 
-  @Schema(description = "Auto-maintained timestamp when the simulation result was computed")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
-  @Column(name = "calculated_at", insertable = false, updatable = false)
-  private LocalDateTime calculatedAt;
+  @Schema(description = "Why a cancelled or failed run stopped; empty for a completed one")
+  @Column(name = "failure_message")
+  private String failureMessage;
+
+  @Schema(description = "Captured fallback payment delay in calendar days; null for legacy runs")
+  @Column(name = "dividend_payment_delay_days")
+  private Integer dividendPaymentDelayDays;
+
+  @Schema(description = "Gross dividends paid during the run, converted to tenant currency at payment dates")
+  @Column(name = "paid_dividends")
+  private Double paidDividends;
+
+  @Schema(description = "Unpaid dividend entitlements at the end date, valued in tenant currency")
+  @Column(name = "dividend_receivables")
+  private Double dividendReceivables;
+
+  public Integer getDividendPaymentDelayDays() {
+    return dividendPaymentDelayDays;
+  }
+
+  public void setDividendPaymentDelayDays(Integer days) {
+    this.dividendPaymentDelayDays = days;
+  }
+
+  public Double getPaidDividends() {
+    return roundAmount(paidDividends);
+  }
+
+  public void setPaidDividends(Double amount) {
+    this.paidDividends = amount;
+  }
+
+  public Double getDividendReceivables() {
+    return roundAmount(dividendReceivables);
+  }
+
+  public void setDividendReceivables(Double amount) {
+    this.dividendReceivables = amount;
+  }
 
   @JsonIgnore
   @Override
@@ -109,8 +240,80 @@ public class AlgoSimulationResult extends TenantBaseID implements Serializable {
     this.idAlgoTop = idAlgoTop;
   }
 
+  public LocalDate getOpeningDate() {
+    return openingDate;
+  }
+
+  public void setOpeningDate(LocalDate openingDate) {
+    this.openingDate = openingDate;
+  }
+
+  public LocalDate getEndDate() {
+    return endDate;
+  }
+
+  public void setEndDate(LocalDate endDate) {
+    this.endDate = endDate;
+  }
+
+  public AlgoSimulationRunStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(AlgoSimulationRunStatus status) {
+    this.status = status;
+  }
+
+  public LocalDateTime getStartedAt() {
+    return startedAt;
+  }
+
+  public void setStartedAt(LocalDateTime startedAt) {
+    this.startedAt = startedAt;
+  }
+
+  public LocalDateTime getFinishedAt() {
+    return finishedAt;
+  }
+
+  public void setFinishedAt(LocalDateTime finishedAt) {
+    this.finishedAt = finishedAt;
+  }
+
+  public int getTradingDaysTotal() {
+    return tradingDaysTotal;
+  }
+
+  public void setTradingDaysTotal(int tradingDaysTotal) {
+    this.tradingDaysTotal = tradingDaysTotal;
+  }
+
+  public int getTradingDaysDone() {
+    return tradingDaysDone;
+  }
+
+  public void setTradingDaysDone(int tradingDaysDone) {
+    this.tradingDaysDone = tradingDaysDone;
+  }
+
+  public String getStrategySnapshot() {
+    return strategySnapshot;
+  }
+
+  public void setStrategySnapshot(String strategySnapshot) {
+    this.strategySnapshot = strategySnapshot;
+  }
+
+  public String getConventions() {
+    return conventions;
+  }
+
+  public void setConventions(String conventions) {
+    this.conventions = conventions;
+  }
+
   public Double getTotalReturn() {
-    return totalReturn;
+    return roundPercentage(totalReturn);
   }
 
   public void setTotalReturn(Double totalReturn) {
@@ -118,7 +321,7 @@ public class AlgoSimulationResult extends TenantBaseID implements Serializable {
   }
 
   public Double getAnnualizedReturn() {
-    return annualizedReturn;
+    return roundPercentage(annualizedReturn);
   }
 
   public void setAnnualizedReturn(Double annualizedReturn) {
@@ -126,7 +329,7 @@ public class AlgoSimulationResult extends TenantBaseID implements Serializable {
   }
 
   public Double getMaxDrawdown() {
-    return maxDrawdown;
+    return roundPercentage(maxDrawdown);
   }
 
   public void setMaxDrawdown(Double maxDrawdown) {
@@ -165,7 +368,20 @@ public class AlgoSimulationResult extends TenantBaseID implements Serializable {
     this.losingTrades = losingTrades;
   }
 
-  public LocalDateTime getCalculatedAt() {
-    return calculatedAt;
+  public String getFailureMessage() {
+    return failureMessage;
+  }
+
+  public void setFailureMessage(String failureMessage) {
+    this.failureMessage = failureMessage;
+  }
+
+  /** Keeps the API ratio unit: two extra fraction digits represent two decimal places after conversion to percent. */
+  private static Double roundPercentage(Double value) {
+    return value == null ? null : DataHelper.round(value, GlobalConstants.FID_PERCENTAGE_FRACTION + 2);
+  }
+
+  private static Double roundAmount(Double value) {
+    return value == null ? null : DataBusinessHelper.roundStandard(value);
   }
 }

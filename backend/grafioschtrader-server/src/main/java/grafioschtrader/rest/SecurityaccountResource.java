@@ -4,13 +4,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,19 +22,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
+import grafioschtrader.algo.RebalancingPlan;
 import grafioschtrader.dto.FeeModelComparisonResponse;
 import grafioschtrader.dto.TradingPeriodTransactionSummary;
 import grafioschtrader.dto.TransactionCostEstimateRequest;
 import grafioschtrader.dto.TransactionCostEstimateResult;
 import grafioschtrader.entities.Securityaccount;
+import grafioschtrader.reports.SecurityGroupByAlgoBucketRebalancingReport;
 import grafioschtrader.reports.SecurityGroupByAssetclassSubCategoryReport;
 import grafioschtrader.reports.SecurityGroupByAssetclassWithCashReport;
 import grafioschtrader.reports.SecurityGroupByBaseReport;
 import grafioschtrader.reports.SecurityPositionByCurrencyGrandSummaryReport;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionGrandSummary;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
+import grafioschtrader.service.AlgoRebalancingService;
 import grafioschtrader.service.TransactionCostEvalExEstimator;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -58,20 +65,26 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
   @Autowired
   private AutowireCapableBeanFactory beanFactory;
 
+  @Autowired
+  private AlgoRebalancingService algoRebalancingService;
+
+  @Autowired
+  private MessageSource messageSource;
+
   public SecurityaccountResource() {
     super(Securityaccount.class);
   }
 
   /*
    * private final Logger log = LoggerFactory.getLogger(this.getClass());
-   * 
-   * 
+   *
+   *
    * @DeleteMapping(value = "/{idSecuritycashaccount}", produces = APPLICATION_JSON_VALUE) public ResponseEntity<Void>
    * deleteSecurityaccount(@PathVariable final Integer idSecuritycashaccount) {
    * log.debug("Delete by id Securityaccount : {}", idSecuritycashaccount); final User user = (User)
    * SecurityContextHolder.getContext().getAuthentication().getDetails();
    * securityaccountJpaRepository.deleteSecurityaccount(idSecuritycashaccount, user.getIdTenant());
-   * 
+   *
    * return ResponseEntity.ok().build(); }
    */
   @Override
@@ -79,46 +92,40 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
     return securityaccountJpaRepository;
   }
 
-  @Operation(summary = "Get transaction summaries grouped by instrument type for a security account",
-      description = """
-          Returns the count and latest transaction date for each (specialInvestmentInstrument, categoryType)
-          combination within the specified security account. Used by the frontend to prevent deletion or
-          shortening of trading periods that still cover existing transactions.""",
-      tags = {Securityaccount.TABNAME})
+  @Operation(summary = "Get transaction summaries grouped by instrument type for a security account", description = """
+      Returns the count and latest transaction date for each (specialInvestmentInstrument, categoryType)
+      combination within the specified security account. Used by the frontend to prevent deletion or
+      shortening of trading periods that still cover existing transactions.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idSecurityaccount}/transactionsummaries", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TradingPeriodTransactionSummary>> getTransactionSummaries(
       @PathVariable Integer idSecurityaccount) {
     return new ResponseEntity<>(securityaccountJpaRepository.getTransactionSummaries(idSecurityaccount), HttpStatus.OK);
   }
 
-  @Operation(summary = "Compare actual transaction costs with EvalEx fee model estimates",
-      description = """
-          Loads BUY/SELL transactions for the specified security account, evaluates the YAML fee model
-          configured on its TradingPlatformPlan, and returns a comparison of actual vs estimated costs
-          with summary statistics.""",
-      tags = {Securityaccount.TABNAME})
+  @Operation(summary = "Compare actual transaction costs with EvalEx fee model estimates", description = """
+      Loads BUY/SELL transactions for the specified security account, evaluates the YAML fee model
+      configured on its TradingPlatformPlan, and returns a comparison of actual vs estimated costs
+      with summary statistics.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idSecurityaccount}/feemodelcomparison", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<FeeModelComparisonResponse> getFeeModelComparison(
-      @PathVariable Integer idSecurityaccount,
+  public ResponseEntity<FeeModelComparisonResponse> getFeeModelComparison(@PathVariable Integer idSecurityaccount,
       @RequestParam(defaultValue = "true") boolean excludeZeroCost) {
     return new ResponseEntity<>(securityaccountJpaRepository.getFeeModelComparison(idSecurityaccount, excludeZeroCost),
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Estimate transaction cost from inline YAML fee model",
-      description = """
-          Evaluates the given YAML fee model directly without loading from DB. If the request contains
-          inline YAML, it is used; otherwise falls back to the TradingPlatformPlan's fee model.""",
-      tags = {Securityaccount.TABNAME})
+  @Operation(summary = "Estimate transaction cost from inline YAML fee model", description = """
+      Evaluates the given YAML fee model directly without loading from DB. If the request contains
+      inline YAML, it is used; otherwise falls back to the TradingPlatformPlan's fee model.""", tags = {
+      Securityaccount.TABNAME })
   @PostMapping(value = "/estimatecostyaml", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TransactionCostEstimateResult> estimateCostFromYaml(
       @RequestBody TransactionCostEstimateRequest request) {
     return new ResponseEntity<>(transactionCostEvalExEstimator.estimateWithOptionalYaml(request), HttpStatus.OK);
   }
 
-  //============================================================================
-  //TENANT LEVEL REPORTS
-  //============================================================================
+  // ============================================================================
+  // TENANT LEVEL REPORTS
+  // ============================================================================
   @Operation(summary = "Get tenant security positions grouped by asset class including cash holdings", description = """
       Generates a comprehensive portfolio report that groups security positions by asset class type and includes cash
       account holdings as pseudo-securities. Cash holdings are classified as CURRENCY_CASH (main currency) or
@@ -130,6 +137,33 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
       @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
     return new ResponseEntity<>(securityGroupByAssetclassWithCashReport
         .getSecurityPositionGrandSummaryIdTenant(includeClosedPosition, untilDate), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Get the tenant portfolio compared against the allocation of one strategy", description = """
+      Returns the same positions and cash accounts as the asset class report, grouped by the buckets of the selected
+      AlgoTop, and adds target share, actual share, deviation and the recommended action to every row, group and to
+      the report as a whole. Two groups carry no target: the cash accounts, and the holdings the hierarchy does not
+      mention. Recommendations are proposals; nothing is booked. The comparison is calculated against a completed
+      closing day, which is reported back as valuationDate.""", tags = { Securityaccount.TABNAME })
+  @GetMapping(value = "/tenantsecurityaccountsummary/rebalancing/{idAlgoTop}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SecurityPositionGrandSummary> getRebalancingReportByTenant(
+      @PathVariable final Integer idAlgoTop, @RequestParam() final boolean includeClosedPosition,
+      @RequestParam() @DateTimeFormat(iso = ISO.DATE) final LocalDate untilDate) throws Exception {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    // The hierarchy always belongs to the main tenant, even when a simulation environment is active, while the
+    // positions being compared belong to the tenant the user is currently working in.
+    LocalDate valuationDate = untilDate == null || !untilDate.isBefore(LocalDate.now())
+        ? AlgoRebalancingService.lastCompletedDay()
+        : untilDate;
+    Locale locale = user.createAndGetJavaLocale();
+    RebalancingPlan plan = algoRebalancingService.planById(user.getIdTenant(), user.getActualIdTenant(), idAlgoTop,
+        valuationDate, locale);
+    var report = new SecurityGroupByAlgoBucketRebalancingReport(plan,
+        messageSource.getMessage("REBALANCING_GROUP_CASH", null, locale),
+        messageSource.getMessage("REBALANCING_GROUP_UNALLOCATED", null, locale));
+    beanFactory.autowireBean(report);
+    return new ResponseEntity<>(report.getSecurityPositionGrandSummaryIdTenant(includeClosedPosition, valuationDate),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Get tenant security positions grouped by trading currency", description = """
@@ -203,16 +237,13 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         HttpStatus.OK);
   }
 
-  //============================================================================
-  //PORTFOLIO LEVEL REPORTS
-  //============================================================================
-  @Operation(summary = "Get portfolio security positions grouped by trading currency",
-      description = """
-          Creates position summaries for a specific portfolio grouped by trading currency. Provides portfolio-level 
-          currency exposure analysis and enables assessment of foreign exchange risk within the selected portfolio. 
-          Validates user access to the requested portfolio.""",
-      tags = {Securityaccount.TABNAME}
-  )
+  // ============================================================================
+  // PORTFOLIO LEVEL REPORTS
+  // ============================================================================
+  @Operation(summary = "Get portfolio security positions grouped by trading currency", description = """
+      Creates position summaries for a specific portfolio grouped by trading currency. Provides portfolio-level
+      currency exposure analysis and enables assessment of foreign exchange risk within the selected portfolio.
+      Validates user access to the requested portfolio.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
@@ -221,13 +252,10 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         .getSecurityPositionGrandSummaryIdPortfolio(idPortfolio, includeClosedPosition, untilDate), HttpStatus.OK);
   }
 
-  @Operation(summary = "Get portfolio security positions grouped by asset class type",
-      description = """
-          Groups security positions within a specific portfolio by broad investment categories. Provides portfolio-level 
-          asset allocation analysis showing distribution across EQUITIES, FIXED_INCOME, COMMODITIES, and other major 
-          asset classes. Excludes cash positions.""",
-      tags = {Securityaccount.TABNAME}
-  )
+  @Operation(summary = "Get portfolio security positions grouped by asset class type", description = """
+      Groups security positions within a specific portfolio by broad investment categories. Provides portfolio-level
+      asset allocation analysis showing distribution across EQUITIES, FIXED_INCOME, COMMODITIES, and other major
+      asset classes. Excludes cash positions.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/assetclasstype", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassTypeAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
@@ -238,13 +266,10 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Get portfolio security positions grouped by special investment instrument",
-      description = """
-          Groups positions within a specific portfolio by investment vehicle types such as ETFs, mutual funds, direct 
-          investments, CFDs, and other instruments. Enables analysis of investment structure and instrument 
-          diversification within the portfolio.""",
-      tags = {Securityaccount.TABNAME}
-  )
+  @Operation(summary = "Get portfolio security positions grouped by special investment instrument", description = """
+      Groups positions within a specific portfolio by investment vehicle types such as ETFs, mutual funds, direct
+      investments, CFDs, and other instruments. Enables analysis of investment structure and instrument
+      diversification within the portfolio.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/specialinvestmentinstrument", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySpecInvestInstAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
@@ -256,13 +281,11 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Get portfolio security positions grouped by asset class subcategory with localization",
-      description = """
-          Groups positions within a specific portfolio by detailed asset class subcategories displayed in the user's 
-          preferred language. Provides granular portfolio allocation analysis beyond main asset classes, such as 
-          geographical or sector-based subdivisions.""",
-      tags = {Securityaccount.TABNAME}
-  )
+  @Operation(summary = "Get portfolio security positions grouped by asset class subcategory with localization", description = """
+      Groups positions within a specific portfolio by detailed asset class subcategories displayed in the user's
+      preferred language. Provides granular portfolio allocation analysis beyond main asset classes, such as
+      geographical or sector-based subdivisions.""", tags = {
+      Securityaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/subcategorynls", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySubCategoryNLSAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
@@ -271,13 +294,10 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         includeClosedPosition, untilDate), HttpStatus.OK);
   }
 
-  @Operation(summary = "Get portfolio security positions grouped by unique asset class identifier",
-      description = """
-          Groups positions within a specific portfolio by unique asset class ID for detailed technical analysis and 
-          cross-referencing. Useful for portfolio analytics requiring specific asset class identification and master 
-          data integration.""",
-      tags = {Securityaccount.TABNAME}
-  )
+  @Operation(summary = "Get portfolio security positions grouped by unique asset class identifier", description = """
+      Groups positions within a specific portfolio by unique asset class ID for detailed technical analysis and
+      cross-referencing. Useful for portfolio analytics requiring specific asset class identification and master
+      data integration.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idPortfolio}/portfoliosecurityaccountsummary/idassetclass", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassAndPortfolio(
       @PathVariable final Integer idPortfolio, @RequestParam() final boolean includeClosedPosition,
@@ -287,19 +307,15 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
             .getSecurityPositionGrandSummaryIdPortfolio(idPortfolio, includeClosedPosition, untilDate),
         HttpStatus.OK);
   }
-  
+
   // ============================================================================
   // SECURITY ACCOUNT LEVEL REPORTS
   // ============================================================================
-  
-  
-  @Operation(summary = "Get security account positions grouped by trading currency",
-      description = """
-          Creates position summaries for a specific security account grouped by trading currency. Provides account-level 
-          granularity for detailed position analysis, including all transactions, adjustments, and valuations for 
-          securities held within the specified account.""",
-      tags = {Securityaccount.TABNAME}
-  )
+
+  @Operation(summary = "Get security account positions grouped by trading currency", description = """
+      Creates position summaries for a specific security account grouped by trading currency. Provides account-level
+      granularity for detailed position analysis, including all transactions, adjustments, and valuations for
+      securities held within the specified account.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/currency", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
@@ -308,13 +324,10 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         idSecurityaccount, includeClosedPosition, untilDate), HttpStatus.OK);
   }
 
-  @Operation(summary = "Get security account positions grouped by asset class type",
-      description = """
-          Groups positions within a specific security account by broad investment categories. Provides detailed 
-          account-level asset allocation analysis showing how the account's holdings are distributed across different 
-          asset classes.""",
-      tags = {Securityaccount.TABNAME}
-  )
+  @Operation(summary = "Get security account positions grouped by asset class type", description = """
+      Groups positions within a specific security account by broad investment categories. Provides detailed
+      account-level asset allocation analysis showing how the account's holdings are distributed across different
+      asset classes.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/assetclasstype", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccountByAssetclassTypeAndSecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
@@ -325,13 +338,10 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Get security account positions grouped by special investment instrument",
-      description = """
-          Groups positions within a specific security account by investment vehicle types. Enables detailed analysis of 
-          how investments within the account are structured across different instrument types such as ETFs, mutual 
-          funds, direct holdings, and derivatives.""",
-      tags = {Securityaccount.TABNAME}
-  )
+  @Operation(summary = "Get security account positions grouped by special investment instrument", description = """
+      Groups positions within a specific security account by investment vehicle types. Enables detailed analysis of
+      how investments within the account are structured across different instrument types such as ETFs, mutual
+      funds, direct holdings, and derivatives.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/specialinvestmentinstrument", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getPostionSummarySecurityaccountBySpecInvestInstAndSecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
@@ -342,14 +352,12 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
                 .getSecurityPositionGrandSummaryIdSecurityaccount(idSecurityaccount, includeClosedPosition, untilDate),
         HttpStatus.OK);
   }
-  
-  @Operation(summary = "Get security account positions grouped by asset class subcategory with localization",
-      description = """
-          Groups positions within a specific security account by detailed asset class subcategories displayed in the 
-          user's preferred language. Provides the most granular level of account position analysis with enhanced 
-          accessibility through localized subcategory names.""",
-      tags = {Securityaccount.TABNAME}
-  )
+
+  @Operation(summary = "Get security account positions grouped by asset class subcategory with localization", description = """
+      Groups positions within a specific security account by detailed asset class subcategories displayed in the
+      user's preferred language. Provides the most granular level of account position analysis with enhanced
+      accessibility through localized subcategory names.""", tags = {
+      Securityaccount.TABNAME })
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/subcategorynls", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryBySubCategoryNLSAndSecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
@@ -358,13 +366,10 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         idSecurityaccount, includeClosedPosition, untilDate), HttpStatus.OK);
   }
 
-  @Operation(summary = "Get security account positions grouped by unique asset class identifier",
-      description = """
-          Groups positions within a specific security account by unique asset class ID for detailed technical analysis. 
-          Provides the most granular level of position analysis with specific asset class identification for detailed 
-          portfolio analytics and master data integration.""",
-      tags = {Securityaccount.TABNAME}
-  )
+  @Operation(summary = "Get security account positions grouped by unique asset class identifier", description = """
+      Groups positions within a specific security account by unique asset class ID for detailed technical analysis.
+      Provides the most granular level of position analysis with specific asset class identification for detailed
+      portfolio analytics and master data integration.""", tags = { Securityaccount.TABNAME })
   @GetMapping(value = "/{idSecurityaccount}/securityaccountsummary/idassetclass", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecurityPositionGrandSummary> getSecurityPositionSummaryByAssetclassAndSecurityaccount(
       @PathVariable final Integer idSecurityaccount, @RequestParam() final boolean includeClosedPosition,
@@ -386,6 +391,5 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
     beanFactory.autowireBean(securityGroupByAssetclassSubCategoryReport);
     return securityGroupByAssetclassSubCategoryReport;
   }
-
 
 }

@@ -8,12 +8,12 @@ export async function selectDynamicFormOptionByText(
   page: Page,
   scope: Locator,
   fieldId: string,
-  text: string
+  text: string | RegExp
 ): Promise<void> {
   const nativeSelect = scope.locator(`select#${fieldId}`).first();
   if (await nativeSelect.isVisible().catch(() => false)) {
     const option = nativeSelect.locator('option').filter({ hasText: text });
-    await expect(option, `no option containing "${text}" in select#${fieldId}`).toHaveCount(1, { timeout: 15_000 });
+    await expect(option, `no option matching ${text} in select#${fieldId}`).toHaveCount(1, { timeout: 15_000 });
     await nativeSelect.selectOption(await option.getAttribute('value'));
     await nativeSelect.dispatchEvent('change');
     return;
@@ -26,8 +26,20 @@ export async function selectDynamicFormOptionByText(
   const overlay = page.locator('.p-select-overlay:visible').first();
   await expect(overlay, `open options for p-select#${fieldId}`).toBeVisible({ timeout: 10_000 });
   const option = overlay.getByRole('option').filter({ hasText: text });
-  await expect(option, `no option containing "${text}" in p-select#${fieldId}`).toHaveCount(1, { timeout: 10_000 });
-  await option.click();
-  await expect(overlay).toBeHidden({ timeout: 10_000 });
-  await expect(optimusSelect).toContainText(text);
+  await expect(option, `no option matching ${text} in p-select#${fieldId}`).toHaveCount(1, { timeout: 10_000 });
+  // Tax metadata can rebuild the lower half of a security dialog while this overlay is open. The option remains the
+  // unique intended target, but the newly rendered form can overlap it. Trigger the option's own handler and prove the
+  // model was updated; an overlay recreated by that update is then closed explicitly.
+  await option.evaluate((element: HTMLElement) => element.click());
+  await expect(optimusSelect).toContainText(text, { timeout: 10_000 });
+  if (
+    await page
+      .locator('.p-select-overlay:visible')
+      .first()
+      .isVisible()
+      .catch(() => false)
+  ) {
+    await page.keyboard.press('Escape');
+  }
+  await expect(page.locator('.p-select-overlay:visible')).toHaveCount(0, { timeout: 10_000 });
 }

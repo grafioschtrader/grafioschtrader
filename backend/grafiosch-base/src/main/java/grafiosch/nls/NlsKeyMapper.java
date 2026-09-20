@@ -21,7 +21,8 @@ import java.util.Locale;
  * the client and is never resolved server-side, such as a dynamic-form validator message. The prefix exists because
  * shape alone cannot separate the two dialects: {@code webUrl} is simultaneously a real server-resolved Bean Validation
  * message (see {@code grafiosch.validation.WebUrl}) and a frontend validator key with a different text, so
- * {@code c.webUrl} yields the client key {@code webUrl} while the server-side {@code webUrl} yields {@code WEBURL}.</li>
+ * {@code c.webUrl} yields the client key {@code webUrl} while the server-side {@code webUrl} yields
+ * {@code WEBURL}.</li>
  * <li>A registered pass-through prefix ({@code g.}, {@code gt.}, {@code UDF_}) - emit verbatim, because those keys name
  * configuration parameters and metadata rather than being derived from a field name.</li>
  * <li>A registered nested namespace - split on the <em>first</em> dot only and emit a one-level object.</li>

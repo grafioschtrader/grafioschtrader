@@ -52,15 +52,15 @@ public interface CurrencypairJpaRepository extends SecurityCurrencypairJpaReposi
   Set<Integer> findIdsWithGtNetHistoricalSend();
 
   /**
-   * Finds currency pairs modified after the given timestamp for GTNet sync.
-   * Also includes currency pairs where gtNetLastModifiedTime is NULL (never synced before).
+   * Finds currency pairs modified after the given timestamp for GTNet sync. Also includes currency pairs where
+   * gtNetLastModifiedTime is NULL (never synced before).
    */
   @Query("SELECT c FROM Currencypair c WHERE c.gtNetLastModifiedTime > ?1 OR c.gtNetLastModifiedTime IS NULL")
   List<Currencypair> findByGtNetLastModifiedTimeAfter(LocalDateTime timestamp);
 
   /**
-   * Finds all currency pairs with GTNet send flags enabled (lastprice or historical).
-   * Used for full recreation mode where all eligible instruments are synchronized.
+   * Finds all currency pairs with GTNet send flags enabled (lastprice or historical). Used for full recreation mode
+   * where all eligible instruments are synchronized.
    */
   @Query("SELECT c FROM Currencypair c WHERE c.gtNetLastpriceSend = true OR c.gtNetHistoricalSend = true")
   List<Currencypair> findAllWithGtNetSendEnabled();

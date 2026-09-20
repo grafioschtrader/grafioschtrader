@@ -5,8 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Payload for security metadata lookup request (GT_NET_SECURITY_LOOKUP_SEL_C).
  *
- * Used in M2M communication to request security information from a remote GTNet peer.
- * At least one of isin or tickerSymbol should be provided along with currency.
+ * Used in M2M communication to request security information from a remote GTNet peer. At least one of isin or
+ * tickerSymbol should be provided along with currency.
  */
 @Schema(description = """
     Payload for requesting security metadata from a remote GTNet peer. Contains search criteria

@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import grafiosch.gtnet.IMessageRetentionProvider;
 
 /**
- * Configuration for GTNet message retention providers.
- * Registers message code groups with their retention defaults for the scheduled cleanup task.
+ * Configuration for GTNet message retention providers. Registers message code groups with their retention defaults for
+ * the scheduled cleanup task.
  */
 @Configuration
 public class GTNetMessageRetentionConfig {
@@ -25,8 +25,7 @@ public class GTNetMessageRetentionConfig {
 
       @Override
       public List<Byte> getMessageCodes() {
-        return Arrays.asList(
-            GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C.getValue(),
+        return Arrays.asList(GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_SEL_C.getValue(),
             GTNetMessageCodeType.GT_NET_LASTPRICE_EXCHANGE_RESPONSE_S.getValue());
       }
 
@@ -47,8 +46,7 @@ public class GTNetMessageRetentionConfig {
 
       @Override
       public List<Byte> getMessageCodes() {
-        return Arrays.asList(
-            GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue(),
+        return Arrays.asList(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C.getValue(),
             GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S.getValue());
       }
 
@@ -69,8 +67,7 @@ public class GTNetMessageRetentionConfig {
 
       @Override
       public List<Byte> getMessageCodes() {
-        return Arrays.asList(
-            GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C.getValue(),
+        return Arrays.asList(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_SEL_C.getValue(),
             GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_RESPONSE_S.getValue(),
             GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S.getValue(),
             GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S.getValue(),

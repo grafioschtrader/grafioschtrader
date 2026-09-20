@@ -62,8 +62,7 @@ public class EcbCrossRateConnector extends BaseFeedConnector {
     if (currencyPair.getFromCurrency().equals(GlobalConstants.MC_EUR)) {
       calcRates = ecbExchangeRatesRepository.getRatesByFromToDate(currencyPair.getToCurrency(), from, to, true);
     } else if (currencyPair.getToCurrency().equals(GlobalConstants.MC_EUR)) {
-      calcRates = ecbExchangeRatesRepository.getRatesByFromToDate(currencyPair.getFromCurrency(), from, to,
-          false);
+      calcRates = ecbExchangeRatesRepository.getRatesByFromToDate(currencyPair.getFromCurrency(), from, to, false);
     } else {
       // Cross currency calculation
       calcRates = ecbExchangeRatesRepository.getCrossCurrencyRateForPeriod(currencyPair.getFromCurrency(),

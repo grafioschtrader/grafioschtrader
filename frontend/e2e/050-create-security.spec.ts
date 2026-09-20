@@ -39,12 +39,46 @@ interface SecurityRow {
   e2e: string;
 }
 
+interface SavedSecurityRequest {
+  issuerCountry?: string | null;
+  simulationMetadata?: { bondTerms?: { couponRate?: number } } | null;
+}
+
 const JSON_PATH = path.resolve(
   __dirname,
   '../../backend/grafioschtrader-server/src/test/resources/testdata/generated/securities.json'
 );
 const WATCHLIST_NAME = 'Spain';
 const LOGIN_NICKNAME = 'alledit';
+
+/**
+ * English and German texts of SpecialInvestmentInstruments, as delivered by the application message bundle. An asset
+ * class option label ends with this text, and one subcategory exists once per instrument type ('Aktien Spanien' is a
+ * direct investment, an ETF and a non-investable index), so the subcategory alone selects the wrong asset class.
+ */
+const SPECIAL_INVESTMENT_LABELS: Record<string, string[]> = {
+  DIRECT_INVESTMENT: ['Direct investment', 'Direktanlage'],
+  ETF: ['ETF'],
+  MUTUAL_FUND: ['Mutual Fund', 'Investment-Fonds'],
+  PENSION_FUNDS: ['Pension fund', 'Pensionsfonds'],
+  CFD: ['CFD'],
+  FOREX: ['Forex'],
+  NON_INVESTABLE_INDICES: ['Non-Investable Indices', 'Index nicht investierbar'],
+  ISSUER_RISK_PRODUCT: ['Issuer risk Product ETC/ETN etc.', 'Emittentenrisiko Produkt ETC/ETN usw.']
+};
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Matches an asset class option label "{categoryType} / {subCategory} / {specialInvestmentInstrument}" exactly. */
+function assetClassLabel(row: SecurityRow): RegExp {
+  const instruments = SPECIAL_INVESTMENT_LABELS[row.specialInvestmentInstrument];
+  if (!instruments) {
+    throw new Error(`No label known for specialInvestmentInstrument ${row.specialInvestmentInstrument}`);
+  }
+  return new RegExp(`/ ${escapeRegExp(row.subCategoryDE)} / (${instruments.map(escapeRegExp).join('|')})\\s*$`);
+}
 
 function loadE2ERows(): SecurityRow[] {
   if (!fs.existsSync(JSON_PATH)) {
@@ -74,8 +108,7 @@ function hasText(value: string | null | undefined): value is string {
  * already present and never be created, while the closing assertion would confirm the ETF's row.
  */
 function nameCell(page: Page, name: string): Locator {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return page.locator('td', { hasText: new RegExp(`^\\s*${escaped}\\s*$`) });
+  return page.locator('td', { hasText: new RegExp(`^\\s*${escapeRegExp(name)}\\s*$`) });
 }
 
 async function typeDate(scope: Locator, fieldId: string, isoDate: string, locale: string): Promise<void> {
@@ -166,12 +199,10 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
 
       // Asset class select — option labels are composed as "{categoryType} / {subCategoryDE} /
       // {specialInvestmentInstrument}" by BusinessSelectOptionsHelper.translateAssetclass, so we
-      // can't match on subCategoryDE alone. Pick the first option whose visible text contains it.
-      const assetClassOptionValue = await assetClassSelect
-        .locator('option')
-        .filter({ hasText: row.subCategoryDE })
-        .first()
-        .getAttribute('value');
+      // can't match on subCategoryDE alone: the subcategory repeats for every instrument type.
+      const assetClassOption = assetClassSelect.locator('option').filter({ hasText: assetClassLabel(row) });
+      await expect(assetClassOption, `asset class for ${row.name}`).toHaveCount(1);
+      const assetClassOptionValue = await assetClassOption.getAttribute('value');
       await assetClassSelect.selectOption(assetClassOptionValue);
       await assetClassSelect.dispatchEvent('change');
 
@@ -230,6 +261,24 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       // Dates — Optimus UI p-calendar exposes an inner <input> that has to be typed key by key.
       await typeDate(dialog, 'activeFromDate', row.activeFromDate, creds.locale);
       await typeDate(dialog, 'activeToDate', row.activeToDate, creds.locale);
+
+      const isDirectBond =
+        row.specialInvestmentInstrument === 'DIRECT_INVESTMENT' &&
+        ['FIXED_INCOME', 'CONVERTIBLE_BOND'].includes(row.categoryType);
+      if (isDirectBond) {
+        const bondTab = dialog.locator('p-tab[value="bondTerms"]');
+        await expect(bondTab).toBeVisible();
+        await bondTab.click();
+        const couponRate = Number(/^\s*(\d+(?:[.,]\d+)?)/.exec(row.name)?.[1].replace(',', '.'));
+        if (Number.isFinite(couponRate)) {
+          const couponInput = dialog.locator('#couponRate input, input#couponRate').first();
+          await expect(couponInput).toBeVisible({ timeout: 10_000 });
+          expect(Number((await couponInput.inputValue()).replace(',', '.'))).toBe(couponRate);
+        }
+        await dialog.locator('p-tab[value="security"]').click();
+      } else {
+        await expect(dialog.locator('p-tab[value="bondTerms"]')).toHaveCount(0);
+      }
 
       // --- Connectors ---
       if (hasText(row.idConnectorHistory)) {
@@ -308,13 +357,108 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       // The security dialog contains three submit buttons (main Save, Security splits "Apply",
       // Trading periods "Apply"). Target the top-level Save by role+name to avoid strict-mode
       // violations.
+      const saveRequestPromise = page.waitForRequest(
+        (request) => new URL(request.url()).pathname === '/api/security' && request.method() === 'POST',
+        { timeout: 30_000 }
+      );
       await dialog
         .getByRole('button', { name: /^(Save|Speichern)$/ })
         .first()
         .click();
+      const savedRequest = (await saveRequestPromise).postDataJSON() as SavedSecurityRequest;
+      const canHaveIssuer = !['CFD', 'FOREX', 'NON_INVESTABLE_INDICES'].includes(row.specialInvestmentInstrument);
+      if (row.isin && canHaveIssuer) {
+        expect(savedRequest.issuerCountry).toBe(row.isin.slice(0, 2).toUpperCase());
+      } else {
+        // The hidden issuer dropdown still submits its empty default ''. Security.setIssuerCountry stores a blank value
+        // as null, so an empty string and null both mean "no issuer country" here.
+        expect(savedRequest.issuerCountry || null).toBeNull();
+      }
+      if (isDirectBond) {
+        const expectedRate = Number(/^\s*(\d+(?:[.,]\d+)?)/.exec(row.name)?.[1].replace(',', '.'));
+        if (Number.isFinite(expectedRate)) {
+          expect(savedRequest.simulationMetadata?.bondTerms?.couponRate).toBe(expectedRate);
+        }
+      } else {
+        expect(savedRequest.simulationMetadata ?? null).toBeNull();
+      }
       await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
 
       await expect(nameCell(page, row.name).first()).toBeVisible({ timeout: 10_000 });
     });
   }
+
+  test('shows bond simulation terms only for direct bonds and preserves a manually changed coupon', async ({
+    page
+  }) => {
+    await loginAsFixtureUser(page, LOGIN_NICKNAME);
+    const watchlistNode = page.getByRole('treeitem', { name: WATCHLIST_NAME, exact: true }).first();
+    await watchlistNode.waitFor({ state: 'visible', timeout: 10_000 });
+    await watchlistNode.click();
+    // Same order as the creation tests above: the watchlist offers "Create and add security" only once its table has
+    // rendered and its panel has been activated by a left click, so a bare right-click opens a menu without that entry.
+    await page.waitForTimeout(1500);
+    const contentArea = page.locator('.data-container').first();
+    await contentArea.waitFor({ state: 'visible', timeout: 10_000 });
+    await contentArea.click();
+    await page.waitForTimeout(300);
+    await contentArea.click({ button: 'right' });
+    const menu = page.locator('[role="menu"]:visible');
+    await menu
+      .getByText(/^(Create\s*and\s*add\s*security|Hinzuf.*neues\s*Wertpapier)\b/i)
+      .first()
+      .click();
+
+    const dialog = page.locator('security-edit .p-dialog').first();
+    const assetClassSelect = dialog.locator('select#assetClass').first();
+    await expect(assetClassSelect.locator('option')).not.toHaveCount(0, { timeout: 15_000 });
+    const directBond = assetClassSelect
+      .locator('option')
+      .filter({ hasText: /Anleihen Österreich/i })
+      .filter({ hasText: /(Direktanlage|Direct investment)/i })
+      .first();
+    await assetClassSelect.selectOption(await directBond.getAttribute('value'));
+    await assetClassSelect.dispatchEvent('change');
+
+    await dialog.locator('#name').fill('1,25 E2E coupon-prefill probe');
+    await dialog.locator('#name').dispatchEvent('input');
+    await dialog.locator('#isin').fill('AT0000A11772');
+    await dialog.locator('#isin').dispatchEvent('input');
+    await expect(dialog.locator('p-select#issuerCountry')).toContainText(/AT|Österreich|Austria/i);
+
+    const bondTab = dialog.locator('p-tab[value="bondTerms"]');
+    await expect(bondTab).toBeVisible();
+    await bondTab.click();
+    const couponInput = dialog.locator('#couponRate input, input#couponRate').first();
+    await expect(couponInput).toBeVisible({ timeout: 10_000 });
+    expect(Number((await couponInput.inputValue()).replace(',', '.'))).toBe(1.25);
+
+    await couponInput.click();
+    await couponInput.press('Control+a');
+    await couponInput.pressSequentially('2');
+    await couponInput.press('Tab');
+    await dialog.locator('p-tab[value="security"]').click();
+    await dialog.locator('#name').fill('3 E2E coupon-prefill probe');
+    await dialog.locator('#name').dispatchEvent('input');
+    await bondTab.click();
+    expect(Number((await couponInput.inputValue()).replace(',', '.'))).toBe(2);
+
+    await dialog.locator('p-tab[value="security"]').click();
+    const directEquity = assetClassSelect
+      .locator('option')
+      .filter({ hasText: /Aktien Spanien/i })
+      .filter({ hasText: /(Direktanlage|Direct investment)/i })
+      .first();
+    await assetClassSelect.selectOption(await directEquity.getAttribute('value'));
+    await assetClassSelect.dispatchEvent('change');
+    await expect(dialog.locator('p-tab[value="bondTerms"]')).toHaveCount(0);
+    await assetClassSelect.selectOption(await directBond.getAttribute('value'));
+    await assetClassSelect.dispatchEvent('change');
+    await expect(dialog.locator('p-tab[value="bondTerms"]')).toBeVisible();
+    await dialog.locator('p-tab[value="bondTerms"]').click();
+    expect(Number((await couponInput.inputValue()).replace(',', '.'))).toBe(2);
+
+    await dialog.locator('.p-dialog-close-button').click();
+    await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
+  });
 });

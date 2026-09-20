@@ -39,8 +39,8 @@ import jakarta.validation.constraints.Size;
 /**
  * Abstract base class for standing orders (recurring transactions). Uses JOINED inheritance with two concrete
  * subclasses: {@link StandingOrderCashaccount} for WITHDRAWAL/DEPOSIT and {@link StandingOrderSecurity} for
- * ACCUMULATE/REDUCE. Common scheduling fields (repeat period, day positioning, weekend adjustment, validity range)
- * are stored in this base table.
+ * ACCUMULATE/REDUCE. Common scheduling fields (repeat period, day positioning, weekend adjustment, validity range) are
+ * stored in this base table.
  */
 @Schema(description = """
     Abstract base for standing orders (recurring transactions). Contains common scheduling fields shared by
@@ -50,10 +50,8 @@ import jakarta.validation.constraints.Size;
 @Inheritance(strategy = JOINED)
 @DiscriminatorColumn(name = "dtype", discriminatorType = DiscriminatorType.STRING)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "dtype")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = StandingOrderCashaccount.class, name = "C"),
-    @JsonSubTypes.Type(value = StandingOrderSecurity.class, name = "S")
-})
+@JsonSubTypes({ @JsonSubTypes.Type(value = StandingOrderCashaccount.class, name = "C"),
+    @JsonSubTypes.Type(value = StandingOrderSecurity.class, name = "S") })
 public abstract class StandingOrder extends TenantBaseID implements Serializable {
 
   public static final String TABNAME = "standing_order";

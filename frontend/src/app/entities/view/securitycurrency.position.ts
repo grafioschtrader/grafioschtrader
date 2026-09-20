@@ -1,4 +1,5 @@
 import { Securitycurrency } from '../securitycurrency';
+import { LastpriceOrigin } from '../types/lastprice.origin';
 
 export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public securitycurrency: T;
@@ -12,4 +13,10 @@ export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public isUsedElsewhere: boolean;
   public watchlistSecurityHasEver: boolean;
   public youngestHistoryDate: Date;
+  /** Oldest stored historical price date, meaningful when held against activeFromDate of the security. */
+  public oldestHistoryDate: Date;
+  /** Completed trading sessions of the exchange that went by without the shown price being renewed. */
+  public staleTradingSessions: number;
+  /** Where the shown last price comes from. */
+  public lastpriceOrigin: LastpriceOrigin;
 }

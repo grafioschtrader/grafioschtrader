@@ -8,9 +8,9 @@ import grafiosch.BaseConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = """
-Date boundaries the linear gap filling dialog offers for a single instrument. The dialog uses them to limit the date
-picker, to preselect the current day, and to warn when the trading calendar of the exchange cannot even reach that day.
-""")
+    Date boundaries the linear gap filling dialog offers for a single instrument. The dialog uses them to limit the date
+    picker, to preselect the current day, and to warn when the trading calendar of the exchange cannot even reach that day.
+    """)
 public class HistoryquoteFillGapsBounds {
 
   @Schema(description = "Earliest selectable date, the active from date of the instrument")

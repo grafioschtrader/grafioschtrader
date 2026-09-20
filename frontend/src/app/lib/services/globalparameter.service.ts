@@ -45,6 +45,11 @@ export class GlobalparameterService
   private fieldSizeMap: { [fieldNameOrKey: string]: number };
   private dateFormatWithoutYear: string;
   private featureCache = new Map<FeatureType, boolean>();
+
+  useDashboard(): boolean {
+    const features: string[] = JSON.parse(sessionStorage.getItem(GlobalSessionNames.USE_FEATURES) || '[]');
+    return features.includes('DASHBOARD');
+  }
   private currencyPrecisionMap: { [currency: string]: number };
   private numberFormatPrecisionCache = new Map<number, NumberFormat>();
   private formDefinitionCache: { [entityAndDialog: string]: Observable<ClassDescriptorInputAndShow> } = {};

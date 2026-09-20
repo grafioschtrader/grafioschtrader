@@ -36,6 +36,7 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
   visibleEditDialog = false;
   callParam: StandingOrderCallParam;
   failuresMap: Map<number, StandingOrderFailure[]> = new Map();
+  protected simulationTenant = false;
   private showInactive = false;
 
   protected constructor(
@@ -137,7 +138,9 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
       this.standingOrders = all.filter(
         (so) =>
           so.dtype === this.getDtype() &&
-          (this.showInactive || moment(so.validTo).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) >= today)
+          (this.simulationTenant ||
+            this.showInactive ||
+            moment(so.validTo).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE) >= today)
       );
       this.prepareTableAndTranslate();
       this.createTranslatedValueStore(this.standingOrders);
@@ -151,13 +154,20 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
     });
   }
 
+  protected initializeData(): void {
+    this.standingOrderService.getCapabilities().subscribe((capabilities) => {
+      this.simulationTenant = capabilities.simulationTenant;
+      this.loadData();
+    });
+  }
+
   protected handleCreate(): void {
-    this.callParam = new StandingOrderCallParam(null, null);
+    this.callParam = new StandingOrderCallParam(null, null, this.simulationTenant);
     this.visibleEditDialog = true;
   }
 
   protected handleEdit(so: StandingOrder): void {
-    this.callParam = new StandingOrderCallParam(so, null);
+    this.callParam = new StandingOrderCallParam(so, null, this.simulationTenant);
     this.visibleEditDialog = true;
   }
 
@@ -196,7 +206,7 @@ export abstract class StandingOrderTableBase extends TableConfigBase implements 
         label: 'EDIT_RECORD|STANDING_ORDER',
         command: () => this.handleEdit(this.selectedEntity!)
       });
-      if (!this.selectedEntity.hasTransactions) {
+      if (this.simulationTenant || !this.selectedEntity.hasTransactions) {
         menuItems.push({
           label: 'DELETE_RECORD|STANDING_ORDER',
           command: () => this.handleDelete(this.selectedEntity!)

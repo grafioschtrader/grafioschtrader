@@ -1,0 +1,27 @@
+Detail der Kontobewegungen
+Nummer der Kundenbeziehung 999999
+Konto 01 CHF
+Datum 09.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+Kauf Aktien 08/09/26 09/09/26 17.319,80-
+Depot 999999/01
+Ihr Auftrag vom 08.09.2026
+CONSTELLATION SOFTWARE INC SHS
+Valorennummer 2562561
+ISIN Nummer CA21037X1006
+Ausführungsdatum 08.09.2026
+Ausführungszeit (GMT + 1) 16.16.39
+Anzahl 10,00
+Zum Kurs von 2.924,00 CAD
+Börsenplatz TORONTO STK EX.
+Bruttobetrag 29.240,00- CAD
+Handelsgebühr 26,47- CAD
+Fremdgebühren 8,53- CAD
+Stempel 43,87- CAD
+Totalbetrag 29.318,87- CAD
+Wechselkurs 0,59073900
+Unsere Ref: EXAMPLE/2026/1
+Via e-banking gedruckt Cornèr Bank AG
+Im Falle von Abweichungen zwischen den vom Cornèronline-System zur Verfügung gestellten Daten oder Dokumenten
+und jenen, die von der Bank in ihrer Buchhaltung registriert werden, sind auf alle Fälle letztere massgebend. mail@corneronline.ch
+1/1

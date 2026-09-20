@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import grafiosch.common.UpdateQuery;
 import grafioschtrader.dto.HoldConsistencyDefect;
+import grafioschtrader.dto.IHeldInstrumentIntraday;
 import grafioschtrader.entities.HoldSecurityaccountSecurity;
 import grafioschtrader.entities.HoldSecurityaccountSecurityKey;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
@@ -41,6 +42,49 @@ public interface HoldSecurityaccountSecurityJpaRepository
         AND hss.hodlings <> 0""")
   List<HoldSecurityaccountSecurity> findOpenPositionsAtDate(@Param("idTenant") Integer idTenant,
       @Param("refDate") LocalDate refDate);
+
+  /** All nonzero holding periods overlapping the inclusive reporting interval. */
+  @Query
+  List<HoldSecurityaccountSecurity> findPositionsInPeriod(Integer idTenant, LocalDate from, LocalDate through);
+
+  //@formatter:off
+  /**
+   * Returns every non-margin instrument the tenant holds on a reference date, one row per instrument, with the intraday
+   * snapshot of that instrument attached.
+   * <p>
+   * Holdings of the same instrument in several security accounts are summed, so the caller sees a position, not a
+   * booking. The units are split adjusted ({@code holdings * split_price_factor}), the product that turns a price into a
+   * position value in the period-performance queries. An instrument whose accounts cancel out to zero is dropped by the
+   * HAVING clause rather than ranked as an unchanged position.
+   * <p>
+   * Margin positions are excluded, because their value is not that product; count them with
+   * {@link #countHeldMarginInstrumentsByTenant} so a report can state what it left out.
+   * <p>
+   * Named query: HoldSecurityaccountSecurity.getHeldInstrumentsWithIntradayByTenant
+   *
+   * @param idTenant the tenant whose holdings are read
+   * @param refDate  the date at which a holding period must be open
+   * @return one row per held instrument, in no guaranteed order
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<IHeldInstrumentIntraday> getHeldInstrumentsWithIntradayByTenant(@Param("idTenant") Integer idTenant,
+      @Param("refDate") LocalDate refDate);
+
+  //@formatter:off
+  /**
+   * Counts the margin instruments the tenant holds on a reference date, which
+   * {@link #getHeldInstrumentsWithIntradayByTenant} deliberately omits.
+   * <p>
+   * Named query: HoldSecurityaccountSecurity.countHeldMarginInstrumentsByTenant
+   *
+   * @param idTenant the tenant whose holdings are read
+   * @param refDate  the date at which a holding period must be open
+   * @return the number of distinct margin instruments held, zero when there are none
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  int countHeldMarginInstrumentsByTenant(@Param("idTenant") Integer idTenant, @Param("refDate") LocalDate refDate);
 
   void deleteByHsskIdSecuritycashAccountAndHsskIdSecuritycurrency(Integer idSecuritycashAccount,
       Integer idSecuritycurrency);
@@ -376,6 +420,44 @@ public interface HoldSecurityaccountSecurityJpaRepository
   //@formatter:on
   @Query(nativeQuery = true)
   Set<LocalDate> getMissingsQuoteDaysByTenant(Integer idTenant);
+
+  /**
+   * Sessions in the given range on which at least one instrument held by the tenant was valued with a filled price
+   * rather than one a data provider delivered.
+   *
+   * <p>
+   * Filled prices are the two create types that are not a real quote: the linear filling of an instrument that no
+   * longer receives data, and the carry forward of a connector that only reports days the instrument actually traded. A
+   * day on this list still has a complete valuation, but part of it is an estimate, and a card that reports a daily
+   * result has to say so rather than present it as a market move.
+   * </p>
+   *
+   * <p>
+   * Named query: {@code HoldSecurityaccountSecurity.getFilledQuoteDaysByTenant}
+   * </p>
+   *
+   * @param idTenant the tenant whose holdings are examined
+   * @param dateFrom first session of the range, inclusive
+   * @param dateTo   last session of the range, inclusive
+   * @return the sessions resting on at least one filled price, empty when every price was delivered
+   */
+  @Query(nativeQuery = true)
+  Set<LocalDate> getFilledQuoteDaysByTenant(Integer idTenant, LocalDate dateFrom, LocalDate dateTo);
+
+  /**
+   * Same as {@link #getFilledQuoteDaysByTenant(Integer, LocalDate, LocalDate)} for the holdings of a single portfolio.
+   *
+   * <p>
+   * Named query: {@code HoldSecurityaccountSecurity.getFilledQuoteDaysByPortfolio}
+   * </p>
+   *
+   * @param idPortfolio the portfolio whose holdings are examined
+   * @param dateFrom    first session of the range, inclusive
+   * @param dateTo      last session of the range, inclusive
+   * @return the sessions resting on at least one filled price, empty when every price was delivered
+   */
+  @Query(nativeQuery = true)
+  Set<LocalDate> getFilledQuoteDaysByPortfolio(Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo);
 
   //@formatter:off
   /**

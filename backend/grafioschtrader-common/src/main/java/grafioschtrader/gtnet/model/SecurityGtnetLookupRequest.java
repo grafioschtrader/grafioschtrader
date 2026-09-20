@@ -3,8 +3,8 @@ package grafioschtrader.gtnet.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Request DTO for querying security metadata from GTNet peers.
- * At least one of isin or tickerSymbol must be provided along with currency.
+ * Request DTO for querying security metadata from GTNet peers. At least one of isin or tickerSymbol must be provided
+ * along with currency.
  */
 @Schema(description = """
     Request DTO for querying security metadata from GTNet peers. Contains search criteria to find
@@ -55,11 +55,11 @@ public class SecurityGtnetLookupRequest {
 
   /**
    * Validates that the request has sufficient search criteria.
+   *
    * @return true if at least one identifier (ISIN or ticker) and currency are provided
    */
   public boolean isValid() {
-    boolean hasIdentifier = (isin != null && !isin.isBlank()) ||
-                            (tickerSymbol != null && !tickerSymbol.isBlank());
+    boolean hasIdentifier = (isin != null && !isin.isBlank()) || (tickerSymbol != null && !tickerSymbol.isBlank());
     boolean hasCurrency = currency != null && !currency.isBlank();
     return hasIdentifier && hasCurrency;
   }

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.types.LastpriceOrigin;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -37,4 +38,9 @@ public abstract class SecuritycurrencyPositionSummary<T extends Securitycurrency
   @Schema(description = "Timestamp when the close price was determined, indicating data freshness and validity")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate closeDate;
+
+  @Schema(description = """
+      Where the close price comes from. An instrument that no longer receives intraday data is valued with its newest
+      historical closing price, and that price may itself have been calculated by filling gaps rather than traded.""")
+  public LastpriceOrigin closePriceOrigin = LastpriceOrigin.INTRADAY;
 }

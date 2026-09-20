@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
 
 export default defineConfig({
+  // Pure-function tests can import domain types carrying class-transformer decorators.
+  oxc: { decorator: { legacy: true } },
   test: {
     globals: true,
     environment: 'node',

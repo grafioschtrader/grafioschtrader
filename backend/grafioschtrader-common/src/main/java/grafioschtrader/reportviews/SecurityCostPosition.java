@@ -8,7 +8,7 @@ public class SecurityCostPosition {
 
   @Schema(description = "Transaction costs (brokerage fees, commissions, etc.) converted to main currency")
   public double transactionCostMC;
-  
+
   @Schema(description = "Tax costs (trading taxes, regulatory fees, etc.) converted to main currency")
   public double taxCostMC;
 

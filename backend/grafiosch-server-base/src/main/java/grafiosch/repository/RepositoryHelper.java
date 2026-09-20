@@ -12,7 +12,7 @@ import grafiosch.entities.BaseID;
 
 /**
  * Utility class providing helper methods for JPA repository operations.
- * 
+ *
  * <p>
  * This class contains static methods that provide common functionality for repository operations, particularly focused
  * on selective entity updates based on annotation-driven property filtering. It helps reduce boilerplate code in
@@ -22,12 +22,12 @@ public class RepositoryHelper {
 
   /**
    * Saves an entity with selective attribute updates based on annotation filtering.
-   * 
+   *
    * <p>
    * This method provides a flexible approach to entity updates by allowing selective copying of attributes from the
    * input entity to an existing entity based on annotation classes. This is particularly useful for scenarios where
    * only certain fields should be updated (e.g., during imports, partial updates, or when specific update rules apply).
-   * 
+   *
    * <p>
    * The method handles both create and update scenarios:
    * <ul>
@@ -35,12 +35,12 @@ public class RepositoryHelper {
    * <li>If existingEntity exists, copies allowed attributes from entity to existingEntity and saves the updated
    * version</li>
    * </ul>
-   * 
+   *
    * <p>
    * Attribute copying is controlled by the updatePropertyLevelClasses parameter, which specifies which annotation
    * classes mark fields as updatable. Only fields annotated with these annotation types will be copied from the source
    * entity to the existing entity.
-   * 
+   *
    * @param <T>                        the entity type extending BaseID with Integer primary key
    * @param jpaRepository              the JPA repository for the entity type
    * @param entity                     the source entity containing new values to be saved or merged

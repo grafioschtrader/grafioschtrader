@@ -1,0 +1,183 @@
+<div class="dashboard" (click)="onComponentClick($event)">
+  <header class="dashboard-toolbar">
+    <h2>{{ 'DASHBOARD' | translate }}</h2>
+    @if (document) {
+      <span>{{ 'DASHBOARD_ACTIVE_CLIENT' | translate }}: {{ getValueByPath(document, tenantField) }}</span>
+      @if (simulation) {
+        <span>{{ 'DASHBOARD_SIMULATION' | translate }}</span>
+      }
+    }
+    @if (!editing) {
+      <p-button [label]="'DASHBOARD_EDIT' | translate" [disabled]="!canEdit" (onClick)="edit()" />
+      <p-button [label]="'DASHBOARD_REFRESH_ALL' | translate" [disabled]="loading || saving" (onClick)="load()" />
+    } @else {
+      <p-button [label]="'DASHBOARD_SAVE' | translate" [disabled]="!canEdit || !dirty" (onClick)="save()" />
+      <p-button [label]="'DASHBOARD_CANCEL' | translate" [disabled]="saving" (onClick)="cancel()" />
+      <p-button [label]="'DASHBOARD_RESET' | translate" [disabled]="saving" (onClick)="reset()" />
+    }
+  </header>
+  @if (document) {
+    <p class="dashboard-time">
+      {{ 'DASHBOARD_LOADED_AT' | translate }}: {{ getValueByPath(document, generatedField) }}
+    </p>
+  }
+  @if (loading) {
+    <p role="status">{{ 'DASHBOARD_LOADING' | translate }}</p>
+  }
+  @if (error) {
+    <p role="alert">{{ error | translate }}</p>
+  }
+  @if (conflict) {
+    <p-button [label]="'DASHBOARD_RELOAD' | translate" (onClick)="reloadConflict()" />
+  }
+  @if (conflictDraft) {
+    <details>
+      <summary>{{ 'DASHBOARD_PREVIOUS_DRAFT' | translate }}</summary>
+      <ul>
+        @for (widget of conflictDraft; track widget.instanceId) {
+          <li>
+            {{ 'DASHBOARD_' + widget.type | translate }} · {{ 'DASHBOARD_WIDTH_' + widget.width | translate }}
+            @if (configSummaryField(widget); as field) {
+              · {{ field.headerKey | translate }}: {{ getValueByPath(widget.config, field) }}
+            }
+          </li>
+        }
+      </ul>
+    </details>
+  }
+  @if (resetPending) {
+    <p>{{ 'DASHBOARD_RESET_DRAFT' | translate }}</p>
+  }
+  @if (editing && remainingCapacity <= 0) {
+    <p>{{ 'DASHBOARD_CAPACITY' | translate }}</p>
+  }
+  @if (document && !visibleWidgets.length && document.schemaVersion === 1) {
+    <p>{{ 'DASHBOARD_EMPTY' | translate }}</p>
+  }
+  <div class="dashboard-edit-layout" [class.dashboard-with-tray]="editing && !resetPending">
+    <div
+      class="dashboard-grid"
+      [dashboardMasonry]="!editing"
+      cdkDropList
+      id="dashboardGrid"
+      cdkDropListOrientation="mixed"
+      [cdkDropListData]="draft"
+      [cdkDropListConnectedTo]="['dashboardTray']"
+      [cdkDropListEnterPredicate]="canEnterGrid"
+      [cdkDropListDisabled]="!editing || saving || resetPending"
+      (cdkDropListDropped)="drop($event)">
+      @for (widget of visibleWidgets; track widget.instanceId; let index = $index) {
+        <article
+          class="dashboard-card"
+          cdkDrag
+          [cdkDragData]="widget"
+          [style.--card-span]="spans[widget.width]"
+          [attr.data-widget-type]="widget.type">
+          <header>
+            <h3>{{ 'DASHBOARD_' + widget.type | translate }}</h3>
+            @if (configSummaryField(widget); as field) {
+              <span>{{ field.headerKey | translate }}: {{ getValueByPath(widget.config, field) }}</span>
+            }
+            @if (!editing) {
+              <p-button
+                [label]="'DASHBOARD_REFRESH' | translate"
+                [disabled]="loading || refreshing.has(widget.instanceId)"
+                (onClick)="refresh(widget)" />
+            }
+          </header>
+          @if (editing && !resetPending) {
+            <div class="dashboard-controls">
+              <button type="button" cdkDragHandle [disabled]="saving" [attr.aria-label]="'DASHBOARD_MOVE' | translate">
+                ↕
+              </button>
+              <p-button
+                [label]="'DASHBOARD_EARLIER' | translate"
+                [disabled]="saving || index === 0"
+                (onClick)="move(index, index - 1)" />
+              <p-button
+                [label]="'DASHBOARD_LATER' | translate"
+                [disabled]="saving || index === draft.length - 1"
+                (onClick)="move(index, index + 1)" />
+              <label
+                >{{ 'DASHBOARD_WIDTH' | translate }}
+                <select [(ngModel)]="widget.width" [disabled]="saving">
+                  @for (width of widths; track width) {
+                    <option [value]="width">{{ 'DASHBOARD_WIDTH_' + width | translate }}</option>
+                  }
+                </select>
+              </label>
+              <p-button [label]="'DASHBOARD_CONFIGURE' | translate" [disabled]="saving" (onClick)="configure(widget)" />
+              <p-button [label]="'DASHBOARD_REMOVE' | translate" [disabled]="saving" (onClick)="remove(index)" />
+            </div>
+          }
+          @if (!editing) {
+            @if (results[widget.instanceId]; as result) {
+              @if (result.stale) {
+                <p role="status">{{ 'DASHBOARD_STALE' | translate }}</p>
+              }
+              @if (result.errorCode) {
+                <p role="alert">{{ result.errorCode | translate }}</p>
+              }
+              @if (result.payload && renderers[widget.type]) {
+                <ng-container *ngComponentOutlet="renderers[widget.type]; inputs: { result: result }" />
+              }
+              @if (result.dataAsOf) {
+                <small>{{ 'DASHBOARD_LOADED_AT' | translate }}: {{ getValueByPath(result, timeField) }}</small>
+              }
+            }
+          } @else {
+            <p>{{ 'DASHBOARD_DRAFT_PREVIEW' | translate }}</p>
+          }
+        </article>
+      }
+    </div>
+    @if (editing && !resetPending) {
+      <aside
+        class="dashboard-tray"
+        cdkDropList
+        id="dashboardTray"
+        cdkDropListSortingDisabled
+        [cdkDropListData]="available"
+        [cdkDropListConnectedTo]="['dashboardGrid']"
+        [cdkDropListDisabled]="saving"
+        (cdkDropListDropped)="drop($event)"
+        [attr.aria-label]="'DASHBOARD_CATALOGUE' | translate">
+        <h3 class="h6">
+          {{ 'DASHBOARD_AVAILABLE' | translate }}: {{ getValueByPath(availableInfo, availableCountField) }}
+        </h3>
+        <p class="dashboard-tray-hint">{{ 'DASHBOARD_DRAG_TO_REMOVE' | translate }}</p>
+        @if (!catalogue) {
+          <p role="status">{{ 'DASHBOARD_LOADING' | translate }}</p>
+        } @else if (!available.length) {
+          <p>{{ 'DASHBOARD_ALL_IN_USE' | translate }}</p>
+        }
+        @for (descriptor of available; track descriptor.type) {
+          <article class="dashboard-tray-item" cdkDrag [cdkDragData]="descriptor" [cdkDragDisabled]="saving">
+            <h4 class="h6">{{ descriptor.titleKey | translate }}</h4>
+            <p>{{ descriptor.descriptionKey | translate }}</p>
+            <div class="dashboard-controls">
+              <button
+                type="button"
+                cdkDragHandle
+                [disabled]="saving"
+                [attr.aria-label]="'DASHBOARD_DRAG_TO_ADD' | translate">
+                ↕
+              </button>
+              <p-button
+                [label]="'DASHBOARD_ADD' | translate"
+                [disabled]="saving || remainingCapacity <= 0"
+                (onClick)="add(descriptor)" />
+            </div>
+          </article>
+        }
+      </aside>
+    }
+  </div>
+  @if (configuring) {
+    <dashboard-config
+      [descriptor]="configuring.descriptor"
+      [widget]="configuring.widget"
+      [visibleDialog]="true"
+      (closeDialog)="configured($event)" />
+  }
+</div>

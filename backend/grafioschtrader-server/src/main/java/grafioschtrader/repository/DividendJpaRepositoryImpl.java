@@ -264,8 +264,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
         .findByIdSecuritycurrencyOrderBySplitDateAsc(idSecurity);
 
     for (Dividend dividend : dividendsRead) {
-      double factor = Securitysplit.calcSplitFatorForFromDate(securitysplitList,
-          dividend.getExDate());
+      double factor = Securitysplit.calcSplitFatorForFromDate(securitysplitList, dividend.getExDate());
       if (isSplitAdjusted) {
         dividend.setAmount(dividend.getAmountAdjusted() * factor);
       } else {

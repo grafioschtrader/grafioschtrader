@@ -7,6 +7,7 @@ export class Transaction {
   //Some values are initialied with null, otherwise values will not be transfered
 
   idTransaction?: number;
+  idAlgoStrategy: number = null;
   units?: number = null;
   quotation?: number = null;
   transactionType: string = null;

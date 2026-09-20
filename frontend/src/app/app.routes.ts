@@ -1,4 +1,5 @@
 import { RouterModule, Routes } from '@angular/router';
+import { DASHBOARD_ROUTES } from './lib/dashboard/dashboard.routes';
 import { HistoryquoteHostComponent } from './historyquote/component/historyquote-host.component';
 import { AppSettings } from './shared/app.settings';
 import { PortfolioCashaccountSummaryComponent } from './portfolio/component/portfolio.cashaccount.summary.component';
@@ -38,11 +39,13 @@ import { SecurityaccountImportTabMenuComponent } from './imptransaction/componen
 import { LoginComponent } from './lib/login/component/login.component';
 import { SecurityaccountImportTransactionComponent } from './imptransaction/component/securityaccount.import.transaction.component';
 import { ImportTransactionTemplateComponent } from './imptranstemplate/component/import.transaction.template.component';
+import { BankruptSecurityTableComponent } from './bankruptsecurity/component/bankrupt-security-table.component';
 import { RiskFreeRateMappingTableComponent } from './riskfreeratemapping/component/risk.free.rate.mapping.table.component';
 import { ProposeChangeTabMenuComponent } from './lib/proposechange/component/propose.change.tab.menu.component';
 import { RequestForYouTableComponent } from './lib/proposechange/component/request.for.you.table.component';
 import { YourProposalTableComponent } from './lib/proposechange/component/your.proposal.table.component';
-import { StrategyOverviewComponent } from './algo/component/strategy.overview.component';
+import { AlgoOverviewComponent } from './algo/component/algo-overview.component';
+import { AlgoSimulationRunComponent } from './algo/component/algo-simulation-run.component';
 import { AlgoTopDataViewComponent } from './algo/component/algo.top.data.view.component';
 import { EntityLimitTableComponent } from './lib/entitylimit/component/entity.limit.table.component';
 import { UserTableComponent } from './lib/user/component/user.table.component';
@@ -92,6 +95,7 @@ const APP_ROUTES: Routes = [
     component: SplitLayoutComponent,
     canActivate: [authGuard],
     children: [
+      ...DASHBOARD_ROUTES,
       {
         //   path: AppSettings.TENANT_TAB_MENU_KEY + '/:id', component: TenantTabMenuComponent, canActivate: [authGuard],
         path: AppSettings.TENANT_TAB_MENU_KEY,
@@ -269,8 +273,13 @@ const APP_ROUTES: Routes = [
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
-      { path: AppSettings.STRATEGY_OVERVIEW_KEY, component: StrategyOverviewComponent, canActivate: [authGuard] },
+      { path: AppSettings.ALGO_OVERVIEW_KEY, component: AlgoOverviewComponent, canActivate: [authGuard] },
       { path: AppSettings.ALGO_TOP_KEY + '/:id', component: AlgoTopDataViewComponent, canActivate: [authGuard] },
+      {
+        path: AppSettings.SIMULATION_RUN_KEY + '/:id',
+        component: AlgoSimulationRunComponent,
+        canActivate: [authGuard]
+      },
       { path: AppSettings.WATCHLIST_KEY + '/:id', component: CorrelationComponent, canActivate: [authGuard] },
       {
         path: AppSettings.WATCHLIST_TAB_MENU_KEY + '/:id',
@@ -336,6 +345,11 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.RISK_FREE_RATE_MAPPING_KEY,
         component: RiskFreeRateMappingTableComponent,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.BANKRUPT_SECURITY_KEY,
+        component: BankruptSecurityTableComponent,
         canActivate: [authGuard]
       },
       {

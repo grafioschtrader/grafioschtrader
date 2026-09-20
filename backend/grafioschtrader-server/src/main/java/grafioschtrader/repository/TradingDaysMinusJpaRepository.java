@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafioschtrader.entities.TradingDaysMinus;
@@ -19,10 +20,30 @@ public interface TradingDaysMinusJpaRepository
   List<TradingDaysMinus> findByTradingDaysMinusKey_IdStockexchangeAndTradingDaysMinusKey_TradingDateMinusBetween(
       Integer idStockexchange, LocalDate fromDate, LocalDate toDate);
 
+  //@formatter:off
   /**
-   * Deletes the derived non trading days of a stock exchange in the given date range, leaving the user created
-   * entries ({@code create_type = 5}) untouched. Used by the rule based calendar generator before it re-inserts the
-   * closures for the range, so a manually added or removed day always wins over a rule.
+   * Of the given stock exchanges, returns those that hold no trading session on a date.
+   * <p>
+   * An exchange has no session when it carries a closure for that date, or when it has no public quotes at all
+   * ({@code no_market_value}), which is how privately held papers are modelled. The date itself must additionally be
+   * present in {@code trading_days_plus}; that calendar contains weekdays only, so a weekend is already excluded by
+   * the caller before this query is reached.
+   * <p>
+   * Named query: TradingDaysMinus.getIdStockexchangeWithoutSessionOnDate
+   *
+   * @param idsStockexchange the exchanges to examine; never empty
+   * @param date             the date to test
+   * @return the subset of the given exchanges that are shut, empty when all of them trade
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<Integer> getIdStockexchangeWithoutSessionOnDate(@Param("idsStockexchange") List<Integer> idsStockexchange,
+      @Param("date") LocalDate date);
+
+  /**
+   * Deletes the derived non trading days of a stock exchange in the given date range, leaving the user created entries
+   * ({@code create_type = 5}) untouched. Used by the rule based calendar generator before it re-inserts the closures
+   * for the range, so a manually added or removed day always wins over a rule.
    *
    * @param idStockexchange the stock exchange whose derived rows are removed
    * @param fromDate        first date of the range, inclusive
@@ -72,16 +93,16 @@ public interface TradingDaysMinusJpaRepository
 
   /**
    * Derives the trading calendar of the index linked stock exchanges from the history quotes of the index in
-   * {@code stockexchange.id_index_upd_calendar}. Every trading day of {@code trading_days_plus} for which the index
-   * has no quote becomes a non trading day in {@code trading_days_minus}.
+   * {@code stockexchange.id_index_upd_calendar}. Every trading day of {@code trading_days_plus} for which the index has
+   * no quote becomes a non trading day in {@code trading_days_minus}.
    *
    * @param idStockexchange limits the run to a single stock exchange, {@code null} processes every index linked stock
    *                        exchange
    * @param fullRebuild     {@code false} only appends the days after the newest manually created entry
    *                        ({@code create_type = 5}), which is the cheap weekly update. {@code true} discards all
-   *                        connector created entries and derives the calendar over the full range of the index
-   *                        history, which is required after the index history was wiped and reloaded. Manually
-   *                        created entries survive a full rebuild.
+   *                        connector created entries and derives the calendar over the full range of the index history,
+   *                        which is required after the index history was wiped and reloaded. Manually created entries
+   *                        survive a full rebuild.
    */
   @Procedure(procedureName = "updCalendarStockexchangeByIndex")
   void updCalendarStockexchangeByIndex(Integer idStockexchange, boolean fullRebuild);

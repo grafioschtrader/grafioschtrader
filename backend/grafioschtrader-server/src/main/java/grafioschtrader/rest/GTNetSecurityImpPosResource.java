@@ -29,8 +29,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 /**
- * REST controller for managing GTNet security import positions. Provides CRUD operations
- * for individual security entries within an import batch.
+ * REST controller for managing GTNet security import positions. Provides CRUD operations for individual security
+ * entries within an import batch.
  */
 @RestController
 @RequestMapping(RequestGTMappings.GTNETSECURITYIMPPOS_MAP)
@@ -40,21 +40,17 @@ public class GTNetSecurityImpPosResource {
   @Autowired
   private GTNetSecurityImpPosJpaRepository gtNetSecurityImpPosJpaRepository;
 
-  @Operation(summary = "Get all positions for an import header",
-      description = "Returns all GTNet security import positions belonging to the specified header.",
-      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @Operation(summary = "Get all positions for an import header", description = "Returns all GTNet security import positions belonging to the specified header.", tags = {
+      RequestGTMappings.GTNETSECURITYIMPPOS })
   @GetMapping(value = "/head/{idGtNetSecurityImpHead}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<GTNetSecurityImpPos>> getByHead(@PathVariable final Integer idGtNetSecurityImpHead) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(
-        gtNetSecurityImpPosJpaRepository.findByIdGtNetSecurityImpHeadAndIdTenant(idGtNetSecurityImpHead,
-            user.getIdTenant()),
-        HttpStatus.OK);
+    return new ResponseEntity<>(gtNetSecurityImpPosJpaRepository
+        .findByIdGtNetSecurityImpHeadAndIdTenant(idGtNetSecurityImpHead, user.getIdTenant()), HttpStatus.OK);
   }
 
-  @Operation(summary = "Create a new import position",
-      description = "Creates a new GTNet security import position within the specified header.",
-      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @Operation(summary = "Create a new import position", description = "Creates a new GTNet security import position within the specified header.", tags = {
+      RequestGTMappings.GTNETSECURITYIMPPOS })
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTNetSecurityImpPos> create(@Valid @RequestBody GTNetSecurityImpPos entity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -62,9 +58,8 @@ public class GTNetSecurityImpPosResource {
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Update an existing import position",
-      description = "Updates an existing GTNet security import position.",
-      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @Operation(summary = "Update an existing import position", description = "Updates an existing GTNet security import position.", tags = {
+      RequestGTMappings.GTNETSECURITYIMPPOS })
   @PutMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTNetSecurityImpPos> update(@Valid @RequestBody GTNetSecurityImpPos entity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -72,9 +67,8 @@ public class GTNetSecurityImpPosResource {
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Delete an import position",
-      description = "Deletes a GTNet security import position by its ID.",
-      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @Operation(summary = "Delete an import position", description = "Deletes a GTNet security import position by its ID.", tags = {
+      RequestGTMappings.GTNETSECURITYIMPPOS })
   @DeleteMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> delete(@PathVariable final Integer id) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -82,15 +76,12 @@ public class GTNetSecurityImpPosResource {
     return ResponseEntity.noContent().build();
   }
 
-  @Operation(summary = "Upload CSV file with GTNet security import positions",
-      description = """
-          Imports positions from a CSV file. Expected columns: isin, tickerSymbol, currency.
-          Uses semicolon as separator. First row must be column headers.
-          Duplicates (same ISIN + currency in same head) are skipped.""",
-      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @Operation(summary = "Upload CSV file with GTNet security import positions", description = """
+      Imports positions from a CSV file. Expected columns: isin, tickerSymbol, currency.
+      Uses semicolon as separator. First row must be column headers.
+      Duplicates (same ISIN + currency in same head) are skipped.""", tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
   @PostMapping(value = "/head/{idGtNetSecurityImpHead}/upload", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<UploadHistoryquotesSuccess> uploadCSV(
-      @PathVariable final Integer idGtNetSecurityImpHead,
+  public ResponseEntity<UploadHistoryquotesSuccess> uploadCSV(@PathVariable final Integer idGtNetSecurityImpHead,
       @RequestParam("file") MultipartFile[] uploadFiles) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(
@@ -98,37 +89,31 @@ public class GTNetSecurityImpPosResource {
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Delete the linked security from a position",
-      description = """
-          Removes the link between a position and its security, then deletes the security
-          and its history quotes from the system. The position remains and can be queried
-          again via GTNet. Use this when the imported security does not match the desired result.""",
-      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @Operation(summary = "Delete the linked security from a position", description = """
+      Removes the link between a position and its security, then deletes the security
+      and its history quotes from the system. The position remains and can be queried
+      again via GTNet. Use this when the imported security does not match the desired result.""", tags = {
+      RequestGTMappings.GTNETSECURITYIMPPOS })
   @DeleteMapping(value = "/{id}/security", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTNetSecurityImpPos> deleteLinkedSecurity(@PathVariable final Integer id) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(
-        gtNetSecurityImpPosJpaRepository.deleteLinkedSecurity(id, user.getIdTenant()),
+    return new ResponseEntity<>(gtNetSecurityImpPosJpaRepository.deleteLinkedSecurity(id, user.getIdTenant()),
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Create positions from import transaction head",
-      description = """
-          Creates GTNet security import positions from an import transaction head.
-          Reads ImportTransactionPos entries where security is null and (ISIN or symbol exists),
-          then creates corresponding GTNetSecurityImpPos entries. Can add to an existing header
-          (if idGtNetSecurityImpHead is provided) or create a new header (using headName).
-          Duplicates (same ISIN + currency) are skipped.""",
-      tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
+  @Operation(summary = "Create positions from import transaction head", description = """
+      Creates GTNet security import positions from an import transaction head.
+      Reads ImportTransactionPos entries where security is null and (ISIN or symbol exists),
+      then creates corresponding GTNetSecurityImpPos entries. Can add to an existing header
+      (if idGtNetSecurityImpHead is provided) or create a new header (using headName).
+      Duplicates (same ISIN + currency) are skipped.""", tags = { RequestGTMappings.GTNETSECURITYIMPPOS })
   @PostMapping(value = "/fromimport/{idTransactionHead}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GTNetSecurityImpHead> createFromImportTransactionHead(
       @PathVariable final Integer idTransactionHead,
       @RequestParam(required = false) final Integer idGtNetSecurityImpHead,
       @RequestParam(required = false) final String headName) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(
-        gtNetSecurityImpPosJpaRepository.createFromImportTransactionHead(
-            idTransactionHead, idGtNetSecurityImpHead, headName, user.getIdTenant()),
-        HttpStatus.OK);
+    return new ResponseEntity<>(gtNetSecurityImpPosJpaRepository.createFromImportTransactionHead(idTransactionHead,
+        idGtNetSecurityImpHead, headName, user.getIdTenant()), HttpStatus.OK);
   }
 }

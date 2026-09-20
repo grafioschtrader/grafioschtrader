@@ -3,15 +3,16 @@ package grafiosch.dynamic.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Field descriptor for input forms whose definition is derived from a JPA entity's annotations
- * (via {@code @DynamicFormField} + Jakarta Bean Validation). In addition to the base constraint
- * metadata it carries the owning entity name, the {@code uiOrder} string (dialog membership +
- * position) and an optional explicit label key.
+ * Field descriptor for input forms whose definition is derived from a JPA entity's annotations (via
+ * {@code @DynamicFormField} + Jakarta Bean Validation). In addition to the base constraint metadata it carries the
+ * owning entity name, the {@code uiOrder} string (dialog membership + position) and an optional explicit label key.
  *
- * <p>It is the annotation-driven counterpart to the persisted, user-defined
- * {@link FieldDescriptorInputAndShowExtendedGeneral}: the latter describes UDF fields stored in the
- * database, this one describes regular entity fields discovered through reflection. The UDF class
- * (with its {@code byte uiOrder}) is intentionally left untouched.</p>
+ * <p>
+ * It is the annotation-driven counterpart to the persisted, user-defined
+ * {@link FieldDescriptorInputAndShowExtendedGeneral}: the latter describes UDF fields stored in the database, this one
+ * describes regular entity fields discovered through reflection. The UDF class (with its {@code byte uiOrder}) is
+ * intentionally left untouched.
+ * </p>
  */
 @Schema(description = """
     Field descriptor derived from a JPA entity's @DynamicFormField + Bean Validation annotations.
@@ -32,8 +33,8 @@ public class FieldDescriptorInputAndShowExtendedEntity extends FieldDescriptorIn
   private final String labelKey;
 
   /**
-   * Wraps an already-analysed base descriptor, copying all of its constraint metadata and adding
-   * the entity / ordering / label information.
+   * Wraps an already-analysed base descriptor, copying all of its constraint metadata and adding the entity / ordering
+   * / label information.
    *
    * @param base     the base descriptor produced by the standard field analysis
    * @param entity   the simple name of the owning entity

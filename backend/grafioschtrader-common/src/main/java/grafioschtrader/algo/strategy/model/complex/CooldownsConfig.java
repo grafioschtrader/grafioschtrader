@@ -1,13 +1,11 @@
 package grafioschtrader.algo.strategy.model.complex;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import jakarta.validation.constraints.Min;
 
 /**
  * Cooldown periods to prevent over-trading after buy or sell events.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+
 public class CooldownsConfig {
 
   @Min(0)

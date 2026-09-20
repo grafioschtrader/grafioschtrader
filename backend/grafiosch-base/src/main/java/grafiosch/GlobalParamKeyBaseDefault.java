@@ -2,7 +2,7 @@ package grafiosch;
 
 /**
  * Global parameter keys and default values for system configuration and tenant regulations.
- * 
+ *
  * <p>
  * This class defines configuration parameter keys and their default values used throughout the application for security
  * settings, rate limiting, email configuration, and tenant regulations. It centralizes global parameter management and
@@ -47,12 +47,12 @@ public class GlobalParamKeyBaseDefault {
   /** The idGTNet for this Server in GTNet */
   public static final String GNET = BaseConstants.G_PREFIX + "gnet.";
   public static final String GLOB_KEY_GTNET_MY_ENTRY_ID = GNET + "my.entry.id";
-  
+
   /** Flag to enable/disable GTNet functionality. 0 = disabled, non-zero = enabled. */
   public static final String GLOB_KEY_GTNET_USE = GNET + "use";
   /** Default value for GTNet enabled flag (disabled by default). */
   public static final int DEFAULT_GTNET_USE = 0;
-  
+
   /** Flag to enable/disable GTNet exchange logging. 0 = disabled, non-zero = enabled. */
   public static final String GLOB_KEY_GTNET_USE_LOG = GNET + "use.log";
   /** Default value for GTNet logging enabled flag (disabled by default). */
@@ -69,7 +69,10 @@ public class GlobalParamKeyBaseDefault {
   public static final String DEFAULT_GTNET_DEL_MESSAGE_RECV = "LP=1,HP=5,SL=5";
   /** GTNet log aggregation days (PropertyString: D=days,W=days,M=days,Y=days). */
   public static final String GLOB_KEY_GTNET_LOG_AGGREGATE_DAYS = GNET + "log.aggregate.days";
-  /** Default aggregation: D=1 (daily after 1 day), W=7 (weekly after 7 days), M=30 (monthly after 30 days), Y=365 (yearly after 365 days). */
+  /**
+   * Default aggregation: D=1 (daily after 1 day), W=7 (weekly after 7 days), M=30 (monthly after 30 days), Y=365
+   * (yearly after 365 days).
+   */
   public static final String DEFAULT_GTNET_LOG_AGGREGATE_DAYS = "D=1,W=7,M=30,Y=365";
 
 }

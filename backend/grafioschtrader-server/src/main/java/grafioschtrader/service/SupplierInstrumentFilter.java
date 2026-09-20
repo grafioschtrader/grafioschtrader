@@ -15,8 +15,8 @@ import grafiosch.entities.GTNetSupplierDetail;
  *
  * This class provides instrument filtering for GTNet exchange services, implementing the following rules:
  * <ul>
- *   <li>AC_PUSH_OPEN suppliers: receive ALL instruments (no filtering needed)</li>
- *   <li>AC_OPEN suppliers: receive ONLY instruments with matching GTNetSupplierDetail entries</li>
+ * <li>AC_PUSH_OPEN suppliers: receive ALL instruments (no filtering needed)</li>
+ * <li>AC_OPEN suppliers: receive ONLY instruments with matching GTNetSupplierDetail entries</li>
  * </ul>
  *
  * The filter is built once from a list of GTNetSupplierDetail entries and then used for O(1) lookups during the
@@ -89,9 +89,9 @@ public class SupplierInstrumentFilter {
    * For AC_PUSH_OPEN suppliers (isPushOpen=true), returns all requested instruments. For AC_OPEN suppliers
    * (isPushOpen=false), returns only instruments with matching GTNetSupplierDetail entries.
    *
-   * @param supplierId the ID of the supplier
+   * @param supplierId             the ID of the supplier
    * @param requestedInstrumentIds the set of instrument IDs being requested
-   * @param isPushOpen true if the supplier is AC_PUSH_OPEN, false for AC_OPEN
+   * @param isPushOpen             true if the supplier is AC_PUSH_OPEN, false for AC_OPEN
    * @return the filtered set of instrument IDs to send to this supplier
    */
   public Set<Integer> getInstrumentsForSupplier(Integer supplierId, Set<Integer> requestedInstrumentIds,

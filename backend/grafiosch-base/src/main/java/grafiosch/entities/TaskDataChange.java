@@ -24,16 +24,18 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Entity representing background task execution data and status.
- * 
- * <p>Tracks the lifecycle of background tasks from creation through completion,
- * including execution timing, progress state, and error information.</p>
+ *
+ * <p>
+ * Tracks the lifecycle of background tasks from creation through completion, including execution timing, progress
+ * state, and error information.
+ * </p>
  */
 @Schema(description = "Entity that contains the information for background processing")
 @Entity
 @Table(name = TaskDataChange.TABNAME)
 public class TaskDataChange extends BaseID<Integer> {
   public static final String TABNAME = "task_data_change";
-  
+
   /** Maximum size for failed stack trace field */
   public static final int MAX_SIZE_FAILED_STRACK_TRACE = 4096;
 
@@ -86,13 +88,13 @@ public class TaskDataChange extends BaseID<Integer> {
   private LocalDateTime execEndTime;
 
   @Schema(description = """
-      Additional information may be required when creating certain background jobs. 
+      Additional information may be required when creating certain background jobs.
       This information is then requested when the job is executed. Both strings and date values can be stored here.""")
   @Column(name = "old_value_varchar")
   private String oldValueString;
 
   @Schema(description = """
-      Additional information may be required when creating certain background jobs. 
+      Additional information may be required when creating certain background jobs.
       This information is then requested when the job is executed. Numerical values can be stored here.""")
   @Column(name = "old_value_number")
   private Double oldValueNumber;
@@ -115,8 +117,8 @@ public class TaskDataChange extends BaseID<Integer> {
 
   /**
    * Creates a new task with specified parameters and immediate start time.
-   * 
-   * @param taskType the type of task to execute
+   *
+   * @param taskType          the type of task to execute
    * @param executionPriority the execution priority
    * @param earliestStartTime when the task can start execution
    */
@@ -126,12 +128,12 @@ public class TaskDataChange extends BaseID<Integer> {
 
   /**
    * Creates a new task with full parameters.
-   * 
-   * @param taskType the type of task to execute
+   *
+   * @param taskType          the type of task to execute
    * @param executionPriority the execution priority
    * @param earliestStartTime when the task can start execution
-   * @param idEntity the ID of the entity that triggered this task
-   * @param entity the name of the entity that triggered this task
+   * @param idEntity          the ID of the entity that triggered this task
+   * @param entity            the name of the entity that triggered this task
    */
   public TaskDataChange(ITaskType taskType, TaskDataExecPriority executionPriority, LocalDateTime earliestStartTime,
       Integer idEntity, String entity) {
@@ -285,10 +287,9 @@ public class TaskDataChange extends BaseID<Integer> {
   }
 
   /**
-   * Marks the task as finished with the specified state.
-   * Sets the execution times and progress state.
-   * 
-   * @param startTime the actual start time
+   * Marks the task as finished with the specified state. Sets the execution times and progress state.
+   *
+   * @param startTime         the actual start time
    * @param progressStateType the final progress state
    */
   public void finishedJob(LocalDateTime startTime, ProgressStateType progressStateType) {

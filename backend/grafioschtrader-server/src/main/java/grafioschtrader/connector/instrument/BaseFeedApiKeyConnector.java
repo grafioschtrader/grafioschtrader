@@ -15,7 +15,7 @@ import grafioschtrader.entities.Securitycurrency;
  * Abstract base class for feed connectors that require API key authentication and subscription management. This class
  * extends BaseFeedConnector to add secure API key handling, subscription validation, and enhanced error reporting that
  * protects sensitive authentication information.
- * 
+ *
  * <h3>Subscription Management</h3>
  * <p>
  * Many data providers offer different subscription tiers with varying capabilities. This class provides infrastructure
@@ -26,7 +26,7 @@ import grafioschtrader.entities.Securitycurrency;
  * <li>Manage subscription type information</li>
  * <li>Provide extension points for subscription-specific validation</li>
  * </ul>
- * 
+ *
  * <h3>Security Features</h3>
  * <p>
  * The class implements several security measures:
@@ -36,7 +36,7 @@ import grafioschtrader.entities.Securitycurrency;
  * <li><strong>Parameter Replacement:</strong> Replaces API key parameters with placeholder text</li>
  * <li><strong>URL Sanitization:</strong> Removes query parameters that might contain sensitive data</li>
  * </ul>
- * 
+ *
  * <h3>Implementation Guidelines</h3>
  * <p>
  * Subclasses should:
@@ -63,7 +63,7 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
 
   /**
    * Constructs a new API key-based feed connector with the specified configuration.
-   * 
+   *
    * @param supportedFeed   mapping of feed support types to their identifier requirements
    * @param id              the short identifier for this connector (will be prefixed with ID_PREFIX)
    * @param readableNameKey the human-readable name for display purposes
@@ -79,7 +79,7 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
    * Enhanced URL validation that includes API subscription verification. Before performing standard URL validation,
    * this method checks whether the data provider's subscription tier covers the requested service type. This prevents
    * configuration of services that are not available under the current subscription plan.
-   * 
+   *
    * @param securitycurrency the security or currency pair to validate
    * @param feedSupport      the type of feed being validated
    * @param <S>              the type of security currency
@@ -98,7 +98,7 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
   /**
    * Sanitizes URLs by replacing API key parameters with placeholder text for error reporting. This method uses regular
    * expressions to find and replace API key values in URLs while preserving the URL structure for debugging purposes.
-   * 
+   *
    * @param url            the URL that may contain an API key parameter
    * @param tokenParamName the name of the parameter that contains the API key (e.g., "apikey", "token")
    * @return the sanitized URL with the API key value replaced by ERROR_API_KEY_REPLACEMENT
@@ -112,7 +112,7 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
    * Hides API keys and other sensitive query parameters from URLs in error messages. This method removes all query
    * parameters from URLs to prevent accidental exposure of authentication information in logs and error reports. This
    * is a more aggressive approach than parameter-specific replacement.
-   * 
+   *
    * @param url the URL that may contain sensitive query parameters
    * @return the URL with all query parameters removed (everything after the first '?')
    */
@@ -130,7 +130,7 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
   /**
    * Clears the cached API key, forcing it to be reloaded from the database on next access. This method should be called
    * when API key configuration changes or when the connector needs to refresh its authentication credentials.
-   * 
+   *
    * <p>
    * Common scenarios for calling this method:
    * </p>
@@ -158,7 +158,7 @@ public abstract class BaseFeedApiKeyConnector extends BaseFeedConnector {
    * Loads the API key configuration from the database if not already cached. This method implements lazy loading to
    * avoid unnecessary database queries while ensuring the API key is available when needed. The loaded API key is
    * cached for the lifetime of the connector instance.
-   * 
+   *
    * <p>
    * The API key is looked up using the connector's short ID as the primary key. If no configuration is found, the
    * connectorApiKey remains null, indicating the connector is not properly configured.

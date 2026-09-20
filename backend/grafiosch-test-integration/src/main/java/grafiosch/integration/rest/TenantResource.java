@@ -11,7 +11,6 @@ import grafiosch.repository.TenantBaseCustom;
 import grafiosch.rest.TenantBaseResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
 
-
 @RestController
 @RequestMapping(RequestIntegrationMappings.TENANT_MAP)
 public class TenantResource extends TenantBaseResource<Tenant> {
@@ -19,12 +18,10 @@ public class TenantResource extends TenantBaseResource<Tenant> {
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
-
   @Override
   protected UpdateCreateJpaRepository<Tenant> getUpdateCreateJpaRepository() {
     return tenantJpaRepository;
   }
-
 
   @Override
   protected TenantBaseCustom getTenantRepository() {

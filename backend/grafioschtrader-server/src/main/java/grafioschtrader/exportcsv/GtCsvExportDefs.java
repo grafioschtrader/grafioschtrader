@@ -14,12 +14,11 @@ import grafioschtrader.types.TransactionType;
  * <b>These labels are a wire format, not UI text.</b> The exported CSV files must be re-importable through the CSV
  * transaction import. The import maps the CSV column headers against the Grafioschtrader import templates
  * <code>csv_base-csv-20000101-de|en.tmpl</code> in
- * <code>grafioschtrader-server/src/test/resources/testdata/import_template/grafioschtrader</code>. Those templates
- * bind the transaction properties to exactly these header texts and type words. For this reason the labels are
- * deliberately <b>not</b> placed in <code>messages.properties</code>: a harmless looking translation edit there would
- * silently break the column mapping. Any change to a label here requires the same change in the corresponding template
- * files; the round-trip test <code>TransactionCsvExportRoundTripTest</code> fails when generator and templates drift
- * apart.
+ * <code>grafioschtrader-server/src/test/resources/testdata/import_template/grafioschtrader</code>. Those templates bind
+ * the transaction properties to exactly these header texts and type words. For this reason the labels are deliberately
+ * <b>not</b> placed in <code>messages.properties</code>: a harmless looking translation edit there would silently break
+ * the column mapping. Any change to a label here requires the same change in the corresponding template files; the
+ * round-trip test <code>TransactionCsvExportRoundTripTest</code> fails when generator and templates drift apart.
  * </p>
  *
  * <p>
@@ -36,9 +35,9 @@ import grafioschtrader.types.TransactionType;
  * <li>Rows sharing the same non-zero {@code Order} value within one calendar day are treated as one logical
  * transaction; the export uses this to pair the two sides of a same-portfolio cash transfer.</li>
  * <li>Margin open/close rows carry {@link #MARGIN_MARKER} in the Marker column; the template's
- * {@code ignoreLineByFieldValue=sf1||MARGIN} makes the import skip them (securityRisk and the close-to-open link
- * cannot be reconstructed). FINANCE_COST rows are exported without the marker: the import links them to the open
- * margin position automatically or fails the single row visibly.</li>
+ * {@code ignoreLineByFieldValue=sf1||MARGIN} makes the import skip them (securityRisk and the close-to-open link cannot
+ * be reconstructed). FINANCE_COST rows are exported without the marker: the import links them to the open margin
+ * position automatically or fails the single row visibly.</li>
  * </ul>
  */
 public final class GtCsvExportDefs {
@@ -50,8 +49,8 @@ public final class GtCsvExportDefs {
   public static final String DELIMITER = ";";
 
   /**
-   * Marker column value of margin open/close rows. The templates declare {@code ignoreLineByFieldValue=sf1||MARGIN},
-   * so the import drops such rows before parsing.
+   * Marker column value of margin open/close rows. The templates declare {@code ignoreLineByFieldValue=sf1||MARGIN}, so
+   * the import drops such rows before parsing.
    */
   public static final String MARGIN_MARKER = "MARGIN";
 
@@ -79,21 +78,21 @@ public final class GtCsvExportDefs {
    */
   public static String getTransactionTypeWord(TransactionType transactionType, Labels labels) {
     return switch (transactionType) {
-      case ACCUMULATE -> labels.typeBuy;
-      case REDUCE -> labels.typeSell;
-      case DIVIDEND -> labels.typeDividend;
-      case FEE -> labels.typeFee;
-      case INTEREST_CASHACCOUNT -> labels.typeInterest;
-      case DEPOSIT -> labels.typeDeposit;
-      case WITHDRAWAL -> labels.typeWithdrawal;
-      case FINANCE_COST -> labels.typeFinanceCost;
-      default -> throw new IllegalArgumentException("No CSV export support for transaction type " + transactionType);
+    case ACCUMULATE -> labels.typeBuy;
+    case REDUCE -> labels.typeSell;
+    case DIVIDEND -> labels.typeDividend;
+    case FEE -> labels.typeFee;
+    case INTEREST_CASHACCOUNT -> labels.typeInterest;
+    case DEPOSIT -> labels.typeDeposit;
+    case WITHDRAWAL -> labels.typeWithdrawal;
+    case FINANCE_COST -> labels.typeFinanceCost;
+    default -> throw new IllegalArgumentException("No CSV export support for transaction type " + transactionType);
     };
   }
 
   /**
-   * Immutable per language label set: the 16 column headers in file order plus the 8 transaction type words. The
-   * header texts are the import template's column mapping keys and must stay unique within one label set.
+   * Immutable per language label set: the 16 column headers in file order plus the 8 transaction type words. The header
+   * texts are the import template's column mapping keys and must stay unique within one label set.
    */
   public static final class Labels {
 
@@ -102,9 +101,8 @@ public final class GtCsvExportDefs {
         "Marker", "Kauf", "Verkauf", "Dividende", "Gebühr", "Zins", "Einzahlung", "Auszahlung", "Finanzierungskosten");
 
     public static final Labels EN = new Labels("en", "Date", "Order", "Transaction", "Symbol", "Name", "ISIN",
-        "Quantity", "Unit price", "Accrued interest", "Costs", "Taxes", "Instrument currency", "Net Amount",
-        "Currency", "Exchange rate", "Marker", "Buy", "Sell", "Dividend", "Fee", "Interest", "Deposit", "Withdrawal",
-        "Financing");
+        "Quantity", "Unit price", "Accrued interest", "Costs", "Taxes", "Instrument currency", "Net Amount", "Currency",
+        "Exchange rate", "Marker", "Buy", "Sell", "Dividend", "Fee", "Interest", "Deposit", "Withdrawal", "Financing");
 
     /** ISO 639-1 language of this label set ('de' or 'en'). */
     public final String language;

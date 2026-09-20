@@ -22,7 +22,8 @@ import jakarta.validation.constraints.Size;
 
 /**
  * System-wide ISIN change event created by an admin. When a security's ISIN changes, this entity records the old and
- * new ISIN plus references to the old and newly created security. Affected tenants can then apply or reverse the change.
+ * new ISIN plus references to the old and newly created security. Affected tenants can then apply or reverse the
+ * change.
  */
 @Schema(description = "Represents an admin-created ISIN change event for a security.")
 @Entity

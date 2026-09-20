@@ -23,8 +23,8 @@ public interface GTNetSecurityImpPosJpaRepository
   List<GTNetSecurityImpPos> findByIdGtNetSecurityImpHead(Integer idGtNetSecurityImpHead);
 
   /**
-   * Finds all positions belonging to a header that don't have a linked security yet.
-   * Used by the GTNet security import task to identify positions that need lookup.
+   * Finds all positions belonging to a header that don't have a linked security yet. Used by the GTNet security import
+   * task to identify positions that need lookup.
    *
    * @param idGtNetSecurityImpHead the header ID
    * @return list of positions without linked security

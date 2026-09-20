@@ -1,6 +1,12 @@
--- V1 contains the entity_limit schema, but the generated V2 snapshot may predate exporting its MAX defaults.
--- Keep this migration idempotent: nv.bat now dumps only limit_type = 0 into V2, after which these inserts simply
--- find the same unique keys already present. Role and user limits are owned by the integration/E2E tests.
+-- The MAX defaults of grafioschtrader_t, and the list EntityLimitSeedGuardTest reads to prove that every
+-- registered MAX key reaches this database. nv.bat dumps limit_type = 0 into V2, so on a freshly generated
+-- dump these inserts find the same unique keys already present; the migration stays because it is the only
+-- readable statement of what the bootstrap owes, and because a dump taken before a new key was registered
+-- would otherwise leave that key unlimited. Keep it idempotent.
+--
+-- Only default rows belong here. Role and user limits are owned by the integration/E2E tests, which create
+-- them from testdata/limit_entity.csv - that is why grafioschtrader_t carries no daily budgets and the tests
+-- are not throttled by one.
 
 INSERT IGNORE INTO `entity_limit`
   (`limit_type`, `entity_name`, `relation_entity_name`, `count_scope`, `owner_scope`, `limit_value`,
@@ -38,4 +44,11 @@ SELECT 0, x.entity_name, x.relation_entity_name, x.count_scope, x.owner_scope,
         UNION ALL SELECT 'GTNetSecurityImpHead',  'GTNetSecurityImpPos',     0, 0, NULL, 1000
         UNION ALL SELECT 'GTNetSecurityImpHead',  'GTNetSecurityImpPos',     1, 0, NULL,  200
         UNION ALL SELECT 'ShareInvite',           NULL,                   NULL, 0, NULL,   20
+        UNION ALL SELECT 'AlgoTop',               NULL,                   NULL, 0, NULL,     20
+        UNION ALL SELECT 'AlgoAssetclass',        NULL,                   NULL, 0, NULL,    200
+        UNION ALL SELECT 'AlgoSecurity',          NULL,                   NULL, 0, NULL,   2000
+        UNION ALL SELECT 'AlgoStrategy',          NULL,                   NULL, 0, NULL,   4000
+        UNION ALL SELECT 'AlgoExecutionState',    NULL,                   NULL, 0, NULL,  10000
+        UNION ALL SELECT 'AlgoEventLog',          NULL,                   NULL, 0, NULL, 200000
+        UNION ALL SELECT 'BankruptSecurity',      NULL,                   NULL, 2, NULL,    200
   ) x;

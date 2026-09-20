@@ -42,25 +42,24 @@ public class ConnectorApiKeyJpaRepositoryImpl implements ConnectorApiKeyJpaRepos
     connectorApiKeyReset.resetConnectorApiKey(idProvider);
   }
 
-  
   public static interface IConnectorApiKeyReset {
     /**
      * If the API key has been deleted or changed, this must be communicated to the corresponding implementation of the
      * provider. So that the provider can read it in again.
-     * 
+     *
      * @param idProvider the provider identifier for the connector to reset
      */
     void resetConnectorApiKey(String idProvider);
 
     /**
      * Retrieves comprehensive subscription type information for all providers.
-     * 
+     *
      * <p>
      * This method returns the authoritative mapping of provider identifiers to their available subscription types and
      * display information. The data is used throughout the application for configuration, validation, and user
      * interface purposes.
      * </p>
-     * 
+     *
      * @return map of provider IDs to subscription type information
      */
     Map<String, SubscriptionTypeReadableName> getFeedSubscriptionType();

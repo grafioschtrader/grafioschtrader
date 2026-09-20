@@ -18,11 +18,11 @@ import grafioschtrader.types.UDFSpecialGTType;
  * Service class for calculating Yield to Maturity (YTM) for fixed-income securities as a user-defined field. This class
  * extends AllUserFieldsSecurity and implements IUDFForEveryUser to provide automatic YTM calculations for bonds and
  * other interest-bearing securities across all users in the system.
- * 
+ *
  * The calculator implements a comprehensive bond pricing model based on financial mathematics, using iterative
  * numerical methods to solve for yield when given price, coupon rate, maturity date, and other bond characteristics.
  * The implementation follows standard financial formulas and day count conventions used in bond markets.
- * 
+ *
  * Key features include:<br>
  * - Automatic coupon rate extraction from security names using regex patterns<br>
  * - Support for various payment frequencies (annual, semi-annual, quarterly, monthly)<br>
@@ -30,13 +30,13 @@ import grafioschtrader.types.UDFSpecialGTType;
  * - Iterative yield calculation using numerical methods with convergence tolerance<br>
  * - Asset class filtering to apply calculations only to appropriate fixed-income securities<br>
  * - Integration with the UDF system for persistent storage and display<br>
- * 
+ *
  * The calculator only processes securities that:<br>
  * - Match the configured asset class and investment instrument criteria<br>
  * - Have active maturity dates in the future<br>
  * - Have valid distribution frequencies (1-12 payments per year)<br>
  * - Have extractable coupon rates from their names<br>
- * 
+ *
  * The implementation is based on standard bond pricing formulas and follows algorithms similar to those used in Apache
  * OpenOffice Calc for financial calculations.
  */
@@ -47,17 +47,17 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    * Calculates and sets Yield to Maturity for all applicable securities in the provided group. This method filters
    * securities based on asset class compatibility, active status, and valid distribution frequencies, then attempts to
    * extract coupon rates from security names and calculate YTM using current market prices.
-   * 
+   *
    * The processing workflow includes:<br>
    * 1. Filtering securities by asset class matching and active maturity dates<br>
    * 2. Validating distribution frequency is within acceptable range (1-12 per year)<br>
    * 3. Extracting annual coupon rate from security name using regex pattern matching<br>
    * 4. Calculating YTM using settlement date (current date), maturity date, coupon rate, and current price<br>
    * 5. Storing the calculated YTM value in the UDF system with appropriate precision<br>
-   * 
+   *
    * Only securities with extractable numeric coupon rates from their names are processed, ensuring data quality and
    * calculation accuracy.
-   * 
+   *
    * @param securitycurrencyUDFGroup the group containing securities and UDF data context for processing
    * @param recreate                 if true, forces recalculation even if values already exist (currently not used in
    *                                 filtering)
@@ -91,11 +91,11 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    * Calculates the yield to maturity for a bond using iterative numerical methods. This method implements the standard
    * bond yield calculation by iteratively solving for the discount rate that makes the present value of all future cash
    * flows equal to the current bond price.
-   * 
+   *
    * The algorithm uses a binary search approach with linear interpolation to converge on the yield value, with a
    * maximum of 100 iterations for performance and stability. The method handles edge cases and provides robust
    * convergence even for bonds with unusual characteristics.
-   * 
+   *
    * @param settlementDate   The settlement date of the security, i.e. the date on which the bond financing arrangement
    *                         begins.
    * @param maturityDate     The maturity date of the security is the date on which the agreement between the borrower
@@ -161,12 +161,12 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    * Calculates the theoretical price of a bond given its yield and other characteristics. This method implements the
    * standard bond pricing formula by calculating the present value of all future coupon payments plus the present value
    * of the principal repayment at maturity.
-   * 
+   *
    * The calculation accounts for accrued interest and fractional coupon periods, providing accurate pricing for bonds
    * purchased between coupon payment dates.
-   * 
+   *
    * Implementation reference: Apache OpenOffice analysishelper.cxx line 1137
-   * 
+   *
    * @param settlementDate   the settlement date for the bond purchase
    * @param maturityDate     the maturity date of the bond
    * @param annualCouponRate the annual coupon rate as a decimal
@@ -197,9 +197,9 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    * Calculates the number of coupon payments between settlement and maturity dates. Returns the count of coupon
    * payments remaining, rounded up to the nearest whole coupon. This is used in bond pricing calculations to determine
    * the number of cash flows.
-   * 
+   *
    * Implementation reference: Apache OpenOffice analysishelper.cxx line 1414
-   * 
+   *
    * @param settlementDate the bond settlement date
    * @param maturityDate   the bond maturity date
    * @param frequency      the number of coupon payments per year
@@ -216,7 +216,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   /**
    * Calculates the number of days in a coupon period. Returns the day count between the coupon date before settlement
    * and the coupon date after settlement. This is fundamental for calculating accrued interest and proper bond pricing.
-   * 
+   *
    * @param settlementDate the bond settlement date
    * @param maturityDate   the bond maturity date
    * @param frequency      the number of coupon payments per year
@@ -275,7 +275,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    * Calculates the number of days from the beginning of the coupon period to the settlement date. This represents the
    * accrued interest period and is used in bond pricing calculations to account for interest that has accumulated since
    * the last coupon payment.
-   * 
+   *
    * @param settlementDate the bond settlement date
    * @param maturityDate   the bond maturity date
    * @param frequency      the number of coupon payments per year
@@ -290,7 +290,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   /**
    * Finds the last coupon date before or equal to the settlement date. This method works backward from the maturity
    * date to find the most recent coupon payment date that has occurred by the settlement date.
-   * 
+   *
    * @param rSettle the settlement date
    * @param rMat    the maturity date of the bond
    * @param nFreq   the number of coupon payments per year
@@ -311,7 +311,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   /**
    * Finds the first coupon date after the settlement date. This method works forward from a reference point to find the
    * next scheduled coupon payment date after settlement.
-   * 
+   *
    * @param rSettle the settlement date
    * @param rMat    the maturity date of the bond
    * @param nFreq   the number of coupon payments per year
@@ -333,9 +333,9 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
    * Extracts coupon rate from security name, calculates YTM, and stores the result. This method combines coupon rate
    * extraction using regex pattern matching with YTM calculation and storage in the UDF system. The coupon rate is
    * expected to appear at the beginning of the security name as a numeric value.
-   * 
+   *
    * Results are rounded according to the UDF field's precision settings and stored for display in the user interface.
-   * 
+   *
    * @param securitycurrencyUDFGroup the UDF group context for storing calculated values
    * @param udfYTM                   the UDF metadata for the yield to maturity field
    * @param security                 the security for which to calculate YTM
@@ -347,9 +347,8 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
     Matcher matcher = numberStartTextRegex.matcher(security.getName());
     if (matcher.find() && !matcher.group(0).isEmpty()) {
       Double annualCouponRate = Double.parseDouble(matcher.group(0).replace(",", ".")) / 100;
-      double ytm = DataHelper.round(
-          yieldToMaturity(now, security.getActiveToDate(), annualCouponRate,
-              security.getSLast(), 100, security.getDistributionFrequency().getValue(), 4) * 100,
+      double ytm = DataHelper.round(yieldToMaturity(now, security.getActiveToDate(), annualCouponRate,
+          security.getSLast(), 100, security.getDistributionFrequency().getValue(), 4) * 100,
           udfYTM.getFieldSizeSuffix());
       putValueToJsonValue(securitycurrencyUDFGroup, udfYTM, security.getIdSecuritycurrency(), ytm, false);
     }

@@ -84,7 +84,7 @@ public class SplitCalendarAppender {
   /**
    * Loads and processes split data for each trading day from the specified start date to today. Initializes similarity
    * algorithm and sorts connectors by priority before processing.
-   * 
+   *
    * @param fromDate the starting date for split data loading
    */
   private void loadSplitData(LocalDate fromDate) {
@@ -103,7 +103,7 @@ public class SplitCalendarAppender {
   /**
    * Processes split calendar data for each trading day using available connectors. Retrieves split data for each day
    * and attempts to match securities by ticker and name similarity.
-   * 
+   *
    * @param tradingDaysPlusList list of trading days to process
    * @param countryCodes        array of country codes for filtering split data
    * @param similarityAlgo      algorithm for comparing company names when exact matches fail
@@ -130,7 +130,7 @@ public class SplitCalendarAppender {
    * Validates security matches by comparing company names using similarity algorithm. Removes securities from the list
    * if name similarity falls below threshold. Uses different similarity thresholds for stocks (0.88) vs other
    * securities (0.95).
-   * 
+   *
    * @param splitTickerMap map of ticker symbols to split information
    * @param securities     list of securities to validate (modified in place)
    * @param similarityAlgo algorithm for calculating name similarity scores
@@ -160,7 +160,7 @@ public class SplitCalendarAppender {
   /**
    * Creates TaskDataChange entries for new security splits that don't already exist. Checks existing splits and pending
    * tasks to avoid duplicates before creating new tasks.
-   * 
+   *
    * @param splitTickerMap map of ticker symbols to split information from calendar feeds
    * @param securities     list of matched securities to process for split tasks
    */

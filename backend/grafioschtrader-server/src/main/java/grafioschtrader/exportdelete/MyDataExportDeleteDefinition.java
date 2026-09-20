@@ -3,10 +3,10 @@ package grafioschtrader.exportdelete;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.exportdelete.ExportDefinition;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
+import grafioschtrader.entities.AlgoAlertEvaluationState;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoAssetclassSecurity;
 import grafioschtrader.entities.AlgoEventLog;
-import grafioschtrader.entities.AlgoExecutionState;
 import grafioschtrader.entities.AlgoMessageAlert;
 import grafioschtrader.entities.AlgoRecommendation;
 import grafioschtrader.entities.AlgoRuleStrategy;
@@ -16,6 +16,7 @@ import grafioschtrader.entities.AlgoStrategy;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.AlgoTopAssetSecurity;
 import grafioschtrader.entities.Assetclass;
+import grafioschtrader.entities.BankruptSecurity;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Currencypair;
@@ -78,23 +79,23 @@ import grafioschtrader.entities.Watchlist;
  * </ul>
  */
 public class MyDataExportDeleteDefinition {
-  private static String ALGO_RULE_STRATEGY_PARAM_DEL = String.format(
-      "ap FROM %s ap JOIN %s ars ON ap.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?",
+  private static String ALGO_RULE_STRATEGY_PARAM_SELDEL = String.format(
+      "ap.* FROM %s ap JOIN %s ars ON ap.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?",
       AlgoRuleStrategy.ALGO_RULE_STRATEGY_PARAM, AlgoRuleStrategy.TABNAME);
-  private static String ALGO_STRATEGY_DEL = String.format(
-      "a FROM %s a JOIN %s ars ON a.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?",
+  private static String ALGO_STRATEGY_SELDEL = String.format(
+      "a.* FROM %s a JOIN %s ars ON a.id_algo_rule_strategy = ars.id_algo_rule_strategy WHERE ars.id_tenant = ?",
       AlgoStrategy.TABNAME, AlgoRuleStrategy.TABNAME);
-  private static String ALGO_ASSETCLASS_SECURITY_DEL = String.format(
-      "a FROM %s a JOIN %s tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?",
+  private static String ALGO_ASSETCLASS_SECURITY_SELDEL = String.format(
+      "a.* FROM %s a JOIN %s tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?",
       AlgoAssetclassSecurity.TABNAME, AlgoTopAssetSecurity.TABNAME);
-  private static String ALGO_TOP_DEL = String.format(
-      "a FROM %s a JOIN %s tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?",
+  private static String ALGO_TOP_SELDEL = String.format(
+      "a.* FROM %s a JOIN %s tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?",
       AlgoTop.TABNAME, AlgoTopAssetSecurity.TABNAME);
-  private static String ALGO_SECURITY_DEL = String.format(
-      "s FROM %s s JOIN %s tas ON s.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?",
+  private static String ALGO_SECURITY_SELDEL = String.format(
+      "s.* FROM %s s JOIN %s tas ON s.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?",
       AlgoSecurity.TABNAME, AlgoTopAssetSecurity.TABNAME);
-  private static String ALGO_ASSETCLASS_DEL = String.format(
-      "a FROM %s a JOIN %s tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?",
+  private static String ALGO_ASSETCLASS_SELDEL = String.format(
+      "a.* FROM %s a JOIN %s tas ON a.id_algo_assetclass_security = tas.id_algo_assetclass_security WHERE tas.id_tenant = ?",
       AlgoAssetclass.TABNAME, AlgoTopAssetSecurity.TABNAME);
   private static String CASHACCOUNT_SELDEL = String.format(
       "c.* FROM %s c, %s sc WHERE sc.id_tenant = ? AND sc.id_securitycash_account = c.id_securitycash_account",
@@ -234,6 +235,12 @@ public class MyDataExportDeleteDefinition {
       JOIN security s ON ci.id_securitycurrency = s.id_securitycurrency JOIN historyquote_legacy hl ON hl.id_securitycurrency = s.id_securitycurrency
       WHERE cs.id_tenant = ?
       UNION SELECT hl.* FROM risk_free_rate_mapping rfm JOIN historyquote_legacy hl ON hl.id_securitycurrency = rfm.id_securitycurrency""";
+  // Restricted the same way as the history quote periods: a marker names a security, so exporting the whole table
+  // would reference instruments the dump does not carry and the re-import would fail on the foreign key.
+  private static String BANKRUPT_SECURITY_SELECT = """
+      bs.* FROM bankrupt_security bs JOIN security s ON bs.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
+      UNION SELECT DISTINCT bs.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN bankrupt_security bs ON wsc.id_securitycurrency = bs.id_securitycurrency
+      WHERE w.id_tenant = ? UNION SELECT DISTINCT bs.* FROM transaction t JOIN bankrupt_security bs ON t.id_securitycurrency = bs.id_securitycurrency WHERE t.id_tenant = ?""";
   private static String HISTORYQUOTEPERIOD_SELECT = """
       hp.* FROM historyquote_period hp JOIN security s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
       UNION SELECT DISTINCT hp.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN historyquote_period hp ON wsc.id_securitycurrency = hp.id_securitycurrency
@@ -337,6 +344,11 @@ public class MyDataExportDeleteDefinition {
           ExportDefinition.DELETE_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       new ExportDefinition(Security.TABNAME, TENANT_USER.ID_TENANT, SECURITY_DELETE, ExportDefinition.DELETE_USE),
       new ExportDefinition(Security.TABNAME, TENANT_USER.ID_TENANT, SECURITY_SELECT, ExportDefinition.EXPORT_USE),
+      // Instruments without further price data — shared reference data. Never deleted with an account: the marker is
+      // what keeps the history of an instrument complete for everybody else holding it, so only its creator is
+      // reassigned to the system user.
+      new ExportDefinition(BankruptSecurity.TABNAME, TENANT_USER.NONE, BANKRUPT_SECURITY_SELECT,
+          ExportDefinition.EXPORT_USE | ExportDefinition.CHANGE_USER_ID_FOR_CREATED_BY),
       // Risk-free rate mapping — shared reference data; the FK-referenced FRED synthetic
       // securitycurrency/security/historyquote rows are pulled in via UNION clauses above.
       new ExportDefinition(RiskFreeRateMapping.TABNAME, TENANT_USER.NONE, null,
@@ -415,24 +427,43 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(UDFMetadataSecurity.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_SECUIRTY_SELDEL,
           ExportDefinition.DELETE_USE),
 
-      // TODO Missing Algo export ...
-      // Algo child tables — must be deleted before algo_top (array runs backward on delete)
+      // The algo hierarchy and its strategies are user configuration and belong in a personal export. Forward order is
+      // parent before child, so a re-import holds; the backward pass of the deletion sees the children first.
+      // Signals and delivery snapshots are delete-only: importing them could replay historical notifications.
+      // Crossing state is derived and cascades away with its strategy.
       new ExportDefinition(AlgoMessageAlert.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoRecommendation.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoExecutionState.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoEventLog.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoSimulationResult.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoTopAssetSecurity.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoTop.TABNAME, TENANT_USER.ID_TENANT, ALGO_TOP_DEL, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoAssetclassSecurity.TABNAME, TENANT_USER.ID_TENANT, ALGO_ASSETCLASS_SECURITY_DEL,
-          ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoAssetclass.TABNAME, TENANT_USER.ID_TENANT, ALGO_ASSETCLASS_DEL,
-          ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoSecurity.TABNAME, TENANT_USER.ID_TENANT, ALGO_SECURITY_DEL, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoRuleStrategy.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
-      new ExportDefinition(AlgoStrategy.TABNAME, TENANT_USER.ID_TENANT, ALGO_STRATEGY_DEL, ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoTopAssetSecurity.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoTop.TABNAME, TENANT_USER.ID_TENANT, ALGO_TOP_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoAssetclassSecurity.TABNAME, TENANT_USER.ID_TENANT, ALGO_ASSETCLASS_SECURITY_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoAssetclass.TABNAME, TENANT_USER.ID_TENANT, ALGO_ASSETCLASS_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoSecurity.TABNAME, TENANT_USER.ID_TENANT, ALGO_SECURITY_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoRuleStrategy.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoStrategy.TABNAME, TENANT_USER.ID_TENANT, ALGO_STRATEGY_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoAlertEvaluationState.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      // Runtime decisions and execution state are included in personal exports and account deletion.
+      new ExportDefinition(AlgoRecommendation.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(grafioschtrader.entities.AlgoExecutionState.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(AlgoRuleStrategy.ALGO_RULE_STRATEGY_PARAM, TENANT_USER.ID_TENANT,
-          ALGO_RULE_STRATEGY_PARAM_DEL, ExportDefinition.DELETE_USE)
+          ALGO_RULE_STRATEGY_PARAM_SELDEL, ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+
+      // A historical replay and its audit trail belong to the simulation environment, which is a tenant of its own.
+      // Deleting that environment therefore removes them through this array, in the backward pass that sees the event
+      // log before the result it references. They are exported for the same reason the recommendations are: the
+      // decisions taken on the user's own data are the user's own data.
+      new ExportDefinition(AlgoSimulationResult.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(AlgoEventLog.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE)
 
   };
 

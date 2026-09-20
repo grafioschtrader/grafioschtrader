@@ -1,0 +1,22 @@
+Detail der Kontobewegungen
+Nummer der Kundenbeziehung 999999
+Konto 01 EUR
+Datum 19.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+Coupon Gutschrift Aktien 18/08/26 18/08/26 183,12+
+Depot 999999/01
+NOVO NORDISK A/S SHS -B-
+Valorennummer 129508879.1
+ISIN Nummer DK0062498333
+Anzahl 500,00
+Ausschüttung 3,75 DKK
+Eingang Vorbehalten
+Bruttobetrag 1.875,00+ DKK
+Verrechnungs-/Quellensteuer 27% 506,25- DKK
+Totalbetrag 1.368,75+ DKK
+Wechselkurs 0,13378437
+Unsere Ref: EXAMPLE/2026/1
+Via e-banking gedruckt Cornèr Bank AG
+Im Falle von Abweichungen zwischen den vom Cornèronline-System zur Verfügung gestellten Daten oder Dokumenten
+und jenen, die von der Bank in ihrer Buchhaltung registriert werden, sind auf alle Fälle letztere massgebend. mail@corneronline.ch
+1/1

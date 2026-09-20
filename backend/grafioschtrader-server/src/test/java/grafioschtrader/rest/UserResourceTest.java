@@ -27,15 +27,8 @@ class UserResourceTest extends AbstractUserResourceTest {
   @Override
   protected void createTenantForUser(UserRegister user) {
     Tenant tenant = new Tenant("Tenant " + user.nickname, user.currency, user.idUser, TenantKindType.MAIN, false);
-    Tenant created = authenticatedClient(user.nickname)
-        .post()
-        .uri(RequestGTMappings.TENANT_MAP)
-        .body(tenant)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Tenant.class)
-        .returnResult()
-        .getResponseBody();
+    Tenant created = authenticatedClient(user.nickname).post().uri(RequestGTMappings.TENANT_MAP).body(tenant).exchange()
+        .expectStatus().isOk().expectBody(Tenant.class).returnResult().getResponseBody();
     Assertions.assertThat(created.getIdTenant()).isGreaterThan(0);
   }
 

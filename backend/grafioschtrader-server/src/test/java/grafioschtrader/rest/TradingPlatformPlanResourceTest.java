@@ -38,9 +38,8 @@ class TradingPlatformPlanResourceTest extends BaseIntegrationTest {
   @BeforeAll
   void setUp() {
     RestTestHelper.inizializeUserTokens(restTestClient, jwtTokenHandler);
-    ImportTransactionPlatform[] existing = authenticatedClient(RestTestHelper.ALLEDIT)
-        .get().uri(RequestGTMappings.IMPORTTRANSACTION_PLATFORM_MAP)
-        .exchange().expectStatus().isOk()
+    ImportTransactionPlatform[] existing = authenticatedClient(RestTestHelper.ALLEDIT).get()
+        .uri(RequestGTMappings.IMPORTTRANSACTION_PLATFORM_MAP).exchange().expectStatus().isOk()
         .expectBody(ImportTransactionPlatform[].class).returnResult().getResponseBody();
     platformByName = new HashMap<>();
     if (existing != null) {
@@ -52,7 +51,8 @@ class TradingPlatformPlanResourceTest extends BaseIntegrationTest {
 
   @Order(4)
   @ParameterizedTest
-  @CsvFileSource(resources = "/testdata/generated/tradingplatformplan.csv", encoding = "UTF-8", nullValues = { "\\N" }, delimiter = '|')
+  @CsvFileSource(resources = "/testdata/generated/tradingplatformplan.csv", encoding = "UTF-8", nullValues = {
+      "\\N" }, delimiter = '|')
   @DisplayName("Users create TradingPlatformPlans (e2e='i' rows; 'e' rows skipped for frontend Playwright test)")
   void createTest(Byte transactionFeePlan, String importPlatformName, String platformPlanNameDE,
       String platformPlanNameEN, String e2e)
@@ -70,15 +70,9 @@ class TradingPlatformPlanResourceTest extends BaseIntegrationTest {
     tpp.setPlatformPlanNameByLanguage(platformPlanNameDE, Language.GERMAN);
     tpp.setPlatformPlanNameByLanguage(platformPlanNameEN, Language.ENGLISH);
 
-    TradingPlatformPlan created = authenticatedClient(RestTestHelper.ALLEDIT)
-        .post()
-        .uri(RequestGTMappings.TRADINGPLATFORMPLAND_MAP)
-        .body(tpp)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(TradingPlatformPlan.class)
-        .returnResult()
-        .getResponseBody();
+    TradingPlatformPlan created = authenticatedClient(RestTestHelper.ALLEDIT).post()
+        .uri(RequestGTMappings.TRADINGPLATFORMPLAND_MAP).body(tpp).exchange().expectStatus().isOk()
+        .expectBody(TradingPlatformPlan.class).returnResult().getResponseBody();
 
     assertNotNull(created);
     Assertions.assertThat(created.getIdTradingPlatformPlan()).isGreaterThan(0);

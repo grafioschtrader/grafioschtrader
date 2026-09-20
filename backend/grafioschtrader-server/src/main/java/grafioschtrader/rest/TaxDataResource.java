@@ -57,6 +57,7 @@ import grafioschtrader.tax.swiss.ech0196.Ech0196MappingService;
 import grafioschtrader.tax.swiss.ech0196.Ech0196PdfGenerator;
 import grafioschtrader.tax.swiss.ech0196.Ech0196XmlGenerator;
 import grafioschtrader.tax.swiss.ech0196.model.Ech0196TaxStatement;
+import grafioschtrader.types.CouponDayCount;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -135,6 +136,23 @@ public class TaxDataResource {
   @GetMapping(value = "/cantons", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCantons() {
     return new ResponseEntity<>(CANTONS, HttpStatus.OK);
+  }
+
+  @Operation(summary = "Get coupon day-count conventions for the security bond terms dialog")
+  @GetMapping(value = "/coupondaycounts", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCouponDayCounts() {
+    return ResponseEntity.ok(Arrays.stream(CouponDayCount.values())
+        .map(convention -> new ValueKeyHtmlSelectOptions(convention.name(), convention.name())).toList());
+  }
+
+  @Operation(summary = "Get the proposed coupon day-count convention per security currency")
+  @GetMapping(value = "/coupondaycounts/defaults", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<CouponDayCountDefaultsDto> getCouponDayCountDefaults() {
+    return ResponseEntity.ok(new CouponDayCountDefaultsDto(CouponDayCount.FALLBACK, CouponDayCount.CURRENCY_DEFAULTS));
+  }
+
+  /** Currency proposals used by the bond terms dialog, shared with the simulation's defaulting rules. */
+  public record CouponDayCountDefaultsDto(CouponDayCount fallback, Map<String, CouponDayCount> byCurrency) {
   }
 
   // ==================== TreeTable endpoints ====================

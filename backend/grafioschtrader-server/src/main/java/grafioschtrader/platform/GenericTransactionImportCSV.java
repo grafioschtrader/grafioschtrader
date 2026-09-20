@@ -45,23 +45,23 @@ import grafioschtrader.repository.SecurityJpaRepository;
 /**
  * Generic CSV transaction importer supporting template-based parsing with advanced transaction grouping and encoding
  * detection.
- * 
+ *
  * <p>
  * This class provides comprehensive CSV import functionality that can handle transaction files from various trading
  * platforms. It features automatic encoding detection, template-based field mapping, multi-line transaction support,
  * day-based transaction grouping, and sophisticated error handling. The importer can process CSV files where single
  * financial transactions span multiple rows or where transactions need to be grouped by order numbers.
  * </p>
- * 
+ *
  * <h3>Key Features</h3>
- * 
+ *
  * <h4>Automatic Encoding Detection</h4>
  * <p>
  * Identifies the file encoding without user input: content that is well-formed UTF-8 is read as UTF-8, everything else
- * is handed to Mozilla's UniversalDetector. This ensures proper handling of international characters both in the
- * UTF-8 export of Grafioschtrader itself and in the legacy single byte exports of various trading platforms.
+ * is handed to Mozilla's UniversalDetector. This ensures proper handling of international characters both in the UTF-8
+ * export of Grafioschtrader itself and in the legacy single byte exports of various trading platforms.
  * </p>
- * 
+ *
  * <h4>Template-Based Parsing</h4>
  * <p>
  * Employs configurable templates that define:
@@ -72,7 +72,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * <li>Transaction type recognition patterns</li>
  * <li>Line filtering rules to ignore header/footer rows</li>
  * </ul>
- * 
+ *
  * <h4>Multi-Line Transaction Support</h4>
  * <p>
  * Handles complex transactions that span multiple CSV rows using order-based grouping:
@@ -82,13 +82,13 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * <li><b>Single transactions:</b> Rows without order numbers or with "0" orders are processed individually</li>
  * <li><b>Day boundaries:</b> Transaction groups are automatically split at day boundaries</li>
  * </ul>
- * 
+ *
  * <h4>Day-Based Processing</h4>
  * <p>
  * Automatically groups transactions by trading day, ensuring that multi-row transactions spanning different days are
  * properly separated and processed in distinct batches.
  * </p>
- * 
+ *
  * <h3>CSV Processing Workflow</h3>
  * <ol>
  * <li><b>Encoding Detection:</b> Automatically detects file character encoding</li>
@@ -98,7 +98,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * <li><b>Import Position Creation:</b> Converts grouped data to import positions</li>
  * <li><b>Error Recording:</b> Captures parsing failures with diagnostic information</li>
  * </ol>
- * 
+ *
  * <h3>Template Validation</h3>
  * <p>
  * The importer validates that the CSV header matches the expected template structure:
@@ -109,7 +109,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * <li>Template ID must exist in the provided template list</li>
  * <li>Field delimiters and data formats must match template configuration</li>
  * </ul>
- * 
+ *
  * <h3>Error Handling</h3>
  * <p>
  * Comprehensive error handling includes:
@@ -120,7 +120,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * <li><b>Line Filtering:</b> Configurable rules to ignore invalid or header rows</li>
  * <li><b>Partial Success:</b> Continues processing valid rows even when some rows fail</li>
  * </ul>
- * 
+ *
  * <h3>Line Filtering</h3>
  * <p>
  * Supports flexible line filtering to ignore unwanted rows based on field values:
@@ -130,7 +130,7 @@ import grafioschtrader.repository.SecurityJpaRepository;
  * <li>Multi-field filtering rules</li>
  * <li>Header and footer row exclusion</li>
  * </ul>
- * 
+ *
  * <h3>Bond Transaction Support</h3>
  * <p>
  * Special handling for bond transactions with percentage-based pricing and bond indicators that require different
@@ -155,7 +155,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
   /**
    * Creates a new CSV transaction importer with automatic encoding detection. Immediately analyzes the file to
    * determine the appropriate character encoding for proper text processing during import.
-   * 
+   *
    * @param importTransactionHead         Import session container with portfolio and account information
    * @param uploadFile                    CSV file containing transaction data to import
    * @param importTransactionTemplateList Available CSV templates for parsing
@@ -170,7 +170,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
   /**
    * Imports transaction data from the CSV file using the specified template. Processes the entire file with
    * template-based parsing, transaction grouping, and comprehensive error handling for invalid or incomplete data.
-   * 
+   *
    * @param importTransactionPosJpaRepository       Repository for persisting successful import positions
    * @param securityJpaRepository                   Repository for resolving security instruments
    * @param importTransactionPosFailedJpaRepository Repository for recording failed import attempts
@@ -192,7 +192,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
    * Core CSV parsing logic that processes the file line by line with template validation. Handles header validation,
    * data line parsing, transaction grouping by day and order, and maintains processing state throughout the import
    * operation.
-   * 
+   *
    * @param templateScannedMap                      Available templates mapped to their configurations
    * @param importTransactionPosJpaRepository       Repository for persisting import positions
    * @param securityJpaRepository                   Repository for resolving security instruments
@@ -244,7 +244,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
    * Processes a single CSV data line with field extraction, validation, and transaction grouping. Handles day boundary
    * detection for transaction grouping, applies line filtering rules, and manages the accumulation of transaction
    * properties for order-based grouping.
-   * 
+   *
    * @param templateScannedMap                      Available templates for error handling
    * @param template                                Active template configuration for field parsing
    * @param line                                    CSV line to process
@@ -270,9 +270,8 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
       ParseLineSuccessError parseLineSuccessError = parseDataLine(lineCounter, values, template, valueFormatConverter);
 
       if (parseLineSuccessError.hasSuccess()) {
-        if (!importPropertiesDuringDay.isEmpty()
-            && !importPropertiesDuringDay.get(0).getDatetime().toLocalDate().equals(
-                parseLineSuccessError.importProperties.getDatetime().toLocalDate())) {
+        if (!importPropertiesDuringDay.isEmpty() && !importPropertiesDuringDay.get(0).getDatetime().toLocalDate()
+            .equals(parseLineSuccessError.importProperties.getDatetime().toLocalDate())) {
           // Day of transaction has changed
 
           transferToImportTransactionPosForOneDay(importPropertiesDuringDay, uploadFile.getOriginalFilename(),
@@ -296,7 +295,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
    * Determines whether a CSV line should be ignored based on field value filtering rules. Applies configured regex
    * patterns to specific fields to exclude header rows, footer rows, or other irrelevant data from transaction
    * processing.
-   * 
+   *
    * @param values   Array of field values from the CSV line
    * @param template Template configuration containing filtering rules
    * @return true if the line should be ignored, false if it should be processed
@@ -378,7 +377,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
    * Converts a single CSV line into an ImportProperties object with field validation and type conversion. Handles
    * special cases like bond indicators, applies data type conversions, and provides detailed error information for
    * debugging failed conversions.
-   * 
+   *
    * @param lineNumber           Line number for error reporting
    * @param values               Array of string values from the CSV line
    * @param template             Template configuration for field mapping and validation
@@ -417,7 +416,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
    * Groups transactions by day and order, then creates import positions for each logical transaction. Handles complex
    * scenarios where single financial transactions span multiple CSV rows, using order numbers to group related rows and
    * day boundaries to separate transaction batches.
-   * 
+   *
    * @param importPropertiesDuringDay         List of same-day transaction properties
    * @param fileName                          Original filename for tracking
    * @param importTransactionTemplate         Template used for parsing
@@ -457,7 +456,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
    * Creates import transaction positions for a group of related transaction properties. Each group represents a
    * complete logical transaction that may span multiple CSV rows, processed within its own transaction boundary for
    * data consistency.
-   * 
+   *
    * @param importPropertiesList              Related transaction properties to process together
    * @param fileName                          Original filename for tracking
    * @param importTransactionTemplate         Template used for parsing
@@ -478,7 +477,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
    * Records detailed information about CSV line parsing failures for debugging and troubleshooting. Creates import
    * position records with failure details including the last successfully parsed field and specific error messages for
    * template and data format issues.
-   * 
+   *
    * @param importTransactionPosFailedJpaRepository Repository for storing failure details
    * @param importTransactionPosJpaRepository       Repository for creating failure records
    * @param parseLineSuccessError                   Error details from parsing attempt
@@ -507,7 +506,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
   /**
    * Validates that the CSV header matches the specified template and retrieves the template configuration. Ensures that
    * required columns are present and properly mapped according to the template definition.
-   * 
+   *
    * @param templateScannedMap                  Available templates mapped to their configurations
    * @param headerLine                          CSV header line cleaned of BOM characters
    * @param requiredIdTransactionImportTemplate Required template ID for validation

@@ -14,7 +14,6 @@ import grafioschtrader.algo.strategy.model.alerts.MaCrossingAlert;
 import grafioschtrader.algo.strategy.model.alerts.PeriodPriceGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.RsiThresholdAlert;
 import grafioschtrader.algo.strategy.model.complex.StrategyConfig;
-import grafioschtrader.algo.strategy.model.rebalacing.RebalancingAssetclassSecurity;
 import grafioschtrader.algo.strategy.model.rebalacing.RebalancingTop;
 
 public abstract class StrategyHelper {
@@ -29,8 +28,7 @@ public abstract class StrategyHelper {
     strategyBindingMap = new HashMap<>();
     strategyBindingMap.put(AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING,
         new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING,
-            RebalancingTop.class, RebalancingAssetclassSecurity.class, RebalancingAssetclassSecurity.class, null,
-            false));
+            RebalancingTop.class, null, null, null, false));
     strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE,
         new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE, null,
             null, AbsoluteValuePriceAlert.class, null, true));
@@ -43,17 +41,17 @@ public abstract class StrategyHelper {
             AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT, null, null,
             PeriodPriceGainLosePercentAlert.class, null, true));
     strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP,
-            null, null, null, StrategyConfig.class, null, false));
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP, null,
+            null, null, StrategyConfig.class, null, false));
     strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MA_CROSSING,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MA_CROSSING, null,
-            null, MaCrossingAlert.class, null, true));
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MA_CROSSING, null, null,
+            MaCrossingAlert.class, null, true));
     strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_RSI_THRESHOLD,
         new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_RSI_THRESHOLD, null,
             null, RsiThresholdAlert.class, null, true));
     strategyBindingMap.put(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_EXPRESSION,
-        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_EXPRESSION, null,
-            null, ExpressionAlert.class, null, true));
+        new StrategyClassBindingDefinition(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_EXPRESSION, null, null,
+            ExpressionAlert.class, null, true));
   }
 
   public static Set<AlgoStrategyImplementationType> getUnusedStrategiesForManualAdding(
@@ -85,11 +83,17 @@ public abstract class StrategyHelper {
       AlgoStrategyImplementationType algoStrategyImplementations) {
     StrategyClassBindingDefinition scbd = strategyBindingMap.get(algoStrategyImplementations);
 
-    return new InputAndShowDefinitionStrategy(
+    var definition = new InputAndShowDefinitionStrategy(
         DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoTopModel),
         DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoAssetclassModel),
         DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoSecurityModel),
         scbd.complexConfigClass != null);
+    if (algoStrategyImplementations == AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING) {
+      RebalancingTop defaults = new RebalancingTop();
+      definition.defaultValues = Map.of("securityDeviationPercentage", defaults.getSecurityDeviationPercentage(),
+          "maxTradedSecuritiesPerAssetclass", defaults.getMaxTradedSecuritiesPerAssetclass());
+    }
+    return definition;
   }
 
 }

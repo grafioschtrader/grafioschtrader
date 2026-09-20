@@ -15,11 +15,22 @@ public class AlgoAssetclassJpaRepositoryImpl extends BaseRepositoryImpl<AlgoAsse
   @Autowired
   private AlgoAssetclassJpaRepository algoAssetclassJpaRepository;
 
+  @Autowired
+  private grafioschtrader.service.AlgoAlertScopeLifecycle alertScopeLifecycle;
+
+  @Autowired
+  private grafioschtrader.service.AlgoHierarchyWriteGuard hierarchyWriteGuard;
+
   @Override
   public AlgoAssetclass saveOnlyAttributes(AlgoAssetclass algoAssetclass, AlgoAssetclass existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
+    hierarchyWriteGuard.assertHierarchyWritable();
+    validateRebalancingOverrides(algoAssetclass);
     validateMutualExclusivity(algoAssetclass);
-    return algoAssetclassJpaRepository.save(algoAssetclass);
+    var before = alertScopeLifecycle.snapshot(algoAssetclass.getIdTenant());
+    AlgoAssetclass saved = algoAssetclassJpaRepository.save(algoAssetclass);
+    alertScopeLifecycle.changed(saved.getIdTenant(), before);
+    return saved;
   }
 
   private void validateMutualExclusivity(AlgoAssetclass algoAssetclass) {
@@ -34,8 +45,25 @@ public class AlgoAssetclassJpaRepositoryImpl extends BaseRepositoryImpl<AlgoAsse
     }
   }
 
+  private void validateRebalancingOverrides(AlgoAssetclass entity) {
+    Double deviation = entity.getSecurityDeviationPercentage();
+    if (deviation != null && (!Double.isFinite(deviation) || deviation < 0 || deviation > 100)) {
+      throw new DataViolationException("security.deviation.percentage", "algo.rebalancing.invalid.band", null);
+    }
+    if (entity.getMaxTradedSecuritiesPerAssetclass() != null && entity.getMaxTradedSecuritiesPerAssetclass() < 1) {
+      throw new DataViolationException("max.traded.securities.per.assetclass", "algo.rebalancing.invalid.limit", null);
+    }
+  }
+
+  @Autowired
+  private AlgoTradingRepository tradingRepository;
+
   public int delEntityWithTenant(Integer idAlgoAssetclassSecurity, Integer idTenant) {
-    return algoAssetclassJpaRepository.deleteByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity, idTenant);
+    hierarchyWriteGuard.assertHierarchyWritable();
+    int deleted = algoAssetclassJpaRepository.deleteByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity,
+        idTenant);
+    tradingRepository.clearRemovedAssignments(idTenant);
+    return deleted;
   }
 
 }

@@ -15,7 +15,7 @@ public interface ISplitCalendarFeedConnector {
   /**
    * Retrieves stock split data for all securities on the specified date. Results can be filtered by country codes to
    * limit the scope of data retrieval.
-   * 
+   *
    * @param forDate     the date for which to retrieve split information
    * @param countyCodes array of country codes to filter results, or null for all countries
    * @return map of ticker symbols to TickerSecuritysplit objects containing split data
@@ -27,7 +27,7 @@ public interface ISplitCalendarFeedConnector {
   /**
    * Returns the priority ranking of this split calendar connector. Lower numbers indicate higher priority - connectors
    * with priority 1 are consulted before those with priority 2, etc.
-   * 
+   *
    * @return integer representing the priority of this connector (lower = higher priority)
    */
   int getPriority();
@@ -37,13 +37,13 @@ public interface ISplitCalendarFeedConnector {
    * the associated security split data.
    */
   class TickerSecuritysplit {
-    
+
     /** Company name for identification */
     public String companyName;
-    
+
     /** Country code where the company is listed */
     public String countryCode;
-    
+
     /** Security split information including dates, ratios, and details */
     public Securitysplit securitysplit;
 

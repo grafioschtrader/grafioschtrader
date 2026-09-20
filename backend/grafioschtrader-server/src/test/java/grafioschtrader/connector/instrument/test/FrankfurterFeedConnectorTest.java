@@ -106,9 +106,8 @@ class FrankfurterFeedConnectorTest extends BaseFeedConnectorCheck {
         LocalDate.of(2024, 1, 2), LocalDate.of(2024, 1, 31));
 
     Assertions.assertThat(historyquotes).isNotEmpty();
-    Assertions.assertThat(historyquotes).as("Rates must keep more than two decimal places")
-        .anyMatch(historyquote -> Math.abs(historyquote.getClose() * 100 - Math.rint(historyquote.getClose() * 100))
-            > 1e-9);
+    Assertions.assertThat(historyquotes).as("Rates must keep more than two decimal places").anyMatch(
+        historyquote -> Math.abs(historyquote.getClose() * 100 - Math.rint(historyquote.getClose() * 100)) > 1e-9);
   }
 
   /**
@@ -144,10 +143,10 @@ class FrankfurterFeedConnectorTest extends BaseFeedConnectorCheck {
     final List<CurrencyPairHistoricalDate> currencies = new ArrayList<>();
     try {
       // Expected rows count working days only, because the connector discards the carried-forward weekend rows.
-      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 7, youngFromDate,
-          toDate));
-      currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 7, youngFromDate,
-          toDate));
+      currencies.add(
+          new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 7, youngFromDate, toDate));
+      currencies.add(
+          new CurrencyPairHistoricalDate(GlobalConstants.MC_USD, GlobalConstants.MC_JPY, 7, youngFromDate, toDate));
       currencies.add(new CurrencyPairHistoricalDate("ZAR", "NOK", 6530, oldestDate, toDate));
       currencies.add(new CurrencyPairHistoricalDate(GlobalConstants.MC_EUR, GlobalConstants.MC_CHF, 6524, oldestDate,
           youngFromDate));

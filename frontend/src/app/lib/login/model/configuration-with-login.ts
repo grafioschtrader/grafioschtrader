@@ -149,5 +149,7 @@ export enum FeatureType {
    * switch between the tenants they manage, and return to their own tenant. Library-level feature
    * (g.use.manageclient).
    */
-  MANAGECLIENT
+  MANAGECLIENT,
+  /** Personal dashboard, controlled by the library flag g.use.dashboard. */
+  DASHBOARD
 }

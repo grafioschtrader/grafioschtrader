@@ -26,6 +26,7 @@ import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { TradingPeriodTableComponent } from './trading-period-table.component';
 import { GlobalSessionNames } from '../../lib/global.session.names';
+import { TaxMetadataFieldsComponent } from '../../taxdata/component/tax-metadata-fields.component';
 
 /**
  * Edit security account with trading period table for defining which instrument types can be traded.
@@ -33,6 +34,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
 @Component({
   selector: 'securityaccount-edit',
   template: `
+    <tax-metadata-fields entityName="Securityaccount" [entity]="callParam?.thisObject" />
     <dynamic-form
       [config]="config"
       [formConfig]="formConfig"
@@ -48,13 +50,22 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
   `,
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [DynamicFormComponent, TradingPeriodTableComponent]
+  imports: [DynamicFormComponent, TradingPeriodTableComponent, TaxMetadataFieldsComponent]
 })
 export class SecurityaccountEditDynamicComponent
   extends SimpleDynamicEditBase<Securityaccount>
   implements OnInit, AfterViewInit
 {
   static readonly DIALOG_WIDTH = 700;
+  @ViewChild(TaxMetadataFieldsComponent) taxMetadata: TaxMetadataFieldsComponent;
+
+  override submit(value: { [name: string]: any }): void {
+    if (!this.taxMetadata.transfer({})) {
+      this.configObject.submit.disabled = false;
+      return;
+    }
+    super.submit(value);
+  }
   callParam: CallParam;
 
   @ViewChild('tradingPeriodTable')
@@ -154,6 +165,7 @@ export class SecurityaccountEditDynamicComponent
     );
     securityaccount.portfolio = <Portfolio>this.callParam.parentObject;
     securityaccount.tradingPeriods = this.tradingPeriodTable?.getData() || this.tradingPeriods;
+    this.taxMetadata.transfer(securityaccount);
     return securityaccount;
   }
 

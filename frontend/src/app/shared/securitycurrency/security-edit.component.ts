@@ -44,6 +44,17 @@ import { TabsModule } from '@openng/optimus-ui/tabs';
 import { GtnetSecurityLookupDialogComponent } from '../../gtnet/component/gtnet-security-lookup-dialog.component';
 import { SecurityGtnetLookupDTO } from '../../gtnet/model/gtnet-security-lookup';
 import { GtnetSecurityLookupService } from '../../gtnet/service/gtnet-security-lookup.service';
+import { SecurityBondTermsComponent } from './security-bond-terms.component';
+
+export function isManualIssuerCountryChange(
+  dataLoaded: boolean,
+  applyingPrefill: boolean,
+  controlDirty: boolean,
+  issuerCountry: string,
+  lastPrefill: string
+): boolean {
+  return dataLoaded && !applyingPrefill && controlDirty && issuerCountry !== lastPrefill;
+}
 
 /**
  * Edit a security with possible security split and history quote period
@@ -67,6 +78,9 @@ import { GtnetSecurityLookupService } from '../../gtnet/service/gtnet-security-l
           }
           @if (!this.securityEditSupport?.hasMarketValue || !dataLoaded) {
             <p-tab value="periods">{{ 'HISTORYQUOTE_FOR_PERIOD' | translate }}</p-tab>
+          }
+          @if (canEditBondTerms) {
+            <p-tab value="bondTerms">{{ 'SIMULATION_BOND_TERMS' | translate }}</p-tab>
           }
         </p-tablist>
         <p-tabpanels>
@@ -108,6 +122,12 @@ import { GtnetSecurityLookupService } from '../../gtnet/service/gtnet-security-l
               [maxRows]="maxHistoryquotePeriods">
             </security-historyquote-period-edit-table>
           </p-tabpanel>
+          <p-tabpanel value="bondTerms">
+            <security-bond-terms
+              [entity]="$any(securityCurrencypairCallParam)"
+              [securityName]="currentSecurityName"
+              [currency]="currentSecurityCurrency" />
+          </p-tabpanel>
         </p-tabpanels>
       </p-tabs>
     </p-dialog>
@@ -129,10 +149,12 @@ import { GtnetSecurityLookupService } from '../../gtnet/service/gtnet-security-l
     DynamicFormComponent,
     SecuritysplitEditTableComponent,
     SecurityHistoryquotePeriodEditTableComponent,
-    GtnetSecurityLookupDialogComponent
+    GtnetSecurityLookupDialogComponent,
+    SecurityBondTermsComponent
   ]
 })
 export class SecurityEditComponent extends SecuritycurrencyEdit implements OnInit, CallbackValueChanged {
+  @ViewChild(SecurityBondTermsComponent) bondTerms: SecurityBondTermsComponent;
   // Access child components
   @ViewChild('splitForm') dynamicSplitForm: DynamicFormComponent;
   @ViewChild(SecuritysplitEditTableComponent)
@@ -160,6 +182,9 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   configSplitObject: { [name: string]: FieldConfig };
   configPeriodPrices: { [name: string]: FieldConfig };
   canHaveSplits = true;
+  canEditBondTerms = false;
+  currentSecurityName = '';
+  currentSecurityCurrency = '';
 
   /** Visibility flag for GTNet security lookup dialog */
   visibleGtnetLookupDialog = false;
@@ -168,6 +193,13 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   private stockexchangeSubscribe: Subscription;
   private distributionFrequencySubscribe: Subscription;
   private gtnetLookupSubscribe: Subscription;
+  private isinSubscribe: Subscription;
+  private issuerCountrySubscribe: Subscription;
+  private nameSubscribe: Subscription;
+  private currencySubscribe: Subscription;
+  private applyingIssuerCountryPrefill = false;
+  private issuerCountryOverridden = false;
+  private lastIssuerCountryPrefill: string = null;
 
   constructor(
     private messageToastService: MessageToastService,
@@ -273,6 +305,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
   valueChangedOnAssetClassExtend(assetClass: Assetclass): void {
     this.enableDisableDividendSplitConnector(assetClass);
+    this.applySimulationFieldAvailability(assetClass);
     this.reloadFeedConnectorsForContext();
   }
 
@@ -346,6 +379,14 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       this.dynamicForm,
       value
     );
+    if (this.canEditBondTerms) {
+      if (!this.bondTerms?.transfer(security)) {
+        this.configObject.submit.disabled = false;
+        return;
+      }
+    } else {
+      security.simulationMetadata = null;
+    }
     this.securityService.update(security).subscribe({
       next: (newSecurity) => {
         this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_RECORD_SAVED', {
@@ -398,6 +439,16 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.stockexchangeSubscribe && this.stockexchangeSubscribe.unsubscribe();
     this.distributionFrequencySubscribe && this.distributionFrequencySubscribe.unsubscribe();
     this.gtnetLookupSubscribe && this.gtnetLookupSubscribe.unsubscribe();
+    this.isinSubscribe?.unsubscribe();
+    this.issuerCountrySubscribe?.unsubscribe();
+    this.nameSubscribe?.unsubscribe();
+    this.currencySubscribe?.unsubscribe();
+    this.dataLoaded = false;
+    this.canEditBondTerms = false;
+    this.currentSecurityName = '';
+    this.currentSecurityCurrency = '';
+    this.issuerCountryOverridden = false;
+    this.lastIssuerCountryPrefill = null;
     super.onHide(event);
   }
 
@@ -568,6 +619,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.valueChangedOnStockexchange();
     this.valueChangedOnDistributionFrequency();
     this.valueChangedOnGtnetLookupFields();
+    this.valueChangedOnIssuerAndNameFields();
     this.hideVisibleFeedConnectorsFields(this.config, false, FeedIdentifier.SECURITY);
 
     const observables: Observable<
@@ -603,6 +655,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     } else {
       observables.push(this.securityService.getFeedConnectors());
     }
+    const idxCountries = observables.length;
+    observables.push(this.gps.getCountriesForSelectBox());
 
     if (this.securityCurrencypairCallParam) {
       this.securityEditSupport.hasMarketValue = !(<Security>this.securityCurrencypairCallParam).stockexchange
@@ -658,6 +712,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
       this.prepareFeedConnectors(<IFeedConnector[]>data[3], false);
       this.prepareSplitDividendConnector(<IFeedConnector[]>data[3]);
+      this.configObject.issuerCountry.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
+        <ValueKeyHtmlSelectOptions[]>data[idxCountries],
+        true
+      );
       this.prepareExistingSecuritycurrency(this.configObject.name);
       const isPrivatePaper =
         this.securityCurrencypairCallParam && (<Security>this.securityCurrencypairCallParam).idTenantPrivate !== null;
@@ -671,12 +729,17 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
         }
       }
       this.dataLoaded = true;
+      this.currentSecurityName = this.configObject.name.formControl.value ?? '';
+      this.currentSecurityCurrency = this.configObject.currency.formControl.value ?? '';
+      this.issuerCountryOverridden = !!(<Security>this.securityCurrencypairCallParam)?.issuerCountry;
       this.disableEnableInputForExisting();
-      this.securityEditSupport.disableEnableFieldsOnAssetclass(
+      const assetClass = this.securityEditSupport.disableEnableFieldsOnAssetclass(
         SecurityDerived.Security,
         this.configObject,
         this.configObject.assetClass.formControl.value
       );
+      this.applySimulationFieldAvailability(assetClass);
+      this.prefillIssuerCountryFromIsin(this.configObject.isin.formControl.value);
       this.securityEditSupport.setPrivatePaper(SecurityDerived.Security, isPrivatePaper, this.configObject);
 
       // Check for accessible GTNet peers and show lookup button if available
@@ -742,6 +805,73 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
       ),
       null
     );
+  }
+
+  private valueChangedOnIssuerAndNameFields(): void {
+    this.isinSubscribe = this.configObject.isin.formControl.valueChanges.subscribe((isin) =>
+      this.prefillIssuerCountryFromIsin(isin)
+    );
+    this.issuerCountrySubscribe = this.configObject.issuerCountry.formControl.valueChanges.subscribe(
+      (issuerCountry) => {
+        if (
+          isManualIssuerCountryChange(
+            this.dataLoaded,
+            this.applyingIssuerCountryPrefill,
+            this.configObject.issuerCountry.formControl.dirty,
+            issuerCountry,
+            this.lastIssuerCountryPrefill
+          )
+        ) {
+          this.issuerCountryOverridden = true;
+        }
+      }
+    );
+    this.nameSubscribe = this.configObject.name.formControl.valueChanges.subscribe(
+      (name) => (this.currentSecurityName = name ?? '')
+    );
+    this.currencySubscribe = this.configObject.currency.formControl.valueChanges.subscribe(
+      (currency) => (this.currentSecurityCurrency = currency ?? '')
+    );
+  }
+
+  private applySimulationFieldAvailability(assetClass: Assetclass): void {
+    this.canEditBondTerms = Security.isBondDirectInvestment(assetClass);
+    const canHaveIssuerCountry = Security.canHaveIssuerCountry(assetClass);
+    this.configObject.issuerCountry.invisible = !canHaveIssuerCountry;
+    if (canHaveIssuerCountry) {
+      this.configObject.issuerCountry.formControl.enable({ emitEvent: false });
+    } else {
+      this.configObject.issuerCountry.formControl.disable({ emitEvent: false });
+    }
+    if (canHaveIssuerCountry) {
+      this.prefillIssuerCountryFromIsin(this.configObject.isin.formControl.value);
+    }
+  }
+
+  private prefillIssuerCountryFromIsin(isin: string): void {
+    if (
+      !this.dataLoaded ||
+      this.issuerCountryOverridden ||
+      !Security.canHaveIssuerCountry(Helper.getReferencedDataObject(this.configObject.assetClass, null))
+    ) {
+      return;
+    }
+    const prefix = Security.issuerCountryFromIsin(isin);
+    const offered = this.configObject.issuerCountry.groupItem?.some(
+      (country) => String(country.key).toUpperCase() === prefix
+    );
+    const issuerCountry = offered ? prefix : null;
+    const currentValue = this.configObject.issuerCountry.formControl.value;
+    if (!currentValue || currentValue === this.lastIssuerCountryPrefill) {
+      this.setIssuerCountry(issuerCountry);
+    }
+  }
+
+  private setIssuerCountry(issuerCountry: string): void {
+    this.applyingIssuerCountryPrefill = true;
+    this.configObject.issuerCountry.formControl.setValue(issuerCountry);
+    this.lastIssuerCountryPrefill = issuerCountry;
+    this.applyingIssuerCountryPrefill = false;
   }
 
   private setHasMarkedValue(idStockexchange: number): void {

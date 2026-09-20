@@ -59,6 +59,10 @@ class TenantResourceTest extends BaseIntegrationTest {
         .expectBody(byte[].class).returnResult().getResponseBody();
     assertNotNull(zip);
 
+    // The schema script is packed by the library from the resource g.export.ddl.resource names. The library has no
+    // default for it - a missing property drops the entry without an error - so the application asserts its presence.
+    Assertions.assertThat(readZipEntry(zip, "gt_ddl.sql")).contains("CREATE TABLE");
+
     String sql = readZipEntry(zip, "gt_data.sql");
     int rememberChecks = sql.indexOf("SET @old_foreign_key_checks = @@SESSION.foreign_key_checks;");
     int disableChecks = sql.indexOf("SET SESSION foreign_key_checks = 0;");

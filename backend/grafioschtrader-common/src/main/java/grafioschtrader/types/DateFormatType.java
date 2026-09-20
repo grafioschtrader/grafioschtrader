@@ -4,11 +4,7 @@ package grafioschtrader.types;
  * Defines date format types used in URL templates and response parsing by generic feed connectors.
  */
 public enum DateFormatType {
-  UNIX_SECONDS((byte) 1),
-  UNIX_MILLIS((byte) 2),
-  PATTERN((byte) 3),
-  ISO_DATE((byte) 4),
-  ISO_DATE_TIME((byte) 5);
+  UNIX_SECONDS((byte) 1), UNIX_MILLIS((byte) 2), PATTERN((byte) 3), ISO_DATE((byte) 4), ISO_DATE_TIME((byte) 5);
 
   private final Byte value;
 

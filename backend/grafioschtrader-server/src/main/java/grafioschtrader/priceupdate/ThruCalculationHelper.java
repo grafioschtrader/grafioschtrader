@@ -26,13 +26,13 @@ import grafioschtrader.types.HistoryquoteCreateType;
 
 /**
  * Helper class for calculating historical price data for derived financial instruments.
- * 
+ *
  * <p>
  * A derived product's price is calculated from one or more underlying instruments, optionally using a mathematical
  * formula. Only through a derived instrument does a currency pair become tradable; in this case the instrument has no
  * formula.
  * </p>
- * 
+ *
  * <p>
  * <strong>Formula System:</strong>
  * </p>
@@ -42,7 +42,7 @@ import grafioschtrader.types.HistoryquoteCreateType;
  * <li>Formulas evaluated using EvalEx expression library</li>
  * <li>Example: "(o + p) / 2" averages two instruments</li>
  * </ul>
- * 
+ *
  * <p>
  * All linked instruments must have quotes for the same dates. Missing data from any linked instrument prevents
  * calculation for that date.
@@ -54,12 +54,12 @@ public abstract class ThruCalculationHelper {
 
   /**
    * Loads historical data for linked instruments and creates calculated history quotes.
-   * 
+   *
    * <p>
    * Retrieves historical quotes for all linked instruments and generates calculated quotes based on the security's
    * formula (if present) or by copying prices directly.
    * </p>
-   * 
+   *
    * @param securityDerivedLinkJpaRepository repository for retrieving additional instrument links
    * @param historyquoteJpaRepository        repository for loading historical quotes
    * @param security                         the derived security for which to calculate quotes
@@ -93,12 +93,12 @@ public abstract class ThruCalculationHelper {
 
   /**
    * Fills gaps in historical price data for a derived security by calculating missing end-of-day quotes.
-   * 
+   *
    * <p>
    * Identifies dates where all dependency securities have data but the derived security doesn't, then calculates and
    * creates new historyquote entries using the security's formula and dependency data.
    * </p>
-   * 
+   *
    * @param securityDerivedLinkJpaRepository repository to fetch additional security dependencies
    * @param historyquoteJpaRepository        repository to query missing historical quotes
    * @param security                         the derived security that needs gap filling
@@ -116,7 +116,7 @@ public abstract class ThruCalculationHelper {
 
   /**
    * Creates calculated history quotes from loaded data and formula expression.
-   * 
+   *
    * @param security             the derived security with optional formula
    * @param historyquotes        source historical quotes from linked instruments
    * @param securityDerivedLinks additional instrument links (empty for single-link securities)
@@ -145,11 +145,11 @@ public abstract class ThruCalculationHelper {
 
   /**
    * Creates history quotes for derived security with single linked instrument.
-   * 
+   *
    * <p>
    * Applies formula evaluation if present, otherwise copies close price directly.
    * </p>
-   * 
+   *
    * @param security      the derived security
    * @param historyquotes source quotes from the single linked instrument
    * @param expression    optional formula expression for price calculation
@@ -176,12 +176,12 @@ public abstract class ThruCalculationHelper {
 
   /**
    * Creates history quotes for derived security with multiple linked instruments.
-   * 
+   *
    * <p>
    * Groups quotes by date, evaluates formula with all variables populated, and creates calculated quotes only for dates
    * where all linked instruments have data.
    * </p>
-   * 
+   *
    * @param security             the derived security with formula
    * @param historyquotes        combined quotes from all linked instruments
    * @param expression           formula expression requiring all variables
@@ -211,7 +211,7 @@ public abstract class ThruCalculationHelper {
 
   /**
    * Adds calculated history quote for a specific date if valid.
-   * 
+   *
    * @param createdHistoryquotes accumulator list for created quotes
    * @param groupDate            date for the calculated quote (null if incomplete data)
    * @param security             the derived security
@@ -232,12 +232,12 @@ public abstract class ThruCalculationHelper {
 
   /**
    * Creates mapping from linked security IDs to formula variable names.
-   * 
+   *
    * <p>
    * Maps the primary linked security to variable 'o' and additional links to their configured variable names ('p', 'q',
    * 'r', 's').
    * </p>
-   * 
+   *
    * @param security             derived security with primary link
    * @param securityDerivedLinks additional linked securities with variable assignments
    * @return map of security ID to variable name for formula evaluation
@@ -253,7 +253,7 @@ public abstract class ThruCalculationHelper {
 
   /**
    * Validates that security's formula correctly references all linked instruments.
-   * 
+   *
    * <p>
    * Ensures formula contains required variables and all variables correspond to valid links:
    * </p>
@@ -263,7 +263,7 @@ public abstract class ThruCalculationHelper {
    * <li>All link variable names must be in allowed set ('p', 'q', 'r', 's')</li>
    * <li>Formula must evaluate successfully with test values</li>
    * </ul>
-   * 
+   *
    * @param security  the security with formula and derived links
    * @param localeStr locale for error message translation
    * @throws ParseException         if formula syntax is invalid

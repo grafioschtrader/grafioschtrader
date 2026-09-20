@@ -1,5 +1,6 @@
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { AlgoTop } from '../model/algo.top';
+import { AlgoHierarchyDto } from '../model/algo-hierarchy-dto';
 import { Injectable } from '@angular/core';
 import { DeleteService } from '../../lib/datashowbase/delete.service';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
@@ -9,7 +10,11 @@ import { catchError } from 'rxjs/operators';
 import { LoginService } from '../../lib/login/service/log-in.service';
 import { HttpClient } from '@angular/common/http';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { AlgoTopCreate, AlgoTopCreateFromPortfolio } from '../../entities/backend/algo.top.create';
+import {
+  AlgoTopCreate,
+  AlgoTopCreateFromPortfolio,
+  AlgoTopCreateFromWatchlist
+} from '../../entities/backend/algo.top.create';
 import { BaseSettings } from '../../lib/base.settings';
 
 @Injectable()
@@ -37,6 +42,16 @@ export class AlgoTopService
     );
   }
 
+  /** Loads the hierarchy together with its calculated totals and warning fields. */
+  getHierarchy(idAlgoTop: number): Observable<AlgoHierarchyDto> {
+    return this.httpClient
+      .get<AlgoHierarchyDto>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/${idAlgoTop}/hierarchy`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   public create(algoTopCreate: AlgoTopCreate): Observable<AlgoTop> {
     return <Observable<AlgoTop>>this.httpClient
       .post(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/create`, algoTopCreate, {
@@ -52,6 +67,14 @@ export class AlgoTopService
   public createFromPortfolio(dto: AlgoTopCreateFromPortfolio): Observable<AlgoTop> {
     return <Observable<AlgoTop>>this.httpClient
       .post(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/createfromportfolio`, dto, {
+        headers: this.prepareHeaders()
+      })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  public createFromWatchlist(dto: AlgoTopCreateFromWatchlist): Observable<AlgoTop> {
+    return <Observable<AlgoTop>>this.httpClient
+      .post(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_TOP_KEY}/createfromwatchlist`, dto, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));

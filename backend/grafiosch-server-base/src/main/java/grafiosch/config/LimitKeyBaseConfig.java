@@ -24,9 +24,9 @@ import grafiosch.types.OwnerScope;
 public abstract class LimitKeyBaseConfig {
 
   /**
-   * Pseudo entity name for the read-only accounts an owner may invite into their own tenant. It is not the
-   * {@code User} entity itself: only the invited viewers are counted, never the owner and never a user of another
-   * tenant, and there is no generic create path that could enforce a {@code User} cap.
+   * Pseudo entity name for the read-only accounts an owner may invite into their own tenant. It is not the {@code User}
+   * entity itself: only the invited viewers are counted, never the owner and never a user of another tenant, and there
+   * is no generic create path that could enforce a {@code User} cap.
    */
   public static final String ENTITY_NAME_SHARE_INVITE = "ShareInvite";
 
@@ -41,12 +41,13 @@ public abstract class LimitKeyBaseConfig {
   }
 
   public static void initialize() {
-    LimitKeyRegistry.register(new LimitKeyRegistration(KEY_SHARE_INVITE, User.class,
-        (entityManager, user, _, _) -> user == null || user.getIdTenant() == null ? 0
-            : entityManager
-                .createQuery("SELECT count(u) FROM User u WHERE u.idTenant = ?1 AND u.homeTenantReadOnly = true",
-                    Long.class)
-                .setParameter(1, user.getIdTenant()).getSingleResult().intValue(),
-        20, "min:1,max:1000", "MAX_SHARE_INVITE", false));
+    LimitKeyRegistry
+        .register(
+            new LimitKeyRegistration(KEY_SHARE_INVITE, User.class,
+                (entityManager, user, _, _) -> user == null || user.getIdTenant() == null ? 0
+                    : entityManager.createQuery(
+                        "SELECT count(u) FROM User u WHERE u.idTenant = ?1 AND u.homeTenantReadOnly = true", Long.class)
+                        .setParameter(1, user.getIdTenant()).getSingleResult().intValue(),
+                20, "min:1,max:1000", "MAX_SHARE_INVITE", false));
   }
 }

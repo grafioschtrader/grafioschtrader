@@ -79,3 +79,11 @@ export interface QuoteToleranceRange {
   min: number;
   max: number;
 }
+
+export interface StandingOrderCapabilities {
+  simulationTenant: boolean;
+  cashStandingOrderSupported: boolean;
+  securityStandingOrderSupported: boolean;
+  minQuoteTolerance: number;
+  maxQuoteTolerance: number;
+}

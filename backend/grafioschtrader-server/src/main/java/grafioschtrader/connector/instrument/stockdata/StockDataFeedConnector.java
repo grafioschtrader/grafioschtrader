@@ -132,8 +132,8 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
-    final QuoteSecurity quote = objectMapper.readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(),
-        QuoteSecurity.class);
+    final QuoteSecurity quote = objectMapper
+        .readValue(new URI(getSecurityIntradayDownloadLink(security)).toURL().openStream(), QuoteSecurity.class);
     for (QuoteDataSecurity data : quote.data) {
       data.setValues(security);
     }
@@ -152,8 +152,8 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   @Override
   public void updateCurrencyPairLastPrice(final Currencypair currencypair) throws Exception {
-    final QuoteCurrencypair quote = objectMapper
-        .readValue(new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL().openStream(), QuoteCurrencypair.class);
+    final QuoteCurrencypair quote = objectMapper.readValue(
+        new URI(getCurrencypairIntradayDownloadLink(currencypair)).toURL().openStream(), QuoteCurrencypair.class);
     for (QuoteDataCurrencypair data : quote.data[0]) {
       data.setValues(currencypair);
     }

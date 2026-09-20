@@ -29,9 +29,8 @@ import grafiosch.entities.ProposeChangeField;
 import grafiosch.security.JwtTokenHandler;
 
 /**
- * Application independent part of the integration test fixture: it loads users from {@code testdata/users.json}
- * of the module under test, acquires a JWT for each of them and offers the small reflection helpers the resource tests
- * share.
+ * Application independent part of the integration test fixture: it loads users from {@code testdata/users.json} of the
+ * module under test, acquires a JWT for each of them and offers the small reflection helpers the resource tests share.
  *
  * <p>
  * The JSON is looked up as the fixed classpath resource {@value #USERS_JSON}, so every application supplies its own
@@ -83,8 +82,8 @@ public class RestTestHelperBase {
       for (JsonNode user : root) {
         loadedUsers.add(new UserRegister(user.required("email").asText(), user.required("password").asText(),
             user.required("nickname").asText(), user.required("localeStr").asText(),
-            user.required("timezoneOffset").asInt(), user.required("currency").asText(),
-            user.required("role").asText(), user.required("e2e").asText()));
+            user.required("timezoneOffset").asInt(), user.required("currency").asText(), user.required("role").asText(),
+            user.required("e2e").asText()));
       }
       if (loadedUsers.isEmpty()) {
         throw new IllegalStateException("No users found in " + USERS_JSON);
@@ -138,13 +137,8 @@ public class RestTestHelperBase {
   public static void inizializeUserTokens(RestTestClient restTestClient, JwtTokenHandler jwtTokenHandler) {
     if (users[0].authToken == null) {
       for (UserRegister user : users) {
-        EntityExchangeResult<String> result = restTestClient.post()
-            .uri("/api/login")
-            .body(user)
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody(String.class)
-            .returnResult();
+        EntityExchangeResult<String> result = restTestClient.post().uri("/api/login").body(user).exchange()
+            .expectStatus().isOk().expectBody(String.class).returnResult();
         HttpHeaders headers = result.getResponseHeaders();
         user.authToken = headers.getFirst("x-auth-token");
         assertThat(user.authToken).isNotNull();

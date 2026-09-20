@@ -25,18 +25,43 @@ public class Ech0196Client {
   @XmlAttribute
   private String lastName;
 
-  public String getClientNumber() { return clientNumber; }
-  public void setClientNumber(String clientNumber) { this.clientNumber = clientNumber; }
+  public String getClientNumber() {
+    return clientNumber;
+  }
 
-  public String getTin() { return tin; }
-  public void setTin(String tin) { this.tin = tin; }
+  public void setClientNumber(String clientNumber) {
+    this.clientNumber = clientNumber;
+  }
 
-  public String getSalutation() { return salutation; }
-  public void setSalutation(String salutation) { this.salutation = salutation; }
+  public String getTin() {
+    return tin;
+  }
 
-  public String getFirstName() { return firstName; }
-  public void setFirstName(String firstName) { this.firstName = firstName; }
+  public void setTin(String tin) {
+    this.tin = tin;
+  }
 
-  public String getLastName() { return lastName; }
-  public void setLastName(String lastName) { this.lastName = lastName; }
+  public String getSalutation() {
+    return salutation;
+  }
+
+  public void setSalutation(String salutation) {
+    this.salutation = salutation;
+  }
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+
+  public String getLastName() {
+    return lastName;
+  }
+
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
+  }
 }

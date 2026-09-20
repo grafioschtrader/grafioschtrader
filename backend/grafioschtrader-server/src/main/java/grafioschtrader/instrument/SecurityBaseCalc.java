@@ -18,14 +18,14 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Abstract base class for security transaction calculations and portfolio position management.
- * 
+ *
  * <p>
  * This class provides the foundation for calculating gains, losses, and position summaries for various types of
  * securities including stocks, bonds, ETFs, and margin instruments. It implements the Template Method pattern, defining
  * the skeleton of calculation algorithms while allowing subclasses to customize specific aspects for different
  * instrument types.
  * </p>
- * 
+ *
  * <h3>Core Responsibilities:</h3>
  * <ul>
  * <li><strong>Transaction Processing:</strong> Handles individual security transactions and their impact on portfolio
@@ -38,7 +38,7 @@ import grafioschtrader.types.TransactionType;
  * calculations</li>
  * <li><strong>Hypothetical Scenarios:</strong> Creates simulated transactions for position analysis and reporting</li>
  * </ul>
- * 
+ *
  * <h3>Calculation Methodology:</h3>
  * <p>
  * The class employs different calculation strategies based on instrument type:
@@ -48,7 +48,7 @@ import grafioschtrader.types.TransactionType;
  * <li><strong>Margin Instruments:</strong> Employs specific position tracking for leveraged products</li>
  * <li><strong>Multi-Currency:</strong> Converts all values to a main currency for consolidated reporting</li>
  * </ul>
- * 
+ *
  * <h3>Subclass Implementation:</h3>
  * <p>
  * Concrete subclasses must implement instrument-specific calculation logic:
@@ -57,14 +57,14 @@ import grafioschtrader.types.TransactionType;
  * <li>{@link SecurityGeneralCalc} - For standard securities (stocks, bonds, ETFs)</li>
  * <li>{@link SecurityMarginCalc} - For margin instruments (CFDs, Forex)</li>
  * </ul>
- * 
+ *
  * <h3>Transaction Flow:</h3>
  * <p>
  * Typical usage involves processing transactions in chronological order, where each transaction updates the position
  * summary with new units, costs, and gain/loss calculations. The class handles complex scenarios including partial
  * position closures, dividend payments, and currency conversions.
  * </p>
- * 
+ *
  * <h3>Thread Safety:</h3>
  * <p>
  * This class is not thread-safe. Instances should not be shared across multiple threads without external
@@ -75,13 +75,13 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Calculates the impact of a single security transaction on the portfolio position.
-   * 
+   *
    * <p>
    * This method processes an individual transaction and updates the corresponding security position summary with new
    * units, cost basis adjustments, gain/loss calculations, and currency conversions. The calculation considers security
    * splits, transaction costs, taxes, and exchange rate fluctuations.
    * </p>
-   * 
+   *
    * <h4>Processing Steps:</h4>
    * <ol>
    * <li>Retrieves or creates the security position summary</li>
@@ -90,7 +90,7 @@ public abstract class SecurityBaseCalc {
    * <li>Updates position metrics (units, cost basis, gain/loss)</li>
    * <li>Performs currency conversions if applicable</li>
    * </ol>
-   * 
+   *
    * @param transaction             the transaction to process, containing details such as units, price, costs, and
    *                                timing
    * @param summarySecurityMap      a map of security positions keyed by {@link Security}, updated with transaction
@@ -110,21 +110,21 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Creates hypothetical sell transactions to simulate position closure for analysis purposes.
-   * 
+   *
    * <p>
    * This method generates simulated sale transactions based on current market prices to show potential gains or losses
    * if the position were closed. For standard securities, this creates a single sell transaction. For margin
    * instruments, this may create multiple transactions corresponding to different open positions.
    * </p>
-   * 
-   * <h4>Use Cases:</h4>
+   *
+   * <h4>Scenarios:</h4>
    * <ul>
    * <li><strong>Portfolio Valuation:</strong> Mark-to-market calculations for open positions</li>
    * <li><strong>Risk Assessment:</strong> Potential exposure analysis</li>
    * <li><strong>Performance Reporting:</strong> Unrealized gain/loss calculations</li>
    * <li><strong>What-if Analysis:</strong> Scenario planning for position management</li>
    * </ul>
-   * 
+   *
    * @param securityPositionSummary    the current position summary to be analyzed for hypothetical closure
    * @param lastPrice                  the current market price to use for the hypothetical sale calculation
    * @param securitysplitMap           map of security splits for adjusting historical transactions
@@ -139,13 +139,13 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Processes a transaction and adds the resulting position data to the transaction summary.
-   * 
+   *
    * <p>
    * This method combines transaction calculation with position tracking, ensuring that both individual transaction
    * metrics and cumulative position data are properly maintained. It's typically used in transaction processing
    * workflows where detailed transaction-by-transaction analysis is required.
    * </p>
-   * 
+   *
    * <h4>Key Features:</h4>
    * <ul>
    * <li>Updates the position summary with transaction effects</li>
@@ -153,7 +153,7 @@ public abstract class SecurityBaseCalc {
    * <li>Maintains transaction history for audit purposes</li>
    * <li>Handles corporate action adjustments</li>
    * </ul>
-   * 
+   *
    * @param transaction                the transaction to process and add to the summary
    * @param securityTransactionSummary the summary container that tracks both position and individual transactions
    * @param excludeDivTaxcost          whether to exclude dividend tax costs from calculations
@@ -168,13 +168,13 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Retrieves or creates a security position summary for the given transaction.
-   * 
+   *
    * <p>
    * This method implements a lazy initialization pattern, creating new position summaries only when they don't already
    * exist in the map. It ensures that each security has a single position summary that accumulates all transaction
    * effects over time.
    * </p>
-   * 
+   *
    * <h4>Position Summary Initialization:</h4>
    * <ul>
    * <li>Uses the main currency from the currency map if available</li>
@@ -182,13 +182,13 @@ public abstract class SecurityBaseCalc {
    * <li>Configures currency precision for accurate calculations</li>
    * <li>Initializes all position metrics to zero</li>
    * </ul>
-   * 
+   *
    * @param transaction          the transaction requiring a position summary
    * @param summarySecurityMap   the map of existing position summaries, keyed by security
    * @param dateCurrencyMap      currency data containing the main currency for multi-currency portfolios
    * @param currencyPrecisionMap precision settings for different currencies
    * @return existing position summary or a newly created one if none exists
-   * 
+   *
    * @throws NullPointerException if transaction or transaction.getSecurity() is null
    */
   SecurityPositionSummary getSecurityPositionSummary(final Transaction transaction,
@@ -201,26 +201,26 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Initializes transaction calculation parameters including split factors and exchange rates.
-   * 
+   *
    * <p>
    * This method performs the preliminary calculations needed for transaction processing, including: determining
    * appropriate split factors for corporate actions, calculating exchange rates for currency conversions, and setting
    * up the calculation context for the specific transaction type.
    * </p>
-   * 
+   *
    * <h4>Split Factor Calculation:</h4>
    * <p>
    * The method calculates split factors to ensure historical transactions remain accurate after corporate actions. For
    * margin instruments with connected transactions, it calculates the split factor from the original opening
    * transaction to maintain position integrity.
    * </p>
-   * 
+   *
    * <h4>Exchange Rate Handling:</h4>
    * <p>
    * Determines the appropriate exchange rate for currency conversion based on transaction date, security currency, cash
    * account currency, and the portfolio's main currency.
    * </p>
-   * 
+   *
    * @param transaction             the transaction being processed
    * @param securityPositionSummary the position summary being updated
    * @param securitysplitMap        map of security splits for corporate action adjustments
@@ -253,25 +253,25 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Creates and populates a calculation context object for transaction processing.
-   * 
+   *
    * <p>
    * This private method consolidates all the calculation parameters needed for processing a transaction, including
    * exchange rates, split factors, costs, and adjusted units. It handles different transaction types and margin
    * instrument scenarios.
    * </p>
-   * 
+   *
    * <h4>Transaction Cost Handling:</h4>
    * <p>
    * The method processes transaction costs and taxes only for specific transaction types that involve actual trading or
    * dividend payments. Administrative transactions are excluded from cost calculations.
    * </p>
-   * 
+   *
    * <h4>Units Adjustment:</h4>
    * <p>
    * Calculates split-adjusted units based on corporate actions that occurred after the transaction date. For margin
    * instruments, applies directional adjustments based on whether the transaction is a position reduction or closure.
    * </p>
-   * 
+   *
    * @param transaction             the transaction being processed
    * @param securityPositionSummary the position summary being updated
    * @param dateCurrencyMap         currency exchange rate information
@@ -318,13 +318,13 @@ public abstract class SecurityBaseCalc {
 
   /**
    * Creates a hypothetical buy or sell transaction for position analysis.
-   * 
+   *
    * <p>
    * This utility method generates simulated transactions that can be used for what-if analysis, portfolio valuation,
    * and position closure simulations. The created transaction contains realistic values based on current market
    * conditions and position details.
    * </p>
-   * 
+   *
    * <h4>Transaction Properties:</h4>
    * <ul>
    * <li><strong>Negative ID:</strong> Uses negative transaction IDs to distinguish from real transactions</li>
@@ -332,13 +332,13 @@ public abstract class SecurityBaseCalc {
    * <li><strong>Market Price:</strong> Uses the provided last price for valuation</li>
    * <li><strong>Currency Matching:</strong> Creates cash account in security's currency</li>
    * </ul>
-   * 
+   *
    * <h4>Calculated Values:</h4>
    * <p>
    * The cash account amount is calculated as the product of units and last price, representing the gross proceeds (for
    * sells) or cost (for buys) before considering transaction costs or taxes.
    * </p>
-   * 
+   *
    * @param transactionType         the type of hypothetical transaction ({@link TransactionType#HYPOTHETICAL_BUY} or
    *                                {@link TransactionType#HYPOTHETICAL_SELL})
    * @param securityPositionSummary the position summary containing units and security information
@@ -361,24 +361,24 @@ public abstract class SecurityBaseCalc {
   }
 
   /**
-  * Calculation context object that encapsulates all parameters needed for processing a single transaction.
-  * 
-  * <p>
-  * This static inner class serves as a data transfer object that consolidates various calculation
-  * parameters including exchange rates, prices, costs, and split factors. It provides a clean
-  * interface for passing complex calculation state between methods.
-  * </p>
-  */
+   * Calculation context object that encapsulates all parameters needed for processing a single transaction.
+   *
+   * <p>
+   * This static inner class serves as a data transfer object that consolidates various calculation parameters including
+   * exchange rates, prices, costs, and split factors. It provides a clean interface for passing complex calculation
+   * state between methods.
+   * </p>
+   */
   protected static class CalcTransactionPos {
-    /** 
-     * Exchange rate from transaction currency to main currency, or {@code null} if no conversion needed.
-     * This rate is used for converting all transaction amounts to the portfolio's main currency.
+    /**
+     * Exchange rate from transaction currency to main currency, or {@code null} if no conversion needed. This rate is
+     * used for converting all transaction amounts to the portfolio's main currency.
      */
     public final Double exchangeRate;
-    
-    /** 
-     * Net price of securities involved in the transaction, calculated as units × price.
-     * For margin instruments, this may be adjusted based on the original opening position.
+
+    /**
+     * Net price of securities involved in the transaction, calculated as units × price. For margin instruments, this
+     * may be adjusted based on the original opening position.
      */
     public double securitiesNetPrice = 0.0;
 
@@ -406,7 +406,6 @@ public abstract class SecurityBaseCalc {
      */
     public double unitsSplited;
 
-    
     public double splitFactorFromBaseTransaction;
 
     public CalcTransactionPos(Double exchangeRate, double splitFactorFromBaseTransaction) {
@@ -416,13 +415,13 @@ public abstract class SecurityBaseCalc {
 
     /**
      * Calculates the real (pre-split) number of units for the transaction.
-     * 
+     *
      * <p>
-     * This method reverses the split adjustment to determine the original number of units
-     * as they existed at the time of the transaction, before any subsequent corporate actions.
-     * This is useful for historical analysis and position reconciliation.
+     * This method reverses the split adjustment to determine the original number of units as they existed at the time
+     * of the transaction, before any subsequent corporate actions. This is useful for historical analysis and position
+     * reconciliation.
      * </p>
-     * 
+     *
      * @return the original number of units before split adjustments
      */
     public double getRealUntis() {

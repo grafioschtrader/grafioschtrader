@@ -76,6 +76,7 @@ public class IctaxImportService {
   @Transactional
   public List<TaxUpload> uploadAndImport(int idTaxYear, MultipartFile[] files) throws IOException {
     TaxYear taxYear = taxYearJpaRepository.getReferenceById(idTaxYear);
+    TaxCountryModelService.requireIctax(taxYear.getTaxCountry());
     String countryCode = taxYear.getTaxCountry() != null ? taxYear.getTaxCountry().getCountryCode() : "XX";
     Set<String> allIsins = getAllIsinsFromSecurities();
 
@@ -98,6 +99,7 @@ public class IctaxImportService {
   @Transactional
   public TaxUpload reimport(int idTaxUpload) throws IOException {
     TaxUpload upload = taxUploadJpaRepository.getReferenceById(idTaxUpload);
+    TaxCountryModelService.requireIctax(upload.getTaxYear().getTaxCountry());
     Path zipPath = Paths.get(upload.getFilePath());
     if (!Files.exists(zipPath)) {
       throw new IOException("Stored zip file not found: " + upload.getFilePath());

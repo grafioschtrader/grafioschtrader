@@ -13,14 +13,14 @@ import grafiosch.types.UDFDataType;
 
 /**
  * Configuration data transfer object returned with successful login responses.
- * 
+ *
  * <p>
  * This DTO contains comprehensive configuration information that frontend applications need for proper operation after
  * successful authentication. It provides essential metadata about entities, field constraints, user preferences,
  * authorization levels, and system configuration that enables the client to operate correctly with the backend
  * services.
  * </p>
- * 
+ *
  * <h3>Configuration Categories:</h3>
  * <ul>
  * <li><strong>Entity Metadata:</strong> JPA entity names and primary key information</li>
@@ -29,7 +29,7 @@ import grafiosch.types.UDFDataType;
  * <li><strong>Security Context:</strong> User roles and password policy status</li>
  * <li><strong>User-Defined Fields:</strong> Custom field configuration and support</li>
  * </ul>
- * 
+ *
  * <h3>Frontend Integration:</h3>
  * <p>
  * This data is very general and can be used in different places in the frontend for form validation, entity
@@ -55,12 +55,11 @@ public class ConfigurationWithLogin {
    */
   public final boolean passwordRegexOk;
 
-  
   public final String standardTimeZone = ZoneId.of(BaseConstants.TIME_ZONE).getId();
-  
+
   /**
    * Configuration for User-Defined Fields (UDF) functionality.
-   * 
+   *
    * <p>
    * Contains comprehensive configuration for custom field support including which entities support user-defined fields
    * and the formatting rules for different UDF data types. This enables dynamic field management and customization
@@ -80,8 +79,8 @@ public class ConfigurationWithLogin {
   public Set<? extends FeatureType> useFeatures;
 
   /**
-   * Whether GTNet exchange logging is globally enabled via the g.gnet.use.log parameter.
-   * Used by the frontend to conditionally enable/disable the exchange log navigation node.
+   * Whether GTNet exchange logging is globally enabled via the g.gnet.use.log parameter. Used by the frontend to
+   * conditionally enable/disable the exchange log navigation node.
    */
   public boolean gtNetLogEnabled;
 
@@ -96,8 +95,8 @@ public class ConfigurationWithLogin {
    * Standard precision configuration for numeric field formatting.
    *
    * <p>
-   * Filled with the standard decimal places of numbers, see definition of "FID_*" constants.
-   * This mapping provides formatting precision for various numeric fields throughout the application.
+   * Filled with the standard decimal places of numbers, see definition of "FID_*" constants. This mapping provides
+   * formatting precision for various numeric fields throughout the application.
    * </p>
    */
   public final Map<String, Integer> standardPrecision;
@@ -118,7 +117,8 @@ public class ConfigurationWithLogin {
    * @param standardPrecision         standard precision constants for field formatting
    */
   public ConfigurationWithLogin(List<EntityNameWithKeyName> entityNameWithKeyNameList, Map<String, Integer> fieldSize,
-      boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk, Map<String, Integer> standardPrecision) {
+      boolean uiShowMyProperty, String mostPrivilegedRole, boolean passwordRegexOk,
+      Map<String, Integer> standardPrecision) {
     this.entityNameWithKeyNameList = entityNameWithKeyNameList;
     this.fieldSize = fieldSize;
     this.uiShowMyProperty = uiShowMyProperty;
@@ -141,13 +141,13 @@ public class ConfigurationWithLogin {
 
   /**
    * Configuration class for User-Defined Fields (UDF) functionality.
-   * 
+   *
    * <p>
    * This class encapsulates all configuration related to the application's User-Defined Fields feature, including which
    * entities support custom fields and the formatting rules for different data types. This enables dynamic field
    * management and customization capabilities throughout the application.
    * </p>
-   * 
+   *
    * <h3>UDF Capabilities:</h3>
    * <ul>
    * <li><strong>Entity Support:</strong> Identifies which entities can have custom fields</li>
@@ -163,8 +163,8 @@ public class ConfigurationWithLogin {
     /** Mapping of UDF data types to their formatting prefix and suffix rules. */
     public Map<UDFDataType, UDFPrefixSuffix> uDFPrefixSuffixMap = BaseConstants.uDFPrefixSuffixMap;
   }
-  
+
   public static interface FeatureType {
-    
+
   }
 }

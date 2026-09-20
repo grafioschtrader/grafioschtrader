@@ -1,0 +1,194 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/java/apache-maven-3.8.6/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/java/apache-maven-3.8.6/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------< grafioschtrader:grafioschtrader-server >---------------
+[INFO] Building Grafioschtrader 0.37.0
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- spotless-maven-plugin:2.44.5:apply (default-cli) @ grafioschtrader-server ---
+[INFO] clean file: C:\SoftwareProjekte\Hugos\grafioschtrader\backend\grafioschtrader-server\src\test\java\grafioschtrader\connector\instrument\test\EulerpoolFeedConnectorTest.java
+[INFO] Spotless.Java is keeping 1 files clean - 1 were changed to be clean, 0 were already clean, 0 were skipped because caching determined they were already clean
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:resources (default-resources) @ grafioschtrader-server ---
+[INFO] Copying 7 resources from src\main\resources to target\classes
+[INFO] Copying 151 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:compile (default-compile) @ grafioschtrader-server ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:testResources (default-testResources) @ grafioschtrader-server ---
+[INFO] Copying 81 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:testCompile (default-testCompile) @ grafioschtrader-server ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 183 source files with javac [debug deprecation parameters release 25] to target\test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:3.5.6:test (default-test) @ grafioschtrader-server ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running grafioschtrader.connector.instrument.test.EulerpoolFeedConnectorTest
+2026-09-20 14:13:19.510  INFO 47796 --- [           main] u.j.c.BootstrapSpringApplicationListener : Found Environment: org.springframework.boot.web.context.servlet.ApplicationServletEnvironment
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.1.1)
+
+2026-09-20 14:13:19.569  WARN 47796 --- [           main] ory$DuplicateJsonObjectContextCustomizer : 
+
+Found multiple occurrences of org.json.JSONObject on the class path:
+
+	jar:file:/C:/Users/hugo/.m2/repository/com/vaadin/external/google/android-json/0.0.20131108.vaadin1/android-json-0.0.20131108.vaadin1.jar!/org/json/JSONObject.class
+	jar:file:/C:/Users/hugo/.m2/repository/org/json/json/20260719/json-20260719.jar!/org/json/JSONObject.class
+
+You may wish to exclude one of them to ensure predictable runtime behavior
+
+2026-09-20 14:13:19.582  INFO 47796 --- [           main] g.c.i.test.EulerpoolFeedConnectorTest    : Starting EulerpoolFeedConnectorTest using Java 25.0.3 with PID 47796 (started by hugo in C:\SoftwareProjekte\Hugos\grafioschtrader\backend\grafioschtrader-server)
+2026-09-20 14:13:19.583  INFO 47796 --- [           main] g.c.i.test.EulerpoolFeedConnectorTest    : The following 1 profile is active: "prod"
+2026-09-20 14:13:21.677  INFO 47796 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-20 14:13:22.316  INFO 47796 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 629 ms. Found 108 JPA repository interfaces.
+2026-09-20 14:13:23.780  INFO 47796 --- [           main] ptablePropertiesBeanFactoryPostProcessor : Post-processing PropertySource instances
+2026-09-20 14:13:23.781  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Skipping PropertySource configurationProperties [class org.springframework.boot.context.properties.source.ConfigurationPropertySourcesPropertySource
+2026-09-20 14:13:23.783  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Inlined Test Properties [org.springframework.core.env.MapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.783  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource active-test-profiles [org.springframework.core.env.MapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.784  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Skipping PropertySource servletConfigInitParams [class org.springframework.core.env.PropertySource$StubPropertySource
+2026-09-20 14:13:23.784  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource servletContextInitParams [org.springframework.web.context.support.ServletContextPropertySource] to EncryptableEnumerablePropertySourceWrapper
+2026-09-20 14:13:23.784  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemProperties [org.springframework.core.env.PropertiesPropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.786  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource systemEnvironment [org.springframework.boot.support.SystemEnvironmentPropertySourceEnvironmentPostProcessor$OriginAwareSystemEnvironmentPropertySource] to EncryptableSystemEnvironmentPropertySourceWrapper
+2026-09-20 14:13:23.786  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource random [org.springframework.boot.env.RandomValuePropertySource] to EncryptablePropertySourceWrapper
+2026-09-20 14:13:23.786  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application-prod.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.786  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [grafiosch-application.properties]' via location 'optional:classpath:grafiosch-application.properties' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.786  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.properties]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.786  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource Config resource 'class path resource [application.yaml]' via location 'optional:classpath:/' [org.springframework.boot.env.OriginTrackedMapPropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.787  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource applicationInfo [org.springframework.boot.ApplicationInfoPropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.787  INFO 47796 --- [           main] c.u.j.EncryptablePropertySourceConverter : Converting PropertySource class path resource [application-test.properties] [org.springframework.core.io.support.ResourcePropertySource] to EncryptableMapPropertySourceWrapper
+2026-09-20 14:13:23.788  INFO 47796 --- [           main] ptablePropertiesBeanFactoryPostProcessor : Re-initializing EncryptableSystemEnvironmentPropertySourceWrapper map delegation
+2026-09-20 14:13:23.788  INFO 47796 --- [           main] apperGetSourceWrapperEnvironmentListener : Attempting to bootstrap EncryptableSystemEnvironmentPropertySourceWrapper
+2026-09-20 14:13:23.788  INFO 47796 --- [           main] apperGetSourceWrapperEnvironmentListener : EncryptableSystemEnvironmentPropertySourceWrapper found! Bootstrapping...
+2026-09-20 14:13:23.788  INFO 47796 --- [           main] ptablePropertiesBeanFactoryPostProcessor : EncryptableSystemEnvironmentPropertySourceWrapper map delegation re-initialized
+2026-09-20 14:13:23.788  INFO 47796 --- [           main] ptablePropertiesBeanFactoryPostProcessor : Re-initializing Logging System
+2026-09-20 14:13:23.794  INFO 47796 --- [           main] c.u.j.filter.DefaultLazyPropertyFilter   : Property Filter custom Bean not found with name 'encryptablePropertyFilter'. Initializing Default Property Filter
+2026-09-20 14:13:23.807  INFO 47796 --- [           main] c.u.j.r.DefaultLazyPropertyResolver      : Property Resolver custom Bean not found with name 'encryptablePropertyResolver'. Initializing Default Property Resolver
+2026-09-20 14:13:23.810  INFO 47796 --- [           main] c.u.j.d.DefaultLazyPropertyDetector      : Property Detector custom Bean not found with name 'encryptablePropertyDetector'. Initializing Default Property Detector
+2026-09-20 14:13:23.833  INFO 47796 --- [           main] ptablePropertiesBeanFactoryPostProcessor : Logging System re-initialized by LoggingApplicationListener
+2026-09-20 14:13:24.313  INFO 47796 --- [           main] c.u.j.encryptor.DefaultLazyEncryptor     : String Encryptor custom Bean not found with name 'jasyptStringEncryptor'. Initializing Default String Encryptor
+2026-09-20 14:13:24.328  INFO 47796 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.algorithm, using default value: PBEWITHHMACSHA512ANDAES_256
+2026-09-20 14:13:24.329  INFO 47796 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.key-obtention-iterations, using default value: 1000
+2026-09-20 14:13:24.332  INFO 47796 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.pool-size, using default value: 1
+2026-09-20 14:13:24.333  INFO 47796 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.provider-name, using default value: null
+2026-09-20 14:13:24.333  INFO 47796 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.provider-class-name, using default value: null
+2026-09-20 14:13:24.334  INFO 47796 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.salt-generator-classname, using default value: org.jasypt.salt.RandomSaltGenerator
+2026-09-20 14:13:24.337  INFO 47796 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.iv-generator-classname, using default value: org.jasypt.iv.RandomIvGenerator
+2026-09-20 14:13:24.338  INFO 47796 --- [           main] c.u.j.c.StringEncryptorBuilder           : Encryptor config not found for property jasypt.encryptor.string-output-type, using default value: base64
+2026-09-20 14:13:24.646  INFO 47796 --- [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-09-20 14:13:24.762  INFO 47796 --- [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-09-20 14:13:24.805  INFO 47796 --- [           main] org.hibernate.orm.cache                  : HHH90001028: Second-level cache region factory [org.hibernate.cache.jcache.internal.JCacheRegionFactory]
+2026-09-20 14:13:25.121  INFO 47796 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-20 14:13:25.261  INFO 47796 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.mariadb.jdbc.Connection@2d18d9ed
+2026-09-20 14:13:25.263  INFO 47796 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-20 14:13:25.317  WARN 47796 --- [           main] org.hibernate.orm.core                   : HHH000511: The 10.4.27 version for [org.hibernate.dialect.MariaDBDialect] is no longer supported, hence certain features may not work properly.The minimum supported version is 10.6.0. Check the community dialects project for available legacy versions.
+2026-09-20 14:13:25.345  INFO 47796 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:mariadb://localhost/grafioschtrader?user=grafioschtrader&password=adergraf]
+	Database driver: MariaDB Connector/J
+	Database dialect: MariaDBDialect
+	Database version: 10.4.27
+	Default catalog/schema: grafioschtrader/undefined
+	Autocommit mode: undefined/unknown
+	Isolation level: REPEATABLE_READ [default REPEATABLE_READ]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-09-20 14:13:25.667  INFO 47796 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by org.ehcache.impl.internal.concurrent.ThreadLocalRandomUtil (file:/C:/Users/hugo/.m2/repository/org/ehcache/ehcache/3.12.0/ehcache-3.12.0.jar)
+WARNING: Please consider reporting this to the maintainers of class org.ehcache.impl.internal.concurrent.ThreadLocalRandomUtil
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+2026-09-20 14:13:26.974  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=default-update-timestamps-region
+2026-09-20 14:13:26.976  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'default-update-timestamps-region' created in EhcacheManager.
+2026-09-20 14:13:26.982  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=default-query-results-region
+2026-09-20 14:13:26.983  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'default-query-results-region' created in EhcacheManager.
+2026-09-20 14:13:27.357  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.MultilanguageString.map
+2026-09-20 14:13:27.357  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.MultilanguageString.map' created in EhcacheManager.
+2026-09-20 14:13:27.365  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.Role
+2026-09-20 14:13:27.365  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.Role' created in EhcacheManager.
+2026-09-20 14:13:27.370  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafioschtrader.entities.Assetclass
+2026-09-20 14:13:27.370  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafioschtrader.entities.Assetclass' created in EhcacheManager.
+2026-09-20 14:13:27.375  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.User.roles
+2026-09-20 14:13:27.375  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.User.roles' created in EhcacheManager.
+2026-09-20 14:13:27.378  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafioschtrader.entities.Stockexchange
+2026-09-20 14:13:27.378  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafioschtrader.entities.Stockexchange' created in EhcacheManager.
+2026-09-20 14:13:27.381  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.Globalparameters
+2026-09-20 14:13:27.382  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.Globalparameters' created in EhcacheManager.
+2026-09-20 14:13:27.385  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafioschtrader.entities.ImportTransactionPlatform
+2026-09-20 14:13:27.385  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafioschtrader.entities.ImportTransactionPlatform' created in EhcacheManager.
+2026-09-20 14:13:27.389  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.MultilanguageString
+2026-09-20 14:13:27.391  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.MultilanguageString' created in EhcacheManager.
+2026-09-20 14:13:27.395  INFO 47796 --- [           main] org.ehcache.jsr107.Eh107CacheManager     : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=urn.X-ehcache.jsr107-default-config,Cache=grafiosch.entities.User
+2026-09-20 14:13:27.396  INFO 47796 --- [           main] org.ehcache.core.EhcacheManager          : Cache 'grafiosch.entities.User' created in EhcacheManager.
+2026-09-20 14:13:28.600  INFO 47796 --- [           main] org.hibernate.orm.core                   : HHH000182: No default (no-argument) constructor for class [grafiosch.entities.MailEntity] (class must be instantiated by Interceptor)
+2026-09-20 14:13:28.996  INFO 47796 --- [           main] org.hibernate.orm.core                   : HHH000182: No default (no-argument) constructor for class [grafioschtrader.entities.MicProviderMap$IdProviderMic] (class must be instantiated by Interceptor)
+2026-09-20 14:13:29.729  WARN 47796 --- [           main] o.hibernate.orm.model.mapping.creation   : HHH90005707: Unable to locate static metamodel field: grafioschtrader.entities.Stockexchange_.idTradingCalendarRuleSet
+2026-09-20 14:13:29.746  WARN 47796 --- [           main] o.hibernate.orm.model.mapping.creation   : HHH90005707: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_.gtNetHistoricalRecv
+2026-09-20 14:13:29.747  WARN 47796 --- [           main] o.hibernate.orm.model.mapping.creation   : HHH90005707: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_.gtNetHistoricalSend
+2026-09-20 14:13:29.747  WARN 47796 --- [           main] o.hibernate.orm.model.mapping.creation   : HHH90005707: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_.gtNetLastModifiedTime
+2026-09-20 14:13:29.747  WARN 47796 --- [           main] o.hibernate.orm.model.mapping.creation   : HHH90005707: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_.gtNetLastpriceRecv
+2026-09-20 14:13:29.747  WARN 47796 --- [           main] o.hibernate.orm.model.mapping.creation   : HHH90005707: Unable to locate static metamodel field: grafioschtrader.entities.Securitycurrency_.gtNetLastpriceSend
+2026-09-20 14:13:29.754  WARN 47796 --- [           main] o.hibernate.orm.model.mapping.creation   : HHH90005707: Unable to locate static metamodel field: grafioschtrader.entities.Security_.issuerCountry
+2026-09-20 14:13:29.754  WARN 47796 --- [           main] o.hibernate.orm.model.mapping.creation   : HHH90005707: Unable to locate static metamodel field: grafioschtrader.entities.Security_.simulationMetadata
+2026-09-20 14:13:29.841  INFO 47796 --- [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-20 14:13:29.858  INFO 47796 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-20 14:13:30.182  INFO 47796 --- [           main] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-20 14:13:32.076  INFO 47796 --- [           main] g.gtnet.GTNetMessageCodeRegistry         : GTNet protocol registry initialized with 27 core codes
+2026-09-20 14:13:34.183  INFO 47796 --- [           main] g.c.i.f.FinanzenCHFeedConnector          : Response received - Status code: 200
+2026-09-20 14:13:34.183  INFO 47796 --- [           main] g.c.i.f.FinanzenCHFeedConnector          : Response headers: {:status=[200], cache-control=[public, max-age=122, s-maxage=180], content-type=[text/html; charset=utf-8], date=[Sun, 20 Sep 2026 12:13:34 GMT], feature-policy=[geolocation 'none'; midi 'none'; camera 'none'; usb 'none'; magnetometer 'none'; accelerometer 'none'; gyroscope 'none'; microphone 'none'; payment 'none'], referrer-policy=[same-origin], set-cookie=[Bot-Information=28493cd9392089ea02cc103b2a742277; path=/; domain=.www.finanzen.ch; Secure], strict-transport-security=[max-age=31536000; includeSubDomains], vary=[Accept-Encoding], x-content-type-options=[nosniff], x-frame-options=[SAMEORIGIN]}
+2026-09-20 14:13:34.183  INFO 47796 --- [           main] g.c.i.f.FinanzenCHFeedConnector          : Response body length: 456805 characters
+2026-09-20 14:13:34.647  INFO 47796 --- [           main] g.c.i.f.FinanzenNETFeedConnector         : Response received - Status code: 200
+2026-09-20 14:13:34.647  INFO 47796 --- [           main] g.c.i.f.FinanzenNETFeedConnector         : Response headers: {:status=[200], cache-control=[public, max-age=60, s-maxage=180], content-type=[text/html; charset=utf-8], date=[Sun, 20 Sep 2026 12:13:35 GMT], feature-policy=[geolocation 'none'; midi 'none'; camera 'none'; usb 'none'; magnetometer 'none'; accelerometer 'none'; gyroscope 'none'; microphone 'none'; payment 'none'], referrer-policy=[strict-origin-when-cross-origin], server=[Microsoft-IIS/10.0], set-cookie=[TiPMix=50.18533610380348; path=/; HttpOnly; Domain=4g-web-origin.finanzen.net; Max-Age=3600; Secure; SameSite=None, x-ms-routing-name=self; path=/; HttpOnly; Domain=4g-web-origin.finanzen.net; Max-Age=3600; Secure; SameSite=None, Bot-Information=ad1b112f5ac2ae68faea04e17f8b4477; path=/; domain=.www.finanzen.net; Secure], strict-transport-security=[max-age=31536000; includeSubDomains], vary=[Accept-Encoding], x-content-type-options=[nosniff], x-frame-options=[SAMEORIGIN]}
+2026-09-20 14:13:34.648  INFO 47796 --- [           main] g.c.i.f.FinanzenNETFeedConnector         : Response body length: 769751 characters
+2026-09-20 14:13:37.756  INFO 47796 --- [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userServiceImpl
+2026-09-20 14:13:38.295 DEBUG 47796 --- [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with filters: DisableEncodeUrlFilter, WebAsyncManagerIntegrationFilter, SecurityContextHolderFilter, HeaderWriterFilter, LogoutFilter, StatelessLoginFilter, StatelessAuthenticationFilter, TenantReadOnlyFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, ExceptionTranslationFilter, AuthorizationFilter
+2026-09-20 14:13:39.198  INFO 47796 --- [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/api/actuator'
+2026-09-20 14:13:39.268  INFO 47796 --- [           main] g.gtnet.GTNetProtocolStartupValidator    : GTNet protocol validation skipped - this context registers no message handlers
+2026-09-20 14:13:39.270  INFO 47796 --- [           main] g.c.i.test.EulerpoolFeedConnectorTest    : Started EulerpoolFeedConnectorTest in 20.081 seconds (process running for 21.262)
+2026-09-20 14:13:39.276  WARN 47796 --- [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /api-docs endpoint is enabled by default. To disable it in production, set the property 'springdoc.api-docs.enabled=false'
+2026-09-20 14:13:39.276  WARN 47796 --- [           main] o.s.core.events.SpringDocAppInitializer  : SpringDoc /swagger-ui.html endpoint is enabled by default. To disable it in production, set the property 'springdoc.swagger-ui.enabled=false'
+2026-09-20 14:13:39.439  INFO 47796 --- [           main] g.c.i.g.GenericFeedConnectorFactory      : Loading 5 active generic feed connector definitions
+2026-09-20 14:13:39.526  INFO 47796 --- [           main] g.c.i.g.GenericFeedConnectorFactory      : Registered generic connector: gettex (Gettex (Munich))
+2026-09-20 14:13:39.527  INFO 47796 --- [           main] g.c.i.g.GenericFeedConnectorFactory      : Registered generic connector: otcx (OTC-X (Berner Kantonalbank))
+2026-09-20 14:13:39.527  INFO 47796 --- [           main] g.c.i.g.GenericFeedConnectorFactory      : Registered generic connector: bxswiss (BX Swiss (Bern))
+2026-09-20 14:13:39.527  INFO 47796 --- [           main] g.c.i.g.GenericFeedConnectorFactory      : Registered generic connector: fuw (Finanz und Wirtschaft)
+2026-09-20 14:13:39.527  INFO 47796 --- [           main] g.c.i.g.GenericFeedConnectorFactory      : Registered generic connector: stockanalysis (Stock Analysis)
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (C:\Users\hugo\.m2\repository\net\bytebuddy\byte-buddy-agent\1.18.11\byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 25.32 s -- in grafioschtrader.connector.instrument.test.EulerpoolFeedConnectorTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  39.074 s
+[INFO] Finished at: 2026-09-20T14:13:44+02:00
+[INFO] ------------------------------------------------------------------------

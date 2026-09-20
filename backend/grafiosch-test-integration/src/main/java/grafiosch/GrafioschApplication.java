@@ -1,6 +1,5 @@
 package grafiosch;
 
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -16,9 +15,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableConfigurationProperties
 @Configuration
 @EntityScan(basePackages = { "grafiosch.entities", "grafiosch.integration.entities" })
-@ComponentScan(basePackages = { "grafiosch" }) 
+@ComponentScan(basePackages = { "grafiosch" })
 public class GrafioschApplication {
-  
+
   public static void main(final String[] args) {
     // ApplicationContext context =
     SpringApplication.run(GrafioschApplication.class, args);

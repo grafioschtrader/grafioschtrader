@@ -231,7 +231,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   @Modifying
-  public Security catchUpSecurityCurrencypairHisotry(Security security, final LocalDate fromDate, final LocalDate toDate) {
+  public Security catchUpSecurityCurrencypairHisotry(Security security, final LocalDate fromDate,
+      final LocalDate toDate) {
     security = securityJpaRepository.findByIdSecuritycurrency(security.getIdSecuritycurrency());
     Security caughtUp = getHistorquoteLoad(security).createHistoryQuotesAndSave(securityJpaRepository, security,
         fromDate, toDate);
@@ -240,10 +241,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   /**
-   * Archives every existing historyquote row of the given security into historyquote_legacy
-   * if the save changed id_connector_history or url_history_extend. Runs synchronously
-   * inside the save transaction so the archive is committed before the async wipe task
-   * ({@code SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA}) fires.
+   * Archives every existing historyquote row of the given security into historyquote_legacy if the save changed
+   * id_connector_history or url_history_extend. Runs synchronously inside the save transaction so the archive is
+   * committed before the async wipe task ({@code SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA}) fires.
    */
   private void archivePreviousHistoryIfConnectorChanged(Security security, Security securityBefore) {
     if (securityBefore == null || security.isDerivedInstrument()) {
@@ -259,23 +259,18 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   /**
-   * After a connector-driven historyquote load, supplement the live table with archived
-   * rows the new connector did not cover. Shadow OHLC is adjusted for any splits that
-   * occurred after the row's transfer_date so live ends up on a single consistent
-   * adjustment basis: prices are divided by the post-archival factor (a 2:1 split halves
-   * pre-split prices on the new basis); volume is multiplied (share count doubled).
+   * After a connector-driven historyquote load, supplement the live table with archived rows the new connector did not
+   * cover. Shadow OHLC is adjusted for any splits that occurred after the row's transfer_date so live ends up on a
+   * single consistent adjustment basis: prices are divided by the post-archival factor (a 2:1 split halves pre-split
+   * prices on the new basis); volume is multiplied (share count doubled).
    *
-   * Shadow lifecycle (per user's design):
-   *   - If findLegacyMissingInLive returns empty at entry, the new connector independently
-   *     covers every shadow date with real (non-filler) data. The shadow is redundant and
-   *     is dropped here. Safe because no insertion follows.
-   *   - If it returns rows, the shadow is actively contributing data. The shadow is kept
-   *     intact even after the merge: post-supplement we cannot distinguish "row came from
-   *     the new connector" from "row was supplemented from the shadow itself" (both end
-   *     up with create_type = 0), so any deletion in that case would erase the only
-   *     remaining record of where the pre-connector-switch data originated. The user
-   *     retires the shadow manually via the Issue #199 "Delete all legacy" UI when
-   *     satisfied the new connector is enough.
+   * Shadow lifecycle (per user's design): - If findLegacyMissingInLive returns empty at entry, the new connector
+   * independently covers every shadow date with real (non-filler) data. The shadow is redundant and is dropped here.
+   * Safe because no insertion follows. - If it returns rows, the shadow is actively contributing data. The shadow is
+   * kept intact even after the merge: post-supplement we cannot distinguish "row came from the new connector" from "row
+   * was supplemented from the shadow itself" (both end up with create_type = 0), so any deletion in that case would
+   * erase the only remaining record of where the pre-connector-switch data originated. The user retires the shadow
+   * manually via the Issue #199 "Delete all legacy" UI when satisfied the new connector is enough.
    */
   private void supplementFromShadow(Security security) {
     if (security == null || security.isDerivedInstrument()) {
@@ -301,9 +296,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   /**
-   * Service-level entry point used by {@link SecurityServiceAsyncExectuion}. Loads the
-   * Security by id and delegates to the existing private overload. The private overload
-   * already guards on null / derived instrument, so no duplicate guard is needed here.
+   * Service-level entry point used by {@link SecurityServiceAsyncExectuion}. Loads the Security by id and delegates to
+   * the existing private overload. The private overload already guards on null / derived instrument, so no duplicate
+   * guard is needed here.
    */
   @Override
   protected void supplementFromShadow(Integer idSecuritycurrency) {
@@ -326,10 +321,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    */
   private void enqueueCalendarUpdateWhenCalendarIndex(Integer idSecuritycurrency) {
     if (!stockexchangeJpaRepository.findByIdIndexUpdCalendar(idSecuritycurrency).isEmpty()) {
-      taskDataChangeJpaRepository
-          .save(new TaskDataChange(TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX,
-              TaskDataExecPriority.PRIO_LOW, LocalDateTime.now().plusMinutes(5), idSecuritycurrency,
-              Security.class.getSimpleName()));
+      taskDataChangeJpaRepository.save(
+          new TaskDataChange(TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX, TaskDataExecPriority.PRIO_LOW,
+              LocalDateTime.now().plusMinutes(5), idSecuritycurrency, Security.class.getSimpleName()));
     }
   }
 
@@ -355,17 +349,16 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   }
 
   /**
-   * Checks if the active from date was set to an earlier date than the existing security.
-   * Used to determine if history data needs to be reloaded when the active period is extended backwards.
-   * 
+   * Checks if the active from date was set to an earlier date than the existing security. Used to determine if history
+   * data needs to be reloaded when the active period is extended backwards.
+   *
    * @param securityCurrencyChanged the security with potential changes
-   * @param targetSecurity the original security to compare against
+   * @param targetSecurity          the original security to compare against
    * @return true if active from date was moved to an earlier date, false otherwise
    */
   private boolean activeFromDateWasSetToOlder(final Security securityCurrencyChanged, final Security targetSecurity) {
     return securityCurrencyChanged.getActiveFromDate().isBefore(targetSecurity.getActiveFromDate());
   }
-
 
   /**
    * Checks if the derived fields of a security have changed between two instances. Derived fields include formula, the
@@ -440,7 +433,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    * The URL for accessing data providers with an API key cannot be returned to unauthorized users. Therefore, this
    * method returns a link to this backend. The backend can then use this link to execute the request with the provider
    * itself and return the result to the frontend. This is used to handle links for dividend and split data.
-   * 
+   *
    * @param security The security which download link is required
    * @param isDiv    true for dividend data and false for stock split data * @return A String representing a relative
    *                 URL that redirects the request through the backend to the appropriate data provider, ensuring API
@@ -491,7 +484,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     List<Security> securities = securityJpaRepository.findAll();
     LocalDate now = LocalDate.now();
     List<Security> updatedSecurities = intradayThruConnector.updateLastPriceOfSecuritycurrency(securities.stream()
-        .filter(s -> !s.isDerivedInstrument() && !now.isAfter(s.getActiveToDate()) && !now.isBefore(s.getActiveFromDate())
+        .filter(s -> !s.isDerivedInstrument() && !now.isAfter(s.getActiveToDate())
+            && !now.isBefore(s.getActiveFromDate())
             && s.getRetryIntraLoad() < globalparametersService.getMaxIntraRetry() && s.getIdConnectorIntra() != null)
         .collect(Collectors.toList()), true);
     List<Security> updatedDerived = intradayThruCalculation.updateLastPriceOfSecuritycurrency(
@@ -669,10 +663,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     if (!maxSecuritysplitOpt.isEmpty()) {
       Securitysplit youngestSplit = maxSecuritysplitOpt.get();
 
-      LocalDate fromDate = youngestSplit.getSplitDate().plusDays(
-          GlobalConstants.SPLIT_DAYS_LOCK_BACK_START_DATE * -1);
-      LocalDate toDate = youngestSplit.getSplitDate().plusDays(
-          GlobalConstants.SPLIT_DAYS_LOOK_BACK_END_DATE_BEFORE_SPLIT * -1);
+      LocalDate fromDate = youngestSplit.getSplitDate().plusDays(GlobalConstants.SPLIT_DAYS_LOCK_BACK_START_DATE * -1);
+      LocalDate toDate = youngestSplit.getSplitDate()
+          .plusDays(GlobalConstants.SPLIT_DAYS_LOOK_BACK_END_DATE_BEFORE_SPLIT * -1);
 
       List<Historyquote> hqConnectorList = getDataByConnnector(security, fromDate, toDate);
       List<Historyquote> hqPersistentList = historyquoteJpaRepository
@@ -708,7 +701,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     return feedConnector.getNextAttemptInDaysForSplitHistorical(splitDate);
   }
 
-  private List<Historyquote> getDataByConnnector(Security security, LocalDate fromDate, LocalDate toDate) throws Exception {
+  private List<Historyquote> getDataByConnnector(Security security, LocalDate fromDate, LocalDate toDate)
+      throws Exception {
     IFeedConnector feedConnector = ConnectorHelper.getConnectorByConnectorId(feedConnectorbeans,
         security.getIdConnectorHistory(), IFeedConnector.FeedSupport.FS_HISTORY);
     return getHistoryQuote(security, fromDate, toDate, feedConnector);
@@ -749,8 +743,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    * chosen exchange stays correctable.
    *
    * <p>
-   * The target exchange is read from the database instead of being taken from the submitted instrument, because a
-   * newly picked exchange arrives as its ID alone and its flag would not be filled.
+   * The target exchange is read from the database instead of being taken from the submitted instrument, because a newly
+   * picked exchange arrives as its ID alone and its flag would not be filled.
    * </p>
    *
    * @param security         the instrument as it was submitted
@@ -961,7 +955,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
    * Skips missing trading days that fall <i>before</i> the security's first connector-delivered quote, then delegates
    * the remaining (interior) gaps to {@link #fillGapEODAfterFirstHistoryquote}.
    *
-   * <p>The span between the trade date ({@code activeFromDate}, often defaulted to
+   * <p>
+   * The span between the trade date ({@code activeFromDate}, often defaulted to
    * {@link grafioschtrader.GlobalConstants#OLDEST_TRADING_DAY}) and the first quote the connector actually returns must
    * never be fabricated with a carried-back close — the instrument did not trade then. Pre-first-quote history can only
    * legitimately come from {@code historyquote_legacy} (real preserved data) via {@code supplementFromShadow}; that
@@ -976,8 +971,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   private void skipGapEODBeforeFirstHistoryquote(Security security, List<Historyquote> historyquotesFill,
       List<LocalDate> missingDates, int missingDateCounter) {
     LocalDate firstRealDate = security.getHistoryquoteList().get(0).getDate();
-    while (missingDateCounter < missingDates.size()
-        && firstRealDate.isAfter(missingDates.get(missingDateCounter))) {
+    while (missingDateCounter < missingDates.size() && firstRealDate.isAfter(missingDates.get(missingDateCounter))) {
       missingDateCounter++;
     }
     fillGapEODAfterFirstHistoryquote(security, historyquotesFill, 0, missingDates, missingDateCounter);

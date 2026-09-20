@@ -18,11 +18,11 @@ import jakarta.validation.constraints.NotNull;
  * consumers that the server will be unavailable during the specified time window, allowing them to adjust their data
  * fetching strategies accordingly.
  *
- * Upon receiving this message the consumer records the window as a {@link grafiosch.entities.GTNetMaintenanceWindow}
- * of the sender and skips the sender for its duration — as a data supplier and as the target of outgoing messages.
- * The window is evaluated at query time rather than turned into a server state, so it takes effect exactly at
- * {@code fromDateTime} and ends by itself at {@code toDateTime}. A sender may announce several windows, as long as
- * they do not overlap.
+ * Upon receiving this message the consumer records the window as a {@link grafiosch.entities.GTNetMaintenanceWindow} of
+ * the sender and skips the sender for its duration — as a data supplier and as the target of outgoing messages. The
+ * window is evaluated at query time rather than turned into a server state, so it takes effect exactly at
+ * {@code fromDateTime} and ends by itself at {@code toDateTime}. A sender may announce several windows, as long as they
+ * do not overlap.
  */
 @Schema(description = """
     Payload for maintenance window announcements broadcast to all connected domains. Specifies the time window

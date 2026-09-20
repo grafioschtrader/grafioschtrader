@@ -43,12 +43,11 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
   @Autowired
   private TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
 
-  @Operation(summary = "Retrieve all import transaction templates for a specific platform", 
-      description = """
-          Returns a list of all import transaction templates associated with the specified import transaction platform. 
-          Templates define parsing rules for converting raw financial data (CSV, PDF) into structured transaction records. 
-          Optionally excludes template content for performance when only metadata is needed.""",
-      tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
+  @Operation(summary = "Retrieve all import transaction templates for a specific platform", description = """
+      Returns a list of all import transaction templates associated with the specified import transaction platform.
+      Templates define parsing rules for converting raw financial data (CSV, PDF) into structured transaction records.
+      Optionally excludes template content for performance when only metadata is needed.""", tags = {
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/importtransactionplatform/{idTransactionImportPlatform}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionTemplate>> getImportTransactionPlatformByPlatform(
       @Parameter(description = "ID of the import transaction platform", required = true) @PathVariable final Integer idTransactionImportPlatform,
@@ -56,12 +55,10 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
     return getImportTransactionPlatformById(idTransactionImportPlatform, excludeTemplate);
   }
 
-  @Operation(summary = "Retrieve import transaction templates by trading platform plan",
-      description = """
-          Returns all import transaction templates for the platform associated with the specified trading platform plan.
-          This endpoint provides an indirect way to access templates through the trading platform relationship, useful
-          when working with specific broker configurations.""",
-      tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
+  @Operation(summary = "Retrieve import transaction templates by trading platform plan", description = """
+      Returns all import transaction templates for the platform associated with the specified trading platform plan.
+      This endpoint provides an indirect way to access templates through the trading platform relationship, useful
+      when working with specific broker configurations.""", tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/importtransactionplatform/tradingplatformplan/{idTradingPlatformPlan}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ImportTransactionTemplate>> getImportTransactionPlatformByTradingPlatformPlan(
       @Parameter(description = "Id of trading platform plan", required = true) @PathVariable final Integer idTradingPlatformPlan,
@@ -72,12 +69,10 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
         tradingPlatformPlan.getImportTransactionPlatform().getIdTransactionImportPlatform(), excludeTemplate);
   }
 
-  @Operation(summary = "Get CSV template options for HTML select elements",
-      description = """
-          Returns CSV templates for the specified trading platform plan formatted as key-value options suitable for
-          HTML select dropdowns. Each option contains the template ID as the key and a descriptive name (ID + purpose)
-          as the display value.""",
-      tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
+  @Operation(summary = "Get CSV template options for HTML select elements", description = """
+      Returns CSV templates for the specified trading platform plan formatted as key-value options suitable for
+      HTML select dropdowns. Each option contains the template ID as the key and a descriptive name (ID + purpose)
+      as the display value.""", tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/importtransactionplatform/tradingplatformplan/csv/{idTradingPlatformPlan}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getCSVTemplateIdsAsValueKeyHtmlSelectOptions(
       @Parameter(description = "Id of trading platform plan", required = true) @PathVariable final Integer idTradingPlatformPlan) {
@@ -88,15 +83,17 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
 
   /**
    * Shared utility method for retrieving import transaction templates by platform ID with optional content exclusion.
-   * This method provides the core template retrieval logic used by multiple public endpoints, enabling consistent
-   * data access patterns and optional performance optimization through content exclusion.
-   * 
-   * <p>The method retrieves all templates for the specified platform ordered by template purpose for predictable
-   * sorting. When content exclusion is enabled, the template text content is removed from each template entity,
-   * significantly reducing response size and improving performance when only template metadata is needed.</p>
-   * 
+   * This method provides the core template retrieval logic used by multiple public endpoints, enabling consistent data
+   * access patterns and optional performance optimization through content exclusion.
+   *
+   * <p>
+   * The method retrieves all templates for the specified platform ordered by template purpose for predictable sorting.
+   * When content exclusion is enabled, the template text content is removed from each template entity, significantly
+   * reducing response size and improving performance when only template metadata is needed.
+   * </p>
+   *
    * @param idTransactionImportPlatform The platform ID to retrieve templates for
-   * @param excludeTemplate When true, removes template content from response for better performance
+   * @param excludeTemplate             When true, removes template content from response for better performance
    * @return ResponseEntity containing the list of templates with optional content exclusion applied
    */
   private ResponseEntity<List<ImportTransactionTemplate>> getImportTransactionPlatformById(
@@ -115,13 +112,12 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
     return importTransactionTemplateJpaRepository;
   }
 
-  @Operation(summary = "Validate transaction data against PDF templates",
-      description = """
-          Processes form input (typically extracted PDF text) against available PDF templates to identify matching
-          parsing rules and extract structured transaction data. This endpoint attempts to match the input against all
-          PDF templates for the platform and returns either successful parsing results with extracted transaction
-          details or failure information indicating why no templates matched.""",
-      tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
+  @Operation(summary = "Validate transaction data against PDF templates", description = """
+      Processes form input (typically extracted PDF text) against available PDF templates to identify matching
+      parsing rules and extract structured transaction data. This endpoint attempts to match the input against all
+      PDF templates for the platform and returns either successful parsing results with extracted transaction
+      details or failure information indicating why no templates matched.""", tags = {
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @PostMapping(value = "/checkformagainsttemplate")
   public ResponseEntity<FormTemplateCheck> checkFormAgainstTemplate(@RequestBody FormTemplateCheck formTemplateCheck)
       throws Exception {
@@ -130,26 +126,21 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
         user.createAndGetJavaLocale()), HttpStatus.OK);
   }
 
-  @Operation(summary = "Get available languages for template creation",
-      description = """
-          Returns all supported languages that can be used when creating import transaction templates. This enables
-          multi-language template support for international trading platforms with locale-specific formats and parsing
-          rules.""",
-      tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
+  @Operation(summary = "Get available languages for template creation", description = """
+      Returns all supported languages that can be used when creating import transaction templates. This enables
+      multi-language template support for international trading platforms with locale-specific formats and parsing
+      rules.""", tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/languages", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getPossibleLanguagesForTemplate() {
     return new ResponseEntity<>(importTransactionTemplateJpaRepository.getPossibleLanguagesForTemplate(),
         HttpStatus.OK);
   }
 
-  @Operation(
-      summary = "Export platform templates as ZIP archive", 
-      description = """
-          Creates and downloads a ZIP file containing all import transaction templates for the specified platform. 
-          Templates are exported with standardized filenames (category-format-date-language.tmpl) for easy 
-          identification and deployment. Useful for backup, sharing templates between environments, or bulk template 
-          management.""",
-      tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
+  @Operation(summary = "Export platform templates as ZIP archive", description = """
+      Creates and downloads a ZIP file containing all import transaction templates for the specified platform.
+      Templates are exported with standardized filenames (category-format-date-language.tmpl) for easy
+      identification and deployment. Useful for backup, sharing templates between environments, or bulk template
+      management.""", tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @GetMapping(value = "/exportalltemplates/{idTransactionImportPlatform}", produces = "application/zip")
   public void getTemplatesByPlatformPlanAsZip(
       @Parameter(description = "ID of the import transaction platform", required = true) @PathVariable final Integer idTransactionImportPlatform,
@@ -157,14 +148,12 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
     importTransactionTemplateJpaRepository.getTemplatesByPlatformPlanAsZip(idTransactionImportPlatform, response);
   }
 
-  @Operation(
-      summary = "Upload multiple template files", 
-      description = """
-          Processes and imports multiple template files for the specified platform. Files must follow the naming 
-          convention: category-format-date-language.tmpl (e.g., 'accumulate-csv-2024-01-15-en.tmpl'). The operation 
-          validates file names, extracts metadata, validates template content, and creates or updates template records. 
-          Returns detailed statistics about successful uploads, updates, and various error conditions.""",
-      tags = { RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
+  @Operation(summary = "Upload multiple template files", description = """
+      Processes and imports multiple template files for the specified platform. Files must follow the naming
+      convention: category-format-date-language.tmpl (e.g., 'accumulate-csv-2024-01-15-en.tmpl'). The operation
+      validates file names, extracts metadata, validates template content, and creates or updates template records.
+      Returns detailed statistics about successful uploads, updates, and various error conditions.""", tags = {
+      RequestGTMappings.IMPORTTRANSACTIONTEMPLATE })
   @PostMapping(value = "uploadtemplatefiles/{idTransactionImportPlatform}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SuccessFailedImportTransactionTemplate> uploadImportTemplateFiles(
       @PathVariable() Integer idTransactionImportPlatform, @RequestParam("file") MultipartFile[] uploadFiles)
@@ -173,7 +162,5 @@ public class ImportTransactionTemplateResource extends UpdateCreateDeleteAuditRe
         importTransactionTemplateJpaRepository.uploadImportTemplateFiles(idTransactionImportPlatform, uploadFiles),
         HttpStatus.OK);
   }
-
-  
 
 }

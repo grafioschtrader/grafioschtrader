@@ -9,7 +9,7 @@ public class ValueKeyHtmlSelectOptions implements Serializable, Comparable<Value
 
   @Schema(description = "Internal key or identifier for the option")
   public String key;
-  
+
   @Schema(description = "The display value shown to the user in the select dropdown.")
   public String value;
 

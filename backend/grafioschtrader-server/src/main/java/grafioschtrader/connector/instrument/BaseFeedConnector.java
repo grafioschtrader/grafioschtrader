@@ -56,7 +56,7 @@ import io.github.bucket4j.ConsumptionProbe;
  * Abstract base class providing common functionality for feed connectors that retrieve financial market data from
  * external data providers. This class implements the core infrastructure needed by all feed connectors including URL
  * validation, HTTP client management, internationalization support, and rate limiting capabilities.
- * 
+ *
  * <h3>Architecture Overview</h3>
  * <p>
  * This base class provides a template method pattern where common functionality is implemented while specific data
@@ -70,7 +70,7 @@ import io.github.bucket4j.ConsumptionProbe;
  * <li><strong>Rate Limiting:</strong> Token bucket implementation for API rate limiting</li>
  * <li><strong>Error Handling:</strong> Standardized error handling and logging</li>
  * </ul>
- * 
+ *
  * <h3>Subclass Implementation</h3>
  * <p>
  * Concrete implementations should:
@@ -81,7 +81,7 @@ import io.github.bucket4j.ConsumptionProbe;
  * <li>Handle provider-specific data formats and parsing</li>
  * <li>Override validation methods if custom validation is needed</li>
  * </ul>
- * 
+ *
  * <h3>URL Validation</h3>
  * <p>
  * The class provides a comprehensive URL validation framework that:
@@ -119,14 +119,14 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   protected Set<String> supportedGeoRestrictions = Collections.emptySet();
 
   /**
-   * Per-geo exclusions: a geo code maps to categories that are NOT supported for that geography, even though
-   * the geo is generally included. Parsed from notation like {@code "XBBC:-FIXED_INCOME"}.
+   * Per-geo exclusions: a geo code maps to categories that are NOT supported for that geography, even though the geo is
+   * generally included. Parsed from notation like {@code "XBBC:-FIXED_INCOME"}.
    */
   protected Map<String, EnumSet<AssetclassCategory>> geoExclusions = Collections.emptyMap();
 
   /**
    * Constructs a new BaseFeedConnector with the specified configuration.
-   * 
+   *
    * @param supportedFeed   mapping of feed support types to their identifier requirements
    * @param id              the short identifier for this connector (will be prefixed with ID_PREFIX)
    * @param readableName    the human-readable name for display purposes
@@ -196,7 +196,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
    * Loads and returns localized description text for this connector. Attempts to load description from HTML files in
    * the classpath under i18n/ directory. First tries language-specific file, then falls back to default. Supports
    * section markers [historical] and [intra] to separate content.
-   * 
+   *
    * @return Description object containing localized help text
    */
   @Override
@@ -313,9 +313,9 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   }
 
   /**
-   * Parses a geo restrictions string into the {@link #supportedGeoRestrictions} and {@link #geoExclusions} fields.
-   * The notation is a space-separated list of tokens where plain codes are geo inclusions and codes with
-   * {@code :-CATEGORY} suffix are exclusions.
+   * Parses a geo restrictions string into the {@link #supportedGeoRestrictions} and {@link #geoExclusions} fields. The
+   * notation is a space-separated list of tokens where plain codes are geo inclusions and codes with {@code :-CATEGORY}
+   * suffix are exclusions.
    * <p>
    * Example: {@code "XSWX XBBC:-FIXED_INCOME"} means XSWX is fully supported and XBBC is supported except for
    * FIXED_INCOME.
@@ -347,7 +347,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Validates URL extensions against configured regex patterns. Checks that at least one pattern matches the provided
    * URL extension. Throws an exception if validation fails.
-   * 
+   *
    * @param patterns  array of regex patterns to validate against
    * @param urlExtend the URL extension to validate
    * @throws GeneralNotTranslatedWithArgumentsException if validation fails
@@ -374,7 +374,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Main validation entry point for security currency URL extensions. Performs comprehensive validation including
    * pattern matching and connectivity testing based on the feed support type. May clear invalid URL extensions.
-   * 
+   *
    * @param securitycurrency the security or currency pair to validate
    * @param feedSupport      the type of feed being validated
    * @param <S>              the type of security currency
@@ -430,7 +430,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Performs URL connectivity validation for historical data feeds. Only validates if HISTORY is included in the
    * urlCheckSet and the instrument is active.
-   * 
+   *
    * @param specInst         the special investment instrument type, null for currency pairs
    * @param securitycurrency the security or currency pair to validate
    * @param <S>              the type of security currency
@@ -453,7 +453,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Performs URL connectivity validation for intraday data feeds. Only validates if INTRADAY is included in the
    * urlCheckSet and the instrument is active.
-   * 
+   *
    * @param specInst         the special investment instrument type, null for currency pairs
    * @param securitycurrency the security or currency pair to validate
    * @param <S>              the type of security currency
@@ -476,7 +476,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Determines the appropriate feed identifier when URL extension is required. Returns null if the feed support type
    * allows direct identification, otherwise returns the URL-based identifier type.
-   * 
+   *
    * @param feedSupport the feed support type being checked
    * @param isSecurity  true if checking a security, false for currency pair
    * @return the required feed identifier type, or null if URL extension not needed
@@ -492,7 +492,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Core validation logic for URL patterns and connectivity. Determines whether to clear URL extensions and performs
    * regex validation. Calls extended validation hooks for subclass customization.
-   * 
+   *
    * @param securitycurrency             the security or currency pair being validated
    * @param feedSupport                  the type of feed being validated
    * @param urlExtend                    the URL extension to validate
@@ -521,7 +521,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Extension point for subclasses to provide additional validation logic. Called after basic regex validation passes.
    * The base implementation is empty.
-   * 
+   *
    * @param securitycurrency             the security or currency pair being validated
    * @param feedSupport                  the type of feed being validated
    * @param urlExtend                    the URL extension being validated
@@ -539,7 +539,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Determines whether a URL extension should be cleared based on feed identifier requirements. Throws an exception if
    * a required URL extension is missing.
-   * 
+   *
    * @param urlExtend                    the URL extension to check
    * @param errorMsgKey                  the error message key for exceptions
    * @param feedIdentifier               the required feed identifier type
@@ -566,7 +566,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Performs HTTP connectivity check for the specified URL. Sends a GET request and validates that a 200 status code is
    * returned. Logs errors and throws exceptions for connectivity failures.
-   * 
+   *
    * @param url           the URL to test
    * @param failureMsgKey the error message key for connectivity failures
    * @param feedSupport   the feed support type being tested (for context)
@@ -593,7 +593,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Creates and configures an HTTP client for making requests to data providers. Includes cookie management and
    * redirect handling suitable for web scraping.
-   * 
+   *
    * @return configured HttpClient instance
    */
   protected HttpClient getHttpClient() {
@@ -604,7 +604,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Creates an HTTP GET request with standard headers for financial data providers. Sets user agent and language
    * headers appropriate for the application.
-   * 
+   *
    * @param url the URL to create a request for
    * @return configured HttpRequest instance
    */
@@ -616,7 +616,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Retrieves the content of a web page for display in the frontend. Used when the frontend needs to show raw data
    * provider content. Returns "Failure!" if the request fails.
-   * 
+   *
    * @param httpPageUrl the URL to fetch content from
    * @return the page content as a string, or "Failure!" if the request fails
    */
@@ -634,7 +634,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Hides sensitive information (like API keys) from URLs before displaying in error messages. The base implementation
    * returns the URL unchanged. Subclasses with API keys should override.
-   * 
+   *
    * @param url the URL that may contain sensitive information
    * @return the URL with sensitive information hidden
    */
@@ -645,7 +645,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Implements rate limiting using a token bucket algorithm. Blocks until a token is available, respecting the bucket's
    * rate limits. Used by data providers that have strict rate limiting requirements.
-   * 
+   *
    * @param bucket the token bucket to use for rate limiting
    */
   protected void waitForTokenOrGo(Bucket bucket) {
@@ -668,7 +668,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Extension point for validating HTTP connections beyond status code checking. Some providers return 200 status even
    * when the instrument is not found, requiring response body validation. The base implementation always returns true.
-   * 
+   *
    * @param huc the HTTP connection to validate
    * @return true if the connection is considered valid
    */
@@ -679,7 +679,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Reads the complete response body from an HTTP connection as a string. Used for processing responses that require
    * body content validation.
-   * 
+   *
    * @param huc the HTTP connection to read from
    * @return the response body as a string
    * @throws IOException if reading the response fails
@@ -697,7 +697,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
   /**
    * Calculates the number of days to wait before the next attempt to retrieve split-adjusted historical data. Uses a
    * graduated approach based on time since split.
-   * 
+   *
    * @param splitDate the date when the stock split occurred
    * @return number of days to wait, or null if no further attempts should be made
    */

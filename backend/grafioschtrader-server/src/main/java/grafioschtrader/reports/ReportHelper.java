@@ -35,7 +35,7 @@ import grafioschtrader.types.SamplingPeriodType;
  * Comprehensive utility class providing specialized data loading and processing capabilities for financial reporting
  * and analysis. Offers sophisticated currency conversion, historical price loading, and statistical transformation
  * services for multi-currency portfolio analysis with tenant-specific optimization.
- * 
+ *
  * <p>
  * This helper class forms the foundation for financial reports by handling the intricate details of currency
  * normalization, historical data retrieval, and price series transformation. It enables consistent analysis across
@@ -52,20 +52,20 @@ public abstract class ReportHelper {
    * Loads tenant-specific historical exchange rate data for the specified until date if not already cached. Uses the
    * current user's tenant context to retrieve only the currency conversion data relevant to that tenant's portfolio and
    * trading history.
-   * 
+   *
    * <p>
    * This method implements the first tier of the two-level currency loading strategy, focusing on tenant-specific
    * currency context rather than analysis-specific requirements. It loads historical exchange rates only for currencies
    * that the tenant has actually used in their transactions and holdings, optimizing both performance and data
    * relevance.
    * </p>
-   * 
+   *
    * <p>
    * The loaded currency data is cached in the DateTransactionCurrencypairMap to avoid redundant database queries and
    * provide efficient access to historical conversion rates for subsequent analysis operations within the same tenant
    * context.
    * </p>
-   * 
+   *
    * @param historyquoteJpaRepository repository for accessing historical quote data
    * @param dateCurrencyMap           currency mapping context that tracks loaded data and conversion rates
    */
@@ -81,13 +81,13 @@ public abstract class ReportHelper {
    * Loads tenant-specific historical exchange rate data for the specified until date and tenant if not already cached.
    * Provides tenant-isolated currency conversion data for accurate historical analysis while maintaining multi-tenant
    * data separation.
-   * 
+   *
    * <p>
    * This method enables loading currency data for a specific tenant without relying on the security context, making it
    * suitable for batch processing, administrative operations, or cross-tenant analysis scenarios. It maintains the same
    * tenant-specific optimization by loading only currencies relevant to the specified tenant's portfolio.
    * </p>
-   * 
+   *
    * @param idTenant                  the tenant identifier for accessing appropriate tenant-specific currency data
    * @param historyquoteJpaRepository repository for accessing historical quote data
    * @param dateCurrencyMap           currency mapping context that tracks loaded data and conversion rates
@@ -103,7 +103,7 @@ public abstract class ReportHelper {
    * Forces loading of tenant-specific historical exchange rate data without checking cache status. Retrieves currency
    * conversion rates for the specified date and tenant, updating the currency map with only the currencies that are
    * relevant to that tenant's trading history and portfolio.
-   * 
+   *
    * @param idTenant                  the tenant identifier for accessing tenant-specific currency usage data
    * @param historyquoteJpaRepository repository for accessing historical quote data
    * @param dateCurrencyMap           currency mapping context to populate with tenant-relevant conversion rates
@@ -122,10 +122,10 @@ public abstract class ReportHelper {
    * <p>
    * This used to exist in two copies that disagreed with each other:
    * {@code SecurityCashaccountGroupByCurrencyBaseReport} tolerated a reporting date falling in the current weekend,
-   * {@code SecurityGroupByBaseReport} did not, so the same position could be valued at two different rates depending
-   * on which report asked. The transaction list needs the same rate as a third caller, which is why the selection
-   * lives here now. The weekend-tolerant rule is the one kept, because a Saturday reporting date has no end-of-day
-   * quote to find and falling back to the latest rate is the only sensible answer.
+   * {@code SecurityGroupByBaseReport} did not, so the same position could be valued at two different rates depending on
+   * which report asked. The transaction list needs the same rate as a third caller, which is why the selection lives
+   * here now. The weekend-tolerant rule is the one kept, because a Saturday reporting date has no end-of-day quote to
+   * find and falling back to the latest rate is the only sensible answer.
    * </p>
    *
    * <p>
@@ -133,11 +133,12 @@ public abstract class ReportHelper {
    * the same leniency the callers applied before.
    * </p>
    *
-   * @param currency                    the currency to convert from
-   * @param dateCurrencyMap             currency context carrying the main currency and the reporting date
+   * @param currency                     the currency to convert from
+   * @param dateCurrencyMap              currency context carrying the main currency and the reporting date
    * @param tradingDaysPlusJpaRepository used to tell a missing quote apart from a non-trading day
    * @return the rate into the main currency, 1.0 when the currency already is the main currency
-   * @throws DataViolationException when the reporting date was a trading day and no rate exists for it
+   * @throws DataViolationException when the pair is missing, has no last price, or the reporting date was a trading day
+   *                                and no rate exists for it
    */
   public static Double getReportExchangeRate(final String currency,
       final DateTransactionCurrencypairMap dateCurrencyMap,
@@ -146,7 +147,7 @@ public abstract class ReportHelper {
       return 1.0;
     }
     if (dateCurrencyMap.isUntilDateEqualNowOrAfterOrInActualWeekend()) {
-      return dateCurrencyMap.getCurrencypairByFromCurrency(currency).getSLast();
+      return lastPriceOrThrow(currency, dateCurrencyMap);
     }
     final Double exactRate = dateCurrencyMap.getExactDateAndFromCurrency(dateCurrencyMap.getUntilDate(), currency);
     if (exactRate != null) {
@@ -158,7 +159,20 @@ public abstract class ReportHelper {
       throw new DataViolationException("currencypair", "gt.missing.currencypair.day",
           new Object[] { dateCurrencyMap.getUntilDate(), currency, dateCurrencyMap.getMainCurrency() });
     }
-    return dateCurrencyMap.getCurrencypairByFromCurrency(currency).getSLast();
+    return lastPriceOrThrow(currency, dateCurrencyMap);
+  }
+
+  /**
+   * Latest market rate of {@code currency} into the main currency. A missing pair or a pair that has never received a
+   * last price used to be a null pointer on the transaction dialog; it is a validation error now.
+   */
+  private static Double lastPriceOrThrow(final String currency, final DateTransactionCurrencypairMap dateCurrencyMap) {
+    final Currencypair currencypair = dateCurrencyMap.getCurrencypairByFromCurrency(currency);
+    if (currencypair == null || currencypair.getSLast() == null) {
+      throw new DataViolationException("currencypair", "gt.missing.currencypair",
+          new Object[] { currency, dateCurrencyMap.getMainCurrency() });
+    }
+    return currencypair.getSLast();
   }
 
   /**
@@ -219,7 +233,7 @@ public abstract class ReportHelper {
   /**
    * Applies currency conversion to loaded price data if currency adjustment is required. Convenience method that checks
    * for currency adjustment requirements before processing.
-   * 
+   *
    * @param securitycurrencyList the list of securities for which prices were loaded
    * @param cpcc                 the price data container with optional currency conversion information
    */
@@ -233,7 +247,7 @@ public abstract class ReportHelper {
   /**
    * Performs the actual currency conversion of price data using the provided exchange rates. Converts all security
    * prices to the target currency for unified analysis and comparison.
-   * 
+   *
    * @param securitycurrencyList the list of securities for which prices are being converted
    * @param cpcc                 the price data container with currency conversion rates
    * @param cr                   the currency requirements and conversion configuration
@@ -256,7 +270,7 @@ public abstract class ReportHelper {
   /**
    * Transforms a time series of price data into percentage change data for return analysis. Calculates
    * period-over-period percentage changes for statistical and performance analysis.
-   * 
+   *
    * @param closeValuesMap chronologically ordered map of price data by date
    * @param columns        number of securities/instruments in the price series
    * @return two-dimensional array of percentage changes with rows representing time periods and columns representing
@@ -283,7 +297,7 @@ public abstract class ReportHelper {
   /**
    * Executes the constructed SQL query and transforms results into a chronologically ordered map. Uses efficient result
    * set processing to handle large price datasets with optimal memory usage.
-   * 
+   *
    * @param jdbcTemplate the JDBC template for query execution
    * @param query        the complete SQL query string
    * @param columns      number of price columns to extract from each result row
@@ -310,7 +324,7 @@ public abstract class ReportHelper {
   /**
    * Analyzes currency requirements and determines the optimal target currency for normalization. Identifies existing
    * currency pairs and determines which additional pairs need to be created.
-   * 
+   *
    * @param currencypairJpaRepository repository for currency pair operations
    * @param securitycurrencyList      list of securities and currencies to analyze
    * @return currency requirements object containing target currency and needed conversions
@@ -336,7 +350,7 @@ public abstract class ReportHelper {
   /**
    * Determines which currency pairs are missing for complete currency conversion coverage and coordinates their
    * creation. Selects the optimal target currency based on availability and creates missing conversion pairs as needed.
-   * 
+   *
    * @param currencypairJpaRepository repository for currency pair management
    * @param requiredCurrenciesSet     set of currencies that need conversion capability
    * @param cr                        currency requirements object to populate with conversion needs
@@ -370,7 +384,7 @@ public abstract class ReportHelper {
   /**
    * Updates currency requirements with actual currency pair data from the database. Matches found currency pairs with
    * the requirements and updates the configuration.
-   * 
+   *
    * @param cr             currency requirements to update with found pairs
    * @param possibleCpList list of existing currency pairs found in the database
    */
@@ -388,7 +402,7 @@ public abstract class ReportHelper {
   /**
    * Creates missing currency pairs that are needed for complete currency conversion coverage. Automatically generates
    * new currency pairs for conversions that don't exist in the system.
-   * 
+   *
    * @param currencypairJpaRepository repository for creating new currency pairs
    * @param cr                        currency requirements containing the missing pairs to create
    */
@@ -403,7 +417,7 @@ public abstract class ReportHelper {
 
   /**
    * Adds date boundary conditions to the SQL WHERE clause for efficient query filtering.
-   * 
+   *
    * @param date     the boundary date to add (null values are ignored)
    * @param qWhere   the WHERE clause builder to modify
    * @param lessMore the comparison operator (">" for greater than, "<" for less than)
@@ -417,7 +431,7 @@ public abstract class ReportHelper {
   /**
    * Constructs GROUP BY clause for different sampling periods to aggregate price data. Adds appropriate grouping for
    * monthly or annual sampling while leaving daily data ungrouped.
-   * 
+   *
    * @param samplingPeriodType the desired sampling frequency for data aggregation
    * @return SQL GROUP BY clause appropriate for the sampling period
    */
@@ -436,7 +450,7 @@ public abstract class ReportHelper {
    * Represents a currency conversion requirement with associated metadata for price data loading. Tracks the column
    * position, security currency ID, and conversion direction for a specific currency pair used in multi-currency price
    * analysis.
-   * 
+   *
    * <p>
    * This class enables the sophisticated currency conversion logic by maintaining the relationship between database
    * entities and their position in the analysis matrix, supporting both existing and dynamically created currency
@@ -473,7 +487,7 @@ public abstract class ReportHelper {
    * Manages currency conversion requirements for multi-currency price data analysis. Coordinates the identification of
    * target currency and required conversion pairs, enabling sophisticated automatic currency normalization across
    * diverse portfolios.
-   * 
+   *
    * <p>
    * This class implements the intelligence for selecting optimal target currencies based on availability and managing
    * the relationships between different currency pairs needed for comprehensive multi-currency analysis.
@@ -501,7 +515,7 @@ public abstract class ReportHelper {
     /**
      * Searches for an existing currency pair requirement regardless of conversion direction. Supports bidirectional
      * currency pair matching (e.g., EUR/USD matches USD/EUR).
-     * 
+     *
      * @param c1 first currency code to search for
      * @param c2 second currency code to search for
      * @return optional containing the matching currency pair requirement if found

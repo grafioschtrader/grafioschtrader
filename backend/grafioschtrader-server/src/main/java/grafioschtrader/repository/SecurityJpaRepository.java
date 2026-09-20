@@ -31,10 +31,9 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository<Security>,
     JpaSpecificationExecutor<Security>, SecurityJpaRepositoryCustom, UpdateCreateJpaRepository<Security> {
 
-
   /**
-   * Securities that may take part in the GTNet price exchange, active ones only. A private security belongs to a
-   * single tenant and is never exchanged with a peer, so it is left out here as everywhere else in GTNet.
+   * Securities that may take part in the GTNet price exchange, active ones only. A private security belongs to a single
+   * tenant and is never exchanged with a peer, so it is left out here as everywhere else in GTNet.
    *
    * @param date securities whose activeToDate lies after this date are returned
    * @return the active, non-private securities carrying an ISIN
@@ -77,16 +76,16 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   Set<Integer> findIdsWithGtNetHistoricalSend();
 
   /**
-   * Finds securities modified after the given timestamp for GTNet sync.
-   * Also includes securities where gtNetLastModifiedTime is NULL (never synced before). Private securities are
-   * excluded, because their exchange configuration is never published to a peer.
+   * Finds securities modified after the given timestamp for GTNet sync. Also includes securities where
+   * gtNetLastModifiedTime is NULL (never synced before). Private securities are excluded, because their exchange
+   * configuration is never published to a peer.
    */
   @Query("SELECT s FROM Security s WHERE (s.gtNetLastModifiedTime > ?1 OR s.gtNetLastModifiedTime IS NULL) AND s.isin IS NOT NULL AND s.idTenantPrivate IS NULL")
   List<Security> findByGtNetLastModifiedTimeAfterAndIsinIsNotNull(LocalDateTime timestamp);
 
   /**
-   * Finds all securities with GTNet send flags enabled (lastprice or historical).
-   * Used for full recreation mode where all eligible instruments are synchronized. Private securities are excluded.
+   * Finds all securities with GTNet send flags enabled (lastprice or historical). Used for full recreation mode where
+   * all eligible instruments are synchronized. Private securities are excluded.
    */
   @Query("SELECT s FROM Security s WHERE s.isin IS NOT NULL AND s.idTenantPrivate IS NULL AND (s.gtNetLastpriceSend = true OR s.gtNetHistoricalSend = true)")
   List<Security> findAllWithGtNetSendEnabled();
@@ -411,9 +410,9 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<Security> getUnusedSecurityForAlgo(Integer idTenantPrivate, Integer idAlgoAssetclassSecurity);
 
   /**
-   * Lists securities from a watchlist that are not yet assigned under a custom category AlgoAssetclass.
-   * Used when the parent AlgoAssetclass is a custom category (name IS NOT NULL), allowing any watchlist
-   * security regardless of asset class.
+   * Lists securities from a watchlist that are not yet assigned under a custom category AlgoAssetclass. Used when the
+   * parent AlgoAssetclass is a custom category (name IS NOT NULL), allowing any watchlist security regardless of asset
+   * class.
    *
    * Named query: Security.getUnusedSecurityForAlgoCustom
    *
@@ -514,9 +513,9 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
   List<SecurityPeriodClose> getSecurityMonthCloseDivSum(Integer idSecurity);
 
   /**
-   * Like {@link #getSecurityMonthCloseDivSum(Integer)} but additionally returns, for every month-end date, the close
-   * of the supplied currency pair on the same date so the seasonality report can convert the returns into the tenant
-   * main currency. Months for which the currency pair has no quote on the exact month-end date are omitted.
+   * Like {@link #getSecurityMonthCloseDivSum(Integer)} but additionally returns, for every month-end date, the close of
+   * the supplied currency pair on the same date so the seasonality report can convert the returns into the tenant main
+   * currency. Months for which the currency pair has no quote on the exact month-end date are omitted.
    *
    * Named query: Security.getSecurityMonthDivSumCurrencyClose
    *
@@ -585,8 +584,8 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    *
    * Named query: Security.resetRetryHistoryByConnector
    *
-   * @param activeOnDate  the date used to filter active securities (active_to_date >= this date)
-   * @param connectorId   the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset all connectors
+   * @param activeOnDate the date used to filter active securities (active_to_date >= this date)
+   * @param connectorId  the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset all connectors
    */
   @Transactional
   @Modifying
@@ -599,8 +598,8 @@ public interface SecurityJpaRepository extends SecurityCurrencypairJpaRepository
    *
    * Named query: Security.resetRetryIntraByConnector
    *
-   * @param activeOnDate  the date used to filter active securities (active_to_date >= this date)
-   * @param connectorId   the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset all connectors
+   * @param activeOnDate the date used to filter active securities (active_to_date >= this date)
+   * @param connectorId  the full connector ID (e.g., "gt.datafeed.yahoo") to filter, or null to reset all connectors
    */
   @Transactional
   @Modifying

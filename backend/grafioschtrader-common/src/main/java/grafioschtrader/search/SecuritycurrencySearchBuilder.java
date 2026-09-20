@@ -53,7 +53,7 @@ public class SecuritycurrencySearchBuilder {
    * already present in the specified watchlist. This is commonly used when searching for instruments to add to a
    * watchlist.
    * </p>
-   * 
+   *
    * @param <T>         the type of security/currency extending {@link Securitycurrency}
    * @param idWatchlist the ID of the watchlist to check against
    * @param security    the root entity in the main query (Security or Currencypair)
@@ -84,7 +84,7 @@ public class SecuritycurrencySearchBuilder {
    * already present in the specified correlation set. This is commonly used when searching for instruments to add to a
    * correlation analysis.
    * </p>
-   * 
+   *
    * @param <T>              the type of security/currency extending {@link Securitycurrency}
    * @param idCorrelationSet the ID of the correlation set to check against
    * @param security         the root entity in the main query (Security or Currencypair)

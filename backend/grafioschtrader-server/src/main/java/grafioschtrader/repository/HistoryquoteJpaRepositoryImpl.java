@@ -117,7 +117,7 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       final Integer idSecuritycurrency, final LocalDate date, final boolean asTraded) {
     final List<Integer> securitycurrencies = new ArrayList<>();
     securitycurrencies.add(idSecuritycurrency);
-    final List<ISecuritycurrencyIdDateClose> securitycurrencyIdDateCloseList = historyquoteJpaRepository
+    final List<? extends ISecuritycurrencyIdDateClose> securitycurrencyIdDateCloseList = historyquoteJpaRepository
         .getIdDateCloseByIdsAndDate(securitycurrencies, date);
     if (securitycurrencyIdDateCloseList.size() == 1) {
       ISecuritycurrencyIdDateClose securitycurrencyIdDateClose = securitycurrencyIdDateCloseList.getFirst();

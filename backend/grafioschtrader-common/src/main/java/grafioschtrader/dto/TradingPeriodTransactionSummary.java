@@ -9,9 +9,9 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /**
- * Summary of transactions grouped by (specInvestInstrument, categoryType) for a specific security account.
- * Used by the frontend to block deletion of trading periods that still have transactions,
- * and to prevent shortening dateTo below the latest transaction date.
+ * Summary of transactions grouped by (specInvestInstrument, categoryType) for a specific security account. Used by the
+ * frontend to block deletion of trading periods that still have transactions, and to prevent shortening dateTo below
+ * the latest transaction date.
  */
 public class TradingPeriodTransactionSummary {
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.types.TransactionType;
@@ -11,18 +12,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Represents a single transaction with calculated gain/loss metrics and position tracking.
- * 
+ *
  * <p>
- * This class wraps a transaction with computed performance metrics including gains/losses
- * in both transaction and main currencies, exchange rates, and position holdings after
- * the transaction. Provides split-adjusted data for historical analysis and charting.
+ * This class wraps a transaction with computed performance metrics including gains/losses in both transaction and main
+ * currencies, exchange rates, and position holdings after the transaction. Provides split-adjusted data for historical
+ * analysis and charting.
  * </p>
  */
 @Schema(description = "Transaction position with calculated gains, losses, and performance metrics")
 public class SecurityTransactionPosition {
   @Schema(description = "The underlying transaction record")
   public Transaction transaction;
-  
+
   @Schema(description = "Gain or loss from this transaction in transaction currency")
   public Double transactionGainLoss;
 
@@ -60,14 +61,13 @@ public class SecurityTransactionPosition {
 
   /**
    * Creates a transaction position by copying calculated metrics from the position summary.
-   * 
+   *
    * <p>
-   * Rounds gain/loss values to standard precision and sets holdings to zero for
-   * hypothetical transactions. All monetary values are formatted according to
-   * the configured currency precision.
+   * Rounds gain/loss values to standard precision and sets holdings to zero for hypothetical transactions. All monetary
+   * values are formatted according to the configured currency precision.
    * </p>
-   * 
-   * @param transaction the underlying transaction
+   *
+   * @param transaction             the underlying transaction
    * @param securityPositionSummary the position summary containing calculated metrics
    */
   public SecurityTransactionPosition(Transaction transaction, SecurityPositionSummary securityPositionSummary) {
@@ -76,7 +76,7 @@ public class SecurityTransactionPosition {
         : DataHelper.round(securityPositionSummary.transactionGainLoss, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     transactionGainLossPercentage = (securityPositionSummary.transactionGainLossPercentage == null) ? null
         : DataHelper.round(securityPositionSummary.transactionGainLossPercentage,
-            BaseConstants.FID_STANDARD_FRACTION_DIGITS);
+            GlobalConstants.FID_PERCENTAGE_FRACTION);
     transactionExchangeRate = securityPositionSummary.transactionExchangeRate;
     transactionGainLossMC = securityPositionSummary.transactionGainLossMC;
     flowSC = securityPositionSummary.transactionFlowSC;
@@ -90,8 +90,7 @@ public class SecurityTransactionPosition {
   }
 
   public Double getTransactionGainLossCurrencyMC() {
-    return transactionGainLossCurrencyMC == null ? null
-        : DataHelper.round(transactionGainLossCurrencyMC, precisionMC);
+    return transactionGainLossCurrencyMC == null ? null : DataHelper.round(transactionGainLossCurrencyMC, precisionMC);
   }
 
   /**
@@ -101,8 +100,8 @@ public class SecurityTransactionPosition {
    */
   void applyReportRate(final double reportExchangeRate) {
     transactionGainLossCurrencyMC = flowSC == null ? null
-        : flowSC * (reportExchangeRate - (transactionExchangeRate == null ? reportExchangeRate
-            : transactionExchangeRate));
+        : flowSC
+            * (reportExchangeRate - (transactionExchangeRate == null ? reportExchangeRate : transactionExchangeRate));
   }
 
   public Double getTransactionGainLossMC() {

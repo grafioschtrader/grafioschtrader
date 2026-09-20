@@ -35,7 +35,8 @@ import grafioschtrader.entities.TradingCalendarRuleSet;
  * Creates the trading calendar rule sets tagged {@code e2e='i'} in the generated JSON fixture through the REST API. The
  * fixture mirrors the {@code stockexchanges.csv} three-way partition: {@code 'd'} rows are seeded via
  * {@code V2__testdata.sql}, {@code 'i'} rows are created here, and {@code 'e'} rows are created by the Playwright spec.
- * The fixture is JSON rather than CSV because {@code rule_yaml} is multi-line YAML that a pipe-delimited CSV cannot hold.
+ * The fixture is JSON rather than CSV because {@code rule_yaml} is multi-line YAML that a pipe-delimited CSV cannot
+ * hold.
  */
 @TestMethodOrder(OrderAnnotation.class)
 @TestInstance(Lifecycle.PER_CLASS)
@@ -68,22 +69,15 @@ class TradingCalendarRuleSetResourceTest extends BaseIntegrationTest {
   @ParameterizedTest
   @MethodSource("iRows")
   @DisplayName("Users create the 'i' trading calendar rule sets ('e' rows reserved for the Playwright test)")
-  void createTest(RuleSetSeed row)
-      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  void createTest(RuleSetSeed row) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     TradingCalendarRuleSet ruleSet = new TradingCalendarRuleSet();
     ruleSet.setName(row.name());
     ruleSet.setMic(row.mic());
     ruleSet.setRuleYaml(row.ruleYaml());
 
-    TradingCalendarRuleSet saved = authenticatedClient(RestTestHelper.getRadomUser())
-        .post()
-        .uri(RequestGTMappings.TRADINGCALENDARRULESET_MAP)
-        .body(ruleSet)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(TradingCalendarRuleSet.class)
-        .returnResult()
-        .getResponseBody();
+    TradingCalendarRuleSet saved = authenticatedClient(RestTestHelper.getRadomUser()).post()
+        .uri(RequestGTMappings.TRADINGCALENDARRULESET_MAP).body(ruleSet).exchange().expectStatus().isOk()
+        .expectBody(TradingCalendarRuleSet.class).returnResult().getResponseBody();
 
     assertNotNull(saved);
     Assertions.assertThat(saved.getIdTradingCalendarRuleSet()).isGreaterThan(0);
@@ -95,14 +89,9 @@ class TradingCalendarRuleSetResourceTest extends BaseIntegrationTest {
   @Order(5)
   @DisplayName("Limited user can not delete a trading calendar rule set from another user")
   void deleteByIdTest() {
-    TradingCalendarRuleSet[] ruleSets = authenticatedClient(RestTestHelper.LIMIT1)
-        .get()
-        .uri(RequestGTMappings.TRADINGCALENDARRULESET_MAP)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(TradingCalendarRuleSet[].class)
-        .returnResult()
-        .getResponseBody();
+    TradingCalendarRuleSet[] ruleSets = authenticatedClient(RestTestHelper.LIMIT1).get()
+        .uri(RequestGTMappings.TRADINGCALENDARRULESET_MAP).exchange().expectStatus().isOk()
+        .expectBody(TradingCalendarRuleSet[].class).returnResult().getResponseBody();
 
     assertNotNull(ruleSets);
     // A rule set is only deletable when no exchange uses it and no other set extends it; otherwise assertDeletable
@@ -114,23 +103,19 @@ class TradingCalendarRuleSetResourceTest extends BaseIntegrationTest {
     Optional<TradingCalendarRuleSet> deletable = Arrays.stream(ruleSets)
         .filter(rs -> rs.getUsedByExchanges() != null && rs.getUsedByExchanges() == 0)
         .filter(rs -> !parentNames.contains(rs.getName()))
-        .filter(rs -> rs.getCreatedBy() != null && !rs.getCreatedBy().equals(limit1Id))
-        .findFirst();
+        .filter(rs -> rs.getCreatedBy() != null && !rs.getCreatedBy().equals(limit1Id)).findFirst();
     Assertions.assertThat(deletable).isPresent();
 
-    authenticatedClient(RestTestHelper.LIMIT1)
-        .delete()
+    authenticatedClient(RestTestHelper.LIMIT1).delete()
         .uri(RequestGTMappings.TRADINGCALENDARRULESET_MAP + "/" + deletable.get().getIdTradingCalendarRuleSet())
-        .exchange()
-        .expectStatus().isUnauthorized()
-        .expectBody(String.class)
+        .exchange().expectStatus().isUnauthorized().expectBody(String.class)
         .value(body -> Assertions.assertThat(body).contains(SecurityBreachError.class.getSimpleName()));
   }
 
   /**
-   * One row of the generated fixture. {@code extendsName} is the name of the parent set (the self-FK resolved by nv.bat,
-   * ids differ between databases); it is null for the {@code 'i'} rows. Unknown properties are ignored so the fixture
-   * can carry extra fields without breaking the test.
+   * One row of the generated fixture. {@code extendsName} is the name of the parent set (the self-FK resolved by
+   * nv.bat, ids differ between databases); it is null for the {@code 'i'} rows. Unknown properties are ignored so the
+   * fixture can carry extra fields without breaking the test.
    */
   @JsonIgnoreProperties(ignoreUnknown = true)
   record RuleSetSeed(String mic, String name, String ruleYaml, String extendsName, String e2e) {

@@ -53,8 +53,8 @@ public class ReleaseNoteResource {
   }
 
   /**
-   * Normalizes a language parameter to a supported two-letter code. Accepts case-insensitive codes ("de", "DE")
-   * and full language names ("GERMAN"). Unsupported values default to "EN".
+   * Normalizes a language parameter to a supported two-letter code. Accepts case-insensitive codes ("de", "DE") and
+   * full language names ("GERMAN"). Unsupported values default to "EN".
    *
    * @param language the raw language parameter from the request
    * @return normalized two-letter language code ("DE" or "EN")

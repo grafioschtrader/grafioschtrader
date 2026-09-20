@@ -15,12 +15,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Data Transfer Object for analyzing missing historical quotes in securities analysis.
- * 
+ *
  * <p>
  * This class provides a comprehensive view of missing price data for securities within a specific year, enabling
  * identification of gaps that could affect performance calculations.
  * </p>
- * 
+ *
  * <p>
  * <strong>Analysis Structure:</strong>
  * </p>
@@ -32,7 +32,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <li>By security - how many missing quotes each security has</li>
  * <li>Overall context - the analysis year and trading day boundaries</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Usage Context:</strong>
  * </p>
@@ -79,12 +79,12 @@ public class MissingQuotesWithSecurities {
 
   /**
    * Adds a security as missing a quote on a specific trading date.
-   * 
+   *
    * <p>
    * This method builds the date-centric view of missing quotes, organizing securities by the dates on which they lack
    * price data. If the date is not yet in the map, a new list is created automatically.
    * </p>
-   * 
+   *
    * @param date               the trading date missing the quote
    * @param idSecuritycurrency the security ID missing the quote on this date
    */
@@ -94,12 +94,12 @@ public class MissingQuotesWithSecurities {
 
   /**
    * Increments the missing quote count for a specific security.
-   * 
+   *
    * <p>
    * This method builds the security-centric view of missing quotes, tracking how many trading days each security is
    * missing price data. The count is automatically incremented if the security is already in the map.
    * </p>
-   * 
+   *
    * @param idSecuritycurrency the security ID to increment the missing count for
    */
   public void addMissingIdSecurity(Integer idSecuritycurrency) {

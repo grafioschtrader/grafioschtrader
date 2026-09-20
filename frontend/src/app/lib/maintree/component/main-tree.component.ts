@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit, ViewChild, Type, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuItem, TreeNode } from '@openng/optimus-ui/api';
 import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { MainTreeService } from '../service/main-tree.service';
 import { TreeNavigationStateService } from '../service/tree.navigation.state.service';
 import { TypeNodeData } from '../types/type.node.data';
@@ -78,6 +79,7 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     });
 
     this.refreshTreeBecauseOfParentAction();
+    this.forgetNodeOnNavigationElsewhere();
   }
 
   ngOnInit(): void {
@@ -190,6 +192,24 @@ export class MainTreeComponent implements OnInit, OnDestroy, IGlobalMenuAttach {
     this.selectedNode = node;
     const data: TypeNodeData = this.selectedNode.data;
     this.navigateRoute(data);
+  }
+
+  /**
+   * Drops the memory of the last visited node once the application has routed somewhere else on its own, for instance
+   * through a link inside a view. Without this the memory would still name a view that is no longer on screen, and
+   * {@link navigateRoute} would take the next click on that very node for a repeated one and stay where it is - the
+   * node then has to be clicked twice to come back.
+   */
+  private forgetNodeOnNavigationElsewhere(): void {
+    this.subscription.add(
+      this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
+        const visited = '/' + this.lastRoute + (this.lastId ? '/' + this.lastId : '');
+        if (this.lastRoute && !event.urlAfterRedirects.startsWith(visited)) {
+          this.lastRoute = null;
+          this.lastId = null;
+        }
+      })
+    );
   }
 
   private refreshTreeBecauseOfParentAction(): void {

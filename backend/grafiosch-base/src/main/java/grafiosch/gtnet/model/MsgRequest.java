@@ -12,13 +12,13 @@ import jakarta.validation.constraints.Size;
 /**
  * Request DTO for submitting GTNet messages from the UI.
  *
- * This DTO captures the user's intent when creating a new message via GTNetMessageEditComponent.
- * The frontend builds this object based on:
+ * This DTO captures the user's intent when creating a new message via GTNetMessageEditComponent. The frontend builds
+ * this object based on:
  * <ul>
- *   <li>Selected target domain (from GTNetSetupTableComponent row)</li>
- *   <li>Selected message type (from dropdown populated by msgformdefinition)</li>
- *   <li>Dynamic form fields (generated from GTNetModelHelper descriptors)</li>
- *   <li>Optional reply context (when responding to a received message)</li>
+ * <li>Selected target domain (from GTNetSetupTableComponent row)</li>
+ * <li>Selected message type (from dropdown populated by msgformdefinition)</li>
+ * <li>Dynamic form fields (generated from GTNetModelHelper descriptors)</li>
+ * <li>Optional reply context (when responding to a received message)</li>
  * </ul>
  *
  */

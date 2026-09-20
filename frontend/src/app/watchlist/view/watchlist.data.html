@@ -29,6 +29,7 @@
     [showContextMenu]="contextMenuItems && isActivated()"
     [contextMenuItems]="contextMenuItems"
     [ownerHighlightFn]="ownerHighlightFn.bind(this)"
+    [cellStyleFn]="priceCellStyle.bind(this)"
     [negativeValueFn]="isValueByPathMinus.bind(this)"
     [valueGetterFn]="getValueByPath.bind(this)"
     (componentClick)="onComponentClick($event)"

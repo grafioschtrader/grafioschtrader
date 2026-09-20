@@ -7,8 +7,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import grafiosch.BaseConstants;
 
 /**
- * DTO for auto-generating an AlgoTop hierarchy from the tenant's current portfolio holdings at a given reference date.
- * Extends {@link AlgoTopCreate} so the existing {@code saveOnlyAttributes()} dispatch can detect this subclass.
+ * DTO for auto-generating an AlgoTop hierarchy from the tenant's end-of-day portfolio holdings at a reference date. No
+ * watchlist is required or linked; an inherited watchlist ID supplied by older clients is ignored. Extends
+ * {@link AlgoTopCreate} so the existing {@code saveOnlyAttributes()} dispatch can detect this subclass.
  */
 public class AlgoTopCreateFromPortfolio extends AlgoTopCreate {
 

@@ -19,14 +19,14 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Specialized calculator for margin trading instruments including CFDs (Contracts for Difference) and Forex positions.
- * 
+ *
  * <p>
  * This class implements sophisticated position tracking and gain/loss calculations for leveraged financial instruments
  * where traders can open multiple positions that are tracked individually. Unlike standard securities that use average
  * cost accounting, margin instruments require specific position tracking to accurately calculate gains and losses for
  * partial position closures and complex trading strategies.
  * </p>
- * 
+ *
  * <h3>Margin Trading Characteristics:</h3>
  * <ul>
  * <li><strong>Leverage:</strong> Positions can be leveraged with multipliers affecting exposure and risk</li>
@@ -37,7 +37,7 @@ import grafioschtrader.types.TransactionType;
  * <li><strong>Directional Trading:</strong> Supports both long (buy) and short (sell) position strategies</li>
  * <li><strong>Value Per Point:</strong> CFDs use point-based pricing with configurable value per point</li>
  * </ul>
- * 
+ *
  * <h3>Position Lifecycle Management:</h3>
  * <p>
  * The calculator manages the complete lifecycle of margin positions:
@@ -48,20 +48,20 @@ import grafioschtrader.types.TransactionType;
  * <li><strong>Partial Closing:</strong> Allows precise calculation of gains/losses for position portions</li>
  * <li><strong>Full Closure:</strong> Completes position tracking and calculates final performance</li>
  * </ol>
- * 
+ *
  * <h3>Risk and Exposure Calculation:</h3>
  * <p>
  * For margin instruments, the system distinguishes between account value (actual cash impact) and security risk (total
  * exposure including leverage). This ensures accurate portfolio risk assessment and regulatory compliance for leveraged
  * trading activities.
  * </p>
- * 
+ *
  * <h3>Multi-Currency Support:</h3>
  * <p>
  * Fully supports multi-currency margin trading with automatic conversion to portfolio base currency, including currency
  * gain/loss attribution separate from trading performance.
  * </p>
- * 
+ *
  * <h3>Corporate Actions:</h3>
  * <p>
  * Handles security splits and other corporate actions that affect margin positions, ensuring position integrity across
@@ -74,13 +74,13 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
 
   /**
    * Processes a single margin instrument transaction and updates the corresponding position summary.
-   * 
+   *
    * <p>
    * This method handles the margin trading by tracking individual positions rather than using average cost accounting.
    * Each opening transaction creates a separate position that can be partially or fully closed in subsequent
    * transactions, allowing for precise performance attribution and risk management.
    * </p>
-   * 
+   *
    * @param transaction             the margin transaction to process
    * @param summarySecurityMap      map of existing position summaries, updated with transaction results
    * @param securitysplitMap        map of security splits for corporate action adjustments
@@ -103,19 +103,19 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
 
   /**
    * Creates hypothetical closing transactions for all open margin positions to simulate portfolio valuation.
-   * 
+   *
    * <p>
    * Unlike standard securities that create a single hypothetical sale, margin instruments may have multiple open
    * positions that need individual closing transactions. This method iterates through all open positions and creates
    * appropriate hypothetical transactions based on the original position direction (long or short).
    * </p>
-   * 
+   *
    * <h4>Position Direction Handling:</h4>
    * <ul>
    * <li><strong>Long Positions (ACCUMULATE):</strong> Creates hypothetical sell transactions</li>
    * <li><strong>Short Positions (REDUCE):</strong> Creates hypothetical buy transactions to cover</li>
    * </ul>
-   * 
+   *
    * <h4>Valuation Features:</h4>
    * <ul>
    * <li><strong>Individual Position Valuation:</strong> Each open position valued separately for precision</li>
@@ -123,7 +123,7 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
    * <li><strong>Stale Position Handling:</strong> Recalculates positions if marked for recalculation</li>
    * <li><strong>Mark-to-Market:</strong> Provides current market value including unrealized gains/losses</li>
    * </ul>
-   * 
+   *
    * @param securityPositionSummary    the margin position summary containing open positions to value
    * @param lastPrice                  the current market price for hypothetical closing transactions
    * @param securitysplitMap           map of security splits for corporate action adjustments
@@ -168,27 +168,27 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
 
   /**
    * Processes a margin transaction and adds the results to both position summary and transaction summary.
-   * 
+   *
    * <p>
    * This method combines the margin-specific transaction processing with position tracking, ensuring that both
    * cumulative position metrics and individual transaction performance data are properly maintained. This is essential
    * for detailed margin trading analysis and audit trails.
    * </p>
-   * 
+   *
    * <h4>Integration Points:</h4>
    * <ul>
    * <li><strong>Position Summary:</strong> Updates cumulative position metrics and open position tracking</li>
    * <li><strong>Transaction Summary:</strong> Records individual transaction performance for analysis</li>
    * <li><strong>Audit Trail:</strong> Maintains detailed transaction history for compliance and reporting</li>
    * </ul>
-   * 
+   *
    * @param transaction                the margin transaction to process
    * @param securityTransactionSummary summary container that tracks both position and transaction details
    * @param excludeDivTaxcost          tax exclusion flag (not typically applicable to margin instruments)
    * @param securitySplitMap           map of security splits for corporate action handling
    * @param dateCurrencyMap            currency data for multi-currency margin trading
    * @param negativeIdNumberCreater    utility for generating unique IDs
-   * 
+   *
    * @see SecurityTransactionSummary#createAndAddPositionGainLoss(Transaction)
    */
   @Override
@@ -203,35 +203,35 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
 
   /**
    * Core calculation method that processes margin transactions based on their type and position relationship.
-   * 
+   *
    * <p>
    * This private method implements the logic required for margin instrument calculations, handling three distinct
    * transaction categories with different calculation approaches. The method maintains individual position tracking to
    * support complex trading strategies and partial position management.
    * </p>
-   * 
+   *
    * <h4>Transaction Categories:</h4>
    * <dl>
    * <dt><strong>Opening Positions ({@code isMarginOpenPosition() == true})</strong></dt>
    * <dd>Creates new trackable positions with leverage and expense tracking. Calculates initial security risk and sets
    * up position infrastructure for future partial closures. Only transaction costs affect cash account.</dd>
-   * 
+   *
    * <dt><strong>Finance Costs ({@link TransactionType#FINANCE_COST})</strong></dt>
    * <dd>Processes daily holding costs for leveraged positions. These costs are attributed to specific open positions
    * and affect overall position performance without changing units or leverage.</dd>
-   * 
+   *
    * <dt><strong>Closing Positions (connected transactions)</strong></dt>
    * <dd>Handles partial or complete position closures with precise gain/loss attribution. Updates position tracking and
    * removes fully closed positions from active monitoring.</dd>
    * </dl>
-   * 
+   *
    * <h4>Performance Calculation:</h4>
    * <p>
    * For margin instruments, performance is calculated as the difference between current market value (including
    * leverage) and the adjusted cost basis, with proper attribution to individual opening transactions for partial
    * closures.
    * </p>
-   * 
+   *
    * @param transaction             the margin transaction being processed
    * @param securityPositionSummary the position summary to update with transaction effects
    * @param excludeDivTaxcost       flag to exclude dividend tax costs (not applicable to margin instruments)
@@ -304,13 +304,13 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
 
   /**
    * Calculates transaction gain/loss values in the main currency for margin instrument reporting.
-   * 
+   *
    * <p>
    * This method handles the currency conversion and percentage calculation specific to margin trading, where the
    * relationship between account value and security exposure may differ due to leverage. It ensures that both security
    * currency and main currency values are properly maintained for multi-currency portfolio reporting.
    * </p>
-   * 
+   *
    * <h4>Calculation Components:</h4>
    * <ul>
    * <li><strong>Adjusted Cost Base:</strong> Updates the cumulative cost basis with new transaction effects</li>
@@ -318,20 +318,20 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
    * <li><strong>Currency Conversion:</strong> Applies exchange rate to convert to main currency</li>
    * <li><strong>Account Value:</strong> Sets account value for hypothetical transactions used in valuations</li>
    * </ul>
-   * 
+   *
    * <h4>Margin-Specific Considerations:</h4>
    * <p>
    * The percentage calculation uses the position's expense/income rather than market value because margin instruments
    * track actual cash impact separately from notional exposure. This provides more meaningful performance metrics for
    * leveraged trading strategies.
    * </p>
-   * 
+   *
    * @param ctp                     calculation context containing exchange rate and other transaction parameters
    * @param securityPositionSummary the position summary to update with main currency values
    * @param transaction             the transaction being processed (used for cash account amount and ID checks)
    * @param expenseIncomePosition   the expense/income of the specific position being affected
    * @param expenseIncomeSecurity   the expense/income change for the overall security position
-   * 
+   *
    * @throws ArithmeticException if expenseIncomePosition is zero when calculating percentage
    */
   private void calcTransactionGainLossMC(CalcTransactionPos ctp, final SecurityPositionSummary securityPositionSummary,
@@ -357,9 +357,9 @@ public class SecurityMarginCalc extends SecurityBaseCalc {
    * <p>
    * A margin position has no cost base in the average cost sense, so the flow that carries currency exposure is the
    * cash effect itself, which is what {@code transactionGainLoss} already holds in every one of the three branches
-   * above. The sign is inverted because these counters measure money invested, whereas
-   * {@code transactionGainLoss} measures money gained. Converting it with {@code ctp.exchangeRate} is the same premise
-   * the line above already relies on for {@code transactionGainLossMC}.
+   * above. The sign is inverted because these counters measure money invested, whereas {@code transactionGainLoss}
+   * measures money gained. Converting it with {@code ctp.exchangeRate} is the same premise the line above already
+   * relies on for {@code transactionGainLossMC}.
    * </p>
    *
    * <p>

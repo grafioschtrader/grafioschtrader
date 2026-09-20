@@ -72,8 +72,8 @@ public class RiskFreeRateService {
     if (mapping.isEmpty()) {
       return series;
     }
-    List<Historyquote> quotes = historyquoteJpaRepository.findByIdSecuritycurrencyAndDateBetweenOrderByDate(
-        mapping.get().getIdSecuritycurrency(), from, to);
+    List<Historyquote> quotes = historyquoteJpaRepository
+        .findByIdSecuritycurrencyAndDateBetweenOrderByDate(mapping.get().getIdSecuritycurrency(), from, to);
     for (Historyquote h : quotes) {
       series.put(h.getDate(), h.getClose());
     }

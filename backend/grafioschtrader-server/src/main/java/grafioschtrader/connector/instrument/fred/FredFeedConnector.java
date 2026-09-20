@@ -41,7 +41,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * <p>
  * Authentication is via a free API key registered through the existing "Connector API Keys" admin UI
- * ({@code id_provider = "fred"}). FRED's free tier permits 120 requests/minute, which is comfortable for this use case
+ * ({@code id_provider = "fred"}). FRED's free tier permits 120 requests/minute, which is comfortable for this purpose
  * (one call per series per EOD run).
  */
 @Component
@@ -78,11 +78,8 @@ public class FredFeedConnector extends BaseFeedApiKeyConnector {
 
   private String buildHistoricalUrl(final Security security, final LocalDate from, final LocalDate to) {
     DateTimeFormatter d = DateTimeFormatter.ISO_LOCAL_DATE;
-    return DOMAIN + "?series_id=" + security.getUrlHistoryExtend()
-        + "&" + API_KEY_PARAM + "=" + getApiKey()
-        + "&file_type=json"
-        + "&observation_start=" + d.format(from)
-        + "&observation_end=" + d.format(to);
+    return DOMAIN + "?series_id=" + security.getUrlHistoryExtend() + "&" + API_KEY_PARAM + "=" + getApiKey()
+        + "&file_type=json" + "&observation_start=" + d.format(from) + "&observation_end=" + d.format(to);
   }
 
   @Override

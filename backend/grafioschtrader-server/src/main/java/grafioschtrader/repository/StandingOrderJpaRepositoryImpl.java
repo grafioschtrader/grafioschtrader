@@ -29,15 +29,17 @@ import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.StandingOrderCashaccount;
 import grafioschtrader.entities.StandingOrderSecurity;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.service.StandingOrderExecutionService;
 import grafioschtrader.types.PeriodDayPosition;
 import grafioschtrader.types.RepeatUnit;
+import grafioschtrader.types.TenantKindType;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Repository implementation for standing orders with validation logic for scheduling parameters,
- * transaction type constraints, tenant limits, and initial next-execution-date computation.
+ * Repository implementation for standing orders with validation logic for scheduling parameters, transaction type
+ * constraints, tenant limits, and initial next-execution-date computation.
  */
 public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingOrder>
     implements StandingOrderJpaRepositoryCustom {
@@ -64,10 +66,18 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
   @Autowired
   private GlobalparametersService globalparametersService;
 
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
+
   @Override
   public StandingOrder saveOnlyAttributes(StandingOrder standingOrder, StandingOrder existingEntity,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    boolean simulation = isSimulation(user.getIdTenant());
+
+    if (simulation && standingOrder instanceof StandingOrderSecurity) {
+      throw new DataViolationException("standing.order", "standing.order.simulation.cash.only", null);
+    }
 
     // Tenant limit check on create
     if (existingEntity == null) {
@@ -78,7 +88,7 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
             new Object[] { maxAllowedOpt.get() });
       }
     }
-    if (existingEntity != null
+    if (!simulation && existingEntity != null
         && transactionJpaRepository.countByIdStandingOrder(existingEntity.getIdStandingOrder()) > 0
         && !DataHelper.areAnnotatedFieldsEqual(standingOrder, existingEntity, LockedWhenUsed.class)) {
       throw new DataViolationException("standing.order", "standing.order.fields.locked", null);
@@ -96,8 +106,8 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
     } else if (standingOrder.getNextExecutionDate() == null && standingOrder.getLastExecutionDate() != null
         && standingOrder.getValidTo() != null && !standingOrder.getValidTo().isBefore(today)) {
       // Reactivation: validTo was extended, recalculate from lastExecutionDate
-      LocalDate nextDate = StandingOrderExecutionService.computeNextExecutionDate(
-          standingOrder, standingOrder.getLastExecutionDate());
+      LocalDate nextDate = StandingOrderExecutionService.computeNextExecutionDate(standingOrder,
+          standingOrder.getLastExecutionDate());
       if (nextDate != null && !nextDate.isAfter(standingOrder.getValidTo())) {
         standingOrder.setNextExecutionDate(nextDate);
       }
@@ -107,7 +117,9 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
   }
 
   public int delEntityWithTenant(Integer idStandingOrder, Integer idTenant) {
-    if (transactionJpaRepository.countByIdStandingOrder(idStandingOrder) > 0) {
+    if (isSimulation(idTenant)) {
+      transactionJpaRepository.detachStandingOrder(idStandingOrder, idTenant);
+    } else if (transactionJpaRepository.countByIdStandingOrder(idStandingOrder) > 0) {
       throw new DataViolationException("standing.order", "standing.order.has.transactions", null);
     }
     return standingOrderJpaRepository.deleteByIdStandingOrderAndIdTenant(idStandingOrder, idTenant);
@@ -115,7 +127,7 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
 
   @Override
   public Set<Class<? extends Annotation>> getUpdatePropertyLevels(final StandingOrder existingEntity) {
-    if (existingEntity != null
+    if (existingEntity != null && !isSimulation(existingEntity.getIdTenant())
         && transactionJpaRepository.countByIdStandingOrder(existingEntity.getIdStandingOrder()) > 0) {
       return Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class);
     }
@@ -134,8 +146,7 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
       }
       validateCashAmountAndFormula(soc, cashaccountCurrency);
     } else if (so instanceof StandingOrderSecurity sos) {
-      if (so.getTransactionType() != TransactionType.ACCUMULATE
-          && so.getTransactionType() != TransactionType.REDUCE) {
+      if (so.getTransactionType() != TransactionType.ACCUMULATE && so.getTransactionType() != TransactionType.REDUCE) {
         throw new DataViolationException("transaction.type", "standing.order.invalid.type", null);
       }
       // Exactly one of units or investAmount must be set
@@ -150,6 +161,9 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
     if (so.getQuoteToleranceDays() < toleranceRange.min() || so.getQuoteToleranceDays() > toleranceRange.max()) {
       throw new DataViolationException("quote.tolerance.days", "standing.order.tolerance.out.of.range",
           new Object[] { toleranceRange.min(), toleranceRange.max() });
+    }
+    if (isSimulation(so.getIdTenant()) && so.getQuoteToleranceDays() > 0) {
+      throw new DataViolationException("quote.tolerance.days", "standing.order.simulation.no.future.rate", null);
     }
     // Validate day/month for MONTHS/YEARS repeat units
     RepeatUnit ru = so.getRepeatUnit();
@@ -284,5 +298,10 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
       start = LocalDate.now();
     }
     return start;
+  }
+
+  private boolean isSimulation(Integer idTenant) {
+    Tenant tenant = idTenant == null ? null : tenantJpaRepository.findById(idTenant).orElse(null);
+    return tenant != null && tenant.getTenantKindType() == TenantKindType.SIMULATION_COPY;
   }
 }

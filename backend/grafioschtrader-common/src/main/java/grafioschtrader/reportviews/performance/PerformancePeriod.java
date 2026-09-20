@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Contains comprehensive data for period performance analysis including aggregated metrics, daily changes, and
  * structured period windows for visualization and reporting.
- * 
+ *
  * <p>
  * This class serves as the primary data container for performance analysis results, organizing data into multiple
  * views:
@@ -27,7 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <li>Structured period windows (weekly or yearly aggregation)</li>
  * <li>Column-wise summaries for tabular display</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Period Aggregation:</strong>
  * </p>
@@ -38,7 +38,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <li><strong>Weekly (WM_WEEK):</strong> Groups data into 5-day trading weeks</li>
  * <li><strong>Yearly (WM_YEAR):</strong> Groups data into 12-month periods</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Data Processing:</strong>
  * </p>
@@ -79,7 +79,7 @@ public class PerformancePeriod {
 
   /**
    * Creates a new performance period analysis with the specified parameters.
-   * 
+   *
    * @param periodSplit    the aggregation level (weekly or yearly)
    * @param firstDayTotals aggregated values for the first day of the period
    * @param lastDayTotals  aggregated values for the last day of the period
@@ -98,12 +98,12 @@ public class PerformancePeriod {
 
   /**
    * Adds a daily performance data point to the chart difference list.
-   * 
+   *
    * <p>
    * For the first entry, creates a baseline with the holding date. For subsequent entries, calculates differences from
    * the first day totals across all performance metrics.
    * </p>
-   * 
+   *
    * @param periodHolding the daily holding data to process, or null to skip
    */
   public void addPerformceChartDayDiff(IPeriodHolding periodHolding) {
@@ -125,7 +125,7 @@ public class PerformancePeriod {
 
   /**
    * Creates structured period windows for the performance analysis.
-   * 
+   *
    * <p>
    * Delegates to the appropriate window creation method based on the period split:
    * </p>
@@ -133,7 +133,7 @@ public class PerformancePeriod {
    * <li>Weekly aggregation: Creates 5-day trading week windows</li>
    * <li>Yearly aggregation: Creates monthly windows with last-day-of-month filtering</li>
    * </ul>
-   * 
+   *
    * @param firstAndMissingTradingDays trading day metadata for handling holidays and missing data
    * @param periodHoldings             list of daily holding data for the analysis period
    */
@@ -148,7 +148,7 @@ public class PerformancePeriod {
 
   /**
    * Core method for creating period windows with comprehensive trading day handling.
-   * 
+   *
    * <p>
    * This method processes each trading day in the period and:
    * </p>
@@ -159,7 +159,7 @@ public class PerformancePeriod {
    * <li>Aggregates column-wise summaries</li>
    * <li>Manages period-to-period gain calculations</li>
    * </ul>
-   * 
+   *
    * @param weekYear                   the aggregation level being processed
    * @param firstAndMissingTradingDays trading day metadata for validation
    * @param periodHoldings             list of daily holding data
@@ -250,12 +250,12 @@ public class PerformancePeriod {
 
   /**
    * Calculates the gain for a period by comparing it with the previous period.
-   * 
+   *
    * <p>
    * Updates the current period's gainPeriodMC field with the difference between its gain and the previous period's
    * gain. Cleans up the tracking map to prevent memory leaks.
    * </p>
-   * 
+   *
    * @param periodWindowBefore the previous period window for comparison
    * @param periodWindow       the current period window to update
    * @param lastDayWeekGainMap tracking map of period start dates to gain values
@@ -311,7 +311,7 @@ public class PerformancePeriod {
 
   /**
    * Strategy interface for determining when a new period window should be created.
-   * 
+   *
    * <p>
    * Implementations define the logic for period boundaries based on the aggregation level and business rules.
    * </p>
@@ -319,7 +319,7 @@ public class PerformancePeriod {
   static interface IFilterPeriodDay {
     /**
      * Determines if the next period should start a new window.
-     * 
+     *
      * @param periodHoldings the complete list of period holdings
      * @param askedDay       the current day being processed
      * @param index          the current index in the holdings list
@@ -330,7 +330,7 @@ public class PerformancePeriod {
 
   /**
    * Filter implementation for monthly aggregation that creates new windows when crossing month boundaries.
-   * 
+   *
    * <p>
    * This filter ensures that each month gets its own period window by detecting changes in month or year values between
    * consecutive holdings.
@@ -340,7 +340,7 @@ public class PerformancePeriod {
 
     /**
      * Creates a new window for the first and last elements, and when the next element has a different month or year.
-     * 
+     *
      * @param periodHoldings the complete list of period holdings
      * @param askedDay       the current day being processed
      * @param index          the current index in the holdings list

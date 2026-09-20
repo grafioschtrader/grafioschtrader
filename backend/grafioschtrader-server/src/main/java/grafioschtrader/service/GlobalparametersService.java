@@ -38,6 +38,41 @@ import grafioschtrader.dto.QuoteToleranceRange;
  */
 @Service
 public class GlobalparametersService {
+  /** Calendar-day payment delay when a replay dividend has no published payment date. Read once per run. */
+  public int getSimulationDividendPaymentDelayDays() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS)
+        .map(Globalparameters::getPropertyInt)
+        .filter(value -> value >= GlobalParamKeyDefault.MIN_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS
+            && value <= GlobalParamKeyDefault.MAX_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS)
+        .orElse(GlobalParamKeyDefault.DEFAULT_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS);
+  }
+
+  /** Reads the admin setting on each run, with a safe fallback for missing or externally corrupted rows. */
+  public int getAlgoAlarmEvaluationIntervalHours() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_ALGO_ALARM_EVALUATION_INTERVAL_HOURS)
+        .map(Globalparameters::getPropertyInt).filter(value -> value >= 2 && value <= 6)
+        .orElse(GlobalParamKeyDefault.DEFAULT_ALGO_ALARM_EVALUATION_INTERVAL_HOURS);
+  }
+
+  /**
+   * Longest horizon one historical replay may cover, in trading days.
+   *
+   * <p>
+   * Read on every submit rather than cached, so that raising the ceiling takes effect without a restart. A row outside
+   * the bounds the administrator dialog enforces is ignored in favour of the default: the value decides how long a
+   * single run may occupy a replay worker, and an externally written row must not be able to block the pool.
+   * </p>
+   *
+   * @return the configured ceiling, or {@link GlobalParamKeyDefault#DEFAULT_SIMULATION_MAX_RUN_TRADING_DAYS}
+   * @see GlobalParamKeyDefault#GLOB_KEY_SIMULATION_MAX_RUN_TRADING_DAYS
+   */
+  public int getSimulationMaxRunTradingDays() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_SIMULATION_MAX_RUN_TRADING_DAYS)
+        .map(Globalparameters::getPropertyInt)
+        .filter(value -> value >= GlobalParamKeyDefault.MIN_SIMULATION_MAX_RUN_TRADING_DAYS
+            && value <= GlobalParamKeyDefault.MAX_SIMULATION_MAX_RUN_TRADING_DAYS)
+        .orElse(GlobalParamKeyDefault.DEFAULT_SIMULATION_MAX_RUN_TRADING_DAYS);
+  }
 
   @Autowired
   private EntityLimitService entityLimitService;

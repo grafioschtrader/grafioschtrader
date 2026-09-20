@@ -11,7 +11,7 @@ export default defineConfig({
      replaces the default. The timing reporter appends the run-time breakdown after it. */
   reporter: [['list'], ['./e2e/reporters/timing.reporter.ts']],
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: process.env.E2E_FRONTEND_URL ?? 'http://localhost:4200',
     headless: true,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure'

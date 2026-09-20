@@ -16,30 +16,31 @@ import jakarta.persistence.criteria.Root;
 /**
  * JPA Criteria API Specification implementation for searching currency pairs.
  * <p>
- * This class builds dynamic queries to search for currency pairs based on various criteria
- * while optionally excluding those already present in watchlists or correlation sets.
- * It implements the Spring Data JPA Specification pattern to provide type-safe and
- * composable query building for {@link Currencypair} entities.
+ * This class builds dynamic queries to search for currency pairs based on various criteria while optionally excluding
+ * those already present in watchlists or correlation sets. It implements the Spring Data JPA Specification pattern to
+ * provide type-safe and composable query building for {@link Currencypair} entities.
  * </p>
  * <p>
  * The search supports filtering by:
  * <ul>
- *   <li>Exact currency code matching (either from or to currency)</li>
- *   <li>Partial name matching in currency codes</li>
- *   <li>Data connector IDs for historical and intraday price feeds</li>
- *   <li>Exclusion of items already in specific watchlists or correlation sets</li>
+ * <li>Exact currency code matching (either from or to currency)</li>
+ * <li>Partial name matching in currency codes</li>
+ * <li>Data connector IDs for historical and intraday price feeds</li>
+ * <li>Exclusion of items already in specific watchlists or correlation sets</li>
  * </ul>
  * </p>
- */ 
+ */
 public class CurrencyPairSearchBuilder extends SecuritycurrencySearchBuilder implements Specification<Currencypair> {
 
   private static final long serialVersionUID = 1L;
 
   /**
    * Constructs a new CurrencySearchBuilder with the specified search parameters.
-   * 
-   * @param idWatchlist the ID of a watchlist to exclude currency pairs from, or null if not filtering by watchlist
-   * @param idCorrelationSet the ID of a correlation set to exclude currency pairs from, or null if not filtering by correlation set
+   *
+   * @param idWatchlist            the ID of a watchlist to exclude currency pairs from, or null if not filtering by
+   *                               watchlist
+   * @param idCorrelationSet       the ID of a correlation set to exclude currency pairs from, or null if not filtering
+   *                               by correlation set
    * @param securitycurrencySearch the search criteria containing various filter options (must not be null)
    */
   public CurrencyPairSearchBuilder(Integer idWatchlist, Integer idCorrelationSet,
@@ -53,14 +54,16 @@ public class CurrencyPairSearchBuilder extends SecuritycurrencySearchBuilder imp
    * This method constructs a compound predicate based on the provided search criteria:
    * </p>
    * <ol>
-   *   <li><strong>Exclusion filters:</strong> Excludes currency pairs already present in the specified watchlist or correlation set</li>
-   *   <li><strong>Currency matching:</strong> Searches by exact currency code or partial name match in either from or to currency</li>
-   *   <li><strong>Connector filtering:</strong> Filters by historical or intraday data connector IDs</li>
+   * <li><strong>Exclusion filters:</strong> Excludes currency pairs already present in the specified watchlist or
+   * correlation set</li>
+   * <li><strong>Currency matching:</strong> Searches by exact currency code or partial name match in either from or to
+   * currency</li>
+   * <li><strong>Connector filtering:</strong> Filters by historical or intraday data connector IDs</li>
    * </ol>
    * <p>
    * The query uses DISTINCT to prevent duplicate results when joining with collection relationships.
    * </p>
-   */ 
+   */
   @Override
   public Predicate toPredicate(final Root<Currencypair> currencypair, final CriteriaQuery<?> query,
       final CriteriaBuilder builder) {

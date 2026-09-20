@@ -13,6 +13,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { SecurityService } from '../../securitycurrency/service/security.service';
 import { Transaction } from '../../entities/transaction';
 import { TransactionService } from '../service/transaction.service';
+import { AlgoAlertService } from '../../algo/service/algo-alert.service';
 import { SecurityOpenPositionPerSecurityaccount } from '../../entities/view/security.open.position.per.securityaccount';
 import { CurrencypairService } from '../../securitycurrency/service/currencypair.service';
 import { ITransactionEditType } from './i.transaction.edit.type';
@@ -158,6 +159,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
   constructor(
     private transactionService: TransactionService,
+    private algoAlertService: AlgoAlertService,
     private portfolioService: PortfolioService,
     private securityService: SecurityService,
     private activeRoute: ActivatedRoute,
@@ -279,6 +281,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
 
     this.config = [
       DynamicFieldHelper.createFieldSelectNumberHeqF('transactionType', true),
+      DynamicFieldHelper.createFieldSelectNumber('idAlgoStrategy', 'STRATEGY_ASSIGNMENT', false),
       FormDefinitionHelper.getTransactionTime(),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'exDate', false, {
         calendarConfig: { disabledDays: [0, 6] }
@@ -369,6 +372,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
             this.getAndSetQuotationSecurity(this.selectedSecurity);
           }
           if (controlValue.control === this.configObject.idSecuritycurrency.formControl) {
+            this.loadStrategyAssignments();
             this.readSecurityaccountAndHoldings();
           }
           this.setCurrencyOnSecurityAndCashaccount(this.selectedSecurity);
@@ -476,6 +480,7 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
   selectSecurity(): void {
     this.setValueToControl(this.configObject.idSecuritycurrency, this.transactionCallParam.idSecuritycurrency);
     this.selectedSecurity = this.getSecurityById(this.configObject.idSecuritycurrency.formControl.value);
+    this.loadStrategyAssignments();
     this.setMarginFlags();
     if (this.configObject.idSecuritycurrency.valueKeyHtmlOptions.length === 1) {
       this.configObject.idSecuritycurrency.formControl.disable();
@@ -901,26 +906,21 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
       this.configObject.idSecurityaccount,
       this.portfolios.flatMap((p) => p.securityaccountList || [])
     );
-    // if there is only one security account, select it
-    if (securityaccountsHtmlSelect.length === 1) {
+    const financeCostAccount =
+      this.transactionCallParam.transactionType === TransactionType.FINANCE_COST
+        ? this.transactionCallParam.transaction?.idSecurityaccount
+        : null;
+    if (financeCostAccount != null) {
+      this.setValueToControl(this.configObject.idSecurityaccount, financeCostAccount);
+      this.configObject.idSecurityaccount.formControl.disable();
+    } else if (securityaccountsHtmlSelect.length === 1) {
       this.configObject.idSecurityaccount.formControl.disable();
       this.setValueToControl(this.configObject.idSecurityaccount, securityaccountsHtmlSelect[0].key);
     } else {
       // For Edge an empty Option is needed, otherwise the first Account would be selected
       securityaccountsHtmlSelect.splice(0, 0, new ValueKeyHtmlSelectOptions('', ''));
       !(this.closedMarginPosition?.hasPosition === true) && this.configObject.idSecurityaccount.formControl.enable();
-      if (
-        this.transactionCallParam.transactionType === TransactionType.FINANCE_COST &&
-        this.transactionCallParam.transaction?.idSecurityaccount
-      ) {
-        this.setValueToControl(
-          this.configObject.idSecurityaccount,
-          this.transactionCallParam.transaction.idSecurityaccount
-        );
-        this.configObject.idSecurityaccount.formControl.disable();
-      } else {
-        this.selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
-      }
+      this.selectAccumulateSecurityaccountWhenAvailable(securityaccountsHtmlSelect);
     }
     this.transactionCallParam.transaction &&
       this.setCurrencyOnSecurityAndCashaccount(this.transactionCallParam.transaction.security);
@@ -1080,6 +1080,31 @@ export class TransactionSecurityEditComponent extends TransactionBaseOperations 
     );
     this.transactionCallParam.transaction &&
       this.form.transferBusinessObjectToForm(this.transactionCallParam.transaction);
+  }
+
+  private loadStrategyAssignments(): void {
+    const security = this.selectedSecurity?.idSecuritycurrency;
+    AppHelper.invisibleAndHide(this.configObject.idAlgoStrategy, !this.isAccumaulteOrReduce);
+    if (!security || !this.isAccumaulteOrReduce) return;
+    if (this.transactionCallParam.closeMarginPosition) {
+      this.configObject.idAlgoStrategy.formControl.disable();
+      this.subObj['meanReversionOpening']?.unsubscribe();
+      this.subObj['meanReversionOpening'] = this.transactionService
+        .getTransactionByIdTransaction(this.transactionCallParam.closeMarginPosition.idOpenMarginTransaction)
+        .subscribe((opening) => this.configObject.idAlgoStrategy.formControl.setValue(opening.idAlgoStrategy));
+    }
+    this.subObj['meanReversionAssignment']?.unsubscribe();
+    this.subObj['meanReversionAssignment'] = this.algoAlertService
+      .assignmentOptions(security)
+      .subscribe((strategies) => {
+        this.configObject.idAlgoStrategy.valueKeyHtmlOptions = [
+          new ValueKeyHtmlSelectOptions(null, this.translateService.instant('UNASSIGNED')),
+          ...strategies.map((strategy) => new ValueKeyHtmlSelectOptions(strategy.idAlgoRuleStrategy, strategy.name))
+        ];
+        const selected = this.configObject.idAlgoStrategy.formControl.value;
+        if (selected && !strategies.some((s) => s.idAlgoRuleStrategy === selected))
+          this.configObject.idAlgoStrategy.formControl.setValue(null);
+      });
   }
 
   /**

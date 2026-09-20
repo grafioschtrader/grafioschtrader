@@ -24,7 +24,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @TestMethodOrder(OrderAnnotation.class)
 @TestInstance(Lifecycle.PER_CLASS)
-class AssetclassResourceTest extends BaseIntegrationTest  {
+class AssetclassResourceTest extends BaseIntegrationTest {
 
   @BeforeAll
   void setUpUserToken() {
@@ -43,15 +43,8 @@ class AssetclassResourceTest extends BaseIntegrationTest  {
         SpecialInvestmentInstruments.getSpecialInvestmentInstrumentsByValue(specialInvestmentInstrument), subCategoryDE,
         subCategoryEN);
 
-    Assetclass aNew = authenticatedClient(RestTestHelper.getRadomUser())
-        .post()
-        .uri(RequestGTMappings.ASSETCLASS_MAP)
-        .body(a)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Assetclass.class)
-        .returnResult()
-        .getResponseBody();
+    Assetclass aNew = authenticatedClient(RestTestHelper.getRadomUser()).post().uri(RequestGTMappings.ASSETCLASS_MAP)
+        .body(a).exchange().expectStatus().isOk().expectBody(Assetclass.class).returnResult().getResponseBody();
 
     assertNotNull(aNew);
     Assertions.assertThat(aNew.getIdAssetClass()).isGreaterThan(0);

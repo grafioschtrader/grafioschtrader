@@ -88,8 +88,8 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
   public void updateSecurityLastPrice(final Security security) throws Exception {
     String url = getSecurityIntradayDownloadLink(security);
     final FullChartData fcd = getChartResponse(url);
-    security.setSTimestamp(Instant.ofEpochMilli(fcd.currentPrice.DATETIME_PRICE)
-        .atZone(ZoneId.systemDefault()).toLocalDateTime());
+    security.setSTimestamp(
+        Instant.ofEpochMilli(fcd.currentPrice.DATETIME_PRICE).atZone(ZoneId.systemDefault()).toLocalDateTime());
     security.setSOpen(fcd.currentPrice.FIRST);
     security.setSHigh(fcd.currentPrice.HIGH);
     security.setSLow(fcd.currentPrice.LOW);

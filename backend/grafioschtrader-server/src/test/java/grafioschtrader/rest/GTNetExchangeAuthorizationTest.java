@@ -74,13 +74,8 @@ class GTNetExchangeAuthorizationTest extends BaseIntegrationTest {
   @DisplayName("A user without a privileged role may not write the exchange flags of a foreign security")
   void strangerIsRefused() {
     Security foreign = firstSecurity(false, RestTestHelper.LIMIT1);
-    authenticatedClient(RestTestHelper.LIMIT1)
-        .post()
-        .uri(BATCH_PATH)
-        .body(List.of(foreign))
-        .exchange()
-        .expectStatus().isUnauthorized()
-        .expectBody(String.class)
+    authenticatedClient(RestTestHelper.LIMIT1).post().uri(BATCH_PATH).body(List.of(foreign)).exchange().expectStatus()
+        .isUnauthorized().expectBody(String.class)
         .value(body -> Assertions.assertThat(body).contains(SecurityBreachError.class.getSimpleName()));
   }
 
@@ -92,15 +87,8 @@ class GTNetExchangeAuthorizationTest extends BaseIntegrationTest {
    * @param security the security to write
    */
   private void expectAccepted(String nickname, Security security) {
-    Security[] updated = authenticatedClient(nickname)
-        .post()
-        .uri(BATCH_PATH)
-        .body(List.of(security))
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Security[].class)
-        .returnResult()
-        .getResponseBody();
+    Security[] updated = authenticatedClient(nickname).post().uri(BATCH_PATH).body(List.of(security)).exchange()
+        .expectStatus().isOk().expectBody(Security[].class).returnResult().getResponseBody();
 
     Assertions.assertThat(updated).hasSize(1);
     Assertions.assertThat(updated[0].getIdSecuritycurrency()).isEqualTo(security.getIdSecuritycurrency());
@@ -120,12 +108,11 @@ class GTNetExchangeAuthorizationTest extends BaseIntegrationTest {
   private Security firstSecurity(boolean owned, String nickname) {
     Integer idUser = RestTestHelper.getUserByNickname(nickname).idUser;
     List<Security> securities = readSecurities(RestTestHelper.ADMIN);
-    return securities.stream().filter(s -> idUser.equals(s.getCreatedBy()) == owned).findFirst()
-        .orElseGet(() -> {
-          Assumptions.abort("No security " + (owned ? "created by " : "created without ") + nickname
-              + " exists; SecurityResourceTest assigns its owners at random");
-          return null;
-        });
+    return securities.stream().filter(s -> idUser.equals(s.getCreatedBy()) == owned).findFirst().orElseGet(() -> {
+      Assumptions.abort("No security " + (owned ? "created by " : "created without ") + nickname
+          + " exists; SecurityResourceTest assigns its owners at random");
+      return null;
+    });
   }
 
   /**
@@ -135,14 +122,9 @@ class GTNetExchangeAuthorizationTest extends BaseIntegrationTest {
    * @return the securities as the endpoint returns them
    */
   private List<Security> readSecurities(String nickname) {
-    SecurityExchange body = authenticatedClient(nickname)
-        .get()
-        .uri(uriBuilder -> uriBuilder.path(EXCHANGE_PATH).queryParam("activeOnly", false).build())
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(SecurityExchange.class)
-        .returnResult()
-        .getResponseBody();
+    SecurityExchange body = authenticatedClient(nickname).get()
+        .uri(uriBuilder -> uriBuilder.path(EXCHANGE_PATH).queryParam("activeOnly", false).build()).exchange()
+        .expectStatus().isOk().expectBody(SecurityExchange.class).returnResult().getResponseBody();
 
     Assertions.assertThat(body).isNotNull();
     return body.securitiescurrenciesList;

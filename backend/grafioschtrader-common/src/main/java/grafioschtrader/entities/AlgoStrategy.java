@@ -8,14 +8,10 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
-/**
- * A tenant's portfolio, asset class, or security may have none or more strategies. This entity represents a single
- * strategy within the algo hierarchy. The strategy type is identified by {@code algoStrategyImplementations} and its
- * type-specific parameters are stored as JSON in {@code strategyConfig}.
- */
 @Schema(description = """
-    Single algo strategy within the algo hierarchy. The strategy implementation type defines the evaluation logic,
-    and strategyConfig holds the type-specific JSON parameters (e.g. alert thresholds, indicator settings).""")
+    A tenant's portfolio, asset class or security may have one or more strategies. The implementation type defines the
+    evaluation logic, and strategyConfig holds its type-specific JSON parameters, such as alert thresholds or indicator
+    settings.""")
 @Entity
 @Table(name = AlgoStrategy.TABNAME)
 @DiscriminatorValue("S")
@@ -25,6 +21,7 @@ public class AlgoStrategy extends AlgoRuleStrategy {
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "Strategy implementation that defines the evaluation logic")
   @Basic(optional = false)
   @Column(name = "algo_strategy_impl")
   private byte algoStrategyImplementations;

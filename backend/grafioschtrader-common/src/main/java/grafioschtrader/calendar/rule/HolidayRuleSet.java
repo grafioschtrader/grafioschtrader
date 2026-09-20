@@ -13,9 +13,9 @@ import java.util.TreeSet;
  *
  * <p>
  * Parsed from the YAML of a {@code trading_calendar_rule_set} row by {@link HolidayRuleSetYamlParser}. An exchange
- * whose calendar is identical to another one -- the German regional venues follow Xetra, the Swiss venues follow SIX
- * -- does not repeat the rules; its row points at the other row and {@link HolidayRuleSetResolver} merges the two.
- * The identity of the set, its MIC and name, are columns of the entity and therefore not fields here.
+ * whose calendar is identical to another one -- the German regional venues follow Xetra, the Swiss venues follow SIX --
+ * does not repeat the rules; its row points at the other row and {@link HolidayRuleSetResolver} merges the two. The
+ * identity of the set, its MIC and name, are columns of the entity and therefore not fields here.
  * </p>
  */
 public class HolidayRuleSet {
@@ -155,8 +155,7 @@ public class HolidayRuleSet {
 
   private void requireAuthoritativeCoverage(int year) {
     if (!isAuthoritativeForYear(year)) {
-      throw new IllegalStateException(
-          "Holiday rule set is not authoritative for " + year + formatAuthoritativeRange());
+      throw new IllegalStateException("Holiday rule set is not authoritative for " + year + formatAuthoritativeRange());
     }
   }
 

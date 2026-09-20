@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = TenantBase.TABNAME)
 public class Tenant extends TenantBase {
- 
+
   private static final long serialVersionUID = 1L;
 
   public Tenant() {

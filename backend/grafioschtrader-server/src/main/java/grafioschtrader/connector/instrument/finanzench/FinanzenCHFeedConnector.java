@@ -95,7 +95,7 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
 
   protected static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final String domain = "https://www.finanzen.ch/";
- 
+
   private static final String HIST_DEVISEN_CONTROLLER = "ExchangeRateController";
   private static final String URL_SECURITY_HISTORICAL_REGEX = "^[\\p{L}0-9_-]+(/[A-Za-z]+)?$";
   private static final Locale FC_LOCALE = Locale.of("de", "CH");
@@ -111,9 +111,10 @@ public class FinanzenCHFeedConnector extends FinanzenConnetorBase {
 
   public FinanzenCHFeedConnector() {
     super(supportedFeed, "finanzench", "Finanzen CH", null, EnumSet.of(UrlCheck.INTRADAY));
-    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.NON_INVESTABLE_INDICES,
-        AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF,
-        AssetclassCategory.MUTUAL_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.PENSION_FUND);
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR,
+        AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME,
+        AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT,
+        AssetclassCategory.PENSION_FUND);
     numberFormat = NumberFormat.getNumberInstance(FC_LOCALE);
     initalizeHttpClient(domain);
   }

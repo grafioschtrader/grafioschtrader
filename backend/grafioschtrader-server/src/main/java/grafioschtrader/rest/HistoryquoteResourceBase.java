@@ -48,12 +48,11 @@ public abstract class HistoryquoteResourceBase<T extends BaseHistoryquote> exten
     return false;
   }
 
-
   /**
    * Resolves the owning security or currency pair of a quote row, used as the auditable parent for rights checks.
    *
    * @param user               the acting user
-   * @param idSecuritycurrency  the owning security/currencypair id
+   * @param idSecuritycurrency the owning security/currencypair id
    * @return the parent as an {@link Auditable}
    */
   protected abstract Auditable getParentSecurityCurrency(User user, Integer idSecuritycurrency);

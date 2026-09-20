@@ -31,9 +31,9 @@ class SixFeedConnectorTest extends BaseFeedConnectorCheck {
   }
 
   /**
-   * Reads ABB's dividend history from the live SIX v3 endpoint. The urlDividendExtend is the same
-   * valorId (ISIN + currency + check digit) used for price history. Verifies the list is non-empty,
-   * returned in ascending ex-date order, with positive raw amounts and a currency on every row.
+   * Reads ABB's dividend history from the live SIX v3 endpoint. The urlDividendExtend is the same valorId (ISIN +
+   * currency + check digit) used for price history. Verifies the list is non-empty, returned in ascending ex-date
+   * order, with positive raw amounts and a currency on every row.
    */
   @Test
   void getDividendHistoryTest() throws Exception {
@@ -66,9 +66,8 @@ class SixFeedConnectorTest extends BaseFeedConnectorCheck {
   protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate
-      .add(new SecurityHistoricalDate("0 SONOVA 19-29", "CH0419041592", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
-          "CH0419041592CHF4", null, 1551, "2019-10-10", "2025-12-05"));
+      hisoricalDate.add(new SecurityHistoricalDate("0 SONOVA 19-29", "CH0419041592",
+          SpecialInvestmentInstruments.DIRECT_INVESTMENT, "CH0419041592CHF4", null, 1551, "2019-10-10", "2025-12-05"));
       hisoricalDate
           .add(new SecurityHistoricalDate("SMI PR", "CH0009980894", SpecialInvestmentInstruments.NON_INVESTABLE_INDICES,
               "CH0009980894CHF9", null, 6539, "2000-01-04", "2025-12-05"));

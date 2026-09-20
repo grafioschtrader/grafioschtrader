@@ -11,13 +11,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Container for all transactions related to a single security with aggregated position summary.
- * 
+ *
  * <p>
  * This class aggregates individual transactions into a comprehensive view that includes detailed transaction history
  * and calculated position metrics such as gains, losses, and current holdings. Provides special handling for margin
  * trading instruments where child transactions must be properly ordered relative to their parent positions.
  * </p>
- * 
+ *
  * <p>
  * The transaction list maintains chronological order with margin child transactions inserted immediately after their
  * parent transactions for proper position tracking.
@@ -33,7 +33,7 @@ public class SecurityTransactionSummary {
 
   /**
    * Creates a new transaction summary for the specified security.
-   * 
+   *
    * @param security             the security for which transactions are being summarized
    * @param mainCurrency         the base currency for position calculations
    * @param currencyPrecisionMap map of currency codes to decimal precision settings
@@ -45,12 +45,12 @@ public class SecurityTransactionSummary {
 
   /**
    * Creates and adds a transaction position with calculated gains/losses.
-   * 
+   *
    * <p>
    * For margin instruments, child transactions are inserted at the appropriate position relative to their parent
    * transaction to maintain proper position hierarchy. Regular transactions are appended to the end of the list.
    * </p>
-   * 
+   *
    * @param transaction the transaction to add to the summary
    */
   public void createAndAddPositionGainLoss(Transaction transaction) {
@@ -65,15 +65,15 @@ public class SecurityTransactionSummary {
    * Fills in the per-transaction currency result across the whole list.
    *
    * <p>
-   * It cannot be computed while the transactions are being walked, because each transaction's share depends on the
-   * rate of the reporting date, which is only settled afterwards. Every flow gets a value, purchases included — the
-   * previous calculation produced one for sales alone — and the individual values sum to the
-   * {@code gainLossCurrencyMC} of the position.
+   * It cannot be computed while the transactions are being walked, because each transaction's share depends on the rate
+   * of the reporting date, which is only settled afterwards. Every flow gets a value, purchases included — the previous
+   * calculation produced one for sales alone — and the individual values sum to the {@code gainLossCurrencyMC} of the
+   * position.
    * </p>
    *
    * <p>
-   * A security already denominated in the main currency is skipped: it carries no currency result, and the rate
-   * lookup would otherwise hand out the cash account cross rate for it.
+   * A security already denominated in the main currency is skipped: it carries no currency result, and the rate lookup
+   * would otherwise hand out the cash account cross rate for it.
    * </p>
    *
    * @param reportExchangeRate rate from the security currency into the main currency at the reporting date
@@ -87,7 +87,7 @@ public class SecurityTransactionSummary {
 
   /**
    * Removes security object references from all transactions to reduce JSON payload size.
-   * 
+   *
    * <p>
    * This is typically used when the security information is already available in the summary and doesn't need to be
    * duplicated in each individual transaction.
@@ -100,18 +100,18 @@ public class SecurityTransactionSummary {
 
   /**
    * Inserts a margin child transaction at the correct position relative to its parent.
-   * 
+   *
    * <p>
    * Margin trading uses a parent-child relationship where the opening position acts as the parent and subsequent
    * transactions (closes, financing costs) are children. This method ensures child transactions are grouped with their
    * parent for proper position tracking and reporting.
    * </p>
-   * 
+   *
    * <p>
    * The insertion logic finds the parent transaction and places the child immediately after all existing children of
    * the same parent, maintaining chronological order within the parent-child group.
    * </p>
-   * 
+   *
    * @param transaction the margin child transaction to insert
    */
   private void insertMarginChild(Transaction transaction) {

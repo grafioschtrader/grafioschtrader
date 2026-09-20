@@ -117,8 +117,10 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
    *
    * @param idTargetTenant the tenant to switch into
    * @param backToHome     true when returning to the user's own home tenant
+   * @param onSwitched     optional hook for session state an application layer keeps in addition to the generic keys,
+   *                       invoked after the switch succeeded and before the reload
    */
-  public switchAndReload(idTargetTenant: number, backToHome: boolean): void {
+  public switchAndReload(idTargetTenant: number, backToHome: boolean, onSwitched?: () => void): void {
     this.switchTenant(idTargetTenant).subscribe({
       next: (response) => {
         if (!backToHome && !sessionStorage.getItem(GlobalSessionNames.MAIN_ID_TENANT)) {
@@ -133,6 +135,7 @@ export class ManageClientService extends AuthServiceWithLogout<any> {
         if (backToHome) {
           sessionStorage.removeItem(GlobalSessionNames.MAIN_ID_TENANT);
         }
+        onSwitched?.();
         this.router.navigate(['/' + BaseSettings.MAINVIEW_KEY]).then(() => window.location.reload());
       },
       error: (err) => console.error('Error switching tenant:', err)

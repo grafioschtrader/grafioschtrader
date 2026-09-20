@@ -78,5 +78,4 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
     return importTransactionHeadJpaRepository;
   }
 
-
 }

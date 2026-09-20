@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
 import { loadUsers, loginAsFixtureUser, UserFixture } from './helpers';
 
 /** Target values for Grafioschtrader's application-specific tenant edit dialog. */
@@ -42,7 +43,9 @@ if (tenantEditUsers.length === 0) {
 
 /** Opens the tenant edit dialog from the root node of the main portfolio tree. */
 async function openTenantEditDialog(page: Page): Promise<Locator> {
-  const tenantRoot = page.locator('.p-tree-node-content').first();
+  // Dashboard is also a root tree node and currently renders before the tenant node.
+  // The tenant root is labelled with the translated PORTFOLIOS key followed by the tenant name.
+  const tenantRoot = page.getByRole('treeitem', { name: /^Portfolios-/ }).first();
   await tenantRoot.waitFor({ state: 'visible', timeout: 15_000 });
   await tenantRoot.click({ button: 'right' });
 
@@ -52,7 +55,9 @@ async function openTenantEditDialog(page: Page): Promise<Locator> {
 
   const dialog = page.locator('.p-dialog:visible');
   await dialog.waitFor({ state: 'visible', timeout: 10_000 });
-  await expect(dialog.locator('select#country option')).not.toHaveCount(0, { timeout: 10_000 });
+  // Currencies and countries load together; currency stays a native select, so its options signal that load.
+  await expect(dialog.locator('select#currency option')).not.toHaveCount(0, { timeout: 10_000 });
+  await expect(dialog.locator('p-select#country')).toBeVisible({ timeout: 10_000 });
   // The opt-in is only rendered once an administrator has chosen the import platform of this instance, which the
   // backend integration suite does before these specs run.
   await dialog.locator('input#useGtImportTemplates').waitFor({ state: 'visible', timeout: 10_000 });
@@ -67,23 +72,16 @@ async function fillText(dialog: Locator, fieldId: string, value: string): Promis
   await input.blur();
 }
 
-/** Selects Switzerland by ISO code while checking the localized option label. */
-async function selectSwitzerland(countrySelect: Locator, expectedEnglishLabel: string): Promise<void> {
-  const option = countrySelect.locator(`option[value="${COUNTRY_CODE_SWITZERLAND}"]`);
-  await option.waitFor({ state: 'attached', timeout: 10_000 });
-  await expect(option).toHaveText(new RegExp(`^\\s*(${expectedEnglishLabel}|Schweiz)\\s*$`, 'i'));
-  await countrySelect.selectOption(COUNTRY_CODE_SWITZERLAND);
-  await countrySelect.dispatchEvent('change');
+/** Selects Switzerland in the filterable country dropdown by its localized label. */
+async function selectSwitzerland(page: Page, dialog: Locator, expectedEnglishLabel: string): Promise<void> {
+  await selectDynamicFormOptionByText(page, dialog, 'country', new RegExp(`${expectedEnglishLabel}|Schweiz`, 'i'));
 }
 
 /** Verifies all fixture-driven values currently displayed by the tenant edit dialog. */
 async function expectTenantTarget(dialog: Locator, target: TenantEditTarget): Promise<void> {
   await expect(dialog.locator('input#tenantName')).toHaveValue(target.tenantName);
   await expect(dialog.locator('input#excludeDivTax')).toBeChecked({ checked: target.excludeDivTax });
-  await expect(dialog.locator('select#country')).toHaveValue(COUNTRY_CODE_SWITZERLAND);
-  await expect(dialog.locator('select#country option:checked')).toHaveText(
-    new RegExp(`^\\s*(${target.country}|Schweiz)\\s*$`, 'i')
-  );
+  await expect(dialog.locator('p-select#country')).toContainText(new RegExp(`${target.country}|Schweiz`, 'i'));
   await expect(dialog.locator('input#useGtImportTemplates')).toBeChecked({ checked: target.useGtImportTemplates });
 }
 
@@ -97,7 +95,7 @@ test.describe.serial('edit tenant settings', () => {
 
       await fillText(dialog, 'tenantName', target.tenantName);
       await dialog.locator('input#excludeDivTax').setChecked(target.excludeDivTax);
-      await selectSwitzerland(dialog.locator('select#country'), target.country);
+      await selectSwitzerland(page, dialog, target.country);
       await dialog.locator('input#useGtImportTemplates').setChecked(target.useGtImportTemplates);
 
       const updateResponsePromise = page.waitForResponse(

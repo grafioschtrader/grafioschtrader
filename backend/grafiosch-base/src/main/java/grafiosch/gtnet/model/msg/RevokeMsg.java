@@ -9,16 +9,15 @@ import jakarta.validation.constraints.NotNull;
 /**
  * Payload for revoking data exchange agreements (GT_NET_*_REVOKE_SEL_C messages).
  *
- * Used when a domain decides to terminate an existing data sharing arrangement. The revocation
- * takes effect at the specified future time, giving the other party time to adjust their data
- * sourcing strategy.
+ * Used when a domain decides to terminate an existing data sharing arrangement. The revocation takes effect at the
+ * specified future time, giving the other party time to adjust their data sourcing strategy.
  *
  * Different revocation message codes exist for different exchange types:
  * <ul>
- *   <li>GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C - Stop sharing server list</li>
- *   <li>GT_NET_LASTPRICE_REVOKE_SEL_C - Stop intraday price sharing</li>
- *   <li>GT_NET_ENTITY_REVOKE_SEL_C - Stop entity data sharing</li>
- *   <li>GT_NET_BOTH_REVOKE_SEL_C - Stop all data sharing</li>
+ * <li>GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C - Stop sharing server list</li>
+ * <li>GT_NET_LASTPRICE_REVOKE_SEL_C - Stop intraday price sharing</li>
+ * <li>GT_NET_ENTITY_REVOKE_SEL_C - Stop entity data sharing</li>
+ * <li>GT_NET_BOTH_REVOKE_SEL_C - Stop all data sharing</li>
  * </ul>
  */
 @Schema(description = """

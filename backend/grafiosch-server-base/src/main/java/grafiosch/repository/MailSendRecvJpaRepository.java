@@ -71,7 +71,8 @@ public interface MailSendRecvJpaRepository extends JpaRepository<MailSendRecv, I
    * Finds role-message conversation threads that are eligible for physical deletion because every corresponding role
    * member has marked the role message as deleted ({@code mark_hide_del = 1}).
    *
-   * <p>A role conversation is identified by its thread key {@code id_reply_to_local}. For each role-visible message
+   * <p>
+   * A role conversation is identified by its thread key {@code id_reply_to_local}. For each role-visible message
    * ({@code id_role_to IS NOT NULL AND send_recv = 'R'}) the "corresponding users" are the members of that role who
    * were members at the message's send time, mirroring {@code MailSendRecv.findByUserOrGroup} (i.e.
    * {@code send_recv_time >= user.last_role_modified_time}). A thread is returned only when no such corresponding user

@@ -16,9 +16,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Response payload for historical price coverage queries from GTNet peers.
  *
- * Contains coverage metadata (min/max dates, record counts) for each queried instrument without
- * the actual price data. This lightweight response enables efficient peer selection based on
- * which peer has the longest historical coverage.
+ * Contains coverage metadata (min/max dates, record counts) for each queried instrument without the actual price data.
+ * This lightweight response enables efficient peer selection based on which peer has the longest historical coverage.
  *
  * @see grafioschtrader.gtnet.GTNetMessageCodeType#GT_NET_HISTORYQUOTE_COVERAGE_RESPONSE_S
  */

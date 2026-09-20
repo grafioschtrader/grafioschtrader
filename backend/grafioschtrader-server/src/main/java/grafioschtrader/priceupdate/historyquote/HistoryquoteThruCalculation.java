@@ -50,7 +50,8 @@ public class HistoryquoteThruCalculation<S extends Securitycurrency<Security>> e
       List<Historyquote> newHistoryquotes = ThruCalculationHelper.loadDataAndCreateHistoryquotes(
           securityDerivedLinkJpaRepository, historyquoteJpaRepository, security, correctedFromDate, toDateCalc);
       LocalDate maxDate = correctedFromDate.minusDays(1);
-      newHistoryquotes.addAll(ThruCalculationHelper.fillGaps(securityDerivedLinkJpaRepository, historyquoteJpaRepository, security, maxDate));
+      newHistoryquotes.addAll(ThruCalculationHelper.fillGaps(securityDerivedLinkJpaRepository,
+          historyquoteJpaRepository, security, maxDate));
       addHistoryquotesToSecurity(security, newHistoryquotes, correctedFromDate, toDateCalc);
     } catch (final ParseException pe) {
       retryHistoryLoad++;

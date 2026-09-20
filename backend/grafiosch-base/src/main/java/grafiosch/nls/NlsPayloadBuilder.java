@@ -41,10 +41,10 @@ public final class NlsPayloadBuilder {
     for (Map.Entry<String, String> entry : new TreeMap<>(rawEntries).entrySet()) {
       String rawKey = entry.getKey();
       switch (NlsKeyMapper.map(rawKey)) {
-        case ClientKey.Flat(String clientKey) ->
-          putLeaf(payload, clientKey, clientKey, rawKey, entry.getValue(), originOfClientKey, collisions);
-        case ClientKey.Nested(String namespace, String leaf) ->
-          putNestedLeaf(payload, namespace, leaf, rawKey, entry.getValue(), originOfClientKey, collisions);
+      case ClientKey.Flat(String clientKey) -> putLeaf(payload, clientKey, clientKey, rawKey, entry.getValue(),
+          originOfClientKey, collisions);
+      case ClientKey.Nested(String namespace, String leaf) -> putNestedLeaf(payload, namespace, leaf, rawKey,
+          entry.getValue(), originOfClientKey, collisions);
       }
     }
     if (!collisions.isEmpty()) {

@@ -1,0 +1,26 @@
+Detail der Kontobewegungen
+Nummer der Kundenbeziehung 999999
+Konto 01 EUR
+Datum 19.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+Kauf Aktien 28/05/26 28/05/26 15.281,06-
+Depot 999999/01
+Ihr Auftrag vom 26.05.2026
+ZOETIS INC
+Valorennummer 19276994.1
+ISIN Nummer US98978V1035
+Ausführungsdatum 26.05.2026
+Ausführungszeit (GMT + 1) 15.36.18
+Anzahl 220,00
+Zum Kurs von 69,30 EUR
+Börsenplatz XETRA
+Bruttobetrag 15.246,00- EUR
+Handelsgebühr 8,91- EUR
+Fremdgebühren 3,29- EUR
+Stempel 22,86- EUR
+Totalbetrag 15.281,06- EUR
+Unsere Ref: EXAMPLE/2026/1
+Via e-banking gedruckt Cornèr Bank AG
+Im Falle von Abweichungen zwischen den vom Cornèronline-System zur Verfügung gestellten Daten oder Dokumenten
+und jenen, die von der Bank in ihrer Buchhaltung registriert werden, sind auf alle Fälle letztere massgebend. mail@corneronline.ch
+1/1

@@ -10,25 +10,25 @@ public enum SpecialInvestmentInstruments implements StableEnum {
 
   /** Can have dividends */
   DIRECT_INVESTMENT((byte) 0),
-  
+
   /** Can have dividends */
   ETF((byte) 1),
-  
+
   /** Can have dividends */
   MUTUAL_FUND((byte) 2),
-  
+
   /** Can have dividends */
   PENSION_FUNDS((byte) 3),
-  
+
   /** Can never have dividends */
   CFD((byte) 4),
-  
+
   /** Can never have dividends */
   FOREX((byte) 5),
-  
+
   /** A product with issuer risk like certificate, ETC, ETN */
   ISSUER_RISK_PRODUCT((byte) 6),
-  
+
   /** Can never have dividends */
   NON_INVESTABLE_INDICES((byte) 10);
 

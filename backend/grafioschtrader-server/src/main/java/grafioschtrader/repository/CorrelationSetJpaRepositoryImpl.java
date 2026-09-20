@@ -17,7 +17,6 @@ import grafiosch.dto.TenantLimit;
 import grafiosch.entities.User;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
-import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.RepositoryHelper;
 import grafiosch.service.EntityLimitService;
 import grafioschtrader.config.LimitKeyConfig;
@@ -40,9 +39,6 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
 
   @Autowired
   private CorrelationSetJpaRepository correlationSetJpaRepository;
-
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -101,15 +97,15 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     securitycurrencySearch.setMaxFromDate(correlationSet.getDateFrom());
     securitycurrencySearch.setMinToDate(correlationSet.getDateTo());
     if (!securities.isEmpty()) {
-      securities.stream().map(Security::getActiveFromDate).filter(d -> d != null)
-          .max(LocalDate::compareTo).ifPresent(latestActiveFrom -> {
+      securities.stream().map(Security::getActiveFromDate).filter(d -> d != null).max(LocalDate::compareTo)
+          .ifPresent(latestActiveFrom -> {
             if (securitycurrencySearch.getMaxFromDate() == null
                 || latestActiveFrom.isAfter(securitycurrencySearch.getMaxFromDate())) {
               securitycurrencySearch.setMaxFromDate(latestActiveFrom);
             }
           });
-      securities.stream().map(Security::getActiveToDate).filter(d -> d != null)
-          .min(LocalDate::compareTo).ifPresent(earliestActiveTo -> {
+      securities.stream().map(Security::getActiveToDate).filter(d -> d != null).min(LocalDate::compareTo)
+          .ifPresent(earliestActiveTo -> {
             if (securitycurrencySearch.getMinToDate() == null
                 || earliestActiveTo.isBefore(securitycurrencySearch.getMinToDate())) {
               securitycurrencySearch.setMinToDate(earliestActiveTo);

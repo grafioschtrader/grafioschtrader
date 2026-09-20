@@ -31,8 +31,9 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Supplies historical currency rates from a Frankfurter instance (<a href="https://frankfurter.dev">frankfurter.dev</a>),
- * a free and key-less exchange rate API whose daily reference rates are blended from a large number of central banks.
+ * Supplies historical currency rates from a Frankfurter instance
+ * (<a href="https://frankfurter.dev">frankfurter.dev</a>), a free and key-less exchange rate API whose daily reference
+ * rates are blended from a large number of central banks.
  *
  * <h3>Why this class is abstract</h3>
  * <p>
@@ -47,16 +48,15 @@ import tools.jackson.databind.ObjectMapper;
  * A time series is answered in a single request as a flat JSON array, one element per day:
  * {@code [{"date":"2026-08-01","base":"USD","quote":"CHF","rate":0.80904}, ...]}. Base and quote currency are free
  * parameters, so both directions of a currency pair are served. There is no range limit that would force chunked
- * requests, and no intraday endpoint - only one daily reference rate - which is why this connector registers for
- * alone.
+ * requests, and no intraday endpoint - only one daily reference rate - which is why this connector registers for alone.
  * </p>
  * <h3>Why Saturdays and Sundays are discarded</h3>
  * <p>
  * The delivered series covers every calendar day, unlike the working-day-only series of the ECB or Yahoo connectors,
  * but the weekend rows are not observations: foreign exchange markets are closed, and the values arise from the
  * carry-forward and decay-weighted blending the provider uses to bridge sources that publish irregularly (see
- * lineofflight/frankfurter issues 570 and 573). USD/KRW simply repeats the Friday rate on Saturday, EUR/CHF drifts by
- * a few ten-thousandths per weekend day. Storing that as a quote would put smoothed values next to real ones and would
+ * lineofflight/frankfurter issues 570 and 573). USD/KRW simply repeats the Friday rate on Saturday, EUR/CHF drifts by a
+ * few ten-thousandths per weekend day. Storing that as a quote would put smoothed values next to real ones and would
  * make this connector's history incompatible with every other currency connector, so those rows are dropped.
  * </p>
  * <p>
@@ -73,8 +73,8 @@ import tools.jackson.databind.ObjectMapper;
  * large rates. The stated purpose is to hide the false precision that averaging across providers invents (see
  * lineofflight/frankfurter issues 533 and 534). The bands keep roughly five significant digits, which is ample - but
  * only down to a rate of about 0.1. Below that the fixed five decimal places decay quickly: JPY/GBP is answered as
- * {@code 0.005} where the true rate is {@code 0.0050012}, and KRW/USD as {@code 0.00072} against {@code 0.00072472},
- * an error of 0.7 percent.
+ * {@code 0.005} where the true rate is {@code 0.0050012}, and KRW/USD as {@code 0.00072} against {@code 0.00072472}, an
+ * error of 0.7 percent.
  * </p>
  * <p>
  * There is no query parameter to opt out of the rounding, and scoping the request to a single provider does not help
@@ -103,8 +103,8 @@ public abstract class FrankfurterApiFeedConnector extends BaseFeedConnector {
    */
   private static final int DOWNLOAD_LINK_DAYS = 7;
   /**
-   * Lower end of the range in which the rounding of the provider is harmless. Rates below 1 are rounded to five
-   * decimal places, so the relative error stays at or below about 0.005 percent down to 0.1 and then grows in inverse
+   * Lower end of the range in which the rounding of the provider is harmless. Rates below 1 are rounded to five decimal
+   * places, so the relative error stays at or below about 0.005 percent down to 0.1 and then grows in inverse
    * proportion to the rate - 0.006 percent at 0.08, 0.1 percent at 0.005, 0.7 percent at 0.0007. Below this bound the
    * opposite direction of the pair is worth a second request.
    */
@@ -260,8 +260,8 @@ public abstract class FrankfurterApiFeedConnector extends BaseFeedConnector {
   private Set<String> getSupportedCurrencies() {
     Set<String> cached = supportedCurrencies;
     Instant loadedAt = supportedCurrenciesLoadedAt;
-    if (cached != null && loadedAt != null && Duration.between(loadedAt, Instant.now()).compareTo(
-        SUPPORTED_CURRENCIES_TTL) < 0) {
+    if (cached != null && loadedAt != null
+        && Duration.between(loadedAt, Instant.now()).compareTo(SUPPORTED_CURRENCIES_TTL) < 0) {
       return cached;
     }
     try {
@@ -323,8 +323,8 @@ public abstract class FrankfurterApiFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Removes trailing slashes so that the configured root and the appended path never produce a double slash. A blank
-   * or missing value is passed through unchanged and keeps the connector deactivated.
+   * Removes trailing slashes so that the configured root and the appended path never produce a double slash. A blank or
+   * missing value is passed through unchanged and keeps the connector deactivated.
    *
    * @param apiRootUrl the configured root URL, may be null or blank
    * @return the root URL without a trailing slash

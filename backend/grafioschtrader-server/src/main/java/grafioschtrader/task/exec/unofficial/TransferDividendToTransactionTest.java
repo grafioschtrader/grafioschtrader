@@ -78,8 +78,7 @@ public class TransferDividendToTransactionTest implements ITask {
     // three hold tables for the tenant, scheduled so that it runs after this transaction has committed and therefore
     // sees the new transactions.
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
-        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant,
-        Tenant.class.getSimpleName()));
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant, Tenant.class.getSimpleName()));
   }
 
   private void createTransactionsByDividend(Integer idTenant, Portfolio portfolio, Integer idSecurityaccount,

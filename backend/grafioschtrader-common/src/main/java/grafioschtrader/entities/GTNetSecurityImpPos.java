@@ -23,9 +23,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * Position entity representing a single security to be imported via GTNet. Each position contains
- * identification data (ISIN, ticker symbol) and currency for looking up security metadata from
- * GTNet peers.
+ * Position entity representing a single security to be imported via GTNet. Each position contains identification data
+ * (ISIN, ticker symbol) and currency for looking up security metadata from GTNet peers.
  */
 @Schema(description = """
     Position entity for GTNet security import. Represents a single security to be looked up from

@@ -58,8 +58,8 @@ public class YahooUDFConnectTest {
     try {
       // CrumbManager.setCookie();
 
-     // List<String> symbols = Arrays.asList("DOW");
-     List<String> symbols = Arrays.asList("ADSK", "NVDA",  "BIDU");
+      // List<String> symbols = Arrays.asList("DOW");
+      List<String> symbols = Arrays.asList("ADSK", "NVDA", "BIDU");
       LocalDateTime now = LocalDateTime.now();
 
       for (String symbol : symbols) {
@@ -70,7 +70,8 @@ public class YahooUDFConnectTest {
         assertNotNull(nextEarningDate, "Next earning date should not be null for " + symbol);
 
         // must be today or in the future
-        assertTrue(!nextEarningDate.isBefore(now), "Next earning date for " + symbol + " should be today or in the future, but was " + nextEarningDate);
+        assertTrue(!nextEarningDate.isBefore(now),
+            "Next earning date for " + symbol + " should be today or in the future, but was " + nextEarningDate);
       }
     } catch (IOException e) {
       e.printStackTrace();

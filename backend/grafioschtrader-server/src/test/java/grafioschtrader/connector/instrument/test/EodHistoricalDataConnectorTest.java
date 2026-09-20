@@ -48,8 +48,8 @@ public class EodHistoricalDataConnectorTest extends BaseFeedConnectorCheck {
   protected List<SecurityHistoricalDate> getHistoricalSecurities(HistoricalIntra histroricalIntra) {
     List<SecurityHistoricalDate> hisoricalDate = new ArrayList<>();
     try {
-      hisoricalDate.add(new SecurityHistoricalDate("Air France-KLM SA ", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "AF.PA",
-          GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 6678, "2000-01-03", "2026-02-09"));
+      hisoricalDate.add(new SecurityHistoricalDate("Air France-KLM SA ", SpecialInvestmentInstruments.DIRECT_INVESTMENT,
+          "AF.PA", GlobalConstants.STOCK_EX_MIC_FRANCE, GlobalConstants.MC_EUR, 6678, "2000-01-03", "2026-02-09"));
       hisoricalDate.add(new SecurityHistoricalDate("Cisco", SpecialInvestmentInstruments.DIRECT_INVESTMENT, "csco",
           GlobalConstants.STOCK_EX_MIC_NASDAQ, GlobalConstants.MC_USD, 6565, "2000-01-03", "2026-02-09"));
       hisoricalDate.add(new SecurityHistoricalDate("Lyxor CAC 40", SpecialInvestmentInstruments.ETF, "CAC.PA",

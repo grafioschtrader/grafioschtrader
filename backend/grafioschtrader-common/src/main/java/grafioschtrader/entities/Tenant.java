@@ -12,12 +12,15 @@ import java.util.List;
 import org.hibernate.annotations.Type;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBase;
 import grafiosch.validation.AfterEqual;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.TaxStatementExportRequest;
+import grafioschtrader.types.SimulationInitializationMode;
 import grafioschtrader.types.TenantKindType;
 import grafioschtrader.validation.ValidCurrencyCode;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
@@ -25,6 +28,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
@@ -94,6 +99,37 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "id_algo_top")
   private Integer idAlgoTop;
 
+  @Schema(description = """
+      End-of-day valuation date whose closing state this simulation environment opens with. Immutable after creation
+      and NULL for a main tenant, and also for an environment created before the opening definition existed, which
+      therefore has to be recreated before it can be replayed.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "simulation_start_date")
+  private LocalDate simulationStartDate;
+
+  @Schema(description = """
+      How the opening ledger of this simulation environment was established. Immutable after creation and NULL for a
+      main tenant.""")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "simulation_initialization_mode")
+  private SimulationInitializationMode simulationInitializationMode;
+
+  public LocalDate getSimulationStartDate() {
+    return simulationStartDate;
+  }
+
+  public void setSimulationStartDate(LocalDate date) {
+    simulationStartDate = date;
+  }
+
+  public SimulationInitializationMode getSimulationInitializationMode() {
+    return simulationInitializationMode;
+  }
+
+  public void setSimulationInitializationMode(SimulationInitializationMode mode) {
+    simulationInitializationMode = mode;
+  }
+
   @Schema(description = "ISO 3166-1 alpha-2 country code for the tenant, used to enable country-specific features such as ICTax columns.")
   @Column(name = "country")
   @Size(max = 2)
@@ -111,6 +147,16 @@ public class Tenant extends TenantBase implements Serializable {
       but of the instance and is configured by an administrator in the global parameter gt.import.platform.id.""")
   @Column(name = "use_gt_import_templates")
   private boolean useGtImportTemplates;
+
+  @Schema(description = """
+      Chooses how the cumulative account fees and the account interest of the Portfolios and Portfolio evaluation reach
+      the main currency. When false, which is the default and the accounting convention, every booking is converted with
+      the exchange rate of its own booking day. When true, they are converted with the exchange rate of the cut-off date
+      instead, the way the period performance revalues its running totals, so that both evaluations report the same
+      amount. The rate movement of those bookings is then no longer shown under the currency gain, because it is already
+      contained in them.""")
+  @Column(name = "fee_interest_fx_at_cut_off_date")
+  private boolean feeInterestFxAtCutOffDate;
 
   @JsonCreator
   public Tenant() {
@@ -222,6 +268,14 @@ public class Tenant extends TenantBase implements Serializable {
     this.useGtImportTemplates = useGtImportTemplates;
   }
 
+  public boolean isFeeInterestFxAtCutOffDate() {
+    return feeInterestFxAtCutOffDate;
+  }
+
+  public void setFeeInterestFxAtCutOffDate(boolean feeInterestFxAtCutOffDate) {
+    this.feeInterestFxAtCutOffDate = feeInterestFxAtCutOffDate;
+  }
+
   public void updateThis(Tenant sourceTenant) {
     this.setTenantName(sourceTenant.getTenantName());
     this.setCurrency(sourceTenant.getCurrency());
@@ -229,6 +283,7 @@ public class Tenant extends TenantBase implements Serializable {
     this.setClosedUntil(sourceTenant.getClosedUntil());
     this.setCountry(sourceTenant.getCountry());
     this.setUseGtImportTemplates(sourceTenant.isUseGtImportTemplates());
+    this.setFeeInterestFxAtCutOffDate(sourceTenant.isFeeInterestFxAtCutOffDate());
   }
 
   @Override

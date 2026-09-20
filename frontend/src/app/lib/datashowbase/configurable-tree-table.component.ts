@@ -115,6 +115,8 @@ export interface TreeTableCellEditEvent {
         (selectionChange)="selectionChange.emit($event)"
         (onNodeSelect)="nodeSelect.emit($event)"
         (onNodeUnselect)="nodeUnselect.emit($event)"
+        (onNodeExpand)="nodeExpand.emit($event)"
+        (onNodeCollapse)="nodeCollapse.emit($event)"
         [sortField]="sortField"
         [sortOrder]="sortOrder"
         [paginator]="paginator"
@@ -175,7 +177,7 @@ export interface TreeTableCellEditEvent {
                   <td
                     [ttEditableColumn]="rowData"
                     [ttEditableColumnField]="field.field"
-                    [ngClass]="getCellClass(field)"
+                    [ngClass]="getCellClass(field, rowData)"
                     [style.width.px]="field.width">
                     @if (i === 0) {
                       <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
@@ -215,7 +217,7 @@ export interface TreeTableCellEditEvent {
                   </td>
                 } @else {
                   <!-- Non-editable cell (standard rendering) -->
-                  <td [ngClass]="getCellClass(field)" [style.width.px]="field.width">
+                  <td [ngClass]="getCellClass(field, rowData)" [style.width.px]="field.width">
                     @if (i === 0) {
                       <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
                     }
@@ -339,6 +341,12 @@ export class ConfigurableTreeTableComponent {
   /** Emits when a tree node is unselected (user action). */
   @Output() nodeUnselect = new EventEmitter<any>();
 
+  /** A node was opened. Emitted so a caller can remember which branches the reader wants to see. */
+  @Output() nodeExpand = new EventEmitter<any>();
+
+  /** A node was closed; the counterpart of {@link nodeExpand}. */
+  @Output() nodeCollapse = new EventEmitter<any>();
+
   // ============================================================================
   // Sorting Configuration
   // ============================================================================
@@ -430,6 +438,13 @@ export class ConfigurableTreeTableComponent {
 
   /** Custom function to retrieve cell values. */
   @Input() valueGetterFn?: (row: any, field: ColumnConfig) => any;
+
+  /**
+   * Callback returning additional CSS class(es) for a single cell, evaluated per row and column.
+   * The returned class is appended to the alignment class derived from the column data type, so a
+   * caller can mark individual values without losing the numeric right alignment.
+   */
+  @Input() cellClassFn?: (rowData: any, field: ColumnConfig) => string | null;
 
   // ============================================================================
   // Row Behavior Callbacks
@@ -731,20 +746,24 @@ export class ConfigurableTreeTableComponent {
   }
 
   /**
-   * Determines CSS class for table cell based on data type.
+   * Determines CSS class for table cell based on data type and the optional cellClassFn callback.
    * Right-aligns numeric columns for better readability.
    *
    * @param field - Column configuration
+   * @param rowData - Row data object, only passed for body cells
    * @returns CSS class string
    */
-  getCellClass(field: ColumnConfig): string {
-    return field.dataType === DataType.Numeric ||
+  getCellClass(field: ColumnConfig, rowData?: any): string {
+    const alignClass =
+      field.dataType === DataType.Numeric ||
       field.dataType === DataType.NumericShowZero ||
       field.dataType === DataType.NumericInteger ||
       field.dataType === DataType.NumericRaw ||
       field.dataType === DataType.DateTimeNumeric
-      ? 'text-end'
-      : '';
+        ? 'text-end'
+        : '';
+    const cellClass = rowData !== undefined && this.cellClassFn ? this.cellClassFn(rowData, field) : null;
+    return cellClass ? (alignClass ? alignClass + ' ' + cellClass : cellClass) : alignClass;
   }
 
   /**

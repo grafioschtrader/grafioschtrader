@@ -53,9 +53,9 @@ class IctaxExDateMatcherTest {
   void leavesGenuineGapUnmatched() {
     // Monthly distributor with tax rows in May and July but a transaction booked in June.
     Transaction juneTx = divTx("IE00B9M04V95", LocalDate.of(2025, 6, 25));
-    List<IctaxSecurityTaxData> taxData = List.of(taxData("IE00B9M04V95",
-        payment(LocalDate.of(2025, 5, 29), LocalDate.of(2025, 5, 15), false),
-        payment(LocalDate.of(2025, 7, 30), LocalDate.of(2025, 7, 17), false)));
+    List<IctaxSecurityTaxData> taxData = List
+        .of(taxData("IE00B9M04V95", payment(LocalDate.of(2025, 5, 29), LocalDate.of(2025, 5, 15), false),
+            payment(LocalDate.of(2025, 7, 30), LocalDate.of(2025, 7, 17), false)));
 
     Map<Transaction, LocalDate> result = IctaxExDateMatcher.assignExDates(List.of(juneTx), taxData,
         IctaxExDateMatcher.DEFAULT_TOLERANCE_DAYS);
@@ -70,10 +70,10 @@ class IctaxExDateMatcherTest {
     // earlier coupon that must not win.
     Transaction t1 = divTx("CH0237935652", LocalDate.of(2025, 7, 17));
     Transaction t2 = divTx("CH0237935652", LocalDate.of(2025, 7, 17));
-    List<IctaxSecurityTaxData> taxData = List.of(taxData("CH0237935652",
-        payment(LocalDate.of(2025, 4, 15), LocalDate.of(2025, 4, 11), false),
-        payment(LocalDate.of(2025, 7, 17), LocalDate.of(2025, 7, 15), true),
-        payment(LocalDate.of(2025, 7, 17), LocalDate.of(2025, 7, 15), false)));
+    List<IctaxSecurityTaxData> taxData = List
+        .of(taxData("CH0237935652", payment(LocalDate.of(2025, 4, 15), LocalDate.of(2025, 4, 11), false),
+            payment(LocalDate.of(2025, 7, 17), LocalDate.of(2025, 7, 15), true),
+            payment(LocalDate.of(2025, 7, 17), LocalDate.of(2025, 7, 15), false)));
 
     Map<Transaction, LocalDate> result = IctaxExDateMatcher.assignExDates(List.of(t1, t2), taxData,
         IctaxExDateMatcher.DEFAULT_TOLERANCE_DAYS);

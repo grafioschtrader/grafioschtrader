@@ -7,9 +7,9 @@ import grafioschtrader.entities.Transaction;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = """
-Represents a currency pair with its associated transactions and calculated financial metrics. 
-Includes transaction summaries, gain/loss calculations, and optional reverse currency pair data for comprehensive analysis.
-""")
+    Represents a currency pair with its associated transactions and calculated financial metrics.
+    Includes transaction summaries, gain/loss calculations, and optional reverse currency pair data for comprehensive analysis.
+    """)
 public class CurrencypairWithTransaction {
 
   @Schema(description = "Total amount in the base currency (from currency) across all transactions")
@@ -28,7 +28,7 @@ public class CurrencypairWithTransaction {
   public List<Transaction> transactionList;
 
   @Schema(description = """
-      Optional reverse currency pair data (e.g., if main pair is EUR/USD, this would contain USD/EUR data). 
+      Optional reverse currency pair data (e.g., if main pair is EUR/USD, this would contain USD/EUR data).
       Used for bidirectional analysis and comprehensive charting.""")
   public CurrencypairWithTransaction cwtReverse;
 

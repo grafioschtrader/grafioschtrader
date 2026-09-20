@@ -26,9 +26,10 @@ import grafioschtrader.service.GlobalparametersService;
  * Adds broken-EOD-connector information to the personal-data export (issue #30).
  *
  * <p>
- * When a user exports their data to migrate to a personal instance, the regular export deliberately omits the historical
- * prices of <b>active</b> securities, assuming they will be re-fetched from their EOD connector after re-import. That
- * assumption fails when an active security's history connector no longer works — its prices would be lost permanently.
+ * When a user exports their data to migrate to a personal instance, the regular export deliberately omits the
+ * historical prices of <b>active</b> securities, assuming they will be re-fetched from their EOD connector after
+ * re-import. That assumption fails when an active security's history connector no longer works — its prices would be
+ * lost permanently.
  * </p>
  *
  * <p>
@@ -37,7 +38,8 @@ import grafioschtrader.service.GlobalparametersService;
  * </p>
  * <ul>
  * <li>writes a plain-text report listing them into the export ZIP, and</li>
- * <li>additionally exports their {@code historyquote} rows into {@code gt_data.sql} so the prices survive re-import.</li>
+ * <li>additionally exports their {@code historyquote} rows into {@code gt_data.sql} so the prices survive
+ * re-import.</li>
  * </ul>
  */
 @Component
@@ -91,9 +93,9 @@ public class BrokenConnectorHistoryExportAddon implements IExportMyDataAddon {
   }
 
   /**
-   * Determines which active export-scope securities of the tenant have a broken history connector. A connector is broken
-   * when it is no longer a registered {@link IFeedConnector} (fail-safe: an empty registry flags every candidate) or its
-   * retry counter has reached the configured maximum.
+   * Determines which active export-scope securities of the tenant have a broken history connector. A connector is
+   * broken when it is no longer a registered {@link IFeedConnector} (fail-safe: an empty registry flags every
+   * candidate) or its retry counter has reached the configured maximum.
    *
    * @param user the user whose data is being exported
    * @return the broken securities; empty when none
@@ -107,8 +109,7 @@ public class BrokenConnectorHistoryExportAddon implements IExportMyDataAddon {
     for (HistoryConnectorExportCandidate candidate : candidates) {
       boolean connectorMissing = ConnectorHelper.getConnectorByConnectorId(feedConnectors,
           candidate.getIdConnectorHistory(), FeedSupport.FS_HISTORY) == null;
-      boolean retryExhausted = candidate.getRetryHistoryLoad() != null
-          && candidate.getRetryHistoryLoad() >= maxRetry;
+      boolean retryExhausted = candidate.getRetryHistoryLoad() != null && candidate.getRetryHistoryLoad() >= maxRetry;
       if (connectorMissing || retryExhausted) {
         broken.add(new BrokenSecurity(candidate, connectorMissing));
       }

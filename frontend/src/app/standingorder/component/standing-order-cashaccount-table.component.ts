@@ -101,7 +101,7 @@ export class StandingOrderCashaccountTableComponent extends StandingOrderTableBa
   }
 
   ngOnInit(): void {
-    this.loadData();
+    this.initializeData();
   }
 
   protected override addSubtypeColumns(): void {

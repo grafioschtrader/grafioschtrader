@@ -78,8 +78,7 @@ public class SixFeedConnector extends BaseFeedConnector {
     super(supportedFeed, "six", "Swiss Stock Exchange", URL_EXTENDED_REGEX, EnumSet.noneOf(UrlCheck.class));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES,
         AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND,
-        AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT,
-        AssetclassCategory.CFD_DERIVATIVE);
+        AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
     parseGeoRestrictions("XSWX");
   }
 
@@ -150,7 +149,8 @@ public class SixFeedConnector extends BaseFeedConnector {
     // Set Time "delayedDateTime": "20170802T18:28:17.313",
 
     final String dateTimeString = obj.getString("delayedDateTime").replace('T', ' ').substring(0, 17);
-    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(DATE_FORMAT_SIX).withZone(ZoneId.of("Europe/Zurich"));
+    final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern(DATE_FORMAT_SIX)
+        .withZone(ZoneId.of("Europe/Zurich"));
     security.setSTimestamp(LocalDateTime.parse(dateTimeString, dateFormat));
 
     // Set performance data
@@ -178,7 +178,6 @@ public class SixFeedConnector extends BaseFeedConnector {
         + "&columns=Date,Time,Close,Open,Low,High,TotalVolume&netting=1440&nd=true&type=2&fromdate="
         + dateFormat.format(from);
   }
-  
 
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
@@ -213,11 +212,10 @@ public class SixFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Reads the dividend history from the SIX share_details v3 API. SIX delivers the items in
-   * descending ex-date order; they are returned here in ascending order. SIX provides both a raw
-   * ({@code value}) and a split-adjusted ({@code adjustedValue}) amount, but only the raw value is
-   * passed on. The adjusted amount is recalculated downstream from GT's own split records (see
-   * {@link #isDividendSplitAdjusted()} returning the default {@code false}).
+   * Reads the dividend history from the SIX share_details v3 API. SIX delivers the items in descending ex-date order;
+   * they are returned here in ascending order. SIX provides both a raw ({@code value}) and a split-adjusted
+   * ({@code adjustedValue}) amount, but only the raw value is passed on. The adjusted amount is recalculated downstream
+   * from GT's own split records (see {@link #isDividendSplitAdjusted()} returning the default {@code false}).
    */
   @Override
   public List<Dividend> getDividendHistory(final Security security, final LocalDate fromDate) throws Exception {

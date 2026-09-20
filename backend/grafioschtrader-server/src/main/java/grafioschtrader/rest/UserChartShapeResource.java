@@ -22,8 +22,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
- * REST controller for managing user chart shapes. Provides endpoints to retrieve, save, and delete
- * Plotly.js drawing shapes associated with a specific security or currency pair.
+ * REST controller for managing user chart shapes. Provides endpoints to retrieve, save, and delete Plotly.js drawing
+ * shapes associated with a specific security or currency pair.
  */
 @RestController
 @RequestMapping(RequestGTMappings.USER_CHART_SHAPE_MAP)
@@ -39,15 +39,14 @@ public class UserChartShapeResource {
   public ResponseEntity<UserChartShape> getShapes(@PathVariable final Integer idSecuritycurrency) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     UserChartShapeKey key = new UserChartShapeKey(user.getIdUser(), idSecuritycurrency);
-    return userChartShapeJpaRepository.findById(key)
-        .map(shape -> ResponseEntity.ok().body(shape))
+    return userChartShapeJpaRepository.findById(key).map(shape -> ResponseEntity.ok().body(shape))
         .orElseGet(() -> ResponseEntity.noContent().build());
   }
 
   /**
-   * Stores the shapes of one chart for the current user. Ownership, the referenced instrument and the size of the
-   * shape data are all settled in {@code UserChartShapeJpaRepositoryImpl.saveWithValidation}, so that the only write
-   * path into {@code user_chart_shape} carries the checks.
+   * Stores the shapes of one chart for the current user. Ownership, the referenced instrument and the size of the shape
+   * data are all settled in {@code UserChartShapeJpaRepositoryImpl.saveWithValidation}, so that the only write path
+   * into {@code user_chart_shape} carries the checks.
    */
   @Operation(summary = "Creates or updates chart shapes for a specific security/currency pair.", tags = {
       RequestGTMappings.USER_CHART_SHAPE })

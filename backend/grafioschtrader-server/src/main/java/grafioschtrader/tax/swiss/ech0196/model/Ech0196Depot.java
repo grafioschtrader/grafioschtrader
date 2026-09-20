@@ -19,9 +19,19 @@ public class Ech0196Depot {
   @XmlAttribute(required = true)
   private String depotNumber;
 
-  public List<Ech0196Security> getSecurities() { return securities; }
-  public void setSecurities(List<Ech0196Security> securities) { this.securities = securities; }
+  public List<Ech0196Security> getSecurities() {
+    return securities;
+  }
 
-  public String getDepotNumber() { return depotNumber; }
-  public void setDepotNumber(String depotNumber) { this.depotNumber = depotNumber; }
+  public void setSecurities(List<Ech0196Security> securities) {
+    this.securities = securities;
+  }
+
+  public String getDepotNumber() {
+    return depotNumber;
+  }
+
+  public void setDepotNumber(String depotNumber) {
+    this.depotNumber = depotNumber;
+  }
 }

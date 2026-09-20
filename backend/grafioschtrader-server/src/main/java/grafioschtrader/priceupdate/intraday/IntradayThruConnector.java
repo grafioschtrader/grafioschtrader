@@ -20,17 +20,22 @@ import grafioschtrader.service.GlobalparametersService;
 
 /**
  * Intraday price updater that retrieves real-time market data through external feed connectors.
- * 
- * <p>This class handles intraday price updates for securities and currency pairs by interfacing with external
- * data providers through configured feed connectors. It provides comprehensive functionality including:
+ *
+ * <p>
+ * This class handles intraday price updates for securities and currency pairs by interfacing with external data
+ * providers through configured feed connectors. It provides comprehensive functionality including:
  * <ul>
- * <li><strong>Feed Connector Management</strong>: Locates and validates appropriate connectors based on entity configuration</li>
- * <li><strong>Retry Logic</strong>: Implements sophisticated retry mechanisms with configurable limits and automatic counter management</li>
+ * <li><strong>Feed Connector Management</strong>: Locates and validates appropriate connectors based on entity
+ * configuration</li>
+ * <li><strong>Retry Logic</strong>: Implements sophisticated retry mechanisms with configurable limits and automatic
+ * counter management</li>
  * <li><strong>Delayed Update Control</strong>: Respects data provider delay requirements and timeout constraints</li>
  * <li><strong>Secure Link Generation</strong>: Creates download links with proper API key protection and routing</li>
- * <li><strong>Entity-Specific Processing</strong>: Handles both Security and Currencypair entities with appropriate connector methods</li>
- * </ul></p>
- * 
+ * <li><strong>Entity-Specific Processing</strong>: Handles both Security and Currencypair entities with appropriate
+ * connector methods</li>
+ * </ul>
+ * </p>
+ *
  * @param <S> the type of security currency extending Securitycurrency (Security or Currencypair)
  */
 public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIntradayThru<S> {
@@ -45,10 +50,10 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   /**
    * Constructs an intraday connector-based price updater.
    *
-   * @param jpaRepository           repository for persisting security currency entities
-   * @param globalparametersService service for accessing global configuration parameters
-   * @param feedConnectorbeans      list of available feed connector implementations
-   * @param intraEntityAccess       interface for executing entity-specific intraday updates
+   * @param jpaRepository                         repository for persisting security currency entities
+   * @param globalparametersService               service for accessing global configuration parameters
+   * @param feedConnectorbeans                    list of available feed connector implementations
+   * @param intraEntityAccess                     interface for executing entity-specific intraday updates
    * @param genericConnectorEndpointJpaRepository repository for marking generic endpoints as used (may be null)
    */
   public IntradayThruConnector(SecurityCurrencypairJpaRepository<S> jpaRepository,
@@ -72,12 +77,20 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
         && securitycurrency.isActiveForIntradayUpdate(java.time.LocalDate.now())
         && allowDelayedIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)
         && claimIntradayUpdate(securitycurrency, feedConnector, scIntradayUpdateTimeout)) {
+      final IntradayFields previousFields = IntradayFields.of(securitycurrency);
+      // Every connector writes only the fields it happens to parse, so a field it does not deliver would otherwise
+      // keep the value of the connector used before it, forever. Clearing them first makes the saved row show exactly
+      // what this connector delivered.
+      clearDerivedIntradayFields(securitycurrency);
       try {
         intraEntityAccess.updateIntraSecurityCurrency(securitycurrency, feedConnector);
         securitycurrency.setRetryIntraLoad((short) 0);
         markGenericEndpointUsed(feedConnector, securitycurrency);
       } catch (final Exception e) {
         log.error("Last price update failed securitycurrency={}", securitycurrency.toString(), e);
+        // Some connectors set the timestamp before they parse the price. Without restoring the previous state a failed
+        // fetch would persist a fresh timestamp next to an old price, and the instrument would look up to date.
+        previousFields.restore(securitycurrency);
         securitycurrency.setRetryIntraLoad((short) (securitycurrency.getRetryIntraLoad() + 1));
       }
       try {
@@ -92,6 +105,50 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
       }
     }
     return securitycurrency;
+  }
+
+  /**
+   * Removes the intraday fields that describe the running session, keeping last price and timestamp. They are restored
+   * or overwritten immediately afterwards, so the instrument is never left without a price.
+   *
+   * @param securitycurrency the instrument whose session data is dropped
+   */
+  private void clearDerivedIntradayFields(final S securitycurrency) {
+    securitycurrency.setSOpen(null);
+    securitycurrency.setSHigh(null);
+    securitycurrency.setSLow(null);
+    securitycurrency.setSPrevClose(null);
+    securitycurrency.setSChangePercentage(null);
+    if (securitycurrency instanceof Security security) {
+      security.setSVolume(null);
+    }
+  }
+
+  /**
+   * The intraday state of one instrument before its connector was asked, so that a failed request leaves no trace.
+   */
+  private record IntradayFields(Double sLast, LocalDateTime sTimestamp, Double sOpen, Double sHigh, Double sLow,
+      Double sPrevClose, Double sChangePercentage, Long sVolume) {
+
+    static <S extends Securitycurrency<S>> IntradayFields of(final S securitycurrency) {
+      return new IntradayFields(securitycurrency.getSLast(), securitycurrency.getSTimestamp(),
+          securitycurrency.getSOpen(), securitycurrency.getSHigh(), securitycurrency.getSLow(),
+          securitycurrency.getSPrevClose(), securitycurrency.getSChangePercentage(),
+          securitycurrency instanceof Security security ? security.getSVolume() : null);
+    }
+
+    <S extends Securitycurrency<S>> void restore(final S securitycurrency) {
+      securitycurrency.setSLast(sLast);
+      securitycurrency.setSTimestamp(sTimestamp);
+      securitycurrency.setSOpen(sOpen);
+      securitycurrency.setSHigh(sHigh);
+      securitycurrency.setSLow(sLow);
+      securitycurrency.setSPrevClose(sPrevClose);
+      securitycurrency.setSChangePercentage(sChangePercentage);
+      if (securitycurrency instanceof Security security) {
+        security.setSVolume(sVolume);
+      }
+    }
   }
 
   /**
@@ -151,15 +208,15 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
   }
 
   /**
-   * Marks the generic connector endpoint as successfully used if the feed connector is a GenericFeedConnector.
-   * Also transfers ownership to system (createdBy=0) if all endpoints of the connector have been used.
+   * Marks the generic connector endpoint as successfully used if the feed connector is a GenericFeedConnector. Also
+   * transfers ownership to system (createdBy=0) if all endpoints of the connector have been used.
    */
   private void markGenericEndpointUsed(IFeedConnector feedConnector, S securitycurrency) {
     if (genericConnectorEndpointJpaRepository != null && feedConnector instanceof GenericFeedConnector gfc) {
       String instrumentType = securitycurrency instanceof Security ? "SECURITY" : "CURRENCY";
       Integer idConnector = gfc.getConnectorDef().getIdGenericConnector();
-      int updated = genericConnectorEndpointJpaRepository.markEndpointUsedSuccessfully(
-          idConnector, IFeedConnector.FeedSupport.FS_INTRA.name(), instrumentType);
+      int updated = genericConnectorEndpointJpaRepository.markEndpointUsedSuccessfully(idConnector,
+          IFeedConnector.FeedSupport.FS_INTRA.name(), instrumentType);
       if (updated > 0) {
         genericConnectorEndpointJpaRepository.transferOwnershipIfAllEndpointsUsed(idConnector);
       }
@@ -168,7 +225,7 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
 
   /**
    * Determines if a delayed intraday update should be allowed based on timing constraints and data provider delays.
-   * 
+   *
    * <p>
    * This method implements sophisticated timing logic that considers:
    * <ul>
@@ -179,12 +236,12 @@ public class IntradayThruConnector<S extends Securitycurrency<S>> extends BaseIn
    * currentTime</li>
    * </ul>
    * </p>
-   * 
+   *
    * <p>
    * This ensures compliance with data provider delay requirements while preventing excessive update frequency that
    * could impact system performance or violate rate limits.
    * </p>
-   * 
+   *
    * @param securitycurrency        the security currency to check for update eligibility
    * @param feedConnector           the feed connector providing delay configuration (getIntradayDelayedSeconds())
    * @param scIntradayUpdateTimeout additional timeout in seconds defining minimum update intervals

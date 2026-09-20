@@ -5,12 +5,11 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * A single comparison row representing one BUY/SELL transaction with its actual cost
- * compared against the EvalEx fee model estimate.
+ * A single comparison row representing one BUY/SELL transaction with its actual cost compared against the EvalEx fee
+ * model estimate.
  */
 @Schema(description = """
     Detail row for fee model comparison: one transaction with actual vs estimated cost.""")

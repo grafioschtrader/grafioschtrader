@@ -196,9 +196,26 @@ export class WatchlistPriceFeedComponent extends WatchlistTable implements OnIni
       true,
       { filterType: FilterType.likeDataType }
     );
+    // Reddens with the number of trading sessions the intraday data source has been silent, which is what this view is
+    // read for. Coloured by priceCellStyle of the base class.
+    this.addColumn(DataType.DateTimeString, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {
+      width: 80,
+      filterType: FilterType.likeDataType,
+      cellTooltipFN: this.priceCellTooltip.bind(this)
+    });
     this.addColumn(DataType.String, 'securitycurrency.idConnectorHistory', 'HISTORY_DATA_PROVIDER', true, true, {
       fieldValueFN: this.getFeedConnectorReadableName.bind(this),
       filterType: FilterType.withOptions
+    });
+    this.addColumn(DataType.DateString, 'securitycurrency.activeFromDate', 'ACTIVE_FROM_DATE', true, true, {
+      filterType: FilterType.likeDataType
+    });
+    // Reddens with the gap between the day the instrument started trading and the oldest stored price, which is what
+    // tells whether the historical data source ever delivered the beginning of the history. Coloured by priceCellStyle
+    // of the base class.
+    this.addColumn(DataType.DateString, 'oldestHistoryDate', 'OLDEST_EOD', true, true, {
+      filterType: FilterType.likeDataType,
+      cellTooltipFN: this.priceCellTooltip.bind(this)
     });
     this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', true, true, {
       filterType: FilterType.likeDataType

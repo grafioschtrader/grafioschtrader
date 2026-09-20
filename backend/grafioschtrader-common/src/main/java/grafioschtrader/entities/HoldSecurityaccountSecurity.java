@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 /**
  * Entity representing security holding positions over time periods within security accounts.
- * 
+ *
  * <p>
  * <strong>Holdings Tracking:</strong>
  * </p>
@@ -18,7 +18,7 @@ import jakarta.persistence.Table;
  * about holding periods, position sizes, and margin-related calculations. Holdings are created whenever buy/sell
  * transactions result in position changes.
  * </p>
- * 
+ *
  * <p>
  * <strong>Time-Based Position Records:</strong>
  * </p>
@@ -27,7 +27,7 @@ import jakarta.persistence.Table;
  * created when transactions change the position size, and the previous record's end date is set to maintain temporal
  * continuity.
  * </p>
- * 
+ *
  * <p>
  * <strong>Margin Position Support:</strong>
  * </p>
@@ -35,7 +35,7 @@ import jakarta.persistence.Table;
  * The entity provides specialized support for margin trading through dedicated fields for leveraged position tracking,
  * average price calculations across multiple margin openings, and real holdings adjustments for leveraged instruments.
  * </p>
- * 
+ *
  * <p>
  * <strong>Multi-Currency Considerations:</strong>
  * </p>
@@ -43,7 +43,7 @@ import jakarta.persistence.Table;
  * Holdings support cross-currency analysis by storing currency pair references for conversion between the security's
  * native currency, portfolio currency, and tenant currency.
  * </p>
- * 
+ *
  * <p>
  * <strong>Corporate Actions:</strong>
  * </p>
@@ -51,7 +51,7 @@ import jakarta.persistence.Table;
  * Stock splits and other corporate actions are handled through split price factors that maintain historical price
  * accuracy and position continuity across events.
  * </p>
- * 
+ *
  * <p>
  * <strong>Data Access:</strong>
  * </p>
@@ -101,12 +101,12 @@ public class HoldSecurityaccountSecurity extends HoldBase {
 
   /**
    * Real holdings value for leveraged margin positions.
-   * 
+   *
    * <p>
    * For margin instruments, this field contains the actual position value that differs from the nominal holdings due to
    * leverage. When not null, this value should be used instead of the holdings field for margin position calculations.
    * </p>
-   * 
+   *
    * <p>
    * This field is null for non-margin securities where holdings and real holdings are identical.
    * </p>
@@ -116,17 +116,17 @@ public class HoldSecurityaccountSecurity extends HoldBase {
 
   /**
    * Average price of open margin positions for return calculations.
-   * 
+   *
    * <p>
    * When multiple margin positions are opened at different prices, this field contains the weighted average price of
    * all open positions. This enables accurate return calculations for complex margin strategies.
    * </p>
-   * 
+   *
    * <p>
    * The average price is recalculated as new margin positions are opened or existing positions are partially closed,
    * maintaining accuracy across the lifetime of the position.
    * </p>
-   * 
+   *
    * <p>
    * This field is null for non-margin securities and when no margin positions are currently open.
    * </p>
@@ -139,12 +139,12 @@ public class HoldSecurityaccountSecurity extends HoldBase {
 
   /**
    * Creates a new security holding record with all required parameters.
-   * 
+   *
    * <p>
    * This constructor initializes a complete holding record including margin-specific data, currency conversion
    * references, and stock split adjustments.
    * </p>
-   * 
+   *
    * @param idTenant                the tenant identifier (inherited from HoldBase)
    * @param idPortfolio             the portfolio identifier (inherited from HoldBase)
    * @param idSecuritycashAccount   the security account identifier

@@ -9,7 +9,7 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 public class FinanzenHelper {
-  
+
   private static final Map<ControllerUrlMapping, ControllerAssetClass> controllerUrlMapping = new ConcurrentHashMap<>();
 
   // intra‑URL segments

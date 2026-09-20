@@ -23,7 +23,7 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * Base class for generating reports that group security positions and cash accounts by currency, with optional
  * sub-grouping by security account. Provides core functionality for currency-based aggregation and exchange rate
  * calculations used in portfolio reporting.
- * 
+ *
  * <p>
  * Supports two grouping strategies:
  * </p>
@@ -32,7 +32,7 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * <li><strong>Currency + Security Account Grouping:</strong> Groups positions by both currency and security account for
  * portfolios with multiple accounts per currency</li>
  * </ul>
- * 
+ *
  * <h3>Key Features:</h3>
  * <ul>
  * <li>Automatic multi-currency conversion to main currency using appropriate exchange rates</li>
@@ -40,7 +40,7 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * <li>Trading day validation with fallback logic for non-trading days</li>
  * <li>Currency-specific decimal precision for accurate calculations</li>
  * </ul>
- * 
+ *
  * <h3>Exchange Rate Handling:</h3>
  * <ul>
  * <li>Main currency positions: rate of 1.0 (no conversion)</li>
@@ -49,7 +49,7 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * <li>Missing rates: fallback to latest rate if no trading days between target date and yesterday</li>
  * <li>Throws {@code DataViolationException} for missing rates on trading days</li>
  * </ul>
- * 
+ *
  * <p>
  * This base class is extended by specific report implementations. Subclasses call the grouping methods to obtain
  * aggregated position summaries organized by currency. The class is thread-safe with lazy-loaded repository
@@ -57,7 +57,6 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * </p>
  */
 public class SecurityCashaccountGroupByCurrencyBaseReport {
-
 
   protected TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
 
@@ -86,7 +85,7 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
   /**
    * Creates and calculates subtotals for security positions grouped by currency only. This is a convenience method that
    * delegates to the more comprehensive grouping method.
-   * 
+   *
    * @param historyquoteJpaRepository   repository for historical quote data
    * @param securityPositionSummaryList list of security positions to group and calculate
    * @param dateCurrencyMap             currency and date mapping context for exchange rate calculations
@@ -104,7 +103,7 @@ public class SecurityCashaccountGroupByCurrencyBaseReport {
    * Creates and calculates subtotals for security positions grouped by currency and optionally by security account.
    * This method performs currency conversion, loads necessary historical quotes, and aggregates positions according to
    * the specified grouping criteria.
-   * 
+   *
    * @param historyquoteJpaRepository          repository for historical quote data access
    * @param securityPositionSummaryList        list of security positions to process and group
    * @param dateCurrencyMap                    currency and date mapping context containing exchange rate information

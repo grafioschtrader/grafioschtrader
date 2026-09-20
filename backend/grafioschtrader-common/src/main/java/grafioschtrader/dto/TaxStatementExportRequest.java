@@ -46,30 +46,75 @@ public class TaxStatementExportRequest implements Serializable {
   @Schema(description = "Client's TIN (Swiss AHV number)")
   private String clientTin;
 
-  public short getTaxYear() { return taxYear; }
-  public void setTaxYear(short taxYear) { this.taxYear = taxYear; }
+  public short getTaxYear() {
+    return taxYear;
+  }
 
-  public String getCanton() { return canton; }
-  public void setCanton(String canton) { this.canton = canton; }
+  public void setTaxYear(short taxYear) {
+    this.taxYear = taxYear;
+  }
 
-  public String getInstitutionName() { return institutionName; }
-  public void setInstitutionName(String institutionName) { this.institutionName = institutionName; }
+  public String getCanton() {
+    return canton;
+  }
 
-  public String getInstitutionLei() { return institutionLei; }
-  public void setInstitutionLei(String institutionLei) { this.institutionLei = institutionLei; }
+  public void setCanton(String canton) {
+    this.canton = canton;
+  }
 
-  public String getClientNumber() { return clientNumber; }
-  public void setClientNumber(String clientNumber) { this.clientNumber = clientNumber; }
+  public String getInstitutionName() {
+    return institutionName;
+  }
 
-  public String getClientFirstName() { return clientFirstName; }
-  public void setClientFirstName(String clientFirstName) { this.clientFirstName = clientFirstName; }
+  public void setInstitutionName(String institutionName) {
+    this.institutionName = institutionName;
+  }
 
-  public String getClientLastName() { return clientLastName; }
-  public void setClientLastName(String clientLastName) { this.clientLastName = clientLastName; }
+  public String getInstitutionLei() {
+    return institutionLei;
+  }
 
-  public String getClientTin() { return clientTin; }
-  public void setClientTin(String clientTin) { this.clientTin = clientTin; }
+  public void setInstitutionLei(String institutionLei) {
+    this.institutionLei = institutionLei;
+  }
 
-  public List<Integer> getIdsSecurityaccount() { return idsSecurityaccount; }
-  public void setIdsSecurityaccount(List<Integer> idsSecurityaccount) { this.idsSecurityaccount = idsSecurityaccount; }
+  public String getClientNumber() {
+    return clientNumber;
+  }
+
+  public void setClientNumber(String clientNumber) {
+    this.clientNumber = clientNumber;
+  }
+
+  public String getClientFirstName() {
+    return clientFirstName;
+  }
+
+  public void setClientFirstName(String clientFirstName) {
+    this.clientFirstName = clientFirstName;
+  }
+
+  public String getClientLastName() {
+    return clientLastName;
+  }
+
+  public void setClientLastName(String clientLastName) {
+    this.clientLastName = clientLastName;
+  }
+
+  public String getClientTin() {
+    return clientTin;
+  }
+
+  public void setClientTin(String clientTin) {
+    this.clientTin = clientTin;
+  }
+
+  public List<Integer> getIdsSecurityaccount() {
+    return idsSecurityaccount;
+  }
+
+  public void setIdsSecurityaccount(List<Integer> idsSecurityaccount) {
+    this.idsSecurityaccount = idsSecurityaccount;
+  }
 }

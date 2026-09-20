@@ -38,15 +38,13 @@ public class AlgoAssetclassResource extends AlgoBaseResource<AlgoAssetclass> {
   public ResponseEntity<List<AlgoAssetclass>> getAlgoAssetclassByIdTenantAndIdAlgoAssetclassParent(
       @PathVariable final Integer idAlgoAssetclassParent) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(
-        algoAssetclassJpaRepository.findByIdTenantAndIdAlgoAssetclassParent(user.getActualIdTenant(), idAlgoAssetclassParent),
-        HttpStatus.OK);
+    return new ResponseEntity<>(algoAssetclassJpaRepository
+        .findByIdTenantAndIdAlgoAssetclassParent(user.getActualIdTenant(), idAlgoAssetclassParent), HttpStatus.OK);
   }
 
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<AlgoAssetclass> getUpdateCreateJpaRepository() {
     return algoAssetclassJpaRepository;
   }
-
 
 }

@@ -20,21 +20,19 @@ import jakarta.persistence.Table;
 /**
  * Intraday price data for instruments in the GT-Network pool.
  *
- * This entity stores normalized OHLCV (Open, High, Low, Last, Volume) data for instruments that are shared
- * between GTNet peers. Each record references a {@link GTNetInstrument} which identifies the security or
- * currency pair.
+ * This entity stores normalized OHLCV (Open, High, Low, Last, Volume) data for instruments that are shared between
+ * GTNet peers. Each record references a {@link GTNetInstrument} which identifies the security or currency pair.
  *
  * <h3>Data Flow</h3>
  * <ol>
- *   <li>Provider instances update this table with current market data from their connectors</li>
- *   <li>Consumer instances query providers and receive price updates</li>
- *   <li>Updates are applied based on timestamp comparison (newer wins)</li>
+ * <li>Provider instances update this table with current market data from their connectors</li>
+ * <li>Consumer instances query providers and receive price updates</li>
+ * <li>Updates are applied based on timestamp comparison (newer wins)</li>
  * </ol>
  *
- * <h3>Relationship to Instrument Pool</h3>
- * Each GTNetLastprice record has a 1:1 relationship with a GTNetInstrument. The instrument provides
- * the identification (ISIN+currency for securities, from/to currency for pairs), while this entity
- * stores the actual price data.
+ * <h3>Relationship to Instrument Pool</h3> Each GTNetLastprice record has a 1:1 relationship with a GTNetInstrument.
+ * The instrument provides the identification (ISIN+currency for securities, from/to currency for pairs), while this
+ * entity stores the actual price data.
  *
  * @see GTNetInstrument for instrument identification
  * @see GTNetInstrumentSecurity for security instruments

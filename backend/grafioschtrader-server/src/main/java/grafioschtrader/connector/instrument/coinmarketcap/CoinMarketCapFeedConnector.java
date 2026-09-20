@@ -37,9 +37,9 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Supplies historical and intraday cryptocurrency rates from CoinMarketCap's chart endpoint. CoinMarketCap identifies
- * both assets with numeric IDs, so the URL extension stores symbol-to-ID mappings such as
- * {@code BTC=1,CHF=2785}. Keeping the symbols in the extension makes the mapping verifiable and allows the same value
- * to serve both BTC/CHF and CHF/BTC.
+ * both assets with numeric IDs, so the URL extension stores symbol-to-ID mappings such as {@code BTC=1,CHF=2785}.
+ * Keeping the symbols in the extension makes the mapping verifiable and allows the same value to serve both BTC/CHF and
+ * CHF/BTC.
  */
 @Component
 public class CoinMarketCapFeedConnector extends BaseFeedConnector {
@@ -48,12 +48,10 @@ public class CoinMarketCapFeedConnector extends BaseFeedConnector {
   private GlobalparametersService globalparametersService;
 
   private static final String SHORT_ID = "coinmarketcap";
-  private static final String BASE_URL =
-      "https://api.coinmarketcap.com/data-api/v3.3/cryptocurrency/detail/chart";
-  private static final String URL_EXTENSION_REGEX =
-      "^[A-Za-z0-9]{1,15}=[1-9][0-9]*,[A-Za-z0-9]{1,15}=[1-9][0-9]*$";
-  private static final Pattern URL_EXTENSION_PATTERN = Pattern.compile(
-      "^([A-Za-z0-9]{1,15})=([1-9][0-9]*),([A-Za-z0-9]{1,15})=([1-9][0-9]*)$");
+  private static final String BASE_URL = "https://api.coinmarketcap.com/data-api/v3.3/cryptocurrency/detail/chart";
+  private static final String URL_EXTENSION_REGEX = "^[A-Za-z0-9]{1,15}=[1-9][0-9]*,[A-Za-z0-9]{1,15}=[1-9][0-9]*$";
+  private static final Pattern URL_EXTENSION_PATTERN = Pattern
+      .compile("^([A-Za-z0-9]{1,15})=([1-9][0-9]*),([A-Za-z0-9]{1,15})=([1-9][0-9]*)$");
   private static final int REQUEST_TIMEOUT_SECONDS = 30;
   private static final int HISTORICAL_WINDOW_YEARS = 3;
   private static final int INTRADAY_DELAY_SECONDS = 300;
@@ -173,8 +171,8 @@ public class CoinMarketCapFeedConnector extends BaseFeedConnector {
     try {
       List<CoinMarketCapPoint> points = readPoints(url);
       boolean nativeUsd = url.contains("convertId=2781&");
-      boolean containsPrices = points.stream().anyMatch(point -> point.c != null && !point.c.isEmpty()
-          || nativeUsd && point.v != null && !point.v.isEmpty());
+      boolean containsPrices = points.stream().anyMatch(
+          point -> point.c != null && !point.c.isEmpty() || nativeUsd && point.v != null && !point.v.isEmpty());
       if (!containsPrices) {
         throw new GeneralNotTranslatedWithArgumentsException(failureMsgKey, new Object[] { url });
       }

@@ -138,12 +138,12 @@ export abstract class Helper {
       if (config.referencedDataObject) {
         targetObject[config.field] = this.getReferencedDataObject(config, config.field);
       } else if (
-        config.dataType === DataType.Numeric &&
+        (config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger) &&
         config.inputType === InputType.Select &&
         (config.formControl.value == null || config.formControl.value === '')
       ) {
         targetObject[config.field] = null;
-      } else if (config.dataType === DataType.Numeric) {
+      } else if (config.dataType === DataType.Numeric || config.dataType === DataType.NumericInteger) {
         targetObject[config.field] = config.formControl.value != null ? +config.formControl.value : null;
       } else if (config.dataType === DataType.DateNumeric || config.dataType === DataType.DateString) {
         if (config.formControl.value) {

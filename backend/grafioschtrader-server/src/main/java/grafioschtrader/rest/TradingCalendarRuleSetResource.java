@@ -70,13 +70,12 @@ public class TradingCalendarRuleSetResource extends UpdateCreateDeleteAuditResou
       name of the rule that produced each one. An unsaved YAML may be passed in the body to preview a change before
       saving it; the closures of the inherited rules are always taken from the stored sets.""")
   @PostMapping(value = "/{idTradingCalendarRuleSet}/preview", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<SortedMap<String, String>> previewClosures(
-      @PathVariable final Integer idTradingCalendarRuleSet,
-      @RequestParam(required = false) final Integer year,
-      @RequestBody(required = false) final String ruleYaml) {
+  public ResponseEntity<SortedMap<String, String>> previewClosures(@PathVariable final Integer idTradingCalendarRuleSet,
+      @RequestParam(required = false) final Integer year, @RequestBody(required = false) final String ruleYaml) {
     int evaluatedYear = year == null ? LocalDate.now().getYear() : year;
-    return new ResponseEntity<>(tradingCalendarRuleSetJpaRepository.previewClosures(idTradingCalendarRuleSet, ruleYaml,
-        evaluatedYear), HttpStatus.OK);
+    return new ResponseEntity<>(
+        tradingCalendarRuleSetJpaRepository.previewClosures(idTradingCalendarRuleSet, ruleYaml, evaluatedYear),
+        HttpStatus.OK);
   }
 
   @Override
@@ -89,6 +88,5 @@ public class TradingCalendarRuleSetResource extends UpdateCreateDeleteAuditResou
   protected UpdateCreateJpaRepository<TradingCalendarRuleSet> getUpdateCreateJpaRepository() {
     return tradingCalendarRuleSetJpaRepository;
   }
-
 
 }

@@ -11,8 +11,8 @@ import grafiosch.repository.EntityIdOptionsProvider;
 import grafioschtrader.task.exec.GTNetExchangeSyncTask;
 
 /**
- * Provider that adds sync mode options to task form constraints for GTNetExchangeSyncTask.
- * Allows administrators to choose between incremental (timestamp-based) and full recreation modes.
+ * Provider that adds sync mode options to task form constraints for GTNetExchangeSyncTask. Allows administrators to
+ * choose between incremental (timestamp-based) and full recreation modes.
  */
 @Component
 public class GTNetExchangeSyncEntityIdOptionsProvider implements EntityIdOptionsProvider {
@@ -20,13 +20,10 @@ public class GTNetExchangeSyncEntityIdOptionsProvider implements EntityIdOptions
   @Override
   public void addEntityIdOptions(TaskDataChangeFormConstraints constraints) {
     List<ValueKeyHtmlSelectOptions> syncModeOptions = Arrays.asList(
-        new ValueKeyHtmlSelectOptions(
-            String.valueOf(GTNetExchangeSyncTask.INCREMENTAL_MODE),
+        new ValueKeyHtmlSelectOptions(String.valueOf(GTNetExchangeSyncTask.INCREMENTAL_MODE),
             "GTNET_SYNC_MODE_INCREMENTAL"),
-        new ValueKeyHtmlSelectOptions(
-            String.valueOf(GTNetExchangeSyncTask.FULL_RECREATION_MODE),
-            "GTNET_SYNC_MODE_FULL_RECREATION")
-    );
+        new ValueKeyHtmlSelectOptions(String.valueOf(GTNetExchangeSyncTask.FULL_RECREATION_MODE),
+            "GTNET_SYNC_MODE_FULL_RECREATION"));
     constraints.putSharedOptions(GTNetExchangeSyncTask.SYNC_MODE_ENTITY, syncModeOptions);
   }
 }

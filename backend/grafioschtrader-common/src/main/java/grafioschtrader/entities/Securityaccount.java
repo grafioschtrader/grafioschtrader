@@ -32,6 +32,19 @@ public class Securityaccount extends Securitycashaccount implements Serializable
 
   public static final String TABNAME = "securityaccount";
 
+  @jakarta.persistence.Column(name = "tax_exempt_investor")
+  @grafiosch.common.PropertyAlwaysUpdatable
+  @grafiosch.common.DynamicFormField(uiOrder = "2.1")
+  private Boolean taxExemptInvestor;
+
+  public Boolean getTaxExemptInvestor() {
+    return taxExemptInvestor;
+  }
+
+  public void setTaxExemptInvestor(Boolean taxExemptInvestor) {
+    this.taxExemptInvestor = taxExemptInvestor;
+  }
+
   private static final long serialVersionUID = 1L;
 
   @JsonIgnore
@@ -104,10 +117,10 @@ public class Securityaccount extends Securitycashaccount implements Serializable
 
   /**
    * Replaces the trading periods collection reference with a plain ArrayList. Must be used instead of
-   * {@link #setTradingPeriods} when re-persisting a detached entity after {@code em.clear()}, because
-   * the setter preserves the Hibernate PersistentBag reference (required for orphanRemoval tracking),
-   * which causes "Don't change the reference to a collection with delete-orphan enabled" when the
-   * entity is persisted in a new persistence context.
+   * {@link #setTradingPeriods} when re-persisting a detached entity after {@code em.clear()}, because the setter
+   * preserves the Hibernate PersistentBag reference (required for orphanRemoval tracking), which causes "Don't change
+   * the reference to a collection with delete-orphan enabled" when the entity is persisted in a new persistence
+   * context.
    */
   public void replaceTradingPeriods(List<SecaccountTradingPeriod> tradingPeriods) {
     this.tradingPeriods = tradingPeriods != null ? new ArrayList<>(tradingPeriods) : new ArrayList<>();

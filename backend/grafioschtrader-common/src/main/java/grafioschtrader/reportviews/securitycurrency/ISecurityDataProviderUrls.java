@@ -1,13 +1,11 @@
 package grafioschtrader.reportviews.securitycurrency;
 
 /**
- * Interface for objects that hold data provider URLs for securities and currency pairs.
- * These URLs provide access to external data sources for historical prices, intraday prices,
- * dividends, and stock splits.
+ * Interface for objects that hold data provider URLs for securities and currency pairs. These URLs provide access to
+ * external data sources for historical prices, intraday prices, dividends, and stock splits.
  *
- * Implementing classes include:
- * - {@link SecuritycurrencyPosition} - used in watchlist and portfolio reports
- * - {@link SecurityDataProviderUrls} - standalone DTO for API responses
+ * Implementing classes include: - {@link SecuritycurrencyPosition} - used in watchlist and portfolio reports -
+ * {@link SecurityDataProviderUrls} - standalone DTO for API responses
  */
 public interface ISecurityDataProviderUrls {
 
@@ -40,8 +38,8 @@ public interface ISecurityDataProviderUrls {
   void setHistoricalUrl(String historicalUrl);
 
   /**
-   * Gets the URL for dividend data from the configured data provider.
-   * Only applicable to securities, not currency pairs.
+   * Gets the URL for dividend data from the configured data provider. Only applicable to securities, not currency
+   * pairs.
    *
    * @return the dividend data URL, or null if no dividend connector is configured
    */
@@ -55,8 +53,8 @@ public interface ISecurityDataProviderUrls {
   void setDividendUrl(String dividendUrl);
 
   /**
-   * Gets the URL for stock split data from the configured data provider.
-   * Only applicable to securities, not currency pairs.
+   * Gets the URL for stock split data from the configured data provider. Only applicable to securities, not currency
+   * pairs.
    *
    * @return the split data URL, or null if no split connector is configured
    */

@@ -19,13 +19,16 @@ import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.dto.QuoteToleranceRange;
+import grafioschtrader.dto.StandingOrderCapabilities;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.StandingOrderFailure;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.repository.StandingOrderFailureJpaRepository;
 import grafioschtrader.repository.StandingOrderJpaRepository;
+import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.TenantKindType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -50,14 +53,15 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
   @Autowired
   private GlobalparametersService globalparametersService;
 
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
+
   public StandingOrderResource() {
     super(StandingOrder.class);
   }
 
-  @Operation(summary = "Returns all standing orders for the current tenant",
-      description = "Returns both cashaccount and security standing orders for the logged-in user's tenant, "
-          + "enriched with hasTransactions and failureCount transient fields.",
-      tags = {RequestGTMappings.STANDINGORDER})
+  @Operation(summary = "Returns all standing orders for the current tenant", description = "Returns both cashaccount and security standing orders for the logged-in user's tenant, "
+      + "enriched with hasTransactions and failureCount transient fields.", tags = { RequestGTMappings.STANDINGORDER })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<StandingOrder>> getAllForTenant() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -83,19 +87,29 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
     return new ResponseEntity<>(orders, HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns the admissible range for the quote tolerance of a standing order",
-      description = "The bounds come from the global parameter gt.standing.order.quote.tolerance and are what the "
-          + "edit dialog must offer; the server rejects anything outside them on save.",
-      tags = {RequestGTMappings.STANDINGORDER})
+  @Operation(summary = "Returns the admissible range for the quote tolerance of a standing order", description = "The bounds come from the global parameter gt.standing.order.quote.tolerance and are what the "
+      + "edit dialog must offer; the server rejects anything outside them on save.", tags = {
+          RequestGTMappings.STANDINGORDER })
   @GetMapping(value = "/quotetolerancerange", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<QuoteToleranceRange> getQuoteToleranceRange() {
     return new ResponseEntity<>(globalparametersService.getStandingOrderQuoteToleranceRange(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns execution failures for a specific standing order",
-      description = "Returns all persisted failure records for the given standing order, newest first. "
-          + "Only accessible if the standing order belongs to the current user's tenant.",
-      tags = {RequestGTMappings.STANDINGORDER})
+  @Operation(summary = "Returns tenant-specific standing-order capabilities", description = "Simulation tenants execute cash standing orders only during Historical Replay; main tenants use the daily scheduler.", tags = {
+      RequestGTMappings.STANDINGORDER })
+  @GetMapping(value = "/capabilities", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<StandingOrderCapabilities> getCapabilities() {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    boolean simulation = tenantJpaRepository.findById(user.getIdTenant())
+        .map(tenant -> tenant.getTenantKindType() == TenantKindType.SIMULATION_COPY).orElse(false);
+    QuoteToleranceRange range = globalparametersService.getStandingOrderQuoteToleranceRange();
+    return ResponseEntity.ok(new StandingOrderCapabilities(simulation, true, !simulation, range.min(),
+        simulation ? Math.min(0, range.max()) : range.max()));
+  }
+
+  @Operation(summary = "Returns execution failures for a specific standing order", description = "Returns all persisted failure records for the given standing order, newest first. "
+      + "Only accessible if the standing order belongs to the current user's tenant.", tags = {
+          RequestGTMappings.STANDINGORDER })
   @GetMapping(value = "/{idStandingOrder}/failures", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<StandingOrderFailure>> getFailures(@PathVariable Integer idStandingOrder) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -109,10 +123,9 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
         HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns transactions created by a specific standing order",
-      description = "Returns all transactions for the given standing order with security and cashaccount details, "
-          + "newest first. Only accessible if the standing order belongs to the current user's tenant.",
-      tags = {RequestGTMappings.STANDINGORDER})
+  @Operation(summary = "Returns transactions created by a specific standing order", description = "Returns all transactions for the given standing order with security and cashaccount details, "
+      + "newest first. Only accessible if the standing order belongs to the current user's tenant.", tags = {
+          RequestGTMappings.STANDINGORDER })
   @GetMapping(value = "/{idStandingOrder}/transactions", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Transaction>> getTransactions(@PathVariable Integer idStandingOrder) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -120,8 +133,8 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
     if (so == null || !so.getIdTenant().equals(user.getIdTenant())) {
       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    return new ResponseEntity<>(
-        transactionJpaRepository.findByIdStandingOrderWithDetails(idStandingOrder), HttpStatus.OK);
+    return new ResponseEntity<>(transactionJpaRepository.findByIdStandingOrderWithDetails(idStandingOrder),
+        HttpStatus.OK);
   }
 
   @Override

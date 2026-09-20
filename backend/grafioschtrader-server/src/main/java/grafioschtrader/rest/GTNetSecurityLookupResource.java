@@ -17,9 +17,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
- * REST controller for security metadata lookup via GTNet.
- * Allows searching for security information by ISIN, currency, and/or ticker symbol
- * from local database and GTNet peers.
+ * REST controller for security metadata lookup via GTNet. Allows searching for security information by ISIN, currency,
+ * and/or ticker symbol from local database and GTNet peers.
  */
 @RestController
 @RequestMapping(RequestGTMappings.GTNETSECURITYLOOKUP_MAP)
@@ -30,35 +29,32 @@ public class GTNetSecurityLookupResource {
   private GTNetSecurityLookupService gtNetSecurityLookupService;
 
   /**
-   * Lookup security metadata by ISIN, currency, and/or ticker symbol.
-   * Searches local database first, then queries configured GTNet peers.
+   * Lookup security metadata by ISIN, currency, and/or ticker symbol. Searches local database first, then queries
+   * configured GTNet peers.
    *
    * @param request the search criteria containing ISIN, currency, and/or ticker symbol
    * @return response containing matching securities and query statistics
    */
-  @Operation(summary = "Lookup security metadata",
-      description = """
-          Searches for security metadata matching the provided criteria. First checks the local database,
-          then queries configured GTNet peers. Returns matching securities with instance-agnostic metadata
-          including asset class type, stock exchange MIC, and connector hints.""",
-      tags = { RequestGTMappings.GTNETSECURITYLOOKUP })
+  @Operation(summary = "Lookup security metadata", description = """
+      Searches for security metadata matching the provided criteria. First checks the local database,
+      then queries configured GTNet peers. Returns matching securities with instance-agnostic metadata
+      including asset class type, stock exchange MIC, and connector hints.""", tags = {
+      RequestGTMappings.GTNETSECURITYLOOKUP })
   @PostMapping(value = "/lookup", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<SecurityGtnetLookupResponse> lookupSecurity(
-      @RequestBody SecurityGtnetLookupRequest request) {
+  public ResponseEntity<SecurityGtnetLookupResponse> lookupSecurity(@RequestBody SecurityGtnetLookupRequest request) {
     return ResponseEntity.ok(gtNetSecurityLookupService.lookupSecurity(request));
   }
 
   /**
-   * Checks if there are accessible GTNet peers that support SECURITY_METADATA exchange.
-   * Used by frontend to determine if the GTNet lookup button should be visible.
+   * Checks if there are accessible GTNet peers that support SECURITY_METADATA exchange. Used by frontend to determine
+   * if the GTNet lookup button should be visible.
    *
    * @return true if at least one accessible peer supports security metadata exchange
    */
-  @Operation(summary = "Check for accessible security lookup peers",
-      description = """
-          Checks if there are any accessible GTNet peers that support security metadata exchange.
-          A peer is accessible if it has SECURITY_METADATA entity with acceptRequest > 0 and is online.""",
-      tags = { RequestGTMappings.GTNETSECURITYLOOKUP })
+  @Operation(summary = "Check for accessible security lookup peers", description = """
+      Checks if there are any accessible GTNet peers that support security metadata exchange.
+      A peer is accessible if it has SECURITY_METADATA entity with acceptRequest > 0 and is online.""", tags = {
+      RequestGTMappings.GTNETSECURITYLOOKUP })
   @GetMapping(value = "/haspeers", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> hasAccessiblePeers() {
     return ResponseEntity.ok(gtNetSecurityLookupService.hasAccessibleSecurityMetadataPeers());

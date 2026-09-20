@@ -9,10 +9,9 @@ import grafioschtrader.entities.Security;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = """
-  Extends SecuritycurrencyGroup to include User Defined Fields (UDF) data for each instrument. This class is typically used in watchlist
-  reports where custom user-specific information needs to be displayed alongside standard instrument data.""")
+    Extends SecuritycurrencyGroup to include User Defined Fields (UDF) data for each instrument. This class is typically used in watchlist
+    reports where custom user-specific information needs to be displayed alongside standard instrument data.""")
 public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
-
 
   @Schema(description = """
       A map containing User Defined Fields (UDF) data for the instruments in the group.
@@ -42,6 +41,5 @@ public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
 
     String getJsonValues();
   }
-
 
 }

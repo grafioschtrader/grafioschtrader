@@ -44,14 +44,13 @@ import grafioschtrader.types.TemplateFormatType;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Round-trip guarantee for the transaction CSV export: every CSV produced by {@link TransactionCsvExportGenerator}
- * must be parseable by the CSV transaction import using the Grafioschtrader import templates in
+ * Round-trip guarantee for the transaction CSV export: every CSV produced by {@link TransactionCsvExportGenerator} must
+ * be parseable by the CSV transaction import using the Grafioschtrader import templates in
  * <code>src/test/resources/testdata/import_template/grafioschtrader</code>, and the parsed values must equal the source
- * transaction.
- * Runs without a Spring context or database; any drift between the generator labels ({@link GtCsvExportDefs}) and the
- * template files makes these tests fail. The parse path is the real one: header validation via
- * {@code isValidTemplateForForm}, line filtering via the template's ignore rule and field conversion through
- * {@code GenericTransactionImportCSV.parseDataLine}.
+ * transaction. Runs without a Spring context or database; any drift between the generator labels
+ * ({@link GtCsvExportDefs}) and the template files makes these tests fail. The parse path is the real one: header
+ * validation via {@code isValidTemplateForForm}, line filtering via the template's ignore rule and field conversion
+ * through {@code GenericTransactionImportCSV.parseDataLine}.
  */
 class TransactionCsvExportRoundTripTest {
 
@@ -238,8 +237,8 @@ class TransactionCsvExportRoundTripTest {
   @DisplayName("FINANCE_COST is exported without marker and round-trips units (days) and quotation (daily cost)")
   void financeCostRoundTrip() throws Exception {
     for (Locale locale : LOCALES) {
-      Transaction t = securityTransaction(51, TransactionType.FINANCE_COST, marginCfd("DE0007164600", "DAX CFD"),
-          "EUR", 3.0, 1.25, null, null, -3.75);
+      Transaction t = securityTransaction(51, TransactionType.FINANCE_COST, marginCfd("DE0007164600", "DAX CFD"), "EUR",
+          3.0, 1.25, null, null, -3.75);
       ParsedCsv parsed = generateAndParse(List.of(t), locale);
       ImportProperties ip = singleRow(parsed);
       assertEquals("", parsed.rawRows.get(0)[MARKER_COLUMN], "FINANCE_COST must stay re-importable");
@@ -275,8 +274,8 @@ class TransactionCsvExportRoundTripTest {
   }
 
   /**
-   * Generates the CSV for one export file and parses it back through the real import path: template header
-   * validation, the template's ignore rule and {@code GenericTransactionImportCSV.parseDataLine}.
+   * Generates the CSV for one export file and parses it back through the real import path: template header validation,
+   * the template's ignore rule and {@code GenericTransactionImportCSV.parseDataLine}.
    */
   private ParsedCsv generateAndParse(List<Transaction> transactions, Set<Integer> idsInFile, Locale locale)
       throws IOException {
@@ -338,8 +337,8 @@ class TransactionCsvExportRoundTripTest {
   }
 
   private ImportProperties byType(ParsedCsv parsed, TransactionType type, double ta) {
-    return parsed.importProperties.stream()
-        .filter(ip -> ip.getTransactionType() == type && ip.getTa().equals(ta)).findFirst().orElseThrow();
+    return parsed.importProperties.stream().filter(ip -> ip.getTransactionType() == type && ip.getTa().equals(ta))
+        .findFirst().orElseThrow();
   }
 
   private void assertCommonFields(ImportProperties ip, Transaction transaction) {

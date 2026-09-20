@@ -74,8 +74,8 @@ public enum Observance {
 
   /**
    * Moves forward to the next weekday, which for a weekend date is always the following Monday. It differs from
-   * {@link #NEXT_MONDAY} only in intent: it is used where a holiday is defined as "the first working day on or after"
-   * a given date.
+   * {@link #NEXT_MONDAY} only in intent: it is used where a holiday is defined as "the first working day on or after" a
+   * given date.
    */
   NEXT_WEEKDAY {
     @Override

@@ -10,7 +10,12 @@ import { catchError } from 'rxjs/operators';
 import { LoginService } from '../../lib/login/service/log-in.service';
 import { BaseSettings } from '../../lib/base.settings';
 import { TenantLimit, TenantLimitTypes } from '../../shared/types/tenant.limit';
-import { SimulationTenantCreateDTO, SimulationTenantInfo } from '../../algo/model/simulation.tenant';
+import {
+  SimulationTenantCreateDTO,
+  SimulationTenantInfo,
+  SimulationPreviewDto,
+  SimulationDateBounds
+} from '../../algo/model/simulation.tenant';
 import { TaxStatementExportRequest } from '../../taxdata/service/tax-data.service';
 
 @Injectable()
@@ -74,6 +79,35 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  public previewSimulation(dto: SimulationTenantCreateDTO): Observable<SimulationPreviewDto> {
+    return this.httpClient
+      .post<SimulationPreviewDto>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulation/preview`, dto, {
+        headers: this.prepareHeaders()
+      })
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /**
+   * Reads what limits the opening date of an environment of this strategy. Nothing here rejects a date; it only lets
+   * the dialog say from when the instruments carry price data, and what the portfolio cannot value on the day
+   * currently entered.
+   *
+   * @param idAlgoTop the strategy the environment would belong to
+   * @param openingDate the date currently entered, omitted before one is chosen
+   */
+  public getSimulationDateBounds(idAlgoTop: number, openingDate?: string): Observable<SimulationDateBounds> {
+    let httpParams = new HttpParams();
+    if (openingDate) {
+      httpParams = httpParams.append('openingDate', openingDate);
+    }
+    return this.httpClient
+      .get<SimulationDateBounds>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/simulation/bounds/${idAlgoTop}`,
+        { headers: this.prepareHeaders(), params: httpParams }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   public deleteSimulationTenant(idTenant: number): Observable<void> {
     return <Observable<void>>(
       this.httpClient
@@ -85,14 +119,6 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
   public saveTaxExportSettings(settings: TaxStatementExportRequest): Observable<void> {
     return <Observable<void>>this.httpClient
       .patch(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/taxexportsettings`, settings, {
-        headers: this.prepareHeaders()
-      })
-      .pipe(catchError(this.handleError.bind(this)));
-  }
-
-  public switchTenant(idTargetTenant: number): Observable<{ token: string; readOnly: string }> {
-    return <Observable<{ token: string; readOnly: string }>>this.httpClient
-      .post(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/switchto/${idTargetTenant}`, null, {
         headers: this.prepareHeaders()
       })
       .pipe(catchError(this.handleError.bind(this)));

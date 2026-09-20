@@ -126,7 +126,7 @@ All three must be served to the frontend as select options by the backend (backe
 
 | Column | Type | Nullable | Notes |
 |---|---|---|---|
-| `strike_price` | DECIMAL(15, 6) | YES | Strike in `Security.currency`. Same scale as price quotations elsewhere. |
+| `strike_price` | double | YES | Strike in `Security.currency`. Same type as every other price in GT. |
 | `option_type` | TINYINT | YES | `OptionType`: `CALL(0)`, `PUT(1)`. |
 | `exercise_style` | TINYINT | YES | `ExerciseStyle`: `AMERICAN(0)`, `EUROPEAN(1)`. |
 | `contract_multiplier` | INT | YES | Deliverable size (one contract = N units of underlying). Default 100 for equity options. Integer suffices — V1 is standard contracts only (§2.9). **Authoritative source of the multiplier** (§3.2). |
@@ -138,8 +138,9 @@ All seven columns are meaningful only when `specialInvestmentInstrument = OPTION
 invariant** (all set for an option; all NULL for non-options) is enforced in `beforeSave()` (§2.8),
 `option_contract_symbol` excepted — it may be set once, later (§2.6).
 
-`DECIMAL(15,6)` for `strike_price` is a `BigDecimal` column: annotate any Bean-Validation precision with
-`@Digits(15,6)` (safe on decimal columns; **not** on `Double`/`Float`, per backend/CLAUDE.md).
+`strike_price` is a `Double` field like every other price in GT. Its input precision belongs on the form
+annotation, `@DynamicFormField(uiOrder = "…", integerLimit = 9, fractionLimit = 6)`; `@Digits` must not be
+used, because Hibernate then derives a SQL scale and startup fails on a floating point column.
 
 ### 2.4 Why `idLinkSecuritycurrency` is NOT reused for the underlying
 
@@ -289,7 +290,7 @@ is handled by the transition policy in §3.9. Deliberately-adjusted contracts ar
 
 ```sql
 -- V0_3x_y__option_trading.sql  (next free version after V0_36_7; do NOT backfill into an older series)
-ALTER TABLE security ADD COLUMN IF NOT EXISTS strike_price                    DECIMAL(15, 6) NULL;
+ALTER TABLE security ADD COLUMN IF NOT EXISTS strike_price                    double         NULL;
 ALTER TABLE security ADD COLUMN IF NOT EXISTS option_type                     TINYINT        NULL;
 ALTER TABLE security ADD COLUMN IF NOT EXISTS exercise_style                  TINYINT        NULL;
 ALTER TABLE security ADD COLUMN IF NOT EXISTS contract_multiplier             INT            NULL;

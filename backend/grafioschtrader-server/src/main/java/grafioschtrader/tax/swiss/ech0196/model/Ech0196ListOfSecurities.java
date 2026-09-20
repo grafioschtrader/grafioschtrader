@@ -49,39 +49,99 @@ public class Ech0196ListOfSecurities {
   @XmlAttribute(required = true)
   private Double totalGrossRevenueConversion;
 
-  public List<Ech0196Depot> getDepots() { return depots; }
-  public void setDepots(List<Ech0196Depot> depots) { this.depots = depots; }
+  public List<Ech0196Depot> getDepots() {
+    return depots;
+  }
 
-  public Double getTotalTaxValue() { return totalTaxValue; }
-  public void setTotalTaxValue(Double totalTaxValue) { this.totalTaxValue = totalTaxValue; }
+  public void setDepots(List<Ech0196Depot> depots) {
+    this.depots = depots;
+  }
 
-  public Double getTotalGrossRevenueA() { return totalGrossRevenueA; }
-  public void setTotalGrossRevenueA(Double totalGrossRevenueA) { this.totalGrossRevenueA = totalGrossRevenueA; }
+  public Double getTotalTaxValue() {
+    return totalTaxValue;
+  }
 
-  public Double getTotalGrossRevenueACanton() { return totalGrossRevenueACanton; }
-  public void setTotalGrossRevenueACanton(Double totalGrossRevenueACanton) { this.totalGrossRevenueACanton = totalGrossRevenueACanton; }
+  public void setTotalTaxValue(Double totalTaxValue) {
+    this.totalTaxValue = totalTaxValue;
+  }
 
-  public Double getTotalGrossRevenueB() { return totalGrossRevenueB; }
-  public void setTotalGrossRevenueB(Double totalGrossRevenueB) { this.totalGrossRevenueB = totalGrossRevenueB; }
+  public Double getTotalGrossRevenueA() {
+    return totalGrossRevenueA;
+  }
 
-  public Double getTotalGrossRevenueBCanton() { return totalGrossRevenueBCanton; }
-  public void setTotalGrossRevenueBCanton(Double totalGrossRevenueBCanton) { this.totalGrossRevenueBCanton = totalGrossRevenueBCanton; }
+  public void setTotalGrossRevenueA(Double totalGrossRevenueA) {
+    this.totalGrossRevenueA = totalGrossRevenueA;
+  }
 
-  public Double getTotalWithHoldingTaxClaim() { return totalWithHoldingTaxClaim; }
-  public void setTotalWithHoldingTaxClaim(Double totalWithHoldingTaxClaim) { this.totalWithHoldingTaxClaim = totalWithHoldingTaxClaim; }
+  public Double getTotalGrossRevenueACanton() {
+    return totalGrossRevenueACanton;
+  }
 
-  public Double getTotalLumpSumTaxCredit() { return totalLumpSumTaxCredit; }
-  public void setTotalLumpSumTaxCredit(Double totalLumpSumTaxCredit) { this.totalLumpSumTaxCredit = totalLumpSumTaxCredit; }
+  public void setTotalGrossRevenueACanton(Double totalGrossRevenueACanton) {
+    this.totalGrossRevenueACanton = totalGrossRevenueACanton;
+  }
 
-  public Double getTotalNonRecoverableTax() { return totalNonRecoverableTax; }
-  public void setTotalNonRecoverableTax(Double totalNonRecoverableTax) { this.totalNonRecoverableTax = totalNonRecoverableTax; }
+  public Double getTotalGrossRevenueB() {
+    return totalGrossRevenueB;
+  }
 
-  public Double getTotalAdditionalWithHoldingTaxUSA() { return totalAdditionalWithHoldingTaxUSA; }
-  public void setTotalAdditionalWithHoldingTaxUSA(Double v) { this.totalAdditionalWithHoldingTaxUSA = v; }
+  public void setTotalGrossRevenueB(Double totalGrossRevenueB) {
+    this.totalGrossRevenueB = totalGrossRevenueB;
+  }
 
-  public Double getTotalGrossRevenueIUP() { return totalGrossRevenueIUP; }
-  public void setTotalGrossRevenueIUP(Double totalGrossRevenueIUP) { this.totalGrossRevenueIUP = totalGrossRevenueIUP; }
+  public Double getTotalGrossRevenueBCanton() {
+    return totalGrossRevenueBCanton;
+  }
 
-  public Double getTotalGrossRevenueConversion() { return totalGrossRevenueConversion; }
-  public void setTotalGrossRevenueConversion(Double totalGrossRevenueConversion) { this.totalGrossRevenueConversion = totalGrossRevenueConversion; }
+  public void setTotalGrossRevenueBCanton(Double totalGrossRevenueBCanton) {
+    this.totalGrossRevenueBCanton = totalGrossRevenueBCanton;
+  }
+
+  public Double getTotalWithHoldingTaxClaim() {
+    return totalWithHoldingTaxClaim;
+  }
+
+  public void setTotalWithHoldingTaxClaim(Double totalWithHoldingTaxClaim) {
+    this.totalWithHoldingTaxClaim = totalWithHoldingTaxClaim;
+  }
+
+  public Double getTotalLumpSumTaxCredit() {
+    return totalLumpSumTaxCredit;
+  }
+
+  public void setTotalLumpSumTaxCredit(Double totalLumpSumTaxCredit) {
+    this.totalLumpSumTaxCredit = totalLumpSumTaxCredit;
+  }
+
+  public Double getTotalNonRecoverableTax() {
+    return totalNonRecoverableTax;
+  }
+
+  public void setTotalNonRecoverableTax(Double totalNonRecoverableTax) {
+    this.totalNonRecoverableTax = totalNonRecoverableTax;
+  }
+
+  public Double getTotalAdditionalWithHoldingTaxUSA() {
+    return totalAdditionalWithHoldingTaxUSA;
+  }
+
+  public void setTotalAdditionalWithHoldingTaxUSA(Double v) {
+    this.totalAdditionalWithHoldingTaxUSA = v;
+  }
+
+  public Double getTotalGrossRevenueIUP() {
+    return totalGrossRevenueIUP;
+  }
+
+  public void setTotalGrossRevenueIUP(Double totalGrossRevenueIUP) {
+    this.totalGrossRevenueIUP = totalGrossRevenueIUP;
+  }
+
+  public Double getTotalGrossRevenueConversion() {
+    return totalGrossRevenueConversion;
+  }
+
+  public void setTotalGrossRevenueConversion(Double totalGrossRevenueConversion) {
+    this.totalGrossRevenueConversion = totalGrossRevenueConversion;
+  }
 }

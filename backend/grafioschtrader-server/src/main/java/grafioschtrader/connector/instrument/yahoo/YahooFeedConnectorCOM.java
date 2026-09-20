@@ -53,12 +53,12 @@ import tools.jackson.databind.json.JsonMapper;
 public class YahooFeedConnectorCOM extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
-  // Jackson 3 changed DEFAULT_VIEW_INCLUSION default from true to false.
-  // Enable it so leaf DTO fields without @JsonView are included when
-  // readerWithView() is used for selective subtree deserialization.
+  // Jackson 3 flipped two defaults this DTO was written against: DEFAULT_VIEW_INCLUSION (true → false)
+  // and FAIL_ON_NULL_FOR_PRIMITIVES (false → true). Restore both so leaf fields without @JsonView are
+  // read, and Yahoo's explicit JSON nulls (e.g. firstTradeDate on FTSE indices) do not fail the parse.
   private static final ObjectMapper objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
+      .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
   private static final String DIVDEND_EVENT = "div";
   private static final String SPLIT_EVENT = "splits";
   private static final String URL_NORMAL_REGEX = "^\\^?[A-Za-z\\-0-9]+(\\.[A-Za-z]+)?$";
@@ -318,13 +318,15 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
   /**
    * Intentionally disables the connectivity-based URL check for this connector.
    *
-   * <p>Yahoo's "download links" produced by {@code getSecurityHistoricalDownloadLink} /
+   * <p>
+   * Yahoo's "download links" produced by {@code getSecurityHistoricalDownloadLink} /
    * {@code getCurrencypairHistoricalDownloadLink} point at the HTML history page, not the JSON API
    * ({@code query2 .../v8/finance/chart/...}) that actually delivers the data, so a base-class HTTP 200 check would
    * validate the wrong endpoint. URL-extension correctness is instead enforced by the regex validation in
    * {@link #clearAndCheckUrlPatternSecuritycurrencyConnector}. This override is kept (rather than removed) as a guard:
    * should a {@code UrlCheck} flag ever be added to the constructor, the unsuitable base connectivity check must not
-   * run.</p>
+   * run.
+   * </p>
    */
   @Override
   protected void checkUrl(String url, String failureMsgKey, FeedSupport feedSupport) {

@@ -26,8 +26,7 @@ public class FeedConnectorEntityIdOptionsProvider implements EntityIdOptionsProv
   public void addEntityIdOptions(TaskDataChangeFormConstraints constraints) {
     List<ValueKeyHtmlSelectOptions> connectorOptions = feedConnectors.stream()
         .map(fc -> new ValueKeyHtmlSelectOptions(String.valueOf(fc.getIdNumber()), fc.getReadableName()))
-        .sorted(Comparator.comparing(o -> o.value))
-        .collect(Collectors.toList());
+        .sorted(Comparator.comparing(o -> o.value)).collect(Collectors.toList());
     constraints.putSharedOptions(IFeedConnector.class.getSimpleName(), connectorOptions);
   }
 }

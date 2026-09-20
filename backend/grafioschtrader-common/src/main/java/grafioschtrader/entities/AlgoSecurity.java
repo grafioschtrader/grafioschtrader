@@ -33,6 +33,7 @@ public class AlgoSecurity extends AlgoAssetclassSecurity {
   @Column(name = "activatable")
   private boolean activatable = true;
 
+  @Schema(description = "Security or currency pair to which this hierarchy node applies")
   @JoinColumn(name = "id_securitycurrency", referencedColumnName = "id_securitycurrency")
   @ManyToOne
   private Security security;

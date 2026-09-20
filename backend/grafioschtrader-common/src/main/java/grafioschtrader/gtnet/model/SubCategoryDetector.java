@@ -19,23 +19,21 @@ public class SubCategoryDetector {
   // Regional keywords (multilingual: EN/DE)
   private static final Set<String> REGIONAL_KEYWORDS = Set.of(
       // English
-      "world", "global", "emerging", "markets", "usa", "europe", "asia", "pacific",
-      "americas", "africa", "latin", "north", "japan", "china", "uk", "germany",
-      "switzerland", "international", "developed", "frontier",
+      "world", "global", "emerging", "markets", "usa", "europe", "asia", "pacific", "americas", "africa", "latin",
+      "north", "japan", "china", "uk", "germany", "switzerland", "international", "developed", "frontier",
       // German
-      "welt", "schwellenländer", "schwellenlaender", "europa", "asien", "pazifik",
-      "lateinamerika", "nordamerika", "afrika", "schweiz", "deutschland");
+      "welt", "schwellenländer", "schwellenlaender", "europa", "asien", "pazifik", "lateinamerika", "nordamerika",
+      "afrika", "schweiz", "deutschland");
 
   // Sector keywords (multilingual: EN/DE)
   private static final Set<String> SECTOR_KEYWORDS = Set.of(
       // English
-      "finance", "financial", "banking", "bank", "industry", "industrial",
-      "technology", "tech", "healthcare", "health", "energy", "utilities",
-      "consumer", "materials", "real estate", "communication", "telecom",
-      "telecommunications", "insurance", "pharmaceutical", "biotech",
+      "finance", "financial", "banking", "bank", "industry", "industrial", "technology", "tech", "healthcare", "health",
+      "energy", "utilities", "consumer", "materials", "real estate", "communication", "telecom", "telecommunications",
+      "insurance", "pharmaceutical", "biotech",
       // German
-      "finanzen", "banken", "industrie", "technologie", "gesundheit", "energie",
-      "versorger", "konsum", "immobilien", "kommunikation", "versicherung", "pharma");
+      "finanzen", "banken", "industrie", "technologie", "gesundheit", "energie", "versorger", "konsum", "immobilien",
+      "kommunikation", "versicherung", "pharma");
 
   private SubCategoryDetector() {
   }

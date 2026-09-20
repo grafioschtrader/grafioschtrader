@@ -99,10 +99,10 @@ public class SecruityTransactionsReport {
 
   /**
    * Gets transaction summary for a security across all portfolios in a tenant.
-   * 
-   * @param idTenant the tenant identifier
-   * @param idSecuritycurrency the security identifier  
-   * @param untilDate the cutoff date for transactions (inclusive)
+   *
+   * @param idTenant                          the tenant identifier
+   * @param idSecuritycurrency                the security identifier
+   * @param untilDate                         the cutoff date for transactions (inclusive)
    * @param secruityTransactionsReportOptions processing options for the report
    * @return transaction summary with security objects cleared from transactions
    */
@@ -116,10 +116,10 @@ public class SecruityTransactionsReport {
 
   /**
    * Gets transaction summary for a security within a specific portfolio.
-   * 
-   * @param idPortfolio the portfolio identifier
-   * @param idSecuritycurrency the security identifier
-   * @param untilDate the cutoff date for transactions (inclusive)
+   *
+   * @param idPortfolio                       the portfolio identifier
+   * @param idSecuritycurrency                the security identifier
+   * @param untilDate                         the cutoff date for transactions (inclusive)
    * @param secruityTransactionsReportOptions processing options for the report
    * @return transaction summary with security objects cleared from transactions
    */
@@ -133,10 +133,10 @@ public class SecruityTransactionsReport {
 
   /**
    * Gets transaction summary for a security across specified security accounts.
-   * 
-   * @param idsSecurityaccount list of security account identifiers
-   * @param idSecuritycurrency the security identifier
-   * @param untilDate the cutoff date for transactions (inclusive)
+   *
+   * @param idsSecurityaccount                list of security account identifiers
+   * @param idSecuritycurrency                the security identifier
+   * @param untilDate                         the cutoff date for transactions (inclusive)
    * @param secruityTransactionsReportOptions processing options for the report
    * @return transaction summary with security objects cleared from transactions
    */
@@ -156,18 +156,20 @@ public class SecruityTransactionsReport {
 
   /**
    * Returns security accounts with open positions for a specific security at a given point in time.
-   * 
-   * <p>Calculates which security accounts hold open positions for the specified security,
-   * excluding weekends and considering timezone offsets. Not suitable for margin products.</p>
-   * 
-   * @param idTenant the tenant identifier
-   * @param idSecuritycurrency the security identifier
-   * @param dateString date in yyyyMMddHHmm format
-   * @param before if true, calculates positions just before the specified time
-   * @param excludeIdTransaction transaction ID to exclude from calculations
+   *
+   * <p>
+   * Calculates which security accounts hold open positions for the specified security, excluding weekends and
+   * considering timezone offsets. Not suitable for margin products.
+   * </p>
+   *
+   * @param idTenant                the tenant identifier
+   * @param idSecuritycurrency      the security identifier
+   * @param dateString              date in yyyyMMddHHmm format
+   * @param before                  if true, calculates positions just before the specified time
+   * @param excludeIdTransaction    transaction ID to exclude from calculations
    * @param idOpenMarginTransaction margin transaction ID for position tracking
    * @return open positions grouped by security account
-   */ 
+   */
   public SecurityOpenPositionPerSecurityaccount getOpenPositionByIdTenantAndIdSecuritycurrency(final Integer idTenant,
       final Integer idSecuritycurrency, final String dateString, final boolean before,
       final Integer excludeIdTransaction, Integer idOpenMarginTransaction) {
@@ -201,16 +203,18 @@ public class SecruityTransactionsReport {
 
   /**
    * Loads and processes transactions for a security at tenant level with optional filtering.
-   * 
-   * <p>Uses concurrent loading of transactions, currency data, and exchange rates for performance.
-   * Supports filtering by security accounts or margin transaction relationships.</p>
-   * 
-   * @param idTenant the tenant identifier
-   * @param idsSecurityaccount optional list of security accounts to filter by
-   * @param idSecuritycurrency the security identifier
-   * @param untilDate the cutoff date for transactions
+   *
+   * <p>
+   * Uses concurrent loading of transactions, currency data, and exchange rates for performance. Supports filtering by
+   * security accounts or margin transaction relationships.
+   * </p>
+   *
+   * @param idTenant                          the tenant identifier
+   * @param idsSecurityaccount                optional list of security accounts to filter by
+   * @param idSecuritycurrency                the security identifier
+   * @param untilDate                         the cutoff date for transactions
    * @param secruityTransactionsReportOptions processing options
-   * @param idOpenMarginTransaction optional margin transaction for related position tracking
+   * @param idOpenMarginTransaction           optional margin transaction for related position tracking
    * @return comprehensive transaction summary with position and performance data
    */
   private SecurityTransactionSummary getTransactionsByIdTenantAndIdSecurity(final Integer idTenant,
@@ -241,10 +245,10 @@ public class SecruityTransactionsReport {
 
   /**
    * Loads and processes transactions for a security within a specific portfolio.
-   * 
-   * @param idPortfolio the portfolio identifier
-   * @param idSecuritycurrency the security identifier
-   * @param untilDate the cutoff date for transactions
+   *
+   * @param idPortfolio                       the portfolio identifier
+   * @param idSecuritycurrency                the security identifier
+   * @param untilDate                         the cutoff date for transactions
    * @param secruityTransactionsReportOptions processing options
    * @return transaction summary for the portfolio scope
    * @throws SecurityException if user lacks access to the portfolio
@@ -266,8 +270,8 @@ public class SecruityTransactionsReport {
           () -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(portfolio.getIdTenant()));
       final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
           .supplyAsync(() -> new DateTransactionCurrencypairMap(portfolio.getCurrency(), untilDate,
-              dateTransactionCurrencyFuture.join(), currencypairsFuture.join(), this.tradingDaysPlusJpaRepository
-                  .hasTradingDayBetweenUntilYesterday(untilDate)));
+              dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
+              this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate)));
       return calcSummaryForTransactions(transactionsFuture.join(),
           securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
           dateCurrencyMapFuture.join());
@@ -278,11 +282,11 @@ public class SecruityTransactionsReport {
 
   /**
    * Loads and processes transactions for a security within a specific security account.
-   * 
-   * @param idTenant the tenant identifier
-   * @param idSecuritycashAccount the security account identifier
-   * @param idSecuritycurrency the security identifier
-   * @param untilDate the cutoff date for transactions
+   *
+   * @param idTenant                          the tenant identifier
+   * @param idSecuritycashAccount             the security account identifier
+   * @param idSecuritycurrency                the security identifier
+   * @param untilDate                         the cutoff date for transactions
    * @param secruityTransactionsReportOptions processing options
    * @return transaction summary for the security account scope
    */
@@ -309,9 +313,9 @@ public class SecruityTransactionsReport {
 
   /**
    * Groups transactions by security account for separate position analysis.
-   * 
+   *
    * @param securityTransactionSummary the transaction summary to process
-   * @param excludeIdTransaction transaction ID to exclude from grouping
+   * @param excludeIdTransaction       transaction ID to exclude from grouping
    * @return map of security account ID to transaction list
    */
   private Map<Integer, List<Transaction>> separateTransactionForSecurityBySecurityaccount(
@@ -331,16 +335,17 @@ public class SecruityTransactionsReport {
 
   /**
    * Calculates comprehensive transaction summary with position analysis and performance metrics.
-   * 
-   * <p>Processes all transactions for a security, applying stock splits, currency conversions,
-   * and calculating current positions. Optionally generates hypothetical sell scenarios and
-   * applies split corrections for charting purposes.</p>
-   * 
-   * @param transactions the list of transactions to process
-   * @param security the security master data
-   * @param untilDate the cutoff date for calculations
+   *
+   * <p>
+   * Processes all transactions for a security, applying stock splits, currency conversions, and calculating current
+   * positions. Optionally generates hypothetical sell scenarios and applies split corrections for charting purposes.
+   * </p>
+   *
+   * @param transactions                      the list of transactions to process
+   * @param security                          the security master data
+   * @param untilDate                         the cutoff date for calculations
    * @param secruityTransactionsReportOptions processing options
-   * @param dateCurrencyMap currency conversion rates and trading day information
+   * @param dateCurrencyMap                   currency conversion rates and trading day information
    * @return comprehensive transaction summary with positions and performance data
    */
   private SecurityTransactionSummary calcSummaryForTransactions(final List<Transaction> transactions,
@@ -379,9 +384,12 @@ public class SecruityTransactionsReport {
             }
           }, untilDate);
     }
-    if (dateCurrencyMap != null) {
-      // The share of the currency result each transaction carries depends on the reporting date rate, so it can only
-      // be filled in once the walk and the hypothetical close are done.
+    if (dateCurrencyMap != null
+        && secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
+      // Per-transaction currency result is only returned on the transaction list, which always sets
+      // CLEAR_TRANSACTION_SECURITY. The open-position lookup for the transaction dialog does not, and must not require
+      // a currency pair that may not exist yet (first trade in that currency, or the pair stored in the opposite
+      // direction).
       securityTransactionSummary.applyReportRate(
           ReportHelper.getReportExchangeRate(security.getCurrency(), dateCurrencyMap, tradingDaysPlusJpaRepository));
     }
@@ -400,14 +408,16 @@ public class SecruityTransactionsReport {
 
   /**
    * Adjusts transaction quotations to account for historical stock splits.
-   * 
-   * <p>When historical price data is split-adjusted, transaction quotations must be corrected
-   * to maintain consistency for charting and analysis. This method applies the cumulative split
-   * factor to each transaction's quotation based on splits that occurred after the transaction date.</p>
-   * 
-   * @param idSecuritycurrency the security identifier
+   *
+   * <p>
+   * When historical price data is split-adjusted, transaction quotations must be corrected to maintain consistency for
+   * charting and analysis. This method applies the cumulative split factor to each transaction's quotation based on
+   * splits that occurred after the transaction date.
+   * </p>
+   *
+   * @param idSecuritycurrency         the security identifier
    * @param securityTransactionSummary the transaction summary to modify
-   * @param securitySplitMap map of security splits by security ID
+   * @param securitySplitMap           map of security splits by security ID
    */
   private void quotationSplitCorrection(final Integer idSecuritycurrency,
       final SecurityTransactionSummary securityTransactionSummary,
@@ -424,9 +434,8 @@ public class SecruityTransactionsReport {
 
           int splitIndex = securitySplits.size() - 1;
           double factor = 1.0;
-          while (splitIndex >= 0
-              && transaction.getTransactionTime().toLocalDate()
-                  .isBefore(securitySplits.get(splitIndex).getSplitDate())) {
+          while (splitIndex >= 0 && transaction.getTransactionTime().toLocalDate()
+              .isBefore(securitySplits.get(splitIndex).getSplitDate())) {
             final Securitysplit securitysplit = securitySplits.get(splitIndex);
             factor /= (double) securitysplit.getToFactor() / securitysplit.getFromFactor();
             splitIndex--;

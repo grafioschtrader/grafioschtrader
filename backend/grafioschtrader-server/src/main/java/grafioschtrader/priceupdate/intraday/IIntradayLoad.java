@@ -7,7 +7,7 @@ import grafioschtrader.entities.Securitycurrency;
 
 /**
  * Interface for intraday price loading and real-time market data updates through feed connectors.
- * 
+ *
  * <p>
  * This interface defines the contract for updating intraday prices of securities and currency pairs from external data
  * providers using configured feed connectors. It supports both concurrent batch processing and individual security
@@ -15,20 +15,20 @@ import grafioschtrader.entities.Securitycurrency;
  * feed connector complexity while providing flexible execution options and robust error handling for real-time market
  * data operations.
  * </p>
- * 
+ *
  * @param <S> the type of security currency extending Securitycurrency
  */
 public interface IIntradayLoad<S extends Securitycurrency<S>> {
 
   /**
    * Updates intraday prices of securities or currency pairs using concurrent processing with default configuration.
-   * 
+   *
    * <p>
    * This method processes multiple securities concurrently to improve performance when updating large sets of market
    * data. Uses default retry configuration and timeout settings from global parameters. Each security's retry counter
    * is managed automatically, resetting on successful updates and incrementing on failures.
    * </p>
-   * 
+   *
    * @param securtycurrencies list of securities or currency pairs to update
    * @param singleThread      true to force single-threaded execution, false for concurrent processing
    * @return list of securities with updated intraday prices, excluding items that exceeded retry limits or are inactive
@@ -37,7 +37,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
 
   /**
    * Updates intraday price of a single security or currency pair with comprehensive validation and error handling.
-   * 
+   *
    * <p>
    * This method performs a complete update cycle including:
    * <ul>
@@ -49,7 +49,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
    * <li>Database persistence of updated security state</li>
    * </ul>
    * </p>
-   * 
+   *
    * @param securitycurrency        the security or currency pair to update
    * @param maxIntraRetry           maximum number of retry attempts for failed price updates, -1 for unlimited retries
    * @param scIntradayUpdateTimeout timeout in seconds for determining if delayed updates are allowed
@@ -61,7 +61,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
 
   /**
    * Updates intraday price of a single security or currency pair with comprehensive validation and error handling.
-   * 
+   *
    * <p>
    * This method performs a complete update cycle including:
    * <ul>
@@ -73,7 +73,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
    * <li>Database persistence of updated security state</li>
    * </ul>
    * </p>
-   * 
+   *
    * @param securitycurrency        the security or currency pair to update
    * @param maxIntraRetry           maximum number of retry attempts for failed price updates, -1 for unlimited retries
    * @param scIntradayUpdateTimeout timeout in seconds for determining if delayed updates are allowed
@@ -85,7 +85,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
 
   /**
    * Generates a download link URL string for intraday data with intelligent lazy loading detection.
-   * 
+   *
    * <p>
    * Creates a URL for retrieving intraday price data by first locating the appropriate feed connector based on the
    * security's idConnectorIntra. The method intelligently determines the link type:
@@ -95,7 +95,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
    * <li>Returns null if no suitable feed connector is found</li>
    * </ul>
    * </p>
-   * 
+   *
    * @param securitycurrency the security or currency pair for which to generate the download link
    * @return URL string for accessing intraday data, "lazy" for lazy-loaded connectors, or null if no connector
    *         available
@@ -104,7 +104,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
 
   /**
    * Creates a download link with API key security and connector-specific routing logic.
-   * 
+   *
    * <p>
    * Generates download links with sophisticated security and routing logic:
    * <ul>
@@ -115,7 +115,7 @@ public interface IIntradayLoad<S extends Securitycurrency<S>> {
    * getDownlinkWithApiKey()</li>
    * </ul>
    * </p>
-   * 
+   *
    * @param securitycurrency the security or currency pair for which to create the download link
    * @param feedConnector    the feed connector to use for link generation and API key access determination
    * @return download link string (direct provider URL or secure backend-routed URL), or null if connector is null

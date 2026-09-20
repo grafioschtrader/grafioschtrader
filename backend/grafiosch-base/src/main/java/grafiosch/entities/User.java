@@ -175,6 +175,20 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   @Transient
   private boolean tenantAccessReadOnly;
 
+  @Schema(description = """
+      Request-scoped flag: true when the tenant this request currently operates in may not be accessed by the user at
+      all, for example after a shared grant was revoked or the selected simulation environment was deleted. Recomputed
+      on every request together with the read-only flag. Enforced by the tenant context security filter, which leaves
+      only the recovery and account-self paths reachable; not persisted.""")
+  @Transient
+  private boolean tenantAccessForbidden;
+
+  @Schema(description = """
+      Request-scoped message key explaining why the current tenant may not be accessed, so that a refusal can say
+      whether the access was withdrawn or the tenant is merely busy. Null when the generic text applies.""")
+  @Transient
+  private String tenantAccessBlockMessageKey;
+
   @Override
   @JsonProperty("email")
   public String getUsername() {
@@ -428,6 +442,22 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
 
   public void setTenantAccessReadOnly(boolean tenantAccessReadOnly) {
     this.tenantAccessReadOnly = tenantAccessReadOnly;
+  }
+
+  public boolean isTenantAccessForbidden() {
+    return tenantAccessForbidden;
+  }
+
+  public void setTenantAccessForbidden(boolean tenantAccessForbidden) {
+    this.tenantAccessForbidden = tenantAccessForbidden;
+  }
+
+  public String getTenantAccessBlockMessageKey() {
+    return tenantAccessBlockMessageKey;
+  }
+
+  public void setTenantAccessBlockMessageKey(String tenantAccessBlockMessageKey) {
+    this.tenantAccessBlockMessageKey = tenantAccessBlockMessageKey;
   }
 
   @JsonIgnore

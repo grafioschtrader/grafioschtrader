@@ -14,8 +14,9 @@ import { SecurityService } from '../../securitycurrency/service/security.service
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { AppSettings } from '../../shared/app.settings';
-import { BusinessSelectOptionsHelper } from '../../shared/securitycurrency/business.select.options.helper';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
+import { DataType } from '../../lib/dynamic-form/models/data.type';
+import { createAlgoSecurityOptions } from './algo-security-options';
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
@@ -23,9 +24,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
   selector: 'algo-security-edit',
   template: ` <p-dialog
-    header="{{ 'ALGO_ASSETCLASS' | translate }}"
+    header="{{ 'ALGO_SECURITY' | translate }}"
     [visible]="visibleDialog"
-    [style]="{ width: '500px' }"
+    [style]="{ width: '700px', maxWidth: '95vw' }"
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
@@ -57,8 +58,9 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
 
     this.config = [
-      DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.SECURITY.toLowerCase(), true, {
-        dataproperty: 'security.idSecuritycurrency'
+      DynamicFieldHelper.createFieldDropdownNumber('security', 'ALGO_SECURITY_SELECTION', true, {
+        dataproperty: 'security.idSecuritycurrency',
+        filter: true
       }),
       ...this.getFieldDefinition()
     ];
@@ -79,19 +81,42 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
     const allSecurityaccountsObservable: Observable<Portfolio[]> =
       this.portfolioService.getPortfoliosForTenantOrderByName();
     this.valueChangedOnSecurityaccount1();
-    combineLatest([securitiesObservable, allSecurityaccountsObservable]).subscribe(
-      (data: [Security[], Portfolio[]]) => {
-        this.configObject.security.referencedDataObject = data[0];
-        this.algoCallParam.thisObject &&
-          this.configObject.security.referencedDataObject.push((<AlgoSecurity>this.algoCallParam.thisObject).security);
-        BusinessSelectOptionsHelper.securityCreateValueKeyHtmlSelectOptions(
-          this.configObject.security.referencedDataObject,
-          this.configObject.security
-        );
-        this.portfolios = data[1];
-        this.setSecurityaccounts();
-      }
-    );
+    combineLatest([
+      securitiesObservable,
+      allSecurityaccountsObservable,
+      this.translateService.get([
+        'ACTIVE_FROM_DATE',
+        'ACTIVE_TO_DATE',
+        'ALGO_SECURITY_STARTS_AFTER_REFERENCE',
+        'ALGO_SECURITY_ENDED'
+      ])
+    ]).subscribe((data) => {
+      this.configObject.security.referencedDataObject = data[0];
+      this.algoCallParam.thisObject &&
+        this.configObject.security.referencedDataObject.push((<AlgoSecurity>this.algoCallParam.thisObject).security);
+      const dateFields = {
+        activeFromDate: ShowRecordConfigBase.createColumnConfig(
+          DataType.DateString,
+          'activeFromDate',
+          'ACTIVE_FROM_DATE'
+        ),
+        activeToDate: ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'activeToDate', 'ACTIVE_TO_DATE')
+      };
+      this.configObject.security.groupItem = createAlgoSecurityOptions(
+        this.configObject.security.referencedDataObject,
+        this.algoCallParam.referenceDate,
+        (security, field) =>
+          AppHelper.getValueByPathWithField(this.gps, this.translateService, security, dateFields[field], field),
+        {
+          activeFrom: data[2].ACTIVE_FROM_DATE,
+          activeTo: data[2].ACTIVE_TO_DATE,
+          startsAfterReference: data[2].ALGO_SECURITY_STARTS_AFTER_REFERENCE,
+          ended: data[2].ALGO_SECURITY_ENDED
+        }
+      );
+      this.portfolios = data[1];
+      this.setSecurityaccounts();
+    });
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): AlgoSecurity {

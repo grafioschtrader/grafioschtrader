@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.entities.GTNetSecurityImpGap;
 
 /**
- * Repository for managing GTNetSecurityImpGap entities. Gap records document what didn't match
- * when importing securities from GTNet peers.
+ * Repository for managing GTNetSecurityImpGap entities. Gap records document what didn't match when importing
+ * securities from GTNet peers.
  */
 public interface GTNetSecurityImpGapJpaRepository extends JpaRepository<GTNetSecurityImpGap, Integer> {
 
@@ -31,8 +31,8 @@ public interface GTNetSecurityImpGapJpaRepository extends JpaRepository<GTNetSec
   List<GTNetSecurityImpGap> findByIdGtNetSecurityImpPosIn(List<Integer> idGtNetSecurityImpPosList);
 
   /**
-   * Deletes all gap records for a specific import position.
-   * Used when re-processing a position to clear old gaps before recording new ones.
+   * Deletes all gap records for a specific import position. Used when re-processing a position to clear old gaps before
+   * recording new ones.
    *
    * @param idGtNetSecurityImpPos the ID of the import position
    */

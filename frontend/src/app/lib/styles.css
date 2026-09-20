@@ -270,3 +270,21 @@ table th .p-inputtext {
 .p-button-label {
   font-size: 75%;
 }
+
+/**
+ * Marks a single table cell whose value violates a rule, for example a percentage total that does
+ * not add up to 100. The background stays light enough for the cell text to remain readable.
+ */
+.cell-value-invalid {
+  background-color: #f8d7da;
+}
+
+/* Backend-selected allocation totals and instrument names that need attention in the algo hierarchy. */
+.algo-value-invalid {
+  color: #dc2626;
+}
+
+/* Backend-selected cells that need attention, such as an instrument's expired trading end date. */
+.algo-value-warning {
+  background-color: #fff3cd;
+}

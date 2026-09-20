@@ -19,16 +19,18 @@ import grafiosch.types.TaskDataExecPriority;
 import grafiosch.types.TaskTypeBase;
 
 /**
- * Scheduled task that physically deletes role-addressed messages once every corresponding role member has marked them as
- * deleted.
+ * Scheduled task that physically deletes role-addressed messages once every corresponding role member has marked them
+ * as deleted.
  *
- * <p>Messages addressed to a role are never deleted directly by a user; instead a {@code mail_send_recv_read_del} row
- * with {@code mark_hide_del = 1} is created (soft delete). This task removes a whole role conversation thread as soon as
- * all corresponding members (the role's members at the message's send time) have soft-deleted the role message. The
+ * <p>
+ * Messages addressed to a role are never deleted directly by a user; instead a {@code mail_send_recv_read_del} row with
+ * {@code mark_hide_del = 1} is created (soft delete). This task removes a whole role conversation thread as soon as all
+ * corresponding members (the role's members at the message's send time) have soft-deleted the role message. The
  * sender's personal 'S' copy is left untouched and associated read/delete rows are removed via the database CASCADE
  * constraint.
  *
- * <p>Runs daily at a configurable time (default 23:30 UTC, see {@code g.purge.mail.role.cron}).
+ * <p>
+ * Runs daily at a configurable time (default 23:30 UTC, see {@code g.purge.mail.role.cron}).
  */
 @Component
 public class MailRoleMessagePurgeTask implements ITask {

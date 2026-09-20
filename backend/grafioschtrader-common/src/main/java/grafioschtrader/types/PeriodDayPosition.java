@@ -1,8 +1,8 @@
 package grafioschtrader.types;
 
 /**
- * Determines which day within a month/year period a standing order executes on. Only relevant when the repeat unit
- * is MONTHS or YEARS; ignored for DAYS-based intervals.
+ * Determines which day within a month/year period a standing order executes on. Only relevant when the repeat unit is
+ * MONTHS or YEARS; ignored for DAYS-based intervals.
  */
 public enum PeriodDayPosition {
 

@@ -16,6 +16,31 @@ import grafiosch.GlobalParamKeyBaseDefault;
  * </p>
  */
 public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
+  /** Calendar-day fallback for replay dividends without a payment date. */
+  public static final String GLOB_KEY_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS = GlobalConstants.GT_PREFIX
+      + "simulation.dividend.payment.delay.days";
+  public static final int DEFAULT_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS = 16;
+  public static final int MIN_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS = 1;
+  public static final int MAX_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS = 32;
+
+  /** Background fallback interval for rule based alerts, in whole hours. */
+  public static final String GLOB_KEY_ALGO_ALARM_EVALUATION_INTERVAL_HOURS = "gt.algo.alarm.evaluation.interval.hours";
+  public static final int DEFAULT_ALGO_ALARM_EVALUATION_INTERVAL_HOURS = 4;
+
+  /**
+   * Longest horizon a single historical replay may cover, counted in trading days rather than calendar days. The
+   * ceiling protects the replay worker pool: one run occupies a worker for its whole horizon, so an unbounded one
+   * starves every other replay of the instance. An administrator raises or lowers it according to how much hardware the
+   * instance has and how many clients share it.
+   */
+  public static final String GLOB_KEY_SIMULATION_MAX_RUN_TRADING_DAYS = GlobalConstants.GT_PREFIX
+      + "simulation.max.run.trading.days";
+  /** Roughly twelve years of trading days. */
+  public static final int DEFAULT_SIMULATION_MAX_RUN_TRADING_DAYS = 3000;
+  /** Smallest horizon an administrator may configure, a bit over one trading year. */
+  public static final int MIN_SIMULATION_MAX_RUN_TRADING_DAYS = 300;
+  /** Largest horizon an administrator may configure, roughly thirty years of trading days. */
+  public static final int MAX_SIMULATION_MAX_RUN_TRADING_DAYS = 7500;
 
   /** Default currency precision configuration. */
   public static final String DEFAULT_CURRENCY_PRECISION = "BTC=8,ETH=7,JPY=0,ZAR=0";

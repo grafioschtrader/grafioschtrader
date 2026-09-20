@@ -538,13 +538,17 @@ public class SendMailInternalExternalService {
     if (msgTargetType == MessageTargetType.EXTERNAL_MAIL
         || msgTargetType == MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL) {
       Locale locale = Locale.forLanguageTag(localeStr);
-      String msgAddition = messagesSource.getMessage("g.external.message.addition", new Object[] { idUserFrom },
-          locale);
-      String instanceLine = messagesSource.getMessage("g.external.message.instance",
-          new Object[] { getLocalInstanceIdentifier() }, locale);
       mailExternalService.sendSimpleMessageAsync(usersTo, "GT: " + subject,
-          msgAddition + BaseConstants.NEW_LINE + instanceLine + BaseConstants.RETURN_AND_NEW_LINE + message);
+          renderExternalMessage(idUserFrom, message, locale));
     }
+  }
+
+  /** Renders the same external-mail envelope for durable synchronous delivery by a background worker. */
+  public String renderExternalMessage(Integer fromUser, String body, Locale locale) {
+    return messagesSource.getMessage("g.external.message.addition", new Object[] { fromUser }, locale)
+        + BaseConstants.NEW_LINE + messagesSource.getMessage("g.external.message.instance",
+            new Object[] { getLocalInstanceIdentifier() }, locale)
+        + BaseConstants.RETURN_AND_NEW_LINE + body;
   }
 
   /**

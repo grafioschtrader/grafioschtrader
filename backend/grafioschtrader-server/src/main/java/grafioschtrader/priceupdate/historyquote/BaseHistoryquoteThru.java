@@ -154,9 +154,8 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
   }
 
   /**
-   * Gets the current date in the exchange's local timezone for a security or currency pair.
-   * For securities, uses the stockexchange's configured timezone. For currency pairs, falls back
-   * to system default timezone.
+   * Gets the current date in the exchange's local timezone for a security or currency pair. For securities, uses the
+   * stockexchange's configured timezone. For currency pairs, falls back to system default timezone.
    *
    * @param securitycurrency the security or currency pair
    * @param adjustForWeekend if true, adjusts Sunday/Monday back to previous Friday
@@ -191,23 +190,24 @@ public abstract class BaseHistoryquoteThru<S extends Securitycurrency<S>> extend
   }
 
   /**
-   * Updates historical quotes for a single security or currency pair if there are missing days.
-   * Uses the exchange's local timezone for date calculations to correctly determine if updates are needed.
+   * Updates historical quotes for a single security or currency pair if there are missing days. Uses the exchange's
+   * local timezone for date calculations to correctly determine if updates are needed.
    *
-   * @param queryObject the security/currency with its maximum historical quote date
-   * @param untilCalendar the fallback target date (used for logging compatibility, actual date is timezone-aware)
-   * @param catchUp list to add successfully updated securities to
+   * @param queryObject              the security/currency with its maximum historical quote date
+   * @param untilCalendar            the fallback target date (used for logging compatibility, actual date is
+   *                                 timezone-aware)
+   * @param catchUp                  list to add successfully updated securities to
    * @param isExchangeSpecificUpdate true if this is an exchange-specific update. For exchange-specific updates,
-   *                                  securities are updated if diffInDays >= 1 (allows same-day updates after
-   *                                  exchange closes). For global daily updates, diffInDays must be > 1.
+   *                                 securities are updated if diffInDays >= 1 (allows same-day updates after exchange
+   *                                 closes). For global daily updates, diffInDays must be > 1.
    */
-  private void catchUpHistoryquote(final SecurityCurrencyMaxHistoryquoteData<S> queryObject,
-      final LocalDate untilDate, final List<S> catchUp, boolean isExchangeSpecificUpdate) {
+  private void catchUpHistoryquote(final SecurityCurrencyMaxHistoryquoteData<S> queryObject, final LocalDate untilDate,
+      final List<S> catchUp, boolean isExchangeSpecificUpdate) {
     final S securitycurrency = queryObject.getSecurityCurrency();
 
     // Get current date in the exchange's local timezone
-    final LocalDate currentDateInExchangeZone = getCurrentLocalDateForSecurityCurrency(
-        securitycurrency, !isExchangeSpecificUpdate);
+    final LocalDate currentDateInExchangeZone = getCurrentLocalDateForSecurityCurrency(securitycurrency,
+        !isExchangeSpecificUpdate);
     final LocalDate lastQuoteDate = queryObject.getDate();
 
     final long diffInDays = ChronoUnit.DAYS.between(lastQuoteDate, currentDateInExchangeZone);

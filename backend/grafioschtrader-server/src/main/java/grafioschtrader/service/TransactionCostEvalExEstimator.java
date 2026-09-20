@@ -28,15 +28,18 @@ import grafioschtrader.dto.FeeModelPeriod;
 import grafioschtrader.dto.FeeRule;
 import grafioschtrader.dto.TransactionCostEstimateRequest;
 import grafioschtrader.dto.TransactionCostEstimateResult;
+import grafioschtrader.entities.Assetclass;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.repository.TradingPlatformPlanJpaRepository;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
+import grafioschtrader.types.TransactionType;
 
 /**
- * Evaluates rule-based fee models configured as YAML with EvalEx expressions on TradingPlatformPlan.
- * Supports two formats: flat rules (always applicable) or time-based periods with nested rules.
- * Rules within a format are evaluated top-to-bottom; the first rule whose condition is true determines the fee.
+ * Evaluates rule-based fee models configured as YAML with EvalEx expressions on TradingPlatformPlan. Supports two
+ * formats: flat rules (always applicable) or time-based periods with nested rules. Rules within a format are evaluated
+ * top-to-bottom; the first rule whose condition is true determines the fee.
  */
 @Service
 public class TransactionCostEvalExEstimator {
@@ -76,7 +79,8 @@ public class TransactionCostEvalExEstimator {
       TradingPlatformPlan plan = tradingPlatformPlanJpaRepository.findById(request.getIdTradingPlatformPlan())
           .orElse(null);
       if (plan == null) {
-        return TransactionCostEstimateResult.error("TradingPlatformPlan not found: " + request.getIdTradingPlatformPlan());
+        return TransactionCostEstimateResult
+            .error("TradingPlatformPlan not found: " + request.getIdTradingPlatformPlan());
       }
       if (plan.getFeeModelYaml() == null || plan.getFeeModelYaml().isBlank()) {
         return TransactionCostEstimateResult.error("No fee model YAML configured on this plan");
@@ -89,10 +93,10 @@ public class TransactionCostEvalExEstimator {
   }
 
   /**
-   * Evaluates a fee model YAML string directly (without loading from DB), useful for testing.
-   * Supports both flat rules and time-based periods format.
+   * Evaluates a fee model YAML string directly (without loading from DB), useful for testing. Supports both flat rules
+   * and time-based periods format.
    *
-   * @param yaml the YAML fee model string
+   * @param yaml    the YAML fee model string
    * @param request the estimation request with trade parameters and optional transactionDate
    * @return the estimation result
    */
@@ -121,9 +125,45 @@ public class TransactionCostEvalExEstimator {
   }
 
   /**
+   * Maps one trade onto the request the fee rules are evaluated against. Both the fee comparison report and the
+   * historical replay use it, so that a simulated cost is produced from exactly the inputs the user calibrated the
+   * model with; a second, independent mapping would drift from the report without anyone noticing.
+   *
+   * @param security              the traded instrument, supplying instrument type, asset class, MIC and currency
+   * @param units                 number of units traded, sign ignored
+   * @param quotation             price per unit in the currency of the instrument
+   * @param transactionType       ACCUMULATE becomes trade direction 0 (buy), everything else 1 (sell)
+   * @param date                  the day the fee applies on, selecting the matching period of a time-based model
+   * @param idTradingPlatformPlan the plan whose model is evaluated when no inline YAML is supplied
+   * @param fixedAssets           the account or portfolio value a tiered model grades the fee by, 0 when unknown
+   * @return a request carrying every variable {@code bindVariables} can bind
+   */
+  public static TransactionCostEstimateRequest buildRequest(Security security, double units, double quotation,
+      TransactionType transactionType, LocalDate date, Integer idTradingPlatformPlan, double fixedAssets) {
+    TransactionCostEstimateRequest req = new TransactionCostEstimateRequest();
+    req.setIdTradingPlatformPlan(idTradingPlatformPlan);
+    req.setUnits(units);
+    req.setTradeValue(units * quotation);
+    Assetclass assetclass = security == null ? null : security.getAssetClass();
+    req.setSpecInvestInstrument(assetclass != null && assetclass.getSpecialInvestmentInstrument() != null
+        ? (int) assetclass.getSpecialInvestmentInstrument().getValue()
+        : 0);
+    req.setCategoryType(
+        assetclass != null && assetclass.getCategoryType() != null ? (int) assetclass.getCategoryType().getValue() : 0);
+    req.setMic(security != null && security.getStockexchange() != null && security.getStockexchange().getMic() != null
+        ? security.getStockexchange().getMic()
+        : "");
+    req.setCurrency(security != null && security.getCurrency() != null ? security.getCurrency() : "");
+    req.setTradeDirection(transactionType == TransactionType.ACCUMULATE ? 0 : 1);
+    req.setFixedAssets(fixedAssets);
+    req.setTransactionDate(date == null ? null : date.toString());
+    return req;
+  }
+
+  /**
    * Finds the first period whose date range covers the transaction date and returns its rules.
    *
-   * @param periods the list of fee periods to search
+   * @param periods            the list of fee periods to search
    * @param transactionDateStr the transaction date as ISO string, or null for today
    * @return the matching period's rules, or null if no period matches
    */
@@ -149,14 +189,14 @@ public class TransactionCostEvalExEstimator {
   /**
    * Evaluates a list of fee rules against the request, returning the first match.
    */
-  private TransactionCostEstimateResult evaluateRules(List<FeeRule> rules, TransactionCostEstimateRequest request) throws Exception {
+  private TransactionCostEstimateResult evaluateRules(List<FeeRule> rules, TransactionCostEstimateRequest request)
+      throws Exception {
     for (FeeRule rule : rules) {
       Expression condExpr = new Expression(rule.getCondition());
       bindVariables(condExpr, request);
       EvaluationValue condResult = condExpr.evaluate();
 
-      boolean matched = condResult.isBooleanValue()
-          ? condResult.getBooleanValue()
+      boolean matched = condResult.isBooleanValue() ? condResult.getBooleanValue()
           : condResult.getNumberValue().compareTo(BigDecimal.ZERO) != 0;
 
       if (matched) {
@@ -179,8 +219,8 @@ public class TransactionCostEvalExEstimator {
     }
     if (req.getSpecInvestInstrument() != null) {
       expression.with("specInvestInstrument", BigDecimal.valueOf(req.getSpecInvestInstrument()));
-      SpecialInvestmentInstruments sii = SpecialInvestmentInstruments.getSpecialInvestmentInstrumentsByValue(
-          req.getSpecInvestInstrument().byteValue());
+      SpecialInvestmentInstruments sii = SpecialInvestmentInstruments
+          .getSpecialInvestmentInstrumentsByValue(req.getSpecInvestInstrument().byteValue());
       expression.with("instrument", sii != null ? sii.name() : "");
     }
     if (req.getCategoryType() != null) {
@@ -203,8 +243,8 @@ public class TransactionCostEvalExEstimator {
   }
 
   /**
-   * Validates a YAML string against the fee model JSON Schema and checks EvalEx syntax
-   * for all rules (both flat rules and period-nested rules).
+   * Validates a YAML string against the fee model JSON Schema and checks EvalEx syntax for all rules (both flat rules
+   * and period-nested rules).
    *
    * @param yaml the YAML fee model string to validate
    * @return list of validation error messages, empty if valid

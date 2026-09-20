@@ -1,8 +1,8 @@
 package grafioschtrader.types;
 
 /**
- * Defines the time unit for standing order repeat intervals. Combined with {@code repeatInterval}, this determines
- * how frequently a standing order generates transactions (e.g. every 20 days, monthly, quarterly, yearly).
+ * Defines the time unit for standing order repeat intervals. Combined with {@code repeatInterval}, this determines how
+ * frequently a standing order generates transactions (e.g. every 20 days, monthly, quarterly, yearly).
  */
 public enum RepeatUnit {
 

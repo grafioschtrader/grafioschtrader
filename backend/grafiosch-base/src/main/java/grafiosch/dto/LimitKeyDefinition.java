@@ -11,8 +11,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
  *
  * <p>
  * A bare key/value pair such as {@code ValueKeyHtmlSelectOptions} cannot carry this: picking a key fixes four of the
- * five key columns as read-only fields of the form, and the value the admin types has to be validated against the
- * rule that belongs to the key rather than to the row.
+ * five key columns as read-only fields of the form, and the value the admin types has to be validated against the rule
+ * that belongs to the key rather than to the row.
  * </p>
  */
 @Schema(description = """

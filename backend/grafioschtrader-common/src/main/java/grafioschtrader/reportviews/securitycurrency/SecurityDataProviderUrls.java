@@ -3,13 +3,11 @@ package grafioschtrader.reportviews.securitycurrency;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Data Transfer Object containing URLs for external data provider access. This DTO is used to transfer
- * data provider URLs to the frontend without coupling to the full SecuritycurrencyPosition class.
+ * Data Transfer Object containing URLs for external data provider access. This DTO is used to transfer data provider
+ * URLs to the frontend without coupling to the full SecuritycurrencyPosition class.
  *
- * URLs may be:
- * - Direct links to external data provider pages
- * - Backend redirect URLs when API keys need to be protected from exposure
- * - Null if no connector is configured for that data type
+ * URLs may be: - Direct links to external data provider pages - Backend redirect URLs when API keys need to be
+ * protected from exposure - Null if no connector is configured for that data type
  */
 @Schema(description = "Contains URLs for accessing external data providers for a security or currency pair")
 public class SecurityDataProviderUrls implements ISecurityDataProviderUrls {

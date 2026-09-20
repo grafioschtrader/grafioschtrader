@@ -30,8 +30,8 @@ public interface TradingCalendarRuleSetJpaRepository extends JpaRepository<Tradi
   Optional<TradingCalendarRuleSet> findByName(String name);
 
   /**
-   * Counts the stock exchanges that currently calculate their trading calendar from the given rule set. A rule set
-   * that is still in use must not be deleted.
+   * Counts the stock exchanges that currently calculate their trading calendar from the given rule set. A rule set that
+   * is still in use must not be deleted.
    *
    * Named query: TradingCalendarRuleSet.countUsingStockexchanges
    *

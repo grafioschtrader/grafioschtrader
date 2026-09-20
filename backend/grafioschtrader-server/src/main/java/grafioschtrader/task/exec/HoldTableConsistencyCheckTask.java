@@ -29,21 +29,20 @@ import grafioschtrader.types.TaskTypeExtended;
 import jakarta.mail.MessagingException;
 
 /**
- * Daily check that the three hold tables still agree with the transactions they are derived from, reporting any drift to
- * the main administrator.
+ * Daily check that the three hold tables still agree with the transactions they are derived from, reporting any drift
+ * to the main administrator.
  *
  * <p>
  * The hold tables are maintained incrementally by {@code TransactionJpaRepositoryImpl}. Every write that bypasses that
- * class desynchronises them, and nothing reconciles them on a schedule:
- * {@code REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT} is only enqueued at startup when the task table is empty, i.e. on a
- * database restored from an export. Without this check, drift stays invisible until a performance report looks wrong.
+ * class desynchronises them, and nothing reconciles them on a schedule: {@code REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT}
+ * is only enqueued at startup when the task table is empty, i.e. on a database restored from an export. Without this
+ * check, drift stays invisible until a performance report looks wrong.
  * </p>
  *
  * <p>
  * <strong>It reports, it does not repair.</strong> A rebuild of a tenant is expensive and replaces data wholesale, so
- * the decision stays with the administrator, who can queue
- * {@code REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT} for the reported tenant from the task administration. Nothing is sent
- * when everything agrees.
+ * the decision stays with the administrator, who can queue {@code REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT} for the
+ * reported tenant from the task administration. Nothing is sent when everything agrees.
  * </p>
  *
  * <p>
@@ -67,7 +66,9 @@ public class HoldTableConsistencyCheckTask implements ITask {
   /** Message key prefix for the user-facing name of a hold table, completed with the table name. */
   private static final String TABLE_KEY_PREFIX = "gt.hold.consistency.table.";
 
-  /** Message key prefix for the user-facing name of a deviation kind, completed with the kind as the query returns it. */
+  /**
+   * Message key prefix for the user-facing name of a deviation kind, completed with the kind as the query returns it.
+   */
   private static final String KIND_KEY_PREFIX = "gt.hold.consistency.kind.";
 
   @Autowired
@@ -140,15 +141,14 @@ public class HoldTableConsistencyCheckTask implements ITask {
    */
   private String buildMessage(Map<String, List<HoldConsistencyDefect>> defectsPerTable) {
     Locale locale = sendMailInternalExternalService.getMainAdminLocale();
-    StringBuilder body = new StringBuilder(
-        messageSource.getMessage("gt.hold.consistency.intro", null, locale)).append(BaseConstants.NEW_LINE);
+    StringBuilder body = new StringBuilder(messageSource.getMessage("gt.hold.consistency.intro", null, locale))
+        .append(BaseConstants.NEW_LINE);
     List<String> lines = new ArrayList<>();
     for (Map.Entry<String, List<HoldConsistencyDefect>> entry : defectsPerTable.entrySet()) {
       String tableName = translate(TABLE_KEY_PREFIX, entry.getKey(), locale);
       for (HoldConsistencyDefect defect : entry.getValue()) {
-        lines.add(messageSource.getMessage("gt.hold.consistency.defect", new Object[] { tableName,
-            defect.getIdTenant(), translate(KIND_KEY_PREFIX, defect.getDefect(), locale), defect.getDefectCount() },
-            locale));
+        lines.add(messageSource.getMessage("gt.hold.consistency.defect", new Object[] { tableName, defect.getIdTenant(),
+            translate(KIND_KEY_PREFIX, defect.getDefect(), locale), defect.getDefectCount() }, locale));
       }
     }
     for (String line : lines) {

@@ -37,6 +37,27 @@ class HoldCashaccountDepositCalculationTest {
     assertOppositeAmounts(withdrawal, deposit, "EUR", 36563.07 * 0.95, rates);
   }
 
+  @Test
+  void selfConnectedTransactionIsRejected() {
+    Transaction selfConnected = transaction(1, 1, TransactionType.WITHDRAWAL, "CHF", -36563.07);
+
+    Assertions
+        .assertThatThrownBy(() -> HoldCashaccountDepositJpaRepositoryImpl.calculateConnectedTransferAmount(
+            selfConnected, selfConnected, "CHF", Map.of(), Map.<FromToCurrency, Currencypair>of()))
+        .isInstanceOf(IllegalStateException.class).hasMessageContaining("1 and 1");
+  }
+
+  @Test
+  void twoTransactionsOfTheSameTypeAreRejected() {
+    Transaction firstDeposit = transaction(1, 2, TransactionType.DEPOSIT, "CHF", 36563.07);
+    Transaction secondDeposit = transaction(2, 1, TransactionType.DEPOSIT, "USD", 30000.0);
+
+    Assertions
+        .assertThatThrownBy(() -> HoldCashaccountDepositJpaRepositoryImpl.calculateConnectedTransferAmount(firstDeposit,
+            secondDeposit, "CHF", Map.of(), Map.<FromToCurrency, Currencypair>of()))
+        .isInstanceOf(IllegalStateException.class).hasMessageContaining("1 and 2");
+  }
+
   private void assertOppositeAmounts(Transaction withdrawal, Transaction deposit, String mainCurrency,
       double expectedAbsoluteAmount, Map<FromToCurrencyWithDate, Double> rates) {
     double withdrawalAmount = HoldCashaccountDepositJpaRepositoryImpl.calculateConnectedTransferAmount(withdrawal,

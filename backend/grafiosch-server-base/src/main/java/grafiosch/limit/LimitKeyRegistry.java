@@ -47,13 +47,15 @@ public abstract class LimitKeyRegistry {
   /**
    * Pseudo entity names, with no JPA entity behind them, that may carry a daily CUD limit, each mapped to the entity
    * whose rows it counts. The class is not used for counting — the counter of a daily key is always
-   * {@code user_entity_change_count} — but it is the only way to say whether the name stands for private or for
-   * shared data, see {@link #isSharedData(Class)}.
+   * {@code user_entity_change_count} — but it is the only way to say whether the name stands for private or for shared
+   * data, see {@link #isSharedData(Class)}.
    */
   private static final Map<String, Class<?>> CUD_PSEUDO_ENTITY_NAMES = new LinkedHashMap<>();
 
-  /** Pseudo entity names that carry a daily read limit, with their backing entity. Currently only
-   * {@code HistoryquoteRead}. */
+  /**
+   * Pseudo entity names that carry a daily read limit, with their backing entity. Currently only
+   * {@code HistoryquoteRead}.
+   */
   private static final Map<String, Class<?>> READ_PSEUDO_ENTITY_NAMES = new LinkedHashMap<>();
 
   private LimitKeyRegistry() {
@@ -162,8 +164,8 @@ public abstract class LimitKeyRegistry {
    * <p>
    * Three kinds of registration are excluded. Keys guarding a nested collection, because their entity class is the
    * parent and only the explicit call site knows the parent id. Keys under a pseudo entity name such as
-   * {@code SimulationTenant}, which count a subset of a table and would otherwise fire on every ordinary create of
-   * that table. And keys whose {@link LimitKeyRegistration#checkedOnGenericCreate()} is false, which already have a
+   * {@code SimulationTenant}, which count a subset of a table and would otherwise fire on every ordinary create of that
+   * table. And keys whose {@link LimitKeyRegistration#checkedOnGenericCreate()} is false, which already have a
    * hand-written call site with a more specific error.
    * </p>
    *

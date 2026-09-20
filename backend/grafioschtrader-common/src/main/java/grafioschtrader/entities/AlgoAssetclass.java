@@ -2,6 +2,7 @@ package grafioschtrader.entities;
 
 import java.util.List;
 
+import grafiosch.common.DynamicFormField;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.types.AssetclassType;
@@ -16,6 +17,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 @Entity
@@ -38,6 +41,13 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
       If both are zero, it applies to all securities accounts.""")
   @Column(name = "id_algo_assetclass_parent")
   private Integer idAlgoAssetclassParent;
+
+  @Schema(description = """
+      Whether this bucket takes part in evaluation. Deactivating it suppresses every alert scoped through it without
+      losing their configuration, and it re-establishes their crossing baselines when the bucket is switched on
+      again.""")
+  @Column(name = "activatable")
+  private boolean activatable = true;
 
   @Schema(description = """
       Optional custom category name. When set, this node acts as a freeform category (e.g. "Gambling Games")
@@ -65,6 +75,35 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
   @Column(name = "spec_invest_instrument")
   private Byte specialInvestmentInstrument;
 
+  @Column(name = "security_deviation_percentage")
+  @Min(0)
+  @Max(100)
+  @DynamicFormField(uiOrder = "1.1", fractionLimit = 2)
+  @Schema(description = "Security allocation band in percentage points of the target class amount; null inherits the portfolio setting")
+  private Double securityDeviationPercentage;
+
+  @Column(name = "max_traded_securities_per_assetclass")
+  @Min(1)
+  @DynamicFormField(uiOrder = "1.2")
+  @Schema(description = "Maximum distinct securities per class checkpoint; null inherits the portfolio setting")
+  private Integer maxTradedSecuritiesPerAssetclass;
+
+  public Double getSecurityDeviationPercentage() {
+    return securityDeviationPercentage;
+  }
+
+  public void setSecurityDeviationPercentage(Double value) {
+    securityDeviationPercentage = value;
+  }
+
+  public Integer getMaxTradedSecuritiesPerAssetclass() {
+    return maxTradedSecuritiesPerAssetclass;
+  }
+
+  public void setMaxTradedSecuritiesPerAssetclass(Integer value) {
+    maxTradedSecuritiesPerAssetclass = value;
+  }
+
   public AlgoAssetclass() {
   }
 
@@ -75,19 +114,19 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
     this.percentage = percentage;
   }
 
-  /**
-   * List of securities to this asset class which may be used or have a strategy
-   */
+  @Schema(description = "Securities assigned to this asset class that may be used by a strategy")
   @JoinColumn(name = "id_algo_security_parent")
   @OneToMany(cascade = CascadeType.ALL)
   private List<AlgoSecurity> algoSecurityList;
 
   @Transient
+  @Schema(description = "Sum of the target percentages of the securities assigned to this asset class", accessMode = Schema.AccessMode.READ_ONLY)
   private Float addedPercentage;
 
   public Float getAddedPercentage() {
     addedPercentage = algoSecurityList == null ? 0f
-        : (float) algoSecurityList.stream().mapToDouble(algoSecurity -> algoSecurity.getPercentage()).sum();
+        : (float) algoSecurityList.stream()
+            .mapToDouble(algoSecurity -> algoSecurity.getPercentage() == null ? 0 : algoSecurity.getPercentage()).sum();
     return addedPercentage;
   }
 
@@ -97,6 +136,14 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public boolean isActivatable() {
+    return activatable;
+  }
+
+  public void setActivatable(boolean activatable) {
+    this.activatable = activatable;
   }
 
   public Integer getIdAlgoAssetclassParent() {
@@ -129,7 +176,8 @@ public class AlgoAssetclass extends AlgoAssetclassSecurity {
   }
 
   public void setSpecialInvestmentInstrument(SpecialInvestmentInstruments specialInvestmentInstrument) {
-    this.specialInvestmentInstrument = specialInvestmentInstrument == null ? null : specialInvestmentInstrument.getValue();
+    this.specialInvestmentInstrument = specialInvestmentInstrument == null ? null
+        : specialInvestmentInstrument.getValue();
   }
 
   public List<AlgoSecurity> getAlgoSecurityList() {

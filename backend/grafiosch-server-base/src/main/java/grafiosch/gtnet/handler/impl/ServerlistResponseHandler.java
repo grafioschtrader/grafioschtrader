@@ -65,8 +65,8 @@ public class ServerlistResponseHandler extends AbstractResponseHandler {
    *
    * For each server in the list:
    * <ul>
-   *   <li>If the server already exists in our GTNet table, update its status</li>
-   *   <li>If the server is new and our myGTNet has allowServerCreation=true, add it</li>
+   * <li>If the server already exists in our GTNet table, update its status</li>
+   * <li>If the server is new and our myGTNet has allowServerCreation=true, add it</li>
    * </ul>
    */
   private void processServerListPayload(GTNetMessageContext context) {
@@ -140,8 +140,7 @@ public class ServerlistResponseHandler extends AbstractResponseHandler {
     }
 
     // Update daily request limit
-    if (dto.getDailyRequestLimit() != null
-        && !dto.getDailyRequestLimit().equals(existing.getDailyRequestLimit())) {
+    if (dto.getDailyRequestLimit() != null && !dto.getDailyRequestLimit().equals(existing.getDailyRequestLimit())) {
       existing.setDailyRequestLimit(dto.getDailyRequestLimit());
       changed = true;
     }

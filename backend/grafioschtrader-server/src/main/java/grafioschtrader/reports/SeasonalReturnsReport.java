@@ -12,6 +12,7 @@ import java.util.function.ToIntFunction;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.SeasonalReturnsResult;
 import grafioschtrader.dto.SeasonalReturnsResult.SeasonalColumnStat;
 import grafioschtrader.dto.SeasonalReturnsResult.SeasonalYearRow;
@@ -77,9 +78,8 @@ public class SeasonalReturnsReport {
         : securityJpaRepository.getSecurityMonthCloseDivSum(idSecuritycurrency);
 
     boolean dividendsAvailable = rawList.stream().anyMatch(p -> p.getPeriodDiv() != 0.0);
-    SeasonalReturnsResult result = new SeasonalReturnsResult(periodType,
-        currencyLabel(iss, convert), includeDividends && dividendsAvailable, convert, dividendsAvailable,
-        currencyConversionAvailable);
+    SeasonalReturnsResult result = new SeasonalReturnsResult(periodType, currencyLabel(iss, convert),
+        includeDividends && dividendsAvailable, convert, dividendsAvailable, currencyConversionAvailable);
 
     List<Point> points = buildPoints(rawList, convert, divide, includeDividends && dividendsAvailable);
     if (points.isEmpty()) {
@@ -87,8 +87,7 @@ public class SeasonalReturnsReport {
     }
 
     int columns = periodType.getNumberOfColumns();
-    ToIntFunction<Point> colFn = periodType == SeasonalPeriodType.MONTHLY ? p -> p.month - 1
-        : p -> (p.month - 1) / 3;
+    ToIntFunction<Point> colFn = periodType == SeasonalPeriodType.MONTHLY ? p -> p.month - 1 : p -> (p.month - 1) / 3;
     Map<Integer, Map<Integer, Double>> periodReturns = computeReturns(aggregate(points, colFn));
     Map<Integer, Map<Integer, Double>> annualReturns = computeReturns(aggregate(points, _ -> 0));
 
@@ -146,15 +145,14 @@ public class SeasonalReturnsReport {
       Agg prev = ordered.get(i - 1);
       if (prev.value != 0.0) {
         double ret = ((cur.value + cur.div) / prev.value - 1.0) * 100.0;
-        result.computeIfAbsent(cur.year, _ -> new HashMap<>()).put(cur.col, round2(ret));
+        result.computeIfAbsent(cur.year, _ -> new HashMap<>()).put(cur.col, DataBusinessHelper.roundPercentage(ret));
       }
     }
     return result;
   }
 
   private void fillYearRows(SeasonalReturnsResult result, List<Point> points,
-      Map<Integer, Map<Integer, Double>> periodReturns, Map<Integer, Map<Integer, Double>> annualReturns,
-      int columns) {
+      Map<Integer, Map<Integer, Double>> periodReturns, Map<Integer, Map<Integer, Double>> annualReturns, int columns) {
     TreeSet<Integer> years = new TreeSet<>(java.util.Collections.reverseOrder());
     points.forEach(p -> years.add(p.year));
     for (int year : years) {
@@ -199,14 +197,10 @@ public class SeasonalReturnsReport {
     }
     double pctPositive = positive * 100.0 / values.size();
     // Sample standard deviation is undefined (NaN) for a single value; NaN is not valid JSON, so report null.
-    Double stdDev = values.size() < 2 ? null : round2(ds.getStandardDeviation());
-    return new SeasonalColumnStat(round2(ds.getMean()), round2(ds.getPercentile(50)), stdDev, round2(pctPositive),
-        values.size());
-  }
-
-  /** Rounds to two decimals; the heat map never shows more precision, so this trims the JSON payload. */
-  private static double round2(double value) {
-    return Math.round(value * 100.0) / 100.0;
+    Double stdDev = values.size() < 2 ? null : DataBusinessHelper.roundPercentage(ds.getStandardDeviation());
+    return new SeasonalColumnStat(DataBusinessHelper.roundPercentage(ds.getMean()),
+        DataBusinessHelper.roundPercentage(ds.getPercentile(50)), stdDev,
+        DataBusinessHelper.roundPercentage(pctPositive), values.size());
   }
 
   /** A single currency-adjusted month-end observation. */

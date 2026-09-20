@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.types.LastpriceOrigin;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements ISecurityDataProviderUrls {
@@ -52,6 +53,24 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements 
   @Schema(description = "Youngest historical data")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate youngestHistoryDate;
+
+  @Schema(description = """
+      Oldest historical data. Compared with the activeFromDate of the security it tells whether the historical data
+      source ever delivered the beginning of the history. Null when no historical price is stored at all.""")
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public LocalDate oldestHistoryDate;
+
+  @Schema(description = """
+      Number of completed trading sessions of the exchange of this instrument that went by without the displayed price
+      being renewed. Zero means the price is current; a weekend or a holiday of that exchange never raises it, because
+      sessions and not calendar days are counted. Capped, so a long dead instrument does not report an ever growing
+      number. Null when the age cannot be determined.""")
+  public Integer staleTradingSessions;
+
+  @Schema(description = """
+      Where the displayed last price comes from. Only INTRADAY is a price of the current session; the two history
+      values mean the intraday feed no longer delivers and the newest historical closing price took its place.""")
+  public LastpriceOrigin lastpriceOrigin = LastpriceOrigin.INTRADAY;
 
   // ISecurityDataProviderUrls implementation
 

@@ -116,10 +116,8 @@ public class SecurityActionService {
         .findByIdTenantOrderByTransferDateDesc(idTenant);
 
     for (SecurityTransfer transfer : clientTransfers) {
-      long count = transactionJpaRepository.countTransactionsAfterDate(
-          transfer.getIdSecurityaccountTarget(),
-          transfer.getSecurity().getIdSecuritycurrency(),
-          transfer.getTransferDate().atStartOfDay());
+      long count = transactionJpaRepository.countTransactionsAfterDate(transfer.getIdSecurityaccountTarget(),
+          transfer.getSecurity().getIdSecuritycurrency(), transfer.getTransferDate().atStartOfDay());
       transfer.setReversible(count == 0);
     }
 
@@ -127,9 +125,9 @@ public class SecurityActionService {
   }
 
   /**
-   * Admin creates an ISIN change event. Validates the old ISIN exists. If the new ISIN already exists, references
-   * the existing security; otherwise copies the old security to create a new one with the new ISIN. Counts affected
-   * tenants and sends internal mail notifications.
+   * Admin creates an ISIN change event. Validates the old ISIN exists. If the new ISIN already exists, references the
+   * existing security; otherwise copies the old security to create a new one with the new ISIN. Counts affected tenants
+   * and sends internal mail notifications.
    */
   @Transactional
   public SecurityAction createSecurityAction(SecurityAction action) {
@@ -175,9 +173,9 @@ public class SecurityActionService {
     // Send internal mail to each affected tenant's user
     for (Integer idTenant : affectedTenantIds) {
       try {
-        userJpaRepository.findByIdTenant(idTenant).ifPresent(tenantUser ->
-            sendMailInternalExternalService.sendInternalMail(user.getIdUser(), tenantUser.getIdUser(),
-                "ISIN Change: " + savedAction.getIsinOld() + " -> " + savedAction.getIsinNew(),
+        userJpaRepository.findByIdTenant(idTenant)
+            .ifPresent(tenantUser -> sendMailInternalExternalService.sendInternalMail(user.getIdUser(),
+                tenantUser.getIdUser(), "ISIN Change: " + savedAction.getIsinOld() + " -> " + savedAction.getIsinNew(),
                 "Security ISIN " + savedAction.getIsinOld() + " changed to " + savedAction.getIsinNew() + " on "
                     + savedAction.getActionDate() + ". Apply in Security Actions."));
       } catch (Exception e) {
@@ -234,8 +232,8 @@ public class SecurityActionService {
     }
 
     // Check tenant has any transactions for old security before proceeding
-    List<Transaction> allTenantTransactions = transactionJpaRepository
-        .findByIdTenantAndIdSecurity(idTenant, action.getSecurityOld().getIdSecuritycurrency());
+    List<Transaction> allTenantTransactions = transactionJpaRepository.findByIdTenantAndIdSecurity(idTenant,
+        action.getSecurityOld().getIdSecuritycurrency());
     if (allTenantTransactions.isEmpty()) {
       throw new DataViolationException("id.security.action", "gt.security.action.no.holdings", null);
     }
@@ -264,20 +262,18 @@ public class SecurityActionService {
     entityManager.clear();
 
     // Step 2: Calculate net units from remaining transactions on old security (now only up to the action date)
-    List<Transaction> remainingTransactions = transactionJpaRepository
-        .findByIdTenantAndIdSecurity(idTenant, action.getSecurityOld().getIdSecuritycurrency());
+    List<Transaction> remainingTransactions = transactionJpaRepository.findByIdTenantAndIdSecurity(idTenant,
+        action.getSecurityOld().getIdSecuritycurrency());
 
-    Map<Integer, Double> unitsByAccount = remainingTransactions.stream()
-        .filter(t -> t.getIdSecurityaccount() != null)
-        .collect(Collectors.groupingBy(Transaction::getIdSecurityaccount,
-            Collectors.summingDouble(t -> {
-              if (t.getTransactionType() == TransactionType.ACCUMULATE) {
-                return t.getUnits();
-              } else if (t.getTransactionType() == TransactionType.REDUCE) {
-                return -t.getUnits();
-              }
-              return 0.0;
-            })));
+    Map<Integer, Double> unitsByAccount = remainingTransactions.stream().filter(t -> t.getIdSecurityaccount() != null)
+        .collect(Collectors.groupingBy(Transaction::getIdSecurityaccount, Collectors.summingDouble(t -> {
+          if (t.getTransactionType() == TransactionType.ACCUMULATE) {
+            return t.getUnits();
+          } else if (t.getTransactionType() == TransactionType.REDUCE) {
+            return -t.getUnits();
+          }
+          return 0.0;
+        })));
 
     Integer firstSellId = null;
     Integer firstBuyId = null;
@@ -305,15 +301,15 @@ public class SecurityActionService {
       }
 
       // Create SELL transaction (old security) — uses direct save(), see class Javadoc for rationale
-      Transaction sellTx = createSecurityTransaction(idTenant, idSecurityaccount,
-          securityaccount, action.getSecurityOld(), units, closePrice,
-          TransactionType.REDUCE, action.getActionDate(), application.getIdSecurityActionApp());
+      Transaction sellTx = createSecurityTransaction(idTenant, idSecurityaccount, securityaccount,
+          action.getSecurityOld(), units, closePrice, TransactionType.REDUCE, action.getActionDate(),
+          application.getIdSecurityActionApp());
       sellTx = transactionJpaRepository.save(sellTx);
 
       // Create BUY transaction (new security, with adjusted units/price if split)
-      Transaction buyTx = createSecurityTransaction(idTenant, idSecurityaccount,
-          securityaccount, action.getSecurityNew(), buyUnits, buyPrice,
-          TransactionType.ACCUMULATE, action.getActionDate(), application.getIdSecurityActionApp());
+      Transaction buyTx = createSecurityTransaction(idTenant, idSecurityaccount, securityaccount,
+          action.getSecurityNew(), buyUnits, buyPrice, TransactionType.ACCUMULATE, action.getActionDate(),
+          application.getIdSecurityActionApp());
       buyTx.setConnectedIdTransaction(sellTx.getIdTransaction());
       buyTx = transactionJpaRepository.save(buyTx);
 
@@ -335,8 +331,7 @@ public class SecurityActionService {
 
     // Step 6: Schedule holdings rebuild for this tenant
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
-        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1),
-        idTenant, Tenant.class.getSimpleName()));
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant, Tenant.class.getSimpleName()));
 
     return application;
   }
@@ -363,13 +358,11 @@ public class SecurityActionService {
     Integer appId = application.getIdSecurityActionApp();
 
     // Step 1: Revert bulk-reassigned transactions back to old security
-    transactionJpaRepository.revertReassignedTransactions(
-        action.getSecurityOld().getIdSecuritycurrency(), appId);
+    transactionJpaRepository.revertReassignedTransactions(action.getSecurityOld().getIdSecuritycurrency(), appId);
 
     // Step 2: Delete system-created SELL/BUY transactions
     List<Transaction> systemTransactions = transactionJpaRepository.findByIdSecurityActionApp(appId).stream()
-        .filter(t -> "System-Created".equals(t.getNote()))
-        .collect(Collectors.toList());
+        .filter(t -> "System-Created".equals(t.getNote())).collect(Collectors.toList());
     // Clear connected references before deleting
     for (Transaction t : systemTransactions) {
       t.setConnectedIdTransaction(null);
@@ -388,15 +381,14 @@ public class SecurityActionService {
 
     // Schedule holdings rebuild for this tenant
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
-        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1),
-        idTenant, Tenant.class.getSimpleName()));
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant, Tenant.class.getSimpleName()));
   }
 
   /**
    * Creates a security transfer between two securities accounts. Routes through TransactionJpaRepositoryImpl
-   * (saveOnlyAttributes / updateCreateCashaccountTransfer) so that closedUntil, trading period, overdraft,
-   * units integrity, and holdings adjustments are all enforced. Creates 4 transactions: SELL in source,
-   * WITHDRAWAL from source cashaccount, DEPOSIT to target cashaccount, BUY in target.
+   * (saveOnlyAttributes / updateCreateCashaccountTransfer) so that closedUntil, trading period, overdraft, units
+   * integrity, and holdings adjustments are all enforced. Creates 4 transactions: SELL in source, WITHDRAWAL from
+   * source cashaccount, DEPOSIT to target cashaccount, BUY in target.
    */
   @Transactional
   public SecurityTransfer createTransfer(SecurityTransfer transfer) {
@@ -422,14 +414,14 @@ public class SecurityActionService {
   }
 
   /**
-   * Reverses a security transfer by finding all transactions via idSecurityTransfer FK, clearing connected
-   * references, deleting all transactions, and then deleting the SecurityTransfer record.
+   * Reverses a security transfer by finding all transactions via idSecurityTransfer FK, clearing connected references,
+   * deleting all transactions, and then deleting the SecurityTransfer record.
    *
    * <p>
    * The four transactions have to be removed with raw JPA rather than through
    * {@code TransactionJpaRepositoryImpl.deleteSingleDoubleTransaction}, because the connected-transaction cycle between
-   * the withdrawal and the deposit side has to be broken first. That bypasses the incremental holdings maintenance, so a
-   * rebuild is scheduled for the tenant — the same compensation {@link #reverseSecurityAction(Integer)} applies.
+   * the withdrawal and the deposit side has to be broken first. That bypasses the incremental holdings maintenance, so
+   * a rebuild is scheduled for the tenant — the same compensation {@link #reverseSecurityAction(Integer)} applies.
    * </p>
    */
   @Transactional
@@ -438,20 +430,18 @@ public class SecurityActionService {
     Integer idTenant = user.getIdTenant();
 
     SecurityTransfer transfer = securityTransferJpaRepository.findById(idSecurityTransfer)
-        .orElseThrow(() -> new DataViolationException("id.security.transfer",
-            "gt.security.transfer.not.found", null));
+        .orElseThrow(() -> new DataViolationException("id.security.transfer", "gt.security.transfer.not.found", null));
 
     if (!idTenant.equals(transfer.getIdTenant())) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
 
     long postTransferTxCount = transactionJpaRepository.countTransactionsAfterDate(
-        transfer.getIdSecurityaccountTarget(),
-        transfer.getSecurity().getIdSecuritycurrency(),
+        transfer.getIdSecurityaccountTarget(), transfer.getSecurity().getIdSecuritycurrency(),
         transfer.getTransferDate().atStartOfDay());
     if (postTransferTxCount > 0) {
-      throw new DataViolationException("id.security.transfer",
-          "gt.security.transfer.reverse.has.later.transactions", null);
+      throw new DataViolationException("id.security.transfer", "gt.security.transfer.reverse.has.later.transactions",
+          null);
     }
 
     // Clear transfer's FK references to transactions first
@@ -474,13 +464,12 @@ public class SecurityActionService {
     // The raw deleteAll above left hold_securityaccount_security, hold_cashaccount_balance and
     // hold_cashaccount_deposit still counting the removed transactions.
     taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT,
-        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant,
-        Tenant.class.getSimpleName()));
+        TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idTenant, Tenant.class.getSimpleName()));
   }
 
   /**
-   * Validates transfer parameters and resolves all required entities. Returns a TransferContext holding the
-   * validated state for use by the transaction creation helpers.
+   * Validates transfer parameters and resolves all required entities. Returns a TransferContext holding the validated
+   * state for use by the transaction creation helpers.
    */
   private TransferContext validateAndPrepareTransfer(SecurityTransfer transfer, Integer idTenant) {
     if (transfer.getSecurity() == null && transfer.getIdSecurity() != null) {
@@ -504,13 +493,10 @@ public class SecurityActionService {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
 
-    Optional<LocalDateTime> lastTxTime = transactionJpaRepository
-        .findMaxTransactionTimeBySecurityaccountAndSecurity(
-            transfer.getIdSecurityaccountSource(),
-            transfer.getSecurity().getIdSecuritycurrency());
+    Optional<LocalDateTime> lastTxTime = transactionJpaRepository.findMaxTransactionTimeBySecurityaccountAndSecurity(
+        transfer.getIdSecurityaccountSource(), transfer.getSecurity().getIdSecuritycurrency());
     if (lastTxTime.isPresent() && !transfer.getTransferDate().isAfter(lastTxTime.get().toLocalDate())) {
-      throw new DataViolationException("transfer.date",
-          "gt.security.transfer.date.before.last.transaction",
+      throw new DataViolationException("transfer.date", "gt.security.transfer.date.before.last.transaction",
           new Object[] { lastTxTime.get().toLocalDate() });
     }
 
@@ -520,35 +506,31 @@ public class SecurityActionService {
     double closePrice = getAsTradedClose(transfer.getSecurity().getIdSecuritycurrency(), transfer.getTransferDate(),
         "transfer.date", "gt.security.transfer.no.price.on.date");
 
-    return new TransferContext(idTenant, transfer, sourceAccount, targetAccount,
-        sourceCashaccount, targetCashaccount, closePrice);
+    return new TransferContext(idTenant, transfer, sourceAccount, targetAccount, sourceCashaccount, targetCashaccount,
+        closePrice);
   }
 
   /**
-   * Finds the preferred cash account in the same portfolio as the security account, preferring one whose
-   * currency matches the given preferredCurrency.
+   * Finds the preferred cash account in the same portfolio as the security account, preferring one whose currency
+   * matches the given preferredCurrency.
    */
   private Cashaccount findPreferredCashaccount(Securityaccount securityaccount, String preferredCurrency) {
     Integer idPortfolio = securityaccount.getPortfolio().getIdPortfolio();
     List<Cashaccount> cashaccounts = cashaccountJpaRepository.findByPortfolio_IdPortfolio(idPortfolio);
-    return cashaccounts.stream()
-        .filter(ca -> ca.getCurrency().equals(preferredCurrency))
-        .findFirst()
-        .orElse(cashaccounts.stream().findFirst().orElseThrow(
-            () -> new DataViolationException("id.securityaccount.source",
-                "gt.security.transfer.no.cashaccount", null)));
+    return cashaccounts.stream().filter(ca -> ca.getCurrency().equals(preferredCurrency)).findFirst().orElse(
+        cashaccounts.stream().findFirst().orElseThrow(() -> new DataViolationException("id.securityaccount.source",
+            "gt.security.transfer.no.cashaccount", null)));
   }
 
   /**
-   * Creates a REDUCE (sell) transaction in the source security account and saves it via saveOnlyAttributes,
-   * which enforces closedUntil, trading period, overdraft, units integrity, and adjusts holdings.
+   * Creates a REDUCE (sell) transaction in the source security account and saves it via saveOnlyAttributes, which
+   * enforces closedUntil, trading period, overdraft, units integrity, and adjusts holdings.
    */
   private Transaction createAndSaveSellTransaction(TransferContext ctx, Integer idSecurityTransfer) {
     double cashAmount = ctx.transfer.getUnits() * ctx.closePrice;
-    Transaction sellTx = new Transaction(ctx.sourceAccount.getIdSecuritycashAccount(),
-        ctx.sourceCashaccount, ctx.transfer.getSecurity(), cashAmount,
-        ctx.transfer.getUnits(), ctx.closePrice, TransactionType.REDUCE,
-        null, null, null, ctx.transfer.getTransferDate().atTime(12, 0), null, null, null, null);
+    Transaction sellTx = new Transaction(ctx.sourceAccount.getIdSecuritycashAccount(), ctx.sourceCashaccount,
+        ctx.transfer.getSecurity(), cashAmount, ctx.transfer.getUnits(), ctx.closePrice, TransactionType.REDUCE, null,
+        null, null, ctx.transfer.getTransferDate().atTime(12, 0), null, null, null, null);
     sellTx.setIdTenant(ctx.idTenant);
     sellTx.setIdSecurityTransfer(idSecurityTransfer);
     sellTx.setNote("System-Created");
@@ -562,22 +544,21 @@ public class SecurityActionService {
   }
 
   /**
-   * Creates a WITHDRAWAL + DEPOSIT cash account transfer between source and target cashaccounts.
-   * Routes through updateCreateCashaccountTransfer which enforces closedUntil on both accounts,
-   * validates currency pairs, and adjusts cash holdings.
+   * Creates a WITHDRAWAL + DEPOSIT cash account transfer between source and target cashaccounts. Routes through
+   * updateCreateCashaccountTransfer which enforces closedUntil on both accounts, validates currency pairs, and adjusts
+   * cash holdings.
    */
   private CashAccountTransfer createAndSaveCashTransfer(TransferContext ctx, Integer idSecurityTransfer) {
     double cashAmount = ctx.transfer.getUnits() * ctx.closePrice;
     LocalDateTime transferTime = ctx.transfer.getTransferDate().atTime(12, 0);
 
-    Transaction withdrawalTx = new Transaction(ctx.sourceCashaccount, -cashAmount,
-        TransactionType.WITHDRAWAL, transferTime);
+    Transaction withdrawalTx = new Transaction(ctx.sourceCashaccount, -cashAmount, TransactionType.WITHDRAWAL,
+        transferTime);
     withdrawalTx.setIdTenant(ctx.idTenant);
     withdrawalTx.setIdSecurityTransfer(idSecurityTransfer);
     withdrawalTx.setNote("System-Created");
 
-    Transaction depositTx = new Transaction(ctx.targetCashaccount, cashAmount,
-        TransactionType.DEPOSIT, transferTime);
+    Transaction depositTx = new Transaction(ctx.targetCashaccount, cashAmount, TransactionType.DEPOSIT, transferTime);
     depositTx.setIdTenant(ctx.idTenant);
     depositTx.setIdSecurityTransfer(idSecurityTransfer);
     depositTx.setNote("System-Created");
@@ -590,14 +571,13 @@ public class SecurityActionService {
   }
 
   /**
-   * Creates an ACCUMULATE (buy) transaction in the target security account and saves it via saveOnlyAttributes,
-   * which enforces closedUntil, trading period, overdraft, units integrity, and adjusts holdings.
+   * Creates an ACCUMULATE (buy) transaction in the target security account and saves it via saveOnlyAttributes, which
+   * enforces closedUntil, trading period, overdraft, units integrity, and adjusts holdings.
    */
   private Transaction createAndSaveBuyTransaction(TransferContext ctx, Integer idSecurityTransfer) {
     double cashAmount = -(ctx.transfer.getUnits() * ctx.closePrice);
-    Transaction buyTx = new Transaction(ctx.targetAccount.getIdSecuritycashAccount(),
-        ctx.targetCashaccount, ctx.transfer.getSecurity(), cashAmount,
-        ctx.transfer.getUnits(), ctx.closePrice, TransactionType.ACCUMULATE,
+    Transaction buyTx = new Transaction(ctx.targetAccount.getIdSecuritycashAccount(), ctx.targetCashaccount,
+        ctx.transfer.getSecurity(), cashAmount, ctx.transfer.getUnits(), ctx.closePrice, TransactionType.ACCUMULATE,
         null, null, null, ctx.transfer.getTransferDate().atTime(12, 0), null, null, null, null);
     buyTx.setIdTenant(ctx.idTenant);
     buyTx.setIdSecurityTransfer(idSecurityTransfer);
@@ -612,18 +592,18 @@ public class SecurityActionService {
   }
 
   /**
-   * Sets currency exchange rate on withdrawal and deposit transactions when source and target cashaccounts
-   * have different currencies. Looks up the currencypair and its close price for the transfer date.
+   * Sets currency exchange rate on withdrawal and deposit transactions when source and target cashaccounts have
+   * different currencies. Looks up the currencypair and its close price for the transfer date.
    */
-  private void setCurrencyExRateIfNeeded(Transaction withdrawalTx, Transaction depositTx,
-      Cashaccount sourceCash, Cashaccount targetCash, LocalDate transferDate) {
+  private void setCurrencyExRateIfNeeded(Transaction withdrawalTx, Transaction depositTx, Cashaccount sourceCash,
+      Cashaccount targetCash, LocalDate transferDate) {
     if (sourceCash.getCurrency().equals(targetCash.getCurrency())) {
       return;
     }
-    Currencypair currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(
-        sourceCash.getCurrency(), targetCash.getCurrency());
-    Currencypair found = currencypairJpaRepository.findByFromCurrencyAndToCurrency(
-        currencypair.getFromCurrency(), currencypair.getToCurrency());
+    Currencypair currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(sourceCash.getCurrency(),
+        targetCash.getCurrency());
+    Currencypair found = currencypairJpaRepository.findByFromCurrencyAndToCurrency(currencypair.getFromCurrency(),
+        currencypair.getToCurrency());
     if (found != null) {
       Double exRate = currencypairJpaRepository.getClosePriceForDate(found, transferDate);
       if (exRate != null) {
@@ -656,8 +636,7 @@ public class SecurityActionService {
    */
   private double getAsTradedClose(Integer idSecuritycurrency, LocalDate date, String fieldKey, String messageKey) {
     double close = historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(idSecuritycurrency, date)
-        .map(Historyquote::getClose)
-        .orElseThrow(() -> new DataViolationException(fieldKey, messageKey, null));
+        .map(Historyquote::getClose).orElseThrow(() -> new DataViolationException(fieldKey, messageKey, null));
     return DataBusinessHelper.round(close * Securitysplit.calcSplitFatorForFromDate(
         securitysplitJpaRepository.findByIdSecuritycurrencyOrderBySplitDateAsc(idSecuritycurrency), date));
   }
@@ -695,9 +674,9 @@ public class SecurityActionService {
     if (!redundant.isEmpty()) {
       securitysplitJpaRepository.deleteAll(redundant);
       // The split affected every tenant holding the successor, not only the one applying the ISIN change.
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.HOLDINGS_SECURITY_REBUILD,
-          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(1), idSecuritycurrency,
-          Security.class.getSimpleName()));
+      taskDataChangeJpaRepository
+          .save(new TaskDataChange(TaskTypeExtended.HOLDINGS_SECURITY_REBUILD, TaskDataExecPriority.PRIO_NORMAL,
+              LocalDateTime.now().plusMinutes(1), idSecuritycurrency, Security.class.getSimpleName()));
     }
   }
 
@@ -737,9 +716,8 @@ public class SecurityActionService {
 
     Cashaccount cashaccount = findPreferredCashaccount(securityaccount, security.getCurrency());
 
-    Transaction tx = new Transaction(idSecurityaccount, cashaccount, security, cashAmount,
-        units, quotation, transactionType, null, null, null,
-        transactionDate.atTime(12, 0), null, null, null, null);
+    Transaction tx = new Transaction(idSecurityaccount, cashaccount, security, cashAmount, units, quotation,
+        transactionType, null, null, null, transactionDate.atTime(12, 0), null, null, null, null);
     tx.setIdTenant(idTenant);
     tx.setNote("System-Created");
     if (idSecurityActionApp != null) {

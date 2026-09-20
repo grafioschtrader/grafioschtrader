@@ -140,6 +140,16 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
           null,
           null
         )
+      },
+      {
+        label: AppHelper.toUpperCaseWithUnderscore(AppSettings.BANKRUPT_SECURITY),
+        data: new TypeNodeData(
+          TreeNodeType.BankruptSecurity,
+          this.addMainRoute(AppSettings.BANKRUPT_SECURITY_KEY),
+          null,
+          null,
+          null
+        )
       }
     ];
     if (this.globalParamService.useGtnet()) {

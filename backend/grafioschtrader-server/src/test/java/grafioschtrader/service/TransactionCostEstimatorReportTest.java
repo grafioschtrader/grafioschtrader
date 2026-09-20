@@ -25,12 +25,10 @@ import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManager;
 
 /**
- * Manual report test that loads real BUY/SELL transactions from the database,
- * runs the EvalEx fee estimator against each transaction's TradingPlatformPlan YAML,
- * and compares estimated costs with actual recorded transactionCost.
+ * Manual report test that loads real BUY/SELL transactions from the database, runs the EvalEx fee estimator against
+ * each transaction's TradingPlatformPlan YAML, and compares estimated costs with actual recorded transactionCost.
  *
- * Results are printed as a per-plan statistical summary.
- * Requires a populated database — not for CI.
+ * Results are printed as a per-plan statistical summary. Requires a populated database — not for CI.
  */
 @SpringBootTest(classes = GTforTest.class)
 @ActiveProfiles("prod")
@@ -43,9 +41,8 @@ class TransactionCostEstimatorReportTest {
   private static final double DEFAULT_MAX_REL_ERROR = 100.0;
 
   /**
-   * Controls which TradingPlatformPlans appear in the report and the relError filter
-   * range for each. Key = TradingPlatformPlan ID, value = {min%, max%}.
-   * Only plans present in this map are included in the report output.
+   * Controls which TradingPlatformPlans appear in the report and the relError filter range for each. Key =
+   * TradingPlatformPlan ID, value = {min%, max%}. Only plans present in this map are included in the report output.
    * Within each plan, only transactions whose relError falls in [min, max] are listed.
    */
   private final Map<Integer, double[]> reportPlanConfig = new HashMap<>();
@@ -61,16 +58,15 @@ class TransactionCostEstimatorReportTest {
   void generateCostComparisonReport() {
     // ---- Plans to include in the report with relError range {min%, max%} ----
     // Only plans listed here will appear. Adjust ranges per plan as needed.
-    double[] defaultRange = {DEFAULT_MIN_REL_ERROR, DEFAULT_MAX_REL_ERROR};
-    reportPlanConfig.put(3, defaultRange);   // E-Trading - PostFinance Standard
-    reportPlanConfig.put(4, defaultRange);   // Swissquote Flat Fee or Transaction Value
-    reportPlanConfig.put(5, defaultRange);   // CornèrTrader Transactions value
-    reportPlanConfig.put(6, defaultRange);   // Raiffeisen Switzerland
-    reportPlanConfig.put(7, defaultRange);   // TradeDirect Switzerland
-    reportPlanConfig.put(23, defaultRange);  // Saxo Trader
-    reportPlanConfig.put(1, defaultRange);  // Migros Bank Normal
-    reportPlanConfig.put(2, defaultRange);  // Migros Bank Vorsorge
-
+    double[] defaultRange = { DEFAULT_MIN_REL_ERROR, DEFAULT_MAX_REL_ERROR };
+    reportPlanConfig.put(3, defaultRange); // E-Trading - PostFinance Standard
+    reportPlanConfig.put(4, defaultRange); // Swissquote Flat Fee or Transaction Value
+    reportPlanConfig.put(5, defaultRange); // CornèrTrader Transactions value
+    reportPlanConfig.put(6, defaultRange); // Raiffeisen Switzerland
+    reportPlanConfig.put(7, defaultRange); // TradeDirect Switzerland
+    reportPlanConfig.put(23, defaultRange); // Saxo Trader
+    reportPlanConfig.put(1, defaultRange); // Migros Bank Normal
+    reportPlanConfig.put(2, defaultRange); // Migros Bank Vorsorge
 
     Map<Integer, TradingPlatformPlan> planBySecurityAccount = loadPlansBySecurityAccount();
     List<Transaction> transactions = loadBuySellTransactions();
@@ -90,8 +86,7 @@ class TransactionCostEstimatorReportTest {
         continue;
       }
 
-      PlanStats stats = statsByPlan.computeIfAbsent(plan.getIdTradingPlatformPlan(),
-          _ -> new PlanStats(plan));
+      PlanStats stats = statsByPlan.computeIfAbsent(plan.getIdTradingPlatformPlan(), _ -> new PlanStats(plan));
       stats.totalTransactions++;
 
       if (tx.getTransactionCost() == null || tx.getTransactionCost() == 0.0) {
@@ -146,17 +141,10 @@ class TransactionCostEstimatorReportTest {
           catType = tx.getSecurity().getAssetClass().getCategoryType().name();
         }
       }
-      stats.txDetails.add(new TxDetail(
-          tx.getIdTransaction(),
-          tx.getTransactionDate(),
-          txType,
-          tx.getSecurity() != null ? tx.getSecurity().getName() : "?",
-          catType, specInvest,
-          tx.getQuotation() != null ? tx.getQuotation() : 0.0,
-          tx.getUnits() != null ? tx.getUnits() : 0.0,
-          request.getTradeValue(),
-          actual, estimated, relError,
-          result.getMatchedRuleName()));
+      stats.txDetails.add(new TxDetail(tx.getIdTransaction(), tx.getTransactionDate(), txType,
+          tx.getSecurity() != null ? tx.getSecurity().getName() : "?", catType, specInvest,
+          tx.getQuotation() != null ? tx.getQuotation() : 0.0, tx.getUnits() != null ? tx.getUnits() : 0.0,
+          request.getTradeValue(), actual, estimated, relError, result.getMatchedRuleName()));
     }
 
     printReport(statsByPlan);
@@ -168,13 +156,13 @@ class TransactionCostEstimatorReportTest {
    * @return double[2] with {minRelError, maxRelError}
    */
   private double[] getErrorRange(int planId) {
-    return reportPlanConfig.getOrDefault(planId, new double[]{DEFAULT_MIN_REL_ERROR, DEFAULT_MAX_REL_ERROR});
+    return reportPlanConfig.getOrDefault(planId, new double[] { DEFAULT_MIN_REL_ERROR, DEFAULT_MAX_REL_ERROR });
   }
 
   /**
-   * Builds a request with all variables populated (using defaults where data is unavailable).
-   * EvalEx requires every variable referenced in a condition to be bound — null fields cause
-   * "Variable not found" errors. We therefore default missing values to safe fallbacks.
+   * Builds a request with all variables populated (using defaults where data is unavailable). EvalEx requires every
+   * variable referenced in a condition to be bound — null fields cause "Variable not found" errors. We therefore
+   * default missing values to safe fallbacks.
    */
   private TransactionCostEstimateRequest buildRequest(Transaction tx, TradingPlatformPlan plan) {
     TransactionCostEstimateRequest req = new TransactionCostEstimateRequest();
@@ -187,19 +175,20 @@ class TransactionCostEstimatorReportTest {
 
     if (tx.getSecurity() != null && tx.getSecurity().getAssetClass() != null) {
       req.setSpecInvestInstrument(tx.getSecurity().getAssetClass().getSpecialInvestmentInstrument() != null
-          ? (int) tx.getSecurity().getAssetClass().getSpecialInvestmentInstrument().getValue() : 0);
+          ? (int) tx.getSecurity().getAssetClass().getSpecialInvestmentInstrument().getValue()
+          : 0);
       req.setCategoryType(tx.getSecurity().getAssetClass().getCategoryType() != null
-          ? (int) tx.getSecurity().getAssetClass().getCategoryType().getValue() : 0);
+          ? (int) tx.getSecurity().getAssetClass().getCategoryType().getValue()
+          : 0);
     } else {
       req.setSpecInvestInstrument(0);
       req.setCategoryType(0);
     }
 
     req.setMic(tx.getSecurity() != null && tx.getSecurity().getStockexchange() != null
-        && tx.getSecurity().getStockexchange().getMic() != null
-            ? tx.getSecurity().getStockexchange().getMic() : "");
-    req.setCurrency(tx.getSecurity() != null && tx.getSecurity().getCurrency() != null
-        ? tx.getSecurity().getCurrency() : "");
+        && tx.getSecurity().getStockexchange().getMic() != null ? tx.getSecurity().getStockexchange().getMic() : "");
+    req.setCurrency(
+        tx.getSecurity() != null && tx.getSecurity().getCurrency() != null ? tx.getSecurity().getCurrency() : "");
     req.setTradeDirection(tx.getTransactionType() == TransactionType.ACCUMULATE ? 0 : 1);
     // fixedAssets (portfolio value at tx time) cannot be computed retroactively — default to 0.
     req.setFixedAssets(0.0);
@@ -208,11 +197,9 @@ class TransactionCostEstimatorReportTest {
     return req;
   }
 
-  
   private Map<Integer, TradingPlatformPlan> loadPlansBySecurityAccount() {
     List<Securityaccount> accounts = entityManager
-        .createQuery("SELECT sa FROM Securityaccount sa", Securityaccount.class)
-        .getResultList();
+        .createQuery("SELECT sa FROM Securityaccount sa", Securityaccount.class).getResultList();
 
     Map<Integer, TradingPlatformPlan> map = new HashMap<>();
     for (Securityaccount sa : accounts) {
@@ -224,14 +211,12 @@ class TransactionCostEstimatorReportTest {
   }
 
   private List<Transaction> loadBuySellTransactions() {
-    return entityManager.createQuery(
-        "SELECT t FROM Transaction t JOIN FETCH t.security s " +
-            "JOIN FETCH s.assetClass JOIN FETCH s.stockexchange " +
-            "WHERE t.transactionType IN (:buy, :sell) AND t.security IS NOT NULL",
-        Transaction.class)
+    return entityManager
+        .createQuery("SELECT t FROM Transaction t JOIN FETCH t.security s "
+            + "JOIN FETCH s.assetClass JOIN FETCH s.stockexchange "
+            + "WHERE t.transactionType IN (:buy, :sell) AND t.security IS NOT NULL", Transaction.class)
         .setParameter("buy", TransactionType.ACCUMULATE.getValue())
-        .setParameter("sell", TransactionType.REDUCE.getValue())
-        .getResultList();
+        .setParameter("sell", TransactionType.REDUCE.getValue()).getResultList();
   }
 
   private void printReport(Map<Integer, PlanStats> statsByPlan) {
@@ -261,10 +246,10 @@ class TransactionCostEstimatorReportTest {
       System.out.printf("  Successfully compared:       %d%n", stats.comparedCount);
 
       if (stats.comparedCount > 0) {
-        DoubleSummaryStatistics actualStats = stats.actualCosts.stream()
-            .mapToDouble(Double::doubleValue).summaryStatistics();
-        DoubleSummaryStatistics estimatedStats = stats.estimatedCosts.stream()
-            .mapToDouble(Double::doubleValue).summaryStatistics();
+        DoubleSummaryStatistics actualStats = stats.actualCosts.stream().mapToDouble(Double::doubleValue)
+            .summaryStatistics();
+        DoubleSummaryStatistics estimatedStats = stats.estimatedCosts.stream().mapToDouble(Double::doubleValue)
+            .summaryStatistics();
         double meanAbsError = stats.absoluteErrors.stream().mapToDouble(Double::doubleValue).average().orElse(0);
         double meanRelError = stats.relativeErrors.stream().mapToDouble(Double::doubleValue).average().orElse(0);
         double rmse = Math.sqrt(stats.squaredErrors.stream().mapToDouble(Double::doubleValue).average().orElse(0));
@@ -289,34 +274,29 @@ class TransactionCostEstimatorReportTest {
       }
 
       if (!stats.txDetails.isEmpty()) {
-        List<TxDetail> filtered = stats.txDetails.stream()
-            .filter(d -> d.relError >= minErr && d.relError <= maxErr)
-            .sorted(Comparator.comparing(d -> d.date != null ? d.date : LocalDate.MIN))
-            .toList();
+        List<TxDetail> filtered = stats.txDetails.stream().filter(d -> d.relError >= minErr && d.relError <= maxErr)
+            .sorted(Comparator.comparing(d -> d.date != null ? d.date : LocalDate.MIN)).toList();
 
         System.out.println();
-        System.out.printf("  Transactions with relError in [%.0f%% .. %.0f%%]: %d of %d%n",
-            minErr, maxErr, filtered.size(), stats.txDetails.size());
+        System.out.printf("  Transactions with relError in [%.0f%% .. %.0f%%]: %d of %d%n", minErr, maxErr,
+            filtered.size(), stats.txDetails.size());
 
         if (!filtered.isEmpty()) {
           System.out.println();
           String hdr = String.format(
-              "  %-10s | %7s | %-4s | %-40s | %-17s | %-20s | %12s | %10s | %14s | %10s | %10s | %7s | %s",
-              "Date", "TX-ID", "Type", "Security", "Asset Class", "Instrument",
-              "Quotation", "Units", "Trade Value", "Actual", "Estimated", "Err%", "Matched Rule");
+              "  %-10s | %7s | %-4s | %-40s | %-17s | %-20s | %12s | %10s | %14s | %10s | %10s | %7s | %s", "Date",
+              "TX-ID", "Type", "Security", "Asset Class", "Instrument", "Quotation", "Units", "Trade Value", "Actual",
+              "Estimated", "Err%", "Matched Rule");
           System.out.println(hdr);
           System.out.println("  " + "-".repeat(hdr.length() - 2));
           for (TxDetail d : filtered) {
-            String name = d.securityName.length() > 40
-                ? d.securityName.substring(0, 37) + "..." : d.securityName;
-            String cat = d.categoryType.length() > 17
-                ? d.categoryType.substring(0, 14) + "..." : d.categoryType;
-            String spec = d.specInvestInstrument.length() > 20
-                ? d.specInvestInstrument.substring(0, 17) + "..." : d.specInvestInstrument;
+            String name = d.securityName.length() > 40 ? d.securityName.substring(0, 37) + "..." : d.securityName;
+            String cat = d.categoryType.length() > 17 ? d.categoryType.substring(0, 14) + "..." : d.categoryType;
+            String spec = d.specInvestInstrument.length() > 20 ? d.specInvestInstrument.substring(0, 17) + "..."
+                : d.specInvestInstrument;
             System.out.printf(
                 "  %-10s | %7d | %-4s | %-40s | %-17s | %-20s | %12.4f | %10.2f | %14.2f | %10.2f | %10.2f | %6.1f%% | %s%n",
-                d.date != null ? d.date : "n/a", d.txId, d.txType, name,
-                cat, spec, d.quotation, d.units, d.tradeValue,
+                d.date != null ? d.date : "n/a", d.txId, d.txType, name, cat, spec, d.quotation, d.units, d.tradeValue,
                 d.actual, d.estimated, d.relError, d.ruleName);
           }
         }
@@ -362,9 +342,8 @@ class TransactionCostEstimatorReportTest {
   /**
    * Detail record for a single compared transaction.
    */
-  private record TxDetail(int txId, LocalDate date, String txType, String securityName,
-      String categoryType, String specInvestInstrument,
-      double quotation, double units, double tradeValue,
-      double actual, double estimated, double relError, String ruleName) {
+  private record TxDetail(int txId, LocalDate date, String txType, String securityName, String categoryType,
+      String specInvestInstrument, double quotation, double units, double tradeValue, double actual, double estimated,
+      double relError, String ruleName) {
   }
 }

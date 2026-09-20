@@ -63,11 +63,10 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
     return genericConnectorDefJpaRepository;
   }
 
-
   /**
    * Prevents non-owner/non-admin users from falling through to the proposal path. The creator can edit directly
-   * (checked by the base class via UserAccessHelper), but other limited users must not create change proposals
-   * for connectors — they simply have no editing rights.
+   * (checked by the base class via UserAccessHelper), but other limited users must not create change proposals for
+   * connectors — they simply have no editing rights.
    */
   @Override
   protected boolean hasRightsForEditingEntity(User user, GenericConnectorDef newEntity,
@@ -89,14 +88,14 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
     populateInstrumentCount(def);
     if (def.getInstrumentCount() > 0) {
       throw new DataViolationException("generic.connector.def", "gt.connector.def.referenced",
-          new Object[]{def.getInstrumentCount()});
+          new Object[] { def.getInstrumentCount() });
     }
     ResponseEntity<Void> response = super.deleteResource(id);
     genericFeedConnectorFactory.reload();
     return response;
   }
 
-  @Operation(summary = "Return all generic connector definitions", tags = {GenericConnectorDef.TABNAME})
+  @Operation(summary = "Return all generic connector definitions", tags = { GenericConnectorDef.TABNAME })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<GenericConnectorDef>> getAllGenericConnectors() {
     List<GenericConnectorDef> connectors = genericConnectorDefJpaRepository.findAll();
@@ -104,19 +103,17 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
     return new ResponseEntity<>(connectors, HttpStatus.OK);
   }
 
-  @Operation(summary = "Return a single generic connector definition by ID", tags = {GenericConnectorDef.TABNAME})
+  @Operation(summary = "Return a single generic connector definition by ID", tags = { GenericConnectorDef.TABNAME })
   @GetMapping(value = "/{id}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GenericConnectorDef> getGenericConnector(@PathVariable final Integer id) {
-    return genericConnectorDefJpaRepository.findById(id)
-        .map(def -> {
-          populateInstrumentCount(def);
-          return new ResponseEntity<>(def, HttpStatus.OK);
-        })
-        .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    return genericConnectorDefJpaRepository.findById(id).map(def -> {
+      populateInstrumentCount(def);
+      return new ResponseEntity<>(def, HttpStatus.OK);
+    }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
-  @Operation(summary = "Activate a connector (admin only). Sets activated=true.",
-      tags = {GenericConnectorDef.TABNAME})
+  @Operation(summary = "Activate a connector (admin only). Sets activated=true.", tags = {
+      GenericConnectorDef.TABNAME })
   @PostMapping(value = "/activate/{id}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GenericConnectorDef> activateConnector(@PathVariable final Integer id) {
     checkAdmin();
@@ -128,8 +125,8 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
     }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
-  @Operation(summary = "Deactivate a connector (admin only). Sets activated=false.",
-      tags = {GenericConnectorDef.TABNAME})
+  @Operation(summary = "Deactivate a connector (admin only). Sets activated=false.", tags = {
+      GenericConnectorDef.TABNAME })
   @PostMapping(value = "/deactivate/{id}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GenericConnectorDef> deactivateConnector(@PathVariable final Integer id) {
     checkAdmin();
@@ -142,8 +139,8 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
     }).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
-  @Operation(summary = "Reload all generic connectors from the database and re-register them as Spring beans (admin only)",
-      tags = {GenericConnectorDef.TABNAME})
+  @Operation(summary = "Reload all generic connectors from the database and re-register them as Spring beans (admin only)", tags = {
+      GenericConnectorDef.TABNAME })
   @PostMapping(value = "/reload", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> reloadGenericConnectors() {
     checkAdmin();
@@ -151,8 +148,8 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
     return ResponseEntity.ok().build();
   }
 
-  @Operation(summary = "Test a connector endpoint with a ticker and optional date range",
-      tags = {GenericConnectorDef.TABNAME})
+  @Operation(summary = "Test a connector endpoint with a ticker and optional date range", tags = {
+      GenericConnectorDef.TABNAME })
   @PostMapping(value = "/test", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<GenericConnectorTestResult> testEndpoint(@RequestBody GenericConnectorTestRequest request) {
     return new ResponseEntity<>(genericConnectorTestService.testEndpoint(request), HttpStatus.OK);

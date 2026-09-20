@@ -15,8 +15,8 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * DTO for security metadata received from GTNet peers. Contains instance-agnostic data that can be used
- * across different GT installations. Excludes local IDs and API keys which are instance-specific.
+ * DTO for security metadata received from GTNet peers. Contains instance-agnostic data that can be used across
+ * different GT installations. Excludes local IDs and API keys which are instance-specific.
  */
 @Schema(description = """
     Security metadata DTO for GTNet peer exchange. Contains instance-agnostic data including identification,

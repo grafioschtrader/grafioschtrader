@@ -17,6 +17,18 @@ public class TaxCountry {
 
   public static final String TABNAME = "tax_country";
 
+  @jakarta.persistence.Column(name = "tax_model_yaml", columnDefinition = "MEDIUMTEXT")
+  @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+  private String taxModelYaml;
+
+  public String getTaxModelYaml() {
+    return taxModelYaml;
+  }
+
+  public void setTaxModelYaml(String taxModelYaml) {
+    this.taxModelYaml = taxModelYaml;
+  }
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id_tax_country")
@@ -30,6 +42,16 @@ public class TaxCountry {
   private List<TaxYear> taxYears;
 
   public TaxCountry() {
+  }
+
+  @jakarta.persistence.Transient
+  public boolean isIctaxSupported() {
+    return "CH".equals(countryCode);
+  }
+
+  @jakarta.persistence.Transient
+  public boolean isHasTaxModel() {
+    return taxModelYaml != null && !taxModelYaml.isBlank();
   }
 
   public Integer getIdTaxCountry() {

@@ -84,8 +84,8 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
    *                          null
    * @return filtered connector list
    */
-  List<IFeedConnector> getFeedConnectors(boolean isCurrency, Integer idStockexchange,
-      AssetclassType assetclassType, SpecialInvestmentInstruments specInvInstrument);
+  List<IFeedConnector> getFeedConnectors(boolean isCurrency, Integer idStockexchange, AssetclassType assetclassType,
+      SpecialInvestmentInstruments specInvInstrument);
 
   /**
    * Retrieves all feed connectors that support a specific type of data feed (e.g., historical, intraday) as a list of
@@ -120,8 +120,8 @@ public interface ISecuritycurrencyService<S extends Securitycurrency<S>> extends
    * which lets the GTNet service compute the request range without a follow-up query.
    *
    * @param connectorCap the connector retry cap (gt.history.retry); inclusive lower bound for the GTNet fallback band
-   * @param absoluteCap  the absolute exhaustion cap; exclusive upper bound; instruments at or above this value are
-   *                     no longer retried automatically
+   * @param absoluteCap  the absolute exhaustion cap; exclusive upper bound; instruments at or above this value are no
+   *                     longer retried automatically
    * @return projections pairing each eligible instrument with its latest historyquote date (or null if no history yet)
    */
   List<SecurityCurrencyMaxHistoryquoteData<S>> findGTNetFallbackBandInstruments(short connectorCap, short absoluteCap);

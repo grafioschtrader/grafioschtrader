@@ -1,7 +1,5 @@
 package grafioschtrader.algo.strategy.model.complex;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import grafioschtrader.algo.strategy.model.complex.downside.DownsideManagementConfig;
 import grafioschtrader.algo.strategy.model.complex.entry.EntryConfig;
 import grafioschtrader.algo.strategy.model.complex.profit.ProfitManagementConfig;
@@ -14,7 +12,7 @@ import jakarta.validation.constraints.Size;
  * {@code AlgoStrategy.strategyConfig}. All nested config objects use {@code @Valid} to cascade Jakarta Bean Validation
  * through the entire tree.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+
 public class StrategyConfig {
 
   @NotNull

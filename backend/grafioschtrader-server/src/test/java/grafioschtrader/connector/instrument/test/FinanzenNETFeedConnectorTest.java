@@ -57,7 +57,7 @@ class FinanzenNETFeedConnectorTest extends BaseFeedConnectorCheck {
     }
     return hisoricalDate;
   }
-  
+
   // Currency pair price tests
   // =======================================
   @Test
@@ -78,7 +78,6 @@ class FinanzenNETFeedConnectorTest extends BaseFeedConnectorCheck {
     }
     return currencies;
   }
-  
 
   @Override
   protected IFeedConnector getIFeedConnector() {

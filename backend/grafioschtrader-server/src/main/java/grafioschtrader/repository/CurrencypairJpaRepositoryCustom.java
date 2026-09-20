@@ -16,8 +16,8 @@ import grafioschtrader.search.SecuritycurrencySearch;
 public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyService<Currencypair> {
 
   /**
-   * Batch query to find currency pairs by fromCurrency+toCurrency tuples in a single database query.
-   * Used by GTNet lastprice exchange to efficiently query multiple currency pairs.
+   * Batch query to find currency pairs by fromCurrency+toCurrency tuples in a single database query. Used by GTNet
+   * lastprice exchange to efficiently query multiple currency pairs.
    *
    * @param currencyPairs list of [fromCurrency, toCurrency] pairs to query
    * @return list of matching Currencypair entities
@@ -39,8 +39,8 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
   void allCurrenciesFillEmptyDaysInHistoryquote();
 
   /**
-   * Fills any missing historical end-of-day price data for a specific currency pair.
-   * This is crucial for ensuring continuous data, especially for calculations involving weekends and holidays.
+   * Fills any missing historical end-of-day price data for a specific currency pair. This is crucial for ensuring
+   * continuous data, especially for calculations involving weekends and holidays.
    *
    * @param currencypair The {@link Currencypair} to process.
    * @throws Exception If an error occurs during the data filling process.
@@ -170,11 +170,12 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
   Currencypair createNonExistingCurrencypair(String fromCurrency, String toCurrency, boolean loadAsync);
 
   /**
-   * Retrieves the raw response from the data provider for a currency pair's price data (historical or intraday).
-   * This is used when the UI needs to display data provider information that might require backend processing (e.g., API keys).
+   * Retrieves the raw response from the data provider for a currency pair's price data (historical or intraday). This
+   * is used when the UI needs to display data provider information that might require backend processing (e.g., API
+   * keys).
    *
    * @param idSecuritycurrency The ID of the currency pair.
-   * @param isIntraday True if intraday data is requested, false for historical data.
+   * @param isIntraday         True if intraday data is requested, false for historical data.
    * @return The raw response string from the data provider.
    */
   String getDataProviderResponseForUser(final Integer idSecuritycurrency, final boolean isIntraday);
@@ -254,15 +255,15 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
    *
    * <p>
    * The flags decide which instruments this instance offers to its GTNet peers and which it wants to receive, so they
-   * are shared data rather than tenant data. Every row is therefore checked against the ordinary editing rights of
-   * the instrument: an administrator and a user with the extended editing right may change any currency pair,
-   * everybody else only the currency pairs they created themselves. A row the caller may not change aborts the whole
-   * request with a {@link SecurityException}, because the user interface never offers such a row.
+   * are shared data rather than tenant data. Every row is therefore checked against the ordinary editing rights of the
+   * instrument: an administrator and a user with the extended editing right may change any currency pair, everybody
+   * else only the currency pairs they created themselves. A row the caller may not change aborts the whole request with
+   * a {@link SecurityException}, because the user interface never offers such a row.
    * </p>
    *
    * <p>
-   * Ids without a persisted currency pair are skipped silently; only the four {@code gtNet*} flags and the
-   * modification timestamp are written.
+   * Ids without a persisted currency pair are skipped silently; only the four {@code gtNet*} flags and the modification
+   * timestamp are written.
    * </p>
    *
    * @param currencypairs the currency pairs carrying the desired flag values, identified by their id

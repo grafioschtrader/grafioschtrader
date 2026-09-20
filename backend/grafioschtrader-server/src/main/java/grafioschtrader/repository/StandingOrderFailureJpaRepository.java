@@ -21,8 +21,8 @@ public interface StandingOrderFailureJpaRepository extends JpaRepository<Standin
   List<StandingOrderFailure> findByIdStandingOrderOrderByExecutionDateDesc(Integer idStandingOrder);
 
   /**
-   * Returns failure counts grouped by standing order ID, for batch-loading into the transient
-   * {@code failureCount} field on {@link grafioschtrader.entities.StandingOrder}.
+   * Returns failure counts grouped by standing order ID, for batch-loading into the transient {@code failureCount}
+   * field on {@link grafioschtrader.entities.StandingOrder}.
    *
    * @param ids the standing order IDs to count failures for
    * @return list of [idStandingOrder, count] pairs

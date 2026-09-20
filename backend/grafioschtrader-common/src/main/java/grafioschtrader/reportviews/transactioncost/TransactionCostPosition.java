@@ -10,7 +10,7 @@ public class TransactionCostPosition extends SecurityCostPosition {
 
   @Schema(description = "The specific transaction that incurred these costs, containing all trade details and context")
   public Transaction transaction;
-  
+
   @Schema(description = "Base price calculation (units * quotation + accrued interest), expressed in main currency")
   public double basePriceForTransactionCostMC;
 

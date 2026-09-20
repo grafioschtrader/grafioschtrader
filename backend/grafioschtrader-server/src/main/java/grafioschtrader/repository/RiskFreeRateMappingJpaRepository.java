@@ -44,7 +44,6 @@ public interface RiskFreeRateMappingJpaRepository
    * row exists. Used by the REST resource to validate that the currency of a posted mapping matches the underlying
    * security's currency before persisting.
    */
-  @Query(nativeQuery = true,
-      value = "SELECT s.currency FROM security s WHERE s.id_securitycurrency = ?1")
+  @Query(nativeQuery = true, value = "SELECT s.currency FROM security s WHERE s.id_securitycurrency = ?1")
   String findCurrencyByIdSecuritycurrency(Integer idSecuritycurrency);
 }

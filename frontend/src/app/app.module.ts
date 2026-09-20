@@ -12,6 +12,15 @@ import { AppComponent } from './app.component';
 import { TASK_EXTENDED_SERVICE } from './lib/taskdatamonitor/service/task.extend.service.token';
 import { TASK_TYPE_ENUM } from './lib/taskdatamonitor/service/task.type.enum.token';
 import { PERSONAL_DATA_ZIP_NAME } from './lib/mainmenubar/service/personal.data.zip.token';
+import {
+  DASHBOARD_CONFIG_SUMMARIES,
+  DASHBOARD_RENDERERS,
+  DashboardSummaryComponent
+} from './lib/dashboard/dashboard-summary.component';
+import { ShowRecordConfigBase } from './lib/datashowbase/show.record.config.base';
+import { DataType } from './lib/dynamic-form/models/data.type';
+import { HoldingMoversWidgetComponent } from './dashboard/component/holding-movers-widget.component';
+import { LastSessionsPerformanceWidgetComponent } from './dashboard/component/last-sessions-performance-widget.component';
 import { TaskType } from './shared/types/task.type';
 import { PortfolioService } from './portfolio/service/portfolio.service';
 import { TreeModule } from '@openng/optimus-ui/tree';
@@ -89,6 +98,7 @@ import { SecurityaccountImportTransactionTableComponent } from './imptransaction
 import { ImportTransactionTemplateComponent } from './imptranstemplate/component/import.transaction.template.component';
 import { ImportTransactionTemplateService } from './imptranstemplate/service/import.transaction.template.service';
 import { ImportTransactionPlatformService } from './imptranstemplate/service/import.transaction.platform.service';
+import { BankruptSecurityService } from './bankruptsecurity/service/bankrupt.security.service';
 import { RiskFreeRateMappingService } from './riskfreeratemapping/service/risk.free.rate.mapping.service';
 import { ImportTransactionEditTemplateComponent } from './imptranstemplate/component/import-transaction-edit-template.component';
 import { ImportTransactionEditPlatformComponent } from './imptranstemplate/component/import-transaction-edit-platform.component';
@@ -105,9 +115,9 @@ import { ProposeChangeEntityService } from './lib/proposechange/service/propose.
 import { setupProposeChangeEntityHandlers } from './shared/changerequest/propose.change.entity.handlers.setup';
 import { EntityPrepareRegistry } from './lib/proposechange/service/entity.prepare.registry';
 import { AlgoTopService } from './algo/service/algo.top.service';
-import { StrategyOverviewComponent } from './algo/component/strategy.overview.component';
+import { AlgoOverviewComponent } from './algo/component/algo-overview.component';
+import { AlgoSimulationRunComponent } from './algo/component/algo-simulation-run.component';
 import { AlgoTopDataViewComponent } from './algo/component/algo.top.data.view.component';
-import { AlgoRuleStrategyCreateWizardComponent } from './algo/component/algo-rule-strategy-create-wizard.component';
 import { StepComponent } from './lib/wizard/component/step.component';
 import { AlgoAssetclassService } from './algo/service/algo.assetclass.service';
 import { AlgoStrategyService } from './algo/service/algo.strategy.service';
@@ -211,6 +221,7 @@ import { UDFMetadataGeneralService } from './lib/udfmeta/service/udf.metadata.ge
 import { UDFGeneralEditComponent } from './lib/udfmeta/components/udf-general-edit.component';
 import { UDFSpecialTypeDisableUserService } from './lib/udfmeta/service/udf.special.type.disable.user.service';
 import { AlarmSetupService } from './algo/service/alarm.setup.service';
+import { SimulationContextService } from './algo/service/simulation.context.service';
 import { StandingOrderCashaccountTableComponent } from './standingorder/component/standing-order-cashaccount-table.component';
 import { StandingOrderSecurityTableComponent } from './standingorder/component/standing-order-security-table.component';
 import { StandingOrderCashaccountEditComponent } from './standingorder/component/standing-order-cashaccount-edit.component';
@@ -231,6 +242,7 @@ import { StepsComponent } from './lib/wizard/component/steps.component';
 import { ReleaseNoteService } from './lib/login/service/release.note.service';
 import { MainTreeContributorManager } from './lib/maintree/contributor/main-tree-contributor.manager';
 import { MAIN_TREE_CONTRIBUTOR } from './lib/maintree/contributor/main-tree-contributor.interface';
+import { DashboardMainTreeContributor } from './lib/maintree/contributor/dashboard-main-tree.contributor';
 import { MainTreeService } from './lib/maintree/service/main-tree.service';
 import { PortfolioMainTreeContributor } from './portfolio/contributor/portfolio-main-tree.contributor';
 import { WatchlistMainTreeContributor } from './watchlist/contributor/watchlist-main-tree.contributor';
@@ -275,11 +287,11 @@ const createTranslateLoader = (http: HttpClient) =>
   imports: [
     ReplacePipe,
     AlgoAssetclassEditComponent,
-    AlgoRuleStrategyCreateWizardComponent,
     AlgoSecurityEditComponent,
     AlgoStrategyEditComponent,
     AlgoTopDataViewComponent,
-    StrategyOverviewComponent,
+    AlgoOverviewComponent,
+    AlgoSimulationRunComponent,
     AngularSvgIconModule.forRoot(),
     BrowserModule,
     ButtonModule,
@@ -438,6 +450,7 @@ const createTranslateLoader = (http: HttpClient) =>
     ActivePanelService,
     ActuatorService,
     AlarmSetupService,
+    SimulationContextService,
     AlgoAssetclassService,
     AlgoSecurityService,
     AlgoStrategyService,
@@ -472,6 +485,7 @@ const createTranslateLoader = (http: HttpClient) =>
     ImportTransactionPlatformService,
     ImportTransactionPosService,
     ImportTransactionTemplateService,
+    BankruptSecurityService,
     RiskFreeRateMappingService,
     LoginService,
     MailSendRecvService,
@@ -557,11 +571,49 @@ const createTranslateLoader = (http: HttpClient) =>
     { provide: DIALOG_HANDLER, useClass: AppDialogHandler },
     // File name of the personal data export, overrides the neutral default of the lib layer
     { provide: PERSONAL_DATA_ZIP_NAME, useValue: 'gtPersonalData.zip' },
+    // Dashboard renderers by backend type code. The token is not multi, so this replaces the library map and has to
+    // relist its entries; dropping one would leave that card blank.
+    {
+      provide: DASHBOARD_RENDERERS,
+      useValue: {
+        UNREAD_MAIL: DashboardSummaryComponent,
+        PROPOSE_CHANGE_OPEN: DashboardSummaryComponent,
+        USER_LIMIT_REQUESTS: DashboardSummaryComponent,
+        HOLDING_WINNERS: HoldingMoversWidgetComponent,
+        HOLDING_LOSERS: HoldingMoversWidgetComponent,
+        PERFORMANCE_LAST_SESSIONS: LastSessionsPerformanceWidgetComponent
+      }
+    },
+    {
+      provide: DASHBOARD_CONFIG_SUMMARIES,
+      useValue: {
+        HOLDING_WINNERS: ShowRecordConfigBase.createColumnConfig(
+          DataType.NumericInteger,
+          'topN',
+          'DASHBOARD_MOVERS_TOP_N'
+        ),
+        HOLDING_LOSERS: ShowRecordConfigBase.createColumnConfig(
+          DataType.NumericInteger,
+          'topN',
+          'DASHBOARD_MOVERS_TOP_N'
+        ),
+        PERFORMANCE_LAST_SESSIONS: ShowRecordConfigBase.createColumnConfig(
+          DataType.NumericInteger,
+          'days',
+          'DASHBOARD_LAST_SESSIONS_DAYS'
+        )
+      }
+    },
     // After Login Handler for GT-specific initialization
     { provide: AfterLoginHandler, useClass: GtAfterLoginHandler },
     // Main Tree Contributors
     MainTreeContributorManager,
     MainTreeService,
+    {
+      provide: MAIN_TREE_CONTRIBUTOR,
+      useClass: DashboardMainTreeContributor,
+      multi: true
+    },
     {
       provide: MAIN_TREE_CONTRIBUTOR,
       useClass: PortfolioMainTreeContributor,

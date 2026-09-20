@@ -34,6 +34,11 @@ TOTAL
 US
 WATCHLIST
 
+# --- Deliberate: established anglicism in German software UIs ---
+# "Dashboard" is the usual German term for a configurable board of widgets. "Übersicht" is already the German
+# value of SCL_OVERVIEW here and of OVERVIEW in the application bundle.
+DASHBOARD
+
 # --- REVIEW: migrated from the frontend, German wording could be improved.
 # SERVER_STATE reads "Status Server" in both; idiomatic German would be "Serverstatus".
 # VALUE is "Total" in both, which also looks like the wrong text for that key.

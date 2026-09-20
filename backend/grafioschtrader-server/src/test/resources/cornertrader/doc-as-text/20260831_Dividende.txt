@@ -1,0 +1,20 @@
+Detail der Kontobewegungen
+Nummer der Kundenbeziehung 999999
+Konto 01 CHF
+Datum 19.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+Coupon Gutschrift Exch.Traded Fund Obb 31/08/26 31/08/26 327,80+
+Depot 999999/01
+ISHARES VI PLC J.P. MORGAN USD EM
+BOND CHF HEDGED UCITS ETF
+Valorennummer 22138623
+ISIN Nummer IE00B9M04V95
+Jährliche Couponfälligkeit, am 01.01
+Anzahl 22.000,00
+Ausschüttung 0,0149 CHF
+Eingang Vorbehalten
+Unsere Ref: EXAMPLE/2026/1
+Via e-banking gedruckt Cornèr Bank AG
+Im Falle von Abweichungen zwischen den vom Cornèronline-System zur Verfügung gestellten Daten oder Dokumenten
+und jenen, die von der Bank in ihrer Buchhaltung registriert werden, sind auf alle Fälle letztere massgebend. mail@corneronline.ch
+1/1

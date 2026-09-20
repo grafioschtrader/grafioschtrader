@@ -16,8 +16,7 @@ public class ProposeChangeEntityWithEntity implements Serializable {
   @Schema(description = "The entity as proposed, so this contains the changes")
   public Object proposedEntity;
 
-  public ProposeChangeEntityWithEntity(ProposeChangeEntity proposeChangeEntity, Object entity,
-      Object proposedEntity) {
+  public ProposeChangeEntityWithEntity(ProposeChangeEntity proposeChangeEntity, Object entity, Object proposedEntity) {
     super();
     this.proposeChangeEntity = proposeChangeEntity;
     this.entity = entity;

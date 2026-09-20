@@ -8,8 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.entities.GenericConnectorEndpoint;
 
 /**
- * Repository for marking generic connector endpoints as successfully used and transferring ownership when all
- * endpoints of a connector have been used.
+ * Repository for marking generic connector endpoints as successfully used and transferring ownership when all endpoints
+ * of a connector have been used.
  */
 public interface GenericConnectorEndpointJpaRepository extends JpaRepository<GenericConnectorEndpoint, Integer> {
 
@@ -37,8 +37,7 @@ public interface GenericConnectorEndpointJpaRepository extends JpaRepository<Gen
   @Transactional
   @Modifying
   @Query(nativeQuery = true, value = "UPDATE generic_connector_def SET created_by = 0 "
-      + "WHERE id_generic_connector = ?1 "
-      + "AND NOT EXISTS (SELECT 1 FROM generic_connector_endpoint "
+      + "WHERE id_generic_connector = ?1 " + "AND NOT EXISTS (SELECT 1 FROM generic_connector_endpoint "
       + "WHERE id_generic_connector = ?1 AND ever_used_successfully = 0)")
   int transferOwnershipIfAllEndpointsUsed(Integer idGenericConnector);
 }

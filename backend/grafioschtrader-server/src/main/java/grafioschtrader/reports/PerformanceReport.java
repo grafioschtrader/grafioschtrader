@@ -4,6 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
@@ -24,8 +26,11 @@ import org.springframework.stereotype.Component;
 import grafiosch.BaseConstants;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.TradingDaysPlus;
+import grafioschtrader.reportviews.dashboard.LastSessionsPerformancePayload.LastSessions;
+import grafioschtrader.reportviews.dashboard.LastSessionsPerformancePayload.Session;
 import grafioschtrader.reportviews.performance.FirstAndMissingTradingDays;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
 import grafioschtrader.reportviews.performance.PerformancePeriod;
@@ -33,17 +38,18 @@ import grafioschtrader.reportviews.performance.PeriodHoldingAndDiff;
 import grafioschtrader.reportviews.performance.WeekYear;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
+import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 
 /**
  * Service component responsible for generating period performance reports for portfolios and tenants.
- * 
+ *
  * <p>
  * This class provides comprehensive performance analysis by calculating trading day availability, missing quote
  * detection, and period-based performance metrics. It supports both tenant-level (across all portfolios) and individual
  * portfolio performance reporting.
  * </p>
- * 
+ *
  * <p>
  * <strong>Key Features:</strong>
  * </p>
@@ -54,13 +60,14 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * <li>Multi-currency support with automatic conversion</li>
  * <li>Caching of trading day metadata for improved performance</li>
  * </ul>
- * 
- * * <p>
- * Missing quote days are particularly important for performance calculations as they represent gaps in the
- * price history of held securities. These days are identified by analyzing the quote availability for all
- * securities held across portfolios within a tenant or specific portfolio.
+ *
+ * *
+ * <p>
+ * Missing quote days are particularly important for performance calculations as they represent gaps in the price
+ * history of held securities. These days are identified by analyzing the quote availability for all securities held
+ * across portfolios within a tenant or specific portfolio.
  * </p>
- * 
+ *
  * <p>
  * <strong>Performance Optimization:</strong>
  * </p>
@@ -68,13 +75,19 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
  * The class employs a passive expiring cache with a 2-minute TTL to store FirstAndMissingTradingDays objects, reducing
  * database queries for frequently accessed trading day information.
  * </p>
- * 
+ *
  */
 @Component
 public class PerformanceReport {
   private static final String DATE_FROM_FIELD_MSG = "date.from";
   private static final String DATE_TO_FIELD_MSG = "date.to";
   private static final String PERIOD_SPLIT = "period.split";
+
+  /** Not two sessions with complete prices exist, so no change can be formed at all. */
+  private static final String REASON_NO_USABLE_SESSION = "DASHBOARD_LAST_SESSIONS_NO_SESSION";
+
+  /** The sessions exist, but the client held nothing over them; an account that has not started yet. */
+  private static final String REASON_NO_HOLDINGS = "DASHBOARD_LAST_SESSIONS_NO_HOLDINGS";
 
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
@@ -85,6 +98,9 @@ public class PerformanceReport {
   @Autowired
   private PortfolioJpaRepository portfolioJpaRepository;
 
+  @Autowired
+  private TenantJpaRepository tenantJpaRepository;
+
   /**
    * Cache for trading day metadata with 2-minute expiration to improve performance. Maps portfolio/tenant keys to their
    * corresponding trading day information.
@@ -94,13 +110,12 @@ public class PerformanceReport {
 
   /**
    * Retrieves trading day metadata for the current user's tenant.
-   * 
+   *
    * <p>
-   * This convenience method extracts the tenant ID from the current security context
-   * and delegates to the parameterized version. It's commonly used in web controllers
-   * where the tenant context is implicit.
+   * This convenience method extracts the tenant ID from the current security context and delegates to the parameterized
+   * version. It's commonly used in web controllers where the tenant context is implicit.
    * </p>
-   * 
+   *
    * @return trading day metadata for the current tenant
    */
   public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByTenant()
@@ -111,13 +126,13 @@ public class PerformanceReport {
 
   /**
    * Retrieves trading day metadata for a specific tenant with caching and concurrent data loading.
-   * 
+   *
    * <p>
-   * Aggregates trading day information across all portfolios within the tenant, including the
-   * earliest trading day, missing quote days, and holiday information. Uses CompletableFuture
-   * for concurrent data loading from multiple sources.
+   * Aggregates trading day information across all portfolios within the tenant, including the earliest trading day,
+   * missing quote days, and holiday information. Uses CompletableFuture for concurrent data loading from multiple
+   * sources.
    * </p>
-   * 
+   *
    * @param idTenant the tenant identifier
    * @return comprehensive trading day metadata for the tenant
    */
@@ -142,15 +157,14 @@ public class PerformanceReport {
     }
   }
 
-  
   /**
    * Retrieves trading day metadata for a specific portfolio with security validation.
-   * 
+   *
    * <p>
-   * Provides detailed trading day analysis for an individual portfolio. Enforces tenant-based
-   * access control to ensure users can only access portfolios within their tenant scope.
+   * Provides detailed trading day analysis for an individual portfolio. Enforces tenant-based access control to ensure
+   * users can only access portfolios within their tenant scope.
    * </p>
-   * 
+   *
    * @param idPortfolio the portfolio identifier
    * @return trading day metadata specific to the portfolio
    * @throws SecurityException if the portfolio doesn't belong to the current user's tenant
@@ -158,7 +172,21 @@ public class PerformanceReport {
   public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByPortfolio(Integer idPortfolio)
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(user.getIdTenant(), idPortfolio);
+    return getFirstAndMissingTradingDaysByPortfolio(user.getIdTenant(), idPortfolio);
+  }
+
+  /**
+   * Same as {@link #getFirstAndMissingTradingDaysByPortfolio(Integer)} with the tenant passed in rather than read from
+   * the security context, for a caller that already holds the user.
+   *
+   * @param idTenant    tenant the portfolio has to belong to
+   * @param idPortfolio the portfolio identifier
+   * @return trading day metadata specific to the portfolio
+   * @throws SecurityException if the portfolio does not belong to that tenant
+   */
+  public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByPortfolio(Integer idTenant, Integer idPortfolio)
+      throws InterruptedException, ExecutionException {
+    Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
     if (portfolio != null) {
       PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idPortfolio, PortfolioTentant.Portfolio);
       FirstAndMissingTradingDays firstAndMissingTradingDays = firstAndMissingTradingDaysMap.get(portfolioOrTenantKey);
@@ -183,25 +211,26 @@ public class PerformanceReport {
 
   /**
    * Orchestrates concurrent loading and combination of trading day metadata from multiple sources.
-   * 
+   *
    * <p>
-   * Combines data from holdings history, global holidays, security-specific holidays, missing quote data,
-   * and trading calendar information. Results are automatically cached for future use.
+   * Combines data from holdings history, global holidays, security-specific holidays, missing quote data, and trading
+   * calendar information. Results are automatically cached for future use.
    * </p>
-   * 
-   * @param portfolioOrTenantKey cache key for portfolio or tenant-level data
-   * @param firstEverHoldDayCF CompletableFuture providing the day the first security position was opened
-   * @param zeroBaseDayCF CompletableFuture providing the last trading day before that first holding
-   * @param missingQuoteDaysCF CompletableFuture providing days with missing quotes
+   *
+   * @param portfolioOrTenantKey        cache key for portfolio or tenant-level data
+   * @param firstEverHoldDayCF          CompletableFuture providing the day the first security position was opened
+   * @param zeroBaseDayCF               CompletableFuture providing the last trading day before that first holding
+   * @param missingQuoteDaysCF          CompletableFuture providing days with missing quotes
    * @param combinedHolidayOfHoldingsCF CompletableFuture providing holidays affecting holdings
    * @return comprehensive trading day metadata
    * @throws InterruptedException if concurrent operations are interrupted
-   * @throws ExecutionException if data retrieval operations fail
+   * @throws ExecutionException   if data retrieval operations fail
    */
   private FirstAndMissingTradingDays getFirstAndMissingTradingDays(PortfolioOrTenantKey portfolioOrTenantKey,
       final CompletableFuture<LocalDate> firstEverHoldDayCF, final CompletableFuture<LocalDate> zeroBaseDayCF,
       final CompletableFuture<Set<LocalDate>> missingQuoteDaysCF,
-      final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF) throws InterruptedException, ExecutionException {
+      final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF)
+      throws InterruptedException, ExecutionException {
     int actYear = LocalDate.now().getYear();
     LocalDate fromDate = LocalDate.of(actYear - 1, 1, 1);
     LocalDate toDate = LocalDate.of(actYear - 1, 12, 31);
@@ -209,22 +238,21 @@ public class PerformanceReport {
         .supplyAsync(() -> tradingDaysPlusJpaRepository.getGlobalHolidays());
     final CompletableFuture<List<TradingDaysPlus>> tradingDaysOfLastYearCF = CompletableFuture.supplyAsync(
         () -> tradingDaysPlusJpaRepository.findByTradingDateBetweenOrderByTradingDateDesc(fromDate, toDate));
-    FirstAndMissingTradingDays firstAndMissingTradingDays = combineFirstAndMissingTradingDays(
-        firstEverHoldDayCF.get(), zeroBaseDayCF.get(), globalHolidaysCF.get(), missingQuoteDaysCF.get(),
-        combinedHolidayOfHoldingsCF.get(), tradingDaysOfLastYearCF.get(), actYear - 1);
+    FirstAndMissingTradingDays firstAndMissingTradingDays = combineFirstAndMissingTradingDays(firstEverHoldDayCF.get(),
+        zeroBaseDayCF.get(), globalHolidaysCF.get(), missingQuoteDaysCF.get(), combinedHolidayOfHoldingsCF.get(),
+        tradingDaysOfLastYearCF.get(), actYear - 1);
     firstAndMissingTradingDaysMap.put(portfolioOrTenantKey, firstAndMissingTradingDays);
     return firstAndMissingTradingDays;
   }
 
   /**
    * Combines raw trading day data from multiple sources into unified metadata.
-   * 
+   *
    * <p>
-   * Merges global holidays, security-specific holidays, and missing quote data. Calculates
-   * latest valid trading days using sophisticated algorithms that account for missing data
-   * and holiday schedules.
+   * Merges global holidays, security-specific holidays, and missing quote data. Calculates latest valid trading days
+   * using sophisticated algorithms that account for missing data and holiday schedules.
    * </p>
-   * 
+   *
    * <p>
    * The oldest selectable day is the zero base day, that is the last trading day before the first security position was
    * opened. Only on such a day nothing is invested yet, so that a report starting there begins with amounts of zero.
@@ -232,13 +260,13 @@ public class PerformanceReport {
    * is used as before.
    * </p>
    *
-   * @param firstEverHoldDay the day the first security position was opened
-   * @param zeroBaseDay the last trading day before the first holding, may be null
-   * @param globalHolidays universal holidays affecting all markets
-   * @param missingQuoteDays days where historical price quotes are unavailable
-   * @param combinedHolidayOfHoldings holidays specific to currently held securities
+   * @param firstEverHoldDay             the day the first security position was opened
+   * @param zeroBaseDay                  the last trading day before the first holding, may be null
+   * @param globalHolidays               universal holidays affecting all markets
+   * @param missingQuoteDays             days where historical price quotes are unavailable
+   * @param combinedHolidayOfHoldings    holidays specific to currently held securities
    * @param tradingDaysOfLastYearReverse trading days from previous year in descending order
-   * @param lastYear reference year for calculations
+   * @param lastYear                     reference year for calculations
    * @return comprehensive trading day metadata
    */
   private FirstAndMissingTradingDays combineFirstAndMissingTradingDays(LocalDate firstEverHoldDay,
@@ -252,8 +280,7 @@ public class PerformanceReport {
     combinedMissingQuoteDaysAndHolidays.addAll(combinedHolidayOfHoldings);
     List<LocalDate> lastYearMissingDays = combinedMissingQuoteDaysAndHolidays.stream()
         .filter(missingDate -> missingDate.isAfter(fromDate) && missingDate.isBefore(toDate))
-        .sorted(Comparator.reverseOrder())
-        .collect(Collectors.toList());
+        .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
     Optional<TradingDaysPlus> lastTradingDayOfLastYearOpt = tradingDaysOfLastYearReverse.stream()
         .filter(tradingDaysPlus -> !lastYearMissingDays.contains(tradingDaysPlus.getTradingDate())).findFirst();
     LocalDate latestTradingDay = getLatestTradingDayBeforeDate(combinedMissingQuoteDaysAndHolidays, LocalDate.now(),
@@ -274,14 +301,14 @@ public class PerformanceReport {
 
   /**
    * Finds the latest valid trading day before a specified date.
-   * 
+   *
    * <p>
-   * Implements backward-scanning algorithm to identify the most recent trading day that
-   * excludes weekends, holidays, and days with missing price quotes.
+   * Implements backward-scanning algorithm to identify the most recent trading day that excludes weekends, holidays,
+   * and days with missing price quotes.
    * </p>
-   * 
-   * @param missingQuoteDays set of dates to exclude (holidays and missing quotes)
-   * @param beforeDate the date before which to search (exclusive)
+   *
+   * @param missingQuoteDays    set of dates to exclude (holidays and missing quotes)
+   * @param beforeDate          the date before which to search (exclusive)
    * @param firstEverTradingDay lower boundary to prevent infinite scanning
    * @return latest valid trading day before the specified date, or null if none found
    */
@@ -303,14 +330,14 @@ public class PerformanceReport {
 
   /**
    * Finds the earliest valid trading day after a specified date.
-   * 
+   *
    * <p>
-   * Implements forward-scanning algorithm to identify the first trading day after a given
-   * date that excludes weekends, holidays, and days with missing quotes.
+   * Implements forward-scanning algorithm to identify the first trading day after a given date that excludes weekends,
+   * holidays, and days with missing quotes.
    * </p>
-   * 
+   *
    * @param missingQuoteDays set of dates to exclude (holidays and missing quotes)
-   * @param afterDate the date after which to search (exclusive)
+   * @param afterDate        the date after which to search (exclusive)
    * @param latestTradingDay upper boundary to prevent scanning beyond available data
    * @return earliest valid trading day after the specified date, or null if none found
    */
@@ -332,12 +359,12 @@ public class PerformanceReport {
 
   /**
    * Generates a period performance report for all portfolios within the current tenant.
-   * 
+   *
    * <p>
    * This method aggregates performance data across all portfolios belonging to the current user's tenant. It provides a
    * tenant-wide view of investment performance over the specified period.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Performance Metrics Include:</strong>
    * </p>
@@ -348,7 +375,7 @@ public class PerformanceReport {
    * <li>Dividend, interest, and fee aggregations</li>
    * <li>Net gain/loss calculations</li>
    * </ul>
-   * 
+   *
    * @param dateFrom    the start date of the performance period (inclusive)
    * @param dateTo      the end date of the performance period (inclusive)
    * @param periodSplit whether to aggregate by week or year
@@ -357,7 +384,7 @@ public class PerformanceReport {
    */
   public PerformancePeriod getPeriodPerformanceByTenant(LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit)
       throws Exception {
-    
+
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     FirstAndMissingTradingDays firstAndMissingTradingDays = this
         .getFirstAndMissingTradingDaysByTenant(user.getIdTenant());
@@ -365,24 +392,24 @@ public class PerformanceReport {
         () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByTenant(user.getIdTenant()));
     List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
         holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(user.getIdTenant(), dateFrom, dateTo), dateFrom,
-        firstAndMissingTradingDays, () -> holdSecurityaccountSecurityRepository
-            .getPeriodHoldingZeroBaseByTenant(user.getIdTenant(), dateFrom));
+        firstAndMissingTradingDays,
+        () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByTenant(user.getIdTenant(), dateFrom));
     return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit);
   }
 
   /**
    * Generates a period performance report for a specific portfolio.
-   * 
+   *
    * <p>
    * This method provides detailed performance analysis for an individual portfolio, including all security positions
    * and cash accounts within that portfolio.
    * </p>
-   * 
+   *
    * <p>
    * The analysis includes currency conversion to the portfolio's base currency and comprehensive breakdown of
    * performance drivers.
    * </p>
-   * 
+   *
    * @param idPortfolio the portfolio identifier
    * @param dateFrom    the start date of the performance period (inclusive)
    * @param dateTo      the end date of the performance period (inclusive)
@@ -447,12 +474,12 @@ public class PerformanceReport {
 
   /**
    * Creates a performance period analysis from holding data and trading day metadata.
-   * 
+   *
    * <p>
    * This method processes the raw holding data and converts it into a structured performance analysis with period
    * windows, daily changes, and summary statistics.
    * </p>
-   * 
+   *
    * @param firstAndMissingTradingDays trading day metadata for validation and processing
    * @param periodHoldings             list of daily holding snapshots for the period
    * @param periodSplit                aggregation level (weekly or yearly)
@@ -475,12 +502,141 @@ public class PerformanceReport {
     return periodPerformance;
   }
 
+  //@formatter:off
+  /**
+   * Builds the card that reports the last completed sessions of a client or of one of its portfolios.
+   *
+   * <p>
+   * Unlike the period performance report this picks its own dates. A card carries no date fields the reader could
+   * correct, so refusing a range because one of its ends happens to be a day without complete prices would only produce
+   * an error nobody asked for. The sessions are therefore taken from the same set of blocked days the date picker of
+   * the report offers, walking back from the newest usable one, and the card reports how far it actually got.
+   * </p>
+   *
+   * <p>
+   * Two movements are reported per session because they answer different questions. The change of the total value is
+   * what the client is worth more or less than the day before; the result is the same change with deposits and
+   * withdrawals removed. Their difference is exactly the external cash transfer of that session, which is why that
+   * figure is on the card as well. The separately booked fees and the cash account interest are part of the result
+   * rather than an addition to it - both have already moved the cash account - and they are shown because they move a
+   * day without any market having moved.
+   * </p>
+   *
+   * @param idTenant    the client whose value is reported
+   * @param idPortfolio a single portfolio of that client, or null for all of them together
+   * @param sessions    how many sessions the card asks for; one more is read, because a change needs the session before
+   *                    the first one it reports
+   * @return the card, with a reason key and no rows when fewer than two usable sessions exist
+   */
+  //@formatter:on
+  public LastSessions getLastSessionsPerformance(Integer idTenant, Integer idPortfolio, int sessions)
+      throws InterruptedException, ExecutionException {
+    FirstAndMissingTradingDays firstAndMissingTradingDays = idPortfolio == null
+        ? getFirstAndMissingTradingDaysByTenant(idTenant)
+        : getFirstAndMissingTradingDaysByPortfolio(idTenant, idPortfolio);
+    String currency = idPortfolio == null ? tenantJpaRepository.getReferenceById(idTenant).getCurrency()
+        : portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio).getCurrency();
+
+    List<LocalDate> usableSessions = lastUsableSessions(firstAndMissingTradingDays, sessions + 1);
+    if (usableSessions.size() < 2) {
+      return emptyLastSessions(currency, idPortfolio, REASON_NO_USABLE_SESSION);
+    }
+    LocalDate dateFrom = usableSessions.getFirst();
+    LocalDate dateTo = usableSessions.getLast();
+    List<IPeriodHolding> periodHoldings = idPortfolio == null
+        ? holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(idTenant, dateFrom, dateTo)
+        : holdSecurityaccountSecurityRepository.getPeriodHoldingsByPortfolio(idPortfolio, dateFrom, dateTo);
+    if (periodHoldings.size() < 2) {
+      return emptyLastSessions(currency, idPortfolio, REASON_NO_HOLDINGS);
+    }
+    Set<LocalDate> filledQuoteDays = idPortfolio == null
+        ? holdSecurityaccountSecurityRepository.getFilledQuoteDaysByTenant(idTenant, dateFrom, dateTo)
+        : holdSecurityaccountSecurityRepository.getFilledQuoteDaysByPortfolio(idPortfolio, dateFrom, dateTo);
+
+    List<Session> rows = new ArrayList<>();
+    for (int i = 1; i < periodHoldings.size(); i++) {
+      rows.add(session(periodHoldings.get(i - 1), periodHoldings.get(i), filledQuoteDays));
+    }
+    // A shorter history than asked for is normal rather than an error, so the surplus is dropped instead of refused.
+    if (rows.size() > sessions) {
+      rows = new ArrayList<>(rows.subList(rows.size() - sessions, rows.size()));
+    }
+    LocalDate baseDate = periodHoldings.get(periodHoldings.size() - rows.size() - 1).getDate();
+    return new LastSessions(currency, idPortfolio, baseDate, sumOf(rows, Session::totalGainMC),
+        sumOf(rows, Session::totalBalanceChangeMC), sumOf(rows, Session::externalCashTransferMC),
+        sumOf(rows, Session::feeRealMC), sumOf(rows, Session::interestCashaccountRealMC), null, rows);
+  }
+
+  /**
+   * Turns two consecutive daily holdings into one session of the card.
+   *
+   * <p>
+   * The result includes the result of closed margin positions, so that the change of the total value and the result
+   * differ by the external cash transfer and by nothing else. Taking the plain gain instead would leave the margin
+   * result in the difference, where a reader would read it as a deposit.
+   * </p>
+   */
+  private Session session(IPeriodHolding before, IPeriodHolding current, Set<LocalDate> filledQuoteDays) {
+    double totalBalanceMC = totalBalanceMC(current);
+    return new Session(current.getDate(), totalBalanceMC,
+        DataBusinessHelper.roundStandard(totalBalanceMC - totalBalanceMC(before)),
+        DataBusinessHelper.roundStandard(totalGainMC(current) - totalGainMC(before)),
+        DataBusinessHelper.roundStandard(current.getExternalCashTransferMC() - before.getExternalCashTransferMC()),
+        DataBusinessHelper.roundStandard(current.getFeeRealMC() - before.getFeeRealMC()),
+        DataBusinessHelper
+            .roundStandard(current.getInterestCashaccountRealMC() - before.getInterestCashaccountRealMC()),
+        filledQuoteDays.contains(current.getDate()));
+  }
+
+  private static double totalBalanceMC(IPeriodHolding periodHolding) {
+    return DataBusinessHelper.roundStandard(
+        periodHolding.getCashBalanceMC() + periodHolding.getSecuritiesMC() + periodHolding.getMarginCloseGainMC());
+  }
+
+  private static double totalGainMC(IPeriodHolding periodHolding) {
+    return periodHolding.getGainMC() + periodHolding.getMarginCloseGainMC();
+  }
+
+  private static double sumOf(List<Session> sessions, ToDoubleFunction<Session> value) {
+    return DataBusinessHelper.roundStandard(sessions.stream().mapToDouble(value).sum());
+  }
+
+  private static LastSessions emptyLastSessions(String currency, Integer idPortfolio, String reasonKey) {
+    return new LastSessions(currency, idPortfolio, null, 0d, 0d, 0d, 0d, 0d, reasonKey, List.of());
+  }
+
+  /**
+   * The newest sessions that carry complete prices, oldest first.
+   *
+   * <p>
+   * It walks back from the newest usable session over the same set of holidays and days with missing quotes that the
+   * date picker of the period performance report blocks, so the card and that report always agree about which days can
+   * be valued at all. Fewer days than asked for are returned when the history does not reach that far.
+   * </p>
+   *
+   * @param firstAndMissingTradingDays trading day metadata of the client or portfolio
+   * @param count                      how many sessions are wanted
+   * @return the sessions in ascending order, empty when not a single one is usable
+   */
+  private List<LocalDate> lastUsableSessions(FirstAndMissingTradingDays firstAndMissingTradingDays, int count) {
+    Set<LocalDate> blocked = new HashSet<>(firstAndMissingTradingDays.allHolydays);
+    blocked.addAll(firstAndMissingTradingDays.missingQuoteDays);
+    List<LocalDate> sessions = new ArrayList<>();
+    LocalDate session = firstAndMissingTradingDays.latestTradingDay;
+    while (session != null && sessions.size() < count) {
+      sessions.add(session);
+      session = getLatestTradingDayBeforeDate(blocked, session, firstAndMissingTradingDays.firstEverTradingDay);
+    }
+    Collections.reverse(sessions);
+    return sessions;
+  }
+
   /**
    * Validates input parameters for performance analysis requests.
-   * 
+   *
    * <p>
-   * Performs comprehensive validation including date range validity, trading day validation,
-   * data boundary validation, and period split appropriateness. Ensures that:
+   * Performs comprehensive validation including date range validity, trading day validation, data boundary validation,
+   * and period split appropriateness. Ensures that:
    * </p>
    * <ul>
    * <li>Start and end dates are valid trading days</li>
@@ -488,14 +644,14 @@ public class PerformanceReport {
    * <li>End date is after start date</li>
    * <li>Period split is appropriate for the date range</li>
    * </ul>
-   * 
+   *
    * @param firstAndMissingTradingDays trading day metadata for validation
-   * @param localeStr user's locale for error message formatting
-   * @param dateFrom requested start date
-   * @param dateTo requested end date
-   * @param periodSplit requested aggregation level
-   * @param deadCurrencypairsSupplier supplies the currency pairs without any price at all, only consulted when not a
-   *                                  single valid trading day is left
+   * @param localeStr                  user's locale for error message formatting
+   * @param dateFrom                   requested start date
+   * @param dateTo                     requested end date
+   * @param periodSplit                requested aggregation level
+   * @param deadCurrencypairsSupplier  supplies the currency pairs without any price at all, only consulted when not a
+   *                                   single valid trading day is left
    * @throws DataViolationException if any validation rule is violated
    */
   private void checkInputParam(FirstAndMissingTradingDays firstAndMissingTradingDays, String localeStr,
@@ -556,13 +712,13 @@ public class PerformanceReport {
    * Validates that a specific date is a valid trading day.
    *
    * <p>
-   * A valid trading day must be a weekday (not Saturday or Sunday), not a holiday,
-   * and not a day with missing quote data.
+   * A valid trading day must be a weekday (not Saturday or Sunday), not a holiday, and not a day with missing quote
+   * data.
    * </p>
-   * 
-   * @param localeStr user's locale for error message formatting
-   * @param localDate the date to validate
-   * @param fieldName the field name for error reporting
+   *
+   * @param localeStr                  user's locale for error message formatting
+   * @param localDate                  the date to validate
+   * @param fieldName                  the field name for error reporting
    * @param firstAndMissingTradingDays trading day metadata containing holidays and missing data
    * @throws DataViolationException if the date is not a valid trading day
    */
@@ -578,7 +734,7 @@ public class PerformanceReport {
 
   /**
    * Internal cache key for distinguishing between portfolio and tenant-level metadata.
-   * 
+   *
    * <p>
    * This class serves as a compound key for the {@code firstAndMissingTradingDaysMap} cache, allowing separate caching
    * of trading day metadata for portfolios and tenants.
@@ -616,7 +772,7 @@ public class PerformanceReport {
 
   /**
    * Enumeration for distinguishing between portfolio and tenant-level operations.
-   * 
+   *
    * <p>
    * Used in cache keys and internal processing to ensure correct data scope and prevent cross-contamination between
    * portfolio and tenant-level metadata.

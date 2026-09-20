@@ -23,8 +23,8 @@ public class NlsMappingCollisionException extends RuntimeException {
    * @param collisions one human-readable line per collision, each naming the client key and the colliding raw keys
    */
   public NlsMappingCollisionException(List<String> collisions) {
-    super("NLS key mapping is not unique, " + collisions.size() + " collision(s):"
-        + System.lineSeparator() + String.join(System.lineSeparator(), collisions));
+    super("NLS key mapping is not unique, " + collisions.size() + " collision(s):" + System.lineSeparator()
+        + String.join(System.lineSeparator(), collisions));
     this.collisions = List.copyOf(collisions);
   }
 

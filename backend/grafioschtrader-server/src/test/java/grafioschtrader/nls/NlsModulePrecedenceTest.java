@@ -45,9 +45,10 @@ class NlsModulePrecedenceTest {
         .get(KEY_DEFINED_IN_BOTH_MODULES);
     String applicationValue = NlsBundleInspector.load(NlsBundleInspector.COMMON_BUNDLE, null).entries()
         .get(KEY_DEFINED_IN_BOTH_MODULES);
-    assertThat(applicationValue).as(
-        "precondition: '%s' must exist in both bundles with different values, otherwise this test proves nothing",
-        KEY_DEFINED_IN_BOTH_MODULES).isNotNull().isNotEqualTo(libraryValue);
+    assertThat(applicationValue)
+        .as("precondition: '%s' must exist in both bundles with different values, otherwise this test proves nothing",
+            KEY_DEFINED_IN_BOTH_MODULES)
+        .isNotNull().isNotEqualTo(libraryValue);
 
     try (var context = new AnnotationConfigApplicationContext(MessageConfig.class, PlaceholderConfig.class)) {
       MessageSource messageSource = context.getBean(MessageSource.class);
@@ -58,7 +59,7 @@ class NlsModulePrecedenceTest {
           .as("resolved through getMessage()").isEqualTo(applicationValue);
       assertThat(((ExposedResourceBundleMessageSource) messageSource).getMessages(Locale.US)
           .getProperty(KEY_DEFINED_IN_BOTH_MODULES)).as("resolved through the merged payload")
-          .isEqualTo(applicationValue);
+              .isEqualTo(applicationValue);
     }
   }
 

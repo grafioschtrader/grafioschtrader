@@ -35,7 +35,7 @@ public class EntityLimitCache {
   /**
    * Returns the cached value or computes and stores it.
    *
-   * @param idUser  the acting user, or {@code null} in a background context
+   * @param idUser   the acting user, or {@code null} in a background context
    * @param limitKey the key being resolved
    * @param loader   computes the value on a miss
    * @return the resolved limit, empty meaning unlimited

@@ -13,6 +13,8 @@ import grafiosch.dto.ConfigurationWithLogin.FeatureType;
  * </p>
  */
 public enum FeatureTypeBase implements FeatureType {
+  /** Personal dashboard, controlled by g.use.dashboard. */
+  DASHBOARD,
   /**
    * Managing clients on behalf of others: a user (advisor) can create additional tenants with a read-only client login,
    * switch between the tenants they manage, and return to their own tenant. Toggled by {@code g.use.manageclient}.

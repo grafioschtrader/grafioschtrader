@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { Security } from '../../entities/security';
 import { AfterViewInit, ChangeDetectorRef, Directive, Injector, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -48,6 +49,7 @@ import { DynamicDialogs } from '../../lib/dynamicdialog/component/dynamic.dialog
 import { BaseSettings } from '../../lib/base.settings';
 import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navigation.state.service';
 import { FilterType } from '../../lib/datashowbase/filter.type';
+import { LastpriceOrigin } from '../../entities/types/lastprice.origin';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { WatchlistFilterSortStateService } from '../service/watchlist.filter.sort.state.service';
 import {
@@ -409,6 +411,123 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * @param {SecuritycurrencyPosition<Security | Currencypair>} securitycurrencyPosition - Position containing the instrument to get icon for
    * @returns {string} Icon name for a distributing security, otherwise null which leaves the cell empty
    */
+  /**
+   * Highest age the colouring of the timestamp distinguishes, mirroring PriceFreshnessService of the backend. Beyond it
+   * an instrument is simply stale and a stronger red would carry no further information.
+   */
+  private static readonly MAX_STALE_TRADING_SESSIONS = 10;
+
+  /**
+   * Highest gap between the trading start date and the oldest stored price the colouring distinguishes. A history that
+   * starts more than a year late is simply incomplete at its beginning, a stronger red would carry no further
+   * information.
+   */
+  private static readonly MAX_HISTORY_START_GAP_DAYS = 365;
+
+  /**
+   * Paints the cells whose value would otherwise have to be compared with a second value by eye.
+   *
+   * The timestamp turns increasingly red with the number of trading sessions of its own exchange that went by without
+   * the price being renewed. The backend counts those sessions, so a weekend and a holiday of that exchange never
+   * colour a cell - which is exactly why the age must not be recomputed here from calendar dates.
+   *
+   * The last price turns yellow when it was not traded at all but calculated by filling gaps in the historical prices,
+   * which is what keeps a delisted or bankrupt instrument valued.
+   *
+   * The oldest stored price turns increasingly red the later it starts after the day the instrument began trading,
+   * which is the history the data source never delivered. A history reaching further back than that day is no feed
+   * problem but a hint at a wrong trading start date, so it gets the same flat yellow and no ramp.
+   *
+   * The template is shared by all watchlist types, so every column but these is left alone.
+   *
+   * @param position - Row of the table
+   * @param field - Column configuration of the cell
+   * @returns Style object for the cell, or null when the cell needs no colour
+   */
+  priceCellStyle(
+    position: SecuritycurrencyPosition<Security | Currencypair>,
+    field: ColumnConfig
+  ): { [key: string]: string } | null {
+    if (field.field === 'securitycurrency.sTimestamp') {
+      const sessions = Math.min(position.staleTradingSessions ?? 0, WatchlistTable.MAX_STALE_TRADING_SESSIONS);
+      return sessions > 0
+        ? {
+            'background-color': `rgba(220, 38, 38, ${(0.08 + (0.37 * (sessions - 1)) / (WatchlistTable.MAX_STALE_TRADING_SESSIONS - 1)).toFixed(3)})`
+          }
+        : null;
+    }
+    if (field.field === 'securitycurrency.sLast' && position.lastpriceOrigin === LastpriceOrigin.HISTORY_INTERPOLATED) {
+      return { 'background-color': 'rgba(234, 179, 8, 0.30)' };
+    }
+    if (field.field === 'oldestHistoryDate') {
+      const days = WatchlistTable.historyStartGapDays(position);
+      if (days === null || days === 0) {
+        return null;
+      }
+      if (days < 0) {
+        return { 'background-color': 'rgba(234, 179, 8, 0.30)' };
+      }
+      const cappedDays = Math.min(days, WatchlistTable.MAX_HISTORY_START_GAP_DAYS);
+      return {
+        'background-color': `rgba(220, 38, 38, ${(0.08 + (0.37 * (cappedDays - 1)) / (WatchlistTable.MAX_HISTORY_START_GAP_DAYS - 1)).toFixed(3)})`
+      };
+    }
+    return null;
+  }
+
+  /**
+   * Days by which the oldest stored price starts after the day the instrument began trading. A negative value means the
+   * history reaches further back than that day.
+   *
+   * @param position - Row of the table
+   * @returns The difference in days, or null for a currency pair, which has no trading start date, and for a row whose
+   *          two dates are not both known
+   */
+  private static historyStartGapDays(position: SecuritycurrencyPosition<Security | Currencypair>): number | null {
+    if (position.securitycurrency instanceof CurrencypairWatchlist || !position.oldestHistoryDate) {
+      return null;
+    }
+    const activeFromDate = (<Security>position.securitycurrency).activeFromDate;
+    return activeFromDate ? moment(position.oldestHistoryDate).diff(moment(activeFromDate), 'days') : null;
+  }
+
+  /**
+   * Explains the colour of a cell in words, so the meaning is not left to the colour alone.
+   *
+   * @param position - Row of the table
+   * @param field - Column configuration of the cell
+   * @param value - Already formatted cell value, used when there is nothing to explain
+   * @returns Tooltip text
+   */
+  priceCellTooltip(
+    position: SecuritycurrencyPosition<Security | Currencypair>,
+    field: ColumnConfig,
+    value: any
+  ): string {
+    if (field.field === 'oldestHistoryDate') {
+      const days = WatchlistTable.historyStartGapDays(position);
+      if (days > 0) {
+        return this.translateService.instant('OLDEST_EOD_GAP_TOOLTIP', { days });
+      }
+      if (days < 0) {
+        return this.translateService.instant('OLDEST_EOD_BEFORE_ACTIVE_TOOLTIP', { days: Math.abs(days) });
+      }
+      return value;
+    }
+    if (field.field === 'securitycurrency.sTimestamp' && position.staleTradingSessions > 0) {
+      return this.translateService.instant('PRICE_STALE_TOOLTIP', { sessions: position.staleTradingSessions });
+    }
+    if (field.field === 'securitycurrency.sLast') {
+      if (position.lastpriceOrigin === LastpriceOrigin.HISTORY_INTERPOLATED) {
+        return this.translateService.instant('PRICE_FROM_INTERPOLATED_HISTORY_TOOLTIP');
+      }
+      if (position.lastpriceOrigin === LastpriceOrigin.HISTORY_CLOSE) {
+        return this.translateService.instant('PRICE_FROM_HISTORY_TOOLTIP');
+      }
+    }
+    return value;
+  }
+
   getDistributionIcon(securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>): string {
     return securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist
       ? null
@@ -447,9 +566,15 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
         ];
   }
 
-  /** Applies the stored filters as soon as the table exists, the data may already have arrived before that. */
+  /**
+   * Applies the stored filters as soon as the table exists, the data may already have arrived before that. This runs
+   * inside the change detection pass which has just rendered the filter row with no filter set, so the view is checked
+   * again right away. Otherwise the dropdown filters would change after they were checked (NG0100), which happens
+   * whenever another watchlist is selected, because that creates this component anew.
+   */
   ngAfterViewInit(): void {
     this.applyStoredFilters();
+    this.changeDetectionStrategy.detectChanges();
   }
 
   /** Cleans up subscriptions and saves table configuration on component destruction. */

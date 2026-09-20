@@ -76,7 +76,7 @@ public class SupplierScoreCalculator {
   /**
    * Calculates the score for a supplier without an OHL contribution.
    *
-   * @param idGtNet the supplier ID
+   * @param idGtNet       the supplier ID
    * @param coverageCount the number of requested instruments this supplier supports
    * @return the score (coverageCount x successRate)
    */
@@ -87,7 +87,7 @@ public class SupplierScoreCalculator {
   /**
    * Calculates the score for a supplier.
    *
-   * @param idGtNet the supplier ID
+   * @param idGtNet       the supplier ID
    * @param coverageCount the number of requested instruments this supplier supports
    * @param avgOhl        the average OHL percentage (0..100) the supplier reported for the requested instruments, or
    *                      null when unknown. Unknown is neutral, never a penalty - a peer that has not been synchronised
@@ -126,8 +126,8 @@ public class SupplierScoreCalculator {
   /**
    * Sorts AC_OPEN suppliers by score (descending), priority (ascending), with random shuffle for ties.
    *
-   * @param suppliers list of suppliers to sort
-   * @param exchangeKind the exchange kind for priority lookup
+   * @param suppliers              list of suppliers to sort
+   * @param exchangeKind           the exchange kind for priority lookup
    * @param filter                 the instrument filter for coverage and OHL calculation
    * @param requestedInstrumentIds the set of instruments being requested
    * @return sorted list of suppliers

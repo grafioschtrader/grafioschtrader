@@ -16,7 +16,6 @@ import grafiosch.common.UserAccessHelper;
 import grafiosch.dto.TenantLimit;
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
-import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.RepositoryHelper;
 import grafiosch.service.EntityLimitService;
 import grafioschtrader.config.LimitKeyConfig;
@@ -47,9 +46,6 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
-
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private GlobalparametersService globalparametersService;
@@ -202,8 +198,8 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
    * </p>
    * <b>Note:</b> The deletion of the instrument and its history quotes is a critical operation. It depends on the
    * user's privileges and additionally requires that the instrument is not referenced elsewhere (see
-   * {@link #isSecuritycurrencyUsedElsewhere}). If the instrument is still in use, it is only removed from the
-   * watchlist and otherwise left untouched.
+   * {@link #isSecuritycurrencyUsedElsewhere}). If the instrument is still in use, it is only removed from the watchlist
+   * and otherwise left untouched.
    *
    * @param <T>                               The type of the security or currencypair, extending
    *                                          {@link Securitycurrency}.

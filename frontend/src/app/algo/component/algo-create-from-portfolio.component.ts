@@ -5,15 +5,12 @@ import { SimpleDynamicEditBase } from '../../lib/edit/simple.dynamic.edit.base';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AlgoTopService } from '../service/algo.top.service';
-import { WatchlistService } from '../../watchlist/service/watchlist.service';
 import { AlgoTop } from '../model/algo.top';
 import { AlgoTopCreateFromPortfolio } from '../../entities/backend/algo.top.create';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
-import { AppSettings } from '../../shared/app.settings';
 import { HelpIds } from '../../lib/help/help.ids';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { ProcessedAction } from '../../lib/types/processed.action';
@@ -22,7 +19,8 @@ import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 
 /**
- * Dialog for auto-generating an AlgoTop hierarchy from current portfolio holdings at a reference date.
+ * Dialog for auto-generating an AlgoTop hierarchy from end-of-day portfolio holdings at a reference date.
+ * The resulting hierarchy has no linked watchlist.
  * The backend calculates security values and groups them by asset class with percentage weightings.
  */
 @Component({
@@ -49,7 +47,6 @@ export class AlgoCreateFromPortfolioDynamicComponent
 
   constructor(
     private algoTopService: AlgoTopService,
-    private watchlistService: WatchlistService,
     dynamicDialogConfig: DynamicDialogConfig,
     dynamicDialogRef: DynamicDialogRef,
     translateService: TranslateService,
@@ -59,7 +56,7 @@ export class AlgoCreateFromPortfolioDynamicComponent
     super(
       dynamicDialogConfig,
       dynamicDialogRef,
-      HelpIds.HELP_ALGO_STRATEGY,
+      HelpIds.HELP_ALGO_TREE,
       translateService,
       gps,
       messageToastService,
@@ -72,23 +69,20 @@ export class AlgoCreateFromPortfolioDynamicComponent
     this.config = [
       DynamicFieldHelper.createFieldInputStringHeqF('name', 40, true),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'referenceDate', true),
-      DynamicFieldHelper.createFieldSelectString('idWatchlist', AppSettings.WATCHLIST.toUpperCase(), true),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    this.configObject.referenceDate.calendarConfig = {
+      ...this.configObject.referenceDate.calendarConfig,
+      maxDate: yesterday
+    };
   }
 
   ngAfterViewInit(): void {
     this.callParam = this.dynamicDialogConfig.data.callParam;
     this.dto = this.callParam.thisObject as AlgoTopCreateFromPortfolio;
-    this.watchlistService.getWatchlistsByIdTenant().subscribe((watchlists) => {
-      this.configObject.idWatchlist.valueKeyHtmlOptions = SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
-        'idWatchlist',
-        'name',
-        watchlists,
-        true
-      );
-    });
   }
 
   override submit(value: { [name: string]: any }): void {

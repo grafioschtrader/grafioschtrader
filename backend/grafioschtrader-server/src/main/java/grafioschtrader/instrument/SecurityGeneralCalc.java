@@ -16,14 +16,14 @@ import grafioschtrader.types.TransactionType;
 
 /**
  * Calculator for standard investment securities using average cost accounting methodology.
- * 
+ *
  * <p>
  * This class implements position tracking and gain/loss calculations for traditional investment instruments including
  * stocks, bonds, ETFs, mutual funds, and money market securities. Unlike margin instruments that require individual
  * position tracking, standard securities use the average cost method where all units are pooled together with a
  * weighted average cost basis.
  * </p>
- * 
+ *
  * <h3>Average Cost Accounting Method:</h3>
  * <p>
  * The calculator employs the industry-standard average cost method for position management:
@@ -35,30 +35,30 @@ import grafioschtrader.types.TransactionType;
  * <li><strong>Proportional Allocation:</strong> Sales reduce units and cost basis proportionally</li>
  * <li><strong>FIFO Alternative:</strong> Provides a simplified alternative to complex FIFO tracking</li>
  * </ul>
- * 
+ *
  * <h3>Supported Instrument Types:</h3>
  * <dl>
  * <dt><strong>Equities (Stocks)</strong></dt>
  * <dd>Standard stock trading with dividend processing and corporate action adjustments. Supports both domestic and
  * international equities with currency conversion.</dd>
- * 
+ *
  * <dt><strong>Fixed Income (Bonds)</strong></dt>
  * <dd>Bond trading with specialized accrued interest handling. Automatically separates accrued interest from principal
  * transactions for accurate yield-to-maturity calculations and tax reporting.</dd>
- * 
+ *
  * <dt><strong>Convertible Bonds</strong></dt>
  * <dd>Hybrid securities combining bond and equity characteristics. Handles both interest payments and potential
  * conversion features with appropriate accrued interest calculations.</dd>
- * 
+ *
  * <dt><strong>Money Market Securities</strong></dt>
  * <dd>Short-term debt instruments with special pricing considerations. For securities without external price feeds, the
  * system uses transaction prices as closing prices for valuation consistency.</dd>
- * 
+ *
  * <dt><strong>Investment Funds (ETFs, Mutual Funds)</strong></dt>
  * <dd>Pooled investment vehicles with dividend distributions and potential capital gains distributions. Handles both
  * accumulating and distributing fund types.</dd>
  * </dl>
- * 
+ *
  * <h3>Performance Calculation:</h3>
  * <p>
  * Gain/loss calculations consider the full total return including:
@@ -74,13 +74,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Processes a single transaction for standard investment securities using average cost methodology.
-   * 
+   *
    * <p>
    * This method handles the complete transaction lifecycle for traditional investment instruments, applying average
    * cost accounting principles to maintain accurate position tracking. The calculation considers corporate actions,
    * currency conversions, and instrument-specific features such as accrued interest for bonds.
    * </p>
-   * 
+   *
    * @param transaction             the transaction to process, containing trade details, pricing, and costs
    * @param summarySecurityMap      map of existing position summaries, keyed by security, updated with results
    * @param securitysplitMap        map of security splits by security ID for corporate action adjustments
@@ -104,13 +104,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Creates a hypothetical sell transaction to simulate complete position liquidation for valuation purposes.
-   * 
+   *
    * <p>
    * Unlike margin instruments that may have multiple open positions, standard securities maintain a single pooled
    * position that can be entirely liquidated with one hypothetical transaction. This method calculates the unrealized
    * gain/loss that would result from selling the entire position at the current market price.
    * </p>
-   * 
+   *
    * <h4>Simulation Process:</h4>
    * <ol>
    * <li><strong>State Preservation:</strong> Saves current unit count to restore after simulation</li>
@@ -119,7 +119,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li><strong>State Restoration:</strong> Returns position to original state while preserving valuation data</li>
    * <li><strong>Summary Recording:</strong> Adds transaction details to summary for reporting</li>
    * </ol>
-   * 
+   *
    * @param securityPositionSummary    the current position to simulate selling
    * @param lastPrice                  the current market price for the hypothetical sale
    * @param securitysplitMap           map of security splits for corporate action adjustments
@@ -150,13 +150,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Processes a transaction and integrates the results into both position and transaction summaries.
-   * 
+   *
    * <p>
    * This method serves as the integration point between transaction processing and summary reporting, ensuring that
    * both cumulative position metrics and individual transaction performance data are properly maintained for
    * comprehensive portfolio analysis and audit trails.
    * </p>
-   * 
+   *
    * @param transaction                the transaction to process and record
    * @param securityTransactionSummary summary container tracking both position and transaction details
    * @param excludeDivTaxcost          whether to exclude dividend taxes from gain/loss calculations
@@ -176,13 +176,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Creates and processes accrued interest transactions for bonds and convertible bonds.
-   * 
+   *
    * <p>
    * When trading bonds, the purchase or sale price typically includes accrued interest that has accumulated since the
    * last coupon payment. This method automatically separates this accrued interest component into a distinct
    * transaction for accurate accounting, tax reporting, and yield calculations.
    * </p>
-   * 
+   *
    * <h4>Asset Class Applicability:</h4>
    * <p>
    * This method only processes transactions for:
@@ -191,7 +191,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li>{@link AssetclassType#FIXED_INCOME} - Traditional bonds with regular coupon payments</li>
    * <li>{@link AssetclassType#CONVERTIBLE_BOND} - Convertible securities with bond-like interest</li>
    * </ul>
-   * 
+   *
    * <h4>Transaction Flow:</h4>
    * <ol>
    * <li>Validates asset class and transaction type compatibility</li>
@@ -199,7 +199,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li>Creates separate accrued interest transaction with appropriate direction</li>
    * <li>Processes the accrued interest transaction through normal calculation pipeline</li>
    * </ol>
-   * 
+   *
    * @param security                           the security being traded (must be bond or convertible bond)
    * @param requiredTransactionTypeTransaction the transaction type that should trigger accrued interest processing
    * @param transaction                        the original transaction containing accrued interest data
@@ -228,14 +228,14 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Creates a separate transaction to represent the accrued interest component of a bond trade.
-   * 
+   *
    * <p>
    * This method constructs a specialized transaction that isolates the accrued interest portion from the principal
    * component of a bond transaction. The resulting transaction has characteristics appropriate for interest income
    * recognition and can be processed through the normal calculation pipeline while maintaining proper accounting
    * separation.
    * </p>
-   * 
+   *
    * <h4>Sign Convention:</h4>
    * <p>
    * The cash account amount follows standard accounting conventions:
@@ -244,7 +244,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li><strong>Purchase (ACCUMULATE):</strong> Negative amount (cash outflow for accrued interest paid)</li>
    * <li><strong>Sale (REDUCE):</strong> Positive amount (cash inflow for accrued interest received)</li>
    * </ul>
-   * 
+   *
    * @param transaction             the original bond transaction containing accrued interest data
    * @param negativeIdNumberCreater utility for generating a unique negative ID for the accrued interest transaction
    * @return a fully configured accrued interest transaction ready for processing
@@ -272,14 +272,14 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Core calculation method that processes all transaction types for standard securities using average cost accounting.
-   * 
+   *
    * <p>
    * This method implements the central calculation logic for standard investment securities, coordinating the
    * application of average cost methodology across different transaction types. It handles the complexity of
    * multi-currency calculations, corporate action adjustments, and instrument-specific features while maintaining the
    * mathematical integrity of the average cost method.
    * </p>
-   * 
+   *
    * @param transaction             the transaction to process
    * @param securityPositionSummary the position summary to update with transaction effects
    * @param excludeDivTaxcost       whether to exclude dividend withholding taxes from calculations
@@ -323,19 +323,19 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Processes purchase (accumulate) transactions using average cost methodology.
-   * 
+   *
    * <p>
    * This method implements the purchase leg of average cost accounting, where new acquisitions are added to the
    * existing position pool. The method calculates the new weighted average cost basis and updates all relevant position
    * metrics including multi-currency tracking and instrument-specific features.
    * </p>
-   * 
+   *
    * <h4>Average Cost Calculation:</h4>
    * <p>
    * The new average cost is calculated as:
    * <code>(Previous Cost Basis + New Purchase Cost) / (Previous Units + New Units)</code>
    * </p>
-   * 
+   *
    * <h4>Processing Steps:</h4>
    * <ol>
    * <li><strong>Cost Basis Update:</strong> Adds transaction cost (price × units + fees + taxes) to total cost
@@ -345,13 +345,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li><strong>Accrued Interest:</strong> Simulates accrued interest transactions for bonds if enabled</li>
    * <li><strong>Currency Tracking:</strong> Updates foreign currency balances and main currency equivalents</li>
    * </ol>
-   * 
+   *
    * <h4>Money Market Special Handling:</h4>
    * <p>
    * For money market securities that lack external price feeds, the transaction price is used as the closing price to
    * ensure accurate position valuation in subsequent calculations.
    * </p>
-   * 
+   *
    * @param transaction             the purchase transaction to process
    * @param ctp                     calculation context with exchange rates, split factors, and adjusted values
    * @param securityPositionSummary the position summary to update
@@ -385,17 +385,17 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <p>
    * The sign convention is that of the position, not of the cash account: money going into the security is positive,
    * everything coming back out — sale proceeds, dividends, accrued interest — is negative. The main currency
-   * counterpart uses the rate of the transaction date, so the difference against the reporting date rate is exactly
-   * the currency result. See {@code specification/Currency_Gain_Loss_Attribution.md}.
+   * counterpart uses the rate of the transaction date, so the difference against the reporting date rate is exactly the
+   * currency result. See {@code specification/Currency_Gain_Loss_Attribution.md}.
    * </p>
    *
    * <p>
-   * Two flows are deliberately not booked. A security already denominated in the main currency has no currency
-   * result, and {@code DataBusinessHelper.getCurrencyExchangeRateToMainCurreny} would hand out the cash account cross
-   * rate for it — 85.65 for a CHF instrument paying into a JPY account — which would invent tens of thousands of
-   * francs of gain. And a hypothetical sale is not a cash flow at all; because it would be booked at the reporting
-   * date rate its two contributions cancel, so leaving it out is both simpler and free of the {@code getSLast()}
-   * rate it would otherwise drag in.
+   * Two flows are deliberately not booked. A security already denominated in the main currency has no currency result,
+   * and {@code DataBusinessHelper.getCurrencyExchangeRateToMainCurreny} would hand out the cash account cross rate for
+   * it — 85.65 for a CHF instrument paying into a JPY account — which would invent tens of thousands of francs of gain.
+   * And a hypothetical sale is not a cash flow at all; because it would be booked at the reporting date rate its two
+   * contributions cancel, so leaving it out is both simpler and free of the {@code getSLast()} rate it would otherwise
+   * drag in.
    * </p>
    *
    * @param transaction             the transaction being processed
@@ -418,23 +418,23 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Processes sale (reduce) and hypothetical sale transactions using average cost methodology.
-   * 
+   *
    * <p>
    * This method implements the sale leg of average cost accounting, where units are removed from the position pool
    * proportionally. The method calculates realized gains/losses based on the difference between sale proceeds and the
    * proportional average cost basis, including comprehensive currency gain/loss attribution for foreign securities.
    * </p>
-   * 
+   *
    * <h4>Average Cost Allocation:</h4>
    * <p>
    * The cost basis allocated to the sale is calculated as: <code>(Units Sold / Total Units) × Total Cost Basis</code>
    * </p>
-   * 
+   *
    * <h4>Gain/Loss Calculation:</h4>
    * <p>
    * Realized gain/loss = Net Proceeds - Allocated Cost Basis - Transaction Costs - Taxes
    * </p>
-   * 
+   *
    * <h4>Currency Attribution:</h4>
    * <p>
    * For foreign securities, the method separates total performance into:
@@ -443,7 +443,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li><strong>Security Performance:</strong> Gain/loss in the security's native currency</li>
    * <li><strong>Currency Performance:</strong> Gain/loss from currency exchange rate movements</li>
    * </ul>
-   * 
+   *
    * @param transaction             the sale transaction to process
    * @param ctp                     calculation context with exchange rates, split factors, and adjusted values
    * @param securityPositionSummary the position summary to update
@@ -474,13 +474,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Simulates accrued interest transactions for bond trades during calculation processing.
-   * 
+   *
    * <p>
    * This method creates and processes simulated accrued interest transactions for bonds and convertible bonds during
    * the calculation phase. Unlike the formal accrued interest position creation, this simulation is used for internal
    * calculation consistency and doesn't create persistent transaction records.
    * </p>
-   * 
+   *
    * <h4>Simulation Purpose:</h4>
    * <ul>
    * <li><strong>Calculation Consistency:</strong> Ensures accrued interest is properly handled in all calculation
@@ -489,7 +489,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li><strong>Position Accuracy:</strong> Improves accuracy of position calculations that involve accrued
    * interest</li>
    * </ul>
-   * 
+   *
    * <h4>Asset Class Filtering:</h4>
    * <p>
    * Only processes transactions for bond-like securities that may have accrued interest components:
@@ -498,7 +498,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li>{@link AssetclassType#FIXED_INCOME}</li>
    * <li>{@link AssetclassType#CONVERTIBLE_BOND}</li>
    * </ul>
-   * 
+   *
    * @param transaction             the original transaction that may contain accrued interest
    * @param securityPositionSummary the position summary to update with simulated accrued interest
    * @param excludeDivTaxcost       whether to exclude taxes from the accrued interest calculation
@@ -520,13 +520,13 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
 
   /**
    * Calculates dividend and interest income transactions without affecting position units or cost basis.
-   * 
+   *
    * <p>
    * This method processes income-generating transactions that provide cash flow to the investor without changing the
    * fundamental position structure. Unlike buy/sell transactions, dividend and interest payments don't affect the unit
    * count or average cost basis, but they do contribute to total return and may have tax implications.
    * </p>
-   * 
+   *
    * <h4>Tax Considerations:</h4>
    * <p>
    * The method provides flexibility for tax reporting by allowing exclusion of withholding taxes:
@@ -535,20 +535,20 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
    * <li><strong>Gross Income:</strong> When {@code excludeDivTaxcost = true}, reports gross dividend income</li>
    * <li><strong>Net Income:</strong> When {@code excludeDivTaxcost = false}, reports net after-tax income</li>
    * </ul>
-   * 
+   *
    * <h4>Performance Attribution:</h4>
    * <p>
    * The method calculates percentage returns relative to the current cost basis, providing insights into income yield
    * relative to the investment's cost. For positions with zero cost basis, percentage calculation is skipped to avoid
    * division by zero.
    * </p>
-   * 
+   *
    * <h4>Multi-Currency Handling:</h4>
    * <p>
    * For foreign securities, dividend income is converted to the portfolio's main currency using the appropriate
    * exchange rate, enabling accurate total return calculations across multi-currency portfolios.
    * </p>
-   * 
+   *
    * @param transaction             the dividend or interest transaction to process
    * @param securityPositionSummary the position summary to update with income
    * @param excludeDivTaxcost       whether to exclude withholding taxes from the income calculation

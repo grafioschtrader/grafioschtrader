@@ -4,14 +4,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Allow-list of entity classes whose dynamic form definition may be requested over REST. The
- * generic form-definition endpoint resolves a client supplied entity name against this registry
- * instead of reflecting an arbitrary class name, which would be a security risk.
+ * Allow-list of entity classes whose dynamic form definition may be requested over REST. The generic form-definition
+ * endpoint resolves a client supplied entity name against this registry instead of reflecting an arbitrary class name,
+ * which would be a security risk.
  *
- * <p>The registry lives in the reusable {@code grafiosch-base} layer; the concrete entity classes
- * are registered by the application layer at startup (mirroring {@code UDFData.UDF_GENERAL_ENTITIES}).
- * Only entities that annotate their input fields with {@code @DynamicFormField} should be
- * registered.</p>
+ * <p>
+ * The registry lives in the reusable {@code grafiosch-base} layer; the concrete entity classes are registered by the
+ * application layer at startup (mirroring {@code UDFData.UDF_GENERAL_ENTITIES}). Only entities that annotate their
+ * input fields with {@code @DynamicFormField} should be registered.
+ * </p>
  */
 public abstract class FormDefinitionRegistry {
 

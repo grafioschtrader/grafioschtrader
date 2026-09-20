@@ -11,7 +11,7 @@ public interface TaskDataChangeJpaRepositoryCustom extends BaseRepositoryCustom<
 
   /**
    * Gets form constraints for task data change operations.
-   * 
+   *
    * @return configuration constraints for task forms
    */
   TaskDataChangeFormConstraints getFormConstraints();

@@ -10,8 +10,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * Concrete standing order subclass for cash-account transactions (WITHDRAWAL, DEPOSIT, FEE and
- * INTEREST_CASHACCOUNT). Stores the base cash amount that is debited or credited on each execution.
+ * Concrete standing order subclass for cash-account transactions (WITHDRAWAL, DEPOSIT, FEE and INTEREST_CASHACCOUNT).
+ * Stores the base cash amount that is debited or credited on each execution.
  *
  * <p>
  * The amount may be denominated in a currency other than the cash account currency. This covers recurring charges that

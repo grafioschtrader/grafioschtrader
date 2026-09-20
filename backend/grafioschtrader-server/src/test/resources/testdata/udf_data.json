@@ -48,20 +48,6 @@
       "loginNickname": "alledit",
       "watchlistName": "_USA",
       "entity": "Security",
-      "securityName": "Electronic Arts",
-      "isin": "US2855121099",
-      "currency": "USD",
-      "values": {
-        "Wikipedia Link": "https://de.wikipedia.org/wiki/Electronic_Arts",
-        "CFD möglich": true,
-        "Bilanz Link": "https://www.finanzen.ch/dividende/electronic_arts#bilanz-guv"
-      },
-      "e2e": "e"
-    },
-    {
-      "loginNickname": "alledit",
-      "watchlistName": "_USA",
-      "entity": "Security",
       "securityName": "Walt Disney Company",
       "isin": "US2546871060",
       "currency": "USD",

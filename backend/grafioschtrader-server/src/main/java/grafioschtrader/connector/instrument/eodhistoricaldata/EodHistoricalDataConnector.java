@@ -124,8 +124,7 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
-    return getEodSecurityCurrencypairHistory(
-        new URI(getSecurityHistoricalDownloadLink(security, from, to)).toURL(),
+    return getEodSecurityCurrencypairHistory(new URI(getSecurityHistoricalDownloadLink(security, from, to)).toURL(),
         FeedConnectorHelper.getMinorUnitDivider(security));
   }
 

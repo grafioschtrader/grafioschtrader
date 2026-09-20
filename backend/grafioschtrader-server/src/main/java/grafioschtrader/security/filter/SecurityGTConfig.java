@@ -23,6 +23,7 @@ import grafiosch.rest.RequestMappings;
 import grafiosch.security.SecurityConfig;
 import grafiosch.security.filter.StatelessAuthenticationFilter;
 import grafiosch.security.filter.StatelessLoginFilter;
+import grafiosch.security.filter.TenantContextAccessFilter;
 import grafiosch.security.filter.TenantReadOnlyFilter;
 import grafiosch.service.UserService;
 import grafioschtrader.rest.RequestGTMappings;
@@ -30,28 +31,34 @@ import grafioschtrader.security.TokenAuthenticationService;
 
 /**
  * Spring Security configuration for the GrafioschTrader application.
- * 
- * <p>This configuration class establishes the complete security framework for the application,
- * including authentication, authorization, and custom filter chains. It implements a stateless
- * JWT-based authentication system with role-based access control and configurable rate limiting.</p>
- * 
+ *
+ * <p>
+ * This configuration class establishes the complete security framework for the application, including authentication,
+ * authorization, and custom filter chains. It implements a stateless JWT-based authentication system with role-based
+ * access control and configurable rate limiting.
+ * </p>
+ *
  * <h3>Security Architecture:</h3>
  * <ul>
- *   <li><strong>Stateless Authentication:</strong> JWT token-based authentication without server sessions</li>
- *   <li><strong>Custom Filter Chain:</strong> Specialized login and authentication filters for API security</li>
- *   <li><strong>Role-based Authorization:</strong> Granular access control based on user roles and permissions</li>
- *   <li><strong>Method Security:</strong> {@code @PreAuthorize} on individual handler methods, for endpoints whose
- *       role requirement cannot be expressed as a URL pattern</li>
- *   <li><strong>Rate Limiting:</strong> Configurable request throttling to prevent API abuse</li>
+ * <li><strong>Stateless Authentication:</strong> JWT token-based authentication without server sessions</li>
+ * <li><strong>Custom Filter Chain:</strong> Specialized login and authentication filters for API security</li>
+ * <li><strong>Role-based Authorization:</strong> Granular access control based on user roles and permissions</li>
+ * <li><strong>Method Security:</strong> {@code @PreAuthorize} on individual handler methods, for endpoints whose role
+ * requirement cannot be expressed as a URL pattern</li>
+ * <li><strong>Rate Limiting:</strong> Configurable request throttling to prevent API abuse</li>
  * </ul>
- * 
+ *
  * <h3>Access Control:</h3>
- * <p>Configures public endpoints for documentation, health checks, and machine-to-machine APIs,
- * while securing administrative functions and user-specific data with appropriate role requirements.</p>
- * 
+ * <p>
+ * Configures public endpoints for documentation, health checks, and machine-to-machine APIs, while securing
+ * administrative functions and user-specific data with appropriate role requirements.
+ * </p>
+ *
  * <h3>Modern Spring Security:</h3>
- * <p>Uses Spring Boot 3.x compatible configuration patterns with direct UserDetailsService
- * and PasswordEncoder configuration, avoiding deprecated authentication providers.</p>
+ * <p>
+ * Uses Spring Boot 3.x compatible configuration patterns with direct UserDetailsService and PasswordEncoder
+ * configuration, avoiding deprecated authentication providers.
+ * </p>
  */
 @Configuration
 @EnableWebSecurity
@@ -79,23 +86,27 @@ public class SecurityGTConfig {
 
   /**
    * Configures the main security filter chain with authentication and authorization rules.
-   * 
-   * <p>This method establishes the complete security configuration including CSRF protection,
-   * authentication mechanisms, authorization rules, and custom filter integration. It defines
-   * public endpoints, role-based access controls, and integrates custom JWT authentication filters.</p>
-   * 
+   *
+   * <p>
+   * This method establishes the complete security configuration including CSRF protection, authentication mechanisms,
+   * authorization rules, and custom filter integration. It defines public endpoints, role-based access controls, and
+   * integrates custom JWT authentication filters.
+   * </p>
+   *
    * <h3>Security Configuration:</h3>
    * <ul>
-   *   <li><strong>CSRF Disabled:</strong> Appropriate for stateless JWT authentication</li>
-   *   <li><strong>Public Endpoints:</strong> Documentation, health checks, and M2M APIs</li>
-   *   <li><strong>Authentication Integration:</strong> Direct UserDetailsService and PasswordEncoder setup</li>
-   *   <li><strong>Custom Filters:</strong> JWT login and authentication filters in the filter chain</li>
+   * <li><strong>CSRF Disabled:</strong> Appropriate for stateless JWT authentication</li>
+   * <li><strong>Public Endpoints:</strong> Documentation, health checks, and M2M APIs</li>
+   * <li><strong>Authentication Integration:</strong> Direct UserDetailsService and PasswordEncoder setup</li>
+   * <li><strong>Custom Filters:</strong> JWT login and authentication filters in the filter chain</li>
    * </ul>
-   * 
+   *
    * <h3>Access Rules:</h3>
-   * <p>Defines public access for documentation endpoints, health monitoring, and machine-to-machine
-   * APIs, while requiring appropriate roles for administrative functions and user-specific operations.</p>
-   * 
+   * <p>
+   * Defines public access for documentation endpoints, health monitoring, and machine-to-machine APIs, while requiring
+   * appropriate roles for administrative functions and user-specific operations.
+   * </p>
+   *
    * @param http HttpSecurity configuration object for defining security rules
    * @return configured SecurityFilterChain for the application
    * @throws Exception if security configuration fails
@@ -122,8 +133,8 @@ public class SecurityGTConfig {
       // also permits ROLE_LIMITEDIT) has to be registered BEFORE that call: Spring Security evaluates authorization
       // rules in registration order and the first match wins, so a narrower rule added afterwards is dead code.
       // Creating a managed client (advisor capability) requires ROLE_USER or higher.
-      authz.requestMatchers(HttpMethod.POST, RequestGTMappings.TENANT_MAP + "/createclient")
-          .hasAnyRole(Role.USER, Role.ALL_EDIT, Role.ADMIN);
+      authz.requestMatchers(HttpMethod.POST, RequestGTMappings.TENANT_MAP + "/createclient").hasAnyRole(Role.USER,
+          Role.ALL_EDIT, Role.ADMIN);
       // Editing the global trading calendar is an administrative operation.
       authz.requestMatchers(HttpMethod.PUT, RequestGTMappings.TRADINGDAYSPLUS_MAP).hasRole(Role.ADMIN);
       SecurityConfig.configureGlobalParameters(http);
@@ -136,20 +147,23 @@ public class SecurityGTConfig {
         new StatelessAuthenticationFilter(tokenAuthenticationService, messages, userService, limitRequest),
         UsernamePasswordAuthenticationFilter.class);
 
+    // Reject unusable tenant contexts on reads as well as writes, while keeping the way home reachable.
+    http.addFilterAfter(new TenantContextAccessFilter(messages, TenantContextAccessFilter.RECOVERY_ALLOW_LIST),
+        StatelessAuthenticationFilter.class);
+
     // Block writes for users operating in a read-only tenant (read-only client, or advisor with READ-level access).
     // Account-self paths and the tenant switch-back path stay writable so the user can still manage their own account
     // and leave the read-only tenant.
     http.addFilterAfter(
-        new TenantReadOnlyFilter(messages,
-            java.util.Set.of(RequestGTMappings.TENANT_MAP + "/switchto/**", RequestMappings.USER_MAP + "/password",
-                RequestMappings.USER_MAP + "/nicknamelocale")),
-        StatelessAuthenticationFilter.class);
+        new TenantReadOnlyFilter(messages, java.util.Set.of(RequestGTMappings.TENANT_MAP + "/switchto/**",
+            RequestMappings.USER_MAP + "/password", RequestMappings.USER_MAP + "/nicknamelocale")),
+        TenantContextAccessFilter.class);
     return http.build();
   }
 
   /**
    * Provides BCrypt password encoder for secure password hashing and verification.
-   * 
+   *
    * @return BCryptPasswordEncoder instance for password operations
    */
   @Bean
@@ -159,7 +173,7 @@ public class SecurityGTConfig {
 
   /**
    * Provides the authentication manager for credential validation and authentication processing.
-   * 
+   *
    * @param authConfig Spring Security authentication configuration
    * @return configured AuthenticationManager instance
    * @throws Exception if authentication manager configuration fails

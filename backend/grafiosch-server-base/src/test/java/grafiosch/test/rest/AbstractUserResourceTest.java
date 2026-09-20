@@ -51,16 +51,9 @@ public abstract class AbstractUserResourceTest extends BaseIntegrationTestSuppor
   @DisplayName("Create all users")
   void createUserForVerification() {
     for (UserRegister user : RestTestHelperBase.users) {
-      User created = restTestClient.post()
-          .uri(RequestMappings.USER_MAP)
-          .header("referer", getRegistrationReferer())
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(user)
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(User.class)
-          .returnResult()
-          .getResponseBody();
+      User created = restTestClient.post().uri(RequestMappings.USER_MAP).header("referer", getRegistrationReferer())
+          .contentType(MediaType.APPLICATION_JSON).body(user).exchange().expectStatus().isOk().expectBody(User.class)
+          .returnResult().getResponseBody();
       Assertions.assertThat(created.getIdUser()).isGreaterThan(0);
     }
   }
@@ -71,13 +64,8 @@ public abstract class AbstractUserResourceTest extends BaseIntegrationTestSuppor
   void tokenverify() {
     List<VerificationToken> allTokens = verificationTokenJpaRepository.findAll();
     for (VerificationToken verificationToken : allTokens) {
-      String body = restTestClient.get()
-          .uri(RequestMappings.USER_MAP + "/tokenverify/" + verificationToken.getToken())
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(String.class)
-          .returnResult()
-          .getResponseBody();
+      String body = restTestClient.get().uri(RequestMappings.USER_MAP + "/tokenverify/" + verificationToken.getToken())
+          .exchange().expectStatus().isOk().expectBody(String.class).returnResult().getResponseBody();
       Assertions.assertThat(body).isEqualTo(UserResource.TOKEN_SUCCESS);
     }
   }
@@ -131,22 +119,15 @@ public abstract class AbstractUserResourceTest extends BaseIntegrationTestSuppor
    * Promotes one user to the given role through the admin endpoint, acting as the first user of the fixture, which is
    * the administrator by convention.
    *
-   * @param nickname          the user to promote
-   * @param mostPriviledRole  the role name including the {@code ROLE_} prefix
+   * @param nickname         the user to promote
+   * @param mostPriviledRole the role name including the {@code ROLE_} prefix
    * @return the updated user as returned by the endpoint
    */
   private User adjustUserRightsByNickname(String nickname, String mostPriviledRole) {
     User user = userJpaRepository.findByNickname(nickname).get();
     user.setMostPrivilegedRole(mostPriviledRole);
 
-    return authenticatedClient(RestTestHelperBase.ALL_USERS[0])
-        .put()
-        .uri(RequestMappings.USERADMIN_MAP)
-        .body(user)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(User.class)
-        .returnResult()
-        .getResponseBody();
+    return authenticatedClient(RestTestHelperBase.ALL_USERS[0]).put().uri(RequestMappings.USERADMIN_MAP).body(user)
+        .exchange().expectStatus().isOk().expectBody(User.class).returnResult().getResponseBody();
   }
 }

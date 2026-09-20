@@ -9,6 +9,8 @@ export class AlgoAssetclass extends AlgoAssetclassSecurity implements AlgoTreeNa
   idAlgoAssetclassParent: number;
 
   name: string = null;
+  securityDeviationPercentage: number = null;
+  maxTradedSecuritiesPerAssetclass: number = null;
 
   assetclass: Assetclass = null;
 

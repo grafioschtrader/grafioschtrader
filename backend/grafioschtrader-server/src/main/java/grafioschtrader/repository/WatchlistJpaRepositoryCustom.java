@@ -64,10 +64,10 @@ public interface WatchlistJpaRepositoryCustom extends BaseRepositoryCustom<Watch
   Watchlist removeAllSecurityCurrency(Integer idWatchlist);
 
   /**
-   * Deletes a watchlist entity identified by its ID, but only if it belongs to the specified tenant.
-   * This is a security measure to ensure users can only delete their own watchlists.
+   * Deletes a watchlist entity identified by its ID, but only if it belongs to the specified tenant. This is a security
+   * measure to ensure users can only delete their own watchlists.
    *
-   * @param id The ID of the watchlist to delete.
+   * @param id       The ID of the watchlist to delete.
    * @param idTenant The ID of the tenant who is attempting to delete the watchlist.
    * @return The number of entities deleted (0 or 1). Returns 1 if deletion was successful, 0 otherwise.
    */

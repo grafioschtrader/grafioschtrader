@@ -2,6 +2,8 @@ export interface TaxCountry {
   idTaxCountry: number;
   countryCode: string;
   taxYears?: TaxYear[];
+  hasTaxModel?: boolean;
+  ictaxSupported?: boolean;
 }
 
 export interface TaxYear {

@@ -2,6 +2,9 @@ package grafioschtrader.entities;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,14 +17,10 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- * Top-level entry point in the algo hierarchy for a tenant. Links a named algo configuration to a watchlist and
- * defines the simulation date range. The {@code activatable} flag controls whether the configuration is eligible
- * for live alarm evaluation. Children (asset-class and security levels) are loaded separately.
- */
 @Schema(description = """
-    Top-level algo configuration for a tenant. Links a named algo setup to a watchlist and defines simulation
-    date range. Does not include depending children (asset class / security levels).""")
+    Top-level entry point in the algo hierarchy for a tenant. Optionally links a named configuration to a watchlist and gates
+    live alarm evaluation for all alerts below it. Children are loaded separately. Simulation dates are stored with
+    the simulation environment and its run because this shared hierarchy remains editable.""")
 @Entity
 @Table(name = AlgoTop.TABNAME)
 @DiscriminatorValue(StrategyHelper.TOP_LEVEL_LETTER)
@@ -31,6 +30,7 @@ public class AlgoTop extends AlgoTopAssetSecurity {
 
   private static final long serialVersionUID = 1L;
 
+  @Schema(description = "User-defined name of this algo hierarchy")
   @Basic(optional = false)
   @NotNull
   @Size(min = 1, max = 40)
@@ -42,29 +42,25 @@ public class AlgoTop extends AlgoTopAssetSecurity {
 //	private List<AlgoAssetclass> algoAssetclassList;
 
   @Schema(description = """
-      For the simulation, a watchlist must be linked to the top level.
-      The corresponding securities can then be selected from this list.""")
-  @Basic(optional = false)
+      Optional watchlist supplying securities for watchlist-based strategies and selection.
+      Hierarchies generated from portfolio holdings have no linked watchlist.""")
   @Column(name = "id_watchlist")
   private Integer idWatchlist;
 
   @Schema(description = """
-      A strategy or simulation must be checked for completeness before it is used.""")
+      Whether the live evaluation of this hierarchy runs: its rebalancing and every alert and strategy below it. A new
+      hierarchy starts active, like its asset classes, securities and strategies.""")
   @Column(name = "activatable")
-  private boolean activatable;
+  private boolean activatable = true;
 
-  @Schema(description = "Reference date from UC6 portfolio strategy creation. Used as transaction cutoff for simulation copies.")
+  @Schema(description = """
+      Date whose end-of-day holdings this allocation was generated from. A simulation of this allocation must start
+      on the following calendar day and initialize by copying the portfolio or liquidating it to cash.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "reference_date")
   private LocalDate referenceDate;
 
-  @Schema(description = "Start date of the simulation date range for backtesting.")
-  @Column(name = "simulation_start_date")
-  private LocalDate simulationStartDate;
-
-  @Schema(description = "End date of the simulation date range for backtesting.")
-  @Column(name = "simulation_end_date")
-  private LocalDate simulationEndDate;
-
+  @Schema(description = "Sum of the target percentages of this hierarchy's direct children", accessMode = Schema.AccessMode.READ_ONLY)
   @Transient
   public Float addedPercentage;
 
@@ -100,27 +96,11 @@ public class AlgoTop extends AlgoTopAssetSecurity {
     this.referenceDate = referenceDate;
   }
 
-  public LocalDate getSimulationStartDate() {
-    return simulationStartDate;
-  }
-
-  public void setSimulationStartDate(LocalDate simulationStartDate) {
-    this.simulationStartDate = simulationStartDate;
-  }
-
-  public LocalDate getSimulationEndDate() {
-    return simulationEndDate;
-  }
-
-  public void setSimulationEndDate(LocalDate simulationEndDate) {
-    this.simulationEndDate = simulationEndDate;
-  }
-
   @Override
   public String toString() {
-    return "AlgoTop [name=" + name + ", idWatchlist=" + idWatchlist
-        + ", activatable=" + activatable + ", idAlgoAssetclassSecurity=" + idAlgoAssetclassSecurity + ", idTenant="
-        + idTenant + ", percentage=" + percentage + "]";
+    return "AlgoTop [name=" + name + ", idWatchlist=" + idWatchlist + ", activatable=" + activatable
+        + ", idAlgoAssetclassSecurity=" + idAlgoAssetclassSecurity + ", idTenant=" + idTenant + ", percentage="
+        + percentage + "]";
   }
 
 }

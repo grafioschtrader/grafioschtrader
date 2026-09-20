@@ -8,13 +8,13 @@ public class SingleNativeMsgError {
 
   /**
    * Creates a new single message error with the complete provided message.
-   * 
+   *
    * <p>
    * This constructor preserves the entire message content, including any line breaks or formatting. It is suitable for
    * cases where the full message content should be displayed to the user, such as detailed business rule violations or
    * user-friendly error explanations.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Message Preservation:</strong>
    * </p>
@@ -22,7 +22,7 @@ public class SingleNativeMsgError {
    * The message is stored exactly as provided, maintaining all formatting, line breaks, and special characters. This
    * ensures that carefully crafted error messages retain their intended presentation and readability.
    * </p>
-   * 
+   *
    * @param message the complete error message to be included in the response
    */
   public SingleNativeMsgError(String message) {

@@ -160,8 +160,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
           .findByIdSecuritycurrencyAndDate(currencypair.getIdSecuritycurrency(), closeDate);
       if (historyquoteOpt.isPresent()) {
         return historyquoteOpt.get().getClose();
-      } else if (closeDate.plusDays(GlobalConstants.EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE)
-          .isAfter(LocalDate.now())) {
+      } else if (closeDate.plusDays(GlobalConstants.EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE).isAfter(LocalDate.now())) {
         currencypair.getSLast();
       }
     }
@@ -257,13 +256,12 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   public List<Currencypair> tryUpToDateHistoricalDataWhenRetryHistoryLoadGreaterThan0(Integer idTenant,
       Integer idWatchlist) {
     return historyquoteThruConnector.fillHistoryquoteForSecuritiesCurrencies(currencypairJpaRepository
-        .findWithConnectorByIdTenantAndIdWatchlistWhenRetryHistoryGreaterThan0(idTenant, idWatchlist),
-        LocalDate.now());
+        .findWithConnectorByIdTenantAndIdWatchlistWhenRetryHistoryGreaterThan0(idTenant, idWatchlist), LocalDate.now());
   }
 
   @Override
-  public List<Historyquote> getHistoryQuote(final Currencypair currencypair, final LocalDate fromDate, final LocalDate toDate,
-      final IFeedConnector feedConector) throws Exception {
+  public List<Historyquote> getHistoryQuote(final Currencypair currencypair, final LocalDate fromDate,
+      final LocalDate toDate, final IFeedConnector feedConector) throws Exception {
     return feedConector.getEodCurrencyHistory(currencypair, fromDate, toDate);
   }
 
@@ -331,7 +329,7 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
     if (fromCurrency.equals(toCurrency)) {
       throw new IllegalArgumentException("Cannot create currency pair with identical currencies: " + fromCurrency);
     }
-    
+
     Currencypair currencypairNew = new Currencypair(fromCurrency, toCurrency);
 
     if (currencypairNew.getIsCryptocurrency()) {

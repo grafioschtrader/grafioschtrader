@@ -174,8 +174,8 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
    * knowing about on this side.
    *
    * <p>
-   * The default does nothing. An override must be cheap and must not throw: it runs on a request that is already
-   * being refused, and an exception here would turn a clean refusal into a failed request.
+   * The default does nothing. An override must be cheap and must not throw: it runs on a request that is already being
+   * refused, and an exception here would turn a clean refusal into a failed request.
    * </p>
    *
    * @param context    the message context

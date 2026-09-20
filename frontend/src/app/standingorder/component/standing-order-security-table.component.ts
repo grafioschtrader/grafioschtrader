@@ -101,7 +101,7 @@ export class StandingOrderSecurityTableComponent extends StandingOrderTableBase 
   }
 
   ngOnInit(): void {
-    this.loadData();
+    this.initializeData();
   }
 
   protected override addSubtypeColumns(): void {

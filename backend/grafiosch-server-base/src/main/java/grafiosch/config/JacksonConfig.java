@@ -19,11 +19,10 @@ import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.module.SimpleModule;
 
 /**
- * Global Jackson configuration for handling LocalDateTime and LocalDate deserialization from
- * numeric (epoch millis), plain ISO-8601 ("2025-03-06T12:00:00"), and
- * zoned ISO-8601 ("2025-03-06T12:00:00Z", "2025-03-06T12:00:00+02:00") formats.
- * Required because Jackson 3.x rejects raw numeric timestamps for LocalDateTime,
- * and frontends may send ISO datetime strings for LocalDate fields.
+ * Global Jackson configuration for handling LocalDateTime and LocalDate deserialization from numeric (epoch millis),
+ * plain ISO-8601 ("2025-03-06T12:00:00"), and zoned ISO-8601 ("2025-03-06T12:00:00Z", "2025-03-06T12:00:00+02:00")
+ * formats. Required because Jackson 3.x rejects raw numeric timestamps for LocalDateTime, and frontends may send ISO
+ * datetime strings for LocalDate fields.
  */
 @Configuration
 public class JacksonConfig {
@@ -37,8 +36,8 @@ public class JacksonConfig {
   }
 
   /**
-   * Flexible LocalDate deserializer that accepts plain "yyyy-MM-dd" as well as full ISO datetime
-   * strings like "2024-04-09T22:00:00.000Z" (extracting just the date portion).
+   * Flexible LocalDate deserializer that accepts plain "yyyy-MM-dd" as well as full ISO datetime strings like
+   * "2024-04-09T22:00:00.000Z" (extracting just the date portion).
    */
   private static class FlexibleLocalDateDeserializer extends StdDeserializer<LocalDate> {
 
@@ -65,9 +64,9 @@ public class JacksonConfig {
   }
 
   /**
-   * Flexible LocalTime deserializer that accepts both "HH:mm" (the format emitted by fields
-   * annotated {@code @JsonFormat(pattern = "HH:mm")}) and "HH:mm:ss" (the format produced by
-   * native HTML {@code <input type="time" step="1">} controls). Apply via
+   * Flexible LocalTime deserializer that accepts both "HH:mm" (the format emitted by fields annotated
+   * {@code @JsonFormat(pattern = "HH:mm")}) and "HH:mm:ss" (the format produced by native HTML
+   * {@code <input type="time" step="1">} controls). Apply via
    * {@code @JsonDeserialize(using = JacksonConfig.FlexibleLocalTimeDeserializer.class)}.
    */
   public static class FlexibleLocalTimeDeserializer extends StdDeserializer<LocalTime> {

@@ -13,9 +13,9 @@ import jakarta.persistence.PersistenceContext;
 
 /**
  * Context verifier for an initial user-to-user message started from a security or currency pair (e.g. the watchlist
- * "mail to creator" action). A non-privileged user may contact the creator of a security only when both hold:
- * the recipient really is the security's creator, and the security is on a watchlist owned by the sender's tenant.
- * The latter blunts forgery: a sender cannot message the creator of an arbitrary security they never added.
+ * "mail to creator" action). A non-privileged user may contact the creator of a security only when both hold: the
+ * recipient really is the security's creator, and the security is on a watchlist owned by the sender's tenant. The
+ * latter blunts forgery: a sender cannot message the creator of an arbitrary security they never added.
  */
 @Component
 public class SecuritycurrencyMailContextVerifier implements IMailUserToUserContextVerifier {
@@ -37,9 +37,8 @@ public class SecuritycurrencyMailContextVerifier implements IMailUserToUserConte
   @Override
   public void verify(User fromUser, Integer idUserTo, Integer idEntityContext) {
     Securitycurrency<?> securitycurrency = entityManager.find(Securitycurrency.class, idEntityContext);
-    if (securitycurrency == null || !idUserTo.equals(securitycurrency.getCreatedBy())
-        || watchlistJpaRepository
-            .getAllWatchlistsWithSecurityByIdSecuritycurrency(fromUser.getIdTenant(), idEntityContext).isEmpty()) {
+    if (securitycurrency == null || !idUserTo.equals(securitycurrency.getCreatedBy()) || watchlistJpaRepository
+        .getAllWatchlistsWithSecurityByIdSecuritycurrency(fromUser.getIdTenant(), idEntityContext).isEmpty()) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
   }

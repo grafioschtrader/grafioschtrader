@@ -501,7 +501,10 @@ export class DynamicFieldModelHelper {
           );
           break;
         case DynamicFormPropertyHelps.SELECT_OPTIONS:
-          fieldOptions.inputWidth = fd.max;
+          // A missing @Size leaves max null; assigning that makes the select 1em wide (null + 1 in the template).
+          if (fd.max) {
+            fieldOptions.inputWidth = fd.max;
+          }
           fieldConfig = DynamicFieldHelper.createFieldSelectStringHeqF(targetField, fd.required, fieldOptions);
           break;
 

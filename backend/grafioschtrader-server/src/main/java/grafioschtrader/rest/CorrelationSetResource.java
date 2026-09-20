@@ -124,5 +124,4 @@ public class CorrelationSetResource extends UpdateCreateDeleteWithTenantResource
     return correlationSetJpaRepository;
   }
 
-
 }

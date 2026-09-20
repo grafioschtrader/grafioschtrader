@@ -1,0 +1,699 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/C:/java/apache-maven-3.8.6/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/java/apache-maven-3.8.6/lib/guava-25.1-android.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] grafioschtrader                                                    [pom]
+[INFO] grafiosch-base                                                     [jar]
+[INFO] grafiosch-server-base                                              [jar]
+[INFO] grafioschtrader-common                                             [jar]
+[INFO] Grafioschtrader                                                    [jar]
+[INFO] 
+[INFO] ------------------< grafioschtrader:grafioschtrader >-------------------
+[INFO] Building grafioschtrader 0.37.0                                    [1/5]
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] -------------------< grafioschtrader:grafiosch-base >-------------------
+[INFO] Building grafiosch-base 0.37.0                                     [2/5]
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:resources (default-resources) @ grafiosch-base ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:compile (default-compile) @ grafiosch-base ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:testResources (default-testResources) @ grafiosch-base ---
+[INFO] skip non existing resourceDirectory C:\SoftwareProjekte\Hugos\grafioschtrader\backend\grafiosch-base\src\test\resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:testCompile (default-testCompile) @ grafiosch-base ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-surefire-plugin:3.5.6:test (default-test) @ grafiosch-base ---
+[INFO] 
+[INFO] ---------------< grafioschtrader:grafiosch-server-base >----------------
+[INFO] Building grafiosch-server-base 0.37.0                              [3/5]
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:resources (default-resources) @ grafiosch-server-base ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:compile (default-compile) @ grafiosch-server-base ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:testResources (default-testResources) @ grafiosch-server-base ---
+[INFO] skip non existing resourceDirectory C:\SoftwareProjekte\Hugos\grafioschtrader\backend\grafiosch-server-base\src\test\resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:testCompile (default-testCompile) @ grafiosch-server-base ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-surefire-plugin:3.5.6:test (default-test) @ grafiosch-server-base ---
+[INFO] 
+[INFO] ---------------< grafioschtrader:grafioschtrader-common >---------------
+[INFO] Building grafioschtrader-common 0.37.0                             [4/5]
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:resources (default-resources) @ grafioschtrader-common ---
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] Copying 5 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:compile (default-compile) @ grafioschtrader-common ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:testResources (default-testResources) @ grafioschtrader-common ---
+[INFO] skip non existing resourceDirectory C:\SoftwareProjekte\Hugos\grafioschtrader\backend\grafioschtrader-common\src\test\resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:testCompile (default-testCompile) @ grafioschtrader-common ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-surefire-plugin:3.5.6:test (default-test) @ grafioschtrader-common ---
+[INFO] 
+[INFO] ---------------< grafioschtrader:grafioschtrader-server >---------------
+[INFO] Building Grafioschtrader 0.37.0                                    [5/5]
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:resources (default-resources) @ grafioschtrader-server ---
+[INFO] Copying 7 resources from src\main\resources to target\classes
+[INFO] Copying 150 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:compile (default-compile) @ grafioschtrader-server ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- maven-resources-plugin:3.5.0:testResources (default-testResources) @ grafioschtrader-server ---
+[INFO] Copying 86 resources from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.15.0:testCompile (default-testCompile) @ grafioschtrader-server ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 182 source files with javac [debug deprecation parameters release 25] to target\test-classes
+[INFO] /C:/SoftwareProjekte/Hugos/grafioschtrader/backend/grafioschtrader-server/src/test/java/grafioschtrader/rest/SimulationContextResourceTest.java: Einige Eingabedateien verwenden nicht geprüfte oder unsichere Vorgänge.
+[INFO] /C:/SoftwareProjekte/Hugos/grafioschtrader/backend/grafioschtrader-server/src/test/java/grafioschtrader/rest/SimulationContextResourceTest.java: Wiederholen Sie die Kompilierung mit -Xlint:unchecked, um Details zu erhalten.
+[INFO] 
+[INFO] --- maven-surefire-plugin:3.5.6:test (default-test) @ grafioschtrader-server ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running grafioschtrader.platform.cornertrader.CornerTraderPdfTemplateTest
+20:29:59.390 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:29:59.396 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.396 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.397 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.397 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.399 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:29:59.399 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:29:59.399 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.400 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.400 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:29:59.400 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.401 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.401 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.401 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.401 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.402 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:29:59.403 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.403 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.403 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:29:59.403 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:29:59.404 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.404 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.404 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.404 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:29:59.404 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.405 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.405 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.573 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:29:59.573 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.574 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.574 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.574 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.574 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:29:59.575 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:29:59.575 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.575 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.575 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:29:59.575 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.575 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.575 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.576 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.576 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.576 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.577 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.590 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:29:59.590 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.591 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.591 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.591 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.591 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:29:59.591 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:29:59.591 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.591 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.593 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:29:59.593 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.593 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.593 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.593 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.593 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.593 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:29:59.594 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.595 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.595 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.603 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.604 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.605 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.605 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.605 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:29:59.605 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.605 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.605 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:29:59.605 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:29:59.606 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.606 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.606 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.606 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:29:59.606 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.606 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.606 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.613 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.614 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:29:59.616 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.616 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.616 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.616 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.616 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.616 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:29:59.616 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.616 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.617 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.627 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:29:59.627 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.627 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.627 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.627 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.628 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.629 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:29:59.630 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.630 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.630 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.634 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:29:59.634 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.634 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.634 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.635 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:29:59.636 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.099 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.100 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.101 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.101 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.101 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.101 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.101 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.101 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.103 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.131 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.132 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.133 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.133 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.133 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.133 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.133 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.133 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.133 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.159 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.160 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.161 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.161 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.161 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.161 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.184 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.186 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.187 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.187 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.187 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.187 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.187 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.187 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.208 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.208 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.208 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.208 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.208 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.208 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.208 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.208 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.209 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.210 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.210 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.228 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.229 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.230 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.249 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.249 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.249 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.249 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.249 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.249 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.249 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.251 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.252 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.252 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.252 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.252 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.271 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.271 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.271 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.272 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.273 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.273 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.273 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.274 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.281 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Kauf und Verkauf Wertpapier (Corneronline)
+20:30:00.281 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.281 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.281 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2})\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- date PL: null  SL: Ausführungsdatum  NL: null  Regex: \QAusführungsdatum\E\s+(\d{2}\.\d{2}\.\d{4})$
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- time PL: null  SL: Ausführungszeit  NL: null  Regex: (\d{1,2}.\d{2}.\d{2})$
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Zum  NL: null  Regex: \Qvon\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Zum  NL: null  Regex: ([^\s]*)$
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc1 PL: null  SL: Handelsgebühr  NL: null  Regex: \QHandelsgebühr\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc2 PL: null  SL: Fremdgebühren  NL: null  Regex: \QFremdgebühren\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Stempel  NL: null  Regex: \QStempel\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tc3 PL: null  SL: Ausführungsgeb.  NL: null  Regex: \QSwx\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.282 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: Coupon und Dividende (Corneronline)
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:00.283 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.340 s -- in grafioschtrader.platform.cornertrader.CornerTraderPdfTemplateTest
+[INFO] Running Dividend import converts to cash currency and resolves ISIN independently of holdings
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (C:\Users\hugo\.m2\repository\net\bytebuddy\byte-buddy-agent\1.18.11\byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+20:30:01.911 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.911 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.911 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.911 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.911 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.911 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.911 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.911 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.912 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.912 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.912 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.912 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.944 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.944 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.944 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.944 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.944 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.944 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.944 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.944 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.945 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.945 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.945 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.945 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.960 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.967 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.969 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.971 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.977 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.978 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.982 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.982 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.982 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.982 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.982 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.982 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.983 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.983 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.983 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.983 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.983 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.983 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.989 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.995 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:01.995 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:01.996 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:02.001 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.TemplateConfigurationPDFasTXT -- Import template: null
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cac PL: null  SL: Konto  NL: null  Regex: ([^\s]*)$
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- transType PL: Bezeichnung  SL: null  NL: null  Regex: ^([^\s]*)
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- datetime PL: Bezeichnung  SL: null  NL: null  Regex: (?:.*?)\s+(\d{2}/\d{2}/\d{2})
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- ta PL: Bezeichnung  SL: null  NL: null  Regex: ((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q+\E
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- isin PL: null  SL: ISIN  NL: null  Regex: \QNummer\E\s+([^\s]*)$
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- units PL: null  SL: Anzahl  NL: null  Regex: \QAnzahl\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- quotation PL: null  SL: Ausschüttung  NL: null  Regex: \QAusschüttung\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cin PL: null  SL: Ausschüttung  NL: null  Regex: ([^\s]*)$
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt2 PL: null  SL: Schweiz.Rückh.Steu.  NL: null  Regex: \QSchweiz.Rückh.Steu.\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- tt1 PL: null  SL: Verrechnungs-/Quellensteuer  NL: null  Regex: (?:\d+(?:,\d+)?%)\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))\Q-\E
+20:30:02.007 [main] INFO grafioschtrader.platformimport.pdf.PropertyWithOptionsConfiguration -- cex PL: null  SL: Wechselkurs  NL: null  Regex: \QWechselkurs\E\s+((?:-?(?:(?:[0-9]{1,3}(?:\Q.\E[0-9]{3})*|\d+)(?:\,[0-9]+)?|\,[0-9]+)))$
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.712 s -- in Dividend import converts to cash currency and resolves ISIN independently of holdings
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 27, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for grafioschtrader 0.37.0:
+[INFO] 
+[INFO] grafioschtrader .................................... SUCCESS [  0.003 s]
+[INFO] grafiosch-base ..................................... SUCCESS [  1.245 s]
+[INFO] grafiosch-server-base .............................. SUCCESS [  0.444 s]
+[INFO] grafioschtrader-common ............................. SUCCESS [  0.357 s]
+[INFO] Grafioschtrader .................................... SUCCESS [ 14.158 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  16.513 s
+[INFO] Finished at: 2026-09-19T20:30:02+02:00
+[INFO] ------------------------------------------------------------------------

@@ -6,9 +6,9 @@ import java.util.Set;
 import grafioschtrader.entities.Securitycurrency;
 
 /**
- * DTO containing securities or currency pairs with their GTNet exchange configurations.
- * The GTNet fields (gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend, gtNetHistoricalSend)
- * are now directly on the Securitycurrency entity.
+ * DTO containing securities or currency pairs with their GTNet exchange configurations. The GTNet fields
+ * (gtNetLastpriceRecv, gtNetHistoricalRecv, gtNetLastpriceSend, gtNetHistoricalSend) are now directly on the
+ * Securitycurrency entity.
  *
  * @param <T> the type of securitycurrency (Security or Currencypair)
  */

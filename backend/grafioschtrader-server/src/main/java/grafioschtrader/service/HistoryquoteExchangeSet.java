@@ -19,14 +19,14 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 /**
  * Tracks instruments during GTNet historyquote exchange, maintaining state of which have been filled.
  *
- * This helper class manages the intersection of BaseHistoryquoteThru instruments with GTNet-enabled
- * instruments and tracks which ones have received historical quotes from remote servers. It supports:
+ * This helper class manages the intersection of BaseHistoryquoteThru instruments with GTNet-enabled instruments and
+ * tracks which ones have received historical quotes from remote servers. It supports:
  * <ul>
- *   <li>Building the initial set from SecurityCurrencyMaxHistoryquoteData</li>
- *   <li>Creating request DTOs with date ranges</li>
- *   <li>Marking instruments as filled when historyquotes are received</li>
- *   <li>Tracking "want to receive" markers from suppliers for push-back</li>
- *   <li>Returning unfilled instruments for fallback to connectors</li>
+ * <li>Building the initial set from SecurityCurrencyMaxHistoryquoteData</li>
+ * <li>Creating request DTOs with date ranges</li>
+ * <li>Marking instruments as filled when historyquotes are received</li>
+ * <li>Tracking "want to receive" markers from suppliers for push-back</li>
+ * <li>Returning unfilled instruments for fallback to connectors</li>
  * </ul>
  *
  * @param <S> Security or Currencypair
@@ -43,9 +43,9 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
   /**
    * Adds an instrument to the exchange set with its date range.
    *
-   * @param data the SecurityCurrencyMaxHistoryquoteData from BaseHistoryquoteThru
+   * @param data     the SecurityCurrencyMaxHistoryquoteData from BaseHistoryquoteThru
    * @param fromDate the start date for historyquote request
-   * @param toDate the end date for historyquote request
+   * @param toDate   the end date for historyquote request
    */
   public void addInstrument(SecurityCurrencyMaxHistoryquoteData<S> data, LocalDate fromDate, LocalDate toDate) {
     String key = buildKey(data.getSecurityCurrency());
@@ -140,11 +140,8 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
       if (!filledKeys.contains(key)) {
         S sc = entry.getValue().getSecurityCurrency();
         if (sc instanceof Security security) {
-          result.add(InstrumentHistoryquoteDTO.forSecurityRequest(
-              security.getIsin(),
-              security.getCurrency(),
-              fromDates.get(key),
-              toDates.get(key)));
+          result.add(InstrumentHistoryquoteDTO.forSecurityRequest(security.getIsin(), security.getCurrency(),
+              fromDates.get(key), toDates.get(key)));
         }
       }
     }
@@ -161,11 +158,8 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
       if (!filledKeys.contains(key)) {
         S sc = entry.getValue().getSecurityCurrency();
         if (sc instanceof Currencypair pair) {
-          result.add(InstrumentHistoryquoteDTO.forCurrencypairRequest(
-              pair.getFromCurrency(),
-              pair.getToCurrency(),
-              fromDates.get(key),
-              toDates.get(key)));
+          result.add(InstrumentHistoryquoteDTO.forCurrencypairRequest(pair.getFromCurrency(), pair.getToCurrency(),
+              fromDates.get(key), toDates.get(key)));
         }
       }
     }
@@ -245,16 +239,15 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
   }
 
   /**
-   * Returns all received historyquote data keyed by instrument identifier.
-   * Key format: "ISIN:Currency" for securities, "FromCurrency:ToCurrency" for pairs.
+   * Returns all received historyquote data keyed by instrument identifier. Key format: "ISIN:Currency" for securities,
+   * "FromCurrency:ToCurrency" for pairs.
    */
   public Map<String, InstrumentHistoryquoteDTO> getAllReceivedData() {
     return new HashMap<>(receivedData);
   }
 
   /**
-   * Returns all instrument IDs in this set.
-   * Used for batch loading GTNetSupplierDetail entries.
+   * Returns all instrument IDs in this set. Used for batch loading GTNetSupplierDetail entries.
    *
    * @return list of all securitycurrency IDs in this set
    */
@@ -267,8 +260,8 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
   }
 
   /**
-   * Creates request DTOs for unfilled securities, filtered to only include instruments in the allowed set.
-   * Used when querying AC_OPEN suppliers that only support specific instruments.
+   * Creates request DTOs for unfilled securities, filtered to only include instruments in the allowed set. Used when
+   * querying AC_OPEN suppliers that only support specific instruments.
    *
    * @param allowedIds set of instrument IDs to include in the result
    * @return list of InstrumentHistoryquoteDTO for unfilled securities that are in the allowed set
@@ -280,11 +273,8 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
       if (!filledKeys.contains(key)) {
         S sc = entry.getValue().getSecurityCurrency();
         if (sc instanceof Security security && allowedIds.contains(security.getIdSecuritycurrency())) {
-          result.add(InstrumentHistoryquoteDTO.forSecurityRequest(
-              security.getIsin(),
-              security.getCurrency(),
-              fromDates.get(key),
-              toDates.get(key)));
+          result.add(InstrumentHistoryquoteDTO.forSecurityRequest(security.getIsin(), security.getCurrency(),
+              fromDates.get(key), toDates.get(key)));
         }
       }
     }
@@ -292,8 +282,8 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
   }
 
   /**
-   * Creates request DTOs for unfilled currency pairs, filtered to only include instruments in the allowed set.
-   * Used when querying AC_OPEN suppliers that only support specific instruments.
+   * Creates request DTOs for unfilled currency pairs, filtered to only include instruments in the allowed set. Used
+   * when querying AC_OPEN suppliers that only support specific instruments.
    *
    * @param allowedIds set of instrument IDs to include in the result
    * @return list of InstrumentHistoryquoteDTO for unfilled currency pairs that are in the allowed set
@@ -305,11 +295,8 @@ public class HistoryquoteExchangeSet<S extends Securitycurrency<S>> {
       if (!filledKeys.contains(key)) {
         S sc = entry.getValue().getSecurityCurrency();
         if (sc instanceof Currencypair pair && allowedIds.contains(pair.getIdSecuritycurrency())) {
-          result.add(InstrumentHistoryquoteDTO.forCurrencypairRequest(
-              pair.getFromCurrency(),
-              pair.getToCurrency(),
-              fromDates.get(key),
-              toDates.get(key)));
+          result.add(InstrumentHistoryquoteDTO.forCurrencypairRequest(pair.getFromCurrency(), pair.getToCurrency(),
+              fromDates.get(key), toDates.get(key)));
         }
       }
     }

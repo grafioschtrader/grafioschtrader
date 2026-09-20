@@ -14,22 +14,21 @@ import grafioschtrader.types.TransactionType;
  * Language dependent label definitions for the Grafioschtrader transaction receipt PDFs.
  *
  * <p>
- * <b>These labels are a wire format, not UI text.</b> The generated receipt PDFs must be re-importable through the
- * PDF transaction import. The import matches the text extracted from the PDF against the Grafioschtrader import
- * templates in <code>grafioschtrader-server/src/test/resources/testdata/import_template/*.tmpl</code>. Those
- * templates anchor the transaction values on exactly these label words. For this reason the labels are deliberately
- * <b>not</b> placed in <code>messages.properties</code>: a harmless looking translation edit there would silently
- * break the template matching. Any change to a label here requires the same change in the corresponding template
- * files; the round-trip test <code>TransactionReceiptRoundTripTest</code> fails when generator and templates drift
- * apart.
+ * <b>These labels are a wire format, not UI text.</b> The generated receipt PDFs must be re-importable through the PDF
+ * transaction import. The import matches the text extracted from the PDF against the Grafioschtrader import templates
+ * in <code>grafioschtrader-server/src/test/resources/testdata/import_template/*.tmpl</code>. Those templates anchor the
+ * transaction values on exactly these label words. For this reason the labels are deliberately <b>not</b> placed in
+ * <code>messages.properties</code>: a harmless looking translation edit there would silently break the template
+ * matching. Any change to a label here requires the same change in the corresponding template files; the round-trip
+ * test <code>TransactionReceiptRoundTripTest</code> fails when generator and templates drift apart.
  * </p>
  *
  * <p>
  * Constraints imposed by the template matching engine ({@code TemplateConfigurationPDFasTXT}):
  * </p>
  * <ul>
- * <li>Value lines are anchored on the <em>first word</em> of the line (SL anchor). Within one receipt every value
- * line must therefore start with a distinct first word.</li>
+ * <li>Value lines are anchored on the <em>first word</em> of the line (SL anchor). Within one receipt every value line
+ * must therefore start with a distinct first word.</li>
  * <li>The transaction type word is captured as a single word and mapped via the template's {@code transType=}
  * configuration, so type words must not contain spaces.</li>
  * <li>Numbers are always printed with Swiss separators (apostrophe grouping, dot decimal) and the templates declare
@@ -80,8 +79,8 @@ public final class GtReceiptDefs {
 
   /**
    * Returns the localized transaction type word printed in the receipt title and used in the PDF file name. For
-   * dividends on interest bearing instruments (bonds, money market) the word "Zins"/"Interest" is used; both words
-   * map to DIVIDEND in the import templates.
+   * dividends on interest bearing instruments (bonds, money market) the word "Zins"/"Interest" is used; both words map
+   * to DIVIDEND in the import templates.
    *
    * @param transaction the transaction whose type word is requested
    * @param labels      the language dependent label set
@@ -89,12 +88,12 @@ public final class GtReceiptDefs {
    */
   public static String getTransactionTypeWord(Transaction transaction, Labels labels) {
     return switch (transaction.getTransactionType()) {
-      case ACCUMULATE -> labels.typeBuy;
-      case REDUCE -> labels.typeSell;
-      case DIVIDEND -> isInterestInstrument(transaction.getSecurity()) ? labels.typeInterest : labels.typeDividend;
-      case FINANCE_COST -> labels.typeFinanceCost;
-      default -> throw new IllegalArgumentException(
-          "No receipt support for transaction type " + transaction.getTransactionType());
+    case ACCUMULATE -> labels.typeBuy;
+    case REDUCE -> labels.typeSell;
+    case DIVIDEND -> isInterestInstrument(transaction.getSecurity()) ? labels.typeInterest : labels.typeDividend;
+    case FINANCE_COST -> labels.typeFinanceCost;
+    default -> throw new IllegalArgumentException(
+        "No receipt support for transaction type " + transaction.getTransactionType());
     };
   }
 

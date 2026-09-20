@@ -28,15 +28,15 @@ import grafioschtrader.repository.SecurityJpaRepository;
  *
  * This service provides reusable query logic for:
  * <ul>
- *   <li>Local AC_PUSH_OPEN servers querying their own push pool before contacting remote servers</li>
- *   <li>LastpriceExchangeHandler responding to remote requests with push pool data</li>
+ * <li>Local AC_PUSH_OPEN servers querying their own push pool before contacting remote servers</li>
+ * <li>LastpriceExchangeHandler responding to remote requests with push pool data</li>
  * </ul>
  *
  * Supports two data sources:
  * <ul>
- *   <li>Push pool (AC_PUSH_OPEN mode): Queries GTNetInstrumentSecurity/GTNetInstrumentCurrencypair
- *       and GTNetLastprice tables</li>
- *   <li>Local entities (AC_OPEN mode): Queries Security/Currencypair tables directly</li>
+ * <li>Push pool (AC_PUSH_OPEN mode): Queries GTNetInstrumentSecurity/GTNetInstrumentCurrencypair and GTNetLastprice
+ * tables</li>
+ * <li>Local entities (AC_OPEN mode): Queries Security/Currencypair tables directly</li>
  * </ul>
  */
 @Service
@@ -75,10 +75,10 @@ public class LastpricePoolQueryService {
   }
 
   /**
-   * Queries securities from the push pool (GTNetInstrumentSecurity and GTNetLastprice tables).
-   * For instruments not found, returns the request as a "final price" if last price is non-zero.
+   * Queries securities from the push pool (GTNetInstrumentSecurity and GTNetLastprice tables). For instruments not
+   * found, returns the request as a "final price" if last price is non-zero.
    *
-   * @param requested list of requested securities with their current timestamps
+   * @param requested   list of requested securities with their current timestamps
    * @param sendableIds set of IDs allowed to be sent (empty means all allowed)
    * @return query result with found prices and not-found keys
    */
@@ -108,9 +108,7 @@ public class LastpricePoolQueryService {
     List<GTNetInstrumentSecurity> instruments = gtNetInstrumentSecurityJpaRepository.findByIsinCurrencyTuples(tuples);
 
     // Get lastprice entries for found instruments
-    List<Integer> instrumentIds = instruments.stream()
-        .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
-        .toList();
+    List<Integer> instrumentIds = instruments.stream().map(GTNetInstrumentSecurity::getIdGtNetInstrument).toList();
     Map<Integer, GTNetLastprice> lastpriceMap = new HashMap<>();
     if (!instrumentIds.isEmpty()) {
       gtNetLastpriceJpaRepository.findByGtNetInstrumentIdGtNetInstrumentIn(instrumentIds)
@@ -147,10 +145,10 @@ public class LastpricePoolQueryService {
   }
 
   /**
-   * Queries currency pairs from the push pool (GTNetInstrumentCurrencypair and GTNetLastprice tables).
-   * For instruments not found, returns the request as a "final price" if last price is non-zero.
+   * Queries currency pairs from the push pool (GTNetInstrumentCurrencypair and GTNetLastprice tables). For instruments
+   * not found, returns the request as a "final price" if last price is non-zero.
    *
-   * @param requested list of requested currency pairs with their current timestamps
+   * @param requested   list of requested currency pairs with their current timestamps
    * @param sendableIds set of IDs allowed to be sent (empty means all allowed)
    * @return query result with found prices and not-found keys
    */
@@ -177,12 +175,11 @@ public class LastpricePoolQueryService {
     }
 
     // Single batch query for all currency pair instruments
-    List<GTNetInstrumentCurrencypair> instruments = gtNetInstrumentCurrencypairJpaRepository.findByCurrencyTuples(tuples);
+    List<GTNetInstrumentCurrencypair> instruments = gtNetInstrumentCurrencypairJpaRepository
+        .findByCurrencyTuples(tuples);
 
     // Get lastprice entries for found instruments
-    List<Integer> instrumentIds = instruments.stream()
-        .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
-        .toList();
+    List<Integer> instrumentIds = instruments.stream().map(GTNetInstrumentCurrencypair::getIdGtNetInstrument).toList();
     Map<Integer, GTNetLastprice> lastpriceMap = new HashMap<>();
     if (!instrumentIds.isEmpty()) {
       gtNetLastpriceJpaRepository.findByGtNetInstrumentIdGtNetInstrumentIn(instrumentIds)
@@ -219,14 +216,14 @@ public class LastpricePoolQueryService {
   }
 
   /**
-   * Queries securities from local Security entities.
-   * Uses a single batch query for all requested securities.
+   * Queries securities from local Security entities. Uses a single batch query for all requested securities.
    *
-   * @param requested list of requested securities with their current timestamps
+   * @param requested   list of requested securities with their current timestamps
    * @param sendableIds set of IDs allowed to be sent (empty means all allowed)
    * @return list of matching prices that are newer than requested
    */
-  public List<InstrumentPriceDTO> querySecuritiesFromLocal(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds) {
+  public List<InstrumentPriceDTO> querySecuritiesFromLocal(List<InstrumentPriceDTO> requested,
+      Set<Integer> sendableIds) {
     List<InstrumentPriceDTO> result = new ArrayList<>();
     if (requested == null || requested.isEmpty()) {
       return result;
@@ -266,14 +263,15 @@ public class LastpricePoolQueryService {
   }
 
   /**
-   * Queries currency pairs from local Currencypair entities.
-   * Uses a single batch query for all requested currency pairs.
+   * Queries currency pairs from local Currencypair entities. Uses a single batch query for all requested currency
+   * pairs.
    *
-   * @param requested list of requested currency pairs with their current timestamps
+   * @param requested   list of requested currency pairs with their current timestamps
    * @param sendableIds set of IDs allowed to be sent (empty means all allowed)
    * @return list of matching prices that are newer than requested
    */
-  public List<InstrumentPriceDTO> queryCurrencypairsFromLocal(List<InstrumentPriceDTO> requested, Set<Integer> sendableIds) {
+  public List<InstrumentPriceDTO> queryCurrencypairsFromLocal(List<InstrumentPriceDTO> requested,
+      Set<Integer> sendableIds) {
     List<InstrumentPriceDTO> result = new ArrayList<>();
     if (requested == null || requested.isEmpty()) {
       return result;

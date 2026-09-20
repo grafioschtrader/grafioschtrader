@@ -1,3 +1,5 @@
+import { AlgoAlertDiagnosticsComponent } from '../../algo/component/algo-alert-diagnostics.component';
+import { ButtonModule } from '@openng/optimus-ui/button';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -23,6 +25,7 @@ import { AlgoCallParam, AlgoStrategyDefinitionForm } from '../../algo/model/algo
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
 import { AlgoStrategyEditComponent } from '../../algo/component/algo-strategy-edit.component';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { AppSettings } from '../../shared/app.settings';
 
 /**
  * Displays all alerts across the tenant in a tree table where AlgoSecurity entries are parent rows
@@ -32,6 +35,10 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 @Component({
   selector: 'tenant-alert',
   template: `
+    <p-button [label]="'ALERT_DIAGNOSTICS' | translate" (click)="visibleDiagnostics = true" />
+    @if (visibleDiagnostics) {
+      <algo-alert-diagnostics (closed)="visibleDiagnostics = false" />
+    }
     <div
       class="data-container"
       (click)="onComponentClick($event)"
@@ -65,13 +72,21 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
   `,
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, TranslateModule, ConfigurableTreeTableComponent, AlgoStrategyEditComponent]
+  imports: [
+    ButtonModule,
+    AlgoAlertDiagnosticsComponent,
+    CommonModule,
+    TranslateModule,
+    ConfigurableTreeTableComponent,
+    AlgoStrategyEditComponent
+  ]
 })
 export class TenantAlertComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
   treeNodes: TreeNode[] = [];
   selectedNode: TreeNode | null = null;
   contextMenuItems: MenuItem[] = [];
 
+  visibleDiagnostics = false;
   visibleStrategyDialog = false;
   algoCallParam: AlgoCallParam;
   algoStrategyDefinitionForm = new AlgoStrategyDefinitionForm();
@@ -118,7 +133,7 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
   callMeDeactivate(): void {}
 
   getHelpContextId(): string {
-    return HelpIds.HELP_ALGO;
+    return HelpIds.HELP_ALGO_ALERT;
   }
 
   // ============================================================================
@@ -130,7 +145,7 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
       this.algoSecurities = algoSecurities;
       this.buildTree();
       this.prepareTreeTableAndTranslate();
-      this.translateStrategies();
+      this.createTranslateValuesStoreForTranslation(this.treeNodes);
     });
   }
 
@@ -149,22 +164,6 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
     });
   }
 
-  private translateStrategies(): void {
-    const allStrategies: AlgoStrategy[] = [];
-    this.algoSecurities.forEach((as) => {
-      if (as.algoStrategyList) {
-        allStrategies.push(...as.algoStrategyList);
-      }
-    });
-    if (allStrategies.length > 0) {
-      const strategyFields: ColumnConfig[] = [];
-      this.addColumnToFields(strategyFields, DataType.String, 'algoStrategyImplementations', '', true, false, {
-        translateValues: TranslateValue.NORMAL
-      });
-      TranslateHelper.createTranslatedValueStore(this.translateService, strategyFields, allStrategies);
-    }
-  }
-
   // ============================================================================
   // Value Getters for Columns
   // ============================================================================
@@ -178,7 +177,7 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
 
   private getAlertContext(dataobject: any, field: ColumnConfig, valueField: any): string {
     if (dataobject instanceof AlgoSecurity || dataobject.idAlgoSecurityParent !== undefined) {
-      return dataobject.idAlgoSecurityParent ? 'AlgoTop' : this.translateService.instant('STANDALONE');
+      return this.translateService.instant(dataobject.idAlgoSecurityParent ? 'IN_STRATEGY' : 'STANDALONE');
     }
     return '';
   }
@@ -308,7 +307,7 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
       () => {
         this.algoStrategyService.deleteEntity(algoStrategy.idAlgoRuleStrategy).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: 'AlgoStrategy'
+            i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.ALGO_STRATEGY)
           });
           this.algoStrategyDefinitionForm.unusedAlgoStrategyMap.delete(algoStrategy.idAlgoAssetclassSecurity);
           this.loadData();
@@ -325,7 +324,7 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
       () => {
         this.algoSecurityService.deleteEntity(algoSecurity.idAlgoAssetclassSecurity).subscribe(() => {
           this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_DELETE_RECORD', {
-            i18nRecord: 'AlgoSecurity'
+            i18nRecord: AppHelper.toUpperCaseWithUnderscore(AppSettings.ALGO_SECURITY)
           });
           this.loadData();
         });

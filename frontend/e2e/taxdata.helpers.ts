@@ -2,6 +2,8 @@ import { expect, Locator, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
+
 /**
  * Helpers for the tax data administration view (Administrative data -> Tax data,
  * route /mainview/taxdata, TaxDataTreetableComponent).
@@ -128,12 +130,13 @@ export async function openNodeMenu(page: Page, row: Locator): Promise<Locator> {
 }
 
 /**
- * Opens the context menu with no node selected, which is the only state that offers
- * "Create tax country". Requires an empty tree, the state after the cleanup and after step 6.
+ * Opens the context menu with no node selected, which is the only state that offers "Create tax country". Deleting
+ * the spec-owned country clears the selection; other countries with built-in models remain in the table.
  */
 export async function openEmptyTreeMenu(page: Page, container: Locator): Promise<Locator> {
-  await expect(container.locator('.p-treetable-tbody tr')).toHaveCount(0, { timeout: 10_000 });
-  await container.locator('configurable-tree-table').click({ button: 'right' });
+  // Right-click a non-row surface. Clicking the table's centre can select one of the built-in model-country rows and
+  // consequently opens that row's menu instead of the empty-selection menu.
+  await container.locator('configurable-tree-table thead').click({ button: 'right' });
   const menu = page.locator('[role="menu"]:visible');
   await menu.waitFor({ state: 'visible', timeout: 5_000 });
   return menu;
@@ -141,7 +144,7 @@ export async function openEmptyTreeMenu(page: Page, container: Locator): Promise
 
 /** Clicks a context menu entry and waits until the menu is gone again. */
 async function clickMenuItem(page: Page, menu: Locator, itemRx: RegExp): Promise<void> {
-  await menu.getByText(itemRx).first().click();
+  await menu.getByText(itemRx).first().click({ timeout: 5_000 });
   await page
     .locator('[role="menu"]:visible')
     .waitFor({ state: 'hidden', timeout: 5_000 })
@@ -149,8 +152,8 @@ async function clickMenuItem(page: Page, menu: Locator, itemRx: RegExp): Promise
 }
 
 /**
- * Creates the tax country through the create dialog. The option value of the select is the ISO
- * country code, the visible label is the localised country name.
+ * Creates the tax country through the create dialog. The dropdown binds the ISO country code as its
+ * value and shows the localised country name; the overlay is a filterable Optimus p-select.
  */
 export async function createTaxCountry(page: Page, container: Locator, countryCode: string): Promise<void> {
   const menu = await openEmptyTreeMenu(page, container);
@@ -158,9 +161,9 @@ export async function createTaxCountry(page: Page, container: Locator, countryCo
 
   const dialog = page.locator('.p-dialog');
   await dialog.waitFor({ state: 'visible', timeout: 10_000 });
-  const countrySelect = dialog.locator('select#countryCode');
-  await countrySelect.selectOption({ value: countryCode });
-  await countrySelect.dispatchEvent('change');
+  // Callers pass ISO codes; the overlay lists localised names. CH is the only country this suite creates.
+  expect(countryCode, 'tax-data specs only create Switzerland').toBe(COUNTRY_CODE);
+  await selectDynamicFormOptionByText(page, dialog, 'countryCode', RX.country);
   await dialog.locator('button[type="submit"]').click();
   await dialog.waitFor({ state: 'hidden', timeout: 10_000 });
 
@@ -223,9 +226,12 @@ export async function uploadTaxData(
 /**
  * Reads the `recordCount` cell of a file row. The value is rendered with the de-CH group separator,
  * so every non-digit is stripped before parsing.
+ *
+ * `recordCount` is the last column of TaxDataTreetableComponent. The cell is taken from the end of the row, because
+ * the leading expansion cell and the `hasTaxModel` column already shifted it twice when addressed by position.
  */
 export async function recordCountOfRow(fileRow: Locator): Promise<number> {
-  const text = await fileRow.locator('td').nth(2).innerText();
+  const text = await fileRow.locator('td').last().innerText();
   const digits = text.replace(/\D/g, '');
   return digits.length === 0 ? 0 : Number(digits);
 }

@@ -1,109 +1,79 @@
 package grafioschtrader.entities;
 
-import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBaseID;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 /**
- * Per-asset runtime state for simulation execution. Tracks position quantities, average costs, tranche state, and
- * add/sell history for each security within a simulation run. One row per (AlgoTop, security) combination, updated
- * as the simulation processes events chronologically.
+ * Fill-derived position lifecycle. Exported with the tenant; runtime writes are bounded by the execution-state limit.
+ *
+ * <p>
+ * {@code initialUnits} and {@code realizedExitUnits} carry the progress of a profit taking plan: the size the lifecycle
+ * was opened with, and how much of it has already been given back. Both are projections of the ledger like every other
+ * field here, so a tranche can neither execute twice nor be lost across a restart.
+ * </p>
  */
-@Schema(description = """
-    Per-asset runtime state for simulation execution. Tracks position quantities, costs, tranche state,
-    and buy/sell history for each security within a simulation run.""")
 @Entity
 @Table(name = AlgoExecutionState.TABNAME)
-public class AlgoExecutionState extends TenantBaseID implements Serializable {
-
+public class AlgoExecutionState extends TenantBaseID {
   public static final String TABNAME = "algo_execution_state";
 
-  private static final long serialVersionUID = 1L;
-
+  /** Auto-generated primary key. */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Basic(optional = false)
   @Column(name = "id_algo_execution_state")
   private Integer idAlgoExecutionState;
 
-  @Basic(optional = false)
-  @Column(name = "id_algo_top")
-  private Integer idAlgoTop;
-
-  @Basic(optional = false)
-  @Column(name = "id_securitycurrency")
-  private Integer idSecuritycurrency;
-
-  @Basic(optional = false)
+  /** Tenant whose ledger produced this state. */
   @Column(name = "id_tenant")
   private Integer idTenant;
 
-  @Schema(description = "Current number of units held (positive for long, negative for short)")
-  @Column(name = "position_qty")
-  private Double positionQty;
+  /** Strategy controlling the position lifecycle. */
+  @Column(name = "id_algo_strategy")
+  private Integer idAlgoStrategy;
 
-  @Schema(description = "Position direction: 1 = long, -1 = short, null = flat/no position")
-  @Column(name = "position_direction")
-  private Byte positionDirection;
+  /** Instrument held by the lifecycle. */
+  @Column(name = "id_securitycurrency")
+  private Integer idSecuritycurrency;
 
-  @Schema(description = "Volume-weighted average cost per unit of the current position")
-  @Column(name = "avg_cost")
-  private Double avgCost;
+  /** Monotonically increasing lifecycle number for successive positions in the same instrument. */
+  @Column(name = "lifecycle")
+  private long lifecycle;
 
-  @Schema(description = "Price at the first entry into this position")
-  @Column(name = "initial_entry_price")
-  private Double initialEntryPrice;
+  /** Current signed position units; positive for long positions and negative for short positions. */
+  @Column(name = "signed_units")
+  private double signedUnits;
 
-  @Schema(description = "Number of units bought at the initial entry")
-  @Column(name = "initial_entry_qty")
-  private Double initialEntryQty;
+  /** Price of the fill that opened this lifecycle. */
+  @Column(name = "initial_price")
+  private double initialPrice;
 
-  @Schema(description = "Number of add-on buys (tranches) executed after the initial entry")
-  @Column(name = "adds_done")
-  private Integer addsDone;
+  /** Volume-weighted average price of the current position. */
+  @Column(name = "average_price")
+  private double averagePrice;
 
-  @Schema(description = "Date of the most recent buy transaction for this position")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "last_buy_date")
-  private LocalDate lastBuyDate;
+  /** Absolute position units immediately after the initial entry. */
+  @Column(name = "initial_units")
+  private double initialUnits;
 
-  @Schema(description = "Date of the most recent sell transaction for this position")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "last_sell_date")
-  private LocalDate lastSellDate;
+  /** Units already sold by profit-taking tranches in this lifecycle. */
+  @Column(name = "realized_exit_units")
+  private double realizedExitUnits;
 
-  @Schema(description = """
-      JSON array tracking individual tranches, e.g.
-      [{"qty": 10, "price": 50.0, "date": "2025-01-15"}, {"qty": 5, "price": 48.0, "date": "2025-02-01"}]""")
-  @Column(name = "tranche_state", columnDefinition = "JSON")
-  private String trancheState;
+  /** Date of the most recent entry or add-on fill. */
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "last_entry")
+  private LocalDate lastEntry;
 
-  @Schema(description = """
-      JSON object with strategy-specific runtime data, e.g. indicator values, signal state,
-      or custom counters that persist between evaluation cycles.""")
-  @Column(name = "state_data", columnDefinition = "JSON")
-  private String stateData;
+  /** Date of the most recent exit or scale-out fill. */
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "last_exit")
+  private LocalDate lastExit;
 
-  @Schema(description = "Auto-maintained timestamp of the last row update")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
-  @Column(name = "updated_at", insertable = false, updatable = false)
-  private LocalDateTime updatedAt;
-
-  @JsonIgnore
   @Override
   public Integer getId() {
     return idAlgoExecutionState;
@@ -113,117 +83,95 @@ public class AlgoExecutionState extends TenantBaseID implements Serializable {
     return idAlgoExecutionState;
   }
 
-  public void setIdAlgoExecutionState(Integer idAlgoExecutionState) {
-    this.idAlgoExecutionState = idAlgoExecutionState;
+  public void setIdAlgoExecutionState(Integer value) {
+    idAlgoExecutionState = value;
   }
 
-  public Integer getIdAlgoTop() {
-    return idAlgoTop;
+  public Integer getIdTenant() {
+    return idTenant;
   }
 
-  public void setIdAlgoTop(Integer idAlgoTop) {
-    this.idAlgoTop = idAlgoTop;
+  public void setIdTenant(Integer value) {
+    idTenant = value;
+  }
+
+  public Integer getIdAlgoStrategy() {
+    return idAlgoStrategy;
+  }
+
+  public void setIdAlgoStrategy(Integer value) {
+    idAlgoStrategy = value;
   }
 
   public Integer getIdSecuritycurrency() {
     return idSecuritycurrency;
   }
 
-  public void setIdSecuritycurrency(Integer idSecuritycurrency) {
-    this.idSecuritycurrency = idSecuritycurrency;
+  public void setIdSecuritycurrency(Integer value) {
+    idSecuritycurrency = value;
   }
 
-  @Override
-  public Integer getIdTenant() {
-    return idTenant;
+  public long getLifecycle() {
+    return lifecycle;
   }
 
-  @Override
-  public void setIdTenant(Integer idTenant) {
-    this.idTenant = idTenant;
+  public void setLifecycle(long value) {
+    lifecycle = value;
   }
 
-  public Double getPositionQty() {
-    return positionQty;
+  public double getSignedUnits() {
+    return signedUnits;
   }
 
-  public void setPositionQty(Double positionQty) {
-    this.positionQty = positionQty;
+  public void setSignedUnits(double value) {
+    signedUnits = value;
   }
 
-  public Byte getPositionDirection() {
-    return positionDirection;
+  public double getInitialPrice() {
+    return initialPrice;
   }
 
-  public void setPositionDirection(Byte positionDirection) {
-    this.positionDirection = positionDirection;
+  public void setInitialPrice(double value) {
+    initialPrice = value;
   }
 
-  public Double getAvgCost() {
-    return avgCost;
+  public double getAveragePrice() {
+    return averagePrice;
   }
 
-  public void setAvgCost(Double avgCost) {
-    this.avgCost = avgCost;
+  public void setAveragePrice(double value) {
+    averagePrice = value;
   }
 
-  public Double getInitialEntryPrice() {
-    return initialEntryPrice;
+  public double getInitialUnits() {
+    return initialUnits;
   }
 
-  public void setInitialEntryPrice(Double initialEntryPrice) {
-    this.initialEntryPrice = initialEntryPrice;
+  public void setInitialUnits(double value) {
+    initialUnits = value;
   }
 
-  public Double getInitialEntryQty() {
-    return initialEntryQty;
+  public double getRealizedExitUnits() {
+    return realizedExitUnits;
   }
 
-  public void setInitialEntryQty(Double initialEntryQty) {
-    this.initialEntryQty = initialEntryQty;
+  public void setRealizedExitUnits(double value) {
+    realizedExitUnits = value;
   }
 
-  public Integer getAddsDone() {
-    return addsDone;
+  public LocalDate getLastEntry() {
+    return lastEntry;
   }
 
-  public void setAddsDone(Integer addsDone) {
-    this.addsDone = addsDone;
+  public void setLastEntry(LocalDate value) {
+    lastEntry = value;
   }
 
-  public LocalDate getLastBuyDate() {
-    return lastBuyDate;
+  public LocalDate getLastExit() {
+    return lastExit;
   }
 
-  public void setLastBuyDate(LocalDate lastBuyDate) {
-    this.lastBuyDate = lastBuyDate;
-  }
-
-  public LocalDate getLastSellDate() {
-    return lastSellDate;
-  }
-
-  public void setLastSellDate(LocalDate lastSellDate) {
-    this.lastSellDate = lastSellDate;
-  }
-
-  public String getTranchState() {
-    return trancheState;
-  }
-
-  public void setTrancheState(String trancheState) {
-    this.trancheState = trancheState;
-  }
-
-  public String getStateData() {
-    return stateData;
-  }
-
-  public void setStateData(String stateData) {
-    this.stateData = stateData;
-  }
-
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
+  public void setLastExit(LocalDate value) {
+    lastExit = value;
   }
 }

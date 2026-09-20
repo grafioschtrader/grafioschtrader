@@ -12,15 +12,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Payload for historical price exchange messages (GT_NET_HISTORYQUOTE_EXCHANGE_SEL_C, GT_NET_HISTORYQUOTE_PUSH_SEL_C).
  *
- * In a request:
- * - Contains instruments with date ranges to query
- * - fromDate/toDate specify the requested historical data range
- * - records list is empty (only requesting data)
+ * In a request: - Contains instruments with date ranges to query - fromDate/toDate specify the requested historical
+ * data range - records list is empty (only requesting data)
  *
- * In a response:
- * - Contains instruments with their historical price records
- * - Each instrument's records list contains the actual OHLCV data
- * - Only dates within the requested range that the provider has are included
+ * In a response: - Contains instruments with their historical price records - Each instrument's records list contains
+ * the actual OHLCV data - Only dates within the requested range that the provider has are included
  */
 @Schema(description = """
     Payload for historical price exchange between GTNet peers. In requests, contains instruments with date ranges
@@ -104,8 +100,7 @@ public class HistoryquoteExchangeMsg {
     if (securities == null) {
       return new ArrayList<>();
     }
-    return securities.stream()
-        .filter(dto -> !dto.isWantToReceiveResponse() && dto.getRecordCount() > 0)
+    return securities.stream().filter(dto -> !dto.isWantToReceiveResponse() && dto.getRecordCount() > 0)
         .collect(Collectors.toList());
   }
 
@@ -117,9 +112,7 @@ public class HistoryquoteExchangeMsg {
     if (securities == null) {
       return new ArrayList<>();
     }
-    return securities.stream()
-        .filter(InstrumentHistoryquoteDTO::isWantToReceiveResponse)
-        .collect(Collectors.toList());
+    return securities.stream().filter(InstrumentHistoryquoteDTO::isWantToReceiveResponse).collect(Collectors.toList());
   }
 
   /**
@@ -130,8 +123,7 @@ public class HistoryquoteExchangeMsg {
     if (currencypairs == null) {
       return new ArrayList<>();
     }
-    return currencypairs.stream()
-        .filter(dto -> !dto.isWantToReceiveResponse() && dto.getRecordCount() > 0)
+    return currencypairs.stream().filter(dto -> !dto.isWantToReceiveResponse() && dto.getRecordCount() > 0)
         .collect(Collectors.toList());
   }
 
@@ -143,8 +135,7 @@ public class HistoryquoteExchangeMsg {
     if (currencypairs == null) {
       return new ArrayList<>();
     }
-    return currencypairs.stream()
-        .filter(InstrumentHistoryquoteDTO::isWantToReceiveResponse)
+    return currencypairs.stream().filter(InstrumentHistoryquoteDTO::isWantToReceiveResponse)
         .collect(Collectors.toList());
   }
 

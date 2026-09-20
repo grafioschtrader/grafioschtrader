@@ -36,7 +36,7 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 
 @TestMethodOrder(OrderAnnotation.class)
 @TestInstance(Lifecycle.PER_CLASS)
-class SecurityResourceTest extends BaseIntegrationTest  {
+class SecurityResourceTest extends BaseIntegrationTest {
 
   private static final String FIXTURE = "/testdata/generated/securities.json";
   private static List<Assetclass> assetclasses;
@@ -50,14 +50,8 @@ class SecurityResourceTest extends BaseIntegrationTest  {
   @Test
   @Order(2)
   void getAllAssetclassTest() {
-    Assetclass[] body = authenticatedClient(RestTestHelper.LIMIT1)
-        .get()
-        .uri(RequestGTMappings.ASSETCLASS_MAP)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Assetclass[].class)
-        .returnResult()
-        .getResponseBody();
+    Assetclass[] body = authenticatedClient(RestTestHelper.LIMIT1).get().uri(RequestGTMappings.ASSETCLASS_MAP)
+        .exchange().expectStatus().isOk().expectBody(Assetclass[].class).returnResult().getResponseBody();
 
     Optional<Assetclass> assetclassOpt = Arrays.stream(body)
         .filter(a -> a.getCategoryType() == AssetclassType.EQUITIES
@@ -71,14 +65,9 @@ class SecurityResourceTest extends BaseIntegrationTest  {
   @Test
   @Order(3)
   void getAllStockexchangesTest() {
-    Stockexchange[] body = authenticatedClient(RestTestHelper.LIMIT1)
-        .get()
-        .uri(RequestGTMappings.STOCKEXCHANGE_MAP + "?includeNameOfCalendarIndex=false")
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Stockexchange[].class)
-        .returnResult()
-        .getResponseBody();
+    Stockexchange[] body = authenticatedClient(RestTestHelper.LIMIT1).get()
+        .uri(RequestGTMappings.STOCKEXCHANGE_MAP + "?includeNameOfCalendarIndex=false").exchange().expectStatus().isOk()
+        .expectBody(Stockexchange[].class).returnResult().getResponseBody();
 
     Optional<Stockexchange> stockexchangeOpt = Arrays.stream(body)
         .filter(s -> GlobalConstants.STOCK_EX_MIC_SIX.equals(s.getMic())).findFirst();
@@ -107,20 +96,12 @@ class SecurityResourceTest extends BaseIntegrationTest  {
     // POST /api/security when gt.security.async.historyquotes=false, which can hang past the
     // RestTestClient's default read timeout. Skip those rows to keep the suite deterministic.
     Assumptions.assumeFalse(
-        "gt.datafeed.vienna".equals(row.idConnectorHistory())
-            || "gt.datafeed.vienna".equals(row.idConnectorIntra()),
+        "gt.datafeed.vienna".equals(row.idConnectorHistory()) || "gt.datafeed.vienna".equals(row.idConnectorIntra()),
         "skip rows whose connector performs a slow external fetch during creation");
     Security security = row.toSecurity();
 
-    Security created = authenticatedClient(RestTestHelper.getRadomUser())
-        .post()
-        .uri(RequestGTMappings.SECURITY_MAP)
-        .body(security)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Security.class)
-        .returnResult()
-        .getResponseBody();
+    Security created = authenticatedClient(RestTestHelper.getRadomUser()).post().uri(RequestGTMappings.SECURITY_MAP)
+        .body(security).exchange().expectStatus().isOk().expectBody(Security.class).returnResult().getResponseBody();
 
     assertNotNull(created);
     Assertions.assertThat(created.getIdSecuritycurrency()).isGreaterThan(0);
@@ -155,9 +136,9 @@ class SecurityResourceTest extends BaseIntegrationTest  {
       s.setDistributionFrequency(distributionFrequency);
       s.setDenomination(denomination);
       s.setLeverageFactor(leverageFactor);
-      s.setStockexchange(stockexchanges.stream().filter(se -> se.getName().equals(stockexchangeName)).findFirst()
-          .orElseThrow(() -> new IllegalStateException("Unknown stock exchange in " + FIXTURE + ": "
-              + stockexchangeName)));
+      s.setStockexchange(
+          stockexchanges.stream().filter(se -> se.getName().equals(stockexchangeName)).findFirst().orElseThrow(
+              () -> new IllegalStateException("Unknown stock exchange in " + FIXTURE + ": " + stockexchangeName)));
       s.setAssetClass(RestTestHelper.getAssetclassBy(assetclasses, categoryType.getValue(), subCategoryDE,
           specialInvestmentInstrument.getValue()));
       s.setStockexchangeLink(stockexchangeLink);

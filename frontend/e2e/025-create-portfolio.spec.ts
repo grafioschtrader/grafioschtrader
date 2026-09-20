@@ -26,8 +26,10 @@ for (const p of PORTFOLIOS) {
     test(`creates the portfolio ${p.name}`, async ({ page }) => {
       await loginAsFixtureUser(page, p.loginNickname);
 
-      // The tenant root node is the first tree node; its context menu offers "Create Portfolio...".
-      await openTreeContextMenu(page, page.locator('.p-tree-node-content').first(), RX.createPortfolio);
+      // Dashboard is also a root node; identify the tenant root by its label, but right-click its content element.
+      // Optimus attaches the context-menu listener there rather than to the enclosing ARIA treeitem.
+      const tenantRoot = page.getByRole('treeitem', { name: /^Portfolios-/ }).first();
+      await openTreeContextMenu(page, tenantRoot.locator(':scope > .p-tree-node-content'), RX.createPortfolio);
 
       const dialog = page.locator('.p-dialog');
       await dialog.waitFor({ state: 'visible', timeout: 10_000 });

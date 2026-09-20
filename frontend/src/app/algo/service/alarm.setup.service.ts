@@ -9,6 +9,7 @@ import { AlgoSecurityService } from './algo.security.service';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { BaseSettings } from '../../lib/base.settings';
+import { SimulationContextService } from './simulation.context.service';
 
 @Injectable()
 export class AlarmSetupService {
@@ -18,11 +19,23 @@ export class AlarmSetupService {
 
   constructor(
     private algoSecurityService: AlgoSecurityService,
+    private simulationContext: SimulationContextService,
     private gps: GlobalparameterService
   ) {}
 
+  /**
+   * The alert entry of an instrument, offered only where adding one can actually succeed.
+   *
+   * Opening the dialog is itself a write: {@link showStrategyEdit} asks the backend for the standalone alert node of
+   * the instrument, which persists that node on the first visit. Inside a simulation environment the strategy hierarchy
+   * is read only and for a read-only user the node may not be created at all, so in both cases the entry is left out
+   * rather than shown and then refused.
+   *
+   * @param securitycurrency - The instrument the entry would add an alert for
+   * @returns the menu entries, or an empty array when alerts cannot be set up here
+   */
   getMenuItem(securitycurrency: Securitycurrency): MenuItem[] {
-    return this.gps.useAlert()
+    return this.gps.useAlert() && !this.simulationContext.isInSimulation() && !this.gps.isReadOnlyUser()
       ? [
           { separator: true },
           {

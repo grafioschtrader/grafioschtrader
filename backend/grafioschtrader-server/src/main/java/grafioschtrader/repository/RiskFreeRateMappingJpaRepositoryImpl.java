@@ -15,8 +15,8 @@ import grafioschtrader.entities.RiskFreeRateMapping;
  * Custom-impl side of {@link RiskFreeRateMappingJpaRepository}. Required by Spring Data because the parent
  * {@code UpdateCreateJpaRepository} extends {@link BaseRepositoryCustom} which declares
  * {@code saveOnlyAttributes(...)}. Enforces {@code validateCurrencyMatch} before delegating to
- * {@link RepositoryHelper#saveOnlyAttributes} so every CUD entry point (REST, programmatic, future bulk paths)
- * is protected by the same rule.
+ * {@link RepositoryHelper#saveOnlyAttributes} so every CUD entry point (REST, programmatic, future bulk paths) is
+ * protected by the same rule.
  */
 public class RiskFreeRateMappingJpaRepositoryImpl extends BaseRepositoryImpl<RiskFreeRateMapping>
     implements BaseRepositoryCustom<RiskFreeRateMapping> {

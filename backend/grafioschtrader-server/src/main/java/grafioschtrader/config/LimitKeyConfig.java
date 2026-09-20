@@ -9,6 +9,11 @@ import grafiosch.limit.LimitKeyRegistration;
 import grafiosch.limit.LimitKeyRegistry;
 import grafiosch.types.CountScope;
 import grafiosch.types.OwnerScope;
+import grafioschtrader.entities.AlgoAssetclass;
+import grafioschtrader.entities.AlgoEventLog;
+import grafioschtrader.entities.AlgoExecutionState;
+import grafioschtrader.entities.AlgoSecurity;
+import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.CorrelationSet;
@@ -102,6 +107,14 @@ public abstract class LimitKeyConfig {
   public static final LimitKey KEY_TAX_YEAR_CORRECTION = LimitKey.max(TaxYearCorrection.class.getSimpleName(),
       OwnerScope.TENANT);
   public static final LimitKey KEY_GTNET_SECURITY_IMP_HEAD = LimitKey.max(GTNetSecurityImpHead.class.getSimpleName(),
+      OwnerScope.TENANT);
+  public static final LimitKey KEY_ALGO_TOP = LimitKey.max(AlgoTop.class.getSimpleName(), OwnerScope.TENANT);
+  public static final LimitKey KEY_ALGO_ASSETCLASS = LimitKey.max(AlgoAssetclass.class.getSimpleName(),
+      OwnerScope.TENANT);
+  public static final LimitKey KEY_ALGO_SECURITY = LimitKey.max(AlgoSecurity.class.getSimpleName(), OwnerScope.TENANT);
+  public static final LimitKey KEY_ALGO_EXECUTION_STATE = LimitKey.max(AlgoExecutionState.class.getSimpleName(),
+      OwnerScope.TENANT);
+  public static final LimitKey KEY_ALGO_EVENT_LOG = LimitKey.max(AlgoEventLog.class.getSimpleName(),
       OwnerScope.TENANT);
 
   // Caps on the elements of a nested collection.

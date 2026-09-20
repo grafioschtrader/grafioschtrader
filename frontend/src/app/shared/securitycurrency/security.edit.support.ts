@@ -93,6 +93,12 @@ export class SecurityEditSupport {
           upperCase: true
         })
       );
+      fc.push(
+        DynamicFieldHelper.createFieldDropdownStringHeqF('issuerCountry', false, {
+          fieldsetName: 'BASE_DATA',
+          filter: true
+        })
+      );
     }
 
     fc.push(

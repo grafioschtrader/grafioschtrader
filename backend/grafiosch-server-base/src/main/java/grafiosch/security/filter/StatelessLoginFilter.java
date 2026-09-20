@@ -43,13 +43,13 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Spring Security filter for processing user login authentication with enhanced security features.
- * 
+ *
  * <p>
  * This filter extends AbstractAuthenticationProcessingFilter to handle the complete login workflow including JSON
  * request parsing, authentication validation, IP address blocking, user limit checking, and JWT token generation. It
  * implements a stateless authentication approach suitable for REST API applications.
  * </p>
- * 
+ *
  * <h3>Security Features:</h3>
  * <ul>
  * <li><strong>IP Address Protection:</strong> Blocks login attempts from IP addresses that exceed failed login attempt
@@ -60,7 +60,7 @@ import tools.jackson.databind.ObjectMapper;
  * request violations</li>
  * <li><strong>Account Lockout Management:</strong> Handles locked user accounts with unlock request mechanisms</li>
  * </ul>
- * 
+ *
  * <h3>Authentication Flow:</h3>
  * <ol>
  * <li>Parse JSON login request containing user credentials and preferences</li>
@@ -70,14 +70,14 @@ import tools.jackson.databind.ObjectMapper;
  * <li>On success: generate JWT token, update user preferences, establish security context</li>
  * <li>On failure: track failed attempts, apply IP blocking if necessary</li>
  * </ol>
- * 
+ *
  * <h3>User Limit Handling:</h3>
  * <p>
  * The filter handles scenarios where users have exceeded security or request limits by providing mechanisms for unlock
  * requests. Users can submit notes explaining their situation to administrators for manual review and potential account
  * unlocking.
  * </p>
- * 
+ *
  * <h3>Token Management:</h3>
  * <p>
  * Upon successful authentication, the filter generates JWT tokens containing user information and configuration data,
@@ -101,12 +101,12 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
   /**
    * Creates a new stateless login filter with the specified configuration.
-   * 
+   *
    * <p>
    * Initializes the filter with all necessary services and dependencies for handling the complete authentication
    * workflow. Sets up the authentication manager and failure handler for proper Spring Security integration.
    * </p>
-   * 
+   *
    * @param urlMapping                   the URL pattern this filter should process
    * @param tokenAuthentication          service for JWT token generation and management
    * @param userService                  service for user operations and validation
@@ -149,12 +149,12 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
   /**
    * Parses user credentials from the JSON request body.
-   * 
+   *
    * <p>
    * Converts the HTTP request input stream into a UserDTO object using Jackson ObjectMapper. The request body should
    * contain JSON data with user credentials and preferences.
    * </p>
-   * 
+   *
    * @param request the HTTP request containing JSON user data
    * @return UserDTO object parsed from the request body
    * @throws IOException if JSON parsing fails or request stream is invalid
@@ -199,12 +199,12 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
   /**
    * Processes unlock requests when users provide explanatory notes.
-   * 
+   *
    * <p>
    * When a user exceeds limits but provides a note explaining their situation, this method creates an unlock request
    * for administrative review. The request includes the user's explanation and the specific limit that was exceeded.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Error Handling:</strong>
    * </p>
@@ -212,7 +212,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * If the unlock request creation fails (e.g., due to too frequent requests), the method clears the security context
    * and returns an appropriate error response to prevent user impatience and request flooding.
    * </p>
-   * 
+   *
    * @param authenticatedUser the user requesting unlock
    * @param response          the HTTP response for result delivery
    * @param lee               the limit exception containing violation details
@@ -232,21 +232,24 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
   /**
    * Requests user to provide explanatory note for account unlocking.
-   * 
-   * <p>When a user exceeds limits without providing a note, this method guides them
-   * through the unlock request process. It checks for existing unlock requests to
-   * avoid duplicate submissions and provides appropriate feedback messages.</p>
-   * 
-   * <p><strong>Response Logic:</strong></p>
+   *
+   * <p>
+   * When a user exceeds limits without providing a note, this method guides them through the unlock request process. It
+   * checks for existing unlock requests to avoid duplicate submissions and provides appropriate feedback messages.
+   * </p>
+   *
+   * <p>
+   * <strong>Response Logic:</strong>
+   * </p>
    * <ul>
-   *   <li>If no existing unlock requests: prompts user to submit unlock request with note</li>
-   *   <li>If unlock request already exists: informs user that request is pending review</li>
-   *   <li>All responses include localized messages based on user preferences</li>
+   * <li>If no existing unlock requests: prompts user to submit unlock request with note</li>
+   * <li>If unlock request already exists: informs user that request is pending review</li>
+   * <li>All responses include localized messages based on user preferences</li>
    * </ul>
-   * 
+   *
    * @param authenticatedUser the user needing unlock guidance
-   * @param response the HTTP response for message delivery
-   * @param lee the limit exception containing violation details
+   * @param response          the HTTP response for message delivery
+   * @param lee               the limit exception containing violation details
    */
   private void requestForUserUnlock(final UserDetails authenticatedUser, final HttpServletResponse response,
       RequestLimitAndSecurityBreachException lee) throws IOException {
@@ -270,12 +273,13 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
   /**
    * Updates user timezone offset if it has changed since last login.
-   * 
-   * <p>Compares the current timezone offset with the user's stored preference
-   * and updates the database if they differ. This ensures that user timezone
-   * preferences are kept current with their client configuration.</p>
-   * 
-   * @param user the user whose timezone offset may need updating
+   *
+   * <p>
+   * Compares the current timezone offset with the user's stored preference and updates the database if they differ.
+   * This ensures that user timezone preferences are kept current with their client configuration.
+   * </p>
+   *
+   * @param user           the user whose timezone offset may need updating
    * @param timezoneOffset the new timezone offset from the login request
    * @return the user object, potentially with updated timezone offset
    */
@@ -299,18 +303,21 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
   /**
    * Performs admin self-release by resetting limit counters and issuing a JWT token.
    *
-   * <p>This is only invoked when the authenticated user has ROLE_ADMIN and sent the
-   * sentinel note "ADMIN_SELF_RELEASE". It resets both security breach and request limit
-   * counters, updates the timezone, and issues a normal JWT login response.</p>
+   * <p>
+   * This is only invoked when the authenticated user has ROLE_ADMIN and sent the sentinel note "ADMIN_SELF_RELEASE". It
+   * resets both security breach and request limit counters, updates the timezone, and issues a normal JWT login
+   * response.
+   * </p>
    */
-  private void performAdminSelfRelease(User user, HttpServletResponse response,
-      HoldUserValues holdUserValue) throws IOException {
+  private void performAdminSelfRelease(User user, HttpServletResponse response, HoldUserValues holdUserValue)
+      throws IOException {
     short previousSecurityBreachCount = user.getSecurityBreachCount();
     short previousLimitRequestExceedCount = user.getLimitRequestExceedCount();
     user = userService.resetLimitCounters(user);
-    log.warn("Admin self-release for user {} (id={}). Previous counters: securityBreachCount={}, "
-        + "limitRequestExceedCount={}", user.getUsername(), user.getIdUser(),
-        previousSecurityBreachCount, previousLimitRequestExceedCount);
+    log.warn(
+        "Admin self-release for user {} (id={}). Previous counters: securityBreachCount={}, "
+            + "limitRequestExceedCount={}",
+        user.getUsername(), user.getIdUser(), previousSecurityBreachCount, previousLimitRequestExceedCount);
     emailToTimezoneOffsetMap.remove(user.getUsername());
     user = updateTimezoneOffset(user, holdUserValue.timezoneOffset);
     final UserAuthentication userAuthentication = new UserAuthentication(user);
@@ -320,13 +327,13 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
   /**
    * Data holder class for preserving user values during authentication process.
-   * 
+   *
    * <p>
    * This static inner class temporarily stores user preferences and validation results that need to be preserved
    * between the authentication attempt phase and the successful authentication completion phase. The data is stored in
    * the emailToTimezoneOffsetMap during processing.
    * </p>
-   * 
+   *
    * <h3>Stored Information:</h3>
    * <ul>
    * <li><strong>Password Validation:</strong> Whether the password meets regex requirements</li>

@@ -21,6 +21,7 @@ import grafiosch.entities.UDFMetadata;
 import grafiosch.entities.UDFMetadataGeneral;
 import grafiosch.entities.UDFSpecialTypeDisableUser;
 import grafiosch.entities.User;
+import grafiosch.entities.UserDashboard;
 import grafiosch.entities.UserEntityChangeCount;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
 
@@ -43,18 +44,16 @@ public abstract class ExportDeleteHelper {
   private static String PROPOSE_CHANGE_FIELD_SELDEL = String.format(
       "f.* FROM %s f INNER JOIN %s r ON f.id_propose_request = r.id_propose_request WHERE r.created_by = ?",
       ProposeChangeField.TABNAME, ProposeRequest.TABNAME);
-  private static String USER_EXPORT = String.format(
-      " * FROM %s WHERE id_tenant = ? OR id_user = 0", User.TABNAME);
+  private static String USER_EXPORT = String.format(" * FROM %s WHERE id_tenant = ? OR id_user = 0", User.TABNAME);
   private static String UDF_METADATA_GENERAL_SELDEL = String.format(
       " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
       UDFMetadataGeneral.TABNAME, UDFMetadata.TABNAME);
-  private static String UDF_METADATA_EXPORT = String.format(
-      " * FROM %s WHERE id_user = ? OR id_user = 0", UDFMetadata.TABNAME);
+  private static String UDF_METADATA_EXPORT = String.format(" * FROM %s WHERE id_user = ? OR id_user = 0",
+      UDFMetadata.TABNAME);
   private static String UDF_METADATA_GENERAL_EXPORT = String.format(
       " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? OR m.id_user = 0",
       UDFMetadataGeneral.TABNAME, UDFMetadata.TABNAME);
-  private static String UDF_DATA_EXPORT = String.format(
-      " * FROM %s WHERE id_user = ? OR id_user = 0", UDFData.TABNAME);
+  private static String UDF_DATA_EXPORT = String.format(" * FROM %s WHERE id_user = ? OR id_user = 0", UDFData.TABNAME);
 
   public static ExportDefinition[] exportDefinitions = new ExportDefinition[] {
       // Export -> it runs with the first element
@@ -65,10 +64,10 @@ public abstract class ExportDeleteHelper {
       new ExportDefinition(MultilanguageString.MULTILINGUESTRINGS, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(TenantBase.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
-      new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, USER_EXPORT,
-          ExportDefinition.EXPORT_USE),
-      new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, null,
-          ExportDefinition.DELETE_USE),
+      new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, USER_EXPORT, ExportDefinition.EXPORT_USE),
+      new ExportDefinition(User.TABNAME, TENANT_USER.ID_TENANT, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(UserDashboard.TABNAME, TENANT_USER.ID_USER, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Role.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(ReleaseNote.TABNAME, TENANT_USER.NONE, null, ExportDefinition.EXPORT_USE),
       new ExportDefinition(User.TABNAME_USER_ROLE, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
@@ -83,21 +82,17 @@ public abstract class ExportDeleteHelper {
       new ExportDefinition(EntityLimit.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(UserEntityChangeCount.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       // UDF EXPORT: include global (id_user=0) data alongside user data
-      new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_EXPORT,
-          ExportDefinition.EXPORT_USE),
+      new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_EXPORT, ExportDefinition.EXPORT_USE),
       new ExportDefinition(UDFMetadataGeneral.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_GENERAL_EXPORT,
           ExportDefinition.EXPORT_USE),
-      new ExportDefinition(UDFData.TABNAME, TENANT_USER.ID_USER, UDF_DATA_EXPORT,
-          ExportDefinition.EXPORT_USE),
+      new ExportDefinition(UDFData.TABNAME, TENANT_USER.ID_USER, UDF_DATA_EXPORT, ExportDefinition.EXPORT_USE),
       new ExportDefinition(UDFSpecialTypeDisableUser.TABNAME, TENANT_USER.ID_USER, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       // UDF DELETE: only user's own data (id_user=0 is preserved)
-      new ExportDefinition(UDFData.TABNAME, TENANT_USER.ID_USER, null,
-          ExportDefinition.DELETE_USE),
+      new ExportDefinition(UDFData.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(UDFMetadataGeneral.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_GENERAL_SELDEL,
           ExportDefinition.DELETE_USE),
-      new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, null,
-          ExportDefinition.DELETE_USE),
+      new ExportDefinition(UDFMetadata.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       // TODO Delete all Mails of the user, nothing is exported
       // ...
       new ExportDefinition(MailSettingForward.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE), };

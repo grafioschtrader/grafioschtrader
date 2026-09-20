@@ -12,6 +12,11 @@ public interface HoldCashaccountDepositJpaRepositoryCustom {
   /**
    * Creates cash account deposit time frames for all tenants in the system. This method is responsible for generating
    * periodic snapshots or records of cash account deposits across all tenant accounts.
+   *
+   * <p>
+   * Each tenant is rebuilt in its own transaction: corrupt data of one tenant fails that tenant alone, every other
+   * tenant keeps its freshly built rows, and the caller receives one exception naming the tenants that failed.
+   * </p>
    */
   void createCashaccountDepositTimeFrameForAllTenant();
 
@@ -24,8 +29,8 @@ public interface HoldCashaccountDepositJpaRepositoryCustom {
   void createCashaccountDepositTimeFrameByTenant(Integer idTenant);
 
   /**
-   * Adjusts cash account deposits or withdrawals for one transaction, or for both sides of a cash account transfer. Used
-   * to reconcile the deposit hold rows when a DEPOSIT or WITHDRAWAL transaction is created, modified or deleted.
+   * Adjusts cash account deposits or withdrawals for one transaction, or for both sides of a cash account transfer.
+   * Used to reconcile the deposit hold rows when a DEPOSIT or WITHDRAWAL transaction is created, modified or deleted.
    *
    * <p>
    * Each transaction is accompanied by its pre-image, because the hold rows are cumulative running totals per cash

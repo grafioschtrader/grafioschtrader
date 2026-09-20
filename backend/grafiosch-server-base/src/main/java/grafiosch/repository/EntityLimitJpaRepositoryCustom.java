@@ -22,7 +22,7 @@ public interface EntityLimitJpaRepositoryCustom extends BaseRepositoryCustom<Ent
    * Keys for which the given user already holds a row are filtered out, so the picker cannot produce a duplicate.
    * </p>
    *
-   * @param idUser the user the new or edited row belongs to, or {@code null} for a row that is not user-scoped
+   * @param idUser        the user the new or edited row belongs to, or {@code null} for a row that is not user-scoped
    * @param idEntityLimit the row currently being edited, whose own key must stay in the list, or {@code null} on create
    * @return the offered key definitions, registered MAX keys first
    */

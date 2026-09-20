@@ -7,15 +7,15 @@ import java.util.List;
  *
  * Controls who can see a message in the GTNet messaging system:
  * <ul>
- *   <li>{@link #ALL_USERS} - Message is visible to all users of the system</li>
- *   <li>{@link #ADMIN_ONLY} - Message is visible only to administrators</li>
+ * <li>{@link #ALL_USERS} - Message is visible to all users of the system</li>
+ * <li>{@link #ADMIN_ONLY} - Message is visible only to administrators</li>
  * </ul>
  *
  * Thread visibility rules:
  * <ul>
- *   <li>New thread: Admin can choose visibility (ALL_USERS or ADMIN_ONLY)</li>
- *   <li>Reply to ADMIN_ONLY thread: Forced to ADMIN_ONLY (cannot downgrade)</li>
- *   <li>Reply to ALL_USERS thread: Can be ALL_USERS or ADMIN_ONLY (can upgrade)</li>
+ * <li>New thread: Admin can choose visibility (ALL_USERS or ADMIN_ONLY)</li>
+ * <li>Reply to ADMIN_ONLY thread: Forced to ADMIN_ONLY (cannot downgrade)</li>
+ * <li>Reply to ALL_USERS thread: Can be ALL_USERS or ADMIN_ONLY (can upgrade)</li>
  * </ul>
  */
 public enum MessageVisibility {

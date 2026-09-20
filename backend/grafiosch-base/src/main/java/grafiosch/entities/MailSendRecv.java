@@ -55,7 +55,6 @@ public class MailSendRecv extends BaseID<Integer> {
   @Column(name = "id_role_to")
   private Integer idRoleTo;
 
-
   @Schema(description = "The subject of this message")
   @NotNull
   @Size(min = 2, max = 96)
@@ -207,7 +206,7 @@ public class MailSendRecv extends BaseID<Integer> {
   public void setSendRecvTime(LocalDateTime sendRecvTime) {
     this.sendRecvTime = sendRecvTime;
   }
-  
+
   public ReplyToRolePrivateType getReplyToRolePrivate() {
     return replyToRolePrivate == null ? ReplyToRolePrivateType.REPLY_NORMAL
         : ReplyToRolePrivateType.getReplyToRolePrivateTypeByValue(replyToRolePrivate);

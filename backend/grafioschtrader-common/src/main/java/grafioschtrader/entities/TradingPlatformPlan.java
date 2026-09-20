@@ -33,6 +33,20 @@ public class TradingPlatformPlan extends Auditable implements Serializable {
 
   public static final String TABNAME = "trading_platform_plan";
 
+  @jakarta.persistence.Column(name = "country_code")
+  @grafiosch.common.PropertyAlwaysUpdatable
+  @grafiosch.common.DynamicFormField(uiOrder = "2.1")
+  @grafioschtrader.validation.ValidTaxCountryCode
+  private String countryCode;
+
+  public String getCountryCode() {
+    return countryCode;
+  }
+
+  public void setCountryCode(String countryCode) {
+    this.countryCode = countryCode;
+  }
+
   private static final long serialVersionUID = 1L;
 
   @Id

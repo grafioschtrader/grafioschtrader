@@ -75,7 +75,8 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   @Operation(summary = "Create transaction receipt PDFs for the given security transactions of the tenant", description = """
       Generates one receipt PDF per transaction in the language of the user. A single transaction is returned as PDF,
       multiple transactions as ZIP archive. The receipts can be re-imported through the PDF transaction import using
-      the Grafioschtrader import templates.""", tags = { Transaction.TABNAME })
+      the Grafioschtrader import templates.""", tags = {
+      Transaction.TABNAME })
   @PostMapping(value = "/receipts")
   public void createTransactionReceipts(@RequestBody TransactionReceiptRequest transactionReceiptRequest,
       HttpServletResponse response) throws Exception {
@@ -182,8 +183,8 @@ public class TransactionResource extends UpdateCreate<Transaction> {
    * <p>
    * Neither of the generic guards reaches this entity: {@code Transaction} is a {@code TenantBaseID}, so
    * {@code createEntity} skips the daily CUD check, and {@code LimitKeyConfig.KEY_TRANSACTION} is registered with
-   * {@code checkedOnGenericCreate = false} so that the specialised call sites can raise the specific translated
-   * message instead of a bare {@code LIMIT_SECURITY_BREACH}. Without this override the generic mapping would grow the
+   * {@code checkedOnGenericCreate = false} so that the specialised call sites can raise the specific translated message
+   * instead of a bare {@code LIMIT_SECURITY_BREACH}. Without this override the generic mapping would grow the
    * {@code transaction} table without any cap.
    * </p>
    *
@@ -294,6 +295,5 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     transactionJpaRepository.deleteSingleDoubleTransaction(idTransaction);
     return ResponseEntity.noContent().build();
   }
-
 
 }

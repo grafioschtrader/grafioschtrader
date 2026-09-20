@@ -44,18 +44,18 @@ import io.github.bucket4j.ConsumptionProbe;
  * Utility class for connecting to Yahoo Finance to retrieve financial data for user-defined fields. This class provides
  * functionality to evaluate Yahoo symbols for securities, extract earnings dates, and manage rate-limited access to
  * Yahoo Finance services.
- * 
+ *
  * The class implements rate limiting using the token bucket algorithm to ensure compliance with Yahoo Finance's usage
  * policies and prevent service overload. It also includes caching mechanisms to optimize performance and reduce
  * unnecessary API calls.
- * 
+ *
  * Key features include:<br>
  * - Yahoo symbol resolution through multiple strategies (existing connectors, UDF data, symbol search)<br>
  * - Earnings date extraction from Yahoo Finance calendar pages<br>
  * - Rate limiting with configurable bandwidth constraints<br>
  * - Symbol caching with expiration to reduce redundant lookups<br>
  * - Special handling for US stock exchanges (NASDAQ, NYSE)<br>
- * 
+ *
  * The class is designed to work within the UDF framework, storing and retrieving Yahoo symbols as user-defined field
  * values for securities, enabling automated financial data collection and analysis across the application.
  */
@@ -79,8 +79,8 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
    */
   private static final Map<Integer, String> CACHE_SYMBOL = new PassiveExpiringMap<>(TimeUnit.DAYS.toMillis(1));
 
-  
-  private static final DateTimeFormatter DATE_FORMAT_EARNINGS = DateTimeFormatter.ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
+  private static final DateTimeFormatter DATE_FORMAT_EARNINGS = DateTimeFormatter
+      .ofPattern(BaseConstants.STANDARD_DATE_FORMAT);
 
   public YahooUDFConnect() {
     super(10); // 10 seconds connection timeout
@@ -238,8 +238,7 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
 
   protected LocalDateTime applyGmtOffset(ZonedDateTime utcDateTime, Object gmtOffsetObj) {
     long gmtOffsetMillis = ((Number) gmtOffsetObj).longValue();
-    return utcDateTime.toInstant().plusMillis(gmtOffsetMillis) 
-        .atZone(ZoneOffset.UTC).toLocalDateTime();
+    return utcDateTime.toInstant().plusMillis(gmtOffsetMillis).atZone(ZoneOffset.UTC).toLocalDateTime();
   }
 
   /**

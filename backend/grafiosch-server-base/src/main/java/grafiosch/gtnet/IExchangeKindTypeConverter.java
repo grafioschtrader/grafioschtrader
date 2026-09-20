@@ -4,8 +4,8 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 /**
- * Spring converter for binding request parameters to {@link IExchangeKindType}.
- * Supports both numeric byte values (e.g., "0") and enum names (e.g., "LAST_PRICE").
+ * Spring converter for binding request parameters to {@link IExchangeKindType}. Supports both numeric byte values
+ * (e.g., "0") and enum names (e.g., "LAST_PRICE").
  */
 @Component
 public class IExchangeKindTypeConverter implements Converter<String, IExchangeKindType> {

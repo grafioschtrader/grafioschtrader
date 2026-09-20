@@ -24,9 +24,9 @@ import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /**
- * Utility class providing helper methods for feed connectors to process financial data
- * from various data providers. This class contains static methods for parsing numbers
- * in different locale formats, making HTTP requests, and processing financial data responses.
+ * Utility class providing helper methods for feed connectors to process financial data from various data providers.
+ * This class contains static methods for parsing numbers in different locale formats, making HTTP requests, and
+ * processing financial data responses.
  */
 public class FeedConnectorHelper {
 
@@ -35,7 +35,7 @@ public class FeedConnectorHelper {
   /**
    * Parses a German-formatted numeric string to Double. German format uses period (.) as thousands separator and comma
    * (,) as decimal separator. Example: "1.234,56" becomes 1234.56
-   * 
+   *
    * @param item the German-formatted numeric string to parse
    * @return the parsed Double value, or null if the trimmed string is empty
    * @throws NumberFormatException if the string cannot be parsed as a valid number
@@ -48,7 +48,7 @@ public class FeedConnectorHelper {
   /**
    * Checks whether a German-formatted numeric string can be successfully parsed. German format uses period (.) as
    * thousands separator and comma (,) as decimal separator.
-   * 
+   *
    * @param item the German-formatted numeric string to validate
    * @return true if the string can be parsed as a valid number, false otherwise
    */
@@ -60,7 +60,7 @@ public class FeedConnectorHelper {
   /**
    * Parses a US-formatted numeric string to Double. US format uses comma (,) as thousands separator and period (.) as
    * decimal separator. Example: "1,234.56" becomes 1234.56
-   * 
+   *
    * @param item the US-formatted numeric string to parse
    * @return the parsed Double value, or null if the trimmed string is empty
    * @throws NumberFormatException if the string cannot be parsed as a valid number
@@ -73,7 +73,7 @@ public class FeedConnectorHelper {
   /**
    * Parses a Swiss-formatted numeric string to Double. Swiss format uses apostrophe (') as thousands separator and
    * period (.) as decimal separator. Example: "1'234.56" becomes 1234.56
-   * 
+   *
    * @param item the Swiss-formatted numeric string to parse
    * @return the parsed Double value, or null if the trimmed string is empty
    * @throws NumberFormatException if the string cannot be parsed as a valid number
@@ -86,7 +86,7 @@ public class FeedConnectorHelper {
   /**
    * Parses a Swiss-formatted numeric string to Long. Swiss format uses apostrophe (') as thousands separator. Example:
    * "1'234'567" becomes 1234567
-   * 
+   *
    * @param item the Swiss-formatted numeric string to parse
    * @return the parsed Long value, or null if the trimmed string is empty
    * @throws NumberFormatException if the string cannot be parsed as a valid number
@@ -99,7 +99,7 @@ public class FeedConnectorHelper {
   /**
    * Parses a German-formatted numeric string to Long. German format uses period (.) as thousands separator. Example:
    * "1.234.567" becomes 1234567
-   * 
+   *
    * @param item the German-formatted numeric string to parse
    * @return the parsed Long value, or null if the trimmed string is empty
    * @throws NumberFormatException if the string cannot be parsed as a valid number
@@ -112,7 +112,7 @@ public class FeedConnectorHelper {
   /**
    * Performs an HTTP GET request using the default HTTP client configuration. Uses standard user agent and no
    * connection timeout.
-   * 
+   *
    * @param urlStr the URL to request
    * @return the HTTP response containing the response body as a string
    * @throws IOException          if an I/O error occurs during the request
@@ -125,7 +125,7 @@ public class FeedConnectorHelper {
   /**
    * Performs an HTTP GET request with optional random user agent. Uses no connection timeout but allows customization
    * of the user agent string.
-   * 
+   *
    * @param urlStr         the URL to request
    * @param useRandomAgent true to use a randomized user agent, false for standard user agent
    * @return the HTTP response containing the response body as a string
@@ -140,7 +140,7 @@ public class FeedConnectorHelper {
   /**
    * Performs an HTTP GET request with configurable connection timeout. Uses standard user agent with the specified
    * timeout value.
-   * 
+   *
    * @param urlStr  the URL to request
    * @param seconds the connection timeout in seconds, or null for no timeout
    * @return the HTTP response containing the response body as a string
@@ -155,7 +155,7 @@ public class FeedConnectorHelper {
   /**
    * Performs an HTTP GET request with full configuration options. Allows specification of both connection timeout and
    * user agent randomization.
-   * 
+   *
    * @param urlStr        the URL to request
    * @param seconds       the connection timeout in seconds, or null for no timeout
    * @param useRadomAgent true to use a randomized user agent, false for standard user agent
@@ -213,7 +213,7 @@ public class FeedConnectorHelper {
   /**
    * Generates a user agent string for HTTP requests. Can provide either a standard user agent or a randomized version
    * to avoid detection.
-   * 
+   *
    * @param useRadomAgent true to generate a randomized user agent with random numbers, false to use the standard
    *                      application user agent
    * @return the user agent string to use in HTTP headers
@@ -281,17 +281,17 @@ public class FeedConnectorHelper {
   /**
    * Calculates the price divider for securities listed on exchanges that quote in a minor currency unit, such as the
    * London Stock Exchange in pence (GBX/GBp) or the Johannesburg Stock Exchange in cents (ZAc). Such quotes require
-   * division by 100 to reach the security's ISO 4217 currency. This method determines whether such conversion is
-   * needed based on the security's exchange, currency, and instrument type; indices are excluded because they are
-   * published in the major unit.
+   * division by 100 to reach the security's ISO 4217 currency. This method determines whether such conversion is needed
+   * based on the security's exchange, currency, and instrument type; indices are excluded because they are published in
+   * the major unit.
    *
    * @param securitycurrency the security or currency pair to check
    * @param <T>              the type of security currency (Security or Currencypair)
    * @return 100.0 if the security's quotes must be converted from the minor to the major unit, 1.0 otherwise
    */
   public static <T extends Securitycurrency<T>> double getMinorUnitDivider(T securitycurrency) {
-    if (securitycurrency instanceof Security security
-        && security.getAssetClass().getSpecialInvestmentInstrument() != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) {
+    if (securitycurrency instanceof Security security && security.getAssetClass()
+        .getSpecialInvestmentInstrument() != SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) {
       return MinorCurrencyUnit.getExchangeDivider(security.getStockexchange().getMic(), security.getCurrency());
     }
     return 1.0;

@@ -22,7 +22,11 @@ export class Security extends Securitycurrency implements BaseID {
   activeFromDate = null;
   activeToDate = null;
   distributionFrequency: string = null;
+  issuerCountry?: string = null;
+  simulationMetadata?: SecuritySimulationMetadata = null;
   leverageFactor?: number = null;
+  /** Backend rule shared with historical simulation order eligibility. */
+  simulationTradingExcluded?: boolean;
   idLinkSecuritycurrency?: number = null;
   formulaPrices?: string = null;
   idConnectorDividend?: string = null;
@@ -99,7 +103,57 @@ export class Security extends Securitycurrency implements BaseID {
     return false;
   }
 
+  public static isBondDirectInvestment(assetClass: Assetclass): boolean {
+    if (!assetClass) {
+      return false;
+    }
+    const categoryType =
+      typeof assetClass.categoryType === 'number' ? AssetclassType[assetClass.categoryType] : assetClass.categoryType;
+    const specialInvestmentInstrument =
+      typeof assetClass.specialInvestmentInstrument === 'number'
+        ? SpecialInvestmentInstruments[assetClass.specialInvestmentInstrument]
+        : assetClass.specialInvestmentInstrument;
+    return (
+      specialInvestmentInstrument === SpecialInvestmentInstruments[SpecialInvestmentInstruments.DIRECT_INVESTMENT] &&
+      (categoryType === AssetclassType[AssetclassType.FIXED_INCOME] ||
+        categoryType === AssetclassType[AssetclassType.CONVERTIBLE_BOND])
+    );
+  }
+
+  public static canHaveIssuerCountry(assetClass: Assetclass): boolean {
+    if (!assetClass) {
+      return false;
+    }
+    const specialInvestmentInstrument =
+      typeof assetClass.specialInvestmentInstrument === 'number'
+        ? SpecialInvestmentInstruments[assetClass.specialInvestmentInstrument]
+        : assetClass.specialInvestmentInstrument;
+    return ![
+      SpecialInvestmentInstruments[SpecialInvestmentInstruments.CFD],
+      SpecialInvestmentInstruments[SpecialInvestmentInstruments.FOREX],
+      SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES]
+    ].includes(specialInvestmentInstrument as string);
+  }
+
+  /**
+   * Returns the ISO country code carried by the first two characters of an ISIN. The rest of the ISIN does not need
+   * to have been entered yet: this helper is used for live form prefill while the user is typing.
+   */
+  public static issuerCountryFromIsin(isin: string): string | null {
+    const match = /^\s*([A-Za-z]{2})/.exec(isin ?? '');
+    return match ? match[1].toUpperCase() : null;
+  }
+
   public getNewInstance(): Security {
     return new Security();
   }
+}
+
+export interface SecuritySimulationMetadata {
+  bondTerms?: SecurityBondTerms;
+}
+
+export interface SecurityBondTerms {
+  couponRate?: number;
+  couponDayCount?: string;
 }

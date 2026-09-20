@@ -12,15 +12,16 @@ import jakarta.validation.constraints.NotNull;
 /**
  * Instrument pool entry for currency pairs in the GT-Network.
  *
- * Currency pairs are identified by the combination of fromCurrency and toCurrency (both ISO 4217 codes),
- * enabling cross-system matching. The exchange rate represents how many units of toCurrency equal one
- * unit of fromCurrency (e.g., EUR/USD = 1.10 means 1 EUR = 1.10 USD).
+ * Currency pairs are identified by the combination of fromCurrency and toCurrency (both ISO 4217 codes), enabling
+ * cross-system matching. The exchange rate represents how many units of toCurrency equal one unit of fromCurrency
+ * (e.g., EUR/USD = 1.10 means 1 EUR = 1.10 USD).
  *
  * <h3>Usage</h3>
  * <ul>
- *   <li>Used by {@link GTNetLastprice} for intraday exchange rate data</li>
- *   <li>Used by {@link GTNetHistoryquote} for historical exchange rates (foreign instruments only)</li>
- *   <li>When instrument exists locally (JOIN matches currencypair table), historical data goes to {@link Historyquote} instead</li>
+ * <li>Used by {@link GTNetLastprice} for intraday exchange rate data</li>
+ * <li>Used by {@link GTNetHistoryquote} for historical exchange rates (foreign instruments only)</li>
+ * <li>When instrument exists locally (JOIN matches currencypair table), historical data goes to {@link Historyquote}
+ * instead</li>
  * </ul>
  *
  * @see GTNetInstrument for base fields and local/foreign distinction

@@ -94,9 +94,9 @@ public class StockexchangeJpaRepositoryImpl extends BaseRepositoryImpl<Stockexch
   }
 
   /**
-   * Schedules a trading calendar rebuild when the calendar source of the exchange changed. A newly assigned rule set
-   * or index triggers a full rebuild of this exchange through the matching background job; removing the source deletes
-   * the derived calendar so nothing stale remains. The user created non trading days are never affected.
+   * Schedules a trading calendar rebuild when the calendar source of the exchange changed. A newly assigned rule set or
+   * index triggers a full rebuild of this exchange through the matching background job; removing the source deletes the
+   * derived calendar so nothing stale remains. The user created non trading days are never affected.
    */
   private void enqueueCalendarRebuildOnSourceChange(Stockexchange saved, Integer oldIndex, Integer oldRuleSet) {
     Integer newIndex = saved.getIdIndexUpdCalendar();
@@ -117,12 +117,10 @@ public class StockexchangeJpaRepositoryImpl extends BaseRepositoryImpl<Stockexch
    * The dedup keeps repeated saves from piling up redundant rebuilds.
    */
   private void enqueueOncePerEntity(TaskTypeExtended taskType, Integer idStockexchange) {
-    if (taskDataChangeJpaRepository
-        .findByIdTaskAndIdEntityAndProgressStateType(taskType.getValue(), idStockexchange,
-            ProgressStateType.PROG_WAITING.getValue())
-        .isEmpty()) {
-      taskDataChangeJpaRepository.save(new TaskDataChange(taskType, TaskDataExecPriority.PRIO_LOW,
-          LocalDateTime.now(), idStockexchange, Stockexchange.class.getSimpleName()));
+    if (taskDataChangeJpaRepository.findByIdTaskAndIdEntityAndProgressStateType(taskType.getValue(), idStockexchange,
+        ProgressStateType.PROG_WAITING.getValue()).isEmpty()) {
+      taskDataChangeJpaRepository.save(new TaskDataChange(taskType, TaskDataExecPriority.PRIO_LOW, LocalDateTime.now(),
+          idStockexchange, Stockexchange.class.getSimpleName()));
     }
   }
 
@@ -135,13 +133,12 @@ public class StockexchangeJpaRepositoryImpl extends BaseRepositoryImpl<Stockexch
           .collect(Collectors.toMap(IdStockexchangeIndexName::getIdStockexchange, e -> e.getNameIndexSecurity()));
       // The calendar source is either the index or a rule set, so both names are resolved here and the table shows
       // whichever of the two is set.
-      Map<Integer, String> ruleSetNameMap = tradingCalendarRuleSetJpaRepository.findAll().stream()
-          .collect(Collectors.toMap(TradingCalendarRuleSet::getIdTradingCalendarRuleSet,
-              TradingCalendarRuleSet::getName));
+      Map<Integer, String> ruleSetNameMap = tradingCalendarRuleSetJpaRepository.findAll().stream().collect(
+          Collectors.toMap(TradingCalendarRuleSet::getIdTradingCalendarRuleSet, TradingCalendarRuleSet::getName));
       stockexchanes.forEach(se -> {
         se.setNameIndexUpdCalendar(idSecurtyMap.get(se.getIdStockexchange()));
-        se.setNameTradingCalendarRuleSet(se.getIdTradingCalendarRuleSet() == null ? null
-            : ruleSetNameMap.get(se.getIdTradingCalendarRuleSet()));
+        se.setNameTradingCalendarRuleSet(
+            se.getIdTradingCalendarRuleSet() == null ? null : ruleSetNameMap.get(se.getIdTradingCalendarRuleSet()));
       });
     }
     return stockexchanes;

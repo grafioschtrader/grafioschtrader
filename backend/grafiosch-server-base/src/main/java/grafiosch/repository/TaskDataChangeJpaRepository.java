@@ -16,8 +16,8 @@ public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChang
     TaskDataChangeJpaRepositoryCustom, UpdateCreateJpaRepository<TaskDataChange> {
 
   /**
-   * Finds all task data changes where the idTask is in the provided list.
-   * Used for filtering tasks by selected task types.
+   * Finds all task data changes where the idTask is in the provided list. Used for filtering tasks by selected task
+   * types.
    *
    * @param idTasks list of task type IDs to filter by
    * @return list of matching TaskDataChange entities

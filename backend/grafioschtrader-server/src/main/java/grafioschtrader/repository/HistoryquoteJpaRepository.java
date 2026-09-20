@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,6 +20,7 @@ import grafioschtrader.dto.IDateAndClose;
 import grafioschtrader.dto.IHistoryquoteQuality;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
+import grafioschtrader.dto.ISecuritycurrencyIdDateCloseCreateType;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.SecurityDerivedLink;
@@ -54,6 +56,22 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
       LocalDate date);
 
   List<Historyquote> findByIdSecuritycurrencyOrderByDateAsc(Integer idSecuritycurrency);
+
+  /**
+   * The most recent closing prices of one instrument, newest first, at most {@code limit} of them.
+   *
+   * <p>
+   * Indicator warm-up is counted in observations, not in days. Subtracting calendar days instead - which is what the
+   * alarm evaluation used to do - loses roughly three of every seven to weekends before public holidays are even
+   * considered, so a 200 period moving average asked for over 210 calendar days silently has about 145 observations and
+   * is never computed. The caller reverses the list when it needs chronological order.
+   * </p>
+   *
+   * @param idSecuritycurrency the instrument
+   * @param limit              how many observations to load at most
+   * @return the newest quotes first, fewer than {@code limit} when the instrument has no more
+   */
+  List<Historyquote> findByIdSecuritycurrencyOrderByDateDesc(Integer idSecuritycurrency, Limit limit);
 
   List<SecurityCurrencyIdAndDate> findByIdSecuritycurrency(Integer idSecuritycurrency);
 
@@ -234,35 +252,46 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
 
   /**
    * Retrieves the most recent (youngest) historical quote for each security or currency pair associated with a specific
-   * watchlist.
+   * watchlist, together with the create type of that quote.
    * <p>
    * The query identifies all securities/currencies in the given watchlist, finds the maximum (latest) date for each
-   * from their historical quotes, and then returns the security/currency ID, that latest date, and the corresponding
-   * closing price.
+   * from their historical quotes, and then returns the security/currency ID, that latest date, the corresponding
+   * closing price and how that price came into existence.
+   * </p>
+   * <p>
+   * The upper date bound is not a convenience: linear gap filling may reach into the future, up to the maturity of a
+   * bond or the horizon of the trading calendar, so without it the youngest quote of an instrument can be a price for a
+   * day that has not happened yet.
    * </p>
    *
+   * Named query: Historyquote.getYoungestHistorquoteForSecuritycurrencyByWatchlist
+   *
    * @param idWatchlist The ID of the watchlist.
-   * @return A list of ISecuritycurrencyIdDateClose objects, each containing the ID of the security/currency, the date
-   *         of its youngest quote, and the closing price on that date. Returns an empty list if the watchlist has no
+   * @param untilDate   The latest date a quote may carry, normally the current day.
+   * @return A list of ISecuritycurrencyIdDateCloseCreateType objects, each containing the ID of the security/currency,
+   *         the date of its youngest quote, the closing price on that date and the ordinal of its
+   *         {@link grafioschtrader.types.HistoryquoteCreateType}. Returns an empty list if the watchlist has no
    *         instruments or no historical quotes are found for them.
    */
   @Query(nativeQuery = true)
-  List<ISecuritycurrencyIdDateClose> getYoungestHistorquoteForSecuritycurrencyByWatchlist(Integer idWatchlist);
+  List<ISecuritycurrencyIdDateCloseCreateType> getYoungestHistorquoteForSecuritycurrencyByWatchlist(Integer idWatchlist,
+      LocalDate untilDate);
 
   //@formatter:off
   /**
-   * Retrieves the latest end-of-day quote for each security in the specified watchlist, scoped to the current tenant to
-   * enforce data isolation.
+   * Retrieves the oldest and the newest end-of-day quote date of every instrument of the specified watchlist, scoped to
+   * the current tenant to enforce data isolation.
    * - Uses id_tenant to prevent tenants from accessing each other’s data.
-   * - Finds the maximum quote date per security via a subquery joining watchlist, its entries, and historyquote.
-   * - Joins back to historyquote to fetch the complete record for each security’s max date.
+   * - Groups the historical prices of the watchlist entries per instrument, so only the two dates are read instead of
+   *   whole quote rows.
+   * - An instrument without any historical price is absent from the result.
    * - Returns results ordered by security ID in ascending order.
-   * @param The identifier of the watchlist containing the instruments.
-   * @param idTenant
+   * @param idWatchlist The identifier of the watchlist containing the instruments.
+   * @param idTenant The owner of the watchlist.
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  List<Historyquote> getYoungestFeedHistorquoteForSecuritycurrencyByWatchlist(Integer idWatchlist, Integer idTenant);
+  List<IMinMaxDateHistoryquote> getMinMaxDateByWatchlist(Integer idWatchlist, Integer idTenant);
 
   //@formatter:off
   /**
@@ -358,8 +387,8 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    */
   //@formatter:on
   @Query(nativeQuery = true)
-  List<ISecuritycurrencyIdDateClose> getIdDateCloseByIdsAndDate(@Param("ids") List<Integer> idSecuritycurrencies,
-      @Param("date") LocalDate date);
+  List<ISecuritycurrencyIdDateCloseCreateType> getIdDateCloseByIdsAndDate(
+      @Param("ids") List<Integer> idSecuritycurrencies, @Param("date") LocalDate date);
 
   /**
    * Retrieves all historical year-end closing prices for securities and currency pairs that are relevant to a specified

@@ -9,6 +9,7 @@ import { Transaction } from '../../entities/transaction';
 export class StandingOrderCallParam {
   constructor(
     public standingOrder: StandingOrder | null,
-    public transaction: Transaction | null
+    public transaction: Transaction | null,
+    public simulationTenant = false
   ) {}
 }

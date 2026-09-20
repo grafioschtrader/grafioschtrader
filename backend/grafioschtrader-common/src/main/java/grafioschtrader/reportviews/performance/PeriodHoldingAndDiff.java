@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Data container for period holding values and computed differences used in performance analysis.
- * 
+ *
  * <p>
  * This class serves multiple purposes in the performance reporting system:
  * </p>
@@ -28,7 +28,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * All monetary values are expressed in "MC" (Main Currency), which is either the tenant's base currency or the
  * portfolio's base currency depending on the analysis scope.
  * </p>
- * 
+ *
  * <p>
  * <strong>Difference Calculations:</strong>
  * </p>
@@ -42,7 +42,7 @@ public class PeriodHoldingAndDiff {
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Schema(description = "The date for which these holding values apply.")
   private LocalDate date;
-  
+
   @Schema(description = "Cumulative realized dividends in main currency.")
   private double dividendRealMC;
 
@@ -187,17 +187,17 @@ public class PeriodHoldingAndDiff {
 
   /**
    * Calculates the difference between this instance and another instance using reflection.
-   * 
+   *
    * <p>
    * This method automatically computes differences for all double-type properties that have both getter and setter
    * methods. The calculation is performed as (this.value - subtrahend.value) for each property.
    * </p>
-   * 
+   *
    * <p>
    * The result is a new PeriodHoldingAndDiff instance containing the differences, which can be used for
    * period-over-period analysis.
    * </p>
-   * 
+   *
    * @param subtrahendsHolding the instance to subtract from this one
    * @return a new instance containing the calculated differences
    */

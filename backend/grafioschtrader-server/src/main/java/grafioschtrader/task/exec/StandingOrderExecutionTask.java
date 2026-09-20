@@ -18,8 +18,8 @@ import grafioschtrader.types.TaskTypeExtended;
 
 /**
  * Scheduled task that processes due standing orders daily. Queries all active standing orders whose
- * {@code nextExecutionDate} has arrived and creates corresponding {@link grafioschtrader.entities.Transaction}
- * entities via the existing transaction pipeline.
+ * {@code nextExecutionDate} has arrived and creates corresponding {@link grafioschtrader.entities.Transaction} entities
+ * via the existing transaction pipeline.
  */
 @Component
 public class StandingOrderExecutionTask implements ITask {

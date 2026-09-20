@@ -33,6 +33,11 @@ public class WebSocketController {
   public String processMessageFromClient(Principal principal, QueryParam queryParam) throws Exception {
     log.info("Websocket - idWachtlist: {}", queryParam);
     final User user = (User) ((UserAuthentication) principal).getDetails();
+    // No servlet filter runs on this path, so the tenant context of the token is checked here: a revoked grant or a
+    // deleted simulation environment must not keep delivering data through an already established connection.
+    if (user.isTenantAccessForbidden()) {
+      return null;
+    }
     SecuritycurrencyGroup securitycurrencyGroup = watchlistReport
         .getWatchlistwithPeriodPerformance(queryParam.idWatchlist, user.getIdTenant(), queryParam.daysFrameDate);
     messagingTemplate.convertAndSendToUser(principal.getName(), "/queue/security", securitycurrencyGroup);

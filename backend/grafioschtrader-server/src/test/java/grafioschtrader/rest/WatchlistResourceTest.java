@@ -54,15 +54,9 @@ class WatchlistResourceTest extends BaseIntegrationTest {
   }
 
   private void createWatchlistWithInstruments(WatchlistFixture fixture) {
-    Watchlist created = authenticatedClient(fixture.loginNickname)
-        .post()
-        .uri(RequestGTMappings.WATCHLIST_MAP)
-        .body(new Watchlist(null, fixture.name))
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(Watchlist.class)
-        .returnResult()
-        .getResponseBody();
+    Watchlist created = authenticatedClient(fixture.loginNickname).post().uri(RequestGTMappings.WATCHLIST_MAP)
+        .body(new Watchlist(null, fixture.name)).exchange().expectStatus().isOk().expectBody(Watchlist.class)
+        .returnResult().getResponseBody();
 
     assertNotNull(created);
     Assertions.assertThat(created.getIdWatchlist()).isPositive();
@@ -70,25 +64,15 @@ class WatchlistResourceTest extends BaseIntegrationTest {
 
     SecuritycurrencyLists instruments = resolveInstruments(fixture, created.getIdWatchlist());
     if (!instruments.securityList.isEmpty() || !instruments.currencypairList.isEmpty()) {
-      authenticatedClient(fixture.loginNickname)
-          .put()
+      authenticatedClient(fixture.loginNickname).put()
           .uri(RequestGTMappings.WATCHLIST_MAP + "/" + created.getIdWatchlist() + "/addSecuritycurrency")
-          .body(instruments)
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(Watchlist.class)
-          .returnResult();
+          .body(instruments).exchange().expectStatus().isOk().expectBody(Watchlist.class).returnResult();
     }
 
     if (fixture.main) {
-      Tenant tenant = authenticatedClient(fixture.loginNickname)
-          .patch()
-          .uri(RequestGTMappings.TENANT_MAP + "/watchlistforperformance/" + created.getIdWatchlist())
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(Tenant.class)
-          .returnResult()
-          .getResponseBody();
+      Tenant tenant = authenticatedClient(fixture.loginNickname).patch()
+          .uri(RequestGTMappings.TENANT_MAP + "/watchlistforperformance/" + created.getIdWatchlist()).exchange()
+          .expectStatus().isOk().expectBody(Tenant.class).returnResult().getResponseBody();
       assertNotNull(tenant);
       Assertions.assertThat(tenant.getIdWatchlistPerformance()).isEqualTo(created.getIdWatchlist());
     }
@@ -99,91 +83,60 @@ class WatchlistResourceTest extends BaseIntegrationTest {
   private SecuritycurrencyLists resolveInstruments(WatchlistFixture fixture, Integer idWatchlist) {
     List<Security> securities = new ArrayList<>();
     for (SecurityFixture securityFixture : integrationSecurities(fixture)) {
-      SecuritycurrencyLists result = authenticatedClient(fixture.loginNickname)
-          .get()
-          .uri(uriBuilder -> uriBuilder
-              .path(RequestGTMappings.WATCHLIST_MAP + "/{idWatchlist}/search")
-              .queryParam("isin", securityFixture.isin)
-              .queryParam("currency", securityFixture.currency)
+      SecuritycurrencyLists result = authenticatedClient(fixture.loginNickname).get()
+          .uri(uriBuilder -> uriBuilder.path(RequestGTMappings.WATCHLIST_MAP + "/{idWatchlist}/search")
+              .queryParam("isin", securityFixture.isin).queryParam("currency", securityFixture.currency)
               .build(idWatchlist))
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(SecuritycurrencyLists.class)
-          .returnResult()
-          .getResponseBody();
+          .exchange().expectStatus().isOk().expectBody(SecuritycurrencyLists.class).returnResult().getResponseBody();
       assertNotNull(result);
       List<Security> exactMatches = result.securityList.stream()
           .filter(security -> securityFixture.isin.equals(security.getIsin())
               && securityFixture.currency.equals(security.getCurrency()))
           .toList();
       Assertions.assertThat(exactMatches)
-          .as("security resolved through REST: %s/%s", securityFixture.isin, securityFixture.currency)
-          .hasSize(1);
+          .as("security resolved through REST: %s/%s", securityFixture.isin, securityFixture.currency).hasSize(1);
       securities.add(exactMatches.getFirst());
     }
 
     List<Currencypair> currencypairs = new ArrayList<>();
     for (CurrencyPairFixture currencypairFixture : integrationCurrencyPairs(fixture)) {
-      SecuritycurrencyLists result = authenticatedClient(fixture.loginNickname)
-          .get()
-          .uri(uriBuilder -> uriBuilder
-              .path(RequestGTMappings.WATCHLIST_MAP + "/{idWatchlist}/search")
+      SecuritycurrencyLists result = authenticatedClient(fixture.loginNickname).get()
+          .uri(uriBuilder -> uriBuilder.path(RequestGTMappings.WATCHLIST_MAP + "/{idWatchlist}/search")
               .queryParam("assetclassType", AssetclassType.CURRENCY_PAIR)
-              .queryParam("name", currencypairFixture.fromCurrency)
-              .build(idWatchlist))
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(SecuritycurrencyLists.class)
-          .returnResult()
-          .getResponseBody();
+              .queryParam("name", currencypairFixture.fromCurrency).build(idWatchlist))
+          .exchange().expectStatus().isOk().expectBody(SecuritycurrencyLists.class).returnResult().getResponseBody();
       assertNotNull(result);
       List<Currencypair> exactMatches = result.currencypairList.stream()
           .filter(currencypair -> currencypairFixture.fromCurrency.equals(currencypair.getFromCurrency())
               && currencypairFixture.toCurrency.equals(currencypair.getToCurrency()))
           .toList();
-      Assertions.assertThat(exactMatches)
-          .as("currency pair resolved through REST: %s/%s", currencypairFixture.fromCurrency,
-              currencypairFixture.toCurrency)
-          .hasSize(1);
+      Assertions.assertThat(exactMatches).as("currency pair resolved through REST: %s/%s",
+          currencypairFixture.fromCurrency, currencypairFixture.toCurrency).hasSize(1);
       currencypairs.add(exactMatches.getFirst());
     }
     return new SecuritycurrencyLists(securities, currencypairs);
   }
 
   private void verifyWatchlistThroughRest(WatchlistFixture fixture, Integer idWatchlist) {
-    String responseBody = authenticatedClient(fixture.loginNickname)
-        .get()
-        .uri(RequestGTMappings.WATCHLIST_MAP + "/" + idWatchlist)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(String.class)
-        .returnResult()
-        .getResponseBody();
+    String responseBody = authenticatedClient(fixture.loginNickname).get()
+        .uri(RequestGTMappings.WATCHLIST_MAP + "/" + idWatchlist).exchange().expectStatus().isOk()
+        .expectBody(String.class).returnResult().getResponseBody();
     assertNotNull(responseBody);
     JsonNode response = parseJson(responseBody);
 
     Set<String> actualSecurities = valuesOf(response.path("securityPositionList"), "isin", "currency");
     Set<String> expectedSecurities = integrationSecurities(fixture).stream()
-        .map(security -> security.isin + "|" + security.currency)
-        .collect(Collectors.toSet());
-    Set<String> actualCurrencypairs = valuesOf(response.path("currencypairPositionList"), "fromCurrency",
-        "toCurrency");
+        .map(security -> security.isin + "|" + security.currency).collect(Collectors.toSet());
+    Set<String> actualCurrencypairs = valuesOf(response.path("currencypairPositionList"), "fromCurrency", "toCurrency");
     Set<String> expectedCurrencypairs = integrationCurrencyPairs(fixture).stream()
-        .map(currencypair -> currencypair.fromCurrency + "|" + currencypair.toCurrency)
-        .collect(Collectors.toSet());
+        .map(currencypair -> currencypair.fromCurrency + "|" + currencypair.toCurrency).collect(Collectors.toSet());
 
     Assertions.assertThat(actualSecurities).containsExactlyInAnyOrderElementsOf(expectedSecurities);
     Assertions.assertThat(actualCurrencypairs).containsExactlyInAnyOrderElementsOf(expectedCurrencypairs);
 
     if (fixture.main) {
-      Tenant tenant = authenticatedClient(fixture.loginNickname)
-          .get()
-          .uri(RequestGTMappings.TENANT_MAP)
-          .exchange()
-          .expectStatus().isOk()
-          .expectBody(Tenant.class)
-          .returnResult()
-          .getResponseBody();
+      Tenant tenant = authenticatedClient(fixture.loginNickname).get().uri(RequestGTMappings.TENANT_MAP).exchange()
+          .expectStatus().isOk().expectBody(Tenant.class).returnResult().getResponseBody();
       assertNotNull(tenant);
       Assertions.assertThat(tenant.getIdWatchlistPerformance()).isEqualTo(idWatchlist);
     }

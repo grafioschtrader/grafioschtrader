@@ -5,12 +5,13 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Configuration for an RSI (Relative Strength Index) threshold alert (security level only). The alert fires when
- * the RSI value drops below the lower threshold (oversold) or rises above the upper threshold (overbought). At
- * least one of the two thresholds should be set; if both are set, either breach triggers the alert.
+ * Configuration for an RSI (Relative Strength Index) threshold alert (security level only). The alert fires when the
+ * RSI value drops below the lower threshold (oversold) or rises above the upper threshold (overbought). At least one of
+ * the two thresholds should be set; if both are set, either breach triggers the alert.
  *
- * <p>Evaluated by Tier 2 (scheduled indicator evaluation) because it requires historical price data for RSI
- * calculation.</p>
+ * <p>
+ * Evaluated by Tier 2 (scheduled indicator evaluation) because it requires historical price data for RSI calculation.
+ * </p>
  */
 public class RsiThresholdAlert {
 

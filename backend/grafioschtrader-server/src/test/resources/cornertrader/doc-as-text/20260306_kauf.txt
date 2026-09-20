@@ -1,0 +1,29 @@
+Detail der Kontobewegungen
+Nummer der Kundenbeziehung 999999
+Konto 01 CHF
+Datum 19.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+Kauf Exch.Traded Fund Obb 06/03/26 10/03/26 7.706,70-
+Depot 999999/01
+Ihr Auftrag vom 06.03.2026
+ISHARES VI PLC J.P. MORGAN USD EM
+BOND CHF HEDGED UCITS ETF
+Valorennummer 22138623
+ISIN Nummer IE00B9M04V95
+Jährliche Couponfälligkeit, am 01.01
+Ausführungsdatum 06.03.2026
+Ausführungszeit (GMT + 1) 16.20.24
+Anzahl 2.580,00
+Zum Kurs von 2,98 CHF
+Börsenplatz SIX BORSA CH
+Bruttobetrag 7.688,40- CHF
+Handelsgebühr 4,85- CHF
+Fremdgebühren 1,15- CHF
+Stempel 11,53- CHF
+Ausführungsgeb. Swx 0,77- CHF
+Totalbetrag 7.706,70- CHF
+Unsere Ref: EXAMPLE/2026/1
+Via e-banking gedruckt Cornèr Bank AG
+Im Falle von Abweichungen zwischen den vom Cornèronline-System zur Verfügung gestellten Daten oder Dokumenten
+und jenen, die von der Bank in ihrer Buchhaltung registriert werden, sind auf alle Fälle letztere massgebend. mail@corneronline.ch
+1/1

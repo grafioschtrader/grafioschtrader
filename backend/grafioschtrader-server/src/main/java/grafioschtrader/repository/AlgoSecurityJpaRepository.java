@@ -1,6 +1,5 @@
 package grafioschtrader.repository;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,8 +12,6 @@ import grafioschtrader.entities.AlgoSecurity;
 public interface AlgoSecurityJpaRepository extends JpaRepository<AlgoSecurity, Integer>,
     AlgoSecurityJpaRepositoryCustom, UpdateCreateDeleteWithTenantJpaRepository<AlgoSecurity> {
 
-  AlgoSecurity findBySecurity_idSecuritycurrencyAndIdTenant(Integer idSecuritycurrency, Integer idTenant);
-
   @Transactional
   @Modifying
   int deleteByIdAlgoAssetclassSecurityAndIdTenant(Integer idAlgoAssetclassSecurity, Integer idTenant);
@@ -25,11 +22,19 @@ public interface AlgoSecurityJpaRepository extends JpaRepository<AlgoSecurity, I
   /** All AlgoSecurity entries for a given tenant (used by tenant alert overview). */
   List<AlgoSecurity> findByIdTenant(Integer idTenant);
 
-  /** Tier 2: all active standalone alerts (no parent AlgoAssetclass). */
-  List<AlgoSecurity> findByActivatableTrueAndIdAlgoSecurityParentIsNull();
+  /**
+   * All standalone alert nodes, the ones a user added straight from a watchlist or portfolio row rather than inside an
+   * AlgoTop hierarchy. Deactivated nodes are included on purpose: the evaluation has to see them in order to discard
+   * their crossing baselines, so that switching an alert on again cannot report a price move that happened while it was
+   * off.
+   */
+  List<AlgoSecurity> findByIdAlgoSecurityParentIsNull();
 
-  /** Tier 1: active standalone alerts matching specific updated securities. */
-  List<AlgoSecurity> findByActivatableTrueAndIdAlgoSecurityParentIsNullAndSecurity_idSecuritycurrencyIn(
-      Collection<Integer> securityIds);
+  /**
+   * The standalone alert node of one instrument within a tenant, if there is one. Restricted to nodes without a parent,
+   * so that an instrument which also sits inside an AlgoTop hierarchy is not mistaken for a standalone alert.
+   */
+  AlgoSecurity findBySecurity_idSecuritycurrencyAndIdTenantAndIdAlgoSecurityParentIsNull(Integer idSecuritycurrency,
+      Integer idTenant);
 
 }

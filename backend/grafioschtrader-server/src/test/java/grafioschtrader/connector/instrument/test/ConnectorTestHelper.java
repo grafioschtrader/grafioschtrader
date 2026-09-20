@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
+
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.entities.Assetclass;
@@ -31,7 +32,6 @@ public class ConnectorTestHelper {
   final static String ISIN_Walmart = "US9311421039";
 
   final static SecureRandom rnd = new SecureRandom();
-
 
   public static void checkHistoryquoteUniqueDate(String name, List<Historyquote> historyquotes) {
     Set<LocalDate> dateSet = new HashSet<>();
@@ -392,7 +392,7 @@ public class ConnectorTestHelper {
 
     public DividendSplitCount(String name, String isin, int expectedRows, String fromStr, String toStr, String mic,
         String currency, SpecialInvestmentInstruments specialInvestmentInstrument) throws ParseException {
-      super(name, isin, specialInvestmentInstrument, null, mic, currency, expectedRows, fromStr, toStr);
+      super(name, isin, specialInvestmentInstrument, null, null, mic, currency, expectedRows, fromStr, toStr);
     }
 
   }

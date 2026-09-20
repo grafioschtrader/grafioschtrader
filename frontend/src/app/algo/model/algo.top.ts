@@ -8,7 +8,7 @@ export class AlgoTop extends AlgoTopAssetSecurity implements AlgoTreeName {
   @Type(() => AlgoAssetclass)
   algoAssetclassList: AlgoAssetclass[];
   idWatchlist: number = null;
-  activatable: boolean;
+  activatable: boolean = true;
   referenceDate: Date;
   addedPercentage: number;
 

@@ -21,8 +21,8 @@ import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManager;
 
 /**
- * Compares actual recorded transaction costs with estimated costs from the EvalEx-based
- * fee model configured on a security account's TradingPlatformPlan.
+ * Compares actual recorded transaction costs with estimated costs from the EvalEx-based fee model configured on a
+ * security account's TradingPlatformPlan.
  */
 @Service
 public class FeeModelComparisonService {
@@ -37,8 +37,7 @@ public class FeeModelComparisonService {
   private EntityManager entityManager;
 
   /**
-   * Loads BUY/SELL transactions for the given security account and compares
-   * actual costs with the fee model estimates.
+   * Loads BUY/SELL transactions for the given security account and compares actual costs with the fee model estimates.
    *
    * @param idSecuritycashAccount the security account ID
    * @param excludeZeroCost       if true, skip transactions with null or zero cost
@@ -47,8 +46,8 @@ public class FeeModelComparisonService {
   @Transactional(readOnly = true)
   public FeeModelComparisonResponse compare(Integer idSecuritycashAccount, boolean excludeZeroCost) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    Securityaccount sa = securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(
-        idSecuritycashAccount, user.getIdTenant());
+    Securityaccount sa = securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(idSecuritycashAccount,
+        user.getIdTenant());
     if (sa == null) {
       return emptyResponse("Security account not found or not owned by current tenant");
     }
@@ -148,9 +147,8 @@ public class FeeModelComparisonService {
 
   private FeeModelComparisonDetail buildDetail(Transaction tx, TransactionCostEstimateRequest request) {
     FeeModelComparisonDetail detail = new FeeModelComparisonDetail();
-    detail.setTransactionDate(tx.getTransactionDate() != null
-        ? tx.getTransactionDate()
-        : tx.getTransactionTime().toLocalDate());
+    detail.setTransactionDate(
+        tx.getTransactionDate() != null ? tx.getTransactionDate() : tx.getTransactionTime().toLocalDate());
     detail.setTransactionType(tx.getTransactionType().name());
     detail.setSecurityName(tx.getSecurity() != null ? tx.getSecurity().getName() : "?");
 
@@ -164,7 +162,8 @@ public class FeeModelComparisonService {
     }
 
     detail.setMic(tx.getSecurity() != null && tx.getSecurity().getStockexchange() != null
-        ? tx.getSecurity().getStockexchange().getMic() : "");
+        ? tx.getSecurity().getStockexchange().getMic()
+        : "");
     detail.setCurrency(tx.getSecurity() != null ? tx.getSecurity().getCurrency() : "");
     detail.setQuotation(tx.getQuotation() != null ? tx.getQuotation() : 0.0);
     detail.setUnits(tx.getUnits() != null ? tx.getUnits() : 0.0);
@@ -174,54 +173,31 @@ public class FeeModelComparisonService {
   }
 
   /**
-   * Builds the estimation request from a transaction, mirroring the logic in
-   * TransactionCostEstimatorReportTest.buildRequest().
+   * Builds the estimation request from a recorded transaction. The mapping itself lives on the estimator, so that the
+   * historical replay evaluates a fee model against exactly the inputs this report calibrates it with.
+   *
+   * <p>
+   * {@code fixedAssets} is 0 here: the report walks years of transactions and the account value of each of those days
+   * is not loaded, so a tiered model is graded against an unknown rather than against a value of the wrong day.
+   * </p>
    */
   private TransactionCostEstimateRequest buildRequest(Transaction tx, TradingPlatformPlan plan) {
-    TransactionCostEstimateRequest req = new TransactionCostEstimateRequest();
-    req.setIdTradingPlatformPlan(plan.getIdTradingPlatformPlan());
-
-    double units = tx.getUnits() != null ? tx.getUnits() : 0.0;
-    double quotation = tx.getQuotation() != null ? tx.getQuotation() : 0.0;
-    req.setTradeValue(units * quotation);
-    req.setUnits(units);
-
-    if (tx.getSecurity() != null && tx.getSecurity().getAssetClass() != null) {
-      req.setSpecInvestInstrument(tx.getSecurity().getAssetClass().getSpecialInvestmentInstrument() != null
-          ? (int) tx.getSecurity().getAssetClass().getSpecialInvestmentInstrument().getValue() : 0);
-      req.setCategoryType(tx.getSecurity().getAssetClass().getCategoryType() != null
-          ? (int) tx.getSecurity().getAssetClass().getCategoryType().getValue() : 0);
-    } else {
-      req.setSpecInvestInstrument(0);
-      req.setCategoryType(0);
-    }
-
-    req.setMic(tx.getSecurity() != null && tx.getSecurity().getStockexchange() != null
-        && tx.getSecurity().getStockexchange().getMic() != null
-            ? tx.getSecurity().getStockexchange().getMic() : "");
-    req.setCurrency(tx.getSecurity() != null && tx.getSecurity().getCurrency() != null
-        ? tx.getSecurity().getCurrency() : "");
-    req.setTradeDirection(tx.getTransactionType() == TransactionType.ACCUMULATE ? 0 : 1);
-    req.setFixedAssets(0.0);
-    req.setTransactionDate(tx.getTransactionDate() != null
-        ? tx.getTransactionDate().toString()
-        : (tx.getTransactionTime() != null ? tx.getTransactionTime().toLocalDate().toString() : null));
-
-    return req;
+    return TransactionCostEvalExEstimator.buildRequest(tx.getSecurity(), tx.getUnits() != null ? tx.getUnits() : 0.0,
+        tx.getQuotation() != null ? tx.getQuotation() : 0.0, tx.getTransactionType(),
+        tx.getTransactionDate() != null ? tx.getTransactionDate()
+            : (tx.getTransactionTime() != null ? tx.getTransactionTime().toLocalDate() : null),
+        plan.getIdTradingPlatformPlan(), 0.0);
   }
 
   private List<Transaction> loadBuySellTransactions(Integer idSecuritycashAccount) {
-    return entityManager.createQuery(
-        "SELECT t FROM Transaction t JOIN FETCH t.security s " +
-            "JOIN FETCH s.assetClass JOIN FETCH s.stockexchange " +
-            "WHERE t.idSecurityaccount = :idSa " +
-            "AND t.transactionType IN (:buy, :sell) AND t.security IS NOT NULL " +
-            "ORDER BY t.transactionDate",
-        Transaction.class)
-        .setParameter("idSa", idSecuritycashAccount)
-        .setParameter("buy", TransactionType.ACCUMULATE.getValue())
-        .setParameter("sell", TransactionType.REDUCE.getValue())
-        .getResultList();
+    return entityManager
+        .createQuery(
+            "SELECT t FROM Transaction t JOIN FETCH t.security s "
+                + "JOIN FETCH s.assetClass JOIN FETCH s.stockexchange " + "WHERE t.idSecurityaccount = :idSa "
+                + "AND t.transactionType IN (:buy, :sell) AND t.security IS NOT NULL " + "ORDER BY t.transactionDate",
+            Transaction.class)
+        .setParameter("idSa", idSecuritycashAccount).setParameter("buy", TransactionType.ACCUMULATE.getValue())
+        .setParameter("sell", TransactionType.REDUCE.getValue()).getResultList();
   }
 
   private FeeModelComparisonResponse emptyResponse(String planName) {

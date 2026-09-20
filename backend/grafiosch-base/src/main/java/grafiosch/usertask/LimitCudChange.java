@@ -11,11 +11,11 @@ import jakarta.validation.constraints.Size;
  * Model class representing a request to modify CUD (Create, Update, Delete) operation limits for a specific entity
  * type. This class is used when users with limited privileges request an increase in their daily operation allowances
  * for particular entity types.
- * 
+ *
  * Users with restricted roles may have daily limits on how many CUD operations they can perform on different entity
  * types. When they need to exceed these limits, they can submit a proposal using this model class, which administrators
  * can review and approve.<br>
- * 
+ *
  * The class enforces validation constraints to ensure reasonable limit requests:<br>
  * - Entity names must be between 1-40 characters<br>
  * - Day limits must be between 1-99 operations<br>

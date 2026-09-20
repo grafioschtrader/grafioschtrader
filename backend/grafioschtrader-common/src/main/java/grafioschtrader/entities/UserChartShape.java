@@ -20,8 +20,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Persists user-drawn chart shapes (lines, rectangles, circles, paths) for a specific security or currency pair.
- * Shapes are stored as JSON matching the Plotly.js shape format and are scoped per user and instrument.
+ * Persists user-drawn chart shapes (lines, rectangles, circles, paths) for a specific security or currency pair. Shapes
+ * are stored as JSON matching the Plotly.js shape format and are scoped per user and instrument.
  */
 @Schema(description = """
     Stores chart drawing shapes per user and security/currency pair. The shape data is stored as a JSON array

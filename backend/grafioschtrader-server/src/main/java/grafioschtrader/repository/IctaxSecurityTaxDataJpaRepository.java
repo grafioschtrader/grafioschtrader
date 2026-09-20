@@ -19,23 +19,20 @@ public interface IctaxSecurityTaxDataJpaRepository extends JpaRepository<IctaxSe
    * @return list of matching tax data entries with their payments eagerly loaded
    */
   @Query("SELECT d FROM IctaxSecurityTaxData d LEFT JOIN FETCH d.payments "
-      + "JOIN TaxUpload u ON d.idTaxUpload = u.idTaxUpload "
-      + "JOIN TaxYear y ON u.idTaxYear = y.idTaxYear "
+      + "JOIN TaxUpload u ON d.idTaxUpload = u.idTaxUpload " + "JOIN TaxYear y ON u.idTaxYear = y.idTaxYear "
       + "WHERE d.isin IN :isins AND y.taxYear = :taxYear")
   List<IctaxSecurityTaxData> findByIsinInAndTaxYear(Collection<String> isins, short taxYear);
 
   /**
-   * Finds the distinct tax years for which ICTax data exists for the given ISIN. Joins through tax_upload →
-   * tax_year like {@link #findByIsinInAndTaxYear}. The tax year correction dialog uses this to decide for which
-   * years the override fields may be edited (years without ICTax data allow only a comment).
+   * Finds the distinct tax years for which ICTax data exists for the given ISIN. Joins through tax_upload → tax_year
+   * like {@link #findByIsinInAndTaxYear}. The tax year correction dialog uses this to decide for which years the
+   * override fields may be edited (years without ICTax data allow only a comment).
    *
    * @param isin the ISIN to look up
    * @return distinct tax years with ICTax data, possibly empty
    */
-  @Query("SELECT DISTINCT y.taxYear FROM IctaxSecurityTaxData d "
-      + "JOIN TaxUpload u ON d.idTaxUpload = u.idTaxUpload "
-      + "JOIN TaxYear y ON u.idTaxYear = y.idTaxYear "
-      + "WHERE d.isin = :isin ORDER BY y.taxYear DESC")
+  @Query("SELECT DISTINCT y.taxYear FROM IctaxSecurityTaxData d " + "JOIN TaxUpload u ON d.idTaxUpload = u.idTaxUpload "
+      + "JOIN TaxYear y ON u.idTaxYear = y.idTaxYear " + "WHERE d.isin = :isin ORDER BY y.taxYear DESC")
   List<Short> findTaxYearsByIsin(String isin);
 
   void deleteByIdTaxUpload(int idTaxUpload);

@@ -1,7 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { BaseInputComponent } from '../base.input.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { FilterOutPipe } from '../../pipe/FilterOutPipe';
@@ -15,7 +14,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
     <ng-container [formGroup]="group">
       <select
         #input
-        [ngStyle]="{ width: config.inputWidth + 1 + 'em' }"
+        [style.width]="config.inputWidth ? config.inputWidth + 1 + 'em' : null"
         class="form-select form-select-sm"
         [class.required-input]="isRequired"
         [id]="config.field"
@@ -29,7 +28,7 @@ import { FilterOutPipe } from '../../pipe/FilterOutPipe';
       </select>
     </ng-container>
   `,
-  imports: [ReactiveFormsModule, CommonModule, TooltipModule, TranslateModule, FilterOutPipe],
+  imports: [ReactiveFormsModule, TooltipModule, TranslateModule, FilterOutPipe],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true
 })

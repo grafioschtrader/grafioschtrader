@@ -7,18 +7,18 @@ import jakarta.persistence.MappedSuperclass;
 /**
  * Abstract base class for typed parameters stored in JPA element collections.
  *
- * This class provides a common structure for key-value parameter maps where the key is defined
- * by {@code @MapKeyColumn} in the owning entity and the value is stored as a string. Subclasses
- * are used as embeddable value types in {@code @ElementCollection} mappings.
+ * This class provides a common structure for key-value parameter maps where the key is defined by {@code @MapKeyColumn}
+ * in the owning entity and the value is stored as a string. Subclasses are used as embeddable value types in
+ * {@code @ElementCollection} mappings.
  *
  * Known subclasses:
  * <ul>
- *   <li>{@code GTNetMessage.GTNetMessageParam} - Parameters for GTNet inter-instance messages</li>
- *   <li>{@code AlgoRuleStrategy.AlgoRuleStrategyParam} - Parameters for trading strategies</li>
+ * <li>{@code GTNetMessage.GTNetMessageParam} - Parameters for GTNet inter-instance messages</li>
+ * <li>{@code AlgoRuleStrategy.AlgoRuleStrategyParam} - Parameters for trading strategies</li>
  * </ul>
  *
- * The string value can represent any serializable data type; parsing/conversion is the responsibility
- * of the consuming code based on the parameter key's expected type.
+ * The string value can represent any serializable data type; parsing/conversion is the responsibility of the consuming
+ * code based on the parameter key's expected type.
  */
 @MappedSuperclass
 @Schema(description = """

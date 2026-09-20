@@ -17,8 +17,8 @@ import grafioschtrader.types.RepeatUnit;
 import grafioschtrader.types.WeekendAdjustType;
 
 /**
- * Unit tests for the static date computation and cost evaluation helpers in {@link StandingOrderExecutionService}.
- * No Spring context is needed — all methods under test are pure static functions.
+ * Unit tests for the static date computation and cost evaluation helpers in {@link StandingOrderExecutionService}. No
+ * Spring context is needed — all methods under test are pure static functions.
  */
 class StandingOrderDateComputeTest {
 
@@ -101,10 +101,8 @@ class StandingOrderDateComputeTest {
     @Test
     @DisplayName("Full window keeps the closest date first at every distance")
     void fullWindowOrderedByDistance() {
-      assertEquals(
-          List.of(DATE, DATE.minusDays(1), DATE.plusDays(1), DATE.minusDays(2), DATE.plusDays(2), DATE.minusDays(3),
-              DATE.plusDays(3)),
-          StandingOrderExecutionService.toleranceCandidates(DATE, (byte) -3));
+      assertEquals(List.of(DATE, DATE.minusDays(1), DATE.plusDays(1), DATE.minusDays(2), DATE.plusDays(2),
+          DATE.minusDays(3), DATE.plusDays(3)), StandingOrderExecutionService.toleranceCandidates(DATE, (byte) -3));
     }
   }
 
@@ -241,8 +239,9 @@ class StandingOrderDateComputeTest {
       // CHF 3.00 account fee debited from a USD account on 2026-07-10: CHF->USD close 1.2366 plus a 1.9% spread.
       // The bank booked 3.79 USD; a constant spread on the mid-market rate cannot match that exactly, because the
       // bank's own spread varies. One cent off is the expected residual, not a defect.
-      assertEquals(3.78, Math.round(StandingOrderExecutionService.evaluateCashAmountFormula("a * r * 1.019", 3.0,
-          1.2366) * 100.0) / 100.0);
+      assertEquals(3.78,
+          Math.round(StandingOrderExecutionService.evaluateCashAmountFormula("a * r * 1.019", 3.0, 1.2366) * 100.0)
+              / 100.0);
     }
 
     @Test
@@ -267,8 +266,8 @@ class StandingOrderDateComputeTest {
 
   // ---- Helper to build a minimal StandingOrder for date computation tests ----
 
-  private static StandingOrder createStandingOrder(RepeatUnit repeatUnit, short interval,
-      PeriodDayPosition dayPosition, Byte dayOfExecution, Byte monthOfExecution) {
+  private static StandingOrder createStandingOrder(RepeatUnit repeatUnit, short interval, PeriodDayPosition dayPosition,
+      Byte dayOfExecution, Byte monthOfExecution) {
     StandingOrderCashaccount so = new StandingOrderCashaccount();
     so.setRepeatUnit(repeatUnit);
     so.setRepeatInterval(interval);

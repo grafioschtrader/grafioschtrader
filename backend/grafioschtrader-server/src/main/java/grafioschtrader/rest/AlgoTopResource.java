@@ -20,10 +20,13 @@ import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.algo.AlgoTopCreate;
 import grafioschtrader.algo.AlgoTopCreateFromPortfolio;
+import grafioschtrader.algo.AlgoTopCreateFromWatchlist;
+import grafioschtrader.dto.AlgoHierarchyDto;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.AlgoTopJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
+import grafioschtrader.service.AlgoHierarchyViewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,7 +43,10 @@ public class AlgoTopResource extends AlgoBaseResource<AlgoTop> {
   private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
-  private grafioschtrader.service.AlgoAlarmEvaluationService algoAlarmEvaluationService;
+  private AlgoAlertResource algoAlertResource;
+
+  @Autowired
+  private AlgoHierarchyViewService hierarchyViewService;
 
   public AlgoTopResource() {
     super(AlgoTop.class);
@@ -72,14 +78,21 @@ public class AlgoTopResource extends AlgoBaseResource<AlgoTop> {
   public ResponseEntity<AlgoTop> getAlgoTopByIdAlgoAssetclassSecurity(
       @Parameter(description = "Id of top level algorithmic trading", required = true) @PathVariable final Integer idAlgoAssetclassSecurity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(
-        algoTopJpaRepository.findByIdTenantAndIdAlgoAssetclassSecurity(user.getActualIdTenant(), idAlgoAssetclassSecurity),
-        HttpStatus.OK);
+    return new ResponseEntity<>(algoTopJpaRepository.findByIdTenantAndIdAlgoAssetclassSecurity(user.getActualIdTenant(),
+        idAlgoAssetclassSecurity), HttpStatus.OK);
   }
 
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<AlgoTop> getUpdateCreateJpaRepository() {
     return algoTopJpaRepository;
+  }
+
+  @Operation(summary = "Read the allocation hierarchy with backend-calculated overview warnings", tags = {
+      RequestGTMappings.ALGOTOP })
+  @GetMapping(value = "/{idAlgoTop}/hierarchy", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<AlgoHierarchyDto> getHierarchy(@PathVariable Integer idAlgoTop) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return ResponseEntity.ok(hierarchyViewService.getHierarchy(user.getActualIdTenant(), idAlgoTop));
   }
 
   @Operation(summary = "", description = "", tags = { RequestGTMappings.ALGOTOP })
@@ -88,26 +101,38 @@ public class AlgoTopResource extends AlgoBaseResource<AlgoTop> {
     return createEntity(algoTopCreate);
   }
 
-  @Operation(summary = "Auto-generate AlgoTop hierarchy from portfolio holdings at reference date",
-      description = "Creates AlgoTop with AlgoAssetclass and AlgoSecurity children based on actual holdings",
-      tags = { RequestGTMappings.ALGOTOP })
+  @Operation(summary = "Auto-generate AlgoTop hierarchy from portfolio holdings at reference date", description = """
+      Creates AlgoTop with AlgoAssetclass and AlgoSecurity children from the tenant's end-of-day holdings at the
+      reference date. No watchlist is required or linked; any supplied watchlist ID is ignored.""", tags = {
+      RequestGTMappings.ALGOTOP })
   @PostMapping(value = "/createfromportfolio", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<AlgoTop> createFromPortfolio(
-      @RequestBody AlgoTopCreateFromPortfolio dto) throws Exception {
+  public ResponseEntity<AlgoTop> createFromPortfolio(@RequestBody AlgoTopCreateFromPortfolio dto) throws Exception {
     return createEntity(dto);
   }
 
-  @Operation(summary = "Manually trigger alarm evaluation for current tenant", description = "Evaluates all indicator-based alerts for active AlgoTop configurations", tags = {
+  @Operation(summary = "Auto-generate AlgoTop hierarchy from the instruments of a watchlist", description = """
+      Creates the AlgoTop with its AlgoAssetclass and AlgoSecurity children from the instruments of the linked
+      watchlist, grouped by asset class. A watchlist carries no amounts, so both generated levels are weighted
+      equally: the asset classes among themselves and the instruments within their asset class.""", tags = {
       RequestGTMappings.ALGOTOP })
+  @PostMapping(value = "/createfromwatchlist", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<AlgoTop> createFromWatchlist(@RequestBody AlgoTopCreateFromWatchlist dto) throws Exception {
+    return createEntity(dto);
+  }
+
+  @Operation(summary = "Evaluate the alerts of the calling tenant now", description = """
+      Evaluates every active alert of the caller's own tenant, both the price and holding alerts and the ones that
+      need price history, and notifies on whatever fires. Scoped to that tenant: this used to call the scheduled
+      evaluation, which walks every tenant's configuration, so pressing the button evaluated and notified on other
+      users' alerts as well.""", tags = { RequestGTMappings.ALGOTOP })
   @PostMapping(value = "/evaluatealarms", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> evaluateAlarms() {
-    algoAlarmEvaluationService.evaluateIndicatorAlerts();
+    algoAlertResource.evaluateNow();
     return ResponseEntity.ok().build();
   }
 
-  @Operation(summary = "Normalize child percentages to sum to 100%",
-      description = "Recalculates percentages of direct children (AlgoAssetclass or AlgoSecurity) of the given parent so they sum to exactly 100.00",
-      tags = { RequestGTMappings.ALGOTOP })
+  @Operation(summary = "Normalize child percentages to sum to 100%", description = "Recalculates percentages of direct children (AlgoAssetclass or AlgoSecurity) of the given parent so they sum to exactly 100.00", tags = {
+      RequestGTMappings.ALGOTOP })
   @PutMapping(value = "/normalizepercentages/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> normalizePercentages(@PathVariable Integer idAlgoAssetclassSecurity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
@@ -115,15 +140,13 @@ public class AlgoTopResource extends AlgoBaseResource<AlgoTop> {
     return ResponseEntity.ok().build();
   }
 
-  @Operation(summary = "Normalize all percentages in the entire AlgoTop tree",
-      description = "Normalizes AlgoAssetclass children and all their AlgoSecurity children so each level sums to exactly 100.00",
-      tags = { RequestGTMappings.ALGOTOP })
+  @Operation(summary = "Normalize all percentages in the entire AlgoTop tree", description = "Normalizes AlgoAssetclass children and all their AlgoSecurity children so each level sums to exactly 100.00", tags = {
+      RequestGTMappings.ALGOTOP })
   @PutMapping(value = "/normalizeallpercentages/{idAlgoAssetclassSecurity}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> normalizeAllPercentages(@PathVariable Integer idAlgoAssetclassSecurity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     algoTopJpaRepository.normalizeAllPercentages(idAlgoAssetclassSecurity, user.getActualIdTenant());
     return ResponseEntity.ok().build();
   }
-
 
 }

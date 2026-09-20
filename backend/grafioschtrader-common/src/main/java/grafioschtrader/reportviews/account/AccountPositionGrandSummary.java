@@ -20,39 +20,37 @@ public class AccountPositionGrandSummary {
 
   @Schema(description = "Total external cash transfers (deposits and withdrawals) to/from outside the portfolio system")
   public double grandCashBalanceMC = 0.0;
-  
+
   @Schema(description = "Total external cash transfers (deposits and withdrawals) to/from outside the portfolio system")
   public double grandExternalCashTransferMC = 0.0;
-  
+
   @Schema(description = "Total internal cash transfers between accounts")
   public double grandCashTransferMC = 0.0;
-  
+
   @Schema(description = "Total transaction fees charged on cash account operations (deposits, withdrawals, transfers)")
   public double grandCashAccountTransactionFeeMC = 0.0;
-  
+
   @Schema(description = "Total current market value of all security positions across all portfolios")
   public double grandValueSecuritiesMC = 0.0;
-  
+
   @Schema(description = "Total realized and unrealized gains/losses on all security positions")
   public double grandGainLossSecuritiesMC = 0.0;
-  
+
   @Schema(description = "Total foreign exchange gains/losses from currency fluctuations on multi-currency positions")
   public double grandGainLossCurrencyMC = 0.0;
-  
+
   @Schema(description = """
       Total separately booked account and depot fees across all accounts. Trading costs contained in a purchase or sale
       and the financing costs of margin positions are not included; both are part of the securities result. Every
       booking is converted with the exchange rate of its own date, unlike the cumulative fee figure of the period
       performance report, which is revalued with the rate of the reporting day.""")
   public double grandAccountFeesMC = 0.0;
-  
+
   @Schema(description = "Total interest earned on cash account balances")
   public double grandAccountInterestMC = 0.0;
 
   @Schema(description = "Total excluded dividend tax across all portfolios in main currency")
   public double grandExcludedDivTaxMC = 0.0;
-
-
 
   @Schema(description = "Number of decimal places for monetary precision in the main currency")
   private int precisionMC;

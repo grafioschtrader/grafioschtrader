@@ -1,0 +1,28 @@
+Konto 01 {cac|SL|N}
+Datum 19.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+{transType|PL|P} Aktien (?:\d{2}/\d{2}/\d{2}\s+\d{2}/\d{2}/\d{2}) {ta|PL|P}
+Depot 999999/01
+Ihr Auftrag vom 08.09.2026
+BEISPIEL AKTIE
+Valorennummer 1234567
+ISIN Nummer {isin|SL|P|N}
+Ausführungsdatum {date|SL|P|N}
+Ausführungszeit (GMT + 1) {time|SL|N}
+Anzahl {units|SL|P|N}
+Zum Kurs von {quotation|SL|P} {cin|SL|N}
+Börsenplatz BEISPIELBÖRSE
+Bruttobetrag 1.000,00- CHF
+Handelsgebühr {tc1|SL|P|Nc|O}- CHF
+Fremdgebühren {tc2|SL|P|Nc|O}- CHF
+Stempel {tt1|SL|P|Nc|O}- CHF
+Ausführungsgeb. Swx {tc3|SL|P|Nc|O}- CHF
+Totalbetrag 1.010,00- CHF
+Wechselkurs {cex|SL|P|N|O}
+[END]
+templatePurpose=Kauf und Verkauf Wertpapier (Corneronline)
+transType=ACCUMULATE|Kauf
+transType=REDUCE|Verkauf
+dateFormat=dd.MM.yyyy
+timeFormat=HH.mm.ss
+overRuleSeparators=All<.|,>

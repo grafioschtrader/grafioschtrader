@@ -14,8 +14,8 @@ import grafioschtrader.types.ImportKnownOtherFlags;
 import grafioschtrader.types.TransactionType;
 
 /**
- * Pure unit tests (no Spring context) for the minor currency unit handling of GitHub issue #10: the case-sensitive
- * code table in {@link MinorCurrencyUnit} and the import normalization in
+ * Pure unit tests (no Spring context) for the minor currency unit handling of GitHub issue #10: the case-sensitive code
+ * table in {@link MinorCurrencyUnit} and the import normalization in
  * {@link ImportProperties#normalizeMinorCurrencyUnits()}.
  */
 class MinorCurrencyUnitTest {
@@ -102,12 +102,14 @@ class MinorCurrencyUnitTest {
     ip.setCct("ZAc");
     ip.setTc1(150.0);
     ip.setTc2(50.0);
+    ip.setTc3(25.0);
     ip.setTt1(30.0);
     ip.setReduce(10.0);
     ip.normalizeMinorCurrencyUnits();
     assertThat(ip.getCct()).isEqualTo(GlobalConstants.MC_ZAR);
     assertThat(ip.getTc1()).isEqualTo(1.5);
     assertThat(ip.getTc2()).isEqualTo(0.5);
+    assertThat(ip.getTc3()).isEqualTo(0.25);
     assertThat(ip.getTt1()).isEqualTo(0.3);
     assertThat(ip.getTt2()).isNull();
     assertThat(ip.getReduce()).isEqualTo(0.1);

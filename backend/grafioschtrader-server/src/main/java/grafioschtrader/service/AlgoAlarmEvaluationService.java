@@ -2,676 +2,464 @@ package grafioschtrader.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 
 import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.config.ExpressionConfiguration;
 import com.ezylang.evalex.data.EvaluationValue;
 
-import grafiosch.BaseConstants;
-import grafiosch.entities.MailEntity;
-import grafiosch.repository.MailEntityJpaRepository;
-import grafiosch.service.SendMailInternalExternalService;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.alerts.AbsoluteValuePriceAlert;
+import grafioschtrader.algo.strategy.model.alerts.AlertConfigAdapter;
 import grafioschtrader.algo.strategy.model.alerts.ExpressionAlert;
 import grafioschtrader.algo.strategy.model.alerts.HoldingGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.MaCrossingAlert;
 import grafioschtrader.algo.strategy.model.alerts.PeriodPriceGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.RsiThresholdAlert;
-import grafioschtrader.config.FeatureConfig;
-import grafioschtrader.entities.AlgoMessageAlert;
-import grafioschtrader.entities.AlgoSecurity;
-import grafioschtrader.entities.AlgoStrategy;
-import grafioschtrader.entities.AlgoTop;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
-import grafioschtrader.entities.Securitycurrency;
-import grafioschtrader.entities.Watchlist;
-import grafioschtrader.evalex.EmaFunction;
-import grafioschtrader.evalex.RsiFunction;
-import grafioschtrader.evalex.SmaFunction;
-import grafioschtrader.repository.AlgoMessageAlertJpaRepository;
-import grafioschtrader.repository.AlgoSecurityJpaRepository;
-import grafioschtrader.repository.AlgoStrategyJpaRepository;
-import grafioschtrader.repository.AlgoTopJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
-import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.ta.TaIndicatorData;
 import grafioschtrader.ta.indicator.calc.ExponentialMovingAverage;
 import grafioschtrader.ta.indicator.calc.RelativeStrengthIndex;
 import grafioschtrader.ta.indicator.calc.SimpleMovingAverage;
-import grafioschtrader.types.MessageGTComType;
-import jakarta.mail.MessagingException;
-import tools.jackson.databind.ObjectMapper;
+import grafioschtrader.types.AlgoSignalKind;
 
 /**
- * Core alarm evaluation service implementing a two-tier hybrid approach:
- * <ul>
- *   <li><b>Tier 1 (event-driven)</b>: Simple price alerts evaluated after each intraday batch update via
- *       {@link #evaluateSimpleAlerts(List)}.</li>
- *   <li><b>Tier 2 (scheduled)</b>: Indicator alerts (MA crossing, RSI threshold, EvalEx expression) evaluated
- *       via background TaskDataChange with stale price refresh via {@link #evaluateIndicatorAlerts()}.</li>
- * </ul>
- * Both tiers evaluate alerts from two sources:
- * <ol>
- *   <li><b>AlgoTop-attached</b>: strategies under an AlgoTop tree (watchlist-based)</li>
- *   <li><b>Standalone</b>: AlgoSecurity entries with {@code idAlgoSecurityParent = NULL}, created via "Add Alert"
- *       context menu on individual securities</li>
- * </ol>
- * Both tiers are gated by {@link FeatureConfig}: {@code isAlgo()} and {@code isAlert()} must both return {@code true}.
+ * Evaluates the configured security alerts and turns the ones that fire into notifications.
+ *
+ * <p>
+ * All entry points use durable scheduling and freshness checks. {@link #evaluateSimpleAlerts(List)} runs straight after
+ * an intraday price batch and covers the configured alerts on fresh observations. {@link #evaluateIndicatorAlerts()}
+ * runs on a schedule, refreshes stale prices first and covers all six alert types.
+ * {@link #evaluateAlertsForTenant(Integer)} runs both, for one tenant, when a user asks for it.
+ * </p>
+ *
+ * <p>
+ * What each tier evaluates is decided by {@link AlgoAlertScopeResolver}, which walks the AlgoTop hierarchy and the
+ * standalone alerts and hands back strategy and instrument pairs. Whether a matching condition is worth reporting is
+ * decided by {@link AlgoAlertStateService} for the types that are specified as crossings, so that a price which is
+ * already past its bound when the alert is created stays quiet until it actually moves across. Whether a report has
+ * already been made today is decided by {@link AlgoAlarmRecorder} through a unique key.
+ * </p>
+ *
+ * <p>
+ * Missing data never becomes a signal. An instrument without a last price, without enough history for its indicator, or
+ * without the holding a holding alert measures is logged as unavailable and skipped; it does not fall back to a
+ * different measurement and it does not let a zero valued indicator stand in for a real one.
+ * </p>
  */
 @Service
 public class AlgoAlarmEvaluationService {
 
   private static final Logger log = LoggerFactory.getLogger(AlgoAlarmEvaluationService.class);
 
-  /** Stale threshold: prices older than 4 hours are refreshed before Tier 2 evaluation. */
-  private static final long STALE_THRESHOLD_MS = 4 * 60 * 60 * 1000L;
+  /** Upper bound on the observations loaded for one indicator, whatever period it asks for. */
+  private static final int MAX_HISTORY_OBSERVATIONS = 1200;
 
-  /** Maximum number of trading days loaded for indicator calculation. */
-  private static final int MAX_HISTORY_DAYS = 1200;
-
-  @Autowired
-  private FeatureConfig featureConfig;
-
-  @Autowired
-  private AlgoTopJpaRepository algoTopJpaRepository;
+  /**
+   * Observations loaded beyond the period itself. An exponential average and an RSI both need a run-in before their
+   * value settles, and the extra rows cost one index range scan.
+   */
+  private static final int INDICATOR_WARMUP_OBSERVATIONS = 50;
 
   @Autowired
-  private AlgoSecurityJpaRepository algoSecurityJpaRepository;
+  private AlgoAlertStateService algoAlertStateService;
 
   @Autowired
-  private AlgoStrategyJpaRepository algoStrategyJpaRepository;
+  private AlgoAlarmRecorder algoAlarmRecorder;
 
   @Autowired
-  private WatchlistJpaRepository watchlistJpaRepository;
+  private AlgoHoldingGainLossService algoHoldingGainLossService;
 
   @Autowired
   private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   @Autowired
-  private AlgoMessageAlertJpaRepository algoMessageAlertJpaRepository;
+  private AlgoAlertEvaluationCoordinator coordinator;
 
   @Autowired
-  private MailEntityJpaRepository mailEntityJpaRepository;
+  private AlgoAlarmDeliveryService delivery;
 
   @Autowired
-  private SendMailInternalExternalService sendMailInternalExternalService;
+  private AlgoRebalancingService rebalancing;
 
   @Autowired
-  private MessageSource messageSource;
+  private AlgoMeanReversionEvaluationService meanReversion;
 
-  @Autowired
-  private SecurityJpaRepository securityJpaRepository;
-
-  private final ObjectMapper objectMapper = new ObjectMapper();
-
-  // == Tier 1: Event-driven simple alerts ====================================
-
-  /**
-   * Evaluates simple alert types on freshly updated securities. Called after each intraday batch update.
-   * Evaluates both AlgoTop-attached and standalone alerts.
-   *
-   * @param updatedSecurities securities whose last price was just refreshed
-   */
+  /** Evaluates new intraday observations, subject to exchange hours and quote freshness. */
   public void evaluateSimpleAlerts(List<Security> updatedSecurities) {
-    if (!featureConfig.isAlgo() || !featureConfig.isAlert()) {
-      return;
-    }
-    if (updatedSecurities == null || updatedSecurities.isEmpty()) {
-      return;
-    }
-    evaluateAlgoTopSimpleAlerts(updatedSecurities);
-    evaluateStandaloneSimpleAlerts(updatedSecurities);
+    coordinator.intraday(updatedSecurities);
   }
-
-  private void evaluateAlgoTopSimpleAlerts(List<Security> updatedSecurities) {
-    List<AlgoTop> activeAlgoTops = algoTopJpaRepository.findByActivatableTrue();
-    if (activeAlgoTops.isEmpty()) {
-      return;
-    }
-    // Build a map: watchlistId -> list of AlgoTops
-    Map<Integer, List<AlgoTop>> watchlistToAlgoTops = new HashMap<>();
-    for (AlgoTop at : activeAlgoTops) {
-      watchlistToAlgoTops.computeIfAbsent(at.getIdWatchlist(), _ -> new ArrayList<>()).add(at);
-    }
-    // Build a map: securityId -> Security for quick lookup
-    Map<Integer, Security> updatedMap = new HashMap<>();
-    for (Security s : updatedSecurities) {
-      updatedMap.put(s.getIdSecuritycurrency(), s);
-    }
-    // For each watchlist that has active AlgoTops, check membership
-    for (Map.Entry<Integer, List<AlgoTop>> entry : watchlistToAlgoTops.entrySet()) {
-      Integer idWatchlist = entry.getKey();
-      List<AlgoTop> algoTops = entry.getValue();
-      Watchlist watchlist = watchlistJpaRepository.findById(idWatchlist).orElse(null);
-      if (watchlist == null) {
-        continue;
-      }
-      List<? extends Securitycurrency<?>> watchlistSecurities = watchlist.getSecuritycurrencyList();
-      if (watchlistSecurities == null) {
-        continue;
-      }
-      for (Securitycurrency<?> sc : watchlistSecurities) {
-        Security updated = updatedMap.get(sc.getIdSecuritycurrency());
-        if (updated == null) {
-          continue;
-        }
-        for (AlgoTop algoTop : algoTops) {
-          evaluateSimpleStrategiesForSecurity(algoTop.getIdTenant(), algoTop.getName(),
-              algoTop.getIdAlgoAssetclassSecurity(), updated);
-        }
-      }
-    }
-  }
-
-  private void evaluateStandaloneSimpleAlerts(List<Security> updatedSecurities) {
-    List<Integer> securityIds = updatedSecurities.stream()
-        .map(Security::getIdSecuritycurrency).toList();
-    List<AlgoSecurity> standaloneAlerts = algoSecurityJpaRepository
-        .findByActivatableTrueAndIdAlgoSecurityParentIsNullAndSecurity_idSecuritycurrencyIn(securityIds);
-    if (standaloneAlerts.isEmpty()) {
-      return;
-    }
-    Map<Integer, Security> updatedMap = updatedSecurities.stream()
-        .collect(Collectors.toMap(Security::getIdSecuritycurrency, s -> s));
-    for (AlgoSecurity as : standaloneAlerts) {
-      Security updated = updatedMap.get(as.getSecurity().getIdSecuritycurrency());
-      if (updated != null) {
-        evaluateSimpleStrategiesForSecurity(as.getIdTenant(), updated.getName(),
-            as.getIdAlgoAssetclassSecurity(), updated);
-      }
-    }
-  }
-
-  private void evaluateSimpleStrategiesForSecurity(Integer idTenant, String alertName,
-      Integer idAlgoAssetclassSecurity, Security security) {
-    List<AlgoStrategy> strategies = algoStrategyJpaRepository
-        .findByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity, idTenant);
-    for (AlgoStrategy strategy : strategies) {
-      if (!strategy.isActivatable()) {
-        continue;
-      }
-      AlgoStrategyImplementationType implType = strategy.getAlgoStrategyImplementations();
-      if (implType == null) {
-        continue;
-      }
-      switch (implType) {
-      case AS_OBSERVED_SECURITY_ABSOLUTE_PRICE:
-        evaluateAbsolutePriceAlert(idTenant, alertName, strategy, security);
-        break;
-      case AS_HOLDING_TOP_GAIN_LOSE:
-        evaluateGainLossPercentageAlert(idTenant, alertName, strategy, security);
-        break;
-      case AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT:
-        evaluatePeriodPriceAlert(idTenant, alertName, strategy, security);
-        break;
-      default:
-        // Indicator alerts handled by Tier 2
-        break;
-      }
-    }
-  }
-
-  private void evaluateAbsolutePriceAlert(Integer idTenant, String alertName, AlgoStrategy strategy,
-      Security security) {
-    if (security.getSLast() == null || strategy.getStrategyConfig() == null) {
-      return;
-    }
-    try {
-      AbsoluteValuePriceAlert config = objectMapper.readValue(strategy.getStrategyConfig(),
-          AbsoluteValuePriceAlert.class);
-      double lastPrice = security.getSLast();
-      boolean triggered = false;
-      String details;
-      if (config.getLowerValue() != null && lastPrice <= config.getLowerValue()) {
-        triggered = true;
-        details = String.format("{\"threshold\":%.4f,\"actual\":%.4f,\"direction\":\"BELOW\"}", config.getLowerValue(),
-            lastPrice);
-      } else if (config.getUpperValue() != null && lastPrice >= config.getUpperValue()) {
-        triggered = true;
-        details = String.format("{\"threshold\":%.4f,\"actual\":%.4f,\"direction\":\"ABOVE\"}", config.getUpperValue(),
-            lastPrice);
-      } else {
-        return;
-      }
-      if (triggered) {
-        fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
-      }
-    } catch (Exception e) {
-      log.warn("Error evaluating absolute price alert for strategy {}: {}", strategy.getIdAlgoRuleStrategy(),
-          e.getMessage());
-    }
-  }
-
-  private void evaluateGainLossPercentageAlert(Integer idTenant, String alertName, AlgoStrategy strategy,
-      Security security) {
-    if (security.getSLast() == null || strategy.getStrategyConfig() == null) {
-      return;
-    }
-    try {
-      HoldingGainLosePercentAlert config = objectMapper.readValue(strategy.getStrategyConfig(),
-          HoldingGainLosePercentAlert.class);
-      double lastPrice = security.getSLast();
-      boolean triggered = false;
-
-      // Check percentage thresholds (requires prevClose)
-      Double changePercent = null;
-      if (security.getSPrevClose() != null && security.getSPrevClose() != 0) {
-        changePercent = ((lastPrice - security.getSPrevClose()) / security.getSPrevClose()) * 100.0;
-        if (changePercent >= 0 && config.getGainPercentage() != null && changePercent >= config.getGainPercentage()) {
-          triggered = true;
-        } else if (changePercent < 0 && config.getLosePercentage() != null
-            && Math.abs(changePercent) >= config.getLosePercentage()) {
-          triggered = true;
-        }
-      }
-
-      // Check absolute price thresholds
-      if (!triggered) {
-        if (config.getLowerValue() != null && lastPrice <= config.getLowerValue()) {
-          triggered = true;
-        } else if (config.getUpperValue() != null && lastPrice >= config.getUpperValue()) {
-          triggered = true;
-        }
-      }
-
-      if (triggered) {
-        String details = String.format(
-            "{\"changePercent\":%s,\"gainThreshold\":%s,\"loseThreshold\":%s,\"upperValue\":%s,\"lowerValue\":%s,\"lastPrice\":%.4f}",
-            changePercent != null ? String.format("%.2f", changePercent) : "null", config.getGainPercentage(),
-            config.getLosePercentage(), config.getUpperValue(), config.getLowerValue(), lastPrice);
-        fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
-      }
-    } catch (Exception e) {
-      log.warn("Error evaluating gain/loss alert for strategy {}: {}", strategy.getIdAlgoRuleStrategy(),
-          e.getMessage());
-    }
-  }
-
-  private void evaluatePeriodPriceAlert(Integer idTenant, String alertName, AlgoStrategy strategy, Security security) {
-    if (security.getSLast() == null || strategy.getStrategyConfig() == null) {
-      return;
-    }
-    try {
-      PeriodPriceGainLosePercentAlert config = objectMapper.readValue(strategy.getStrategyConfig(),
-          PeriodPriceGainLosePercentAlert.class);
-      if (config.getDaysInPeriod() == null || config.getDaysInPeriod() <= 0) {
-        return;
-      }
-      LocalDate fromDate = LocalDate.now().minusDays(config.getDaysInPeriod() + 5);
-      LocalDate toDate = LocalDate.now();
-      List<Historyquote> hqs = historyquoteJpaRepository
-          .findByIdSecuritycurrencyAndDateBetweenOrderByDate(security.getIdSecuritycurrency(), fromDate, toDate);
-      if (hqs.isEmpty()) {
-        return;
-      }
-      // Use the oldest price in the period as the reference
-      double referenceClose = hqs.get(0).getClose();
-      if (referenceClose == 0) {
-        return;
-      }
-      double changePercent = ((security.getSLast() - referenceClose) / referenceClose) * 100.0;
-      boolean triggered = false;
-      if (changePercent >= 0 && config.getGainPercentage() != null && changePercent >= config.getGainPercentage()) {
-        triggered = true;
-      } else if (changePercent < 0 && config.getLosePercentage() != null
-          && Math.abs(changePercent) >= config.getLosePercentage()) {
-        triggered = true;
-      }
-      if (triggered) {
-        String details = String.format(
-            "{\"changePercent\":%.2f,\"gainThreshold\":%s,\"loseThreshold\":%s,\"daysInPeriod\":%d,\"referenceClose\":%.4f}",
-            changePercent, config.getGainPercentage(), config.getLosePercentage(), config.getDaysInPeriod(),
-            referenceClose);
-        fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
-      }
-    } catch (Exception e) {
-      log.warn("Error evaluating period price alert for strategy {}: {}", strategy.getIdAlgoRuleStrategy(),
-          e.getMessage());
-    }
-  }
-
-  // == Tier 2: Scheduled indicator alerts ====================================
 
   /**
-   * Evaluates indicator-based alert conditions for all active AlgoTop configurations and standalone alerts.
-   * Refreshes stale prices (older than 4 hours) before evaluation.
+   * Evaluates due background alerts of all six alert types, and the rebalancing of every hierarchy that still owes a
+   * plan today.
+   *
+   * <p>
+   * Rebalancing runs beside the alert pass rather than inside it. An alert is scheduled per strategy and instrument and
+   * can react to a single fresh quote; a rebalancing compares a whole hierarchy against a whole portfolio at one
+   * closing date, so it is evaluated once per AlgoTop per day and would gain nothing from the per instrument leases.
+   * </p>
    */
   public void evaluateIndicatorAlerts() {
-    if (!featureConfig.isAlgo() || !featureConfig.isAlert()) {
-      return;
-    }
-    evaluateAlgoTopIndicatorAlerts();
-    evaluateStandaloneIndicatorAlerts();
+    coordinator.background();
+    rebalancing.evaluateAll();
+    for (Integer tenant : meanReversion.tenantIds())
+      meanReversion.evaluate(tenant, false);
+    delivery.deliverPending();
   }
 
-  private void evaluateAlgoTopIndicatorAlerts() {
-    List<AlgoTop> activeAlgoTops = algoTopJpaRepository.findByActivatableTrue();
-    if (activeAlgoTops.isEmpty()) {
-      return;
-    }
-    for (AlgoTop algoTop : activeAlgoTops) {
-      try {
-        evaluateIndicatorAlertsForAlgoTop(algoTop);
-      } catch (Exception e) {
-        log.error("Error evaluating indicator alerts for AlgoTop {}: {}", algoTop.getIdAlgoAssetclassSecurity(),
-            e.getMessage(), e);
-      }
-    }
+  /** Whether any active alert or any rebalancing is due; used before enqueuing background work. */
+  public boolean hasDueAlerts() {
+    return coordinator.hasDueAlerts() || rebalancing.hasDueRebalancing() || delivery.hasDueDeliveries()
+        || meanReversion.hasDue();
   }
 
-  private void evaluateStandaloneIndicatorAlerts() {
-    List<AlgoSecurity> standaloneAlerts = algoSecurityJpaRepository
-        .findByActivatableTrueAndIdAlgoSecurityParentIsNull();
-    if (standaloneAlerts.isEmpty()) {
-      return;
-    }
-    // Refresh stale prices
-    long staleThreshold = System.currentTimeMillis() - STALE_THRESHOLD_MS;
-    List<Security> staleSecurities = standaloneAlerts.stream()
-        .map(AlgoSecurity::getSecurity)
-        .filter(s -> s.getSTimestamp() == null
-            || s.getSTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli() < staleThreshold)
-        .collect(Collectors.toList());
-    if (!staleSecurities.isEmpty()) {
-      log.debug("Refreshing {} stale securities for standalone alerts", staleSecurities.size());
-      securityJpaRepository.updateLastPriceByList(staleSecurities);
-    }
-    // Evaluate indicator strategies
-    for (AlgoSecurity as : standaloneAlerts) {
-      Security security = as.getSecurity();
-      List<AlgoStrategy> strategies = algoStrategyJpaRepository
-          .findByIdAlgoAssetclassSecurityAndIdTenant(as.getIdAlgoAssetclassSecurity(), as.getIdTenant());
-      for (AlgoStrategy strategy : strategies) {
-        evaluateIndicatorStrategy(as.getIdTenant(), security.getName(), strategy, security);
-      }
-    }
+  /**
+   * Explicit evaluation remains limited to the caller's tenant. Unlike the background pass it also recalculates a
+   * rebalancing that already ran today: a user who asks for an evaluation after changing an allocation is not helped by
+   * being told to come back tomorrow.
+   *
+   * @param idTenant the tenant whose configuration is evaluated
+   */
+  public void evaluateAlertsForTenant(Integer idTenant) {
+    coordinator.manual(idTenant);
+    rebalancing.evaluateForTenant(idTenant);
+    meanReversion.evaluate(idTenant, true);
   }
 
-  private void evaluateIndicatorAlertsForAlgoTop(AlgoTop algoTop) {
-    Watchlist watchlist = watchlistJpaRepository.findById(algoTop.getIdWatchlist()).orElse(null);
-    if (watchlist == null) {
-      return;
-    }
-    List<? extends Securitycurrency<?>> securities = watchlist.getSecuritycurrencyList();
-    if (securities == null || securities.isEmpty()) {
-      return;
-    }
-    // Collect stale securities for refresh
-    long staleThreshold = System.currentTimeMillis() - STALE_THRESHOLD_MS;
-    List<Security> staleSecurities = new ArrayList<>();
-    List<Security> allSecurities = new ArrayList<>();
-    for (Securitycurrency<?> sc : securities) {
-      if (sc instanceof Security security) {
-        allSecurities.add(security);
-        if (security.getSTimestamp() == null
-            || security.getSTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
-                < staleThreshold) {
-          staleSecurities.add(security);
-        }
-      }
-    }
-    // Refresh stale prices
-    if (!staleSecurities.isEmpty()) {
-      log.debug("Refreshing {} stale securities for AlgoTop {}", staleSecurities.size(),
-          algoTop.getIdAlgoAssetclassSecurity());
-      securityJpaRepository.updateLastPriceByList(staleSecurities);
-    }
-    // Evaluate indicator strategies on each security
-    List<AlgoStrategy> strategies = algoStrategyJpaRepository
-        .findByIdAlgoAssetclassSecurityAndIdTenant(algoTop.getIdAlgoAssetclassSecurity(), algoTop.getIdTenant());
-    for (Security security : allSecurities) {
-      for (AlgoStrategy strategy : strategies) {
-        evaluateIndicatorStrategy(algoTop.getIdTenant(), algoTop.getName(), strategy, security);
-      }
-    }
-  }
-
-  private void evaluateIndicatorStrategy(Integer idTenant, String alertName, AlgoStrategy strategy,
-      Security security) {
-    if (!strategy.isActivatable()) {
-      return;
-    }
-    AlgoStrategyImplementationType implType = strategy.getAlgoStrategyImplementations();
-    if (implType == null || strategy.getStrategyConfig() == null) {
-      return;
-    }
-    try {
-      switch (implType) {
-      case AS_OBSERVED_SECURITY_MA_CROSSING:
-        evaluateMaCrossingAlert(idTenant, alertName, strategy, security);
-        break;
-      case AS_OBSERVED_SECURITY_RSI_THRESHOLD:
-        evaluateRsiThresholdAlert(idTenant, alertName, strategy, security);
-        break;
-      case AS_OBSERVED_SECURITY_EXPRESSION:
-        evaluateExpressionAlert(idTenant, alertName, strategy, security);
-        break;
-      default:
-        break;
-      }
-    } catch (Exception e) {
-      log.warn("Error evaluating indicator strategy {} for security {}: {}", strategy.getIdAlgoRuleStrategy(),
-          security.getIdSecuritycurrency(), e.getMessage());
-    }
-  }
-
-  private void evaluateMaCrossingAlert(Integer idTenant, String alertName, AlgoStrategy strategy, Security security)
+  void evaluateOne(AlgoAlertScope scope, Security security, AlgoStrategyImplementationType type, LocalDate today)
       throws Exception {
-    if (security.getSLast() == null) {
+    String ambiguity = AlertConfigAdapter.describeAmbiguity(scope.strategy());
+    if (ambiguity != null) {
+      log.warn(ambiguity);
+    }
+    switch (type) {
+    case AS_OBSERVED_SECURITY_ABSOLUTE_PRICE -> evaluateAbsolutePrice(scope, security, today);
+    case AS_HOLDING_TOP_GAIN_LOSE -> evaluateHoldingGainLoss(scope, security, today);
+    case AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT -> evaluatePeriodPriceChange(scope, security, today);
+    case AS_OBSERVED_SECURITY_MA_CROSSING -> evaluateMaCrossing(scope, security, today);
+    case AS_OBSERVED_SECURITY_RSI_THRESHOLD -> evaluateRsiThreshold(scope, security, today);
+    case AS_OBSERVED_SECURITY_EXPRESSION -> evaluateExpression(scope, security, today);
+    default -> {
+      // Every other implementation type belongs to a strategy module that does not evaluate anything yet.
+    }
+    }
+  }
+
+  // == The individual alert types ============================================
+
+  private void evaluateAbsolutePrice(AlgoAlertScope scope, Security security, LocalDate today) {
+    Double price = security.getSLast();
+    if (price == null) {
+      unavailable(scope, "no last price");
       return;
     }
-    MaCrossingAlert config = objectMapper.readValue(strategy.getStrategyConfig(), MaCrossingAlert.class);
-    List<Historyquote> hqs = loadHistoryForIndicator(security.getIdSecuritycurrency(), config.getPeriod() + 10);
-    if (hqs.size() <= config.getPeriod()) {
+    AbsoluteValuePriceAlert config = AlertConfigAdapter.read(scope.strategy(), AbsoluteValuePriceAlert.class);
+    if (config == null) {
+      unavailable(scope, "no configuration stored");
       return;
     }
-    // Compute MA
+    String fingerprint = AlertConfigAdapter.fingerprint(scope.strategy());
+    // The two bounds are separate signals: a price can leave the lower band and enter the upper one on the same day,
+    // and both are worth a message.
+    if (config.getLowerValue() != null) {
+      AlgoCrossingResult crossing = algoAlertStateService.observe(scope.idTenant(),
+          scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(), AlgoAlertStateService.BOUND_LOWER,
+          fingerprint, price, config.getLowerValue());
+      if (crossing == AlgoCrossingResult.CROSSED_DOWN) {
+        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today,
+            String.format(Locale.ROOT, "{\"bound\":\"lower\",\"threshold\":%s,\"price\":%s,\"direction\":\"BELOW\"}",
+                config.getLowerValue(), price));
+      }
+    }
+    if (config.getUpperValue() != null) {
+      AlgoCrossingResult crossing = algoAlertStateService.observe(scope.idTenant(),
+          scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(), AlgoAlertStateService.BOUND_UPPER,
+          fingerprint, price, config.getUpperValue());
+      if (crossing == AlgoCrossingResult.CROSSED_UP) {
+        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today,
+            String.format(Locale.ROOT, "{\"bound\":\"upper\",\"threshold\":%s,\"price\":%s,\"direction\":\"ABOVE\"}",
+                config.getUpperValue(), price));
+      }
+    }
+  }
+
+  private void evaluateHoldingGainLoss(AlgoAlertScope scope, Security security, LocalDate today) {
+    Double price = security.getSLast();
+    if (price == null) {
+      unavailable(scope, "no last price");
+      return;
+    }
+    HoldingGainLosePercentAlert config = AlertConfigAdapter.read(scope.strategy(), HoldingGainLosePercentAlert.class);
+    if (config == null) {
+      unavailable(scope, "no configuration stored");
+      return;
+    }
+    var holding = algoHoldingGainLossService.observe(scope.idTenant(), security, price);
+    if (!holding.open()) {
+      algoAlertStateService.discard(scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency());
+      unavailable(scope, "tenant holds no open position in this instrument");
+      return;
+    }
+    String fingerprint = AlertConfigAdapter.fingerprint(scope.strategy());
+    if (config.getLowerValue() != null) {
+      var crossing = algoAlertStateService.observe(scope.idTenant(), scope.strategy().getIdAlgoRuleStrategy(),
+          security.getIdSecuritycurrency(), "HOLDING_LOWER", fingerprint, price, config.getLowerValue());
+      if (crossing == AlgoCrossingResult.CROSSED_DOWN)
+        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today, String.format(Locale.ROOT,
+            "{\"bound\":\"lower\",\"threshold\":%s,\"price\":%s}", config.getLowerValue(), price));
+    }
+    if (config.getUpperValue() != null) {
+      var crossing = algoAlertStateService.observe(scope.idTenant(), scope.strategy().getIdAlgoRuleStrategy(),
+          security.getIdSecuritycurrency(), "HOLDING_UPPER", fingerprint, price, config.getUpperValue());
+      if (crossing == AlgoCrossingResult.CROSSED_UP)
+        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today, String.format(Locale.ROOT,
+            "{\"bound\":\"upper\",\"threshold\":%s,\"price\":%s}", config.getUpperValue(), price));
+    }
+    if (holding.gainLossPercentage() == null) {
+      // Price-bound observations remain valid even when the percentage cost basis is undefined.
+      if (config.getGainPercentage() != null || config.getLosePercentage() != null)
+        throw new AlgoAlertEvaluationStateService.PartialEvaluationException(
+            "Holding percentage unavailable: cost basis is zero");
+      return;
+    }
+    double percentage = holding.gainLossPercentage();
+    boolean gainReached = config.getGainPercentage() != null && percentage >= config.getGainPercentage();
+    boolean lossReached = config.getLosePercentage() != null && percentage <= -config.getLosePercentage();
+    if (gainReached || lossReached) {
+      fire(scope, AlgoSignalKind.HOLDING_GAIN_LOSS,
+          gainReached ? AlgoCrossingResult.CROSSED_UP : AlgoCrossingResult.CROSSED_DOWN, today,
+          String.format(Locale.ROOT,
+              "{\"positionGainLossPercent\":%s,\"gainThreshold\":%s,\"loseThreshold\":%s,\"price\":%s}",
+              DataBusinessHelper.roundPercentage(percentage), config.getGainPercentage(), config.getLosePercentage(),
+              price));
+    }
+  }
+
+  private void evaluatePeriodPriceChange(AlgoAlertScope scope, Security security, LocalDate today) {
+    Double price = security.getSLast();
+    if (price == null) {
+      unavailable(scope, "no last price");
+      return;
+    }
+    PeriodPriceGainLosePercentAlert config = AlertConfigAdapter.read(scope.strategy(),
+        PeriodPriceGainLosePercentAlert.class);
+    if (config == null || config.getDaysInPeriod() == null || config.getDaysInPeriod() <= 0) {
+      unavailable(scope, "no usable lookback period configured");
+      return;
+    }
+    LocalDate lookbackDate = today.minusDays(config.getDaysInPeriod());
+    // The newest close at or before the requested calendar date. Loading a window and taking its oldest row, which is
+    // what happened before, moves the reference to whatever quote the window happened to start at and makes the
+    // effective lookback drift with weekends and holidays.
+    Optional<Historyquote> reference = historyquoteJpaRepository
+        .findFirstByIdSecuritycurrencyAndDateLessThanEqualOrderByDateDesc(security.getIdSecuritycurrency(),
+            lookbackDate);
+    if (reference.isEmpty() || reference.get().getClose() == 0.0) {
+      unavailable(scope, "no closing price at or before " + lookbackDate);
+      return;
+    }
+    double referenceClose = reference.get().getClose();
+    double changePercent = (price - referenceClose) / referenceClose * 100.0;
+    boolean gainReached = config.getGainPercentage() != null && changePercent >= config.getGainPercentage();
+    boolean lossReached = config.getLosePercentage() != null && changePercent <= -config.getLosePercentage();
+    if (gainReached || lossReached) {
+      fire(scope, AlgoSignalKind.PERIOD_PRICE_CHANGE,
+          gainReached ? AlgoCrossingResult.CROSSED_UP : AlgoCrossingResult.CROSSED_DOWN, today,
+          String.format(Locale.ROOT,
+              "{\"changePercent\":%s,\"gainThreshold\":%s,\"loseThreshold\":%s,\"daysInPeriod\":%d,"
+                  + "\"referenceDate\":\"%s\",\"referenceClose\":%s,\"price\":%s}",
+              DataBusinessHelper.roundPercentage(changePercent), config.getGainPercentage(), config.getLosePercentage(),
+              config.getDaysInPeriod(), reference.get().getDate(), referenceClose, price));
+    }
+  }
+
+  private void evaluateMaCrossing(AlgoAlertScope scope, Security security, LocalDate today) {
+    Double price = security.getSLast();
+    if (price == null) {
+      unavailable(scope, "no last price");
+      return;
+    }
+    MaCrossingAlert config = AlertConfigAdapter.read(scope.strategy(), MaCrossingAlert.class);
+    if (config == null) {
+      unavailable(scope, "no configuration stored");
+      return;
+    }
+    List<Historyquote> history = loadHistory(security.getIdSecuritycurrency(), config.getPeriod());
+    if (history.size() <= config.getPeriod()) {
+      unavailable(scope, "only " + history.size() + " observations for a " + config.getPeriod() + " period average");
+      return;
+    }
     TaIndicatorData[] maData;
     if ("EMA".equals(config.getIndicatorType())) {
-      ExponentialMovingAverage ema = new ExponentialMovingAverage(config.getPeriod(), hqs.size());
-      for (Historyquote hq : hqs) {
-        ema.addData(hq.getDate(), hq.getClose());
-      }
+      ExponentialMovingAverage ema = new ExponentialMovingAverage(config.getPeriod(), history.size());
+      history.forEach(hq -> ema.addData(hq.getDate(), hq.getClose()));
       maData = ema.getTaIndicatorData();
     } else {
-      SimpleMovingAverage sma = new SimpleMovingAverage(config.getPeriod(), hqs.size());
-      for (Historyquote hq : hqs) {
-        sma.addData(hq.getDate(), hq.getClose());
-      }
+      SimpleMovingAverage sma = new SimpleMovingAverage(config.getPeriod(), history.size());
+      history.forEach(hq -> sma.addData(hq.getDate(), hq.getClose()));
       maData = sma.getTaIndicatorData();
     }
     if (maData.length == 0) {
+      unavailable(scope, "the moving average could not be computed");
       return;
     }
-    double lastMaValue = maData[maData.length - 1].value;
-    double lastPrice = security.getSLast();
-    boolean triggered = false;
-    if ("ABOVE".equals(config.getCrossDirection()) && lastPrice > lastMaValue) {
-      triggered = true;
-    } else if ("BELOW".equals(config.getCrossDirection()) && lastPrice < lastMaValue) {
-      triggered = true;
-    }
-    if (triggered) {
-      String details = String.format(
-          "{\"indicatorType\":\"%s\",\"period\":%d,\"maValue\":%.4f,\"price\":%.4f,\"crossDirection\":\"%s\"}",
-          config.getIndicatorType(), config.getPeriod(), lastMaValue, lastPrice, config.getCrossDirection());
-      fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
+    double average = maData[maData.length - 1].value;
+    AlgoCrossingResult crossing = algoAlertStateService.observe(scope.idTenant(),
+        scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(), AlgoAlertStateService.BOUND_MA,
+        AlertConfigAdapter.fingerprint(scope.strategy()), price, average);
+    boolean wanted = "ABOVE".equals(config.getCrossDirection()) ? crossing == AlgoCrossingResult.CROSSED_UP
+        : crossing == AlgoCrossingResult.CROSSED_DOWN;
+    if (wanted) {
+      fire(scope, AlgoSignalKind.MA_CROSSING, crossing, today,
+          String.format(Locale.ROOT,
+              "{\"indicatorType\":\"%s\",\"period\":%d,\"maValue\":%.4f,\"price\":%s,\"crossDirection\":\"%s\"}",
+              config.getIndicatorType(), config.getPeriod(), average, price, config.getCrossDirection()));
     }
   }
 
-  private void evaluateRsiThresholdAlert(Integer idTenant, String alertName, AlgoStrategy strategy, Security security)
-      throws Exception {
-    if (security.getSLast() == null) {
+  private void evaluateRsiThreshold(AlgoAlertScope scope, Security security, LocalDate today) {
+    RsiThresholdAlert config = AlertConfigAdapter.read(scope.strategy(), RsiThresholdAlert.class);
+    if (config == null) {
+      unavailable(scope, "no configuration stored");
       return;
     }
-    RsiThresholdAlert config = objectMapper.readValue(strategy.getStrategyConfig(), RsiThresholdAlert.class);
-    List<Historyquote> hqs = loadHistoryForIndicator(security.getIdSecuritycurrency(), config.getRsiPeriod() + 20);
-    if (hqs.size() <= config.getRsiPeriod()) {
+    List<Historyquote> history = loadHistory(security.getIdSecuritycurrency(), config.getRsiPeriod());
+    if (history.size() <= config.getRsiPeriod()) {
+      unavailable(scope, "only " + history.size() + " observations for a " + config.getRsiPeriod() + " period RSI");
       return;
     }
-    RelativeStrengthIndex rsi = new RelativeStrengthIndex(config.getRsiPeriod(), hqs.size());
-    for (Historyquote hq : hqs) {
-      rsi.addData(hq.getDate(), hq.getClose());
-    }
+    RelativeStrengthIndex rsi = new RelativeStrengthIndex(config.getRsiPeriod(), history.size());
+    history.forEach(hq -> rsi.addData(hq.getDate(), hq.getClose()));
     TaIndicatorData[] rsiData = rsi.getTaIndicatorData();
     if (rsiData.length == 0) {
+      unavailable(scope, "the RSI could not be computed");
       return;
     }
-    double lastRsi = rsiData[rsiData.length - 1].value;
-    boolean triggered = false;
-    String direction = null;
-    if (config.getLowerThreshold() != null && lastRsi < config.getLowerThreshold()) {
-      triggered = true;
-      direction = "OVERSOLD";
-    } else if (config.getUpperThreshold() != null && lastRsi > config.getUpperThreshold()) {
-      triggered = true;
-      direction = "OVERBOUGHT";
+    double value = rsiData[rsiData.length - 1].value;
+    String fingerprint = AlertConfigAdapter.fingerprint(scope.strategy());
+    if (config.getLowerThreshold() != null) {
+      AlgoCrossingResult crossing = algoAlertStateService.observe(scope.idTenant(),
+          scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(),
+          AlgoAlertStateService.BOUND_RSI_LOWER, fingerprint, value, config.getLowerThreshold());
+      if (crossing == AlgoCrossingResult.CROSSED_DOWN) {
+        fire(scope, AlgoSignalKind.RSI_THRESHOLD, crossing, today, String.format(Locale.ROOT,
+            "{\"rsiValue\":%.2f,\"threshold\":%s,\"direction\":\"OVERSOLD\"}", value, config.getLowerThreshold()));
+      }
     }
-    if (triggered) {
-      String details = String.format(
-          "{\"rsiValue\":%.2f,\"lowerThreshold\":%s,\"upperThreshold\":%s,\"direction\":\"%s\"}",
-          lastRsi, config.getLowerThreshold(), config.getUpperThreshold(), direction);
-      fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
+    if (config.getUpperThreshold() != null) {
+      AlgoCrossingResult crossing = algoAlertStateService.observe(scope.idTenant(),
+          scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(),
+          AlgoAlertStateService.BOUND_RSI_UPPER, fingerprint, value, config.getUpperThreshold());
+      if (crossing == AlgoCrossingResult.CROSSED_UP) {
+        fire(scope, AlgoSignalKind.RSI_THRESHOLD, crossing, today, String.format(Locale.ROOT,
+            "{\"rsiValue\":%.2f,\"threshold\":%s,\"direction\":\"OVERBOUGHT\"}", value, config.getUpperThreshold()));
+      }
     }
   }
 
-  private void evaluateExpressionAlert(Integer idTenant, String alertName, AlgoStrategy strategy, Security security)
-      throws Exception {
-    if (security.getSLast() == null) {
+  private void evaluateExpression(AlgoAlertScope scope, Security security, LocalDate today) throws Exception {
+    Double price = security.getSLast();
+    if (price == null) {
+      unavailable(scope, "no last price");
       return;
     }
-    ExpressionAlert config = objectMapper.readValue(strategy.getStrategyConfig(), ExpressionAlert.class);
-    String exprStr = config.getExpression();
+    ExpressionAlert config = AlertConfigAdapter.read(scope.strategy(), ExpressionAlert.class);
+    if (config == null || config.getExpression() == null) {
+      unavailable(scope, "no expression configured");
+      return;
+    }
+    String expressionText = config.getExpression();
+    grafioschtrader.evalex.AlertExpressionSupport.validate(expressionText);
+    Expression expression = grafioschtrader.evalex.AlertExpressionSupport.create(expressionText,
+        usesIndicatorFunctions(expressionText) ? loadHistory(security.getIdSecuritycurrency(), MAX_HISTORY_OBSERVATIONS)
+            : List.of());
 
-    // Build expression with or without indicator functions
-    Expression expression;
-    if (usesIndicatorFunctions(exprStr)) {
-      List<Historyquote> hqs = loadHistoryForIndicator(security.getIdSecuritycurrency(), MAX_HISTORY_DAYS);
-      ExpressionConfiguration exprConfig = ExpressionConfiguration.defaultConfiguration()
-          .withAdditionalFunctions(
-              Map.entry("SMA", new SmaFunction(hqs)),
-              Map.entry("EMA", new EmaFunction(hqs)),
-              Map.entry("RSI", new RsiFunction(hqs)));
-      expression = new Expression(exprStr, exprConfig);
-    } else {
-      expression = new Expression(exprStr);
-    }
-
-    // Inject intraday price variables
-    expression.with("price", BigDecimal.valueOf(security.getSLast()));
-    if (security.getSPrevClose() != null) {
-      expression.with("prevClose", BigDecimal.valueOf(security.getSPrevClose()));
-    }
-    if (security.getSOpen() != null) {
-      expression.with("open", BigDecimal.valueOf(security.getSOpen()));
-    }
-    if (security.getSHigh() != null) {
-      expression.with("high", BigDecimal.valueOf(security.getSHigh()));
-    }
-    if (security.getSLow() != null) {
-      expression.with("low", BigDecimal.valueOf(security.getSLow()));
-    }
-    if (security.getSVolume() != null) {
-      expression.with("volume", BigDecimal.valueOf(security.getSVolume()));
-    }
+    expression.with("price", BigDecimal.valueOf(price));
+    withIfPresent(expression, "prevClose", security.getSPrevClose());
+    withIfPresent(expression, "open", security.getSOpen());
+    withIfPresent(expression, "high", security.getSHigh());
+    withIfPresent(expression, "low", security.getSLow());
+    withIfPresent(expression, "volume", security.getSVolume() == null ? null : security.getSVolume().doubleValue());
 
     EvaluationValue result = expression.evaluate();
-    boolean triggered = result.isBooleanValue()
-        ? result.getBooleanValue()
+    boolean triggered = result.isBooleanValue() ? result.getBooleanValue()
         : result.getNumberValue().compareTo(BigDecimal.ZERO) != 0;
     if (triggered) {
-      Object resultValue = result.isBooleanValue() ? result.getBooleanValue() : result.getNumberValue();
-      String details = String.format("{\"expression\":\"%s\",\"result\":%s,\"price\":%.4f}",
-          exprStr.replace("\"", "\\\""), resultValue, security.getSLast());
-      fireAlert(idTenant, alertName, strategy, security.getIdSecuritycurrency(), (byte) 1, details);
+      Object value = result.isBooleanValue() ? result.getBooleanValue() : result.getNumberValue();
+      fire(scope, AlgoSignalKind.EXPRESSION, AlgoCrossingResult.NO_CHANGE, today,
+          String.format(Locale.ROOT, "{\"expression\":\"%s\",\"result\":%s,\"price\":%s}",
+              expressionText.replace("\\", "\\\\").replace("\"", "\\\""), value, price));
     }
   }
 
-  private static boolean usesIndicatorFunctions(String expression) {
-    return expression.contains("SMA(") || expression.contains("EMA(") || expression.contains("RSI(");
+  private static void withIfPresent(Expression expression, String name, Double value) {
+    if (value != null) {
+      expression.with(name, BigDecimal.valueOf(value));
+    }
   }
-
-  // == Common alert infrastructure ===========================================
 
   /**
-   * Creates an AlgoMessageAlert record and sends a notification to the user, with daily dedup via MailEntity.
+   * Whether an expression calls one of the indicator functions, and therefore needs price history loaded for it.
    *
-   * @param idTenant           tenant to notify
-   * @param alertName          name used in the mail subject (AlgoTop name or security name for standalone alerts)
-   * @param strategy           the triggered strategy
-   * @param idSecuritycurrency the security that triggered the alert
-   * @param alarmType          alarm type code
-   * @param alarmDetails       JSON details of the triggered condition
+   * <p>
+   * A regular expression rather than a substring search for {@code "SMA("}: EvalEx accepts a function name in any case
+   * and tolerates whitespace before the parenthesis, so {@code sma (200)} is a valid call that the literal search
+   * missed. Missing it did not degrade gracefully - the expression was then built without the function and failed on an
+   * unknown identifier.
+   * </p>
+   *
+   * @param expression the expression text
+   * @return true when SMA, EMA or RSI is called
    */
-  private void fireAlert(Integer idTenant, String alertName, AlgoStrategy strategy, Integer idSecuritycurrency,
-      byte alarmType, String alarmDetails) {
-    Integer idAlgoStrategy = strategy.getIdAlgoRuleStrategy();
-    // Dedup: check if already alerted today for this strategy
-    LocalDate today = LocalDate.now();
-    List<MailEntity> existingAlerts = mailEntityJpaRepository
-        .findAll().stream()
-        .filter(me -> MessageGTComType.USER_ALGO_ALARM_TRIGGERED.getValue().equals(me.getMessageComType().getValue())
-            && idAlgoStrategy.equals(me.getIdEntity()) && today.equals(me.getMarkDate()))
-        .toList();
-    if (!existingAlerts.isEmpty()) {
-      return; // Already alerted today
-    }
+  static boolean usesIndicatorFunctions(String expression) {
+    return expression != null && expression.matches("(?is).*\\b(SMA|EMA|RSI)\\s*\\(.*");
+  }
 
-    // Create alarm record
-    AlgoMessageAlert alert = new AlgoMessageAlert();
-    alert.setIdTenant(idTenant);
-    alert.setIdAlgoStrategy(idAlgoStrategy);
-    alert.setIdSecurityCurrency(idSecuritycurrency);
-    alert.setAlarmType(alarmType);
-    alert.setAlarmDetails(alarmDetails);
-    alert.setAlertTime(LocalDateTime.now());
-    algoMessageAlertJpaRepository.save(alert);
+  // == Notification ==========================================================
 
-    // Send notification
-    try {
-      Locale locale = Locale.ENGLISH;
-      String subject = messageSource.getMessage("algo.alarm.subject", new Object[] { alertName }, locale);
-      String bodyPrefix = messageSource.getMessage("algo.alarm.mail.body.prefix", null, locale);
-      String message = bodyPrefix + "\n" + alarmDetails;
-
-      Integer idMailSendRecv = sendMailInternalExternalService.sendMailInternAndOrExternal(
-          BaseConstants.SYSTEM_ID_USER, idTenant, subject, message,
-          MessageGTComType.USER_ALGO_ALARM_TRIGGERED);
-
-      MailEntity mailEntity = new MailEntity(MessageGTComType.USER_ALGO_ALARM_TRIGGERED, idAlgoStrategy, today);
-      if (idMailSendRecv != null) {
-        mailEntity.setIdMailSendRecv(idMailSendRecv);
-      }
-      mailEntityJpaRepository.save(mailEntity);
-    } catch (MessagingException e) {
-      log.error("Failed to send alarm notification for strategy {}: {}", idAlgoStrategy, e.getMessage());
-    }
+  private void fire(AlgoAlertScope scope, AlgoSignalKind kind, AlgoCrossingResult crossing, LocalDate today,
+      String details) {
+    algoAlarmRecorder.record(scope, kind, crossing.direction(), details, today);
   }
 
   // == Helpers ===============================================================
 
-  private List<Historyquote> loadHistoryForIndicator(Integer idSecuritycurrency, int minDays) {
-    int daysToLoad = Math.min(Math.max(minDays, 100), MAX_HISTORY_DAYS);
-    LocalDate fromDate = LocalDate.now().minusDays(daysToLoad);
-    LocalDate toDate = LocalDate.now();
-    return historyquoteJpaRepository.findByIdSecuritycurrencyAndDateBetweenOrderByDate(idSecuritycurrency, fromDate,
-        toDate);
+  private void unavailable(AlgoAlertScope scope, String reason) {
+    throw new IllegalStateException(reason);
+  }
+
+  /**
+   * The most recent closing prices of an instrument, oldest first, enough of them for an indicator of the given period.
+   *
+   * <p>
+   * Counted in observations rather than in calendar days. Subtracting days loses roughly three of every seven to
+   * weekends, so a 300 period average asked for over 310 calendar days had about 210 observations and was silently
+   * never computed.
+   * </p>
+   *
+   * @param idSecuritycurrency the instrument
+   * @param period             the longest period any indicator over this data will ask for
+   * @return the quotes in chronological order
+   */
+  private List<Historyquote> loadHistory(Integer idSecuritycurrency, int period) {
+    int wanted = Math.min(period + INDICATOR_WARMUP_OBSERVATIONS, MAX_HISTORY_OBSERVATIONS);
+    List<Historyquote> newestFirst = historyquoteJpaRepository
+        .findByIdSecuritycurrencyOrderByDateDesc(idSecuritycurrency, Limit.of(wanted));
+    List<Historyquote> chronological = new ArrayList<>(newestFirst);
+    java.util.Collections.reverse(chronological);
+    return chronological;
   }
 
 }

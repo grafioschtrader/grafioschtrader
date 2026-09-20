@@ -4,9 +4,8 @@ import grafiosch.gtnet.IExchangeKindType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * DTO that exposes exchange kind type metadata to the frontend. Allows the frontend to dynamically
- * build entity kind lists and determine per-kind capabilities (push support, syncability) without
- * hardcoding enum values.
+ * DTO that exposes exchange kind type metadata to the frontend. Allows the frontend to dynamically build entity kind
+ * lists and determine per-kind capabilities (push support, syncability) without hardcoding enum values.
  */
 @Schema(description = """
     Metadata about an exchange kind type, including its name, numeric value, and capability flags.

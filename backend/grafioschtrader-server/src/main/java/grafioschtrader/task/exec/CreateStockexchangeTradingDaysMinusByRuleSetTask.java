@@ -126,7 +126,8 @@ public class CreateStockexchangeTradingDaysMinusByRuleSetTask implements ITask {
    * its {@code max_calendar_upd_date}, so nothing is recomputed as long as the period was not extended. In full rebuild
    * mode (an admin triggered no-entity job) the whole authoritative period is regenerated.
    *
-   * @param fullRebuild {@code true} regenerates the whole period for every exchange, {@code false} only appends the tail
+   * @param fullRebuild {@code true} regenerates the whole period for every exchange, {@code false} only appends the
+   *                    tail
    */
   private void rebuildAllRuleBasedExchanges(boolean fullRebuild) {
     List<Stockexchange> stockexchanges = stockexchangeJpaRepository.findByIdTradingCalendarRuleSetIsNotNull();
@@ -150,8 +151,8 @@ public class CreateStockexchangeTradingDaysMinusByRuleSetTask implements ITask {
     for (Stockexchange stockexchange : stockexchanges) {
       rebuildExchangeGuarded(stockexchange, true);
     }
-    log.info("Rebuilt the trading calendars of {} stock exchanges after a change to rule set {}",
-        stockexchanges.size(), idTradingCalendarRuleSet);
+    log.info("Rebuilt the trading calendars of {} stock exchanges after a change to rule set {}", stockexchanges.size(),
+        idTradingCalendarRuleSet);
   }
 
   /**
@@ -180,8 +181,8 @@ public class CreateStockexchangeTradingDaysMinusByRuleSetTask implements ITask {
       rebuildExchange(stockexchange, fullRebuild);
     } catch (RuntimeException ex) {
       // One malformed rule set must not abort the whole batch; the other exchanges still get their calendar.
-      log.error("Could not rebuild the trading calendar of stock exchange {} ({})",
-          stockexchange.getIdStockexchange(), stockexchange.getName(), ex);
+      log.error("Could not rebuild the trading calendar of stock exchange {} ({})", stockexchange.getIdStockexchange(),
+          stockexchange.getName(), ex);
     }
   }
 

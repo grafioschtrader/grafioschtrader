@@ -19,8 +19,8 @@ import grafiosch.security.JwtTokenHandler;
  * <p>
  * This class carries deliberately <b>no</b> {@code @SpringBootTest} / {@code @ActiveProfiles} /
  * {@code @TestPropertySource} annotations: the Spring Boot application class and the profile are application specific.
- * Each application declares its own {@code BaseIntegrationTest} that extends this class and adds those annotations;
- * the concrete resource tests then extend that one. JUnit picks the static extension field up through the hierarchy.
+ * Each application declares its own {@code BaseIntegrationTest} that extends this class and adds those annotations; the
+ * concrete resource tests then extend that one. JUnit picks the static extension field up through the hierarchy.
  */
 public abstract class BaseIntegrationTestSupport {
 

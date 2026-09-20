@@ -16,8 +16,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Header entity for organizing GTNet security import operations. Groups multiple security import
- * positions together, allowing users to batch lookup securities from GTNet peers.
+ * Header entity for organizing GTNet security import operations. Groups multiple security import positions together,
+ * allowing users to batch lookup securities from GTNet peers.
  */
 @Schema(description = """
     Header entity for GTNet security import operations. Groups multiple security import positions

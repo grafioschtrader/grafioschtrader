@@ -66,13 +66,14 @@ public class EntityLimitService {
   /**
    * Resolves the configured limit for a user.
    *
-   * @param user     the acting user, or {@code null} in a background context with no authenticated user. A
-   *                 {@code null} user skips the user and role steps and lands on the {@code ALL} row
+   * @param user     the acting user, or {@code null} in a background context with no authenticated user. A {@code null}
+   *                 user skips the user and role steps and lands on the {@code ALL} row
    * @param limitKey the key to resolve
    * @return the configured cap, or empty when nothing is configured, which means unlimited
    */
   public Optional<Integer> resolve(User user, LimitKey limitKey) {
-    return entityLimitCache.get(user == null ? null : user.getIdUser(), limitKey, () -> resolveUncached(user, limitKey));
+    return entityLimitCache.get(user == null ? null : user.getIdUser(), limitKey,
+        () -> resolveUncached(user, limitKey));
   }
 
   /** Resolves for the user of the current security context. */
@@ -133,8 +134,8 @@ public class EntityLimitService {
    * @throws IllegalArgumentException when the key is not registered, so a counter cannot be found
    */
   public int count(User user, LimitKey limitKey, Integer parentId) {
-    LimitKeyRegistration registration = LimitKeyRegistry.find(limitKey).orElseThrow(
-        () -> new IllegalArgumentException("No counter registered for limit key " + limitKey.keyId()));
+    LimitKeyRegistration registration = LimitKeyRegistry.find(limitKey)
+        .orElseThrow(() -> new IllegalArgumentException("No counter registered for limit key " + limitKey.keyId()));
     return registration.counter().count(entityManager, user, limitKey, parentId);
   }
 

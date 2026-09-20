@@ -20,9 +20,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * Maps a single field from a data provider's response to a target entity field. For FS_HISTORY endpoints, target
- * fields are: date, open, high, low, close, volume. For FS_INTRA endpoints: last, open, high, low, volume,
- * prevClose, changePercentage, timestamp.
+ * Maps a single field from a data provider's response to a target entity field. For FS_HISTORY endpoints, target fields
+ * are: date, open, high, low, close, volume. For FS_INTRA endpoints: last, open, high, low, volume, prevClose,
+ * changePercentage, timestamp.
  */
 @Entity
 @Table(name = GenericConnectorFieldMapping.TABNAME)

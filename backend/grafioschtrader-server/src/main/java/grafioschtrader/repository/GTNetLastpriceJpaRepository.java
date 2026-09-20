@@ -10,8 +10,8 @@ import grafioschtrader.entities.GTNetLastprice;
 /**
  * Repository for GTNetLastprice entities.
  *
- * Provides access to intraday price data for instruments in the GTNet pool.
- * Each lastprice entry is linked to a GTNetInstrument via foreign key.
+ * Provides access to intraday price data for instruments in the GTNet pool. Each lastprice entry is linked to a
+ * GTNetInstrument via foreign key.
  */
 public interface GTNetLastpriceJpaRepository extends JpaRepository<GTNetLastprice, Integer> {
 
@@ -24,8 +24,8 @@ public interface GTNetLastpriceJpaRepository extends JpaRepository<GTNetLastpric
   Optional<GTNetLastprice> findByGtNetInstrumentIdGtNetInstrument(Integer idGtNetInstrument);
 
   /**
-   * Finds all lastprice entries for a list of instrument IDs.
-   * Useful for batch operations where multiple instruments need price data.
+   * Finds all lastprice entries for a list of instrument IDs. Useful for batch operations where multiple instruments
+   * need price data.
    *
    * @param instrumentIds list of instrument IDs
    * @return list of lastprice entries

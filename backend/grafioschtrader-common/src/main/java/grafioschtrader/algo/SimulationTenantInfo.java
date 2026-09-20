@@ -1,5 +1,11 @@
 package grafioschtrader.algo;
 
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import grafiosch.BaseConstants;
+import grafioschtrader.types.SimulationInitializationMode;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -13,6 +19,48 @@ public class SimulationTenantInfo {
   private Integer idAlgoTop;
   private String algoTopName;
   private boolean hasTransactions;
+  @Schema(description = "Immutable end-of-day date whose closing state the environment opens with")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  private LocalDate simulationStartDate;
+
+  @Schema(description = "How the opening ledger was established")
+  private SimulationInitializationMode initializationMode;
+
+  @Schema(description = """
+      True while a replay of this environment is queued or executing. It can then neither be entered nor deleted, so
+      the client offers neither.""")
+  private boolean active;
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
+  }
+
+  public LocalDate getSimulationStartDate() {
+    return simulationStartDate;
+  }
+
+  public void setSimulationStartDate(LocalDate date) {
+    simulationStartDate = date;
+  }
+
+  public SimulationInitializationMode getInitializationMode() {
+    return initializationMode;
+  }
+
+  public void setInitializationMode(SimulationInitializationMode mode) {
+    initializationMode = mode;
+  }
+
+  @Schema(description = """
+      True for an environment created before the opening definition existed. It has neither a date nor a mode, so its
+      opening state cannot be reproduced and a historical replay needs a newly created environment.""")
+  public boolean isRequiresRecreation() {
+    return simulationStartDate == null || initializationMode == null;
+  }
 
   public SimulationTenantInfo() {
   }

@@ -18,8 +18,10 @@ import org.springframework.jdbc.core.RowMapper;
  * Utility class for generating SQL INSERT and DELETE statements from database table data. Used for exporting database
  * tables as self-contained SQL that can be re-imported to restore state.
  *
- * <p>Handles all SQL data types (timestamps, strings with escaping, binary as hex, numerics, nulls) and batches INSERT
- * statements in groups of 500 rows for efficiency.</p>
+ * <p>
+ * Handles all SQL data types (timestamps, strings with escaping, binary as hex, numerics, nulls) and batches INSERT
+ * statements in groups of 500 rows for efficiency.
+ * </p>
  */
 public class MySqlInsertStatementGenerator {
 
@@ -35,8 +37,10 @@ public class MySqlInsertStatementGenerator {
    * time. {@code getInt} bypasses the mapping and yields the stored number. A genuine boolean column comes out as 0 or
    * 1, which MariaDB accepts unchanged.
    *
-   * <p>Everything else stays exactly what {@code JdbcTemplate.queryForList} produced: {@link ColumnMapRowMapper}
-   * keeps the case-insensitive map and the column keys from {@code JdbcUtils.lookupColumnName}.</p>
+   * <p>
+   * Everything else stays exactly what {@code JdbcTemplate.queryForList} produced: {@link ColumnMapRowMapper} keeps the
+   * case-insensitive map and the column keys from {@code JdbcUtils.lookupColumnName}.
+   * </p>
    */
   public static final RowMapper<Map<String, Object>> EXPORT_ROW_MAPPER = new ColumnMapRowMapper() {
     @Override
@@ -62,8 +66,8 @@ public class MySqlInsertStatementGenerator {
     String query = "SELECT * FROM " + tableName;
     final List<Map<String, Object>> rows = jdbcTemplate.query(query, EXPORT_ROW_MAPPER);
     if (!rows.isEmpty()) {
-      ResultSetMetaData metaData = jdbcTemplate
-          .query(query + " LIMIT 1", (resultSet, _) -> resultSet.getMetaData()).get(0);
+      ResultSetMetaData metaData = jdbcTemplate.query(query + " LIMIT 1", (resultSet, _) -> resultSet.getMetaData())
+          .get(0);
       try {
         sqlStatement.append(createInsertStatements(tableName, metaData, rows));
       } catch (SQLException e) {
@@ -148,9 +152,9 @@ public class MySqlInsertStatementGenerator {
    * column is NULL are inserted first, followed by rows that reference other rows in the same table. This avoids FK
    * violations without disabling constraint checks.
    *
-   * @param jdbcTemplate     the JDBC template for querying the database
-   * @param tableName        the name of the table to export
-   * @param selfRefColumn    the self-referencing FK column name (e.g., "reply_to")
+   * @param jdbcTemplate  the JDBC template for querying the database
+   * @param tableName     the name of the table to export
+   * @param selfRefColumn the self-referencing FK column name (e.g., "reply_to")
    * @return a StringBuilder containing the ordered INSERT statements
    */
   public static StringBuilder generateInsertStatementsWithSelfRef(JdbcTemplate jdbcTemplate, String tableName,

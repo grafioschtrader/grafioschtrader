@@ -4,13 +4,13 @@ package grafiosch.dynamic.model;
  * Enumeration of data types used for GUI form generation and input validation. These data types are specifically
  * designed for user interface components and may differ from their corresponding Java data types to better represent
  * form input requirements and validation rules.
- * 
+ *
  * <p>
  * Each data type in this enum corresponds to a specific type of form input component and associated validation
  * behavior. The data types are designed to provide enough granularity for generating appropriate UI controls while
  * maintaining simplicity for form processing.
  * </p>
- * 
+ *
  * <p>
  * Unlike Java data types which focus on memory representation and operations, these GUI data types emphasize user
  * interaction patterns, input validation, and display formatting requirements.
@@ -38,7 +38,9 @@ public enum DataType {
   /** For a web link. Normally this is a string with validation for validity as a URL. */
   URLString((byte) 20),
 
-  /** For Set&lt;Enum&gt; fields rendered as multi-select input. The available enum values are provided in enumValues. */
+  /**
+   * For Set&lt;Enum&gt; fields rendered as multi-select input. The available enum values are provided in enumValues.
+   */
   EnumSet((byte) 21);
 
   private final Byte value;

@@ -16,9 +16,19 @@ public class Ech0196Institution {
   @XmlAttribute(required = true)
   private String name;
 
-  public String getLei() { return lei; }
-  public void setLei(String lei) { this.lei = lei; }
+  public String getLei() {
+    return lei;
+  }
 
-  public String getName() { return name; }
-  public void setName(String name) { this.name = name; }
+  public void setLei(String lei) {
+    this.lei = lei;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
 }

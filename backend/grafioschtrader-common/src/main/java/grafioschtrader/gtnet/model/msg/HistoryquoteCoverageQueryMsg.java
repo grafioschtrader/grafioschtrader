@@ -10,9 +10,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Request payload for querying historical price coverage metadata from GTNet peers.
  *
- * This is a lightweight query that requests only the date coverage (min/max dates) for instruments
- * without fetching the actual historical price data. Used during security import to determine which
- * GTNet peer has the longest historical coverage for newly created securities.
+ * This is a lightweight query that requests only the date coverage (min/max dates) for instruments without fetching the
+ * actual historical price data. Used during security import to determine which GTNet peer has the longest historical
+ * coverage for newly created securities.
  *
  * @see grafioschtrader.gtnet.GTNetMessageCodeType#GT_NET_HISTORYQUOTE_COVERAGE_SEL_C
  */
@@ -63,8 +63,8 @@ public class HistoryquoteCoverageQueryMsg {
   }
 
   /**
-   * Lightweight identifier for an instrument in coverage queries.
-   * Contains only the fields needed to identify the instrument without the full metadata.
+   * Lightweight identifier for an instrument in coverage queries. Contains only the fields needed to identify the
+   * instrument without the full metadata.
    */
   @Schema(description = """
       Lightweight identifier for an instrument in coverage queries.

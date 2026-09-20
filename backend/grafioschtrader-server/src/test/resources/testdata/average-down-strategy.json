@@ -1,0 +1,107 @@
+{
+  "strategy_name": "Average down test",
+  "universe": {
+    "mode": "watchlist",
+    "direction": "long_only"
+  },
+  "data": {
+    "price_field": "close",
+    "timeframe": "1d"
+  },
+  "execution": {
+    "order_type": "market",
+    "slippage_model": "none",
+    "fees_model": "none"
+  },
+  "cooldowns": {
+    "after_buy_days": 2,
+    "after_sell_days": 2,
+    "max_trades_per_asset_per_30d": 10
+  },
+  "entry": {
+    "type": "dip_buy",
+    "lookback_T": 2,
+    "dip_reference": {
+      "type": "price_T_ago"
+    },
+    "dip_threshold_pct": -0.1,
+    "initial_buy_sizing": {
+      "mode": "pct_portfolio",
+      "pct": 0.03
+    }
+  },
+  "profit_management": {
+    "scale_out_enabled": true,
+    "sell_fraction_basis": "initial_position",
+    "scale_out_plan": [
+      {
+        "id": "t1",
+        "trigger": {
+          "type": "pct_gain",
+          "value": 0.03,
+          "reference": "avg_cost"
+        },
+        "sell_fraction": 0.3
+      },
+      {
+        "id": "t2",
+        "trigger": {
+          "type": "pct_gain",
+          "value": 0.05,
+          "reference": "avg_cost"
+        },
+        "sell_fraction": 0.3
+      },
+      {
+        "id": "t3",
+        "trigger": {
+          "type": "pct_gain",
+          "value": 0.08,
+          "reference": "avg_cost"
+        },
+        "sell_remainder": true
+      }
+    ],
+    "take_profit": {
+      "mode": "pct_gain",
+      "pct": 0.5,
+      "reference": "avg_cost",
+      "action": "sell_all_remaining"
+    }
+  },
+  "downside_management": {
+    "trigger": {
+      "down_reference": "initial_entry_price",
+      "down_threshold_pct": -0.1,
+      "decision_basis": "simple_threshold"
+    },
+    "loss_action": "B_average_down",
+    "variant_A_sell_loss": {
+      "enabled": false,
+      "stop_type": "hard_stop",
+      "stop_reference": "avg_cost",
+      "stop_threshold_pct": -0.1,
+      "order_type": "market",
+      "action": "sell_all_remaining"
+    },
+    "variant_B_average_down": {
+      "enabled": true,
+      "add_sizing": {
+        "mode": "absolute_amount",
+        "amount": 1000
+      },
+      "max_adds": 3,
+      "add_step_rule": {
+        "type": "each_n_pct_drop",
+        "reference": "initial_entry_price",
+        "drop_pct_step": 0.05
+      },
+      "recalculate_avg_cost": true
+    }
+  },
+  "risk_controls": {
+    "max_position_exposure_pct": 0.1,
+    "max_position_drawdown_pct": 0.25,
+    "force_exit_on_risk_breach": true
+  }
+}

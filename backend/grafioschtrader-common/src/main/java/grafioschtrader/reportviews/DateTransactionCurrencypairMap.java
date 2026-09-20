@@ -65,8 +65,7 @@ public class DateTransactionCurrencypairMap {
   private boolean useUntilDateForFeeAndInterest = true;
   private boolean hasTradingDaysBetweenUntilDateAndYesterday = false;
 
-  public DateTransactionCurrencypairMap(final LocalDate untilDate,
-      boolean hasTradingDaysBetweenUntilDateAndYesterday) {
+  public DateTransactionCurrencypairMap(final LocalDate untilDate, boolean hasTradingDaysBetweenUntilDateAndYesterday) {
     this.untilDate = untilDate;
     this.hasTradingDaysBetweenUntilDateAndYesterday = hasTradingDaysBetweenUntilDateAndYesterday;
   }
@@ -121,8 +120,7 @@ public class DateTransactionCurrencypairMap {
     dateCurrency.forEach(objects -> {
       LocalDate localDate = (LocalDate) objects[0];
       dateFromCurrencyMap.put(new DateCurrency(localDate, (String) objects[1]), (Double) objects[2]);
-      fromToCurrencyWithDateMap.put(
-          new FromToCurrencyWithDate((String) objects[1], mainCurrency, localDate),
+      fromToCurrencyWithDateMap.put(new FromToCurrencyWithDate((String) objects[1], mainCurrency, localDate),
           (Double) objects[2]);
     });
   }

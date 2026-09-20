@@ -24,26 +24,26 @@ import grafioschtrader.repository.GTNetInstrumentCurrencypairJpaRepository;
 import grafioschtrader.repository.GTNetInstrumentSecurityJpaRepository;
 
 /**
- * Strategy for AC_PUSH_OPEN mode: queries GTNetHistoryquote (for foreign instruments)
- * or local historyquote table (for local instruments) using optimized batch queries.
+ * Strategy for AC_PUSH_OPEN mode: queries GTNetHistoryquote (for foreign instruments) or local historyquote table (for
+ * local instruments) using optimized batch queries.
  *
  * Behavior:
  * <ul>
- *   <li>Queries GTNetInstrumentSecurity/GTNetInstrumentCurrencypair to find instruments in the pool</li>
- *   <li>Uses JOIN-based locality lookup to determine which instruments exist locally</li>
- *   <li>For local instruments: batch queries local historyquote table FIRST</li>
- *   <li>For foreign instruments: batch queries gt_net_historyquote table</li>
- *   <li>Applies 10-day threshold optimization to minimize query scope</li>
- *   <li>For instruments NOT found in the pool with historical data to share: creates new entries</li>
- *   <li>Returns historical data for all matching instruments within the requested date range</li>
+ * <li>Queries GTNetInstrumentSecurity/GTNetInstrumentCurrencypair to find instruments in the pool</li>
+ * <li>Uses JOIN-based locality lookup to determine which instruments exist locally</li>
+ * <li>For local instruments: batch queries local historyquote table FIRST</li>
+ * <li>For foreign instruments: batch queries gt_net_historyquote table</li>
+ * <li>Applies 10-day threshold optimization to minimize query scope</li>
+ * <li>For instruments NOT found in the pool with historical data to share: creates new entries</li>
+ * <li>Returns historical data for all matching instruments within the requested date range</li>
  * </ul>
  *
  * <h3>10-Day Threshold Optimization</h3>
  * <p>
- * To minimize the amount of data queried, the strategy uses a 10-day threshold. If all requested
- * fromDates are within the last 10 days, a single batch query is executed with the oldest fromDate.
- * For instruments requesting data older than 10 days, those are handled with individual queries
- * to avoid fetching excessive historical data for the entire batch.
+ * To minimize the amount of data queried, the strategy uses a 10-day threshold. If all requested fromDates are within
+ * the last 10 days, a single batch query is executed with the oldest fromDate. For instruments requesting data older
+ * than 10 days, those are handled with individual queries to avoid fetching excessive historical data for the entire
+ * batch.
  * </p>
  */
 @Component
@@ -82,8 +82,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
 
     if (!instruments.isEmpty()) {
       // Get instrument IDs for locality lookup
-      List<Integer> instrumentIds = instruments.stream()
-          .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
+      List<Integer> instrumentIds = instruments.stream().map(GTNetInstrumentSecurity::getIdGtNetInstrument)
           .collect(Collectors.toList());
 
       // Determine locality via JOIN - returns mapping of gtNetInstrumentId -> localSecuritycurrencyId
@@ -143,8 +142,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
 
     if (!instruments.isEmpty()) {
       // Get instrument IDs for locality lookup
-      List<Integer> instrumentIds = instruments.stream()
-          .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
+      List<Integer> instrumentIds = instruments.stream().map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
           .collect(Collectors.toList());
 
       // Determine locality via JOIN
@@ -196,13 +194,12 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
         i -> i.getIsin() + ":" + i.getCurrency());
 
     // Collect local security IDs for batch query
-    List<Integer> localIds = instruments.stream()
-        .map(i -> localityMap.get(i.getIdGtNetInstrument()))
+    List<Integer> localIds = instruments.stream().map(i -> localityMap.get(i.getIdGtNetInstrument()))
         .collect(Collectors.toList());
 
     // Batch query local historyquotes
-    List<Historyquote> allQuotes = historyquoteJpaRepository
-        .findByIdSecuritycurrencyInAndDateGreaterThanEqual(localIds, batchFromDate);
+    List<Historyquote> allQuotes = historyquoteJpaRepository.findByIdSecuritycurrencyInAndDateGreaterThanEqual(localIds,
+        batchFromDate);
 
     // Group quotes by idSecuritycurrency for efficient lookup
     Map<Integer, List<Historyquote>> quotesBySecurityId = allQuotes.stream()
@@ -223,8 +220,8 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
         records = filterRecordsByDateRange(records, req.getFromDate(), req.getToDate());
 
         if (!records.isEmpty()) {
-          InstrumentHistoryquoteDTO response = buildSecurityResponse(
-              instrument.getIsin(), instrument.getCurrency(), req.getFromDate(), req.getToDate(), records);
+          InstrumentHistoryquoteDTO response = buildSecurityResponse(instrument.getIsin(), instrument.getCurrency(),
+              req.getFromDate(), req.getToDate(), records);
           if (response != null) {
             result.add(response);
           }
@@ -249,8 +246,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
         i -> i.getIsin() + ":" + i.getCurrency());
 
     // Collect GTNet instrument IDs for batch query
-    List<Integer> instrumentIds = instruments.stream()
-        .map(GTNetInstrumentSecurity::getIdGtNetInstrument)
+    List<Integer> instrumentIds = instruments.stream().map(GTNetInstrumentSecurity::getIdGtNetInstrument)
         .collect(Collectors.toList());
 
     // Batch query GTNetHistoryquotes
@@ -268,15 +264,16 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
       InstrumentHistoryquoteDTO req = requestMap.get(key);
 
       if (req != null && req.getFromDate() != null && req.getToDate() != null) {
-        List<GTNetHistoryquote> quotes = quotesByInstrumentId.getOrDefault(instrument.getIdGtNetInstrument(), List.of());
+        List<GTNetHistoryquote> quotes = quotesByInstrumentId.getOrDefault(instrument.getIdGtNetInstrument(),
+            List.of());
 
         // Filter to requested date range and convert
         List<HistoryquoteRecordDTO> records = convertGtNetHistoryquotes(quotes);
         records = filterRecordsByDateRange(records, req.getFromDate(), req.getToDate());
 
         if (!records.isEmpty()) {
-          InstrumentHistoryquoteDTO response = buildSecurityResponse(
-              instrument.getIsin(), instrument.getCurrency(), req.getFromDate(), req.getToDate(), records);
+          InstrumentHistoryquoteDTO response = buildSecurityResponse(instrument.getIsin(), instrument.getCurrency(),
+              req.getFromDate(), req.getToDate(), records);
           if (response != null) {
             result.add(response);
           }
@@ -288,9 +285,9 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
   /**
    * Processes local currency pairs using batch query with 10-day optimization.
    */
-  private void processLocalCurrencypairs(List<GTNetInstrumentCurrencypair> instruments, Map<Integer, Integer> localityMap,
-      Map<String, InstrumentHistoryquoteDTO> requestMap, LocalDate thresholdDate, Set<String> foundKeys,
-      List<InstrumentHistoryquoteDTO> result) {
+  private void processLocalCurrencypairs(List<GTNetInstrumentCurrencypair> instruments,
+      Map<Integer, Integer> localityMap, Map<String, InstrumentHistoryquoteDTO> requestMap, LocalDate thresholdDate,
+      Set<String> foundKeys, List<InstrumentHistoryquoteDTO> result) {
 
     if (instruments.isEmpty()) {
       return;
@@ -301,13 +298,12 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
         i -> i.getFromCurrency() + ":" + i.getToCurrency());
 
     // Collect local currency pair IDs for batch query
-    List<Integer> localIds = instruments.stream()
-        .map(i -> localityMap.get(i.getIdGtNetInstrument()))
+    List<Integer> localIds = instruments.stream().map(i -> localityMap.get(i.getIdGtNetInstrument()))
         .collect(Collectors.toList());
 
     // Batch query local historyquotes
-    List<Historyquote> allQuotes = historyquoteJpaRepository
-        .findByIdSecuritycurrencyInAndDateGreaterThanEqual(localIds, batchFromDate);
+    List<Historyquote> allQuotes = historyquoteJpaRepository.findByIdSecuritycurrencyInAndDateGreaterThanEqual(localIds,
+        batchFromDate);
 
     // Group quotes by idSecuritycurrency for efficient lookup
     Map<Integer, List<Historyquote>> quotesBySecurityId = allQuotes.stream()
@@ -328,8 +324,8 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
         records = filterRecordsByDateRange(records, req.getFromDate(), req.getToDate());
 
         if (!records.isEmpty()) {
-          InstrumentHistoryquoteDTO response = buildCurrencypairResponse(
-              instrument.getFromCurrency(), instrument.getToCurrency(), req.getFromDate(), req.getToDate(), records);
+          InstrumentHistoryquoteDTO response = buildCurrencypairResponse(instrument.getFromCurrency(),
+              instrument.getToCurrency(), req.getFromDate(), req.getToDate(), records);
           if (response != null) {
             result.add(response);
           }
@@ -354,8 +350,7 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
         i -> i.getFromCurrency() + ":" + i.getToCurrency());
 
     // Collect GTNet instrument IDs for batch query
-    List<Integer> instrumentIds = instruments.stream()
-        .map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
+    List<Integer> instrumentIds = instruments.stream().map(GTNetInstrumentCurrencypair::getIdGtNetInstrument)
         .collect(Collectors.toList());
 
     // Batch query GTNetHistoryquotes
@@ -373,15 +368,16 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
       InstrumentHistoryquoteDTO req = requestMap.get(key);
 
       if (req != null && req.getFromDate() != null && req.getToDate() != null) {
-        List<GTNetHistoryquote> quotes = quotesByInstrumentId.getOrDefault(instrument.getIdGtNetInstrument(), List.of());
+        List<GTNetHistoryquote> quotes = quotesByInstrumentId.getOrDefault(instrument.getIdGtNetInstrument(),
+            List.of());
 
         // Filter to requested date range and convert
         List<HistoryquoteRecordDTO> records = convertGtNetHistoryquotes(quotes);
         records = filterRecordsByDateRange(records, req.getFromDate(), req.getToDate());
 
         if (!records.isEmpty()) {
-          InstrumentHistoryquoteDTO response = buildCurrencypairResponse(
-              instrument.getFromCurrency(), instrument.getToCurrency(), req.getFromDate(), req.getToDate(), records);
+          InstrumentHistoryquoteDTO response = buildCurrencypairResponse(instrument.getFromCurrency(),
+              instrument.getToCurrency(), req.getFromDate(), req.getToDate(), records);
           if (response != null) {
             result.add(response);
           }
@@ -417,8 +413,8 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
   }
 
   /**
-   * Creates new GTNet instrument entries for securities not found in the pool.
-   * Only creates if the request has records to store.
+   * Creates new GTNet instrument entries for securities not found in the pool. Only creates if the request has records
+   * to store.
    */
   private void createNewSecurityInstruments(Map<String, InstrumentHistoryquoteDTO> requestMap, Set<String> foundKeys) {
     for (Map.Entry<String, InstrumentHistoryquoteDTO> entry : requestMap.entrySet()) {
@@ -437,8 +433,8 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
   }
 
   /**
-   * Creates new GTNet instrument entries for currency pairs not found in the pool.
-   * Only creates if the request has records to store.
+   * Creates new GTNet instrument entries for currency pairs not found in the pool. Only creates if the request has
+   * records to store.
    */
   private void createNewCurrencypairInstruments(Map<String, InstrumentHistoryquoteDTO> requestMap,
       Set<String> foundKeys) {
@@ -464,8 +460,8 @@ public class PushOpenHistoryquoteQueryStrategy extends BaseHistoryquoteQueryStra
     for (HistoryquoteRecordDTO record : records) {
       if (record.getDate() != null && record.getClose() != null) {
         // Check if entry already exists
-        var existing = gtNetHistoryquoteJpaRepository
-            .findByGtNetInstrumentIdGtNetInstrumentAndDate(idGtNetInstrument, record.getDate());
+        var existing = gtNetHistoryquoteJpaRepository.findByGtNetInstrumentIdGtNetInstrumentAndDate(idGtNetInstrument,
+            record.getDate());
 
         if (existing.isEmpty()) {
           GTNetHistoryquote hq = new GTNetHistoryquote();

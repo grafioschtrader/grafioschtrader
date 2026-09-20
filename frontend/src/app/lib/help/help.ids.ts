@@ -7,6 +7,7 @@
  * Object.assign(HelpIds, YourAppHelpIds);
  */
 export const HelpIds: Record<string, string> = {
+  HELP_DASHBOARD: 'intro/dashboard',
   // Intro
   HELP_INTRO: 'intro',
   HELP_INTRO_REGISTER: 'intro/register',

@@ -128,8 +128,8 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
    * Records that this peer tried to start over, so the administrator on this side can see it and act.
    *
    * <p>
-   * A peer whose own credentials are gone is in a corner: its first contact is refused here, and it cannot ask for
-   * help either, because an administrative message requires the very handshake it is being refused. Until this stamp
+   * A peer whose own credentials are gone is in a corner: its first contact is refused here, and it cannot ask for help
+   * either, because an administrative message requires the very handshake it is being refused. Until this stamp
    * existed, the refusal left nothing but a line in the server log, and nobody was told. The GTNet setup table turns
    * the stamp into a marker on the peer's row, from which the administrator allows a new handshake.
    * </p>

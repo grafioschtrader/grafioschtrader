@@ -71,8 +71,8 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
       Watchlist.TABNAME })
   @GetMapping(value = "/hassecurity", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<WatchlistSecurityStatus>> getWatchlistsOfTenantHasSecurity() {
-      final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
-      return new ResponseEntity<>(watchlistJpaRepository.watchlistsOfTenantHasSecurity(idTenant), HttpStatus.OK);
+    final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
+    return new ResponseEntity<>(watchlistJpaRepository.watchlistsOfTenantHasSecurity(idTenant), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns Id's of watchlist which contains the specified security", description = "May be used for moving a security to another wachlist, a security can only once exist in a watchlist", tags = {
@@ -276,6 +276,5 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
       @Parameter(description = "True when for dividen otherwise false", required = true) @RequestParam() final boolean isDiv) {
     return watchlistJpaRepository.getDataProviderDivSplitResponseForUser(idSecuritycurrency, isDiv);
   }
-
 
 }

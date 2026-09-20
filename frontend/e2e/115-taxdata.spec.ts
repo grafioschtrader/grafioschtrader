@@ -81,7 +81,8 @@ test.describe.serial('tax data - create, upload, delete and recreate', () => {
     await deleteNode(page, nodeRow(container, String(TAX_YEAR)));
     await deleteNode(page, nodeRow(container, RX.country));
 
-    await expect(container.locator('.p-treetable-tbody tr')).toHaveCount(0, { timeout: 10_000 });
+    // Countries that only provide a built-in tax model remain; this scenario owns Switzerland alone.
+    await expect(nodeRow(container, RX.country)).toHaveCount(0, { timeout: 10_000 });
   });
 
   test('recreates tax country, tax year 2025 and re-uploads both kursliste files', async ({ page }) => {

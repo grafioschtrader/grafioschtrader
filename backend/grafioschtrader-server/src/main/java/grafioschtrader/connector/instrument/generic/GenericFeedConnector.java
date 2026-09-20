@@ -90,8 +90,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
 
   public GenericFeedConnector(GenericConnectorDef connectorDef, String apiKey) {
     super(buildSupportedFeed(connectorDef), connectorDef.getShortId(), connectorDef.getReadableName(),
-        connectorDef.getRegexUrlPattern(),
-        buildUrlCheckSet(connectorDef));
+        connectorDef.getRegexUrlPattern(), buildUrlCheckSet(connectorDef));
     this.connectorDef = connectorDef;
     this.apiKey = apiKey;
     this.rateLimitBucket = buildBucket(connectorDef);
@@ -238,7 +237,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
   }
 
   @Override
-  public List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, LocalDate from, LocalDate to) throws Exception {
+  public List<Historyquote> getEodCurrencyHistory(Currencypair currencyPair, LocalDate from, LocalDate to)
+      throws Exception {
     GenericConnectorEndpoint endpoint = findEndpoint("FS_HISTORY", "CURRENCY");
     if (endpoint == null) {
       throw new UnsupportedOperationException("No FS_HISTORY+CURRENCY endpoint configured for " + getShortID());
@@ -282,9 +282,9 @@ public class GenericFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Converts intraday price values from a minor currency unit (pence, cents) to the security's major currency when
-   * this connector has the divider enabled, mirroring the conversion of the historical data path. Only price fields
-   * are divided; volume and change percentage are unit-independent.
+   * Converts intraday price values from a minor currency unit (pence, cents) to the security's major currency when this
+   * connector has the divider enabled, mirroring the conversion of the historical data path. Only price fields are
+   * divided; volume and change percentage are unit-independent.
    */
   private void applyMinorUnitDivider(Security security, Map<String, Double> values) {
     if (connectorDef.isGbxDividerEnabled()) {
@@ -332,8 +332,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
 
   // ======================== Core Fetch Logic ========================
 
-  private List<Historyquote> fetchHistory(GenericConnectorEndpoint endpoint, String ticker, LocalDate from, LocalDate to,
-      Security security, Currencypair currencyPair) throws Exception {
+  private List<Historyquote> fetchHistory(GenericConnectorEndpoint endpoint, String ticker, LocalDate from,
+      LocalDate to, Security security, Currencypair currencyPair) throws Exception {
     if (endpoint.getMaxDataPoints() == null) {
       return fetchSingleHistory(endpoint, ticker, from, to, security, currencyPair);
     }
@@ -350,14 +350,14 @@ public class GenericFeedConnector extends BaseFeedConnector {
         break;
       }
       currentFrom = lastDate.plusDays(1);
-      log.info("Chunked fetch {}: batch {} returned {} rows, last date {}. Next from: {}",
-          getShortID(), i + 1, batch.size(), lastDate, currentFrom);
+      log.info("Chunked fetch {}: batch {} returned {} rows, last date {}. Next from: {}", getShortID(), i + 1,
+          batch.size(), lastDate, currentFrom);
     }
     return allQuotes;
   }
 
-  private List<Historyquote> fetchSingleHistory(GenericConnectorEndpoint endpoint, String ticker, LocalDate from, LocalDate to,
-      Security security, Currencypair currencyPair) throws Exception {
+  private List<Historyquote> fetchSingleHistory(GenericConnectorEndpoint endpoint, String ticker, LocalDate from,
+      LocalDate to, Security security, Currencypair currencyPair) throws Exception {
     String url = buildUrl(endpoint, ticker, from, to, currencyPair);
     acquireRateLimit();
     try {
@@ -390,8 +390,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
     }
   }
 
-  private Map<String, Double> fetchIntraday(GenericConnectorEndpoint endpoint, String ticker,
-      Currencypair currencyPair) throws Exception {
+  private Map<String, Double> fetchIntraday(GenericConnectorEndpoint endpoint, String ticker, Currencypair currencyPair)
+      throws Exception {
     LocalDate from = null;
     LocalDate to = null;
     if (needsDatePlaceholders(endpoint)) {
@@ -469,8 +469,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
     DateFormatType dft = endpoint.getDateFormatType();
     switch (dft) {
     case UNIX_SECONDS:
-      return isEndOfDay
-          ? String.valueOf(date.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toEpochSecond())
+      return isEndOfDay ? String.valueOf(date.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toEpochSecond())
           : String.valueOf(date.atStartOfDay(ZoneId.systemDefault()).toEpochSecond());
     case UNIX_MILLIS:
       return isEndOfDay
@@ -502,8 +501,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
       response = doHttpGet(url);
     }
     if (response.statusCode() != 200) {
-      throw new RuntimeException(
-          "HTTP " + response.statusCode() + " for " + hideApiKeyForError(url));
+      throw new RuntimeException("HTTP " + response.statusCode() + " for " + hideApiKeyForError(url));
     }
     return response.body();
   }
@@ -514,22 +512,35 @@ public class GenericFeedConnector extends BaseFeedConnector {
     try {
       return client.send(request, HttpResponse.BodyHandlers.ofString());
     } catch (IOException e) {
-      log.warn("HTTP request failed for {}, retrying with HTTP/1.1: {}", getShortID(), e.getMessage());
-      HttpClient fallbackClient = HttpClient.newBuilder()
-          .version(HttpClient.Version.HTTP_1_1)
-          .followRedirects(HttpClient.Redirect.NORMAL)
-          .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
-          .connectTimeout(Duration.ofSeconds(30))
-          .build();
+      log.warn("HTTP request failed for {}, retrying with HTTP/1.1: {}", getShortID(),
+          hideApiKeyForError(String.valueOf(e.getMessage())));
+      HttpClient fallbackClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+          .followRedirects(HttpClient.Redirect.NORMAL).cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
+          .connectTimeout(Duration.ofSeconds(30)).build();
       return fallbackClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
   }
 
+  /**
+   * Creates the URI of a request URL with the API key removed from a possible error. The URL carries the key, and the
+   * message of the {@link IllegalArgumentException} of {@link URI#create(String)} repeats the whole URL. An identifier
+   * that contains a character which is illegal in a path, an index symbol beginning with '^' for example, would
+   * otherwise write the key into the log and into the message the user is shown.
+   *
+   * @param url the request URL, key already substituted
+   * @return the URI of that URL
+   */
+  private URI createUri(String url) {
+    try {
+      return URI.create(url);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException(hideApiKeyForError(String.valueOf(e.getMessage())));
+    }
+  }
+
   private HttpRequest buildHttpGetRequest(String url) {
-    HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-        .uri(URI.create(url))
-        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .header("Accept-Language", "en")
+    HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(createUri(url))
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).header("Accept-Language", "en")
         .timeout(Duration.ofSeconds(30));
 
     if (connectorDef.getHttpHeaders() != null) {
@@ -549,8 +560,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
   // ======================== Auto-Token Lifecycle ========================
 
   /**
-   * Ensures the API key (JWT) is valid when auto-token is configured. In classic mode (tokenConfig == null),
-   * this is a no-op. Thread-safe: multiple concurrent requests share a single token.
+   * Ensures the API key (JWT) is valid when auto-token is configured. In classic mode (tokenConfig == null), this is a
+   * no-op. Thread-safe: multiple concurrent requests share a single token.
    */
   private void ensureTokenValid() throws Exception {
     if (tokenConfig == null) {
@@ -574,24 +585,18 @@ public class GenericFeedConnector extends BaseFeedConnector {
   }
 
   /**
-   * Full seed + login flow: GET the seed page, extract a value via regex, POST it to the login URL,
-   * and parse the JWT (and optional session ID) from the JSON response.
+   * Full seed + login flow: GET the seed page, extract a value via regex, POST it to the login URL, and parse the JWT
+   * (and optional session ID) from the JSON response.
    */
   private void acquireToken() throws Exception {
     // Use HTTP/1.1 for token operations — LSEG API drops HTTP/2 connections with EOF
-    HttpClient client = HttpClient.newBuilder()
-        .version(HttpClient.Version.HTTP_1_1)
-        .followRedirects(HttpClient.Redirect.NORMAL)
-        .connectTimeout(Duration.ofSeconds(30))
-        .build();
+    HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+        .followRedirects(HttpClient.Redirect.NORMAL).connectTimeout(Duration.ofSeconds(30)).build();
     String seedOrigin = URI.create(tokenConfig.getSeed().getUrl()).resolve("/").toString();
 
     // Step 1: GET seed page
-    HttpRequest seedRequest = HttpRequest.newBuilder()
-        .uri(URI.create(tokenConfig.getSeed().getUrl()))
-        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .timeout(Duration.ofSeconds(30))
-        .GET().build();
+    HttpRequest seedRequest = HttpRequest.newBuilder().uri(URI.create(tokenConfig.getSeed().getUrl()))
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).timeout(Duration.ofSeconds(30)).GET().build();
     HttpResponse<String> seedResponse = client.send(seedRequest, HttpResponse.BodyHandlers.ofString());
     if (seedResponse.statusCode() != 200) {
       throw new RuntimeException("Seed page returned HTTP " + seedResponse.statusCode() + " for " + getShortID());
@@ -623,19 +628,16 @@ public class GenericFeedConnector extends BaseFeedConnector {
       escapedSeedValue = escapedSeedValue.substring(1, escapedSeedValue.length() - 1);
       loginBody = tokenConfig.getLogin().getBody().replace("{seedValue}", escapedSeedValue);
     }
-    HttpRequest loginRequest = HttpRequest.newBuilder()
-        .uri(URI.create(tokenConfig.getLogin().getUrl()))
-        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .header("Content-Type", contentType)
-        .header("Accept", "application/json")
-        .header("Origin", seedOrigin)
-        .header("Referer", tokenConfig.getSeed().getUrl())
-        .timeout(Duration.ofSeconds(30))
+    HttpRequest loginRequest = HttpRequest.newBuilder().uri(URI.create(tokenConfig.getLogin().getUrl()))
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).header("Content-Type", contentType)
+        .header("Accept", "application/json").header("Origin", seedOrigin)
+        .header("Referer", tokenConfig.getSeed().getUrl()).timeout(Duration.ofSeconds(30))
         .POST(HttpRequest.BodyPublishers.ofString(loginBody)).build();
     HttpResponse<String> loginResponse = client.send(loginRequest, HttpResponse.BodyHandlers.ofString());
     if (loginResponse.statusCode() != 200 && loginResponse.statusCode() != 201) {
       log.error("Login POST failed for {}: HTTP {}, body: {}", getShortID(), loginResponse.statusCode(),
-          loginResponse.body() != null ? loginResponse.body().substring(0, Math.min(loginResponse.body().length(), 500)) : "null");
+          loginResponse.body() != null ? loginResponse.body().substring(0, Math.min(loginResponse.body().length(), 500))
+              : "null");
       throw new RuntimeException("Login returned HTTP " + loginResponse.statusCode() + " for " + getShortID());
     }
 
@@ -643,7 +645,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
     JsonNode loginJson = objectMapper.readTree(loginResponse.body());
     JsonNode jwtNode = navigatePath(loginJson, tokenConfig.getLogin().getJwtPath());
     if (jwtNode == null || jwtNode.isNull()) {
-      throw new RuntimeException("JWT not found at path '" + tokenConfig.getLogin().getJwtPath() + "' for " + getShortID());
+      throw new RuntimeException(
+          "JWT not found at path '" + tokenConfig.getLogin().getJwtPath() + "' for " + getShortID());
     }
     this.apiKey = jwtNode.asString();
     this.tokenExpiresAt = Instant.now().plusSeconds(tokenConfig.getTtlSeconds());
@@ -654,27 +657,22 @@ public class GenericFeedConnector extends BaseFeedConnector {
         this.cachedSid = sidNode.asString();
       }
     }
-    log.info("Auto-token acquired for {} (ttl={}s, sid={})", getShortID(), tokenConfig.getTtlSeconds(), cachedSid != null);
+    log.info("Auto-token acquired for {} (ttl={}s, sid={})", getShortID(), tokenConfig.getTtlSeconds(),
+        cachedSid != null);
   }
 
   /**
    * Refreshes the JWT using the cached session ID, without re-running the seed step.
    */
   private void refreshToken() throws Exception {
-    HttpClient client = HttpClient.newBuilder()
-        .version(HttpClient.Version.HTTP_1_1)
-        .followRedirects(HttpClient.Redirect.NORMAL)
-        .connectTimeout(Duration.ofSeconds(30))
-        .build();
+    HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
+        .followRedirects(HttpClient.Redirect.NORMAL).connectTimeout(Duration.ofSeconds(30)).build();
 
     TokenConfig.RefreshConfig rc = tokenConfig.getRefresh();
-    HttpRequest refreshRequest = HttpRequest.newBuilder()
-        .uri(URI.create(rc.getUrl()))
-        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT)
-        .header("Accept", "application/json")
-        .header(rc.getSidHeader(), cachedSid)
-        .timeout(Duration.ofSeconds(30))
-        .POST(HttpRequest.BodyPublishers.noBody()).build();
+    HttpRequest refreshRequest = HttpRequest.newBuilder().uri(URI.create(rc.getUrl()))
+        .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).header("Accept", "application/json")
+        .header(rc.getSidHeader(), cachedSid).timeout(Duration.ofSeconds(30)).POST(HttpRequest.BodyPublishers.noBody())
+        .build();
     HttpResponse<String> refreshResponse = client.send(refreshRequest, HttpResponse.BodyHandlers.ofString());
     if (refreshResponse.statusCode() != 200) {
       throw new RuntimeException("Token refresh returned HTTP " + refreshResponse.statusCode());
@@ -811,8 +809,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
     Map<String, Double> values = new HashMap<>();
     if (endpoint.getJsonDataStructure() == JsonDataStructure.COLUMN_ROW_ARRAYS) {
       Map<String, Integer> colIndex = buildColumnIndex(root, endpoint);
-      JsonNode row = dataNode.isArray() && dataNode.size() > 0
-          ? dataNode.get(useLastBar ? dataNode.size() - 1 : 0)
+      JsonNode row = dataNode.isArray() && dataNode.size() > 0 ? dataNode.get(useLastBar ? dataNode.size() - 1 : 0)
           : dataNode;
       if (row != null && row.isArray()) {
         for (GenericConnectorFieldMapping mapping : endpoint.getFieldMappings()) {
@@ -939,8 +936,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
   }
 
   private static String stripQuotes(String value) {
-    if (value != null && value.length() >= 2
-        && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
+    if (value != null && value.length() >= 2 && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
       return value.substring(1, value.length() - 1);
     }
     return value;
@@ -1265,8 +1261,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
         String snippet = body != null && body.length() > 5000 ? body.substring(0, 5000) : body;
 
         if (status != 200) {
-          return GenericConnectorTestResult.error(maskedUrl, status, snippet,
-              "HTTP " + status, System.currentTimeMillis() - startTime);
+          return GenericConnectorTestResult.error(maskedUrl, status, snippet, "HTTP " + status,
+              System.currentTimeMillis() - startTime);
         }
 
         List<Map<String, String>> parsedRows;
@@ -1300,8 +1296,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
         releaseRateLimit();
       }
     } catch (Exception e) {
-      return GenericConnectorTestResult.error(maskedUrl, 0, null,
-          e.getClass().getSimpleName() + ": " + e.getMessage(), System.currentTimeMillis() - startTime);
+      return GenericConnectorTestResult.error(maskedUrl, 0, null, e.getClass().getSimpleName() + ": " + e.getMessage(),
+          System.currentTimeMillis() - startTime);
     }
   }
 
@@ -1326,8 +1322,7 @@ public class GenericFeedConnector extends BaseFeedConnector {
           identifiers.add(FeedIdentifier.SECURITY_URL);
         }
         if (isCurrency) {
-          identifiers.add(ep.getTickerBuildStrategy() == TickerBuildStrategy.CURRENCY_PAIR
-              ? FeedIdentifier.CURRENCY
+          identifiers.add(ep.getTickerBuildStrategy() == TickerBuildStrategy.CURRENCY_PAIR ? FeedIdentifier.CURRENCY
               : FeedIdentifier.CURRENCY_URL);
         }
         map.put(fs, identifiers.toArray(new FeedIdentifier[0]));
@@ -1341,8 +1336,8 @@ public class GenericFeedConnector extends BaseFeedConnector {
   }
 
   private static Bucket buildBucket(GenericConnectorDef def) {
-    if (def.getRateLimitType() == RateLimitType.TOKEN_BUCKET
-        && def.getRateLimitRequests() != null && def.getRateLimitPeriodSec() != null) {
+    if (def.getRateLimitType() == RateLimitType.TOKEN_BUCKET && def.getRateLimitRequests() != null
+        && def.getRateLimitPeriodSec() != null) {
       return Bucket.builder()
           .addLimit(Bandwidth.builder().capacity(def.getRateLimitRequests())
               .refillGreedy(def.getRateLimitRequests(), Duration.ofSeconds(def.getRateLimitPeriodSec())).build())
@@ -1362,9 +1357,9 @@ public class GenericFeedConnector extends BaseFeedConnector {
 
   private boolean needsDatePlaceholders(GenericConnectorEndpoint endpoint) {
     String tpl = endpoint.getUrlTemplate();
-    return tpl.contains("{fromDate}") || tpl.contains("{toDate}")
-        || tpl.contains("{fromDay}") || tpl.contains("{fromMonth}") || tpl.contains("{fromYear}")
-        || tpl.contains("{toDay}") || tpl.contains("{toMonth}") || tpl.contains("{toYear}");
+    return tpl.contains("{fromDate}") || tpl.contains("{toDate}") || tpl.contains("{fromDay}")
+        || tpl.contains("{fromMonth}") || tpl.contains("{fromYear}") || tpl.contains("{toDay}")
+        || tpl.contains("{toMonth}") || tpl.contains("{toYear}");
   }
 
   private GenericConnectorEndpoint findEndpoint(String feedSupport, String instrumentType) {

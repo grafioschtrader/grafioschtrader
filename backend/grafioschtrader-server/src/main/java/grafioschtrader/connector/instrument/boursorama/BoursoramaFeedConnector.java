@@ -35,10 +35,10 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * A regex check of the URL extension is not active.
  *
- * Boursorama's EOD endpoint ({@code .../graph/ws/GetTicksEOD}) is gated behind an anti-scraping check: it only
- * answers requests that carry the {@code X-Requested-With: XMLHttpRequest} header that its own browser JavaScript
- * sends. Plain requests without that header receive HTTP 410 (Gone). Therefore every request issued by this connector
- * sets {@link #XHR_HEADER}, including the URL-connectivity check inherited from {@link BaseFeedConnector} (see the
+ * Boursorama's EOD endpoint ({@code .../graph/ws/GetTicksEOD}) is gated behind an anti-scraping check: it only answers
+ * requests that carry the {@code X-Requested-With: XMLHttpRequest} header that its own browser JavaScript sends. Plain
+ * requests without that header receive HTTP 410 (Gone). Therefore every request issued by this connector sets
+ * {@link #XHR_HEADER}, including the URL-connectivity check inherited from {@link BaseFeedConnector} (see the
  * {@link #getRequest(String)} override).
  */
 @Component
@@ -77,8 +77,9 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   public BoursoramaFeedConnector() {
     super(supportedFeed, BOURSORAMA_ID, "Boursorama", null, EnumSet.of(UrlCheck.HISTORY, UrlCheck.INTRADAY));
-    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.NON_INVESTABLE_INDICES,
-        AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND);
+    supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR,
+        AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME,
+        AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND);
   }
 
   /**
@@ -206,8 +207,8 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
 
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String urlStr, double divider)
       throws Exception {
-    final HeaderIntra header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 10, XHR_HEADER).body(),
-        HeaderIntra.class);
+    final HeaderIntra header = objectMapper
+        .readValue(FeedConnectorHelper.getByHttpClient(urlStr, 10, XHR_HEADER).body(), HeaderIntra.class);
     if (header != null) {
       header.d[0].setValues(securitycurrency, divider);
     } else {
@@ -281,7 +282,7 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     public void setValues(Securitycurrency<?> securitycurrency, double divider) {
       super.setValues(securitycurrency, divider);
       if (o > 0 && var != 0.0) {
-        securitycurrency.setSChangePercentage(DataBusinessHelper.roundStandard(var / o * 100));
+        securitycurrency.setSChangePercentage(DataBusinessHelper.roundPercentage(var / o * 100));
       } else {
         securitycurrency.setSChangePercentage(0.0);
       }

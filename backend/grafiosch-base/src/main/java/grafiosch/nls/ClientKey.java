@@ -4,17 +4,17 @@ package grafiosch.nls;
  * The client-facing form of a backend NLS key, as produced by {@link NlsKeyMapper#map(String)}.
  *
  * <p>
- * Almost every key becomes a {@link Flat} entry at the top level of the JSON payload delivered by the language endpoint.
- * A small, explicitly allow-listed set of namespaces becomes a {@link Nested} entry instead, because the consuming
- * frontend code reads them as an object rather than as a string (for example {@code translateService.get('GT_FILTER')}
- * followed by an index access on the result).
+ * Almost every key becomes a {@link Flat} entry at the top level of the JSON payload delivered by the language
+ * endpoint. A small, explicitly allow-listed set of namespaces becomes a {@link Nested} entry instead, because the
+ * consuming frontend code reads them as an object rather than as a string (for example
+ * {@code translateService.get('GT_FILTER')} followed by an index access on the result).
  * </p>
  */
 public sealed interface ClientKey {
 
   /**
-   * Renders the key the way it is addressed by the client, so that a flat key and a nested key can be compared,
-   * sorted and written to the ownership manifest in one uniform notation.
+   * Renders the key the way it is addressed by the client, so that a flat key and a nested key can be compared, sorted
+   * and written to the ownership manifest in one uniform notation.
    *
    * @return the flat key, or {@code namespace.leaf} for a nested key
    */

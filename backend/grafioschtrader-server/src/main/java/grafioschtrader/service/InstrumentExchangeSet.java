@@ -15,13 +15,13 @@ import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 /**
  * Tracks instruments during GTNet price exchange, maintaining state of which have been filled with prices.
  *
- * This helper class manages the intersection of watchlist instruments with GTNet-enabled instruments
- * and tracks which ones have received price updates from remote servers. It supports:
+ * This helper class manages the intersection of watchlist instruments with GTNet-enabled instruments and tracks which
+ * ones have received price updates from remote servers. It supports:
  * <ul>
- *   <li>Building the initial set from securities and currency pairs</li>
- *   <li>Creating request DTOs with current timestamps</li>
- *   <li>Marking instruments as filled when prices are received</li>
- *   <li>Returning unfilled instruments for fallback to connectors</li>
+ * <li>Building the initial set from securities and currency pairs</li>
+ * <li>Creating request DTOs with current timestamps</li>
+ * <li>Marking instruments as filled when prices are received</li>
+ * <li>Returning unfilled instruments for fallback to connectors</li>
  * </ul>
  */
 public class InstrumentExchangeSet {
@@ -64,7 +64,7 @@ public class InstrumentExchangeSet {
   /**
    * Processes a response from a remote server, updating local entities and marking as filled.
    *
-   * @param responseSecurities list of security price DTOs from the response
+   * @param responseSecurities    list of security price DTOs from the response
    * @param responseCurrencypairs list of currency pair price DTOs from the response
    * @return the number of entities that were successfully updated with newer data
    */
@@ -241,8 +241,7 @@ public class InstrumentExchangeSet {
   }
 
   /**
-   * Returns all instrument IDs in this set.
-   * Used for batch loading GTNetSupplierDetail entries.
+   * Returns all instrument IDs in this set. Used for batch loading GTNetSupplierDetail entries.
    *
    * @return list of all securitycurrency IDs in this set
    */
@@ -258,8 +257,8 @@ public class InstrumentExchangeSet {
   }
 
   /**
-   * Creates request DTOs for unfilled securities, filtered to only include instruments in the allowed set.
-   * Used when querying AC_OPEN suppliers that only support specific instruments.
+   * Creates request DTOs for unfilled securities, filtered to only include instruments in the allowed set. Used when
+   * querying AC_OPEN suppliers that only support specific instruments.
    *
    * @param allowedIds set of instrument IDs to include in the result
    * @return list of InstrumentPriceDTO for unfilled securities that are in the allowed set
@@ -275,8 +274,8 @@ public class InstrumentExchangeSet {
   }
 
   /**
-   * Creates request DTOs for unfilled currency pairs, filtered to only include instruments in the allowed set.
-   * Used when querying AC_OPEN suppliers that only support specific instruments.
+   * Creates request DTOs for unfilled currency pairs, filtered to only include instruments in the allowed set. Used
+   * when querying AC_OPEN suppliers that only support specific instruments.
    *
    * @param allowedIds set of instrument IDs to include in the result
    * @return list of InstrumentPriceDTO for unfilled currency pairs that are in the allowed set

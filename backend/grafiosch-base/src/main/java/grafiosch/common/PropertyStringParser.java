@@ -6,10 +6,15 @@ import java.util.Map;
 /**
  * Parser for PropertyString format: "KEY1=VALUE1,KEY2=VALUE2".
  *
- * <p>This utility class parses configuration strings stored in global parameters that follow the PropertyString format.
- * Keys are normalized to uppercase for case-insensitive lookup. Values are expected to be integers.</p>
+ * <p>
+ * This utility class parses configuration strings stored in global parameters that follow the PropertyString format.
+ * Keys are normalized to uppercase for case-insensitive lookup. Values are expected to be integers.
+ * </p>
  *
- * <p>Example usage:</p>
+ * <p>
+ * Example usage:
+ * </p>
+ *
  * <pre>
  * PropertyStringParser parser = PropertyStringParser.parse("LP=1,HP=5");
  * int lpDays = parser.getIntValue("LP", 1); // returns 1
@@ -50,7 +55,7 @@ public class PropertyStringParser {
   /**
    * Gets an integer value for the specified key.
    *
-   * @param key the key to look up (case-insensitive)
+   * @param key          the key to look up (case-insensitive)
    * @param defaultValue the default value to return if key is not found
    * @return the integer value for the key, or defaultValue if not found
    */

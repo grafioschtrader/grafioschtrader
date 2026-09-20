@@ -4,11 +4,12 @@ import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
-import { DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { DynamicDialogRef, DynamicDialogConfig } from '@openng/optimus-ui/dynamicdialog';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 import { DynamicFormComponent } from '../../lib/dynamic-form/containers/dynamic-form/dynamic-form.component';
 import { HelpIds } from '../../lib/help/help.ids';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 
 /**
  * Dynamic dialog for selecting a country code when creating a new tax country node.
@@ -33,7 +34,8 @@ export class TaxCountryCreateComponent extends FormBase implements OnInit, After
   constructor(
     public translateService: TranslateService,
     public gps: GlobalparameterService,
-    private dynamicDialogRef: DynamicDialogRef
+    private dynamicDialogRef: DynamicDialogRef,
+    private dialogConfig: DynamicDialogConfig
   ) {
     super();
   }
@@ -41,7 +43,7 @@ export class TaxCountryCreateComponent extends FormBase implements OnInit, After
   ngOnInit(): void {
     this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
     this.config = [
-      DynamicFieldHelper.createFieldSelectStringHeqF('countryCode', true),
+      DynamicFieldHelper.createFieldDropdownStringHeqF('countryCode', true, { filter: true }),
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
@@ -49,7 +51,10 @@ export class TaxCountryCreateComponent extends FormBase implements OnInit, After
 
   ngAfterViewInit(): void {
     this.gps.getCountriesForSelectBox().subscribe((countries) => {
-      this.configObject.countryCode.valueKeyHtmlOptions = countries;
+      const existing = this.dialogConfig.data?.existingCountries || [];
+      this.configObject.countryCode.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
+        countries.filter((country) => !existing.includes(country.key))
+      );
       this.form.setDefaultValuesAndEnableSubmit();
     });
   }

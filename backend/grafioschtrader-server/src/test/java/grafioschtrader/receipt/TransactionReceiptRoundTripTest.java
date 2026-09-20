@@ -59,8 +59,8 @@ class TransactionReceiptRoundTripTest {
   @DisplayName("Buy of a stock, same currency, with commission and taxes")
   void buyStockRoundTrip() throws Exception {
     for (Locale locale : List.of(Locale.GERMAN, Locale.ENGLISH)) {
-      Transaction t = securityTransaction(TransactionType.ACCUMULATE, stock("CH0012032048", "Roche Holding AG"),
-          "CHF", 61.0, 35.68, 9.85, 3.26, -2189.59);
+      Transaction t = securityTransaction(TransactionType.ACCUMULATE, stock("CH0012032048", "Roche Holding AG"), "CHF",
+          61.0, 35.68, 9.85, 3.26, -2189.59);
       ImportProperties ip = generateAndParse(t, locale);
       assertCommonFields(ip, t, locale);
       assertEquals(9.85, ip.getTc1());
@@ -93,8 +93,8 @@ class TransactionReceiptRoundTripTest {
   @DisplayName("Buy of a bond with accrued interest")
   void buyBondWithAccruedInterestRoundTrip() throws Exception {
     for (Locale locale : List.of(Locale.GERMAN, Locale.ENGLISH)) {
-      Transaction t = securityTransaction(TransactionType.ACCUMULATE,
-          bond("CH0482172415", "GRANDCIT 0.57% 24.06.2024"), "CHF", 100.0, 95.45, 35.0, 14.3, -9595.1);
+      Transaction t = securityTransaction(TransactionType.ACCUMULATE, bond("CH0482172415", "GRANDCIT 0.57% 24.06.2024"),
+          "CHF", 100.0, 95.45, 35.0, 14.3, -9595.1);
       t.setAssetInvestmentValue1(0.8);
       ImportProperties ip = generateAndParse(t, locale);
       assertCommonFields(ip, t, locale);

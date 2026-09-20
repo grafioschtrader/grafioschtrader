@@ -68,7 +68,8 @@ public class EntityLimitResource extends UpdateCreateDeleteAuditResource<EntityL
 
   @Operation(summary = "Get every limit key an administrator may configure, with the metadata the edit form needs", description = """
       Returns the registered MAX keys together with the derived daily keys. Keys the given user already holds a row
-      for are filtered out.""", tags = { RequestMappings.ENTITY_LIMIT })
+      for are filtered out.""", tags = {
+      RequestMappings.ENTITY_LIMIT })
   @GetMapping(value = "/keys", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<LimitKeyDefinition>> getLimitKeyDefinitions(
       @RequestParam("idUser") Optional<Integer> idUserOpt,
@@ -83,8 +84,9 @@ public class EntityLimitResource extends UpdateCreateDeleteAuditResource<EntityL
       be validated against the same set.""", tags = { RequestMappings.ENTITY_LIMIT })
   @GetMapping(value = "/roles", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getRoles() {
-    return new ResponseEntity<>(roleJpaRepository.findAll().stream()
-        .map(role -> new ValueKeyHtmlSelectOptions(String.valueOf(role.getIdRole()), role.getRolename())).toList(),
+    return new ResponseEntity<>(
+        roleJpaRepository.findAll().stream()
+            .map(role -> new ValueKeyHtmlSelectOptions(String.valueOf(role.getIdRole()), role.getRolename())).toList(),
         HttpStatus.OK);
   }
 

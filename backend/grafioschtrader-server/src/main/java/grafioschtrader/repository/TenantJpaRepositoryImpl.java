@@ -22,6 +22,7 @@ import grafiosch.repository.TenantBaseImpl;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.Tenant;
+import grafioschtrader.service.AlgoHistoricalValuationService;
 import grafioschtrader.types.TaskTypeExtended;
 import grafioschtrader.types.TenantKindType;
 import jakarta.persistence.EntityManager;
@@ -81,12 +82,19 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
     User user = null;
     if (tenant.getIdTenant() != null) {
       createEditTenant = tenantJpaRepository.getReferenceById(tenant.getIdTenant());
+      if (!Objects.equals(createEditTenant.getSimulationStartDate(), tenant.getSimulationStartDate()) || !Objects
+          .equals(createEditTenant.getSimulationInitializationMode(), tenant.getSimulationInitializationMode()))
+        throw AlgoHistoricalValuationService.invalid("simulation.date.immutable", "");
       createEditTenant.updateThis(tenant);
     } else {
       // Attach tenant to existing user
       user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
       createEditTenant.setCreateIdUser(user.getIdUser());
       createEditTenant.setTenantKindType(TenantKindType.MAIN);
+      createEditTenant.setSimulationStartDate(null);
+      createEditTenant.setSimulationInitializationMode(null);
+      createEditTenant.setIdParentTenant(null);
+      createEditTenant.setIdAlgoTop(null);
     }
     final Tenant teantNew = tenantJpaRepository.save(createEditTenant);
 

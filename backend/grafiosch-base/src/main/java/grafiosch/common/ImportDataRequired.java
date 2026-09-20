@@ -9,25 +9,29 @@ import java.lang.annotation.Target;
 /**
  * Marks a field as required during CSV import operations.
  *
- * <p>When a field is annotated with this annotation, the CSV import process will:
+ * <p>
+ * When a field is annotated with this annotation, the CSV import process will:
  * <ul>
- *   <li>Require that the corresponding column exists in the CSV header</li>
- *   <li>Require that the value is non-empty for each data row</li>
- *   <li>Throw a {@link grafiosch.exceptions.DataViolationException} if the column is missing</li>
+ * <li>Require that the corresponding column exists in the CSV header</li>
+ * <li>Require that the value is non-empty for each data row</li>
+ * <li>Throw a {@link grafiosch.exceptions.DataViolationException} if the column is missing</li>
  * </ul>
  *
- * <p>This annotation is processed by {@link CSVImportHelper#getHeaderFieldNameMapping} during
- * the header mapping phase of CSV import.
+ * <p>
+ * This annotation is processed by {@link CSVImportHelper#getHeaderFieldNameMapping} during the header mapping phase of
+ * CSV import.
  *
- * <p>Example usage:
+ * <p>
+ * Example usage:
+ *
  * <pre>
  * public class MyEntity {
  *   &#64;ImportDataRequired
  *   &#64;PropertyAlwaysUpdatable
- *   private String currency;  // Must be present in CSV
+ *   private String currency; // Must be present in CSV
  *
  *   &#64;PropertyAlwaysUpdatable
- *   private String isin;      // Optional in CSV
+ *   private String isin; // Optional in CSV
  * }
  * </pre>
  *
@@ -40,4 +44,3 @@ import java.lang.annotation.Target;
 public @interface ImportDataRequired {
 
 }
-

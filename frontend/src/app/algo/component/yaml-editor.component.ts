@@ -204,9 +204,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
         };
 
         // Schema-based property suggestions (checked at invocation time, not registration)
-        const properties = this.schema?.$defs
-          ? this.getEffectiveProperties(this.findSchemaContext(model, position.lineNumber, indent))
-          : null;
+        const properties = this.getEffectiveProperties(this.findSchemaContext(model, position.lineNumber, indent));
 
         if (properties) {
           for (const [key, prop] of Object.entries<any>(properties)) {
@@ -222,26 +220,17 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
           }
         }
 
-        // If we're after a colon, suggest enum values and field completions
+        // If we're after a colon, suggest enum values and field completions. The optional dash is what makes this
+        // work on the first line of a sequence item, such as "- type: pct_gain" inside a scale-out plan.
         if (lineContent.includes(':')) {
-          const keyMatch = lineContent.match(/^\s*(\w+)\s*:/);
+          const keyMatch = lineContent.match(/^\s*(?:-\s+)?(\w+)\s*:/);
           if (keyMatch) {
             const fieldName = keyMatch[1];
             if (properties) {
               const fieldSchema = properties[fieldName] || this.findFieldInSchema(fieldName);
               if (fieldSchema) {
                 const resolved = fieldSchema.$ref ? this.resolveRef(fieldSchema.$ref) : fieldSchema;
-                const enumVals = resolved?.enum || resolved?.properties?.[fieldName]?.enum;
-                if (enumVals) {
-                  for (const val of enumVals) {
-                    suggestions.push({
-                      label: String(val),
-                      kind: monaco.languages.CompletionItemKind.EnumMember,
-                      insertText: String(val),
-                      range
-                    });
-                  }
-                }
+                this.addSchemaValueSuggestions(monaco, suggestions, resolved, range);
               }
             }
 
@@ -264,6 +253,14 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
               }
             }
           }
+        } else {
+          // Array scalars such as requiredInputs are written on their own sequence lines ("- issuerCountry"), so
+          // there is no field name after a colon from which the normal value-completion path could infer the schema.
+          const arrayItem = lineContent.match(/^\s*-\s*[\w-]*$/);
+          if (arrayItem) {
+            const itemSchema = this.findArrayItemSchema(model, position.lineNumber, indent);
+            this.addSchemaValueSuggestions(monaco, suggestions, itemSchema, range);
+          }
         }
 
         return { suggestions };
@@ -274,6 +271,10 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
   /**
    * Walks up the YAML structure from the current line to determine which schema
    * definition corresponds to the current cursor position.
+   *
+   * A key introduced by a sequence dash, such as "- id: t1" of a scale-out tranche, sits two columns further right
+   * than the dash. Comparing that column rather than the dash column is what places the keys of a list item under
+   * the schema of the array items, and keeps the item's own siblings from being mistaken for its parents.
    */
   private findSchemaContext(model: any, lineNumber: number, currentIndent: number): any {
     if (currentIndent === 0) {
@@ -285,14 +286,14 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     let targetIndent = currentIndent;
     for (let i = lineNumber - 1; i >= 1; i--) {
       const line = model.getLineContent(i);
-      const lineIndent = line.search(/\S|$/);
-      if (lineIndent < targetIndent && line.trim()) {
-        const keyMatch = line.match(/^\s*(\w[\w_]*)\s*:/);
-        if (keyMatch) {
-          parentKeys.unshift(keyMatch[1]);
-          targetIndent = lineIndent;
-          if (lineIndent === 0) break;
-        }
+      if (!line.trim()) continue;
+      const keyMatch = line.match(/^(\s*)(-\s+)?(\w[\w_]*)\s*:/);
+      if (!keyMatch) continue;
+      const keyIndent = keyMatch[1].length + (keyMatch[2]?.length ?? 0);
+      if (keyIndent < targetIndent) {
+        parentKeys.unshift(keyMatch[3]);
+        targetIndent = keyIndent;
+        if (keyIndent === 0) break;
       }
     }
 
@@ -305,8 +306,8 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
         context = this.resolveRef(prop.$ref);
       } else if (prop.properties) {
         context = prop;
-      } else if (prop.type === 'array' && prop.items?.$ref) {
-        context = this.resolveRef(prop.items.$ref);
+      } else if (prop.type === 'array' && prop.items) {
+        context = prop.items.$ref ? this.resolveRef(prop.items.$ref) : prop.items;
       } else {
         break;
       }
@@ -340,9 +341,49 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private resolveRef(ref: string): any {
-    if (!ref?.startsWith('#/$defs/')) return null;
-    const defName = ref.substring('#/$defs/'.length);
-    return this.schema?.$defs?.[defName];
+    const prefix = ref?.startsWith('#/$defs/')
+      ? '#/$defs/'
+      : ref?.startsWith('#/definitions/')
+        ? '#/definitions/'
+        : null;
+    if (!prefix) return null;
+    const defName = ref.substring(prefix.length);
+    return (prefix === '#/$defs/' ? this.schema?.$defs : this.schema?.definitions)?.[defName];
+  }
+
+  /** Returns the schema of a scalar sequence item below the nearest enclosing array property. */
+  private findArrayItemSchema(model: any, lineNumber: number, currentIndent: number): any {
+    for (let i = lineNumber - 1; i >= 1; i--) {
+      const line = model.getLineContent(i);
+      if (!line.trim()) continue;
+      const keyMatch = line.match(/^(\s*)(\w[\w_]*)\s*:/);
+      if (!keyMatch || keyMatch[1].length >= currentIndent) continue;
+
+      const context = this.findSchemaContext(model, i, keyMatch[1].length);
+      const property = this.getEffectiveProperties(context)?.[keyMatch[2]];
+      const resolved = property?.$ref ? this.resolveRef(property.$ref) : property;
+      if (resolved?.type === 'array') {
+        return resolved.items?.$ref ? this.resolveRef(resolved.items.$ref) : resolved.items;
+      }
+      return null;
+    }
+    return null;
+  }
+
+  /** Adds enum and constant values from a schema node to a Monaco suggestion list. */
+  private addSchemaValueSuggestions(monaco: any, suggestions: any[], schemaNode: any, range: any): void {
+    if (!schemaNode) return;
+    const values =
+      schemaNode.enum ?? (Object.prototype.hasOwnProperty.call(schemaNode, 'const') ? [schemaNode.const] : []);
+    for (const value of values) {
+      suggestions.push({
+        label: String(value),
+        kind: monaco.languages.CompletionItemKind.EnumMember,
+        insertText: String(value),
+        documentation: schemaNode.description,
+        range
+      });
+    }
   }
 
   private resolveRefDescription(prop: any): string {
@@ -355,7 +396,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
 
   private getPropertyDetail(prop: any): string {
     if (prop.$ref) {
-      const name = prop.$ref.replace('#/$defs/', '');
+      const name = prop.$ref.split('/').pop();
       return `object (${name})`;
     }
     if (prop.enum) return `enum: [${prop.enum.join(', ')}]`;
@@ -373,9 +414,9 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   private findFieldInSchema(fieldName: string): any {
-    // Search all $defs for a property matching the field name
-    if (!this.schema?.$defs) return null;
-    for (const def of Object.values<any>(this.schema.$defs)) {
+    // Search all draft-7 definitions and newer $defs for a property matching the field name.
+    const definitions = { ...(this.schema?.definitions ?? {}), ...(this.schema?.$defs ?? {}) };
+    for (const def of Object.values<any>(definitions)) {
       if (def.properties?.[fieldName]) {
         return def.properties[fieldName];
       }
@@ -393,14 +434,14 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
       provideHover: (model: any, position: any) => {
         if (model !== editorModel || !this.schema) return null;
         const lineContent = model.getLineContent(position.lineNumber);
-        const keyMatch = lineContent.match(/^\s*(\w[\w_]*)\s*:/);
+        const keyMatch = lineContent.match(/^(\s*)(-\s+)?(\w[\w_]*)\s*:/);
         if (!keyMatch) return null;
 
-        const key = keyMatch[1];
+        const key = keyMatch[3];
         const word = model.getWordAtPosition(position);
         if (!word || word.word !== key) return null;
 
-        const indent = lineContent.search(/\S|$/);
+        const indent = keyMatch[1].length + (keyMatch[2]?.length ?? 0);
         const context = this.findSchemaContext(model, position.lineNumber, indent);
         const prop = this.getEffectiveProperties(context)?.[key];
         if (!prop) return null;

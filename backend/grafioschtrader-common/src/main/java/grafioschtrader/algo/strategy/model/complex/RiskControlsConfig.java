@@ -1,14 +1,12 @@
 package grafioschtrader.algo.strategy.model.complex;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 
 /**
  * Risk management parameters: position exposure limits, drawdown limits, and breach actions.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+
 public class RiskControlsConfig {
 
   @DecimalMin("0.0")

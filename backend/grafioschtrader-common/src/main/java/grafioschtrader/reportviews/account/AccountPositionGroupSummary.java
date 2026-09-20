@@ -79,7 +79,7 @@ public class AccountPositionGroupSummary {
 
   /**
    * Creates a new group summary with the specified group name and currency.
-   * 
+   *
    * @param groupName descriptive name for this group
    * @param currency  the primary currency for this group (ISO 4217)
    */
@@ -139,8 +139,8 @@ public class AccountPositionGroupSummary {
         continue;
       }
 
-      double currencyExchangeRate = accountPositionSummary.securitycurrency != null
-          ? accountPositionSummary.closePrice : 1.0;
+      double currencyExchangeRate = accountPositionSummary.securitycurrency != null ? accountPositionSummary.closePrice
+          : 1.0;
 
       accountPositionSummary.calcTotals(currencyExchangeRate);
       groupAccountFeesMC += accountPositionSummary.accountFeesMC;

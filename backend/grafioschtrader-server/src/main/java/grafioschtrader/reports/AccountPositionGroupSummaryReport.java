@@ -46,13 +46,13 @@ import grafioschtrader.types.TransactionType;
  * Comprehensive financial reporting service that generates combined position summaries for cash accounts and security
  * accounts across portfolios. Provides consolidated views of portfolio holdings with multi-currency support and
  * intelligent exchange rate handling.
- * 
+ *
  * <p>
  * This report generator is the primary tool for creating portfolio position reports that combine cash balances,
  * security holdings, realized and unrealized gains/losses, and foreign exchange impacts. It supports both tenant-wide
  * and individual portfolio reporting with flexible grouping capabilities.
  * </p>
- * 
+ *
  * <h3>Key Features:</h3>
  * <ul>
  * <li>Multi-currency portfolio position calculations with automated exchange rate resolution</li>
@@ -63,7 +63,7 @@ import grafioschtrader.types.TransactionType;
  * <li>Historical and current market value reporting</li>
  * <li>Dividend, interest, and fee tracking with tax considerations</li>
  * </ul>
- * 
+ *
  * <h3>Report Types:</h3>
  * <ul>
  * <li>Tenant-wide grand summary across all portfolios</li>
@@ -71,7 +71,7 @@ import grafioschtrader.types.TransactionType;
  * <li>Currency-grouped position summaries</li>
  * <li>Security account and cash account breakdowns</li>
  * </ul>
- * 
+ *
  * <p>
  * The service handles scenarios including margin trading, currency conversions, stock splits, dividend distributions,
  * and inter-account transfers while maintaining accurate accounting principles and audit trails.
@@ -99,7 +99,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   /**
    * Constructs the report generator with required dependencies for trading calendar and currency precision handling.
-   * 
+   *
    * @param tradingDaysPlusJpaRepository repository for trading calendar operations
    * @param globalparametersService      service providing system-wide configuration parameters
    */
@@ -113,13 +113,13 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * Generates a comprehensive position summary for all portfolios within a tenant, grouped according to the specified
    * criteria (e.g., by currency, asset class, or portfolio). Provides a consolidated view of the tenant's entire
    * investment portfolio with multi-currency normalization to the tenant's main currency.
-   * 
+   *
    * <p>
    * This method asynchronously loads historical exchange rates and currency pairs to ensure accurate multi-currency
    * calculations. It processes all transactions across all portfolios up to the specified date and calculates current
    * market values, realized/unrealized gains, and foreign exchange impacts.
    * </p>
-   * 
+   *
    * @param idTenant  the unique identifier of the tenant
    * @param grouping  the grouping strategy for organizing results (currency, portfolio, etc.)
    * @param untilDate the cut-off date for including transactions and valuations
@@ -136,7 +136,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
     final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(tenant.getCurrency(),
         untilDate, dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-        tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate), false);
+        tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate),
+        tenant.isFeeInterestFxAtCutOffDate());
     getAccountSummaryPositionSummary(tenant.getPortfolioList(), grouping, tenant.getCurrency(), idTenant,
         tenant.isExcludeDivTax(), dateCurrencyMap);
     grouping.getGroupSummaryList().forEach(g -> g.excludeDivTax = tenant.isExcludeDivTax());
@@ -148,13 +149,13 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   /**
    * Calculates and returns a detailed position summary for a single portfolio, including all cash accounts and security
    * positions with current market valuations. Validates tenant ownership before processing to ensure data security.
-   * 
+   *
    * <p>
    * This method provides a comprehensive view of a single portfolio's holdings, including cash balances, security
    * positions, unrealized gains/losses, and foreign exchange impacts. It handles portfolios with multiple currencies
    * and normalizes all values to the portfolio's base currency.
    * </p>
-   * 
+   *
    * @param idTenant    the tenant ID for security validation
    * @param idPortfolio the unique identifier of the portfolio to analyze
    * @param untilDate   the cut-off date for transactions and market valuations
@@ -178,7 +179,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
         final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(
             portfolio.getCurrency(), untilDate, dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-            tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate), false);
+            tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate),
+            tenant.isFeeInterestFxAtCutOffDate());
         getAccountSummaryPositionSummary(Arrays.asList(portfolio), groupPortfolio, portfolio.getCurrency(),
             portfolio.getIdTenant(), tenant.isExcludeDivTax(), dateCurrencyMap);
         final AccountPositionGroupSummary accountPositionGroupSummary = groupPortfolio.getGroupSummaryList().get(0);
@@ -199,13 +201,13 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * Orchestrates the complete position calculation process for a collection of portfolios. Processes all transaction
    * data, calculates current positions, and applies grouping logic to generate organized position summaries with
    * multi-currency support.
-   * 
+   *
    * <p>
    * This is the main processing engine that coordinates cash account processing, security position calculations,
    * currency conversions, and final aggregation. It handles scenarios including margin trading, foreign exchange
    * transactions, and inter-portfolio transfers.
    * </p>
-   * 
+   *
    * @param portfolioList     the portfolios to include in the analysis
    * @param accountGroupMap   the grouping strategy for organizing results
    * @param mainCurrency      the base currency for conversions and reporting
@@ -258,17 +260,18 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   //////////////////////////////////////////////
   // For every transaction on a portfolio
   //////////////////////////////////////////////
+
   /**
    * Processes every transaction within a portfolio chronologically to build up cash account balances, track fees and
    * interest, and handle multi-currency transactions. Maintains accurate accounting for deposits, withdrawals,
    * transfers, and currency exchanges.
-   * 
+   *
    * <p>
    * This method handles various transaction types including fees, interest, deposits, withdrawals, and foreign exchange
    * transactions. It properly accounts for cash transfers between accounts and maintains currency-specific balances for
    * accurate foreign exchange gain/loss calculations.
    * </p>
-   * 
+   *
    * @param everyKindOfTransactions             chronologically sorted list of all transactions
    * @param acps                                cash account position summary accessor for organizing results
    * @param mainCurrency                        the base currency for normalization
@@ -348,8 +351,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   //@formatter:on
   private boolean isCashTransferConvertible(final Transaction transaction, final String mainCurrency,
       final DateTransactionCurrencypairMap dateCurrencyMap) {
-    if (transaction.getIdCurrencypair() != null
-        || mainCurrency.equals(transaction.getCashaccount().getCurrency())) {
+    if (transaction.getIdCurrencypair() != null || mainCurrency.equals(transaction.getCashaccount().getCurrency())) {
       return true;
     }
     if (dateCurrencyMap.getFromToCurrencyWithDateMap().containsKey(new FromToCurrencyWithDate(
@@ -365,7 +367,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * Calculates security position summaries for all security transactions within the reporting period. Delegates to the
    * security calculation service to handle scenarios including stock splits, dividend distributions, and margin trading
    * positions.
-   * 
+   *
    * @param everyKindOfTransactionsUntilDate all transactions to process for security calculations
    * @param securitysplitMap                 mapping of securities to their historical stock splits
    * @param excludeDivTaxcost                whether to exclude dividend tax costs from position calculations
@@ -390,13 +392,13 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * Handles transactions involving currencies different from the main currency to properly account for foreign exchange
    * impacts and maintain accurate currency-specific balances. Manages scenarios including cross-currency transactions
    * and pseudo-account creation.
-   * 
+   *
    * <p>
    * This method is critical for accurate foreign exchange gain/loss calculations. It handles various scenarios
    * including transactions between foreign currencies, currency exchanges involving the main currency, and
    * deposits/withdrawals in foreign currencies without explicit currency exchange.
    * </p>
-   * 
+   *
    * @param acps                   cash account position summary accessor
    * @param accountPositionSummary the specific account position being processed
    * @param mainCurrency           the base currency for the tenant/portfolio
@@ -444,9 +446,8 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
             || transaction.getTransactionType() == TransactionType.FEE
             || transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT
             || transaction.getTransactionType() == TransactionType.WITHDRAWAL)) {
-      // it is a deposit or withdrawal on foreign cash account without currency
-      // exchange
-      final Double exchangeRate = getTransactionExchangeRate(accountPositionSummary, dateCurrencyMap, transaction);
+      // it is a deposit, withdrawal, fee or interest on a foreign cash account without currency exchange
+      final Double exchangeRate = getFlowExchangeRate(accountPositionSummary, dateCurrencyMap, transaction);
 
       accountPositionSummary.balanceCurrencyTransaction += transaction.getCashaccountAmount();
       if (exchangeRate != null) {
@@ -464,14 +465,14 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   /**
    * Handles foreign currency transactions where neither currency involved is the main currency. Manages cash account
    * transfers and cross-currency trading with proper exchange rate tracking and pseudo-account creation as needed.
-   * 
+   *
    * <p>
    * This method handles the most currency scenarios, including transfers between two foreign cash accounts and
    * transactions involving foreign securities purchased with foreign currency. It maintains accurate exchange rate
    * tracking for connected transactions and creates pseudo-accounts for currency balances that don't have dedicated
    * cash accounts.
    * </p>
-   * 
+   *
    * @param currencypair           the currency pair involved in the transaction
    * @param acps                   cash account position summary accessor
    * @param accountPositionSummary the account position being processed
@@ -548,12 +549,48 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    */
   private Double getTransactionExchangeRate(final CashaccountPositionSummary accountPositionSummary,
       final DateTransactionCurrencypairMap dateCurrencyMap, final Transaction transaction) {
+    return getExchangeRateOnDate(accountPositionSummary, dateCurrencyMap, transaction.getTransactionDateAsLocalDate());
+  }
+
+  /**
+   * Determines the rate with which a booking of a foreign cash account enters {@code balanceCurrencyTransactionMC}, the
+   * base line against which the currency gain of the account is measured.
+   *
+   * <p>
+   * For a fee and for account interest this has to be the same rate that {@link Transaction#getFeeMC} and
+   * {@link Transaction#getInterestMC} used for the reported amount, otherwise the difference between the two rates
+   * would fall out of the report: the sum of the reported columns no longer gives the account value. The client decides
+   * which rate that is, so the choice is asked of the currency map rather than made here.
+   * </p>
+   *
+   * <p>
+   * A deposit and a withdrawal always keep the rate of their own booking day. Their rate is the one the external cash
+   * transfer is converted with as well, and that column is booking day based under either convention.
+   * </p>
+   *
+   * @param accountPositionSummary the position of the cash account the transaction was booked on, marked when the rate
+   *                               is unavailable
+   * @param dateCurrencyMap        currency exchange rate context, carrying the convention of the client
+   * @param transaction            the booking whose main currency value is needed
+   * @return the exchange rate into the main currency, or null when none is available
+   */
+  private Double getFlowExchangeRate(final CashaccountPositionSummary accountPositionSummary,
+      final DateTransactionCurrencypairMap dateCurrencyMap, final Transaction transaction) {
+    if (dateCurrencyMap.isUseUntilDateForFeeAndInterest() && (transaction.getTransactionType() == TransactionType.FEE
+        || transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT)) {
+      return getExchangeRateOnDate(accountPositionSummary, dateCurrencyMap, dateCurrencyMap.getUntilDate());
+    }
+    return getTransactionExchangeRate(accountPositionSummary, dateCurrencyMap, transaction);
+  }
+
+  private Double getExchangeRateOnDate(final CashaccountPositionSummary accountPositionSummary,
+      final DateTransactionCurrencypairMap dateCurrencyMap, final LocalDate date) {
     if (accountPositionSummary.securitycurrency == null) {
       accountPositionSummary.priceMissing = true;
       return null;
     }
-    final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(
-        transaction.getTransactionDateAsLocalDate(), accountPositionSummary.securitycurrency.getFromCurrency(), false);
+    final Double exchangeRate = dateCurrencyMap.getPriceByDateAndFromCurrency(date,
+        accountPositionSummary.securitycurrency.getFromCurrency(), false);
     if (exchangeRate == null) {
       accountPositionSummary.priceMissing = true;
     }
@@ -564,7 +601,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * Retrieves an existing cash account position summary for a currency, or creates a new pseudo-account if none exists.
    * Used for tracking currency balances when explicit cash accounts don't exist for every currency involved in
    * transactions.
-   * 
+   *
    * @param acps            cash account position summary accessor
    * @param portfolio       the portfolio context for the pseudo-account
    * @param currency        the currency for which to find or create an account summary
@@ -593,7 +630,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * Calculates and groups security position summaries by currency and security account, applying current market prices
    * to open positions and organizing results for final reporting. Handles both open and closed positions with proper
    * market valuation.
-   * 
+   *
    * @param securityPositionSummaryMap calculated security positions by security
    * @param dateCurrencyMap            currency exchange rate context for market valuations
    * @param cashaccountList            list of cash accounts to determine security account groupings
@@ -623,7 +660,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   /**
    * Finalizes the portfolio calculation by combining cash account and security account results for each account,
    * applying the appropriate grouping strategy, and preparing the final organized position summaries for reporting.
-   * 
+   *
    * @param accountGroupMap the grouping strategy for organizing final results
    * @param acps            cash account position summary accessor containing calculated cash positions
    * @param cscr            security position results organized by currency and security account
@@ -662,7 +699,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
   /**
    * Combines cash account and security account position summaries into a unified account position summary for final
    * reporting. Links security position data with the corresponding cash account position summary.
-   * 
+   *
    * @param accountPositionGroupSummary         the group summary to add the combined position to
    * @param accountPositionSummary              the cash account position summary
    * @param securityPositionCurrenyGroupSummary the security position summary for the same currency/account
@@ -681,7 +718,7 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
  * Internal helper class that manages cash account position summaries during report generation. Provides organized
  * access to position summaries by cash account and by currency, with support for creating pseudo-accounts for
  * currencies that don't have explicit cash accounts.
- * 
+ *
  * <p>
  * This class serves as a centralized accessor for cash account position data during the multi-portfolio, multi-currency
  * calculation process. It maintains mappings for efficient lookup and handles the creation of temporary pseudo-accounts
@@ -721,7 +758,7 @@ class AccessCashaccountPositionSummary {
   /**
    * Creates a new cash account position summary and adds it to both mapping structures for efficient access during
    * calculations. Handles the creation of pseudo-accounts for currencies that don't have dedicated cash accounts.
-   * 
+   *
    * @param cashaccount     the cash account to create a position summary for
    * @param dateCurrencyMap currency exchange rate context for currency pair resolution
    * @return the newly created and registered cash account position summary
@@ -745,7 +782,7 @@ class AccessCashaccountPositionSummary {
    * Creates and initializes a new CashaccountPositionSummary with proper currency exchange rate context. Sets up the
    * currency pair relationship if the cash account currency differs from the main currency for accurate foreign
    * exchange calculations.
-   * 
+   *
    * @param cashaccount     the cash account to create a position summary for
    * @param dateCurrencyMap currency exchange rate context for foreign currency handling
    * @return fully initialized cash account position summary ready for transaction processing

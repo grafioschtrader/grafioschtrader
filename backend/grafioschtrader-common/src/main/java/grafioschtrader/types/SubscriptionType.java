@@ -19,7 +19,9 @@ public enum SubscriptionType implements ISubscriptionType {
   CURRENCY_CONVERTER_FREE((short) 61), CURRENCY_CONVERTER_OTHERS((short) 62),
   // twelvedata
   TWELVEDATA_FREE((short) 71), TWELVEDATA_GROW_55((short) 72), TWELVEDATA_GROW_144((short) 73),
-  TWELVEDATA_GROW_377((short) 74);
+  TWELVEDATA_GROW_377((short) 74),
+  // eulerpool
+  EULERPOOL_FREE((short) 81), EULERPOOL_PAID((short) 82);
 
   private final Short value;
 

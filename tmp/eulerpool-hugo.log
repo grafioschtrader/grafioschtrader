@@ -1,0 +1,44 @@
+Start building sites … 
+hugo v0.152.2-6abdacad3f3fe944ea42177844469139e81feda6 windows/amd64 BuildDate=2025-10-24T15:31:49Z VendorInfo=gohugoio
+
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\admindata\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  UNSUPPORTED usage of 'search' output format found, remove it from your config; see https://mcshelby.github.io/hugo-theme-relearn/introduction/releasenotes/7/#7-0-0
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\watchlistinstrument\\correlation\\returnstatdata\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\tenantportfolio\\client\\sharedaccess\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\admindata\\taskdatachangemonitor\\taskdescription\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\bankruptsecurity\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\genericconnector\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\genericconnector\\troubleshooting\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\genericconnector\\troubleshooting\\example\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\riskfreeratemapping\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\watchlistinstrument\\externaldata\\historyquote\\pricedata\\archive\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\tenantportfolio\\client\\managedclients\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\watchlistinstrument\\externaldata\\historyquote\\pricedata\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\intro\\settings\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\tenantportfolio\\client\\sharereadaccess\\_index.de.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\admindata\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\watchlistinstrument\\correlation\\returnstatdata\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\tenantportfolio\\client\\sharedaccess\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\admindata\\taskdatachangemonitor\\taskdescription\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\bankruptsecurity\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\genericconnector\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\genericconnector\\troubleshooting\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\genericconnector\\troubleshooting\\example\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\basedata\\riskfreeratemapping\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\watchlistinstrument\\externaldata\\historyquote\\pricedata\\archive\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\tenantportfolio\\client\\managedclients\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\intro\\settings\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\watchlistinstrument\\externaldata\\historyquote\\pricedata\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+WARN  "C:\\SoftwareProjekte\\Hugos\\gt-user-manual\\content\\tenantportfolio\\client\\sharereadaccess\\_index.en.md": WARNING you must call the ref / relref shortcode with '% %' instead of '< >' to work correctly for the anchor target attribute
+
+                  │ DE  │ EN  
+──────────────────┼─────┼─────
+ Pages            │ 277 │ 278 
+ Paginator pages  │   0 │   0 
+ Non-page files   │   6 │   0 
+ Static files     │   1 │   1 
+ Processed images │   0 │   0 
+ Aliases          │   1 │   0 
+ Cleaned          │   0 │   0 
+
+Total in 2187 ms

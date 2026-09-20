@@ -1,9 +1,9 @@
 package grafioschtrader.types;
 
 /**
- * Granularity of a seasonality heat map: the matrix columns are either the twelve calendar months or the four
- * quarters of a year. The enum constant names are used directly as the request parameter value and as the frontend
- * select options.
+ * Granularity of a seasonality heat map: the matrix columns are either the twelve calendar months or the four quarters
+ * of a year. The enum constant names are used directly as the request parameter value and as the frontend select
+ * options.
  */
 public enum SeasonalPeriodType {
   /** Twelve columns, January through December. */

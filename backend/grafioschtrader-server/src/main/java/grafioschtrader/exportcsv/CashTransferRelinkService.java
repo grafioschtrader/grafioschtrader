@@ -30,14 +30,13 @@ import grafioschtrader.types.TransactionType;
  *
  * <p>
  * Candidates are the tenant's WITHDRAWAL/DEPOSIT transactions without a connected transaction. They are bucketed by
- * their transaction time truncated to minutes (the CSV wire format's precision; both sides of a transfer carry the
- * same time) and matched pairwise: different cash account, and for a same-currency transfer equal absolute amounts.
- * <b>Only one-to-one unambiguous matches are linked</b> — a candidate with several possible counterparts is skipped
- * and reported. Linking goes through
- * {@code TransactionJpaRepository.updateCreateCashaccountTransfer}, so the full transfer validation runs, the
- * currency pair is found or created, both directions are connected and the cash account deposit holdings are
- * adjusted. Every pair is processed in its own transaction: a validation rejection (overdraft, closed period) fails
- * only that pair and is reported in the result.
+ * their transaction time truncated to minutes (the CSV wire format's precision; both sides of a transfer carry the same
+ * time) and matched pairwise: different cash account, and for a same-currency transfer equal absolute amounts. <b>Only
+ * one-to-one unambiguous matches are linked</b> — a candidate with several possible counterparts is skipped and
+ * reported. Linking goes through {@code TransactionJpaRepository.updateCreateCashaccountTransfer}, so the full transfer
+ * validation runs, the currency pair is found or created, both directions are connected and the cash account deposit
+ * holdings are adjusted. Every pair is processed in its own transaction: a validation rejection (overdraft, closed
+ * period) fails only that pair and is reported in the result.
  * </p>
  */
 @Service
@@ -105,20 +104,21 @@ public class CashTransferRelinkService {
   }
 
   /**
-   * Matches the candidates pairwise per minute bucket and accepts only one-to-one unambiguous withdrawal/deposit
-   * pairs. Package-private and static so the matching rules are testable without repositories.
+   * Matches the candidates pairwise per minute bucket and accepts only one-to-one unambiguous withdrawal/deposit pairs.
+   * Package-private and static so the matching rules are testable without repositories.
    */
   static MatchResult findUnambiguousPairs(List<Transaction> candidates) {
     Map<LocalDateTime, List<Transaction>> minuteBuckets = new LinkedHashMap<>();
     for (Transaction transaction : candidates) {
-      minuteBuckets.computeIfAbsent(transaction.getTransactionTime().truncatedTo(ChronoUnit.MINUTES),
-          _ -> new ArrayList<>()).add(transaction);
+      minuteBuckets
+          .computeIfAbsent(transaction.getTransactionTime().truncatedTo(ChronoUnit.MINUTES), _ -> new ArrayList<>())
+          .add(transaction);
     }
     List<TransferPair> pairs = new ArrayList<>();
     Set<Integer> matchedSomething = new HashSet<>();
     for (List<Transaction> bucket : minuteBuckets.values()) {
-      List<Transaction> withdrawals = bucket.stream()
-          .filter(t -> t.getTransactionType() == TransactionType.WITHDRAWAL).toList();
+      List<Transaction> withdrawals = bucket.stream().filter(t -> t.getTransactionType() == TransactionType.WITHDRAWAL)
+          .toList();
       List<Transaction> deposits = bucket.stream().filter(t -> t.getTransactionType() == TransactionType.DEPOSIT)
           .toList();
       for (Transaction withdrawal : withdrawals) {

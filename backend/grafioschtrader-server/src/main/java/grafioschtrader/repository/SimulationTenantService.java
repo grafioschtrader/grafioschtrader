@@ -2,52 +2,71 @@ package grafioschtrader.repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
-import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.service.EntityLimitService;
-import grafiosch.types.TaskDataExecPriority;
+import grafioschtrader.algo.SimulationDateBounds;
+import grafioschtrader.algo.SimulationPreviewDto;
 import grafioschtrader.algo.SimulationTenantCreateDTO;
 import grafioschtrader.algo.SimulationTenantInfo;
 import grafioschtrader.config.LimitKeyConfig;
+import grafioschtrader.dto.IMinMaxDateHistoryquote;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Cashaccount;
+import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.SecaccountTradingPeriod;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
-import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.Watchlist;
-import grafioschtrader.types.TaskTypeExtended;
+import grafioschtrader.service.AlgoHistoricalValuationService;
+import grafioschtrader.types.SimulationInitializationMode;
 import grafioschtrader.types.TenantKindType;
 import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 
 /**
- * Service for managing simulation tenants created from AlgoTop strategies.
- * Handles creation, listing, and deletion of simulation environments.
+ * Service for managing simulation tenants created from AlgoTop strategies. Handles creation, listing, and deletion of
+ * simulation environments.
  */
 @Service
-@Transactional
+@Transactional(rollbackFor = Exception.class)
 public class SimulationTenantService {
+
+  @Autowired
+  private SimulationCleanupRepository cleanup;
+  @Autowired
+  private AlgoHistoricalValuationService valuation;
+  @Autowired
+  private SimulationSourceRepository source;
+  @Autowired
+  private TransactionJpaRepository transactions;
+  @Autowired
+  private HoldSecurityaccountSecurityJpaRepository securityHoldings;
+  @Autowired
+  private HoldCashaccountBalanceJpaRepository cashHoldings;
+  @Autowired
+  private HoldCashaccountDepositJpaRepository deposits;
 
   @PersistenceContext
   private EntityManager em;
@@ -56,7 +75,7 @@ public class SimulationTenantService {
   private EntityLimitService entityLimitService;
 
   @Autowired
-  private JdbcTemplate jdbcTemplate;
+  private grafioschtrader.service.SimulationRunActivityService runActivity;
 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
@@ -65,45 +84,45 @@ public class SimulationTenantService {
   private AlgoTopJpaRepository algoTopJpaRepository;
 
   @Autowired
-  private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+  private WatchlistJpaRepository watchlistJpaRepository;
+
+  @Autowired
+  private CurrencypairJpaRepository currencypairJpaRepository;
+
+  @Autowired
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
 
   /**
-   * Creates a simulation tenant from the given AlgoTop strategy. Copies portfolios, security accounts,
-   * and cash accounts from the user's main tenant. Optionally copies transactions up to the AlgoTop's
-   * reference date or creates deposit transactions from user-specified cash balances.
+   * Creates a simulation tenant from the given AlgoTop strategy. Copies portfolios, security accounts, and cash
+   * accounts from the user's main tenant. Establishes a dated opening ledger and reconstructs its holdings before
+   * committing the environment.
    *
    * @param dto the creation request containing AlgoTop ID, copy mode, and optional cash balances
    * @return the created simulation Tenant
    */
-  public Tenant createSimulationTenant(SimulationTenantCreateDTO dto) {
+  public Tenant createSimulationTenant(SimulationTenantCreateDTO dto) throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer mainIdTenant = user.getActualIdTenant();
 
-    // 1. Validate max simulation count
+    Tenant mainTenant = em.find(Tenant.class, mainIdTenant, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+    validateRequest(dto, mainIdTenant);
     Optional<Integer> maxAllowedOpt = entityLimitService.resolve(user, LimitKeyConfig.KEY_SIMULATION_TENANT);
-    if (maxAllowedOpt.isPresent()
-        && tenantJpaRepository.countByIdParentTenant(mainIdTenant) >= maxAllowedOpt.get()) {
-      throw new DataViolationException("id.algo.top", "simulation.max.exceeded",
-          new Object[] { maxAllowedOpt.get() });
+    if (maxAllowedOpt.isPresent() && tenantJpaRepository.countByIdParentTenant(mainIdTenant) >= maxAllowedOpt.get()) {
+      throw new DataViolationException("id.algo.top", "simulation.max.exceeded", new Object[] { maxAllowedOpt.get() });
     }
-
-    // 2. Load and validate AlgoTop
-    AlgoTop algoTop = algoTopJpaRepository.findById(dto.getIdAlgoTop()).orElse(null);
-    if (algoTop == null || !mainIdTenant.equals(algoTop.getIdTenant())) {
-      throw new DataViolationException("id.algo.top", "simulation.algotop.not.found", null);
-    }
-
-    // 3. Validate referenceDate for transaction copy
-    if (dto.isCopyTransactions() && algoTop.getReferenceDate() == null) {
-      throw new DataViolationException("reference.date", "simulation.no.reference.date", null);
-    }
+    AlgoTop algoTop = algoTopJpaRepository.findById(dto.getIdAlgoTop()).orElseThrow();
+    SimulationPreviewDto preview = previewSimulation(dto);
+    if (!preview.errors.isEmpty() || !preview.unresolvedPositions.isEmpty())
+      throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE,
+          "simulation.opening.unresolved", String.join(", ", preview.errors));
 
     // 4. Create simulation tenant
-    Tenant mainTenant = tenantJpaRepository.getReferenceById(mainIdTenant);
-    Tenant simTenant = new Tenant(dto.getTenantName(), mainTenant.getCurrency(),
-        user.getIdUser(), TenantKindType.SIMULATION_COPY, mainTenant.isExcludeDivTax());
+    Tenant simTenant = new Tenant(dto.getTenantName(), mainTenant.getCurrency(), user.getIdUser(),
+        TenantKindType.SIMULATION_COPY, mainTenant.isExcludeDivTax());
     simTenant.setIdParentTenant(mainIdTenant);
     simTenant.setIdAlgoTop(dto.getIdAlgoTop());
+    simTenant.setSimulationStartDate(dto.getSimulationStartDate());
+    simTenant.setSimulationInitializationMode(dto.getInitializationMode());
     simTenant = tenantJpaRepository.save(simTenant);
     em.flush();
 
@@ -122,20 +141,134 @@ public class SimulationTenantService {
     // 8. Copy the watchlist referenced by the AlgoTop strategy
     copyWatchlistForAlgoTop(algoTop, simIdTenant);
 
-    if (dto.isCopyTransactions()) {
-      // 9a. Copy transactions up to referenceDate
+    if (dto.getInitializationMode() == SimulationInitializationMode.COPY_PORTFOLIO) {
       copyTransactionsUpToDate(mainIdTenant, simIdTenant, securityAccountMap, cashAccountMap,
-          algoTop.getReferenceDate());
-
-      // Trigger holding table rebuild
-      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO,
-          TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now(), simIdTenant, Tenant.class.getSimpleName()));
-    } else if (dto.getCashBalances() != null && !dto.getCashBalances().isEmpty()) {
-      // 9b. Create deposit transactions for specified cash balances
-      createDepositTransactions(simIdTenant, cashAccountMap, dto.getCashBalances());
+          dto.getSimulationStartDate());
+    } else {
+      Map<Integer, Double> opening = preview.accounts.stream().collect(Collectors
+          .toMap(SimulationPreviewDto.AccountBalance::idCashaccount, SimulationPreviewDto.AccountBalance::balance));
+      createDepositTransactions(simIdTenant, cashAccountMap, opening, dto.getSimulationStartDate());
     }
+    em.flush();
+    em.clear();
+    simTenant = tenantJpaRepository.findById(simIdTenant).orElseThrow();
+    securityHoldings.createSecurityHoldingsEntireByTenant(simIdTenant);
+    cashHoldings.createCashaccountBalanceEntireByTenant(simIdTenant);
+    deposits.createCashaccountDepositTimeFrameByTenant(simIdTenant);
 
     return simTenant;
+  }
+
+  /** Validates the complete request in the service so alternate callers cannot bypass the REST validator. */
+  private void validateRequest(SimulationTenantCreateDTO dto, Integer mainIdTenant) {
+    AlgoHistoricalValuationService.validateDate(dto.getSimulationStartDate(),
+        AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE);
+    if (dto.getInitializationMode() == null || dto.getTenantName() == null || dto.getTenantName().isBlank()
+        || dto.getTenantName().length() > 40 || dto.getIdAlgoTop() == null)
+      throw openingInvalid();
+    AlgoTop top = algoTopJpaRepository.findById(dto.getIdAlgoTop()).orElse(null);
+    if (top == null || !mainIdTenant.equals(top.getIdTenant()))
+      throw new DataViolationException("id.algo.top", "simulation.algotop.not.found", null);
+    if (top.getReferenceDate() != null) {
+      LocalDate requiredDate = top.getReferenceDate().plusDays(1);
+      if (!requiredDate.equals(dto.getSimulationStartDate()))
+        throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE,
+            "simulation.portfolio.start.date", requiredDate);
+      if (dto.getInitializationMode() == SimulationInitializationMode.MANUAL_CASH)
+        throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_INITIALIZATION_MODE,
+            "simulation.portfolio.manual.cash", "");
+    }
+    if (dto.getCashBalances() != null && !dto.getCashBalances().isEmpty()
+        && dto.getInitializationMode() != SimulationInitializationMode.MANUAL_CASH)
+      throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_INITIALIZATION_MODE,
+          "simulation.opening.invalid", "");
+    if (dto.getLiquidationAssignments() != null && !dto.getLiquidationAssignments().isEmpty()
+        && dto.getInitializationMode() != SimulationInitializationMode.LIQUIDATE_TO_CASH)
+      throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_INITIALIZATION_MODE,
+          "simulation.opening.invalid", "");
+    validateOpeningDateHasSourceHistory(dto, mainIdTenant);
+  }
+
+  /**
+   * Both modes that read the source portfolio need a day the source tenant actually reached. Before the first
+   * transaction there are no holdings and no cash, so the environment would start empty in a way the user did not ask
+   * for - the same rule the allocation applies to its reference date. Manual cash copies nothing and is therefore
+   * unbounded.
+   *
+   * @param dto          the creation request
+   * @param mainIdTenant the tenant the opening state is read from
+   */
+  private void validateOpeningDateHasSourceHistory(SimulationTenantCreateDTO dto, Integer mainIdTenant) {
+    if (dto.getInitializationMode() == SimulationInitializationMode.MANUAL_CASH) {
+      return;
+    }
+    LocalDate firstDate = source.firstTransactionDate(mainIdTenant);
+    if (firstDate == null || dto.getSimulationStartDate().isBefore(firstDate)) {
+      throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE,
+          "algo.reference.date.before.first.transaction", firstDate);
+    }
+  }
+
+  /** The opening definition is wrong in a way that points at no single field of the dialog. */
+  private static DataViolationException openingInvalid() {
+    return AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE,
+        "simulation.opening.invalid", "");
+  }
+
+  /** Computes account-currency balances without writing a tenant, transaction or historical quote. */
+  public SimulationPreviewDto previewSimulation(SimulationTenantCreateDTO dto) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    Integer mainIdTenant = user.getActualIdTenant();
+    validateRequest(dto, mainIdTenant);
+    var accounts = source.cashaccounts(mainIdTenant);
+    Map<Integer, Cashaccount> byId = accounts.stream().collect(Collectors.toMap(Cashaccount::getId, a -> a));
+    Map<Integer, Double> opening = new HashMap<>();
+    accounts.forEach(a -> opening.put(a.getId(), 0.0));
+    SimulationPreviewDto result = new SimulationPreviewDto();
+    if (dto.getInitializationMode() == SimulationInitializationMode.MANUAL_CASH) {
+      if (dto.getCashBalances() != null)
+        dto.getCashBalances().forEach((id, amount) -> {
+          if (!byId.containsKey(id) || amount == null || !Double.isFinite(amount) || amount < 0)
+            throw openingInvalid();
+          opening.put(id, amount);
+        });
+    } else if (dto.getInitializationMode() == SimulationInitializationMode.LIQUIDATE_TO_CASH) {
+      var snapshot = valuation.value(mainIdTenant, dto.getSimulationStartDate());
+      result.errors.addAll(snapshot.errors());
+      opening.putAll(snapshot.cashBalances());
+      Map<String, Integer> assignments = dto.getLiquidationAssignments() == null ? Map.of()
+          : dto.getLiquidationAssignments();
+      Set<String> unresolvedKeys = snapshot.positions().stream().filter(p -> p.idCashaccount() == null)
+          .map(AlgoHistoricalValuationService.Position::key).collect(Collectors.toSet());
+      if (!unresolvedKeys.containsAll(assignments.keySet())
+          || assignments.values().stream().anyMatch(id -> !byId.containsKey(id)))
+        throw openingInvalid();
+      var securityAccounts = source.securityaccounts(mainIdTenant).stream()
+          .collect(Collectors.toMap(Securityaccount::getId, a -> a.getName()));
+      for (var position : snapshot.positions()) {
+        Integer destination = position.idCashaccount() != null ? position.idCashaccount()
+            : assignments.get(position.key());
+        if (destination == null) {
+          result.unresolvedPositions.add(new SimulationPreviewDto.UnresolvedPosition(position.key(),
+              position.security().getName(), securityAccounts.get(position.idSecurityaccount()),
+              position.security().getCurrency(), position.units(), position.closingValue()));
+        } else {
+          Cashaccount account = byId.get(destination);
+          if (account == null)
+            throw openingInvalid();
+          Double from = snapshot.fx().get(position.security().getCurrency());
+          Double to = snapshot.fx().get(account.getCurrency());
+          if (from != null && to != null)
+            opening.merge(destination, position.closingValue() * from / to, Double::sum);
+        }
+      }
+    } else {
+      source.transactions(mainIdTenant, dto.getSimulationStartDate().plusDays(1))
+          .forEach(tx -> opening.merge(tx.getCashaccount().getId(), tx.getCashaccountAmount(), Double::sum));
+    }
+    accounts.forEach(a -> result.accounts
+        .add(new SimulationPreviewDto.AccountBalance(a.getId(), a.getName(), a.getCurrency(), opening.get(a.getId()))));
+    return result;
   }
 
   /**
@@ -158,13 +291,74 @@ public class SimulationTenantService {
       }
 
       // Check if simulation has transactions
-      Long txCount = em.createQuery("SELECT COUNT(t) FROM Transaction t WHERE t.idTenant = :tid", Long.class)
-          .setParameter("tid", sim.getIdTenant()).getSingleResult();
+      long txCount = transactions.countByIdTenant(sim.getIdTenant());
 
-      result.add(new SimulationTenantInfo(sim.getIdTenant(), sim.getTenantName(), sim.getIdAlgoTop(), algoTopName,
-          txCount > 0));
+      SimulationTenantInfo info = new SimulationTenantInfo(sim.getIdTenant(), sim.getTenantName(), sim.getIdAlgoTop(),
+          algoTopName, txCount > 0);
+      info.setActive(runActivity.isActive(sim.getIdTenant()));
+      info.setSimulationStartDate(sim.getSimulationStartDate());
+      info.setInitializationMode(sim.getSimulationInitializationMode());
+      result.add(info);
     }
     return result;
+  }
+
+  /**
+   * Reports what limits the opening date of an environment of this hierarchy, so the dialog can say it up front. The
+   * universe date is the latest of the first quotes of the instruments and their currency pairs, because a replay can
+   * only decide once every one of them has data. Nothing here is enforced: an earlier opening date stays allowed and is
+   * merely uninformative until the data begins.
+   *
+   * @param idAlgoTop   the hierarchy the environment would belong to
+   * @param openingDate the date currently entered in the dialog, or null before one is chosen. It only adds what the
+   *                    portfolio cannot value on that day and never rejects the date.
+   * @return the dates, with the universe date left empty when an instrument has no price data at all
+   */
+  @Transactional(readOnly = true)
+  public SimulationDateBounds getSimulationDateBounds(Integer idAlgoTop, LocalDate openingDate) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    Integer mainIdTenant = user.getActualIdTenant();
+    AlgoTop algoTop = algoTopJpaRepository.findById(idAlgoTop).orElse(null);
+    if (algoTop == null || !mainIdTenant.equals(algoTop.getIdTenant()))
+      throw new DataViolationException("id.algo.top", "simulation.algotop.not.found", null);
+    SimulationDateBounds bounds = new SimulationDateBounds();
+    bounds.firstTransactionDate = source.firstTransactionDate(mainIdTenant);
+    if (openingDate != null && openingDate.isBefore(LocalDate.now()))
+      bounds.unpricedAtOpeningDate.addAll(valuation.value(mainIdTenant, openingDate).errors());
+    List<Security> securities = algoTop.getIdWatchlist() == null ? List.of()
+        : watchlistJpaRepository.securitiesOfWatchlist(algoTop.getIdWatchlist());
+    if (securities.isEmpty())
+      return bounds;
+    Tenant tenant = tenantJpaRepository.findById(mainIdTenant).orElseThrow();
+    Map<Integer, String> universe = new LinkedHashMap<>();
+    securities.forEach(s -> universe.put(s.getIdSecuritycurrency(), s.getName()));
+    for (String currency : securities.stream().map(Security::getCurrency)
+        .collect(Collectors.toCollection(TreeSet::new))) {
+      if (currency.equals(tenant.getCurrency()))
+        continue;
+      Currencypair pair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(currency, tenant.getCurrency());
+      if (pair == null)
+        pair = currencypairJpaRepository.findByFromCurrencyAndToCurrency(tenant.getCurrency(), currency);
+      // A pair that does not exist yet is not a price problem of an instrument; the valuation reports it when it is
+      // actually needed, and naming it here would only puzzle the user before anything was chosen.
+      if (pair != null)
+        universe.put(pair.getIdSecuritycurrency(), currency + "/" + tenant.getCurrency());
+    }
+    Map<Integer, LocalDate> firstQuote = historyquoteJpaRepository
+        .getMinMaxDateByIdSecuritycurrencyIds(List.copyOf(universe.keySet())).stream()
+        .filter(m -> m.getMinDate() != null)
+        .collect(Collectors.toMap(IMinMaxDateHistoryquote::getIdSecuritycurrency, IMinMaxDateHistoryquote::getMinDate));
+    LocalDate latestStart = null;
+    for (var member : universe.entrySet()) {
+      LocalDate start = firstQuote.get(member.getKey());
+      if (start == null) {
+        bounds.instrumentsWithoutHistory.add(member.getValue());
+      } else if (latestStart == null || start.isAfter(latestStart)) {
+        latestStart = start;
+      }
+    }
+    bounds.universeFromDate = bounds.instrumentsWithoutHistory.isEmpty() ? latestStart : null;
+    return bounds;
   }
 
   /**
@@ -176,30 +370,24 @@ public class SimulationTenantService {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer mainIdTenant = user.getActualIdTenant();
 
+    // Home before environment, the same order creation and replay preparation use, so that the three can never wait
+    // on each other in a cycle. Holding home also stops a replay being submitted between the check and the delete.
+    em.find(Tenant.class, mainIdTenant, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
     Tenant simTenant = tenantJpaRepository.findById(idSimTenant).orElse(null);
     if (simTenant == null || simTenant.getTenantKindType() != TenantKindType.SIMULATION_COPY
         || !mainIdTenant.equals(simTenant.getIdParentTenant())) {
       throw new DataViolationException("id.tenant", "simulation.algotop.not.found", null);
     }
-
-    // Delete all tenant data in correct order (child tables first)
-    String[] tables = { Transaction.TABNAME, Securitycashaccount.TABNAME, Portfolio.TABNAME };
-    for (String table : tables) {
-      jdbcTemplate.update("DELETE FROM " + table + " WHERE id_tenant=?", idSimTenant);
+    // Deleting an environment under its own worker would pull the accounts out from beneath the transactions it is
+    // still booking. The user cancels and waits; a delete never cancels on their behalf, because the fills already
+    // booked are theirs to look at first.
+    if (runActivity.isActive(idSimTenant)) {
+      throw new DataViolationException("id.tenant", "gt.simulation.delete.run.active", null);
     }
+    em.find(Tenant.class, idSimTenant, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
 
-    // Delete holding tables
-    jdbcTemplate.update("DELETE FROM hold_securityaccount_security WHERE id_tenant=?", idSimTenant);
-    jdbcTemplate.update("DELETE FROM hold_cashaccount_balance WHERE id_tenant=?", idSimTenant);
-    jdbcTemplate.update("DELETE FROM hold_cashaccount_deposit WHERE id_tenant=?", idSimTenant);
-
-    // Delete watchlists and their security associations
-    jdbcTemplate.update(
-        "DELETE wsc FROM " + Watchlist.TABNAME_SEC_CUR + " wsc INNER JOIN " + Watchlist.TABNAME
-            + " w ON wsc.id_watchlist = w.id_watchlist WHERE w.id_tenant=?",
-        idSimTenant);
-    jdbcTemplate.update("DELETE FROM " + Watchlist.TABNAME + " WHERE id_tenant=?", idSimTenant);
-
+    cleanup.deleteTenantData(idSimTenant);
+    em.clear();
     tenantJpaRepository.deleteById(idSimTenant);
   }
 
@@ -207,18 +395,17 @@ public class SimulationTenantService {
    * Copies the watchlist referenced by the AlgoTop strategy to the simulation tenant. The copied watchlist contains the
    * same securities as the original but belongs to the simulation tenant.
    *
-   * @param algoTop       the AlgoTop strategy whose watchlist should be copied
-   * @param simIdTenant   the ID of the simulation tenant
+   * @param algoTop     the AlgoTop strategy whose watchlist should be copied
+   * @param simIdTenant the ID of the simulation tenant
    */
   private void copyWatchlistForAlgoTop(AlgoTop algoTop, Integer simIdTenant) {
     if (algoTop.getIdWatchlist() == null) {
       return;
     }
     Watchlist sourceWatchlist = em.find(Watchlist.class, algoTop.getIdWatchlist());
-    if (sourceWatchlist == null) {
-      return;
-    }
-    // Initialize lazy-loaded security list before detaching
+    if (sourceWatchlist == null || !algoTop.getIdTenant().equals(sourceWatchlist.getIdTenant()))
+      throw openingInvalid();
+    // Copy membership while retaining the globally shared securities.
     List<Securitycurrency<?>> securities = new ArrayList<>(sourceWatchlist.getSecuritycurrencyList());
     Watchlist simWatchlist = new Watchlist(simIdTenant, sourceWatchlist.getName());
     simWatchlist.setSecuritycurrencyList(securities);
@@ -228,11 +415,12 @@ public class SimulationTenantService {
 
   private Map<Integer, Portfolio> copyPortfolios(Integer sourceIdTenant, Integer targetIdTenant) {
     Map<Integer, Portfolio> portfolioMap = new HashMap<>();
-    TypedQuery<Portfolio> q = em.createQuery("SELECT p FROM Portfolio p WHERE p.idTenant = ?1", Portfolio.class);
-    List<Portfolio> portfolios = q.setParameter(1, sourceIdTenant).getResultList();
-    em.clear();
-    for (Portfolio portfolio : portfolios) {
-      Integer oldId = portfolio.getId();
+    List<Portfolio> portfolios = source.portfolios(sourceIdTenant);
+    for (Portfolio original : portfolios) {
+      Integer oldId = original.getId();
+      Portfolio portfolio = new Portfolio();
+      BeanUtils.copyProperties(original, portfolio);
+      portfolio.setClosedUntil(null);
       portfolio.setIdTenant(targetIdTenant);
       portfolio.setIdPortfolio(null);
       portfolio.setSecuritycashaccountList(new ArrayList<>());
@@ -246,19 +434,21 @@ public class SimulationTenantService {
   private Map<Integer, Securityaccount> copySecurityAccounts(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Portfolio> portfolioMap) {
     Map<Integer, Securityaccount> securityAccountMap = new HashMap<>();
-    TypedQuery<Securityaccount> q = em.createQuery("SELECT c FROM Securityaccount c WHERE c.idTenant = ?1",
-        Securityaccount.class);
-    List<Securityaccount> securityaccounts = q.setParameter(1, sourceIdTenant).getResultList();
-    em.clear();
-    for (Securityaccount sa : securityaccounts) {
-      Integer oldId = sa.getId();
+    List<Securityaccount> securityaccounts = source.securityaccounts(sourceIdTenant);
+    for (Securityaccount original : securityaccounts) {
+      Integer oldId = original.getId();
+      Securityaccount sa = new Securityaccount();
+      BeanUtils.copyProperties(original, sa);
       sa.setIdTenant(targetIdTenant);
       sa.setIdSecuritycashAccount(null);
       sa.setSecurityTransactionList(null);
       sa.setPortfolio(portfolioMap.get(sa.getPortfolio().getIdPortfolio()));
       List<SecaccountTradingPeriod> freshPeriods = new ArrayList<>();
-      for (SecaccountTradingPeriod tp : sa.getTradingPeriods()) {
+      for (SecaccountTradingPeriod originalPeriod : original.getTradingPeriods()) {
+        SecaccountTradingPeriod tp = new SecaccountTradingPeriod();
+        BeanUtils.copyProperties(originalPeriod, tp);
         tp.setIdSecaccountTradingPeriod(null);
+        tp.setIdSecuritycashAccount(null);
         freshPeriods.add(tp);
       }
       sa.replaceTradingPeriods(freshPeriods);
@@ -272,11 +462,11 @@ public class SimulationTenantService {
   private Map<Integer, Cashaccount> copyCashAccounts(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Portfolio> portfolioMap, Map<Integer, Securityaccount> securityAccountMap) {
     Map<Integer, Cashaccount> cashAccountMap = new HashMap<>();
-    TypedQuery<Cashaccount> q = em.createQuery("SELECT c FROM Cashaccount c WHERE c.idTenant = ?1", Cashaccount.class);
-    List<Cashaccount> cashaccounts = q.setParameter(1, sourceIdTenant).getResultList();
-    em.clear();
-    for (Cashaccount ca : cashaccounts) {
-      Integer oldId = ca.getId();
+    List<Cashaccount> cashaccounts = source.cashaccounts(sourceIdTenant);
+    for (Cashaccount original : cashaccounts) {
+      Integer oldId = original.getId();
+      Cashaccount ca = new Cashaccount();
+      BeanUtils.copyProperties(original, ca);
       ca.setIdTenant(targetIdTenant);
       ca.setTransactionList(null);
       if (ca.getConnectIdSecurityaccount() != null) {
@@ -293,13 +483,14 @@ public class SimulationTenantService {
   }
 
   /**
-   * Copies transactions from the source tenant to the simulation tenant up to the given reference date (inclusive).
-   * All tenant-specific references are remapped to the simulation tenant's entities to ensure no references to the
-   * source tenant remain:
+   * Copies transactions from the source tenant to the simulation tenant up to the given reference date (inclusive). All
+   * tenant-specific references are remapped to the simulation tenant's entities to ensure no references to the source
+   * tenant remain:
    * <ul>
    * <li>{@code idTransaction} — reset to null, JPA auto-generates a new primary key</li>
    * <li>{@code idTenant} — set to {@code targetIdTenant}</li>
-   * <li>{@code cashaccount} — remapped via {@code cashAccountMap} (source cash account ID → simulation Cashaccount)</li>
+   * <li>{@code cashaccount} — remapped via {@code cashAccountMap} (source cash account ID → simulation
+   * Cashaccount)</li>
    * <li>{@code idSecurityaccount} — remapped via {@code securityAccountMap} (source security account ID → simulation
    * Securityaccount)</li>
    * <li>{@code connectedIdTransaction} — remapped using a two-pass algorithm: the first pass resolves backward
@@ -319,62 +510,55 @@ public class SimulationTenantService {
   private void copyTransactionsUpToDate(Integer sourceIdTenant, Integer targetIdTenant,
       Map<Integer, Securityaccount> securityAccountMap, Map<Integer, Cashaccount> cashAccountMap,
       LocalDate referenceDate) {
-    Map<Integer, Transaction> transactionReMap = new HashMap<>();
-    List<Transaction> newNotFinishedList = new ArrayList<>();
-    Map<Integer, Integer> connectIdToIdMap = new HashMap<>();
-
-    // Convert referenceDate to end-of-day timestamp for inclusive comparison
-    LocalDateTime cutoff = LocalDateTime.of(referenceDate, LocalTime.MAX);
-
-    TypedQuery<Transaction> q = em.createQuery(
-        "SELECT t FROM Transaction t WHERE t.idTenant = ?1 AND t.transactionTime <= ?2 ORDER BY t.transactionTime",
-        Transaction.class);
-    List<Transaction> transactionList = q.setParameter(1, sourceIdTenant)
-        .setParameter(2, cutoff).getResultList();
-    em.clear();
-
-    for (Transaction tx : transactionList) {
-      Integer oldId = tx.getId();
-      tx.setIdTenant(targetIdTenant);
+    Map<Integer, Transaction> copied = new HashMap<>();
+    List<Transaction> originals = source.transactions(sourceIdTenant, referenceDate.plusDays(1));
+    for (Transaction original : originals) {
+      Transaction tx = new Transaction();
+      BeanUtils.copyProperties(original, tx);
+      // The security getter and setter have different JavaBean property names.
+      tx.setSecuritycurrency(original.getSecurity());
       tx.setIdTransaction(null);
-      tx.setCashaccount(cashAccountMap.get(tx.getCashaccount().getIdSecuritycashAccount()));
-      if (tx.getIdSecurityaccount() != null) {
-        Securityaccount mapped = securityAccountMap.get(tx.getIdSecurityaccount());
-        tx.setIdSecurityaccount(mapped != null ? mapped.getIdSecuritycashAccount() : null);
+      tx.setTransactionTime(original.getTransactionDate().atTime(original.getTransactionTime().toLocalTime()));
+      tx.setIdTenant(targetIdTenant);
+      tx.setSimulationOpening(true);
+      tx.setAlgoFillId(null);
+      tx.setAlgoSignalId(null);
+      tx.setIdStandingOrder(null);
+      tx.setIdSecurityActionApp(null);
+      tx.setIdSecurityTransfer(null);
+      tx.setCashaccount(cashAccountMap.get(original.getCashaccount().getId()));
+      tx.setConnectedIdTransaction(null);
+      if (original.getIdSecurityaccount() != null) {
+        Securityaccount account = securityAccountMap.get(original.getIdSecurityaccount());
+        if (account == null)
+          throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE,
+              "simulation.opening.unresolved", original.getId());
+        tx.setIdSecurityaccount(account.getId());
       }
-
-      if (tx.getConnectedIdTransaction() != null) {
-        Transaction connected = transactionReMap.get(tx.getConnectedIdTransaction());
-        if (connected == null) {
-          newNotFinishedList.add(tx);
-          tx.setConnectedIdTransaction(null);
-        } else {
-          tx.setConnectedIdTransaction(connected.getIdTransaction());
-        }
-      }
-
       em.persist(tx);
-      transactionReMap.put(oldId, tx);
-      if (tx.getConnectedIdTransaction() != null) {
-        connectIdToIdMap.put(tx.getConnectedIdTransaction(), tx.getIdTransaction());
-      }
+      copied.put(original.getId(), tx);
     }
-
-    for (Transaction tx : newNotFinishedList) {
-      tx.setConnectedIdTransaction(connectIdToIdMap.get(tx.getIdTransaction()));
-      em.persist(tx);
+    em.flush();
+    for (Transaction original : originals) {
+      if (original.getConnectedIdTransaction() == null)
+        continue;
+      Transaction linked = copied.get(original.getConnectedIdTransaction());
+      if (linked == null && original.getSecurity() != null && original.getSecurity().isMarginInstrument())
+        throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE,
+            "simulation.opening.unresolved", original.getId());
+      copied.get(original.getId()).setConnectedIdTransaction(linked == null ? null : linked.getId());
     }
     em.flush();
   }
 
   private void createDepositTransactions(Integer simIdTenant, Map<Integer, Cashaccount> cashAccountMap,
-      Map<Integer, Double> cashBalances) {
-    LocalDateTime now = LocalDateTime.now();
+      Map<Integer, Double> cashBalances, LocalDate openingDate) throws Exception {
+    LocalDateTime now = openingDate.atStartOfDay();
 
     for (Map.Entry<Integer, Double> entry : cashBalances.entrySet()) {
       Integer originalCashAccountId = entry.getKey();
       Double amount = entry.getValue();
-      if (amount == null || amount <= 0.0) {
+      if (amount == null || amount == 0.0) {
         continue;
       }
 
@@ -383,9 +567,19 @@ public class SimulationTenantService {
         continue;
       }
 
-      Transaction deposit = new Transaction(simCashAccount, amount, TransactionType.DEPOSIT, now);
+      // Opening cash may be negative even where normal trading disallows a new overdraft.
+      Double borrowingRate = simCashAccount.getBorrowingRate();
+      LocalDate activeToDate = simCashAccount.getActiveToDate();
+      simCashAccount.setBorrowingRate(0.0);
+      simCashAccount.setActiveToDate(null);
+      Transaction deposit = new Transaction(simCashAccount, amount,
+          amount > 0 ? TransactionType.DEPOSIT : TransactionType.WITHDRAWAL, now);
       deposit.setIdTenant(simIdTenant);
-      em.persist(deposit);
+      deposit.setSimulationOpening(true);
+      deposit.setSkipClosedUntilCheck(true);
+      transactions.saveOnlyAttributes(deposit, null, Set.of());
+      simCashAccount.setBorrowingRate(borrowingRate);
+      simCashAccount.setActiveToDate(activeToDate);
     }
     em.flush();
   }

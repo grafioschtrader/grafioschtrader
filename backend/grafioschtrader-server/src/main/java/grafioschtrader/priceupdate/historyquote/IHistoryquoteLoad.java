@@ -17,21 +17,25 @@ import grafioschtrader.repository.SecuritycurrencyService;
 
 /**
  * Interface for loading and managing historical price data for securities and currency pairs.
- * 
- * <p>Historical quote data can be obtained in different ways:</p>
+ *
+ * <p>
+ * Historical quote data can be obtained in different ways:
+ * </p>
  * <ul>
- *   <li>Downloaded from external data sources (e.g., financial APIs, stock exchanges)</li>
- *   <li>Calculated/derived from existing instruments (e.g., spreads, synthetic instruments)</li>
+ * <li>Downloaded from external data sources (e.g., financial APIs, stock exchanges)</li>
+ * <li>Calculated/derived from existing instruments (e.g., spreads, synthetic instruments)</li>
  * </ul>
- * 
- * <p>This interface provides methods for:</p>
+ *
+ * <p>
+ * This interface provides methods for:
+ * </p>
  * <ul>
- *   <li>Updating historical quotes to the most recent date</li>
- *   <li>Loading historical data for specific time periods</li>
- *   <li>Filling gaps in historical data</li>
- *   <li>Reloading complete historical datasets (e.g., after stock splits)</li>
- *   <li>Generating download links for historical data</li>
- *   <li>Quality assessment of historical quote data</li>
+ * <li>Updating historical quotes to the most recent date</li>
+ * <li>Loading historical data for specific time periods</li>
+ * <li>Filling gaps in historical data</li>
+ * <li>Reloading complete historical datasets (e.g., after stock splits)</li>
+ * <li>Generating download links for historical data</li>
+ * <li>Quality assessment of historical quote data</li>
  * </ul>
  *
  * @param <S> the type of security or currency, must extend {@link Securitycurrency}
@@ -40,9 +44,11 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
 
   /**
    * Updates historical quotes for all securities or currency pairs until yesterday's date.
-   * 
-   * <p>Catches up missing historical data for instruments from specified stock exchanges,
-   * ensuring all historical quotes are current up to the previous trading day.</p>
+   *
+   * <p>
+   * Catches up missing historical data for instruments from specified stock exchanges, ensuring all historical quotes
+   * are current up to the previous trading day.
+   * </p>
    *
    * @param idsStockexchange list of stock exchange IDs to process
    * @return list of updated securities or currency pairs
@@ -51,14 +57,16 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
 
   /**
    * Retrieves and persists historical quotes for a security or currency pair within a specified time period.
-   * 
-   * <p><strong>Important:</strong> This operation may take considerable time. The security or currency pair
-   * should not be modified by other threads during execution. All retrieved data is persisted to the database.</p>
+   *
+   * <p>
+   * <strong>Important:</strong> This operation may take considerable time. The security or currency pair should not be
+   * modified by other threads during execution. All retrieved data is persisted to the database.
+   * </p>
    *
    * @param securitycurrencyService service for managing the security or currency pair
-   * @param securitycurrency the security or currency pair to update
-   * @param fromDate start date for historical data (null = use global parameter default)
-   * @param toDate end date for historical data (null = use current date)
+   * @param securitycurrency        the security or currency pair to update
+   * @param fromDate                start date for historical data (null = use global parameter default)
+   * @param toDate                  end date for historical data (null = use current date)
    * @return the updated security or currency pair with persisted historical quotes
    */
   S createHistoryQuotesAndSave(final ISecuritycurrencyService<S> securitycurrencyService, final S securitycurrency,
@@ -67,11 +75,13 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   /**
    * Updates historical quotes for a list of currency pairs and securities.
    *
-   * <p>Fills missing historical data without checking for retry attempts.
-   * Any previous retry indicators are ignored. Uses global update mode (requires 2+ days difference).</p>
+   * <p>
+   * Fills missing historical data without checking for retry attempts. Any previous retry indicators are ignored. Uses
+   * global update mode (requires 2+ days difference).
+   * </p>
    *
    * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
-   * @param currentCalendar current calendar for determining the update range
+   * @param currentCalendar             current calendar for determining the update range
    * @return list of updated securities or currency pairs
    */
   List<S> fillHistoryquoteForSecuritiesCurrencies(
@@ -80,13 +90,14 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   /**
    * Updates historical quotes for a list of currency pairs and securities with explicit update mode.
    *
-   * <p>Fills missing historical data without checking for retry attempts.
-   * Any previous retry indicators are ignored.</p>
+   * <p>
+   * Fills missing historical data without checking for retry attempts. Any previous retry indicators are ignored.
+   * </p>
    *
    * @param historySecurityCurrencyList list of securities/currencies with their maximum historical quote dates
-   * @param currentDate current date for determining the update range
-   * @param isExchangeSpecificUpdate true for exchange-specific updates (requires 1+ day difference),
-   *                                  false for global daily updates (requires 2+ days difference)
+   * @param currentDate                 current date for determining the update range
+   * @param isExchangeSpecificUpdate    true for exchange-specific updates (requires 1+ day difference), false for
+   *                                    global daily updates (requires 2+ days difference)
    * @return list of updated securities or currency pairs
    */
   List<S> fillHistoryquoteForSecuritiesCurrencies(
@@ -95,18 +106,20 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
 
   /**
    * Asynchronously reloads the complete historical price data for a security.
-   * 
-   * <p>Used when historical prices must be completely reloaded, such as after:</p>
+   *
+   * <p>
+   * Used when historical prices must be completely reloaded, such as after:
+   * </p>
    * <ul>
-   *   <li>Stock splits or reverse splits</li>
-   *   <li>Corporate actions affecting historical prices</li>
-   *   <li>Data corruption or quality issues</li>
+   * <li>Stock splits or reverse splits</li>
+   * <li>Corporate actions affecting historical prices</li>
+   * <li>Data corruption or quality issues</li>
    * </ul>
    *
-   * @param <U> the type of security position summary
+   * @param <U>                           the type of security position summary
    * @param securityServiceAsyncExectuion async execution service for the reload operation
-   * @param securitycurrencyService service for managing the security or currency pair
-   * @param securitycurrency the security to reload
+   * @param securitycurrencyService       service for managing the security or currency pair
+   * @param securitycurrency              the security to reload
    */
   <U extends SecuritycurrencyPositionSummary<S>> void reloadAsyncFullHistoryquote(
       final SecurityServiceAsyncExectuion<S, U> securityServiceAsyncExectuion,
@@ -124,7 +137,7 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
    * Creates a download link for a security using a specific feed connector.
    *
    * @param securitycurrency the security or currency pair
-   * @param feedConnector the feed connector to use for generating the link
+   * @param feedConnector    the feed connector to use for generating the link
    * @return download link as string
    */
   String createDownloadLink(S securitycurrency, IFeedConnector feedConnector);
@@ -132,9 +145,9 @@ public interface IHistoryquoteLoad<S extends Securitycurrency<S>> {
   /**
    * Retrieves quality metrics for historical quote data grouped by specified criteria.
    *
-   * @param groupedBy the grouping criteria for quality assessment
+   * @param groupedBy             the grouping criteria for quality assessment
    * @param securityJpaRepository repository for accessing security data
-   * @param messages message source for internationalization
+   * @param messages              message source for internationalization
    * @return quality assessment header with aggregated metrics
    */
   HistoryquoteQualityHead getHistoryquoteQualityHead(HistoryquoteQualityGrouped groupedBy,

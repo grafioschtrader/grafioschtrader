@@ -9,12 +9,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,6 +68,7 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   @Override
   public void deleteMyDataAndUserAccount() throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    assertHomeTenant(user);
     RestHelper.isDemoAccount(demoAccountPatternDE, user.getUsername());
     RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
     assertNoDependentClientsOrViewers(user);
@@ -146,8 +147,8 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   @Override
   public void getExportPersonalDataAsZip(HttpServletResponse response) throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    assertHomeTenant(user);
     String ddlFileName = "gt_ddl.sql";
-    Resource resourceDdl = resourceLoader.getResource("classpath:db/migration/" + ddlFileName);
 
     List<IExportMyDataAddon> addons = exportMyDataAddons == null ? Collections.emptyList() : exportMyDataAddons;
     List<AdditionalExportQuery> additionalExportQueries = new ArrayList<>();
@@ -165,7 +166,7 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
         "attachment; filename=\"" + BaseConstants.PERSONAL_DATA_ZIP_FILENAME + "\"");
 
     ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
-    addZipEntry(zipOutputStream, resourceDdl.getInputStream(), ddlFileName);
+    addZipEntry(zipOutputStream, openExportDdl(), ddlFileName);
     InputStream dmlInputStream = new ByteArrayInputStream(sqlStatement.toString().getBytes());
     addZipEntry(zipOutputStream, dmlInputStream, "gt_data.sql");
     for (Map.Entry<String, String> textEntry : zipTextEntries.entrySet()) {
@@ -173,6 +174,17 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
           textEntry.getKey());
     }
     zipOutputStream.close();
+  }
+
+  /**
+   * Opens the schema used to restore the personal-data export into an empty database. Hosts with their own schema
+   * override this method; the default preserves the released Grafioschtrader schema resource.
+   *
+   * @return the DDL stream, closed by the ZIP writer
+   * @throws IOException if the schema resource cannot be opened
+   */
+  protected InputStream openExportDdl() throws IOException {
+    return resourceLoader.getResource("classpath:db/migration/gt_ddl.sql").getInputStream();
   }
 
   /**
@@ -193,5 +205,12 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
     }
     in.close();
     zos.closeEntry();
+  }
+
+  /** Export and account deletion must never combine the user's identity with a switched tenant's data. */
+  private void assertHomeTenant(User user) {
+    if (!Objects.equals(user.getActualIdTenant(), user.getIdTenant())) {
+      throw new GeneralNotTranslatedWithArgumentsException("g.account.operation.home.tenant.only", null);
+    }
   }
 }

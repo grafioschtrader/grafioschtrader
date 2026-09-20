@@ -12,8 +12,8 @@ public interface SecurityaccountJpaRepositoryCustom extends BaseRepositoryCustom
   int delEntityWithTenant(Integer id, Integer idTenant);
 
   /**
-   * Returns transaction summaries per (specInvestInstrument, categoryType) for a security account.
-   * Validates that the account belongs to the current tenant.
+   * Returns transaction summaries per (specInvestInstrument, categoryType) for a security account. Validates that the
+   * account belongs to the current tenant.
    */
   List<TradingPeriodTransactionSummary> getTransactionSummaries(Integer idSecuritycashAccount);
 

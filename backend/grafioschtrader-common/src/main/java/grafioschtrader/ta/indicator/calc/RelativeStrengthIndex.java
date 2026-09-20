@@ -7,9 +7,8 @@ import grafioschtrader.ta.TaIndicatorData;
 /**
  * Calculates the Relative Strength Index (RSI) using Wilder's smoothing method.
  * <p>
- * RSI is a momentum oscillator that measures the speed and magnitude of price changes.
- * It oscillates between 0 and 100, with values above 70 typically indicating overbought conditions
- * and values below 30 indicating oversold conditions.
+ * RSI is a momentum oscillator that measures the speed and magnitude of price changes. It oscillates between 0 and 100,
+ * with values above 70 typically indicating overbought conditions and values below 30 indicating oversold conditions.
  * </p>
  * <p>
  * The calculation uses Wilder's smoothing method:
@@ -78,8 +77,8 @@ public class RelativeStrengthIndex implements CalcAccessIndicator {
    * Constructs a RelativeStrengthIndex calculator.
    *
    * @param period             The number of periods for the RSI calculation (typically 14).
-   * @param numberOfDatapoints The total number of historical data points that will be processed.
-   *                           This is used to pre-allocate the size of the result array.
+   * @param numberOfDatapoints The total number of historical data points that will be processed. This is used to
+   *                           pre-allocate the size of the result array.
    */
   public RelativeStrengthIndex(int period, int numberOfDatapoints) {
     this.period = period;
@@ -91,8 +90,8 @@ public class RelativeStrengthIndex implements CalcAccessIndicator {
   /**
    * Adds a new data point (closing price for a given date) to the RSI calculation.
    * <p>
-   * The first RSI value is calculated after period + 1 data points have been added
-   * (since we need the first price change to start calculating).
+   * The first RSI value is calculated after period + 1 data points have been added (since we need the first price
+   * change to start calculating).
    * </p>
    *
    * @param date       The date corresponding to the closing price.

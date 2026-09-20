@@ -3,10 +3,14 @@ package grafiosch.gtnet;
 /**
  * Tracks the delivery status of outgoing GTNet messages.
  *
- * <p>This enum provides a quick lookup of the overall delivery state without querying attempt records.</p>
+ * <p>
+ * This enum provides a quick lookup of the overall delivery state without querying attempt records.
+ * </p>
  *
- * <p>For received messages (sendRecv = RECEIVED), this status is not applicable and typically
- * remains at the default value or is ignored.</p>
+ * <p>
+ * For received messages (sendRecv = RECEIVED), this status is not applicable and typically remains at the default value
+ * or is ignored.
+ * </p>
  */
 public enum DeliveryStatus {
 

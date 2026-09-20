@@ -152,8 +152,8 @@ public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
   private Securitysplit getSecuritySplit(String splitText, LocalDate forDate, FractionFormat fractionFormat) {
     String fractionStr = splitText.replace(":", "/").replaceAll("\\s+", "");
     Fraction fraction = fractionFormat.parse(fractionStr);
-    return new Securitysplit(null, forDate, fraction.getDenominator(),
-        fraction.getNumerator(), CreateType.CONNECTOR_CREATED);
+    return new Securitysplit(null, forDate, fraction.getDenominator(), fraction.getNumerator(),
+        CreateType.CONNECTOR_CREATED);
   }
 
   static class FormData {

@@ -42,16 +42,14 @@ public class TradingCalendarRuleSetTaskEntityIdOptionsProvider implements Entity
         .findByIdTradingCalendarRuleSetIsNotNull().stream()
         .map(stockexchange -> new ValueKeyHtmlSelectOptions(String.valueOf(stockexchange.getIdStockexchange()),
             stockexchange.getName()))
-        .sorted(Comparator.comparing(o -> o.value))
-        .collect(Collectors.toList());
+        .sorted(Comparator.comparing(o -> o.value)).collect(Collectors.toList());
     constraints.putTaskOptions(TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET,
         Stockexchange.class.getSimpleName(), ruleBasedExchangeOptions);
 
     List<ValueKeyHtmlSelectOptions> ruleSetOptions = tradingCalendarRuleSetJpaRepository.findAll().stream()
         .map(ruleSet -> new ValueKeyHtmlSelectOptions(String.valueOf(ruleSet.getIdTradingCalendarRuleSet()),
             ruleSet.getName()))
-        .sorted(Comparator.comparing(o -> o.value))
-        .collect(Collectors.toList());
+        .sorted(Comparator.comparing(o -> o.value)).collect(Collectors.toList());
     constraints.putTaskOptions(TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET,
         TradingCalendarRuleSet.class.getSimpleName(), ruleSetOptions);
   }

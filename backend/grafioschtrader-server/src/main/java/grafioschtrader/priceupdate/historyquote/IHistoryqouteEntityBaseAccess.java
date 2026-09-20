@@ -7,7 +7,7 @@ import grafioschtrader.entities.Securitycurrency;
 
 /**
  * Base access interface for historical quote entity operations.
- * 
+ *
  * <p>
  * Provides low-level data access methods for querying and updating historical quote data for securities and currency
  * pairs. This interface abstracts database operations related to identifying instruments that need historical data
@@ -20,7 +20,7 @@ public interface IHistoryqouteEntityBaseAccess<S extends Securitycurrency<S>> {
 
   /**
    * Retrieves securities or currency pairs that require historical quote updates.
-   * 
+   *
    * <p>
    * Queries for instruments based on retry limit, historical quote threshold criteria, and optionally filtered by stock
    * exchanges. Returns metadata including the maximum historical quote date for each instrument.
@@ -36,7 +36,7 @@ public interface IHistoryqouteEntityBaseAccess<S extends Securitycurrency<S>> {
 
   /**
    * Loads a security or currency pair with its historical quotes and retrieves additional missing prices.
-   * 
+   *
    * <p>
    * Fetches the instrument's existing historical data and calls the appropriate method to load any missing quotes
    * within the specified date range.

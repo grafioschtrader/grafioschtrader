@@ -42,6 +42,7 @@ import grafiosch.repository.TenantAccessJpaRepository;
 import grafiosch.repository.TenantBaseCustom;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.security.JwtTokenHandler;
+import grafiosch.security.TenantAccessResolver;
 import grafiosch.service.EntityLimitService;
 import grafiosch.service.MailExternalService;
 import grafiosch.types.TenantAccessLevel;
@@ -63,6 +64,9 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
 
   @Autowired
   protected JwtTokenHandler jwtTokenHandler;
+
+  @Autowired
+  private TenantAccessResolver tenantAccessResolver;
 
   @Autowired
   protected UserJpaRepository userJpaRepository;
@@ -153,9 +157,8 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
 
   /**
    * Resolves the access level the user holds on the switch target, or {@code null} when switching there is not allowed.
-   * The generic rules are: the user's own home tenant, or a tenant the user has a {@link TenantAccess} grant for. An
-   * application may permit additional targets (for example simulation tenants) by overriding
-   * {@link #resolveAppSpecificSwitchTargetLevel(User, Integer, Integer)}.
+   * The same {@link TenantAccessResolver} authorizes the tenant named by a token on every request, so a target that
+   * cannot be switched to can also not be used by a token that already names it.
    *
    * @param user         the current user
    * @param homeIdTenant the user's persisted home tenant
@@ -163,28 +166,7 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
    * @return the access level on the target, or null if switching there is forbidden
    */
   private TenantAccessLevel resolveSwitchTargetLevel(User user, Integer homeIdTenant, Integer idTarget) {
-    if (homeIdTenant.equals(idTarget)) {
-      return user.isHomeTenantReadOnly() ? TenantAccessLevel.READ : TenantAccessLevel.MANAGE;
-    }
-    TenantAccess grant = tenantAccessJpaRepository.findByIdUserAndIdTenant(user.getIdUser(), idTarget).orElse(null);
-    if (grant != null) {
-      return grant.getAccessLevel();
-    }
-    return resolveAppSpecificSwitchTargetLevel(user, homeIdTenant, idTarget);
-  }
-
-  /**
-   * Hook for application-specific switch targets beyond the user's home tenant and explicit {@link TenantAccess} grants.
-   * The default forbids any other target. GrafioschTrader overrides this to allow switching into a simulation tenant
-   * that is a child of the user's home tenant.
-   *
-   * @param user         the current user
-   * @param homeIdTenant the user's persisted home tenant
-   * @param idTarget     the tenant the user wants to switch to
-   * @return the access level to grant on the target, or null to forbid the switch
-   */
-  protected TenantAccessLevel resolveAppSpecificSwitchTargetLevel(User user, Integer homeIdTenant, Integer idTarget) {
-    return null;
+    return tenantAccessResolver.resolve(user, homeIdTenant, idTarget);
   }
 
   @Operation(summary = "Create a managed client: a new tenant with a read-only client login (advisor capability)", tags = {
@@ -192,7 +174,10 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
   @PostMapping(value = "/createclient", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Void> createClient(@Valid @RequestBody CreateClientRequest request) throws MessagingException {
     final User advisor = getCurrentUser();
-    if (advisor.isTenantAccessReadOnly() || advisor.isHomeTenantReadOnly()) {
+    // Managing clients is an account-level action of the advisor and therefore only available in their own home
+    // tenant; switched into a client or a simulation environment it would act on behalf of the wrong tenant.
+    if (advisor.isTenantAccessReadOnly() || advisor.isHomeTenantReadOnly()
+        || !advisor.getActualIdTenant().equals(advisor.getIdTenant())) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
     if (userJpaRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -222,7 +207,10 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
       @Parameter(description = "ID of the managed client tenant", required = true) @PathVariable Integer idTenant)
       throws Exception {
     final User advisor = getCurrentUser();
-    if (advisor.isTenantAccessReadOnly() || advisor.isHomeTenantReadOnly()) {
+    // Managing clients is an account-level action of the advisor and therefore only available in their own home
+    // tenant; switched into a client or a simulation environment it would act on behalf of the wrong tenant.
+    if (advisor.isTenantAccessReadOnly() || advisor.isHomeTenantReadOnly()
+        || !advisor.getActualIdTenant().equals(advisor.getIdTenant())) {
       return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
     // Refuse deleting the tenant currently in use or the advisor's own home tenant.
@@ -335,8 +323,8 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
     // Registered users holding a read grant on the owner's tenant.
     for (TenantAccess grant : tenantAccessJpaRepository.findByIdTenant(homeIdTenant)) {
       if (grant.getAccessLevel() == TenantAccessLevel.READ) {
-        userJpaRepository.findById(grant.getIdUser()).ifPresent(
-            u -> result.add(new SharedViewerInfo(u.getIdUser(), u.getUsername(), SharedViewerType.GRANT)));
+        userJpaRepository.findById(grant.getIdUser())
+            .ifPresent(u -> result.add(new SharedViewerInfo(u.getIdUser(), u.getUsername(), SharedViewerType.GRANT)));
       }
     }
     return new ResponseEntity<>(result, HttpStatus.OK);
@@ -412,8 +400,8 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
 
   private void sendClientCreatedMail(User client, String plainPassword) throws MessagingException {
     String subject = messages.getMessage("g.client.created.subject", null, client.createAndGetJavaLocale());
-    String body = messages.getMessage("g.client.created.body",
-        new Object[] { client.getUsername(), plainPassword }, client.createAndGetJavaLocale());
+    String body = messages.getMessage("g.client.created.body", new Object[] { client.getUsername(), plainPassword },
+        client.createAndGetJavaLocale());
     mailExternalService.sendSimpleMessageAsync(client.getUsername(), subject, body);
   }
 

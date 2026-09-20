@@ -96,7 +96,13 @@ export async function fillInput(dialog: Locator, selector: string, value: string
  * identifies which tenant the session is currently in (it changes after a tenant switch).
  */
 export function tenantRootNode(page: Page): Locator {
-  return page.locator('.p-tree-node-content').first();
+  // Dashboard is also a top-level tree node. The tenant root is labelled "Portfolios-{tenantName} / {currency}" in both
+  // languages; match only the "Portfolios-" prefix, because a managed client's tenant name is derived from its e-mail
+  // and does not start with "Tenant". Return the content element, which is where Optimus installs context-menu events.
+  return page
+    .getByRole('treeitem', { name: /^Portfolios-/ })
+    .first()
+    .locator(':scope > .p-tree-node-content');
 }
 
 /**
@@ -117,19 +123,32 @@ export async function expectNoClientMenu(page: Page): Promise<void> {
 export async function attemptCreatePortfolioExpectRejected(page: Page, name: string): Promise<void> {
   await tenantRootNode(page).click({ button: 'right' });
   const menuItem = page.locator('p-contextmenu').getByText(RX.createPortfolioItem).first();
-  await menuItem.waitFor({ state: 'visible', timeout: 5_000 });
-  await menuItem.click();
+  if (await menuItem.isVisible().catch(() => false)) {
+    await menuItem.click();
 
-  const dialog = page.locator('.p-dialog').first();
-  await dialog.waitFor({ state: 'visible', timeout: 10_000 });
-  await fillInput(dialog, '#name', name);
-  await dialog.locator('button[type="submit"]').click();
-  await page.waitForTimeout(2_500);
+    const dialog = page.locator('.p-dialog').first();
+    await dialog.waitFor({ state: 'visible', timeout: 10_000 });
+    await fillInput(dialog, '#name', name);
+    await dialog.locator('button[type="submit"]').click();
+    await page.waitForTimeout(2_500);
 
-  await expect(page.locator('.p-tree-node-content', { hasText: name })).toHaveCount(0);
-
-  if (await dialog.isVisible().catch(() => false)) {
-    await dialog.getByRole('button', { name: /^(Close|Schlie.en)$/i }).click();
-    await dialog.waitFor({ state: 'hidden', timeout: 5_000 });
+    if (await dialog.isVisible().catch(() => false)) {
+      await dialog.getByRole('button', { name: /^(Close|Schlie.en)$/i }).click();
+      await dialog.waitFor({ state: 'hidden', timeout: 5_000 });
+    }
+  } else {
+    // Newer clients suppress the write command already in the tree menu. Keep the REST assertion below: the UI guard
+    // is useful, but the tenant's read-only boundary must also reject a caller that bypasses it.
+    await expect(menuItem).toHaveCount(0);
+    await page.keyboard.press('Escape');
   }
+
+  const token = await page.evaluate(() => sessionStorage.getItem('jwt'));
+  expect(token, 'JWT in sessionStorage after login').toBeTruthy();
+  const response = await page.request.post('/api/portfolio', {
+    headers: { 'x-auth-token': token! },
+    data: { name, currency: 'CHF' }
+  });
+  expect(response.ok(), `read-only portfolio POST returned ${response.status()}: ${await response.text()}`).toBeFalsy();
+  await expect(page.locator('.p-tree-node-content', { hasText: name })).toHaveCount(0);
 }

@@ -14,7 +14,10 @@
         [ngClass]="field.templateName !== 'long' ? 'col-md-7 nopadding wrap'
               : 'col-12 nopadding wrap'">
         @switch (field.templateName) { @case ('greenRed') {
-        <span [style.color]='isValueByPathMinus(content, field)? "red": "green"'>
+        <!-- An empty cell must keep the normal colour. isValueByPathMinus coerces a missing value to zero, so without
+             the emptiness check a field the connector does not deliver would be painted green as if it were a gain. -->
+        <span
+          [style.color]="!getValueByPath(content, field) ? 'inherit' : (isValueByPathMinus(content, field) ? 'red' : 'green')">
           {{getValueByPath(content, field)}}
         </span>
         } @case ('long') { @if (!!(field.dataType === DataType.String)) {

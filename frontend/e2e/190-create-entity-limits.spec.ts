@@ -148,11 +148,11 @@ function loadFixture(): EntityLimitFixtureRow[] {
   });
 
   if (
-    rows.length !== 32 ||
-    rows.filter((row) => row.e2e === 'i').length !== 26 ||
+    rows.length !== 33 ||
+    rows.filter((row) => row.e2e === 'i').length !== 27 ||
     rows.filter((row) => row.e2e === 'e2e').length !== 6
   ) {
-    throw new Error(`Expected a 26/6 integration/E2E split across 32 rows in ${FIXTURE_PATH}`);
+    throw new Error(`Expected a 27/6 integration/E2E split across 33 rows in ${FIXTURE_PATH}`);
   }
   return rows;
 }
@@ -180,7 +180,7 @@ async function resolveRoleId(page: Page, roleName: string): Promise<number> {
   return Number(role!.key);
 }
 
-/** Deletes only the four rows owned by this spec, making retries safe after a partial run. */
+/** Deletes only the six rows owned by this spec, making retries safe after a partial run. */
 async function deleteE2ELimits(page: Page, idRole: number): Promise<void> {
   const headers = await authHeaders(page);
   const ownedKeys = new Set(LIMITS.map(keyId));

@@ -29,10 +29,13 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   @Schema(description = """
       Separately booked fees of this cash account and its depot. Trading costs contained in a purchase or sale are not
       here, and neither are the financing costs of margin positions: both are part of the securities result. Every
-      booking is converted with the exchange rate of its own date.""")
+      booking is converted with the exchange rate of its own date, unless the client has chosen the cut-off date for
+      fees and interest, in which case all of them are converted with the rate of the cut-off date.""")
   public double accountFeesMC;
 
-  @Schema(description = "Interest earned on cash balances held in this account")
+  @Schema(description = """
+      Interest earned on cash balances held in this account. Converted like the account fees, so with the exchange rate
+      of the booking day or, when the client has chosen it, with the rate of the cut-off date.""")
   public double accountInterestMC;
 
   @Schema(description = "Total cash transfers between accounts within the same portfolio or tenant system")
@@ -167,7 +170,7 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   /**
    * Associates security position values with this cash account summary. Links the security holdings to the appropriate
    * cash account for comprehensive reporting.
-   * 
+   *
    * @param securityPositionCurrenyGroupSummary security position summary for the same currency/account
    */
   public void setSecuritiesValue(SecurityPositionCurrenyGroupSummary securityPositionCurrenyGroupSummary) {
@@ -181,9 +184,9 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   }
 
   /**
-   * Calculates final totals applying the current currency exchange rate.
-   * Converts cash balance to main currency and computes total account value.
-   * 
+   * Calculates final totals applying the current currency exchange rate. Converts cash balance to main currency and
+   * computes total account value.
+   *
    * @param currencyExchangeRate current exchange rate from account currency to main currency
    */
   public void calcTotals(double currencyExchangeRate) {

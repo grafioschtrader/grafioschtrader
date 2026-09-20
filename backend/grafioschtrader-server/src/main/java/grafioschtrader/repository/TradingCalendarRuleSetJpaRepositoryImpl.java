@@ -62,8 +62,8 @@ public class TradingCalendarRuleSetJpaRepositoryImpl extends BaseRepositoryImpl<
 
   /**
    * Schedules a trading calendar rebuild when a rule change alters the closures the set produces. Only an update to an
-   * existing set matters: a newly created set has no exchange using it yet. The single job rebuilds every exchange
-   * that uses this set or a set that extends it, so one change never fans out into many jobs.
+   * existing set matters: a newly created set has no exchange using it yet. The single job rebuilds every exchange that
+   * uses this set or a set that extends it, so one change never fans out into many jobs.
    */
   private void enqueueCalendarRebuildOnRuleChange(TradingCalendarRuleSet saved, boolean isUpdate, String oldRuleYaml,
       Integer oldExtends) {
@@ -76,14 +76,11 @@ public class TradingCalendarRuleSetJpaRepositoryImpl extends BaseRepositoryImpl<
       return;
     }
     Integer idRuleSet = saved.getIdTradingCalendarRuleSet();
-    if (taskDataChangeJpaRepository
-        .findByIdTaskAndIdEntityAndProgressStateType(
-            TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET.getValue(), idRuleSet,
-            ProgressStateType.PROG_WAITING.getValue())
-        .isEmpty()) {
-      taskDataChangeJpaRepository.save(new TaskDataChange(
-          TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET, TaskDataExecPriority.PRIO_LOW,
-          LocalDateTime.now(), idRuleSet, TradingCalendarRuleSet.class.getSimpleName()));
+    if (taskDataChangeJpaRepository.findByIdTaskAndIdEntityAndProgressStateType(
+        TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET.getValue(), idRuleSet,
+        ProgressStateType.PROG_WAITING.getValue()).isEmpty()) {
+      taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET,
+          TaskDataExecPriority.PRIO_LOW, LocalDateTime.now(), idRuleSet, TradingCalendarRuleSet.class.getSimpleName()));
     }
   }
 
@@ -121,8 +118,7 @@ public class TradingCalendarRuleSetJpaRepositoryImpl extends BaseRepositoryImpl<
 
     Optional<TradingCalendarRuleSet> sameName = tradingCalendarRuleSetJpaRepository.findByName(ruleSet.getName());
     if (sameName.isPresent() && !sameName.get().getId().equals(id)) {
-      throw new DataViolationException("name", "gt.calendar.rule.name.duplicate",
-          new Object[] { ruleSet.getName() });
+      throw new DataViolationException("name", "gt.calendar.rule.name.duplicate", new Object[] { ruleSet.getName() });
     }
   }
 
@@ -137,8 +133,8 @@ public class TradingCalendarRuleSetJpaRepositoryImpl extends BaseRepositoryImpl<
       if (current.equals(idOfSavedSet) || !visited.add(current)) {
         throw new DataViolationException("id.extends.rule.set", "gt.calendar.rule.cycle", null);
       }
-      current = tradingCalendarRuleSetJpaRepository.findById(current)
-          .map(TradingCalendarRuleSet::getIdExtendsRuleSet).orElse(null);
+      current = tradingCalendarRuleSetJpaRepository.findById(current).map(TradingCalendarRuleSet::getIdExtendsRuleSet)
+          .orElse(null);
     }
   }
 
@@ -159,8 +155,8 @@ public class TradingCalendarRuleSetJpaRepositoryImpl extends BaseRepositoryImpl<
   @Override
   public List<TradingCalendarRuleSet> getAllRuleSets() {
     List<TradingCalendarRuleSet> ruleSets = tradingCalendarRuleSetJpaRepository.findAllByOrderByNameAsc();
-    Map<Integer, String> nameById = ruleSets.stream()
-        .collect(Collectors.toMap(TradingCalendarRuleSet::getIdTradingCalendarRuleSet, TradingCalendarRuleSet::getName));
+    Map<Integer, String> nameById = ruleSets.stream().collect(
+        Collectors.toMap(TradingCalendarRuleSet::getIdTradingCalendarRuleSet, TradingCalendarRuleSet::getName));
     Map<Integer, Integer> usage = tradingCalendarRuleSetJpaRepository.countUsingStockexchangesGrouped().stream()
         .collect(Collectors.toMap(IdRuleSetUsage::getIdTradingCalendarRuleSet, IdRuleSetUsage::getUsedByExchanges));
     ruleSets.forEach(rs -> {
@@ -181,8 +177,7 @@ public class TradingCalendarRuleSetJpaRepositoryImpl extends BaseRepositoryImpl<
   @Override
   public Map<String, Integer> getRuleSetIdByMic() {
     return tradingCalendarRuleSetJpaRepository.findAll().stream().filter(rs -> rs.getMic() != null)
-        .collect(Collectors.toMap(TradingCalendarRuleSet::getMic,
-            TradingCalendarRuleSet::getIdTradingCalendarRuleSet));
+        .collect(Collectors.toMap(TradingCalendarRuleSet::getMic, TradingCalendarRuleSet::getIdTradingCalendarRuleSet));
   }
 
   @Override
@@ -201,8 +196,7 @@ public class TradingCalendarRuleSetJpaRepositoryImpl extends BaseRepositoryImpl<
     }
     TradingCalendarRuleSet entity = tradingCalendarRuleSetJpaRepository.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("Trading calendar rule set not found: " + id));
-    HolidayRuleSet own = HolidayRuleSetYamlParser
-        .parse(overrideYaml != null ? overrideYaml : entity.getRuleYaml());
+    HolidayRuleSet own = HolidayRuleSetYamlParser.parse(overrideYaml != null ? overrideYaml : entity.getRuleYaml());
     // A cycle cannot normally exist because saving rejects it, but a marker guards against a chain corrupted
     // outside the application, which would otherwise recurse until the stack overflows.
     resolved.put(id, own);

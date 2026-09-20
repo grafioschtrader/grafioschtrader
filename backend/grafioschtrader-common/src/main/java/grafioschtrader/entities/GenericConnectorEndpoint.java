@@ -448,8 +448,7 @@ public class GenericConnectorEndpoint extends BaseID<Integer> implements Seriali
   }
 
   public EnumSet<EndpointOption> getEndpointOptions() {
-    return endpointOptions == null ? EnumSet.noneOf(EndpointOption.class)
-        : EndpointOption.decode(endpointOptions);
+    return endpointOptions == null ? EnumSet.noneOf(EndpointOption.class) : EndpointOption.decode(endpointOptions);
   }
 
   public void setEndpointOptions(EnumSet<EndpointOption> options) {

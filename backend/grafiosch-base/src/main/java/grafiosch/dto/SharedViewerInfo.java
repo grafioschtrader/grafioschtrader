@@ -3,14 +3,14 @@ package grafiosch.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Response DTO describing one person who can read the current owner's portfolio, returned by GET /tenant/shares and used
- * to populate the "shared viewers" management table in the frontend.
+ * Response DTO describing one person who can read the current owner's portfolio, returned by GET /tenant/shares and
+ * used to populate the "shared viewers" management table in the frontend.
  *
  * <p>
  * Two kinds are distinguished by {@link #viewerType}: a {@code GRANT} is a registered user holding a read-only
- * {@code tenant_access} grant to the owner's tenant (revoking only removes the grant, the user keeps their own account),
- * while a {@code VIEWER} is a pure read-only viewer login whose home tenant is the owner's tenant (revoking deletes that
- * viewer login entirely).
+ * {@code tenant_access} grant to the owner's tenant (revoking only removes the grant, the user keeps their own
+ * account), while a {@code VIEWER} is a pure read-only viewer login whose home tenant is the owner's tenant (revoking
+ * deletes that viewer login entirely).
  * </p>
  */
 @Schema(description = "A person who can read the current owner's portfolio, with the kind of access (GRANT or VIEWER).")

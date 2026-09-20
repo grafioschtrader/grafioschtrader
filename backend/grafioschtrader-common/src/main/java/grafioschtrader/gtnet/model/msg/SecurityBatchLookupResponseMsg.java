@@ -12,8 +12,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Payload for batch security metadata lookup response (GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S).
  *
- * Contains a map of query index to matching securities found on the responding GTNet peer.
- * Each entry corresponds to the query at the same index in the original batch request.
+ * Contains a map of query index to matching securities found on the responding GTNet peer. Each entry corresponds to
+ * the query at the same index in the original batch request.
  */
 @Schema(description = """
     Payload for batch security metadata lookup response. Contains a map where each key is the
@@ -57,8 +57,6 @@ public class SecurityBatchLookupResponseMsg {
     if (results == null) {
       return 0;
     }
-    return results.values().stream()
-        .mapToInt(list -> list == null ? 0 : list.size())
-        .sum();
+    return results.values().stream().mapToInt(list -> list == null ? 0 : list.size()).sum();
   }
 }

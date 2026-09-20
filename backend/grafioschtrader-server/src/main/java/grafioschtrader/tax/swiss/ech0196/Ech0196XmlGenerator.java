@@ -14,8 +14,7 @@ import jakarta.xml.bind.Marshaller;
 @Service
 public class Ech0196XmlGenerator {
 
-  private static final String SCHEMA_LOCATION =
-      "http://www.ech.ch/xmlns/eCH-0196/2 http://www.ech.ch/xmlns/eCH-0196/2/eCH-0196-2-2.xsd";
+  private static final String SCHEMA_LOCATION = "http://www.ech.ch/xmlns/eCH-0196/2 http://www.ech.ch/xmlns/eCH-0196/2/eCH-0196-2-2.xsd";
 
   public byte[] generateXml(Ech0196TaxStatement taxStatement) throws Exception {
     JAXBContext context = JAXBContext.newInstance(Ech0196TaxStatement.class);

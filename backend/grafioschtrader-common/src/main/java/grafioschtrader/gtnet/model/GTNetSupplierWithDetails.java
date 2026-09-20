@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * DTO combining a GTNet header with its associated GTNetSupplierDetailWithSettings entries.
  *
- * Used in the GTNetExchange UI for expandable row display, showing which remote suppliers
- * can provide price data (intraday or historical) for a specific security or currency pair.
+ * Used in the GTNetExchange UI for expandable row display, showing which remote suppliers can provide price data
+ * (intraday or historical) for a specific security or currency pair.
  */
 @Schema(description = """
     Combined DTO for displaying supplier information in expandable table rows. Contains the GTNet domain

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.common.UpdateQuery;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafioschtrader.dto.WatchlistSecurityStatus;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup.IUDFEntityValues;
 
@@ -33,6 +34,25 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   @Query(value = "SELECT w.idWatchlist FROM Watchlist w JOIN w.securitycurrencyList s WHERE w.idTenant = ?1 AND s.idSecuritycurrency = ?2")
   List<Integer> getAllWatchlistsWithSecurityByIdSecuritycurrency(Integer idTenant, Integer idSecuritycurrency);
 
+  /**
+   * Returns the securities of one watchlist, without its currency pairs.
+   *
+   * <p>
+   * {@code Watchlist.securitycurrencyList} is a lazy {@code @ManyToMany}, so walking it from a detached watchlist
+   * throws {@code LazyInitializationException}. The scheduled alert evaluation resolves its scopes outside any
+   * transaction, which is exactly that situation. This query also avoids loading the currency pairs the caller would
+   * discard: every alert type measures an instrument price against a holding, a history or an indicator of that
+   * instrument.
+   * </p>
+   *
+   * @param idWatchlist the watchlist whose members are read
+   * @return its securities, ordered by instrument id so a scope resolution is reproducible
+   */
+  @Query(value = """
+      SELECT s FROM Watchlist w JOIN w.securitycurrencyList s WHERE w.idWatchlist = ?1 AND TYPE(s) = Security
+        ORDER BY s.idSecuritycurrency""")
+  List<Security> securitiesOfWatchlist(Integer idWatchlist);
+
   @Query(value = "SELECT count(w) FROM Watchlist w WHERE w.idTenant = ?1 AND w.idWatchlist IN (?2)")
   int getWatchlistByTenantAndWatchlistIds(Integer idTenant, Integer[] watchlistsIds);
 
@@ -40,13 +60,13 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
   void moveUpdateSecuritycurrency(Integer idWatchlistSource, Integer idWatchlistTarget, Integer idSecuritycurrency);
 
   /**
-   * Atomically updates the last_timestamp for a watchlist only if it is null or older than the given threshold.
-   * Returns the number of affected rows (0 or 1). Used to avoid race conditions when multiple concurrent requests
-   * check whether an intraday price update is needed — only the first request succeeds and triggers the update.
+   * Atomically updates the last_timestamp for a watchlist only if it is null or older than the given threshold. Returns
+   * the number of affected rows (0 or 1). Used to avoid race conditions when multiple concurrent requests check whether
+   * an intraday price update is needed — only the first request succeeds and triggers the update.
    *
-   * @param now           the new timestamp to set
-   * @param idWatchlist   the watchlist ID to update
-   * @param threshold     the threshold time; only updates if the current last_timestamp is before this value
+   * @param now         the new timestamp to set
+   * @param idWatchlist the watchlist ID to update
+   * @param threshold   the threshold time; only updates if the current last_timestamp is before this value
    * @return 1 if the row was updated (caller should trigger price update), 0 if already up-to-date
    */
   @Transactional
@@ -64,10 +84,10 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
    *
    * @param idTenant the tenant ID whose watchlists are checked
    * @return a list of WatchlistSecurityStatus where each contains:
-   * <ul>
-   * <li>idWatchlist: watchlist ID</li>
-   * <li>hasSecurity: true if watchlist contains securities, false otherwise</li>
-   * </ul>
+   *         <ul>
+   *         <li>idWatchlist: watchlist ID</li>
+   *         <li>hasSecurity: true if watchlist contains securities, false otherwise</li>
+   *         </ul>
    */
   @Query(nativeQuery = true)
   List<WatchlistSecurityStatus> watchlistsOfTenantHasSecurity(Integer idTenant);
@@ -115,9 +135,9 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
    * Returns the security IDs of watchlist entries that are already referenced elsewhere and therefore cannot be safely
    * deleted. A security is considered "used elsewhere" when at least one of the following holds:
    * <ul>
-   *   <li>it is referenced by a {@code transaction} row,</li>
-   *   <li>it belongs to another watchlist (excluding the one passed in),</li>
-   *   <li>it is mapped as the underlying instrument of a {@code risk_free_rate_mapping} entry.</li>
+   * <li>it is referenced by a {@code transaction} row,</li>
+   * <li>it belongs to another watchlist (excluding the one passed in),</li>
+   * <li>it is mapped as the underlying instrument of a {@code risk_free_rate_mapping} entry.</li>
    * </ul>
    * The result is sorted ascending so callers may use binary search.
    *

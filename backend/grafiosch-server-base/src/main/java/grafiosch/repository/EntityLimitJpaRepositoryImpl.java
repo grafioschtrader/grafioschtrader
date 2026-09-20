@@ -104,10 +104,10 @@ public class EntityLimitJpaRepositoryImpl extends BaseRepositoryImpl<EntityLimit
   }
 
   /**
-   * Rejects a second row for the same key and the same scope. The unique index over the key columns and the folded
-   * role and user columns would catch it as well, but only as a constraint violation the user cannot read. The
-   * remaining key parts and the scope are compared in Java rather than queried, exactly as the resolver does, because
-   * they are nullable and only a handful of rows share a limit type and entity name.
+   * Rejects a second row for the same key and the same scope. The unique index over the key columns and the folded role
+   * and user columns would catch it as well, but only as a constraint violation the user cannot read. The remaining key
+   * parts and the scope are compared in Java rather than queried, exactly as the resolver does, because they are
+   * nullable and only a handful of rows share a limit type and entity name.
    */
   private void validateNoDuplicate(EntityLimit entityLimit, LimitKey limitKey, EntityLimit existingEntity) {
     Integer idEntityLimit = existingEntity != null ? existingEntity.getIdEntityLimit() : entityLimit.getIdEntityLimit();

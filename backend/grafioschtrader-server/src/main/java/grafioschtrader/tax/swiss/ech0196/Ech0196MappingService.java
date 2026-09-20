@@ -39,7 +39,6 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  */
 @Service
 public class Ech0196MappingService {
- 
 
   @Autowired
   private SecurityDividendsReport securityDividendsReport;
@@ -106,8 +105,7 @@ public class Ech0196MappingService {
     if (exact != null) {
       return exact;
     }
-    return grandTotal.getSecurityDividendsYearGroup().stream()
-        .filter(yg -> yg.year < taxYear)
+    return grandTotal.getSecurityDividendsYearGroup().stream().filter(yg -> yg.year < taxYear)
         .max(java.util.Comparator.comparingInt(yg -> yg.year)).orElse(null);
   }
 
@@ -163,8 +161,7 @@ public class Ech0196MappingService {
       securities.add(sec);
 
       // Tax value: prefer ICTax, fall back to valueAtEndOfYearMC from the report
-      double positionTaxValue = position.ictaxTotalTaxValueChf != null
-          ? position.ictaxTotalTaxValueChf
+      double positionTaxValue = position.ictaxTotalTaxValueChf != null ? position.ictaxTotalTaxValueChf
           : (position.valueAtEndOfYearMC != null ? position.valueAtEndOfYearMC : 0.0);
       totalTaxValue += positionTaxValue;
 
@@ -304,9 +301,8 @@ public class Ech0196MappingService {
   }
 
   /**
-   * Builds stock mutation entries (Bestandesmutationen) for a security position.
-   * Generates an opening position entry at Jan 1 if units were held at prior year-end,
-   * plus one mutation entry per buy/sell transaction within the tax year.
+   * Builds stock mutation entries (Bestandesmutationen) for a security position. Generates an opening position entry at
+   * Jan 1 if units were held at prior year-end, plus one mutation entry per buy/sell transaction within the tax year.
    */
   private List<Ech0196Stock> buildStocks(SecurityDividendsPosition position, int taxYear) {
     if (position.unitsCounter == null) {

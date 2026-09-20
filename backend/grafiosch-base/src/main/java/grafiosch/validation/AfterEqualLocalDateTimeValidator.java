@@ -9,8 +9,8 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 /**
- * Validator for {@link java.time.LocalDateTime} fields using the {@link AfterEqual} annotation.
- * Validates that the date portion of the datetime is on or after the specified minimum date.
+ * Validator for {@link java.time.LocalDateTime} fields using the {@link AfterEqual} annotation. Validates that the date
+ * portion of the datetime is on or after the specified minimum date.
  */
 public class AfterEqualLocalDateTimeValidator implements ConstraintValidator<AfterEqual, LocalDateTime> {
   private AfterEqual annotation;

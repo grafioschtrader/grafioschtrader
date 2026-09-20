@@ -19,9 +19,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
 import org.springframework.stereotype.Component;
 
-import grafiosch.entities.TenantAccess;
 import grafiosch.entities.User;
-import grafiosch.repository.TenantAccessJpaRepository;
 import grafiosch.service.UserService;
 import grafiosch.types.TenantAccessLevel;
 
@@ -64,7 +62,7 @@ public final class JwtTokenHandler {
   private UserService userService;
 
   @Autowired
-  private TenantAccessJpaRepository tenantAccessJpaRepository;
+  private TenantAccessResolver tenantAccessResolver;
 
   @Autowired
   private JwtEncoder jwtEncoder;
@@ -79,6 +77,15 @@ public final class JwtTokenHandler {
    * This method validates the token signature, extracts user information, and loads the complete user details from the
    * database. It performs both token validation and user verification to ensure the token represents a valid, current
    * user session.
+   * </p>
+   *
+   * <p>
+   * A valid signature says who the user is, not which tenant they may work in. The tenant named by the token is
+   * therefore authorized again on every request through {@link TenantAccessResolver}, which also decides whether that
+   * tenant is read-only. A target the resolver refuses - a revoked grant, an unrelated tenant, a deleted simulation
+   * environment - marks the user as {@link User#isTenantAccessForbidden() forbidden} instead of silently falling back
+   * to writable access; the tenant context filter then rejects everything but the recovery paths. The user itself stays
+   * authenticated, because switching back to the home tenant has to remain possible.
    * </p>
    *
    * @param token the JWT token to parse and validate
@@ -96,33 +103,12 @@ public final class JwtTokenHandler {
         user.setActualIdTenant(user.getIdTenant());
         user.setIdTenant(jwtIdTenant);
       }
-      user.setTenantAccessReadOnly(resolveReadOnly(user));
+      TenantAccessDecision decision = tenantAccessResolver.decide(user, user.getActualIdTenant(), user.getIdTenant());
+      user.setTenantAccessForbidden(!decision.isAllowed());
+      user.setTenantAccessBlockMessageKey(decision.refusalMessageKey());
+      user.setTenantAccessReadOnly(!decision.isAllowed() || decision.level() == TenantAccessLevel.READ);
     }
     return Optional.ofNullable(user);
-  }
-
-  /**
-   * Determines whether the tenant the request currently operates in is read-only for the user. Recomputed on every
-   * request (not stored in the JWT) so that revoking or downgrading a grant takes effect on the next request.
-   *
-   * <p>
-   * When the current tenant is the user's home tenant, the {@code home_tenant_read_only} flag decides. When the user
-   * has switched into another tenant, the {@code tenant_access} grant decides: {@link TenantAccessLevel#READ} is
-   * read-only, {@link TenantAccessLevel#MANAGE} is read/write. An absent grant (a simulation child, already validated
-   * at switch time) is treated as read/write so simulation switching keeps working unchanged.
-   * </p>
-   *
-   * @param user the authenticated user with its tenant context already resolved
-   * @return true if write operations on the current tenant must be blocked
-   */
-  private boolean resolveReadOnly(final User user) {
-    Integer currentTenant = user.getIdTenant();
-    Integer homeTenant = user.getActualIdTenant();
-    if (currentTenant == null || currentTenant.equals(homeTenant)) {
-      return user.isHomeTenantReadOnly();
-    }
-    Optional<TenantAccess> grant = tenantAccessJpaRepository.findByIdUserAndIdTenant(user.getIdUser(), currentTenant);
-    return grant.map(g -> g.getAccessLevel() == TenantAccessLevel.READ).orElse(false);
   }
 
   /**

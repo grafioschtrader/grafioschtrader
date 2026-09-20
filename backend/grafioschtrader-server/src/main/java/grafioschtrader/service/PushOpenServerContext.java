@@ -13,19 +13,18 @@ import grafioschtrader.gtnet.m2m.model.InstrumentPriceDTO;
 import grafioschtrader.gtnet.model.msg.LastpriceExchangeMsg;
 
 /**
- * Tracks PUSH_OPEN servers contacted during a GTNet lastprice exchange and records
- * the timestamps of prices each server originally sent. This context is used to determine
- * which prices should be pushed back to each server after the exchange completes.
+ * Tracks PUSH_OPEN servers contacted during a GTNet lastprice exchange and records the timestamps of prices each server
+ * originally sent. This context is used to determine which prices should be pushed back to each server after the
+ * exchange completes.
  *
- * The push-back logic ensures that only prices that are newer than what each server
- * originally sent are included in the push, avoiding unnecessary network traffic
- * and potential timestamp conflicts.
+ * The push-back logic ensures that only prices that are newer than what each server originally sent are included in the
+ * push, avoiding unnecessary network traffic and potential timestamp conflicts.
  */
 public class PushOpenServerContext {
 
   /**
-   * Map of GTNet ID to a map of (instrument key -> received timestamp).
-   * The instrument key format is "ISIN:CURRENCY" for securities or "FROM:TO" for currency pairs.
+   * Map of GTNet ID to a map of (instrument key -> received timestamp). The instrument key format is "ISIN:CURRENCY"
+   * for securities or "FROM:TO" for currency pairs.
    */
   private final Map<Integer, Map<String, LocalDateTime>> serverReceivedTimestamps = new HashMap<>();
 
@@ -35,8 +34,8 @@ public class PushOpenServerContext {
   /**
    * Records the response from a PUSH_OPEN server, storing the timestamps of prices received.
    *
-   * @param server the GTNet server that sent the response
-   * @param securities list of security prices received (may be null)
+   * @param server        the GTNet server that sent the response
+   * @param securities    list of security prices received (may be null)
    * @param currencypairs list of currency pair prices received (may be null)
    */
   public void recordServerResponse(GTNet server, List<InstrumentPriceDTO> securities,
@@ -51,8 +50,8 @@ public class PushOpenServerContext {
     }
 
     // Initialize or get the timestamp map for this server
-    Map<String, LocalDateTime> timestamps = serverReceivedTimestamps.computeIfAbsent(
-        server.getIdGtNet(), _ -> new HashMap<>());
+    Map<String, LocalDateTime> timestamps = serverReceivedTimestamps.computeIfAbsent(server.getIdGtNet(),
+        _ -> new HashMap<>());
 
     // Record security timestamps
     if (securities != null) {
@@ -74,16 +73,16 @@ public class PushOpenServerContext {
   }
 
   /**
-   * Builds a LastpriceExchangeMsg containing only prices that are newer than what the
-   * specified server originally sent. This ensures we only push updated prices.
+   * Builds a LastpriceExchangeMsg containing only prices that are newer than what the specified server originally sent.
+   * This ensures we only push updated prices.
    *
-   * @param server the target PUSH_OPEN server
-   * @param allSecurities all securities with final prices after the exchange
+   * @param server           the target PUSH_OPEN server
+   * @param allSecurities    all securities with final prices after the exchange
    * @param allCurrencypairs all currency pairs with final prices after the exchange
    * @return a message with prices to push, or an empty message if nothing is newer
    */
-  public LastpriceExchangeMsg getPricesToPushForServer(GTNet server,
-      List<Security> allSecurities, List<Currencypair> allCurrencypairs) {
+  public LastpriceExchangeMsg getPricesToPushForServer(GTNet server, List<Security> allSecurities,
+      List<Currencypair> allCurrencypairs) {
 
     Map<String, LocalDateTime> serverBaseline = serverReceivedTimestamps.get(server.getIdGtNet());
 
@@ -128,10 +127,10 @@ public class PushOpenServerContext {
   }
 
   /**
-   * Determines if a price should be pushed based on comparing the current timestamp
-   * against the server's baseline timestamp.
+   * Determines if a price should be pushed based on comparing the current timestamp against the server's baseline
+   * timestamp.
    *
-   * @param current the current/final timestamp of the price
+   * @param current  the current/final timestamp of the price
    * @param baseline the timestamp the server originally sent (null if server didn't have it)
    * @return true if the price should be pushed (newer or server didn't have it)
    */

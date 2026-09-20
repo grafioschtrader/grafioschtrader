@@ -14,9 +14,9 @@ import java.util.List;
  * A single holiday of a stock exchange, expressed as a rule that can be resolved to concrete dates for any year.
  *
  * <p>
- * Instances are deserialized from the YAML of a trading calendar rule set. Which of the optional fields are
- * relevant depends on {@link #type}; a rule that omits a field its type requires is rejected by {@link #validate()} at
- * load time rather than silently producing wrong dates.
+ * Instances are deserialized from the YAML of a trading calendar rule set. Which of the optional fields are relevant
+ * depends on {@link #type}; a rule that omits a field its type requires is rejected by {@link #validate()} at load time
+ * rather than silently producing wrong dates.
  * </p>
  *
  * <p>

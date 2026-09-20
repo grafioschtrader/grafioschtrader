@@ -31,7 +31,6 @@ class NlsBundleGuardTest {
         NlsResourceLists.readLines(NlsResourceLists.BASE_EN_REUSE)));
     violations.addAll(NlsBundleGuard.checkBundlePair(NlsBundleInspector.COMMON_BUNDLE,
         NlsResourceLists.readLines(NlsResourceLists.COMMON_EN_REUSE)));
-    assertThat(violations)
-        .as("NLS guard violations:%n%s", String.join(System.lineSeparator(), violations)).isEmpty();
+    assertThat(violations).as("NLS guard violations:%n%s", String.join(System.lineSeparator(), violations)).isEmpty();
   }
 }

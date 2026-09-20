@@ -18,8 +18,8 @@ import grafiosch.gtnet.handler.GTNetMessageContext;
  * the GTNetMessage entity.
  *
  * <p>
- * GT_NET_ADMIN_MESSAGE_SEL_C (30) - Targeted message to a specific GTNet domain.
- * Multi-target delivery is handled via GTNetMessageAttempt entries and background processing.
+ * GT_NET_ADMIN_MESSAGE_SEL_C (30) - Targeted message to a specific GTNet domain. Multi-target delivery is handled via
+ * GTNetMessageAttempt entries and background processing.
  * </p>
  */
 @Component

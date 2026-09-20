@@ -5,8 +5,8 @@ import java.util.Map;
 
 /**
  * Result DTO for a generic connector endpoint test. Contains the HTTP request URL (with API key masked), HTTP status
- * code, raw response snippet, parsed data rows, execution time, and any error message. Returned by the test endpoint
- * to help users verify their connector configuration.
+ * code, raw response snippet, parsed data rows, execution time, and any error message. Returned by the test endpoint to
+ * help users verify their connector configuration.
  */
 public class GenericConnectorTestResult {
 

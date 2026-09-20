@@ -64,9 +64,8 @@ public class DateHelper {
    */
   public static boolean isUntilDateEqualNowOrAfterOrInActualWeekend(LocalDate date) {
     LocalDate today = LocalDate.now();
-    return !date.isBefore(today)
-        || (ChronoUnit.DAYS.between(date, today) <= 2
-            && (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY));
+    return !date.isBefore(today) || (ChronoUnit.DAYS.between(date, today) <= 2
+        && (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY));
   }
 
   /**

@@ -243,8 +243,8 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   /**
    * Accepted rounding tolerance configuration carried over from the import template during a single import run. Keyed
-   * by upper-case ISO currency code with a default sentinel entry. Not persisted; the accepted decision is persisted
-   * in {@code acceptedTotalDiff}.
+   * by upper-case ISO currency code with a default sentinel entry. Not persisted; the accepted decision is persisted in
+   * {@code acceptedTotalDiff}.
    */
   @Schema(hidden = true)
   @Transient
@@ -451,10 +451,17 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   }
 
   public void setTransactionCost(Double transactionCost1, Double transactionCost2, Double reduceFromCost, boolean add) {
+    setTransactionCost(transactionCost1, transactionCost2, null, reduceFromCost, add);
+  }
+
+  /** Combines up to three imported fees, subtracting a discount and optionally adding to previous executions. */
+  public void setTransactionCost(Double transactionCost1, Double transactionCost2, Double transactionCost3,
+      Double reduceFromCost, boolean add) {
     double tc1 = transactionCost1 != null ? Math.abs(transactionCost1) : 0.0;
     double tc2 = transactionCost2 != null ? Math.abs(transactionCost2) : 0.0;
+    double tc3 = transactionCost3 != null ? Math.abs(transactionCost3) : 0.0;
     double reduce = reduceFromCost != null ? Math.abs(reduceFromCost) : 0.0;
-    double transactionCostC = tc1 + tc2 - reduce + (add && transactionCost != null ? transactionCost : 0.0);
+    double transactionCostC = tc1 + tc2 + tc3 - reduce + (add && transactionCost != null ? transactionCost : 0.0);
     transactionCost = transactionCostC == 0.0 ? null : transactionCostC;
   }
 
@@ -707,7 +714,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
           if (ip.getTa() != null && importTransactionPos.getFileType().equals(CSV_FILE)) {
             importTransactionPos.setCashaccountAmount(importTransactionPos.getCashaccountAmount() + ip.getTa());
           }
-          importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), ip.getReduce(), true);
+          importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), ip.getTc3(), ip.getReduce(), true);
           importTransactionPos.setTaxCost(ip.getTt1(), ip.getTt2(), true);
           importTransactionPos.setAccruedInterest(ip.getAc(), true);
         }
@@ -752,7 +759,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     Double exchangeRate = ip.getCex() != null || ip.getCin() != null && !ip.getCac().equals(ip.getCin()) ? ip.getCex()
         : null;
     importTransactionPos.setCurrencyExRate(exchangeRate);
-    importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), ip.getReduce(), false);
+    importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), ip.getTc3(), ip.getReduce(), false);
     return importTransactionPos;
   }
 
@@ -762,7 +769,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     case REDUCE:
     case DIVIDEND:
     case FINANCE_COST:
-      //  Security transactions should always have units and quotation at this stage.
+      // Security transactions should always have units and quotation at this stage.
       if (units != null && quotation != null) {
         correctQuotationForDividend();
         calcCashaccountAmount = DataBusinessHelper.round(units * quotation);
@@ -844,9 +851,9 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   }
 
   /**
-   * Resolves the accepted rounding tolerance for this position's cash-account currency from the template
-   * configuration map carried over during a single import run. A per-currency override takes precedence over the
-   * configured default. This is the source for the persisted {@link #calcRoundingStep}.
+   * Resolves the accepted rounding tolerance for this position's cash-account currency from the template configuration
+   * map carried over during a single import run. A per-currency override takes precedence over the configured default.
+   * This is the source for the persisted {@link #calcRoundingStep}.
    *
    * @return the accepted rounding tolerance, or null if the template configured none for this currency
    */

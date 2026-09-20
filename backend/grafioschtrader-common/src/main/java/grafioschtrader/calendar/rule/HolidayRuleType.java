@@ -26,8 +26,8 @@ public enum HolidayRuleType {
   NTH_WEEKDAY,
 
   /**
-   * Every occurrence of a weekday. This represents a non-standard exchange weekend, for example Friday at the Saudi
-   * and Tel Aviv exchanges, where Grafioschtrader's global Monday-to-Friday base calendar needs an explicit closure.
+   * Every occurrence of a weekday. This represents a non-standard exchange weekend, for example Friday at the Saudi and
+   * Tel Aviv exchanges, where Grafioschtrader's global Monday-to-Friday base calendar needs an explicit closure.
    */
   WEEKLY,
 

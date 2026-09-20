@@ -3,7 +3,16 @@
   "title": "Mean Reversion Dip Strategy Configuration",
   "description": "Configuration schema for the Mean Reversion Dip trading strategy. Defines entry, profit management, downside management, risk controls, and output settings.",
   "type": "object",
-  "required": ["strategy_name"],
+  "required": [
+    "strategy_name",
+    "universe",
+    "data",
+    "execution",
+    "cooldowns",
+    "entry",
+    "downside_management",
+    "risk_controls"
+  ],
   "additionalProperties": false,
   "properties": {
     "strategy_name": {
@@ -52,20 +61,34 @@
       "properties": {
         "mode": {
           "type": "string",
-          "enum": ["single_asset", "watchlist"],
+          "enum": [
+            "single_asset",
+            "watchlist"
+          ],
           "description": "Asset selection method: single_asset for one instrument, watchlist for a group"
         },
         "assets": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "List of asset symbols or identifiers (e.g. [\"AAPL\"])"
+          "items": {
+            "type": "string"
+          },
+          "description": "List of asset symbols or identifiers (e.g. [\"AAPL\"])",
+          "maxItems": 0
         },
         "direction": {
           "type": "string",
-          "enum": ["long_only", "short_only", "long_short"],
+          "enum": [
+            "long_only",
+            "short_only",
+            "long_short"
+          ],
           "description": "Trade direction: long_only, short_only, or long_short"
         }
-      }
+      },
+      "required": [
+        "mode",
+        "direction"
+      ]
     },
     "DataConfig": {
       "type": "object",
@@ -74,14 +97,23 @@
       "properties": {
         "price_field": {
           "type": "string",
-          "enum": ["close", "last", "mid"],
+          "enum": [
+            "close"
+          ],
           "description": "Which price field to use for calculations"
         },
         "timeframe": {
           "type": "string",
-          "description": "Timeframe for data bars (e.g. '1d', '1h', '5m')"
+          "description": "Timeframe for data bars (e.g. '1d', '1h', '5m')",
+          "enum": [
+            "1d"
+          ]
         }
-      }
+      },
+      "required": [
+        "price_field",
+        "timeframe"
+      ]
     },
     "ExecutionConfig": {
       "type": "object",
@@ -90,18 +122,31 @@
       "properties": {
         "order_type": {
           "type": "string",
-          "enum": ["market", "limit"],
+          "enum": [
+            "market"
+          ],
           "description": "Order type: market or limit"
         },
         "slippage_model": {
           "type": "string",
-          "description": "Slippage model type (e.g. 'none', 'fixed', 'pct')"
+          "description": "Slippage model type (e.g. 'none', 'fixed', 'pct')",
+          "enum": [
+            "none"
+          ]
         },
         "fees_model": {
           "type": "string",
-          "description": "Fees model type (e.g. 'none', 'flat', 'pct')"
+          "description": "Fees model type (e.g. 'none', 'flat', 'pct')",
+          "enum": [
+            "none"
+          ]
         }
-      }
+      },
+      "required": [
+        "order_type",
+        "slippage_model",
+        "fees_model"
+      ]
     },
     "CooldownsConfig": {
       "type": "object",
@@ -120,10 +165,15 @@
         },
         "max_trades_per_asset_per_30d": {
           "type": "integer",
-          "minimum": 0,
+          "minimum": 1,
           "description": "Maximum number of trades per asset in a rolling 30-day window"
         }
-      }
+      },
+      "required": [
+        "after_buy_days",
+        "after_sell_days",
+        "max_trades_per_asset_per_30d"
+      ]
     },
     "EntryConfig": {
       "type": "object",
@@ -132,25 +182,37 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["dip_buy", "breakout", "indicator_signal"],
+          "enum": [
+            "dip_buy"
+          ],
           "description": "Entry strategy type: dip_buy (mean reversion), breakout, or indicator_signal"
         },
         "lookback_T": {
           "type": "integer",
           "minimum": 1,
-          "description": "Lookback period in bars for dip detection"
+          "description": "Lookback period in bars for dip detection",
+          "maximum": 999
         },
         "dip_reference": {
           "$ref": "#/$defs/DipReferenceConfig"
         },
         "dip_threshold_pct": {
           "type": "number",
-          "description": "Dip threshold as a decimal (e.g. -0.12 means the price must be 12% below the reference)"
+          "description": "Dip threshold as a decimal (e.g. -0.12 means the price must be 12% below the reference)",
+          "exclusiveMinimum": -1,
+          "exclusiveMaximum": 0
         },
         "initial_buy_sizing": {
           "$ref": "#/$defs/SizingConfig"
         }
-      }
+      },
+      "required": [
+        "type",
+        "lookback_T",
+        "dip_reference",
+        "dip_threshold_pct",
+        "initial_buy_sizing"
+      ]
     },
     "DipReferenceConfig": {
       "type": "object",
@@ -159,19 +221,64 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["price_T_ago", "highest_in_window", "moving_average"],
+          "enum": [
+            "price_T_ago",
+            "highest_in_window",
+            "moving_average"
+          ],
           "description": "Reference type: price_T_ago (price T bars ago), highest_in_window, or moving_average"
         },
         "period": {
           "type": "integer",
           "minimum": 1,
-          "description": "Period parameter for the reference calculation (used by highest_in_window and moving_average)"
+          "description": "Period parameter for the reference calculation (used by highest_in_window and moving_average)",
+          "maximum": 999
         },
         "indicator": {
           "type": "string",
-          "description": "Indicator name for moving_average reference type (e.g. 'SMA', 'EMA')"
+          "description": "Indicator name for moving_average reference type (e.g. 'SMA', 'EMA')",
+          "enum": [
+            "SMA",
+            "EMA"
+          ]
         }
-      }
+      },
+      "required": [
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "highest_in_window",
+                  "moving_average"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "period"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "moving_average"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "indicator"
+            ]
+          }
+        }
+      ]
     },
     "SizingConfig": {
       "type": "object",
@@ -180,21 +287,75 @@
       "properties": {
         "mode": {
           "type": "string",
-          "enum": ["pct_portfolio", "absolute_amount"],
+          "enum": [
+            "pct_portfolio",
+            "absolute_amount"
+          ],
           "description": "Sizing mode: pct_portfolio (percentage of portfolio value) or absolute_amount (fixed monetary amount)"
         },
         "pct": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1,
           "description": "Percentage of portfolio (e.g. 0.03 = 3%). Used when mode is pct_portfolio"
         },
         "amount": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "description": "Fixed monetary amount. Used when mode is absolute_amount"
         }
-      }
+      },
+      "required": [
+        "mode"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "pct_portfolio"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "pct"
+            ],
+            "properties": {
+              "pct": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "absolute_amount"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "amount"
+            ],
+            "properties": {
+              "amount": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        }
+      ]
     },
     "ProfitManagementConfig": {
       "type": "object",
@@ -203,24 +364,49 @@
       "properties": {
         "scale_out_enabled": {
           "type": "boolean",
-          "description": "Whether to perform partial exits (scale-out) at different profit levels"
+          "description": "Whether to perform partial exits (scale-out) at different profit levels. When true, sell_fraction_basis and a scale_out_plan are required"
         },
         "sell_fraction_basis": {
           "type": "string",
-          "enum": ["initial_position", "current_position"],
+          "enum": [
+            "initial_position",
+            "current_position"
+          ],
           "description": "Basis for computing sell fractions: initial_position or current_position"
         },
         "scale_out_plan": {
           "type": "array",
-          "description": "Array of exit tranches executed sequentially as profit targets are hit",
+          "description": "Exit tranches executed in order as profit targets are hit. Each one executes at most once per position lifecycle",
           "items": {
             "$ref": "#/$defs/ScaleOutTrancheConfig"
-          }
+          },
+          "minItems": 1,
+          "maxItems": 20
         },
         "take_profit": {
           "$ref": "#/$defs/TakeProfitConfig"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "scale_out_enabled": {
+                "const": true
+              }
+            },
+            "required": [
+              "scale_out_enabled"
+            ]
+          },
+          "then": {
+            "required": [
+              "sell_fraction_basis",
+              "scale_out_plan"
+            ]
+          }
+        }
+      ]
     },
     "ScaleOutTrancheConfig": {
       "type": "object",
@@ -229,22 +415,55 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Tranche identifier (e.g. 't1', 't2', 't3')"
+          "description": "Tranche identifier (e.g. 't1', 't2', 't3'); unique within the plan and carried into the signal",
+          "maxLength": 32,
+          "pattern": "^[A-Za-z0-9_-]{1,32}$"
         },
         "trigger": {
           "$ref": "#/$defs/TriggerConfig"
         },
         "sell_fraction": {
           "type": "number",
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Fraction of position to sell (e.g. 0.30 = 30%)"
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1,
+          "description": "Fraction of the position to give back (e.g. 0.30 = 30%), measured per sell_fraction_basis"
         },
         "sell_remainder": {
           "type": "boolean",
-          "description": "If true, sell the entire remaining position at this tranche (overrides sell_fraction)"
+          "description": "If true, close the entire remaining position at this tranche. Only the last tranche may do so"
         }
-      }
+      },
+      "required": [
+        "id",
+        "trigger"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "sell_fraction"
+          ],
+          "properties": {
+            "sell_remainder": {
+              "const": false
+            }
+          }
+        },
+        {
+          "required": [
+            "sell_remainder"
+          ],
+          "properties": {
+            "sell_remainder": {
+              "const": true
+            }
+          },
+          "not": {
+            "required": [
+              "sell_fraction"
+            ]
+          }
+        }
+      ]
     },
     "TriggerConfig": {
       "type": "object",
@@ -253,7 +472,11 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["pct_gain", "absolute_profit", "indicator"],
+          "enum": [
+            "pct_gain",
+            "absolute_profit",
+            "indicator"
+          ],
           "description": "Trigger type: pct_gain (percentage gain), absolute_profit, or indicator-based"
         },
         "value": {
@@ -262,10 +485,74 @@
         },
         "reference": {
           "type": "string",
-          "enum": ["avg_cost", "initial_entry_price"],
+          "enum": [
+            "avg_cost",
+            "initial_entry_price"
+          ],
           "description": "Price reference for gain calculation: avg_cost or initial_entry_price"
+        },
+        "indicator_rules": {
+          "type": "array",
+          "description": "Rules of an indicator trigger; the tranche fires only when every rule holds. Used when type is indicator",
+          "items": {
+            "$ref": "#/$defs/IndicatorRuleConfig"
+          },
+          "minItems": 1
         }
-      }
+      },
+      "required": [
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "pct_gain",
+                  "absolute_profit"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "value",
+              "reference"
+            ],
+            "properties": {
+              "value": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "not": {
+              "required": [
+                "indicator_rules"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "indicator"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "indicator_rules"
+            ],
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          }
+        }
+      ]
     },
     "TakeProfitConfig": {
       "type": "object",
@@ -274,27 +561,89 @@
       "properties": {
         "mode": {
           "type": "string",
-          "enum": ["pct_gain", "absolute_profit", "indicator"],
+          "enum": [
+            "pct_gain",
+            "absolute_profit"
+          ],
           "description": "Take-profit trigger mode"
         },
         "pct": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "description": "Target gain percentage (e.g. 0.10 = 10%). Used when mode is pct_gain"
         },
         "profit_amount": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "description": "Target absolute profit amount. Used when mode is absolute_profit"
         },
         "reference": {
           "type": "string",
-          "enum": ["avg_cost", "initial_entry_price"],
+          "enum": [
+            "avg_cost",
+            "initial_entry_price"
+          ],
           "description": "Price reference: avg_cost or initial_entry_price"
         },
         "action": {
           "type": "string",
-          "description": "Action to execute when take-profit is triggered (e.g. 'sell_all_remaining')"
+          "description": "Action to execute when take-profit is triggered (e.g. 'sell_all_remaining')",
+          "enum": [
+            "sell_all_remaining"
+          ]
         }
-      }
+      },
+      "required": [
+        "mode",
+        "reference",
+        "action"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "pct_gain"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "pct"
+            ],
+            "properties": {
+              "pct": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "absolute_profit"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "profit_amount"
+            ],
+            "properties": {
+              "profit_amount": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        }
+      ]
     },
     "DownsideManagementConfig": {
       "type": "object",
@@ -306,7 +655,10 @@
         },
         "loss_action": {
           "type": "string",
-          "enum": ["A_sell_loss", "B_average_down"],
+          "enum": [
+            "A_sell_loss",
+            "B_average_down"
+          ],
           "description": "Which loss management variant to apply: A_sell_loss (stop-loss) or B_average_down (buy more at lower prices)"
         },
         "variant_A_sell_loss": {
@@ -315,7 +667,119 @@
         "variant_B_average_down": {
           "$ref": "#/$defs/AverageDownConfig"
         }
-      }
+      },
+      "required": [
+        "trigger",
+        "loss_action"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "loss_action": {
+                "const": "A_sell_loss"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "variant_A_sell_loss"
+            ],
+            "properties": {
+              "variant_A_sell_loss": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              },
+              "variant_B_average_down": {
+                "properties": {
+                  "enabled": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "loss_action": {
+                "const": "B_average_down"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "variant_B_average_down"
+            ],
+            "properties": {
+              "variant_B_average_down": {
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "enabled"
+                ]
+              },
+              "variant_A_sell_loss": {
+                "properties": {
+                  "enabled": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "variant_B_average_down"
+            ],
+            "properties": {
+              "loss_action": {
+                "const": "B_average_down"
+              },
+              "variant_B_average_down": {
+                "required": [
+                  "add_step_rule"
+                ],
+                "properties": {
+                  "add_step_rule": {
+                    "properties": {
+                      "type": {
+                        "const": "indicator_based"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "trigger": {
+                "properties": {
+                  "decision_basis": {
+                    "enum": [
+                      "indicator",
+                      "hybrid"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "DownsideTriggerConfig": {
       "type": "object",
@@ -324,16 +788,26 @@
       "properties": {
         "down_reference": {
           "type": "string",
-          "enum": ["avg_cost", "initial_entry_price"],
+          "enum": [
+            "avg_cost",
+            "initial_entry_price"
+          ],
           "description": "Reference price for loss calculation"
         },
         "down_threshold_pct": {
           "type": "number",
-          "description": "Loss threshold as a decimal (e.g. -0.10 means 10% loss triggers downside management)"
+          "description": "Loss threshold as a decimal (e.g. -0.10 means 10% loss triggers downside management)",
+          "exclusiveMinimum": -1,
+          "exclusiveMaximum": 0
         },
         "decision_basis": {
           "type": "string",
-          "enum": ["simple_threshold", "indicator", "statistical", "hybrid"],
+          "enum": [
+            "simple_threshold",
+            "indicator",
+            "statistical",
+            "hybrid"
+          ],
           "description": "Decision method: simple_threshold, indicator-based, statistical, or hybrid (combines all)"
         },
         "indicator_rules": {
@@ -350,7 +824,58 @@
             "$ref": "#/$defs/StatisticalRuleConfig"
           }
         }
-      }
+      },
+      "required": [
+        "down_reference",
+        "down_threshold_pct",
+        "decision_basis"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision_basis": {
+                "enum": [
+                  "indicator",
+                  "hybrid"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "indicator_rules"
+            ],
+            "properties": {
+              "indicator_rules": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "decision_basis": {
+                "enum": [
+                  "statistical",
+                  "hybrid"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "statistical_rules"
+            ],
+            "properties": {
+              "statistical_rules": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     },
     "IndicatorRuleConfig": {
       "type": "object",
@@ -363,13 +888,51 @@
         },
         "type": {
           "type": "string",
-          "enum": ["rsi", "zscore", "sma", "ema"],
+          "enum": [
+            "rsi",
+            "zscore",
+            "sma",
+            "ema"
+          ],
           "description": "Indicator type: rsi, zscore, sma, or ema"
         },
         "params": {
           "$ref": "#/$defs/IndicatorParams"
         }
-      }
+      },
+      "required": [
+        "type",
+        "params"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "zscore"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "required": [
+                  "lookback"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "params": {
+                "required": [
+                  "length"
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "StatisticalRuleConfig": {
       "type": "object",
@@ -382,12 +945,48 @@
         },
         "type": {
           "type": "string",
-          "description": "Statistical type (e.g. 'zscore')"
+          "description": "Statistical type (e.g. 'zscore')",
+          "enum": [
+            "zscore"
+          ]
         },
         "params": {
           "$ref": "#/$defs/IndicatorParams"
         }
-      }
+      },
+      "required": [
+        "type",
+        "params"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "zscore"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "params": {
+                "required": [
+                  "lookback"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "params": {
+                "required": [
+                  "length"
+                ]
+              }
+            }
+          }
+        }
+      ]
     },
     "IndicatorParams": {
       "type": "object",
@@ -397,12 +996,21 @@
         "length": {
           "type": "integer",
           "minimum": 1,
-          "description": "Period for period-based indicators (RSI, SMA, EMA)"
+          "description": "Period for period-based indicators (RSI, SMA, EMA)",
+          "maximum": 999
         },
         "condition": {
           "type": "string",
           "maxLength": 10,
-          "description": "Comparison operator (e.g. '<', '>', '<=', '>=')"
+          "description": "Comparison operator (e.g. '<', '>', '<=', '>=')",
+          "enum": [
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "==",
+            "!="
+          ]
         },
         "value": {
           "type": "number",
@@ -411,9 +1019,14 @@
         "lookback": {
           "type": "integer",
           "minimum": 1,
-          "description": "Lookback period for statistical calculations (e.g. z-score)"
+          "description": "Lookback period for statistical calculations (e.g. z-score)",
+          "maximum": 999
         }
-      }
+      },
+      "required": [
+        "condition",
+        "value"
+      ]
     },
     "SellLossConfig": {
       "type": "object",
@@ -426,28 +1039,65 @@
         },
         "stop_type": {
           "type": "string",
-          "enum": ["hard_stop", "indicator_stop"],
+          "enum": [
+            "hard_stop",
+            "indicator_stop"
+          ],
           "description": "Stop-loss method: hard_stop (fixed threshold) or indicator_stop (indicator-based)"
         },
         "stop_reference": {
           "type": "string",
-          "enum": ["avg_cost", "initial_entry_price"],
+          "enum": [
+            "avg_cost",
+            "initial_entry_price"
+          ],
           "description": "Price reference for stop-loss calculation"
         },
         "stop_threshold_pct": {
           "type": "number",
-          "description": "Stop-loss threshold as a decimal (e.g. -0.10 = 10% loss)"
+          "description": "Stop-loss threshold as a decimal (e.g. -0.10 = 10% loss)",
+          "exclusiveMinimum": -1,
+          "exclusiveMaximum": 0
         },
         "order_type": {
           "type": "string",
-          "enum": ["market", "limit"],
+          "enum": [
+            "market"
+          ],
           "description": "Order type for the stop-loss exit"
         },
         "action": {
           "type": "string",
-          "description": "Action to execute (e.g. 'sell_all_remaining')"
+          "description": "Action to execute (e.g. 'sell_all_remaining')",
+          "enum": [
+            "sell_all_remaining"
+          ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "enabled"
+            ],
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "enabled",
+              "stop_type",
+              "stop_reference",
+              "stop_threshold_pct",
+              "order_type",
+              "action"
+            ]
+          }
+        }
+      ]
     },
     "AverageDownConfig": {
       "type": "object",
@@ -473,7 +1123,34 @@
           "type": "boolean",
           "description": "Whether to recalculate average cost after each additional purchase"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "enabled"
+            ],
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "add_sizing",
+              "max_adds",
+              "add_step_rule",
+              "recalculate_avg_cost"
+            ],
+            "properties": {
+              "recalculate_avg_cost": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
     },
     "AddStepRuleConfig": {
       "type": "object",
@@ -482,20 +1159,48 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["each_n_pct_drop", "indicator_based", "custom"],
+          "enum": [
+            "each_n_pct_drop",
+            "indicator_based"
+          ],
           "description": "Add rule type: each_n_pct_drop (buy on each N% drop), indicator_based, or custom"
         },
         "drop_pct_step": {
           "type": "number",
           "minimum": 0,
-          "description": "Percentage drop step for each_n_pct_drop (e.g. 0.10 = buy on each 10% drop)"
+          "description": "Percentage drop step for each_n_pct_drop (e.g. 0.10 = buy on each 10% drop)",
+          "exclusiveMinimum": 0,
+          "maximum": 1
         },
         "reference": {
           "type": "string",
-          "enum": ["avg_cost", "initial_entry_price"],
+          "enum": [
+            "avg_cost",
+            "initial_entry_price"
+          ],
           "description": "Price reference for drop calculation"
         }
-      }
+      },
+      "required": [
+        "type"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "each_n_pct_drop"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "drop_pct_step",
+              "reference"
+            ]
+          }
+        }
+      ]
     },
     "RiskControlsConfig": {
       "type": "object",
@@ -506,13 +1211,15 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "description": "Maximum percentage of portfolio value in a single position (e.g. 0.10 = 10%)"
+          "description": "Maximum percentage of portfolio value in a single position (e.g. 0.10 = 10%)",
+          "exclusiveMinimum": 0
         },
         "max_position_drawdown_pct": {
           "type": "number",
           "minimum": 0,
           "maximum": 1,
-          "description": "Maximum drawdown allowed per position before force exit (e.g. 0.25 = 25%)"
+          "description": "Maximum drawdown allowed per position before force exit (e.g. 0.25 = 25%)",
+          "exclusiveMinimum": 0
         },
         "force_exit_on_risk_breach": {
           "type": "boolean",
@@ -526,7 +1233,12 @@
           "type": "boolean",
           "description": "Whether to block averaging-down if the exposure limit is already exceeded"
         }
-      }
+      },
+      "required": [
+        "max_position_exposure_pct",
+        "max_position_drawdown_pct",
+        "force_exit_on_risk_breach"
+      ]
     },
     "OutputsConfig": {
       "type": "object",
@@ -535,12 +1247,16 @@
       "properties": {
         "emit_events": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Events to emit during strategy execution (e.g. ENTRY, BUY, SCALE_OUT_1, STOP_EXIT, SELL_ALL)"
         },
         "track_metrics": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Metrics to track (e.g. avg_cost, position_qty, unrealized_pnl, max_drawdown)"
         }
       }

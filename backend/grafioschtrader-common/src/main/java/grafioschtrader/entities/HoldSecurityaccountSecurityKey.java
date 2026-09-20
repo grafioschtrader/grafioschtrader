@@ -9,7 +9,7 @@ import jakarta.persistence.Embeddable;
 
 /**
  * Composite primary key for security holding records that uniquely identifies holding periods.
- * 
+ *
  * <p>
  * <strong>Key Composition:</strong>
  * </p>
@@ -21,7 +21,7 @@ import jakarta.persistence.Embeddable;
  * <li><strong>Security</strong> - The particular security being held</li>
  * <li><strong>Start Date</strong> - The date when this holding period began</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Temporal Uniqueness:</strong>
  * </p>
@@ -30,7 +30,7 @@ import jakarta.persistence.Embeddable;
  * position changes. Each time a transaction changes the position size, a new holding record is created with a new start
  * date, while the previous record receives an end date.
  * </p>
- * 
+ *
  * <p>
  * <strong>Data Integrity:</strong>
  * </p>
@@ -43,7 +43,7 @@ import jakarta.persistence.Embeddable;
  * <li>Efficient querying by account, security, or time period</li>
  * <li>Proper referential integrity for related entities</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Usage Context:</strong>
  * </p>
@@ -58,7 +58,7 @@ public class HoldSecurityaccountSecurityKey implements Serializable {
 
   /**
    * Identifier of the security account where the security is held.
-   * 
+   *
    * <p>
    * This references the specific account within a portfolio where the security position exists. Multiple security
    * accounts can exist within a single portfolio, each potentially holding different securities or the same security
@@ -70,7 +70,7 @@ public class HoldSecurityaccountSecurityKey implements Serializable {
 
   /**
    * Identifier of the security being held.
-   * 
+   *
    * <p>
    * This references the specific financial instrument (stock, bond, etc.) that is being tracked in this holding record.
    * The same security can be held across multiple accounts and time periods.
@@ -81,13 +81,13 @@ public class HoldSecurityaccountSecurityKey implements Serializable {
 
   /**
    * Start date of this holding period.
-   * 
+   *
    * <p>
    * This date marks when this particular holding period began, typically corresponding to a transaction date that
    * changed the position size. The date enables temporal querying and ensures unique identification of holding periods
    * over time.
    * </p>
-   * 
+   *
    * <p>
    * <strong>Important:</strong> This is the start date only. The end date is stored separately in the main entity to
    * maintain proper temporal relationships between consecutive holding periods.
@@ -101,7 +101,7 @@ public class HoldSecurityaccountSecurityKey implements Serializable {
 
   /**
    * Creates a new composite key with all required components.
-   * 
+   *
    * @param idSecuritycashAccount the security account identifier
    * @param idSecuritycurrency    the security identifier
    * @param fromHoldDate          the start date of this holding period
@@ -111,6 +111,11 @@ public class HoldSecurityaccountSecurityKey implements Serializable {
     this.idSecuritycashAccount = idSecuritycashAccount;
     this.idSecuritycurrency = idSecuritycurrency;
     this.fromHoldDate = fromHoldDate;
+  }
+
+  /** Account owning this dated position. */
+  public Integer getIdSecuritycashAccount() {
+    return idSecuritycashAccount;
   }
 
   public Integer getIdSecuritycurrency() {

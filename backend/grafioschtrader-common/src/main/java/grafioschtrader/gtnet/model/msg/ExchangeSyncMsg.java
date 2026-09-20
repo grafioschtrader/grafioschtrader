@@ -16,12 +16,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Contains a list of instruments with their send flags, identified by ISIN+currency (securities) or
  * fromCurrency+toCurrency (currency pairs).
  *
- * In a request:
- * - Contains instruments that have been modified locally since the last sync timestamp
- * - Only includes instruments with at least one send flag enabled
+ * In a request: - Contains instruments that have been modified locally since the last sync timestamp - Only includes
+ * instruments with at least one send flag enabled
  *
- * In a response:
- * - Contains the remote server's changed instruments for bidirectional sync
+ * In a response: - Contains the remote server's changed instruments for bidirectional sync
  */
 @Schema(description = """
     Payload for exchange configuration sync between GTNet peers. Contains instruments with their
@@ -42,7 +40,7 @@ public class ExchangeSyncMsg {
    * Creates a request/response payload with the given items.
    *
    * @param sinceTimestamp the timestamp since when changes are included
-   * @param items the list of exchange sync items
+   * @param items          the list of exchange sync items
    * @return the constructed ExchangeSyncMsg
    */
   public static ExchangeSyncMsg forRequest(LocalDateTime sinceTimestamp, List<ExchangeSyncItem> items) {
@@ -75,8 +73,8 @@ public class ExchangeSyncMsg {
   /**
    * Single instrument's exchange configuration for sync.
    *
-   * For securities, isin and currency are set, toCurrency is null.
-   * For currency pairs, isin is null, currency is fromCurrency, and toCurrency is set.
+   * For securities, isin and currency are set, toCurrency is null. For currency pairs, isin is null, currency is
+   * fromCurrency, and toCurrency is set.
    */
   @Schema(description = "Exchange configuration for a single instrument")
   public static class ExchangeSyncItem {
@@ -123,14 +121,14 @@ public class ExchangeSyncMsg {
     /**
      * Constructs an exchange sync item.
      *
-     * @param isin the ISIN for securities, null for currency pairs
-     * @param currency the currency for securities, or fromCurrency for currency pairs
-     * @param toCurrency the toCurrency for currency pairs, null for securities
-     * @param lastpriceSend whether intraday prices are offered
+     * @param isin           the ISIN for securities, null for currency pairs
+     * @param currency       the currency for securities, or fromCurrency for currency pairs
+     * @param toCurrency     the toCurrency for currency pairs, null for securities
+     * @param lastpriceSend  whether intraday prices are offered
      * @param historicalSend whether historical prices are offered
      */
-    public ExchangeSyncItem(String isin, String currency, String toCurrency,
-        boolean lastpriceSend, boolean historicalSend) {
+    public ExchangeSyncItem(String isin, String currency, String toCurrency, boolean lastpriceSend,
+        boolean historicalSend) {
       this.isin = isin;
       this.currency = currency;
       this.toCurrency = toCurrency;
@@ -141,16 +139,16 @@ public class ExchangeSyncMsg {
     /**
      * Creates an item for a security.
      */
-    public static ExchangeSyncItem forSecurity(String isin, String currency,
-        boolean lastpriceSend, boolean historicalSend) {
+    public static ExchangeSyncItem forSecurity(String isin, String currency, boolean lastpriceSend,
+        boolean historicalSend) {
       return new ExchangeSyncItem(isin, currency, null, lastpriceSend, historicalSend);
     }
 
     /**
      * Creates an item for a currency pair.
      */
-    public static ExchangeSyncItem forCurrencypair(String fromCurrency, String toCurrency,
-        boolean lastpriceSend, boolean historicalSend) {
+    public static ExchangeSyncItem forCurrencypair(String fromCurrency, String toCurrency, boolean lastpriceSend,
+        boolean historicalSend) {
       return new ExchangeSyncItem(null, fromCurrency, toCurrency, lastpriceSend, historicalSend);
     }
 

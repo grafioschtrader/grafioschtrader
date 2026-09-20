@@ -1,0 +1,23 @@
+Detail der Kontobewegungen
+Nummer der Kundenbeziehung 999999
+Konto 06 EUR
+Datum 19.09.2026
+Bezeichnung Erfassungsdatum Valutadatum Betrag
+Coupon Gutschrift Aktien 07/09/26 01/09/26 70,36+
+Depot 999999/03
+ZOETIS INC
+Valorennummer 19276994.1
+ISIN Nummer US98978V1035
+Anzahl 220,00
+Ausschüttung 0,53 USD
+Eingang Vorbehalten
+Bruttobetrag 116,60+ USD
+Schweiz.Rückh.Steu. 17,49- USD
+Verrechnungs-/Quellensteuer 15% 17,49- USD
+Totalbetrag 81,62+ USD
+Wechselkurs 1,16006100
+Unsere Ref: EXAMPLE/2026/1
+Via e-banking gedruckt Cornèr Bank AG
+Im Falle von Abweichungen zwischen den vom Cornèronline-System zur Verfügung gestellten Daten oder Dokumenten
+und jenen, die von der Bank in ihrer Buchhaltung registriert werden, sind auf alle Fälle letztere massgebend. mail@corneronline.ch
+1/1

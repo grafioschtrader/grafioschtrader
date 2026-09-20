@@ -4,8 +4,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 /**
- * Alert when a security gains or loses a certain percentage in a certain days period.
- * Restricted to the security level only.
+ * Alert when a security gains or loses a certain percentage in a certain days period. Restricted to the security level
+ * only.
  */
 public class PeriodPriceGainLosePercentAlert {
 
@@ -25,11 +25,23 @@ public class PeriodPriceGainLosePercentAlert {
     return daysInPeriod;
   }
 
+  public void setDaysInPeriod(Integer daysInPeriod) {
+    this.daysInPeriod = daysInPeriod;
+  }
+
   public Integer getGainPercentage() {
     return gainPercentage;
   }
 
+  public void setGainPercentage(Integer gainPercentage) {
+    this.gainPercentage = gainPercentage;
+  }
+
   public Integer getLosePercentage() {
     return losePercentage;
+  }
+
+  public void setLosePercentage(Integer losePercentage) {
+    this.losePercentage = losePercentage;
   }
 }

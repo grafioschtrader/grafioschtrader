@@ -8,7 +8,7 @@ import { Subscription } from 'rxjs';
 import { ColumnConfig, ColumnGroupConfig } from '../../lib/datashowbase/column.config';
 import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
 import { TransactionCallParam } from '../../transaction/component/transaction.call.parm';
-import { FilterService, MenuItem } from '@openng/optimus-ui/api';
+import { FilterService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
 import { Portfolio } from '../../entities/portfolio';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { SecurityaccountService } from '../service/securityaccount.service';
@@ -28,6 +28,7 @@ import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { HelpIds } from '../../lib/help/help.ids';
 import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { AssetclassType } from '../../shared/types/assetclass.type';
+import { LastpriceOrigin } from '../../entities/types/lastprice.origin';
 import { Securitycurrency } from '../../entities/securitycurrency';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { BusinessHelper } from '../../shared/helper/business.helper';
@@ -43,6 +44,16 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   @ViewChild('title') titleElementRef: ElementRef;
 
   translatedTitle: string;
+
+  /**
+   * Optional comparison of the report against the allocation of one rule based trading strategy. Declared here rather
+   * than on the one report that offers it, because all reports built on this class share one template: a member the
+   * template names has to exist on every one of them. Only the asset class report fills these; everywhere else they
+   * stay undefined and the corresponding blocks of the template are not rendered.
+   */
+  algoTopOptions: SelectItem[];
+  selectedIdAlgoTop: number = null;
+  rebalancingSummaryFields: ColumnConfig[];
 
   showTable = true;
   untilDate: Date;
@@ -87,6 +98,14 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     super(filterService, usersettingsService, translateService, gps, injector);
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
   }
+
+  /**
+   * Selecting a strategy to compare against. A report that offers no strategy never renders the dropdown, so the
+   * default does nothing rather than pretending to switch something.
+   *
+   * @param event - Selection event of the strategy dropdown
+   */
+  handleChangeAlgoTop(event: any): void {}
 
   getGroupValueByRowIndex(columnConfig: ColumnConfig, securityPositionSummary: SecurityPositionSummary): string {
     const groupValue = this.securityaccountGroupBase.getGroupValue(securityPositionSummary.security);
@@ -233,6 +252,24 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     BusinessHelper.saveUntilDateInSessionStorage(this.untilDate);
     this.activePanelService.destroyPanel(this);
     this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
+  }
+
+  /**
+   * Style of one body cell, the column width plus the marking of a price that was not traded.
+   *
+   * A position whose instrument no longer receives intraday data is valued with its newest historical closing price. If
+   * that closing price was itself produced by filling gaps in the historical prices, the number is a calculated one and
+   * must be recognisable as such, which is what the yellow background says.
+   *
+   * @param positionSummary - Row of the table
+   * @param field - Column configuration of the cell
+   * @returns Style object for ngStyle
+   */
+  getCellStyle(positionSummary: SecurityPositionSummary, field: ColumnConfig): { [key: string]: string } {
+    const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
+    return field.field === 'closePrice' && positionSummary?.closePriceOrigin === LastpriceOrigin.HISTORY_INTERPOLATED
+      ? { ...widthStyle, 'background-color': 'rgba(234, 179, 8, 0.30)' }
+      : widthStyle;
   }
 
   getInstrumentIcon(securityPositionSummary: SecurityPositionSummary): string {

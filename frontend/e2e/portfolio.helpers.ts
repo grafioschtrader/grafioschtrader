@@ -211,6 +211,22 @@ export async function openTreeContextMenu(page: Page, target: Locator, itemRx: R
 }
 
 /**
+ * Expands a tree item unless it is already open. Optimus binds `[attr.aria-expanded]="node.expanded"`, so a node whose
+ * contributor never set `expanded` carries no attribute at all instead of "false" - only "true" proves it is open, and
+ * a check for "false" never fires. The toggle button is rendered only once the node has children, so the click also
+ * waits for a tree refresh that adds them.
+ *
+ * @param treeItem the `role=treeitem` element of the node, not its `.p-tree-node-content`
+ */
+export async function expandTreeNode(treeItem: Locator): Promise<void> {
+  await treeItem.waitFor({ state: 'visible', timeout: 15_000 });
+  if ((await treeItem.getAttribute('aria-expanded')) !== 'true') {
+    await treeItem.locator(':scope > .p-tree-node-content button').first().click({ timeout: 15_000 });
+  }
+  await treeItem.and(treeItem.page().locator('[aria-expanded="true"]')).waitFor({ state: 'visible', timeout: 5_000 });
+}
+
+/**
  * Confirms the delete question. Header and buttons are both translated — the header comes from
  * MSG_GENERAL_HEADER ('Confirmation'/'Bestätigung', the default headerKey of
  * AppHelper.confirmationDialog), the buttons from Optimus UI.

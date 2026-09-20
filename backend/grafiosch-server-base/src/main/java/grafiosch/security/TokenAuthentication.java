@@ -33,13 +33,13 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Abstract base class for JWT-based authentication and configuration management.
- * 
+ *
  * <p>
  * This class provides core functionality for JWT token handling, authentication processing, and frontend configuration
  * data delivery. It serves as a foundation for implementing stateless authentication with comprehensive client
  * configuration support including entity metadata and application constants.
  * </p>
- * 
+ *
  * <h3>Core Responsibilities:</h3>
  * <ul>
  * <li><strong>JWT Authentication:</strong> Token creation, validation, and header management</li>
@@ -47,13 +47,13 @@ import tools.jackson.databind.ObjectMapper;
  * <li><strong>Entity Introspection:</strong> JPA entity metadata extraction for client use</li>
  * <li><strong>Constants Exposure:</strong> Application constants discovery for frontend integration</li>
  * </ul>
- * 
+ *
  * <h3>Authentication Flow:</h3>
  * <p>
  * Handles the complete authentication lifecycle from successful login through ongoing request validation, providing JWT
  * tokens and configuration data to support stateless authentication in client applications.
  * </p>
- * 
+ *
  * <h3>Frontend Integration:</h3>
  * <p>
  * Provides essential metadata and configuration information that frontend applications need for proper operation,
@@ -66,7 +66,7 @@ public abstract class TokenAuthentication {
 
   /**
    * HTTP header name for JWT token transmission.
-   * 
+   *
    * <p>
    * Standard header name used for sending JWT tokens between client and server, providing consistent token transmission
    * across all authentication requests.
@@ -109,26 +109,26 @@ public abstract class TokenAuthentication {
 
   /**
    * Adds JWT token to response header and sends configuration data after successful login.
-   * 
+   *
    * <p>
    * This method completes the login process by generating a JWT token for the authenticated user and adding it to the
    * response header. It also serializes and sends comprehensive configuration data that the frontend needs for proper
    * operation, including user preferences and application settings.
    * </p>
-   * 
+   *
    * <h3>Response Components:</h3>
    * <ul>
    * <li><strong>JWT Token:</strong> Added to x-auth-token header with configured expiration</li>
    * <li><strong>Configuration Data:</strong> JSON response containing frontend setup information</li>
    * <li><strong>User Context:</strong> User preferences and authorization information</li>
    * </ul>
-   * 
+   *
    * <h3>Token Configuration:</h3>
    * <p>
    * Uses globally configured JWT expiration time from application parameters, ensuring consistent token lifetime across
    * the application.
    * </p>
-   * 
+   *
    * @param response        HTTP response to add token header and configuration data
    * @param authentication  user authentication object containing user details
    * @param passwordRegexOk flag indicating password policy compliance status
@@ -191,11 +191,12 @@ public abstract class TokenAuthentication {
    * (configured with permitAll) to function correctly regardless of token state.
    * </p>
    *
-   * @param request HTTP request containing the authentication token header
+   * @param request            HTTP request containing the authentication token header
    * @param ignoreInvalidToken if true, invalid tokens return null instead of throwing; if false, exceptions propagate
    * @return Authentication object if token is valid, null if token is missing or (when ignoreInvalidToken) invalid
    */
-  public Authentication generateAuthenticationFromRequest(final HttpServletRequest request, boolean ignoreInvalidToken) {
+  public Authentication generateAuthenticationFromRequest(final HttpServletRequest request,
+      boolean ignoreInvalidToken) {
     final String token = request.getHeader(AUTH_HEADER_NAME);
     if (token == null || token.isEmpty()) {
       return null;
@@ -228,26 +229,26 @@ public abstract class TokenAuthentication {
 
   /**
    * Extracts static constant fields from a class hierarchy for frontend use.
-   * 
+   *
    * <p>
    * This method uses reflection to discover static integer constants in a class and its superclasses that match a
    * specified prefix. It enables frontend applications to access application constants for validation, configuration,
    * and business logic without hardcoding values.
    * </p>
-   * 
+   *
    * <h3>Discovery Process:</h3>
    * <ul>
    * <li><strong>Hierarchy Traversal:</strong> Examines class and all superclasses</li>
    * <li><strong>Field Filtering:</strong> Selects static fields matching the prefix</li>
    * <li><strong>Value Extraction:</strong> Retrieves integer values using reflection</li>
    * </ul>
-   * 
-   * <h3>Use Cases:</h3>
+   *
+   * <h3>Scenarios:</h3>
    * <p>
    * Common for exposing validation limits, status codes, configuration constants, and other application parameters that
    * frontend code needs for proper operation and validation.
    * </p>
-   * 
+   *
    * @param currentClass the class to examine for static constants
    * @param fieldPrefix  prefix that field names must start with to be included
    * @return map of field names to their integer values
@@ -273,26 +274,26 @@ public abstract class TokenAuthentication {
 
   /**
    * Extracts entity names and their primary key field names from JPA metamodel.
-   * 
+   *
    * <p>
    * This method introspects the JPA metamodel to discover all concrete entity classes and their primary key field
    * names. This information is essential for frontend applications that need to work with entity data, form generation,
    * and API endpoint construction.
    * </p>
-   * 
+   *
    * <h3>Introspection Process:</h3>
    * <ul>
    * <li><strong>Metamodel Access:</strong> Uses JPA metamodel for entity discovery</li>
    * <li><strong>Concrete Entities:</strong> Filters out abstract entities</li>
    * <li><strong>Key Extraction:</strong> Identifies primary key field names</li>
    * </ul>
-   * 
+   *
    * <h3>Frontend Usage:</h3>
    * <p>
    * Enables dynamic form generation, API endpoint construction, and entity manipulation in client applications without
    * hardcoding entity structure information.
    * </p>
-   * 
+   *
    * @return list of entity name and key field name pairs for all concrete entities
    */
   protected List<EntityNameWithKeyName> getAllEntitiyNamesWithTheirKeys() {

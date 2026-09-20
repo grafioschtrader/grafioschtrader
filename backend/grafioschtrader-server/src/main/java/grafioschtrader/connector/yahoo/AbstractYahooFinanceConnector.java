@@ -1,6 +1,5 @@
 package grafioschtrader.connector.yahoo;
 
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -21,7 +20,7 @@ import tools.jackson.databind.ObjectMapper;
 /**
  * Abstract base class for Yahoo Finance connectors that provides common functionality for making HTTP requests to the
  * Yahoo Finance Visualization API.
- * 
+ *
  * This class implements the Template Method pattern, providing a standard workflow for creating requests, executing
  * HTTP calls, and parsing responses while allowing subclasses to customize specific aspects of the process.
  */
@@ -34,7 +33,7 @@ public abstract class AbstractYahooFinanceConnector {
 
   /**
    * Constructor initializing common components
-   * 
+   *
    * @param connectTimeoutSeconds HTTP connection timeout in seconds
    */
   protected AbstractYahooFinanceConnector(int connectTimeoutSeconds) {
@@ -45,7 +44,7 @@ public abstract class AbstractYahooFinanceConnector {
   /**
    * Template method for executing Yahoo Finance API requests. Subclasses implement specific request creation and
    * response parsing.
-   * 
+   *
    * @param <T>           The type of result returned by the subclass
    * @param requestParams Parameters needed to create the request
    * @return Parsed response data of type T
@@ -83,7 +82,7 @@ public abstract class AbstractYahooFinanceConnector {
   /**
    * Builds the HTTP request with standard headers and authentication Uses the exact same pattern as the working
    * implementations
-   * 
+   *
    * @param requestBody JSON request body
    * @return Configured HttpRequest
    */
@@ -100,7 +99,7 @@ public abstract class AbstractYahooFinanceConnector {
 
   /**
    * Handles HTTP error responses exactly like the working implementations
-   * 
+   *
    * @param response The HTTP response with error status
    * @throws IOException if the error requires exception handling
    */
@@ -164,7 +163,7 @@ public abstract class AbstractYahooFinanceConnector {
 
   /**
    * Creates the specific request for the Yahoo Finance API
-   * 
+   *
    * @param requestParams Parameters needed to build the request
    * @return Configured YahooFinanceDTO request
    */
@@ -172,7 +171,7 @@ public abstract class AbstractYahooFinanceConnector {
 
   /**
    * Parses the response from Yahoo Finance API
-   * 
+   *
    * @param responseBody  JSON response body
    * @param requestParams Original request parameters for context
    * @return Parsed response data

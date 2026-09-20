@@ -18,23 +18,22 @@ import jakarta.persistence.Table;
 /**
  * Abstract base class for instrument identification in the GT-Network pool.
  *
- * This entity serves as the central instrument registry for GTNet data exchange. It identifies instruments
- * (securities or currency pairs) that can be shared between GTNet peers, regardless of whether they exist
- * locally in this instance's database. Each PUSH_OPEN instance maintains a single instrument pool.
+ * This entity serves as the central instrument registry for GTNet data exchange. It identifies instruments (securities
+ * or currency pairs) that can be shared between GTNet peers, regardless of whether they exist locally in this
+ * instance's database. Each PUSH_OPEN instance maintains a single instrument pool.
  *
- * <h3>Local vs. Foreign Instruments</h3>
- * Locality is determined dynamically via JOIN to security/currencypair tables by ISIN+currency or
- * fromCurrency+toCurrency. This allows the pool to remain independent of local database state.
+ * <h3>Local vs. Foreign Instruments</h3> Locality is determined dynamically via JOIN to security/currencypair tables by
+ * ISIN+currency or fromCurrency+toCurrency. This allows the pool to remain independent of local database state.
  * <ul>
- *   <li><b>Local:</b> When a matching entry exists in security/currencypair table (determined via JOIN),
- *       historical quotes are stored directly in the {@link Historyquote} table.</li>
- *   <li><b>Foreign:</b> When no local match exists, historical quotes are stored in {@link GTNetHistoryquote}.</li>
+ * <li><b>Local:</b> When a matching entry exists in security/currencypair table (determined via JOIN), historical
+ * quotes are stored directly in the {@link Historyquote} table.</li>
+ * <li><b>Foreign:</b> When no local match exists, historical quotes are stored in {@link GTNetHistoryquote}.</li>
  * </ul>
  *
  * <h3>Related Tables</h3>
  * <ul>
- *   <li>{@link GTNetLastprice} - Intraday price data linked to this instrument</li>
- *   <li>{@link GTNetHistoryquote} - Historical price data for foreign instruments</li>
+ * <li>{@link GTNetLastprice} - Intraday price data linked to this instrument</li>
+ * <li>{@link GTNetHistoryquote} - Historical price data for foreign instruments</li>
  * </ul>
  *
  * Uses JPA JOINED inheritance strategy, with discriminator values 'S' for Security and 'C' for Currencypair.
@@ -69,8 +68,8 @@ public abstract class GTNetInstrument extends BaseID<Integer> {
   }
 
   /**
-   * Returns the unique key for matching this instrument across GTNet instances.
-   * Subclasses must implement this to provide their identification string.
+   * Returns the unique key for matching this instrument across GTNet instances. Subclasses must implement this to
+   * provide their identification string.
    *
    * @return unique identification string (e.g., "ISIN:CURRENCY" or "FROM:TO")
    */

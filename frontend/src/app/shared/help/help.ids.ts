@@ -33,8 +33,11 @@ export const AppHelpIds: Record<string, string> = {
 
   // Algo trading
   HELP_ALGO: 'algoalert',
-  HELP_ALGO_RULE: 'algoalert/rule',
+  /** The strategy tree itself: creating a strategy, its allocation and its simulation environments. */
+  HELP_ALGO_TREE: 'algoalert/algo',
   HELP_ALGO_STRATEGY: 'algoalert/strategy',
+  /** The alert overview and how alerts are evaluated, deduplicated and delivered. */
+  HELP_ALGO_ALERT: 'algoalert/alert',
 
   // Watchlist
   HELP_WATCHLIST: 'watchlistinstrument',
@@ -69,6 +72,7 @@ export const AppHelpIds: Record<string, string> = {
 
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_GROUP: 'basedata/imptranstemplate',
   HELP_BASEDATA_IMPORT_TRANSACTION_TEMPLATE_TEMPLATE: 'basedata/imptranstemplate/createimptranstemplate',
+  HELP_BASEDATA_BANKRUPT_SECURITY: 'basedata/bankruptsecurity/',
   HELP_BASEDATA_RISK_FREE_RATE_MAPPING: 'basedata/riskfreeratemapping',
   HELP_BASEDATA_UDF_METADATA_SECURITY: 'basedata/udfmetadata/instruments',
   HELP_BASEDATA_GT_NET_IMPORT_SECURITY: 'basedata/gtnetsecurityimport',
@@ -80,6 +84,7 @@ export const AppHelpIds: Record<string, string> = {
   HELP_TRADING_CALENDAR: 'admindata/tradingcalendar',
   HELP_HISTORYQUOTE_QUALITY: 'admindata/historyquotequality/',
   HELP_TAX_DATA: 'admindata/taxdata/',
+  HELP_TAX_DATA_SIMULATION_MODEL: 'admindata/taxdata/simulationmodel/',
 
   // The GTNet landing page is the architectural overview of the network; it describes no single view. Every screen
   // therefore points at the page that documents it, HELP_GT_NET_SETUP being the one for the server overview, its

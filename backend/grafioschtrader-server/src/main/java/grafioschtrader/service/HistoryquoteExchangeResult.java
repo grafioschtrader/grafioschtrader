@@ -13,9 +13,9 @@ import grafioschtrader.priceupdate.historyquote.SecurityCurrencyMaxHistoryquoteD
 /**
  * Container for GTNet historyquote exchange results.
  *
- * This class holds the results of querying GTNet servers for historical quotes, separating
- * instruments into those that were successfully filled and those that need fallback to connectors.
- * It also carries "want to receive" markers for pushing connector-fetched data back to suppliers.
+ * This class holds the results of querying GTNet servers for historical quotes, separating instruments into those that
+ * were successfully filled and those that need fallback to connectors. It also carries "want to receive" markers for
+ * pushing connector-fetched data back to suppliers.
  *
  * @param <S> Security or Currencypair
  */
@@ -30,12 +30,11 @@ public class HistoryquoteExchangeResult<S extends Securitycurrency<S>> {
    * Creates a new result container.
    *
    * @param remainingForConnector instruments that were not filled by GTNet and need connector fallback
-   * @param filledByGTNet instruments that were successfully filled by GTNet
-   * @param wantToReceiveMap map of suppliers that want data pushed back, with their requested instruments
+   * @param filledByGTNet         instruments that were successfully filled by GTNet
+   * @param wantToReceiveMap      map of suppliers that want data pushed back, with their requested instruments
    * @param receivedHistoryquotes map of received historyquote data keyed by instrument identifier
    */
-  public HistoryquoteExchangeResult(
-      List<SecurityCurrencyMaxHistoryquoteData<S>> remainingForConnector,
+  public HistoryquoteExchangeResult(List<SecurityCurrencyMaxHistoryquoteData<S>> remainingForConnector,
       List<SecurityCurrencyMaxHistoryquoteData<S>> filledByGTNet,
       Map<GTNet, List<InstrumentHistoryquoteDTO>> wantToReceiveMap,
       Map<String, InstrumentHistoryquoteDTO> receivedHistoryquotes) {
@@ -46,8 +45,7 @@ public class HistoryquoteExchangeResult<S extends Securitycurrency<S>> {
   }
 
   /**
-   * Returns instruments that need connector fallback.
-   * These are instruments that were not filled by any GTNet server.
+   * Returns instruments that need connector fallback. These are instruments that were not filled by any GTNet server.
    */
   public List<SecurityCurrencyMaxHistoryquoteData<S>> getRemainingForConnector() {
     return remainingForConnector;
@@ -61,8 +59,8 @@ public class HistoryquoteExchangeResult<S extends Securitycurrency<S>> {
   }
 
   /**
-   * Returns the map of suppliers that expressed interest in receiving data.
-   * Key is the GTNet supplier, value is the list of instruments they want data for.
+   * Returns the map of suppliers that expressed interest in receiving data. Key is the GTNet supplier, value is the
+   * list of instruments they want data for.
    */
   public Map<GTNet, List<InstrumentHistoryquoteDTO>> getWantToReceiveMap() {
     return wantToReceiveMap;
@@ -83,8 +81,8 @@ public class HistoryquoteExchangeResult<S extends Securitycurrency<S>> {
   }
 
   /**
-   * Returns the received historyquote data keyed by instrument identifier.
-   * Key format: "ISIN:Currency" for securities, "FromCurrency:ToCurrency" for pairs.
+   * Returns the received historyquote data keyed by instrument identifier. Key format: "ISIN:Currency" for securities,
+   * "FromCurrency:ToCurrency" for pairs.
    */
   public Map<String, InstrumentHistoryquoteDTO> getReceivedHistoryquotes() {
     return receivedHistoryquotes;
@@ -111,8 +109,8 @@ public class HistoryquoteExchangeResult<S extends Securitycurrency<S>> {
   }
 
   /**
-   * Creates an empty result indicating GTNet is disabled or no instruments to process.
-   * The original list is passed through as remaining for connector.
+   * Creates an empty result indicating GTNet is disabled or no instruments to process. The original list is passed
+   * through as remaining for connector.
    */
   public static <S extends Securitycurrency<S>> HistoryquoteExchangeResult<S> passthrough(
       List<SecurityCurrencyMaxHistoryquoteData<S>> allInstruments) {

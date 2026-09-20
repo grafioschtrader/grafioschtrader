@@ -12,12 +12,11 @@ import grafioschtrader.entities.Security;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * DTO for intraday price data of a single instrument in GTNet M2M communication.
- * Used in both request (with current timestamps) and response (with updated prices).
+ * DTO for intraday price data of a single instrument in GTNet M2M communication. Used in both request (with current
+ * timestamps) and response (with updated prices).
  *
- * Instrument identification:
- * - Security: isin + currency (toCurrency is null)
- * - Currency pair: currency (fromCurrency) + toCurrency (isin is null)
+ * Instrument identification: - Security: isin + currency (toCurrency is null) - Currency pair: currency (fromCurrency)
+ * + toCurrency (isin is null)
  */
 @Schema(description = """
     Intraday price data for a single instrument. For securities, identification is via ISIN + currency.
@@ -75,8 +74,8 @@ public class InstrumentPriceDTO implements Serializable {
   }
 
   /**
-   * Creates a price DTO from a Currencypair entity.
-   * Note: Currency pairs don't have volume data (only cryptocurrencies may have volume).
+   * Creates a price DTO from a Currencypair entity. Note: Currency pairs don't have volume data (only cryptocurrencies
+   * may have volume).
    */
   public static InstrumentPriceDTO fromCurrencypair(Currencypair currencypair) {
     InstrumentPriceDTO dto = new InstrumentPriceDTO();

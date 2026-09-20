@@ -13,13 +13,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Represents a structured time window for performance analysis, typically spanning a single year or week.
- * 
+ *
  * <p>
- * This class organizes performance data into structured time periods, containing individual period steps
- * that represent days (for weekly windows) or months (for yearly windows). Each window provides aggregated
- * performance metrics and detailed breakdowns for comprehensive analysis and reporting.
+ * This class organizes performance data into structured time periods, containing individual period steps that represent
+ * days (for weekly windows) or months (for yearly windows). Each window provides aggregated performance metrics and
+ * detailed breakdowns for comprehensive analysis and reporting.
  * </p>
- * 
+ *
  * <p>
  * The window structure supports:
  * </p>
@@ -48,13 +48,13 @@ public class PeriodWindow {
 
   /**
    * Constructs a new period window with the specified time boundaries and aggregation level.
-   * 
+   *
    * <p>
    * Initializes the period step list with the appropriate number of empty steps based on the aggregation level: 5 steps
    * for weekly analysis (representing trading days Monday-Friday) or 12 steps for yearly analysis (representing months
    * January-December).
    * </p>
-   * 
+   *
    * @param weekYear  the aggregation level determining the number and type of period steps
    * @param startDate the start date of this performance window
    * @param endDate   the end date of this performance window
@@ -69,7 +69,7 @@ public class PeriodWindow {
 
   /**
    * Adds a trading period step with complete financial performance data at the appropriate position.
-   * 
+   *
    * <p>
    * Calculates the correct offset within the period step list based on the aggregation level:
    * </p>
@@ -77,7 +77,7 @@ public class PeriodWindow {
    * <li>For weekly analysis: offset = days between start date and step date</li>
    * <li>For yearly analysis: offset = months between start date and step date</li>
    * </ul>
-   * 
+   *
    * @param weekYear               the aggregation level for offset calculation
    * @param localDate              the date of this period step
    * @param externalCashTransferMC external cash transfers in main currency
@@ -98,12 +98,12 @@ public class PeriodWindow {
 
   /**
    * Adds a holiday or missing data period step at the appropriate position within the window.
-   * 
+   *
    * <p>
    * Only processes weekly aggregation periods, as holiday tracking is more granular and relevant for daily analysis.
    * For yearly aggregation, holidays are typically aggregated within monthly summaries.
    * </p>
-   * 
+   *
    * @param weekYear       the aggregation level (only processes WM_WEEK)
    * @param localDate      the date of the holiday or missing data
    * @param holidayMissing the classification of this non-trading period
@@ -117,13 +117,13 @@ public class PeriodWindow {
 
   /**
    * Calculates and sets the total period gain by aggregating gains from all trading period steps.
-   * 
+   *
    * <p>
    * This method is called when the period gain has not been calculated through other means. It iterates through all
    * period steps, identifies trading days (PeriodStep instances), and sums their individual gains to produce the total
    * period performance.
    * </p>
-   * 
+   *
    * <p>
    * The calculation only considers actual trading period steps and ignores holidays or missing data steps to ensure
    * accurate performance measurement.

@@ -4,9 +4,7 @@ package grafioschtrader.types;
  * Defines the response format types supported by generic feed connectors for parsing data provider responses.
  */
 public enum ResponseFormatType {
-  JSON((byte) 1),
-  CSV((byte) 2),
-  HTML((byte) 3);
+  JSON((byte) 1), CSV((byte) 2), HTML((byte) 3);
 
   private final Byte value;
 

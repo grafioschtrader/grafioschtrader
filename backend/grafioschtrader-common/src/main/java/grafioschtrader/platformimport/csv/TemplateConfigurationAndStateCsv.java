@@ -16,21 +16,21 @@ import grafioschtrader.platformimport.TemplateConfiguration;
 
 /**
  * CSV-specific template configuration for parsing financial transaction data from CSV documents.
- * 
+ *
  * <p>
  * This class extends TemplateConfiguration to handle CSV file format specifics including column mappings, field
  * delimiters, and multi-row transaction processing. CSV templates map column headers from trading platform exports to
  * transaction fields, enabling automated import of transaction data.
  * </p>
- * 
+ *
  * <h3>CSV Template Structure</h3>
  * <p>
  * CSV templates define mappings between CSV column headers and transaction fields:
  * </p>
- * 
+ *
  * <pre>
  * cac=Currency
- * ta=Total Amount  
+ * ta=Total Amount
  * datetime=Date
  * transType=Transaction Type
  * [END]
@@ -39,7 +39,7 @@ import grafioschtrader.platformimport.TemplateConfiguration;
  * dateFormat=dd.MM.yyyy
  * transType=ACCUMULATE|Purchase,Buy
  * </pre>
- * 
+ *
  * <h3>CSV-Specific Configuration</h3>
  * <p>
  * Additional configuration options for CSV processing:
@@ -50,7 +50,7 @@ import grafioschtrader.platformimport.TemplateConfiguration;
  * <li>bond - Bond price indicator: "quotation|%" for percentage-based pricing</li>
  * <li>ignoreLineByFieldValue - Skip rows: "ta||-" ignores rows with "-" in total amount</li>
  * </ul>
- * 
+ *
  * <h3>Multi-Row Transaction Support</h3>
  * <p>
  * CSV files can contain multiple transactions and support features like:
@@ -60,26 +60,26 @@ import grafioschtrader.platformimport.TemplateConfiguration;
  * <li>Line filtering - Ignores header/footer rows or invalid data</li>
  * <li>Partial fills - Handles split executions across multiple rows</li>
  * </ul>
- * 
+ *
  * <h3>Usage Example</h3>
- * 
+ *
  * <pre>{@code
  * // Create CSV template configuration
  * TemplateConfigurationAndStateCsv csvConfig = new TemplateConfigurationAndStateCsv(template, Locale.GERMAN,
  *     templateList);
- * 
+ *
  * // Parse template
  * csvConfig.parseTemplateAndThrowError(true);
- * 
+ *
  * // Validate against CSV header
  * String csvHeader = "Date,Currency,Amount,Transaction Type";
  * boolean isValid = csvConfig.isValidTemplateForForm(csvHeader);
- * 
+ *
  * // Access column mappings
  * Map<Integer, String> columnMappings = csvConfig.getColumnPropertyMapping();
  * String delimiter = csvConfig.getDelimiterField();
  * }</pre>
- * 
+ *
  * <h3>State Management</h3>
  * <p>
  * This class maintains parsing state including column mappings that are populated when validating against actual CSV
@@ -132,7 +132,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
 
   /**
    * Creates a new CSV template configuration.
-   * 
+   *
    * @param importTransactionTemplate The template containing CSV mapping definitions
    * @param userLocale                User's locale for number and date formatting
    * @param templateIdPurposeCsvList  Existing templates for ID uniqueness validation
@@ -146,7 +146,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   /**
    * Reads CSV column header to property mappings from template lines. Each line before [END] contains a mapping like
    * "cac=Currency".
-   * 
+   *
    * @param templateLines          Array of template lines
    * @param startRowConfig         Index where configuration section begins
    * @param dataViolationException Exception to collect validation errors
@@ -163,7 +163,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   /**
    * Processes CSV-specific configuration options from the template. Handles templateId, delimiterField, bond
    * indicators, and line filtering rules.
-   * 
+   *
    * @param splitEqual Configuration key and value pair
    */
   @Override
@@ -189,7 +189,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
 
   /**
    * Returns the CSV field delimiter character.
-   * 
+   *
    * @return Field delimiter (e.g., "," or ";")
    */
   public String getDelimiterField() {
@@ -199,7 +199,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   /**
    * Validates whether this template can process a CSV file with the given header line. Creates column mappings if all
    * required headers are found in the CSV.
-   * 
+   *
    * @param headerLine First line of CSV containing column headers
    * @return true if all template columns are found in the CSV header
    */
@@ -222,7 +222,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
 
   /**
    * Validates CSV-specific template configuration including required delimiter and unique template ID.
-   * 
+   *
    * @param dataViolationException Exception to collect validation errors
    */
   @Override
@@ -249,7 +249,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   /**
    * Returns whether this template supports transaction order linking. Order support enables grouping related
    * transaction rows together.
-   * 
+   *
    * @return true if order field is mapped in the template
    */
   public boolean isOrderSupport() {
@@ -258,7 +258,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
 
   /**
    * Returns the property name that contains bond pricing information.
-   * 
+   *
    * @return Bond property name (e.g., "quotation")
    */
   public String getBondProperty() {
@@ -267,7 +267,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
 
   /**
    * Returns the text indicator that marks bond percentage pricing.
-   * 
+   *
    * @return Bond indicator text (e.g., "%")
    */
   public String getBondIndicator() {
@@ -276,7 +276,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
 
   /**
    * Returns the unique template identifier for CSV template selection.
-   * 
+   *
    * @return Template ID number
    */
   public int getTemplateId() {
@@ -286,7 +286,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   /**
    * Returns the mapping from CSV column indices to transaction property names. Only populated after successful
    * validation against a CSV header.
-   * 
+   *
    * @return Map of column index to property name
    */
   public Map<Integer, String> getColumnPropertyMapping() {
@@ -295,7 +295,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
 
   /**
    * Returns rules for ignoring CSV rows based on field values.
-   * 
+   *
    * @return Map of field name to ignore pattern
    */
   public Map<String, String> getIgnoreLineByFieldValueMap() {
@@ -305,7 +305,7 @@ public class TemplateConfigurationAndStateCsv extends TemplateConfiguration {
   /**
    * Returns the mapping from transaction property names to CSV column indices. Only populated after successful
    * validation against a CSV header.
-   * 
+   *
    * @return Map of property name to column index
    */
   public Map<String, Integer> getPropertyColumnMapping() {

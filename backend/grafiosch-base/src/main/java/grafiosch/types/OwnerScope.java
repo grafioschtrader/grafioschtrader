@@ -16,8 +16,8 @@ public enum OwnerScope {
 
   /**
    * Count rows whose current {@code created_by} is the acting user. The count moves with the rows when
-   * {@code MoveCreatedByUserToOtherUserTask} reassigns shared data, which is intended: the cap bounds who is
-   * answerable for the rows, not who originally typed them.
+   * {@code MoveCreatedByUserToOtherUserTask} reassigns shared data, which is intended: the cap bounds who is answerable
+   * for the rows, not who originally typed them.
    */
   CREATOR((byte) 2);
 

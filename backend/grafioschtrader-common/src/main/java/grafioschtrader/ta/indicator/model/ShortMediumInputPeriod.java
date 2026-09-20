@@ -7,12 +7,12 @@ import jakarta.validation.constraints.NotNull;
 /**
  * Input model for technical indicators that use two periods (short and medium).
  * <p>
- * Used for oscillator indicators like RSI where typically fewer periods are needed
- * compared to moving averages (SMA/EMA).
+ * Used for oscillator indicators like RSI where typically fewer periods are needed compared to moving averages
+ * (SMA/EMA).
  * </p>
  * <p>
- * The short period is required, while the medium period is optional. If the medium period
- * is null, only one indicator line will be calculated and displayed.
+ * The short period is required, while the medium period is optional. If the medium period is null, only one indicator
+ * line will be calculated and displayed.
  * </p>
  */
 public class ShortMediumInputPeriod {
@@ -26,8 +26,7 @@ public class ShortMediumInputPeriod {
   public Integer taShortPeriod;
 
   /**
-   * The secondary (medium) calculation period. This is optional.
-   * If null, only one indicator line will be calculated.
+   * The secondary (medium) calculation period. This is optional. If null, only one indicator line will be calculated.
    */
   @Max(value = 999)
   @Min(value = 2)

@@ -26,8 +26,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
- * REST controller for managing GTNet security import headers. Provides CRUD operations
- * for organizing security import batches.
+ * REST controller for managing GTNet security import headers. Provides CRUD operations for organizing security import
+ * batches.
  */
 @RestController
 @RequestMapping(RequestGTMappings.GTNETSECURITYIMPHEAD_MAP)
@@ -41,30 +41,26 @@ public class GTNetSecurityImpHeadResource extends UpdateCreateDeleteWithTenantRe
     super(GTNetSecurityImpHead.class);
   }
 
-  @Operation(summary = "Get all import headers for the current tenant",
-      description = "Returns all GTNet security import headers belonging to the authenticated user's tenant.",
-      tags = { RequestGTMappings.GTNETSECURITYIMPHEAD })
+  @Operation(summary = "Get all import headers for the current tenant", description = "Returns all GTNet security import headers belonging to the authenticated user's tenant.", tags = {
+      RequestGTMappings.GTNETSECURITYIMPHEAD })
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<GTNetSecurityImpHead>> getAllByTenant() {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(gtNetSecurityImpHeadJpaRepository.findByIdTenant(user.getIdTenant()), HttpStatus.OK);
   }
 
-  @Operation(summary = "Queue background job to import securities from GTNet",
-      description = """
-          Creates a background task to query GTNet peers and create securities for all positions without
-          a linked security. If a job is already pending for this import header, no new job is created.
-          If idTransactionHead is provided, the task will auto-assign linked securities to matching
-          ImportTransactionPos entries after successful import.""",
-      tags = { RequestGTMappings.GTNETSECURITYIMPHEAD })
+  @Operation(summary = "Queue background job to import securities from GTNet", description = """
+      Creates a background task to query GTNet peers and create securities for all positions without
+      a linked security. If a job is already pending for this import header, no new job is created.
+      If idTransactionHead is provided, the task will auto-assign linked securities to matching
+      ImportTransactionPos entries after successful import.""", tags = { RequestGTMappings.GTNETSECURITYIMPHEAD })
   @PostMapping(value = "/{idGtNetSecurityImpHead}/importjob", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Object>> queueImportJob(
-      @PathVariable Integer idGtNetSecurityImpHead,
+  public ResponseEntity<Map<String, Object>> queueImportJob(@PathVariable Integer idGtNetSecurityImpHead,
       @RequestParam(required = false) Integer idTransactionHead) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
 
-    boolean queued = gtNetSecurityImpHeadJpaRepository.queueImportJobIfNotExists(
-        idGtNetSecurityImpHead, user.getIdTenant(), user.getIdUser(), idTransactionHead);
+    boolean queued = gtNetSecurityImpHeadJpaRepository.queueImportJobIfNotExists(idGtNetSecurityImpHead,
+        user.getIdTenant(), user.getIdUser(), idTransactionHead);
 
     Map<String, Object> response = new HashMap<>();
     response.put("queued", queued);

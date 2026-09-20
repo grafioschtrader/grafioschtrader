@@ -117,8 +117,8 @@ public class BaseDataClient {
 
     /**
      * Whether the peer refused the message outright. The envelope is the protocol and the HTTP status stays 200 for
-     * every protocol outcome, so a refusal is only visible in the answering code — which is why
-     * {@link #isDelivered()} alone must never be read as success.
+     * every protocol outcome, so a refusal is only visible in the answering code — which is why {@link #isDelivered()}
+     * alone must never be read as success.
      *
      * @return true when the peer answered with GT_NET_ERROR_S
      */
@@ -127,8 +127,8 @@ public class BaseDataClient {
     }
 
     /**
-     * Whether the peer accepted the message: it processed it, took it for later decision, or answered it properly.
-     * This is the semantic counterpart of {@link #isDelivered()}, which only says that the bytes arrived.
+     * Whether the peer accepted the message: it processed it, took it for later decision, or answered it properly. This
+     * is the semantic counterpart of {@link #isDelivered()}, which only says that the bytes arrived.
      *
      * @return true when the answer is anything other than an error
      */

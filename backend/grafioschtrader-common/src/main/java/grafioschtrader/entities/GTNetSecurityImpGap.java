@@ -14,9 +14,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * Entity representing a gap (mismatch) identified during GTNet security import. When a security
- * from a GTNet peer cannot be fully matched to local configuration, gap records document what
- * specifically didn't match (asset class, connectors, etc.).
+ * Entity representing a gap (mismatch) identified during GTNet security import. When a security from a GTNet peer
+ * cannot be fully matched to local configuration, gap records document what specifically didn't match (asset class,
+ * connectors, etc.).
  */
 @Schema(description = """
     Gap entity for GTNet security import. Records what didn't match when importing a security
@@ -72,7 +72,8 @@ public class GTNetSecurityImpGap extends BaseID<Integer> {
     super();
   }
 
-  public GTNetSecurityImpGap(Integer idGtNetSecurityImpPos, Integer idGtNet, GapCodeType gapCodeType, String gapMessage) {
+  public GTNetSecurityImpGap(Integer idGtNetSecurityImpPos, Integer idGtNet, GapCodeType gapCodeType,
+      String gapMessage) {
     super();
     this.idGtNetSecurityImpPos = idGtNetSecurityImpPos;
     this.idGtNet = idGtNet;
@@ -135,10 +136,7 @@ public class GTNetSecurityImpGap extends BaseID<Integer> {
 
   @Override
   public String toString() {
-    return "GTNetSecurityImpGap [idGtNetSecurityImpGap=" + idGtNetSecurityImpGap
-        + ", idGtNetSecurityImpPos=" + idGtNetSecurityImpPos
-        + ", idGtNet=" + idGtNet
-        + ", gapCode=" + gapCode
-        + ", gapMessage=" + gapMessage + "]";
+    return "GTNetSecurityImpGap [idGtNetSecurityImpGap=" + idGtNetSecurityImpGap + ", idGtNetSecurityImpPos="
+        + idGtNetSecurityImpPos + ", idGtNet=" + idGtNet + ", gapCode=" + gapCode + ", gapMessage=" + gapMessage + "]";
   }
 }

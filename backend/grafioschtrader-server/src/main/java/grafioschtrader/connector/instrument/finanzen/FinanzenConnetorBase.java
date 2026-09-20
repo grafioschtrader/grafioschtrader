@@ -58,11 +58,8 @@ public abstract class FinanzenConnetorBase extends BaseFeedConnector {
   @Override
   protected HttpRequest getRequest(String url) {
     return HttpRequest.newBuilder().header("Accept", "*/*").header("Accept-Encoding", "deflate, br")
-        .header("Accept-Language", "de-CH,de;q=0.9,en;q=0.8")
-        .header("Upgrade-Insecure-Requests", "1")
-        .header("Sec-Fetch-Dest", "document")
-        .header("Sec-Fetch-Mode", "navigate")
-        .header("Sec-Fetch-Site", "none")
+        .header("Accept-Language", "de-CH,de;q=0.9,en;q=0.8").header("Upgrade-Insecure-Requests", "1")
+        .header("Sec-Fetch-Dest", "document").header("Sec-Fetch-Mode", "navigate").header("Sec-Fetch-Site", "none")
         .header("User-Agent", GlobalConstants.USER_AGENT_HTTPCLIENT).uri(URI.create(url)).build();
   }
 

@@ -43,8 +43,9 @@ public class GenericConnectorDefJpaRepositoryImpl extends BaseRepositoryImpl<Gen
   private GenericConnectorDefJpaRepository genericConnectorDefJpaRepository;
 
   @Override
-  public GenericConnectorDef saveOnlyAttributes(final GenericConnectorDef entity, final GenericConnectorDef existingEntity,
-      final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
+  public GenericConnectorDef saveOnlyAttributes(final GenericConnectorDef entity,
+      final GenericConnectorDef existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
+      throws Exception {
 
     validateCollectionSizes(entity);
 
@@ -82,8 +83,8 @@ public class GenericConnectorDefJpaRepositoryImpl extends BaseRepositoryImpl<Gen
   /**
    * Bounds the cascaded child collections of one request. The parent carries a daily budget of its own, but the three
    * collections below are {@code CascadeType.ALL} without a {@code @Size}, so a single accepted request could insert an
-   * arbitrary number of rows into {@code generic_connector_endpoint},
-   * {@code generic_connector_http_header} and {@code generic_connector_field_mapping}.
+   * arbitrary number of rows into {@code generic_connector_endpoint}, {@code generic_connector_http_header} and
+   * {@code generic_connector_field_mapping}.
    *
    * <p>
    * The counts are structural rather than administrator-tunable - they follow from what a connector definition can
@@ -112,11 +113,12 @@ public class GenericConnectorDefJpaRepositoryImpl extends BaseRepositoryImpl<Gen
   }
 
   /**
-   * Validates that a non-admin creator respects usage-based locks. When any endpoint has been used successfully,
-   * the creator cannot change def-level fields or HTTP headers. Used endpoints themselves cannot be modified or deleted.
+   * Validates that a non-admin creator respects usage-based locks. When any endpoint has been used successfully, the
+   * creator cannot change def-level fields or HTTP headers. Used endpoints themselves cannot be modified or deleted.
    */
   private void validateUsageBasedPermissions(GenericConnectorDef incoming, GenericConnectorDef existing) {
-    boolean anyEndpointUsed = existing.getEndpoints().stream().anyMatch(GenericConnectorEndpoint::isEverUsedSuccessfully);
+    boolean anyEndpointUsed = existing.getEndpoints().stream()
+        .anyMatch(GenericConnectorEndpoint::isEverUsedSuccessfully);
 
     if (anyEndpointUsed) {
       validateNoDefOrHeaderChanges(incoming, existing);
@@ -154,9 +156,12 @@ public class GenericConnectorDefJpaRepositoryImpl extends BaseRepositoryImpl<Gen
   }
 
   private boolean headersEqual(List<GenericConnectorHttpHeader> a, List<GenericConnectorHttpHeader> b) {
-    if (a == null && b == null) return true;
-    if (a == null || b == null) return false;
-    if (a.size() != b.size()) return false;
+    if (a == null && b == null)
+      return true;
+    if (a == null || b == null)
+      return false;
+    if (a.size() != b.size())
+      return false;
     for (int i = 0; i < a.size(); i++) {
       if (!Objects.equals(a.get(i).getHeaderName(), b.get(i).getHeaderName())
           || !Objects.equals(a.get(i).getHeaderValue(), b.get(i).getHeaderValue())) {

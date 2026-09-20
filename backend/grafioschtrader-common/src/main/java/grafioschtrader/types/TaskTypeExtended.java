@@ -55,7 +55,7 @@ public enum TaskTypeExtended implements ITaskType {
   ALGO_ALARM_INDICATOR_EVALUATION((byte) 50),
   /** Imports securities from GTNet peers for GTNetSecurityImpHead positions */
   GTNET_SECURITY_IMPORT_POSITIONS((byte) 51),
-   /** Processes due standing orders, creating transactions for the previous day */
+  /** Processes due standing orders, creating transactions for the previous day */
   STANDING_ORDER_EXECUTION((byte) 52),
   /** Derives the trading calendar of stock exchanges from a trading calendar rule set */
   CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET((byte) 53),

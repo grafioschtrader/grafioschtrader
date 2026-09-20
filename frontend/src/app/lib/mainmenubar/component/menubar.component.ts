@@ -82,26 +82,31 @@ export class MenubarComponent implements OnInit, OnDestroy {
       icon: 'fa fa-fw fa-edit',
       visible: true
     };
-    this.menuItems[TopMenuTypes.CUSTOM] = { label: 'XXX', visible: false };
+    // Password and nickname belong to the user, exporting and deleting the account to their own portfolio. Switched
+    // into a managed client or a simulation environment the latter two would address the wrong tenant, which the
+    // backend refuses, so they are not offered there.
+    const settingsItems: MenuItem[] = [
+      {
+        label: 'PASSWORD_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.Password)
+      },
+      {
+        label: 'NICKNAME_LOCALE_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.NicknameLocale)
+      }
+    ];
+    const accountOperationsAvailable = !this.isInManagedClient();
+    if (accountOperationsAvailable) {
+      settingsItems.push(exportDataItem, {
+        label: 'DELETE_MY',
+        command: () => this.deleteMyDataAndUserAccount()
+      });
+    }
     this.menuItems[TopMenuTypes.SETTINGS] = {
       label: 'SETTINGS',
       icon: 'fa fa-fw fa-wrench',
       visible: true,
-      items: [
-        {
-          label: 'PASSWORD_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.Password)
-        },
-        {
-          label: 'NICKNAME_LOCALE_CHANGE' + BaseSettings.DIALOG_MENU_SUFFIX,
-          command: () => this.mainDialogService.visibleDialog(true, UserSettingsDialogs.NicknameLocale)
-        },
-        exportDataItem,
-        {
-          label: 'DELETE_MY',
-          command: () => this.deleteMyDataAndUserAccount()
-        }
-      ]
+      items: settingsItems
     };
     this.menuItems[TopMenuTypes.LOGOUT] = {
       label: 'LOGOUT',
@@ -116,11 +121,13 @@ export class MenubarComponent implements OnInit, OnDestroy {
     };
     TranslateHelper.translateMenuItems(this.menuItems, this.translateService);
     // Set after translateMenuItems, so that the already resolved text is not treated as a translation key.
-    exportDataItem.tooltipOptions = {
-      tooltipLabel: this.translateService.instant('EXPORT_DATA_SQL_TITLE', {
-        fileName: this.personalDataZipName
-      })
-    };
+    if (accountOperationsAvailable) {
+      exportDataItem.tooltipOptions = {
+        tooltipLabel: this.translateService.instant('EXPORT_DATA_SQL_TITLE', {
+          fileName: this.personalDataZipName
+        })
+      };
+    }
     this.addManageClientMenu();
     this.subscriptionViewSizeChanged = this.viewSizeChangedService.viewSizeChanged$.subscribe(() =>
       this.toggleMainTree(true)

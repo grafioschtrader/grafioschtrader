@@ -418,6 +418,26 @@ table th input {
   display: block;
 }
 
+/* Equity, cash, exposure and budget of a rebalancing comparison, above the report they belong to. */
+.rebalancing-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.35rem;
+  border: 1px solid var(--p-content-border-color, #dee2e6);
+  border-radius: 4px;
+}
+
+.rebalancing-summary-item {
+  white-space: nowrap;
+}
+
+.rebalancing-breach {
+  font-weight: bold;
+  color: red;
+}
+
 .drop-import-template {
   margin-top: 10px;
   font-size: 12px;

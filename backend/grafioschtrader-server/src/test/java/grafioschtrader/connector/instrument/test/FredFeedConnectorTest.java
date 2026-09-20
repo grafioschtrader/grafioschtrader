@@ -21,8 +21,8 @@ import grafioschtrader.test.start.GTforTest;
 /**
  * Live test for the FRED (St. Louis Fed) connector. Hits the real FRED API and therefore requires:
  * <ul>
- * <li>A row in {@code connector_apikey} of the test DB ({@code grafioschtrader_t}) with
- * {@code id_provider = 'fred'} and a valid Jasypt-encrypted key,</li>
+ * <li>A row in {@code connector_apikey} of the test DB ({@code grafioschtrader_t}) with {@code id_provider = 'fred'}
+ * and a valid Jasypt-encrypted key,</li>
  * <li>internet connectivity.</li>
  * </ul>
  * If the connector is not activated (no key registered), each test is skipped via {@code assumeTrue}.
@@ -82,17 +82,17 @@ class FredFeedConnectorTest {
 
     List<Historyquote> quotes = fredFeedConnector.getEodSecurityHistory(security, from, to);
 
-    Assertions.assertThat(quotes).as("FRED returned no observations for %s (%s) in [%s, %s]", name, fredSeriesId, from, to)
-        .isNotEmpty();
+    Assertions.assertThat(quotes)
+        .as("FRED returned no observations for %s (%s) in [%s, %s]", name, fredSeriesId, from, to).isNotEmpty();
 
     Set<LocalDate> seen = new HashSet<>();
     for (Historyquote h : quotes) {
-      Assertions.assertThat(h.getDate()).as("Quote date for %s outside requested window", fredSeriesId)
-          .isBetween(from, to);
-      Assertions.assertThat(h.getClose()).as("Rate for %s on %s is outside plausible 0..0.25 band", fredSeriesId, h.getDate())
-          .isBetween(-0.05, 0.25);
-      Assertions.assertThat(seen.add(h.getDate())).as("Duplicate date %s in FRED response for %s", h.getDate(), fredSeriesId)
-          .isTrue();
+      Assertions.assertThat(h.getDate()).as("Quote date for %s outside requested window", fredSeriesId).isBetween(from,
+          to);
+      Assertions.assertThat(h.getClose())
+          .as("Rate for %s on %s is outside plausible 0..0.25 band", fredSeriesId, h.getDate()).isBetween(-0.05, 0.25);
+      Assertions.assertThat(seen.add(h.getDate()))
+          .as("Duplicate date %s in FRED response for %s", h.getDate(), fredSeriesId).isTrue();
     }
 
     System.out.printf("FRED %s (%s): %d observations between %s and %s%n", name, fredSeriesId, quotes.size(),

@@ -4,10 +4,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 import grafiosch.common.DataHelper;
+import grafioschtrader.types.AlgoRecommendationAction;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Base class for aggregating security positions into logical groups by classification criteria")
 public abstract class SecurityPositionGroupSummary {
+
+  /**
+   * Target share of total net equity of the whole group in percentage points. Only the rebalancing comparison fills
+   * these; every other grouping leaves them null, and its report then simply has no such columns.
+   */
+  @Schema(description = "Target share of total net equity of the group in percentage points")
+  public Double groupTargetPercentage;
+  public Double groupParentDeviation;
+  public Double groupSecurityDeviationPercentage;
+  public Integer groupMaxTradedSecuritiesPerAssetclass;
+  public Double groupRequestedAdjustment;
+  public Double groupResidual;
+
+  @Schema(description = "Actual share of total net equity of the group in percentage points")
+  public Double groupActualPercentage;
+
+  @Schema(description = "Actual minus target of the group, in percentage points")
+  public Double groupDeviationPercentage;
+
+  @Schema(description = "Direction of the proposed trade for the group as a whole")
+  public AlgoRecommendationAction groupRecommendedAction;
+
+  @Schema(description = "Size of the proposed trade for the group in main currency")
+  public Double groupRecommendedAmount;
+
+  @Schema(description = "Locale independent reason token explaining the group recommendation")
+  public String groupRecommendationReason;
 
   @Schema(description = "Total current market value of all securities in the group in main currency")
   public double groupAccountValueSecurityMC;
@@ -51,13 +79,13 @@ public abstract class SecurityPositionGroupSummary {
    * Adds a security position to this group and aggregates its financial metrics into the group totals. This method
    * performs the core aggregation logic, updating all relevant group-level financial metrics with the values from the
    * individual position.
-   * 
+   *
    * <p>
    * Leverage factor considerations are critical for accurate risk assessment, particularly for derivative instruments,
    * margin trading, and leveraged ETFs where the actual risk exposure may be significantly different from the nominal
    * position value.
    * </p>
-   * 
+   *
    * @param securityPositionSummary the individual security position to add to this group
    */
   public void addToGroupSummaryAndCalcGroupTotals(SecurityPositionSummary securityPositionSummary) {

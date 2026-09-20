@@ -31,8 +31,8 @@ public abstract class LimitCounters {
   }
 
   /**
-   * Counts the rows of one entity whose current {@code created_by} is the acting user. This is the counter behind
-   * every {@link OwnerScope#CREATOR} cap on shared data.
+   * Counts the rows of one entity whose current {@code created_by} is the acting user. This is the counter behind every
+   * {@link OwnerScope#CREATOR} cap on shared data.
    *
    * @param jpqlEntityName JPA entity name to count
    * @return counter returning 0 when there is no acting user

@@ -76,16 +76,16 @@ public abstract class DailyLimitUpdCreateLogger<T extends BaseID<Integer>> {
    *
    * <p>
    * Which users this applies to is now entirely a matter of configuration: the resolver picks a row written for the
-   * user, then one written for the user's most privileged role, then the default row of the key. There is no
-   * hardcoded restriction to {@code ROLE_LIMITEDIT} any more, so an administrator can bound an {@code ALLEDIT} or
-   * {@code ADMIN} account as well. Out of the box only {@code ROLE_LIMITEDIT} rows are seeded, which keeps the
-   * effective behaviour identical until such a row is added.
+   * user, then one written for the user's most privileged role, then the default row of the key. There is no hardcoded
+   * restriction to {@code ROLE_LIMITEDIT} any more, so an administrator can bound an {@code ALLEDIT} or {@code ADMIN}
+   * account as well. Out of the box only {@code ROLE_LIMITEDIT} rows are seeded, which keeps the effective behaviour
+   * identical until such a row is added.
    * </p>
    *
    * <p>
-   * The limit is resolved independently of the counter row and a missing counter row counts as 0. Previously the
-   * lookup was driven by the counter table, so the check was skipped entirely until the user's first operation of the
-   * day had been recorded.
+   * The limit is resolved independently of the counter row and a missing counter row counts as 0. Previously the lookup
+   * was driven by the counter table, so the check was skipped entirely until the user's first operation of the day had
+   * been recorded.
    * </p>
    *
    * @param entity The entity instance involved in the CUD operation. Its class name is used to identify the entity type

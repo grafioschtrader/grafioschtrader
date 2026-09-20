@@ -148,9 +148,15 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       fieldValueFN: BusinessHelper.getDisplayLeverageFactor.bind(this)
     });
 
-    this.addColumn(DataType.DateTimeString, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, { width: 80 });
+    // Both columns are coloured by priceCellStyle of the base class: the timestamp reddens with the number of missed
+    // trading sessions, the price turns yellow when it was calculated rather than traded.
+    this.addColumn(DataType.DateTimeString, 'securitycurrency.sTimestamp', 'TIMEDATE', true, true, {
+      width: 80,
+      cellTooltipFN: this.priceCellTooltip.bind(this)
+    });
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits()
+      maxFractionDigits: gps.getMaxFractionDigits(),
+      cellTooltipFN: this.priceCellTooltip.bind(this)
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {
       headerSuffix: '%',
@@ -194,6 +200,9 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true, {
       maxFractionDigits: gps.getMaxFractionDigits()
     });
+    // Tells which day a price taken from the historical data belongs to. Hidden by default, it only matters for an
+    // instrument whose intraday feed no longer delivers.
+    this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', false, true);
 
     this.prepareTableAndTranslate();
     this.watchlistHasModifiedFromOutside();

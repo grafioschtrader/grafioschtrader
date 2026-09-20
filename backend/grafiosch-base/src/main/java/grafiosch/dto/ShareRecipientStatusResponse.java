@@ -3,8 +3,8 @@ package grafiosch.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Response of the recipient lookup that drives the share-read-access dialog. Lets the frontend decide whether to ask for
- * a password (only a brand-new recipient needs one) and whether to reject the e-mail up front.
+ * Response of the recipient lookup that drives the share-read-access dialog. Lets the frontend decide whether to ask
+ * for a password (only a brand-new recipient needs one) and whether to reject the e-mail up front.
  */
 @Schema(description = "Status of an e-mail the owner wants to share read access with, used to drive the share dialog.")
 public class ShareRecipientStatusResponse {

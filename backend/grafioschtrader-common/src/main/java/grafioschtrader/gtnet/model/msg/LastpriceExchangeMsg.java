@@ -14,13 +14,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 /**
  * Payload for intraday price exchange messages (GT_NET_LASTPRICE_EXCHANGE_SEL_C, GT_NET_LASTPRICE_PUSH_SEL_C).
  *
- * In a request:
- * - Contains instruments with their current local timestamps
- * - Timestamps can be null (meaning no local data, requesting any available price)
+ * In a request: - Contains instruments with their current local timestamps - Timestamps can be null (meaning no local
+ * data, requesting any available price)
  *
- * In a response:
- * - Contains only instruments where the provider has more recent prices than the request
- * - Includes full OHLCV price data
+ * In a response: - Contains only instruments where the provider has more recent prices than the request - Includes full
+ * OHLCV price data
  */
 @Schema(description = """
     Payload for intraday price exchange between GTNet peers. In requests, contains instruments with current local
@@ -52,8 +50,8 @@ public class LastpriceExchangeMsg {
   /**
    * Creates a request payload with instruments to query and freshness threshold.
    *
-   * @param securities list of security price DTOs to request
-   * @param currencypairs list of currency pair price DTOs to request
+   * @param securities             list of security price DTOs to request
+   * @param currencypairs          list of currency pair price DTOs to request
    * @param minAcceptableTimestamp minimum acceptable price timestamp (null means no threshold)
    * @return configured request message
    */

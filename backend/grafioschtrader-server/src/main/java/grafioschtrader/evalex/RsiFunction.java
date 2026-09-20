@@ -5,9 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.functions.AbstractFunction;
@@ -26,8 +23,6 @@ import grafioschtrader.ta.indicator.calc.RelativeStrengthIndex;
 @FunctionParameter(name = "period")
 public class RsiFunction extends AbstractFunction {
 
-  private static final Logger log = LoggerFactory.getLogger(RsiFunction.class);
-
   private final List<Historyquote> historyquotes;
   private final Map<Integer, Double> cache = new HashMap<>();
 
@@ -37,21 +32,22 @@ public class RsiFunction extends AbstractFunction {
 
   @Override
   public EvaluationValue evaluate(Expression expression, Token functionToken, EvaluationValue... parameterValues) {
-    int period = parameterValues[0].getNumberValue().intValue();
+    int period = AlertExpressionSupport.period(parameterValues[0].getNumberValue());
     return EvaluationValue.numberValue(BigDecimal.valueOf(cache.computeIfAbsent(period, this::computeRsi)));
   }
 
   private double computeRsi(int period) {
     if (historyquotes.size() <= period) {
-      log.warn("Insufficient history data for RSI({}): have {} quotes, need > {}", period, historyquotes.size(),
-          period);
-      return 0.0;
+      throw new IndicatorUnavailableException("RSI", period, historyquotes.size());
     }
     RelativeStrengthIndex rsi = new RelativeStrengthIndex(period, historyquotes.size());
     for (Historyquote hq : historyquotes) {
       rsi.addData(hq.getDate(), hq.getClose());
     }
     TaIndicatorData[] data = rsi.getTaIndicatorData();
-    return data.length > 0 ? data[data.length - 1].value : 0.0;
+    if (data.length == 0) {
+      throw new IndicatorUnavailableException("RSI", period, historyquotes.size());
+    }
+    return data[data.length - 1].value;
   }
 }

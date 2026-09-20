@@ -43,6 +43,7 @@ import { ManageClientService } from '../app/lib/manageclient/service/manage-clie
 import { ActivePanelService } from '../app/lib/mainmenubar/service/active.panel.service';
 import { UserDataService } from '../app/lib/mainmenubar/service/user.data.service';
 import { MAIN_TREE_CONTRIBUTOR } from '../app/lib/maintree/contributor/main-tree-contributor.interface';
+import { DashboardMainTreeContributor } from '../app/lib/maintree/contributor/dashboard-main-tree.contributor';
 import { MainTreeContributorManager } from '../app/lib/maintree/contributor/main-tree-contributor.manager';
 import { DIALOG_HANDLER } from '../app/lib/maintree/handler/dialog-handler.interface';
 import { DataChangedService } from '../app/lib/maintree/service/data.changed.service';
@@ -106,6 +107,7 @@ const routes: Routes = [
     component: SplitLayoutComponent,
     canActivate: [authGuard],
     children: [
+      ...DASHBOARD_ROUTES,
       {
         path: GrafioschSettings.USER_MESSAGE_KEY,
         component: SendRecvForwardTabMenuComponent,
@@ -299,6 +301,11 @@ bootstrapApplication(GrafioschAppComponent, {
     MainTreeService,
     {
       provide: MAIN_TREE_CONTRIBUTOR,
+      useClass: DashboardMainTreeContributor,
+      multi: true
+    },
+    {
+      provide: MAIN_TREE_CONTRIBUTOR,
       useClass: GrafioschBaseDataMainTreeContributor,
       multi: true
     },
@@ -324,3 +331,4 @@ bootstrapApplication(GrafioschAppComponent, {
     })
   ]
 }).catch((error) => console.error(error));
+import { DASHBOARD_ROUTES } from '../app/lib/dashboard/dashboard.routes';

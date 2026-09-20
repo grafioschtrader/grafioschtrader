@@ -28,6 +28,8 @@ gt:
 
 # Library-level optional features (g.use.*), independent of the application-specific gt.use.* features above.
 g:
+  # Personal dashboard; false restores the existing main-view landing page.
+  # The same library flag is available to the standalone Grafiosch host.
   gnet:
     offline:
       # Set to false to skip the GT_NET_OFFLINE_ALL_C broadcast on shutdown. GTNet stays fully usable
@@ -36,6 +38,7 @@ g:
       # gives a noticeably faster shutdown during development: --g.gnet.offline.announce=false
       announce: true
   use:
+    dashboard: true
     # manageclient: a user (advisor) can create additional tenants with a read-only client login,
     # switch between the tenants they manage, and return to their own tenant.
     manageclient: true

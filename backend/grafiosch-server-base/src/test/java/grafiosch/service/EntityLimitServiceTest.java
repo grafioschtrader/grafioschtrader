@@ -118,8 +118,8 @@ class EntityLimitServiceTest {
   class MostPrivilegedRole {
 
     /**
-     * The point of consulting only the highest ranked role: taking a numeric maximum over the cumulative role set
-     * would let a limit written for ROLE_USER throttle every administrator.
+     * The point of consulting only the highest ranked role: taking a numeric maximum over the cumulative role set would
+     * let a limit written for ROLE_USER throttle every administrator.
      */
     @Test
     @DisplayName("An administrator is not bound by a row written for ROLE_USER")
@@ -170,8 +170,8 @@ class EntityLimitServiceTest {
   class BackgroundContext {
 
     /**
-     * Scheduled work such as the standing order execution runs without an authenticated user. Resolving must then
-     * skip the user and role steps rather than fail, otherwise those jobs could not enforce a cap at all.
+     * Scheduled work such as the standing order execution runs without an authenticated user. Resolving must then skip
+     * the user and role steps rather than fail, otherwise those jobs could not enforce a cap at all.
      */
     @Test
     @DisplayName("Without a user the default row applies and user rows are ignored")
@@ -193,8 +193,8 @@ class EntityLimitServiceTest {
 
       // A role change makes the cached value stale; after eviction the row set is read again.
       givenRows(row(null, null, 10, null));
-      assertThat(entityLimitService.resolve(user(Role.ROLE_USER, ID_ROLE_USER), KEY))
-          .as("still cached until evicted").contains(30);
+      assertThat(entityLimitService.resolve(user(Role.ROLE_USER, ID_ROLE_USER), KEY)).as("still cached until evicted")
+          .contains(30);
       entityLimitService.evictUser(ID_USER);
       assertThat(entityLimitService.resolve(user(Role.ROLE_USER, ID_ROLE_USER), KEY)).contains(10);
     }

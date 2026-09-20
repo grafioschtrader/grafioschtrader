@@ -5,9 +5,9 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * A time-bounded fee period containing its own set of fee rules. Allows brokers' changing fee schedules
- * to be modelled within a single YAML document. Periods are evaluated top-to-bottom; the first period
- * whose date range covers the transaction date is used.
+ * A time-bounded fee period containing its own set of fee rules. Allows brokers' changing fee schedules to be modelled
+ * within a single YAML document. Periods are evaluated top-to-bottom; the first period whose date range covers the
+ * transaction date is used.
  */
 @Schema(description = """
     A fee period with a date range and nested rules. Used inside the 'periods' array of a fee model

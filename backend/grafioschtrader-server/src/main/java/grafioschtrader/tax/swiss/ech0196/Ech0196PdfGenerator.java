@@ -103,7 +103,7 @@ public class Ech0196PdfGenerator {
         PDPage page = new PDPage(landscape);
         document.addPage(page);
 
-        float pageWidth = landscape.getWidth();   // 842
+        float pageWidth = landscape.getWidth(); // 842
         float pageHeight = landscape.getHeight(); // 595
 
         // Available area for barcode columns
@@ -129,8 +129,8 @@ public class Ech0196PdfGenerator {
 
           // Place barcodes side by side, each rotated 90° stretching top to bottom
           for (int col = 0; col < segmentsOnPage; col++) {
-            PDImageXObject barcodeImg = PDImageXObject.createFromByteArray(document,
-                pdf417Images.get(barcodeIdx), "pdf417_" + barcodeIdx);
+            PDImageXObject barcodeImg = PDImageXObject.createFromByteArray(document, pdf417Images.get(barcodeIdx),
+                "pdf417_" + barcodeIdx);
 
             float xCol = PAGE_MARGIN + col * (columnWidth + COLUMN_GAP);
 
@@ -151,8 +151,8 @@ public class Ech0196PdfGenerator {
             // The barcode's original width becomes the vertical span after rotation
             // The barcode's original height becomes the horizontal span after rotation
             // Scale so the vertical span fills availableHeight
-            float drawW = availableHeight;             // pre-rotation width → vertical on page
-            float drawH = drawW / aspectRatio;         // pre-rotation height → horizontal on page
+            float drawW = availableHeight; // pre-rotation width → vertical on page
+            float drawH = drawW / aspectRatio; // pre-rotation height → horizontal on page
 
             // Cap horizontal span to column width
             if (drawH > columnWidth) {

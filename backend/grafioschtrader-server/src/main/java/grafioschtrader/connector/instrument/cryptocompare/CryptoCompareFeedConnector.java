@@ -123,8 +123,7 @@ public class CryptoCompareFeedConnector extends BaseFeedApiKeyConnector {
       if (ds.close > 0) {
         final Historyquote histroyquote = new Historyquote();
         historyquotes.add(histroyquote);
-        histroyquote.setDate(
-            Instant.ofEpochSecond(ds.time).atZone(ZoneId.systemDefault()).toLocalDate());
+        histroyquote.setDate(Instant.ofEpochSecond(ds.time).atZone(ZoneId.systemDefault()).toLocalDate());
         histroyquote.setClose(ds.close);
         histroyquote.setOpen(ds.open);
         histroyquote.setLow(ds.low);

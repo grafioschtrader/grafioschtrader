@@ -49,8 +49,25 @@ import { UpperCaseDirective } from './upper-case.directive';
             @if (entry.iconClass) {
               <i [class]="entry.iconClass" style="width: 20px" aria-hidden="true"></i>
             }
-            <div>{{ entry.optionsText }}</div>
+            <div>
+              @if (entry.textSegments) {
+                @for (segment of entry.textSegments; track $index) {
+                  <span [class]="segment.cssClass" [title]="segment.title || ''">{{ segment.text }}</span>
+                }
+              } @else {
+                {{ entry.optionsText }}
+              }
+            </div>
           </div>
+        </ng-template>
+        <ng-template let-entry pTemplate="selectedItem">
+          @if (entry?.textSegments) {
+            @for (segment of entry.textSegments; track $index) {
+              <span [class]="segment.cssClass" [title]="segment.title || ''">{{ segment.text }}</span>
+            }
+          } @else {
+            {{ entry?.value }}
+          }
         </ng-template>
       </p-select>
     </ng-container>

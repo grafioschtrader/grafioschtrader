@@ -49,18 +49,11 @@ class MailSettingForwardResourceTest extends BaseIntegrationTest {
     // Asserted on the raw JSON rather than on MailSendForwardDefaultBase: its maps are keyed by the interface
     // IMessageComType, for which Jackson has no map key deserializer. The frontend reads this response as plain JSON,
     // so the payload - not a Java round trip - is the contract worth pinning here.
-    String defaults = authenticatedClient(RestTestHelper.USER)
-        .get()
-        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP + "/defaultforward")
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(String.class)
-        .returnResult()
-        .getResponseBody();
+    String defaults = authenticatedClient(RestTestHelper.USER).get()
+        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP + "/defaultforward").exchange().expectStatus().isOk()
+        .expectBody(String.class).returnResult().getResponseBody();
 
-    assertThat(defaults).isNotNull()
-        .contains("mailSendForwardDefaultMapForUser")
-        .contains("canRedirectToUsers")
+    assertThat(defaults).isNotNull().contains("mailSendForwardDefaultMapForUser").contains("canRedirectToUsers")
         .contains(MessageComType.USER_ADMIN_ANNOUNCEMENT.name())
         .contains(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL.name());
   }
@@ -70,10 +63,8 @@ class MailSettingForwardResourceTest extends BaseIntegrationTest {
   @DisplayName("Remove leftovers of an earlier run, then create a forwarding rule")
   void createMailSettingForward() {
     for (MailSettingForward existing : getSettingsOfUser()) {
-      authenticatedClient(RestTestHelper.USER)
-          .delete()
-          .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP + "/" + existing.getIdMailSettingForward())
-          .exchange()
+      authenticatedClient(RestTestHelper.USER).delete()
+          .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP + "/" + existing.getIdMailSettingForward()).exchange()
           .expectStatus().isNoContent();
     }
 
@@ -81,15 +72,9 @@ class MailSettingForwardResourceTest extends BaseIntegrationTest {
     mailSettingForward.setMessageComType(MessageComType.USER_ADMIN_ANNOUNCEMENT);
     mailSettingForward.setMessageTargetType(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL);
 
-    MailSettingForward created = authenticatedClient(RestTestHelper.USER)
-        .post()
-        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP)
-        .body(mailSettingForward)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(MailSettingForward.class)
-        .returnResult()
-        .getResponseBody();
+    MailSettingForward created = authenticatedClient(RestTestHelper.USER).post()
+        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP).body(mailSettingForward).exchange().expectStatus().isOk()
+        .expectBody(MailSettingForward.class).returnResult().getResponseBody();
 
     assertThat(created).isNotNull();
     assertThat(created.getIdMailSettingForward()).isPositive();
@@ -106,15 +91,9 @@ class MailSettingForwardResourceTest extends BaseIntegrationTest {
     mailSettingForward.setMessageComType(MessageComType.USER_ADMIN_ANNOUNCEMENT);
     mailSettingForward.setMessageTargetType(MessageTargetType.INTERNAL_MAIL);
 
-    MailSettingForward updated = authenticatedClient(RestTestHelper.USER)
-        .put()
-        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP)
-        .body(mailSettingForward)
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(MailSettingForward.class)
-        .returnResult()
-        .getResponseBody();
+    MailSettingForward updated = authenticatedClient(RestTestHelper.USER).put()
+        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP).body(mailSettingForward).exchange().expectStatus().isOk()
+        .expectBody(MailSettingForward.class).returnResult().getResponseBody();
 
     assertThat(updated).isNotNull();
     assertThat(updated.getIdMailSettingForward()).isEqualTo(idMailSettingForward);
@@ -127,24 +106,18 @@ class MailSettingForwardResourceTest extends BaseIntegrationTest {
   void listAndDeleteMailSettingForward() {
     assertThat(getSettingsOfUser()).anyMatch(s -> idMailSettingForward.equals(s.getIdMailSettingForward()));
 
-    authenticatedClient(RestTestHelper.USER)
-        .delete()
-        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP + "/" + idMailSettingForward)
-        .exchange()
-        .expectStatus().isNoContent();
+    authenticatedClient(RestTestHelper.USER).delete()
+        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP + "/" + idMailSettingForward).exchange().expectStatus()
+        .isNoContent();
 
     assertThat(getSettingsOfUser()).noneMatch(s -> idMailSettingForward.equals(s.getIdMailSettingForward()));
   }
 
   private List<MailSettingForward> getSettingsOfUser() {
-    List<MailSettingForward> settings = authenticatedClient(RestTestHelper.USER)
-        .get()
-        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP + "/user")
-        .exchange()
-        .expectStatus().isOk()
-        .expectBody(new ParameterizedTypeReference<List<MailSettingForward>>() {})
-        .returnResult()
-        .getResponseBody();
+    List<MailSettingForward> settings = authenticatedClient(RestTestHelper.USER).get()
+        .uri(RequestMappings.MAIL_SETTING_FORWARD_MAP + "/user").exchange().expectStatus().isOk()
+        .expectBody(new ParameterizedTypeReference<List<MailSettingForward>>() {
+        }).returnResult().getResponseBody();
     assertThat(settings).isNotNull();
     return settings;
   }
