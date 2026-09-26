@@ -24,9 +24,13 @@ class AlgoSimulationResultTest {
     AlgoSimulationResult result = new AlgoSimulationResult();
     result.setPaidDividends(31791.654202761805);
     result.setDividendReceivables(435.05835700000006);
+    result.setFxMarkupPaid(0.79999999999999);
+    result.setFxUncoveredConversions(3);
 
     assertEquals(31791.65, result.getPaidDividends());
     assertEquals(435.06, result.getDividendReceivables());
+    assertEquals(0.8, result.getFxMarkupPaid());
+    assertEquals(3, result.getFxUncoveredConversions());
   }
 
   @Test
@@ -38,5 +42,7 @@ class AlgoSimulationResultTest {
     assertNull(result.getMaxDrawdown());
     assertNull(result.getPaidDividends());
     assertNull(result.getDividendReceivables());
+    assertNull(result.getFxMarkupPaid());
+    assertNull(result.getFxUncoveredConversions());
   }
 }

@@ -1,3 +1,6 @@
+import { AlgoTop } from './algo.top';
+import { AlgoAssetclass } from './algo.assetclass';
+
 /**
  * Definition, progress and result of one historical replay of a simulation environment.
  *
@@ -32,8 +35,35 @@ export interface SimulationRunResult {
   dividendPaymentDelayDays?: number;
   /** Gross payments in tenant currency, using payment-date FX. */
   paidDividends?: number;
+  fxMarkupPaid?: number;
+  fxUncoveredConversions?: number;
   /** Unpaid entitlements in tenant currency at the end date. */
   dividendReceivables?: number;
+}
+
+/**
+ * What the latest replay of an environment was based on. Both parts are frozen when the run is submitted, so later
+ * edits of the shared strategy hierarchy change neither.
+ */
+export interface SimulationRunSettings {
+  /** The hierarchy at submit time in the shape of the hierarchy view; empty for a run submitted before it was kept. */
+  hierarchy?: { algoTop: AlgoTop; algoAssetclassList: AlgoAssetclass[] };
+  /** Weights the replay allocated with, keyed by hierarchy node id. */
+  allocation?: SimulationRunAllocation;
+  submittedAt: string;
+}
+
+/**
+ * Original and effective weights of a replay. They differ where instruments were excluded from trading and their weight
+ * was redistributed within their class.
+ */
+export interface SimulationRunAllocation {
+  topId: number;
+  topPercentage: number;
+  originalClasses: { [idAlgoAssetclass: number]: number };
+  originalMembers: { [idAlgoSecurity: number]: number };
+  classes: { [idAlgoAssetclass: number]: number };
+  members: { [idAlgoSecurity: number]: number };
 }
 
 export interface SimulationFailureMessage {
@@ -76,6 +106,8 @@ export enum SimulationRunStatus {
  * Corresponds to backend: grafioschtrader-common/src/main/java/grafioschtrader/types/AlgoEventType.java
  */
 export enum AlgoEventType {
+  CUSTODY_FEE = 'CUSTODY_FEE',
+  CUSTODY_CREDIT = 'CUSTODY_CREDIT',
   RUN_START = 'RUN_START',
   OPENING_EXCLUDED_CLOSE = 'OPENING_EXCLUDED_CLOSE',
   ALLOCATION_PLAN = 'ALLOCATION_PLAN',

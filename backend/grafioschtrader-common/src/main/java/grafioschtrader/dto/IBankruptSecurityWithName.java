@@ -30,6 +30,9 @@ public interface IBankruptSecurityWithName {
   @Schema(description = "Day from which the issuer stopped delivering prices, as recorded by the user")
   LocalDate getNoDataSince();
 
+  @Schema(description = "First day on which the instrument can no longer be traded, read by the historical simulation")
+  LocalDate getNoTradingSince();
+
   String getNote();
 
   @Schema(description = "Newest closing price that a connector, an import or the user supplied, so not a filled one")

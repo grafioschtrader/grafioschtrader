@@ -478,9 +478,18 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
 
   /**
    * Array of data objects to display in the table.
-   * Each object represents one row of data.
+   * Each object represents one row of data. Missing async data is treated as an empty table.
    */
-  @Input() data: T[] = [];
+  @Input()
+  set data(value: T[] | null | undefined) {
+    this.tableData = value ?? [];
+  }
+
+  get data(): T[] {
+    return this.tableData;
+  }
+
+  private tableData: T[] = [];
 
   /**
    * Array of column configurations defining table structure.

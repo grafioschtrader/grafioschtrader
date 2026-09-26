@@ -8,10 +8,11 @@ import { AlgoAssetclass } from '../model/algo.assetclass';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { AlgoAssetclassSecurityBaseEdit } from './algo.assetclass.security.base.edit';
 import { combineLatest, Observable } from 'rxjs';
-import { Portfolio } from '../../entities/portfolio';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { Security } from '../../entities/security';
 import { SecurityService } from '../../securitycurrency/service/security.service';
-import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
@@ -44,14 +45,14 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 })
 export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoSecurity> implements OnInit {
   constructor(
-    private portfolioService: PortfolioService,
     private securityService: SecurityService,
     translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
-    algoSecurityService: AlgoSecurityService
+    algoSecurityService: AlgoSecurityService,
+    securityaccountService: SecurityaccountService
   ) {
-    super('ALGO_SECURITY', translateService, gps, messageToastService, algoSecurityService);
+    super('ALGO_SECURITY', translateService, gps, messageToastService, algoSecurityService, securityaccountService);
   }
 
   ngOnInit(): void {
@@ -78,12 +79,14 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
     } else {
       securitiesObservable = this.securityService.getUnusedSecurityForAlgo(parentAssetclass.idAlgoAssetclassSecurity);
     }
-    const allSecurityaccountsObservable: Observable<Portfolio[]> =
-      this.portfolioService.getPortfoliosForTenantOrderByName();
+    const existing = <AlgoSecurity>this.algoCallParam.thisObject;
+    const accountOptionsObservable: Observable<ValueKeyHtmlSelectOptions[]> = this.getAccountOptions(
+      existing?.security?.idSecuritycurrency
+    );
     this.valueChangedOnSecurityaccount1();
     combineLatest([
       securitiesObservable,
-      allSecurityaccountsObservable,
+      accountOptionsObservable,
       this.translateService.get([
         'ACTIVE_FROM_DATE',
         'ACTIVE_TO_DATE',
@@ -114,8 +117,20 @@ export class AlgoSecurityEditComponent extends AlgoAssetclassSecurityBaseEdit<Al
           ended: data[2].ALGO_SECURITY_ENDED
         }
       );
-      this.portfolios = data[1];
-      this.setSecurityaccounts();
+      this.setAccountOptions(data[1]);
+      if (existing) {
+        this.form.transferBusinessObjectToForm(existing);
+        // A saved priority whose account no longer allows the type is cleared, the backend would refuse it.
+        this.setAccountOptions(data[1]);
+      }
+      // The allowed accounts follow the instrument type of the selected security.
+      this.configObject.security.formControl.valueChanges
+        .pipe(distinctUntilChanged())
+        .subscribe((idSecuritycurrency: number) =>
+          this.getAccountOptions(idSecuritycurrency || undefined).subscribe((options) =>
+            this.setAccountOptions(options)
+          )
+        );
     });
   }
 

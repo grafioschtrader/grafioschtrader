@@ -155,7 +155,7 @@ class AlgoHierarchySimulationGuardTest {
     em.flush();
     em.clear();
     return algoTopJpaRepository.findByIdTenantOrderByName(homeIdTenant).stream()
-        .map(t -> t.getName() + "/" + t.getPercentage() + "/" + t.isActivatable()).toList().toString()
+        .map(t -> t.getName() + "/" + t.getPercentage()).toList().toString()
         + algoAssetclassJpaRepository.findByIdTenantAndIdAlgoAssetclassParent(homeIdTenant, top.getId()).stream()
             .map(a -> a.getName() + "/" + a.getPercentage()).toList().toString()
         + algoSecurityJpaRepository.findByIdAlgoSecurityParentAndIdTenant(bucket.getId(), homeIdTenant).stream()
@@ -170,7 +170,7 @@ class AlgoHierarchySimulationGuardTest {
     authenticate(simulationIdTenant);
 
     AlgoTop topChange = algoTopJpaRepository.findById(top.getId()).orElseThrow();
-    topChange.setActivatable(!topChange.isActivatable());
+    topChange.setName("Guard strategy renamed");
     assertRefused(() -> algoTopJpaRepository.saveOnlyAttributes(topChange, topChange, levels()));
     assertRefused(() -> algoTopJpaRepository.normalizeChildPercentages(top.getId(), homeIdTenant));
     assertRefused(() -> algoTopJpaRepository.normalizeAllPercentages(top.getId(), homeIdTenant));
@@ -197,10 +197,10 @@ class AlgoHierarchySimulationGuardTest {
   @DisplayName("The same mutations succeed from the home tenant")
   void mutationsAllowedFromHome() {
     AlgoTop topChange = algoTopJpaRepository.findById(top.getId()).orElseThrow();
-    topChange.setActivatable(false);
+    topChange.setName("Guard strategy renamed");
     assertThatCode(() -> algoTopJpaRepository.saveOnlyAttributes(topChange, topChange, levels()))
         .doesNotThrowAnyException();
-    assertThat(algoTopJpaRepository.findById(top.getId()).orElseThrow().isActivatable()).isFalse();
+    assertThat(algoTopJpaRepository.findById(top.getId()).orElseThrow().getName()).isEqualTo("Guard strategy renamed");
 
     algoTopJpaRepository.normalizeChildPercentages(top.getId(), homeIdTenant);
     em.flush();

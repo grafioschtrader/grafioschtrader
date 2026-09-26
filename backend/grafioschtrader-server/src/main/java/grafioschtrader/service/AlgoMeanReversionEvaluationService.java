@@ -39,11 +39,12 @@ public class AlgoMeanReversionEvaluationService {
   private final AlgoAlarmRecorder recorder;
   private final FeatureConfig features;
   private final AlgoMeanReversionScopeEvaluator evaluator;
+  private final AlgoMonitoringService monitoring;
   private Clock clock = Clock.systemUTC();
 
   public AlgoMeanReversionEvaluationService(AlgoTopJpaRepository tops, AlgoAlertScopeResolver scopes,
       AlgoTradingRepository data, AlgoRecommendationJpaRepository recommendations, AlgoAlarmRecorder recorder,
-      FeatureConfig features, AlgoMeanReversionScopeEvaluator evaluator) {
+      FeatureConfig features, AlgoMeanReversionScopeEvaluator evaluator, AlgoMonitoringService monitoring) {
     this.tops = tops;
     this.scopes = scopes;
     this.data = data;
@@ -51,6 +52,7 @@ public class AlgoMeanReversionEvaluationService {
     this.recorder = recorder;
     this.features = features;
     this.evaluator = evaluator;
+    this.monitoring = monitoring;
   }
 
   public static boolean isMeanReversion(AlgoStrategy s) {
@@ -66,14 +68,21 @@ public class AlgoMeanReversionEvaluationService {
     if (!features.isAlgo() || !features.isAlert())
       return false;
     LocalDate today = LocalDate.now(clock);
-    return scopes.resolveAll().stream().filter(s -> s.active() && isMeanReversion(s.strategy()))
+    // Only the assigned monitoring hierarchy keeps live proposals; the notification preference does not matter here.
+    return tops.findAll().stream().filter(top -> monitoring.isAssigned(top.getIdTenant(), top.getId())).flatMap(top -> scopes.resolveForAlgoTop(top).stream())
+        .filter(s -> s.active() && isMeanReversion(s.strategy()))
         .anyMatch(s -> recommendations
             .findByIdTenantAndIdAlgoStrategyAndIdSecuritycurrencyAndTriggerKind(s.idTenant(), s.strategy().getId(),
                 s.security().getId(), AlgoRebalancingTrigger.MEAN_REVERSION)
             .map(r -> r.getRunDate().isBefore(today)).orElse(true));
   }
 
-  /** One transaction serializes all parent budgets and atomically records recommendations and notifications. */
+  /**
+   * One transaction serializes all parent budgets and atomically records recommendations and notifications. Only the
+   * hierarchy assigned to monitoring is evaluated: another hierarchy, typically kept for simulation, would reserve budget
+   * against the real holdings and propose trades nobody follows. Proposals of any other hierarchy, including those of a
+   * previous assignment, are removed with the stale rows at the end; a tenant without assignment keeps none.
+   */
   @Transactional
   public void evaluate(Integer tenantId, boolean manual) {
     if (!features.isAlgo() || !features.isAlert())
@@ -82,7 +91,9 @@ public class AlgoMeanReversionEvaluationService {
     if (tenant.getIdParentTenant() != null)
       throw new IllegalArgumentException("Live evaluation requires the main tenant");
     LocalDate today = LocalDate.now(clock);
-    if (!manual && scopes.resolveForTenant(tenantId).stream().filter(s -> s.active() && isMeanReversion(s.strategy()))
+    Integer assigned = tenant.getIdAlgoTop();
+    if (!manual && tops.findByIdTenantOrderByName(tenantId).stream()
+        .filter(top -> top.getId().equals(assigned)).flatMap(top -> scopes.resolveForAlgoTop(top).stream()).filter(s -> s.active() && isMeanReversion(s.strategy()))
         .noneMatch(s -> recommendations
             .findByIdTenantAndIdAlgoStrategyAndIdSecuritycurrencyAndTriggerKind(tenantId, s.strategy().getId(),
                 s.security().getId(), AlgoRebalancingTrigger.MEAN_REVERSION)
@@ -95,7 +106,9 @@ public class AlgoMeanReversionEvaluationService {
       return result;
     };
     Set<Integer> retained = new HashSet<>();
-    for (Proposal proposal : evaluator.evaluate(tenantId, tenantId, null, through, market)) {
+    List<Proposal> proposals = assigned == null ? List.of()
+        : evaluator.evaluate(tenantId, tenantId, assigned, through, market);
+    for (Proposal proposal : proposals) {
       AlgoAlertScope scope = proposal.scope();
       Decision decision = proposal.decision();
       AlgoRecommendation row = recommendations
@@ -113,7 +126,6 @@ public class AlgoMeanReversionEvaluationService {
       row.setCurrency(tenant.getCurrency());
       row.setTriggerKind(AlgoRebalancingTrigger.MEAN_REVERSION);
       row.setRationale(decision.rationale().substring(0, Math.min(1000, decision.rationale().length())));
-      row.setActualAmount(proposal.securityExposure());
       row.setRecommendedAmount(proposal.amount());
       row.setRecommendedUnits(decision.quantity());
       row.setRecommendedAction(recommendedAction(decision));

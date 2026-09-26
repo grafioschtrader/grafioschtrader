@@ -120,6 +120,18 @@ export abstract class HistoryquoteTableBase<T extends BaseID> extends TableCrudS
     });
   }
 
+  /**
+   * Formats the open, high, low and close columns with the exact number of fraction digits the backend rounded the
+   * prices to, which it does for index levels. Undefined restores the standard formatting for every other instrument.
+   *
+   * @param priceFractionDigits - Fraction digits delivered with the instrument, or undefined
+   */
+  protected applyPriceFractionDigits(priceFractionDigits: number): void {
+    this.fields
+      .filter((field) => ['open', 'high', 'low', 'close'].includes(field.field))
+      .forEach((field) => (field.fixedFractionDigits = priceFractionDigits ?? undefined));
+  }
+
   /** Newest row first — matches what the live view shipped with before this refactor. */
   protected applyDefaultDateSort(): void {
     this.multiSortMeta.push({ field: 'date', order: -1 });

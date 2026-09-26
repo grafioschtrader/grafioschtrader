@@ -200,7 +200,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Transaction> create(@Valid @RequestBody Transaction entity) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant());
+    transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant(), 1);
     return createEntity(entity);
   }
 
@@ -212,7 +212,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   public ResponseEntity<Transaction> createTransaction(
       @Validated(SecurityTransaction.class) @RequestBody Transaction entity) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant());
+    transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant(), 1);
     return createEntity(entity);
   }
 
@@ -241,7 +241,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
   public ResponseEntity<Transaction> createSingleCash(@Validated(CashTransaction.class) @RequestBody Transaction entity)
       throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant());
+    transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant(), 1);
     return createEntity(entity);
   }
 
@@ -277,7 +277,7 @@ public class TransactionResource extends UpdateCreate<Transaction> {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     // Only a new transfer increases the transaction count; an update of an existing transfer does not.
     if (cashAccountTransfer.getWithdrawalTransaction().getIdTransaction() == null) {
-      transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant());
+      transactionJpaRepository.throwWhenTransactionLimitReached(user.getIdTenant(), 2);
     }
     CashAccountTransfer cashAccountTransferExisting = new CashAccountTransfer(
         checkAndSetEntityWithTenant(cashAccountTransfer.getWithdrawalTransaction(), user),

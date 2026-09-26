@@ -27,4 +27,21 @@ public interface ImportTransactionHeadJpaRepositoryCustom extends BaseRepository
 
   int delEntityWithTenant(Integer id, Integer idTenant);
 
+  /**
+   * Deletes all transactions created from the positions of an import head, newest first, so that the whole import can
+   * be carried out again. The import positions are kept and become importable again, including the pairing of
+   * connected cash-account transfers.
+   *
+   * <p>
+   * The rollback is all or nothing and is refused when another transaction of the tenant is dated on or after the day
+   * of the earliest imported transaction, when an imported transaction lies within a closed period, or when an imported
+   * transaction is referenced by a simulation opening, a security action, a security transfer or a standing order.
+   * </p>
+   *
+   * @param idTransactionHead the import head of the current tenant
+   * @return the number of deleted transactions, 0 when the head has no imported positions
+   * @throws SecurityException if the head does not belong to the current tenant
+   */
+  int rollbackImportedTransactions(Integer idTransactionHead);
+
 }

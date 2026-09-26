@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, Optional, ChangeDetectionStrategy } from '@angular/core';
+import { ViewChild, Component, Input, OnInit, Optional, ChangeDetectionStrategy } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { combineLatest, switchMap } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { SimpleEditBase } from '../../lib/edit/simple.edit.base';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -35,6 +35,7 @@ import { YamlEditorComponent, YamlFieldCompletion } from '../../algo/component/y
 import { HttpClient } from '@angular/common/http';
 import { AppSettings } from '../../shared/app.settings';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
+import { FxMarkupPreviewComponent } from './fx-markup-preview.component';
 
 /**
  * Dialog component for editing the fee model YAML and testing fee estimations.
@@ -47,6 +48,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
   template: `
     @if (!isDynamic) {
       <p-dialog
+        styleClass="big-dialog"
         header="{{ 'FEE_MODEL_YAML' | translate }}"
         [visible]="visibleDialog"
         [style]="{ width: '900px' }"
@@ -56,18 +58,26 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
         <ng-container *ngTemplateOutlet="feeModelContent"></ng-container>
       </p-dialog>
     } @else {
-      <ng-container *ngTemplateOutlet="feeModelContent"></ng-container>
+      <div style="max-height: calc(100vh - 140px); overflow-y: auto;">
+        <ng-container *ngTemplateOutlet="feeModelContent"></ng-container>
+      </div>
     }
 
     <ng-template #feeModelContent>
+      <p>{{ 'CUSTODY_EDITOR_HELP' | translate }}</p>
       <yaml-editor
+        #yamlEditor
+        [format]="isDynamic ? 'FEES_ACCOUNT' : 'FEES'"
         [height]="'400px'"
         [(value)]="feeModelYamlValue"
         [schema]="feeModelSchema"
         [fieldCompletions]="evalExCompletions"></yaml-editor>
 
       <div class="flex justify-end mt-3">
-        <p-button [label]="'SAVE' | translate" (click)="save()">
+        <p-button
+          [label]="'SAVE' | translate"
+          [disabled]="yamlEditor.validating || !yamlEditor.syntaxValid"
+          (click)="save()">
           <i class="pi pi-check" pButtonIcon></i>
         </p-button>
       </div>
@@ -95,6 +105,12 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
           }
         }
       </p-fieldset>
+      <p-fieldset [legend]="'FX_CONVERSION' | translate" [toggleable]="true" [collapsed]="true" styleClass="mt-3">
+        <fx-markup-preview
+          [yaml]="feeModelYamlValue"
+          [idSecurityaccount]="securityaccount?.idSecuritycashAccount"
+          [idTradingPlatformPlan]="callParam?.idTradingPlatformPlan"></fx-markup-preview>
+      </p-fieldset>
     </ng-template>
   `,
   standalone: true,
@@ -106,10 +122,12 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
     FieldsetModule,
     ButtonModule,
     YamlEditorComponent,
+    FxMarkupPreviewComponent,
     NgTemplateOutlet
   ]
 })
 export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
+  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
   static readonly DIALOG_WIDTH = 900;
 
   @Input() callParam: TradingPlatformPlan;
@@ -120,7 +138,7 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
   evalExCompletions: { [fieldName: string]: YamlFieldCompletion[] };
   testResult: TransactionCostEstimateResult = null;
 
-  private securityaccount: Securityaccount;
+  securityaccount: Securityaccount;
 
   constructor(
     private tradingPlatformPlanService: TradingPlatformPlanService,
@@ -152,6 +170,11 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       DynamicFieldHelper.createFieldSelectNumberHeqF('specInvestInstrument', false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('categoryType', false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('tradeDirection', false),
+      DynamicFieldHelper.createFieldSelectStringHeqF('settlementCurrency', false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('tradesInMonth', false, 4, 0, false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('tradesInQuarter', false, 4, 0, false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('tradesInYear', false, 5, 0, false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('securityTradesInMonth', false, 4, 0, false),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'transactionDate', false),
       DynamicFieldHelper.createFunctionButton('TEST_FEE_ESTIMATION', (e) => this.testEstimation(e))
     ];
@@ -175,6 +198,9 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       ([stockexchanges, currencies]) => {
         this.configObject.mic.valueKeyHtmlOptions = this.createMicOptions(stockexchanges);
         this.configObject.currency.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')].concat(currencies);
+        this.configObject.settlementCurrency.valueKeyHtmlOptions = [new ValueKeyHtmlSelectOptions('', '')].concat(
+          currencies
+        );
         this.configObject.specInvestInstrument.valueKeyHtmlOptions =
           this.createOrdinalEnumOptions(SpecialInvestmentInstruments);
         this.configObject.categoryType.valueKeyHtmlOptions = this.createOrdinalEnumOptions(AssetclassType);
@@ -191,7 +217,8 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
     );
   }
 
-  save(): void {
+  async save(): Promise<void> {
+    if (!(await this.yamlEditor.validateForSubmit())) return;
     if (this.isDynamic) {
       const sa = new Securityaccount();
       Object.assign(sa, this.securityaccount);
@@ -246,14 +273,13 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
 
   /**
    * Tests fee estimation. In dynamic mode (securityaccount), uses inline YAML evaluation.
-   * In p-dialog mode (TradingPlatformPlan), saves the plan first then estimates.
+   * Both modes evaluate unsaved YAML without persisting the plan.
    */
-  testEstimation(event: any): void {
-    if (!this.feeModelYamlValue) {
-      return;
-    }
+  async testEstimation(event: any): Promise<void> {
+    if (!(await this.yamlEditor.validateForSubmit())) return;
 
     const request: TransactionCostEstimateRequest = {
+      idSecurityaccount: this.securityaccount?.idSecuritycashAccount,
       idTradingPlatformPlan: this.isDynamic
         ? this.securityaccount?.tradingPlatformPlan?.idTradingPlatformPlan
         : this.callParam?.idTradingPlatformPlan,
@@ -265,6 +291,11 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       currency: this.configObject.currency.formControl.value || null,
       fixedAssets: this.configObject.fixedAssets.formControl.value,
       tradeDirection: this.configObject.tradeDirection.formControl.value,
+      settlementCurrency: this.configObject.settlementCurrency.formControl.value || null,
+      tradesInMonth: this.configObject.tradesInMonth.formControl.value,
+      tradesInQuarter: this.configObject.tradesInQuarter.formControl.value,
+      tradesInYear: this.configObject.tradesInYear.formControl.value,
+      securityTradesInMonth: this.configObject.securityTradesInMonth.formControl.value,
       transactionDate: this.configObject.transactionDate.formControl.value || null
     };
 
@@ -275,20 +306,11 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
         error: () => (this.testResult = { error: 'Request failed' })
       });
     } else {
-      if (!this.callParam?.idTradingPlatformPlan) {
-        return;
-      }
-      const tradingPlatformPlan = new TradingPlatformPlan();
-      Object.assign(tradingPlatformPlan, this.callParam);
-      tradingPlatformPlan.feeModelYaml = this.feeModelYamlValue?.trim() || null;
-
-      this.tradingPlatformPlanService
-        .update(tradingPlatformPlan)
-        .pipe(switchMap(() => this.tradingPlatformPlanService.estimateTransactionCost(request)))
-        .subscribe({
-          next: (result: TransactionCostEstimateResult) => (this.testResult = result),
-          error: () => (this.testResult = { error: 'Request failed' })
-        });
+      request.yaml = this.feeModelYamlValue?.trim() || null;
+      this.tradingPlatformPlanService.estimateTransactionCost(request).subscribe({
+        next: (result) => (this.testResult = result),
+        error: () => (this.testResult = { error: 'Request failed' })
+      });
     }
   }
 
@@ -383,6 +405,48 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
         documentation: 'Returns the greater of two values',
         kind: 'Function',
         isSnippet: true
+      },
+      {
+        label: 'settlementCurrency',
+        insertText: 'settlementCurrency',
+        detail: 'variable (string)',
+        documentation: 'ISO code of the cash account the trade settles in, for currency conversion mark-ups'
+      },
+      {
+        label: 'tradesInMonth',
+        insertText: 'tradesInMonth',
+        detail: 'variable (numeric)',
+        documentation: 'Earlier trades of the security account in the calendar month'
+      },
+      {
+        label: 'tradesInQuarter',
+        insertText: 'tradesInQuarter',
+        detail: 'variable (numeric)',
+        documentation: 'Earlier trades of the security account in the calendar quarter, e.g. one free trade per quarter'
+      },
+      {
+        label: 'tradesInYear',
+        insertText: 'tradesInYear',
+        detail: 'variable (numeric)',
+        documentation: 'Earlier trades of the security account in the calendar year'
+      },
+      {
+        label: 'securityTradesInMonth',
+        insertText: 'securityTradesInMonth',
+        detail: 'variable (numeric)',
+        documentation: 'Earlier trades of this security in the calendar month, e.g. one free order per ETF and month'
+      },
+      {
+        label: 'exchangeCount',
+        insertText: 'exchangeCount',
+        detail: 'custody variable (numeric)',
+        documentation: 'Distinct exchanges held or traded in the billing period, filtered by exchangeCondition'
+      },
+      {
+        label: 'positionCount',
+        insertText: 'positionCount',
+        detail: 'custody variable (numeric)',
+        documentation: 'Number of observed positions in the custody amount expression'
       },
       {
         label: 'MIN',
@@ -501,6 +565,37 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
     ];
     const expressionItems = [...variables, ...functions];
 
-    return { condition: conditionItems, expression: expressionItems };
+    const variable = (label: string): YamlFieldCompletion => ({ label, insertText: label, detail: 'custody variable' });
+    const builtinFunctions = functions.filter((item) => item.kind === 'Function');
+    const custodyInstruments = ['instrument', 'assetclass', 'isin', 'currency', 'mic'].map(variable);
+    const amount = [
+      ...['assetValue', 'accountValue', 'exchangeCount', 'positionCount'].map(variable),
+      ...builtinFunctions
+    ];
+    const position = [...custodyInstruments, ...['positionValue', 'accountValue'].map(variable), ...builtinFunctions];
+    const fxVariables = [
+      ['payCurrency', 'Currency the client gives up'],
+      ['receiveCurrency', 'Currency the client receives'],
+      ['kind', 'TRADE, TRANSFER or INCOME'],
+      ['amount', 'Conversion value in payCurrency at the EOD mid rate, before markup'],
+      ['tierAmount', 'Conversion value in fx.amountCurrency at the EOD mid rate; requires amountCurrency'],
+      ['payClass', 'Class of payCurrency in fx.currencyClasses, otherwise empty'],
+      ['receiveClass', 'Class of receiveCurrency in fx.currencyClasses, otherwise empty'],
+      ['mic', 'Security MIC for TRADE/INCOME; empty for TRANSFER']
+    ].map(([label, documentation]) => ({ label, insertText: label, detail: 'FX variable', documentation }));
+    const fx = [...fxVariables, ...builtinFunctions];
+    return {
+      'fx.rules.condition': fx,
+      'fx.rules.expression': fx,
+      'fx.periods.rules.condition': fx,
+      'fx.periods.rules.expression': fx,
+      condition: conditionItems,
+      expression: expressionItems,
+      'custody.periods.amount': amount,
+      'custody.periods.exchangeCondition': [...custodyInstruments, ...builtinFunctions],
+      'custody.periods.creditEligibility': [...custodyInstruments, variable('tradeDirection'), ...builtinFunctions],
+      'custody.periods.valueRules.condition': position,
+      'custody.periods.valueRules.expression': position
+    };
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { FxObservationReport } from '../../entities/fx.observation';
 
 import { AppSettings } from '../../shared/app.settings';
 import { Tenant } from '../../entities/tenant';
@@ -24,6 +25,15 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
     super(loginService, httpClient, messageToastService);
   }
 
+  getFxObservations(): Observable<FxObservationReport> {
+    return this.httpClient
+      .get<FxObservationReport>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/fxobservations`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   getTenantAndPortfolio(): Observable<Tenant> {
     return <Observable<Tenant>>(
       this.httpClient
@@ -34,6 +44,17 @@ export class TenantService extends AuthServiceWithLogout<Tenant> {
 
   update(tenant: Tenant): Observable<Tenant> {
     return this.updateEntity(tenant, tenant.idTenant, BaseSettings.TENANT_KEY);
+  }
+
+  /** Assigns or clears monitoring without updating other tenant settings. */
+  assignMonitoring(idAlgoTop: number | null): Observable<Tenant> {
+    return this.httpClient
+      .patch<Tenant>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/monitoring`,
+        { idAlgoTop },
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public setWatchlistForPerformance(idWatchlist: number): Observable<Tenant> {

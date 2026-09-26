@@ -104,9 +104,12 @@ async function deleteRuleSetIfPresent(page: Page, table: Locator, name: string):
  * the YAML editor empty. The backend allows an empty YAML when a parent is set.
  */
 async function createRuleSet(page: Page, table: Locator, row: RuleSetRow): Promise<void> {
-  await table.click();
+  // Create is offered only while no rule set is selected, so the menu is opened on the caption rather than on a row,
+  // which a click would select.
+  const caption = table.locator('h4').first();
+  await caption.click();
   await page.waitForTimeout(300);
-  await table.click({ button: 'right' });
+  await caption.click({ button: 'right' });
 
   const menuList = page.locator('[role="menu"]:visible');
   await menuList.waitFor({ state: 'visible', timeout: 5_000 });

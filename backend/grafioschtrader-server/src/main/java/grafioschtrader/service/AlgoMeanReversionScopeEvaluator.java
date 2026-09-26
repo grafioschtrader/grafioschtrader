@@ -110,6 +110,27 @@ public class AlgoMeanReversionScopeEvaluator {
    * @param market        the observations the decisions may read, bounded by the caller to the requested day
    * @return the proposals of that day, risk reducing ones first, empty when the hierarchy has no such scope
    */
+  /**
+   * Answers whether {@link #evaluate} can find anything to decide on below the given AlgoTop, so that a replay whose
+   * hierarchy holds no active mean reversion strategy does not read the whole hierarchy every day only to find nothing.
+   * The selection is the one {@code evaluate} applies before its per-pair checks, including a redistributed allocation.
+   *
+   * @param idOwnerTenant the tenant owning the hierarchy
+   * @param idAlgoTop     the AlgoTop the replay runs
+   * @param market        the replay market data, which carries a redistributed allocation when there is one
+   * @return true when at least one active mean reversion pair hangs below that AlgoTop
+   */
+  public boolean hasActiveMeanReversion(Integer idOwnerTenant, Integer idAlgoTop, MarketData market) {
+    for (AlgoTop originalTop : tops.findByIdTenantOrderByName(idOwnerTenant)) {
+      AlgoTop top = market.allocation() == null ? originalTop : market.allocation().top(originalTop);
+      if (idAlgoTop.equals(top.getId()) && scopes.resolveForAlgoTop(top).stream()
+          .anyMatch(s -> AlgoMeanReversionEvaluationService.isMeanReversion(s.strategy()) && s.active())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public List<Proposal> evaluate(Integer idTenant, Integer idOwnerTenant, Integer onlyIdAlgoTop, LocalDate through,
       MarketData market) {
     Map<Integer, List<Historyquote>> histories = new HashMap<>();
@@ -170,7 +191,7 @@ public class AlgoMeanReversionScopeEvaluator {
               }
             }
           }
-          if (member == null || !member.isActivatable() || !bucket.isActivatable()) {
+          if (member == null) {
             throw new IllegalArgumentException("MEAN_REVERSION_ALLOCATION_REQUIRED");
           }
           AlgoExposureBudget.requireWeights(bucketMembers.stream().map(AlgoSecurity::getPercentage).toList());

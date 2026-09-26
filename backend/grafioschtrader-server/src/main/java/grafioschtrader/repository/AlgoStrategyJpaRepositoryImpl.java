@@ -18,6 +18,7 @@ import grafioschtrader.algo.strategy.model.StrategyClassBindingDefinition;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.algo.strategy.model.alerts.AlertConfigAdapter;
 import grafioschtrader.algo.strategy.model.complex.StrategyConfigValidator;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.AlgoStrategy;
 import tools.jackson.databind.ObjectMapper;
 
@@ -53,7 +54,12 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
   @Override
   public AlgoStrategy saveOnlyAttributes(AlgoStrategy algoStrategy, AlgoStrategy existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
-    hierarchyWriteGuard.assertHierarchyWritable();
+    hierarchyWriteGuard.assertHierarchyWritable(algoStrategy.getIdAlgoAssetclassSecurity());
+    if (existingEntity == null) {
+      hierarchyWriteGuard.assertCreateWithinLimit(LimitKeyConfig.KEY_ALGO_STRATEGY, 1);
+    }
+    // Generic edits and older clients must not overwrite a preference owned by the monitoring overview.
+    algoStrategy.setAlertEnabled(existingEntity == null || existingEntity.isAlertEnabled());
     if (algoStrategyJpaRepository.getAlgoLevelType(algoStrategy.getIdAlgoAssetclassSecurity(),
         algoStrategy.getIdTenant()) == null)
       throw new SecurityException("Strategy parent does not belong to this tenant");
@@ -108,7 +114,7 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
   private AlgoTradingRepository tradingRepository;
 
   public int delEntityWithTenant(Integer idAlgoStrategy, Integer idTenant) {
-    hierarchyWriteGuard.assertHierarchyWritable();
+    hierarchyWriteGuard.assertStrategyWritable(idAlgoStrategy);
     int deleted = algoStrategyJpaRepository.deleteByIdAlgoRuleStrategyAndIdTenant(idAlgoStrategy, idTenant);
     tradingRepository.clearRemovedAssignments(idTenant);
     return deleted;

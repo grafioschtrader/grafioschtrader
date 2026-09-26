@@ -3,9 +3,13 @@ package grafioschtrader.reports;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import grafioschtrader.algo.RebalancingPlan;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
@@ -18,9 +22,9 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionGroupSummary;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 
 /**
- * The tenant portfolio seen through one AlgoTop: the same positions and the same cash as the asset class report, but
- * grouped by the buckets that actually carry the allocation targets, and with the comparison against those targets
- * written onto every row.
+ * The tenant portfolio seen through one AlgoTop: holdings and cash grouped by the strategy's allocation buckets,
+ * completed with zero-holding rows for strategy securities absent from the portfolio. Every strategy row carries the
+ * comparison against its target, including when the portfolio holds none of the target instruments.
  *
  * <p>
  * Grouping by bucket rather than by asset class type is what makes the comparison meaningful. A target exists per
@@ -46,7 +50,7 @@ public class SecurityGroupByAlgoBucketRebalancingReport extends SecurityGroupByB
   private final String cashLabel;
   private final String unallocatedLabel;
   private final Map<Integer, String> bucketOfSecurity = new HashMap<>();
-  private final Map<Integer, RebalancingPlan.Line> lineOfSecurity = new HashMap<>();
+  private final Map<Integer, RebalancingPlan.Line> lineOfSecurity = new LinkedHashMap<>();
   private final Map<String, RebalancingPlan.Line> lineOfBucket = new LinkedHashMap<>();
 
   /**
@@ -80,8 +84,51 @@ public class SecurityGroupByAlgoBucketRebalancingReport extends SecurityGroupByB
       DateTransactionCurrencypairMap dateCurrencyMap) throws Exception {
     addCashaccountAsASecurity(tenant, securityPositionSummaryList, dateCurrencyMap);
     var grandSummary = super.createGroupsAndCalcGrandTotal(tenant, securityPositionSummaryList, dateCurrencyMap);
-    applyPlan(grandSummary);
+    completeComparison(grandSummary);
     return grandSummary;
+  }
+
+  /** Complete the valued holdings with strategy-only rows, then attach the comparison to all rows and groups. */
+  void completeComparison(SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<String>> grand) {
+    addMissingStrategyPositions(grand);
+    applyPlan(grand);
+  }
+
+  /** Add zero holdings after valuation: target-only instruments must neither affect totals nor require FX quotes. */
+  private void addMissingStrategyPositions(
+      SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<String>> grand) {
+    Map<String, SecurityPositionDynamicGroupSummary<String>> groups = new LinkedHashMap<>();
+    Set<Integer> present = new HashSet<>();
+    for (SecurityPositionGroupSummary group : grand.securityPositionGroupSummaryList) {
+      @SuppressWarnings("unchecked")
+      var dynamic = (SecurityPositionDynamicGroupSummary<String>) group;
+      groups.put(dynamic.groupField, dynamic);
+      group.securityPositionSummaryList
+          .forEach(position -> present.add(position.getSecurity().getIdSecuritycurrency()));
+    }
+    for (String bucket : lineOfBucket.keySet()) {
+      if (!groups.containsKey(bucket)) {
+        var group = new SecurityPositionDynamicGroupSummary<>(bucket);
+        groups.put(bucket, group);
+        grand.securityPositionGroupSummaryList.add(group);
+      }
+    }
+    List<Integer> missing = lineOfSecurity.keySet().stream().filter(id -> !present.contains(id)).toList();
+    if (missing.isEmpty()) {
+      return;
+    }
+    Map<Integer, Security> securities = securityJpaRepository.findAllById(missing).stream()
+        .collect(Collectors.toMap(Security::getIdSecuritycurrency, Function.identity()));
+    for (Integer id : missing) {
+      Security security = securities.get(id);
+      if (security == null) {
+        throw new IllegalStateException("Strategy security no longer exists: " + id);
+      }
+      var position = new SecurityPositionSummary(grand.currency, security,
+          globalparametersService.getCurrencyPrecision());
+      position.comparisonOnly = true;
+      groups.get(bucketOfSecurity.get(id)).addToGroupSummaryAndCalcGroupTotals(position);
+    }
   }
 
   /**
@@ -110,8 +157,12 @@ public class SecurityGroupByAlgoBucketRebalancingReport extends SecurityGroupByB
     grand.grandUnusedTacticalBudgetMC = plan.unusedTacticalBudget();
     grand.classAdjustments = plan.classAdjustments();
     grand.toleranceThreshold = plan.tolerancePercentage();
+    grand.overallAllocationMismatchPercentage = plan.overallAllocationMismatchPercentage();
     grand.exposureBreach = plan.exposureBreach();
     grand.valuationDate = plan.valuationDate();
+    grand.periodicDue = plan.periodicDue();
+    grand.lastCheckpointDate = plan.lastCheckpointDate();
+    grand.nextCheckpointDate = plan.nextCheckpointDate();
   }
 
   private void applyToGroup(SecurityPositionDynamicGroupSummary<?> group) {

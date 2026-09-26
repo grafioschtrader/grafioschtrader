@@ -51,6 +51,37 @@ describe('DynamicFieldModelHelper SELECT_OPTIONS width', () => {
   });
 });
 
+describe('DynamicFieldModelHelper string bounds', () => {
+  it('rejects an overlong prefilled name and accepts its correction without truncating it', () => {
+    const [field] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
+      {} as TranslateService,
+      [
+        {
+          fieldName: 'tenantName',
+          dataType: 'String',
+          required: true,
+          min: 1,
+          max: 25,
+          enumType: null,
+          enumValues: null,
+          dynamicFormPropertyHelps: null
+        }
+      ],
+      ''
+    );
+    expect(field.maxLength).toBe(25);
+    const control = new FormControl('', field.validation);
+    expect(control.hasError('required')).toBe(true);
+    control.setValue('A'.repeat(26));
+    expect(control.hasError('rangeLength')).toBe(true);
+    expect(control.value).toHaveLength(26);
+    control.setValue('A'.repeat(25));
+    expect(control.valid).toBe(true);
+    control.setValue('A');
+    expect(control.valid).toBe(true);
+  });
+});
+
 describe('DynamicFieldModelHelper numeric bounds', () => {
   const translateService = {} as TranslateService;
   const numericDescriptor = (

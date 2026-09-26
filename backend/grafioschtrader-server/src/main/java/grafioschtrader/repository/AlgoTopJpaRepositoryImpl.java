@@ -64,17 +64,19 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
   @Transactional(rollbackFor = Exception.class)
   public AlgoTop saveOnlyAttributes(AlgoTop algoTopOrAlgoTopCreate, AlgoTop existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
-    hierarchyWriteGuard.assertHierarchyWritable();
+    hierarchyWriteGuard.assertHierarchyWritable(algoTopOrAlgoTopCreate.getIdAlgoAssetclassSecurity());
     if (algoTopOrAlgoTopCreate instanceof AlgoTopCreateFromPortfolio atcfp) {
       return createFromPortfolioHoldings(atcfp);
     } else if (algoTopOrAlgoTopCreate instanceof AlgoTopCreateFromWatchlist atcfw) {
       return createFromWatchlist(atcfw);
-    } else if (algoTopOrAlgoTopCreate instanceof AlgoTopCreate) {
+    } else if (algoTopOrAlgoTopCreate instanceof AlgoTopCreate algoTopCreate) {
       // When new
+      hierarchyWriteGuard.assertCreateWithinLimit(LimitKeyConfig.KEY_ALGO_TOP, 1);
+      hierarchyWriteGuard.assertCreateWithinLimit(LimitKeyConfig.KEY_ALGO_ASSETCLASS,
+          algoTopCreate.assetclassPercentageList.size());
       var algoTop = new AlgoTop();
       BeanUtils.copyProperties(algoTopOrAlgoTopCreate, algoTop);
       algoTop = algoTopJpaRepository.save(algoTop);
-      AlgoTopCreate algoTopCreate = (AlgoTopCreate) algoTopOrAlgoTopCreate;
 
       List<Integer> assetclassIds = algoTopCreate.assetclassPercentageList.stream()
           .map(assetclassPercentage -> assetclassPercentage.idAssetclass).collect(Collectors.toList());
@@ -87,7 +89,10 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
       }
       return algoTop;
     } else {
-      // When changed
+      // When changed, or a plain AlgoTop posted to the generic create
+      if (existingEntity == null) {
+        hierarchyWriteGuard.assertCreateWithinLimit(LimitKeyConfig.KEY_ALGO_TOP, 1);
+      }
       var before = alertScopeLifecycle.snapshot(algoTopOrAlgoTopCreate.getIdTenant());
       AlgoTop saved = algoTopJpaRepository.save(algoTopOrAlgoTopCreate);
       alertScopeLifecycle.changed(saved.getIdTenant(), before);
@@ -221,7 +226,7 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
 
   @Override
   public void normalizeChildPercentages(Integer idAlgoAssetclassSecurity, Integer idTenant) {
-    hierarchyWriteGuard.assertHierarchyWritable();
+    hierarchyWriteGuard.assertHierarchyWritable(idAlgoAssetclassSecurity);
     // Try AlgoAssetclass children first (parent is AlgoTop)
     List<AlgoAssetclass> assetclassChildren = algoAssetclassJpaRepository
         .findByIdTenantAndIdAlgoAssetclassParent(idTenant, idAlgoAssetclassSecurity);
@@ -241,7 +246,7 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
 
   @Override
   public void normalizeAllPercentages(Integer idAlgoAssetclassSecurity, Integer idTenant) {
-    hierarchyWriteGuard.assertHierarchyWritable();
+    hierarchyWriteGuard.assertHierarchyWritable(idAlgoAssetclassSecurity);
     List<AlgoAssetclass> assetclassChildren = algoAssetclassJpaRepository
         .findByIdTenantAndIdAlgoAssetclassParent(idTenant, idAlgoAssetclassSecurity);
     if (assetclassChildren.isEmpty()) {
@@ -282,8 +287,15 @@ public class AlgoTopJpaRepositoryImpl extends BaseRepositoryImpl<AlgoTop> implem
   @Autowired
   private AlgoTradingRepository tradingRepository;
 
+  @Autowired
+  private TenantJpaRepository monitoringTenants;
+
+  @Transactional
   public int delEntityWithTenant(Integer idAlgoAssetclassSecurity, Integer idTenant) {
-    hierarchyWriteGuard.assertHierarchyWritable();
+    hierarchyWriteGuard.assertHierarchyWritable(idAlgoAssetclassSecurity);
+    var tenant = monitoringTenants.lockMonitoringTenant(idTenant).orElseThrow();
+    if (java.util.Objects.equals(tenant.getIdAlgoTop(), idAlgoAssetclassSecurity))
+      throw new DataViolationException("id.algo.top", "algo.monitoring.unassign.before.delete", null);
     int deleted = algoTopJpaRepository.deleteByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity, idTenant);
     tradingRepository.clearRemovedAssignments(idTenant);
     return deleted;

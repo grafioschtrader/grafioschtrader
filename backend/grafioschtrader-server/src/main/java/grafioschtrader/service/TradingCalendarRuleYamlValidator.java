@@ -51,6 +51,7 @@ public class TradingCalendarRuleYamlValidator {
 
     JsonNode yamlNode;
     try {
+      grafioschtrader.common.StrictYaml.validate(ruleYaml);
       yamlNode = yamlMapper.readTree(ruleYaml);
     } catch (Exception e) {
       errors.add("YAML syntax error: " + e.getMessage());

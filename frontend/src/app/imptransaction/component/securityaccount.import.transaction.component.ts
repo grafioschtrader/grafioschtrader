@@ -33,6 +33,7 @@ import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
+import { AppHelper } from '../../lib/helper/app.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { AdditionalFieldConfig, FileUploadParam } from '../../lib/generaldialog/model/file.upload.param';
@@ -288,6 +289,11 @@ export class SecurityaccountImportTransactionComponent
 
     menuItems.push({ separator: true });
     menuItems.push({
+      label: 'ROLLBACK_IMPORT' + BaseSettings.DIALOG_MENU_SUFFIX,
+      disabled: !this.selectedEntity || !this.hasImportedPositions(),
+      command: () => this.handleRollbackImport()
+    });
+    menuItems.push({
       label: 'CREATE_GTNET_IMPORT_FROM_MISSING' + BaseSettings.DIALOG_MENU_SUFFIX,
       disabled: !this.gps.useGtnet() || !this.hasMissingSecurities(),
       command: () => this.handleCreateGtnetImportFromMissing()
@@ -392,6 +398,28 @@ export class SecurityaccountImportTransactionComponent
           ctaitp.importTransactionPos.security === null &&
           (ctaitp.importTransactionPos.isin || ctaitp.importTransactionPos.symbolImp)
       ) ?? false
+    );
+  }
+
+  /**
+   * Checks if at least one import position of the selected head has already become a transaction.
+   */
+  private hasImportedPositions(): boolean {
+    return this.childEntityList?.some((ctaitp) => ctaitp.importTransactionPos.idTransaction != null) ?? false;
+  }
+
+  /**
+   * Asks for confirmation and then deletes the transactions created by the selected import, newest first, so that the
+   * whole import can be run again. The positions are reloaded afterwards.
+   */
+  handleRollbackImport(): void {
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONFIRM_ROLLBACK_IMPORT', () =>
+      this.importTransactionHeadService
+        .rollbackImportedTransactions(this.selectedEntity.idTransactionHead)
+        .subscribe((noRecord: number) => {
+          this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'MSG_ROLLBACK_IMPORT', { noRecord });
+          this.setChildData(this.selectedEntity);
+        })
     );
   }
 

@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
 import grafiosch.dto.AccountDeletionEligibility;
@@ -66,6 +67,7 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   private List<IExportMyDataAddon> exportMyDataAddons;
 
   @Override
+  @Transactional(rollbackFor = Exception.class)
   public void deleteMyDataAndUserAccount() throws Exception {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     assertHomeTenant(user);
@@ -73,6 +75,7 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
     RestHelper.isDemoAccount(demoAccountPatternEN, user.getUsername());
     assertNoDependentClientsOrViewers(user);
 
+    beforeDeleteTenantData(user.getActualIdTenant());
     MySqlDeleteMyData mySqlDeleteMyData = new MySqlDeleteMyData(jdbcTemplate, user);
     mySqlDeleteMyData.deleteMyData();
   }
@@ -120,11 +123,23 @@ public abstract class TenantBaseImpl<T> extends BaseRepositoryImpl<T> implements
   }
 
   @Override
+  @Transactional(rollbackFor = Exception.class)
   public void deleteManagedClientData(User clientUser) throws Exception {
     RestHelper.isDemoAccount(demoAccountPatternDE, clientUser.getUsername());
     RestHelper.isDemoAccount(demoAccountPatternEN, clientUser.getUsername());
 
+    beforeDeleteTenantData(clientUser.getActualIdTenant());
     new MySqlDeleteMyData(jdbcTemplate, clientUser).deleteMyData();
+  }
+
+  /**
+   * Removes application-owned dependants before deleting a home tenant. Called after the deletion guards, within the
+   * same transaction as the personal-data deletion; any exception rolls back both. The default host has no dependants.
+   *
+   * @param idTenant the home tenant being deleted, including the client's home tenant for managed-client deletion
+   * @throws Exception if dependant cleanup fails
+   */
+  protected void beforeDeleteTenantData(Integer idTenant) throws Exception {
   }
 
   /**

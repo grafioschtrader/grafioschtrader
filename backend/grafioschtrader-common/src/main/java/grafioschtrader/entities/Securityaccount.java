@@ -32,19 +32,6 @@ public class Securityaccount extends Securitycashaccount implements Serializable
 
   public static final String TABNAME = "securityaccount";
 
-  @jakarta.persistence.Column(name = "tax_exempt_investor")
-  @grafiosch.common.PropertyAlwaysUpdatable
-  @grafiosch.common.DynamicFormField(uiOrder = "2.1")
-  private Boolean taxExemptInvestor;
-
-  public Boolean getTaxExemptInvestor() {
-    return taxExemptInvestor;
-  }
-
-  public void setTaxExemptInvestor(Boolean taxExemptInvestor) {
-    this.taxExemptInvestor = taxExemptInvestor;
-  }
-
   private static final long serialVersionUID = 1L;
 
   @JsonIgnore
@@ -78,6 +65,23 @@ public class Securityaccount extends Securitycashaccount implements Serializable
   @PropertyAlwaysUpdatable
   private String feeModelYaml;
 
+  @Schema(description = """
+      Whether the owner of this account is exempt from the transaction taxes of the simulation tax models, for example
+      the Swiss stamp duty. Null means unknown.""")
+  @Column(name = "tax_exempt_investor")
+  @PropertyAlwaysUpdatable
+  private Boolean taxExemptInvestor;
+
+  /**
+   * The security account of the parent tenant this one was copied from. Set only on the accounts of a simulation
+   * environment, whose algo hierarchy stays in the parent tenant and names the parent's accounts as trading priorities;
+   * the replay translates them through this link. Null for every ordinary account, and for a copy whose source was
+   * deleted afterwards the id simply resolves to nothing.
+   */
+  @JsonIgnore
+  @Column(name = "id_origin_securityaccount")
+  private Integer idOriginSecurityaccount;
+
   @Transient
   private boolean hasTransaction;
 
@@ -102,6 +106,14 @@ public class Securityaccount extends Securitycashaccount implements Serializable
 
   public void setTradingPlatformPlan(TradingPlatformPlan tradingPlatformPlan) {
     this.tradingPlatformPlan = tradingPlatformPlan;
+  }
+
+  public Boolean getTaxExemptInvestor() {
+    return taxExemptInvestor;
+  }
+
+  public void setTaxExemptInvestor(Boolean taxExemptInvestor) {
+    this.taxExemptInvestor = taxExemptInvestor;
   }
 
   public List<SecaccountTradingPeriod> getTradingPeriods() {
@@ -148,6 +160,14 @@ public class Securityaccount extends Securitycashaccount implements Serializable
 
   public void setFeeModelYaml(String feeModelYaml) {
     this.feeModelYaml = feeModelYaml;
+  }
+
+  public Integer getIdOriginSecurityaccount() {
+    return idOriginSecurityaccount;
+  }
+
+  public void setIdOriginSecurityaccount(Integer idOriginSecurityaccount) {
+    this.idOriginSecurityaccount = idOriginSecurityaccount;
   }
 
   public boolean isHasTransaction() {

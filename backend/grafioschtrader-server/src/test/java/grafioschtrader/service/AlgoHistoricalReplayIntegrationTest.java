@@ -42,8 +42,11 @@ import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityAction;
+import grafioschtrader.entities.SecurityActionApplication;
 import grafioschtrader.entities.SecurityBondTerms;
 import grafioschtrader.entities.SecuritySimulationMetadata;
+import grafioschtrader.entities.SecurityTransfer;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.StandingOrderCashaccount;
 import grafioschtrader.entities.Tenant;
@@ -57,6 +60,7 @@ import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.SimulationSourceRepository;
 import grafioschtrader.repository.SimulationTenantService;
 import grafioschtrader.repository.StandingOrderJpaRepository;
+import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.rest.GTIntegrationTestContext;
 import grafioschtrader.types.AlgoEventType;
 import grafioschtrader.types.AlgoSimulationRunStatus;
@@ -323,9 +327,147 @@ class AlgoHistoricalReplayIntegrationTest {
     var result = run(environment);
 
     assertThat(result.getStatus()).isEqualTo(AlgoSimulationRunStatus.RUN_FAILED);
-    assertThat(result.getFailureMessage()).isEqualTo("REPLAY_FILL_REJECTED");
+    assertThat(result.getFailureMessage()).isEqualTo("gt.transaction.limit.exceeded");
     assertThat(source.transactions(environment.getId(), end.plusDays(1))).hasSize(openingTransactions)
         .noneMatch(t -> t.getTransactionType() == TransactionType.REDUCE && !t.isSimulationOpening());
+  }
+
+  @Test
+  @DisplayName("Rebalancing stops at the limit and retains the funding pair already booked")
+  void rebalancingLimitRetainsEarlierFunding() throws Exception {
+    foreignAllocation();
+    Tenant environment = environment(Map.of(cashId, 100000.0, usdCashId, 100000.0));
+    transactionLimit(4);
+    var result = run(environment);
+    assertLimitFailure(result, 4);
+    assertThat(generatedCashMovements(result)).hasSize(2);
+    assertThat(generatedTrades(result)).isEmpty();
+    assertThat(trailOf(result)).containsOnlyOnce(AlgoEventType.FUNDING_TRANSFER);
+  }
+
+  @Test
+  @DisplayName("A funding transfer requiring two rows cannot consume the one remaining row")
+  void fundingLimitStopsTheRunBeforeEitherSideIsWritten() throws Exception {
+    foreignAllocation();
+    Tenant environment = environment(Map.of(cashId, 100000.0, usdCashId, 100000.0));
+    transactionLimit(3);
+    var result = run(environment);
+    assertLimitFailure(result, 2);
+    assertThat(generatedCashMovements(result)).isEmpty();
+    assertThat(generatedTrades(result)).isEmpty();
+  }
+
+  @Test
+  @DisplayName("The second standing order stops the replay and retains the first booking")
+  void standingOrderLimitRetainsEarlierOccurrence() throws Exception {
+    Tenant environment = environment();
+    standingOrder(environment);
+    transactionLimit(2);
+    var result = run(environment);
+    assertLimitFailure(result, 2);
+    assertThat(trailOf(result)).containsOnlyOnce(AlgoEventType.CASH_STANDING_ORDER);
+  }
+
+  @Test
+  @DisplayName("A strategy fill hitting the limit ends the run after retaining an earlier standing order")
+  void strategyLimitStopsTheRun() throws Exception {
+    Security security = allocation();
+    AlgoStrategy strategy = em.createQuery("SELECT s FROM AlgoStrategy s WHERE s.idTenant = ?1", AlgoStrategy.class)
+        .setParameter(1, tenantId).getSingleResult();
+    strategy.setAlgoStrategyImplementations(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP);
+    strategy.setStrategyConfig(tools.jackson.databind.json.JsonMapper.builder().build()
+        .writeValueAsString(AlgoMeanReversionDecisionServiceTest.config()));
+    em.createQuery(
+        "UPDATE Historyquote h SET h.close = 80 WHERE h.idSecuritycurrency = ?1 AND h.date >= ?2 AND h.date <= ?3")
+        .setParameter(1, security.getId()).setParameter(2, opening.plusDays(2)).setParameter(3, end).executeUpdate();
+    em.flush();
+    em.clear();
+    Tenant environment = environment();
+    standingOrder(environment);
+    transactionLimit(2);
+    var result = run(environment);
+    assertLimitFailure(result, 2);
+    assertThat(trailOf(result)).contains(AlgoEventType.DECISION).containsOnlyOnce(AlgoEventType.CASH_STANDING_ORDER);
+    assertThat(generatedTrades(result)).isEmpty();
+  }
+
+  @Test
+  @DisplayName("A missing fill price remains UNAVAILABLE and later standing orders are still booked")
+  void ordinaryOrderRefusalDoesNotStopTheRun() throws Exception {
+    Security security = allocation();
+    em.createQuery("UPDATE Historyquote h SET h.close = 0 WHERE h.idSecuritycurrency = ?1 AND h.date = ?2")
+        .setParameter(1, security.getId()).setParameter(2, opening.plusDays(2)).executeUpdate();
+    em.flush();
+    em.clear();
+    Tenant environment = environment();
+    standingOrder(environment);
+    var result = run(environment);
+    assertThat(result.getStatus()).as("%s", result.getFailureMessage()).isEqualTo(AlgoSimulationRunStatus.COMPLETED);
+    assertThat(eventsOf(result)).anySatisfy(event -> {
+      assertThat(event.getEventType()).isEqualTo(AlgoEventType.UNAVAILABLE);
+      assertThat(event.getRationale()).isEqualTo("REPLAY_NO_FILL_PRICE");
+    });
+    assertThat(generatedCashMovements(result))
+        .anySatisfy(transaction -> assertThat(transaction.getTransactionDate()).isAfter(opening.plusDays(2)));
+  }
+
+  @org.junit.jupiter.params.ParameterizedTest
+  @org.junit.jupiter.params.provider.ValueSource(ints = { 2, 3 })
+  @DisplayName("A REST cash transfer fits exactly at the limit or is rejected before either side is saved")
+  void cashTransferUsesBothRows(int maximum) throws Exception {
+    Cashaccount original = em.find(Cashaccount.class, cashId);
+    Cashaccount target = new Cashaccount("Transfer CHF", 0.0, "CHF", original.getPortfolio());
+    target.setIdTenant(tenantId);
+    em.persist(target);
+    em.flush();
+    var withdrawal = new Transaction(original, -100d, TransactionType.WITHDRAWAL, opening.plusDays(1).atTime(12, 0));
+    var deposit = new Transaction(target, 100d, TransactionType.DEPOSIT, withdrawal.getTransactionTime());
+    var transfer = new grafioschtrader.dto.CashAccountTransfer(withdrawal, deposit);
+    transactionLimit(maximum);
+    if (maximum == 3) {
+      transactionResource.createDoubleTransaction(transfer);
+      assertThat(transactions.countByIdTenant(tenantId)).isEqualTo(3);
+    } else {
+      org.assertj.core.api.Assertions.assertThatThrownBy(() -> transactionResource.createDoubleTransaction(transfer))
+          .isInstanceOf(grafioschtrader.exceptions.TransactionLimitExceededException.class);
+      assertThat(transactions.countByIdTenant(tenantId)).isEqualTo(1);
+    }
+  }
+
+  private void transactionLimit(int maximum) {
+    EntityLimit limit = entityLimits
+        .findByLimitTypeAndEntityName(LimitKeyConfig.KEY_TRANSACTION.limitType().getValue(),
+            LimitKeyConfig.KEY_TRANSACTION.entityName())
+        .stream().filter(candidate -> LimitKeyConfig.KEY_TRANSACTION.equals(candidate.getLimitKey()))
+        .filter(candidate -> candidate.getIdRole() == null && candidate.getIdUser() == null).findFirst().orElseThrow();
+    limit.setLimitValue(maximum);
+    em.flush();
+    limitService.evictUser(user.getIdUser());
+  }
+
+  private void assertLimitFailure(AlgoSimulationResult result, int rows) {
+    assertThat(result.getStatus()).as("%s", result.getFailureMessage()).isEqualTo(AlgoSimulationRunStatus.RUN_FAILED);
+    assertThat(result.getFailureMessage()).isEqualTo("gt.transaction.limit.exceeded");
+    assertThat(source.transactions(result.getIdTenant(), end.plusDays(1))).hasSize(rows);
+    assertThat(result.getTotalReturn()).isNull();
+  }
+
+  private void standingOrder(Tenant environment) {
+    StandingOrderCashaccount order = new StandingOrderCashaccount();
+    order.setIdTenant(environment.getId());
+    order.setCashaccount(source.cashaccounts(environment.getId()).getFirst());
+    order.setCashaccountAmount(100.0);
+    order.setTransactionType(TransactionType.DEPOSIT);
+    order.setRepeatUnit(RepeatUnit.DAYS);
+    order.setRepeatInterval((short) 5);
+    order.setPeriodDayPosition(PeriodDayPosition.SPECIFIC_DAY);
+    order.setWeekendAdjust(WeekendAdjustType.AFTER);
+    order.setQuoteToleranceDays((byte) -3);
+    order.setValidFrom(opening.plusDays(1));
+    order.setValidTo(end);
+    order.setNextExecutionDate(order.getValidFrom());
+    em.persist(order);
+    em.flush();
   }
 
   @Test
@@ -457,7 +599,7 @@ class AlgoHistoricalReplayIntegrationTest {
   }
 
   @Test
-  @DisplayName("Dividends settle on non-trading payment dates and repeat runs replace the payments")
+  @DisplayName("Non-trading dividend payment dates book on the next trading day and repeat runs replace the payments")
   void dividendPaymentsAreCashAndRepeatable() throws Exception {
     Security security = allocation();
     var dividend = new grafioschtrader.entities.Dividend(security.getId(), opening.plusDays(3),
@@ -476,7 +618,7 @@ class AlgoHistoricalReplayIntegrationTest {
       List<Transaction> payments = ledger.stream().filter(t -> t.getTransactionType() == TransactionType.DIVIDEND)
           .toList();
       assertThat(payments).singleElement().satisfies(payment -> {
-        assertThat(payment.getTransactionDate()).isEqualTo(LocalDate.of(2020, 6, 21));
+        assertThat(payment.getTransactionDate()).isEqualTo(LocalDate.of(2020, 6, 22));
         assertThat(payment.getCashaccountAmount()).isEqualTo(buy.getUnits() * 2);
         assertThat(payment.isSimulationOpening()).isFalse();
         assertThat(payment.getExDate()).isEqualTo(opening.plusDays(3));
@@ -557,6 +699,12 @@ class AlgoHistoricalReplayIntegrationTest {
   private EntityLimitService limitService;
   @Autowired
   private StandingOrderJpaRepository standingOrders;
+  @Autowired
+  private SecurityActionService securityActions;
+  @Autowired
+  private TransactionJpaRepository transactions;
+  @Autowired
+  private grafioschtrader.rest.TransactionResource transactionResource;
 
   /** One closing price for the whole window, so a checkpoint can only be reached by the interval, not by a move. */
   private static final double PRICE = 100.0;
@@ -646,6 +794,17 @@ class AlgoHistoricalReplayIntegrationTest {
   }
 
   private Tenant environment(Map<Integer, Double> cashBalances) throws Exception {
+    // A cash-only replay still needs a complete top-level weighting for the readiness gate. An empty bucket is
+    // allowed to stay uninvested, and leaves the ledger expectations of these tests unchanged.
+    if (em.createQuery("SELECT COUNT(a) FROM AlgoAssetclass a WHERE a.idAlgoAssetclassParent = ?1", Long.class)
+        .setParameter(1, topId).getSingleResult() == 0) {
+      AlgoAssetclass bucket = new AlgoAssetclass();
+      bucket.setIdTenant(tenantId);
+      bucket.setIdAlgoAssetclassParent(topId);
+      bucket.setPercentage(100f);
+      bucket.setName("Replay cash only");
+      em.persist(bucket);
+    }
     SimulationTenantCreateDTO dto = new SimulationTenantCreateDTO();
     dto.setIdAlgoTop(topId);
     dto.setTenantName("Replay environment");
@@ -660,6 +819,146 @@ class AlgoHistoricalReplayIntegrationTest {
     replay.execute(prepared.getIdTenant(), prepared.getIdSimulationResult(), user);
     login();
     return results.findById(prepared.getIdSimulationResult()).orElseThrow();
+  }
+
+  @Test
+  @DisplayName("Replay removes all four transfer bookings, preserves the opening ledger and isolates other tenants")
+  void replayRemovesUserSecurityTransfers() throws Exception {
+    Security security = tradeableChfInstrument();
+    priceEveryDay(security);
+    securityaccount();
+    Tenant environment = environment();
+    Tenant sibling = environment();
+    var openingLedger = ledgerSnapshot(environment.getId());
+    SecurityTransfer mainTransfer = userTransfer(tenantId, security);
+    SecurityTransfer siblingTransfer = userTransfer(sibling.getId(), security);
+    SecurityTransfer transfer = userTransfer(environment.getId(), security);
+    var transferBookings = transactions.findByIdSecurityTransfer(transfer.getId()).stream().map(Transaction::getId)
+        .toList();
+    assertThat(transferBookings).hasSize(4);
+    var mainLedger = ledgerSnapshot(tenantId);
+    var siblingLedger = ledgerSnapshot(sibling.getId());
+
+    var result = run(environment);
+
+    assertThat(result.getStatus()).as("%s", result.getFailureMessage()).isEqualTo(AlgoSimulationRunStatus.COMPLETED);
+    assertThat(em.find(SecurityTransfer.class, transfer.getId())).isNull();
+    assertThat(transactions.findAllById(transferBookings)).isEmpty();
+    assertThat(ledgerSnapshot(environment.getId())).isEqualTo(openingLedger);
+    assertThat(ledgerSnapshot(tenantId)).isEqualTo(mainLedger);
+    assertThat(ledgerSnapshot(sibling.getId())).isEqualTo(siblingLedger);
+    assertThat(em.find(SecurityTransfer.class, mainTransfer.getId())).isNotNull();
+    assertThat(em.find(SecurityTransfer.class, siblingTransfer.getId())).isNotNull();
+  }
+
+  @org.junit.jupiter.params.ParameterizedTest
+  @org.junit.jupiter.params.provider.ValueSource(booleans = { false, true })
+  @DisplayName("Replay removes action applications with or without SELL/BUY pairs and allows applying the action again")
+  void replayRemovesUserSecurityActionApplications(boolean withPair) throws Exception {
+    Security security = tradeableChfInstrument();
+    priceEveryDay(security);
+    Security successor = em
+        .createQuery("SELECT s FROM Security s WHERE s.idSecuritycurrency <> ?1"
+            + " AND s.isin IS NOT NULL AND s.currency = 'CHF' ORDER BY s.idSecuritycurrency", Security.class)
+        .setParameter(1, security.getId()).setMaxResults(1).getSingleResult();
+    SecurityAction action = new SecurityAction();
+    action.setSecurityOld(security);
+    action.setSecurityNew(successor);
+    action.setIsinOld(security.getIsin());
+    action.setIsinNew(successor.getIsin());
+    action.setActionDate(opening.plusDays(withPair ? 3 : 1));
+    action.setCreatedBy(0);
+    em.persist(action);
+    securityaccount();
+    Tenant environment = environment();
+    var openingLedger = ledgerSnapshot(environment.getId());
+    userPurchase(tenantId, security);
+    SecurityActionApplication mainApplication = securityActions.applySecurityAction(action.getId());
+    var mainLedger = ledgerSnapshot(tenantId);
+    Transaction purchase = userPurchase(environment.getId(), security);
+    SecurityActionApplication application = securityActions.applySecurityAction(action.getId());
+    em.flush();
+    em.clear();
+    int appliedCount = em.find(SecurityAction.class, action.getId()).getAppliedCount();
+    if (withPair) {
+      assertThat(application.getIdTransactionSell()).isNotNull();
+      assertThat(application.getIdTransactionBuy()).isNotNull();
+    } else {
+      assertThat(application.getIdTransactionSell()).isNull();
+      assertThat(application.getIdTransactionBuy()).isNull();
+      assertThat(em.find(Transaction.class, purchase.getId()).getSecurity().getId()).isEqualTo(successor.getId());
+      assertThat(em.find(Transaction.class, purchase.getId()).getIdSecurityActionApp()).isEqualTo(application.getId());
+    }
+    login();
+
+    var result = run(environment);
+
+    assertThat(result.getStatus()).as("%s", result.getFailureMessage()).isEqualTo(AlgoSimulationRunStatus.COMPLETED);
+    assertThat(em.find(SecurityActionApplication.class, application.getId())).isNull();
+    assertThat(em.find(SecurityAction.class, action.getId()).getAppliedCount()).isEqualTo(appliedCount);
+    assertThat(ledgerSnapshot(environment.getId())).isEqualTo(openingLedger);
+    assertThat(ledgerSnapshot(tenantId)).isEqualTo(mainLedger);
+    assertThat(em.find(SecurityActionApplication.class, mainApplication.getId())).isNotNull();
+    userPurchase(environment.getId(), security);
+    assertThat(securityActions.applySecurityAction(action.getId()).getId()).isNotEqualTo(application.getId());
+  }
+
+  /** Books through the ordinary write path under the selected tenant, just as an idle environment request does. */
+  private Transaction userPurchase(Integer idTenant, Security security) throws Exception {
+    User selected = new User(idTenant);
+    selected.setIdUser(0);
+    var authentication = new UsernamePasswordAuthenticationToken("replay", "", List.of());
+    authentication.setDetails(selected);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    Securityaccount account = em
+        .createQuery("SELECT a FROM Securityaccount a WHERE a.idTenant = ?1" + " ORDER BY a.idSecuritycashAccount",
+            Securityaccount.class)
+        .setParameter(1, idTenant).setMaxResults(1).getSingleResult();
+    Cashaccount cash = em
+        .createQuery("SELECT c FROM Cashaccount c WHERE c.idTenant = ?1 AND c.currency = 'CHF'"
+            + " ORDER BY c.idSecuritycashAccount", Cashaccount.class)
+        .setParameter(1, idTenant).setMaxResults(1).getSingleResult();
+    Transaction buy = new Transaction(account.getId(), cash, em.find(Security.class, security.getId()), -1000d, 10d,
+        PRICE, TransactionType.ACCUMULATE, 0d, 0d, null, opening.plusDays(2).atTime(12, 0), null, null, null, false);
+    buy.setIdTenant(idTenant);
+    return transactions.saveOnlyAttributes(buy, null, null);
+  }
+
+  private SecurityTransfer userTransfer(Integer idTenant, Security security) throws Exception {
+    Transaction purchase = userPurchase(idTenant, security);
+    Portfolio portfolio = new Portfolio(idTenant, "Transfer target", "CHF");
+    em.persist(portfolio);
+    Cashaccount cash = new Cashaccount("Transfer CHF", 0d, "CHF", portfolio);
+    cash.setIdTenant(idTenant);
+    em.persist(cash);
+    Transaction funding = new Transaction(cash, 1000d, TransactionType.DEPOSIT, opening.plusDays(1).atTime(12, 0));
+    funding.setIdTenant(idTenant);
+    transactions.saveOnlyAttributes(funding, null, null);
+    Securityaccount target = new Securityaccount("Transfer custody", portfolio);
+    target.setIdTenant(idTenant);
+    target.setLowestTransactionCost(0f);
+    target.setTradingPlatformPlan(
+        em.find(Securityaccount.class, purchase.getIdSecurityaccount()).getTradingPlatformPlan());
+    em.persist(target);
+    SecurityTransfer transfer = new SecurityTransfer();
+    transfer.setSecurity(em.find(Security.class, security.getId()));
+    transfer.setIdSecurityaccountSource(purchase.getIdSecurityaccount());
+    transfer.setIdSecurityaccountTarget(target.getId());
+    transfer.setTransferDate(opening.plusDays(3));
+    transfer.setUnits(5d);
+    SecurityTransfer saved = securityActions.createTransfer(transfer);
+    login();
+    return saved;
+  }
+
+  /** Reads every persisted field so that opening preservation includes internal replay metadata and links. */
+  private List<List<Object>> ledgerSnapshot(Integer idTenant) {
+    em.flush();
+    // Jakarta's createNativeQuery returns the raw Query type; binding the result to List<?> keeps the stream generic
+    List<?> rows = em
+        .createNativeQuery("SELECT * FROM transaction WHERE id_tenant = ?1 ORDER BY id_transaction", Object[].class)
+        .setParameter(1, idTenant).getResultList();
+    return rows.stream().map(row -> java.util.Arrays.asList((Object[]) row)).toList();
   }
 
   /**
@@ -690,7 +989,7 @@ class AlgoHistoricalReplayIntegrationTest {
     assertThat(run.getEndDate()).isEqualTo(end);
     assertThat(run.getTradingDaysDone()).isEqualTo(run.getTradingDaysTotal());
     assertThat(run.getConventions()).startsWith(AlgoHistoricalReplayService.CONVENTIONS)
-        .endsWith(AlgoHistoricalReplayService.NO_TRANSACTION_COST);
+        .contains(AlgoHistoricalReplayService.NO_TRANSACTION_COST);
     assertThat(run.getTotalTrades()).isZero();
     assertThat(run.getWinningTrades()).isZero();
     assertThat(run.getLosingTrades()).isZero();
@@ -986,7 +1285,6 @@ class AlgoHistoricalReplayIntegrationTest {
     bucket.setIdAlgoAssetclassParent(topId);
     bucket.setPercentage(100f);
     bucket.setName("Replay equities");
-    bucket.setActivatable(true);
     em.persist(bucket);
     em.flush();
     AlgoSecurity member = new AlgoSecurity();
@@ -994,7 +1292,6 @@ class AlgoHistoricalReplayIntegrationTest {
     member.setIdAlgoSecurityParent(bucket.getId());
     member.setPercentage(100f);
     member.setSecurity(security);
-    member.setActivatable(true);
     em.persist(member);
     AlgoStrategy strategy = new AlgoStrategy();
     strategy.setIdTenant(tenantId);

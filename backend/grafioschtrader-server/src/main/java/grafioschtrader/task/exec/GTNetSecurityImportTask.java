@@ -21,7 +21,6 @@ import grafiosch.entities.UserEntityChangeCount;
 import grafiosch.entities.UserEntityChangeCount.UserEntityChangeCountId;
 import grafiosch.exceptions.TaskBackgroundException;
 import grafiosch.repository.GTNetJpaRepository;
-import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.service.EntityLimitService;
@@ -117,9 +116,7 @@ public class GTNetSecurityImportTask implements ITask {
   @Autowired
   private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
 
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
-
+ 
   @Autowired
   private ImportTransactionPosJpaRepository importTransactionPosJpaRepository;
 

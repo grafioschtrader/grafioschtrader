@@ -20,6 +20,7 @@ import {
 import { ShowRecordConfigBase } from './lib/datashowbase/show.record.config.base';
 import { DataType } from './lib/dynamic-form/models/data.type';
 import { HoldingMoversWidgetComponent } from './dashboard/component/holding-movers-widget.component';
+import { AlgoMonitoringWidgetComponent } from './dashboard/component/algo-monitoring-widget.component';
 import { LastSessionsPerformanceWidgetComponent } from './dashboard/component/last-sessions-performance-widget.component';
 import { TaskType } from './shared/types/task.type';
 import { PortfolioService } from './portfolio/service/portfolio.service';
@@ -115,7 +116,7 @@ import { ProposeChangeEntityService } from './lib/proposechange/service/propose.
 import { setupProposeChangeEntityHandlers } from './shared/changerequest/propose.change.entity.handlers.setup';
 import { EntityPrepareRegistry } from './lib/proposechange/service/entity.prepare.registry';
 import { AlgoTopService } from './algo/service/algo.top.service';
-import { AlgoOverviewComponent } from './algo/component/algo-overview.component';
+import { AlgoStandaloneAlertComponent } from './algo/component/algo-standalone-alert.component';
 import { AlgoSimulationRunComponent } from './algo/component/algo-simulation-run.component';
 import { AlgoTopDataViewComponent } from './algo/component/algo.top.data.view.component';
 import { StepComponent } from './lib/wizard/component/step.component';
@@ -227,7 +228,6 @@ import { StandingOrderSecurityTableComponent } from './standingorder/component/s
 import { StandingOrderCashaccountEditComponent } from './standingorder/component/standing-order-cashaccount-edit.component';
 import { StandingOrderSecurityEditComponent } from './standingorder/component/standing-order-security-edit.component';
 import { StandingOrderService } from './standingorder/service/standing.order.service';
-import { TenantAlertComponent } from './tenant/component/tenant.alert.component';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
 import { DialogService, DynamicDialogModule } from '@openng/optimus-ui/dynamicdialog';
 import { SecurityService } from './securitycurrency/service/security.service';
@@ -290,7 +290,7 @@ const createTranslateLoader = (http: HttpClient) =>
     AlgoSecurityEditComponent,
     AlgoStrategyEditComponent,
     AlgoTopDataViewComponent,
-    AlgoOverviewComponent,
+    AlgoStandaloneAlertComponent,
     AlgoSimulationRunComponent,
     AngularSvgIconModule.forRoot(),
     BrowserModule,
@@ -354,7 +354,6 @@ const createTranslateLoader = (http: HttpClient) =>
     StandingOrderSecurityTableComponent,
     StandingOrderCashaccountEditComponent,
     StandingOrderSecurityEditComponent,
-    TenantAlertComponent,
     TenantDividendsComponent,
     TenantEditDynamicComponent,
     TenantEditFullPageComponent,
@@ -581,7 +580,8 @@ const createTranslateLoader = (http: HttpClient) =>
         USER_LIMIT_REQUESTS: DashboardSummaryComponent,
         HOLDING_WINNERS: HoldingMoversWidgetComponent,
         HOLDING_LOSERS: HoldingMoversWidgetComponent,
-        PERFORMANCE_LAST_SESSIONS: LastSessionsPerformanceWidgetComponent
+        PERFORMANCE_LAST_SESSIONS: LastSessionsPerformanceWidgetComponent,
+        ALGO_MONITORING: AlgoMonitoringWidgetComponent
       }
     },
     {

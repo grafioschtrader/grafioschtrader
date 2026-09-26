@@ -204,13 +204,32 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
   }
 
   /**
+   * Opens the login page and waits for its form. The dev server occasionally refuses a single request while the page
+   * loads; when that request is the global scripts bundle (it carries reflect-metadata), Angular never bootstraps and
+   * the page stays on "Loading...". A second navigation loads the bundle again; a second failure is a real one.
+   */
+  async function openLoginPage(page: Page): Promise<void> {
+    const email = page.locator('#email');
+    for (let attempt = 1; ; attempt++) {
+      await page.goto('/login');
+      try {
+        await email.waitFor({ state: 'visible', timeout: 15_000 });
+        return;
+      } catch (error) {
+        if (attempt >= 2) {
+          throw error;
+        }
+      }
+    }
+  }
+
+  /**
    * Wrapped in a named test.step so the timing reporter can report the cost of the UI login as one
    * number over the whole run — every test logs in, so this is one of the larger fixed costs.
    */
   async function performLogin(page: Page, creds: TestCredentials): Promise<void> {
     await test.step('login', async () => {
-      await page.goto('/login');
-      await page.locator('#email').waitFor({ state: 'visible', timeout: 15_000 });
+      await openLoginPage(page);
       await page.locator('#email').fill(creds.email);
       await page.locator('#password').fill(creds.password);
       await page.locator('button[type="submit"]').click();
@@ -339,8 +358,7 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
    * /tenant and signs them out again after the tenant was created, so both outcomes end at a defined place.
    */
   async function completeFirstLogin(page: Page, user: UserFixture, tenantSetup: TenantSetup): Promise<void> {
-    await page.goto('/login');
-    await page.locator('#email').waitFor({ state: 'visible', timeout: 15_000 });
+    await openLoginPage(page);
     await page.locator('#email').fill(user.email);
     await page.locator('#password').fill(user.password);
     await page.locator('button[type="submit"]').click();

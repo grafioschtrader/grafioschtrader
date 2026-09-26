@@ -6,11 +6,12 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { AlgoAssetclassService } from '../service/algo.assetclass.service';
 import { AppHelper } from '../../lib/helper/app.helper';
-import { PortfolioService } from '../../portfolio/service/portfolio.service';
+import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { AssetclassService } from '../../assetclass/service/assetclass.service';
 import { combineLatest, Observable, of } from 'rxjs';
 import { Assetclass } from '../../entities/assetclass';
-import { Portfolio } from '../../entities/portfolio';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { AlgoTop } from '../model/algo.top';
 import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
 import { AlgoAssetclassSecurityBaseEdit } from './algo.assetclass.security.base.edit';
@@ -45,14 +46,14 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 })
 export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<AlgoAssetclass> implements OnInit {
   constructor(
-    private portfolioService: PortfolioService,
     private assetclassService: AssetclassService,
     translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService,
-    algoAssetclassService: AlgoAssetclassService
+    algoAssetclassService: AlgoAssetclassService,
+    securityaccountService: SecurityaccountService
   ) {
-    super('ALGO_ASSETCLASS', translateService, gps, messageToastService, algoAssetclassService);
+    super('ALGO_ASSETCLASS', translateService, gps, messageToastService, algoAssetclassService, securityaccountService);
   }
 
   ngOnInit(): void {
@@ -61,6 +62,7 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
     this.config = [
       DynamicFieldHelper.createFieldCheckboxHeqF('customCategory'),
       DynamicFieldHelper.createFieldInputStringHeqF('name', 40, false),
+      DynamicFieldHelper.createFieldCheckboxHeqF('addInstrumentsBySearch'),
       DynamicFieldHelper.createFieldSelectStringHeqF(AppSettings.ASSETCLASS_KEY, true, {
         dataproperty: 'assetclass.idAssetClass'
       }),
@@ -76,12 +78,14 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
   }
 
   protected override initialize(): void {
-    const allSecurityaccountsObservable: Observable<Portfolio[]> =
-      this.portfolioService.getPortfoliosForTenantOrderByName();
-    this.valueChangedOnSecurityaccount1();
-
+    const existing = <AlgoAssetclass>this.algoCallParam.thisObject;
     // Detect custom category mode for existing entity
-    const isCustom = this.algoCallParam.thisObject && (<AlgoAssetclass>this.algoCallParam.thisObject).name != null;
+    const isCustom = existing && existing.name != null;
+    const accountOptionsObservable: Observable<ValueKeyHtmlSelectOptions[]> = this.getAccountOptions(
+      undefined,
+      isCustom ? undefined : existing?.assetclass?.idAssetClass
+    );
+    this.valueChangedOnSecurityaccount1();
 
     // Subscribe to customCategory checkbox changes
     this.configObject.customCategory.formControl.valueChanges.subscribe((checked: boolean) => {
@@ -90,8 +94,8 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
 
     const assetclassObservable = isCustom ? of([] as Assetclass[]) : this.getAssetclassObserver();
 
-    combineLatest([assetclassObservable, allSecurityaccountsObservable]).subscribe(
-      (data: [Assetclass | Assetclass[], Portfolio[]]) => {
+    combineLatest([assetclassObservable, accountOptionsObservable]).subscribe(
+      (data: [Assetclass | Assetclass[], ValueKeyHtmlSelectOptions[]]) => {
         this.configObject.assetclass.referencedDataObject = Array.isArray(data[0]) ? data[0] : [data[0]];
         this.configObject.assetclass.valueKeyHtmlOptions =
           BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
@@ -99,8 +103,21 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
             this.translateService,
             this.configObject.assetclass.referencedDataObject
           );
-        this.portfolios = data[1];
-        this.setSecurityaccounts();
+        this.setAccountOptions(data[1]);
+        if (existing) {
+          this.form.transferBusinessObjectToForm(existing);
+          // A saved priority whose account no longer allows the type is cleared, the backend would refuse it.
+          this.setAccountOptions(data[1]);
+        } else {
+          // Creating: the allowed accounts follow the asset class; a custom category allows every account.
+          this.configObject.assetclass.formControl.valueChanges
+            .pipe(distinctUntilChanged())
+            .subscribe((idAssetClass: number | string) =>
+              this.getAccountOptions(undefined, idAssetClass ? +idAssetClass : undefined).subscribe((options) =>
+                this.setAccountOptions(options)
+              )
+            );
+        }
 
         if (isCustom) {
           this.configObject.customCategory.formControl.setValue(true);
@@ -118,6 +135,9 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
       Object.assign(algoAssetclass, this.algoCallParam.thisObject);
     }
     this.form.cleanMaskAndTransferValuesToBusinessObject(algoAssetclass);
+    // Not an entity field: it only asks the hierarchy view to open the instrument search after the save.
+    this.algoCallParam.addInstrumentsBySearch = !!this.configObject.addInstrumentsBySearch.formControl.value;
+    delete algoAssetclass['addInstrumentsBySearch'];
     if (this.configObject.customCategory.formControl.value) {
       algoAssetclass.assetclass = null;
     } else {
@@ -130,9 +150,11 @@ export class AlgoAssetclassEditComponent extends AlgoAssetclassSecurityBaseEdit<
   private updateCustomCategoryDependencies(isCustom: boolean): void {
     if (isCustom) {
       this.enableField('name', true);
+      this.enableField('addInstrumentsBySearch', false);
       this.disableAndClearField('assetclass');
     } else {
       this.disableAndClearField('name');
+      this.disableAndClearField('addInstrumentsBySearch');
       this.enableField('assetclass', true);
     }
     // Disabling must not re-enter the checkbox's valueChanges subscription.

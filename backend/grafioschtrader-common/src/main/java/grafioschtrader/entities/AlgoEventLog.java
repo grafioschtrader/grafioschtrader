@@ -18,6 +18,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Audit trail of a historical replay. The rows are pure system output of a simulation and are therefore deleted with
+ * their environment and with the account, but never written to a personal data export: the target instance restores
+ * them by running the simulation again.
+ */
 @Schema(description = """
     One entry of the audit trail of a historical replay. The trail explains a run rather than summarising it: entries,
     exits, refused actions and days on which no decision was possible. The rationale is a bare message key such as

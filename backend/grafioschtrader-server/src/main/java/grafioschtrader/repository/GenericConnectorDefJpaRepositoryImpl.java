@@ -46,6 +46,9 @@ public class GenericConnectorDefJpaRepositoryImpl extends BaseRepositoryImpl<Gen
   public GenericConnectorDef saveOnlyAttributes(final GenericConnectorDef entity,
       final GenericConnectorDef existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws Exception {
+    grafioschtrader.service.YamlConfigurationValidation.requireValid(
+        grafioschtrader.service.YamlConfigurationValidation.Format.TOKENS, entity.getTokenConfigYaml(),
+        "token.config.yaml");
 
     validateCollectionSizes(entity);
 

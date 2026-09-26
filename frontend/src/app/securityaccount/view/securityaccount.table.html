@@ -8,9 +8,13 @@
     @if (rebalancingSummaryFields && securityPositionSummary?.valuationDate) {
     <div class="rebalancing-summary">
       @for (rsf of rebalancingSummaryFields; track rsf.field) {
-      <span class="rebalancing-summary-item">
+      <span
+        class="rebalancing-summary-item"
+        [pTooltip]="rsf.field === 'overallAllocationMismatchPercentage' ? ('OVERALL_ALLOCATION_MISMATCH_PERCENTAGE_TOOLTIP' | translate) : null">
         <strong>{{ rsf.headerTranslated }}:</strong> {{ getValueByPath(securityPositionSummary, rsf) }}
       </span>
+      } @if (securityPositionSummary.periodicDue) {
+      <span class="rebalancing-summary-item">{{ 'PERIODIC_DUE' | translate }}</span>
       } @if (securityPositionSummary.exposureBreach) {
       <span class="rebalancing-summary-item rebalancing-breach">{{ 'EXPOSURE_BREACH' | translate }}</span>
       }
@@ -104,13 +108,17 @@
       <ng-template #body let-columns="fields" let-el let-expanded="expanded" let-rowIndex="rowIndex">
         <tr [pContextMenuRow]="el" [pSelectableRow]="el">
           <td>
+            @if (!el.comparisonOnly) {
             <a [pRowToggler]="el" href="#">
               <i [ngClass]="expanded ? 'fa fa-fw fa-chevron-circle-down' : 'fa fa-fw fa-chevron-circle-right'"></i>
             </a>
+            }
           </td>
           @for (field of fields; track field) { @if (field.visible) {
           <td
-            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
+            [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericRaw
+                || field.dataType===DataType.NumericInteger || field.dataType===DataType.NumericShowZero
+                || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
             [style.max-width.px]="field.width"
             [ngStyle]="getCellStyle(el, field)">
             @switch (field.templateName) { @case ('check') {
@@ -136,6 +144,7 @@
           @for (field of groupFields; track field) { @if (field.visible) {
           <td
             [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericInteger
+                || field.dataType===DataType.NumericRaw || field.dataType===DataType.NumericShowZero
                 || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
             [colSpan]="field.columnGroupConfigs && field.columnGroupConfigs[0].colspan ? field.columnGroupConfigs[0].colspan: null">
             @switch (field.templateName) { @case ('greenRed') {
@@ -159,6 +168,7 @@
           @for (field of fields; track field) { @if (field.visible) {
           <td
             [ngClass]="(field.dataType===DataType.Numeric || field.dataType===DataType.DateTimeNumeric
+                || field.dataType===DataType.NumericRaw || field.dataType===DataType.NumericShowZero
                 || field.dataType===DataType.NumericInteger)? 'text-end': ''"
             [style.width.px]="field.width"
             class="row-total">
@@ -175,6 +185,7 @@
       </ng-template>
 
       <ng-template #expandedrow let-columns="fields" let-securityPositionAll>
+        @if (!securityPositionAll.comparisonOnly) {
         <tr>
           <td [attr.colspan]="numberOfVisibleColumns + 1">
             @if (!!securityPositionAll.security.stockexchange && !isMarginProduct(securityPositionAll.security)) {
@@ -201,6 +212,7 @@
             }
           </td>
         </tr>
+        }
       </ng-template>
     </p-table>
     @if (isActivated() && contextMenuItems) {

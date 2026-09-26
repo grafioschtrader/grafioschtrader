@@ -172,11 +172,45 @@ public class TaxDataResource {
     return ResponseEntity.ok(countries);
   }
 
+  @Autowired
+  private grafioschtrader.service.TaxCountryModelService taxCountryModelService;
+
+  @Autowired
+  private grafioschtrader.service.TaxEvalExEstimator taxEstimator;
+
+  public record TaxModelYamlDto(String yaml) {
+  }
+
+  @GetMapping("/country/{id}/taxmodelyaml")
+  public TaxModelYamlDto getTaxModel(@PathVariable int id) {
+    return new TaxModelYamlDto(taxCountryModelService.read(id));
+  }
+
+  @PutMapping("/country/{id}/taxmodelyaml")
+  public TaxModelYamlDto saveTaxModel(@PathVariable int id, @RequestBody TaxModelYamlDto request) {
+    return new TaxModelYamlDto(taxCountryModelService.update(id, request.yaml()));
+  }
+
+  @PostMapping("/taxmodelyaml/validate")
+  public List<String> validateTaxModel(@RequestBody TaxModelYamlDto request) {
+    checkAdmin();
+    return grafioschtrader.service.YamlConfigurationValidation
+        .validate(grafioschtrader.service.YamlConfigurationValidation.Format.TAXES, request.yaml(), true).stream()
+        .map(grafioschtrader.service.YamlConfigurationValidation.Diagnostic::message).toList();
+  }
+
+  @PostMapping("/estimatetaxyaml")
+  public grafioschtrader.dto.TaxEstimateResult estimateTax(
+      @RequestBody grafioschtrader.dto.TaxEstimateRequest request) {
+    checkAdmin();
+    return taxEstimator.estimate(request);
+  }
+
   @Operation(summary = "Create a new tax country node")
   @PostMapping("/country")
   public ResponseEntity<TaxCountry> createCountry(@RequestBody TaxCountry taxCountry) {
     checkAdmin();
-    return ResponseEntity.ok(taxCountryJpaRepository.save(taxCountry));
+    return ResponseEntity.ok(taxCountryModelService.create(taxCountry));
   }
 
   @Operation(summary = "Delete a tax country and all cascaded data")

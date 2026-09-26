@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import grafiosch.common.DataHelper;
+import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.types.AlgoRecommendationAction;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -104,6 +105,28 @@ public abstract class SecurityPositionGroupSummary {
     groupSecurityRiskMC += securityPositionSummary.securityRiskMC;
     groupExcludedDivTaxMC += securityPositionSummary.excludedDivTaxMC;
 
+  }
+
+  /** Match the percentage precision of individual report positions without rounding the aggregation fields. */
+  public Double getGroupTargetPercentage() {
+    return groupTargetPercentage == null ? null : DataBusinessHelper.roundPercentage(groupTargetPercentage);
+  }
+
+  public Double getGroupActualPercentage() {
+    return groupActualPercentage == null ? null : DataBusinessHelper.roundPercentage(groupActualPercentage);
+  }
+
+  public Double getGroupDeviationPercentage() {
+    return groupDeviationPercentage == null ? null : DataBusinessHelper.roundPercentage(groupDeviationPercentage);
+  }
+
+  public Double getGroupParentDeviation() {
+    return groupParentDeviation == null ? null : DataBusinessHelper.roundPercentage(groupParentDeviation);
+  }
+
+  public Double getGroupSecurityDeviationPercentage() {
+    return groupSecurityDeviationPercentage == null ? null
+        : DataBusinessHelper.roundPercentage(groupSecurityDeviationPercentage);
   }
 
   public double getGroupAccountValueSecurityMC() {

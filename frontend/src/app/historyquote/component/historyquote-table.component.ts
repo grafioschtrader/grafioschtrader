@@ -442,6 +442,7 @@ export class HistoryquoteTableComponent extends HistoryquoteTableBase<Historyquo
         : new CurrencypairWithTransaction(data[0]);
       this.historyquotesWithMissings = data[1];
       this.entityList = this.historyquotesWithMissings.historyquoteList;
+      this.applyPriceFractionDigits(this.historyquotesWithMissings.securitycurrency.priceFractionDigits);
       this.security = <Security>(
         (timeSeriesParam.currencySecurity ? this.historyquotesWithMissings.securitycurrency : null)
       );

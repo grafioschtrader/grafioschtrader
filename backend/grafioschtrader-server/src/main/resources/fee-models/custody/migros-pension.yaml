@@ -1,0 +1,13 @@
+custody:
+  periods:
+    - validFrom: "1900-01-01"
+      status: VERIFIED
+      source: "https://www.migrosbank.ch/dam/downloads/de/broschuere/preis-broschuere"
+      note: "The pension custody account holds only Migros Bank pension funds and has never been charged a custody fee."
+      currency: CHF
+      valuation: NONE
+      billingMonths: 3
+      collection: START
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      amount: '0'

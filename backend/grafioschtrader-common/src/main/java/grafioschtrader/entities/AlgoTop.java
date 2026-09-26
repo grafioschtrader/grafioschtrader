@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import grafiosch.BaseConstants;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
+import grafioschtrader.dto.AlgoTopReadiness;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -37,21 +38,11 @@ public class AlgoTop extends AlgoTopAssetSecurity {
   @PropertyAlwaysUpdatable
   private String name;
 
-//	@JoinColumn(name = "id_algo_assetclass_parent")
-//	@OneToMany(fetch = FetchType.LAZY)
-//	private List<AlgoAssetclass> algoAssetclassList;
-
   @Schema(description = """
       Optional watchlist supplying securities for watchlist-based strategies and selection.
       Hierarchies generated from portfolio holdings have no linked watchlist.""")
   @Column(name = "id_watchlist")
   private Integer idWatchlist;
-
-  @Schema(description = """
-      Whether the live evaluation of this hierarchy runs: its rebalancing and every alert and strategy below it. A new
-      hierarchy starts active, like its asset classes, securities and strategies.""")
-  @Column(name = "activatable")
-  private boolean activatable = true;
 
   @Schema(description = """
       Date whose end-of-day holdings this allocation was generated from. A simulation of this allocation must start
@@ -63,6 +54,12 @@ public class AlgoTop extends AlgoTopAssetSecurity {
   @Schema(description = "Sum of the target percentages of this hierarchy's direct children", accessMode = Schema.AccessMode.READ_ONLY)
   @Transient
   public Float addedPercentage;
+
+  @Schema(description = """
+      Whether this strategy can be used for a simulation, a replay and the rebalancing comparison, derived when the
+      strategy is read. Null where the reading endpoint does not evaluate it.""", accessMode = Schema.AccessMode.READ_ONLY)
+  @Transient
+  public AlgoTopReadiness readiness;
 
   public String getName() {
     return name;
@@ -80,14 +77,6 @@ public class AlgoTop extends AlgoTopAssetSecurity {
     this.idWatchlist = idWatchlist;
   }
 
-  public boolean isActivatable() {
-    return activatable;
-  }
-
-  public void setActivatable(boolean activatable) {
-    this.activatable = activatable;
-  }
-
   public LocalDate getReferenceDate() {
     return referenceDate;
   }
@@ -98,8 +87,7 @@ public class AlgoTop extends AlgoTopAssetSecurity {
 
   @Override
   public String toString() {
-    return "AlgoTop [name=" + name + ", idWatchlist=" + idWatchlist + ", activatable=" + activatable
-        + ", idAlgoAssetclassSecurity=" + idAlgoAssetclassSecurity + ", idTenant=" + idTenant + ", percentage="
+    return "AlgoTop [name=" + name + ", idWatchlist=" + idWatchlist + ", idAlgoAssetclassSecurity=" + idAlgoAssetclassSecurity + ", idTenant=" + idTenant + ", percentage="
         + percentage + "]";
   }
 

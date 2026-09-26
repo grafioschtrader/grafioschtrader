@@ -31,6 +31,9 @@ import { AlgoSimulationCreateDynamicComponent } from '../component/algo-simulati
 import { AlgoSimulationRunStartDynamicComponent } from '../component/algo-simulation-run-start.component';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { Cashaccount } from '../../entities/cashaccount';
+import { Tenant } from '../../entities/tenant';
+import { DataChangedService } from '../../lib/maintree/service/data.changed.service';
+import { ProcessedAction } from '../../lib/types/processed.action';
 
 /**
  * Contributor for Algo (algorithmic trading) nodes in the main navigation tree.
@@ -40,6 +43,7 @@ import { Cashaccount } from '../../entities/cashaccount';
 export class AlgoMainTreeContributor extends MainTreeContributor {
   private rootNode: TreeNode;
   private simulationTenants: SimulationTenantInfo[] = [];
+  private monitoringId: number | null = null;
 
   constructor(
     private gps: GlobalparameterService,
@@ -50,7 +54,8 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
     private portfolioService: PortfolioService,
     private messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private dataChangedService: DataChangedService
   ) {
     super();
   }
@@ -59,12 +64,21 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
     return 2; // Algo comes after Watchlist
   }
 
+  /**
+   * The root node is shown with rule-based trading or with alerts, because its landing page lists the standalone
+   * alerts. Strategies below it and its context menu exist only with rule-based trading.
+   */
   override isEnabled(): boolean {
+    return this.hasFeature(FeatureType.ALGO) || this.hasFeature(FeatureType.ALERT);
+  }
+
+  private hasFeature(featureType: FeatureType): boolean {
     const features = sessionStorage.getItem(GlobalSessionNames.USE_FEATURES);
-    if (!features) {
-      return false;
-    }
-    return JSON.parse(features).indexOf(FeatureType[FeatureType.ALGO]) >= 0;
+    return !!features && JSON.parse(features).indexOf(FeatureType[featureType]) >= 0;
+  }
+
+  private useAlgo(): boolean {
+    return this.hasFeature(FeatureType.ALGO);
   }
 
   getRootNodes(): Observable<TreeNode[]> {
@@ -80,8 +94,15 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   refreshNodes(rootNode: TreeNode): Observable<void> {
     this.rootNode = rootNode;
 
+    // With alerts only, the root node carries no strategies and nothing of them is requested.
+    if (!this.useAlgo()) {
+      rootNode.children.splice(0);
+      return of(undefined);
+    }
+
     // If we're in a simulation tenant, skip loading simulations (we're already inside one)
     if (this.isInSimulation()) {
+      this.monitoringId = null;
       return this.algoTopService.getAlgoTopByIdTenantOrderByName().pipe(
         map((algoTopList) => {
           rootNode.children.splice(0);
@@ -94,9 +115,11 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
 
     return forkJoin([
       this.algoTopService.getAlgoTopByIdTenantOrderByName(),
-      this.tenantService.getSimulationTenants()
+      this.tenantService.getSimulationTenants(),
+      this.tenantService.getTenantAndPortfolio()
     ]).pipe(
-      map(([algoTopList, simTenants]) => {
+      map(([algoTopList, simTenants, tenant]) => {
+        this.monitoringId = tenant.idAlgoTop;
         this.simulationTenants = simTenants;
         rootNode.children.splice(0);
         for (const algoTop of algoTopList) {
@@ -105,15 +128,20 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
           // Add simulation child nodes for this strategy
           const sims = simTenants.filter((s) => s.idAlgoTop === algoTop.idAlgoAssetclassSecurity);
           if (sims.length > 0) {
-            treeNode.icon = 'pi pi-desktop';
+            if (algoTop.idAlgoAssetclassSecurity !== this.monitoringId) {
+              treeNode.icon = 'pi pi-desktop';
+            }
             treeNode.children = [];
             for (const sim of sims) {
+              const startDate = sim.simulationStartDate
+                ? AppHelper.getDateByFormat(this.gps, sim.simulationStartDate)
+                : this.translateService.instant('SIMULATION_RECREATE_REQUIRED');
               treeNode.children.push({
-                label: `${sim.tenantName} — ${sim.simulationStartDate ?? this.translateService.instant('SIMULATION_RECREATE_REQUIRED')}${sim.initializationMode ? ' / ' + this.translateService.instant(sim.initializationMode) : ''}`,
+                label: `${sim.tenantName} — ${startDate}${sim.initializationMode ? ' / ' + this.translateService.instant(sim.initializationMode) : ''}`,
                 icon: 'pi pi-box',
                 data: new TypeNodeData(
                   TreeNodeType.SimulationEnvironment,
-                  this.addMainRoute(AppSettings.SIMULATION_RUN_KEY),
+                  this.addMainRoute(AppSettings.SIMULATION_RUN_TAB_MENU_KEY),
                   // The replay panel addresses the environment by its tenant, so the node carries that id into the
                   // route. The serialized entity stays: the switch and delete actions of the context menu read it.
                   sim.idTenant,
@@ -136,6 +164,9 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
 
     switch (typeNodeData.treeNodeType) {
       case TreeNodeType.AlgoRoot:
+        if (!this.useAlgo()) {
+          return null;
+        }
         if (this.isInSimulation()) {
           menuItems.push({
             label: 'SWITCH_TO_MAIN',
@@ -199,6 +230,11 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             label: 'CREATE_SIMULATION' + BaseSettings.DIALOG_MENU_SUFFIX,
             command: () => {
               const algoTop: AlgoTop = JSON.parse(typeNodeData.entityObject);
+              // An environment of a strategy that cannot run would only ever produce refused replays.
+              if (algoTop.readiness && !algoTop.readiness.readyForReplay) {
+                this.messageToastService.showMessage(InfoLevelType.WARNING, algoTop.readiness.issues[0].message);
+                return;
+              }
               forkJoin([
                 this.portfolioService.getPortfoliosForTenantOrderByName(),
                 this.gps.getEntityFormDefinition('SimulationTenantCreateDTO')
@@ -227,8 +263,14 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
           // The strategy hierarchy is read only inside an environment: it is edited in the user's own portfolio and
           // the simulation is replayed from there.
           if (!this.gps.isReadOnlyUser()) {
+            const id = selectedNodeData.idAlgoAssetclassSecurity;
+            menuItems.push({
+              label: id === this.monitoringId ? 'STOP_PORTFOLIO_MONITORING' : 'USE_FOR_PORTFOLIO_MONITORING',
+              command: () => this.assignMonitoring(id === this.monitoringId ? null : id)
+            });
             menuItems.push({
               label: 'DELETE|STRATEGY',
+              disabled: id === this.monitoringId,
               command: () => this.handleDeleteStrategy(treeNode, selectedNodeData.idAlgoAssetclassSecurity)
             });
           }
@@ -269,7 +311,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   }
 
   shouldRefreshOnDataChange(processedActionData: ProcessedActionData): boolean {
-    return processedActionData.data instanceof AlgoTop;
+    return processedActionData.data instanceof AlgoTop || processedActionData.data instanceof Tenant;
   }
 
   override handleDelete(treeNode: TreeNode, id: number): Observable<any> | null {
@@ -282,9 +324,10 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
   // Private helper methods
 
   private createStrategyNode(algoTop: AlgoTop): TreeNode {
+    const monitoring = algoTop.idAlgoAssetclassSecurity === this.monitoringId;
     return {
-      label: algoTop.name,
-      icon: 'pi ' + (algoTop.activatable ? 'pi-check-circle' : 'pi-question'),
+      label: monitoring ? `${algoTop.name} — ${this.translateService.instant('PORTFOLIO_MONITORING')}` : algoTop.name,
+      icon: 'pi ' + (monitoring ? 'pi-eye' : 'pi-sitemap'),
       data: new TypeNodeData(
         TreeNodeType.Strategy,
         this.addMainRoute(AppSettings.ALGO_TOP_KEY),
@@ -297,6 +340,15 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
 
   private isInSimulation(): boolean {
     return this.simulationContext.isInSimulation();
+  }
+
+  private assignMonitoring(id: number | null): void {
+    this.tenantService.assignMonitoring(id).subscribe((tenant) => {
+      this.monitoringId = tenant.idAlgoTop;
+      this.dataChangedService.dataHasChanged(
+        new ProcessedActionData(ProcessedAction.UPDATED, Object.assign(new Tenant(), tenant))
+      );
+    });
   }
 
   /**
@@ -328,15 +380,21 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
    */
   private handleStartReplay(typeNodeData: TypeNodeData): void {
     const sim: SimulationTenantInfo = JSON.parse(typeNodeData.entityObject);
-    this.gps.getEntityFormDefinition('SimulationRunRequestDTO').subscribe((formDefinition) =>
-      this.callbacks
-        ?.handleEdit(AlgoSimulationRunStartDynamicComponent, { formDefinition }, sim, 'SIMULATION_RUN')
-        ?.subscribe((result) => {
-          if (result) {
-            this.callbacks?.navigateToNode(typeNodeData);
-          }
-        })
-    );
+    if (sim.replayBlockedReason) {
+      this.messageToastService.showMessage(InfoLevelType.WARNING, sim.replayBlockedReason);
+      return;
+    }
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'SIMULATION_RUN_CONFIRM', () => {
+      this.gps.getEntityFormDefinition('SimulationRunRequestDTO').subscribe((formDefinition) =>
+        this.callbacks
+          ?.handleEdit(AlgoSimulationRunStartDynamicComponent, { formDefinition }, sim, 'SIMULATION_RUN')
+          ?.subscribe((result) => {
+            if (result) {
+              this.callbacks?.navigateToNode(typeNodeData);
+            }
+          })
+      );
+    });
   }
 
   private handleDeleteSimulation(treeNode: TreeNode, idSimTenant: number): void {

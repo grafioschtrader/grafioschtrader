@@ -11,6 +11,7 @@ import grafiosch.entities.User;
 import grafiosch.service.DailyLimitService;
 import grafiosch.types.OperationType;
 import grafioschtrader.config.FeatureConfig;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.*;
 import grafioschtrader.repository.*;
 import grafioschtrader.service.*;
@@ -21,7 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @RestController
 @RequestMapping("/api/algoalerts")
 public class AlgoAlertResource {
-  public static final String ACTION_LIMIT = "AlgoAlertAction";
+  public static final String ACTION_LIMIT = LimitKeyConfig.ENTITY_NAME_ALGO_ALERT_ACTION;
   private final AlgoAlertScopeResolver scopes;
   private final AlgoAlertEvaluationStateJpaRepository evaluations;
   private final AlgoMessageAlertJpaRepository alarms;

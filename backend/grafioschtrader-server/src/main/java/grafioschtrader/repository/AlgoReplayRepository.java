@@ -11,8 +11,33 @@ import grafioschtrader.entities.Tenant;
 public interface AlgoReplayRepository extends Repository<Tenant, Integer> {
 
   /**
-   * Removes everything a previous replay generated, leaving the opening ledger of the environment untouched. This is
-   * what makes a repeat run start from the recorded opening state rather than append a second replay to the first one.
+   * Breaks the circular references before removing transfers and action applications. Opening transactions never carry
+   * these references and remain untouched.
+   *
+   * @param idTenant the simulation environment
+   * @return number of updated transactions
+   */
+  @Transactional
+  @Modifying
+  @Query("UPDATE Transaction t SET t.idSecurityTransfer = null, t.idSecurityActionApp = null"
+      + " WHERE t.idTenant = ?1 AND t.simulationOpening = false")
+  int clearGeneratedTransactionReferences(Integer idTenant);
+
+  /** Removes the environment's transfers after their incoming transaction references have been cleared. */
+  @Transactional
+  @Modifying
+  @Query("DELETE FROM SecurityTransfer t WHERE t.idTenant = ?1")
+  int deleteSecurityTransfers(Integer idTenant);
+
+  /** Removes tenant applications, including those without SELL/BUY pairs, while keeping shared security actions. */
+  @Transactional
+  @Modifying
+  @Query("DELETE FROM SecurityActionApplication a WHERE a.idTenant = ?1")
+  int deleteSecurityActionApplications(Integer idTenant);
+
+  /**
+   * Removes replay-generated and user-entered transactions, leaving the opening ledger untouched. This is what makes a
+   * repeat run start from the recorded opening state rather than append a second replay to the first one.
    *
    * <p>
    * The holdings tables are not maintained by this delete. The caller rebuilds them from the remaining transactions
@@ -27,11 +52,6 @@ public interface AlgoReplayRepository extends Repository<Tenant, Integer> {
   @Modifying
   @Query("DELETE FROM Transaction t WHERE t.idTenant = ?1 AND t.simulationOpening = false")
   int deleteGeneratedTransactions(Integer idTenant);
-
-  @Transactional
-  @Modifying
-  @Query("DELETE FROM AlgoRecommendation r WHERE r.idTenant = ?1")
-  int deleteRecommendations(Integer idTenant);
 
   @Transactional
   @Modifying

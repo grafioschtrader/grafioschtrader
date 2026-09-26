@@ -2,6 +2,8 @@ package grafioschtrader.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +18,7 @@ import grafioschtrader.types.TransactionType;
 class AlgoReplayRoundTripsTest {
 
   private static final Integer SECURITY = 42;
+  private static final LocalDate OPENING = LocalDate.of(2020, 2, 6);
 
   @Test
   @DisplayName("A trip without costs realizes the plain price difference")
@@ -64,6 +67,41 @@ class AlgoReplayRoundTripsTest {
   void openPositionIsNoTrip() {
     AlgoReplayRoundTrips trips = new AlgoReplayRoundTrips();
     trips.add(null, SECURITY, TransactionType.ACCUMULATE, 10, 100, 10.0);
+    assertThat(trips.closedTrades()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Selling a position held on the opening day closes a round trip measured from its opening value")
+  void openingPositionIsContinued() {
+    AlgoReplayRoundTrips trips = new AlgoReplayRoundTrips();
+    trips.open(null, SECURITY, 300, 50, OPENING);
+    trips.add(null, SECURITY, TransactionType.ACCUMULATE, 250, 40, 5.0, null, null, OPENING.plusDays(10));
+    trips.add(null, SECURITY, TransactionType.REDUCE, 550, 60, 5.0, null, null, OPENING.plusDays(20));
+    assertThat(trips.closedTrades()).singleElement().extracting(AlgoReplayMetrics.Trade::realizedGain)
+        .as("-15000 -10000 +33000 less two commissions").isEqualTo(7990.0);
+  }
+
+  @Test
+  @DisplayName("A split between the fills does not leave a closed position with a remainder")
+  void splitBetweenFills() {
+    LocalDate split = OPENING.plusDays(5);
+    AlgoReplayRoundTrips trips = new AlgoReplayRoundTrips();
+    trips.useUnitBasis((_, date) -> date.isBefore(split) ? 5 : 1);
+    trips.open(null, SECURITY, 600, 100, OPENING);
+    trips.add(null, SECURITY, TransactionType.REDUCE, 2000, 21, null, null, null, split);
+    assertThat(trips.closedTrades()).as("1000 of 3000 units in the split basis remain").isEmpty();
+    trips.add(null, SECURITY, TransactionType.REDUCE, 1000, 22, null, null, null, split.plusDays(1));
+    assertThat(trips.closedTrades()).singleElement().extracting(AlgoReplayMetrics.Trade::realizedGain)
+        .as("-60000 +42000 +22000").isEqualTo(4000.0);
+  }
+
+  @Test
+  @DisplayName("An opening position that is never sold, or nothing held at all, closes no round trip")
+  void openingPositionStillHeld() {
+    AlgoReplayRoundTrips trips = new AlgoReplayRoundTrips();
+    trips.open(null, SECURITY, 100, 50, OPENING);
+    trips.open(null, SECURITY + 1, 0, 50, OPENING);
+    trips.add(null, SECURITY, TransactionType.REDUCE, 40, 55, null, null, null, OPENING.plusDays(1));
     assertThat(trips.closedTrades()).isEmpty();
   }
 

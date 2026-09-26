@@ -16,6 +16,7 @@ import grafiosch.BaseConstants;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.service.SendMailInternalExternalService;
@@ -219,8 +220,6 @@ public class SecurityActionService {
   public SecurityActionApplication applySecurityAction(Integer idSecurityAction) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer idTenant = user.getIdTenant();
-    // Atomic multi-transaction operation: block only when the tenant is already at/over the limit.
-    transactionJpaRepository.throwWhenTransactionLimitReached(idTenant);
 
     SecurityAction action = securityActionJpaRepository.findById(idSecurityAction)
         .orElseThrow(() -> new DataViolationException("id.security.action", "gt.security.action.not.found", null));
@@ -237,6 +236,27 @@ public class SecurityActionService {
     if (allTenantTransactions.isEmpty()) {
       throw new DataViolationException("id.security.action", "gt.security.action.no.holdings", null);
     }
+    if (allTenantTransactions.stream()
+        .anyMatch(t -> t.isSimulationOpening() && t.getTransactionDate().isAfter(action.getActionDate()))) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.simulation.opening.protected", null);
+    }
+
+    Map<Integer, Double> unitsByAccount = allTenantTransactions.stream()
+        .filter(t -> !t.getTransactionDate().isAfter(action.getActionDate()))
+        .filter(t -> t.getIdSecurityaccount() != null)
+        .collect(Collectors.groupingBy(Transaction::getIdSecurityaccount, Collectors.summingDouble(t -> {
+          if (t.getTransactionType() == TransactionType.ACCUMULATE) {
+            return t.getUnits();
+          } else if (t.getTransactionType() == TransactionType.REDUCE) {
+            return -t.getUnits();
+          }
+          return 0.0;
+        })));
+
+    int rows = 2 * (int) unitsByAccount.entrySet().stream().filter(entry -> entry.getValue() > 0).filter(
+        entry -> securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(entry.getKey(), idTenant) != null)
+        .count();
+    transactionJpaRepository.throwWhenTransactionLimitReached(idTenant, rows);
 
     // Get closing price on action date, in the share basis that was traded on that day
     double closePrice = getAsTradedClose(action.getSecurityOld().getIdSecuritycurrency(), action.getActionDate(),
@@ -260,20 +280,6 @@ public class SecurityActionService {
         application.getIdSecurityActionApp(), action.getActionDate());
     entityManager.flush();
     entityManager.clear();
-
-    // Step 2: Calculate net units from remaining transactions on old security (now only up to the action date)
-    List<Transaction> remainingTransactions = transactionJpaRepository.findByIdTenantAndIdSecurity(idTenant,
-        action.getSecurityOld().getIdSecuritycurrency());
-
-    Map<Integer, Double> unitsByAccount = remainingTransactions.stream().filter(t -> t.getIdSecurityaccount() != null)
-        .collect(Collectors.groupingBy(Transaction::getIdSecurityaccount, Collectors.summingDouble(t -> {
-          if (t.getTransactionType() == TransactionType.ACCUMULATE) {
-            return t.getUnits();
-          } else if (t.getTransactionType() == TransactionType.REDUCE) {
-            return -t.getUnits();
-          }
-          return 0.0;
-        })));
 
     Integer firstSellId = null;
     Integer firstBuyId = null;
@@ -394,8 +400,7 @@ public class SecurityActionService {
   public SecurityTransfer createTransfer(SecurityTransfer transfer) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     Integer idTenant = user.getIdTenant();
-    // Atomic multi-transaction operation: block only when the tenant is already at/over the limit.
-    transactionJpaRepository.throwWhenTransactionLimitReached(idTenant);
+    transactionJpaRepository.throwWhenTransactionLimitReached(idTenant, 4);
     transfer.setIdTenant(idTenant);
 
     TransferContext ctx = validateAndPrepareTransfer(transfer, idTenant);

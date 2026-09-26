@@ -22,6 +22,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Result of a historical replay. The row is pure system output of a simulation and is therefore deleted with its
+ * environment and with the account, but never written to a personal data export: the target instance restores it by
+ * running the simulation again.
+ */
 @Schema(description = """
     Definition, progress and metrics of one historical replay of a simulation environment. The effective strategy
     configuration, dates and calculation conventions are captured when the run is submitted so later edits cannot
@@ -127,10 +132,12 @@ public class AlgoSimulationResult extends TenantBaseID {
   private int tradingDaysDone;
 
   @Schema(description = """
-      Effective configuration of every strategy of the hierarchy at submit time, as a JSON object keyed by strategy
-      id. Later edits of the shared strategies cannot change what this run recorded.""")
-  @Column(name = "strategy_snapshot")
-  private String strategySnapshot;
+      The strategy hierarchy at submit time in the shape of the hierarchy view: top level, asset classes, instruments and
+      every strategy with its parameters. Later edits of the shared hierarchy cannot change it. Served by its own
+      endpoint rather than with the polled run, and empty for a run submitted before the hierarchy was captured.""")
+  @JsonIgnore
+  @Column(name = "hierarchy_snapshot", columnDefinition = "LONGTEXT")
+  private String hierarchySnapshot;
 
   @Schema(description = """
       Space separated message keys of the price, cost and metric conventions the run was calculated under, for
@@ -190,6 +197,30 @@ public class AlgoSimulationResult extends TenantBaseID {
 
   public void setDividendPaymentDelayDays(Integer days) {
     this.dividendPaymentDelayDays = days;
+  }
+
+  @Schema(description = "Economic FX markup paid in tenant currency; null until the run completes")
+  @Column(name = "fx_markup_paid")
+  private Double fxMarkupPaid;
+
+  @Schema(description = "Accepted conversions without a tariff in an FX-modelled run; null until completion")
+  @Column(name = "fx_uncovered_conversions")
+  private Integer fxUncoveredConversions;
+
+  public Double getFxMarkupPaid() {
+    return roundAmount(fxMarkupPaid);
+  }
+
+  public void setFxMarkupPaid(Double amount) {
+    this.fxMarkupPaid = amount;
+  }
+
+  public Integer getFxUncoveredConversions() {
+    return fxUncoveredConversions;
+  }
+
+  public void setFxUncoveredConversions(Integer count) {
+    this.fxUncoveredConversions = count;
   }
 
   public Double getPaidDividends() {
@@ -296,12 +327,12 @@ public class AlgoSimulationResult extends TenantBaseID {
     this.tradingDaysDone = tradingDaysDone;
   }
 
-  public String getStrategySnapshot() {
-    return strategySnapshot;
+  public String getHierarchySnapshot() {
+    return hierarchySnapshot;
   }
 
-  public void setStrategySnapshot(String strategySnapshot) {
-    this.strategySnapshot = strategySnapshot;
+  public void setHierarchySnapshot(String hierarchySnapshot) {
+    this.hierarchySnapshot = hierarchySnapshot;
   }
 
   public String getConventions() {

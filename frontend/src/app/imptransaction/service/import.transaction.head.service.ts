@@ -71,6 +71,23 @@ export class ImportTransactionHeadService
       );
   }
 
+  /**
+   * Deletes the transactions created from the positions of an import head, newest first, so the import can be run
+   * again. The backend refuses when other transactions of the tenant are dated in or after the import period.
+   *
+   * @param idTransactionHead - The import head whose imported transactions are rolled back
+   * @returns The number of deleted transactions
+   */
+  rollbackImportedTransactions(idTransactionHead: number): Observable<number> {
+    return this.httpClient
+      .post<number>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.IMPORT_TRANSACTION_HEAD_KEY}/${idTransactionHead}/rollback`,
+        null,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   update(importTransactionHead: ImportTransactionHead): Observable<ImportTransactionHead> {
     return this.updateEntity(
       importTransactionHead,

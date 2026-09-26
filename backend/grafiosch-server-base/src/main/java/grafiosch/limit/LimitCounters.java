@@ -44,6 +44,23 @@ public abstract class LimitCounters {
   }
 
   /**
+   * Counts the rows of one entity that a user column assigns to the acting user. It is the {@link OwnerScope#CREATOR}
+   * counter for entities without a {@code created_by}: a {@code UserBaseID} entity is owned through {@code id_user}, and
+   * an internal message through its sender. There is no separate user scope, because "the acting user" is exactly
+   * what the creator scope bounds.
+   *
+   * @param jpqlEntityName JPA entity name to count
+   * @param userField      JPA attribute holding the owning user's id, for example {@code idUser}
+   * @return counter returning 0 when there is no acting user
+   */
+  public static EntityLimitCounter userCount(String jpqlEntityName, String userField) {
+    return (entityManager, user, _, _) -> user == null ? 0
+        : entityManager
+            .createQuery("SELECT count(t) FROM " + jpqlEntityName + " t WHERE t." + userField + " = ?1", Long.class)
+            .setParameter(1, user.getIdUser()).getSingleResult().intValue();
+  }
+
+  /**
    * Counts every row of one entity, regardless of who owns it. This is the counter behind an {@link OwnerScope#GLOBAL}
    * cap.
    *

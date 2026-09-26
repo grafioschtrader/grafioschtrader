@@ -282,8 +282,8 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * Retrieves the oldest and the newest end-of-day quote date of every instrument of the specified watchlist, scoped to
    * the current tenant to enforce data isolation.
    * - Uses id_tenant to prevent tenants from accessing each other’s data.
-   * - Groups the historical prices of the watchlist entries per instrument, so only the two dates are read instead of
-   *   whole quote rows.
+   * - Reads each of the two dates as a single entry at either end of the (id_securitycurrency, date) index. Grouping a
+   *   join over historyquote instead would scan the whole history of every instrument on the watchlist.
    * - An instrument without any historical price is absent from the result.
    * - Returns results ordered by security ID in ascending order.
    * @param idWatchlist The identifier of the watchlist containing the instruments.
@@ -374,6 +374,10 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * This query combines two data sources:
    * - From the "historyquote" table:
    * selects the latest available quote for each security currency ID that is less than or equal to the specified date.
+   * The newest date per ID is determined first in a grouped derived table, which the (id_securitycurrency, date) index
+   * answers with one entry per ID, and is then joined back for the close. A correlated MAX(date) subquery would visit
+   * every quote row of every requested ID instead, which cost around 5 ms per instrument with a long history. This
+   * query runs for all open positions of every portfolio summary, watchlist and dashboard holding card.
    * - From the "historyquote_period" table:
    * selects the period-based price if the given date falls within the defined date range (from_date to to_date).
    *

@@ -118,6 +118,9 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
   public ResponseEntity<GenericConnectorDef> activateConnector(@PathVariable final Integer id) {
     checkAdmin();
     return genericConnectorDefJpaRepository.findById(id).map(def -> {
+      grafioschtrader.service.YamlConfigurationValidation.requireValid(
+          grafioschtrader.service.YamlConfigurationValidation.Format.TOKENS, def.getTokenConfigYaml(),
+          "token.config.yaml");
       def.setActivated(true);
       GenericConnectorDef saved = genericConnectorDefJpaRepository.save(def);
       genericFeedConnectorFactory.reload();
@@ -131,6 +134,9 @@ public class GenericConnectorResource extends UpdateCreateDeleteAuditResource<Ge
   public ResponseEntity<GenericConnectorDef> deactivateConnector(@PathVariable final Integer id) {
     checkAdmin();
     return genericConnectorDefJpaRepository.findById(id).map(def -> {
+      grafioschtrader.service.YamlConfigurationValidation.requireValid(
+          grafioschtrader.service.YamlConfigurationValidation.Format.TOKENS, def.getTokenConfigYaml(),
+          "token.config.yaml");
       def.setActivated(false);
       GenericConnectorDef saved = genericConnectorDefJpaRepository.save(def);
       genericFeedConnectorFactory.reload();

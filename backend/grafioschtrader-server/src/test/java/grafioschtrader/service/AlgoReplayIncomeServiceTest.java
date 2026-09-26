@@ -73,6 +73,19 @@ class AlgoReplayIncomeServiceTest {
   }
 
   @Test
+  void failedIssuerStopsAccruingOnTheDayTradingEnds() {
+    var terms = new AlgoReplayCouponSchedule.Terms(12.0, MATURITY, 1, CouponDayCount.THIRTY_E_360);
+    var failed = new AlgoReplayInputs.Instrument("CHF", null, null, null, null, null, true, null, terms, "GENERATED",
+        null, List.of(), List.of(), null, MATURITY, null, DAY);
+    var session = open(Map.of(1, failed), false);
+    when(source.transactions(eq(65), any())).thenReturn(List.of(trade(TransactionType.ACCUMULATE)));
+
+    assertThat(session.receivables(DAY.minusDays(1))).containsKey("CHF");
+    assertThat(session.receivables(DAY)).isEmpty();
+    assertThat(session.receivables(DAY.plusDays(30))).isEmpty();
+  }
+
+  @Test
   void repeatedValuationOnTheSameDaySeesNewlyCommittedClosures() {
     var session = open(Map.of(1, instrument("GENERATED")), false);
     when(source.transactions(65, DAY.plusDays(1))).thenReturn(List.of(trade(TransactionType.ACCUMULATE)))

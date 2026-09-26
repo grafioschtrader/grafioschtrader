@@ -104,6 +104,8 @@ public class AlgoReplayIncomeService {
           }
           audit.accept(toAudit(type, claim));
         });
+      } catch (AlgoReplayFx.Failure e) {
+        throw e;
       } catch (Exception e) {
         audit.accept(new Audit(AlgoEventType.UNAVAILABLE, date, null, null, null, null, null,
             "REPLAY_DIVIDEND_UNAVAILABLE", diagnostic(e)));
@@ -263,6 +265,9 @@ public class AlgoReplayIncomeService {
         String[] ids = key.split(":");
         int security = Integer.parseInt(ids[0]), account = Integer.parseInt(ids[1]);
         var instrument = inputs.instruments().get(security);
+        // Interest of a failed issuer is never paid, so it stops being an asset on the day trading ends.
+        if (instrument.tradingStopped(date))
+          return;
         var schedule = new AlgoReplayCouponSchedule(instrument.couponTerms());
         double amount = schedule.accrued(units, date);
         result.gross().merge(instrument.currency(), amount, Double::sum);

@@ -30,6 +30,20 @@ public class AlgoStrategyResource extends AlgoBaseResource<AlgoStrategy> {
   @Autowired
   private AlgoStrategyJpaRepository algoStrategyJpaRepository;
 
+  @Autowired
+  private grafioschtrader.service.AlgoMonitoringService monitoring;
+
+  @io.swagger.v3.oas.annotations.media.Schema(description = "Live alert preference; never changes replay behavior")
+  public record AlertEnabledDto(@jakarta.validation.constraints.NotNull Boolean alertEnabled) {
+  }
+
+  @Operation(summary = "Change live alerts for a strategy in the assigned monitoring hierarchy")
+  @org.springframework.web.bind.annotation.PatchMapping(value = "/{id}/alert-enabled", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<AlgoStrategy> setAlertEnabled(@PathVariable Integer id,
+      @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody AlertEnabledDto request) {
+    return ResponseEntity.ok(monitoring.setAlertEnabled(id, request.alertEnabled()));
+  }
+
   public AlgoStrategyResource() {
     super(AlgoStrategy.class);
   }

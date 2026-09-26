@@ -121,6 +121,10 @@ public class AlgoReplayDividendService {
         if (input.activeToDate() != null && input.activeToDate().isBefore(through)) {
           through = input.activeToDate();
         }
+        // A failed issuer pays no further coupon; recorded distributions above are real data and stay untouched.
+        if (input.tradingEndDate() != null && !input.tradingEndDate().isAfter(through)) {
+          through = input.tradingEndDate().minusDays(1);
+        }
         for (LocalDate date : schedule.payments(opening, through))
           observations.add(
               new Distribution(null, security, date, date, schedule.coupon(1), input.currency(), false, kind, true));

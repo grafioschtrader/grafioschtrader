@@ -148,11 +148,12 @@ export class AppSettings {
   public static readonly STRATEGY_KEY = 'strategy';
   public static readonly ALGO_OVERVIEW_KEY = 'algooverview';
   public static readonly SIMULATION_RUN_KEY = 'simulationrun';
+  public static readonly SIMULATION_RUN_TAB_MENU_KEY = 'replayTabMenu';
+  public static readonly SIMULATION_RUN_SETTINGS_KEY = 'replaysettings';
   public static readonly STANDING_ORDER_KEY = AppSettings.STANDING_ORDER.toLowerCase();
   public static readonly STANDING_ORDER_TAB_KEY = 'standingordertabmenu';
   public static readonly TENANT_STANDING_ORDER_CASHACCOUNT = 'tenantstandingordercashaccount';
   public static readonly TENANT_STANDING_ORDER_SECURITY = 'tenantstandingordersecurity';
-  public static readonly TENANT_ALERT = 'tenantalert';
   public static readonly TENANT_TRANSACTION = 'tenanttransaction';
   public static readonly CASHACCOUNT_DETAIL_ROUTE_KEY = 'cashaccountDetail';
   public static readonly SECURITYACCOUNT_SUMMERY_ROUTE_KEY = 'securityaccountSummery';

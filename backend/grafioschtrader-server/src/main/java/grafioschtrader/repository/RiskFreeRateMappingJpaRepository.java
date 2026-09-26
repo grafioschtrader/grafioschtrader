@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -46,4 +47,21 @@ public interface RiskFreeRateMappingJpaRepository
    */
   @Query(nativeQuery = true, value = "SELECT s.currency FROM security s WHERE s.id_securitycurrency = ?1")
   String findCurrencyByIdSecuritycurrency(Integer idSecuritycurrency);
+
+  /**
+   * Returns the ids of all securities that serve as the risk-free rate of a currency. Their quotes are interest rates,
+   * not price levels, so they are kept at full precision where index levels are rounded to their currency precision.
+   *
+   * @return the ids of every mapped risk-free security, empty when no mapping exists
+   */
+  @Query("SELECT r.idSecuritycurrency FROM RiskFreeRateMapping r")
+  Set<Integer> findAllIdSecuritycurrency();
+
+  /**
+   * Tells whether the security serves as the risk-free rate of some currency.
+   *
+   * @param idSecuritycurrency the id of the security
+   * @return true when a mapping references this security
+   */
+  boolean existsByIdSecuritycurrency(Integer idSecuritycurrency);
 }

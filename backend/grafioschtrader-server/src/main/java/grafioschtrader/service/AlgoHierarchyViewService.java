@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.dto.AlgoHierarchyDto;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoSecurity;
@@ -25,14 +24,23 @@ import grafioschtrader.repository.AlgoTopJpaRepository;
 public class AlgoHierarchyViewService {
   private final AlgoTopJpaRepository tops;
   private final AlgoAssetclassJpaRepository assetclasses;
+  private final AlgoTopReadinessService readinessService;
+
+  @org.springframework.beans.factory.annotation.Autowired
+  private AlgoMonitoringService monitoring;
 
   /** Uses tenant-scoped repositories so simulation viewers read only their home tenant's hierarchy. */
-  public AlgoHierarchyViewService(AlgoTopJpaRepository tops, AlgoAssetclassJpaRepository assetclasses) {
+  public AlgoHierarchyViewService(AlgoTopJpaRepository tops, AlgoAssetclassJpaRepository assetclasses,
+      AlgoTopReadinessService readinessService) {
     this.tops = tops;
     this.assetclasses = assetclasses;
+    this.readinessService = readinessService;
   }
 
-  /** Returns the hierarchy, totals and warning fields in a single response after checking ownership. */
+  /**
+   * Returns the hierarchy, totals and warning fields in a single response after checking ownership. The red markers
+   * are the findings of the readiness check, so that the tree and the refusal of a replay can never disagree.
+   */
   @Transactional(readOnly = true)
   public AlgoHierarchyDto getHierarchy(Integer idTenant, Integer idAlgoTop) {
     AlgoTop top = tops.findByIdTenantAndIdAlgoAssetclassSecurity(idTenant, idAlgoTop);
@@ -40,47 +48,29 @@ public class AlgoHierarchyViewService {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     List<AlgoAssetclass> children = assetclasses.findByIdTenantAndIdAlgoAssetclassParent(idTenant, idAlgoTop);
-    Map<Integer, Set<String>> invalidFields = new HashMap<>();
-    Map<Integer, Set<String>> warningFields = new HashMap<>();
     top.addedPercentage = (float) children.stream().mapToDouble(AlgoHierarchyViewService::percentage).sum();
-    checkTotal(top, top.addedPercentage, invalidFields);
-    LocalDate openingDate = top.getReferenceDate() == null ? null : top.getReferenceDate().plusDays(1);
+    top.readiness = readinessService.check(top, children, AlgoTopReadinessService.currentLocale());
+    Map<Integer, Set<String>> invalidFields = new HashMap<>();
+    top.readiness.issues().stream().filter(issue -> issue.field() != null && issue.idNode() != null)
+        .forEach(issue -> invalidFields.computeIfAbsent(issue.idNode(), _ -> new HashSet<>()).add(issue.field()));
+    Map<Integer, Set<String>> warningFields = new HashMap<>();
     LocalDate today = LocalDate.now();
-    children.forEach(assetclass -> checkAssetclass(assetclass, openingDate, today, invalidFields, warningFields));
-    return new AlgoHierarchyDto(top, children, invalidFields, warningFields);
+    children.forEach(assetclass -> markExpired(assetclass, today, warningFields));
+    return new AlgoHierarchyDto(top, children, invalidFields, warningFields, monitoring.isAssigned(idTenant, idAlgoTop),
+        monitoring.canEdit(idTenant, idAlgoTop));
   }
 
-  private void checkAssetclass(AlgoAssetclass assetclass, LocalDate openingDate, LocalDate today,
-      Map<Integer, Set<String>> invalidFields, Map<Integer, Set<String>> warningFields) {
-    checkTotal(assetclass, assetclass.getAddedPercentage(), invalidFields);
-    List<AlgoSecurity> securities = assetclass.getAlgoSecurityList() == null ? List.of()
-        : assetclass.getAlgoSecurityList();
-    boolean hasValidInstrument = false;
-    for (AlgoSecurity member : securities) {
+  /** An instrument whose trading already ended is highlighted in yellow; it does not make the strategy unusable. */
+  private void markExpired(AlgoAssetclass assetclass, LocalDate today, Map<Integer, Set<String>> warningFields) {
+    if (assetclass.getAlgoSecurityList() == null) {
+      return;
+    }
+    for (AlgoSecurity member : assetclass.getAlgoSecurityList()) {
       if (member.getSecurity() != null && member.getSecurity().getActiveToDate() != null
           && member.getSecurity().getActiveToDate().isBefore(today)) {
         warningFields.computeIfAbsent(member.getId(), _ -> new HashSet<>()).add("security.activeToDate");
       }
-      boolean eligible = AlgoSecurityEligibility.isEligibleInstrument(member.getSecurity(), openingDate);
-      if (!eligible) {
-        markInvalid(member, "name", invalidFields);
-      }
-      hasValidInstrument |= eligible && member.isActivatable() && percentage(member) > 0;
     }
-    if (percentage(assetclass) > 0 && !hasValidInstrument) {
-      markInvalid(assetclass, "name", invalidFields);
-    }
-  }
-
-  private void checkTotal(AlgoTopAssetSecurity node, double total, Map<Integer, Set<String>> invalidFields) {
-    if (!Double.isFinite(total)
-        || Math.abs(total - GlobalConstants.EXPECTED_ADDED_PERCENTAGE) >= GlobalConstants.ADDED_PERCENTAGE_TOLERANCE) {
-      markInvalid(node, "addedPercentage", invalidFields);
-    }
-  }
-
-  private void markInvalid(AlgoTopAssetSecurity node, String field, Map<Integer, Set<String>> invalidFields) {
-    invalidFields.computeIfAbsent(node.getId(), _ -> new HashSet<>()).add(field);
   }
 
   private static double percentage(AlgoTopAssetSecurity node) {

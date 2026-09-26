@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.RepositoryHelper;
 import grafioschtrader.dto.FeeModelComparisonResponse;
@@ -45,6 +46,9 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
   @Modifying
   public Securityaccount saveOnlyAttributes(final Securityaccount securityaccount, Securityaccount existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
+    grafioschtrader.service.YamlConfigurationValidation.requireValid(
+        grafioschtrader.service.YamlConfigurationValidation.Format.FEES_ACCOUNT, securityaccount.getFeeModelYaml(),
+        "fee.model.yaml");
     validateTradingPeriods(securityaccount, existingEntity);
     validateActiveToDate(securityaccount, existingEntity);
     return RepositoryHelper.saveOnlyAttributes(securityaccountJpaRepository, securityaccount, existingEntity,
@@ -126,6 +130,9 @@ public class SecurityaccountJpaRepositoryImpl extends BaseRepositoryImpl<Securit
 
   @Override
   public int delEntityWithTenant(Integer id, Integer idTenant) {
+    if (transactionJpaRepository.existsByIdTenantAndIdSecurityaccountAndSimulationOpeningTrue(idTenant, id)) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.simulation.opening.parent.delete", null);
+    }
     return securityaccountJpaRepository.deleteSecurityaccount(id, idTenant);
   }
 

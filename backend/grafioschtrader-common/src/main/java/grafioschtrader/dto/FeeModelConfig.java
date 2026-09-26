@@ -10,6 +10,27 @@ import io.swagger.v3.oas.annotations.media.Schema;
     (2) 'periods' array — time-based fee schedules with nested rules per period.""")
 public class FeeModelConfig {
 
+  @Schema(description = "Independently resolved currency conversion markup tariff.")
+  private FxFeeConfig fx;
+
+  public FxFeeConfig getFx() {
+    return fx;
+  }
+
+  public void setFx(FxFeeConfig fx) {
+    this.fx = fx;
+  }
+
+  private CustodyFeeConfig custody;
+
+  public CustodyFeeConfig getCustody() {
+    return custody;
+  }
+
+  public void setCustody(CustodyFeeConfig custody) {
+    this.custody = custody;
+  }
+
   @Schema(description = "Fee rules evaluated top-to-bottom; first matching condition wins. Mutually exclusive with 'periods'.")
   private List<FeeRule> rules;
 

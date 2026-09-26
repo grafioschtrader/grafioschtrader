@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.dto.LimitKey;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.service.EntityLimitService;
@@ -73,6 +74,8 @@ public class SimulationTenantService {
 
   @Autowired
   private EntityLimitService entityLimitService;
+  @Autowired
+  private grafioschtrader.service.AlgoTopReadinessService readinessService;
 
   @Autowired
   private grafioschtrader.service.SimulationRunActivityService runActivity;
@@ -94,8 +97,9 @@ public class SimulationTenantService {
 
   /**
    * Creates a simulation tenant from the given AlgoTop strategy. Copies portfolios, security accounts, and cash
-   * accounts from the user's main tenant. Establishes a dated opening ledger and reconstructs its holdings before
-   * committing the environment.
+   * accounts from the user's main tenant - with manual cash only the cash accounts that were given a balance, the
+   * portfolios they belong to and the security accounts of those portfolios. Establishes a dated opening ledger and
+   * reconstructs its holdings before committing the environment.
    *
    * @param dto the creation request containing AlgoTop ID, copy mode, and optional cash balances
    * @return the created simulation Tenant
@@ -115,6 +119,7 @@ public class SimulationTenantService {
     if (!preview.errors.isEmpty() || !preview.unresolvedPositions.isEmpty())
       throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE,
           "simulation.opening.unresolved", String.join(", ", preview.errors));
+    CopySource copy = prepareCopy(user, algoTop, dto, preview);
 
     // 4. Create simulation tenant
     Tenant simTenant = new Tenant(dto.getTenantName(), mainTenant.getCurrency(), user.getIdUser(),
@@ -129,21 +134,21 @@ public class SimulationTenantService {
     Integer simIdTenant = simTenant.getIdTenant();
 
     // 5. Copy portfolios
-    Map<Integer, Portfolio> portfolioMap = copyPortfolios(mainIdTenant, simIdTenant);
+    Map<Integer, Portfolio> portfolioMap = copyPortfolios(copy.portfolios(), simIdTenant);
 
     // 6. Copy security accounts
-    Map<Integer, Securityaccount> securityAccountMap = copySecurityAccounts(mainIdTenant, simIdTenant, portfolioMap);
+    Map<Integer, Securityaccount> securityAccountMap = copySecurityAccounts(copy.securityaccounts(), simIdTenant,
+        portfolioMap);
 
     // 7. Copy cash accounts
-    Map<Integer, Cashaccount> cashAccountMap = copyCashAccounts(mainIdTenant, simIdTenant, portfolioMap,
+    Map<Integer, Cashaccount> cashAccountMap = copyCashAccounts(copy.cashaccounts(), simIdTenant, portfolioMap,
         securityAccountMap);
 
     // 8. Copy the watchlist referenced by the AlgoTop strategy
-    copyWatchlistForAlgoTop(algoTop, simIdTenant);
+    copyWatchlistForAlgoTop(copy.watchlist(), copy.members(), simIdTenant);
 
     if (dto.getInitializationMode() == SimulationInitializationMode.COPY_PORTFOLIO) {
-      copyTransactionsUpToDate(mainIdTenant, simIdTenant, securityAccountMap, cashAccountMap,
-          dto.getSimulationStartDate());
+      copyTransactionsUpToDate(copy.transactions(), simIdTenant, securityAccountMap, cashAccountMap);
     } else {
       Map<Integer, Double> opening = preview.accounts.stream().collect(Collectors
           .toMap(SimulationPreviewDto.AccountBalance::idCashaccount, SimulationPreviewDto.AccountBalance::balance));
@@ -159,16 +164,84 @@ public class SimulationTenantService {
     return simTenant;
   }
 
+  /** Retains exactly the rows checked against the new environment's budget for the subsequent copy. */
+  private record CopySource(List<Portfolio> portfolios, List<Securityaccount> securityaccounts,
+      List<Cashaccount> cashaccounts, Watchlist watchlist, List<Securitycurrency<?>> members,
+      List<Transaction> transactions) {
+  }
+
+  /** Checks every copied quantity before the first write; existing main-tenant rows consume no target budget. */
+  private CopySource prepareCopy(User user, AlgoTop top, SimulationTenantCreateDTO dto, SimulationPreviewDto preview) {
+    Integer mainIdTenant = user.getActualIdTenant();
+    Watchlist watchlist = top.getIdWatchlist() == null ? null : em.find(Watchlist.class, top.getIdWatchlist());
+    if (top.getIdWatchlist() != null && (watchlist == null || !mainIdTenant.equals(watchlist.getIdTenant())))
+      throw openingInvalid();
+    CopySource copy = new CopySource(source.portfolios(mainIdTenant), source.securityaccounts(mainIdTenant),
+        source.cashaccounts(mainIdTenant), watchlist,
+        watchlist == null ? List.of() : new ArrayList<>(watchlist.getSecuritycurrencyList()),
+        dto.getInitializationMode() == SimulationInitializationMode.COPY_PORTFOLIO
+            ? source.transactions(mainIdTenant, dto.getSimulationStartDate().plusDays(1))
+            : List.of());
+    if (dto.getInitializationMode() == SimulationInitializationMode.MANUAL_CASH)
+      copy = manualCashScope(copy, dto.getCashBalances().keySet());
+    checkCopyLimit(user, LimitKeyConfig.KEY_PORTFOLIO, copy.portfolios().size(), "gt.simulation.copy.limit.portfolios");
+    checkCopyLimit(user, LimitKeyConfig.KEY_SECURITY_ACCOUNT, copy.securityaccounts().size(),
+        "gt.simulation.copy.limit.securityaccounts");
+    checkCopyLimit(user, LimitKeyConfig.KEY_CASH_ACCOUNT, copy.cashaccounts().size(),
+        "gt.simulation.copy.limit.cashaccounts");
+    checkCopyLimit(user, LimitKeyConfig.KEY_WATCHLIST, watchlist == null ? 0 : 1,
+        "gt.simulation.copy.limit.watchlists");
+    checkCopyLimit(user, LimitKeyConfig.KEY_WATCHLIST_LENGTH, copy.members().size(),
+        "gt.simulation.copy.limit.watchlist.length");
+    checkCopyLimit(user, LimitKeyConfig.KEY_SECURITIES_CURRENCIES, copy.members().size(),
+        "gt.simulation.copy.limit.watchlist.total");
+    long openingRows = dto.getInitializationMode() == SimulationInitializationMode.COPY_PORTFOLIO
+        ? copy.transactions().size()
+        : preview.accounts.stream().filter(account -> account.balance() != 0.0).count();
+    checkCopyLimit(user, LimitKeyConfig.KEY_TRANSACTION, openingRows, "gt.simulation.copy.limit.transactions");
+    return copy;
+  }
+
+  /**
+   * Narrows the copy to what a manual-cash environment is built from: the cash accounts that were given a balance, zero
+   * included, the portfolios holding them and the security accounts of those portfolios. A portfolio without a chosen
+   * cash account could never settle a trade of the replay, so it is left out together with its security accounts.
+   * Applied before the limit checks, so that only rows actually written consume budget.
+   *
+   * @param copy          the complete account structure of the main tenant
+   * @param chosenCashIds the cash accounts named in the request
+   * @return the same copy restricted to the chosen accounts and their portfolios
+   */
+  private static CopySource manualCashScope(CopySource copy, Set<Integer> chosenCashIds) {
+    List<Cashaccount> cashaccounts = copy.cashaccounts().stream().filter(ca -> chosenCashIds.contains(ca.getId()))
+        .toList();
+    Set<Integer> portfolioIds = cashaccounts.stream().map(ca -> ca.getPortfolio().getIdPortfolio())
+        .collect(Collectors.toSet());
+    return new CopySource(copy.portfolios().stream().filter(p -> portfolioIds.contains(p.getIdPortfolio())).toList(),
+        copy.securityaccounts().stream().filter(sa -> portfolioIds.contains(sa.getPortfolio().getIdPortfolio()))
+            .toList(),
+        cashaccounts, copy.watchlist(), copy.members(), copy.transactions());
+  }
+
+  private void checkCopyLimit(User user, LimitKey key, long rows, String messageKey) {
+    entityLimitService.resolve(user, key).ifPresent(limit -> {
+      if (rows > limit)
+        throw new DataViolationException("id.algo.top", messageKey, new Object[] { rows, limit });
+    });
+  }
+
   /** Validates the complete request in the service so alternate callers cannot bypass the REST validator. */
   private void validateRequest(SimulationTenantCreateDTO dto, Integer mainIdTenant) {
     AlgoHistoricalValuationService.validateDate(dto.getSimulationStartDate(),
         AlgoHistoricalValuationService.FIELD_SIMULATION_START_DATE);
     if (dto.getInitializationMode() == null || dto.getTenantName() == null || dto.getTenantName().isBlank()
-        || dto.getTenantName().length() > 40 || dto.getIdAlgoTop() == null)
+        || dto.getTenantName().length() > 25 || dto.getIdAlgoTop() == null)
       throw openingInvalid();
     AlgoTop top = algoTopJpaRepository.findById(dto.getIdAlgoTop()).orElse(null);
     if (top == null || !mainIdTenant.equals(top.getIdTenant()))
       throw new DataViolationException("id.algo.top", "simulation.algotop.not.found", null);
+    // An environment of a strategy that cannot run would only ever produce failed replays.
+    readinessService.requireReadyForReplay(top, grafioschtrader.service.AlgoTopReadinessService.currentLocale());
     if (top.getReferenceDate() != null) {
       LocalDate requiredDate = top.getReferenceDate().plusDays(1);
       if (!requiredDate.equals(dto.getSimulationStartDate()))
@@ -178,6 +251,12 @@ public class SimulationTenantService {
         throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_INITIALIZATION_MODE,
             "simulation.portfolio.manual.cash", "");
     }
+    // Manual cash copies only the accounts given a balance, so an empty request would open an environment that
+    // cannot hold any money at all.
+    if (dto.getInitializationMode() == SimulationInitializationMode.MANUAL_CASH
+        && (dto.getCashBalances() == null || dto.getCashBalances().isEmpty()))
+      throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_INITIALIZATION_MODE,
+          "gt.simulation.manual.cash.empty", "");
     if (dto.getCashBalances() != null && !dto.getCashBalances().isEmpty()
         && dto.getInitializationMode() != SimulationInitializationMode.MANUAL_CASH)
       throw AlgoHistoricalValuationService.invalid(AlgoHistoricalValuationService.FIELD_INITIALIZATION_MODE,
@@ -192,8 +271,8 @@ public class SimulationTenantService {
   /**
    * Both modes that read the source portfolio need a day the source tenant actually reached. Before the first
    * transaction there are no holdings and no cash, so the environment would start empty in a way the user did not ask
-   * for - the same rule the allocation applies to its reference date. Manual cash copies nothing and is therefore
-   * unbounded.
+   * for - the same rule the allocation applies to its reference date. Manual cash copies no transaction, only the
+   * chosen accounts, and is therefore unbounded.
    *
    * @param dto          the creation request
    * @param mainIdTenant the tenant the opening state is read from
@@ -266,8 +345,12 @@ public class SimulationTenantService {
       source.transactions(mainIdTenant, dto.getSimulationStartDate().plusDays(1))
           .forEach(tx -> opening.merge(tx.getCashaccount().getId(), tx.getCashaccountAmount(), Double::sum));
     }
-    accounts.forEach(a -> result.accounts
-        .add(new SimulationPreviewDto.AccountBalance(a.getId(), a.getName(), a.getCurrency(), opening.get(a.getId()))));
+    // Manual cash opens only the accounts it names; the others are not part of the environment.
+    accounts.stream()
+        .filter(a -> dto.getInitializationMode() != SimulationInitializationMode.MANUAL_CASH
+            || dto.getCashBalances().containsKey(a.getId()))
+        .forEach(a -> result.accounts.add(
+            new SimulationPreviewDto.AccountBalance(a.getId(), a.getName(), a.getCurrency(), opening.get(a.getId()))));
     return result;
   }
 
@@ -283,10 +366,14 @@ public class SimulationTenantService {
 
     for (Tenant sim : simTenants) {
       String algoTopName = null;
+      String replayBlockedReason = null;
       if (sim.getIdAlgoTop() != null) {
         AlgoTop algoTop = algoTopJpaRepository.findById(sim.getIdAlgoTop()).orElse(null);
         if (algoTop != null) {
           algoTopName = algoTop.getName();
+          var readiness = readinessService.attach(algoTop,
+              grafioschtrader.service.AlgoTopReadinessService.currentLocale());
+          replayBlockedReason = readiness.readyForReplay() ? null : readiness.issues().getFirst().message();
         }
       }
 
@@ -296,6 +383,7 @@ public class SimulationTenantService {
       SimulationTenantInfo info = new SimulationTenantInfo(sim.getIdTenant(), sim.getTenantName(), sim.getIdAlgoTop(),
           algoTopName, txCount > 0);
       info.setActive(runActivity.isActive(sim.getIdTenant()));
+      info.setReplayBlockedReason(replayBlockedReason);
       info.setSimulationStartDate(sim.getSimulationStartDate());
       info.setInitializationMode(sim.getSimulationInitializationMode());
       result.add(info);
@@ -395,27 +483,24 @@ public class SimulationTenantService {
    * Copies the watchlist referenced by the AlgoTop strategy to the simulation tenant. The copied watchlist contains the
    * same securities as the original but belongs to the simulation tenant.
    *
-   * @param algoTop     the AlgoTop strategy whose watchlist should be copied
-   * @param simIdTenant the ID of the simulation tenant
+   * @param sourceWatchlist the validated strategy watchlist, or null when none is copied
+   * @param securities      the membership checked against the copy limits
+   * @param simIdTenant     the ID of the simulation tenant
    */
-  private void copyWatchlistForAlgoTop(AlgoTop algoTop, Integer simIdTenant) {
-    if (algoTop.getIdWatchlist() == null) {
+  private void copyWatchlistForAlgoTop(Watchlist sourceWatchlist, List<Securitycurrency<?>> securities,
+      Integer simIdTenant) {
+    if (sourceWatchlist == null) {
       return;
     }
-    Watchlist sourceWatchlist = em.find(Watchlist.class, algoTop.getIdWatchlist());
-    if (sourceWatchlist == null || !algoTop.getIdTenant().equals(sourceWatchlist.getIdTenant()))
-      throw openingInvalid();
     // Copy membership while retaining the globally shared securities.
-    List<Securitycurrency<?>> securities = new ArrayList<>(sourceWatchlist.getSecuritycurrencyList());
     Watchlist simWatchlist = new Watchlist(simIdTenant, sourceWatchlist.getName());
     simWatchlist.setSecuritycurrencyList(securities);
     em.persist(simWatchlist);
     em.flush();
   }
 
-  private Map<Integer, Portfolio> copyPortfolios(Integer sourceIdTenant, Integer targetIdTenant) {
+  private Map<Integer, Portfolio> copyPortfolios(List<Portfolio> portfolios, Integer targetIdTenant) {
     Map<Integer, Portfolio> portfolioMap = new HashMap<>();
-    List<Portfolio> portfolios = source.portfolios(sourceIdTenant);
     for (Portfolio original : portfolios) {
       Integer oldId = original.getId();
       Portfolio portfolio = new Portfolio();
@@ -431,16 +516,16 @@ public class SimulationTenantService {
     return portfolioMap;
   }
 
-  private Map<Integer, Securityaccount> copySecurityAccounts(Integer sourceIdTenant, Integer targetIdTenant,
-      Map<Integer, Portfolio> portfolioMap) {
+  private Map<Integer, Securityaccount> copySecurityAccounts(List<Securityaccount> securityaccounts,
+      Integer targetIdTenant, Map<Integer, Portfolio> portfolioMap) {
     Map<Integer, Securityaccount> securityAccountMap = new HashMap<>();
-    List<Securityaccount> securityaccounts = source.securityaccounts(sourceIdTenant);
     for (Securityaccount original : securityaccounts) {
       Integer oldId = original.getId();
       Securityaccount sa = new Securityaccount();
       BeanUtils.copyProperties(original, sa);
       sa.setIdTenant(targetIdTenant);
       sa.setIdSecuritycashAccount(null);
+      sa.setIdOriginSecurityaccount(oldId);
       sa.setSecurityTransactionList(null);
       sa.setPortfolio(portfolioMap.get(sa.getPortfolio().getIdPortfolio()));
       List<SecaccountTradingPeriod> freshPeriods = new ArrayList<>();
@@ -452,6 +537,9 @@ public class SimulationTenantService {
         freshPeriods.add(tp);
       }
       sa.replaceTradingPeriods(freshPeriods);
+      grafioschtrader.service.YamlConfigurationValidation.requireValid(
+          grafioschtrader.service.YamlConfigurationValidation.Format.FEES_ACCOUNT, sa.getFeeModelYaml(),
+          "fee.model.yaml");
       em.persist(sa);
       securityAccountMap.put(oldId, sa);
     }
@@ -459,10 +547,9 @@ public class SimulationTenantService {
     return securityAccountMap;
   }
 
-  private Map<Integer, Cashaccount> copyCashAccounts(Integer sourceIdTenant, Integer targetIdTenant,
+  private Map<Integer, Cashaccount> copyCashAccounts(List<Cashaccount> cashaccounts, Integer targetIdTenant,
       Map<Integer, Portfolio> portfolioMap, Map<Integer, Securityaccount> securityAccountMap) {
     Map<Integer, Cashaccount> cashAccountMap = new HashMap<>();
-    List<Cashaccount> cashaccounts = source.cashaccounts(sourceIdTenant);
     for (Cashaccount original : cashaccounts) {
       Integer oldId = original.getId();
       Cashaccount ca = new Cashaccount();
@@ -501,17 +588,14 @@ public class SimulationTenantService {
    * Fields referencing shared (non-tenant-specific) entities are left unchanged: {@code security} (global),
    * {@code idCurrencypair} (global).
    *
-   * @param sourceIdTenant     the source (main) tenant ID to copy transactions from
+   * @param originals          opening transactions selected up to the inclusive cutoff and checked against the limit
    * @param targetIdTenant     the simulation tenant ID to copy transactions into
    * @param securityAccountMap mapping from source security account IDs to simulation Securityaccount entities
    * @param cashAccountMap     mapping from source cash account IDs to simulation Cashaccount entities
-   * @param referenceDate      inclusive cutoff date — only transactions at or before this date are copied
    */
-  private void copyTransactionsUpToDate(Integer sourceIdTenant, Integer targetIdTenant,
-      Map<Integer, Securityaccount> securityAccountMap, Map<Integer, Cashaccount> cashAccountMap,
-      LocalDate referenceDate) {
+  private void copyTransactionsUpToDate(List<Transaction> originals, Integer targetIdTenant,
+      Map<Integer, Securityaccount> securityAccountMap, Map<Integer, Cashaccount> cashAccountMap) {
     Map<Integer, Transaction> copied = new HashMap<>();
-    List<Transaction> originals = source.transactions(sourceIdTenant, referenceDate.plusDays(1));
     for (Transaction original : originals) {
       Transaction tx = new Transaction();
       BeanUtils.copyProperties(original, tx);

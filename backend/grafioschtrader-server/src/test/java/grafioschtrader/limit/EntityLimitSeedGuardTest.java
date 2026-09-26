@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
 import grafiosch.dto.LimitKey;
@@ -57,6 +59,17 @@ class EntityLimitSeedGuardTest {
   private static final String MIGRATION_RESOURCE = "/db/migration/V0_36_7__Frankfurter_and_entity_limit.sql";
   private static final String E2E_MIGRATION_RESOURCE = "/db/migration/test/V4__seed_entity_limits.sql";
 
+  /**
+   * Every production migration. The ones after {@link #MIGRATION_RESOURCE} add the keys of later features - the
+   * strategy hierarchy caps of V0_37_0, for example - so a key registered together with its feature is seeded there
+   * rather than in the script that introduced the table.
+   */
+  private static final String PRODUCTION_MIGRATIONS_PATTERN = "classpath*:db/migration/V*__*.sql";
+
+  /** One complete statement writing into entity_limit, with or without back ticks around the table name. */
+  private static final Pattern ENTITY_LIMIT_INSERT = Pattern.compile("INSERT\\s+IGNORE\\s+INTO\\s+`?entity_limit`?.*?;",
+      Pattern.DOTALL);
+
   private static final String ROLE_LIMIT_FIXTURE_RESOURCE = "/testdata/limit_entity.csv";
 
   /** One seed row of the MAX block: entity name, relation, scopes, property name and default value. */
@@ -64,10 +77,13 @@ class EntityLimitSeedGuardTest {
       "SELECT\\s+'(?<entity>[^']+)',\\s*(?<relation>NULL|'[^']*'),\\s*(?<countScope>NULL|\\d+),"
           + "\\s*(?<ownerScope>\\d+),\\s*(?<property>NULL|'[^']*'),\\s*(?<value>\\d+)");
 
-  /** The first row of the MAX block, which spells its column aliases out and therefore does not match MAX_SEED. */
+  /**
+   * The first row of the MAX block, which spells its column aliases out and therefore does not match MAX_SEED. Later
+   * migrations have no former globalparameters row to read, so their property name is a typed NULL.
+   */
   private static final Pattern MAX_SEED_FIRST = Pattern.compile(
       "SELECT\\s+'(?<entity>[^']+)'\\s+AS entity_name.*?(?<ownerScope>\\d+) AS owner_scope,"
-          + "\\s*'(?<property>[^']+)' AS property_name,\\s*(?<value>\\d+) AS default_value",
+          + "\\s*(?:'(?<property>[^']+)'|CAST\\(NULL AS CHAR\\)) AS property_name,\\s*(?<value>\\d+) AS default_value",
       Pattern.DOTALL);
 
   /**
@@ -124,11 +140,14 @@ class EntityLimitSeedGuardTest {
 
   private static String migration;
   private static String e2eMigration;
+  /** The entity_limit statements of every migration after {@link #MIGRATION_RESOURCE} that write no role row. */
+  private static List<String> laterDefaultStatements;
 
   @BeforeAll
   static void loadMigrationAndRegistry() throws IOException {
     migration = loadResource(MIGRATION_RESOURCE);
     e2eMigration = loadResource(E2E_MIGRATION_RESOURCE);
+    laterDefaultStatements = loadLaterDefaultStatements();
     LimitKeyRegistry.clear();
     LimitKeyConfig.initialize();
   }
@@ -136,13 +155,13 @@ class EntityLimitSeedGuardTest {
   @Test
   @DisplayName("Every registered MAX key is seeded exactly once with its registry default")
   void everyRegisteredMaxKeyIsSeeded() {
-    assertEveryRegisteredMaxKeyIsSeeded(migration, "production migration");
+    assertEveryRegisteredMaxKeyIsSeeded(migration, laterDefaultStatements, "production migrations");
   }
 
   @Test
   @DisplayName("Every registered MAX key is present in the E2E bootstrap")
   void everyRegisteredMaxKeyIsSeededForE2E() {
-    assertEveryRegisteredMaxKeyIsSeeded(e2eMigration, "E2E migration");
+    assertEveryRegisteredMaxKeyIsSeeded(e2eMigration, List.of(), "E2E migration");
   }
 
   @Test
@@ -262,11 +281,11 @@ class EntityLimitSeedGuardTest {
         .doesNotContain("g.max.limit.request.exceeded.count").doesNotContain("g.max.security.breach.count");
   }
 
-  private void assertEveryRegisteredMaxKeyIsSeeded(String seedSql, String source) {
+  private void assertEveryRegisteredMaxKeyIsSeeded(String seedSql, List<String> laterStatements, String source) {
     List<String> violations = new ArrayList<>();
 
     for (LimitKeyRegistration registration : LimitKeyRegistry.getMaxRegistrations()) {
-      List<SeedRow> matches = findSeedRows(registration, seedSql);
+      List<SeedRow> matches = findSeedRows(registration, seedSql, laterStatements);
       if (matches.isEmpty()) {
         violations.add("no seed statement for registered limit key " + registration.limitKey().keyId());
       } else if (matches.size() > 1) {
@@ -280,14 +299,34 @@ class EntityLimitSeedGuardTest {
         String.join(System.lineSeparator(), violations)).isEmpty();
   }
 
-  private List<SeedRow> findSeedRows(LimitKeyRegistration registration, String seedSql) {
-    List<SeedRow> rows = new ArrayList<>();
-    for (SeedRow row : readMaxSeedRows(defaultMaxBlockOf(seedSql))) {
-      if (row.matches(registration)) {
-        rows.add(row);
+  private List<SeedRow> findSeedRows(LimitKeyRegistration registration, String seedSql, List<String> laterStatements) {
+    List<SeedRow> candidates = new ArrayList<>(readMaxSeedRows(defaultMaxBlockOf(seedSql)));
+    // Each later statement is parsed on its own: readMaxSeedRows recognizes one first row per text it is given.
+    laterStatements.forEach(statement -> candidates.addAll(readMaxSeedRows(statement)));
+    return candidates.stream().filter(row -> row.matches(registration)).toList();
+  }
+
+  /**
+   * Collects the entity_limit statements of every production migration after {@link #MIGRATION_RESOURCE}. Only default
+   * rows are taken: a role scoped row is a tighter row on top of a mandatory default and never replaces it.
+   */
+  private static List<String> loadLaterDefaultStatements() throws IOException {
+    List<String> statements = new ArrayList<>();
+    String introducingScript = MIGRATION_RESOURCE.substring(MIGRATION_RESOURCE.lastIndexOf('/') + 1);
+    for (Resource resource : new PathMatchingResourcePatternResolver().getResources(PRODUCTION_MIGRATIONS_PATTERN)) {
+      if (introducingScript.equals(resource.getFilename())) {
+        continue;
+      }
+      try (InputStream in = resource.getInputStream()) {
+        Matcher matcher = ENTITY_LIMIT_INSERT.matcher(new String(in.readAllBytes(), StandardCharsets.UTF_8));
+        while (matcher.find()) {
+          if (!matcher.group().contains("id_role")) {
+            statements.add(matcher.group());
+          }
+        }
       }
     }
-    return rows;
+    return statements;
   }
 
   /** The block of mandatory default rows, that is everything before the role scoped statement. */
@@ -384,13 +423,20 @@ class EntityLimitSeedGuardTest {
     return rows;
   }
 
-  /** Entity and pseudo entity names carrying a DAY_CUD row, that is limit type 1. */
+  /**
+   * Entity and pseudo entity names carrying a DAY_CUD row, that is limit type 1: the role rows of the daily block and
+   * the default rows later migrations add, such as the budget of the manual alert actions in V0_37_0.
+   */
   private Set<String> readDailySeededEntityNames() {
     Set<String> names = new LinkedHashSet<>();
-    Matcher matcher = DAILY_SEED.matcher(dailyBlock());
-    while (matcher.find()) {
-      if ("1".equals(matcher.group("type"))) {
-        names.add(matcher.group("entity"));
+    List<String> sources = new ArrayList<>(laterDefaultStatements);
+    sources.add(dailyBlock());
+    for (String source : sources) {
+      Matcher matcher = DAILY_SEED.matcher(source);
+      while (matcher.find()) {
+        if ("1".equals(matcher.group("type"))) {
+          names.add(matcher.group("entity"));
+        }
       }
     }
     return names;

@@ -54,15 +54,19 @@ class AlgoReplayLiquidationTest {
     ReflectionTestUtils.setField(state, "run", run);
     ReflectionTestUtils.setField(state, "market", market);
     ReflectionTestUtils.setField(state, "securities", Map.of(10, security));
+    ReflectionTestUtils.setField(state, "fx",
+        new AlgoReplayFx(AlgoReplayFxTest.snapshot(Map.of()), "CHF", (_, _, _) -> 1.0, _ -> {
+        }));
     ReflectionTestUtils.setField(state, "inputs", new AlgoReplayInputs.Snapshot(3, false, false, 0, Map.of(), Map.of(),
         Map.of(10, input), List.of(), Map.of(10, 1f), null));
     ReflectionTestUtils.setField(state, "costs", costs);
+    ReflectionTestUtils.setField(state, "roundTrips", new AlgoReplayRoundTrips());
     ReflectionTestUtils.setField(state, "taxes", mock(AlgoReplayTaxes.class));
     ReflectionTestUtils.setField(state, "locale", Locale.ENGLISH);
     when(state.idTenant()).thenReturn(66);
     when(market.tradingExcluded(security)).thenReturn(true);
     when(market.exactClose(10, MONDAY)).thenReturn(110d);
-    when(costs.estimate(anyInt(), any(), anyDouble(), anyDouble(), any(), any(), anyDouble()))
+    when(costs.estimate(anyInt(), any(), anyDouble(), anyDouble(), any(), any(), anyDouble(), any()))
         .thenReturn(new AlgoReplayCosts.Estimate(2, 1, 0, null));
     when(transactions.saveOnlyAttributes(any(), isNull(), anySet())).thenAnswer(call -> call.getArgument(0));
   }

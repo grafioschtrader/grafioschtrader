@@ -55,6 +55,28 @@ class AlgoReplayMarketDataTest {
     assertEquals(999L, market.volume(7, START.plusDays(3)));
   }
 
+  @Test
+  @DisplayName("Valuations of a replay take the splits captured with the run, without reading them again")
+  void splitsComeFromTheCapturedInstrument() {
+    var split = new AlgoReplayInputs.Split(START.plusDays(3), 1, 5);
+    var withSplit = new AlgoReplayInputs.Instrument("CHF", null, null, null, null, null, false, null, null, null, null,
+        List.of(), List.of(split), null, null);
+    var withoutSplit = new AlgoReplayInputs.Instrument("CHF", null, null, null, null, null, false, null, null, null,
+        null, List.of(), List.of(), null, null);
+    var market = new AlgoReplayMarketData(repository, START, END);
+    assertNull(market.splitMap(7), "without captured inputs the valuation reads the database");
+    market.setInputs(new AlgoReplayInputs.Snapshot(3, false, false, 0, java.util.Map.of(), java.util.Map.of(),
+        java.util.Map.of(7, withSplit, 8, withoutSplit), List.of()));
+
+    var splits = market.splitMap(7).get(7);
+    assertEquals(1, splits.size());
+    assertEquals(START.plusDays(3), splits.getFirst().getSplitDate());
+    assertEquals(5.0, splits.getFirst().getFactor());
+    assertTrue(market.splitMap(8).isEmpty(), "an instrument without splits has none");
+    assertNull(market.splitMap(9), "an instrument the snapshot does not know is read from the database");
+    assertTrue(market.splitMap(7) == market.splitMap(7), "built once per run");
+  }
+
   /** Ten consecutive days at 100, 101, ... as the repository delivers them: newest first. */
   private void quotes() {
     List<Historyquote> descending = new ArrayList<>();

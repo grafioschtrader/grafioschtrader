@@ -178,14 +178,12 @@ public class AlgoMeanReversionPositionService {
         current.setAveragePrice(
             (Math.abs(old) * current.getAveragePrice() + Math.abs(delta) * price) / Math.abs(old + delta));
         lastEntry = t.getTransactionDateAsLocalDate();
-        current.setLastEntry(lastEntry);
       } else {
         if (Math.abs(delta) > Math.abs(old) + 1e-8)
           throw invalid("Assigned exit exceeds the strategy position");
         // Every reduction counts against the plan, whoever booked it, so a tranche can never execute twice.
         current.setRealizedExitUnits(current.getRealizedExitUnits() + Math.abs(delta));
         lastExit = t.getTransactionDateAsLocalDate();
-        current.setLastExit(lastExit);
       }
       current.setSignedUnits(Math.abs(old + delta) < 1e-8 ? 0 : old + delta);
       lifecycleFills.add(new AlgoMeanReversionDecisionService.PositionFill(delta,

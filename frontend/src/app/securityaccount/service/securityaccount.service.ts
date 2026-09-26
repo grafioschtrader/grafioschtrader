@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { FxObservationReport } from '../../entities/fx.observation';
+import { FxMarkupPreviewRequest, FxQuote } from '../../entities/fx.markup';
 import { AppSettings } from '../../shared/app.settings';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -10,7 +12,8 @@ import {
   TransactionCostEstimateResult
 } from '../../entities/transaction.cost.estimate';
 import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
 import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
@@ -25,6 +28,15 @@ export class SecurityaccountService
 {
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
+  }
+
+  getFxObservations(idAccount: number): Observable<FxObservationReport> {
+    return this.httpClient
+      .get<FxObservationReport>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/${idAccount}/fxobservations`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getSecurityPositionSummaryTenant(
@@ -127,6 +139,30 @@ export class SecurityaccountService
       .pipe(catchError(this.handleError.bind(this)));
   }
 
+  /**
+   * The security accounts that may be named as trading priority of an algo node: those whose trading periods allow the
+   * instrument type. The backend reads the type from the instrument, else from the asset class; with neither, as for a
+   * custom category, every security account of the tenant is returned.
+   *
+   * @param idSecuritycurrency - The instrument of an algo security node, if any
+   * @param idAssetClass - The asset class of an algo asset class node, if any
+   * @returns Options keyed by the security account id, labelled 'portfolio / account'
+   */
+  getAlgoAccountOptions(idSecuritycurrency?: number, idAssetClass?: number): Observable<ValueKeyHtmlSelectOptions[]> {
+    let params = new HttpParams();
+    if (idSecuritycurrency != null) {
+      params = params.set('idSecuritycurrency', idSecuritycurrency.toString());
+    } else if (idAssetClass != null) {
+      params = params.set('idAssetClass', idAssetClass.toString());
+    }
+    return this.httpClient
+      .get<ValueKeyHtmlSelectOptions[]>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/algoaccountoptions`,
+        { headers: this.prepareHeaders(), params }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   update(securityaccount: Securityaccount): Observable<Securityaccount> {
     return this.updateEntity(securityaccount, securityaccount.idSecuritycashAccount, AppSettings.SECURITYACCOUNT_KEY);
   }
@@ -147,6 +183,16 @@ export class SecurityaccountService
     return this.httpClient
       .post<TransactionCostEstimateResult>(
         `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/estimatecostyaml`,
+        request,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  estimateFxMarkup(request: FxMarkupPreviewRequest): Observable<FxQuote> {
+    return this.httpClient
+      .post<FxQuote>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.SECURITYACCOUNT_KEY}/estimatefxmarkupyaml`,
         request,
         this.getHeaders()
       )

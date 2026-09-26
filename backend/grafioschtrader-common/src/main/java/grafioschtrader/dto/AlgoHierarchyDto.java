@@ -15,5 +15,7 @@ public record AlgoHierarchyDto(
     @Schema(description = "Root including its calculated child percentage total") AlgoTop algoTop,
     @Schema(description = "Asset classes including their assigned securities and strategies") List<AlgoAssetclass> algoAssetclassList,
     @Schema(description = "Property paths to display in red per hierarchy node ID") Map<Integer, Set<String>> invalidFields,
-    @Schema(description = "Property paths to display on a yellow background per hierarchy node ID") Map<Integer, Set<String>> warningFields) {
+    @Schema(description = "Property paths to display on a yellow background per hierarchy node ID") Map<Integer, Set<String>> warningFields,
+    @Schema(description = "Whether this is the main tenant's assigned monitoring hierarchy") boolean monitoring,
+    @Schema(description = "Whether this request may edit strategy alert preferences") boolean alertEditable) {
 }

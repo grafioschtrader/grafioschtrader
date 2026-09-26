@@ -14,12 +14,14 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.config.ExpressionConfiguration;
 
 import grafiosch.common.DataHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.exceptions.TransactionLimitExceededException;
 import grafioschtrader.repository.CashaccountJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.service.AlgoReplayInputs.CashStandingOrder;
@@ -31,6 +33,12 @@ import grafioschtrader.types.WeekendAdjustType;
 /** Executes the frozen cash-account standing orders of one historical replay. */
 @Service
 public class AlgoReplayStandingOrderService {
+  /**
+   * One configuration for every expression. {@code new Expression(text)} builds the default configuration anew on each
+   * call, including an instance of every built-in function whose parameters are read by reflection, which a replay
+   * evaluating these formulas thousands of times paid for every time. The configuration is never modified here.
+   */
+  private static final ExpressionConfiguration EVALEX = ExpressionConfiguration.defaultConfiguration();
 
   private static final String RATIONALE_FAILED = "REPLAY_STANDING_ORDER_FAILED";
   private static final int MAX_OCCURRENCES = 100_000;
@@ -72,7 +80,7 @@ public class AlgoReplayStandingOrderService {
   void execute(AlgoReplayState state, LocalDate date, List<CashStandingOrder> orders) {
     for (CashStandingOrder order : orders) {
       try {
-        transactions.throwWhenTransactionLimitReached(state.idTenant());
+        transactions.throwWhenTransactionLimitReached(state.idTenant(), 1);
         Cashaccount account = cashaccounts.findByIdSecuritycashAccountAndIdTenant(order.idCashaccount(),
             state.idTenant());
         if (account == null) {
@@ -85,6 +93,8 @@ public class AlgoReplayStandingOrderService {
         }
         state.write(AlgoEventType.CASH_STANDING_ORDER, date, null, null, null, null, saved.getCashaccountAmount(),
             account.getCurrency(), saved.getTransactionType().name(), details(order, account));
+      } catch (TransactionLimitExceededException failure) {
+        throw failure;
       } catch (Exception failure) {
         state.write(AlgoEventType.UNAVAILABLE, date, null, null, null, null, null, order.cashaccountCurrency(),
             RATIONALE_FAILED, details(order, null) + ": " + message(failure));
@@ -118,7 +128,7 @@ public class AlgoReplayStandingOrderService {
     }
     double amount;
     if (order.formula() != null && !order.formula().isBlank()) {
-      Expression expression = new Expression(order.formula()).with("a", BigDecimal.valueOf(order.amount()));
+      Expression expression = new Expression(order.formula(), EVALEX).with("a", BigDecimal.valueOf(order.amount()));
       if (rate != null) {
         expression.with("r", BigDecimal.valueOf(rate));
       }

@@ -8,12 +8,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
+import grafioschtrader.algo.RebalancingPlan.ClassAdjustment;
 import grafioschtrader.common.DataBusinessHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Portfolio-level grand summary aggregating all security positions with multi-currency normalization")
 public class SecurityPositionGrandSummary {
-  public java.util.List<grafioschtrader.algo.RebalancingPlan.ClassAdjustment> classAdjustments;
+  public List<ClassAdjustment> classAdjustments;
 
   /**
    * Figures of the rebalancing comparison that describe the book as a whole. They are deliberately separate numbers
@@ -38,6 +39,9 @@ public class SecurityPositionGrandSummary {
   @Schema(description = "Class trigger tolerance in percentage points of the target investment budget")
   public Double toleranceThreshold;
 
+  @Schema(description = "Mismatch of normalized target and actual gross security exposures, excluding cash: 0 to 100 percent; null without positive targets")
+  public Double overallAllocationMismatchPercentage;
+
   @Schema(description = """
       Gross exposure is above the permitted ceiling, or net equity is not positive. Exposure increasing
       recommendations are blocked while this holds; reductions remain available.""")
@@ -46,6 +50,21 @@ public class SecurityPositionGrandSummary {
   @Schema(description = "Closing day the comparison was calculated from")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   public LocalDate valuationDate;
+
+  @Schema(description = """
+      The valuation day is a periodic checkpoint, so every allocation beyond the tolerance is traded; between two
+      checkpoints the recommendations are only reported.""")
+  public Boolean periodicDue;
+
+  @Schema(description = """
+      Last periodic checkpoint the interval counts from. Only the hierarchy assigned to monitoring remembers one; null
+      makes every day a checkpoint.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public LocalDate lastCheckpointDate;
+
+  @Schema(description = "First valuation day on which the next periodic checkpoint is due; null without a last checkpoint")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public LocalDate nextCheckpointDate;
 
   @Schema(description = "Main reporting currency for all normalized monetary values")
   public String currency;
@@ -99,6 +118,27 @@ public class SecurityPositionGrandSummary {
     grandGainLossCurrencyMC = DataBusinessHelper.round(grandGainLossCurrencyMC);
     grandTaxCostMC = DataBusinessHelper.round(grandTaxCostMC);
     grandSecurityRiskMC = DataBusinessHelper.roundStandard(grandSecurityRiskMC);
+  }
+
+  public Double getToleranceThreshold() {
+    return toleranceThreshold == null ? null : DataBusinessHelper.roundPercentage(toleranceThreshold);
+  }
+
+  public Double getOverallAllocationMismatchPercentage() {
+    return overallAllocationMismatchPercentage == null ? null
+        : DataBusinessHelper.roundPercentage(overallAllocationMismatchPercentage);
+  }
+
+  /** Round report diagnostics on output, keeping the original plan available at calculation precision. */
+  public List<ClassAdjustment> getClassAdjustments() {
+    return classAdjustments == null ? null
+        : classAdjustments.stream()
+            .map(adjustment -> new ClassAdjustment(adjustment.idNode(),
+                DataBusinessHelper.roundPercentage(adjustment.parentDeviation()),
+                DataBusinessHelper.roundPercentage(adjustment.securityDeviationPercentage()),
+                adjustment.maxTradedSecuritiesPerAssetclass(), adjustment.requestedAdjustment(),
+                adjustment.plannedAdjustment(), adjustment.residual(), adjustment.limitingReason()))
+            .toList();
   }
 
   public double getGrandAccountValueSecurityMC() {

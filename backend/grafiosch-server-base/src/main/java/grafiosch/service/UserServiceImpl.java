@@ -15,6 +15,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
 import grafiosch.dto.ChangePasswordDTO;
@@ -335,17 +337,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public User incrementRightsLimitCount(Integer userId, UserRightLimitCounter userRightLimitCounter) {
-    User user = userJpaRepository.findById(userId).orElse(null);
+    // A violation must survive rollback of the rejected operation and must not flush its request-scoped user.
     switch (userRightLimitCounter) {
-    case SECURITY_BREACH:
-      user.setSecurityBreachCount((short) (user.getSecurityBreachCount() + 1));
-      break;
-    case LIMIT_EXCEEDED_TENANT_DATA:
-      user.setLimitRequestExceedCount((short) (user.getLimitRequestExceedCount() + 1));
-      break;
+    case SECURITY_BREACH -> userJpaRepository.incrementSecurityBreachCount(userId);
+    case LIMIT_EXCEEDED_TENANT_DATA -> userJpaRepository.incrementLimitRequestExceedCount(userId);
     }
-    return userJpaRepository.save(user);
+    return userJpaRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("user not found."));
   }
 
   @Override

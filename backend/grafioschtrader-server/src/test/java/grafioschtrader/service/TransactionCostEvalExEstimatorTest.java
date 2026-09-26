@@ -75,7 +75,7 @@ class TransactionCostEvalExEstimatorTest {
             condition: "mic == \\"XSWX\\""
             expression: "MAX(9.0, tradeValue * 0.001)"
           - name: "US stocks"
-            condition: "mic == \\"XNYS\\" OR mic == \\"XNAS\\""
+            condition: "mic == \\"XNYS\\" || mic == \\"XNAS\\""
             expression: "MAX(15.0, tradeValue * 0.0015)"
           - name: "Default"
             condition: "true"
@@ -178,10 +178,10 @@ class TransactionCostEvalExEstimatorTest {
     String yaml = """
         rules:
           - name: "Bond direct"
-            condition: "assetclass == \\"FIXED_INCOME\\" AND instrument == \\"DIRECT_INVESTMENT\\""
+            condition: "assetclass == \\"FIXED_INCOME\\" && instrument == \\"DIRECT_INVESTMENT\\""
             expression: "MAX(25.0, tradeValue * 0.002)"
           - name: "Bond ETF"
-            condition: "assetclass == \\"FIXED_INCOME\\" AND instrument == \\"ETF\\""
+            condition: "assetclass == \\"FIXED_INCOME\\" && instrument == \\"ETF\\""
             expression: "MAX(9.0, tradeValue * 0.001)"
           - name: "Default"
             condition: "true"
@@ -497,7 +497,78 @@ class TransactionCostEvalExEstimatorTest {
         """;
     TransactionCostEstimateRequest req = buildRequest(10000.0, 100.0, null, null, null, null, null, null, null);
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, req);
-    Assertions.assertThat(result.getError()).contains("neither rules nor periods");
+    Assertions.assertThat(result.getError()).contains("Schema:");
+  }
+
+  // ---------- Trade counts and settlement currency ----------
+
+  @Test
+  @DisplayName("UBS key4: the first trade of a quarter up to CHF 5000 is free, later ones are charged")
+  void firstTradeOfQuarterIsFree() {
+    String yaml = """
+        rules:
+          - name: "Free quarterly trade"
+            condition: "tradesInQuarter == 0 && tradeValue <= 5000"
+            expression: "0"
+          - name: "Standard"
+            condition: "true"
+            expression: "MAX(10, tradeValue * 0.0075)"
+        """;
+    TransactionCostEstimateRequest req = buildRequest(4000.0, 10.0, null, null, "XSWX", "CHF", null, 0);
+    Assertions.assertThat(estimator.evaluateYaml(yaml, req).getEstimatedCost()).isZero();
+    req.setTradesInQuarter(1);
+    Assertions.assertThat(estimator.evaluateYaml(yaml, req).getEstimatedCost()).isEqualTo(30.0);
+  }
+
+  @Test
+  @DisplayName("Degiro Core Selection: the first order per ETF and month from EUR 1000 carries no handling fee")
+  void firstOrderPerSecurityAndMonthIsFree() {
+    String yaml = """
+        rules:
+          - name: "Core Selection"
+            condition: "instrument == \\"ETF\\" && securityTradesInMonth == 0 && tradeValue >= 1000"
+            expression: "0"
+          - name: "Handling fee"
+            condition: "true"
+            expression: "1"
+        """;
+    TransactionCostEstimateRequest req = buildRequest(1500.0, 10.0, 1, null, "XAMS", "EUR", null, 0);
+    Assertions.assertThat(estimator.evaluateYaml(yaml, req).getEstimatedCost()).isZero();
+    req.setTradesInMonth(3);
+    Assertions.assertThat(estimator.evaluateYaml(yaml, req).getEstimatedCost())
+        .as("trades of other securities do not use up the allowance").isZero();
+    req.setSecurityTradesInMonth(1);
+    Assertions.assertThat(estimator.evaluateYaml(yaml, req).getEstimatedCost()).isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("Yuh: the currency conversion mark-up applies only when settlement and instrument currency differ")
+  void conversionMarkupDependsOnSettlementCurrency() {
+    String yaml = """
+        rules:
+          - name: "Commission and FX"
+            condition: "true"
+            expression: "tradeValue * (0.005 + IF(settlementCurrency != currency, 0.0095, 0))"
+        """;
+    TransactionCostEstimateRequest req = buildRequest(1000.0, 10.0, null, null, "XNAS", "USD", null, 0);
+    req.setSettlementCurrency("CHF");
+    Assertions.assertThat(estimator.evaluateYaml(yaml, req).getEstimatedCost()).isCloseTo(14.5,
+        Assertions.within(1e-9));
+    req.setSettlementCurrency("USD");
+    Assertions.assertThat(estimator.evaluateYaml(yaml, req).getEstimatedCost()).isCloseTo(5.0, Assertions.within(1e-9));
+  }
+
+  @Test
+  @DisplayName("A rule using the new variables still evaluates when the request does not supply them")
+  void newVariablesDefaultWhenAbsent() {
+    String yaml = """
+        rules:
+          - name: "Counts"
+            condition: "settlementCurrency == \\"\\" && tradesInYear == 0"
+            expression: "7"
+        """;
+    TransactionCostEstimateRequest req = buildRequest(1000.0, 10.0, null, null, null, null, null, null);
+    Assertions.assertThat(estimator.evaluateYaml(yaml, req).getEstimatedCost()).isEqualTo(7.0);
   }
 
   // ---------- Helper ----------

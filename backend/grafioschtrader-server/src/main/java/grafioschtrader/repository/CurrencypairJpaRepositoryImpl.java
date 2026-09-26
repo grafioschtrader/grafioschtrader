@@ -155,16 +155,20 @@ public class CurrencypairJpaRepositoryImpl extends SecuritycurrencyService<Curre
   public Double getClosePriceForDate(Currencypair currencypair, LocalDate closeDate) {
     if (!closeDate.isBefore(LocalDate.now())) {
       return currencypair.getSLast();
-    } else {
-      Optional<Historyquote> historyquoteOpt = historyquoteJpaRepository
-          .findByIdSecuritycurrencyAndDate(currencypair.getIdSecuritycurrency(), closeDate);
-      if (historyquoteOpt.isPresent()) {
-        return historyquoteOpt.get().getClose();
-      } else if (closeDate.plusDays(GlobalConstants.EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE).isAfter(LocalDate.now())) {
-        currencypair.getSLast();
-      }
     }
-    return null;
+    Double close = getHistoricalClosePriceForDate(currencypair, closeDate);
+    if (close != null) {
+      return close;
+    }
+    return closeDate.plusDays(GlobalConstants.EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE).isAfter(LocalDate.now())
+        ? currencypair.getSLast()
+        : null;
+  }
+
+  @Override
+  public Double getHistoricalClosePriceForDate(Currencypair currencypair, LocalDate closeDate) {
+    return historyquoteJpaRepository.findByIdSecuritycurrencyAndDate(currencypair.getIdSecuritycurrency(), closeDate)
+        .map(Historyquote::getClose).orElse(null);
   }
 
   @Override

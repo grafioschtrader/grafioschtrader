@@ -76,8 +76,10 @@ public class AlgoReplayLiquidation {
         Transaction fill = booking.closeExcluded(state, close, date);
         state.write(AlgoEventType.OPENING_EXCLUDED_CLOSE, date, null, close.security().getId(), fill.getUnits(),
             fill.getQuotation(), fill.getCashaccountAmount(), fill.getCashaccount().getCurrency(),
-            "REPLAY_OPENING_LIQUIDATION", "account=" + close.account() + " opening="
-                + (close.opening() == null ? "position" : close.opening().getId()));
+            "REPLAY_OPENING_LIQUIDATION", state.fx.details(fill.getAlgoFillId(), "account=" + close.account()
+                + " opening=" + (close.opening() == null ? "position" : close.opening().getId())));
+      } catch (AlgoReplayFx.Failure e) {
+        throw e;
       } catch (Exception e) {
         String detail = booking.detailsOf(e, state.locale);
         throw failure(state, close.security(), date,

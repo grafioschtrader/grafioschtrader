@@ -144,6 +144,19 @@ export interface ColumnConfig extends BaseFieldDefinition {
   fixedCurrency?: string;
 
   /**
+   * Path within the row data object to an exact number of fraction digits the backend decided on (e.g.
+   * 'securitycurrency.priceFractionDigits' for an index level). When it resolves to a number, the value is formatted
+   * with exactly that many digits; otherwise the currency precision or the standard formatting applies.
+   */
+  fractionDigitsField?: string;
+
+  /**
+   * Exact number of fraction digits applied to all values of this numeric column, typically set after data load.
+   * fractionDigitsField takes precedence when both are set and the row path resolves.
+   */
+  fixedFractionDigits?: number;
+
+  /**
    * Some columns may have a row group, for example the total of values of this cholumn.
    * The format is the same but the field property is different.
    */
@@ -213,6 +226,12 @@ export interface OptionalParams {
 
   /** Fixed currency code whose precision is applied to all values of this numeric column */
   fixedCurrency?: string;
+
+  /** Path within the row data object to an exact number of fraction digits decided by the backend */
+  fractionDigitsField?: string;
+
+  /** Exact number of fraction digits applied to all values of this numeric column */
+  fixedFractionDigits?: number;
 
   /** Group/total row configurations */
   columnGroupConfigs?: ColumnGroupConfig[];

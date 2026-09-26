@@ -17,6 +17,7 @@ import grafioschtrader.algo.AlgoSecurityStrategyImplType;
 import grafioschtrader.algo.strategy.model.AlgoLevelType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.entities.AlgoSecurity;
 
 public class AlgoSecurityJpaRepositoryImpl extends BaseRepositoryImpl<AlgoSecurity>
@@ -41,11 +42,21 @@ public class AlgoSecurityJpaRepositoryImpl extends BaseRepositoryImpl<AlgoSecuri
   @Lazy // The eligibility service resolves AlgoTop, whose repository also depends on AlgoSecurity.
   private grafioschtrader.service.AlgoSecurityEligibility securityEligibility;
 
+  @Autowired
+  @Lazy // The priority service reads security accounts and securities, whose repositories reach back to the algo tree.
+  private grafioschtrader.service.AlgoAccountPriorityService accountPriority;
+
   @Override
   public AlgoSecurity saveOnlyAttributes(AlgoSecurity algoSecurity, AlgoSecurity existingEntity,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
-    hierarchyWriteGuard.assertHierarchyWritable();
+    hierarchyWriteGuard.assertHierarchyWritable(algoSecurity.getIdAlgoSecurityParent());
+    if (existingEntity == null) {
+      hierarchyWriteGuard.assertCreateWithinLimit(LimitKeyConfig.KEY_ALGO_SECURITY, 1);
+    }
     securityEligibility.validateAssignment(algoSecurity, existingEntity);
+    if (algoSecurity.getIdSecurityaccount1() != null || algoSecurity.getIdSecurityaccount2() != null) {
+      accountPriority.validate(algoSecurity, accountPriority.assetclassOf(algoSecurity));
+    }
     var before = alertScopeLifecycle.snapshot(algoSecurity.getIdTenant());
     AlgoSecurity saved = algoSecurityJpaRepository.save(algoSecurity);
     alertScopeLifecycle.changed(saved.getIdTenant(), before);
@@ -56,7 +67,7 @@ public class AlgoSecurityJpaRepositoryImpl extends BaseRepositoryImpl<AlgoSecuri
   private AlgoTradingRepository tradingRepository;
 
   public int delEntityWithTenant(Integer idAlgoAssetclassSecurity, Integer idTenant) {
-    hierarchyWriteGuard.assertHierarchyWritable();
+    hierarchyWriteGuard.assertHierarchyWritable(idAlgoAssetclassSecurity);
     int deleted = algoSecurityJpaRepository.deleteByIdAlgoAssetclassSecurityAndIdTenant(idAlgoAssetclassSecurity,
         idTenant);
     tradingRepository.clearRemovedAssignments(idTenant);

@@ -56,6 +56,7 @@ import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.service.GTNetLastpriceService;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.service.IndexPriceRoundingService;
 import grafioschtrader.service.PriceFreshnessService;
 import grafioschtrader.types.LastpriceOrigin;
 import jakarta.persistence.EntityManager;
@@ -101,6 +102,9 @@ public class WatchlistReport {
 
   @Autowired
   private GTNetLastpriceService gTNetLastpriceService;
+
+  @Autowired
+  private IndexPriceRoundingService indexPriceRoundingService;
 
   @Autowired(required = false)
   private List<IUDFForEveryUser> uDFForEveryUser;
@@ -360,6 +364,7 @@ public class WatchlistReport {
         watchlist.getSecuritycurrencyListByType(Security.class));
     final List<SecuritycurrencyPosition<Currencypair>> currencypairPositionList = createSecuritycurrencyPositionList(
         watchlist.getSecuritycurrencyListByType(Currencypair.class));
+    roundIndexPrices(securityPositionList);
     return new SecuritycurrencyGroup(securityPositionList, currencypairPositionList, watchlist.getLastTimestamp(),
         watchlist.getIdWatchlist());
   }
@@ -475,6 +480,7 @@ public class WatchlistReport {
         securityCurrency.currencypairs, historyquoteMaxDateMap, historyquoteLastDayPrevYear, historyquoteTimeFrame,
         daysTimeFrame);
     setStaleTradingSessions(securityPositions, currencypairPositions);
+    roundIndexPrices(securityPositions);
 
     final SecuritycurrencyGroup securitycurrencyGroup = new SecuritycurrencyGroup(securityPositions,
         currencypairPositions, watchlist.getLastTimestamp(), watchlist.getIdWatchlist());
@@ -485,6 +491,17 @@ public class WatchlistReport {
         securitycurrencyGroup.securityPositionList);
 
     return securitycurrencyGroup;
+  }
+
+  /**
+   * Delivers the prices of index levels rounded to the precision of their currency. Called once the positions are
+   * complete, because the price getters of a marked security return rounded values from then on.
+   *
+   * @param securityPositions the security positions of the watchlist
+   */
+  private void roundIndexPrices(final List<SecuritycurrencyPosition<Security>> securityPositions) {
+    indexPriceRoundingService
+        .applyToSecurities(securityPositions.stream().map(position -> position.securitycurrency).toList());
   }
 
   private void markForUsedSecurityCurrencypairs(final SecuritycurrencyGroup securitycurrencyGroup,

@@ -10,6 +10,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.config.ExpressionConfiguration;
 import com.ezylang.evalex.data.EvaluationValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.Schema;
@@ -28,6 +29,12 @@ import grafioschtrader.dto.TaxModelConfig.*;
 /** Stateless country evaluator. Errors are returned per country so valid contributions remain usable. */
 @Service
 public class TaxEvalExEstimator {
+  /**
+   * One configuration for every expression. {@code new Expression(text)} builds the default configuration anew on each
+   * call, including an instance of every built-in function whose parameters are read by reflection, which a replay
+   * evaluating these formulas thousands of times paid for every time. The configuration is never modified here.
+   */
+  private static final ExpressionConfiguration EVALEX = ExpressionConfiguration.defaultConfiguration();
   public static final int MAX_YAML_BYTES = 65536;
   private static final Set<String> VARIABLES = Set.of("EVENTKIND", "UNITS", "PRICE", "CLEANVALUE", "ACCRUEDINTEREST",
       "TRADEVALUE", "GROSSINCOME", "CURRENCY", "INSTRUMENT", "ASSETCLASS", "MIC", "ISSUERCOUNTRY", "DEALERCOUNTRY",
@@ -48,6 +55,7 @@ public class TaxEvalExEstimator {
     try {
       if (text == null || text.isBlank() || text.getBytes(StandardCharsets.UTF_8).length > MAX_YAML_BYTES)
         throw new IllegalArgumentException("A model must contain 1–65536 UTF-8 bytes");
+      grafioschtrader.common.StrictYaml.validate(text);
       LoaderOptions options = new LoaderOptions();
       options.setAllowDuplicateKeys(false);
       options.setMaxAliasesForCollections(0);
@@ -117,7 +125,7 @@ public class TaxEvalExEstimator {
   }
 
   private static void validateExpression(String text) throws Exception {
-    Expression expression = new Expression(text);
+    Expression expression = new Expression(text, EVALEX);
     expression.validate();
     for (String variable : expression.getUsedVariables())
       if (!VARIABLES.contains(variable.toUpperCase(Locale.ROOT)))
@@ -210,7 +218,7 @@ public class TaxEvalExEstimator {
   }
 
   private static EvaluationValue expression(String text, Map<String, Object> inputs) throws Exception {
-    Expression expression = new Expression(text);
+    Expression expression = new Expression(text, EVALEX);
     for (String name : expression.getUsedVariables()) {
       require(inputs, name);
       expression.with(name, inputs.get(name.toUpperCase(Locale.ROOT)));

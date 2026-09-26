@@ -13,6 +13,7 @@ import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoEventLog;
 import grafioschtrader.entities.AlgoExecutionState;
 import grafioschtrader.entities.AlgoSecurity;
+import grafioschtrader.entities.AlgoStrategy;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
@@ -20,18 +21,25 @@ import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.GTNetSecurityImpHead;
 import grafioschtrader.entities.GTNetSecurityImpPos;
+import grafioschtrader.entities.GenericConnectorDef;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.ImportTransactionHead;
+import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
+import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.Portfolio;
+import grafioschtrader.entities.RiskFreeRateMapping;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.Stockexchange;
 import grafioschtrader.entities.TaxYearCorrection;
 import grafioschtrader.entities.Tenant;
+import grafioschtrader.entities.TradingCalendarRuleSet;
 import grafioschtrader.entities.TradingDaysMinus;
+import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
 import jakarta.persistence.EntityManager;
 
@@ -80,6 +88,12 @@ public abstract class LimitKeyConfig {
    */
   public static final String ENTITY_NAME_TRADING_DAYS_MINUS_YEAR = "TradingDaysMinusYear";
 
+  /**
+   * Pseudo entity name for the daily budget of manual alert actions: an immediate evaluation of the tenant's alerts or
+   * the retry of a notification delivery. Its unit is one action, not one row of any table.
+   */
+  public static final String ENTITY_NAME_ALGO_ALERT_ACTION = "AlgoAlertAction";
+
   private static final String RELATION_SECURITYCURRENCY = "Securitycurrency";
 
   private static final String RULE_SHARED_DATA = "min:10,max:100000";
@@ -112,6 +126,8 @@ public abstract class LimitKeyConfig {
   public static final LimitKey KEY_ALGO_ASSETCLASS = LimitKey.max(AlgoAssetclass.class.getSimpleName(),
       OwnerScope.TENANT);
   public static final LimitKey KEY_ALGO_SECURITY = LimitKey.max(AlgoSecurity.class.getSimpleName(), OwnerScope.TENANT);
+  public static final LimitKey KEY_ALGO_STRATEGY = LimitKey.max(AlgoStrategy.class.getSimpleName(),
+      OwnerScope.TENANT);
   public static final LimitKey KEY_ALGO_EXECUTION_STATE = LimitKey.max(AlgoExecutionState.class.getSimpleName(),
       OwnerScope.TENANT);
   public static final LimitKey KEY_ALGO_EVENT_LOG = LimitKey.max(AlgoEventLog.class.getSimpleName(),
@@ -150,6 +166,20 @@ public abstract class LimitKeyConfig {
   public static final LimitKey KEY_STOCKEXCHANGE = LimitKey.max(Stockexchange.class.getSimpleName(),
       OwnerScope.CREATOR);
   public static final LimitKey KEY_GTNET_SECURITY_IMPORT = LimitKey.max(ENTITY_NAME_GTNET_SECURITY_IMPORT,
+      OwnerScope.CREATOR);
+  public static final LimitKey KEY_GENERIC_CONNECTOR_DEF = LimitKey.max(GenericConnectorDef.class.getSimpleName(),
+      OwnerScope.CREATOR);
+  public static final LimitKey KEY_IMPORT_TRANSACTION_PLATFORM = LimitKey
+      .max(ImportTransactionPlatform.class.getSimpleName(), OwnerScope.CREATOR);
+  public static final LimitKey KEY_IMPORT_TRANSACTION_TEMPLATE = LimitKey
+      .max(ImportTransactionTemplate.class.getSimpleName(), OwnerScope.CREATOR);
+  public static final LimitKey KEY_TRADING_CALENDAR_RULE_SET = LimitKey
+      .max(TradingCalendarRuleSet.class.getSimpleName(), OwnerScope.CREATOR);
+  public static final LimitKey KEY_TRADING_PLATFORM_PLAN = LimitKey.max(TradingPlatformPlan.class.getSimpleName(),
+      OwnerScope.CREATOR);
+  public static final LimitKey KEY_RISK_FREE_RATE_MAPPING = LimitKey.max(RiskFreeRateMapping.class.getSimpleName(),
+      OwnerScope.CREATOR);
+  public static final LimitKey KEY_UDF_METADATA_SECURITY = LimitKey.max(UDFMetadataSecurity.class.getSimpleName(),
       OwnerScope.CREATOR);
 
   // Derived daily keys the application checks explicitly rather than through the generic CUD path.
@@ -197,6 +227,18 @@ public abstract class LimitKeyConfig {
     // which check this key at the single site where a new position row is written.
     registerFlat(KEY_IMPORT_TRANSACTION_POS, ImportTransactionPos.class, 8000, null, "MAX_IMPORT_TRANSACTION_POS",
         false);
+
+    // Strategy hierarchy and its engine state. Checked at their own write sites rather than by the generic create:
+    // the repository implementations of the hierarchy check every new node, the hierarchy generation from holdings or
+    // a watchlist checks a whole generated tree at once, and the position lifecycle of mean reversion and the event
+    // cap of a historical replay are written by the engine. The hierarchy caps report a translated message instead of
+    // the generic LIMIT_SECURITY_BREACH, which would count towards locking the user out.
+    registerFlat(KEY_ALGO_TOP, AlgoTop.class, 20, null, "MAX_ALGO_TOP", false);
+    registerFlat(KEY_ALGO_ASSETCLASS, AlgoAssetclass.class, 200, null, "MAX_ALGO_ASSETCLASS", false);
+    registerFlat(KEY_ALGO_SECURITY, AlgoSecurity.class, 2000, null, "MAX_ALGO_SECURITY", false);
+    registerFlat(KEY_ALGO_STRATEGY, AlgoStrategy.class, 4000, null, "MAX_ALGO_STRATEGY", false);
+    registerFlat(KEY_ALGO_EXECUTION_STATE, AlgoExecutionState.class, 10000, null, "MAX_ALGO_EXECUTION_STATE", false);
+    registerFlat(KEY_ALGO_EVENT_LOG, AlgoEventLog.class, 200000, null, "MAX_ALGO_EVENT_LOG", false);
 
     // Counts tenant rows by their parent, so it can only ever be checked where a simulation environment is created.
     LimitKeyRegistry.register(new LimitKeyRegistration(KEY_SIMULATION_TENANT, Tenant.class,
@@ -269,6 +311,21 @@ public abstract class LimitKeyConfig {
    * A count moves with the rows when {@code MoveCreatedByUserToOtherUserTask} reassigns the shared data of a deleted
    * user. That is intended — the cap bounds who is answerable for the rows, not who originally typed them.
    * </p>
+   *
+   * <p>
+   * Some shared tables have a daily budget but deliberately no lifetime cap, because nothing counts them per user:
+   * </p>
+   * <ul>
+   * <li>The GTNet tables ({@code GTNet}, {@code GTNetConfig}, {@code GTNetConfigEntity}, {@code GTNetMessage},
+   * {@code GTNetMessageAnswer}) carry no {@code created_by}, are written over REST by an administrator only, and grow
+   * mostly through the machine-to-machine traffic of remote peers. Bounding a peer is a matter of GTNet, not of a
+   * user's limit.</li>
+   * <li>{@code Historyquote}, {@code HistoryquoteLegacy} and the trading calendar ({@code TradingDaysMinusYear}) have
+   * one row per instrument or stock exchange and date, and no owner. Their size follows from the capped number of
+   * instruments and stock exchanges, and their growth rate from the daily budget.</li>
+   * <li>{@code GTNetSecurityImpPos} is bounded per tenant by {@link #KEY_GTNET_SECURITY_IMP_POS_ALL}, which already is
+   * its flat cap reached through the head.</li>
+   * </ul>
    */
   private static void registerSharedDataCaps() {
     // Securities the GTNet import created are excluded here and counted against their own key below.
@@ -293,6 +350,27 @@ public abstract class LimitKeyConfig {
                   AND p.security.createdBy = ?1
                 """, Long.class).setParameter(1, user.getIdUser()).getSingleResult().intValue(),
         20000, RULE_SHARED_DATA, "MAX_GT_NET_SECURITY_IMPORT", false));
+
+    // Reference data a user may create beside the instruments. Each had a daily budget only; the defaults are ceilings on
+    // abuse, several times what the largest creator of the production database holds today.
+    registerFlat(KEY_GENERIC_CONNECTOR_DEF, GenericConnectorDef.class, 20, RULE_SHARED_DATA,
+        "MAX_GENERIC_CONNECTOR_DEF", true);
+    registerFlat(KEY_IMPORT_TRANSACTION_PLATFORM, ImportTransactionPlatform.class, 50, RULE_SHARED_DATA,
+        "MAX_IMPORT_TRANSACTION_PLATFORM", true);
+    // The template file upload writes new templates outside the generic create and checks this key itself.
+    registerFlat(KEY_IMPORT_TRANSACTION_TEMPLATE, ImportTransactionTemplate.class, 300, RULE_SHARED_DATA,
+        "MAX_IMPORT_TRANSACTION_TEMPLATE", true);
+    registerFlat(KEY_TRADING_CALENDAR_RULE_SET, TradingCalendarRuleSet.class, 200, RULE_SHARED_DATA,
+        "MAX_TRADING_CALENDAR_RULE_SET", true);
+    registerFlat(KEY_TRADING_PLATFORM_PLAN, TradingPlatformPlan.class, 100, RULE_SHARED_DATA,
+        "MAX_TRADING_PLATFORM_PLAN", true);
+    registerFlat(KEY_RISK_FREE_RATE_MAPPING, RiskFreeRateMapping.class, 50, RULE_SHARED_DATA,
+        "MAX_RISK_FREE_RATE_MAPPING", true);
+    // Private to its user and without created_by, so counted through id_user like its library sibling
+    // UDFMetadataGeneral.
+    LimitKeyRegistry.register(new LimitKeyRegistration(KEY_UDF_METADATA_SECURITY, UDFMetadataSecurity.class,
+        LimitCounters.userCount(UDFMetadataSecurity.class.getSimpleName(), "idUser"), 50, null,
+        "MAX_UDF_METADATA_SECURITY", true));
   }
 
   /**
@@ -312,6 +390,10 @@ public abstract class LimitKeyConfig {
         ImportTransactionPos.class);
     LimitKeyRegistry.registerCudPseudoEntityName(GTNetSecurityImpHead.class.getSimpleName(),
         GTNetSecurityImpHead.class);
+    // Manual alert actions - an immediate evaluation or a delivery retry - are budgeted per day at their endpoint. The
+    // name stands for no table; the strategies the alerts belong to are tenant private, which is what the
+    // administration shows it as.
+    LimitKeyRegistry.registerCudPseudoEntityName(ENTITY_NAME_ALGO_ALERT_ACTION, AlgoStrategy.class);
     LimitKeyRegistry.registerReadPseudoEntityName(ENTITY_NAME_HISTORYQUOTE_READ, Historyquote.class);
   }
 

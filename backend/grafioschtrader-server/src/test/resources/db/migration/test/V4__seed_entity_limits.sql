@@ -51,4 +51,16 @@ SELECT 0, x.entity_name, x.relation_entity_name, x.count_scope, x.owner_scope,
         UNION ALL SELECT 'AlgoExecutionState',    NULL,                   NULL, 0, NULL,  10000
         UNION ALL SELECT 'AlgoEventLog',          NULL,                   NULL, 0, NULL, 200000
         UNION ALL SELECT 'BankruptSecurity',      NULL,                   NULL, 2, NULL,    200
+        UNION ALL SELECT 'GenericConnectorDef',       NULL,               NULL, 2, NULL,     20
+        UNION ALL SELECT 'ImportTransactionPlatform', NULL,               NULL, 2, NULL,     50
+        UNION ALL SELECT 'ImportTransactionTemplate', NULL,               NULL, 2, NULL,    300
+        UNION ALL SELECT 'TradingCalendarRuleSet',    NULL,               NULL, 2, NULL,    200
+        UNION ALL SELECT 'TradingPlatformPlan',       NULL,               NULL, 2, NULL,    100
+        UNION ALL SELECT 'RiskFreeRateMapping',       NULL,               NULL, 2, NULL,     50
+        UNION ALL SELECT 'UDFMetadataSecurity',       NULL,               NULL, 2, NULL,     50
+        UNION ALL SELECT 'UDFMetadataGeneral',        NULL,               NULL, 2, NULL,     50
+        UNION ALL SELECT 'MailSettingForward',        NULL,               NULL, 2, NULL,     50
+        UNION ALL SELECT 'MailSendRecv',              NULL,               NULL, 2, NULL,   2000
+        UNION ALL SELECT 'ProposeUserTask',           NULL,               NULL, 2, NULL,    100
+        UNION ALL SELECT 'ManagedClient',             NULL,               NULL, 0, NULL,     20
   ) x;

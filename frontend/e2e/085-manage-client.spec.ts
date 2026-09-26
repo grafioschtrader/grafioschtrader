@@ -70,6 +70,8 @@ test.describe.serial('Manage clients (issue #200)', () => {
 
   test('advisor switches into the client tenant with full CRUD and back', async ({ page }) => {
     test.setTimeout(120_000);
+    // Reproduce a refused tree-load request: login must recover the portfolio branch before returning.
+    await page.route('**/api/portfolio/tenant', (route) => route.abort('connectionrefused'), { times: 1 });
     await loginAsFixtureUser(page, ADVISOR_NICKNAME);
     const homeRootText = (await tenantRootNode(page).innerText()).trim();
 

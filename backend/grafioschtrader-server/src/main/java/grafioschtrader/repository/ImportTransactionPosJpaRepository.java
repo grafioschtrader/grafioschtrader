@@ -22,15 +22,19 @@ public interface ImportTransactionPosJpaRepository
    * Finds potential transaction matches for the specified import position IDs.
    * Is used to indicate to the user that the item to be imported may already exist as a transcation.
    * <p>
-   * For each <code>imp_trans_pos</code> in <code>idTransactionPosList</code> where no transaction
-   * has yet been confirmed (<code>ip.id_transaction IS NULL</code>) but a match is flagged
+   * For each <code>imp_trans_pos</code> in <code>idTransactionPosList</code> that has no transaction yet
+   * (<code>ip.id_transaction IS NULL</code>) and whose detection was not switched off by the user
    * (<code>ip.id_transaction_maybe <> 0 OR ip.id_transaction_maybe IS NULL</code>), this query:
    * <ul>
-   *   <li>Joins on <code>transaction</code> by matching security ID, transaction type, cash account, date, and units</li>
-   *   <li>Also requires either the cash-account amount to match (<code>t.id_cash_account = ip.cashaccount_amount</code>)
-   *       or the recorded quotation to match (<code>ip.quotation = t.quotation</code>)</li>
+   *   <li>Joins on <code>transaction</code> by matching security, transaction type, the securities account of the
+   *       import head, the day and the units</li>
+   *   <li>Also requires either the total amount to match at cent level, compared by absolute value because a
+   *       purchase is negative on the transaction but may still be positive on a position whose total has not been
+   *       calculated yet, or the quotation to match (<code>ip.quotation = t.quotation</code>)</li>
    * </ul>
    * Results are ordered by import position ID.
+   * <p>
+   * Named query: ImportTransactionPos.getIdTransactionPosWithPossibleTransactionByIdTransactionPos
    *
    * @param idTransactionPosList list of import position IDs to evaluate
    * @return a two-dimensional Integer array where each element is
@@ -46,11 +50,13 @@ public interface ImportTransactionPosJpaRepository
    * <p>
    * Identical matching logic to the position-level lookup, scoped to <code>ip.id_trans_head = ?1</code>:
    * <ul>
-   *   <li>Filters for unconfirmed positions with a “maybe” flag</li>
-   *   <li>Joins on <code>transaction</code> by security ID, transaction type, cash account, date, and units</li>
-   *   <li>Requires either matching cash-account amount or matching quotation</li>
+   *   <li>Considers positions without a transaction whose detection was not switched off by the user</li>
+   *   <li>Joins on <code>transaction</code> by security, transaction type, securities account, day and units</li>
+   *   <li>Requires either the same total amount (absolute value, at cent level) or the same quotation</li>
    * </ul>
    * Distinct pairs are returned and ordered by import position ID.
+   * <p>
+   * Named query: ImportTransactionPos.getIdTransactionPosWithPossibleTransactionByIdTransactionHead
    *
    * @param idTransactionHead import header ID whose positions to match
    * @return a two-dimensional Integer array of <code>[id_trans_pos, id_transaction]</code>

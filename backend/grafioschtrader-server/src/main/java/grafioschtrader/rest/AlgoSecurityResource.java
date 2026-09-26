@@ -29,12 +29,15 @@ public class AlgoSecurityResource extends AlgoBaseResource<AlgoSecurity> {
   @Autowired
   private AlgoSecurityJpaRepository algoSecurityJpaRepository;
 
-  @Operation(summary = "Returns all AlgoSecurity entries for the current tenant", description = "Returns all alert securities with their strategies for the tenant alert overview.", tags = {
-      RequestGTMappings.ALGOSECURITY })
+  @Operation(summary = "Returns the standalone alert securities of the current tenant", description = """
+      Returns the portfolio-independent alert securities with their strategies for the standalone alert overview.
+      Securities inside an AlgoTop hierarchy are not included.""", tags = { RequestGTMappings.ALGOSECURITY })
   @GetMapping(value = "/tenant", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<List<AlgoSecurity>> getAllForTenant() {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(algoSecurityJpaRepository.findByIdTenant(user.getActualIdTenant()), HttpStatus.OK);
+    return new ResponseEntity<>(
+        algoSecurityJpaRepository.findByIdTenantAndIdAlgoSecurityParentIsNull(user.getActualIdTenant()),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "", description = "", tags = { RequestGTMappings.ALGOSECURITY })

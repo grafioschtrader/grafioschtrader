@@ -95,7 +95,10 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "id_parent_tenant")
   private Integer idParentTenant;
 
-  @Schema(description = "Reference to the shared AlgoTop strategy for simulation tenants")
+  @Schema(description = """
+      References algo_top.id_algo_assetclass_security. For a main tenant, selects its owned portfolio-monitoring
+      hierarchy; null means unassigned. For a simulation tenant, references the shared strategy used by its replay.
+      Main-tenant assignment is changed only through the dedicated monitoring operation.""")
   @Column(name = "id_algo_top")
   private Integer idAlgoTop;
 

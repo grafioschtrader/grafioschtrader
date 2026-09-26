@@ -3,7 +3,11 @@ package grafioschtrader.repository;
 import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +31,7 @@ import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.ImportTransactionTemplate;
 import grafioschtrader.entities.Securityaccount;
+import grafioschtrader.entities.Transaction;
 import grafioschtrader.platform.GenericTransactionImport;
 import grafioschtrader.platform.IPlatformTransactionImport;
 import grafioschtrader.platformimport.ImportTransactionHelper;
@@ -68,6 +73,9 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
   @Autowired
   private ImportTransactionPlatformJpaRepository importTransactionPlatformJpaRepository;
+
+  @Autowired
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Autowired
   private GlobalparametersService globalparametersService;
@@ -349,6 +357,111 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   @Override
   public int delEntityWithTenant(Integer id, Integer idTenant) {
     return importTransactionHeadJpaRepository.deleteByIdTransactionHeadAndIdTenant(id, idTenant);
+  }
+
+  @Override
+  @Transactional
+  public int rollbackImportedTransactions(Integer idTransactionHead) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (importTransactionHeadJpaRepository.findByIdTransactionHeadAndIdTenant(idTransactionHead,
+        user.getIdTenant()) == null) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    List<ImportTransactionPos> importedPosList = importTransactionPosJpaRepository
+        .findByIdTransactionHeadAndIdTenant(idTransactionHead, user.getIdTenant()).stream()
+        .filter(itp -> itp.getIdTransaction() != null).toList();
+    if (importedPosList.isEmpty()) {
+      return 0;
+    }
+    dailyLimitService.check(user, ImportTransactionHead.class.getSimpleName(), 1);
+    List<Transaction> transactions = transactionJpaRepository
+        .findAllById(importedPosList.stream().map(ImportTransactionPos::getIdTransaction).toList()).stream()
+        .filter(transaction -> transaction.getIdTenant().equals(user.getIdTenant())).toList();
+    checkRollbackAllowed(user.getIdTenant(), idTransactionHead, transactions);
+
+    // Deleting a transaction clears the link to the partner position of a transfer. It is remembered here and put back,
+    // otherwise the re-import would book the two sides as an unrelated withdrawal and deposit.
+    Map<Integer, Integer> connectedIdTransactionPosMap = new HashMap<>();
+    importedPosList.stream().filter(itp -> itp.getConnectedIdTransactionPos() != null).forEach(
+        itp -> connectedIdTransactionPosMap.put(itp.getIdTransactionPos(), itp.getConnectedIdTransactionPos()));
+
+    getRollbackDeletionOrder(transactions).forEach(transactionJpaRepository::deleteSingleDoubleTransaction);
+
+    importedPosList.forEach(itp -> {
+      itp.setIdTransaction(null);
+      itp.setConnectedIdTransactionPos(connectedIdTransactionPosMap.get(itp.getIdTransactionPos()));
+    });
+    importTransactionPosJpaRepository.saveAll(importedPosList);
+    dailyLimitService.log(user.getIdUser(), ImportTransactionHead.class.getSimpleName(), OperationType.UPDATE, 1);
+    return transactions.size();
+  }
+
+  /**
+   * Refuses the rollback before the first delete when it could damage the data of the tenant.
+   *
+   * <p>
+   * Other transactions dated on or after the day of the earliest imported transaction could depend on the imported ones
+   * (units held, cash balance, an open margin position), so the rollback requires that there are none. A closed period
+   * must stay unchanged, and the delete path does not check it. Transactions referenced by a simulation opening, a
+   * security action, a security transfer or a standing order are not the plain result of an import.
+   * </p>
+   *
+   * @param idTenant          the tenant of the import head
+   * @param idTransactionHead the import head being rolled back
+   * @param transactions      the transactions created from the positions of this head
+   */
+  private void checkRollbackAllowed(Integer idTenant, Integer idTransactionHead, List<Transaction> transactions) {
+    List<Integer> linkedIds = getLinkedTransactionIds(transactions);
+    if (!linkedIds.isEmpty()) {
+      throw new DataViolationException("transaction", "gt.import.rollback.linked.transactions",
+          new Object[] { linkedIds.stream().map(String::valueOf).collect(Collectors.joining(", ")) });
+    }
+    LocalDateTime fromTime = transactions.stream().map(Transaction::getTransactionTime).min(Comparator.naturalOrder())
+        .get().toLocalDate().atStartOfDay();
+    long foreignCount = importTransactionHeadJpaRepository.countForeignTransactionsFromTime(idTenant, fromTime,
+        idTransactionHead);
+    if (foreignCount > 0) {
+      throw new DataViolationException("transaction.time", "gt.import.rollback.later.transactions",
+          new Object[] { foreignCount, fromTime.toLocalDate() });
+    }
+    transactions.forEach(transactionJpaRepository::checkNotInClosedPeriod);
+  }
+
+  /**
+   * Returns the IDs of the transactions that carry a link which an import never sets. Package private for unit tests.
+   *
+   * @param transactions the transactions created from the positions of an import head
+   * @return the IDs of the linked transactions in ascending order, empty when there are none
+   */
+  static List<Integer> getLinkedTransactionIds(List<Transaction> transactions) {
+    return transactions.stream()
+        .filter(t -> t.isSimulationOpening() || t.getIdSecurityActionApp() != null || t.getIdSecurityTransfer() != null
+            || t.getIdStandingOrder() != null)
+        .map(Transaction::getIdTransaction).sorted().toList();
+  }
+
+  /**
+   * Determines the order in which the imported transactions are deleted: exactly the reverse of the order in which the
+   * import created them, which the ascending transaction ID records. As the import books its positions sorted by
+   * transaction time, this is also newest first, and every intermediate state is one the tenant already had during the
+   * import. A cash-account transfer is deleted together with its counter side, so only one of the two IDs is returned.
+   * Package private for unit tests.
+   *
+   * @param transactions the transactions created from the positions of an import head
+   * @return the IDs to pass to {@code deleteSingleDoubleTransaction}, in deletion order
+   */
+  static List<Integer> getRollbackDeletionOrder(List<Transaction> transactions) {
+    Set<Integer> deletedIds = new HashSet<>();
+    List<Integer> deletionOrder = new ArrayList<>();
+    transactions.stream().sorted(Comparator.comparing(Transaction::getIdTransaction).reversed()).forEach(t -> {
+      if (deletedIds.add(t.getIdTransaction())) {
+        deletionOrder.add(t.getIdTransaction());
+        if (t.isCashaccountTransfer()) {
+          deletedIds.add(t.getConnectedIdTransaction());
+        }
+      }
+    });
+    return deletionOrder;
   }
 
   public static class SuccessFailedDirectImportTransaction {

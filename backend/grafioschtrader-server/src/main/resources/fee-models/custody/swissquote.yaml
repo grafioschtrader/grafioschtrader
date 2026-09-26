@@ -1,0 +1,31 @@
+custody:
+  periods:
+    - validFrom: "1900-01-01"
+      validTo: "2022-12-31"
+      status: ASSUMED
+      source: "https://finanzdepot.ch/swissquote-update-tarife-senkung-oder-erhoehung/"
+      note: "Approximation: the tariff valid until December 2022 applied to the whole earlier history. 0.025 percent per quarter of the securities value at quarter end, cash excluded, at least CHF 15 and at most CHF 40 per quarter; plus VAT at today's rate."
+      currency: CHF
+      valuation: PERIOD_END
+      billingMonths: 3
+      collection: END
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      closingPolicy: PRORATED
+      amount: 'assetValue * 0.001'
+      minimum: 15
+      maximum: 40
+      vatRate: 0.081
+    - validFrom: "2023-01-01"
+      status: ASSUMED
+      source: "https://www.swissquote.com/de-ch/private/trade/pricing/account-fees"
+      note: "Fixed quarterly tiers since January 2023 on the securities value at quarter end, cash excluded: CHF 20 up to 50,000, 25 up to 100,000, 37.50 up to 150,000, 50 above. The additional 0.0075 percent per quarter above CHF 1 million is applied to the whole value, which the tariff leaves open; plus VAT at today's rate."
+      currency: CHF
+      valuation: PERIOD_END
+      billingMonths: 3
+      collection: END
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      closingPolicy: PRORATED
+      amount: '4 * (IF(assetValue <= 50000, 20, IF(assetValue <= 100000, 25, IF(assetValue <= 150000, 37.5, 50))) + IF(assetValue > 1000000, assetValue * 0.000075, 0))'
+      vatRate: 0.081

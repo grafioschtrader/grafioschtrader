@@ -11,8 +11,16 @@ export class SecurityPositionGrandSummary {
   grandInvestmentBudgetMC: number;
   grandUnusedTacticalBudgetMC: number;
   toleranceThreshold: number;
+  /** Composition mismatch of security exposures, excluding cash; null without positive targets. */
+  overallAllocationMismatchPercentage: number | null;
   exposureBreach: boolean;
   valuationDate: string;
+  /** The valuation day is a periodic checkpoint, so deviations beyond the tolerance are traded. */
+  periodicDue: boolean;
+  /** Last checkpoint of the monitored hierarchy; null when none is remembered, which makes every day a checkpoint. */
+  lastCheckpointDate: string | null;
+  /** First valuation day on which the next checkpoint is due; null without a last checkpoint. */
+  nextCheckpointDate: string | null;
 
   grandAccountValueSecurityMC: number;
   currency: string;

@@ -77,6 +77,16 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
   void deleteSingleDoubleTransaction(Integer idTransaction);
 
   /**
+   * Rejects a transaction dated on or before the closed period of its portfolio, or of the tenant when the portfolio
+   * sets none. {@link #deleteSingleDoubleTransaction(Integer)} does not run this check itself, so a caller removing
+   * transactions in bulk, such as the rollback of an import, calls it for every transaction first.
+   *
+   * @param transaction a stored transaction with its cash account loaded
+   * @throws grafiosch.exceptions.DataViolationException if the transaction date lies within a closed period
+   */
+  void checkNotInClosedPeriod(Transaction transaction);
+
+  /**
    * Saves transaction attributes optimized for bulk import operations.
    *
    * <p>
@@ -153,15 +163,14 @@ public interface TransactionJpaRepositoryCustom extends BaseRepositoryCustom<Tra
   ClosedMarginUnits getClosedMarginUnitsByIdTransaction(final Integer idTransaction);
 
   /**
-   * Enforces the total (lifetime) per-tenant transaction limit {@code gt.max.transaction}. Throws when the tenant has
-   * already reached or exceeded the limit. Atomic multi-transaction operations (cash transfer, security transfer, ISIN
-   * action) call this once at their start, so they may slightly overshoot the cap but are blocked entirely once the
-   * tenant is already at/over it. This is a total limit, not a daily limit.
+   * Enforces the total per-tenant transaction limit for all rows an operation will add. Missing configuration is
+   * unlimited. The count takes no tenant lock, so concurrent writes may slightly exceed the cap.
    *
    * @param idTenant the tenant id
-   * @throws grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException if the tenant is already at/over the limit
+   * @param rows     the non-negative number of new transaction rows
+   * @throws grafioschtrader.exceptions.TransactionLimitExceededException if the operation would exceed the limit
    */
-  void throwWhenTransactionLimitReached(Integer idTenant);
+  void throwWhenTransactionLimitReached(Integer idTenant, int rows);
 
   /**
    * Updates only the {@code taxableInterest} flag of a single transaction, deliberately bypassing the

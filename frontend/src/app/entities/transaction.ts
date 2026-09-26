@@ -7,6 +7,8 @@ export class Transaction {
   //Some values are initialied with null, otherwise values will not be transfered
 
   idTransaction?: number;
+  /** Server-owned marker protecting the simulation's opening ledger. */
+  readonly simulationOpening?: boolean;
   idAlgoStrategy: number = null;
   units?: number = null;
   quotation?: number = null;

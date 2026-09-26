@@ -17,6 +17,11 @@ export class BankruptSecurity extends Auditable implements BaseID {
   idSecuritycurrency: number = null;
   /** Day from which the issuer stopped delivering prices. Documentation only; the filling starts at the last price. */
   noDataSince: string = null;
+  /**
+   * First day on which the instrument can no longer be traded. From that day on a historical simulation neither buys
+   * nor sells it; independent of noDataSince, because an instrument may still be quoted while its trading is suspended.
+   */
+  noTradingSince: string = null;
   note: string = null;
 
   @Exclude()

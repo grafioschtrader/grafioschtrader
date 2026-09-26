@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
@@ -34,9 +35,11 @@ import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.service.DailyLimitService;
+import grafiosch.service.EntityLimitService;
 import grafiosch.types.OperationType;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.dto.SuccessFailedImportTransactionTemplate;
 import grafioschtrader.entities.ImportTransactionPlatform;
 import grafioschtrader.entities.ImportTransactionPos;
@@ -110,6 +113,9 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
 
   @Autowired
   private DailyLimitService dailyLimitService;
+
+  @Autowired
+  private EntityLimitService entityLimitService;
 
   @Override
   public ImportTransactionTemplate saveOnlyAttributes(ImportTransactionTemplate importTransactionTemplate,
@@ -303,7 +309,8 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
    * exactly as a template created or edited by hand through the generic REST path does. A file refused for lack of
    * ownership costs nothing. The check is per file, so an upload that runs out of budget partway through keeps the
    * files it already saved and fails on the first one that no longer fits — the same accounting the per-file error
-   * counters of this method already follow.
+   * counters of this method already follow. A new file is also counted against the lifetime cap of the templates the
+   * user created, which the generic create path would otherwise enforce.
    * </p>
    *
    * @param user                        The authenticated user performing the template import
@@ -331,6 +338,10 @@ public class ImportTransactionTemplateJpaRepositoryImpl extends BaseRepositoryIm
         return;
       }
     } else {
+      // A new file adds a row outside the generic create, so the lifetime cap is checked here; an update adds none.
+      if (!entityLimitService.fitsWithinLimit(user, LimitKeyConfig.KEY_IMPORT_TRANSACTION_TEMPLATE, null, 1)) {
+        throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
+      }
       itt.setIdTransactionImportPlatform(idTransactionImportPlatform);
       sfitt.successNew++;
     }

@@ -1,6 +1,6 @@
 import { Component, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { combineLatest } from 'rxjs';
@@ -131,6 +131,12 @@ export class TradingCalendarRuleSetTableComponent
 
   override prepareCallParam(entity: TradingCalendarRuleSet): void {
     this.callParam = entity;
+  }
+
+  /** An existing rule set offers row actions; create a different set with no row selected. */
+  protected override getEditMenuItems(entity: TradingCalendarRuleSet): MenuItem[] {
+    const items = super.getEditMenuItems(entity);
+    return entity ? items.filter((item) => !item.label?.startsWith('CREATE|')) : items;
   }
 
   ngOnDestroy(): void {

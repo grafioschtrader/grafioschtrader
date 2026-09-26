@@ -1,8 +1,9 @@
 {
   "name": "grafioschtrader-client",
-  "version": "0.37.0",
+  "version": "0.37.1",
   "license": "Apache-2.0",
   "scripts": {
+    "postinstall": "node scripts/fix-optimus-menubar-tracking.mjs",
     "ng": "ng",
     "start": "ng serve frontend --proxy-config proxy.conf.json",
     "build": "ng build frontend",
@@ -21,7 +22,14 @@
     "e2e:lib:headed": "playwright test --config=playwright.lib.config.ts --headed",
     "start:grafiosch": "ng serve grafiosch-host --port 4201 --proxy-config proxy.grafiosch-host.conf.json",
     "start:grafiosch-peer": "ng serve grafiosch-host --port 4202 --proxy-config proxy.grafiosch-host-peer.conf.json",
-    "start:gt-peer": "ng serve frontend --port 4202 --proxy-config proxy.gt-peer.conf.json"
+    "start:gt-peer": "ng serve frontend --port 4202 --proxy-config proxy.gt-peer.conf.json",
+    "prestart": "node scripts/sync-yaml-schemas.mjs",
+    "prebuild": "node scripts/sync-yaml-schemas.mjs",
+    "prebuildprod": "node scripts/sync-yaml-schemas.mjs",
+    "prewatch": "node scripts/sync-yaml-schemas.mjs",
+    "prestart:grafiosch": "node scripts/sync-yaml-schemas.mjs",
+    "prestart:grafiosch-peer": "node scripts/sync-yaml-schemas.mjs",
+    "prestart:gt-peer": "node scripts/sync-yaml-schemas.mjs"
   },
   "private": true,
   "dependencies": {

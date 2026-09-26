@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ViewChild, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
@@ -30,6 +30,7 @@ import { combineLatest } from 'rxjs';
 @Component({
   selector: 'generic-connector-def-edit',
   template: ` <p-dialog
+    styleClass="big-dialog"
     header="{{ 'GENERIC_CONNECTOR_DEF' | translate }}"
     [visible]="visibleDialog"
     [style]="{ width: '900px' }"
@@ -45,7 +46,14 @@ import { combineLatest } from 'rxjs';
     </dynamic-form>
 
     <p-fieldset [legend]="'TOKEN_CONFIG_YAML' | translate" [toggleable]="true" [collapsed]="true" styleClass="mt-3">
-      <yaml-editor [height]="'300px'" [(value)]="tokenConfigYamlValue" [schema]="tokenConfigSchema"></yaml-editor>
+      <yaml-editor
+        #yamlEditor
+        format="TOKENS"
+        (syntaxValidChange)="configObject.submit.disabled = !$event || yamlEditor.validating"
+        (validationPendingChange)="configObject.submit.disabled = $event || !yamlEditor.syntaxValid"
+        [height]="'300px'"
+        [(value)]="tokenConfigYamlValue"
+        [schema]="tokenConfigSchema"></yaml-editor>
     </p-fieldset>
   </p-dialog>`,
   standalone: true,
@@ -53,6 +61,7 @@ import { combineLatest } from 'rxjs';
   imports: [DialogModule, DynamicFormModule, TranslateModule, FieldsetModule, YamlEditorComponent]
 })
 export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<GenericConnectorDef> implements OnInit {
+  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
   @Input() callParam: GenericConnectorDef;
 
   tokenConfigYamlValue = '';
@@ -77,6 +86,11 @@ export class GenericConnectorDefEditComponent extends SimpleEntityEditBase<Gener
       genericConnectorDefService
     );
     this.loadTokenConfigSchema();
+  }
+
+  override async submit(value: { [name: string]: any }): Promise<void> {
+    if (await this.yamlEditor.validateForSubmit()) super.submit(value);
+    else this.configObject.submit.disabled = !this.yamlEditor.syntaxValid;
   }
 
   ngOnInit(): void {

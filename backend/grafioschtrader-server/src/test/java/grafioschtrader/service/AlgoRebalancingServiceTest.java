@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -76,6 +77,8 @@ class AlgoRebalancingServiceTest {
   private final AlgoRecommendationJpaRepository recommendations = mock(AlgoRecommendationJpaRepository.class);
   private final HistoryquoteJpaRepository quotes = mock(HistoryquoteJpaRepository.class);
   private final AlgoRecommendationWriter writer = mock(AlgoRecommendationWriter.class);
+  private final AlgoMonitoringService monitoring = mock(AlgoMonitoringService.class);
+  private final FeatureConfig features = mock(FeatureConfig.class);
 
   private final AlgoStrategy rebalancing = strategy(100, AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING, 4,
       2);
@@ -94,7 +97,8 @@ class AlgoRebalancingServiceTest {
     ReflectionTestUtils.setField(service, "historyquoteJpaRepository", quotes);
     ReflectionTestUtils.setField(service, "algoRecommendationWriter", writer);
     ReflectionTestUtils.setField(service, "algoAlarmRecorder", mock(AlgoAlarmRecorder.class));
-    ReflectionTestUtils.setField(service, "features", mock(FeatureConfig.class));
+    ReflectionTestUtils.setField(service, "algoMonitoringService", monitoring);
+    ReflectionTestUtils.setField(service, "features", features);
     MessageSource messages = mock(MessageSource.class);
     when(messages.getMessage(any(String.class), any(), any(String.class), any())).thenAnswer(i -> i.getArgument(0));
     ReflectionTestUtils.setField(service, "messageSource", messages);
@@ -263,7 +267,7 @@ class AlgoRebalancingServiceTest {
     // 500 units worth 100 USD each, at 0.90 CHF per USD, is 45'000 CHF against a 50'000 CHF target.
     Snapshot snapshot = new Snapshot("CHF", List.of(position(foreign, 500, 50_000)), Map.of(),
         Map.of("CHF", 1.0, "USD", 0.9), 100_000, 45_000, List.of());
-    when(valuation.value(any(), any(), any())).thenReturn(snapshot);
+    when(valuation.value(any(), any(), any(), any())).thenReturn(snapshot);
 
     RebalancingPlan.Line line = lineOf(plan(), StrategyHelper.SECURITY_LEVEL_LETTER);
 
@@ -336,6 +340,26 @@ class AlgoRebalancingServiceTest {
     assertThat(service.isCheckpointDue(ID_TENANT, algoTop, VALUATION_DATE, null)).isTrue();
 
     verifyNoInteractions(valuation);
+  }
+
+  @Test
+  @DisplayName("A hierarchy that is not assigned to monitoring gets no live plan, and its leftover plan is removed")
+  void onlyTheMonitoredHierarchyKeepsALivePlan() {
+    when(features.isAlgo()).thenReturn(true);
+    when(algoTops.findAll()).thenReturn(List.of(algoTop));
+    when(algoTops.findByIdTenantOrderByName(ID_TENANT)).thenReturn(List.of(algoTop));
+    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(false);
+
+    assertThat(service.hasDueRebalancing()).isFalse();
+    service.evaluateAll();
+    service.evaluateForTenant(ID_TENANT);
+
+    verify(recommendations).deleteByIdTenantAndIdAlgoTop(ID_TENANT, ID_ALGO_TOP);
+    verify(writer, never()).replace(any(), any(), any());
+    verifyNoInteractions(valuation);
+
+    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(true);
+    assertThat(service.hasDueRebalancing()).isTrue();
   }
 
   @Test
@@ -469,21 +493,6 @@ class AlgoRebalancingServiceTest {
     assertThat(replay.classAdjustments()).isEqualTo(live.classAdjustments());
   }
 
-  @Test
-  void snapshotRecordsEffectiveOverridesAndWeights() {
-    tenPositions();
-    var bucket = bucketNode();
-    bucket.setSecurityDeviationPercentage(0.0);
-    when(buckets.findByIdTenantAndIdAlgoAssetclassParent(ID_TENANT, ID_ALGO_TOP)).thenReturn(List.of(bucket));
-    var snapshot = new com.fasterxml.jackson.databind.ObjectMapper()
-        .valueToTree(service.configurationSnapshot(algoTop));
-    assertThat(snapshot.path("version").asText()).isEqualTo(AlgoClassRebalancingAllocator.VERSION);
-    var stored = snapshot.path("classes").get(0);
-    assertThat(stored.path("securityDeviationPercentage").asDouble()).isZero();
-    assertThat(stored.path("maxTradedSecuritiesPerAssetclass").asInt()).isEqualTo(3);
-    assertThat(stored.path("securities").size()).isEqualTo(10);
-  }
-
   // -----------------------------------------------------------------------------------------------------------------
 
   /** The checkpoint days of the rows most recently handed to the writer. */
@@ -496,6 +505,15 @@ class AlgoRebalancingServiceTest {
 
   private RebalancingPlan plan() {
     return service.plan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT);
+  }
+
+  @Test
+  void alertPreferenceDoesNotChangeThePlanUsedByReplay() {
+    hierarchy(100, 100, 100);
+    snapshot(100_000, 20_000, List.of(position(security, 100, 20_000)));
+    var enabled = plan();
+    rebalancing.setAlertEnabled(false);
+    assertThat(plan()).isEqualTo(enabled);
   }
 
   private RebalancingPlan.Line lineOf(RebalancingPlan plan, String levelType) {
@@ -539,7 +557,7 @@ class AlgoRebalancingServiceTest {
   }
 
   private void snapshot(double equity, double grossExposure, List<Position> positions) {
-    when(valuation.value(any(), any(), any())).thenReturn(
+    when(valuation.value(any(), any(), any(), any())).thenReturn(
         new Snapshot("CHF", positions, Map.of(), Map.of("CHF", 1.0), equity, grossExposure, new ArrayList<>()));
   }
 
@@ -554,7 +572,6 @@ class AlgoRebalancingServiceTest {
     algoTop.setIdTenant(ID_TENANT);
     algoTop.setName("Balanced");
     algoTop.setPercentage(percentage);
-    algoTop.setActivatable(true);
     return algoTop;
   }
 

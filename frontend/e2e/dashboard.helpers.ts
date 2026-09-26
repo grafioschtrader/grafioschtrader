@@ -42,9 +42,11 @@ export const COMMON_TYPES = [
   'PROPOSE_CHANGE_OPEN',
   'HOLDING_WINNERS',
   'HOLDING_LOSERS',
-  'PERFORMANCE_LAST_SESSIONS'
+  'PERFORMANCE_LAST_SESSIONS',
+  'ALGO_MONITORING'
 ];
 
+/** Types absent here declare no settings: their card has no Configure button and their config stays empty. */
 export const SETTINGS: Record<string, { field: string; min: number; max: number; edited: number }> = {
   UNREAD_MAIL: { field: 'maxRows', min: 1, max: 20, edited: 3 },
   PROPOSE_CHANGE_OPEN: { field: 'maxRows', min: 1, max: 20, edited: 3 },
@@ -159,6 +161,10 @@ export async function saveDashboard(page: Page, status = 200): Promise<Dashboard
   const request = response.request().postDataJSON();
   for (const widget of request.widgets as DashboardWidget[]) {
     const setting = SETTINGS[widget.type];
+    if (!setting) {
+      expect(widget.config, `${widget.type} declares no settings`).toEqual({});
+      continue;
+    }
     expect(typeof widget.config[setting.field], `${widget.type}.${setting.field} must be a JSON number`).toBe('number');
     expect(Number.isInteger(widget.config[setting.field])).toBe(true);
   }

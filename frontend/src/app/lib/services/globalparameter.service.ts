@@ -293,6 +293,11 @@ export class GlobalparameterService
     return this.prepareUseFeatures(FeatureType.ALERT);
   }
 
+  /** Rule-based trading and its simulation, including the inputs of the simulation tax estimate. */
+  public useAlgo(): boolean {
+    return this.prepareUseFeatures(FeatureType.ALGO);
+  }
+
   public useGtnet(): boolean {
     return this.prepareUseFeatures(FeatureType.GTNET);
   }

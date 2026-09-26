@@ -14,6 +14,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
@@ -61,6 +62,9 @@ class SimulationContextResourceTest extends BaseIntegrationTest {
   private TenantAccessJpaRepository tenantAccessJpaRepository;
   @Autowired
   private AlgoReplayRunRegistry replayRunRegistry;
+
+  @Autowired
+  private MessageSource messages;
 
   private User owner;
   private User sibling;
@@ -220,10 +224,15 @@ class SimulationContextResourceTest extends BaseIntegrationTest {
     // Reserving directly is what a submitted run does; it keeps this test free of an actual replay.
     assertThat(replayRunRegistry.reserve(ownSimulation)).isTrue();
     try {
+      String activeMessage = messages.getMessage("gt.simulation.environment.active", null,
+          owner.createAndGetJavaLocale());
       authenticatedClient(RestTestHelper.ALLEDIT).post()
-          .uri(RequestGTMappings.TENANT_MAP + "/switchto/" + ownSimulation).exchange().expectStatus().isForbidden();
+          .uri(RequestGTMappings.TENANT_MAP + "/switchto/" + ownSimulation).exchange().expectStatus().isForbidden()
+          .expectBody().jsonPath("$.className").isEqualTo("SingleNativeMsgError").jsonPath("$.error.message")
+          .isEqualTo(activeMessage);
       // A token that already names it is refused as well, for reads as much as for writes.
-      inOwnSimulation().get().uri(RequestGTMappings.TENANT_MAP).exchange().expectStatus().isForbidden();
+      inOwnSimulation().get().uri(RequestGTMappings.TENANT_MAP).exchange().expectStatus().isForbidden().expectBody()
+          .jsonPath("$.error.message").isEqualTo(activeMessage);
       inOwnSimulation().get().uri(RequestGTMappings.WATCHLIST_MAP + "/tenant").exchange().expectStatus().isForbidden();
       inOwnSimulation().post().uri(RequestGTMappings.WATCHLIST_MAP).body(Map.of("name", "x")).exchange().expectStatus()
           .isForbidden();

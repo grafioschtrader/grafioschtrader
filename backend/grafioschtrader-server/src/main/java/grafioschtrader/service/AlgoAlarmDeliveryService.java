@@ -38,6 +38,9 @@ public class AlgoAlarmDeliveryService {
   private final TransactionTemplate transaction;
   private Clock clock = Clock.systemUTC();
 
+  @org.springframework.beans.factory.annotation.Autowired
+  private AlgoMonitoringService monitoring;
+
   public AlgoAlarmDeliveryService(AlgoMessageAlertJpaRepository alarms, TenantJpaRepository tenants,
       AlgoStrategyJpaRepository strategies, UserJpaRepository users, TenantAccessJpaRepository access,
       MailSettingForwardJpaRepository settings, MailEntityJpaRepository mailEntities,
@@ -100,7 +103,6 @@ public class AlgoAlarmDeliveryService {
         transaction.executeWithoutResult(_ -> {
           AlgoMessageAlert locked = locked(id, token);
           if (locked != null) {
-            locked.setNotifiedAt(now());
             locked.setDeliveryStatus("DELIVERED");
             clearLease(locked);
             locked.setDeliveryError(null);
@@ -147,8 +149,10 @@ public class AlgoAlarmDeliveryService {
     AlgoMessageAlert a = locked(id, token);
     if (a == null)
       return null;
-    if (!tenants.existsById(a.getIdTenant()) || !strategies.existsById(a.getIdAlgoStrategy())) {
+    if (!tenants.existsById(a.getIdTenant()) || !strategies.existsById(a.getIdAlgoStrategy())
+        || !monitoring.permitsAlert(a.getIdTenant(), a.getIdAlgoStrategy())) {
       a.setDeliveryStatus("CANCELLED");
+      a.setNextAttemptAt(null);
       clearLease(a);
       return null;
     }
@@ -193,7 +197,6 @@ public class AlgoAlarmDeliveryService {
         a.getAlertDay());
     link.setIdMailSendRecv(messageId);
     mailEntities.save(link);
-    a.setInternalMessageId(messageId);
     a.setInternalCompletedAt(now());
   }
 
@@ -239,6 +242,12 @@ public class AlgoAlarmDeliveryService {
           .orElseThrow(() -> new grafiosch.exceptions.ResourceNotFoundException(id));
       if (!Set.of("FAILED", "REVIEW_REQUIRED").contains(a.getDeliveryStatus()))
         return;
+      if (!monitoring.permitsAlert(a.getIdTenant(), a.getIdAlgoStrategy())) {
+        a.setDeliveryStatus("CANCELLED");
+        a.setNextAttemptAt(null);
+        clearLease(a);
+        return;
+      }
       User owner = recipient(tenant);
       if (a.getRecipientUserId() != null && !a.getRecipientUserId().equals(owner.getIdUser())) {
         a.setRecipientUserId(null);

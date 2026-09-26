@@ -23,6 +23,9 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { FeeModelComparisonTableComponent } from './fee-model-comparison-table.component';
+import { FxObservationGroup } from '../../entities/fx.observation';
+import { FxObservationTableComponent } from './fx-observation-table.component';
+import { TenantService } from '../service/tenant.service';
 
 /**
  * Parent component for the fee model comparison view. Uses dynamic-form for the security
@@ -75,11 +78,23 @@ import { FeeModelComparisonTableComponent } from './fee-model-comparison-table.c
         </div>
       }
       <fee-model-comparison-table [details]="details"></fee-model-comparison-table>
+      <h3>{{ 'FX_OBSERVATION_ACCOUNT' | translate }}</h3>
+      <p>{{ 'FX_OBSERVATION_LIMITATION' | translate }}</p>
+      <fx-observation-table [groups]="accountFxGroups"></fx-observation-table>
+      <h3>{{ 'FX_OBSERVATION_TRANSFERS' | translate }}</h3>
+      <p>{{ 'FX_OBSERVATION_TRANSFER_LIMITATION' | translate }}</p>
+      <fx-observation-table [groups]="transferFxGroups"></fx-observation-table>
     </div>
   `,
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, TranslateModule, DynamicFormModule, FeeModelComparisonTableComponent]
+  imports: [
+    CommonModule,
+    TranslateModule,
+    DynamicFormModule,
+    FeeModelComparisonTableComponent,
+    FxObservationTableComponent
+  ]
 })
 export class FeeModelComparisonComponent extends ShowRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   @ViewChild(DynamicFormComponent, { static: true }) form: DynamicFormComponent;
@@ -92,6 +107,10 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
 
   comparisonResponse: FeeModelComparisonResponse;
   details: FeeModelComparisonDetail[] = [];
+  accountFxGroups: FxObservationGroup[] = [];
+  transferFxGroups: FxObservationGroup[] = [];
+  private comparisonRequest: Subscription;
+  private observationRequest: Subscription;
 
   summaryInfoFields: ColumnConfig[] = [];
   summaryStatFields: ColumnConfig[] = [];
@@ -101,6 +120,7 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   constructor(
     private portfolioService: PortfolioService,
     private securityaccountService: SecurityaccountService,
+    private tenantService: TenantService,
     private activePanelService: ActivePanelService,
     translateService: TranslateService,
     gps: GlobalparameterService
@@ -120,10 +140,18 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
 
   ngOnInit(): void {
     this.initSummaryFields();
+    this.subscriptions.push(
+      this.tenantService.getFxObservations().subscribe((response) => {
+        this.transferFxGroups = response.groups;
+      })
+    );
     setTimeout(() => {
       this.configObject.excludeZeroCost.formControl.setValue(true);
       this.subscriptions.push(
-        this.configObject.idSecuritycashAccount.formControl.valueChanges.subscribe(() => this.loadComparison()),
+        this.configObject.idSecuritycashAccount.formControl.valueChanges.subscribe(() => {
+          this.loadComparison();
+          this.loadObservations();
+        }),
         this.configObject.excludeZeroCost.formControl.valueChanges.subscribe(() => this.loadComparison())
       );
       this.loadSecurityaccounts();
@@ -150,6 +178,8 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   }
 
   ngOnDestroy(): void {
+    this.comparisonRequest?.unsubscribe();
+    this.observationRequest?.unsubscribe();
     this.subscriptions.forEach((s) => s.unsubscribe());
     this.activePanelService.destroyPanel(this);
   }
@@ -211,15 +241,30 @@ export class FeeModelComparisonComponent extends ShowRecordConfigBase implements
   }
 
   private loadComparison(): void {
+    this.comparisonRequest?.unsubscribe();
+    this.comparisonResponse = null;
+    this.details = [];
     const idSecuritycashAccount = this.configObject.idSecuritycashAccount.formControl.value;
     const excludeZeroCost = this.configObject.excludeZeroCost.formControl.value ?? true;
     if (idSecuritycashAccount) {
-      this.securityaccountService
+      this.comparisonRequest = this.securityaccountService
         .getFeeModelComparison(+idSecuritycashAccount, excludeZeroCost)
         .subscribe((response: FeeModelComparisonResponse) => {
           this.comparisonResponse = response;
           this.details = response.details || [];
         });
+    }
+  }
+
+  /** Independent request: absent or failing commission models cannot suppress observed FX conversions. */
+  private loadObservations(): void {
+    this.observationRequest?.unsubscribe();
+    this.accountFxGroups = [];
+    const idAccount = this.configObject.idSecuritycashAccount.formControl.value;
+    if (idAccount) {
+      this.observationRequest = this.securityaccountService.getFxObservations(+idAccount).subscribe((response) => {
+        this.accountFxGroups = response.groups;
+      });
     }
   }
 }

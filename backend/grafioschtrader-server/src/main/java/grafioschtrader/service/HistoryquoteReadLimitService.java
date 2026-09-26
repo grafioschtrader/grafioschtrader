@@ -14,7 +14,6 @@ import grafiosch.entities.UserEntityChangeCount;
 import grafiosch.entities.UserEntityChangeCount.UserEntityChangeCountId;
 import grafiosch.error.LimitEntityTransactionError;
 import grafiosch.exceptions.LimitEntityTransactionException;
-import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.UserEntityChangeCountJpaRepository;
 import grafiosch.service.EntityLimitService;
 import grafiosch.service.UserService;
@@ -51,9 +50,7 @@ public class HistoryquoteReadLimitService {
   @Autowired
   private UserEntityChangeCountJpaRepository userEntityChangeCountJpaRepository;
 
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
-
+ 
   @Autowired
   private UserService userService;
 

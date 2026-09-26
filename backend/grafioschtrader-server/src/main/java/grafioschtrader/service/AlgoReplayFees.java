@@ -36,6 +36,8 @@ public class AlgoReplayFees {
   /** The plan the request names, so a model that reaches for it resolves the same plan the account belongs to. */
   private final Map<Integer, Integer> planByAccount = new HashMap<>();
   private final TransactionCostEvalExEstimator estimator;
+  /** Earlier trades per account, for allowances such as one free trade per quarter. Only booked fills are recorded. */
+  private final FeeTradeCounter tradeCounter = new FeeTradeCounter();
 
   /**
    * @param securityaccounts the security accounts of the environment, already loaded with their trading platform plan
@@ -48,28 +50,22 @@ public class AlgoReplayFees {
       if (plan != null) {
         planByAccount.put(sa.getId(), plan.getIdTradingPlatformPlan());
       }
-      String yaml = effectiveYaml(sa);
+      String yaml = FeeModelResolver.resolve(sa).commissionYaml();
       if (yaml != null) {
         modelByAccount.put(sa.getId(), yaml);
       }
     }
   }
 
-  /**
-   * The model that applies to one security account: an account level override wins over the model of its trading
-   * platform plan, which is the precedence of the fee comparison report.
-   *
-   * @param sa the security account
-   * @return its effective YAML, or null when neither carries one
-   */
-  public static String effectiveYaml(Securityaccount sa) {
-    String yaml = sa.getFeeModelYaml();
-    if (yaml != null && !yaml.isBlank()) {
-      return yaml;
-    }
-    TradingPlatformPlan plan = sa.getTradingPlatformPlan();
-    yaml = plan == null ? null : plan.getFeeModelYaml();
-    return yaml == null || yaml.isBlank() ? null : yaml;
+  /** Uses the captured document even if a shared plan is edited while this run is executing. */
+  public AlgoReplayFees(List<Securityaccount> accounts, TransactionCostEvalExEstimator estimator,
+      Map<Integer, String> captured) {
+    this.estimator = estimator;
+    for (Securityaccount account : accounts)
+      if (account.getTradingPlatformPlan() != null)
+        planByAccount.put(account.getId(), account.getTradingPlatformPlan().getIdTradingPlatformPlan());
+    if (captured != null)
+      modelByAccount.putAll(captured);
   }
 
   /**
@@ -80,7 +76,7 @@ public class AlgoReplayFees {
    * @return true when at least one of them resolves a fee model
    */
   public static boolean anyModelActive(List<Securityaccount> securityaccounts) {
-    return securityaccounts.stream().anyMatch(sa -> effectiveYaml(sa) != null);
+    return securityaccounts.stream().anyMatch(sa -> FeeModelResolver.resolve(sa).commissionYaml() != null);
   }
 
   /**
@@ -94,23 +90,25 @@ public class AlgoReplayFees {
    * not describe the cheapest ones of the run.
    * </p>
    *
-   * @param idSecurityaccount where the order settles, deciding which model applies
-   * @param security          the traded instrument
-   * @param units             number of units, sign ignored
-   * @param quotation         price per unit in the currency of the instrument
-   * @param type              direction of the order
-   * @param date              the fill day, selecting the period of a time based model
-   * @param fixedAssets       what the environment is worth on that day, for a model whose fee is graded by size
+   * @param idSecurityaccount  where the order settles, deciding which model applies
+   * @param security           the traded instrument
+   * @param units              number of units, sign ignored
+   * @param quotation          price per unit in the currency of the instrument
+   * @param type               direction of the order
+   * @param date               the fill day, selecting the period of a time based model
+   * @param fixedAssets        what the environment is worth on that day, for a model whose fee is graded by size
+   * @param settlementCurrency the currency of the cash account the order settles in, null when unknown
    * @return the cost, rounded the way money is rounded, and 0 where no model applies
    */
   public double cost(Integer idSecurityaccount, Security security, double units, double quotation, TransactionType type,
-      LocalDate date, double fixedAssets) {
+      LocalDate date, double fixedAssets, String settlementCurrency) {
     String yaml = modelByAccount.get(idSecurityaccount);
     if (yaml == null) {
       return 0;
     }
     TransactionCostEstimateRequest request = TransactionCostEvalExEstimator.buildRequest(security, Math.abs(units),
-        quotation, type, date, planByAccount.get(idSecurityaccount), fixedAssets);
+        quotation, type, date, planByAccount.get(idSecurityaccount), fixedAssets, settlementCurrency,
+        tradeCounter.counts(idSecurityaccount, security.getId(), date));
     TransactionCostEstimateResult result = estimator.evaluateYaml(yaml, request);
     if (result.getError() != null || result.getEstimatedCost() == null || !Double.isFinite(result.getEstimatedCost())) {
       throw new IllegalArgumentException(
@@ -121,5 +119,18 @@ public class AlgoReplayFees {
       throw new IllegalArgumentException("REPLAY_FEE_MODEL_FAILED: negative cost " + cost + " on " + date);
     }
     return cost;
+  }
+
+  /**
+   * Counts a booked trade for the trade-count variables of later orders. Called only once a fill has been saved, never
+   * for a sizing candidate, so estimating stays free of side effects.
+   *
+   * @param idSecurityaccount the account the fill settled in
+   * @param idSecurity        the traded instrument
+   * @param date              the fill day
+   * @param identity          the fill id; a repeated one is ignored
+   */
+  public void record(Integer idSecurityaccount, Integer idSecurity, LocalDate date, String identity) {
+    tradeCounter.record(idSecurityaccount, idSecurity, date, identity);
   }
 }

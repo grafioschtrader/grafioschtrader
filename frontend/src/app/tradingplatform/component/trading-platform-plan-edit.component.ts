@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { TaxMetadataFieldsComponent } from '../../taxdata/component/tax-metadata-fields.component';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -19,6 +19,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 
 @Component({
   selector: 'trading-platform-plan-edit',
@@ -29,7 +30,6 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
     (onShow)="onShow($event)"
     (onHide)="onHide($event)"
     [modal]="true">
-    <tax-metadata-fields entityName="TradingPlatformPlan" [entity]="callParam" />
     <dynamic-form
       [config]="config"
       [formConfig]="formConfig"
@@ -40,18 +40,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
   </p-dialog>`,
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [DialogModule, DynamicFormModule, TranslateModule, TaxMetadataFieldsComponent]
+  imports: [DialogModule, DynamicFormModule, TranslateModule]
 })
 export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<TradingPlatformPlan> implements OnInit {
-  @ViewChild(TaxMetadataFieldsComponent) taxMetadata: TaxMetadataFieldsComponent;
-
-  override submit(value: { [name: string]: any }): void {
-    if (!this.taxMetadata.transfer({})) {
-      this.configObject.submit.disabled = false;
-      return;
-    }
-    super.submit(value);
-  }
   @Input() callParam: TradingPlatformPlan;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
@@ -90,16 +81,28 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
       DynamicFieldHelper.createFieldSelectString('idTransactionImportPlatform', 'IMPORT_TRANSACTION_PLATFORM', false, {
         dataproperty: 'importTransactionPlatform.idTransactionImportPlatform'
       }),
+      // The dealer country only feeds the simulation tax estimate (Swiss stamp duty) of rule-based trading
+      ...(this.gps.useAlgo()
+        ? [DynamicFieldHelper.createFieldDropdownString('countryCode', 'DEALER_COUNTRY', false, { filter: true })]
+        : []),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
   }
 
   protected override initialize(): void {
-    this.importTransactionPlatformService
-      .getAllImportTransactionPlatforms()
-      .subscribe((importTransactionPlatforms: ImportTransactionPlatform[]) => {
+    forkJoin([
+      this.importTransactionPlatformService.getAllImportTransactionPlatforms(),
+      this.gps.getCountriesForSelectBox()
+    ]).subscribe(
+      ([importTransactionPlatforms, countries]: [ImportTransactionPlatform[], ValueKeyHtmlSelectOptions[]]) => {
         this.importTransactionPlatformList = importTransactionPlatforms;
+        if (this.configObject.countryCode) {
+          this.configObject.countryCode.groupItem = SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
+            countries,
+            true
+          );
+        }
         this.configObject.idTransactionImportPlatform.valueKeyHtmlOptions =
           SelectOptionsHelper.createValueKeyHtmlSelectOptionsFromArray(
             'idTransactionImportPlatform',
@@ -122,14 +125,17 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
         );
 
         this.configObject.en.elementRef.nativeElement.focus();
-      });
+      }
+    );
   }
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TradingPlatformPlan {
     const tradingPlatformPlan = new TradingPlatformPlan();
     this.copyFormToPublicBusinessObject(tradingPlatformPlan, this.callParam, this.proposeChangeEntityWithEntity);
     this.form.cleanMaskAndTransferValuesToBusinessObject(tradingPlatformPlan);
-    this.taxMetadata.transfer(tradingPlatformPlan);
+    if (tradingPlatformPlan.countryCode === '') {
+      tradingPlatformPlan.countryCode = null;
+    }
     tradingPlatformPlan.importTransactionPlatform = this.importTransactionPlatformList.find(
       (importTransactionPlatform) =>
         importTransactionPlatform.idTransactionImportPlatform === +value.idTransactionImportPlatform

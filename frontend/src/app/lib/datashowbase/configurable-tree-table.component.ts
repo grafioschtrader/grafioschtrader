@@ -253,6 +253,7 @@ export interface TreeTableCellEditEvent {
                         <p-checkbox
                           [ngModel]="getValue(rowData, field)"
                           [binary]="true"
+                          [disabled]="checkboxDisabledFn ? checkboxDisabledFn(rowData, field) : false"
                           (onChange)="onCheckboxChange(rowData, field, $event)">
                         </p-checkbox>
                       }
@@ -432,6 +433,9 @@ export class ConfigurableTreeTableComponent {
    * When provided, only rows where the callback returns true show a checkbox.
    */
   @Input() checkboxVisibleFn?: (rowData: any, field: ColumnConfig) => boolean;
+
+  /** Keeps a checkbox visible while a row-specific capability or pending save prevents changes. */
+  @Input() checkboxDisabledFn?: (rowData: any, field: ColumnConfig) => boolean;
 
   /** Callback to determine if a numeric value is negative. Used with greenRed template. */
   @Input() negativeValueFn?: (row: any, field: ColumnConfig) => boolean;

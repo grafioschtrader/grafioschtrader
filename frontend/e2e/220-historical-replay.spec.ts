@@ -151,6 +151,27 @@ async function typeDate(dialog: Locator, selector: string, iso: string): Promise
   await expect(input, `date after typing "${deCh}"`).toHaveValue(deCh);
 }
 
+/**
+ * Right-clicks the tree node or the replay panel and picks the start entry. The panel appends its context menu to the
+ * body, outside any p-contextmenu element, so the entry is looked up in whichever menu is visible.
+ */
+async function openStartMenu(page: Page, target: Locator): Promise<void> {
+  await target.waitFor({ state: 'visible', timeout: 15_000 });
+  await target.click({ button: 'right' });
+  const item = page.locator('[role="menu"]:visible').getByText(RX.startRun).first();
+  await item.waitFor({ state: 'visible', timeout: 5_000 });
+  await item.click();
+}
+
+/** The destructive replay must be acknowledged before either entry point opens its input dialog. */
+async function confirmReplay(page: Page, accept: boolean): Promise<void> {
+  const confirmation = page.getByRole('alertdialog', { name: /^(Confirmation|Bestätigung)$/ });
+  await expect(confirmation).toBeVisible();
+  await expect(confirmation).toContainText(/manually entered transactions|manuell erfassten Buchungen/);
+  await confirmation.getByRole('button', { name: accept ? /^(Yes|Ja)$/ : /^(No|Nein)$/ }).click();
+  await expect(confirmation).toBeHidden();
+}
+
 /** Polls the run until it leaves the running state, which is what a background job forces a client to do. */
 async function awaitTerminalRun(page: Page, idTenant: number): Promise<ApiRun> {
   for (let attempt = 0; attempt < 120; attempt++) {
@@ -182,9 +203,18 @@ test.describe('historical replay', () => {
     expect(watchlist.ok(), await watchlist.text()).toBeTruthy();
     const idWatchlist = ((await watchlist.json()) as ApiWatchlist).idWatchlist;
 
+    // A strategy is only ready for an environment when the weightings below it add up to 100%. One asset class
+    // without a security satisfies that and stays uninvested, so the environment still holds nothing but its opening.
+    const assetclasses = await getJson<{ idAssetClass: number }[]>(page, '/api/assetclass');
+    expect(assetclasses.length, 'an asset class to weight the strategy with').toBeGreaterThan(0);
     const top = await page.request.post('/api/algotop/create', {
       headers,
-      data: { name: PREFIX, idWatchlist, percentage: 100, assetclassPercentageList: [] }
+      data: {
+        name: PREFIX,
+        idWatchlist,
+        percentage: 100,
+        assetclassPercentageList: [{ idAssetclass: assetclasses[0].idAssetClass, percentage: 100 }]
+      }
     });
     expect(top.ok(), await top.text()).toBeTruthy();
 
@@ -233,6 +263,7 @@ test.describe('historical replay', () => {
       .first()
       .locator(':scope > .p-tree-node-content');
     await openTreeContextMenu(page, node, RX.startRun);
+    await confirmReplay(page, true);
 
     const dialog = page.locator('.p-dialog:visible').last();
     await dialog.waitFor({ state: 'visible', timeout: 15_000 });
@@ -294,6 +325,44 @@ test.describe('historical replay', () => {
     expect(second.status).toBe('COMPLETED');
     expect(second.tradingDaysDone).toBe(second.tradingDaysTotal);
   });
+
+  for (const entry of ['tree', 'panel'] as const) {
+    test(`the ${entry} entry opens the start form only after confirmation`, async ({ page }) => {
+      const node = page
+        .getByRole('treeitem', { name: new RegExp(`^${PREFIX} run\\b`) })
+        .first()
+        .locator(':scope > .p-tree-node-content');
+      let target = node;
+      if (entry === 'panel') {
+        await node.click();
+        target = page.locator('algo-simulation-run .data-container').first();
+        await expect(target).toBeVisible();
+        await target.click();
+      }
+      const submitted: string[] = [];
+      page.on('request', (request) => {
+        if (request.method() === 'POST' && request.url().endsWith(`/simulation/${simulation.idTenant}/run`)) {
+          submitted.push(request.url());
+        }
+      });
+      await openStartMenu(page, target);
+      await expect(page.locator('#endDate input')).toBeHidden();
+      await confirmReplay(page, false);
+      await expect(page.locator('#endDate input')).toBeHidden();
+      const run = await page.request.get(`/api/tenant/simulation/${simulation.idTenant}/run`, {
+        headers: await authHeaders(page)
+      });
+      expect(run.status(), 'cancelling confirmation must not create a run').toBe(204);
+      expect(submitted).toEqual([]);
+
+      await openStartMenu(page, target);
+      await confirmReplay(page, true);
+      await expect(page.locator('#endDate input')).toBeVisible();
+      expect(submitted).toEqual([]);
+      await page.keyboard.press('Escape');
+      await expect(page.locator('#endDate input')).toBeHidden();
+    });
+  }
 
   test('an end date on or before the opening date is refused', async ({ page }) => {
     const headers = await authHeaders(page);

@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -17,15 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.TenantBase;
 import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.repository.TenantBaseImpl;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.service.AlgoHistoricalValuationService;
+import grafioschtrader.service.SimulationRunActivityService;
 import grafioschtrader.types.TaskTypeExtended;
 import grafioschtrader.types.TenantKindType;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 
 public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements TenantJpaRepositoryCustom {
@@ -44,6 +48,34 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
 
   @Autowired
   private CurrencypairJpaRepository currencypairJpaRepository;
+
+  @Autowired
+  private SimulationCleanupRepository simulationCleanupRepository;
+
+  @Autowired
+  private SimulationRunActivityService simulationRunActivityService;
+
+  /** Deletes child environments while holding the same home-before-environment locks as creation and replay. */
+  @Override
+  protected void beforeDeleteTenantData(Integer idTenant) {
+    em.find(Tenant.class, idTenant, LockModeType.PESSIMISTIC_WRITE);
+    List<Integer> environments = tenantJpaRepository.findByIdParentTenant(idTenant).stream().map(Tenant::getId).sorted()
+        .toList();
+    // Check the whole family before cleanup; a queued or cancelling worker still owns its environment.
+    for (Integer environment : environments) {
+      if (simulationRunActivityService.isActive(environment)) {
+        throw new DataViolationException("id.tenant", "gt.simulation.delete.run.active", null);
+      }
+      em.find(Tenant.class, environment, LockModeType.PESSIMISTIC_WRITE);
+    }
+    for (Integer environment : environments) {
+      simulationCleanupRepository.deleteTenantData(environment);
+      em.clear();
+      tenantJpaRepository.deleteById(environment);
+      // Complete the JPA deletion before clearing the persistence context for the next environment.
+      em.flush();
+    }
+  }
 
   @Override
   @Transactional
@@ -85,7 +117,10 @@ public class TenantJpaRepositoryImpl extends TenantBaseImpl<Tenant> implements T
       if (!Objects.equals(createEditTenant.getSimulationStartDate(), tenant.getSimulationStartDate()) || !Objects
           .equals(createEditTenant.getSimulationInitializationMode(), tenant.getSimulationInitializationMode()))
         throw AlgoHistoricalValuationService.invalid("simulation.date.immutable", "");
+      Integer monitoringTop = createEditTenant.getIdAlgoTop();
       createEditTenant.updateThis(tenant);
+      // Assignment is writable only through the monitoring operation (also protects simulation links).
+      createEditTenant.setIdAlgoTop(monitoringTop);
     } else {
       // Attach tenant to existing user
       user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();

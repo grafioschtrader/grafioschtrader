@@ -1,0 +1,17 @@
+custody:
+  periods:
+    - validFrom: "1900-01-01"
+      status: ASSUMED
+      source: "https://www.migrosbank.ch/dam/downloads/de/broschuere/preis-broschuere"
+      note: "Approximation: the June 2026 tariff applied to the whole history. 0.230, 0.210 or 0.190 percent a year below CHF 750,000, below CHF 1.5 million or above, the reached tier on the whole volume; calculated monthly on the month-end value, billed quarterly; CHF 50 annual minimum per account as 12.50 per quarter; plus VAT at today's rate. Migros Bank funds (half rate) are charged at the normal rate, and the annual billing of earlier brochures is not modelled."
+      currency: CHF
+      valuation: MONTHLY
+      observationDay: 0
+      billingMonths: 3
+      collection: END
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      closingPolicy: ACCRUED
+      amount: 'assetValue * IF(accountValue < 750000, 0.0023, IF(accountValue < 1500000, 0.0021, 0.0019))'
+      minimum: 12.5
+      vatRate: 0.081

@@ -44,6 +44,10 @@ for (const nickname of ['admin', 'alledit', 'user', 'limit1'] as DashboardUser[]
       for (const widget of dashboard.widgets) {
         await test.step(`validate and edit ${widget.type}`, async () => {
           const setting = SETTINGS[widget.type];
+          if (!setting) {
+            await expect(card(page, widget.type).getByRole('button', { name: RX.configure })).toHaveCount(0);
+            return;
+          }
           const dialog = await openConfiguration(page, widget.type);
           const input = dialog.locator(`#${setting.field}`);
           const submit = dialog.getByRole('button', { name: RX.submit });
@@ -66,12 +70,12 @@ for (const nickname of ['admin', 'alledit', 'user', 'limit1'] as DashboardUser[]
       expect(saved.widgets).toEqual(
         dashboard.widgets.map((widget) => ({
           ...widget,
-          config: { [SETTINGS[widget.type].field]: SETTINGS[widget.type].edited }
+          config: SETTINGS[widget.type] ? { [SETTINGS[widget.type].field]: SETTINGS[widget.type].edited } : {}
         }))
       );
       await expectReloadedLayout(page, saved.widgets);
       await editDashboard(page);
-      for (const widget of saved.widgets) {
+      for (const widget of saved.widgets.filter((w) => SETTINGS[w.type])) {
         const dialog = await openConfiguration(page, widget.type);
         await expect(dialog.locator(`#${SETTINGS[widget.type].field}`)).toHaveValue(
           String(SETTINGS[widget.type].edited)

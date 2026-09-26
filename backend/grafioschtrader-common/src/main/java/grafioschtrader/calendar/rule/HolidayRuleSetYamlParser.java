@@ -36,6 +36,7 @@ public class HolidayRuleSetYamlParser {
     if (ruleYaml == null || ruleYaml.isBlank()) {
       return new HolidayRuleSet();
     }
+    grafioschtrader.common.StrictYaml.validate(ruleYaml);
     HolidayRuleSet ruleSet;
     try {
       ruleSet = YAML_MAPPER.readValue(ruleYaml, HolidayRuleSet.class);

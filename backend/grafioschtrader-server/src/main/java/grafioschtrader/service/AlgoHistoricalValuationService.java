@@ -122,6 +122,18 @@ public class AlgoHistoricalValuationService {
     default Map<String, Double> receivables(LocalDate asOf) {
       return Map.of();
     }
+
+    /**
+     * Splits of an instrument that the caller already holds, keyed like
+     * {@link SecuritysplitJpaRepository#getSecuritysplitMapByIdSecuritycurrency}. A replay captured them when the run
+     * was recorded, so its valuations need not read them again per instrument and per call.
+     *
+     * @param idSecuritycurrency the instrument
+     * @return the splits, or null when they have to be read from the database
+     */
+    default Map<Integer, List<Securitysplit>> splitMap(Integer idSecuritycurrency) {
+      return null;
+    }
   }
 
   /** Reads the opening ledger using the historical repository as its only price source. */
@@ -217,8 +229,10 @@ public class AlgoHistoricalValuationService {
         }
         continue;
       }
-      Map<Integer, List<Securitysplit>> splitMap = references.splitMaps.computeIfAbsent(security.getId(),
-          splits::getSecuritysplitMapByIdSecuritycurrency);
+      Map<Integer, List<Securitysplit>> splitMap = references.splitMaps.computeIfAbsent(security.getId(), id -> {
+        var known = market.splitMap(id);
+        return known != null ? known : splits.getSecuritysplitMapByIdSecuritycurrency(id);
+      });
       if (security.isMarginInstrument()) {
         var summary = new SecurityTransactionSummary(security, security.getCurrency(),
             parameters.getCurrencyPrecision());

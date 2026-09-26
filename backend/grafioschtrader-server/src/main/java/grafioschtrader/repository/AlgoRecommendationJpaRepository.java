@@ -12,14 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.entities.AlgoRecommendation;
 
 /**
- * Access to the current rebalancing plans. The rows are written by the evaluation and read by the report and by the
- * periodic due check; there is no create or update endpoint, which is why nothing here is exposed over REST.
+ * Access to the current live plans of the assigned monitoring hierarchy. The rows are written by the live evaluation
+ * and read by the periodic due check, the checkpoint shown in the rebalancing report, the mean reversion trading view
+ * and the monitoring card of the dashboard; there is no create or update endpoint, which is why nothing here is exposed
+ * over REST. A historical replay neither reads nor writes them.
  */
 public interface AlgoRecommendationJpaRepository extends JpaRepository<AlgoRecommendation, Integer> {
 
   /**
-   * The current plan of one AlgoTop in the tenant it was calculated for. Ordered so that the top level line comes
-   * first, then the buckets, then the instruments, which is the order the report renders them in.
+   * The current plan of one AlgoTop in the tenant it was calculated for, which the monitoring card of the dashboard
+   * summarizes. Ordered so that the top level line comes first, then the buckets, then the instruments.
    *
    * @param idTenant  tenant whose positions the plan was calculated against
    * @param idAlgoTop the AlgoTop the plan belongs to
@@ -69,5 +71,18 @@ public interface AlgoRecommendationJpaRepository extends JpaRepository<AlgoRecom
   @Modifying
   @Query("DELETE FROM AlgoRecommendation r WHERE r.idTenant = ?1 AND r.idAlgoTop = ?2 AND r.triggerKind <> grafioschtrader.types.AlgoRebalancingTrigger.MEAN_REVERSION")
   int deleteByIdTenantAndIdAlgoTop(Integer idTenant, Integer idAlgoTop);
+
+  /**
+   * Removes every stored line of one AlgoTop, rebalancing plan and mean reversion proposals alike. Used when the
+   * hierarchy stops being the assigned monitoring hierarchy, because only that one keeps a live plan.
+   *
+   * @param idTenant  main tenant that owns the hierarchy
+   * @param idAlgoTop the AlgoTop whose lines are removed
+   * @return number of removed lines
+   */
+  @Transactional
+  @Modifying
+  @Query("DELETE FROM AlgoRecommendation r WHERE r.idTenant = ?1 AND r.idAlgoTop = ?2")
+  int deleteAllKindsByIdTenantAndIdAlgoTop(Integer idTenant, Integer idAlgoTop);
 
 }

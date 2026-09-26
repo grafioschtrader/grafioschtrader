@@ -33,9 +33,7 @@ class AlgoAlertScopeResolverTest {
     top.setIdAlgoAssetclassSecurity(1);
     top.setIdTenant(65);
     top.setIdWatchlist(9);
-    top.setActivatable(true);
     bucket.setIdAlgoAssetclassSecurity(2);
-    bucket.setActivatable(true);
     when(buckets.findByIdTenantAndIdAlgoAssetclassParent(65, 1)).thenReturn(List.of(bucket));
     when(members.findByIdAlgoSecurityParentAndIdTenant(2, 65)).thenReturn(children);
     for (int id = 3; id < 201; id++) {
@@ -44,7 +42,6 @@ class AlgoAlertScopeResolverTest {
       AlgoSecurity member = new AlgoSecurity();
       member.setIdAlgoAssetclassSecurity(id);
       member.setSecurity(security);
-      member.setActivatable(true);
       children.add(member);
     }
     when(watchlists.securitiesOfWatchlist(9)).thenReturn(List.of(children.getFirst().getSecurity()));
@@ -67,13 +64,15 @@ class AlgoAlertScopeResolverTest {
   }
 
   @Test
-  void activationAndStrategyChangesRemainVisibleOnTheNextResolution() {
+  void strategyChangesRemainVisibleOnTheNextResolution() {
+    AlgoStrategy bucketDraft = strategy(20, 2);
+    AlgoStrategy memberDraft = strategy(30, 3);
+    bucketDraft.setActivatable(false);
+    memberDraft.setActivatable(false);
     when(strategies.findByIdTenantAndIdAlgoAssetclassSecurityInOrderByIdAlgoRuleStrategy(eq(65), anyCollection()))
-        .thenReturn(List.of(strategy(20, 2), strategy(30, 3))).thenReturn(List.of(strategy(40, 3)));
-    bucket.setActivatable(false);
+        .thenReturn(List.of(bucketDraft, memberDraft)).thenReturn(List.of(strategy(40, 3)));
 
     assertThat(resolver.resolveForAlgoTop(top)).hasSize(199).noneMatch(AlgoAlertScope::active);
-    bucket.setActivatable(true);
     assertThat(resolver.resolveForAlgoTop(top)).singleElement().satisfies(scope -> {
       assertThat(scope.active()).isTrue();
       assertThat(scope.strategy().getId()).isEqualTo(40);
@@ -89,5 +88,39 @@ class AlgoAlertScopeResolverTest {
     strategy.setIdTenant(65);
     strategy.setActivatable(true);
     return strategy;
+  }
+
+  @Test
+  void livePreferencesDoNotChangeReplayScopes() {
+    var monitoring = mock(AlgoMonitoringService.class);
+    var tops = mock(AlgoTopJpaRepository.class);
+    ReflectionTestUtils.setField(resolver, "monitoring", monitoring);
+    ReflectionTestUtils.setField(resolver, "algoTopJpaRepository", tops);
+    when(tops.findByIdTenantOrderByName(65)).thenReturn(List.of(top));
+    when(tops.findAll()).thenReturn(List.of(top));
+    AlgoStrategy rule = strategy(10, 1);
+    when(strategies.findByIdTenantAndIdAlgoAssetclassSecurityInOrderByIdAlgoRuleStrategy(eq(65), anyCollection()))
+        .thenReturn(List.of(rule));
+    var replay = resolver.resolveForAlgoTop(top);
+    assertThat(replay).singleElement().matches(AlgoAlertScope::active);
+    assertThat(resolver.resolveForTenant(65)).noneMatch(AlgoAlertScope::active);
+    when(monitoring.isAssigned(65, 1)).thenReturn(true);
+    assertThat(resolver.resolveAll()).singleElement().matches(AlgoAlertScope::active);
+    rule.setAlertEnabled(false);
+    assertThat(resolver.resolveAll()).noneMatch(AlgoAlertScope::active);
+    assertThat(resolver.resolveForAlgoTop(top)).isEqualTo(replay);
+  }
+
+  @Test
+  void standaloneAlertFollowsItsPreference() {
+    AlgoSecurity standalone = children.getFirst();
+    standalone.setIdTenant(65);
+    when(members.findByIdAlgoSecurityParentIsNull()).thenReturn(List.of(standalone));
+    AlgoStrategy rule = strategy(50, standalone.getId());
+    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(standalone.getId(), 65)).thenReturn(List.of(rule));
+    assertThat(resolver.resolveStandalone(65)).singleElement().matches(AlgoAlertScope::active);
+    rule.setAlertEnabled(false);
+    // Reported as inactive rather than dropped, so that the caller discards its crossing baseline.
+    assertThat(resolver.resolveStandalone(65)).singleElement().matches(scope -> !scope.active());
   }
 }

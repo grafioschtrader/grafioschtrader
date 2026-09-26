@@ -1,7 +1,6 @@
 package grafioschtrader.entities;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -84,27 +83,17 @@ public class AlgoAlertState extends TenantBaseID implements Serializable {
   @Column(name = "last_side")
   private byte lastSide;
 
-  /** Value observed during the most recent evaluation. */
-  @Column(name = "last_value")
-  private Double lastValue;
-
-  /** Time at which the bound was most recently evaluated. */
-  @Column(name = "last_evaluated")
-  private LocalDateTime lastEvaluated;
-
   public AlgoAlertState() {
   }
 
   public AlgoAlertState(Integer idTenant, Integer idAlgoStrategy, Integer idSecuritycurrency, String boundKey,
-      String configFingerprint, byte lastSide, Double lastValue, LocalDateTime lastEvaluated) {
+      String configFingerprint, byte lastSide) {
     this.idTenant = idTenant;
     this.idAlgoStrategy = idAlgoStrategy;
     this.idSecuritycurrency = idSecuritycurrency;
     this.boundKey = boundKey;
     this.configFingerprint = configFingerprint;
     this.lastSide = lastSide;
-    this.lastValue = lastValue;
-    this.lastEvaluated = lastEvaluated;
   }
 
   @JsonIgnore
@@ -165,22 +154,6 @@ public class AlgoAlertState extends TenantBaseID implements Serializable {
 
   public void setLastSide(byte lastSide) {
     this.lastSide = lastSide;
-  }
-
-  public Double getLastValue() {
-    return lastValue;
-  }
-
-  public void setLastValue(Double lastValue) {
-    this.lastValue = lastValue;
-  }
-
-  public LocalDateTime getLastEvaluated() {
-    return lastEvaluated;
-  }
-
-  public void setLastEvaluated(LocalDateTime lastEvaluated) {
-    this.lastEvaluated = lastEvaluated;
   }
 
 }

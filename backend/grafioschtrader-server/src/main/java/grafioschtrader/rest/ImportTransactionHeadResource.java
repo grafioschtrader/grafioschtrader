@@ -73,6 +73,16 @@ public class ImportTransactionHeadResource extends UpdateCreateDeleteWithTenantR
     return ResponseEntity.noContent().build();
   }
 
+  @Operation(summary = "Delete the transactions created by an import, newest first, so the import can be run again.", description = """
+      Refused when another transaction of the tenant is dated on or after the day of the earliest imported transaction,
+      when an imported transaction lies within a closed period or is referenced by a simulation opening, a security
+      action, a security transfer or a standing order. The import positions are kept. Returns the number of deleted
+      transactions.""", tags = { RequestGTMappings.IMPORTTRANSACTIONHEAD })
+  @PostMapping(value = "/{idTransactionHead}/rollback", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Integer> rollbackImportedTransactions(@PathVariable Integer idTransactionHead) {
+    return ResponseEntity.ok(importTransactionHeadJpaRepository.rollbackImportedTransactions(idTransactionHead));
+  }
+
   @Override
   protected UpdateCreateDeleteWithTenantJpaRepository<ImportTransactionHead> getUpdateCreateJpaRepository() {
     return importTransactionHeadJpaRepository;

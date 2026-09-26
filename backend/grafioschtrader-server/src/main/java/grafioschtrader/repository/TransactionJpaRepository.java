@@ -22,6 +22,30 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   long countByIdStandingOrder(Integer idStandingOrder);
 
+  /**
+   * Named query Transaction.findFxAccountObservations: buy, sell and income conversions in booking order.
+   *
+   * @param idAccount securities account already checked for ownership
+   * @param idTenant  tenant owning the transactions
+   * @param from      inclusive first business date, or null for no lower bound
+   * @param to        inclusive last business date, or null for no upper bound
+   * @return currency-pair transactions, including rows missing an exchange rate
+   */
+  @Query(name = "Transaction.findFxAccountObservations")
+  List<Transaction> findFxAccountObservations(Integer idAccount, Integer idTenant, LocalDate from, LocalDate to);
+
+  /**
+   * Named query Transaction.findFxTransferObservations: each transfer once, from its withdrawal. Both connected sides
+   * must belong to the tenant; unpaired external payments are excluded.
+   *
+   * @param idTenant authenticated tenant, never an arbitrary request parameter
+   * @param from     inclusive first business date, or null
+   * @param to       inclusive last business date, or null
+   * @return paired withdrawals with a currency pair
+   */
+  @Query(name = "Transaction.findFxTransferObservations")
+  List<Transaction> findFxTransferObservations(Integer idTenant, LocalDate from, LocalDate to);
+
   /** Detaches replay output before a simulation standing order is deleted. */
   @Transactional
   @Modifying
@@ -36,6 +60,24 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * @return the total number of transactions owned by the tenant
    */
   int countByIdTenant(Integer idTenant);
+
+  /** Checks opening bookings before deleting their cash account within the requested tenant. */
+  boolean existsByIdTenantAndCashaccount_IdSecuritycashAccountAndSimulationOpeningTrue(Integer idTenant,
+      Integer idCashaccount);
+
+  /** Checks opening bookings before deleting their securities account within the requested tenant. */
+  boolean existsByIdTenantAndIdSecurityaccountAndSimulationOpeningTrue(Integer idTenant, Integer idSecurityaccount);
+
+  /**
+   * Named query {@code Transaction.hasOpeningTransactionsInPortfolio}: checks both cash and securities account
+   * references, including bookings whose two accounts belong to different portfolios.
+   *
+   * @param idPortfolio portfolio whose accounts would be deleted
+   * @param idTenant    tenant owning the opening bookings and accounts
+   * @return whether deletion would affect the protected opening ledger
+   */
+  @Query(name = "Transaction.hasOpeningTransactionsInPortfolio")
+  boolean hasOpeningTransactionsInPortfolio(Integer idPortfolio, Integer idTenant);
 
   /**
    * Counts the number of transactions per standing order for a batch of standing order IDs. Used to populate the
@@ -134,6 +176,8 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * the residual-units sum, so its units would never be converted by the split ratio of the action.
    * </p>
    *
+   * Named query: {@code Transaction.reassignTransactionsToNewSecurity}. Opening transactions are excluded.
+   *
    * @param idTenant      the tenant owning the transactions
    * @param oldSecurityId the old security ID to match
    * @param newSecurityId the new security ID to assign
@@ -143,9 +187,7 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    */
   @Transactional
   @Modifying
-  @Query(value = "UPDATE transaction SET id_securitycurrency = :newSecurityId, id_security_action_app = :appId "
-      + "WHERE id_tenant = :idTenant AND id_securitycurrency = :oldSecurityId "
-      + "AND tt_date > :fromDate", nativeQuery = true)
+  @Query(nativeQuery = true)
   int reassignTransactionsToNewSecurity(@Param("idTenant") Integer idTenant,
       @Param("oldSecurityId") Integer oldSecurityId, @Param("newSecurityId") Integer newSecurityId,
       @Param("appId") Integer appId, @Param("fromDate") LocalDate fromDate);
@@ -159,14 +201,15 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * exactly those transactions would stay on the new security, keeping a dangling id_security_action_app.
    * </p>
    *
+   * Named query: {@code Transaction.revertReassignedTransactions}. Opening transactions are excluded.
+   *
    * @param oldSecurityId the original security ID to restore
    * @param appId         the SecurityActionApplication ID identifying reassigned transactions
    * @return number of rows updated
    */
   @Transactional
   @Modifying
-  @Query(value = "UPDATE transaction SET id_securitycurrency = :oldSecurityId, id_security_action_app = NULL "
-      + "WHERE id_security_action_app = :appId AND NOT (note <=> 'System-Created')", nativeQuery = true)
+  @Query(nativeQuery = true)
   int revertReassignedTransactions(@Param("oldSecurityId") Integer oldSecurityId, @Param("appId") Integer appId);
 
   List<Transaction> findBySecurity_idSecuritycurrency(Integer idSecuritycurrency);
@@ -311,14 +354,14 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
    * Loads the tenant's WITHDRAWAL/DEPOSIT transactions that are not connected to a counterpart transaction. These are
    * the candidates of the cash transfer relink step that restores the pairing of transfers whose two sides were
    * imported through separate CSV files. WITHDRAWAL/DEPOSIT rows use connectedIdTransaction exclusively for transfer
-   * pairing, so the type filter cannot match margin links.
+   * pairing, so the type filter cannot match margin links. Protected opening transactions are not candidates.
    *
    * @param idTenant the tenant of the authenticated user
    * @return unconnected withdrawal/deposit transactions ordered by transaction time
    */
   @Query(value = "SELECT t FROM Transaction t JOIN FETCH t.cashaccount c JOIN FETCH c.portfolio"
       + " WHERE t.idTenant = ?1 AND t.transactionType IN (0, 1) AND t.connectedIdTransaction IS NULL"
-      + " ORDER BY t.transactionTime")
+      + " AND t.simulationOpening = false" + " ORDER BY t.transactionTime")
   List<Transaction> findUnconnectedTransferCandidates(Integer idTenant);
 
   /**

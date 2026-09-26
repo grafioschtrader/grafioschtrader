@@ -19,6 +19,11 @@ export class Securitycurrency extends Auditable {
   sLast?: number;
   sLow?: number;
   sHigh?: number;
+  /**
+   * Number of fraction digits the backend rounded the prices of this instrument to, set for index levels only. Null
+   * when the prices keep their full precision.
+   */
+  priceFractionDigits?: number;
   historyquoteList?: Historyquote[];
   name: string = null;
 

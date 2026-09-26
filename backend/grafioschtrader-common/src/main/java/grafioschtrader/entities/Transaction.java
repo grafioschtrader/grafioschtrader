@@ -1006,7 +1006,7 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
    * @param buyQuotation the original buy quotation for margin position calculations
    * @return transaction amount in security currency including all costs and fees
    */
-  private double calculateSecurityTransactionAmountWithoutExchangeRate(double buyQuotation) {
+  public double calculateSecurityTransactionAmountWithoutExchangeRate(double buyQuotation) {
     double calcCashaccountAmount = getSeucritiesNetPrice(buyQuotation);
     if (getTransactionType() == TransactionType.ACCUMULATE) {
       calcCashaccountAmount = (calcCashaccountAmount + calculateOtherCosts()) * -1.0;

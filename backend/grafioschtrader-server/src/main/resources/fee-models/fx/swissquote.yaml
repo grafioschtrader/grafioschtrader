@@ -1,0 +1,30 @@
+fx:
+  currencyClasses:
+    MAJOR: [USD, EUR, JPY, GBP, CHF, AUD, CAD, NZD]
+    MINOR: [NOK, SEK, DKK, SGD, HUF, PLN, CZK, CNH]
+    EMERGING: [HKD, MXN, ZAR, TRY, THB, ILS]
+    OTHER: [AED, SAR, KWD, QAR, OMR, BHD]
+  periods:
+    - validFrom: "1900-01-01"
+      status: ASSUMED
+      source: "https://www.swissquote.com/de-ch/private/trade/pricing/securities/currency-exchange"
+      note: "Class matrix observed 2026-09 on the currency exchange page, applied to the whole history and to conversions inside trades, transfers and income. Degressive rates above CHF 50,000 have no published schedule and are not modelled."
+      rules:
+        - name: Major/Major
+          condition: "payClass == 'MAJOR' && receiveClass == 'MAJOR'"
+          expression: "0.95"
+        - name: Major/Other, Other/Other
+          condition: "(payClass == 'OTHER' || receiveClass == 'OTHER') && (payClass == 'MAJOR' || receiveClass == 'MAJOR' || payClass == receiveClass)"
+          expression: "1.00"
+        - name: Major/Minor
+          condition: "(payClass == 'MAJOR' && receiveClass == 'MINOR') || (payClass == 'MINOR' && receiveClass == 'MAJOR')"
+          expression: "1.25"
+        - name: Major/Emerging, Minor/Minor, Minor/Other
+          condition: "(payClass == 'MAJOR' && receiveClass == 'EMERGING') || (payClass == 'EMERGING' && receiveClass == 'MAJOR') || (payClass == 'MINOR' && receiveClass == 'MINOR') || (payClass == 'MINOR' && receiveClass == 'OTHER') || (payClass == 'OTHER' && receiveClass == 'MINOR')"
+          expression: "1.50"
+        - name: Minor/Emerging, Emerging/Other
+          condition: "(payClass == 'MINOR' && receiveClass == 'EMERGING') || (payClass == 'EMERGING' && receiveClass == 'MINOR') || (payClass == 'EMERGING' && receiveClass == 'OTHER') || (payClass == 'OTHER' && receiveClass == 'EMERGING')"
+          expression: "2.00"
+        - name: Emerging/Emerging
+          condition: "payClass == 'EMERGING' && receiveClass == 'EMERGING'"
+          expression: "2.50"

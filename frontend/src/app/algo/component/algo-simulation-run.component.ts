@@ -5,7 +5,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/
 import { NgClass } from '@angular/common';
 import { ActivatedRoute, Params } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { MenuItem } from '@openng/optimus-ui/api';
+import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -225,6 +225,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     private activePanelService: ActivePanelService,
     private dataChangedService: DataChangedService,
     private dialogService: DialogService,
+    private confirmationService: ConfirmationService,
     private simulationContext: SimulationContextService,
     public override translateService: TranslateService,
     gps: GlobalparameterService
@@ -270,9 +271,9 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     this.activePanelService.destroyPanel(this);
   }
 
-  /** The replay is documented with the strategy tree it belongs to, together with its simulation environments. */
+  /** Opens the manual chapter of the historical replay. */
   helpLink(): void {
-    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_ALGO_TREE);
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_ALGO_HISTORICAL_RUN);
   }
 
   get running(): boolean {
@@ -310,7 +311,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   callMeDeactivate(): void {}
 
   getHelpContextId(): string {
-    return HelpIds.HELP_ALGO_TREE;
+    return HelpIds.HELP_ALGO_HISTORICAL_RUN;
   }
 
   cancel(): void {
@@ -359,17 +360,19 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
    * to be at hand before the dialog renders, because the dialog builds its form synchronously.
    */
   private openStartDialog(): void {
-    this.gps
-      .getEntityFormDefinition('SimulationRunRequestDTO')
-      .subscribe((formDefinition) =>
-        MainTreeDynamicDialogs.getEditDialogComponent(
-          AlgoSimulationRunStartDynamicComponent,
-          this.translateService,
-          this.dialogService,
-          new CallParam({ formDefinition } as any, this.simulation as any),
-          'SIMULATION_RUN'
-        )
-      );
+    AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'SIMULATION_RUN_CONFIRM', () => {
+      this.gps
+        .getEntityFormDefinition('SimulationRunRequestDTO')
+        .subscribe((formDefinition) =>
+          MainTreeDynamicDialogs.getEditDialogComponent(
+            AlgoSimulationRunStartDynamicComponent,
+            this.translateService,
+            this.dialogService,
+            new CallParam({ formDefinition } as any, this.simulation as any),
+            'SIMULATION_RUN'
+          )
+        );
+    });
   }
 
   private getEditMenu(): MenuItem[] {
@@ -377,7 +380,9 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     if (this.simulation && this.mayStart) {
       menuItems.push({
         label: 'SIMULATION_RUN_START' + BaseSettings.DIALOG_MENU_SUFFIX,
-        disabled: this.running || this.recreateRequired,
+        // The strategy is shared with the main tenant; a replay it cannot run is refused, so it is not offered.
+        disabled: this.running || this.recreateRequired || !!this.simulation.replayBlockedReason,
+        title: this.simulation.replayBlockedReason ?? undefined,
         command: () => this.openStartDialog()
       });
     }
@@ -524,6 +529,10 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     });
     this.addFieldPropertyFeqH(DataType.Numeric, 'sharpeRatio', { fieldsetName: this.RUN_PERFORMANCE });
     this.addFieldPropertyFeqH(DataType.Numeric, 'paidDividends', { fieldsetName: this.RUN_PERFORMANCE });
+    this.addFieldPropertyFeqH(DataType.Numeric, 'fxMarkupPaid', { fieldsetName: this.RUN_PERFORMANCE });
+    this.addFieldPropertyFeqH(DataType.NumericInteger, 'fxUncoveredConversions', {
+      fieldsetName: this.RUN_PERFORMANCE
+    });
     this.addFieldPropertyFeqH(DataType.Numeric, 'dividendReceivables', { fieldsetName: this.RUN_PERFORMANCE });
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'totalTrades', { fieldsetName: this.RUN_PERFORMANCE });
     this.addFieldPropertyFeqH(DataType.NumericInteger, 'winningTrades', { fieldsetName: this.RUN_PERFORMANCE });

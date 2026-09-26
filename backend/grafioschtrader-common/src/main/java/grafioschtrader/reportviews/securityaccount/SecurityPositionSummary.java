@@ -24,6 +24,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
  */
 public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Security> {
 
+  @Schema(description = "Strategy security added for comparison only, with no portfolio position in this report")
+  public boolean comparisonOnly;
+
   /**
    * Target share of total net equity in percentage points, from the AlgoTop selected on the report. Null on every
    * report that is not a rebalancing comparison, which is what keeps its columns out of the other groupings.
@@ -203,6 +206,27 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
 
   public void roundUnits() {
     units = DataBusinessHelper.round(units);
+  }
+
+  /** Report percentages are rounded on output so allocation calculations retain their original precision. */
+  public Double getTargetPercentage() {
+    return targetPercentage == null ? null : DataBusinessHelper.roundPercentage(targetPercentage);
+  }
+
+  public Double getActualPercentage() {
+    return actualPercentage == null ? null : DataBusinessHelper.roundPercentage(actualPercentage);
+  }
+
+  public Double getDeviationPercentage() {
+    return deviationPercentage == null ? null : DataBusinessHelper.roundPercentage(deviationPercentage);
+  }
+
+  public Double getParentDeviation() {
+    return parentDeviation == null ? null : DataBusinessHelper.roundPercentage(parentDeviation);
+  }
+
+  public Double getSecurityDeviationPercentage() {
+    return securityDeviationPercentage == null ? null : DataBusinessHelper.roundPercentage(securityDeviationPercentage);
   }
 
   public double getUnits() {

@@ -275,6 +275,10 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     this.draft = insertDashboardWidget(this.draft, widget, to);
     this.refreshAvailable();
   }
+  /** A type without a form definition has no settings, so its card offers nothing to configure. */
+  configurable(widget: DashboardWidget): boolean {
+    return !!this.catalogue?.descriptors.find((d) => d.type === widget.type)?.formDefinition;
+  }
   configure(widget: DashboardWidget): void {
     this.fetchCatalogue(() => {
       const descriptor = this.catalogue.descriptors.find((d) => d.type === widget.type);

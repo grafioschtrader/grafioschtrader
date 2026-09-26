@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.entities.TaskDataChange;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.RepositoryHelper;
 import grafiosch.repository.TaskDataChangeJpaRepository;
@@ -34,6 +35,10 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+
+  @Autowired
+  @Lazy
+  private TransactionJpaRepository transactionJpaRepository;
 
   @Autowired
   public void setCurrencypairJpaRepository(@Lazy final CurrencypairJpaRepository currencypairJpaRepository) {
@@ -71,6 +76,9 @@ public class PortfolioJpaRepositoryImpl extends BaseRepositoryImpl<Portfolio> im
 
   @Override
   public int delEntityWithTenant(Integer id, Integer idTenant) {
+    if (transactionJpaRepository.hasOpeningTransactionsInPortfolio(id, idTenant)) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.simulation.opening.parent.delete", null);
+    }
     return portfolioJpaRepository.deleteByIdPortfolioAndIdTenant(id, idTenant);
   }
 

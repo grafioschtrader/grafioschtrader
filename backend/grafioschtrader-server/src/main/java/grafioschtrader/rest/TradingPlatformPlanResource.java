@@ -13,12 +13,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
+import grafioschtrader.dto.FxMarkupPreviewRequest;
+import grafioschtrader.dto.FxQuote;
 import grafioschtrader.dto.TransactionCostEstimateRequest;
 import grafioschtrader.dto.TransactionCostEstimateResult;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.repository.TradingPlatformPlanJpaRepository;
+import grafioschtrader.service.FxMarkupPreviewService;
 import grafioschtrader.service.TransactionCostEvalExEstimator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +31,20 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping(RequestGTMappings.TRADINGPLATFORMPLAND_MAP)
 @Tag(name = RequestGTMappings.TRADINGPLATFORMPLAND, description = "Controller for trading platform plan")
 public class TradingPlatformPlanResource extends UpdateCreateDeleteAuditResource<TradingPlatformPlan> {
+
+  @Autowired
+  private FxMarkupPreviewService fxMarkupPreviewService;
+
+  @Operation(summary = "Preview an unsaved plan FX tariff; blank YAML uses the stored plan")
+  @PostMapping(value = "/estimatefxmarkup", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<FxQuote> estimateFxMarkup(@RequestBody FxMarkupPreviewRequest request) {
+    return ResponseEntity.ok(fxMarkupPreviewService.plan(request));
+  }
+
+  @GetMapping(value = "/fxkinds", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ValueKeyHtmlSelectOptions>> fxKinds() {
+    return ResponseEntity.ok(FxMarkupPreviewService.kinds());
+  }
 
   @Autowired
   private TradingPlatformPlanJpaRepository tradingPlatformPlanJpaRepository;
@@ -45,7 +63,7 @@ public class TradingPlatformPlanResource extends UpdateCreateDeleteAuditResource
   @PostMapping(value = "/estimatecost", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
   public ResponseEntity<TransactionCostEstimateResult> estimateCost(
       @RequestBody TransactionCostEstimateRequest request) {
-    return new ResponseEntity<>(transactionCostEvalExEstimator.estimate(request), HttpStatus.OK);
+    return new ResponseEntity<>(transactionCostEvalExEstimator.estimateWithOptionalYaml(request), HttpStatus.OK);
   }
 
   @Operation(summary = "Validate YAML fee model", description = """

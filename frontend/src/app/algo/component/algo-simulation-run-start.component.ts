@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { YamlEditorComponent } from './yaml-editor.component';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import moment from 'moment';
@@ -36,6 +38,15 @@ import { AlgoSimulationRunService } from '../service/algo-simulation-run.service
 @Component({
   template: `
     <p>{{ 'SIMULATION_TAX_COUPON_LIMITATIONS' | translate }}</p>
+    <p>{{ 'CUSTODY_OPENING_HELP' | translate }}</p>
+    <yaml-editor
+      #yamlEditor
+      format="CUSTODY"
+      [(value)]="custodyYaml"
+      [schema]="custodySchema"
+      height="250px"
+      (syntaxValidChange)="configObject.submit.disabled = !$event || yamlEditor.validating"
+      (validationPendingChange)="configObject.submit.disabled = $event || !yamlEditor.syntaxValid" />
     <dynamic-form
       [config]="config"
       [formConfig]="formConfig"
@@ -45,19 +56,24 @@ import { AlgoSimulationRunService } from '../service/algo-simulation-run.service
     </dynamic-form>
   `,
   standalone: true,
+  styles: [':host { display: block; max-height: calc(100vh - 140px); overflow-y: auto; }'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [DynamicFormModule, TranslateModule]
+  imports: [DynamicFormModule, TranslateModule, YamlEditorComponent]
 })
 export class AlgoSimulationRunStartDynamicComponent
   extends SimpleDynamicEditBase<SimulationRunResult>
   implements OnInit
 {
   /** Read by MainTreeDynamicDialogs; the limitation text above the form needs more than the default 400px. */
-  static readonly DIALOG_WIDTH = 500;
+  static readonly DIALOG_WIDTH = 800;
+  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
+  custodyYaml = '';
+  custodySchema: object;
 
   private simulation: SimulationTenantInfo;
 
   constructor(
+    private http: HttpClient,
     private runService: AlgoSimulationRunService,
     private dataChangedService: DataChangedService,
     dynamicDialogConfig: DynamicDialogConfig,
@@ -70,7 +86,7 @@ export class AlgoSimulationRunStartDynamicComponent
     super(
       dynamicDialogConfig,
       dynamicDialogRef,
-      HelpIds.HELP_ALGO_TREE,
+      HelpIds.HELP_ALGO_HISTORICAL_RUN,
       translateService,
       gps,
       messageToastService,
@@ -89,6 +105,8 @@ export class AlgoSimulationRunStartDynamicComponent
       '',
       false
     ) as FieldConfig[];
+    this.config = this.config.filter((field) => field.field !== 'custodyOpeningYaml');
+    this.http.get('assets/schemas/custody-opening-schema.json').subscribe((schema) => (this.custodySchema = schema));
     this.config.push(DynamicFieldHelper.createSubmitButton('SIMULATION_RUN_START'));
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
     this.limitEndDate();
@@ -99,11 +117,28 @@ export class AlgoSimulationRunStartDynamicComponent
    * form itself, so that the day sent is the day picked - serializing the Date would send an instant in UTC, which is
    * the previous day for every user east of Greenwich.
    */
-  override submit(_value: { [name: string]: any }): void {
-    const request = { endDate: null as string, applyTaxModels: false, generateBondCoupons: false };
+  override async submit(_value: { [name: string]: any }): Promise<void> {
+    if (!(await this.yamlEditor.validateForSubmit())) {
+      this.configObject.submit.disabled = !this.yamlEditor.syntaxValid;
+      return;
+    }
+    const request = {
+      endDate: null as string,
+      applyTaxModels: false,
+      generateBondCoupons: false,
+      custodyOpeningYaml: null as string
+    };
     this.form.cleanMaskAndTransferValuesToBusinessObject(request);
+    request.custodyOpeningYaml = this.custodyYaml;
+    this.configObject.submit.disabled = true;
     this.runService
-      .start(this.simulation.idTenant, request.endDate, request.applyTaxModels, request.generateBondCoupons)
+      .start(
+        this.simulation.idTenant,
+        request.endDate,
+        request.applyTaxModels,
+        request.generateBondCoupons,
+        request.custodyOpeningYaml
+      )
       .pipe(finalize(() => (this.configObject.submit.disabled = false)))
       .subscribe((run) => {
         const processedActionData = new ProcessedActionData(ProcessedAction.CREATED, run);

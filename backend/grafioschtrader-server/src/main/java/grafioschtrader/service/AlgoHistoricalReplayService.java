@@ -33,27 +33,28 @@ import grafiosch.service.EntityLimitService;
 import grafioschtrader.algo.RebalancingPlan;
 import grafioschtrader.config.AlgoReplayConfig;
 import grafioschtrader.config.LimitKeyConfig;
+import grafioschtrader.dto.AlgoHierarchyDto;
 import grafioschtrader.entities.AlgoEventLog;
 import grafioschtrader.entities.AlgoSimulationResult;
-import grafioschtrader.entities.AlgoStrategy;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.exceptions.TransactionLimitExceededException;
 import grafioschtrader.repository.AlgoAssetclassJpaRepository;
 import grafioschtrader.repository.AlgoEventLogJpaRepository;
 import grafioschtrader.repository.AlgoExecutionStateJpaRepository;
 import grafioschtrader.repository.AlgoReplayRepository;
 import grafioschtrader.repository.AlgoSecurityJpaRepository;
 import grafioschtrader.repository.AlgoSimulationResultJpaRepository;
-import grafioschtrader.repository.AlgoStrategyJpaRepository;
 import grafioschtrader.repository.AlgoTopJpaRepository;
 import grafioschtrader.repository.AlgoTradingRepository;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
+import grafioschtrader.repository.SimulationLedgerCache;
 import grafioschtrader.repository.SimulationSourceRepository;
 import grafioschtrader.service.AlgoMeanReversionDecisionService.Decision;
 import grafioschtrader.service.AlgoMeanReversionScopeEvaluator.Proposal;
@@ -64,6 +65,7 @@ import grafioschtrader.types.AlgoSimulationRunStatus;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.types.TenantKindType;
 import grafioschtrader.types.TransactionType;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Replays a simulation environment through history: the mean reversion modules decide at every closing day after the
@@ -113,6 +115,8 @@ import grafioschtrader.types.TransactionType;
 public class AlgoHistoricalReplayService {
 
   private static final Logger log = LoggerFactory.getLogger(AlgoHistoricalReplayService.class);
+  /** Shortest wall-clock distance between two progress writes of a running replay. */
+  private static final long PROGRESS_INTERVAL_NANOS = 1_000_000_000L;
 
   /** The assumptions that hold for every run, whatever the environment it replays is configured with. */
   public static final String CONVENTIONS = "NEXT_CLOSE_FILL NO_SLIPPAGE"
@@ -170,6 +174,19 @@ public class AlgoHistoricalReplayService {
    */
   private static final int MAX_INITIAL_PURCHASE_DAYS = 5;
 
+  /** Rationale of the plan row of a trading day that completes the purchases of the preceding checkpoint. */
+  private static final String RATIONALE_REBALANCE_FOLLOW_UP = "REPLAY_REBALANCE_FOLLOW_UP";
+
+  /**
+   * Trading days after a checkpoint on which its unpaid purchases are completed. Money a sale of the checkpoint
+   * released is spendable from the following day, so one day usually suffices; the bound keeps a purchase that cannot
+   * be funded at all from being retried until the next checkpoint.
+   */
+  private static final int MAX_REBALANCE_FOLLOW_UP_DAYS = 5;
+
+  /** Follow-up days that are tried without a fill, because the proceeds of the checkpoint's sales may still settle. */
+  private static final int SETTLEMENT_FOLLOW_UP_DAYS = 2;
+
   @Autowired
   private AlgoSimulationResultJpaRepository results;
   @Autowired
@@ -181,11 +198,11 @@ public class AlgoHistoricalReplayService {
   @Autowired
   private AlgoTopJpaRepository algoTops;
   @Autowired
+  private AlgoTopReadinessService readinessService;
+  @Autowired
   private AlgoAssetclassJpaRepository algoBuckets;
   @Autowired
   private AlgoSecurityJpaRepository algoMembers;
-  @Autowired
-  private AlgoStrategyJpaRepository strategies;
   @Autowired
   private AlgoTradingRepository data;
   @Autowired
@@ -196,6 +213,9 @@ public class AlgoHistoricalReplayService {
   private AlgoRebalancingService rebalancing;
   @Autowired
   private AlgoHistoricalValuationService valuation;
+
+  @Autowired
+  private AlgoReplayCustodyService custodyService;
   @Autowired
   private AlgoReplayCalendar calendar;
   @Autowired
@@ -218,6 +238,10 @@ public class AlgoHistoricalReplayService {
   private EntityLimitService entityLimitService;
   @Autowired
   private GlobalparametersService globalparametersService;
+  @Autowired
+  private AlgoHierarchyViewService hierarchyView;
+  @Autowired
+  private JsonMapper jsonMapper;
   @Autowired
   private AlgoReplayIncomeService incomeService;
   @Autowired
@@ -286,6 +310,20 @@ public class AlgoHistoricalReplayService {
   public Optional<AlgoSimulationResult> status(Integer idSimTenant) {
     requireOwnedSimulation(idSimTenant, currentUser());
     return results.findByIdTenant(idSimTenant).map(this::reconcile);
+  }
+
+  /**
+   * @param idSimTenant the simulation environment
+   * @return what its latest run was based on, or empty when it has never been replayed
+   */
+  public Optional<SimulationRunSettingsDto> settings(Integer idSimTenant) {
+    requireOwnedSimulation(idSimTenant, currentUser());
+    return results.findByIdTenant(idSimTenant)
+        .map(run -> new SimulationRunSettingsDto(
+            run.getHierarchySnapshot() == null ? null : jsonMapper.readTree(run.getHierarchySnapshot()),
+            run.getInputAssumptionsJson() == null ? null
+                : AlgoReplayInputs.read(run.getInputAssumptionsJson()).allocation(),
+            run.getStartedAt()));
   }
 
   /**
@@ -370,6 +408,8 @@ public class AlgoHistoricalReplayService {
     }
     AlgoTop algoTop = algoTops.findById(tenant.getIdAlgoTop())
         .orElseThrow(() -> new DataViolationException("id.algo.top", "simulation.algotop.not.found", null));
+    // The strategy is shared with the main tenant and may have been edited since the environment was created.
+    readinessService.requireReadyForReplay(algoTop, localeOf(user));
     List<LocalDate> runDates = calendar.runDates(openingDate, endDate);
     int maxRunTradingDays = globalparametersService.getSimulationMaxRunTradingDays();
     if (runDates.size() > maxRunTradingDays) {
@@ -389,7 +429,7 @@ public class AlgoHistoricalReplayService {
     run.setFinishedAt(null);
     run.setTradingDaysTotal(runDates.size());
     run.setTradingDaysDone(0);
-    run.setStrategySnapshot(snapshotStrategies(algoTop));
+    run.setHierarchySnapshot(snapshotHierarchy(algoTop));
     run.setConventions(conventions(AlgoReplayFees.anyModelActive(source.securityaccounts(idSimTenant))));
     run.setDividendPaymentDelayDays(globalparametersService.getSimulationDividendPaymentDelayDays());
     run.setApplyTaxModels(request.isApplyTaxModels());
@@ -405,9 +445,23 @@ public class AlgoHistoricalReplayService {
         algoBuckets.findByIdTenantAndIdAlgoAssetclassParent(algoTop.getIdTenant(), algoTop.getId()),
         bucket -> algoMembers.findByIdAlgoSecurityParentAndIdTenant(bucket.getId(), algoTop.getIdTenant()),
         security -> capturedInputs.excluded(security.getId()));
-    run.setInputAssumptionsJson(AlgoReplayInputs.write(capturedInputs.withAllocation(effectiveAllocation)));
+    AlgoReplayInputs.Snapshot withFees;
+    try {
+      withFees = AlgoReplayCustodyService.capture(capturedInputs.withAllocation(effectiveAllocation),
+          source.securityaccounts(idSimTenant), source.cashaccounts(idSimTenant), request.getCustodyOpeningYaml(),
+          openingDate, endDate);
+    } catch (IllegalArgumentException e) {
+      throw new DataViolationException("custody.opening.yaml", "gt.simulation.custody.invalid",
+          new Object[] { e.getMessage() });
+    }
+    run.setInputAssumptionsJson(AlgoReplayInputs.write(withFees));
+    run.setConventions(run.getConventions() + " " + AlgoReplayFx.convention(withFees));
+    run.setConventions(run.getConventions()
+        + (withFees.custodyOpening().isEmpty() ? " REPLAY_CUSTODY_UNMODELLED" : " REPLAY_CUSTODY_MODELLED"));
     run.setTaxIncomeSummaryJson(null);
     run.setPaidDividends(null);
+    run.setFxMarkupPaid(null);
+    run.setFxUncoveredConversions(null);
     run.setDividendReceivables(null);
     run.setTotalReturn(null);
     run.setAnnualizedReturn(null);
@@ -420,10 +474,6 @@ public class AlgoHistoricalReplayService {
     return results.save(run);
   }
 
-  /**
-   * Freezes the effective configuration of every strategy of the hierarchy. The strategies stay editable while the
-   * result exists, so without this copy a later edit would silently redefine what a recorded run was calculated from.
-   */
   private Map<Integer, Security> replaySecurities(Tenant tenant, AlgoTop algoTop) {
     Map<Integer, Security> securities = new TreeMap<>();
     source.transactions(tenant.getId(), tenant.getSimulationStartDate().plusDays(1)).forEach(transaction -> {
@@ -439,16 +489,18 @@ public class AlgoHistoricalReplayService {
     return securities;
   }
 
-  private String snapshotStrategies(AlgoTop algoTop) {
-    Map<String, Object> byStrategy = new LinkedHashMap<>();
-    for (AlgoStrategy strategy : strategies.findByIdAlgoAssetclassSecurityAndIdTenant(algoTop.getId(),
-        algoTop.getIdTenant())) {
-      byStrategy.put(String.valueOf(strategy.getIdAlgoRuleStrategy()),
-          strategy.getStrategyConfig() == null ? "" : strategy.getStrategyConfig());
-    }
-    if (rebalancing.hasRebalancingStrategy(algoTop))
-      byStrategy.put("_rebalancing", rebalancing.configurationSnapshot(algoTop));
-    return new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(byStrategy).toString();
+  /**
+   * Freezes the hierarchy in the shape the hierarchy view serves, serialized by the same mapper as a REST response, so
+   * the run's settings tab can build the identical tree from it. The strategies stay editable while the result exists,
+   * so without this copy a later edit would silently redefine what a recorded run was calculated from. It carries
+   * names, weights, class overrides and every strategy with its parameters on every level.
+   */
+  private String snapshotHierarchy(AlgoTop algoTop) {
+    AlgoHierarchyDto hierarchy = hierarchyView.getHierarchy(algoTop.getIdTenant(), algoTop.getId());
+    Map<String, Object> frozen = new LinkedHashMap<>();
+    frozen.put("algoTop", hierarchy.algoTop());
+    frozen.put("algoAssetclassList", hierarchy.algoAssetclassList());
+    return jsonMapper.writeValueAsString(frozen);
   }
 
   // -----------------------------------------------------------------------------------------------------------------
@@ -468,7 +520,9 @@ public class AlgoHistoricalReplayService {
   void execute(Integer idSimTenant, Integer idRun, User user) {
     SecurityContextHolder.getContext().setAuthentication(new UserAuthentication(user));
     registry.beginWorker(idSimTenant);
-    try {
+    // Every replay day reads the environment's ledger several times; the cache serves them from memory and fetches only
+    // the fills booked since the previous read.
+    try (SimulationLedgerCache.Scope _ = SimulationLedgerCache.open(idSimTenant)) {
       replay(idRun);
     } catch (Exception e) {
       log.error("Historical replay {} failed", idRun, e);
@@ -492,11 +546,17 @@ public class AlgoHistoricalReplayService {
     // The opening valuation answers which of the two openings this is, so it is taken before the state exists.
     AlgoHistoricalValuationService.Snapshot opening = valuation.value(idTenant, run.getOpeningDate(), market);
     AlgoReplayState state = openState(run, tenant, algoTop, market, opening.positions().isEmpty());
+    state.meanReversionConfigured = Boolean.TRUE.equals(transactionTemplate
+        .execute(_ -> evaluator.hasActiveMeanReversion(tenant.getIdParentTenant(), algoTop.getId(), market)));
+    state.custody = custodyService.open(state, source.securityaccounts(idTenant), source.cashaccounts(idTenant));
+    state.costs.setCustody(state.custody);
+    market.setCustodyLiabilities(state.custody::liabilities);
     Map<LocalDate, List<AlgoReplayInputs.CashStandingOrder>> cashOrderSchedule = replayStandingOrders
         .schedule(state.inputs, run.getOpeningDate(), run.getEndDate());
     Set<LocalDate> evaluationDates = Set.copyOf(runDates);
     TreeSet<LocalDate> timeline = new TreeSet<>(runDates);
     timeline.addAll(cashOrderSchedule.keySet());
+    timeline.addAll(state.custody.dates());
     try {
       opening = valuation.value(idTenant, run.getOpeningDate(), market);
       state.writeMarker(AlgoEventType.RUN_START, run.getOpeningDate(),
@@ -521,9 +581,12 @@ public class AlgoHistoricalReplayService {
           return;
         }
         replayStandingOrders.execute(state, date, cashOrderSchedule.getOrDefault(date, List.of()));
+        state.custody.process(date, true);
         if (liquidationComplete != null && !date.isAfter(liquidationComplete)) {
           processDividends(state, date);
-          processTerminalEvents(state, date);
+          if (evaluationDates.contains(date)) {
+            processTerminalEvents(state, date);
+          }
           state.observeEquity(date, () -> valuation.value(state.idTenant(), date, state.market));
           liquidation.execute(state, date, liquidations.getOrDefault(date, List.of()));
           if (date.equals(liquidationComplete)) {
@@ -533,19 +596,26 @@ public class AlgoHistoricalReplayService {
             state.initialPurchaseRequired = afterLiquidation.positions().isEmpty();
           }
           if (date.isBefore(liquidationComplete)) {
+            state.custody.process(date, false);
             if (evaluationDates.contains(date)) {
               state.done++;
-              transactionTemplate.executeWithoutResult(_ -> progress(state, date));
+              reportProgress(state, date);
             }
             continue;
           }
         }
         if (!evaluationDates.contains(date)) {
+          // Income moves its own booking to a trading day, a redemption or terminal close does not and would be refused
+          // as transaction.time.notrading. The terminal schedule keeps such an expiry pending for the next trading day.
+          processDividends(state, date);
+          state.custody.process(date, false);
+          // Keep the existing trading-day sampling convention of the performance metrics.
           continue;
         }
         replayDay(state, date);
+        state.custody.process(date, false);
         state.done++;
-        transactionTemplate.executeWithoutResult(_ -> progress(state, date));
+        reportProgress(state, date);
       }
       processDividends(state, run.getEndDate());
       LocalDate lastRunDate = runDates.isEmpty() ? null : runDates.getLast();
@@ -565,17 +635,19 @@ public class AlgoHistoricalReplayService {
   }
 
   /**
-   * Puts the environment back into the state its opening definition describes: everything a previous replay generated
-   * is removed and the holdings are rebuilt from the remaining opening ledger, exactly as the creation of the
-   * environment builds them.
+   * Puts the environment back into the state its opening definition describes: replay-generated and user-entered
+   * transactions are removed and the holdings are rebuilt from the remaining opening ledger, exactly as the creation of
+   * the environment builds them.
    */
   private Tenant restoreOpeningState(Integer idTenant) {
     // A synchronous caller may still manage holdings from the previous run. The native rebuild must not merge into
     // those deleted instances. Flush the recorded run first, then load the opening ledger in a fresh context.
     entityManager.flush();
     entityManager.clear();
+    replayRepository.clearGeneratedTransactionReferences(idTenant);
+    replayRepository.deleteSecurityTransfers(idTenant);
+    replayRepository.deleteSecurityActionApplications(idTenant);
     replayRepository.deleteGeneratedTransactions(idTenant);
-    replayRepository.deleteRecommendations(idTenant);
     replayRepository.deleteEvents(idTenant);
     executionStates.deleteByIdTenant(idTenant);
     securityHoldings.createSecurityHoldingsEntireByTenant(idTenant);
@@ -604,10 +676,11 @@ public class AlgoHistoricalReplayService {
    * <p>
    * Nor may the order be given a transaction of its own while the day holds one. Writing a row of the trail leaves the
    * day holding a shared lock on the tenant row, which the foreign key of {@code algo_event_log} makes InnoDB take, and
-   * the write path opens with a {@code SELECT ... FOR UPDATE} on that same row. The order would wait for a lock the day
-   * only releases once the order returns. The database sees no cycle to break there, so it is not a deadlock it
-   * reports: every order waits out the lock timeout, the run stops advancing, and it does not answer a cancellation
-   * either, which is only asked between two days.
+   * the strategy fill adapter opens with a {@code SELECT ... FOR UPDATE} on that same row. The order would wait for a
+   * lock the day only releases once the order returns. The database sees no cycle to break there, so it is not a
+   * deadlock it reports: every order waits out the lock timeout, the run stops advancing, and it does not answer a
+   * cancellation either, which is only asked between two days. Ordinary transaction writes and their limit checks take
+   * no tenant lock; concurrent requests may slightly exceed the transaction cap.
    * </p>
    */
   private void replayDay(AlgoReplayState state, LocalDate date) {
@@ -711,6 +784,9 @@ public class AlgoHistoricalReplayService {
       // The cheap half of the question first: building a plan values every position and reads a quote per instrument
       // and per currency pair, which a day between two checkpoints has no use for.
       if (!rebalancing.isCheckpointDue(state.idTenant(), state.algoTop, date, state.lastRebalancedOn)) {
+        if (!state.rebalanceFollowUpClasses.isEmpty()) {
+          completeCheckpoint(state, date);
+        }
         return;
       }
       plan = rebalancing.plan(state.idTenant(), state.algoTop, date, state.locale, state.lastRebalancedOn,
@@ -726,8 +802,10 @@ public class AlgoHistoricalReplayService {
     // The checkpoint was evaluated, so the next one is one interval away whether or not anything was traded.
     // Advancing only on a traded day would ask a checkpoint that found nothing again on the following day.
     state.lastRebalancedOn = date;
+    state.rebalanceFollowUpClasses.clear();
+    state.rebalanceFollowUpAttempts = 0;
     if (plan.trigger() == AlgoRebalancingTrigger.NONE) {
-      recordClassResiduals(state, date, plan, Map.of());
+      recordClassResiduals(state, date, plan, Map.of(), null);
       return;
     }
     state.write(AlgoEventType.REBALANCE_PLAN, date, null, null, null, null, null, plan.currency(),
@@ -736,15 +814,81 @@ public class AlgoHistoricalReplayService {
     for (RebalancingPlan.Line line : bookingOrder(plan)) {
       executed.merge(line.idParentNode(), bookLine(state, date, line, AlgoEventType.REBALANCE_FILL), Double::sum);
     }
-    recordClassResiduals(state, date, plan, executed);
+    state.rebalanceFollowUpClasses.addAll(recordClassResiduals(state, date, plan, executed, null));
   }
 
-  /** Amounts use decision-day exposure so rounding and funding shortfalls can be compared with the requested plan. */
-  private void recordClassResiduals(AlgoReplayState state, LocalDate date, RebalancingPlan plan,
-      Map<Integer, Double> executed) {
+  /**
+   * Completes on a later trading day the purchases a checkpoint could not pay for. A rebalancing books its sales and
+   * purchases on the same day, but the proceeds of a sale are spendable only from the following day, so a purchase that
+   * depends on them is cut down to the cash already there. Without this step the remainder would wait a whole interval
+   * for the next checkpoint.
+   *
+   * <p>
+   * Only purchases of the classes the checkpoint left short are booked. The plan sizes those classes towards their
+   * target without the tolerance, because the decision was already taken; sales are not repeated, since they never
+   * depend on money arriving. The interval is not moved: the checkpoint remains the day the portfolio was compared.
+   * </p>
+   *
+   * @param state the running replay
+   * @param date  the day of the follow-up decision
+   */
+  private void completeCheckpoint(AlgoReplayState state, LocalDate date) {
+    RebalancingPlan plan;
+    try {
+      plan = rebalancing.followUpPlan(state.idTenant(), state.algoTop, date, state.locale, state.lastRebalancedOn,
+          state.market, Set.copyOf(state.rebalanceFollowUpClasses));
+    } catch (DataViolationException e) {
+      state.rebalanceFollowUpClasses.clear();
+      return;
+    }
+    Set<Integer> classes = Set.copyOf(state.rebalanceFollowUpClasses);
+    List<RebalancingPlan.Line> due = bookingOrder(plan).stream()
+        .filter(
+            line -> classes.contains(line.idParentNode()) && !line.reducesExposure() && line.recommendedUnits() != 0)
+        .toList();
+    state.rebalanceFollowUpClasses.clear();
+    if (due.isEmpty()) {
+      return;
+    }
+    state.rebalanceFollowUpAttempts++;
+    state.write(AlgoEventType.REBALANCE_PLAN, date, null, null, null, null, null, plan.currency(),
+        RATIONALE_REBALANCE_FOLLOW_UP);
+    Map<Integer, Double> executed = new HashMap<>();
+    for (RebalancingPlan.Line line : due) {
+      executed.merge(line.idParentNode(), bookLine(state, date, line, AlgoEventType.REBALANCE_FILL), Double::sum);
+    }
+    Set<Integer> stillShort = recordClassResiduals(state, date, plan, executed, classes);
+    // A sale of the checkpoint fills at the next close and is spendable the day after, so its proceeds can arrive on
+    // the second follow-up day at the earliest. A later day that still buys nothing has no money to wait for.
+    boolean progressed = executed.values().stream().anyMatch(amount -> Math.abs(amount) > 1e-8);
+    if ((progressed || state.rebalanceFollowUpAttempts < SETTLEMENT_FOLLOW_UP_DAYS)
+        && state.rebalanceFollowUpAttempts < MAX_REBALANCE_FOLLOW_UP_DAYS) {
+      state.rebalanceFollowUpClasses.addAll(stillShort);
+    }
+  }
+
+  /**
+   * Amounts use decision-day exposure so rounding and funding shortfalls can be compared with the requested plan.
+   *
+   * @param state    the running replay
+   * @param date     the day of the decision
+   * @param plan     the plan that was executed
+   * @param executed exposure change actually booked, by AlgoAssetclass id
+   * @param only     the classes to report, or null for every class of the plan
+   * @return the classes whose purchase was left short by the execution alone, which a later day can complete
+   */
+  private Set<Integer> recordClassResiduals(AlgoReplayState state, LocalDate date, RebalancingPlan plan,
+      Map<Integer, Double> executed, Set<Integer> only) {
+    Set<Integer> purchaseShortfalls = new TreeSet<>();
     for (var adjustment : plan.classAdjustments()) {
+      if (only != null && !only.contains(adjustment.idNode())) {
+        continue;
+      }
       double filled = executed.getOrDefault(adjustment.idNode(), 0.0);
       double residual = adjustment.requestedAdjustment() - filled;
+      if (residual > 1e-8 && adjustment.requestedAdjustment() > 0 && adjustment.limitingReason() == null) {
+        purchaseShortfalls.add(adjustment.idNode());
+      }
       if (Math.abs(residual) > 1e-8) {
         state.write(AlgoEventType.UNAVAILABLE, date, null, null, null, null, residual, plan.currency(),
             "REBALANCE_RESIDUAL",
@@ -753,6 +897,7 @@ public class AlgoHistoricalReplayService {
                 adjustment.limitingReason() == null ? "REBALANCE_EXECUTION_SHORTFALL" : adjustment.limitingReason()));
       }
     }
+    return purchaseShortfalls;
   }
 
   /**
@@ -785,9 +930,13 @@ public class AlgoHistoricalReplayService {
       Transaction fill = booking.book(state, security, null, Math.abs(line.recommendedUnits()), type, date);
       state.write(fillType, date, null, security.getId(), fill.getUnits(), fill.getQuotation(),
           line.recommendedAmount(), state.tenant.getCurrency(), line.rationale(),
-          state.lastFillWasReduced ? RATIONALE_ORDER_REDUCED : null);
+          state.fx.details(fill.getAlgoFillId(), state.lastFillWasReduced ? RATIONALE_ORDER_REDUCED : null));
       return line.exposureChange() * Math.min(1, Math.abs(fill.getUnits() / line.recommendedUnits()));
+    } catch (TransactionLimitExceededException | AlgoReplayFx.Failure e) {
+      throw e;
     } catch (Exception e) {
+      if (e.getMessage() != null && e.getMessage().contains("REPLAY_CUSTODY_FAILED"))
+        throw new IllegalArgumentException(e.getMessage(), e);
       state.write(AlgoEventType.UNAVAILABLE, date, null, security.getId(), null, null, null, null,
           AlgoReplayBooking.rationaleOf(e), booking.detailsOf(e, state.locale));
     }
@@ -795,6 +944,9 @@ public class AlgoHistoricalReplayService {
   }
 
   private void applyProposals(AlgoReplayState state, LocalDate date) {
+    if (!state.meanReversionConfigured) {
+      return;
+    }
     // The evaluation is the one step that brings no transaction of its own, and it reads across several repositories.
     // It is given one so that it keeps working on a single persistence context; it is closed again before the first
     // fill, because a transaction still open here would be the one the fill waits for.
@@ -822,19 +974,27 @@ public class AlgoHistoricalReplayService {
       boolean buy = decision.increasesExposure() ? decision.direction() > 0 : decision.direction() < 0;
       Transaction fill = booking.book(state, security, proposal.scope().strategy().getId(), decision.quantity(),
           buy ? TransactionType.ACCUMULATE : TransactionType.REDUCE, date);
-      simulationAdapter.fill(proposal.context(), decision,
+      fill = simulationAdapter.fill(proposal.context(), decision,
           state.run.getIdSimulationResult() + ":" + decision.identity(), fill);
+      state.costs.committed(fill);
+      state.fx.committed(fill.getAlgoFillId(), state.pendingFx);
+      if (state.custody != null)
+        state.custody.committed(fill, state.pendingCustodyCredit);
       state.taxes.committed(state.pendingTax, security.getId(), fill.getIdSecurityaccount(),
           fill.getTransactionTime().toLocalDate(), fill.getAlgoFillId());
       state.accounts.remember(security,
           new AlgoReplayAccounts.Booking(fill.getIdSecurityaccount(), fill.getCashaccount()));
       state.roundTrips.add(proposal.scope().strategy().getId(), security.getId(), fill.getTransactionType(),
           fill.getUnits(), fill.getQuotation(), fill.getTransactionCost(), fill.getTaxCost(),
-          fill.getAssetInvestmentValue1());
+          fill.getAssetInvestmentValue1(), fill.getTransactionDate());
       state.write(AlgoEventType.FILL, fill.getTransactionTime().toLocalDate(), proposal.scope().strategy().getId(),
           security.getId(), fill.getUnits(), fill.getQuotation(), fill.getCashaccountAmount(),
-          fill.getCashaccount().getCurrency(), decision.rationale());
+          fill.getCashaccount().getCurrency(), decision.rationale(), state.fx.details(fill.getAlgoFillId(), null));
+    } catch (TransactionLimitExceededException | AlgoReplayFx.Failure e) {
+      throw e;
     } catch (Exception e) {
+      if (e.getMessage() != null && e.getMessage().contains("REPLAY_CUSTODY_FAILED"))
+        throw new IllegalArgumentException(e.getMessage(), e);
       state.write(AlgoEventType.UNAVAILABLE, date, proposal.scope().strategy().getId(), security.getId(), null, null,
           null, null, AlgoReplayBooking.rationaleOf(e), booking.detailsOf(e, state.locale));
     }
@@ -893,7 +1053,10 @@ public class AlgoHistoricalReplayService {
               holding.cashaccount(), holding.units(), date);
           state.write(AlgoEventType.MATURITY_REDEMPTION, date, null, security.getId(), fill.getUnits(),
               fill.getQuotation(), fill.getCashaccountAmount(), fill.getCashaccount().getCurrency(),
-              catchUp ? "REPLAY_REDEMPTION_CATCH_UP" : "REPLAY_BOND_REDEEM_AT_PAR");
+              catchUp ? "REPLAY_REDEMPTION_CATCH_UP" : "REPLAY_BOND_REDEEM_AT_PAR",
+              state.fx.details(fill.getAlgoFillId(), null));
+        } catch (TransactionLimitExceededException | AlgoReplayFx.Failure e) {
+          throw e;
         } catch (Exception e) {
           throw new IllegalStateException(AlgoReplayBooking.rationaleOf(e), e);
         }
@@ -905,7 +1068,10 @@ public class AlgoHistoricalReplayService {
               holding.units(), date, instrument.activeToDate());
           state.write(AlgoEventType.TERMINAL_CLOSE, date, null, security.getId(), fill.getUnits(), fill.getQuotation(),
               fill.getCashaccountAmount(), fill.getCashaccount().getCurrency(),
-              catchUp ? "REPLAY_TERMINAL_CLOSE_CATCH_UP" : "REPLAY_TERMINAL_CLOSE");
+              catchUp ? "REPLAY_TERMINAL_CLOSE_CATCH_UP" : "REPLAY_TERMINAL_CLOSE",
+              state.fx.details(fill.getAlgoFillId(), null));
+        } catch (TransactionLimitExceededException | AlgoReplayFx.Failure e) {
+          throw e;
         } catch (Exception e) {
           complete = false;
           state.write(AlgoEventType.UNAVAILABLE, date, null, security.getId(), null, null, null, null,
@@ -977,11 +1143,13 @@ public class AlgoHistoricalReplayService {
 
   /**
    * Strategy and rebalancing orders are not placed on or after a captured {@code activeToDate}: that morning already
-   * closed or redeemed the name. Before {@code activeFromDate} they wait for a later checkpoint.
+   * closed or redeemed the name. Before {@code activeFromDate} they wait for a later checkpoint. From the captured
+   * {@code tradingEndDate} of a failed issuer on, no order is placed at all.
    */
   private boolean tradableOn(AlgoReplayState state, Security security, LocalDate date) {
     var instrument = state.inputs.instruments().get(security.getId());
-    if (instrument != null && instrument.activeToDate() != null && !date.isBefore(instrument.activeToDate())) {
+    if (instrument != null && (instrument.activeToDate() != null && !date.isBefore(instrument.activeToDate())
+        || instrument.tradingStopped(date))) {
       return false;
     }
     return calendar.isMarketFillDate(security, date, instrument == null ? null : instrument.activeFromDate(),
@@ -1004,6 +1172,8 @@ public class AlgoHistoricalReplayService {
             new AlgoReplayMetrics.EquityPoint(state.run.getEndDate(), terminal.equity(), terminalPriced,
                 terminalExternalFlow));
         run.setPaidDividends(state.dividends.paidTotal());
+        run.setFxMarkupPaid(state.fx.paid());
+        run.setFxUncoveredConversions(state.fx.uncovered());
         Map<String, Double> unpaid = state.dividends.dividendReceivables(state.run.getEndDate());
         run.setDividendReceivables(unpaid.keySet().stream().allMatch(terminal.fx()::containsKey)
             ? unpaid.entrySet().stream().mapToDouble(e -> e.getValue() * terminal.fx().get(e.getKey())).sum()
@@ -1037,6 +1207,21 @@ public class AlgoHistoricalReplayService {
     return snapshots.get(state.run.getEndDate());
   }
 
+  /**
+   * Writes the progress of a running replay at most once per {@link #PROGRESS_INTERVAL_NANOS}. Every write reloads and
+   * rewrites the whole result row with its large JSON columns and values the income diagnostics, which done for every
+   * replayed day cost more database time than any other single statement of the run. The final state is written by
+   * {@code finish} and by the failure path regardless.
+   */
+  private void reportProgress(AlgoReplayState state, LocalDate date) {
+    long now = System.nanoTime();
+    if (state.progressWrittenAt != 0 && now - state.progressWrittenAt < PROGRESS_INTERVAL_NANOS) {
+      return;
+    }
+    state.progressWrittenAt = now;
+    transactionTemplate.executeWithoutResult(_ -> progress(state, date));
+  }
+
   private void progress(AlgoReplayState state, LocalDate date) {
     results.findById(state.run.getIdSimulationResult()).ifPresent(run -> {
       run.setTradingDaysDone(state.done);
@@ -1065,7 +1250,8 @@ public class AlgoHistoricalReplayService {
   }
 
   private static String message(Exception e) {
-    String text = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+    String text = e instanceof TransactionLimitExceededException limit ? limit.getMessageKey()
+        : e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
     return text.length() <= 500 ? text : text.substring(0, 500);
   }
 
@@ -1118,6 +1304,6 @@ public class AlgoHistoricalReplayService {
         rebalancing.hasRebalancingStrategy(algoTop),
         entityLimitService.resolve(user, LimitKeyConfig.KEY_ALGO_EVENT_LOG).orElse(null), source, algoBuckets,
         algoMembers, costEstimator, taxEstimator, incomeService, events, transactionTemplate,
-        globalparametersService.getCurrencyPrecision());
+        globalparametersService.getCurrencyPrecision(), booking.fxRates(market));
   }
 }

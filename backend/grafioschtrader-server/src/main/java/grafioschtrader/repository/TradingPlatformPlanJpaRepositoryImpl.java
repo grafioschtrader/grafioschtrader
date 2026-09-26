@@ -19,6 +19,9 @@ public class TradingPlatformPlanJpaRepositoryImpl extends BaseRepositoryImpl<Tra
   public TradingPlatformPlan saveOnlyAttributes(TradingPlatformPlan tradingPlatformPlan,
       TradingPlatformPlan existingEntity, final Set<Class<? extends Annotation>> updatePropertyLevelClasses)
       throws Exception {
+    grafioschtrader.service.YamlConfigurationValidation.requireValid(
+        grafioschtrader.service.YamlConfigurationValidation.Format.FEES, tradingPlatformPlan.getFeeModelYaml(),
+        "fee.model.yaml");
 
     return RepositoryHelper.saveOnlyAttributes(tradingPlatformPlanJpaRepository, tradingPlatformPlan, existingEntity,
         updatePropertyLevelClasses);

@@ -650,6 +650,10 @@ INSERT INTO `role` (`id_role`, `rolename`) VALUES (8,'ROLE_LIMITEDIT');
 -- master's own ids. A key with no row at all resolves as unlimited.
 -- ----------------------------------------------------------------------
 
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'MailSendRecv', NULL, NULL, 2, NULL, 2000, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'MailSettingForward', NULL, NULL, 2, NULL, 50, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'ProposeUserTask', NULL, NULL, 2, NULL, 100, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UDFMetadataGeneral', NULL, NULL, 2, NULL, 50, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNet', NULL, NULL, NULL, 8, 5, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfig', NULL, NULL, NULL, 8, 3, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfigEntity', NULL, NULL, NULL, 8, 10, NULL, 0, 0, 0);

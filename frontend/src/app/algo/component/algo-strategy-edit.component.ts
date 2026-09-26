@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ViewChild, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { SimpleEntityEditBase } from '../../lib/edit/simple.entity.edit.base';
 import { AlgoStrategy } from '../model/algo.strategy';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
@@ -116,6 +116,7 @@ risk_controls:
 @Component({
   selector: 'algo-strategy-edit',
   template: ` <p-dialog
+    styleClass="big-dialog"
     header="{{ 'ALGO_STRATEGY' | translate }}"
     [visible]="visibleDialog"
     [style]="{ width: dialogWidth }"
@@ -132,6 +133,9 @@ risk_controls:
 
     @if (isComplexStrategy) {
       <yaml-editor
+        #yamlEditor
+        format="STRATEGY"
+        [activatable]="configObject.activatable?.formControl?.value !== false"
         [(value)]="yamlContent"
         [height]="'500px'"
         [schema]="configObject.activatable?.formControl?.value === false ? draftYamlSchema : yamlSchema" />
@@ -139,7 +143,10 @@ risk_controls:
         <p-button [label]="'LOAD_TEMPLATE' | translate" severity="secondary" (click)="loadTemplate()" styleClass="me-2">
           <i class="pi pi-file" pButtonIcon></i>
         </p-button>
-        <p-button [label]="'APPLY' | translate" (click)="submitComplexStrategy()">
+        <p-button
+          [label]="'APPLY' | translate"
+          [disabled]="yamlEditor.validating || !yamlEditor.syntaxValid"
+          (click)="submitComplexStrategy()">
           <i class="pi pi-check" pButtonIcon></i>
         </p-button>
       </div>
@@ -150,6 +157,7 @@ risk_controls:
   imports: [TranslateModule, DialogModule, DynamicFormComponent, YamlEditorComponent, ButtonModule]
 })
 export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy> implements OnInit {
+  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
   @Input() algoCallParam: AlgoCallParam;
 
   dynamicModel: any = {};
@@ -233,7 +241,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
    * the dialog open. Letting the error escape out of the save instead left the dialog in a state the user could not
    * submit from again.
    */
-  submitComplexStrategy(): void {
+  async submitComplexStrategy(): Promise<void> {
+    if (!(await this.yamlEditor.validateForSubmit())) return;
     if (this.yamlContent && this.parseYaml(this.yamlContent) === undefined) {
       return;
     }

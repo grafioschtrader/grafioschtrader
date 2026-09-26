@@ -243,7 +243,7 @@ async function addSecuritiesThroughSearch(
     field === 'isin' ? addDialog.locator('#isin') : addDialog.getByRole('textbox', { name: /^Name$/ });
   await expect(searchInput).toBeVisible();
   await searchInput.fill(searchValue);
-  await searchInput.dispatchEvent('input');
+  await expect(searchInput).toHaveValue(searchValue);
   await addDialog.locator('button[type="submit"]').click();
 
   const resultRows = addDialog.locator('add-instrument-table tbody tr');

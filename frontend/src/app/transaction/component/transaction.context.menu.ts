@@ -24,6 +24,7 @@ import { SpecialInvestmentInstruments } from '../../shared/types/special.investm
 import { HelpIds } from '../../lib/help/help.ids';
 import { StandingOrderCallParam } from '../../standingorder/model/standing.order.call.param';
 import { BaseSettings } from '../../lib/base.settings';
+import { transactionMenuPermissions } from './transaction.menu.permissions';
 
 /**
  * Abstract base class for displaying transactions in a table format with comprehensive editing capabilities.
@@ -343,38 +344,29 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
   protected getMenuItemsOnTransaction(transaction: Transaction): MenuItem[] {
     const menuItems: MenuItem[] = [];
     if (transaction && transaction.idTransaction >= 0) {
+      const permissions = transactionMenuPermissions(transaction, this.canDeleteTransaction(transaction));
       menuItems.push({
         label: 'EDIT_RECORD|TRANSACTION',
         command: (e) => (transaction ? this.handleEditTransaction(transaction) : null),
-        disabled: !transaction || !transaction.idTransaction
+        disabled: !permissions.edit
       });
 
       menuItems.push({
         label: 'DELETE_RECORD|TRANSACTION',
         command: (e) => (transaction ? this.handleDeleteTransaction(transaction) : null),
-        disabled: !transaction || !transaction.idTransaction || !this.canDeleteTransaction(transaction)
+        disabled: !permissions.delete
       });
 
       menuItems.push({
         label: 'CHANGE_TO_ACCOUNT_TRANSFER',
         command: (e) => (transaction ? this.handleConnectDebitCreditTransaction(transaction) : null),
-        disabled:
-          !transaction ||
-          !transaction.idTransaction ||
-          !Transaction.isWithdrawalOrDeposit(transaction.transactionType) ||
-          !!transaction.connectedIdTransaction
+        disabled: !permissions.transfer
       });
 
       menuItems.push({
         label: 'CREATE|STANDING_ORDER',
         command: (e) => (transaction ? this.handleCreateStandingOrderFromTransaction(transaction) : null),
-        disabled:
-          !transaction ||
-          !transaction.idTransaction ||
-          !(
-            Transaction.isSecurityTransaction(transaction.transactionType) ||
-            Transaction.isWithdrawalOrDeposit(transaction.transactionType)
-          )
+        disabled: !permissions.standingOrder
       });
 
       menuItems.push({
@@ -384,8 +376,7 @@ export abstract class TransactionContextMenu extends TableConfigBase implements 
             ? BaseSettings.ICONNAME_SQUARE_CHECK
             : BaseSettings.ICONNAME_SQUARE_EMTPY,
         command: (e) => (transaction ? this.handleToggleTaxableInterest(transaction) : null),
-        disabled:
-          !transaction || !transaction.idTransaction || !Transaction.isDividendOrInterest(transaction.transactionType)
+        disabled: !permissions.taxableInterest
       });
 
       TranslateHelper.translateMenuItems(menuItems, this.translateService);

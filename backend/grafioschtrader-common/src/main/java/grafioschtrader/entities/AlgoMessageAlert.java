@@ -102,22 +102,17 @@ public class AlgoMessageAlert extends TenantBaseID implements Serializable {
   private LocalDate alertDay;
 
   /**
-   * When the notification was delivered. Null means the alarm is recorded but its message did not go out, which lets a
-   * retry tell a delivery failure apart from an alarm that was never raised. The alarm is claimed once by its unique
-   * key, and delivery is retried against that claim rather than raising a second one.
-   */
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
-  @Column(name = "notified_at")
-  private LocalDateTime notifiedAt;
-
-  /**
    * Structured JSON with details about the triggered condition. Its structure depends on the alarm type, for example a
    * threshold and actual price for a price alert, or an RSI value and lower threshold for an RSI alert.
    */
   @Column(name = "alarm_details", columnDefinition = "JSON")
   private String alarmDetails;
 
-  /** Status of the durable notification delivery. */
+  /**
+   * Status of the durable notification delivery. The alarm is claimed once by its unique key, and delivery is retried
+   * against that claim rather than raising a second one; the completion time of each channel is kept in
+   * {@code internalCompletedAt} and {@code externalCompletedAt}.
+   */
   @Column(name = "delivery_status")
   private String deliveryStatus = "PENDING";
 
@@ -213,18 +208,6 @@ public class AlgoMessageAlert extends TenantBaseID implements Serializable {
 
   public void setExternalCompletedAt(LocalDateTime value) {
     this.externalCompletedAt = value;
-  }
-
-  /** Internal message created for the delivery. */
-  @Column(name = "internal_message_id")
-  private Integer internalMessageId;
-
-  public Integer getInternalMessageId() {
-    return internalMessageId;
-  }
-
-  public void setInternalMessageId(Integer value) {
-    this.internalMessageId = value;
   }
 
   /** Number of delivery attempts. */
@@ -391,14 +374,6 @@ public class AlgoMessageAlert extends TenantBaseID implements Serializable {
 
   public void setAlertDay(LocalDate alertDay) {
     this.alertDay = alertDay;
-  }
-
-  public LocalDateTime getNotifiedAt() {
-    return notifiedAt;
-  }
-
-  public void setNotifiedAt(LocalDateTime notifiedAt) {
-    this.notifiedAt = notifiedAt;
   }
 
   public String getAlarmDetails() {

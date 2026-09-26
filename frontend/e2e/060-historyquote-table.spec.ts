@@ -1,4 +1,4 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { APIResponse, expect, Locator, Page, Response, test } from '@playwright/test';
 import { loginAsFixtureUser } from './helpers';
 import { expectToast } from './manage-client.helpers';
 
@@ -7,7 +7,7 @@ import { expectToast } from './manage-client.helpers';
  *
  * The spec uses the watchlist 'Switzerland' created by 040-create-watchlist and adds 'Nestlé AG'
  * (CH0038863350) through the search dialog. It opens the historical prices
- * (HistoryquoteTableComponent), deletes the most recent quote, and recreates it with the same values
+ * (HistoryquoteTableComponent), deletes an interior quote, and recreates it with the same values
  * through the create dialog
  * (HistoryquoteEditComponent).
  *
@@ -28,11 +28,11 @@ import { expectToast } from './manage-client.helpers';
  * and in the date picker.
  *
  * Repeatability: the instrument is only added when missing, and delete-then-recreate is
- * idempotent — a rerun finds the same date as the newest quote and repeats the cycle (the recreated
+ * idempotent — a rerun selects an interior date and repeats the cycle (the recreated
  * row carries createType ADD_MODIFIED_USER instead of CONNECTOR_CREATED, which does not change the
  * flow). Because the values are written back unchanged, the shared Nestlé series stays intact for
- * 080-correlation-matrix.spec.ts, which uses it as well. Only an abort between the delete and the
- * recreate leaves that single connector row missing; the next run then targets the row before it.
+ * 080-correlation-matrix.spec.ts, which uses it as well. A finally block restores a missing row if
+ * the UI flow fails after deletion.
  */
 
 const LOGIN_NICKNAME = 'alledit';
@@ -45,6 +45,7 @@ const SECURITY_RX = /Nestl.+AG/;
 /** One entry of HistoryquotesWithMissings.historyquoteList as delivered by the REST endpoint. */
 interface Quote {
   idHistoryQuote: number;
+  idSecuritycurrency: number;
   date: string; // yyyy-MM-dd
   close: number;
   volume: number | null;
@@ -67,13 +68,13 @@ const RX = {
   addButton: /^(Hinzuf.gen|Add)$/,
   closeButton: /^(Beenden|Close)$/,
   eodTableItem: /(EOD as table|Tagesendkurse als Tabelle)/i,
-  createItem: /^(Create History quote|Erstellen Historischer Kurse)\.\.\.$/,
-  deleteItem: /^(Delete History quote|Löschen Historischer Kurse)$/,
+  createItem: /^(Create History quote|Erstellen Historischer Kurs)\.\.\.$/,
+  deleteItem: /^(Delete History quote|Löschen Historischer Kurs)$/,
   editDialogHeader: /(Historical quote for|Historischer Kurs f)/i,
   confirmYes: /^(yes|ja)$/i,
-  deletedToast: /(History quote was deleted|Historischer Kurse wurde gel)/i,
+  deletedToast: /(History quote was deleted|Historischer Kurs wurde gel)/i,
   savedToast: /(History quotes was saved|Historische Kurse wurde gespeichert)/i,
-  entityCaption: /(History quote|Historischer Kurse)/i
+  entityCaption: /(History quote|Historischer Kurs)/i
 };
 
 function pad(value: number): string {
@@ -92,15 +93,15 @@ function todayIso(): string {
 }
 
 /**
- * Newest quote that may be recreated: HistoryquoteJpaRepositoryImpl.checkDatePastMinus1Day rejects
- * a quote dated today or on a weekend, and the dialog's date picker sets maxDate = yesterday. The
- * connector can deliver a partial candle for the current day, so the very first row is not always
- * a valid target.
+ * Keeps the newest stored date intact: BaseHistoryquoteThru.catchUpHistoryquote starts after that date.
+ * Deleting the newest row lets a concurrent connector catch-up recreate it before the UI POST, causing
+ * a duplicate-key error. An interior weekday remains outside that catch-up range and is legal to recreate.
  */
-function newestEligibleQuote(quotes: Quote[]): Quote {
+function interiorEligibleQuote(quotes: Quote[]): Quote {
   const today = todayIso();
+  const newestDate = quotes.reduce((latest, quote) => (quote.date > latest ? quote.date : latest), '');
   const eligible = quotes
-    .filter((quote) => quote.date < today)
+    .filter((quote) => quote.date < today && quote.date < newestDate)
     .filter((quote) => {
       const dayOfWeek = new Date(`${quote.date}T00:00:00`).getDay();
       return dayOfWeek !== 0 && dayOfWeek !== 6;
@@ -108,9 +109,40 @@ function newestEligibleQuote(quotes: Quote[]): Quote {
     .sort((a, b) => b.date.localeCompare(a.date));
   expect(
     eligible.length,
-    `no history quote of ${SECURITY_NAME} older than ${today} — is V2__testdata.sql seeded?`
+    `no interior weekday quote of ${SECURITY_NAME} before ${today} — is V2__testdata.sql seeded?`
   ).toBeGreaterThan(0);
   return eligible[0];
+}
+
+/** Match unsuccessful writes too, so the failure contains the server's response rather than a timeout. */
+async function expectSuccessfulResponse(response: Response | APIResponse): Promise<void> {
+  expect(response.ok(), `${response.status()} ${response.url()}: ${await response.text()}`).toBe(true);
+}
+
+/** Preserve the shared price series even when a UI assertion fails between deletion and recreation. */
+async function restoreMissingQuote(page: Page, quote: Quote): Promise<void> {
+  const headers = { 'x-auth-token': (await page.evaluate(() => sessionStorage.getItem('jwt')))! };
+  const response = await page.request.get(
+    `/api/historyquote/securitycurrency/${quote.idSecuritycurrency}?isCurrencypair=false`,
+    { headers }
+  );
+  await expectSuccessfulResponse(response);
+  const current = (await response.json()) as QuotesPayload;
+  if (!current.historyquoteList.some((row) => row.date === quote.date)) {
+    const restored = await page.request.post('/api/historyquote', {
+      headers,
+      data: {
+        idSecuritycurrency: quote.idSecuritycurrency,
+        date: quote.date,
+        close: quote.close,
+        volume: quote.volume,
+        open: quote.open,
+        high: quote.high,
+        low: quote.low
+      }
+    });
+    await expectSuccessfulResponse(restored);
+  }
 }
 
 /** Parses a displayed number; tolerates the de-CH group separator (a right single quote). */
@@ -277,7 +309,7 @@ async function typeNumber(dialog: Locator, field: string, value: number | null):
   );
 }
 
-test.describe.serial('historical prices of Nestlé — show, delete newest, recreate', () => {
+test.describe.serial('historical prices of Nestlé — show, delete, recreate', () => {
   // The EOD table is rendered in the mainbottom outlet below the watchlist.
   test.use({ viewport: { width: 1600, height: 1200 } });
 
@@ -318,89 +350,92 @@ test.describe.serial('historical prices of Nestlé — show, delete newest, recr
     );
   });
 
-  test('deletes the newest quote and recreates it with the same values', async ({ page }) => {
+  test('deletes an interior quote and recreates it with the same values', async ({ page }) => {
     const payload = await openEodTable(page);
     expect(
       payload.historyquoteList.length,
       `${SECURITY_NAME} has no EOD data — is V2__testdata.sql seeded in grafioschtrader_t?`
     ).toBeGreaterThan(0);
 
-    const before = newestEligibleQuote(payload.historyquoteList);
-    const countBefore = payload.historyquoteList.length;
+    const before = interiorEligibleQuote(payload.historyquoteList);
     const beforeDeCh = toDeChDate(before.date);
 
-    // --- delete ---
-    const targetRow = rowByDate(page, beforeDeCh);
-    await expect(targetRow).toHaveCount(1);
-    const menu = await openTableContextMenu(page, targetRow.locator('td').nth(COL_DATE));
+    try {
+      // --- delete ---
+      const targetRow = rowByDate(page, beforeDeCh);
+      await expect(targetRow).toHaveCount(1);
+      const menu = await openTableContextMenu(page, targetRow.locator('td').nth(COL_DATE));
 
-    const deleted = page.waitForResponse(
-      (response) =>
-        /\/historyquote\/\d+(\?|$)/.test(response.url()) && response.request().method() === 'DELETE' && response.ok(),
-      { timeout: 20_000 }
-    );
-    const afterDeleteQuotes = waitForQuotes(page);
-    await menu.getByText(RX.deleteItem).first().click();
+      await menu.getByText(RX.deleteItem).first().click();
 
-    const confirmDialog = page.locator('[role="alertdialog"]:visible').first();
-    await confirmDialog.waitFor({ state: 'visible', timeout: 10_000 });
-    await confirmDialog.getByRole('button', { name: RX.confirmYes }).first().click();
+      const confirmDialog = page.locator('[role="alertdialog"]:visible').first();
+      await confirmDialog.waitFor({ state: 'visible', timeout: 10_000 });
+      const [afterDelete] = await Promise.all([
+        waitForQuotes(page),
+        page
+          .waitForResponse(
+            (response) =>
+              new URL(response.url()).pathname === `/api/historyquote/${before.idHistoryQuote}` &&
+              response.request().method() === 'DELETE',
+            { timeout: 20_000 }
+          )
+          .then(expectSuccessfulResponse),
+        confirmDialog.getByRole('button', { name: RX.confirmYes }).first().click()
+      ]);
+      await expectToast(page, RX.deletedToast);
+      // Background catch-up may append newer dates; only the target row belongs to this assertion.
+      expect(afterDelete.historyquoteList.some((quote) => quote.date === before.date)).toBe(false);
+      await expect(rowByDate(page, beforeDeCh)).toHaveCount(0);
 
-    await deleted;
-    await expectToast(page, RX.deletedToast);
-    const afterDelete = await afterDeleteQuotes;
-    expect(afterDelete.historyquoteList.length).toBe(countBefore - 1);
-    expect(afterDelete.historyquoteList.some((quote) => quote.date === before.date)).toBe(false);
-    await expect(rowByDate(page, beforeDeCh)).toHaveCount(0);
+      // --- recreate with the identical values ---
+      const createMenu = await openTableContextMenu(page);
+      await createMenu.getByText(RX.createItem).first().click();
 
-    // --- recreate with the identical values ---
-    const createMenu = await openTableContextMenu(page);
-    await createMenu.getByText(RX.createItem).first().click();
+      const dialog = page.locator('.p-dialog').filter({ hasText: RX.editDialogHeader }).first();
+      await dialog.waitFor({ state: 'visible', timeout: 10_000 });
+      await expect(dialog).toContainText(SECURITY_RX);
 
-    const dialog = page.locator('.p-dialog').filter({ hasText: RX.editDialogHeader }).first();
-    await dialog.waitFor({ state: 'visible', timeout: 10_000 });
-    await expect(dialog).toContainText(SECURITY_RX);
+      // The date picker ignores input events without a preceding keydown, so type it key by key.
+      const dateInput = dialog.locator('#date input').first();
+      await dateInput.click();
+      await dateInput.pressSequentially(beforeDeCh, { delay: 20 });
+      await dateInput.blur();
+      await expect(dateInput).toHaveValue(beforeDeCh);
 
-    // The date picker ignores input events without a preceding keydown, so type it key by key.
-    const dateInput = dialog.locator('#date input').first();
-    await dateInput.click();
-    await dateInput.pressSequentially(beforeDeCh, { delay: 20 });
-    await dateInput.blur();
-    await expect(dateInput).toHaveValue(beforeDeCh);
+      await typeNumber(dialog, 'volume', before.volume);
+      await typeNumber(dialog, 'open', before.open);
+      await typeNumber(dialog, 'high', before.high);
+      await typeNumber(dialog, 'low', before.low);
+      await typeNumber(dialog, 'close', before.close);
 
-    await typeNumber(dialog, 'volume', before.volume);
-    await typeNumber(dialog, 'open', before.open);
-    await typeNumber(dialog, 'high', before.high);
-    await typeNumber(dialog, 'low', before.low);
-    await typeNumber(dialog, 'close', before.close);
+      const [afterCreate] = await Promise.all([
+        waitForQuotes(page),
+        page
+          .waitForResponse(
+            (response) =>
+              /\/historyquote$/.test(new URL(response.url()).pathname) && response.request().method() === 'POST',
+            { timeout: 20_000 }
+          )
+          .then(expectSuccessfulResponse),
+        dialog.locator('button[type="submit"]').click()
+      ]);
+      await expectToast(page, RX.savedToast);
+      await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
 
-    const created = page.waitForResponse(
-      (response) =>
-        /\/historyquote$/.test(new URL(response.url()).pathname) &&
-        response.request().method() === 'POST' &&
-        response.ok(),
-      { timeout: 20_000 }
-    );
-    const afterCreateQuotes = waitForQuotes(page);
-    await dialog.locator('button[type="submit"]').click();
-
-    await created;
-    await expectToast(page, RX.savedToast);
-    await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
-
-    const afterCreate = await afterCreateQuotes;
-    expect(afterCreate.historyquoteList.length).toBe(countBefore);
-    const recreated = afterCreate.historyquoteList.find((quote) => quote.date === before.date);
-    expect(recreated, `the quote of ${before.date} was not recreated`).toBeTruthy();
-    expect(recreated.close).toBeCloseTo(before.close, 8);
-    expect(recreated.volume).toBe(before.volume);
-    for (const field of ['open', 'high', 'low'] as const) {
-      if (before[field] === null) {
-        expect(recreated[field]).toBeNull();
-      } else {
-        expect(recreated[field]).toBeCloseTo(before[field], 8);
+      const recreated = afterCreate.historyquoteList.find((quote) => quote.date === before.date);
+      expect(recreated, `the quote of ${before.date} was not recreated`).toBeTruthy();
+      expect(recreated.close).toBeCloseTo(before.close, 8);
+      expect(recreated.volume).toBe(before.volume);
+      for (const field of ['open', 'high', 'low'] as const) {
+        if (before[field] === null) {
+          expect(recreated[field]).toBeNull();
+        } else {
+          expect(recreated[field]).toBeCloseTo(before[field], 8);
+        }
       }
+      await expect(rowByDate(page, beforeDeCh)).toHaveCount(1);
+    } finally {
+      await restoreMissingQuote(page, before);
     }
-    await expect(rowByDate(page, beforeDeCh)).toHaveCount(1);
   });
 });

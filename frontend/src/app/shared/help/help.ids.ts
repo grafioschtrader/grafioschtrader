@@ -36,6 +36,13 @@ export const AppHelpIds: Record<string, string> = {
   /** The strategy tree itself: creating a strategy, its allocation and its simulation environments. */
   HELP_ALGO_TREE: 'algoalert/algo',
   HELP_ALGO_STRATEGY: 'algoalert/strategy',
+  /** The historical replay of a simulation environment: starting a run, its options, results and course. */
+  HELP_ALGO_HISTORICAL_RUN: 'algoalert/historicalrun',
+  /**
+   * The YAML simulation tax model of a tax country. It is edited from the tax data view but documented with the
+   * historical replay, the only consumer of the model.
+   */
+  HELP_ALGO_HISTORICAL_RUN_TAX_MODEL: 'algoalert/historicalrun/taxmodel/',
   /** The alert overview and how alerts are evaluated, deduplicated and delivered. */
   HELP_ALGO_ALERT: 'algoalert/alert',
 
@@ -84,7 +91,6 @@ export const AppHelpIds: Record<string, string> = {
   HELP_TRADING_CALENDAR: 'admindata/tradingcalendar',
   HELP_HISTORYQUOTE_QUALITY: 'admindata/historyquotequality/',
   HELP_TAX_DATA: 'admindata/taxdata/',
-  HELP_TAX_DATA_SIMULATION_MODEL: 'admindata/taxdata/simulationmodel/',
 
   // The GTNet landing page is the architectural overview of the network; it describes no single view. Every screen
   // therefore points at the page that documents it, HELP_GT_NET_SETUP being the one for the server overview, its

@@ -570,13 +570,13 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Queries a remote server and returns stored data count, response payload, and "want to receive" markers.
+   * Queries a remote server and returns the response payload and the "want to receive" markers.
    */
   private QueryResult queryRemoteServerWithWantTracking(GTNet supplier, HistoryquoteExchangeMsg request) {
     GTNetConfig config = supplier.getGtNetConfig();
     if (config == null || !config.isAuthorizedRemoteEntry()) {
       log.debug("Skipping unauthorized server: {}", supplier.getDomainRemoteName());
-      return new QueryResult(0, null, null);
+      return new QueryResult(null, null);
     }
 
     // Get local GTNet entry for source identification
@@ -594,7 +594,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
     // Send request
     if (!gtNetRequestBudgetService.chargeOutgoing(supplier, requestEnvelope.messageCode)) {
-      return new QueryResult(0, null, null);
+      return new QueryResult(null, null);
     }
 
     SendResult result = baseDataClient.sendToMsgWithStatus(config.getTokenRemote(), supplier.getDomainRemoteName(),
@@ -606,7 +606,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
       } else {
         log.warn("GTNet server {} is unreachable", supplier.getDomainRemoteName());
       }
-      return new QueryResult(0, null, null);
+      return new QueryResult(null, null);
     }
 
     // GT_NET_HISTORYQUOTE_MAX_LIMIT_EXCEEDED_S and GT_NET_DAILY_REQUEST_LIMIT_EXCEEDED_S come back with the right
@@ -615,7 +615,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
         Set.of(GTNetMessageCodeType.GT_NET_HISTORYQUOTE_EXCHANGE_RESPONSE_S.getValue()), HistoryquoteExchangeMsg.class,
         "Historical price exchange with " + supplier.getDomainRemoteName());
     if (!outcome.isSuccess()) {
-      return new QueryResult(0, null, null);
+      return new QueryResult(null, null);
     }
 
     // Parse response
@@ -624,7 +624,7 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
 
       if (responsePayload == null) {
         log.debug("Empty response payload from {}", supplier.getDomainRemoteName());
-        return new QueryResult(0, null, null);
+        return new QueryResult(null, null);
       }
 
       int recordCount = responsePayload.getTotalRecordCount();
@@ -645,11 +645,11 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
             responsePayload.getCurrencypairsWantingData());
       }
 
-      return new QueryResult(recordCount, responsePayload, wantToReceive);
+      return new QueryResult(responsePayload, wantToReceive);
 
     } catch (Exception e) {
       log.error("Failed to parse historyquote response from {}", supplier.getDomainRemoteName(), e);
-      return new QueryResult(0, null, null);
+      return new QueryResult(null, null);
     }
   }
 
@@ -891,16 +891,14 @@ public class GTNetHistoryquoteService extends BaseGTNetExchangeService {
   }
 
   /**
-   * Result of querying a remote server, containing stored record count, response payload, and "want to receive"
-   * markers.
+   * Result of querying a remote server, containing the response payload and the "want to receive" markers. Both are
+   * null when the server was skipped, failed or returned no payload.
    */
   private static class QueryResult {
-    final int storedCount;
     final HistoryquoteExchangeMsg responsePayload;
     final HistoryquoteExchangeMsg wantToReceive;
 
-    QueryResult(int storedCount, HistoryquoteExchangeMsg responsePayload, HistoryquoteExchangeMsg wantToReceive) {
-      this.storedCount = storedCount;
+    QueryResult(HistoryquoteExchangeMsg responsePayload, HistoryquoteExchangeMsg wantToReceive) {
       this.responsePayload = responsePayload;
       this.wantToReceive = wantToReceive;
     }

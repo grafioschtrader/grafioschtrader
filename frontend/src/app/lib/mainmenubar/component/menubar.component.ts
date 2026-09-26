@@ -110,7 +110,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
     };
     this.menuItems[TopMenuTypes.LOGOUT] = {
       label: 'LOGOUT',
-      icon: 'fa fa-fw fa-minus',
+      icon: 'fa fa-fw fa-sign-out',
       visible: true,
       command: (event) => this.loginService.logoutWithLoginView()
     };

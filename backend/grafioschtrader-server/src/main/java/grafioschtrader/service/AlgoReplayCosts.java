@@ -5,14 +5,26 @@ import java.time.LocalDate;
 import grafioschtrader.dto.TaxEstimateRequest.EventKind;
 import grafioschtrader.dto.TaxEstimateResult;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.Transaction;
 import grafioschtrader.types.TransactionType;
 
 /** Side-effect-free costs for a single candidate order in instrument currency. */
 public final class AlgoReplayCosts {
-  public record Estimate(double fee, double tax, double accruedInterest, TaxEstimateResult diagnostics) {
+  public record Estimate(double fee, double tax, double accruedInterest, TaxEstimateResult diagnostics,
+      double custodyCredit) {
+    public Estimate(double fee, double tax, double accruedInterest, TaxEstimateResult diagnostics) {
+      this(fee, tax, accruedInterest, diagnostics, 0);
+    }
+
     public double total() {
       return fee + tax + accruedInterest;
     }
+  }
+
+  private AlgoReplayCustodyService.Session custody;
+
+  public void setCustody(AlgoReplayCustodyService.Session custody) {
+    this.custody = custody;
   }
 
   private final AlgoReplayFees fees;
@@ -26,15 +38,41 @@ public final class AlgoReplayCosts {
   }
 
   public Estimate estimate(Integer account, Security security, double units, double quotation, TransactionType type,
-      LocalDate date, double equity) {
-    double fee = fees.cost(account, security, units, quotation, type, date, equity);
+      LocalDate date, double equity, String settlementCurrency) {
+    return estimate(account, security, units, quotation, type, date, equity, settlementCurrency, true);
+  }
+
+  public Estimate estimate(Integer account, Security security, double units, double quotation, TransactionType type,
+      LocalDate date, double equity, String settlementCurrency, boolean useTradingCredits) {
+    double fee = fees.cost(account, security, units, quotation, type, date, equity, settlementCurrency);
+    double credit = 0;
+    if (custody != null && useTradingCredits) {
+      var discounted = custody.discount(account, security, type, date, fee);
+      fee = discounted.netCommission();
+      credit = discounted.credit();
+    }
     double accrued = 0;
     var instrument = inputs.instruments().get(security.getId());
     if (instrument != null && "GENERATED".equals(instrument.incomeSource()))
       accrued = new AlgoReplayCouponSchedule(instrument.couponTerms()).accrued(units, date);
     var result = taxes.estimate(security.getId(), account,
         type == TransactionType.ACCUMULATE ? EventKind.BUY : EventKind.SELL, date, units, quotation, accrued, 0);
-    return new Estimate(fee, result.estimatedTax(), accrued, result);
+    return new Estimate(fee, result.estimatedTax(), accrued, result, credit);
+  }
+
+  /**
+   * Counts a booked buy or sell for the trade-count variables of the fee rules. Every site that saves a fill calls it
+   * next to the custody commit; a redemption at maturity is not a trade and is not recorded.
+   */
+  public void committed(Transaction saved) {
+    fees.record(saved.getIdSecurityaccount(), saved.getSecurity().getId(), saved.getTransactionDate(),
+        saved.getAlgoFillId());
+  }
+
+  /** Counts a trade of the ledger the environment opens with; the transaction id is its identity. */
+  public void committedBeforeOpening(Transaction ledger) {
+    fees.record(ledger.getIdSecurityaccount(), ledger.getSecurity().getId(), ledger.getTransactionDate(),
+        "L:" + ledger.getIdTransaction());
   }
 
   /** One budget includes initial evaluation, account switches and every sizing candidate. */
@@ -42,10 +80,10 @@ public final class AlgoReplayCosts {
     private int evaluations;
 
     public Estimate estimate(Integer account, Security security, double units, double quotation, TransactionType type,
-        LocalDate date, double equity) {
+        LocalDate date, double equity, String settlementCurrency) {
       if (++evaluations > 100)
         throw new IllegalArgumentException("REPLAY_NOT_FUNDED");
-      return AlgoReplayCosts.this.estimate(account, security, units, quotation, type, date, equity);
+      return AlgoReplayCosts.this.estimate(account, security, units, quotation, type, date, equity, settlementCurrency);
     }
   }
 

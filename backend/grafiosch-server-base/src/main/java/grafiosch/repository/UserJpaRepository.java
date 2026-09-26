@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.UpdateQuery;
 import grafiosch.entities.User;
@@ -49,6 +51,27 @@ public interface UserJpaRepository
   List<User> findAllByOrderByIdUserAsc();
 
   int countByEnabled(boolean value);
+
+  /**
+   * Atomically records a security breach without merging a possibly stale or tenant-switched user. Advancing the
+   * version prevents later profile saves from overwriting the counter; clearing discards any cached user snapshot.
+   *
+   * @param idUser user whose counter is incremented
+   */
+  @Transactional
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE User u SET u.securityBreachCount = u.securityBreachCount + 1, u.version = u.version + 1 WHERE u.idUser = ?1")
+  void incrementSecurityBreachCount(Integer idUser);
+
+  /**
+   * Atomically records a request-limit violation, with the same version protection as the security-breach counter.
+   *
+   * @param idUser user whose counter is incremented
+   */
+  @Transactional
+  @Modifying(clearAutomatically = true)
+  @Query("UPDATE User u SET u.limitRequestExceedCount = u.limitRequestExceedCount + 1, u.version = u.version + 1 WHERE u.idUser = ?1")
+  void incrementLimitRequestExceedCount(Integer idUser);
 
   @Query("SELECT u.idUser AS idUser, u.localeStr AS localeStr FROM User u WHERE u.idUser IN ?1")
   List<IdUserLocale> findIdUserAndLocaleStrByIdUsers(List<Integer> idUsers);

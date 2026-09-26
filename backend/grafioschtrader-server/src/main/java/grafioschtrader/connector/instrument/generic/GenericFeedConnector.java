@@ -114,9 +114,11 @@ public class GenericFeedConnector extends BaseFeedConnector {
       return null;
     }
     try {
+      grafioschtrader.service.YamlConfigurationValidation
+          .requireValid(grafioschtrader.service.YamlConfigurationValidation.Format.TOKENS, yaml, "token.config.yaml");
       return new YAMLMapper().readValue(yaml, TokenConfig.class);
     } catch (Exception e) {
-      log.error("Failed to parse token config YAML: {}", e.getMessage());
+      log.error("Invalid token configuration YAML");
       return null;
     }
   }

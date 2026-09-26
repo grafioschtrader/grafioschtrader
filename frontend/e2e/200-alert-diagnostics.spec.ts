@@ -110,8 +110,7 @@ test('alert diagnostics separates evaluations and delivery recovery', async ({ p
     }
   });
 
-  await page.goto('/mainview/tenantTabMenu/tenantalert');
-  await page.getByRole('tab', { name: /^(Alert|Alarm|ALERT)$/ }).click();
+  await page.goto('/mainview/algooverview');
   await page.getByRole('button', { name: /Alert diagnostics|Alarmdiagnose|ALERT_DIAGNOSTICS/i }).click();
   const dialog = page.getByRole('dialog');
 

@@ -5,11 +5,25 @@ import {
   EventEmitter,
   Input,
   OnDestroy,
+  OnChanges,
   Output,
   ViewChild,
   ChangeDetectionStrategy
 } from '@angular/core';
 import * as yaml from 'js-yaml';
+import { HttpClient } from '@angular/common/http';
+import { TranslateModule } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+import { BaseService } from '../../lib/login/service/base.service';
+import { BaseSettings } from '../../lib/base.settings';
+
+export interface YamlDiagnostic {
+  category: string;
+  message: string;
+  path?: string;
+  line?: number;
+  column?: number;
+}
 
 /**
  * Wrapper component for the Monaco Editor with YAML language support.
@@ -22,18 +36,126 @@ import * as yaml from 'js-yaml';
 @Component({
   selector: 'yaml-editor',
   standalone: true,
+  imports: [TranslateModule],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div #editorContainer [style.height]="height" style="border: 1px solid #dee2e6; border-radius: 4px;"></div>
+    @if (format) {
+      <button type="button" class="btn btn-secondary mt-2" [disabled]="validating" (click)="validateForSubmit()">
+        {{ 'YAML_VALIDATE' | translate }}
+      </button>
+    }
+    <div aria-live="polite" class="mt-2">
+      @for (error of diagnostics; track $index) {
+        <div role="alert" class="text-red-600">
+          {{ error.category === 'REQUEST' ? (error.message | translate) : error.message }}
+          @if (error.line) {
+            <span>{{ 'YAML_LOCATION' | translate: { line: error.line, column: error.column } }}</span>
+          }
+        </div>
+      }
+      @if (validated && diagnostics.length === 0) {
+        <div>
+          {{ (format === 'CUSTODY' || format === 'CALENDAR' ? 'YAML_STRUCTURE_VALID' : 'YAML_VALID') | translate }}
+        </div>
+      }
+    </div>
   `
 })
-export class YamlEditorComponent implements AfterViewInit, OnDestroy {
+export class YamlEditorComponent extends BaseService implements AfterViewInit, OnDestroy, OnChanges {
   @ViewChild('editorContainer', { static: true })
   editorContainer: ElementRef<HTMLDivElement>;
+
+  constructor(private http: HttpClient = null) {
+    super();
+  }
+
+  @Input() format: 'FEES' | 'FEES_ACCOUNT' | 'TOKENS' | 'CALENDAR' | 'TAXES' | 'STRATEGY' | 'CUSTODY';
+  @Input() activatable = true;
+  @Output() syntaxValidChange = new EventEmitter<boolean>();
+  @Output() validationPendingChange = new EventEmitter<boolean>();
+  diagnostics: YamlDiagnostic[] = [];
+  private validationPending = false;
+  get validating(): boolean {
+    return this.validationPending;
+  }
+  set validating(value: boolean) {
+    if (this.validationPending !== value) {
+      this.validationPending = value;
+      this.validationPendingChange.emit(value);
+    }
+  }
+  validated = false;
+  syntaxValid = true;
+  private revision = 0;
+  private destroyed = false;
+
+  ngOnChanges(): void {
+    this.invalidateValidation();
+  }
+
+  private invalidateValidation(): void {
+    this.revision++;
+    this.diagnostics = [];
+    this.validated = false;
+    this.validating = false;
+  }
+
+  /** Synchronous syntax check also guards Save during the typing debounce. */
+  checkSyntax(): boolean {
+    this.diagnostics = [];
+    try {
+      if (this.value.trim()) yaml.load(this.value);
+      this.syntaxValid = true;
+    } catch (error: any) {
+      this.syntaxValid = false;
+      this.diagnostics = [
+        {
+          category: 'SYNTAX',
+          message: error.reason || 'Invalid YAML',
+          line: error.mark ? error.mark.line + 1 : undefined,
+          column: error.mark ? error.mark.column + 1 : undefined
+        }
+      ];
+    }
+    this.syntaxValidChange.emit(this.syntaxValid);
+    return this.syntaxValid;
+  }
+
+  /** Validates the exact current text. A response for an older revision never permits a save. */
+  async validateForSubmit(): Promise<boolean> {
+    clearTimeout(this.validationTimer);
+    if (!this.checkSyntax()) return false;
+    if (!this.format || !this.http) return true;
+    const revision = ++this.revision;
+    const text = this.value;
+    this.validating = true;
+    this.validated = false;
+    try {
+      const errors = await firstValueFrom(
+        this.http.post<YamlDiagnostic[]>(
+          `${BaseSettings.API_ENDPOINT}yaml/validate`,
+          { format: this.format, yaml: text, activatable: this.activatable },
+          this.getHeaders()
+        )
+      );
+      if (this.destroyed || revision !== this.revision || text !== this.value) return false;
+      this.diagnostics = errors;
+      this.validated = true;
+      return errors.length === 0;
+    } catch {
+      if (!this.destroyed && revision === this.revision)
+        this.diagnostics = [{ category: 'REQUEST', message: 'YAML_VALIDATION_UNAVAILABLE' }];
+      return false;
+    } finally {
+      if (revision === this.revision) this.validating = false;
+    }
+  }
 
   @Input() height = '500px';
 
   @Input() set value(val: string) {
+    if (this._value !== (val || '')) this.invalidateValidation();
     this._value = val || '';
     if (this.editor && this.editor.getValue() !== this._value) {
       this.editor.setValue(this._value);
@@ -74,7 +196,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
 
   private async initMonaco(): Promise<void> {
     const monaco = await YamlEditorComponent.ensureMonacoLoaded();
-    this.createEditor(monaco);
+    if (!this.destroyed) this.createEditor(monaco);
   }
 
   /**
@@ -135,7 +257,9 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     });
 
     this.editor.onDidChangeModelContent(() => {
+      this.invalidateValidation();
       this._value = this.editor.getValue();
+      this.checkSyntax();
       this.valueChange.emit(this._value);
       this.scheduleValidation(monaco);
     });
@@ -158,6 +282,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     const model = this.editor?.getModel();
     if (!model) return;
 
+    this.checkSyntax();
     const content = model.getValue();
     const markers: any[] = [];
 
@@ -206,7 +331,8 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
         // Schema-based property suggestions (checked at invocation time, not registration)
         const properties = this.getEffectiveProperties(this.findSchemaContext(model, position.lineNumber, indent));
 
-        if (properties) {
+        const afterColon = lineContent.indexOf(':') >= 0 && position.column > lineContent.indexOf(':') + 1;
+        if (properties && !afterColon) {
           for (const [key, prop] of Object.entries<any>(properties)) {
             const detail = this.getPropertyDetail(prop);
             suggestions.push({
@@ -222,7 +348,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
 
         // If we're after a colon, suggest enum values and field completions. The optional dash is what makes this
         // work on the first line of a sequence item, such as "- type: pct_gain" inside a scale-out plan.
-        if (lineContent.includes(':')) {
+        if (afterColon) {
           const keyMatch = lineContent.match(/^\s*(?:-\s+)?(\w+)\s*:/);
           if (keyMatch) {
             const fieldName = keyMatch[1];
@@ -235,7 +361,8 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
             }
 
             // Offer field-specific inline completions (e.g., EvalEx variables/functions)
-            const completions = this.fieldCompletions?.[fieldName];
+            const path = this.fieldPath(model, position.lineNumber, fieldName);
+            const completions = this.fieldCompletions?.[path] ?? this.fieldCompletions?.[fieldName];
             if (completions) {
               for (const c of completions) {
                 const kindKey = c.kind || 'Variable';
@@ -268,6 +395,23 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /** Property path with sequence indexes omitted, for domain-specific expression environments. */
+  private fieldPath(model: any, lineNumber: number, field: string): string {
+    const keys = [field];
+    const current = model.getLineContent(lineNumber).match(/^(\s*)(-\s+)?/);
+    let indent = current[0].length;
+    for (let i = lineNumber - 1; i >= 1; i--) {
+      const match = model.getLineContent(i).match(/^(\s*)(-\s+)?([^:#]+?)\s*:/);
+      if (!match) continue;
+      const parentIndent = match[1].length + (match[2]?.length ?? 0);
+      if (parentIndent < indent) {
+        keys.unshift(match[3].trim().replace(/^['"]|['"]$/g, ''));
+        indent = parentIndent;
+      }
+    }
+    return keys.join('.');
+  }
+
   /**
    * Walks up the YAML structure from the current line to determine which schema
    * definition corresponds to the current cursor position.
@@ -287,11 +431,11 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     for (let i = lineNumber - 1; i >= 1; i--) {
       const line = model.getLineContent(i);
       if (!line.trim()) continue;
-      const keyMatch = line.match(/^(\s*)(-\s+)?(\w[\w_]*)\s*:/);
+      const keyMatch = line.match(/^(\s*)(-\s+)?([^:#]+?)\s*:/);
       if (!keyMatch) continue;
       const keyIndent = keyMatch[1].length + (keyMatch[2]?.length ?? 0);
       if (keyIndent < targetIndent) {
-        parentKeys.unshift(keyMatch[3]);
+        parentKeys.unshift(keyMatch[3].trim().replace(/^['"]|['"]$/g, ''));
         targetIndent = keyIndent;
         if (keyIndent === 0) break;
       }
@@ -300,8 +444,8 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     // Traverse schema following parent keys
     let context: any = this.schema;
     for (const key of parentKeys) {
-      const prop = this.getEffectiveProperties(context)?.[key];
-      if (!prop) break;
+      const prop = this.getEffectiveProperties(context)?.[key] ?? context?.additionalProperties;
+      if (!prop || typeof prop !== 'object') break;
       if (prop.$ref) {
         context = this.resolveRef(prop.$ref);
       } else if (prop.properties) {
@@ -356,7 +500,7 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
     for (let i = lineNumber - 1; i >= 1; i--) {
       const line = model.getLineContent(i);
       if (!line.trim()) continue;
-      const keyMatch = line.match(/^(\s*)(\w[\w_]*)\s*:/);
+      const keyMatch = line.match(/^(\s*)([^:#]+?)\s*:/);
       if (!keyMatch || keyMatch[1].length >= currentIndent) continue;
 
       const context = this.findSchemaContext(model, i, keyMatch[1].length);
@@ -434,10 +578,10 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
       provideHover: (model: any, position: any) => {
         if (model !== editorModel || !this.schema) return null;
         const lineContent = model.getLineContent(position.lineNumber);
-        const keyMatch = lineContent.match(/^(\s*)(-\s+)?(\w[\w_]*)\s*:/);
+        const keyMatch = lineContent.match(/^(\s*)(-\s+)?([^:#]+?)\s*:/);
         if (!keyMatch) return null;
 
-        const key = keyMatch[3];
+        const key = keyMatch[3].trim().replace(/^['"]|['"]$/g, '');
         const word = model.getWordAtPosition(position);
         if (!word || word.word !== key) return null;
 
@@ -474,6 +618,8 @@ export class YamlEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    this.revision++;
     clearTimeout(this.validationTimer);
     this.completionDisposable?.dispose();
     this.hoverDisposable?.dispose();

@@ -56,6 +56,20 @@ public interface HoldCashaccountBalanceJpaRepository extends
   Double getBalanceBeforeDate(Integer idCashaccount, LocalDate beforeDate);
 
   /**
+   * Retrieves the balance valid on the given date: the record of that date, or the most recent record before it. Returns
+   * null if no record exists on or before the date (balance is implicitly 0). The overdraft checks use it, because a
+   * record of the date itself already contains the bookings of that day.
+   *
+   * Named query: HoldCashaccountBalance.getBalanceOnOrBeforeDate
+   *
+   * @param idCashaccount the cash account ID
+   * @param onDate        the date whose balance is wanted (inclusive)
+   * @return the balance valid on the date, or null if none exists
+   */
+  @Query(nativeQuery = true)
+  Double getBalanceOnOrBeforeDate(Integer idCashaccount, LocalDate onDate);
+
+  /**
    * Retrieves the minimum balance from all records at or after the given date. Returns null if no records exist at or
    * after the date.
    *

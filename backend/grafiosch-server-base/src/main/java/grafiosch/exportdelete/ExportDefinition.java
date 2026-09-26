@@ -5,6 +5,8 @@ public class ExportDefinition {
   public TENANT_USER tenantUser;
   public String sqlStatement;
   public int usage;
+  /** Optional SELECT of integer row IDs to capture before any deletion removes their ownership information. */
+  public final String deleteIdSelection;
   public static final int CHANGE_USER_ID = 0x08;
   /**
    * Shared data of the user to be deleted must be assigned to another user.
@@ -22,10 +24,26 @@ public class ExportDefinition {
    * @param usage        A bitmask indicating the type of operations.
    */
   public ExportDefinition(String table, TENANT_USER tenantUser, String sqlStatement, int usage) {
+    this(table, tenantUser, sqlStatement, usage, null);
+  }
+
+  /**
+   * Defines a deletion whose target IDs must survive the deletion of an ownership-bearing child table.
+   *
+   * @param table             target table
+   * @param tenantUser        scope used to bind the selection's tenant/user placeholders
+   * @param sqlStatement      delete fragment with exactly one placeholder for a captured row ID
+   * @param usage             operation flags; a captured-ID definition must be delete-only (creator reassignment is
+   *                          allowed)
+   * @param deleteIdSelection full SELECT returning one integer ID column, or null for ordinary scoped deletion
+   */
+  public ExportDefinition(String table, TENANT_USER tenantUser, String sqlStatement, int usage,
+      String deleteIdSelection) {
     this.table = table;
     this.tenantUser = tenantUser;
     this.sqlStatement = sqlStatement;
     this.usage = usage;
+    this.deleteIdSelection = deleteIdSelection;
   }
 
   /**

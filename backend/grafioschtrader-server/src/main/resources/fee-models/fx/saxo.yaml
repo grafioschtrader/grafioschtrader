@@ -1,0 +1,10 @@
+fx:
+  periods:
+    - validFrom: "1900-01-01"
+      status: ASSUMED
+      source: "https://www.home.saxo/en-ch/rates-and-conditions/commissions-charges-and-margin-schedule"
+      note: "Published 2026-09: FX spot mid price plus/minus no more than 0.25% on settlement of actual payments (trades, income); not on margin collateral. The maximum is applied, also to transfers, and to the whole history."
+      rules:
+        - name: All conversions
+          condition: "true"
+          expression: "0.25"

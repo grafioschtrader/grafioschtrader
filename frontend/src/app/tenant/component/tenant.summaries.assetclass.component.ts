@@ -17,7 +17,7 @@ import { SecurityaccountBaseTable } from '../../securityaccount/component/securi
 import { AppSettings } from '../../shared/app.settings';
 import { OptionalParameters, TimeSeriesQuotesService } from '../../historyquote/service/time.series.quotes.service';
 import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
-import { FilterService } from '@openng/optimus-ui/api';
+import { FilterService, SelectItem } from '@openng/optimus-ui/api';
 import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 import { AlgoTopService } from '../../algo/service/algo.top.service';
 import { AlgoTop } from '../../algo/model/algo.top';
@@ -113,6 +113,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
       .subscribe((translatedTitle) => (this.translatedTitle = translatedTitle));
     this.parentChildRegisterService.initRegistry();
     this.loadAlgoTopOptions();
+    this.preselectAlgoTop();
     this.readData();
     this.onComponentClick(null);
   }
@@ -204,6 +205,19 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
   }
 
   /**
+   * Opens the comparison against the hierarchy named in the address, which is how the monitoring card of the dashboard
+   * leads here. Without that parameter the report starts with the plain asset class grouping.
+   */
+  private preselectAlgoTop(): void {
+    const idAlgoTop = Number(this.activatedRoute.snapshot.queryParamMap.get('idAlgoTop'));
+    if (idAlgoTop) {
+      this.selectedIdAlgoTop = idAlgoTop;
+      this.securityaccountGroupBase = new SecurityaccountAlgoBucketGroup(this.translateService, this);
+      this.createColumns();
+    }
+  }
+
+  /**
    * The strategy dropdown is only offered where rule based trading is enabled at all, and only when the tenant has at
    * least one strategy: a dropdown whose single entry switches nothing off is noise.
    */
@@ -217,11 +231,26 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
         this.translateService.get('REBALANCING_NO_STRATEGY').subscribe((noStrategy: string) => {
           this.algoTopOptions = [
             { label: noStrategy, value: null },
-            ...algoTops.map((algoTop) => ({ label: algoTop.name, value: algoTop.idAlgoAssetclassSecurity }))
+            ...algoTops.map((algoTop) => this.algoTopOption(algoTop))
           ];
         });
       }
     });
+  }
+
+  /**
+   * A strategy whose comparison the backend would refuse stays visible, so that the user sees it exists, but cannot be
+   * chosen; hovering names the first reason.
+   */
+  private algoTopOption(algoTop: AlgoTop): SelectItem {
+    const readiness = algoTop.readiness;
+    const blocked = !!readiness && !readiness.readyForRebalancing;
+    return {
+      label: algoTop.name,
+      value: algoTop.idAlgoAssetclassSecurity,
+      disabled: blocked,
+      title: blocked ? readiness.issues[0]?.message : undefined
+    };
   }
 
   private addRebalancingColumns(): void {
@@ -241,7 +270,7 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     this.addColumnFeqH(DataType.String, 'recommendedAction', true, false, {
       width: 70,
       translateValues: TranslateValue.NORMAL,
-      columnGroupConfigs: [new ColumnGroupConfig('groupRecommendedAction')]
+      columnGroupConfigs: [this.translatedRebalancingGroupColumn('groupRecommendedAction')]
     });
     this.internalColumnConfigs.push(
       this.addColumnFeqH(DataType.Numeric, 'recommendedAmount', true, true, {
@@ -249,10 +278,13 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
         columnGroupConfigs: [new ColumnGroupConfig('groupRecommendedAmount')]
       })
     );
-    this.addColumnFeqH(DataType.NumericRaw, 'recommendedUnits', true, true, { width: 70 });
+    this.addColumnFeqH(DataType.NumericShowZero, 'recommendedUnits', true, true, {
+      width: 70,
+      maxFractionDigits: 0
+    });
     this.addColumnFeqH(DataType.String, 'recommendationReason', false, true, {
       translateValues: TranslateValue.NORMAL,
-      columnGroupConfigs: [new ColumnGroupConfig('groupRecommendationReason')]
+      columnGroupConfigs: [this.translatedRebalancingGroupColumn('groupRecommendationReason')]
     });
     this.addColumnFeqH(DataType.NumericRaw, 'parentDeviation', true, false, {
       width: 90,
@@ -273,6 +305,14 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
     this.initRebalancingSummaryFields();
   }
 
+  /** Group totals read raw fields, so action and reason tokens need their own translation callback. */
+  private translatedRebalancingGroupColumn(field: string): ColumnGroupConfig {
+    return new ColumnGroupConfig(field, undefined, (_column, _index, groups, rowIndex) => {
+      const key = groups.get(rowIndex)?.[field];
+      return key ? this.translateService.instant(key) : '';
+    });
+  }
+
   /**
    * Net equity, the cash actually held, gross exposure and the budget are four different answers and are shown as
    * four figures rather than as one total; for a short or margin book they are not close to each other.
@@ -280,6 +320,13 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
   private initRebalancingSummaryFields(): void {
     this.rebalancingSummaryFields = [
       ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'valuationDate', 'VALUATION_DATE'),
+      ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'lastCheckpointDate', 'LAST_CHECKPOINT_DATE'),
+      ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'nextCheckpointDate', 'NEXT_CHECKPOINT_DATE'),
+      ShowRecordConfigBase.createColumnConfig(
+        DataType.NumericRaw,
+        'overallAllocationMismatchPercentage',
+        'OVERALL_ALLOCATION_MISMATCH_PERCENTAGE'
+      ),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'grandNetEquityMC', 'NET_EQUITY'),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'grandActualCashMC', 'ACTUAL_CASH'),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'grandGrossExposureMC', 'GROSS_EXPOSURE'),

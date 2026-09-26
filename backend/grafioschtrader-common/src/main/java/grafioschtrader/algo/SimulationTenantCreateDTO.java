@@ -26,7 +26,7 @@ public class SimulationTenantCreateDTO {
 
   @Schema(description = "User-defined name for the simulation tenant.")
   @NotBlank
-  @Size(max = 40)
+  @Size(min = 1, max = 25)
   @DynamicFormField(uiOrder = "1.1", labelKey = "NAME")
   private String tenantName;
 
@@ -50,8 +50,11 @@ public class SimulationTenantCreateDTO {
   private Map<String, Integer> liquidationAssignments;
 
   @Schema(description = """
-      Initial cash balances per cash account (key = idSecuritycashAccount, value = balance amount).
-      Used only in MANUAL_CASH mode to create opening deposits.""")
+      Initial cash balances per cash account (key = idSecuritycashAccount, value = balance amount). Used only in
+      MANUAL_CASH mode, where it is required and must name at least one account. The keys are the cash accounts the
+      environment is built from: a named account is copied even with a balance of 0, an account left out is not
+      copied, and a portfolio is copied, together with its security accounts, only when one of its cash accounts is
+      named. A positive balance becomes an opening deposit.""")
   private Map<Integer, Double> cashBalances;
 
   public Integer getIdAlgoTop() {

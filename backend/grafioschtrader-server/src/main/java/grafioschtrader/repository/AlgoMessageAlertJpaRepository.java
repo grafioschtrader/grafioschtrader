@@ -39,6 +39,11 @@ public interface AlgoMessageAlertJpaRepository extends JpaRepository<AlgoMessage
 
   List<AlgoMessageAlert> findByIdTenantAndIdAlgoStrategy(Integer idTenant, Integer idAlgoStrategy);
 
+  /** Keeps alert history while retiring every unfinished delivery of an ineligible strategy. */
+  @org.springframework.data.jpa.repository.Modifying
+  @Query
+  int cancelPendingForStrategy(Integer tenant, Integer strategy);
+
   /**
    * The alarm carrying one exact signal identity on one day, if it exists. Used when the unique key has rejected a
    * fresh claim: the signal was already raised, and the question is only whether its notification went out. Reusing the

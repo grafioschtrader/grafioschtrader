@@ -112,14 +112,14 @@ class AlgoReplayFeesTest {
 
   private double cost(Securityaccount sa, double units, double quotation) {
     return new AlgoReplayFees(List.of(sa), estimator).cost(sa.getId(), security(), units, quotation,
-        TransactionType.ACCUMULATE, FILL, 0);
+        TransactionType.ACCUMULATE, FILL, 0, null);
   }
 
   @Test
   @DisplayName("An account without any model keeps the run free of charge")
   void noModelCostsNothing() {
     Securityaccount sa = account(1, null, null);
-    assertThat(AlgoReplayFees.effectiveYaml(sa)).isNull();
+    assertThat(FeeModelResolver.resolve(sa).commissionYaml()).isNull();
     assertThat(AlgoReplayFees.anyModelActive(List.of(sa))).isFalse();
     assertThat(cost(sa, 10, 100)).isZero();
   }
@@ -147,13 +147,35 @@ class AlgoReplayFeesTest {
   }
 
   @Test
+  @DisplayName("Only a booked fill uses up a trade-count allowance; estimating never does")
+  void onlyRecordedFillsCount() {
+    String firstFree = """
+        rules:
+          - name: First of the quarter
+            condition: 'tradesInQuarter == 0'
+            expression: '0'
+          - name: Standard
+            condition: 'true'
+            expression: '10'
+        """;
+    AlgoReplayFees fees = new AlgoReplayFees(List.of(account(1, firstFree, null)), estimator);
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0, "CHF")).isZero();
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0, "CHF")).isZero();
+    fees.record(1, 5, FILL, "fill-1");
+    fees.record(1, 5, FILL, "fill-1");
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0, "CHF")).isEqualTo(10.0);
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL.plusMonths(3), 0, "CHF"))
+        .as("a new quarter starts a new allowance").isZero();
+  }
+
+  @Test
   @DisplayName("Only the model of the account the order settles in is charged")
   void feeIsPerAccount() {
     Securityaccount free = account(1, null, null);
     Securityaccount charging = account(2, FLAT_TEN, null);
     AlgoReplayFees fees = new AlgoReplayFees(List.of(free, charging), estimator);
-    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0)).isZero();
-    assertThat(fees.cost(2, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0)).isEqualTo(10.0);
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0, null)).isZero();
+    assertThat(fees.cost(2, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0, null)).isEqualTo(10.0);
     assertThat(AlgoReplayFees.anyModelActive(List.of(free, charging)))
         .as("one charging account is enough for the run to state that it charges").isTrue();
   }
@@ -172,8 +194,8 @@ class AlgoReplayFeesTest {
   void saleIsCharged() {
     Securityaccount sa = account(1, BUY_OR_SELL, null);
     AlgoReplayFees fees = new AlgoReplayFees(List.of(sa), estimator);
-    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0)).isEqualTo(10.0);
-    assertThat(fees.cost(1, security(), 10, 100, TransactionType.REDUCE, FILL, 0)).isEqualTo(7.0);
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 0, null)).isEqualTo(10.0);
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.REDUCE, FILL, 0, null)).isEqualTo(7.0);
   }
 
   @Test
@@ -181,7 +203,7 @@ class AlgoReplayFeesTest {
   void unitsAreAbsolute() {
     Securityaccount sa = account(1, ONE_PERCENT_MIN_NINE, null);
     AlgoReplayFees fees = new AlgoReplayFees(List.of(sa), estimator);
-    assertThat(fees.cost(1, security(), -100, 100, TransactionType.REDUCE, FILL, 0)).isEqualTo(100.0);
+    assertThat(fees.cost(1, security(), -100, 100, TransactionType.REDUCE, FILL, 0, null)).isEqualTo(100.0);
   }
 
   @Test
@@ -205,7 +227,7 @@ class AlgoReplayFeesTest {
   void fixedAssetsReachTheModel() {
     Securityaccount sa = account(1, BY_ACCOUNT_SIZE, null);
     AlgoReplayFees fees = new AlgoReplayFees(List.of(sa), estimator);
-    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 1_000_000)).isEqualTo(5.0);
-    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 50_000)).isEqualTo(25.0);
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 1_000_000, null)).isEqualTo(5.0);
+    assertThat(fees.cost(1, security(), 10, 100, TransactionType.ACCUMULATE, FILL, 50_000, null)).isEqualTo(25.0);
   }
 }

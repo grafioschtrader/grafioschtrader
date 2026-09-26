@@ -291,13 +291,24 @@ export async function pickMultiSelect(page: Page, scope: Locator, fieldId: strin
     return;
   }
   const trigger = scope.locator(`#${fieldId}`).first();
-  await trigger.click();
   const overlay = page.locator('.p-multiselect-overlay, .p-multiselect-panel').first();
-  await overlay.waitFor({ state: 'visible', timeout: 5_000 });
   for (const name of enumNames) {
-    const item = overlay.locator('[role="option"]', { hasText: enumLabelRx(name) }).first();
-    await item.waitFor({ state: 'visible', timeout: 5_000 });
-    await item.click();
+    // A scrollable dialog (big-dialog) closes the overlay on the scroll that precedes a click, so the overlay is
+    // reopened and the click repeated until the option reports itself selected.
+    await expect(async () => {
+      if (!(await overlay.isVisible())) {
+        await trigger.click();
+        await overlay.waitFor({ state: 'visible', timeout: 2_000 });
+      }
+      const item = overlay.locator('[role="option"]', { hasText: enumLabelRx(name) }).first();
+      if ((await item.getAttribute('aria-selected', { timeout: 2_000 })) !== 'true') {
+        await item.click({ timeout: 2_000 });
+      }
+      await expect(item).toHaveAttribute('aria-selected', 'true', { timeout: 1_000 });
+    }).toPass({ timeout: 30_000 });
+  }
+  if (!(await overlay.isVisible())) {
+    return;
   }
   // Escape is consumed by the focused filter searchbox. The component also debounces trigger clicks for 150 ms.
   await page.waitForTimeout(200);

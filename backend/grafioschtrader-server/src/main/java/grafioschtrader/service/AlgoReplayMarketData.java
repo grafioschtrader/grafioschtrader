@@ -11,9 +11,11 @@ import java.util.Map;
 import org.springframework.data.domain.Limit;
 
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.repository.AlgoTradingRepository;
 import grafioschtrader.service.AlgoHistoricalValuationService.ClosingPrices;
 import grafioschtrader.service.AlgoMeanReversionDecisionService.MarketData;
+import grafioschtrader.types.CreateType;
 
 /**
  * The only window a historical replay has on the market, and the place where "no look-ahead" is enforced rather than
@@ -47,7 +49,14 @@ public class AlgoReplayMarketData implements MarketData, ClosingPrices {
   private final int loadLimit;
   private final Map<Integer, List<Historyquote>> cache = new HashMap<>();
   private java.util.function.Function<LocalDate, Map<String, Double>> receivables = _ -> Map.of();
+  private java.util.function.Function<LocalDate, Map<String, Double>> custodyLiabilities = _ -> Map.of();
+
+  public void setCustodyLiabilities(java.util.function.Function<LocalDate, Map<String, Double>> liabilities) {
+    this.custodyLiabilities = liabilities;
+  }
+
   private AlgoReplayInputs.Snapshot inputs;
+  private final Map<Integer, Map<Integer, List<Securitysplit>>> splitMaps = new HashMap<>();
 
   /** Installs the immutable allocation and exclusion policy captured before this worker started. */
   public void setInputs(AlgoReplayInputs.Snapshot inputs) {
@@ -57,6 +66,23 @@ public class AlgoReplayMarketData implements MarketData, ClosingPrices {
   @Override
   public AlgoReplayAllocation allocation() {
     return inputs == null ? null : inputs.allocation();
+  }
+
+  /**
+   * The splits captured with the run, built once per instrument for the whole replay. An instrument the snapshot does
+   * not know is left to the database.
+   */
+  @Override
+  public Map<Integer, List<Securitysplit>> splitMap(Integer idSecuritycurrency) {
+    if (inputs == null || !inputs.instruments().containsKey(idSecuritycurrency)) {
+      return null;
+    }
+    return splitMaps.computeIfAbsent(idSecuritycurrency, id -> {
+      List<Securitysplit> list = inputs.instruments().get(id).splits().stream()
+          .map(split -> new Securitysplit(id, split.date(), split.from(), split.to(), CreateType.ADD_MODIFIED_USER))
+          .toList();
+      return list.isEmpty() ? Map.of() : Map.of(id, list);
+    });
   }
 
   @Override
@@ -79,7 +105,9 @@ public class AlgoReplayMarketData implements MarketData, ClosingPrices {
 
   @Override
   public Map<String, Double> receivables(LocalDate asOf) {
-    return receivables.apply(asOf);
+    Map<String, Double> combined = new HashMap<>(receivables.apply(asOf));
+    custodyLiabilities.apply(asOf).forEach((currency, amount) -> combined.merge(currency, amount, Double::sum));
+    return combined;
   }
 
   /**

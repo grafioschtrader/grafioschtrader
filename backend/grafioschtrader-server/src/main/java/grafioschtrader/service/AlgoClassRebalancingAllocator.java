@@ -5,7 +5,6 @@ import java.util.*;
 
 /** Selects a bounded number of instruments for one class adjustment, without reading or writing market state. */
 public final class AlgoClassRebalancingAllocator {
-  public static final String VERSION = "class-bands-v1";
   public static final double EPSILON = 1e-8;
 
   private AlgoClassRebalancingAllocator() {
@@ -25,9 +24,29 @@ public final class AlgoClassRebalancingAllocator {
    */
   public static Selection allocate(double target, double actual, double deviation, int limit,
       List<Candidate> candidates, int idTop, int idClass, LocalDate date) {
+    return place(target, target - actual, deviation, limit, candidates, idTop, idClass, date);
+  }
+
+  /**
+   * Places a class adjustment of a given size rather than the full gap to the class target. A class that only funds the
+   * purchase of another class is reduced by that amount, which is less than its distance to its own target; the bands
+   * of its instruments are still measured against its target amount.
+   *
+   * @param target    target amount of the class, the base of the security bands
+   * @param requested signed exposure change to place; positive increases, negative reduces
+   * @param deviation security band in percentage points of the class target
+   * @param limit     maximum number of instruments to trade
+   * @return the selected changes and what could not be placed
+   */
+  public static Selection allocateAmount(double target, double requested, double deviation, int limit,
+      List<Candidate> candidates, int idTop, int idClass, LocalDate date) {
+    return place(target, requested, deviation, limit, candidates, idTop, idClass, date);
+  }
+
+  private static Selection place(double target, double requested, double deviation, int limit,
+      List<Candidate> candidates, int idTop, int idClass, LocalDate date) {
     if (!Double.isFinite(deviation) || deviation < 0 || deviation > 100 || limit < 1)
       throw new IllegalArgumentException("Invalid security band or trade limit");
-    double requested = target - actual;
     boolean increasing = requested > 0;
     Comparator<Candidate> order = Comparator.comparingDouble(c -> {
       double drift = target > 0 ? c.exposure() / target * 100 - c.weight() : c.exposure();

@@ -216,6 +216,9 @@ test.describe.serial('GTNet security import', () => {
       const currencySelect = editingRow.locator('select[data-field="currency"]');
       await expect(isinInput).toBeVisible({ timeout: 10_000 });
       await expect(tickerInput).toBeVisible({ timeout: 10_000 });
+      // startEditingRow() focuses and selects the first input after rendering. Wait for that callback so it cannot
+      // steal focus from tickerInput while Playwright is filling it and overwrite the ISIN with the ticker.
+      await expect(isinInput).toBeFocused();
       await isinInput.fill(position.isin);
       await expect(isinInput).toHaveValue(position.isin);
       await tickerInput.fill(position.tickerSymbol);
@@ -236,6 +239,9 @@ test.describe.serial('GTNet security import', () => {
 
     const positions = await readPositions(page, head!.idGtNetSecurityImpHead);
     expect(positions.map((entry) => entry.isin).sort()).toEqual(IMPORT_SET.positions.map((entry) => entry.isin).sort());
+    for (const position of IMPORT_SET.positions) {
+      expect(positions.find((entry) => entry.isin === position.isin)).toMatchObject(position);
+    }
   });
 
   test('adds further positions through the CSV upload', async ({ page }) => {

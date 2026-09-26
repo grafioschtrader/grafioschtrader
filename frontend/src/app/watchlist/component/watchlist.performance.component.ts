@@ -156,6 +156,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sLast', 'LAST', true, true, {
       maxFractionDigits: gps.getMaxFractionDigits(),
+      fractionDigitsField: 'securitycurrency.priceFractionDigits',
       cellTooltipFN: this.priceCellTooltip.bind(this)
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sChangePercentage', 'DAILY_CHANGE', true, true, {
@@ -192,13 +193,16 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       filterType: FilterType.likeDataType
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits()
+      maxFractionDigits: gps.getMaxFractionDigits(),
+      fractionDigitsField: 'securitycurrency.priceFractionDigits'
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sHigh', 'HIGH', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits()
+      maxFractionDigits: gps.getMaxFractionDigits(),
+      fractionDigitsField: 'securitycurrency.priceFractionDigits'
     });
     this.addColumn(DataType.Numeric, 'securitycurrency.sLow', 'LOW', true, true, {
-      maxFractionDigits: gps.getMaxFractionDigits()
+      maxFractionDigits: gps.getMaxFractionDigits(),
+      fractionDigitsField: 'securitycurrency.priceFractionDigits'
     });
     // Tells which day a price taken from the historical data belongs to. Hidden by default, it only matters for an
     // instrument whose intraday feed no longer delivers.

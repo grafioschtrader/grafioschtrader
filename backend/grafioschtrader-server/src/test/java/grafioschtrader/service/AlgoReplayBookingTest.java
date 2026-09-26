@@ -1,11 +1,25 @@
 package grafioschtrader.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.context.MessageSource;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import grafioschtrader.dto.CashAccountTransfer;
+import grafioschtrader.entities.Cashaccount;
+import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
+import grafioschtrader.repository.TransactionJpaRepository;
 
 class AlgoReplayBookingTest {
 
@@ -52,6 +66,50 @@ class AlgoReplayBookingTest {
     assertThat(restored.activeFromDate()).isNull();
     assertThat(restored.activeToDate()).isNull();
     assertThat(AlgoReplayBooking.tradableLot(restored)).isEqualTo(1.0);
+  }
+
+  @Test
+  @DisplayName("A custody charge is funded the day before, because money arriving on its own day pays nothing")
+  void custodyFundingIsBookedTheDayBeforeTheCharge() throws Exception {
+    LocalDate charge = LocalDate.of(2020, 6, 30);
+    LocalDate dayBefore = charge.minusDays(1);
+    Cashaccount target = cashaccount(40, "Migros CHF");
+    Cashaccount source = cashaccount(41, "Migros CHF 2");
+    var holdings = mock(HoldCashaccountBalanceJpaRepository.class);
+    when(holdings.getBalanceBeforeDate(40, charge)).thenReturn(180.0);
+    when(holdings.getMinBalanceFromDate(40, charge)).thenReturn(180.0);
+    when(holdings.getBalanceBeforeDate(41, dayBefore)).thenReturn(1000.0);
+    when(holdings.getMinBalanceFromDate(41, dayBefore)).thenReturn(1000.0);
+    var globalparameters = mock(GlobalparametersService.class);
+    when(globalparameters.getPrecisionForCurrency("CHF")).thenReturn(2);
+    var transactions = mock(TransactionJpaRepository.class);
+    var booking = new AlgoReplayBooking(mock(AlgoReplayCalendar.class), transactions,
+        mock(CurrencypairJpaRepository.class), holdings, globalparameters, mock(MessageSource.class));
+    var accounts = mock(AlgoReplayAccounts.class);
+    when(accounts.fundingSources(target, dayBefore)).thenReturn(List.of(source));
+    var state = mock(AlgoReplayState.class);
+    ReflectionTestUtils.setField(state, "accounts", accounts);
+    when(state.idTenant()).thenReturn(72);
+
+    var run = new grafioschtrader.entities.AlgoSimulationResult();
+    run.setIdSimulationResult(1);
+    ReflectionTestUtils.setField(state, "run", run);
+    ReflectionTestUtils.setField(state, "fx", mock(AlgoReplayFx.class));
+    booking.fundCustody(state, 30, target, charge, 200.0);
+
+    var transfer = ArgumentCaptor.forClass(CashAccountTransfer.class);
+    verify(transactions).updateCreateCashaccountTransfer(transfer.capture(), any());
+    assertThat(transfer.getValue().getDepositTransaction().getTransactionDate()).isEqualTo(dayBefore);
+    assertThat(transfer.getValue().getWithdrawalTransaction().getTransactionDate()).isEqualTo(dayBefore);
+    assertThat(transfer.getValue().getDepositTransaction().getCashaccountAmount()).isEqualTo(20.0);
+  }
+
+  private static Cashaccount cashaccount(int id, String name) {
+    Cashaccount cashaccount = new Cashaccount();
+    cashaccount.setIdSecuritycashAccount(id);
+    cashaccount.setName(name);
+    cashaccount.setCurrency("CHF");
+    return cashaccount;
   }
 
   private AlgoReplayInputs.Instrument instrument(boolean directBond, Integer denomination) {

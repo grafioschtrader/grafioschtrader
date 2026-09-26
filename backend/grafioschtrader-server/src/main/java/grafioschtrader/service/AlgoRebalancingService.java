@@ -8,7 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +77,8 @@ public class AlgoRebalancingService {
   public static final String REASON_BELOW_TARGET = "REBALANCE_BELOW_TARGET";
   /** A tactical bucket is below its target; only its own entry strategy may open that position. */
   public static final String REASON_TACTICAL_CEILING = "REBALANCE_TACTICAL_CEILING";
+  /** The class is inside its tolerance but is reduced to pay for the purchase of an underweight class. */
+  public static final String REASON_FUNDING_SOURCE = "REBALANCE_FUNDING_SOURCE";
   /** Gross exposure is already above the permitted ceiling, so no increase is proposed. */
   public static final String REASON_EXPOSURE_BREACH = "REBALANCE_EXPOSURE_BREACH";
   /** Net equity is not positive, so no exposure increasing order can be sized at all. */
@@ -110,6 +115,12 @@ public class AlgoRebalancingService {
 
   @Autowired
   private AlgoAlarmRecorder algoAlarmRecorder;
+
+  @Autowired
+  private AlgoMonitoringService algoMonitoringService;
+
+  @Autowired
+  private AlgoTopReadinessService readinessService;
 
   @Autowired
   private MessageSource messageSource;
@@ -183,26 +194,75 @@ public class AlgoRebalancingService {
   @Transactional(readOnly = true)
   public RebalancingPlan plan(Integer idTenant, AlgoTop algoTop, LocalDate valuationDate, Locale locale,
       LocalDate lastRebalancedOn, AlgoHistoricalValuationService.ClosingPrices market) {
-    return evaluate(idTenant, algoTop, valuationDate, locale, lastRebalancedOn, market, false);
+    return evaluate(idTenant, algoTop, valuationDate, locale, lastRebalancedOn, market, false, Set.of());
+  }
+
+  /**
+   * Completes the purchases a checkpoint decided but could not pay for on its own day. The classes the checkpoint
+   * triggered are sized towards their target again without asking the tolerance a second time: a partial fill may
+   * already have pulled such a class back inside its band, and the decision of the checkpoint was to reach the target,
+   * not merely to re-enter the band. All other classes are compared as on any other day.
+   *
+   * @param idTenant         tenant whose positions are compared
+   * @param algoTop          the hierarchy that defines the targets
+   * @param valuationDate    completed day whose closing holdings and prices are used
+   * @param locale           language of the bucket labels
+   * @param lastRebalancedOn day of the checkpoint being completed
+   * @param market           the replay's observations
+   * @param committed        ids of the AlgoAssetclass nodes the checkpoint triggered and left short
+   * @return the resolved comparison
+   */
+  @Transactional(readOnly = true)
+  public RebalancingPlan followUpPlan(Integer idTenant, AlgoTop algoTop, LocalDate valuationDate, Locale locale,
+      LocalDate lastRebalancedOn, AlgoHistoricalValuationService.ClosingPrices market, Set<Integer> committed) {
+    return evaluate(idTenant, algoTop, valuationDate, locale, lastRebalancedOn, market, false, committed);
   }
 
   /** Initial construction fills exact targets without the periodic selection cap or security bands. */
   @Transactional(readOnly = true)
   public RebalancingPlan initialPlan(Integer idTenant, AlgoTop algoTop, LocalDate date, Locale locale,
       AlgoHistoricalValuationService.ClosingPrices market) {
-    return evaluate(idTenant, algoTop, date, locale, date, market, true);
+    return evaluate(idTenant, algoTop, date, locale, date, market, true, Set.of());
   }
 
   private RebalancingPlan evaluate(Integer idTenant, AlgoTop algoTop, LocalDate valuationDate, Locale locale,
-      LocalDate lastRebalancedOn, AlgoHistoricalValuationService.ClosingPrices market, boolean initial) {
+      LocalDate lastRebalancedOn, AlgoHistoricalValuationService.ClosingPrices market, boolean initial,
+      Set<Integer> committed) {
     if (market.allocation() != null)
       algoTop = market.allocation().top(algoTop);
     AlgoStrategy strategy = requireRebalancingStrategy(algoTop);
     RebalancingTop config = requireConfig(strategy, algoTop);
-    Snapshot snapshot = valuation.value(idTenant, valuationDate, market);
+    Snapshot snapshot = valuation.value(idTenant, valuationDate, market, targetCurrencies(algoTop, market));
     snapshot.requireAvailable();
     return build(idTenant, algoTop, strategy, config, snapshot, valuationDate, locale, lastRebalancedOn, market,
-        initial);
+        initial, committed);
+  }
+
+  /**
+   * The currencies of every instrument the hierarchy targets. A target not yet held still needs its exchange rate to be
+   * sized, and the valuation otherwise only converts the currencies of existing cash accounts and positions - so an
+   * environment without an account in the instrument's currency would never buy it, although the purchase converts
+   * inside the trade.
+   *
+   * @param algoTop the hierarchy, already replaced by the replay's allocation when one is in effect
+   * @param market  the observations, whose allocation may override buckets and members
+   * @return the instrument currencies, possibly empty
+   */
+  private Set<String> targetCurrencies(AlgoTop algoTop, AlgoHistoricalValuationService.ClosingPrices market) {
+    List<AlgoAssetclass> buckets = algoAssetclassJpaRepository
+        .findByIdTenantAndIdAlgoAssetclassParent(algoTop.getIdTenant(), algoTop.getIdAlgoAssetclassSecurity());
+    if (market.allocation() != null)
+      buckets = market.allocation().buckets(buckets);
+    Set<String> currencies = new TreeSet<>();
+    for (AlgoAssetclass bucket : buckets) {
+      List<AlgoSecurity> members = algoSecurityJpaRepository
+          .findByIdAlgoSecurityParentAndIdTenant(bucket.getIdAlgoAssetclassSecurity(), algoTop.getIdTenant());
+      if (market.allocation() != null)
+        members = market.allocation().securities(members);
+      members.stream().map(AlgoSecurity::getSecurity).filter(Objects::nonNull)
+          .forEach(security -> currencies.add(security.getCurrency()));
+    }
+    return currencies;
   }
 
   /**
@@ -224,6 +284,8 @@ public class AlgoRebalancingService {
     if (algoTop == null) {
       throw AlgoHistoricalValuationService.invalid("id.algo.top", "simulation.algotop.not.found", idAlgoTop);
     }
+    // Refused before anything is valued, with the finding named, rather than failing inside the plan.
+    readinessService.requireReadyForRebalancing(algoTop, locale);
     return plan(idTenant, algoTop, valuationDate, locale);
   }
 
@@ -271,6 +333,39 @@ public class AlgoRebalancingService {
   }
 
   /**
+   * The first valuation day on which the next periodic checkpoint of a hierarchy falls due, for a summary that only
+   * holds the stored checkpoint and should not value anything.
+   *
+   * @param algoTop the hierarchy whose rebalancing configuration sets the interval
+   * @param last    the last recorded checkpoint, or null when none exists
+   * @return the due day, or null without a last checkpoint or without a usable rebalancing configuration
+   */
+  @Transactional(readOnly = true)
+  public LocalDate nextCheckpointDate(AlgoTop algoTop, LocalDate last) {
+    if (last == null) {
+      return null;
+    }
+    try {
+      return last.plusDays(checkpointInterval(requireConfig(requireRebalancingStrategy(algoTop), algoTop)));
+    } catch (DataViolationException e) {
+      return null;
+    }
+  }
+
+  /**
+   * The display name of a bucket, exactly as the rebalancing report labels it: its own name, otherwise the translated
+   * asset class it stands for.
+   *
+   * @param idBucket id of the AlgoAssetclass node
+   * @param locale   language of an asset class label
+   * @return the label, or null when the bucket no longer exists
+   */
+  @Transactional(readOnly = true)
+  public String bucketLabel(Integer idBucket, Locale locale) {
+    return algoAssetclassJpaRepository.findById(idBucket).map(bucket -> label(bucket, locale)).orElse(null);
+  }
+
+  /**
    * Whether the allocation of this hierarchy is to be compared on that day at all.
    *
    * <p>
@@ -310,7 +405,7 @@ public class AlgoRebalancingService {
 
   private RebalancingPlan build(Integer idTenant, AlgoTop algoTop, AlgoStrategy strategy, RebalancingTop config,
       Snapshot snapshot, LocalDate valuationDate, Locale locale, LocalDate lastRebalancedOn,
-      AlgoHistoricalValuationService.ClosingPrices market, boolean initial) {
+      AlgoHistoricalValuationService.ClosingPrices market, boolean initial, Set<Integer> committed) {
     double equity = snapshot.equity();
     double gross = snapshot.grossExposure();
     double topPercentage = requiredWeight(algoTop.getPercentage(), algoTop.getName());
@@ -329,16 +424,17 @@ public class AlgoRebalancingService {
     List<RebalancingPlan.Line> lines = new ArrayList<>();
     List<RebalancingPlan.ClassAdjustment> adjustments = new ArrayList<>();
     lines.add(topLine(algoTop, topPercentage, equity, gross, breach));
+    double cash = equity - snapshot.positions().stream().mapToDouble(p -> p.closingValue() * fx(snapshot, p)).sum();
+    List<BucketInput> inputs = bucketInputs(algoTop, buckets, topPercentage, exposure, locale, market);
+    Map<Integer, Double> funding = initial || breach ? Map.of()
+        : fundingSales(inputs, equity, budget, config, committed, cash);
     double unusedTactical = 0;
-    for (AlgoAssetclass bucket : buckets) {
-      List<AlgoSecurity> members = algoSecurityJpaRepository
-          .findByIdAlgoSecurityParentAndIdTenant(bucket.getIdAlgoAssetclassSecurity(), algoTop.getIdTenant());
-      if (market.allocation() != null)
-        members = market.allocation().securities(members);
-      boolean tactical = isTactical(bucket, members, algoTop.getIdTenant());
-      double bucketTargetPercentage = topPercentage * requiredWeight(bucket.getPercentage(), label(bucket, locale))
-          / 100.0;
-      double bucketActual = classExposure(members, exposure);
+    for (BucketInput input : inputs) {
+      AlgoAssetclass bucket = input.bucket();
+      List<AlgoSecurity> members = input.members();
+      boolean tactical = input.tactical();
+      double bucketTargetPercentage = input.targetPercentage();
+      double bucketActual = input.actual();
       boolean bucketShort = classExposure(members, signed) < 0;
       lines.add(line(StrategyHelper.ASSET_CLASS_LEVEL_LETTER, bucket.getIdAlgoAssetclassSecurity(),
           algoTop.getIdAlgoAssetclassSecurity(), null, label(bucket, locale), tactical, bucketTargetPercentage,
@@ -351,21 +447,91 @@ public class AlgoRebalancingService {
             exposure, signed, unitValue, valuationDate, locale));
       } else {
         allocateClass(algoTop, bucket, members, config, bucketTargetPercentage, bucketActual, equity, budget, breach,
-            tactical, exposure, signed, unitValue, valuationDate, locale, market, lines, adjustments);
+            tactical, committed.contains(bucket.getId()), funding.getOrDefault(bucket.getId(), 0.0), bucketShort,
+            exposure, signed, unitValue, valuationDate, locale, market, lines, adjustments);
       }
     }
     boolean driftDue = lines.stream().anyMatch(RebalancingPlan.Line::actionable);
-    boolean periodicDue = isCheckpointDue(idTenant, algoTop, config, valuationDate, lastRebalancedOn);
-    double cash = equity - snapshot.positions().stream().mapToDouble(p -> p.closingValue() * fx(snapshot, p)).sum();
+    LocalDate lastCheckpoint = lastCheckpoint(idTenant, algoTop, lastRebalancedOn);
+    LocalDate nextCheckpoint = lastCheckpoint == null ? null : lastCheckpoint.plusDays(checkpointInterval(config));
+    boolean periodicDue = nextCheckpoint == null || !valuationDate.isBefore(nextCheckpoint);
     return new RebalancingPlan(idTenant, algoTop.getIdAlgoAssetclassSecurity(), strategy.getIdAlgoRuleStrategy(),
         algoTop.getName(), valuationDate, snapshot.currency(), equity, cash, gross, budget, unusedTactical,
-        topPercentage, tolerance, breach, periodicDue, driftDue, lines, adjustments);
+        topPercentage, tolerance, breach, periodicDue, driftDue, lines, adjustments, lastCheckpoint, nextCheckpoint);
+  }
+
+  /** One bucket of the hierarchy with its members and its resolved target and actual exposure. */
+  record BucketInput(AlgoAssetclass bucket, List<AlgoSecurity> members, boolean tactical,
+      double targetPercentage, double actual) {
+  }
+
+  private List<BucketInput> bucketInputs(AlgoTop algoTop, List<AlgoAssetclass> buckets, double topPercentage,
+      Map<Integer, Double> exposure, Locale locale, AlgoHistoricalValuationService.ClosingPrices market) {
+    List<BucketInput> inputs = new ArrayList<>();
+    for (AlgoAssetclass bucket : buckets) {
+      List<AlgoSecurity> members = algoSecurityJpaRepository
+          .findByIdAlgoSecurityParentAndIdTenant(bucket.getIdAlgoAssetclassSecurity(), algoTop.getIdTenant());
+      if (market.allocation() != null)
+        members = market.allocation().securities(members);
+      inputs.add(new BucketInput(bucket, members, isTactical(bucket, members, algoTop.getIdTenant()),
+          topPercentage * requiredWeight(bucket.getPercentage(), label(bucket, locale)) / 100.0,
+          classExposure(members, exposure)));
+    }
+    return inputs;
+  }
+
+  /** Whether a class gap is large enough to be traded: beyond the tolerance, or committed by an earlier checkpoint. */
+  private static boolean isTriggered(double gap, double budget, RebalancingTop config, boolean committed) {
+    return Math.abs(gap) > 1e-8
+        && (committed || budget <= 0 || Math.abs(gap) > budget * config.getThresholdPercentage() / 100 + 1e-8);
+  }
+
+  /**
+   * The sales that pay for the purchases of the triggered classes when the cash of the portfolio does not. A rebalancing
+   * redistributes what is invested rather than bringing in new money, so the purchase of an underweight class is
+   * financed out of the overweight ones - also when each of them is still inside its own tolerance, which is the usual
+   * case in a fully invested portfolio: the overweight that mirrors one large underweight is spread over several
+   * classes. The missing amount is taken from every overweight class in proportion to its overweight, and never more
+   * than that overweight, so no class is pushed below its own target.
+   *
+   * @param inputs    the buckets of the hierarchy
+   * @param equity    net equity of the portfolio
+   * @param budget    investment budget the tolerance is measured against
+   * @param config    the rebalancing configuration
+   * @param committed classes an earlier checkpoint already decided, which count as triggered
+   * @param cash      cash of the portfolio in tenant currency, available to the purchases first
+   * @return the exposure reduction per AlgoAssetclass id, empty when the cash suffices or nothing is overweight
+   */
+  static Map<Integer, Double> fundingSales(List<BucketInput> inputs, double equity, double budget,
+      RebalancingTop config, Set<Integer> committed, double cash) {
+    double net = 0;
+    Map<Integer, Double> overweight = new HashMap<>();
+    for (BucketInput input : inputs) {
+      if (input.tactical()) {
+        continue;
+      }
+      double gap = Math.max(0, equity * input.targetPercentage() / 100) - input.actual();
+      if (isTriggered(gap, budget, config, committed.contains(input.bucket().getId()))) {
+        net += gap;
+      } else if (gap < -1e-8) {
+        overweight.put(input.bucket().getId(), -gap);
+      }
+    }
+    double shortfall = net - Math.max(0, cash);
+    double total = overweight.values().stream().mapToDouble(Double::doubleValue).sum();
+    if (shortfall <= 1e-8 || total <= 1e-8) {
+      return Map.of();
+    }
+    double share = Math.min(1, shortfall / total);
+    Map<Integer, Double> sales = new HashMap<>();
+    overweight.forEach((id, amount) -> sales.put(id, amount * share));
+    return sales;
   }
 
   /** The parent decides the adjustment; securities only decide where that adjustment can be placed. */
   private void allocateClass(AlgoTop top, AlgoAssetclass bucket, List<AlgoSecurity> members, RebalancingTop config,
       double targetPercentage, double actual, double equity, double budget, boolean breach, boolean tactical,
-      Map<Integer, Double> exposure, Map<Integer, Double> signed, UnitValues unitValues, LocalDate date, Locale locale,
+      boolean committed, double funding, boolean shortClass, Map<Integer, Double> exposure, Map<Integer, Double> signed, UnitValues unitValues, LocalDate date, Locale locale,
       AlgoHistoricalValuationService.ClosingPrices market, List<RebalancingPlan.Line> lines,
       List<RebalancingPlan.ClassAdjustment> adjustments) {
     requireWeightsComplete(members.stream().map(AlgoSecurity::getPercentage).toList(), label(bucket, locale));
@@ -376,27 +542,28 @@ public class AlgoRebalancingService {
         : bucket.getSecurityDeviationPercentage();
     int limit = bucket.getMaxTradedSecuritiesPerAssetclass() == null ? config.getMaxTradedSecuritiesPerAssetclass()
         : bucket.getMaxTradedSecuritiesPerAssetclass();
-    boolean triggered = Math.abs(gap) > 1e-8
-        && (budget <= 0 || Math.abs(gap) > budget * config.getThresholdPercentage() / 100 + 1e-8);
-    String blocked = !bucket.isActivatable() ? "REBALANCE_INACTIVE"
-        : tactical ? REASON_TACTICAL_CEILING
-            : gap > 0 && breach ? (equity <= 0 ? REASON_NON_POSITIVE_EQUITY : REASON_EXPOSURE_BREACH) : null;
-    ClassMembers prepared = classMembers(members, exposure, unitValues, date, market, triggered && blocked == null);
+    boolean triggered = isTriggered(gap, budget, config, committed);
+    boolean funds = !triggered && !tactical && funding > 1e-8;
+    String blocked = tactical ? REASON_TACTICAL_CEILING
+        : gap > 0 && breach ? (equity <= 0 ? REASON_NON_POSITIVE_EQUITY : REASON_EXPOSURE_BREACH) : null;
+    boolean trades = (triggered || funds) && blocked == null;
+    ClassMembers prepared = classMembers(members, exposure, unitValues, date, market, trades);
     List<AlgoClassRebalancingAllocator.Candidate> candidates = prepared.candidates();
-    var allocation = triggered && blocked == null
-        ? AlgoClassRebalancingAllocator.allocate(target, actual, band, limit, candidates, top.getId(), bucket.getId(),
-            date)
-        : new AlgoClassRebalancingAllocator.Selection(Map.of(), triggered ? gap : 0, blocked);
-    double requested = triggered ? gap : 0;
+    double requested = triggered ? gap : funds ? -funding : 0;
+    var allocation = trades
+        ? AlgoClassRebalancingAllocator.allocateAmount(target, requested, band, limit, candidates, top.getId(),
+            bucket.getId(), date)
+        : new AlgoClassRebalancingAllocator.Selection(Map.of(), requested, blocked);
     adjustments.add(new RebalancingPlan.ClassAdjustment(bucket.getId(), drift, band, limit, requested,
         requested - allocation.residual(), allocation.residual(), allocation.reason()));
-    replaceClassLine(lines, drift, requested - allocation.residual(), allocation.reason());
+    replaceClassLine(lines, drift, requested - allocation.residual(),
+        allocation.reason() == null && funds ? REASON_FUNDING_SOURCE : allocation.reason(), shortClass);
     for (var candidate : candidates) {
       AlgoSecurity member = prepared.byId().get(candidate.idSecurity());
       lines.add(selectedLine(bucket, member, targetPercentage * candidate.weight() / 100, target, equity, candidate,
           signed.getOrDefault(candidate.idSecurity(), 0.0) < 0, unitValues.of(member.getSecurity(), date),
           allocation.changes().get(candidate.idSecurity()), tactical,
-          !triggered ? REASON_WITHIN_TOLERANCE : blocked != null ? blocked : "REBALANCE_NOT_SELECTED"));
+          !triggered && !funds ? REASON_WITHIN_TOLERANCE : blocked != null ? blocked : "REBALANCE_NOT_SELECTED"));
     }
   }
 
@@ -420,7 +587,7 @@ public class AlgoRebalancingService {
     distinct.forEach((id, member) -> {
       Security security = member.getSecurity();
       Double unit = unitValues.of(security, date);
-      boolean eligible = member.isActivatable() && unit != null && Double.isFinite(unit) && unit > 0
+      boolean eligible = unit != null && Double.isFinite(unit) && unit > 0
           && (security.getActiveFromDate() == null || !date.isBefore(security.getActiveFromDate()))
           && (security.getActiveToDate() == null || !date.isAfter(security.getActiveToDate()));
       candidates.add(new AlgoClassRebalancingAllocator.Candidate(id, weights.get(id), exposure.getOrDefault(id, 0.0),
@@ -436,39 +603,20 @@ public class AlgoRebalancingService {
   }
 
   /** Class recommendations show what the selected instruments can accomplish, with any residual reported separately. */
-  private void replaceClassLine(List<RebalancingPlan.Line> lines, double drift, double change, String limitReason) {
+  private void replaceClassLine(List<RebalancingPlan.Line> lines, double drift, double change, String limitReason,
+      boolean shortClass) {
     int index = lines.size() - 1;
     var line = lines.get(index);
     boolean selected = Math.abs(change) > 1e-8;
+    // A class that only funds another one is inside its tolerance, so its line still reads HOLD; the trade decides.
+    AlgoRecommendationAction action = !selected ? AlgoRecommendationAction.REBALANCE_HOLD
+        : line.action() != AlgoRecommendationAction.REBALANCE_HOLD ? line.action()
+            : (change < 0) != shortClass ? AlgoRecommendationAction.REBALANCE_SELL
+                : AlgoRecommendationAction.REBALANCE_BUY;
     lines.set(index, new RebalancingPlan.Line(line.levelType(), line.idNode(), line.idParentNode(), null, line.label(),
         line.tactical(), line.targetPercentage(), line.actualPercentage(), line.deviation(), line.targetAmount(),
-        line.actualAmount(), selected ? line.action() : AlgoRecommendationAction.REBALANCE_HOLD,
+        line.actualAmount(), action,
         selected ? Math.abs(change) : null, null, limitReason == null ? line.rationale() : limitReason, drift, change));
-  }
-
-  /** Captures effective settings and hierarchy weights for the audit of a new run; old run JSON is never rewritten. */
-  public Map<String, Object> configurationSnapshot(AlgoTop top) {
-    RebalancingTop config = requireConfig(requireRebalancingStrategy(top), top);
-    List<Map<String, Object>> classes = new ArrayList<>();
-    for (AlgoAssetclass bucket : sortedBuckets(top, Locale.ROOT)) {
-      List<Map<String, Object>> securities = new ArrayList<>();
-      for (AlgoSecurity member : algoSecurityJpaRepository.findByIdAlgoSecurityParentAndIdTenant(bucket.getId(),
-          top.getIdTenant())) {
-        if (member.getSecurity() != null)
-          securities.add(Map.of("id", member.getSecurity().getId(), "weight", member.getPercentage(), "active",
-              member.isActivatable()));
-      }
-      classes.add(Map.of("id", bucket.getId(), "weight", bucket.getPercentage(), "active", bucket.isActivatable(),
-          "securityDeviationPercentage",
-          bucket.getSecurityDeviationPercentage() == null ? config.getSecurityDeviationPercentage()
-              : bucket.getSecurityDeviationPercentage(),
-          "maxTradedSecuritiesPerAssetclass",
-          bucket.getMaxTradedSecuritiesPerAssetclass() == null ? config.getMaxTradedSecuritiesPerAssetclass()
-              : bucket.getMaxTradedSecuritiesPerAssetclass(),
-          "securities", securities));
-    }
-    return Map.of("version", AlgoClassRebalancingAllocator.VERSION, "topId", top.getId(), "weight", top.getPercentage(),
-        "configuration", config, "classes", classes, "tieBreak", "SplitMix64(topId,classId,dateEpochDay,securityId)");
   }
 
   private RebalancingPlan.Line selectedLine(AlgoAssetclass bucket, AlgoSecurity member, double targetPercentage,
@@ -681,8 +829,15 @@ public class AlgoRebalancingService {
             && !AlgoAlertEvaluationCoordinator.isAlertType(s.getAlgoStrategyImplementations()));
   }
 
-  /** Bucket label: the free category name when the user gave one, otherwise the asset class triple it stands for. */
   private String label(AlgoAssetclass bucket, Locale locale) {
+    return label(bucket, locale, messageSource);
+  }
+
+  /**
+   * Bucket label: the free category name when the user gave one, otherwise the asset class triple it stands for. Shared
+   * with the readiness check, so that a refusal names a bucket exactly as the comparison report does.
+   */
+  static String label(AlgoAssetclass bucket, Locale locale, MessageSource messageSource) {
     if (bucket.getName() != null && !bucket.getName().isBlank()) {
       return bucket.getName();
     }
@@ -690,12 +845,10 @@ public class AlgoRebalancingService {
       return String.valueOf(bucket.getIdAlgoAssetclassSecurity());
     }
     var assetclass = bucket.getAssetclass();
-    return translate(assetclass.getCategoryType().name(), locale) + ", "
-        + translate(assetclass.getSpecialInvestmentInstrument().name(), locale);
-  }
-
-  private String translate(String key, Locale locale) {
-    return messageSource.getMessage(key, null, key, locale);
+    return messageSource.getMessage(assetclass.getCategoryType().name(), null, assetclass.getCategoryType().name(),
+        locale) + ", "
+        + messageSource.getMessage(assetclass.getSpecialInvestmentInstrument().name(), null,
+            assetclass.getSpecialInvestmentInstrument().name(), locale);
   }
 
   private static double requiredWeight(Float percentage, String node) {
@@ -728,35 +881,54 @@ public class AlgoRebalancingService {
    * Whether any AlgoTop still owes an evaluation today. Deliberately cheap: it reads the run day of the stored plans
    * and values nothing, because it runs on the five minute scan that only decides whether to enqueue the real work.
    *
-   * @return true when at least one activatable AlgoTop with a rebalancing strategy has no plan of today
+   * @return true when the assigned monitoring hierarchy of a tenant has a rebalancing strategy and no plan of today
    */
   @Transactional(readOnly = true)
   public boolean hasDueRebalancing() {
     return features.isAlgo() && algoTopJpaRepository.findAll().stream().anyMatch(this::isDueToday);
   }
 
-  /** Evaluates every tenant. This is the background pass. */
+  /**
+   * Evaluates every tenant. This is the background pass. Only the hierarchy a tenant has assigned to monitoring gets a
+   * stored plan; any other hierarchy, typically one kept for simulation, is compared on demand by the report and the
+   * replay only, and a plan left over from an earlier assignment is removed here.
+   */
   public void evaluateAll() {
     if (features.isAlgo()) {
-      algoTopJpaRepository.findAll().forEach(algoTop -> evaluateOne(algoTop.getIdTenant(), algoTop, true));
+      algoTopJpaRepository.findAll().forEach(algoTop -> {
+        if (isMonitored(algoTop)) {
+          evaluateOne(algoTop.getIdTenant(), algoTop, true);
+        } else {
+          algoRecommendationJpaRepository.deleteByIdTenantAndIdAlgoTop(algoTop.getIdTenant(), algoTop.getId());
+        }
+      });
     }
   }
 
   /**
-   * Evaluates the AlgoTops of one tenant, whether or not a plan of today already exists. This is what a user gets when
-   * asking for an evaluation by hand, where waiting for tomorrow would be an odd answer.
+   * Evaluates the assigned monitoring hierarchy of one tenant, whether or not a plan of today already exists. This is
+   * what a user gets when asking for an evaluation by hand, where waiting for tomorrow would be an odd answer.
    *
    * @param idTenant the tenant to evaluate
    */
   public void evaluateForTenant(Integer idTenant) {
     if (features.isAlgo()) {
-      algoTopJpaRepository.findByIdTenantOrderByName(idTenant)
+      algoTopJpaRepository.findByIdTenantOrderByName(idTenant).stream().filter(this::isMonitored)
           .forEach(algoTop -> evaluateOne(idTenant, algoTop, false));
     }
   }
 
+  /**
+   * A stored plan exists for monitoring: its checkpoint paces the periodic signal and its lines back the notification.
+   * Both compare the hierarchy against the real holdings of the main tenant, which is meaningless for a hierarchy that
+   * is not the assigned one.
+   */
+  private boolean isMonitored(AlgoTop algoTop) {
+    return algoMonitoringService.isAssigned(algoTop.getIdTenant(), algoTop.getId());
+  }
+
   private boolean isDueToday(AlgoTop algoTop) {
-    if (!algoTop.isActivatable()) {
+    if (!isMonitored(algoTop)) {
       return false;
     }
     boolean configured = algoStrategyJpaRepository
@@ -828,11 +1000,7 @@ public class AlgoRebalancingService {
     row.setCheckpointDate(checkpoint);
     row.setValuationDate(plan.valuationDate());
     row.setCurrency(plan.currency());
-    row.setTargetPercentage(line.targetPercentage());
-    row.setActualPercentage(line.actualPercentage());
     row.setDeviationPercentage(line.deviation());
-    row.setTargetAmount(line.targetAmount());
-    row.setActualAmount(line.actualAmount());
     row.setRecommendedAction(line.action());
     row.setRecommendedAmount(line.recommendedAmount());
     row.setRecommendedUnits(line.recommendedUnits());
@@ -882,12 +1050,18 @@ public class AlgoRebalancingService {
 
   private boolean isCheckpointDue(Integer idTenant, AlgoTop algoTop, RebalancingTop config, LocalDate valuationDate,
       LocalDate lastRebalancedOn) {
-    Optional<LocalDate> last = lastRebalancedOn != null ? Optional.of(lastRebalancedOn)
-        : algoRecommendationJpaRepository.findLastCheckpointDate(idTenant, algoTop.getIdAlgoAssetclassSecurity());
-    if (last.isEmpty()) {
-      return true;
-    }
-    return !valuationDate.isBefore(last.get().plusDays(checkpointInterval(config)));
+    LocalDate last = lastCheckpoint(idTenant, algoTop, lastRebalancedOn);
+    return last == null || !valuationDate.isBefore(last.plusDays(checkpointInterval(config)));
+  }
+
+  /**
+   * The day the checkpoint interval counts from: the replay's own last redeployment when it passes one, otherwise the
+   * checkpoint of the stored live plan, which only the monitored hierarchy has.
+   */
+  private LocalDate lastCheckpoint(Integer idTenant, AlgoTop algoTop, LocalDate lastRebalancedOn) {
+    return lastRebalancedOn != null ? lastRebalancedOn
+        : algoRecommendationJpaRepository.findLastCheckpointDate(idTenant, algoTop.getIdAlgoAssetclassSecurity())
+            .orElse(null);
   }
 
 }

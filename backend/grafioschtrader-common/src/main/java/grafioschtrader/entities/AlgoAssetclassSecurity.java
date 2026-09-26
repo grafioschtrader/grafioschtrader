@@ -18,12 +18,21 @@ public abstract class AlgoAssetclassSecurity extends AlgoTopAssetSecurity implem
 
   private static final long serialVersionUID = 1L;
 
-  /** Security account used with first priority when a simulation executes this node. */
+  /**
+   * Security account a simulation trades the instruments of this node at, because the user found it cheapest there. A
+   * purchase is booked on it even when it holds too little cash; the missing money is moved to it from the other
+   * accounts of the environment. An instrument node without a priority inherits the one of its asset class. An
+   * instrument the environment already holds stays on the account it is held in. Its trading periods must allow the
+   * instrument type.
+   */
   @Column(name = "id_securitycash_account_1")
   @PropertyAlwaysUpdatable
   protected Integer idSecurityaccount1;
 
-  /** Security account used with second priority when the first account cannot execute the simulation transaction. */
+  /**
+   * Security account used instead of the first one when the trading periods of the first do not allow the instrument on
+   * the day of a simulated fill. Requires the first one and must differ from it.
+   */
   @Column(name = "id_securitycash_account_2")
   @PropertyAlwaysUpdatable
   protected Integer idSecurityaccount2;

@@ -12,6 +12,8 @@ export interface SimulationTenantInfo {
   requiresRecreation: boolean;
   /** True while a replay is queued or executing; the environment can then neither be entered nor deleted. */
   active: boolean;
+  /** Why a replay would be refused, already translated; null when the strategy of the environment is ready. */
+  replayBlockedReason?: string;
 }
 
 /**

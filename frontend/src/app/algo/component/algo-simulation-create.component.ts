@@ -50,6 +50,9 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
         }
       </div>
     }
+    @if (manualCash) {
+      <p class="alert-dialog-wrap">{{ 'SIMULATION_MANUAL_CASH_HINT' | translate }}</p>
+    }
     <dynamic-form
       [config]="config"
       [formConfig]="formConfig"
@@ -113,6 +116,8 @@ export class AlgoSimulationCreateDynamicComponent
   dataNotes: string[] = [];
   /** Localized first creation day when the fixed opening date is not yet a completed day. */
   creationAvailableFrom: string;
+  /** True while manual cash is chosen; only then are the balance fields and their explanation shown. */
+  manualCash = false;
   private previewSignature: string;
   /** Currency-aware formatting of the previewed opening balances, as required for every displayed value. */
   private readonly balanceField = ShowRecordConfigBase.createColumnConfig(
@@ -275,9 +280,13 @@ export class AlgoSimulationCreateDynamicComponent
     dto.tenantName = value.tenantName;
     dto.initializationMode = value.initializationMode;
     if (dto.initializationMode === SimulationInitializationMode.MANUAL_CASH) {
+      // A blank field leaves the account out of the environment, while 0 takes it over without money.
       dto.cashBalances = {};
       for (const ca of this.cashAccounts) {
-        dto.cashBalances[ca.idSecuritycashAccount] = value[`cashBalance_${ca.idSecuritycashAccount}`] ?? 0;
+        const balance = value[`cashBalance_${ca.idSecuritycashAccount}`];
+        if (balance != null && balance !== '') {
+          dto.cashBalances[ca.idSecuritycashAccount] = balance;
+        }
       }
     }
     if (dto.initializationMode === SimulationInitializationMode.LIQUIDATE_TO_CASH) {
@@ -332,6 +341,7 @@ export class AlgoSimulationCreateDynamicComponent
   }
 
   private toggleCashBalanceFields(enabled: boolean): void {
+    this.manualCash = enabled;
     for (const ca of this.cashAccounts) {
       const fieldName = `cashBalance_${ca.idSecuritycashAccount}`;
       if (this.configObject[fieldName]) {

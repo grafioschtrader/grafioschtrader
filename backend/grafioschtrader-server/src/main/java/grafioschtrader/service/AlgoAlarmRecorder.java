@@ -14,6 +14,9 @@ import grafioschtrader.types.AlgoSignalKind;
 public class AlgoAlarmRecorder {
   private final AlgoMessageAlertJpaRepository repository;
 
+  @org.springframework.beans.factory.annotation.Autowired
+  private AlgoMonitoringService monitoring;
+
   public AlgoAlarmRecorder(AlgoMessageAlertJpaRepository repository) {
     this.repository = repository;
   }
@@ -37,6 +40,8 @@ public class AlgoAlarmRecorder {
   @Transactional
   public void record(AlgoAlertScope scope, AlgoSignalKind kind, byte direction, String trancheKey, String details,
       LocalDate day) {
+    if (!monitoring.permitsAlert(scope.idTenant(), scope.strategy().getId()))
+      return;
     repository.recordSignal(scope.idTenant(), scope.strategy().getIdAlgoRuleStrategy(),
         scope.security().getIdSecuritycurrency(), kind.getValue(), direction, trancheKey, details, day,
         LocalDateTime.now(ZoneOffset.UTC), scope.contextName(), scope.security().getName());

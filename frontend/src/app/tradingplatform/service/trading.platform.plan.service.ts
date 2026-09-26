@@ -11,6 +11,8 @@ import { ServiceEntityUpdate } from '../../lib/edit/service.entity.update';
 import { catchError } from 'rxjs/operators';
 import { LoginService } from '../../lib/login/service/log-in.service';
 import { BaseSettings } from '../../lib/base.settings';
+import { FxMarkupPreviewRequest, FxQuote } from '../../entities/fx.markup';
+import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import {
   TransactionCostEstimateRequest,
   TransactionCostEstimateResult
@@ -31,6 +33,23 @@ export class TradingPlatformPlanService
         .get(`${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}`, this.getHeaders())
         .pipe(catchError(this.handleError.bind(this)))
     );
+  }
+
+  getFxKinds(): Observable<ValueKeyHtmlSelectOptions[]> {
+    return this.httpClient.get<ValueKeyHtmlSelectOptions[]>(
+      `${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/fxkinds`,
+      this.getHeaders()
+    );
+  }
+
+  estimateFxMarkup(request: FxMarkupPreviewRequest): Observable<FxQuote> {
+    return this.httpClient
+      .post<FxQuote>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.TRADING_PLATFORM_PLAN_KEY}/estimatefxmarkup`,
+        request,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   public deleteEntity(idTradingPlatform: number): Observable<any> {

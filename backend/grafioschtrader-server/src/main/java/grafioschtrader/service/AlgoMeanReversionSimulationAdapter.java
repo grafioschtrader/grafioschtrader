@@ -99,6 +99,7 @@ public class AlgoMeanReversionSimulationAdapter {
     fill.setAlgoSignalId(decision.identity());
     fill.setAlgoTrancheTargets(AlgoTrancheTargets.write(decision.trancheTargets()));
     fill.setSimulationOpening(false);
+    transactions.throwWhenTransactionLimitReached(context.tenant(), 1);
     Transaction saved = transactions.saveOnlyAttributes(fill, null, Set.of());
     positions.reconcile(context.tenant(), context.strategy(), fill.getSecurity(),
         fill.getTransactionTime().toLocalDate());

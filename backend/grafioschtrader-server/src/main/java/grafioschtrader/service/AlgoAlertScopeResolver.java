@@ -44,8 +44,9 @@ import grafioschtrader.repository.WatchlistJpaRepository;
  * </p>
  *
  * <p>
- * Deactivation is reported rather than filtered. A pair whose strategy or any of whose ancestors is switched off comes
- * back with {@code active == false}, because the caller has to discard its crossing baselines: dropping the pair
+ * Deactivation is reported rather than filtered. A pair whose strategy is switched off, and in the live scopes also a
+ * pair of a hierarchy not assigned to monitoring or with its alert disabled, comes back with {@code active == false},
+ * because the caller has to discard its crossing baselines: dropping the pair
  * silently would leave a stale baseline behind, and switching the alert on again would then report the move that
  * happened while it was off.
  * </p>
@@ -68,6 +69,16 @@ public class AlgoAlertScopeResolver {
   @Autowired
   private WatchlistJpaRepository watchlistJpaRepository;
 
+  @Autowired
+  private AlgoMonitoringService monitoring;
+
+  /** Live-only preference filter; resolveForAlgoTop deliberately remains independent for historical replay. */
+  private List<AlgoAlertScope> liveScopes(AlgoTop top) {
+    boolean assigned = monitoring.isAssigned(top.getIdTenant(), top.getId());
+    return resolveForAlgoTop(top).stream().map(s -> new AlgoAlertScope(s.idTenant(), s.strategy(), s.security(),
+        s.contextName(), s.active() && assigned && s.strategy().isAlertEnabled())).toList();
+  }
+
   /**
    * All pairs of every AlgoTop hierarchy plus every standalone alert, of every tenant. This is the system wide scope of
    * the scheduled evaluation.
@@ -77,7 +88,7 @@ public class AlgoAlertScopeResolver {
   public List<AlgoAlertScope> resolveAll() {
     List<AlgoAlertScope> scopes = new ArrayList<>();
     for (AlgoTop algoTop : algoTopJpaRepository.findAll()) {
-      scopes.addAll(resolveForAlgoTop(algoTop));
+      scopes.addAll(liveScopes(algoTop));
     }
     scopes.addAll(resolveStandalone(null));
     return scopes;
@@ -93,7 +104,7 @@ public class AlgoAlertScopeResolver {
   public List<AlgoAlertScope> resolveForTenant(Integer idTenant) {
     List<AlgoAlertScope> scopes = new ArrayList<>();
     for (AlgoTop algoTop : algoTopJpaRepository.findByIdTenantOrderByName(idTenant)) {
-      scopes.addAll(resolveForAlgoTop(algoTop));
+      scopes.addAll(liveScopes(algoTop));
     }
     scopes.addAll(resolveStandalone(idTenant));
     return scopes;
@@ -118,7 +129,7 @@ public class AlgoAlertScopeResolver {
 
     List<Security> watchlistSecurities = securitiesOfWatchlist(algoTop.getIdWatchlist());
     for (AlgoStrategy strategy : strategiesByNode.getOrDefault(algoTop.getId(), List.of())) {
-      boolean active = algoTop.isActivatable() && strategy.isActivatable();
+      boolean active = strategy.isActivatable();
       for (Security security : watchlistSecurities) {
         put(byPair, idTenant, strategy, security, contextName, active);
       }
@@ -128,10 +139,10 @@ public class AlgoAlertScopeResolver {
       List<AlgoSecurity> members = hierarchy.membersByBucket().get(bucket.getId());
 
       for (AlgoStrategy strategy : strategiesByNode.getOrDefault(bucket.getId(), List.of())) {
-        boolean active = algoTop.isActivatable() && bucket.isActivatable() && strategy.isActivatable();
+        boolean active = strategy.isActivatable();
         for (AlgoSecurity member : members) {
           if (member.getSecurity() != null) {
-            put(byPair, idTenant, strategy, member.getSecurity(), contextName, active && member.isActivatable());
+            put(byPair, idTenant, strategy, member.getSecurity(), contextName, active);
           }
         }
       }
@@ -141,8 +152,7 @@ public class AlgoAlertScopeResolver {
           continue;
         }
         for (AlgoStrategy strategy : strategiesByNode.getOrDefault(member.getId(), List.of())) {
-          boolean active = algoTop.isActivatable() && bucket.isActivatable() && member.isActivatable()
-              && strategy.isActivatable();
+          boolean active = strategy.isActivatable();
           put(byPair, idTenant, strategy, member.getSecurity(), contextName, active);
         }
       }
@@ -178,7 +188,7 @@ public class AlgoAlertScopeResolver {
   /**
    * The pairs of the alerts a user added straight from a watchlist or portfolio row. They hang on an
    * {@link AlgoSecurity} without a parent, so they have no AlgoTop above them and no watchlist scope; the instrument
-   * itself names the notification.
+   * itself names the notification. Their live switch is the strategy's alert preference.
    *
    * @param idTenant tenant to restrict to, or null for every tenant
    * @return the standalone pairs, active and inactive
@@ -196,7 +206,7 @@ public class AlgoAlertScopeResolver {
       for (AlgoStrategy strategy : strategiesOf(algoSecurity.getIdAlgoAssetclassSecurity(),
           algoSecurity.getIdTenant())) {
         scopes.add(new AlgoAlertScope(algoSecurity.getIdTenant(), strategy, security, security.getName(),
-            algoSecurity.isActivatable() && strategy.isActivatable()));
+            strategy.isActivatable() && strategy.isAlertEnabled()));
       }
     }
     return scopes;
@@ -227,12 +237,9 @@ public class AlgoAlertScopeResolver {
   private static void put(Map<String, AlgoAlertScope> byPair, Integer idTenant, AlgoStrategy strategy,
       Security security, String contextName, boolean active) {
     String key = strategy.getIdAlgoRuleStrategy() + ":" + security.getIdSecuritycurrency();
-    AlgoAlertScope existing = byPair.get(key);
-    // Reaching the same pair twice means two paths lead to it. The stricter activation wins: a deactivated node on
-    // any path is a deliberate switch-off, and evaluating the pair through the other path would defeat it.
-    if (existing == null || (existing.active() && !active)) {
-      byPair.put(key, new AlgoAlertScope(idTenant, strategy, security, contextName, active));
-    }
+    // Reaching the same pair twice means two paths lead to it. Both carry the same strategy and therefore the same
+    // activation, so the first path is kept.
+    byPair.putIfAbsent(key, new AlgoAlertScope(idTenant, strategy, security, contextName, active));
   }
 
 }

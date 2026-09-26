@@ -20,11 +20,11 @@ import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
-import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.service.EntityLimitService;
 import grafiosch.types.OperationType;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.common.SecurityaccountTradingEligibility;
 import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.dto.CashAccountTransfer;
 import grafioschtrader.dto.ClosedMarginUnits;
@@ -34,13 +34,13 @@ import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.IctaxSecurityTaxData;
 import grafioschtrader.entities.Portfolio;
-import grafioschtrader.entities.SecaccountTradingPeriod;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.exceptions.TransactionLimitExceededException;
 import grafioschtrader.instrument.SecurityGeneralUnitsCheck;
 import grafioschtrader.instrument.SecurityMarginUnitsCheck;
 import grafioschtrader.reportviews.currencypair.CurrencypairWithTransaction;
@@ -67,9 +67,6 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   @Autowired
   private GlobalparametersService globalparametersService;
-
-  @Autowired
-  private GlobalparametersJpaRepository globalparametersJpaRepository;
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
@@ -136,6 +133,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   public CashAccountTransfer updateCreateCashaccountTransfer(CashAccountTransfer cashAccountTransfer,
       CashAccountTransfer cashAccountTransferExisting) {
 
+    cashAccountTransferExisting = new CashAccountTransfer(
+        prepareTransactionUpdate(cashAccountTransfer.getWithdrawalTransaction()),
+        prepareTransactionUpdate(cashAccountTransfer.getDepositTransaction()));
     checkTransactionSecurityAndCashaccountBeforSave(cashAccountTransfer.getWithdrawalTransaction());
     checkTransactionSecurityAndCashaccountBeforSave(cashAccountTransfer.getDepositTransaction());
     checkCurrencypair(cashAccountTransfer.getWithdrawalTransaction(),
@@ -196,6 +196,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     if (transaction == null) {
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
+    assertOpeningUnchanged(transaction);
     if (transaction.getTransactionType() != TransactionType.DIVIDEND
         && transaction.getTransactionType() != TransactionType.INTEREST_CASHACCOUNT) {
       throw new GeneralNotTranslatedWithArgumentsException("gt.transaction.taxableinterest.wrong.type", null);
@@ -212,9 +213,10 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   @Modifying
   public ExDateFromTaxDataResult applyExDatesFromTaxData(final short taxYear) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final List<Transaction> dividends = transactionJpaRepository.getDividendTransactionsByTenantAndPeriod(
-        user.getIdTenant(), TransactionType.DIVIDEND.getValue(), LocalDate.of(taxYear, 1, 1),
-        LocalDate.of(taxYear, 12, 31));
+    final List<Transaction> dividends = transactionJpaRepository
+        .getDividendTransactionsByTenantAndPeriod(user.getIdTenant(), TransactionType.DIVIDEND.getValue(),
+            LocalDate.of(taxYear, 1, 1), LocalDate.of(taxYear, 12, 31))
+        .stream().filter(t -> !t.isSimulationOpening()).toList();
 
     final List<Transaction> withoutExDate = dividends.stream().filter(t -> t.getExDate() == null).toList();
     final int alreadySet = dividends.size() - withoutExDate.size();
@@ -241,22 +243,59 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   @Override
-  public void throwWhenTransactionLimitReached(Integer idTenant) {
+  public void throwWhenTransactionLimitReached(Integer idTenant, int rows) {
+    if (rows < 0) {
+      throw new IllegalArgumentException("Transaction row count must not be negative");
+    }
+    if (rows == 0) {
+      return;
+    }
     Optional<Integer> maxOpt = entityLimitService.resolveForCurrentUser(LimitKeyConfig.KEY_TRANSACTION);
-    if (maxOpt.isPresent() && transactionJpaRepository.countByIdTenant(idTenant) >= maxOpt.get()) {
-      throw new GeneralNotTranslatedWithArgumentsException("gt.transaction.limit.exceeded",
-          new Object[] { maxOpt.get() });
+    if (maxOpt.isPresent() && (long) transactionJpaRepository.countByIdTenant(idTenant) + rows > maxOpt.get()) {
+      throw new TransactionLimitExceededException(maxOpt.get());
     }
   }
 
   private Transaction saveOnly(final Transaction transaction, Transaction existingEntity,
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) {
+    existingEntity = prepareTransactionUpdate(transaction);
     // Must happen before checkTransactionSecurityAndCashaccountBeforSave and the save: existingEntity is the managed
     // instance that merge writes the new values into, so the old coordinates are only readable now.
     final TransactionPreImage preImage = TransactionPreImage.of(existingEntity);
     Securityaccount securityaccount = checkTransactionSecurityAndCashaccountBeforSave(transaction);
     checkCurrencypair(transaction);
     return processAndSaveTransaction(transaction, existingEntity, preImage, securityaccount, true, false);
+  }
+
+  /**
+   * Resolves the persisted pre-image, protects the opening ledger and retains metadata that JSON cannot supply. New
+   * internal opening bookings have no id and keep their server-assigned metadata.
+   */
+  private Transaction prepareTransactionUpdate(Transaction transaction) {
+    if (transaction.getIdTransaction() == null) {
+      return null;
+    }
+    Transaction stored = transactionJpaRepository.findByIdTransactionAndIdTenant(transaction.getIdTransaction(),
+        transaction.getIdTenant());
+    if (stored == null) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
+    }
+    assertOpeningUnchanged(stored);
+    transaction.setSimulationOpening(stored.isSimulationOpening());
+    transaction.setAlgoFillId(stored.getAlgoFillId());
+    transaction.setAlgoSignalId(stored.getAlgoSignalId());
+    transaction.setAlgoTrancheTargets(stored.getAlgoTrancheTargets());
+    return stored;
+  }
+
+  /** Checks the stored link as well, so changing one side cannot alter a protected transfer. */
+  private void assertOpeningUnchanged(Transaction stored) {
+    Transaction connected = !stored.isCashaccountTransfer() ? null
+        : transactionJpaRepository.findByIdTransactionAndIdTenant(stored.getConnectedIdTransaction(),
+            stored.getIdTenant());
+    if (stored.isSimulationOpening() || connected != null && connected.isSimulationOpening()) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.simulation.opening.protected", null);
+    }
   }
 
   @Override
@@ -272,12 +311,12 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * Validates that a transaction's cash and security accounts belong to the correct tenant,
-   * and that the transaction date is not within a closed period.
+   * Validates that a transaction's cash and security accounts belong to the correct tenant, and that the transaction
+   * date is not within a closed period.
    *
    * @param transaction the transaction to validate
    * @return the security account if one is associated with the transaction, null otherwise
-   * @throws SecurityException if accounts don't belong to the current tenant
+   * @throws SecurityException      if accounts don't belong to the current tenant
    * @throws DataViolationException if transaction date is within a closed period
    */
   private Securityaccount checkTransactionSecurityAndCashaccountBeforSave(Transaction transaction) {
@@ -344,13 +383,17 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   }
 
   /**
-   * Validates that the transaction date is after the effective closedUntil date.
-   * Uses portfolio's closedUntil if set, otherwise falls back to tenant's closedUntil.
+   * Validates that the transaction date is after the effective closedUntil date. Uses portfolio's closedUntil if set,
+   * otherwise falls back to tenant's closedUntil.
    *
    * @param transaction the transaction to validate
-   * @param cashaccount the cash account associated with the transaction
    * @throws DataViolationException if transaction date is on or before closedUntil
    */
+  @Override
+  public void checkNotInClosedPeriod(Transaction transaction) {
+    checkTransactionDateAgainstClosedUntil(transaction, transaction.getCashaccount());
+  }
+
   private void checkTransactionDateAgainstClosedUntil(Transaction transaction, Cashaccount cashaccount) {
     if (transaction.isSkipClosedUntilCheck()) {
       return;
@@ -376,8 +419,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Validates that the transaction's instrument type is allowed by the security account's trading period definitions.
    * If the security account has no trading period rows, all trading is allowed (backward compatibility). Otherwise, at
-   * least one period must match the transaction's special investment instrument (exact match) and optionally
-   * asset class type (NULL acts as wildcard), with the transaction date falling within the period's date range.
+   * least one period must match the transaction's special investment instrument (exact match) and optionally asset
+   * class type (NULL acts as wildcard), with the transaction date falling within the period's date range.
    *
    * @param transaction     the transaction to validate
    * @param securityaccount the security account (may be null for cash-only transactions)
@@ -387,32 +430,9 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     if (securityaccount == null || transaction.getSecurity() == null) {
       return;
     }
-    List<SecaccountTradingPeriod> tradingPeriods = securityaccount.getTradingPeriods();
-    if (tradingPeriods == null || tradingPeriods.isEmpty()) {
-      return;
-    }
     Assetclass assetclass = transaction.getSecurity().getAssetClass();
-    byte txCategoryType = assetclass.getCategoryType().getValue();
-    byte txSpecInvest = assetclass.getSpecialInvestmentInstrument().getValue();
-    LocalDate txDate = transaction.getTransactionTime().toLocalDate();
-
-    boolean allowed = tradingPeriods.stream().anyMatch(period -> {
-      if (period.getCategoryType() != null && period.getCategoryType().getValue() != txCategoryType) {
-        return false;
-      }
-      if (period.getSpecInvestInstrument().getValue() != txSpecInvest) {
-        return false;
-      }
-      if (period.getDateFrom() != null && txDate.isBefore(period.getDateFrom())) {
-        return false;
-      }
-      if (period.getDateTo() != null && txDate.isAfter(period.getDateTo())) {
-        return false;
-      }
-      return true;
-    });
-
-    if (!allowed) {
+    if (!SecurityaccountTradingEligibility.allows(securityaccount, assetclass,
+        transaction.getTransactionTime().toLocalDate())) {
       throw new DataViolationException("transaction.time", "gt.trading.period.not.allowed",
           new Object[] { assetclass.getCategoryType(), assetclass.getSpecialInvestmentInstrument() });
     }
@@ -420,8 +440,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   /**
    * Validates that a create/update transaction would not cause a negative cash account balance when overdraft is
-   * forbidden. Overdraft is forbidden when {@code cashaccount.borrowingRate} is {@code null}. When it is non-null
-   * (even 0.0), overdraft is allowed and no check is performed.
+   * forbidden. Overdraft is forbidden when {@code cashaccount.borrowingRate} is {@code null}. When it is non-null (even
+   * 0.0), overdraft is allowed and no check is performed.
    *
    * @param transaction    the transaction being created or updated
    * @param existingEntity the previous version of the transaction (for updates), or null for new transactions
@@ -441,21 +461,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       return;
     }
 
-    Integer idCashaccount = cashaccount.getIdSecuritycashAccount();
-    LocalDate txDate = transaction.getTransactionTime().toLocalDate();
-
-    Double balanceBefore = holdCashaccountBalanceJpaRepository.getBalanceBeforeDate(idCashaccount, txDate);
-    double balanceBeforeDate = balanceBefore != null ? balanceBefore : 0.0;
-
-    Double minFrom = holdCashaccountBalanceJpaRepository.getMinBalanceFromDate(idCashaccount, txDate);
-    double minBalanceFromDate = minFrom != null ? minFrom : balanceBeforeDate;
-
-    double projectedMin = Math.min(balanceBeforeDate, minBalanceFromDate) + delta;
-
-    if (projectedMin < 0) {
-      throw new DataViolationException("cashaccount.amount", "gt.cashaccount.overdraft.not.allowed",
-          new Object[] { DataBusinessHelper.round(projectedMin) });
-    }
+    throwWhenBalanceWouldTurnNegative(cashaccount, transaction.getTransactionTime().toLocalDate(), delta);
   }
 
   /**
@@ -475,19 +481,51 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
       return;
     }
 
+    throwWhenBalanceWouldTurnNegative(cashaccount, transaction.getTransactionTime().toLocalDate(), delta);
+  }
+
+  /**
+   * Rejects a change of the cash account amount that would let the balance of the account drop below zero on the
+   * transaction date or on any later date. Earlier dates are not affected by the change.
+   *
+   * <p>
+   * The balance valid on the transaction date is the row of that date, or when there is none, the most recent earlier
+   * row. It must be taken on or before the date, not strictly before it: when the date already has a row, that row
+   * holds the balance of the day including its other bookings, and the transaction being deleted or updated is part of
+   * it. The balance strictly before the date ignored both, so deleting the first deposit into an empty account was
+   * rejected although the account merely returned to zero, and a withdrawal covered by a deposit of the same day was
+   * rejected too.
+   * </p>
+   *
+   * @param cashaccount the cash account whose balance changes
+   * @param txDate      the date from which the change applies
+   * @param delta       the negative change of the balance from {@code txDate} onwards
+   * @throws DataViolationException if the lowest projected balance would be negative
+   */
+  private void throwWhenBalanceWouldTurnNegative(Cashaccount cashaccount, LocalDate txDate, double delta) {
     Integer idCashaccount = cashaccount.getIdSecuritycashAccount();
-    LocalDate txDate = transaction.getTransactionTime().toLocalDate();
-
-    Double balanceBefore = holdCashaccountBalanceJpaRepository.getBalanceBeforeDate(idCashaccount, txDate);
-    double balanceBeforeDate = balanceBefore != null ? balanceBefore : 0.0;
-    Double minFrom = holdCashaccountBalanceJpaRepository.getMinBalanceFromDate(idCashaccount, txDate);
-    double minBalanceFromDate = minFrom != null ? minFrom : balanceBeforeDate;
-    double projectedMin = Math.min(balanceBeforeDate, minBalanceFromDate) + delta;
-
+    double projectedMin = projectMinBalance(
+        holdCashaccountBalanceJpaRepository.getBalanceOnOrBeforeDate(idCashaccount, txDate),
+        holdCashaccountBalanceJpaRepository.getMinBalanceFromDate(idCashaccount, txDate), delta);
     if (projectedMin < 0) {
       throw new DataViolationException("cashaccount.amount", "gt.cashaccount.overdraft.not.allowed",
           new Object[] { DataBusinessHelper.round(projectedMin) });
     }
+  }
+
+  /**
+   * Projects the lowest balance of a cash account from a date onwards after its balance changed by {@code delta} from
+   * that date. Package private so the arithmetic can be unit tested without a repository.
+   *
+   * @param balanceOnDate the balance valid on the date (the row of the date or the most recent earlier one), null when
+   *                      the account has no row on or before the date
+   * @param minFromDate   the lowest balance of all rows on or after the date, null when there are none
+   * @param delta         the change of the balance from the date onwards
+   * @return the lowest projected balance from the date onwards
+   */
+  static double projectMinBalance(Double balanceOnDate, Double minFromDate, double delta) {
+    double balanceOnTxDate = balanceOnDate != null ? balanceOnDate : 0.0;
+    return Math.min(balanceOnTxDate, minFromDate != null ? minFromDate : balanceOnTxDate) + delta;
   }
 
   /**
@@ -505,7 +543,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Validates currency pair configuration and exchange rates for a transaction. Checks if the specified currency pair
    * matches the source and target currencies, and validates that exchange rates are within acceptable limits.
-   * 
+   *
    * @param transaction    the transaction to validate
    * @param sourceCurrency the source currency (typically security currency)
    * @param targetCurrency the target currency (typically cash account currency)
@@ -542,7 +580,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Core transaction processing method that handles all transaction types. Validates amounts, processes business logic,
    * and saves the transaction with proper adjustments.
-   * 
+   *
    * @param transaction           the transaction to process
    * @param existingEntity        existing entity if updating, null if creating
    * @param preImage              snapshot of the existing entity's account and date, taken before the save, or null
@@ -601,10 +639,10 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
    * amounts for all connected closing transactions.
    *
    * <p>
-   * Each close transaction's cash effect changes here, so its cash account balance holdings have to be recalculated too.
-   * The open position's own recalculation does not cover them: a close may sit in a different cash account, and even in
-   * the same account the replay is seeded from the open position's date, which says nothing about a close that changed
-   * amount without changing date.
+   * Each close transaction's cash effect changes here, so its cash account balance holdings have to be recalculated
+   * too. The open position's own recalculation does not cover them: a close may sit in a different cash account, and
+   * even in the same account the replay is seeded from the open position's date, which says nothing about a close that
+   * changed amount without changing date.
    * </p>
    *
    * @param openPositionMarginTransaction the opening margin transaction
@@ -628,7 +666,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   /**
    * Retrieves the opening margin position transaction for a closing margin transaction.
-   * 
+   *
    * @param transaction the margin transaction (close or finance cost)
    * @return the opening margin transaction, or null if not applicable
    * @throws SecurityException if connected transaction doesn't belong to current tenant
@@ -650,7 +688,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Validates trading day and units integrity for security transactions. Ensures transaction occurs on a valid trading
    * day and units are consistent.
-   * 
+   *
    * @param transaction the transaction to validate
    * @return list of existing transactions for the same security and account
    * @throws DataViolationException if transaction occurs on non-trading day or units are invalid
@@ -744,10 +782,10 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     if (preImage != null && preImage.securityPositionChanged(transaction.getIdSecurityaccount(),
         transaction.getSecurity() == null ? null : transaction.getSecurity().getIdSecuritycurrency())) {
       // Only the security may have changed, in which case the account is unchanged and can be reused.
-      Securityaccount formerSecurityaccount = preImage.idSecurityaccount()
-          .equals(transaction.getIdSecurityaccount()) ? targetSecurityaccount
-              : securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(preImage.idSecurityaccount(),
-                  transaction.getIdTenant());
+      Securityaccount formerSecurityaccount = preImage.idSecurityaccount().equals(transaction.getIdSecurityaccount())
+          ? targetSecurityaccount
+          : securityaccountJpaRepository.findByIdSecuritycashAccountAndIdTenant(preImage.idSecurityaccount(),
+              transaction.getIdTenant());
       if (formerSecurityaccount != null) {
         holdSecurityaccountSecurityRepository.rebuildHoldingsForSecurityaccountAndSecurity(formerSecurityaccount,
             preImage.idSecuritycurrency());
@@ -766,8 +804,8 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
    * @param isCashAccountTransfer true when the caller adjusts the deposit holdings itself for both transfer sides
    * @return the saved transaction
    */
-  private Transaction saveTransactionAndCorrectCashaccountBalance(Transaction transaction,
-      TransactionPreImage preImage, boolean adjustHoldings, boolean isCashAccountTransfer) {
+  private Transaction saveTransactionAndCorrectCashaccountBalance(Transaction transaction, TransactionPreImage preImage,
+      boolean adjustHoldings, boolean isCashAccountTransfer) {
     transaction = transactionJpaRepository.save(transaction);
     if (adjustHoldings) {
       // The recalculation reads the transaction back with native queries and groups by tt_date, which @PreUpdate only
@@ -791,6 +829,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
     final Transaction transaction = transactionJpaRepository.findByIdTransactionAndIdTenant(idTransaction,
         user.getIdTenant());
     if (transaction != null) {
+      assertOpeningUnchanged(transaction);
       if (transaction.getSecurity() != null) {
         checkOverdraftAllowedForDelete(transaction);
         deleteSecurityTransaction(transaction);
@@ -818,7 +857,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
 
   /**
    * Deletes a security transaction with proper validation and holdings adjustment.
-   * 
+   *
    * @param transaction the security transaction to delete
    */
   private void deleteSecurityTransaction(final Transaction transaction) {
@@ -834,7 +873,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Validates units integrity for security transactions using appropriate checker. Uses margin-specific or general
    * units checker based on instrument type.
-   * 
+   *
    * @param operationType     the type of operation (ADD, UPDATE, DELETE)
    * @param transactions      existing transactions for the security
    * @param targetTransaction the transaction being processed
@@ -858,7 +897,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Removes a transaction and adjusts related data. Clears import references, deletes the transaction, and adjusts cash
    * account balance in holdings.
-   * 
+   *
    * @param transaction the transaction to remove
    */
   private void removeTransaction(final Transaction transaction) {
@@ -895,7 +934,7 @@ public class TransactionJpaRepositoryImpl extends BaseRepositoryImpl<Transaction
   /**
    * Adds transaction data to currency pair analysis for charting purposes. Calculates sum amounts and gain/loss based
    * on transaction history and current rates.
-   * 
+   *
    * @param idTenant     the tenant ID for filtering transactions
    * @param currencypair the currency pair to analyze
    * @param cwt          the currency pair transaction object to populate

@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Opening custody balances",
+  "type": "object",
+  "additionalProperties": {
+    "type": "object",
+    "description": "Optional opening balances for this simulation securities account, in custody fee currency before VAT. A missing field counts as zero.",
+    "additionalProperties": false,
+    "properties": {
+      "cashaccount": {
+        "type": [
+          "integer",
+          "null"
+        ],
+        "minimum": 1,
+        "description": "Settlement cash account ID in the simulation portfolio."
+      },
+      "accruedFees": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Fees accrued before simulation start."
+      },
+      "remainingCredits": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Unused commission credits at simulation start."
+      },
+      "billedThisYear": {
+        "type": [
+          "number",
+          "null"
+        ],
+        "description": "Fees already billed during the opening year."
+      },
+      "assumption": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Explanation of the opening balances."
+      }
+    }
+  }
+}

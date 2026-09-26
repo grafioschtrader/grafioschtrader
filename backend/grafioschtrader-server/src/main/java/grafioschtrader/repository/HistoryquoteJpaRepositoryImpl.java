@@ -55,6 +55,7 @@ import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.entities.projection.IFormulaSecurityLoad;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.service.IndexPriceRoundingService;
 import grafioschtrader.ta.TaIndicators;
 import grafioschtrader.ta.TaTraceIndicatorData;
 import grafioschtrader.ta.indicator.calc.CalcAccessIndicator;
@@ -86,6 +87,9 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   @Autowired
   private GlobalparametersService globalparametersService;
+
+  @Autowired
+  private IndexPriceRoundingService indexPriceRoundingService;
 
   @Autowired
   private SecurityJpaRepository securityJpaRepository;
@@ -392,8 +396,13 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       historyquoteQualityCF = CompletableFuture
           .supplyAsync(() -> historyquoteJpaRepository.getMissingsDaysCountByIdSecurity(idSecuritycurrency));
     }
-    HistoryquotesWithMissings<S> result = new HistoryquotesWithMissings<>((S) securityOrCurrencypairCF.get().get(),
-        historyquoteQualityCF.get(), historyquotesCF.get());
+    final S securitycurrency = (S) securityOrCurrencypairCF.get().get();
+    final List<Historyquote> historyquotes = historyquotesCF.get();
+    if (securitycurrency instanceof Security security) {
+      roundIndexPrices(security, historyquotes);
+    }
+    HistoryquotesWithMissings<S> result = new HistoryquotesWithMissings<>(securitycurrency, historyquoteQualityCF.get(),
+        historyquotes);
     Integer legacyCount = historyquoteLegacyJpaRepository.countLegacyForSecurity(idSecuritycurrency);
     result.legacyCount = legacyCount == null ? 0 : legacyCount;
     return result;
@@ -420,7 +429,16 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   @Override
   public HistoryquoteChartResponse getHistoryquoteForChart(Integer idSecuritycurrency) {
-    checkUserAccess(idSecuritycurrency);
+    UserAccess userAccess = checkUserAccess(idSecuritycurrency);
+    HistoryquoteChartResponse response = loadHistoryquoteForChart(idSecuritycurrency);
+    Integer priceFractionDigits = indexPriceRoundingService.resolvePriceFractionDigits(userAccess.security);
+    if (priceFractionDigits != null) {
+      indexPriceRoundingService.roundChart(response, priceFractionDigits);
+    }
+    return response;
+  }
+
+  private HistoryquoteChartResponse loadHistoryquoteForChart(Integer idSecuritycurrency) {
     Integer ohlcAvailable = historyquoteJpaRepository.isOhlcAvailable(idSecuritycurrency);
     if (Integer.valueOf(1).equals(ohlcAvailable)) {
       List<HistoryquoteDateOHLC> ohlcList = historyquoteJpaRepository
@@ -433,6 +451,22 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
       List<HistoryquoteDateClose> dateCloseList = historyquoteJpaRepository
           .findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(idSecuritycurrency);
       return HistoryquoteChartResponse.ofDateClose(dateCloseList);
+    }
+  }
+
+  /**
+   * Delivers the history quotes and the intraday prices of an index level rounded to the precision of its currency.
+   * Both were loaded by repository calls of other threads and are therefore detached, so the rounding never reaches the
+   * database.
+   *
+   * @param security      the security the history quotes belong to
+   * @param historyquotes the detached history quotes of that security
+   */
+  private void roundIndexPrices(final Security security, final List<Historyquote> historyquotes) {
+    Integer priceFractionDigits = indexPriceRoundingService.resolvePriceFractionDigits(security);
+    if (priceFractionDigits != null) {
+      security.setPriceFractionDigits(priceFractionDigits);
+      indexPriceRoundingService.roundHistoryquotes(historyquotes, priceFractionDigits);
     }
   }
 

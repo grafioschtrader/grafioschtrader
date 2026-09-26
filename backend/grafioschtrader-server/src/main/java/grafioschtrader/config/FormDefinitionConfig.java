@@ -26,8 +26,6 @@ public class FormDefinitionConfig {
     FormDefinitionRegistry.register(SimulationTenantCreateDTO.class);
     FormDefinitionRegistry.register(SimulationRunRequestDTO.class);
     FormDefinitionRegistry.register(SecurityBondTerms.class);
-    FormDefinitionRegistry.register(grafioschtrader.entities.Securityaccount.class);
-    FormDefinitionRegistry.register(grafioschtrader.entities.TradingPlatformPlan.class);
     FormDefinitionRegistry.register(grafioschtrader.entities.AlgoAssetclass.class);
   }
 }

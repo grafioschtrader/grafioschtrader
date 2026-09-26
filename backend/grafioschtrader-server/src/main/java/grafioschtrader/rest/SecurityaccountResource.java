@@ -22,11 +22,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
 import grafiosch.rest.UpdateCreateDeleteWithTenantResource;
 import grafioschtrader.algo.RebalancingPlan;
 import grafioschtrader.dto.FeeModelComparisonResponse;
+import grafioschtrader.dto.FxMarkupPreviewRequest;
+import grafioschtrader.dto.FxObservationReport;
+import grafioschtrader.dto.FxQuote;
 import grafioschtrader.dto.TradingPeriodTransactionSummary;
 import grafioschtrader.dto.TransactionCostEstimateRequest;
 import grafioschtrader.dto.TransactionCostEstimateResult;
@@ -38,7 +42,11 @@ import grafioschtrader.reports.SecurityGroupByBaseReport;
 import grafioschtrader.reports.SecurityPositionByCurrencyGrandSummaryReport;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionGrandSummary;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
+import grafioschtrader.service.AlgoAccountPriorityService;
 import grafioschtrader.service.AlgoRebalancingService;
+import grafioschtrader.service.FeeModelResolver;
+import grafioschtrader.service.FxMarkupPreviewService;
+import grafioschtrader.service.FxObservationService;
 import grafioschtrader.service.TransactionCostEvalExEstimator;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -49,6 +57,28 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping(RequestGTMappings.SECURITYACCOUNT_MAP)
 @Tag(name = Securityaccount.TABNAME, description = "Controller for security account")
 public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResource<Securityaccount> {
+
+  @Autowired
+  private FxObservationService fxObservationService;
+
+  @Operation(summary = "Observe recorded account FX rates against exact-date EOD closes, with optional tariff comparison")
+  @GetMapping(value = "/{id}/fxobservations", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<FxObservationReport> fxObservations(@PathVariable Integer id,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate from,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate to) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return ResponseEntity.ok(fxObservationService.account(id, user.getIdTenant(), from, to));
+  }
+
+  @Autowired
+  private FxMarkupPreviewService fxMarkupPreviewService;
+
+  @Operation(summary = "Preview an account's FX markup using its unsaved override and inherited plan tariff")
+  @PostMapping(value = "/estimatefxmarkupyaml", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<FxQuote> estimateFxMarkup(@RequestBody FxMarkupPreviewRequest request) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return ResponseEntity.ok(fxMarkupPreviewService.account(request, user.getIdTenant()));
+  }
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
@@ -70,6 +100,9 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
 
   @Autowired
   private MessageSource messageSource;
+
+  @Autowired
+  private AlgoAccountPriorityService algoAccountPriorityService;
 
   public SecurityaccountResource() {
     super(Securityaccount.class);
@@ -113,14 +146,37 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
         HttpStatus.OK);
   }
 
+  @Operation(summary = "Security accounts that may be named as trading priority of an algo node", description = """
+      Returns the tenant's security accounts whose trading periods allow the instrument type, labelled
+      'portfolio / account'. The type is taken from the instrument when idSecuritycurrency is given, else from the
+      asset class when idAssetClass is given; with neither, as for a custom category, every account is returned.
+      Period dates are not considered, because a simulation replays past years.""", tags = { Securityaccount.TABNAME })
+  @GetMapping(value = "/algoaccountoptions", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ValueKeyHtmlSelectOptions>> getAlgoAccountOptions(
+      @RequestParam(required = false) Integer idSecuritycurrency,
+      @RequestParam(required = false) Integer idAssetClass) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(
+        algoAccountPriorityService.getOptions(user.getIdTenant(), idSecuritycurrency, idAssetClass), HttpStatus.OK);
+  }
+
   @Operation(summary = "Estimate transaction cost from inline YAML fee model", description = """
-      Evaluates the given YAML fee model directly without loading from DB. If the request contains
-      inline YAML, it is used; otherwise falls back to the TradingPlatformPlan's fee model.""", tags = {
+      Resolves the unsaved document for a securities account owned by the active tenant. An empty or FX-only
+      account document inherits the plan's commissions. This preview does not save the document.""", tags = {
       Securityaccount.TABNAME })
   @PostMapping(value = "/estimatecostyaml", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TransactionCostEstimateResult> estimateCostFromYaml(
       @RequestBody TransactionCostEstimateRequest request) {
-    return new ResponseEntity<>(transactionCostEvalExEstimator.estimateWithOptionalYaml(request), HttpStatus.OK);
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    try {
+      var account = fxMarkupPreviewService.ownedAccount(request.getIdSecurityaccount(), user.getIdTenant());
+      var model = FeeModelResolver.resolve(account, request.getYaml());
+      return ResponseEntity
+          .ok(model.commissionYaml() == null ? TransactionCostEstimateResult.error("No commission model configured")
+              : transactionCostEvalExEstimator.evaluateYaml(model.commissionYaml(), request));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.ok(TransactionCostEstimateResult.error(e.getMessage()));
+    }
   }
 
   // ============================================================================

@@ -120,7 +120,7 @@ class GTNetPeerAuthenticatedProtocolTest {
         Map.of("fromDateTime", from, "toDateTime", to), "GTNet peer maintenance");
     assertOk(maintenance.statusCode(), maintenance.body());
 
-    int originalId = newestMessageId(GTNetPeerTestSupport.PEER_A, jwtA, ownA);
+    int originalId = newestAttemptOwningMessageId("GT_NET_MAINTENANCE_ALL_C");
     runNewestWaitingTask(GTNetPeerTestSupport.PEER_A, jwtA, "GTNET_FUTURE_MESSAGE_DELIVERY");
     var cancelRequest = GTNetPeerTestSupport.JSON.createObjectNode();
     cancelRequest.put("messageCode", "GT_NET_MAINTENANCE_CANCEL_ALL_C");
@@ -136,7 +136,7 @@ class GTNetPeerAuthenticatedProtocolTest {
         "GT_NET_OPERATION_DISCONTINUED_ALL_C", Map.of("closeStartDate", LocalDate.now().plusDays(2).toString()),
         "GTNet peer discontinuation");
     assertOk(discontinued.statusCode(), discontinued.body());
-    int discontinuedId = newestMessageId(GTNetPeerTestSupport.PEER_A, jwtA, ownA);
+    int discontinuedId = newestAttemptOwningMessageId("GT_NET_OPERATION_DISCONTINUED_ALL_C");
     runNewestWaitingTask(GTNetPeerTestSupport.PEER_A, jwtA, "GTNET_FUTURE_MESSAGE_DELIVERY");
     var discontinueCancel = GTNetPeerTestSupport.JSON.createObjectNode();
     discontinueCancel.put("messageCode", "GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C");
@@ -205,13 +205,30 @@ class GTNetPeerAuthenticatedProtocolTest {
     return GTNetPeerTestSupport.JSON.readTree(response.body());
   }
 
-  private static int newestMessageId(URI peer, String jwt, int remoteId) throws Exception {
+  /**
+   * Selects the newest announcement of the given code under the own entry that owns delivery attempts. A cancellation
+   * must reference that message: a visibility copy without attempts is never correlated by the peers (issue #238).
+   *
+   * @param messageCode the name of the future-oriented announcement code
+   * @return the id of the attempt-owning message
+   */
+  private static int newestAttemptOwningMessageId(String messageCode) throws Exception {
     int newest = 0;
-    for (JsonNode message : messages(peer, jwt, remoteId)) {
-      newest = Math.max(newest, message.path("idGtNetMessage").asInt());
+    for (JsonNode message : messages(GTNetPeerTestSupport.PEER_A, jwtA, ownA)) {
+      int candidate = message.path("idGtNetMessage").asInt();
+      if (messageCode.equals(message.path("messageCode").asString()) && !attempts(candidate).isEmpty()) {
+        newest = Math.max(newest, candidate);
+      }
     }
-    assertThat(newest).isPositive();
+    assertThat(newest).as("attempt-owning %s", messageCode).isPositive();
     return newest;
+  }
+
+  private static JsonNode attempts(int idGtNetMessage) throws Exception {
+    var response = GTNetPeerTestSupport.getApi(GTNetPeerTestSupport.PEER_A,
+        "/api/integration-gtnet-test/messages/" + idGtNetMessage + "/attempts", jwtA);
+    assertOk(response.statusCode(), response.body());
+    return GTNetPeerTestSupport.JSON.readTree(response.body());
   }
 
   private static void runNewestWaitingTask(URI peer, String jwt, String taskName) throws Exception {

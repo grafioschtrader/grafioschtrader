@@ -1,0 +1,35 @@
+custody:
+  periods:
+    - validFrom: "1900-01-01"
+      validTo: "2025-12-31"
+      status: VERIFIED
+      source: "https://thepoorswiss.com/cornertrader-review/"
+      note: "No custody fee until the end of 2025. The inactivity fee charged between 2019 and 2024 was no custody fee and is not modelled."
+      currency: CHF
+      valuation: NONE
+      billingMonths: 3
+      collection: START
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      amount: '0'
+    - validFrom: "2026-01-01"
+      status: VERIFIED
+      source: "https://www.cornertrader.ch/en/pricing/"
+      note: "Introduced 1 January 2026 for equities and ETFs only, billed quarterly. The tier of each day's value accrues its annual amount over 360 days: free up to CHF 10,000, then CHF 80, 100, 200, 240, 280 a year, above CHF 1 million 0.05 percent, at most CHF 5,000 a year; plus VAT."
+      currency: CHF
+      valuation: DAILY
+      billingMonths: 3
+      collection: END
+      billingDay: 0
+      dayCount: ACTUAL_360
+      closingPolicy: ACCRUED
+      amount: 'IF(assetValue <= 10000, 0, IF(assetValue <= 50000, 80, IF(assetValue <= 100000, 100, IF(assetValue <= 250000, 200, IF(assetValue <= 500000, 240, IF(assetValue <= 1000000, 280, assetValue * 0.0005))))))'
+      annualCap: 5000
+      vatRate: 0.081
+      valueRules:
+        - name: 'Equities and ETFs'
+          condition: 'instrument == "ETF" || (instrument == "DIRECT_INVESTMENT" && assetclass == "EQUITIES")'
+          expression: 'positionValue'
+        - name: 'Other instruments'
+          condition: 'true'
+          expression: '0'

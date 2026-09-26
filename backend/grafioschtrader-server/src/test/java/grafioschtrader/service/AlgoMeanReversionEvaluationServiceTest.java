@@ -31,6 +31,7 @@ class AlgoMeanReversionEvaluationServiceTest {
   private final SimulationSourceRepository source = mock(SimulationSourceRepository.class);
   private final WatchlistJpaRepository watchlists = mock(WatchlistJpaRepository.class);
   private final FeatureConfig features = mock(FeatureConfig.class);
+  private final AlgoMonitoringService monitoring = mock(AlgoMonitoringService.class);
   private final LocalDate day = LocalDate.of(2026, 9, 7);
   private final Security security = mock(Security.class);
   private final AlgoTop top = mock(AlgoTop.class);
@@ -40,7 +41,7 @@ class AlgoMeanReversionEvaluationServiceTest {
       scopes, valuation, positions, new AlgoMeanReversionDecisionService(new AlgoScaleOutModule()), source, watchlists,
       calendar);
   private final AlgoMeanReversionEvaluationService service = new AlgoMeanReversionEvaluationService(tops, scopes, data,
-      recommendations, recorder, features, evaluator);
+      recommendations, recorder, features, evaluator, monitoring);
   private final List<AlgoRecommendation> saved = new ArrayList<>();
 
   void setup() throws Exception {
@@ -51,6 +52,7 @@ class AlgoMeanReversionEvaluationServiceTest {
     Tenant tenant = new Tenant();
     tenant.setIdTenant(1);
     tenant.setCurrency("CHF");
+    tenant.setIdAlgoTop(10);
     when(data.lockTenant(1)).thenReturn(tenant);
     when(top.getId()).thenReturn(10);
     when(top.getIdWatchlist()).thenReturn(20);
@@ -59,13 +61,11 @@ class AlgoMeanReversionEvaluationServiceTest {
     AlgoAssetclass bucket = mock(AlgoAssetclass.class);
     when(bucket.getId()).thenReturn(11);
     when(bucket.getPercentage()).thenReturn(100f);
-    when(bucket.isActivatable()).thenReturn(true);
     when(buckets.findByIdTenantAndIdAlgoAssetclassParent(1, 10)).thenReturn(List.of(bucket));
     AlgoSecurity member = mock(AlgoSecurity.class);
     when(member.getId()).thenReturn(12);
     when(member.getSecurity()).thenReturn(security);
     when(member.getPercentage()).thenReturn(100f);
-    when(member.isActivatable()).thenReturn(true);
     when(members.findByIdAlgoSecurityParentAndIdTenant(11, 1)).thenReturn(List.of(member));
     when(security.getId()).thenReturn(3);
     when(security.getCurrency()).thenReturn("CHF");
@@ -159,6 +159,24 @@ class AlgoMeanReversionEvaluationServiceTest {
   }
 
   @Test
+  void notificationPreferenceDoesNotChangeMeanReversionProposals() throws Exception {
+    setup();
+    var scope = scope(5);
+    when(scopes.resolveForAlgoTop(top)).thenReturn(List.of(scope));
+    AlgoMeanReversionDecisionService.MarketData market = (_, _) -> List.of(
+        new Historyquote(3, day.minusDays(2), 100), new Historyquote(3, day.minusDays(1), 100),
+        new Historyquote(3, day, 80));
+    var enabled = evaluator.evaluate(1, 1, 10, day, market);
+    assertFalse(enabled.isEmpty());
+    scope.strategy().setAlertEnabled(false);
+    var disabled = evaluator.evaluate(1, 1, 10, day, market);
+    assertEquals(enabled.stream().map(AlgoMeanReversionScopeEvaluator.Proposal::decision).toList(),
+        disabled.stream().map(AlgoMeanReversionScopeEvaluator.Proposal::decision).toList());
+    assertEquals(enabled.stream().map(AlgoMeanReversionScopeEvaluator.Proposal::amount).toList(),
+        disabled.stream().map(AlgoMeanReversionScopeEvaluator.Proposal::amount).toList());
+  }
+
+  @Test
   void exitsSuppressConflictingEntriesWithoutInventingFreedBudget() throws Exception {
     setup();
     when(scopes.resolveForAlgoTop(top)).thenReturn(List.of(scope(5), scope(6)));
@@ -170,6 +188,21 @@ class AlgoMeanReversionEvaluationServiceTest {
     assertEquals(0, saved.getLast().getRecommendedUnits());
     verify(recorder, never()).record(any(), eq(AlgoSignalKind.ENTRY_SIGNAL), anyByte(), anyString(), anyString(),
         any());
+  }
+
+  @Test
+  void hierarchyWithoutMonitoringAssignmentKeepsNoProposals() throws Exception {
+    setup();
+    when(scopes.resolveForAlgoTop(top)).thenReturn(List.of(scope(5)));
+    AlgoRecommendation stale = new AlgoRecommendation();
+    when(recommendations.findByIdTenantAndTriggerKind(1, AlgoRebalancingTrigger.MEAN_REVERSION))
+        .thenReturn(List.of(stale));
+    data.lockTenant(1).setIdAlgoTop(null);
+    service.evaluate(1, true);
+    assertTrue(saved.isEmpty());
+    verify(recommendations).deleteAll(List.of(stale));
+    verifyNoInteractions(recorder);
+    assertFalse(service.hasDue());
   }
 
   @Test

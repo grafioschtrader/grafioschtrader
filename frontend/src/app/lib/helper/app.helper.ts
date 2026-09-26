@@ -273,6 +273,10 @@ export class AppHelper {
           return AppHelper.numberIntegerFormat(gps, dataobject);
         case DataType.Numeric:
         case DataType.NumericShowZero: {
+          const fractionDigits = AppHelper.resolveFractionDigits(rowObject, field);
+          if (fractionDigits != null) {
+            return gps.getNumberFormatForPrecision(fractionDigits).format(dataobject);
+          }
           const currency = AppHelper.resolvePrecisionCurrency(rowObject, field, currencyFieldOverride);
           if (currency) {
             return gps.getNumberFormatForPrecision(gps.getCurrencyPrecision(currency)).format(dataobject);
@@ -294,6 +298,25 @@ export class AppHelper {
           return dataobject;
       }
     }
+  }
+
+  /**
+   * Resolves the exact number of fraction digits the backend decided on for a numeric column value, for example the
+   * currency precision of an index level. The row path of fractionDigitsField is tried first, then the column's
+   * fixedFractionDigits. Returns undefined when neither yields a number, which keeps the currency or standard path.
+   *
+   * @param rowObject The complete row data object
+   * @param field Column configuration possibly carrying fractionDigitsField/fixedFractionDigits
+   * @returns Number of fraction digits or undefined
+   */
+  private static resolveFractionDigits(rowObject: any, field: ColumnConfig): number {
+    if (field.fractionDigitsField && rowObject) {
+      const fractionDigits = Helper.getValueByPath(rowObject, field.fractionDigitsField);
+      if (fractionDigits != null) {
+        return fractionDigits;
+      }
+    }
+    return field.fixedFractionDigits;
   }
 
   /**

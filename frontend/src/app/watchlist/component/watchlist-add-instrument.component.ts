@@ -22,12 +22,14 @@ import { DynamicFormModule } from '../../lib/dynamic-form/dynamic-form.module';
 @Component({
   selector: 'watchlist-add-instrument',
   template: `
+    <!-- Search initialization focuses ISIN; a second delayed dialog focus can interrupt entry into another field. -->
     <p-dialog
       styleClass="big-dialog"
       header="{{ 'ADD_EXISTING_SECURITY' | translate }}"
       [visible]="visibleAddInstrumentDialog"
       [style]="{ width: '720px' }"
       [resizable]="false"
+      [focusOnShow]="false"
       (onShow)="onShow($event)"
       (onHide)="onHide($event)"
       [modal]="true">

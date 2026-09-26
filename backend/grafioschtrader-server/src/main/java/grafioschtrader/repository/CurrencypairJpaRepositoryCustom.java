@@ -70,13 +70,27 @@ public interface CurrencypairJpaRepositoryCustom extends ISecuritycurrencyServic
   void fillEmptyCurrencypair(Integer idSecuritycurrency);
 
   /**
-   * Retrieves the closing price for a given currency pair on a specific date.
+   * Retrieves the exchange rate a transaction on a specific date is expected to carry. For today or a later date this
+   * is the latest price. For an earlier date it is the end-of-day close of that day; when that close has not been
+   * loaded yet and the date lies within {@code GlobalConstants.EX_CHANGE_RATE_DAYS_LIMIT_LATEST_PRICE} days of today,
+   * the latest price stands in for it.
    *
    * @param currencypair The {@link Currencypair} for which to get the close price.
    * @param closeDate    The specific date for which the close price is requested.
    * @return The closing price as a {@link Double}, or null if not found.
    */
   Double getClosePriceForDate(Currencypair currencypair, LocalDate closeDate);
+
+  /**
+   * Retrieves the end-of-day close of a currency pair on exactly the given date, without ever falling back to the
+   * latest price. A historical replay must use this one: the latest price is a rate from after the replayed day, and
+   * using it would let a simulation see the future.
+   *
+   * @param currencypair The {@link Currencypair} for which to get the close price.
+   * @param closeDate    The date of the close.
+   * @return The stored close of that day, or null when none is stored.
+   */
+  Double getHistoricalClosePriceForDate(Currencypair currencypair, LocalDate closeDate);
 
   /**
    * Updates the last (most recent) price for all currency pairs from their intraday data providers.

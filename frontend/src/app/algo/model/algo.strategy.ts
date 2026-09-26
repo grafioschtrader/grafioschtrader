@@ -6,6 +6,8 @@ import { AlgoRuleStrategy } from './algo.rule.strategy';
 export class AlgoStrategy extends AlgoRuleStrategy implements AlgoTreeName {
   algoStrategyImplementations: AlgoStrategyImplementationType | string = null;
   activatable: boolean = true;
+  /** Live notifications in the assigned monitoring hierarchy; ignored by replay. */
+  alertEnabled = true;
   strategyConfig: string = null;
 
   @Exclude()

@@ -36,10 +36,13 @@ public class MySqlDeleteMyData {
    * {@link ExportDefinition#isChangeUserIdForCreatedBy()}.
    */
   public void deleteMyData() {
+    CapturedDeleteRows capturedRows = new CapturedDeleteRows(jdbcTemplate, ExportDeleteHelper.exportDefinitions, user);
     for (int i = ExportDeleteHelper.exportDefinitions.length - 1; i >= 0; i--) {
       ExportDefinition exportDefinition = ExportDeleteHelper.exportDefinitions[i];
       if (exportDefinition.isDelete()) {
-        prepareAndExecuteUpdateQuery(exportDefinition);
+        if (!capturedRows.delete(exportDefinition)) {
+          prepareAndExecuteUpdateQuery(exportDefinition);
+        }
       } else if (exportDefinition.isChangeUserId()) {
         prepareAndExecuteUpdateQuery(exportDefinition);
       }

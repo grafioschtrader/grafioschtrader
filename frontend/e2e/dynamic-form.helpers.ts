@@ -32,14 +32,17 @@ export async function selectDynamicFormOptionByText(
   // model was updated; an overlay recreated by that update is then closed explicitly.
   await option.evaluate((element: HTMLElement) => element.click());
   await expect(optimusSelect).toContainText(text, { timeout: 10_000 });
-  if (
-    await page
-      .locator('.p-select-overlay:visible')
-      .first()
-      .isVisible()
-      .catch(() => false)
-  ) {
+  // A selection closes the overlay through a leave animation. An Escape pressed while it is still fading no longer
+  // reaches the overlay but the dialog, which closes on Escape, so it is sent only when the overlay stays open.
+  const openOverlays = page.locator('.p-select-overlay:visible');
+  const closedByItself = await expect(openOverlays)
+    .toHaveCount(0, { timeout: 2_000 })
+    .then(
+      () => true,
+      () => false
+    );
+  if (!closedByItself) {
     await page.keyboard.press('Escape');
   }
-  await expect(page.locator('.p-select-overlay:visible')).toHaveCount(0, { timeout: 10_000 });
+  await expect(openOverlays).toHaveCount(0, { timeout: 10_000 });
 }

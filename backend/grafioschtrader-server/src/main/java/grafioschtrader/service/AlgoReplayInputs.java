@@ -25,15 +25,18 @@ public class AlgoReplayInputs {
   private final DividendJpaRepository dividends;
   private final SecuritysplitJpaRepository splits;
   private final StandingOrderJpaRepository standingOrders;
+  private final BankruptSecurityJpaRepository bankruptSecurities;
   private static final ObjectMapper JSON = new ObjectMapper().findAndRegisterModules()
       .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
   public AlgoReplayInputs(TaxCountryJpaRepository countries, DividendJpaRepository dividends,
-      SecuritysplitJpaRepository splits, StandingOrderJpaRepository standingOrders) {
+      SecuritysplitJpaRepository splits, StandingOrderJpaRepository standingOrders,
+      BankruptSecurityJpaRepository bankruptSecurities) {
     this.countries = countries;
     this.dividends = dividends;
     this.splits = splits;
     this.standingOrders = standingOrders;
+    this.bankruptSecurities = bankruptSecurities;
   }
 
   public record Account(String dealerCountry, Boolean exemptInvestor) {
@@ -46,10 +49,44 @@ public class AlgoReplayInputs {
       boolean estimated) {
   }
 
+  /**
+   * Frozen description of one instrument for one replay.
+   *
+   * @param tradingEndDate first day on which the instrument can no longer be traded, captured from
+   *                       {@code bankrupt_security.no_trading_since}. From that day on the replay neither buys nor sells
+   *                       it, generates no further coupon and does not repay it at maturity: an exchange and a broker
+   *                       stop supporting the instrument of a failed issuer, and nothing is paid on its schedule. The
+   *                       position stays held and is valued at the last price, as everywhere else in the application.
+   *                       Null for every instrument without such a record and for runs recorded before the field
+   *                       existed, which therefore replay unchanged.
+   */
   public record Instrument(String currency, String instrument, String assetclass, String mic, String issuerCountry,
       String exchangeCountry, boolean directBond, Integer denomination, AlgoReplayCouponSchedule.Terms couponTerms,
       String incomeSource, String sourceWarning, List<Observation> observations, List<Split> splits,
-      LocalDate activeFromDate, LocalDate activeToDate) {
+      LocalDate activeFromDate, LocalDate activeToDate, String isin, LocalDate tradingEndDate) {
+    public Instrument(String currency, String instrument, String assetclass, String mic, String issuerCountry,
+        String exchangeCountry, boolean directBond, Integer denomination, AlgoReplayCouponSchedule.Terms couponTerms,
+        String incomeSource, String sourceWarning, List<Observation> observations, List<Split> splits,
+        LocalDate activeFromDate, LocalDate activeToDate, String isin) {
+      this(currency, instrument, assetclass, mic, issuerCountry, exchangeCountry, directBond, denomination, couponTerms,
+          incomeSource, sourceWarning, observations, splits, activeFromDate, activeToDate, isin, null);
+    }
+
+    public Instrument(String currency, String instrument, String assetclass, String mic, String issuerCountry,
+        String exchangeCountry, boolean directBond, Integer denomination, AlgoReplayCouponSchedule.Terms couponTerms,
+        String incomeSource, String sourceWarning, List<Observation> observations, List<Split> splits,
+        LocalDate activeFromDate, LocalDate activeToDate) {
+      this(currency, instrument, assetclass, mic, issuerCountry, exchangeCountry, directBond, denomination, couponTerms,
+          incomeSource, sourceWarning, observations, splits, activeFromDate, activeToDate, null, null);
+    }
+
+    /**
+     * @param date a day of the replay
+     * @return true when the issuer has failed by that day, so that the instrument can no longer be traded
+     */
+    public boolean tradingStopped(LocalDate date) {
+      return tradingEndDate != null && !date.isBefore(tradingEndDate);
+    }
   }
 
   /** Frozen account-based standing order used by one replay. */
@@ -62,8 +99,35 @@ public class AlgoReplayInputs {
 
   public record Snapshot(int version, boolean applyTaxModels, boolean generateBondCoupons, int dividendDelay,
       Map<String, String> countryModels, Map<Integer, Account> accounts, Map<Integer, Instrument> instruments,
-      List<CashStandingOrder> cashStandingOrders, Map<Integer, Float> leverageFactors,
-      AlgoReplayAllocation allocation) {
+      List<CashStandingOrder> cashStandingOrders, Map<Integer, Float> leverageFactors, AlgoReplayAllocation allocation,
+      Map<Integer, String> feeModels, Map<Integer, grafioschtrader.dto.CustodyOpeningState> custodyOpening,
+      Map<Integer, grafioschtrader.dto.FxFeeConfig> fxModels) {
+    public Snapshot(int version, boolean taxes, boolean coupons, int delay, Map<String, String> models,
+        Map<Integer, Account> accounts, Map<Integer, Instrument> instruments, List<CashStandingOrder> orders,
+        Map<Integer, Float> leverage, AlgoReplayAllocation allocation, Map<Integer, String> fees,
+        Map<Integer, grafioschtrader.dto.CustodyOpeningState> opening) {
+      this(version, taxes, coupons, delay, models, accounts, instruments, orders, leverage, allocation, fees, opening,
+          Map.of());
+    }
+
+    public Snapshot(int version, boolean taxes, boolean coupons, int delay, Map<String, String> models,
+        Map<Integer, Account> accounts, Map<Integer, Instrument> instruments, List<CashStandingOrder> orders,
+        Map<Integer, Float> leverage, AlgoReplayAllocation allocation) {
+      this(version, taxes, coupons, delay, models, accounts, instruments, orders, leverage, allocation, Map.of(),
+          Map.of());
+    }
+
+    public Snapshot withFees(Map<Integer, String> models,
+        Map<Integer, grafioschtrader.dto.CustodyOpeningState> opening) {
+      return withFees(models, opening, Map.of());
+    }
+
+    public Snapshot withFees(Map<Integer, String> models, Map<Integer, grafioschtrader.dto.CustodyOpeningState> opening,
+        Map<Integer, grafioschtrader.dto.FxFeeConfig> fx) {
+      return new Snapshot(5, applyTaxModels, generateBondCoupons, dividendDelay, countryModels, accounts, instruments,
+          cashStandingOrders, leverageFactors, allocation, models, opening, fx);
+    }
+
     /** Compatibility constructor for historical fixtures and snapshots without an exclusion policy. */
     public Snapshot(int version, boolean taxes, boolean coupons, int delay, Map<String, String> models,
         Map<Integer, Account> accounts, Map<Integer, Instrument> instruments, List<CashStandingOrder> orders) {
@@ -81,7 +145,7 @@ public class AlgoReplayInputs {
 
     public Snapshot withAllocation(AlgoReplayAllocation effective) {
       return new Snapshot(version, applyTaxModels, generateBondCoupons, dividendDelay, countryModels, accounts,
-          instruments, cashStandingOrders, leverageFactors, effective);
+          instruments, cashStandingOrders, leverageFactors, effective, feeModels, custodyOpening, fxModels);
     }
   }
 
@@ -97,9 +161,15 @@ public class AlgoReplayInputs {
     accounts.forEach(account -> accountInputs.put(account.getId(),
         new Account(account.getTradingPlatformPlan() == null ? null : account.getTradingPlatformPlan().getCountryCode(),
             account.getTaxExemptInvestor())));
+    // Only the trading stop counts, not the day the prices stopped: an instrument may still be quoted while an
+    // exchange and the brokers no longer trade it. A record without that date gives no day to stop trading on.
+    Map<Integer, LocalDate> tradingEnd = new HashMap<>();
+    bankruptSecurities.findAll().stream().filter(b -> b.getNoTradingSince() != null)
+        .forEach(b -> tradingEnd.put(b.getIdSecuritycurrency(), b.getNoTradingSince()));
     Map<Integer, Instrument> instrumentInputs = new TreeMap<>();
     for (Security security : securities)
-      instrumentInputs.put(security.getId(), instrument(security, coupons, delay, opening, end));
+      instrumentInputs.put(security.getId(),
+          instrument(security, coupons, delay, opening, end, tradingEnd.get(security.getId())));
     List<CashStandingOrder> cashOrders = standingOrders.findByIdTenant(idTenant).stream()
         .filter(StandingOrderCashaccount.class::isInstance).map(StandingOrderCashaccount.class::cast)
         .map(this::cashStandingOrder).toList();
@@ -133,7 +203,8 @@ public class AlgoReplayInputs {
     return stored != null ? stored : CouponDayCount.defaultForCurrency(currency);
   }
 
-  private Instrument instrument(Security security, boolean generate, int delay, LocalDate opening, LocalDate end) {
+  private Instrument instrument(Security security, boolean generate, int delay, LocalDate opening, LocalDate end,
+      LocalDate tradingEndDate) {
     List<Securitysplit> securitySplits = splits.findByIdSecuritycurrencyOrderBySplitDateAsc(security.getId());
     List<Observation> observations = new ArrayList<>();
     for (Dividend dividend : dividends.findByIdSecuritycurrencyOrderByExDateAsc(security.getId())) {
@@ -189,7 +260,7 @@ public class AlgoReplayInputs {
         List.copyOf(observations),
         securitySplits.stream()
             .map(split -> new Split(split.getSplitDate(), split.getFromFactor(), split.getToFactor())).toList(),
-        security.getActiveFromDate(), security.getActiveToDate());
+        security.getActiveFromDate(), security.getActiveToDate(), security.getIsin(), tradingEndDate);
   }
 
   public static String write(Object snapshot) {
@@ -203,7 +274,8 @@ public class AlgoReplayInputs {
   public static Snapshot read(String json) {
     try {
       Snapshot snapshot = JSON.readValue(json, Snapshot.class);
-      if (snapshot.version() != 1 && snapshot.version() != 2 && snapshot.version() != 3)
+      if (snapshot.version() != 1 && snapshot.version() != 2 && snapshot.version() != 3 && snapshot.version() != 4
+          && snapshot.version() != 5)
         throw new IllegalArgumentException("Unsupported replay assumption version");
       return snapshot;
     } catch (Exception e) {

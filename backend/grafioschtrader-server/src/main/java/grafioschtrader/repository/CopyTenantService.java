@@ -181,6 +181,9 @@ public class CopyTenantService {
         freshPeriods.add(tp);
       }
       securityaccount.replaceTradingPeriods(freshPeriods);
+      grafioschtrader.service.YamlConfigurationValidation.requireValid(
+          grafioschtrader.service.YamlConfigurationValidation.Format.FEES_ACCOUNT, securityaccount.getFeeModelYaml(),
+          "fee.model.yaml");
       em.persist(securityaccount);
       securityAccountMap.put(idSecurityaccount, securityaccount);
     }

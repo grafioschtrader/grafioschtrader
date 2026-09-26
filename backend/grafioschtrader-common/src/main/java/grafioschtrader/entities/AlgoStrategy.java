@@ -26,9 +26,40 @@ public class AlgoStrategy extends AlgoRuleStrategy {
   @Column(name = "algo_strategy_impl")
   private byte algoStrategyImplementations;
 
-  @Schema(description = "Whether this strategy is active and should be evaluated by the alarm service.")
+  /**
+   * Originally intended to support verification that this strategy can be executed in a simulation. No complete
+   * verification workflow currently certifies this flag; {@code true} does not establish simulation readiness.
+   * Currently gates this strategy's live alert scopes, mean-reversion replay and scheduled rebalancing, but manual
+   * rebalancing and rebalancing replay ignore it. Complex configurations require executable validation on save when
+   * true; false permits absent configuration or a draft passing structural validation only. That save-time check is not
+   * verification of the complete hierarchy or simulation inputs.
+   */
+  @Schema(description = """
+      Activation flag originally intended to support simulation verification; no complete verification workflow
+      certifies it, and true does not establish simulation readiness. Currently gates this strategy's live alert
+      scopes, mean-reversion replay and scheduled rebalancing; manual rebalancing and rebalancing replay ignore it.
+      Complex configurations require executable validation on save when true; false permits absent configuration
+      or a structurally validated draft. This save-time check does not verify the complete hierarchy or simulation
+      inputs. Defaults to true.""")
   @Column(name = "activatable")
   private boolean activatable = true;
+
+  /** Live notifications only; historical replay and strategy validation never use this preference. */
+  @Schema(description = """
+      Enables live notifications of this strategy, either as a standalone alert or as part of the main tenant's
+      assigned monitoring hierarchy. Defaults to true. Editable in the standalone alert overview and in the view of
+      the assigned hierarchy; ignored for historical replay. Existing activation and evaluation conditions still
+      apply.""")
+  @Column(name = "alert_enabled", nullable = false)
+  private boolean alertEnabled = true;
+
+  public boolean isAlertEnabled() {
+    return alertEnabled;
+  }
+
+  public void setAlertEnabled(boolean alertEnabled) {
+    this.alertEnabled = alertEnabled;
+  }
 
   @Schema(description = """
       JSON configuration specific to the strategy implementation type. Structure varies per type, e.g.

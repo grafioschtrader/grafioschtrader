@@ -59,6 +59,17 @@ export class AlgoStrategyService
     return this.updateEntity(algoStrategy, algoStrategy.idAlgoRuleStrategy, AppSettings.ALGO_STRATEGY_KEY);
   }
 
+  /** Updates only the live alert preference, without resaving strategy configuration. */
+  setAlertEnabled(id: number, alertEnabled: boolean): Observable<AlgoStrategy> {
+    return this.httpClient
+      .patch<AlgoStrategy>(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/${id}/alert-enabled`,
+        { alertEnabled },
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
   public deleteEntity(idAlgoStrategy: number): Observable<any> {
     return this.httpClient
       .delete(`${BaseSettings.API_ENDPOINT}${AppSettings.ALGO_STRATEGY_KEY}/${idAlgoStrategy}`, this.getHeaders())

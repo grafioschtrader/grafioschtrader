@@ -1,7 +1,9 @@
 package grafioschtrader.algo;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -44,7 +46,24 @@ public record RebalancingPlan(Integer idTenant, Integer idAlgoTop, Integer idAlg
         blocked while this holds; reductions stay available.""") boolean exposureBreach,
     @Schema(description = "The configured number of redeployments per year has elapsed") boolean periodicDue,
     @Schema(description = "At least one allocation drifted beyond the tolerance") boolean driftDue, List<Line> lines,
-    List<ClassAdjustment> classAdjustments) {
+    List<ClassAdjustment> classAdjustments,
+    @Schema(description = """
+        Valuation day of the last periodic checkpoint the interval counts from; null when none has been recorded,
+        which makes this day a checkpoint""") @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT) LocalDate lastCheckpointDate,
+    @Schema(description = """
+        First valuation day on which the next periodic checkpoint is due; null when no checkpoint has been
+        recorded""") @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT) LocalDate nextCheckpointDate) {
+
+  /** Compatibility constructor for callers that do not report the checkpoint dates. */
+  public RebalancingPlan(Integer idTenant, Integer idAlgoTop, Integer idAlgoStrategy, String algoTopName,
+      LocalDate valuationDate, String currency, double netEquity, double actualCash, double grossExposure,
+      double investmentBudget, double unusedTacticalBudget, double topPercentage, double tolerancePercentage,
+      boolean exposureBreach, boolean periodicDue, boolean driftDue, List<Line> lines,
+      List<ClassAdjustment> classAdjustments) {
+    this(idTenant, idAlgoTop, idAlgoStrategy, algoTopName, valuationDate, currency, netEquity, actualCash,
+        grossExposure, investmentBudget, unusedTacticalBudget, topPercentage, tolerancePercentage, exposureBreach,
+        periodicDue, driftDue, lines, classAdjustments, null, null);
+  }
 
   /** Compatibility constructor for callers building a plan without class-selection diagnostics. */
   public RebalancingPlan(Integer idTenant, Integer idAlgoTop, Integer idAlgoStrategy, String algoTopName,
@@ -60,6 +79,38 @@ public record RebalancingPlan(Integer idTenant, Integer idAlgoTop, Integer idAlg
   public record ClassAdjustment(Integer idNode, double parentDeviation, double securityDeviationPercentage,
       int maxTradedSecuritiesPerAssetclass, double requestedAdjustment, double plannedAdjustment, double residual,
       String limitingReason) {
+  }
+
+  /**
+   * Total variation distance between target and actual gross security-exposure distributions, in percent. Cash is
+   * excluded. Targets are summed per instrument, while repeated actual exposures describe the same holding and count
+   * once. Unallocated holdings contribute to grossExposure but have no target overlap. This is equivalent to half the
+   * sum of absolute differences over the union of instruments, without needing unallocated line items.
+   *
+   * @return 0 for matching proportions, 100 for no overlap, or null when there is no positive target amount
+   */
+  public Double overallAllocationMismatchPercentage() {
+    Map<Integer, Double> targets = new HashMap<>();
+    Map<Integer, Double> actuals = new HashMap<>();
+    for (Line line : lines) {
+      if (StrategyHelper.SECURITY_LEVEL_LETTER.equals(line.levelType()) && line.idSecuritycurrency() != null) {
+        targets.merge(line.idSecuritycurrency(), line.targetAmount() == null ? 0 : Math.max(0, line.targetAmount()),
+            Double::sum);
+        actuals.putIfAbsent(line.idSecuritycurrency(),
+            line.actualAmount() == null ? 0 : Math.max(0, line.actualAmount()));
+      }
+    }
+    double targetTotal = targets.values().stream().mapToDouble(Double::doubleValue).sum();
+    if (targetTotal <= 0) {
+      return null;
+    }
+    if (grossExposure <= 0) {
+      return 100.0;
+    }
+    double overlap = targets.entrySet().stream()
+        .mapToDouble(entry -> Math.min(entry.getValue() / targetTotal, actuals.get(entry.getKey()) / grossExposure))
+        .sum();
+    return Math.max(0, Math.min(100, 100 * (1 - overlap)));
   }
 
   /**

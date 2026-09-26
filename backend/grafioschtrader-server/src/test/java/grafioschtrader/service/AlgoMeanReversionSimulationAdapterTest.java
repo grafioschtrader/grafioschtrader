@@ -69,6 +69,17 @@ class AlgoMeanReversionSimulationAdapterTest {
   }
 
   @Test
+  void transactionLimitStopsANewFillBeforeWriting() throws Exception {
+    login(1);
+    var limit = new grafioschtrader.exceptions.TransactionLimitExceededException(10);
+    doThrow(limit).when(transactions).throwWhenTransactionLimitReached(2, 1);
+    assertSame(limit, assertThrows(grafioschtrader.exceptions.TransactionLimitExceededException.class,
+        () -> adapter.fill(context, decision, "over-limit", fill(4))));
+    verify(transactions, never()).saveOnlyAttributes(any(), any(), any());
+    verifyNoInteractions(positions);
+  }
+
+  @Test
   void partialFillBooksOnlyThroughPortfolioPathAndReplayIsIdempotent() throws Exception {
     login(1);
     var first = fill(4);
@@ -79,6 +90,7 @@ class AlgoMeanReversionSimulationAdapterTest {
     when(data.fill(2, "fill-1")).thenReturn(Optional.of(first));
     assertSame(first, adapter.fill(context, decision, "fill-1", fill(4)));
     verify(transactions, times(1)).saveOnlyAttributes(any(), isNull(), any());
+    verify(transactions, times(1)).throwWhenTransactionLimitReached(2, 1);
     verify(positions).reconcile(2, 3, first.getSecurity(), day.plusDays(1));
     when(data.filledUnits(2, decision.identity())).thenReturn(4.0);
     assertThrows(IllegalArgumentException.class, () -> adapter.fill(context, decision, "fill-2", fill(7)));

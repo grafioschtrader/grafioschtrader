@@ -143,11 +143,10 @@ public class SupplierScoreCalculator {
     List<ScoredSupplier> scored = new ArrayList<>();
     for (GTNet supplier : suppliers) {
       Set<Integer> supported = getSupportedInstruments(supplier, filter, requestedInstrumentIds);
-      int coverage = supported.size();
       Double avgOhl = filter == null ? null : filter.getAverageOhl(supplier.getIdGtNet(), supported);
-      double score = calculateScore(supplier.getIdGtNet(), coverage, avgOhl);
+      double score = calculateScore(supplier.getIdGtNet(), supported.size(), avgOhl);
       byte priority = getConsumerUsage(supplier, exchangeKind);
-      scored.add(new ScoredSupplier(supplier, score, priority, coverage));
+      scored.add(new ScoredSupplier(supplier, score, priority));
     }
 
     // Sort by score desc, priority asc
@@ -206,13 +205,11 @@ public class SupplierScoreCalculator {
     final GTNet supplier;
     final double score;
     final byte priority;
-    final int coverage;
 
-    ScoredSupplier(GTNet supplier, double score, byte priority, int coverage) {
+    ScoredSupplier(GTNet supplier, double score, byte priority) {
       this.supplier = supplier;
       this.score = score;
       this.priority = priority;
-      this.coverage = coverage;
     }
   }
 }

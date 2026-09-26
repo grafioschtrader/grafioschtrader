@@ -6,7 +6,7 @@ import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service
 import { LoginService } from '../../lib/login/service/log-in.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
-import { SimulationRunEvent, SimulationRunResult } from '../model/simulation.run';
+import { SimulationRunEvent, SimulationRunResult, SimulationRunSettings } from '../model/simulation.run';
 
 /**
  * The historical replay of a simulation environment.
@@ -27,12 +27,13 @@ export class AlgoSimulationRunService extends AuthServiceWithLogout<SimulationRu
     idTenant: number,
     endDate: string,
     applyTaxModels = false,
-    generateBondCoupons = false
+    generateBondCoupons = false,
+    custodyOpeningYaml?: string
   ): Observable<SimulationRunResult> {
     return this.httpClient
       .post<SimulationRunResult>(
         `${this.endpoint}/${idTenant}/run`,
-        { endDate, applyTaxModels, generateBondCoupons },
+        { endDate, applyTaxModels, generateBondCoupons, custodyOpeningYaml },
         this.getHeaders()
       )
       .pipe(catchError(this.handleError.bind(this)));
@@ -42,6 +43,13 @@ export class AlgoSimulationRunService extends AuthServiceWithLogout<SimulationRu
   status(idTenant: number): Observable<SimulationRunResult> {
     return this.httpClient
       .get<SimulationRunResult>(`${this.endpoint}/${idTenant}/run`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /** What the latest run was based on, or an empty body when the environment has never been replayed. */
+  settings(idTenant: number): Observable<SimulationRunSettings> {
+    return this.httpClient
+      .get<SimulationRunSettings>(`${this.endpoint}/${idTenant}/run/settings`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 

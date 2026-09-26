@@ -27,6 +27,7 @@ import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.AlgoTopJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.AlgoHierarchyViewService;
+import grafioschtrader.service.AlgoTopReadinessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,6 +49,9 @@ public class AlgoTopResource extends AlgoBaseResource<AlgoTop> {
   @Autowired
   private AlgoHierarchyViewService hierarchyViewService;
 
+  @Autowired
+  private AlgoTopReadinessService readinessService;
+
   public AlgoTopResource() {
     super(AlgoTop.class);
   }
@@ -64,12 +68,19 @@ public class AlgoTopResource extends AlgoBaseResource<AlgoTop> {
       if (simTenant != null && simTenant.getIdAlgoTop() != null) {
         AlgoTop algoTop = algoTopJpaRepository.findById(simTenant.getIdAlgoTop()).orElse(null);
         if (algoTop != null && mainIdTenant.equals(algoTop.getIdTenant())) {
-          return new ResponseEntity<>(List.of(algoTop), HttpStatus.OK);
+          return new ResponseEntity<>(withReadiness(List.of(algoTop)), HttpStatus.OK);
         }
       }
       return new ResponseEntity<>(List.of(), HttpStatus.OK);
     }
-    return new ResponseEntity<>(algoTopJpaRepository.findByIdTenantOrderByName(mainIdTenant), HttpStatus.OK);
+    return new ResponseEntity<>(withReadiness(algoTopJpaRepository.findByIdTenantOrderByName(mainIdTenant)),
+        HttpStatus.OK);
+  }
+
+  /** Every consumer of this list offers the strategies for a replay or a comparison, so each carries its readiness. */
+  private List<AlgoTop> withReadiness(List<AlgoTop> algoTops) {
+    algoTops.forEach(algoTop -> readinessService.attach(algoTop, AlgoTopReadinessService.currentLocale()));
+    return algoTops;
   }
 
   @Operation(summary = "Returns top level allgorithmic tranding by specified ", description = "", tags = {
@@ -78,8 +89,12 @@ public class AlgoTopResource extends AlgoBaseResource<AlgoTop> {
   public ResponseEntity<AlgoTop> getAlgoTopByIdAlgoAssetclassSecurity(
       @Parameter(description = "Id of top level algorithmic trading", required = true) @PathVariable final Integer idAlgoAssetclassSecurity) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(algoTopJpaRepository.findByIdTenantAndIdAlgoAssetclassSecurity(user.getActualIdTenant(),
-        idAlgoAssetclassSecurity), HttpStatus.OK);
+    AlgoTop algoTop = algoTopJpaRepository.findByIdTenantAndIdAlgoAssetclassSecurity(user.getActualIdTenant(),
+        idAlgoAssetclassSecurity);
+    if (algoTop != null) {
+      readinessService.attach(algoTop, AlgoTopReadinessService.currentLocale());
+    }
+    return new ResponseEntity<>(algoTop, HttpStatus.OK);
   }
 
   @Override

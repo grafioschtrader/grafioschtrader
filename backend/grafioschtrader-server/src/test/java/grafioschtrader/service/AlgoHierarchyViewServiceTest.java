@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.context.MessageSource;
 
 import grafioschtrader.dto.AlgoHierarchyDto;
 import grafioschtrader.entities.AlgoAssetclass;
@@ -25,20 +26,27 @@ import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
 import grafioschtrader.repository.AlgoAssetclassJpaRepository;
+import grafioschtrader.repository.AlgoStrategyJpaRepository;
 import grafioschtrader.repository.AlgoTopJpaRepository;
+import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /** Exercises overview warnings and refreshes without starting Spring or accessing a database. */
 class AlgoHierarchyViewServiceTest {
   private final AlgoTopJpaRepository tops = mock(AlgoTopJpaRepository.class);
   private final AlgoAssetclassJpaRepository assetclasses = mock(AlgoAssetclassJpaRepository.class);
-  private final AlgoHierarchyViewService service = new AlgoHierarchyViewService(tops, assetclasses);
+  private final AlgoHierarchyViewService service = new AlgoHierarchyViewService(tops, assetclasses,
+      new AlgoTopReadinessService(assetclasses, mock(AlgoStrategyJpaRepository.class),
+          mock(WatchlistJpaRepository.class), mock(MessageSource.class)));
   private final AlgoTop top = new AlgoTop();
   private final AlgoAssetclass bucket = new AlgoAssetclass();
 
   @BeforeEach
   void setup() {
+    org.springframework.test.util.ReflectionTestUtils.setField(service, "monitoring",
+        mock(AlgoMonitoringService.class));
     top.setIdAlgoAssetclassSecurity(1);
+    top.setPercentage(100f);
     top.setReferenceDate(LocalDate.of(2020, 2, 5));
     bucket.setIdAlgoAssetclassSecurity(2);
     bucket.setPercentage(100f);
@@ -102,12 +110,9 @@ class AlgoHierarchyViewServiceTest {
   }
 
   @Test
-  @DisplayName("Inactive and zero-weight members do not cover a positive asset-class allocation")
+  @DisplayName("Zero-weight members do not cover a positive asset-class allocation")
   void unallocatedMembers() {
     AlgoSecurity member = bucket.getAlgoSecurityList().getFirst();
-    member.setActivatable(false);
-    assertEquals(Set.of("name"), service.getHierarchy(7, 1).invalidFields().get(2));
-    member.setActivatable(true);
     member.setPercentage(0f);
     assertTrue(service.getHierarchy(7, 1).invalidFields().get(2).contains("name"));
     member.setPercentage(null);

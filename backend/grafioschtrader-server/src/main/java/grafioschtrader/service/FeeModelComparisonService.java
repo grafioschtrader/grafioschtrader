@@ -1,5 +1,6 @@
 package grafioschtrader.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,20 +54,15 @@ public class FeeModelComparisonService {
     }
 
     TradingPlatformPlan plan = sa.getTradingPlatformPlan();
-    String effectiveYaml;
-    String planName;
-    if (sa.getFeeModelYaml() != null && !sa.getFeeModelYaml().isBlank()) {
-      effectiveYaml = sa.getFeeModelYaml();
-      planName = sa.getName() + " (account override)";
-    } else {
-      if (plan == null || plan.getFeeModelYaml() == null || plan.getFeeModelYaml().isBlank()) {
-        return emptyResponse("No fee model configured");
-      }
-      effectiveYaml = plan.getFeeModelYaml();
-      planName = plan.getPlatformPlanNameNLS() != null
-          ? plan.getPlatformPlanNameNLS().getMap().values().stream().findFirst().orElse("(unnamed)")
-          : "(unnamed)";
-    }
+    var resolved = FeeModelResolver.resolve(sa);
+    String effectiveYaml = resolved.commissionYaml();
+    if (effectiveYaml == null)
+      return emptyResponse("No fee model configured");
+    String planName = resolved.commissionSource() == FeeModelResolver.Source.ACCOUNT
+        ? sa.getName() + " (account override)"
+        : plan.getPlatformPlanNameNLS() != null
+            ? plan.getPlatformPlanNameNLS().getMap().values().stream().findFirst().orElse("(unnamed)")
+            : "(unnamed)";
 
     List<Transaction> transactions = loadBuySellTransactions(idSecuritycashAccount);
 
@@ -82,8 +78,12 @@ public class FeeModelComparisonService {
     List<Double> squaredErrors = new ArrayList<>();
     int skipped = 0;
     int errors = 0;
+    FeeTradeCounter counter = new FeeTradeCounter();
 
     for (Transaction tx : transactions) {
+      // Counted before the zero-cost filter: a free trade still uses up an allowance.
+      TransactionCostEstimateRequest request = buildRequest(tx, plan, counter);
+      counter.record(tx.getIdSecurityaccount(), tx.getSecurity().getId(), tradeDate(tx), String.valueOf(tx.getId()));
       if (tx.getTransactionCost() == null || tx.getTransactionCost() == 0.0) {
         if (excludeZeroCost) {
           skipped++;
@@ -91,7 +91,6 @@ public class FeeModelComparisonService {
         }
       }
 
-      TransactionCostEstimateRequest request = buildRequest(tx, plan);
       FeeModelComparisonDetail detail = buildDetail(tx, request);
 
       TransactionCostEstimateResult result;
@@ -180,22 +179,32 @@ public class FeeModelComparisonService {
    * {@code fixedAssets} is 0 here: the report walks years of transactions and the account value of each of those days
    * is not loaded, so a tiered model is graded against an unknown rather than against a value of the wrong day.
    * </p>
+   * <p>
+   * The trade counts are those of the transactions walked before this one, which is why the transactions are loaded in
+   * booking order.
+   * </p>
    */
-  private TransactionCostEstimateRequest buildRequest(Transaction tx, TradingPlatformPlan plan) {
+  private TransactionCostEstimateRequest buildRequest(Transaction tx, TradingPlatformPlan plan,
+      FeeTradeCounter counter) {
+    LocalDate date = tradeDate(tx);
     return TransactionCostEvalExEstimator.buildRequest(tx.getSecurity(), tx.getUnits() != null ? tx.getUnits() : 0.0,
-        tx.getQuotation() != null ? tx.getQuotation() : 0.0, tx.getTransactionType(),
-        tx.getTransactionDate() != null ? tx.getTransactionDate()
-            : (tx.getTransactionTime() != null ? tx.getTransactionTime().toLocalDate() : null),
-        plan.getIdTradingPlatformPlan(), 0.0);
+        tx.getQuotation() != null ? tx.getQuotation() : 0.0, tx.getTransactionType(), date,
+        plan == null ? null : plan.getIdTradingPlatformPlan(), 0.0,
+        tx.getCashaccount() == null ? null : tx.getCashaccount().getCurrency(),
+        counter.counts(tx.getIdSecurityaccount(), tx.getSecurity().getId(), date));
+  }
+
+  private static LocalDate tradeDate(Transaction tx) {
+    return tx.getTransactionDate() != null ? tx.getTransactionDate()
+        : (tx.getTransactionTime() != null ? tx.getTransactionTime().toLocalDate() : null);
   }
 
   private List<Transaction> loadBuySellTransactions(Integer idSecuritycashAccount) {
     return entityManager
-        .createQuery(
-            "SELECT t FROM Transaction t JOIN FETCH t.security s "
-                + "JOIN FETCH s.assetClass JOIN FETCH s.stockexchange " + "WHERE t.idSecurityaccount = :idSa "
-                + "AND t.transactionType IN (:buy, :sell) AND t.security IS NOT NULL " + "ORDER BY t.transactionDate",
-            Transaction.class)
+        .createQuery("SELECT t FROM Transaction t JOIN FETCH t.security s "
+            + "JOIN FETCH s.assetClass JOIN FETCH s.stockexchange " + "WHERE t.idSecurityaccount = :idSa "
+            + "AND t.transactionType IN (:buy, :sell) AND t.security IS NOT NULL "
+            + "ORDER BY t.transactionTime, t.idTransaction", Transaction.class)
         .setParameter("idSa", idSecuritycashAccount).setParameter("buy", TransactionType.ACCUMULATE.getValue())
         .setParameter("sell", TransactionType.REDUCE.getValue()).getResultList();
   }

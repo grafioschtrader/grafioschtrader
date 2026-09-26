@@ -32,6 +32,7 @@ import grafioschtrader.algo.SimulationPreviewDto;
 import grafioschtrader.algo.SimulationRunRequestDTO;
 import grafioschtrader.algo.SimulationTenantCreateDTO;
 import grafioschtrader.algo.SimulationTenantInfo;
+import grafioschtrader.dto.FxObservationReport;
 import grafioschtrader.dto.TaxStatementExportRequest;
 import grafioschtrader.entities.AlgoEventLog;
 import grafioschtrader.entities.AlgoSimulationResult;
@@ -39,6 +40,8 @@ import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.SimulationTenantService;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.AlgoHistoricalReplayService;
+import grafioschtrader.service.FxObservationService;
+import grafioschtrader.service.SimulationRunSettingsDto;
 import grafioschtrader.types.TenantKindType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -51,6 +54,18 @@ import jakarta.validation.Valid;
 public class TenantResource extends TenantBaseResource<Tenant> {
 
   @Autowired
+  private FxObservationService fxObservationService;
+
+  @Operation(summary = "Observe the current tenant's paired cash-transfer FX rates against exact-date EOD closes")
+  @GetMapping(value = "/fxobservations", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<FxObservationReport> fxObservations(
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate from,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate to) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return ResponseEntity.ok(fxObservationService.transfers(user.getIdTenant(), from, to));
+  }
+
+  @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
   @Autowired
@@ -58,6 +73,19 @@ public class TenantResource extends TenantBaseResource<Tenant> {
 
   @Autowired
   private AlgoHistoricalReplayService replayService;
+
+  @Autowired
+  private grafioschtrader.service.AlgoMonitoringService monitoring;
+
+  @io.swagger.v3.oas.annotations.media.Schema(description = "Main-tenant monitoring assignment; null clears it")
+  public record MonitoringAssignmentDto(Integer idAlgoTop) {
+  }
+
+  @Operation(summary = "Assign or clear the current main tenant's portfolio monitoring hierarchy")
+  @PatchMapping(value = "/monitoring", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Tenant> assignMonitoring(@RequestBody MonitoringAssignmentDto request) {
+    return ResponseEntity.ok(monitoring.assign(request.idAlgoTop()));
+  }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Tenant> getTenantAndPortfolio() {
@@ -129,6 +157,14 @@ public class TenantResource extends TenantBaseResource<Tenant> {
   public ResponseEntity<AlgoSimulationResult> getSimulationRun(
       @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant) {
     return replayService.status(idTenant).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
+  }
+
+  @Operation(summary = "Strategy hierarchy and allocation weights the latest historical replay was based on", description = "Frozen when the run was submitted, so later edits of the shared hierarchy do not change it.", tags = {
+      TenantBase.TABNAME })
+  @GetMapping(value = "/simulation/{idTenant}/run/settings", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SimulationRunSettingsDto> getSimulationRunSettings(
+      @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant) {
+    return replayService.settings(idTenant).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
   }
 
   @Operation(summary = "Audit trail of the historical replay, newest day first", tags = { TenantBase.TABNAME })

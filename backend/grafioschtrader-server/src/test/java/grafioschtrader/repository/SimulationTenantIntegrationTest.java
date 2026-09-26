@@ -95,6 +95,11 @@ class SimulationTenantIntegrationTest {
 
   @Test
   void allModesHaveDatedConsistentOpeningLedgersAndIndependentMetadata() throws Exception {
+    // A cash-only opening still needs a complete allocation for the current replay-readiness check.
+    AlgoAssetclass bucket = new AlgoAssetclass(tenantId, topId, null, 100f);
+    bucket.setName("Opening allocation");
+    em.persist(bucket);
+    em.flush();
     for (SimulationInitializationMode mode : SimulationInitializationMode.values()) {
       SimulationTenantCreateDTO dto = request(mode);
       if (mode == SimulationInitializationMode.MANUAL_CASH)

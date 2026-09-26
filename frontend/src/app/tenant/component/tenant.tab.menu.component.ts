@@ -1,6 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AppSettings } from '../../shared/app.settings';
-import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TabItem } from '../../lib/types/tab.item';
 import { GlobalGTSessionNames } from '../../shared/global.gt.session.names';
 import { SharedTabMenuComponent } from '../../lib/tabmenu/component/shared.tab.menu.component';
@@ -25,14 +24,13 @@ export class TenantTabMenuComponent implements OnInit {
   defaultRoute: string = AppSettings.PORTFOLIO_KEY;
   sessionStorageKey: string = GlobalGTSessionNames.TAB_MENU_TENANT;
 
-  constructor(private gps: GlobalparameterService) {}
-
   ngOnInit(): void {
     this.initializeTabs();
   }
 
   /**
-   * Initialize tabs with conditional logic for alert functionality
+   * Initialize the tabs of the tenant. The standalone alerts are not a tab here; they are the landing page of the
+   * rule-based trading node in the main tree.
    */
   private initializeTabs(): void {
     // Base tab configuration
@@ -48,11 +46,6 @@ export class TenantTabMenuComponent implements OnInit {
 
     // Add standing order tab (sub-tab menu with cashaccount and security)
     baseTabsConfig.push(['STANDING_ORDERS', AppSettings.STANDING_ORDER_TAB_KEY]);
-
-    // Add conditional alert tab
-    if (this.gps.useAlert()) {
-      baseTabsConfig.push(['ALERT', AppSettings.TENANT_ALERT]);
-    }
 
     // Convert to TabItem array
     this.tabs = baseTabsConfig.map(([label, route]) => ({

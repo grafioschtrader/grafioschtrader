@@ -12,7 +12,8 @@ import {
 export enum AlgoDialogVisible {
   ALGO_ASSETCLASS = 1,
   ALGO_SECURITY = 2,
-  ALGO_STRATEGY = 3
+  ALGO_STRATEGY = 3,
+  ALGO_ADD_INSTRUMENT = 4
 }
 
 export class AlgoStrategyDefinitionForm {
@@ -23,6 +24,11 @@ export class AlgoStrategyDefinitionForm {
 
 export class AlgoCallParam {
   formDefinition?: ClassDescriptorInputAndShow;
+  /**
+   * Set by the asset class dialog when the user asked to add instruments to a custom category through the security
+   * search. The flag is not persisted; it only tells the hierarchy view to open the search dialog after the save.
+   */
+  addInstrumentsBySearch?: boolean;
   constructor(
     public parentObject: AlgoTop | AlgoAssetclass | AlgoSecurity,
     public thisObject: AlgoTop | AlgoAssetclass | AlgoSecurity | AlgoStrategy,

@@ -1,0 +1,29 @@
+custody:
+  periods:
+    - validFrom: "1900-01-01"
+      validTo: "2023-12-31"
+      status: ASSUMED
+      source: "https://forum.mustachianpost.com/t/postfinance-e-trading-new-fee-structure-2024/11293"
+      note: "Approximation: the fee valid until December 2023 applied to the whole earlier history. CHF 90 a year including VAT, billed in advance on 1 January and credited against the online trading commissions of the same year; unused credit expires at year end."
+      currency: CHF
+      valuation: NONE
+      billingMonths: 12
+      collection: START
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      amount: '90'
+      creditAmount: 90
+      creditEligibility: 'instrument != "FOREX" && instrument != "CFD"'
+    - validFrom: "2024-01-01"
+      status: VERIFIED
+      source: "https://www.postfinance.ch/content/dam/pfch/doc/480_499/482_22_en.pdf"
+      note: "CHF 72 a year including VAT since January 2024, billed as CHF 18 at the start of each quarter. Credits expire each quarter; eligible online trades only, never corporate actions or taxes. Offline-only instruments require an account eligibility override."
+      currency: CHF
+      valuation: NONE
+      billingMonths: 3
+      collection: START
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      amount: '18'
+      creditAmount: 18
+      creditEligibility: 'instrument != "FOREX" && instrument != "CFD"'

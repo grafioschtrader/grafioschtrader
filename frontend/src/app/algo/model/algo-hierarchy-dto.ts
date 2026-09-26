@@ -7,4 +7,6 @@ export interface AlgoHierarchyDto {
   algoAssetclassList: AlgoAssetclass[];
   invalidFields: Record<number, string[]>;
   warningFields: Record<number, string[]>;
+  monitoring: boolean;
+  alertEditable: boolean;
 }

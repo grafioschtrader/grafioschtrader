@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.exceptions.DataViolationException;
+import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.repository.BaseRepositoryImpl;
 import grafiosch.repository.GlobalparametersJpaRepository;
 import grafioschtrader.entities.Cashaccount;
@@ -80,6 +81,10 @@ public class CashaccountJpaRepositoryImpl extends BaseRepositoryImpl<Cashaccount
 
   @Override
   public int delEntityWithTenant(Integer id, Integer idTenant) {
+    if (transactionJpaRepository.existsByIdTenantAndCashaccount_IdSecuritycashAccountAndSimulationOpeningTrue(idTenant,
+        id)) {
+      throw new GeneralNotTranslatedWithArgumentsException("gt.simulation.opening.parent.delete", null);
+    }
     return cashaccountJpaRepository.deleteCashaccount(id, idTenant);
   }
 

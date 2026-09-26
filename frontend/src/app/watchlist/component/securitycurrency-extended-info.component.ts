@@ -109,7 +109,8 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLast', 'LAST', {
       fieldsetName: this.QUOTATION_DATA,
-      maxFractionDigits: this.gps.getMaxFractionDigits()
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
+      fractionDigitsField: this.SECURITYCURRENCY + 'priceFractionDigits'
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sChangePercentage', 'DAILY_CHANGE', {
       fieldsetName: this.QUOTATION_DATA,
@@ -118,15 +119,18 @@ export class SecuritycurrencyExtendedInfoComponent extends SecuritycurrencyBaseI
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sPrevClose', 'DAY_BEFORE_CLOSE', {
       fieldsetName: this.QUOTATION_DATA,
-      maxFractionDigits: this.gps.getMaxFractionDigits()
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
+      fractionDigitsField: this.SECURITYCURRENCY + 'priceFractionDigits'
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sHigh', 'HIGH', {
       fieldsetName: this.QUOTATION_DATA,
-      maxFractionDigits: this.gps.getMaxFractionDigits()
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
+      fractionDigitsField: this.SECURITYCURRENCY + 'priceFractionDigits'
     });
     this.addFieldProperty(DataType.Numeric, this.SECURITYCURRENCY + 'sLow', 'LOW', {
       fieldsetName: this.QUOTATION_DATA,
-      maxFractionDigits: this.gps.getMaxFractionDigits()
+      maxFractionDigits: this.gps.getMaxFractionDigits(),
+      fractionDigitsField: this.SECURITYCURRENCY + 'priceFractionDigits'
     });
     this.addFieldProperty(DataType.NumericInteger, this.SECURITYCURRENCY + 'sVolume', 'VOLUME', {
       fieldsetName: this.QUOTATION_DATA

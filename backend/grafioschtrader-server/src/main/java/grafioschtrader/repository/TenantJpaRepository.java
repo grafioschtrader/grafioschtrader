@@ -21,4 +21,9 @@ public interface TenantJpaRepository
 
   int countByIdParentTenant(Integer idParentTenant);
 
+  /** Serializes monitoring assignment, preference changes and hierarchy deletion for a tenant. */
+  @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @org.springframework.data.jpa.repository.Query("SELECT t FROM Tenant t WHERE t.idTenant = ?1")
+  java.util.Optional<Tenant> lockMonitoringTenant(Integer idTenant);
+
 }

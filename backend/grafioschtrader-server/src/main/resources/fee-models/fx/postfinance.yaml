@@ -1,0 +1,10 @@
+fx:
+  periods:
+    - validFrom: "1900-01-01"
+      status: ASSUMED
+      source: "https://thepoorswiss.com/postfinance-e-trading-review/"
+      note: "The official brokerage price list gives no FX figure. 1.2% from a secondary source, observed 2026-09, applied to trades, transfers and income and to the whole history."
+      rules:
+        - name: All conversions
+          condition: "true"
+          expression: "1.2"

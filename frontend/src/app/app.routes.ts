@@ -44,8 +44,10 @@ import { RiskFreeRateMappingTableComponent } from './riskfreeratemapping/compone
 import { ProposeChangeTabMenuComponent } from './lib/proposechange/component/propose.change.tab.menu.component';
 import { RequestForYouTableComponent } from './lib/proposechange/component/request.for.you.table.component';
 import { YourProposalTableComponent } from './lib/proposechange/component/your.proposal.table.component';
-import { AlgoOverviewComponent } from './algo/component/algo-overview.component';
+import { AlgoStandaloneAlertComponent } from './algo/component/algo-standalone-alert.component';
 import { AlgoSimulationRunComponent } from './algo/component/algo-simulation-run.component';
+import { AlgoSimulationRunSettingsComponent } from './algo/component/algo-simulation-run-settings.component';
+import { SimulationRunTabMenuComponent } from './algo/component/simulation-run-tab-menu.component';
 import { AlgoTopDataViewComponent } from './algo/component/algo.top.data.view.component';
 import { EntityLimitTableComponent } from './lib/entitylimit/component/entity.limit.table.component';
 import { UserTableComponent } from './lib/user/component/user.table.component';
@@ -74,7 +76,6 @@ import { SendRecvForwardTabMenuComponent } from './lib/mail/component/send.recv.
 import { UDFMetadataSecurityTableComponent } from './udfmetasecurity/components/udf.metadata.security.table.component';
 import { WatchlistUdfComponent } from './watchlist/component/watchlist.udf.component';
 import { UDFMetadataGeneralTableComponent } from './lib/udfmeta/components/udf.metadata.general.table.component';
-import { TenantAlertComponent } from './tenant/component/tenant.alert.component';
 import { StandingOrderCashaccountTableComponent } from './standingorder/component/standing-order-cashaccount-table.component';
 import { StandingOrderSecurityTableComponent } from './standingorder/component/standing-order-security-table.component';
 import { StandingOrderTabMenuComponent } from './standingorder/component/standing-order-tab-menu.component';
@@ -157,8 +158,7 @@ const APP_ROUTES: Routes = [
                 canActivate: [authGuard]
               }
             ]
-          },
-          { path: AppSettings.TENANT_ALERT, component: TenantAlertComponent, canActivate: [authGuard] }
+          }
         ]
       },
       {
@@ -273,12 +273,24 @@ const APP_ROUTES: Routes = [
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },
-      { path: AppSettings.ALGO_OVERVIEW_KEY, component: AlgoOverviewComponent, canActivate: [authGuard] },
+      { path: AppSettings.ALGO_OVERVIEW_KEY, component: AlgoStandaloneAlertComponent, canActivate: [authGuard] },
       { path: AppSettings.ALGO_TOP_KEY + '/:id', component: AlgoTopDataViewComponent, canActivate: [authGuard] },
       {
-        path: AppSettings.SIMULATION_RUN_KEY + '/:id',
-        component: AlgoSimulationRunComponent,
-        canActivate: [authGuard]
+        path: AppSettings.SIMULATION_RUN_TAB_MENU_KEY + '/:id',
+        component: SimulationRunTabMenuComponent,
+        canActivate: [authGuard],
+        children: [
+          {
+            path: AppSettings.SIMULATION_RUN_KEY + '/:id',
+            component: AlgoSimulationRunComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.SIMULATION_RUN_SETTINGS_KEY + '/:id',
+            component: AlgoSimulationRunSettingsComponent,
+            canActivate: [authGuard]
+          }
+        ]
       },
       { path: AppSettings.WATCHLIST_KEY + '/:id', component: CorrelationComponent, canActivate: [authGuard] },
       {

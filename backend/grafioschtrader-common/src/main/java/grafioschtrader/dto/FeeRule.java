@@ -5,8 +5,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = """
     A single fee rule with an EvalEx boolean condition and a numeric expression for fee calculation.
     String variables: instrument (DIRECT_INVESTMENT, ETF, MUTUAL_FUND, ...), assetclass (EQUITIES,
-    FIXED_INCOME, ...), mic, currency. Numeric variables: tradeValue, units, fixedAssets, tradeDirection.
-    Legacy numeric aliases: specInvestInstrument, categoryType.""")
+    FIXED_INCOME, ...), mic, currency, settlementCurrency. Numeric variables: tradeValue, units, fixedAssets,
+    tradeDirection, and the trade counts tradesInMonth, tradesInQuarter, tradesInYear, securityTradesInMonth (earlier
+    trades of the security account in the calendar period). Legacy numeric aliases: specInvestInstrument, categoryType.
+    In a custody value rule the variables are positionValue, accountValue, instrument, assetclass, isin, currency, mic.""")
 public class FeeRule {
 
   @Schema(description = "Human-readable rule name (e.g., 'Swiss stocks - Premium tier')")

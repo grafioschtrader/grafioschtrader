@@ -1,4 +1,4 @@
-import { AlgoAlertDiagnosticsComponent } from '../../algo/component/algo-alert-diagnostics.component';
+import { AlgoAlertDiagnosticsComponent } from './algo-alert-diagnostics.component';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -17,24 +17,26 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
-import { AlgoSecurity } from '../../algo/model/algo.security';
-import { AlgoStrategy } from '../../algo/model/algo.strategy';
-import { AlgoSecurityService } from '../../algo/service/algo.security.service';
-import { AlgoStrategyService } from '../../algo/service/algo.strategy.service';
-import { AlgoCallParam, AlgoStrategyDefinitionForm } from '../../algo/model/algo.dialog.visible';
+import { AlgoSecurity } from '../model/algo.security';
+import { AlgoStrategy } from '../model/algo.strategy';
+import { AlgoSecurityService } from '../service/algo.security.service';
+import { AlgoStrategyService } from '../service/algo.strategy.service';
+import { SimulationContextService } from '../service/simulation.context.service';
+import { AlgoCallParam, AlgoStrategyDefinitionForm } from '../model/algo.dialog.visible';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
-import { AlgoStrategyEditComponent } from '../../algo/component/algo-strategy-edit.component';
-import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
+import { AlgoStrategyEditComponent } from './algo-strategy-edit.component';
 import { AppSettings } from '../../shared/app.settings';
 
 /**
- * Displays all alerts across the tenant in a tree table where AlgoSecurity entries are parent rows
- * and their AlgoStrategy entries are child rows. Users can activate/deactivate individual strategies
- * via checkboxes and perform CRUD on strategies via context menu dialogs.
+ * Landing page of the rule-based trading root node. Shows the portfolio-independent (standalone) alerts of the tenant
+ * in a tree table: each alerted security is a parent row, its alert strategies are the child rows. The live alert of
+ * a strategy is switched with its alertEnabled checkbox; strategies are created, edited and deleted via the context
+ * menu. Alerts that belong to a strategy hierarchy are not listed here, they are managed in the view of their hierarchy.
  */
 @Component({
-  selector: 'tenant-alert',
+  selector: 'algo-standalone-alert',
   template: `
+    <h4>{{ 'ALGO_OVERVIEW' | translate }}</h4>
     <p-button [label]="'ALERT_DIAGNOSTICS' | translate" (click)="visibleDiagnostics = true" />
     @if (visibleDiagnostics) {
       <algo-alert-diagnostics (closed)="visibleDiagnostics = false" />
@@ -55,8 +57,10 @@ import { AppSettings } from '../../shared/app.settings';
         (nodeUnselect)="onRowUnselect($event)"
         [contextMenuItems]="contextMenuItems"
         [contextMenuAppendTo]="'body'"
-        [showContextMenu]="isActivated()"
+        [showContextMenu]="isActivated() && canWrite()"
         [valueGetterFn]="getValueByPath.bind(this)"
+        [checkboxVisibleFn]="isCheckboxVisible.bind(this)"
+        [checkboxDisabledFn]="isCheckboxDisabled.bind(this)"
         (checkboxChange)="onCheckboxChange($event)"
         (componentClick)="onComponentClick($event)">
       </configurable-tree-table>
@@ -81,7 +85,7 @@ import { AppSettings } from '../../shared/app.settings';
     AlgoStrategyEditComponent
   ]
 })
-export class TenantAlertComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
+export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
   treeNodes: TreeNode[] = [];
   selectedNode: TreeNode | null = null;
   contextMenuItems: MenuItem[] = [];
@@ -92,11 +96,14 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
   algoStrategyDefinitionForm = new AlgoStrategyDefinitionForm();
 
   private algoSecurities: AlgoSecurity[] = [];
+  /** Strategies whose alert preference is being saved; their checkbox stays disabled until the response arrives. */
+  private savingAlerts = new Set<number>();
 
   constructor(
     private activePanelService: ActivePanelService,
     private algoSecurityService: AlgoSecurityService,
     private algoStrategyService: AlgoStrategyService,
+    private simulationContext: SimulationContextService,
     private messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
     translateService: TranslateService,
@@ -110,10 +117,7 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
     this.addColumn(DataType.String, 'algoStrategyImplementations', 'ALGO_STRATEGY_NAME', true, false, {
       translateValues: TranslateValue.NORMAL
     });
-    this.addColumn(DataType.String, 'alertContext', 'ALERT_CONTEXT', true, false, {
-      fieldValueFN: this.getAlertContext.bind(this)
-    });
-    this.addColumn(DataType.Boolean, 'activatable', 'ACTIVATABLE', true, false, { templateName: 'editableCheck' });
+    this.addColumnFeqH(DataType.Boolean, 'alertEnabled', true, false, { templateName: 'editableCheck' });
   }
 
   ngOnInit(): void {
@@ -134,6 +138,11 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
 
   getHelpContextId(): string {
     return HelpIds.HELP_ALGO_ALERT;
+  }
+
+  /** Alerts are changed only by a writing user of the main tenant; the backend refuses everything else. */
+  canWrite(): boolean {
+    return !this.gps.isReadOnlyUser() && !this.simulationContext.isInSimulation();
   }
 
   // ============================================================================
@@ -164,49 +173,47 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
     });
   }
 
-  // ============================================================================
-  // Value Getters for Columns
-  // ============================================================================
-
   private getNodeName(dataobject: any, field: ColumnConfig, valueField: any): string {
-    if (dataobject instanceof AlgoSecurity || dataobject.security) {
-      return dataobject.security ? dataobject.security.name + ', ' + dataobject.security.currency : '';
-    }
-    return '';
-  }
-
-  private getAlertContext(dataobject: any, field: ColumnConfig, valueField: any): string {
-    if (dataobject instanceof AlgoSecurity || dataobject.idAlgoSecurityParent !== undefined) {
-      return this.translateService.instant(dataobject.idAlgoSecurityParent ? 'IN_STRATEGY' : 'STANDALONE');
-    }
-    return '';
+    return dataobject.security ? dataobject.security.name + ', ' + dataobject.security.currency : '';
   }
 
   // ============================================================================
-  // Checkbox Toggle
+  // Alert preference checkbox
   // ============================================================================
 
+  private isStrategyRow(rowData: any): boolean {
+    return rowData.algoStrategyImplementations !== undefined && rowData.algoStrategyImplementations !== null;
+  }
+
+  /** Only strategy rows carry the alert preference; security rows show no checkbox. */
+  isCheckboxVisible(rowData: any, field: ColumnConfig): boolean {
+    return this.isStrategyRow(rowData);
+  }
+
+  isCheckboxDisabled(rowData: any, field: ColumnConfig): boolean {
+    return !this.canWrite() || this.savingAlerts.has(rowData.idAlgoRuleStrategy);
+  }
+
+  /** Persists the alert preference through its dedicated endpoint and rolls back when the backend refuses it. */
   onCheckboxChange(event: { rowData: any; field: ColumnConfig; value: boolean }): void {
     const { rowData, value } = event;
-    if (rowData.algoStrategyImplementations !== undefined && rowData.algoStrategyImplementations !== null) {
-      // Strategy row
-      rowData.activatable = value;
-      this.algoStrategyService.update(rowData as AlgoStrategy).subscribe({
-        error: () => {
-          rowData.activatable = !value;
-          this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MSG_SAVE_ERROR');
-        }
-      });
-    } else if (rowData.security) {
-      // Security row
-      rowData.activatable = value;
-      this.algoSecurityService.update(rowData as AlgoSecurity).subscribe({
-        error: () => {
-          rowData.activatable = !value;
-          this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'MSG_SAVE_ERROR');
-        }
-      });
+    if (!this.isStrategyRow(rowData) || this.isCheckboxDisabled(rowData, event.field)) {
+      return;
     }
+    const strategy: AlgoStrategy = rowData;
+    const previous = strategy.alertEnabled;
+    strategy.alertEnabled = value;
+    this.savingAlerts.add(strategy.idAlgoRuleStrategy);
+    this.algoStrategyService.setAlertEnabled(strategy.idAlgoRuleStrategy, value).subscribe({
+      next: (saved) => {
+        strategy.alertEnabled = saved.alertEnabled;
+        this.savingAlerts.delete(strategy.idAlgoRuleStrategy);
+      },
+      error: () => {
+        strategy.alertEnabled = previous;
+        this.savingAlerts.delete(strategy.idAlgoRuleStrategy);
+      }
+    });
   }
 
   // ============================================================================
@@ -236,19 +243,17 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
 
   private getEditMenu(): MenuItem[] {
     const menuItems: MenuItem[] = [];
-    if (!this.selectedNode) {
+    if (!this.selectedNode || !this.canWrite()) {
       return menuItems;
     }
     const rowData = this.selectedNode.data;
     if (rowData.security) {
-      // AlgoSecurity row
       this.addStrategyCreateMenu(menuItems, rowData as AlgoSecurity);
       menuItems.push({
         label: 'DELETE_RECORD|ALGO_SECURITY',
         command: () => this.handleDeleteSecurity(rowData as AlgoSecurity)
       });
-    } else if (rowData.algoStrategyImplementations !== undefined && rowData.algoStrategyImplementations !== null) {
-      // AlgoStrategy row
+    } else if (this.isStrategyRow(rowData)) {
       menuItems.push({
         label: 'EDIT_RECORD|ALGO_STRATEGY',
         command: () => this.handleEditStrategy(rowData as AlgoStrategy)
@@ -339,10 +344,6 @@ export class TenantAlertComponent extends TreeTableConfigBase implements OnInit,
       this.loadData();
     }
   }
-
-  // ============================================================================
-  // Helpers
-  // ============================================================================
 
   private findParentSecurity(algoStrategy: AlgoStrategy): AlgoSecurity | null {
     return (

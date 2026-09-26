@@ -1,6 +1,5 @@
 package grafioschtrader.service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,8 +82,8 @@ public class AlgoAlertStateService {
             boundKey);
 
     if (stored.isEmpty()) {
-      algoAlertStateJpaRepository.save(new AlgoAlertState(idTenant, idAlgoStrategy, idSecuritycurrency, boundKey,
-          fingerprint, side, observed, LocalDateTime.now()));
+      algoAlertStateJpaRepository
+          .save(new AlgoAlertState(idTenant, idAlgoStrategy, idSecuritycurrency, boundKey, fingerprint, side));
       return AlgoCrossingResult.BASELINE_ESTABLISHED;
     }
 
@@ -93,8 +92,6 @@ public class AlgoAlertStateService {
     boolean sameConfiguration = fingerprint.equals(state.getConfigFingerprint());
     state.setConfigFingerprint(fingerprint);
     state.setLastSide(side);
-    state.setLastValue(observed);
-    state.setLastEvaluated(LocalDateTime.now());
     algoAlertStateJpaRepository.save(state);
 
     return classify(previousSide, side, sameConfiguration);

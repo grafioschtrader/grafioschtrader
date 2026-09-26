@@ -142,7 +142,7 @@ public class BaseDataClient {
    * timeout.
    *
    * @param domainName the base URL of the remote instance (e.g., "https://example.com:8080")
-   * @return application info including name, version, and user capacity
+   * @return application info with name, description and version
    * @throws WebClientResponseException if the remote returns an error status
    * @throws WebClientRequestException  if the remote is unreachable
    */
@@ -155,7 +155,7 @@ public class BaseDataClient {
    *
    * @param domainName               the base URL of the remote instance (e.g., "https://example.com:8080")
    * @param connectionTimeoutSeconds TCP connection timeout in seconds (0 = use Netty default)
-   * @return application info including name, version, and user capacity
+   * @return application info with name, description and version
    * @throws WebClientResponseException if the remote returns an error status
    * @throws WebClientRequestException  if the remote is unreachable
    */

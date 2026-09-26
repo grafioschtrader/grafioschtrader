@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ViewChild, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -30,6 +30,7 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
 @Component({
   selector: 'trading-calendar-rule-set-edit',
   template: ` <p-dialog
+    styleClass="big-dialog"
     header="{{ i18nRecord | translate }}"
     [visible]="visibleDialog"
     [style]="{ width: '900px' }"
@@ -45,18 +46,14 @@ import { TradingCalendarRuleSetPreviewComponent } from './trading-calendar-rule-
     </dynamic-form>
 
     <yaml-editor
+      #yamlEditor
+      format="CALENDAR"
+      (syntaxValidChange)="configObject.submit.disabled = !$event || yamlEditor.validating"
+      (validationPendingChange)="configObject.submit.disabled = $event || !yamlEditor.syntaxValid"
       [height]="'380px'"
       [(value)]="ruleYamlValue"
       [schema]="ruleSchema"
       [fieldCompletions]="ruleCompletions"></yaml-editor>
-
-    @if (validationErrors.length > 0) {
-      <div class="text-red-600 mt-2">
-        @for (error of validationErrors; track error) {
-          <div>{{ error }}</div>
-        }
-      </div>
-    }
 
     @if (idTradingCalendarRuleSet) {
       <p-fieldset
@@ -98,13 +95,13 @@ export class TradingCalendarRuleSetEditComponent
   extends SimpleEntityEditBase<TradingCalendarRuleSet>
   implements OnInit
 {
+  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
   @Input() callParam: TradingCalendarRuleSet;
   @Input() proposeChangeEntityWithEntity: ProposeChangeEntityWithEntity;
 
   ruleYamlValue = '';
   ruleSchema: any;
   ruleCompletions: { [fieldName: string]: YamlFieldCompletion[] };
-  validationErrors: string[] = [];
 
   previewYear: number = new Date().getFullYear();
   previewClosures: { [date: string]: string } = {};
@@ -175,19 +172,9 @@ export class TradingCalendarRuleSetEditComponent
    * Checks the YAML before saving and only continues when it is free of errors. The backend refuses invalid rules on
    * save as well, but reporting them here lists every problem at once instead of the first one as a toast.
    */
-  override submit(value: { [name: string]: any }): void {
-    this.validationErrors = [];
-    this.tradingCalendarRuleSetService.validateYaml(this.ruleYamlValue).subscribe({
-      next: (errors) => {
-        this.validationErrors = errors;
-        if (errors.length === 0) {
-          super.submit(value);
-        } else {
-          this.configObject.submit.disabled = false;
-        }
-      },
-      error: () => super.submit(value)
-    });
+  override async submit(value: { [name: string]: any }): Promise<void> {
+    if (await this.yamlEditor.validateForSubmit()) super.submit(value);
+    else this.configObject.submit.disabled = !this.yamlEditor.syntaxValid;
   }
 
   changePreviewYear(offset: number): void {

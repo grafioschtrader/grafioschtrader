@@ -65,6 +65,13 @@ public class AlgoReplayRunRegistry {
   }
 
   /**
+   * @return every simulation environment whose replay is queued or executing in this server
+   */
+  public java.util.Set<Integer> reservedEnvironments() {
+    return java.util.Set.copyOf(reservations.keySet());
+  }
+
+  /**
    * @param idTenant the simulation environment
    * @return true while a replay of this environment is queued or executing in this server
    */

@@ -3,8 +3,10 @@
 ## Dashboard (225-*)
 
 `225-dashboard.spec.ts` exercises the real dashboard catalogue, configuration forms and persistence for the existing
-`admin`, `alledit`, `user` and `limit1` accounts from `testdata/users.json`. Admin sees six widgets; the other roles
-see five and cannot add `USER_LIMIT_REQUESTS`, including through a forged REST save. Both English and German UI
+`admin`, `alledit`, `user` and `limit1` accounts from `testdata/users.json`. Admin sees seven widgets; the other roles
+see six and cannot add `USER_LIMIT_REQUESTS`, including through a forged REST save. `ALGO_MONITORING` is present
+because the `e2e` profile enables the ALGO feature; it declares no settings, so its card has no Configure button and
+its saved `config` must stay `{}` — `SETTINGS` in `dashboard.helpers.ts` lists only the configurable types. Both English and German UI
 labels are supported. No dashboard responses or role checks are mocked, and assertions do not depend on live prices,
 inbox counts or proposal counts.
 
@@ -144,8 +146,12 @@ dialog. Both search modes retain existing rows and add only missing instruments,
 `currencypair` watchlist. A rerun accepts an existing watchlist row; if the pair exists globally but is absent from
 the watchlist, the spec adds it through the existing-instrument dialog. Creation involves two sequential writes:
 `POST /api/currencypair`, followed by `PUT /api/watchlist/{id}/addSecuritycurrency`. The spec explicitly awaits the
-second response before waiting for the refreshed row, so a failed association is not misreported as a rendering
-timeout.
+second response before waiting for the dialog to close and the row to refresh. A failed creation POST also ends
+the wait and reports its HTTP status and response body, so server errors are not misreported as dialog timeouts.
+If the response reports a missing compiler-generated class such as `BaseFeedConnector$1`, stop the backend,
+run `cd backend && mvn clean install -DskipTests`, and restart it with the `e2e` profile. Eclipse and Maven share
+`target/classes`; avoid IDE rebuilds while the backend is running, since they can replace classes or remove
+compiler-generated companions that the running JVM still needs.
 
 ## Security creation spec (050-*)
 
@@ -211,6 +217,14 @@ makes it re-runnable against a polluted database. It carries the lowest number i
 the keys exist before every other spec — and, since the startup price update was removed from the
 `e2e` profile, before `100-schedule-batch-jobs.spec.ts` schedules that update.
 
+## Managed-client specs (085-*, 090-*)
+
+The application `loginAsFixtureUser` helper waits for the labelled portfolio root, not just the tree shell.
+If `/api/portfolio/tenant` fails with `net::ERR_CONNECTION_REFUSED`, it reloads once to recover the empty branch;
+HTTP errors, other transport errors and a failed second load still fail the test. Spec `085` aborts one such
+request during the advisor login to exercise this recovery before switching tenants and checking CRUD access.
+Managed clients and portfolios are reused when already present, so the spec can run against a populated test database.
+
 ## Batch-job scheduling spec (100-*)
 
 `100-schedule-batch-jobs.spec.ts` schedules the batch jobs tagged `e2e='e'` in the hand-maintained,
@@ -255,6 +269,13 @@ exported from the developer database by `scripts/export-generic-connectors.mjs` 
 `backend/nv.bat`). Property names match the Jackson/REST serialization of the backend entities, so
 future JUnit tests can deserialize the same file with Jackson; the per-connector `e2e` tag partitions
 rows between the Playwright ('e') and JUnit ('i') sides like the CSV testdata files.
+
+The connector dialog scrolls internally (`big-dialog`), and the scroll Playwright performs before a click closes an
+open `p-multiSelect` overlay. `pickMultiSelect` therefore reopens the overlay and repeats the click until the option
+reports `aria-selected="true"`; a single click on an option is not reliable in this dialog.
+
+The trading calendar rule sets of 105 have a related trap: their table offers _Create_ only while no rule set is
+selected, so `createRuleSet` opens the context menu on the table caption, never on a row.
 
 ## Import template group spec (010-*)
 
@@ -550,7 +571,9 @@ With the backend and frontend still active, execute only this spec with
 
 `195-simulation-opening.spec.ts` covers the three ways a simulation environment establishes its opening ledger.
 It has no CSV fixture. As `alledit` it creates, through REST, one watchlist and one AlgoTop both named `Opening e2e`,
-gives the watchlist a member taken from an existing watchlist, and then drives the strategy node's _Create simulation
+gives the watchlist a member taken from an existing watchlist, weights the AlgoTop with one asset class at 100% (the
+readiness check refuses an environment whose weightings below the strategy do not add up to 100%; an asset class
+without a security is allowed and stays uninvested), and then drives the strategy node's _Create simulation
 environment_ dialog. The five tests cover copy-portfolio (including switching into the environment and checking that
 only the linked watchlist came along), manual cash (asserting the single opening `DEPOSIT` in the created tenant), the
 liquidation preview, two environments of one strategy with different immutable dates, and deletion leaving the shared
@@ -583,7 +606,7 @@ With the backend and frontend still active, execute only this spec with
 
 `060-historyquote-table.spec.ts` covers the end-of-day price views of `Nestlé AG` (CH0038863350): it
 uses the `Switzerland` watchlist created by 040 and adds the instrument through the "Add existing instrument"
-search dialog by ISIN, then deletes the most recent quote and recreates it with exactly the same
+search dialog by ISIN, then deletes an interior quote and recreates it with exactly the same
 values through the create dialog.
 
 The instrument is not created by the spec — it is **seeded with its price history**. `nv.bat` dumps
@@ -602,19 +625,22 @@ its owner. It may still edit and delete the quotes directly because `ROLE_ALLEDI
 the ownership check in `UserAccessHelper.hasRightsOrPrivilegesForEditingOrDelete` and
 `AuditHelper.hasRightsForEditingOrDeleteAuditable` — no propose-change flow.
 
-The deleted row is not blindly the first one but the newest quote **older than today**: the backend
-rejects a quote dated today or on a weekend (`checkDatePastMinus1Day`) and the dialog's date picker
-sets `maxDate = yesterday`, while the connector may deliver a partial candle for the current day.
+The deleted row is a weekday **older than today and older than the newest stored quote**. Keeping the
+newest stored date intact is essential: connector catch-up starts after that date, so deleting the latest
+quote lets a background update recreate it before the dialog saves, causing a duplicate-key error.
+The backend also rejects today and weekends (`checkDatePastMinus1Day`), and the dialog sets
+`maxDate = yesterday`. Assertions target the selected date, since catch-up may append newer rows during the test.
 The exact OHLCV values are taken from the table's own REST response, not from the formatted cells,
 and typed back key by key — both the Optimus UI date picker and `p-inputNumber` ignore values injected
 with `fill()`.
 
-Delete-then-recreate makes the spec repeatable: a rerun targets the same date again. The recreated
+Delete-then-recreate makes the spec repeatable. The recreated
 row comes back with create type `ADD_MODIFIED_USER` instead of `CONNECTOR_CREATED`, so its icon in
 the `T` column changes — harmless for the flow. Because the OHLCV values are written back unchanged,
-the shared Nestlé series also stays intact for `080-correlation-matrix.spec.ts`, which uses it. Only
-a run aborted _between_ the delete and the recreate leaves that one connector row missing; the next
-run then targets the row before it.
+the shared Nestlé series also stays intact for `080-correlation-matrix.spec.ts`, which uses it. A `finally`
+block restores the original OHLCV values through REST if a failed UI flow leaves the target row missing.
+Write-response matchers accept error statuses and assert the status/body separately, so a backend rejection
+is reported directly instead of appearing as a response timeout.
 
 The instrument is added only when missing, so the spec can be re-run against the same `grafioschtrader_t`
 without a reset.
@@ -790,6 +816,9 @@ refused by `onRowEditSave` before any request goes out. The CSV upload reuses th
 so the file input is `input[type=file]#fileToUpload` and its submit button is labelled `UPLOAD`, not `SAVE`.
 The inline controls expose their column through `data-field`; after a new row is saved, the component replaces the
 temporary-keyed row with the server response so Optimus does not reuse its editor bindings for the next append.
+The editor schedules focus and text selection after rendering the controls. Wait for the ISIN input to be focused
+before filling the row; visibility alone allows that callback to steal focus during the ticker fill. The spec checks
+all three saved values (ISIN, ticker and currency) through the API.
 
 Volumes stay far inside the limits seeded in `V4__seed_entity_limits.sql` (200 `GTNetSecurityImpHead` per
 tenant, 200 `GTNetSecurityImpPos` per head). The spec owns exactly one import set, addressed by its name, and
@@ -1099,19 +1128,23 @@ spec with `npx playwright test e2e/<spec> --project=grafioschtrader-e2e --no-dep
 
 `220-historical-replay.spec.ts` drives the replay of a simulation environment from that environment's tree node. As
 `alledit` it creates, through REST, one watchlist and one AlgoTop both named `Replay e2e` plus a simulation
-environment `Replay e2e run`, opened with **manual cash** on purpose: a cash-only ledger is the one case whose
+environment `Replay e2e run`, opened with **manual cash** on purpose. The AlgoTop carries one asset class at 100% and
+no security, which satisfies the readiness check and keeps the environment uninvested: a cash-only ledger is the one case whose
 replayed result is known without a single price, so the run must complete with no trades, no drawdown and no Sharpe
 ratio. What a replay does with prices belongs to 205-215 and to the pure backend tests; this spec covers the workflow
 
-- the "Start replay…" menu entry of the environment node, the start dialog that only collects the inputs, the
+- the "Start replay…" menu entry of the environment node, confirmation before the start dialog at both the tree and
+  replay-panel entries, cancellation without submitting a run, the start dialog that only collects the inputs, the
   background job, the replay panel the tree navigates to once the run is accepted (status and the two optional
   estimates in its "Run" card), the conventions the run records (`NEXT_CLOSE_FILL`, `NO_TRANSACTION_COST`) and the
-  `RUN_START` / `RUN_END` audit trail. Its three tests also check that repeating a
+  `RUN_START` / `RUN_END` audit trail. The tests also check that repeating a
   replay replaces the previous result instead of appending to it, and that an end date on or before the opening date is
   refused.
 
-Three things bite here:
+Four things bite here:
 
+- **The replay panel appends its context menu to the body**, outside any `p-contextmenu` element, so
+  `openStartMenu` looks the entry up in the visible `[role="menu"]` instead of using `openTreeContextMenu`.
 - **The replay is started from the main tenant, never from inside a switched-in simulation.** The backend books the
   fills as the owner of the environment, so the menu entry is deliberately absent while a simulation is entered.
 - **The end date must be typed with `pressSequentially` in the de-CH short form** and read back - the same picker
@@ -1124,3 +1157,7 @@ Everything it created is removed before and after each test. Prerequisites: the 
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/220-historical-replay.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
+## YAML validation (210-*)
+
+`210-yaml-validation.spec.ts` uses the `alledit` fixture login, creates its own plan and inactive connector, and checks invalid REST writes, editor diagnostics and previews without saves. It cleans only its named records at the start and end. Run against verified test services with `--project=grafioschtrader-e2e --no-deps`; no other data-producing specs are required beyond the registered user and tenant.

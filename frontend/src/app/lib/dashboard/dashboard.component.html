@@ -106,7 +106,12 @@
                   }
                 </select>
               </label>
-              <p-button [label]="'DASHBOARD_CONFIGURE' | translate" [disabled]="saving" (onClick)="configure(widget)" />
+              @if (configurable(widget)) {
+                <p-button
+                  [label]="'DASHBOARD_CONFIGURE' | translate"
+                  [disabled]="saving"
+                  (onClick)="configure(widget)" />
+              }
               <p-button [label]="'DASHBOARD_REMOVE' | translate" [disabled]="saving" (onClick)="remove(index)" />
             </div>
           }

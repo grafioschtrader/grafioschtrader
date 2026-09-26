@@ -9,6 +9,7 @@ import grafiosch.entities.Auditable;
 import grafiosch.entities.MultilanguageString;
 import grafiosch.types.Language;
 import grafioschtrader.types.TradingPlatformFeePlan;
+import grafioschtrader.validation.ValidTaxCountryCode;
 import grafioschtrader.validation.ValidMultilanguage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Basic;
@@ -32,20 +33,6 @@ import jakarta.persistence.Table;
 public class TradingPlatformPlan extends Auditable implements Serializable {
 
   public static final String TABNAME = "trading_platform_plan";
-
-  @jakarta.persistence.Column(name = "country_code")
-  @grafiosch.common.PropertyAlwaysUpdatable
-  @grafiosch.common.DynamicFormField(uiOrder = "2.1")
-  @grafioschtrader.validation.ValidTaxCountryCode
-  private String countryCode;
-
-  public String getCountryCode() {
-    return countryCode;
-  }
-
-  public void setCountryCode(String countryCode) {
-    this.countryCode = countryCode;
-  }
 
   private static final long serialVersionUID = 1L;
 
@@ -81,6 +68,14 @@ public class TradingPlatformPlan extends Auditable implements Serializable {
   @Column(name = "fee_model_yaml", columnDefinition = "TEXT")
   @PropertyAlwaysUpdatable
   private String feeModelYaml;
+
+  @Schema(description = """
+      ISO country code of the securities dealer behind this plan. Only the simulation tax models read it, for example
+      to decide whether the Swiss stamp duty applies. Null means unknown.""")
+  @Column(name = "country_code")
+  @PropertyAlwaysUpdatable
+  @ValidTaxCountryCode
+  private String countryCode;
 
   public Integer getIdTradingPlatformPlan() {
     return idTradingPlatformPlan;
@@ -134,6 +129,14 @@ public class TradingPlatformPlan extends Auditable implements Serializable {
 
   public void setFeeModelYaml(String feeModelYaml) {
     this.feeModelYaml = feeModelYaml;
+  }
+
+  public String getCountryCode() {
+    return countryCode;
+  }
+
+  public void setCountryCode(String countryCode) {
+    this.countryCode = countryCode;
   }
 
 }

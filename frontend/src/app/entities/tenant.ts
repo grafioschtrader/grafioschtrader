@@ -11,6 +11,8 @@ export class Tenant extends TenantBase {
   portfolioList: Portfolio[];
   tenantKindType: TenantKindType | string;
   idWatchlistPerformance: number = null;
+  /** Monitoring hierarchy for a main tenant, shared replay strategy for a simulation tenant. */
+  idAlgoTop: number = null;
   /** Opt-in of this tenant to the GT authored import templates; which platform carries them is set instance wide. */
   useGtImportTemplates = false;
 

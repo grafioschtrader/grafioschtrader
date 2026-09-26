@@ -1,4 +1,5 @@
 export interface TransactionCostEstimateRequest {
+  idSecurityaccount?: number;
   idTradingPlatformPlan: number;
   tradeValue?: number;
   units?: number;
@@ -8,6 +9,11 @@ export interface TransactionCostEstimateRequest {
   currency?: string;
   fixedAssets?: number;
   tradeDirection?: number;
+  settlementCurrency?: string;
+  tradesInMonth?: number;
+  tradesInQuarter?: number;
+  tradesInYear?: number;
+  securityTradesInMonth?: number;
   transactionDate?: string;
   yaml?: string;
 }

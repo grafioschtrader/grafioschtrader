@@ -20,8 +20,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * One line of the rebalancing plan of an AlgoTop: what a node of the hierarchy is supposed to hold, what it actually
- * holds and what would close the difference. A recommendation is a proposal for the user, never a booking - the live
+ * One line of the rebalancing plan of an AlgoTop: how far a node of the hierarchy deviates from its target and what
+ * would close the difference. Target and actual values are not stored; the rebalancing report recalculates the plan
+ * live, and the stored line keeps only what the monitoring reads back. A recommendation is a proposal for the user, never a booking - the live
  * evaluation writes these rows and a notification, and leaves the portfolio untouched.
  *
  * <p>
@@ -33,9 +34,10 @@ import jakarta.persistence.Table;
  * </p>
  *
  * <p>
- * {@code idTenant} is the tenant the plan was calculated for, which is the tenant that holds the positions. The AlgoTop
- * itself always belongs to the main tenant even when a simulation environment is active, so the two are not the same
- * identity and the tenant is part of the key.
+ * The rows exist for monitoring only: they belong to the main tenant and to the AlgoTop assigned to monitoring
+ * ({@code tenant.id_algo_top}). Another hierarchy, typically one kept for simulation, has no stored plan; the allocation
+ * report calculates it on demand, and a historical replay keeps its checkpoint in memory and stores no plan, so a
+ * simulation environment never holds a row.
  * </p>
  *
  * <p>
@@ -59,7 +61,7 @@ public class AlgoRecommendation extends TenantBaseID implements Serializable {
   @Column(name = "id_algo_recommendation")
   private Integer idAlgoRecommendation;
 
-  /** Tenant whose holdings were evaluated. */
+  /** Main tenant whose holdings were evaluated and which owns the AlgoTop. */
   @Basic(optional = false)
   @Column(name = "id_tenant")
   private Integer idTenant;
@@ -117,25 +119,9 @@ public class AlgoRecommendation extends TenantBaseID implements Serializable {
   @Column(name = "currency")
   private String currency;
 
-  /** Target share of total net equity in percentage points. */
-  @Column(name = "target_percentage")
-  private Double targetPercentage;
-
-  /** Actual share of total net equity in percentage points. */
-  @Column(name = "actual_percentage")
-  private Double actualPercentage;
-
   /** Actual minus target, in percentage points. */
   @Column(name = "deviation_percentage")
   private Double deviationPercentage;
-
-  /** Target value of the hierarchy node in tenant currency. */
-  @Column(name = "target_amount")
-  private Double targetAmount;
-
-  /** Actual value of the hierarchy node in tenant currency. */
-  @Column(name = "actual_amount")
-  private Double actualAmount;
 
   /** Direction of the proposed trade, not the direction of the exposure. */
   @Enumerated(EnumType.STRING)
@@ -263,44 +249,12 @@ public class AlgoRecommendation extends TenantBaseID implements Serializable {
     this.currency = currency;
   }
 
-  public Double getTargetPercentage() {
-    return targetPercentage;
-  }
-
-  public void setTargetPercentage(Double targetPercentage) {
-    this.targetPercentage = targetPercentage;
-  }
-
-  public Double getActualPercentage() {
-    return actualPercentage;
-  }
-
-  public void setActualPercentage(Double actualPercentage) {
-    this.actualPercentage = actualPercentage;
-  }
-
   public Double getDeviationPercentage() {
     return deviationPercentage;
   }
 
   public void setDeviationPercentage(Double deviationPercentage) {
     this.deviationPercentage = deviationPercentage;
-  }
-
-  public Double getTargetAmount() {
-    return targetAmount;
-  }
-
-  public void setTargetAmount(Double targetAmount) {
-    this.targetAmount = targetAmount;
-  }
-
-  public Double getActualAmount() {
-    return actualAmount;
-  }
-
-  public void setActualAmount(Double actualAmount) {
-    this.actualAmount = actualAmount;
   }
 
   public AlgoRecommendationAction getRecommendedAction() {

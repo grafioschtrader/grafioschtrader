@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import grafiosch.entities.User;
+import grafiosch.exportdelete.CapturedDeleteRows;
 import grafiosch.exportdelete.ExportDefinition;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
 import grafioschtrader.exportdelete.MyDataExportDeleteDefinition;
@@ -20,6 +22,9 @@ public class SimulationCleanupRepository {
 
   /** Deletes only the selected simulation's private data; shared strategy and user records are excluded. */
   public void deleteTenantData(Integer idTenant) {
+    ExportDefinition[] definitions = Arrays.stream(MyDataExportDeleteDefinition.exportDefinitions)
+        .filter(this::isTenantDeletion).toArray(ExportDefinition[]::new);
+    CapturedDeleteRows capturedRows = new CapturedDeleteRows(jdbc, definitions, new User(idTenant));
     // Pending work must be removed while its referenced accounts and transactions can still be selected.
     for (String[] mapping : new String[][] { { "Tenant", "tenant", "id_tenant" },
         { "Portfolio", "portfolio", "id_portfolio" },
@@ -33,14 +38,9 @@ public class SimulationCleanupRepository {
         "algo_alert_state", "algo_alert_evaluation_state")) {
       jdbc.update("DELETE FROM " + table + " WHERE id_tenant = ?", idTenant);
     }
-    ExportDefinition[] definitions = MyDataExportDeleteDefinition.exportDefinitions;
     for (int i = definitions.length - 1; i >= 0; i--) {
       ExportDefinition definition = definitions[i];
-      if (!definition.isDelete())
-        continue;
-      boolean tenantScoped = definition.tenantUser == TENANT_USER.ID_TENANT || definition.tenantUser == TENANT_USER.NONE
-          && definition.sqlStatement != null && definition.sqlStatement.contains("id_tenant = ?");
-      if (!tenantScoped)
+      if (capturedRows.delete(definition))
         continue;
       String sql = definition.sqlStatement;
       if (sql == null)
@@ -51,5 +51,11 @@ public class SimulationCleanupRepository {
       Arrays.fill(arguments, idTenant);
       jdbc.update(sql, arguments);
     }
+  }
+
+  private boolean isTenantDeletion(ExportDefinition definition) {
+    return definition.isDelete()
+        && (definition.tenantUser == TENANT_USER.ID_TENANT || definition.tenantUser == TENANT_USER.NONE
+            && definition.sqlStatement != null && definition.sqlStatement.contains("id_tenant = ?"));
   }
 }

@@ -37,6 +37,7 @@ class AlgoAlarmDeliveryServiceTest {
   final MessageSource messages = mock(MessageSource.class);
   final FeatureConfig features = new FeatureConfig();
   final PlatformTransactionManager manager = mock(PlatformTransactionManager.class);
+  final AlgoMonitoringService monitoring = mock(AlgoMonitoringService.class);
   AlgoAlarmDeliveryService service;
   AlgoMessageAlert alarm;
   User owner;
@@ -49,6 +50,7 @@ class AlgoAlarmDeliveryServiceTest {
     features.setAlert(true);
     when(manager.getTransaction(any())).thenAnswer(_ -> new SimpleTransactionStatus());
     service = makeService(0);
+    when(monitoring.permitsAlert(anyInt(), anyInt())).thenReturn(true);
     Tenant tenant = new Tenant();
     tenant.setIdTenant(42);
     tenant.setCreateIdUser(7);
@@ -80,6 +82,7 @@ class AlgoAlarmDeliveryServiceTest {
   AlgoAlarmDeliveryService makeService(long minutes) {
     var result = new AlgoAlarmDeliveryService(alarms, tenants, strategies, users, access, settings, links, mail, smtp,
         messages, features, manager);
+    ReflectionTestUtils.setField(result, "monitoring", monitoring);
     ReflectionTestUtils.setField(result, "clock", Clock.fixed(origin.plusSeconds(minutes * 60), ZoneOffset.UTC));
     return result;
   }
@@ -88,10 +91,23 @@ class AlgoAlarmDeliveryServiceTest {
   void deliversToOwnerUserRatherThanTenantId() {
     service.deliverPending();
     assertThat(alarm.getRecipientUserId()).isEqualTo(7);
-    assertThat(alarm.getInternalMessageId()).isEqualTo(99);
+    verify(links).save(argThat((MailEntity link) -> Integer.valueOf(99).equals(link.getIdMailSendRecv())));
     assertThat(alarm.getDeliveryStatus()).isEqualTo("DELIVERED");
     verify(mail).sendInternalMail(eq(0), eq(7), anyString(), anyString());
     verifyNoInteractions(smtp);
+  }
+
+  @Test
+  void disabledMonitoringCancelsPendingDeliveryAndCannotBeRetried() {
+    when(monitoring.permitsAlert(42, 3)).thenReturn(false);
+    service.deliverPending();
+    assertThat(alarm.getDeliveryStatus()).isEqualTo("CANCELLED");
+    assertThat(alarm.getDeliveryLeaseToken()).isNull();
+    assertThat(alarm.getNextAttemptAt()).isNull();
+    when(monitoring.permitsAlert(42, 3)).thenReturn(true);
+    service.retry(42, 1);
+    assertThat(alarm.getDeliveryStatus()).isEqualTo("CANCELLED");
+    verifyNoInteractions(mail, smtp);
   }
 
   @Test
@@ -103,7 +119,6 @@ class AlgoAlarmDeliveryServiceTest {
         anyString(), anyString());
     service.deliverPending();
     assertThat(alarm.getDeliveryStatus()).isEqualTo("RETRY");
-    assertThat(alarm.getNotifiedAt()).isNull();
     assertThat(alarm.getInternalCompletedAt()).isNotNull();
     assertThat(alarm.getExternalCompletedAt()).isNull();
     makeService(2).deliverPending();

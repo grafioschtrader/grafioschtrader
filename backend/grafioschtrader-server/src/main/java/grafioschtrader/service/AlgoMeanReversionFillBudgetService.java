@@ -97,7 +97,7 @@ public class AlgoMeanReversionFillBudgetService {
           allocation = children;
         }
     }
-    if (member == null || !member.isActivatable() || !bucket.isActivatable())
+    if (member == null)
       throw new IllegalArgumentException("An active allocation is required");
     AlgoExposureBudget.requireWeights(allocation.stream().map(AlgoSecurity::getPercentage).toList());
     // Include preceding fills in the ledger; only the proposed fill price and observations known at signal time are

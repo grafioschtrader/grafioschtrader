@@ -26,7 +26,6 @@ import { AssetclassType } from '../../shared/types/assetclass.type';
 import { SpecialInvestmentInstruments } from '../../shared/types/special.investment.instruments';
 import { TradingPeriodTableComponent } from './trading-period-table.component';
 import { GlobalSessionNames } from '../../lib/global.session.names';
-import { TaxMetadataFieldsComponent } from '../../taxdata/component/tax-metadata-fields.component';
 
 /**
  * Edit security account with trading period table for defining which instrument types can be traded.
@@ -34,7 +33,6 @@ import { TaxMetadataFieldsComponent } from '../../taxdata/component/tax-metadata
 @Component({
   selector: 'securityaccount-edit',
   template: `
-    <tax-metadata-fields entityName="Securityaccount" [entity]="callParam?.thisObject" />
     <dynamic-form
       [config]="config"
       [formConfig]="formConfig"
@@ -50,22 +48,13 @@ import { TaxMetadataFieldsComponent } from '../../taxdata/component/tax-metadata
   `,
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [DynamicFormComponent, TradingPeriodTableComponent, TaxMetadataFieldsComponent]
+  imports: [DynamicFormComponent, TradingPeriodTableComponent]
 })
 export class SecurityaccountEditDynamicComponent
   extends SimpleDynamicEditBase<Securityaccount>
   implements OnInit, AfterViewInit
 {
-  static readonly DIALOG_WIDTH = 700;
-  @ViewChild(TaxMetadataFieldsComponent) taxMetadata: TaxMetadataFieldsComponent;
-
-  override submit(value: { [name: string]: any }): void {
-    if (!this.taxMetadata.transfer({})) {
-      this.configObject.submit.disabled = false;
-      return;
-    }
-    super.submit(value);
-  }
+  static readonly DIALOG_WIDTH = 850;
   callParam: CallParam;
 
   @ViewChild('tradingPeriodTable')
@@ -96,7 +85,7 @@ export class SecurityaccountEditDynamicComponent
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 4, this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5,this.helpLink.bind(this));
     this.callParam = this.dynamicDialogConfig.data.callParam;
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'SECURITYACCOUNT_NAME', 25, true),
@@ -105,6 +94,8 @@ export class SecurityaccountEditDynamicComponent
       }),
       DynamicFieldHelper.createFieldInputNumberHeqF('lowestTransactionCost', true, 3, 2, false, { inputWidth: 10 }),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeToDate', false),
+      // Only the simulation tax estimate reads the exemption, and the simulation is part of rule-based trading
+      ...(this.gps.useAlgo() ? [DynamicFieldHelper.createFieldTriStateCheckboxHeqF('taxExemptInvestor')] : []),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];
@@ -165,7 +156,6 @@ export class SecurityaccountEditDynamicComponent
     );
     securityaccount.portfolio = <Portfolio>this.callParam.parentObject;
     securityaccount.tradingPeriods = this.tradingPeriodTable?.getData() || this.tradingPeriods;
-    this.taxMetadata.transfer(securityaccount);
     return securityaccount;
   }
 

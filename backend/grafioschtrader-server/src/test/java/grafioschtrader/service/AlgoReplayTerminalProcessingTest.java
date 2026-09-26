@@ -42,6 +42,9 @@ class AlgoReplayTerminalProcessingTest {
     ReflectionTestUtils.setField(replay, "booking", booking);
     ReflectionTestUtils.setField(state, "securities", securities);
     ReflectionTestUtils.setField(state, "terminalSchedule", schedule);
+    ReflectionTestUtils.setField(state, "fx",
+        new AlgoReplayFx(AlgoReplayFxTest.snapshot(Map.of()), "CHF", (_, _, _) -> 1.0, _ -> {
+        }));
     ReflectionTestUtils.setField(state, "inputs",
         new AlgoReplayInputs.Snapshot(2, false, false, 0, Map.of(), Map.of(), instruments, List.of()));
     when(state.idTenant()).thenReturn(65);
@@ -131,7 +134,7 @@ class AlgoReplayTerminalProcessingTest {
     verify(state).write(eq(AlgoEventType.UNAVAILABLE), eq(DAY), isNull(), eq(1), isNull(), isNull(), isNull(), isNull(),
         any(), any());
     verify(state).write(AlgoEventType.TERMINAL_CLOSE, DAY.plusDays(1), null, 1, 100.0, 1.0, 100.0, "USD",
-        "REPLAY_TERMINAL_CLOSE_CATCH_UP");
+        "REPLAY_TERMINAL_CLOSE_CATCH_UP", null);
   }
 
   @Test

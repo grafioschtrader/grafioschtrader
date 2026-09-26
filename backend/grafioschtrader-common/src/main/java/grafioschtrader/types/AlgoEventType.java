@@ -64,6 +64,10 @@ public enum AlgoEventType {
   /** Closes the trail, including for a cancelled or failed run. */
   RUN_END,
   /** An imported CFD, Forex or leveraged position was liquidated before ordinary simulation trading. */
-  OPENING_EXCLUDED_CLOSE;
+  OPENING_EXCLUDED_CLOSE,
+  /** A recurring custody charge booked on its settlement date. */
+  CUSTODY_FEE,
+  /** Commission credits consumed by an accepted trade. */
+  CUSTODY_CREDIT;
 
 }

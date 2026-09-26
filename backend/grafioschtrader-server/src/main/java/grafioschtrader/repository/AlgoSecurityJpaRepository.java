@@ -19,8 +19,14 @@ public interface AlgoSecurityJpaRepository extends JpaRepository<AlgoSecurity, I
   /** All AlgoSecurity children of a given AlgoAssetclass parent within a tenant. */
   List<AlgoSecurity> findByIdAlgoSecurityParentAndIdTenant(Integer idAlgoSecurityParent, Integer idTenant);
 
-  /** All AlgoSecurity entries for a given tenant (used by tenant alert overview). */
-  List<AlgoSecurity> findByIdTenant(Integer idTenant);
+  /**
+   * The standalone alert nodes of one tenant, the portfolio-independent alerts shown on the landing page of rule-based
+   * trading. Nodes inside an AlgoTop hierarchy are excluded; they are managed in the view of their hierarchy.
+   *
+   * @param idTenant the tenant whose standalone alerts are read
+   * @return the standalone nodes with their strategies
+   */
+  List<AlgoSecurity> findByIdTenantAndIdAlgoSecurityParentIsNull(Integer idTenant);
 
   /**
    * All standalone alert nodes, the ones a user added straight from a watchlist or portfolio row rather than inside an

@@ -32,7 +32,9 @@ import jakarta.validation.constraints.Size;
  *
  * <p>
  * A row here is a statement about the instrument, not about a client, so the table is shared reference data and one
- * instrument may appear once. The instrument keeps its connector: whenever the issuer does deliver a price again, that
+ * instrument may appear once. It also tells a historical simulation from which day the instrument can no longer be
+ * traded; that day is kept apart from the day the prices stopped, because an instrument may go on being quoted long
+ * after an exchange and the brokers stopped trading it. The instrument keeps its connector: whenever the issuer does deliver a price again, that
  * real quote is written as usual and the filling only covers the days around it.
  * </p>
  *
@@ -65,27 +67,39 @@ public class BankruptSecurity extends Auditable {
   private Integer idSecuritycurrency;
 
   @Schema(description = """
-      Day from which the issuer stopped delivering prices. Documentation for the next reader only, the filling always
-      starts at the last closing price actually present.""")
+      Day from which the issuer stopped delivering prices, documentation of the price maintenance only. The filling
+      always starts at the last closing price actually present, and a historical simulation does not read this date.""")
   @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
   @Column(name = "no_data_since")
   @DynamicFormField(uiOrder = "1.1")
   @PropertyAlwaysUpdatable
   private LocalDate noDataSince;
 
+  @Schema(description = """
+      First day on which an exchange and the brokers no longer let the instrument be traded. A historical simulation
+      neither buys nor sells the instrument from this day on, generates no further coupon and does not repay it at
+      maturity; the position stays held and valued at its last price. Without a date the simulation treats it as
+      tradable. Independent of noDataSince: an instrument may still be quoted while its trading is suspended.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  @Column(name = "no_trading_since")
+  @DynamicFormField(uiOrder = "1.2")
+  @PropertyAlwaysUpdatable
+  private LocalDate noTradingSince;
+
   @Schema(description = "Why this instrument was marked, for the next person who wonders where its prices come from.")
   @Size(max = 120)
   @Column(name = "note", length = 120)
-  @DynamicFormField(uiOrder = "1.2")
+  @DynamicFormField(uiOrder = "1.3")
   @PropertyAlwaysUpdatable
   private String note;
 
   public BankruptSecurity() {
   }
 
-  public BankruptSecurity(Integer idSecuritycurrency, LocalDate noDataSince, String note) {
+  public BankruptSecurity(Integer idSecuritycurrency, LocalDate noDataSince, LocalDate noTradingSince, String note) {
     this.idSecuritycurrency = idSecuritycurrency;
     this.noDataSince = noDataSince;
+    this.noTradingSince = noTradingSince;
     this.note = note;
   }
 
@@ -116,6 +130,14 @@ public class BankruptSecurity extends Auditable {
 
   public void setNoDataSince(LocalDate noDataSince) {
     this.noDataSince = noDataSince;
+  }
+
+  public LocalDate getNoTradingSince() {
+    return noTradingSince;
+  }
+
+  public void setNoTradingSince(LocalDate noTradingSince) {
+    this.noTradingSince = noTradingSince;
   }
 
   public String getNote() {

@@ -329,9 +329,18 @@ test.describe('simulation opening', () => {
     });
     expect(added.ok(), await added.text()).toBeTruthy();
 
+    // A strategy is only ready for an environment when the weightings below it add up to 100%. One asset class
+    // without a security satisfies that and stays uninvested, so the environment still holds nothing but its opening.
+    const assetclasses = await getJson<{ idAssetClass: number }[]>(page, '/api/assetclass');
+    expect(assetclasses.length, 'an asset class to weight the strategy with').toBeGreaterThan(0);
     const top = await page.request.post('/api/algotop/create', {
       headers,
-      data: { name: PREFIX, idWatchlist, percentage: 100, assetclassPercentageList: [] }
+      data: {
+        name: PREFIX,
+        idWatchlist,
+        percentage: 100,
+        assetclassPercentageList: [{ idAssetclass: assetclasses[0].idAssetClass, percentage: 100 }]
+      }
     });
     expect(top.ok(), await top.text()).toBeTruthy();
 
@@ -363,7 +372,7 @@ test.describe('simulation opening', () => {
 
     // The node states the opening definition, which is what distinguishes two environments of one strategy.
     const node = await revealSimulationNode(page, `${PREFIX} copy`);
-    await expect(node).toContainText(openingDate);
+    await expect(node).toContainText(toDeChDate(openingDate));
     await expect(node).toContainText(RX.copyPortfolio);
 
     // Entering the environment proves the ownership check of the switch and that the copy produced a real ledger.
@@ -435,8 +444,8 @@ test.describe('simulation opening', () => {
 
     expect(earlier.simulationStartDate).toBe(openingDate);
     expect(later.simulationStartDate).toBe(otherDate);
-    await expect(await revealSimulationNode(page, `${PREFIX} first`)).toContainText(openingDate);
-    await expect(await revealSimulationNode(page, `${PREFIX} second`)).toContainText(otherDate);
+    await expect(await revealSimulationNode(page, `${PREFIX} first`)).toContainText(toDeChDate(openingDate));
+    await expect(await revealSimulationNode(page, `${PREFIX} second`)).toContainText(toDeChDate(otherDate));
 
     // The date is not editable through the ordinary tenant write path either.
     const rejected = await page.request.put('/api/tenant', {

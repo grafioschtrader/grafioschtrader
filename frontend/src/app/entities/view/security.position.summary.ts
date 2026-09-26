@@ -2,6 +2,8 @@ import { Security } from '../security';
 import { LastpriceOrigin } from '../types/lastprice.origin';
 
 export class SecurityPositionSummary {
+  /** Target-only row without a portfolio position or transaction history in this report. */
+  public comparisonOnly?: boolean;
   /**
    * Allocation comparison against the selected strategy. Only the rebalancing report fills these; every other report
    * leaves them undefined and simply does not show the corresponding columns.

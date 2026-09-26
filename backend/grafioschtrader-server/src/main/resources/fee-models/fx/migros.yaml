@@ -1,0 +1,17 @@
+fx:
+  amountCurrency: CHF
+  periods:
+    - validFrom: "1900-01-01"
+      status: ASSUMED
+      source: "https://www.migrosbank.ch/de/privatpersonen/konten-karten/noten-devisenkurse.html"
+      note: "The price list charges foreign-currency settlements at the current exchange rate without a separate fee; the margin is in the rate. About 1.5% up to CHF 50,000 and about 1% up to CHF 250,000, estimated 2026-09 from the non-binding rate table and a secondary source, for all currencies and conversion kinds and the whole history. Above CHF 250,000 the 1% band is assumed to continue."
+      rules:
+        - name: Up to CHF 50,000
+          condition: "tierAmount <= 50000"
+          expression: "1.5"
+        - name: Up to CHF 250,000
+          condition: "tierAmount <= 250000"
+          expression: "1.0"
+        - name: Above CHF 250,000 (assumed continuation of the band below)
+          condition: "true"
+          expression: "1.0"

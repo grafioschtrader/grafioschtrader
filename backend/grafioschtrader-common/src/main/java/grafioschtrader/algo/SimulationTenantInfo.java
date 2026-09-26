@@ -31,6 +31,20 @@ public class SimulationTenantInfo {
       the client offers neither.""")
   private boolean active;
 
+  @Schema(description = """
+      Why a replay of this environment would be refused, translated into the language of the user; null when its
+      strategy is ready. The strategy is shared with the main tenant and may have changed since the environment was
+      created.""")
+  private String replayBlockedReason;
+
+  public String getReplayBlockedReason() {
+    return replayBlockedReason;
+  }
+
+  public void setReplayBlockedReason(String replayBlockedReason) {
+    this.replayBlockedReason = replayBlockedReason;
+  }
+
   public boolean isActive() {
     return active;
   }

@@ -16,6 +16,8 @@ public interface AlgoStrategyJpaRepository extends JpaRepository<AlgoStrategy, I
 
   List<AlgoStrategy> findByIdAlgoAssetclassSecurityAndIdTenant(Integer idAlgoAssetclassSecurity, Integer idTenant);
 
+  List<AlgoStrategy> findByIdTenant(Integer idTenant);
+
   /** Reads a hierarchy's strategies in one tenant-scoped query instead of querying each instrument node. */
   List<AlgoStrategy> findByIdTenantAndIdAlgoAssetclassSecurityInOrderByIdAlgoRuleStrategy(Integer idTenant,
       Collection<Integer> nodeIds);

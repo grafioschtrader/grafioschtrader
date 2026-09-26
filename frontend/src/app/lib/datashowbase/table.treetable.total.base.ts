@@ -84,7 +84,7 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    * @returns True if the total value starts with '-', false otherwise
    */
   isValueColumnTotalMinus(columnConfig: ColumnConfig, arrIndex: number, data: any, mapKey: any): boolean {
-    return this.getValueColumnTotal(columnConfig, arrIndex, data, mapKey).startsWith('-');
+    return (this.getValueColumnTotal(columnConfig, arrIndex, data, mapKey) ?? '').startsWith('-');
   }
 
   /**
@@ -131,7 +131,9 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
     groupChangeIndexMap: any,
     rowIndex: number
   ): boolean {
-    return this.getValueColumnTotalByRowIndex(columnConfig, arrIndex, groupChangeIndexMap, rowIndex).startsWith('-');
+    return (this.getValueColumnTotalByRowIndex(columnConfig, arrIndex, groupChangeIndexMap, rowIndex) ?? '').startsWith(
+      '-'
+    );
   }
 
   /**
@@ -197,7 +199,8 @@ export abstract class TableTreetableTotalBase extends ShowRecordConfigBase {
    */
   getTextValueColumnTotal(columnConfig: ColumnConfig, arrIndex: number): string {
     if (columnConfig.columnGroupConfigs[arrIndex].textValueKey) {
-      return columnConfig.columnGroupConfigs[arrIndex].textValueTranslated;
+      // Empty until the asynchronous translation arrives; a group row may render before that.
+      return columnConfig.columnGroupConfigs[arrIndex].textValueTranslated ?? '';
     }
     return '';
   }

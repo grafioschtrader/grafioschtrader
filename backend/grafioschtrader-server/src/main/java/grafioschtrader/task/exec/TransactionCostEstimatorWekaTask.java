@@ -66,6 +66,9 @@ public class TransactionCostEstimatorWekaTask {
   private void saveModelToStore(Securityaccount securityaccount, Classifier classifier,
       SecurityaccountJpaRepository securityaccountJpaRepository) {
     byte[] classifierAsByte = SerializationUtils.serialize((Serializable) classifier);
+    grafioschtrader.service.YamlConfigurationValidation.requireValid(
+        grafioschtrader.service.YamlConfigurationValidation.Format.FEES_ACCOUNT, securityaccount.getFeeModelYaml(),
+        "fee.model.yaml");
     securityaccount.setWekaModel(classifierAsByte);
     securityaccountJpaRepository.save(securityaccount);
   }

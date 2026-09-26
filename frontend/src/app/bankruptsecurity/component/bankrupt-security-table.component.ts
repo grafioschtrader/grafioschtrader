@@ -105,6 +105,7 @@ export class BankruptSecurityTableComponent extends TableCrudSupportMenu<Bankrup
     this.addColumnFeqH(DataType.String, 'isin', true, false, { filterType: FilterType.likeDataType });
     this.addColumnFeqH(DataType.String, 'currency', true, false, { filterType: FilterType.withOptions });
     this.addColumnFeqH(DataType.DateString, 'noDataSince', true, false);
+    this.addColumnFeqH(DataType.DateString, 'noTradingSince', true, false);
     this.addColumnFeqH(DataType.DateString, 'lastRealQuoteDate', true, false);
     this.addColumnFeqH(DataType.DateString, 'lastQuoteDate', true, false);
     this.addColumnFeqH(DataType.String, 'note', true, false);

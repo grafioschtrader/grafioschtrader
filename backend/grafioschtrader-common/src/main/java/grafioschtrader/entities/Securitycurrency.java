@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.DataHelper;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.Auditable;
 import grafiosch.validation.WebUrl;
@@ -38,6 +39,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -151,6 +153,14 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @Column(name = "s_high")
   protected Double sHigh;
 
+  @Schema(description = """
+      Number of fraction digits the intraday prices of this instrument are rounded to in this response. Set by the
+      backend only for index levels, which follow the precision of their currency; null when the prices keep their
+      full precision. The stored prices are never rounded.""", accessMode = Schema.AccessMode.READ_ONLY)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Transient
+  private Integer priceFractionDigits;
+
   @JsonIgnore
   @JoinColumn(name = "id_securitycurrency")
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -242,7 +252,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @JsonProperty("sLow")
   public Double getSLow() {
-    return sLow;
+    return roundPriceForDelivery(sLow);
   }
 
   public void setSLow(Double sLow) {
@@ -251,7 +261,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @JsonProperty("sHigh")
   public Double getSHigh() {
-    return sHigh;
+    return roundPriceForDelivery(sHigh);
   }
 
   public void setSHigh(Double sHigh) {
@@ -260,7 +270,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @JsonProperty("sOpen")
   public Double getSOpen() {
-    return sOpen;
+    return roundPriceForDelivery(sOpen);
   }
 
   public void setSOpen(Double sOpen) {
@@ -293,7 +303,7 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @JsonProperty("sPrevClose")
   public Double getSPrevClose() {
-    return sPrevClose;
+    return roundPriceForDelivery(sPrevClose);
   }
 
   public void setSPrevClose(Double sPrevClose) {
@@ -328,11 +338,35 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
 
   @JsonProperty("sLast")
   public Double getSLast() {
-    return sLast;
+    return roundPriceForDelivery(sLast);
   }
 
   public void setSLast(Double sLast) {
     this.sLast = sLast;
+  }
+
+  public Integer getPriceFractionDigits() {
+    return priceFractionDigits;
+  }
+
+  /**
+   * Makes the intraday prices of this instance come out rounded to the given number of fraction digits. Meant to be
+   * called at the REST boundary as the very last step, after every calculation that uses the prices, because the price
+   * getters return rounded values from then on. Persistence is unaffected: the entity uses field access, so neither
+   * dirty checking nor the stored row ever sees the rounded value.
+   *
+   * @param priceFractionDigits the number of fraction digits, or null to deliver full precision
+   */
+  public void setPriceFractionDigits(Integer priceFractionDigits) {
+    this.priceFractionDigits = priceFractionDigits;
+  }
+
+  private Double roundPriceForDelivery(Double price) {
+    // An if instead of a conditional expression: Double and double operands would unbox a null price
+    if (price == null || priceFractionDigits == null) {
+      return price;
+    }
+    return DataHelper.round(price, priceFractionDigits);
   }
 
   /*

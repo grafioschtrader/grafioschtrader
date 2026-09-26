@@ -47,7 +47,8 @@ async function openTenantEditDialog(page: Page): Promise<Locator> {
   // The tenant root is labelled with the translated PORTFOLIOS key followed by the tenant name.
   const tenantRoot = page.getByRole('treeitem', { name: /^Portfolios-/ }).first();
   await tenantRoot.waitFor({ state: 'visible', timeout: 15_000 });
-  await tenantRoot.click({ button: 'right' });
+  // The tree item spans its expanded children, so its centre lies on a portfolio node once portfolios exist.
+  await tenantRoot.locator(':scope > .p-tree-node-content').click({ button: 'right' });
 
   const editItem = page.locator('p-contextmenu').getByText(EDIT_TENANT_RX).first();
   await editItem.waitFor({ state: 'visible', timeout: 5_000 });

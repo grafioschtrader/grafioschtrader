@@ -1,10 +1,5 @@
 package grafioschtrader.entities;
 
-import java.time.LocalDate;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBaseID;
 import jakarta.persistence.*;
 
@@ -63,16 +58,6 @@ public class AlgoExecutionState extends TenantBaseID {
   /** Units already sold by profit-taking tranches in this lifecycle. */
   @Column(name = "realized_exit_units")
   private double realizedExitUnits;
-
-  /** Date of the most recent entry or add-on fill. */
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "last_entry")
-  private LocalDate lastEntry;
-
-  /** Date of the most recent exit or scale-out fill. */
-  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
-  @Column(name = "last_exit")
-  private LocalDate lastExit;
 
   @Override
   public Integer getId() {
@@ -157,21 +142,5 @@ public class AlgoExecutionState extends TenantBaseID {
 
   public void setRealizedExitUnits(double value) {
     realizedExitUnits = value;
-  }
-
-  public LocalDate getLastEntry() {
-    return lastEntry;
-  }
-
-  public void setLastEntry(LocalDate value) {
-    lastEntry = value;
-  }
-
-  public LocalDate getLastExit() {
-    return lastExit;
-  }
-
-  public void setLastExit(LocalDate value) {
-    lastExit = value;
   }
 }

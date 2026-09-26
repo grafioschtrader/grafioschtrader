@@ -139,15 +139,27 @@ test.describe.serial('Seed currency pairs in the currencypair watchlist', () => 
       await expect(intraSelect.locator(`option[value="${row.idConnectorIntra}"]`)).toHaveCount(1, { timeout: 10_000 });
       await intraSelect.selectOption({ value: row.idConnectorIntra });
 
-      const addToWatchlistResponse = page.waitForResponse(
-        (response) =>
-          response.request().method() === 'PUT' &&
-          /\/api\/watchlist\/\d+\/addSecuritycurrency$/.test(new URL(response.url()).pathname),
-        { timeout: 30_000 }
-      );
-      await dialog.locator('button[type="submit"]').click();
+      // Creation must succeed before the UI associates the pair with the watchlist. Surface a failed
+      // POST immediately; otherwise its server error is hidden behind a dialog-close timeout.
+      const [saveResponse] = await Promise.all([
+        page.waitForResponse(
+          (response) => {
+            const method = response.request().method();
+            const pathname = new URL(response.url()).pathname;
+            return (
+              (method === 'POST' && pathname === '/api/currencypair' && !response.ok()) ||
+              (method === 'PUT' && /\/api\/watchlist\/\d+\/addSecuritycurrency$/.test(pathname))
+            );
+          },
+          { timeout: 30_000 }
+        ),
+        dialog.locator('button[type="submit"]').click()
+      ]);
+      expect(
+        saveResponse.ok(),
+        `${saveResponse.request().method()} ${saveResponse.url()} returned ${saveResponse.status()}: ${await saveResponse.text()}`
+      ).toBeTruthy();
       await dialog.waitFor({ state: 'hidden', timeout: 15_000 });
-      expect((await addToWatchlistResponse).ok()).toBeTruthy();
 
       // The new pair row appears only after the watchlist refetches its rows and the connector returns
       // first quotes. Keep this separate from awaiting the add-to-watchlist response above so a failed

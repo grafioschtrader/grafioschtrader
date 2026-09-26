@@ -93,6 +93,7 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
         true
       ),
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'noDataSince', fieldDescriptors),
+      DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'noTradingSince', fieldDescriptors),
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'note', fieldDescriptors),
       DynamicFieldHelper.createSubmitButton()
     ];

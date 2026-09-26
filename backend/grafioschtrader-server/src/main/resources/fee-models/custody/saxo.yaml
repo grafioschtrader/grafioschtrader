@@ -1,0 +1,35 @@
+custody:
+  periods:
+    - validFrom: "1900-01-01"
+      validTo: "2025-01-31"
+      status: ASSUMED
+      source: "https://www.finanzen.ch/nachrichten/etf/saxo-bank-schweiz-erlasst-depotgebuehren-1034290468"
+      note: "Approximation: the Classic account tariff before the waiver applied to the whole earlier history. 0.22 percent a year on equities and ETFs, accrued daily and billed monthly, at most CHF 10 a month; plus VAT at today's rate. The lower Platinum and VIP rates reach the same cap from about CHF 100,000."
+      currency: CHF
+      valuation: DAILY
+      billingMonths: 1
+      collection: END
+      billingDay: 0
+      dayCount: ACTUAL_365
+      closingPolicy: ACCRUED
+      amount: 'assetValue * 0.0022'
+      maximum: 10
+      vatRate: 0.081
+      valueRules:
+        - name: 'Equities and ETFs'
+          condition: 'instrument == "ETF" || (instrument == "DIRECT_INVESTMENT" && assetclass == "EQUITIES")'
+          expression: 'positionValue'
+        - name: 'Other instruments'
+          condition: 'true'
+          expression: '0'
+    - validFrom: "2025-02-01"
+      status: VERIFIED
+      source: "https://www.home.saxo/de-ch/rates-and-conditions/commissions-charges-and-margin-schedule"
+      note: "Retail custody is free from 1 February 2025; not retroactive to Strateo."
+      currency: CHF
+      valuation: NONE
+      billingMonths: 1
+      collection: START
+      billingDay: 0
+      dayCount: ACTUAL_ACTUAL
+      amount: '0'

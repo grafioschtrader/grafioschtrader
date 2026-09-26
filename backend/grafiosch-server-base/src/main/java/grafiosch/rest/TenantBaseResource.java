@@ -36,12 +36,15 @@ import grafiosch.entities.Role;
 import grafiosch.entities.TenantAccess;
 import grafiosch.entities.TenantBase;
 import grafiosch.entities.User;
+import grafiosch.error.ErrorWrapper;
+import grafiosch.error.SingleNativeMsgError;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.RoleJpaRepository;
 import grafiosch.repository.TenantAccessJpaRepository;
 import grafiosch.repository.TenantBaseCustom;
 import grafiosch.repository.UserJpaRepository;
 import grafiosch.security.JwtTokenHandler;
+import grafiosch.security.TenantAccessDecision;
 import grafiosch.security.TenantAccessResolver;
 import grafiosch.service.EntityLimitService;
 import grafiosch.service.MailExternalService;
@@ -139,34 +142,23 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
   @Operation(summary = "Switch to a different tenant the user may access and receive a new JWT", tags = {
       TenantBase.TABNAME })
   @PostMapping(value = "/switchto/{idTargetTenant}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, String>> switchTenant(
+  public ResponseEntity<?> switchTenant(
       @Parameter(description = "ID of the target tenant", required = true) @PathVariable Integer idTargetTenant) {
     final User user = getCurrentUser();
     // actualIdTenant preserves the persisted home tenant even when the user is currently in another tenant.
     final Integer homeIdTenant = user.getActualIdTenant();
 
-    TenantAccessLevel targetLevel = resolveSwitchTargetLevel(user, homeIdTenant, idTargetTenant);
-    if (targetLevel == null) {
-      return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+    TenantAccessDecision decision = tenantAccessResolver.decide(user, homeIdTenant, idTargetTenant);
+    if (!decision.isAllowed()) {
+      String messageKey = decision.refusalMessageKey() == null ? "g.tenant.access.forbidden"
+          : decision.refusalMessageKey();
+      String message = messages.getMessage(messageKey, null, user.createAndGetJavaLocale());
+      return new ResponseEntity<>(new ErrorWrapper(new SingleNativeMsgError(message)), HttpStatus.FORBIDDEN);
     }
     String token = jwtTokenHandler.createTokenForUser(user, SWITCH_TOKEN_EXPIRATION_MINUTES, idTargetTenant);
     // readOnly lets the frontend render read-only mode immediately without an extra round-trip.
     return new ResponseEntity<>(
-        Map.of("token", token, "readOnly", String.valueOf(targetLevel == TenantAccessLevel.READ)), HttpStatus.OK);
-  }
-
-  /**
-   * Resolves the access level the user holds on the switch target, or {@code null} when switching there is not allowed.
-   * The same {@link TenantAccessResolver} authorizes the tenant named by a token on every request, so a target that
-   * cannot be switched to can also not be used by a token that already names it.
-   *
-   * @param user         the current user
-   * @param homeIdTenant the user's persisted home tenant
-   * @param idTarget     the tenant the user wants to switch to
-   * @return the access level on the target, or null if switching there is forbidden
-   */
-  private TenantAccessLevel resolveSwitchTargetLevel(User user, Integer homeIdTenant, Integer idTarget) {
-    return tenantAccessResolver.resolve(user, homeIdTenant, idTarget);
+        Map.of("token", token, "readOnly", String.valueOf(decision.level() == TenantAccessLevel.READ)), HttpStatus.OK);
   }
 
   @Operation(summary = "Create a managed client: a new tenant with a read-only client login (advisor capability)", tags = {
@@ -182,6 +174,10 @@ public abstract class TenantBaseResource<T extends BaseID<Integer>> extends Upda
     }
     if (userJpaRepository.findByEmail(request.getEmail()).isPresent()) {
       throw new DataViolationException("email", "email.already.used", new Object[] { request.getEmail() });
+    }
+    // One call writes an enabled user, a whole tenant and an outbound mail, so the cap is checked before any of them.
+    if (!entityLimitService.fitsWithinLimit(advisor, LimitKeyBaseConfig.KEY_MANAGED_CLIENT, null, 1)) {
+      throw new SecurityException(BaseConstants.LIMIT_SECURITY_BREACH);
     }
 
     User client = new User(request.getEmail(), new BCryptPasswordEncoder().encode(request.getPassword()),

@@ -23,6 +23,19 @@ import jakarta.validation.constraints.NotNull;
     Request body of a historical replay. Only the end date is supplied; the run begins at the immutable opening date
     of the simulation environment.""")
 public class SimulationRunRequestDTO {
+  @Schema(description = "YAML map keyed by simulation securities account name: cashaccount (id), accruedFees, remainingCredits, billedThisYear and assumption. Monetary values are in custody fee currency, before VAT.")
+  @jakarta.validation.constraints.Size(max = 20000)
+  @DynamicFormField(uiOrder = "1.4")
+  private String custodyOpeningYaml;
+
+  public String getCustodyOpeningYaml() {
+    return custodyOpeningYaml;
+  }
+
+  public void setCustodyOpeningYaml(String value) {
+    custodyOpeningYaml = value;
+  }
+
   @DynamicFormField(uiOrder = "1.2")
   private boolean applyTaxModels;
   @DynamicFormField(uiOrder = "1.3")

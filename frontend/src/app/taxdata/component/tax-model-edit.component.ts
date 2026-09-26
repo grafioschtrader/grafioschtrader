@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { ViewChild, Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -34,6 +34,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
     TaxDetailsTableComponent
   ],
   template: ` <p-dialog
+    styleClass="big-dialog"
     [header]="'TAX_MODEL_YAML' | translate"
     [visible]="visibleDialog"
     [modal]="true"
@@ -41,16 +42,21 @@ import { ProcessedAction } from '../../lib/types/processed.action';
     (onShow)="onShow($event)"
     (onHide)="onHide($event)">
     <p>{{ 'TAX_MODEL_LIMITATIONS' | translate }}</p>
-    <yaml-editor [(value)]="yaml" [schema]="schema" [fieldCompletions]="evalExCompletions" [height]="'300px'" />
+    <yaml-editor
+      #yamlEditor
+      format="TAXES"
+      [(value)]="yaml"
+      [schema]="schema"
+      [fieldCompletions]="evalExCompletions"
+      [height]="'300px'" />
     @if (tooLarge) {
       <p role="alert">{{ 'TAX_MODEL_TOO_LARGE' | translate }}</p>
     }
-    <p-button [label]="'SAVE' | translate" [disabled]="tooLarge" (click)="save()" />
+    <p-button
+      [label]="'SAVE' | translate"
+      [disabled]="tooLarge || yamlEditor.validating || !yamlEditor.syntaxValid"
+      (click)="save()" />
     <p-button [label]="'TAX_MODEL_CLEAR' | translate" (click)="save(null)" />
-    <p-button [label]="'TAX_MODEL_VALIDATE' | translate" [disabled]="tooLarge" (click)="validate()" />
-    @for (error of errors; track error) {
-      <p role="alert">{{ error }}</p>
-    }
     <details>
       <summary>{{ 'TEST_TAX_ESTIMATION' | translate }}</summary>
       <dynamic-form
@@ -69,6 +75,7 @@ import { ProcessedAction } from '../../lib/types/processed.action';
   </p-dialog>`
 })
 export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
+  @ViewChild(YamlEditorComponent) yamlEditor: YamlEditorComponent;
   @Input() country: TaxCountry;
   yaml = '';
   schema: object;
@@ -83,7 +90,7 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
     private service: TaxDataService,
     private http: HttpClient
   ) {
-    super(HelpIds.HELP_TAX_DATA_SIMULATION_MODEL, gps);
+    super(HelpIds.HELP_ALGO_HISTORICAL_RUN_TAX_MODEL, gps);
   }
 
   ngOnInit(): void {
@@ -130,17 +137,18 @@ export class TaxModelEditComponent extends SimpleEditBase implements OnInit {
     return new TextEncoder().encode(this.yaml).length > 65536;
   }
 
-  save(yaml: string = this.yaml): void {
+  async save(yaml: string = this.yaml): Promise<void> {
+    if (yaml !== null && !(await this.yamlEditor.validateForSubmit())) return;
     this.service
       .saveTaxModel(this.country.idTaxCountry, yaml)
       .subscribe(() => this.closeDialog.emit(new ProcessedActionData(ProcessedAction.UPDATED)));
   }
 
-  validate(): void {
-    this.service.validateTaxModel(this.yaml).subscribe((errors) => (this.errors = errors.length ? errors : []));
-  }
-
-  preview(): void {
+  async preview(): Promise<void> {
+    if (!(await this.yamlEditor.validateForSubmit())) {
+      this.configObject.submit.disabled = false;
+      return;
+    }
     if (this.tooLarge) return;
     const request: any = { yaml: this.yaml, countryCode: this.country.countryCode };
     this.form.cleanMaskAndTransferValuesToBusinessObject(request);

@@ -243,6 +243,8 @@ export abstract class ShowRecordConfigBase {
       cc.minFractionDigits = optionalParams.minFractionDigits;
       cc.currencyPrecisionField = optionalParams.currencyPrecisionField;
       cc.fixedCurrency = optionalParams.fixedCurrency;
+      cc.fractionDigitsField = optionalParams.fractionDigitsField;
+      cc.fixedFractionDigits = optionalParams.fixedFractionDigits;
       cc.columnGroupConfigs = optionalParams.columnGroupConfigs;
       cc.filterType = optionalParams.filterType;
       cc.filterValues = optionalParams.filterValues;
