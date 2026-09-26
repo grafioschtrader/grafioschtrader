@@ -16,6 +16,7 @@ if [ $memorytotal -lt 3700 ]
     tar -xf latest.tar.gz
     cd
    else
+    node scripts/sync-yaml-schemas.mjs
     echo "n n" | ng build frontend --configuration production --base-href /$basehref
    fi
 [ -d "$docroot/$basehref" ] && rm -rf $docroot/${basehref}*
