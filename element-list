@@ -96,6 +96,7 @@ grafioschtrader.dto
 grafioschtrader.entities
 grafioschtrader.entities.projection
 grafioschtrader.evalex
+grafioschtrader.exceptions
 grafioschtrader.exportcsv
 grafioschtrader.exportdelete
 grafioschtrader.gtnet
@@ -149,6 +150,7 @@ grafioschtrader.tax.swiss.ech0196
 grafioschtrader.tax.swiss.ech0196.model
 grafioschtrader.tax.swiss.ictax
 grafioschtrader.test.start
+grafioschtrader.tools
 grafioschtrader.types
 grafioschtrader.validation
 grafioschtrader.websocket
