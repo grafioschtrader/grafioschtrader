@@ -77,6 +77,7 @@ import grafiosch.gtnet.MessageParamDateParser;
 import grafiosch.gtnet.MessageVisibility;
 import grafiosch.gtnet.SendReceivedType;
 import grafiosch.gtnet.handler.GTNetCoolingOffService;
+import grafiosch.gtnet.handler.GTNetServerListImporter;
 import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafiosch.gtnet.handler.GTNetMessageHandler;
 import grafiosch.gtnet.handler.GTNetMessageHandlerRegistry;
@@ -172,6 +173,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
 
   @Autowired
   private GTNetCoolingOffService coolingOffService;
+
+  @Autowired
+  private GTNetServerListImporter serverListImporter;
 
   @Autowired
   private GTNetRequestBudgetService requestBudgetService;
@@ -820,9 +824,8 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNetMessageCode responseCode = messageCodeRegistry.getByValue(meResponse.messageCode);
 
     if (responseCode == GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
-      if (meResponse.payload != null && !meResponse.payload.isNull()) {
-        processServerListPayload(myGTNet, meResponse);
-      }
+      serverListImporter.importServerList(myGTNet, targetGTNet.getDomainRemoteName(), meResponse.payload,
+          objectMapper);
     } else if (responseCode == GNetCoreMessageCode.GT_NET_DATA_REQUEST_ACCEPT_S) {
       // When they accept our data request, we will RECEIVE data from them
       Set<IExchangeKindType> acceptedKinds = parseEntityKinds(gtNetMessage.getGtNetMessageParamMap());
@@ -936,108 +939,6 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       entity.setGtNetConfigEntity(new GTNetConfigEntity());
     }
     // Config entity defaults to exchange=true, no need to set explicitly
-  }
-
-  /**
-   * Processes a server list payload from a serverlist accept response. Creates or updates GTNet entries based on the
-   * received server list, respecting the allowServerCreation flag on our own GTNet entry.
-   *
-   * @param myGTNet    the local GTNet entry
-   * @param meResponse the response envelope containing the server list payload
-   */
-  private void processServerListPayload(GTNet myGTNet, MessageEnvelope meResponse) {
-    try {
-      List<GTNetPublicDTO> serverList = objectMapper.convertValue(meResponse.payload,
-          new TypeReference<List<GTNetPublicDTO>>() {
-          });
-
-      int newServers = 0;
-      int updatedServers = 0;
-
-      for (GTNetPublicDTO serverDto : serverList) {
-        // Skip our own entry
-        if (serverDto.getDomainRemoteName().equals(myGTNet.getDomainRemoteName())) {
-          continue;
-        }
-
-        GTNet existingServer = gtNetJpaRepository.findByDomainRemoteName(serverDto.getDomainRemoteName());
-
-        if (existingServer != null) {
-          // Update existing server's status if remote data is newer
-          boolean updated = updateServerFromDTO(existingServer, serverDto);
-          if (updated) {
-            updatedServers++;
-          }
-        } else if (myGTNet.isAllowServerCreation()) {
-          // Add new server
-          createServerFromDTO(serverDto);
-          newServers++;
-        }
-      }
-
-      log.info("Processed synchronous server list response: {} new servers added, {} servers updated", newServers,
-          updatedServers);
-
-    } catch (Exception e) {
-      log.warn("Failed to process server list payload from synchronous response: {}", e.getMessage());
-    }
-  }
-
-  /**
-   * Updates an existing server entry with information from a DTO if the remote data is newer.
-   *
-   * @param existing the existing GTNet entry
-   * @param dto      the DTO with updated information
-   * @return true if any changes were made
-   */
-  private boolean updateServerFromDTO(GTNet existing, GTNetPublicDTO dto) {
-    // Only update if remote data is newer than ours
-    if (dto.getLastModifiedTime() != null && existing.getLastModifiedTime() != null
-        && !dto.getLastModifiedTime().isAfter(existing.getLastModifiedTime())) {
-      return false;
-    }
-
-    boolean changed = false;
-
-    if (existing.isSpreadCapability() != dto.isSpreadCapability()) {
-      existing.setSpreadCapability(dto.isSpreadCapability());
-      changed = true;
-    }
-
-    if (dto.getTimeZone() != null && !dto.getTimeZone().equals(existing.getTimeZone())) {
-      existing.setTimeZone(dto.getTimeZone());
-      changed = true;
-    }
-
-    if (dto.getDailyRequestLimit() != null && !dto.getDailyRequestLimit().equals(existing.getDailyRequestLimit())) {
-      existing.setDailyRequestLimit(dto.getDailyRequestLimit());
-      changed = true;
-    }
-
-    if (changed) {
-      gtNetJpaRepository.save(existing);
-    }
-
-    return changed;
-  }
-
-  /**
-   * Creates a new GTNet entry from a DTO.
-   *
-   * @param dto the DTO containing server information
-   */
-  private void createServerFromDTO(GTNetPublicDTO dto) {
-    GTNet newServer = new GTNet();
-    newServer.setDomainRemoteName(dto.getDomainRemoteName());
-    newServer.setTimeZone(dto.getTimeZone() != null ? dto.getTimeZone() : "UTC");
-    newServer.setSpreadCapability(dto.isSpreadCapability());
-    newServer.setDailyRequestLimit(dto.getDailyRequestLimit());
-    newServer.setServerOnline(GTNetServerOnlineStatusTypes.SOS_UNKNOWN);
-    newServer.setServerBusy(false);
-    newServer.setAllowServerCreation(false);
-
-    gtNetJpaRepository.save(newServer);
-    log.debug("Added new server from shared list: {}", dto.getDomainRemoteName());
   }
 
   /**

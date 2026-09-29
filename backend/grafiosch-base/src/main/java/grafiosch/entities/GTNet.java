@@ -137,7 +137,8 @@ public class GTNet extends BaseID<Integer> {
       Controls whether unknown servers can be automatically added to this GTNet during the first handshake.
       When false, only servers that already exist in the local GTNet table can successfully complete
       a handshake - unknown servers will be rejected with GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S.
-      When true, a handshake from an unknown server will automatically create a new GTNet entry for that server.""")
+      When true, a handshake from an unknown server will automatically create a new GTNet entry for that server.
+      Servers contained in a server list that this instance requested are added regardless of this flag.""")
   @Column(name = "allow_server_creation")
   @PropertyAlwaysUpdatable
   private boolean allowServerCreation;
