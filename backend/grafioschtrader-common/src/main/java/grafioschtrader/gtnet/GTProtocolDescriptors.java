@@ -99,7 +99,7 @@ public abstract class GTProtocolDescriptors {
         GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_NOT_FOUND_S).transientSend()
             .systemOnlyAnswer().build(),
         GTNetProtocolDescriptor.response(GTNetMessageCodeType.GT_NET_SECURITY_LOOKUP_REJECTED_S).transientSend()
-            .systemOnlyAnswer().build(),
+            .systemOnlyAnswer().rejection().build(),
         GTNetProtocolDescriptor.request(GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_SEL_C).transientSend()
             .reprocessable().internalModel(SecurityBatchLookupMsg.class)
             .responses(GTNetMessageCodeType.GT_NET_SECURITY_BATCH_LOOKUP_RESPONSE_S).build(),

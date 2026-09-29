@@ -169,6 +169,17 @@ public class GTNetMessageCodeRegistry {
   }
 
   /**
+   * Whether the code is a response that declines a request. Only such a response may impose a cooling-off period.
+   *
+   * @param responseCodeValue the wire value to classify
+   * @return true when the code is registered and declared as a rejection
+   */
+  public boolean isRejection(byte responseCodeValue) {
+    GTNetProtocolDescriptor descriptor = descriptors.get(responseCodeValue);
+    return descriptor != null && descriptor.rejection();
+  }
+
+  /**
    * Whether the code is registered as an answer to some request.
    *
    * @param responseCodeValue the wire value to classify

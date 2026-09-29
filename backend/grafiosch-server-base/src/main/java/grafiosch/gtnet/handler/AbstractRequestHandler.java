@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetMessageCodeRegistry;
 import grafiosch.gtnet.MessageCategory;
 import grafiosch.gtnet.m2m.model.MessageEnvelope;
 
@@ -35,6 +36,9 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
 
   @Autowired
   protected GTNetResponseResolver responseResolver;
+
+  @Autowired
+  private GTNetMessageCodeRegistry messageCodeRegistry;
 
   @Override
   public final MessageCategory getCategory() {
@@ -99,9 +103,12 @@ public abstract class AbstractRequestHandler extends AbstractGTNetMessageHandler
     }
   }
 
-  /** Persists and transfers the cooling-off period selected by an automatic response rule. */
+  /**
+   * Persists and transfers the cooling-off period selected by an automatic response rule. Only a rejecting answer
+   * carries it; on an acceptance it would lock the requester out of access that was just granted.
+   */
   private void applyWaitDaysApply(MessageEnvelope response, Short waitDaysApply) {
-    if (response == null || waitDaysApply == null) {
+    if (response == null || waitDaysApply == null || !messageCodeRegistry.isRejection(response.messageCode)) {
       return;
     }
     response.waitDaysApply = waitDaysApply;

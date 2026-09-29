@@ -33,7 +33,9 @@ public class GTNetCoolingOffService {
     }
     GTNetMessage response = gtNetMessageJpaRepository.findLatestCoolingOffResponse(remoteGTNet.getIdGtNet(),
         requestCode, SendReceivedType.RECEIVED.getValue(), SendReceivedType.SEND.getValue());
-    if (response == null || response.getWaitDaysApply() == null || response.getWaitDaysApply() <= 0) {
+    if (response == null || response.getWaitDaysApply() == null || response.getWaitDaysApply() <= 0
+        || !messageCodeRegistry.isRejection(response.getMessageCodeValue())) {
+      // A waiting period stored with an acceptance, as older versions allowed, does not block the requester.
       return Optional.empty();
     }
 

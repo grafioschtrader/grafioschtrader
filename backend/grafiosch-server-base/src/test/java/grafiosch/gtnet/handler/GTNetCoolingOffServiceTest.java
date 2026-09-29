@@ -36,6 +36,17 @@ class GTNetCoolingOffServiceTest {
   }
 
   @Test
+  void ignoresWaitDaysStoredWithAnAcceptance() {
+    GTNet remote = remote(7);
+    GTNetMessage response = response(LocalDateTime.now(ZoneOffset.UTC).minusHours(1), (short) 10);
+    response.setMessageCode(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S);
+    when(messageRepository.findLatestCoolingOffResponse(7,
+        GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C.getValue(), (byte) 1, (byte) 0)).thenReturn(response);
+
+    assertThat(service.findActive(remote, GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C.getValue())).isEmpty();
+  }
+
+  @Test
   void ignoresExpiredPeriod() {
     GTNet remote = remote(7);
     GTNetMessage response = response(LocalDateTime.now(ZoneOffset.UTC).minusDays(2), (short) 1);

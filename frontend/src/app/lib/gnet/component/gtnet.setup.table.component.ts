@@ -83,7 +83,8 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
       [customSortFn]="customSort.bind(this)"
       [contextMenuAppendTo]="'body'"
       (componentClick)="onComponentClick($event)"
-      (rowExpand)="onRowExpand($event)">
+      (rowExpand)="onRowExpand($event)"
+      (rowCollapse)="onRowCollapse($event)">
       <h4 caption>
         {{ 'GT_NET_NET_AND_MESSAGE' | translate }}
         @if (!gtNetMyEntryId) {
@@ -129,6 +130,8 @@ import { GTNetMessageAttemptView } from '../model/gtnet-message-attempt';
         [outgoingPendingIds]="getOutgoingPendingIds(row.idGtNet)"
         [formDefinitions]="formDefinitions"
         [loading]="isLoadingMessages(row.idGtNet)"
+        [openPanels]="getOpenPanels(row.idGtNet)"
+        (openPanelsChange)="openPanelsMap[row.idGtNet] = $event"
         (configEntityDataChanged)="onConfigEntityDataChanged($event)"
         (messageDataChanged)="onTreeTableDataChanged($event)">
       </gtnet-expanded>
@@ -223,6 +226,14 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
   loadedMessageIds = new Set<number>();
   /** Set of idGtNet values currently being loaded */
   loadingMessageIds = new Set<number>();
+  /**
+   * idGtNet of the rows the user has expanded. The table keeps such a row expanded across a reload, but does not fire
+   * rowExpand again, so the lazily loaded panels are refilled from this set.
+   */
+  private readonly expandedGtNetIds = new Set<number>();
+  /** Open accordion panels per expanded row, so that a reload, which recreates the row content, keeps them open. */
+  openPanelsMap: { [key: number]: string[] } = {};
+  private static readonly NO_OPEN_PANELS: string[] = [];
   /** Announced maintenance window count per idGtNet - drives the panel header before the windows are loaded */
   gtNetMaintenanceWindowCountMap: { [key: number]: number } = {};
   /** Cache for loaded maintenance windows (lazy loaded when a row is expanded) */
@@ -361,7 +372,33 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
       this.incomingPendingReplies = response.incomingPendingReplies;
       this.formDefinitions ??= <{ [type: string]: ClassDescriptorInputAndShow }>data[1];
       this.prepareTableAndTranslate();
+      this.reloadExpandedRows();
     });
+  }
+
+  /**
+   * Refills the panels of the rows that are still expanded after the cache was cleared by a reload. Rows of a peer that
+   * no longer exists are forgotten.
+   */
+  private reloadExpandedRows(): void {
+    for (const idGtNet of Array.from(this.expandedGtNetIds)) {
+      if (this.gtNetList.some((gtNet) => gtNet.idGtNet === idGtNet)) {
+        this.loadExpandedRowData(idGtNet);
+      } else {
+        this.expandedGtNetIds.delete(idGtNet);
+        delete this.openPanelsMap[idGtNet];
+      }
+    }
+  }
+
+  /**
+   * Returns the open accordion panels of an expanded row.
+   *
+   * @param idGtNet the peer of the row
+   * @returns the values of the open panels, a shared empty array when none is open
+   */
+  getOpenPanels(idGtNet: number): string[] {
+    return this.openPanelsMap[idGtNet] ?? GTNetSetupTableComponent.NO_OPEN_PANELS;
   }
 
   override onComponentClick(event): void {
@@ -594,7 +631,25 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
    * holds anything.
    */
   onRowExpand(event: { data: GTNet }): void {
-    const idGtNet = event.data.idGtNet;
+    this.expandedGtNetIds.add(event.data.idGtNet);
+    this.loadExpandedRowData(event.data.idGtNet);
+  }
+
+  /**
+   * Forgets a collapsed row, so that its panels start closed again when it is expanded the next time.
+   */
+  onRowCollapse(event: { data: GTNet }): void {
+    this.expandedGtNetIds.delete(event.data.idGtNet);
+    delete this.openPanelsMap[event.data.idGtNet];
+  }
+
+  /**
+   * Loads the messages, maintenance windows and delivery attempts of an expanded row, unless they are already loaded
+   * or being loaded.
+   *
+   * @param idGtNet the peer of the expanded row
+   */
+  private loadExpandedRowData(idGtNet: number): void {
     const hasMessages = (this.gtNetMessageCountMap[idGtNet] ?? 0) > 0;
     const hasWindows = (this.gtNetMaintenanceWindowCountMap[idGtNet] ?? 0) > 0;
     const hasAttempts = this.canAdministerGTNet && (this.gtNetMessageAttemptCountMap[idGtNet] ?? 0) > 0;

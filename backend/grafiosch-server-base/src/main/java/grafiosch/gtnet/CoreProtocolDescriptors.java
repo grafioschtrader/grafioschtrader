@@ -44,11 +44,12 @@ public abstract class CoreProtocolDescriptors {
                 GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S)
             .build(),
         GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_ACCEPT_S).userInitiable().build(),
-        GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_S).userInitiable().build(),
+        GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_S).userInitiable()
+            .rejection().build(),
         // A refusal for a domain this server does not know. The handler issues it on its own; offered as a rule answer
         // it would tell an already stored peer that it is not in the list.
         GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S)
-            .systemOnlyAnswer().build(),
+            .systemOnlyAnswer().rejection().build(),
 
         // Token refresh (5-7). The token is generated server-side, so the form is never shown.
         GTNetProtocolDescriptor.request(GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_SEL_RR_C).userInitiable()
@@ -57,7 +58,8 @@ public abstract class CoreProtocolDescriptors {
                 GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_REJECTED_S)
             .build(),
         GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_ACCEPT_S).userInitiable().build(),
-        GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_REJECTED_S).userInitiable().build(),
+        GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_TOKEN_REFRESH_REJECTED_S).userInitiable()
+            .rejection().build(),
 
         // Server list (10-13). Reading the list changes nothing, so a redelivery is simply answered again.
         GTNetProtocolDescriptor.request(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C).userInitiable()
@@ -68,7 +70,7 @@ public abstract class CoreProtocolDescriptors {
         GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S).userInitiable()
             .inboundDispatch().build(),
         GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_REJECTED_S).userInitiable()
-            .inboundDispatch().build(),
+            .inboundDispatch().rejection().build(),
         GTNetProtocolDescriptor.announcement(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_REVOKE_SEL_C).userInitiable()
             .build(),
 
@@ -107,7 +109,7 @@ public abstract class CoreProtocolDescriptors {
         GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_DATA_REQUEST_ACCEPT_S).userInitiable()
             .inboundDispatch().build(),
         GTNetProtocolDescriptor.response(GNetCoreMessageCode.GT_NET_DATA_REQUEST_REJECTED_S).userInitiable()
-            .inboundDispatch().build(),
+            .inboundDispatch().rejection().build(),
         GTNetProtocolDescriptor.announcement(GNetCoreMessageCode.GT_NET_DATA_REVOKE_SEL_C).userInitiable()
             .formModel(RevokeMsg.class).build());
   }

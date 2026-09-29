@@ -79,7 +79,7 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
    * handshake with a data-request rejection — and the resolver returned it unchecked. The protocol also marks the
    * answers a person may not choose at all: {@code GT_NET_FIRST_HANDSHAKE_REJECT_NOT_IN_LIST_S} is the refusal for a
    * domain this server does not know, and configured as a rule it would tell an already stored peer that it is not in
-   * the list.
+   * the list. A cooling-off period is only accepted together with a rejecting answer.
    * </p>
    *
    * @param rule the rule about to be persisted
@@ -98,6 +98,10 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
     if (!request.isValidResponse(response.value())) {
       throw new DataViolationException("response.msg.code", "g.gtnet.answer.response.not.for.request",
           new Object[] { response.name(), request.name() });
+    }
+    if (rule.getWaitDaysApply() != null && rule.getWaitDaysApply() > 0 && !response.rejection()) {
+      // A waiting period on an acceptance would block every repeat request for access that was just granted.
+      throw new DataViolationException("wait.days.apply", "g.gtnet.command.wait.days.only.on.response", null);
     }
   }
 

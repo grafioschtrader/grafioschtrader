@@ -45,11 +45,13 @@ import java.util.Objects;
  *                           that row in {@code idSourceGtNetMessage}. False for a machine-to-machine code whose sender
  *                           keeps no row at all — the ping and the payload exchanges — whose envelope therefore carries
  *                           no sender-local id and whose delivery is outside the idempotency mechanism
+ * @param rejection          the response declines the request. Only a rejection may impose a cooling-off period
+ *                           ({@code waitDaysApply}) on the requester; an acceptance never blocks a repeat request
  */
 public record GTNetProtocolDescriptor(GTNetMessageCode code, MessageCategory category, boolean userInitiable,
     boolean requiresResponse, List<GTNetMessageCode> validResponses, Class<?> model, boolean formEligible,
     byte repeatSendAsMany, boolean reprocessable, boolean inboundDispatch, boolean threadable,
-    boolean autoAnswerRequest, boolean autoAnswerResponse, boolean senderPersists) {
+    boolean autoAnswerRequest, boolean autoAnswerResponse, boolean senderPersists, boolean rejection) {
 
   public GTNetProtocolDescriptor {
     Objects.requireNonNull(code, "code");
@@ -144,6 +146,7 @@ public record GTNetProtocolDescriptor(GTNetMessageCode code, MessageCategory cat
     private boolean autoAnswerRequest;
     private boolean autoAnswerResponse;
     private boolean senderPersists = true;
+    private boolean rejection;
 
     private Builder(GTNetMessageCode code, MessageCategory category) {
       this.code = code;
@@ -300,6 +303,16 @@ public record GTNetProtocolDescriptor(GTNetMessageCode code, MessageCategory cat
     }
 
     /**
+     * The response declines the request, so it is the only kind of answer that may carry a cooling-off period.
+     *
+     * @return this builder
+     */
+    public Builder rejection() {
+      this.rejection = true;
+      return this;
+    }
+
+    /**
      * Builds the descriptor.
      *
      * @return the immutable descriptor
@@ -307,7 +320,7 @@ public record GTNetProtocolDescriptor(GTNetMessageCode code, MessageCategory cat
     public GTNetProtocolDescriptor build() {
       return new GTNetProtocolDescriptor(code, category, userInitiable, requiresResponse, validResponses, model,
           formEligible, repeatSendAsMany, reprocessable, inboundDispatch, threadable, autoAnswerRequest,
-          autoAnswerResponse, senderPersists);
+          autoAnswerResponse, senderPersists, rejection);
     }
   }
 }

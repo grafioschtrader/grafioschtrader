@@ -155,8 +155,12 @@ export class GTNetExpandedComponent {
   readonly PANEL_ATTEMPTS = 'attempts';
   readonly PANEL_WINDOWS = 'windows';
 
-  /** The panels the user has opened. All panels start closed. */
-  openPanels: string[] = [];
+  /**
+   * The panels the user has opened. All panels start closed. Kept by the parent, because a reload of the setup table
+   * recreates this component and would otherwise close every panel.
+   */
+  @Input() openPanels: string[] = [];
+  @Output() openPanelsChange = new EventEmitter<string[]>();
 
   /** Number of entity configurations of this peer. */
   get entityCount(): number {
@@ -180,6 +184,7 @@ export class GTNetExpandedComponent {
    */
   onPanelsChange(panels: string | string[]): void {
     this.openPanels = Array.isArray(panels) ? panels : [panels];
+    this.openPanelsChange.emit(this.openPanels);
   }
 
   /** Clears the selection of the message tree table, if that panel is open at all. */

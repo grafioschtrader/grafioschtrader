@@ -73,7 +73,7 @@ public class GTNetCommandValidator {
       validateThreadedReply(msgRequest, descriptor);
     }
 
-    if (msgRequest.waitDaysApply != null && msgRequest.waitDaysApply > 0 && !isResponse) {
+    if (msgRequest.waitDaysApply != null && msgRequest.waitDaysApply > 0 && !descriptor.rejection()) {
       // The cooling-off period is what a refusal imposes on the requester; it is meaningless on anything else.
       throw new DataViolationException("wait.days.apply", "g.gtnet.command.wait.days.only.on.response",
           new Object[] { messageCode.name() });
