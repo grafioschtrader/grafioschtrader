@@ -17,3 +17,13 @@ WHERE a.category_type IN (1, 6)
   AND s.dist_frequency IN (1, 2, 4, 12)
   AND JSON_VALUE(s.simulation_metadata, '$.bondTerms.couponRate') IS NULL
   AND s.name REGEXP '^[0-9]{1,2}([.,][0-9]{1,4})? ';
+
+-- GTNet message retention group SS = server status announcements (GT_NET_OFFLINE_ALL_C 20,
+-- GT_NET_SETTINGS_UPDATED_ALL_C 28), range 1-10 days. A retention an administrator already changed is kept; only the
+-- SS part is appended once.
+UPDATE globalparameters
+  SET property_string = CONCAT(property_string, ',SS=10')
+  WHERE property_name = 'g.gnet.del.message.recv' AND property_string NOT LIKE '%SS=%';
+UPDATE globalparameters
+  SET input_rule = 'pattern:^LP=([1-9]|10),HP=([1-9]|10),SL=([1-9]|10),SS=([1-9]|10)$'
+  WHERE property_name = 'g.gnet.del.message.recv';
