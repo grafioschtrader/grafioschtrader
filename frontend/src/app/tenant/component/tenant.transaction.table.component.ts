@@ -122,15 +122,26 @@ export class TenantTransactionTableComponent extends TransactionTable implements
     return menuItems;
   }
 
-  /** Asks for confirmation, runs the transfer relink on the backend and reports the result counts. */
+  /**
+   * Asks for confirmation, runs the transfer relink on the backend and reports the result counts. Pairs and single
+   * transactions are counted separately, so the transactions without any counterpart are derived from the four counts
+   * and shown as well. A rejected pair turns the message into a warning.
+   */
   private handleConnectCashTransfers(): void {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'MSG_CONNECT_CASH_TRANSFERS', () =>
       this.transactionService.connectCashTransfers().subscribe((result: CashTransferRelinkResult) => {
-        this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'CONNECT_CASH_TRANSFERS_RESULT', {
-          linkedPairs: result.linkedPairs,
-          ambiguous: result.ambiguous,
-          failed: result.failed
-        });
+        const unmatched = result.checked - 2 * result.linkedPairs - result.ambiguous - 2 * result.failed;
+        this.messageToastService.showMessageI18n(
+          result.failed > 0 ? InfoLevelType.WARNING : InfoLevelType.SUCCESS,
+          'CONNECT_CASH_TRANSFERS_RESULT',
+          {
+            checked: result.checked,
+            linkedPairs: result.linkedPairs,
+            ambiguous: result.ambiguous,
+            failed: result.failed,
+            unmatched
+          }
+        );
         if (result.linkedPairs > 0) {
           this.initialize();
         }

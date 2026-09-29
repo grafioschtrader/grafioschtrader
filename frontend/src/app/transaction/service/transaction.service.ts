@@ -233,14 +233,18 @@ export class CashAccountTransfer {
   ) {}
 }
 
-/** Result of the cash transfer relink run over the tenant's unconnected withdrawal/deposit transactions. */
+/**
+ * Result of the cash transfer relink run over the tenant's unconnected withdrawal/deposit transactions.
+ * checked and ambiguous count transactions, linkedPairs and failed count pairs of two transactions each. The
+ * transactions without any counterpart appear only in checked: checked - 2 * linkedPairs - ambiguous - 2 * failed.
+ */
 export interface CashTransferRelinkResult {
-  /** Number of unconnected withdrawal/deposit transactions examined */
+  /** Number of unconnected withdrawal/deposit transactions examined, including those without any counterpart */
   checked: number;
   /** Number of transfer pairs that were connected */
   linkedPairs: number;
-  /** Number of transactions with ambiguous match candidates, skipped for safety */
+  /** Number of transactions with more than one possible counterpart in the same minute, skipped for safety */
   ambiguous: number;
-  /** Number of matched pairs rejected by the transfer validation */
+  /** Number of matched pairs rejected by the transfer validation (overdraft, closed period, exchange rate) */
   failed: number;
 }

@@ -16,9 +16,7 @@ const ISIN_CHANGES = loadE2EIsinChanges();
 
 for (const fixture of ISIN_CHANGES) {
   test.describe.serial(`create ISIN change ${fixture.isinOld} -> ${fixture.isinNew}`, () => {
-    // SecurityActionCreateComponent submits the date picker's JavaScript Date. UTC keeps the displayed fixture date
-    // from becoming the previous day when it is serialized from a Europe/Zurich browser context.
-    test.use({ viewport: { width: 1600, height: 1200 }, timezoneId: 'UTC' });
+    test.use({ viewport: { width: 1600, height: 1200 }, timezoneId: 'Europe/Zurich' });
 
     test('admin creates and verifies the ISIN change and notification', async ({ page }) => {
       const credentials = await loginAsFixtureUser(page, fixture.createNickname);

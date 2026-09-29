@@ -16,7 +16,7 @@ const SECURITY_TRANSFERS = loadE2ESecurityTransfers();
 for (const fixture of SECURITY_TRANSFERS) {
   test.describe
     .serial(`security transfer ${fixture.isin} from ${fixture.sourceAccountName} to ${fixture.targetAccountName}`, () => {
-    test.use({ viewport: { width: 1600, height: 1200 }, timezoneId: 'UTC' });
+    test.use({ viewport: { width: 1600, height: 1200 }, timezoneId: 'Europe/Zurich' });
 
     test('creates the security transfer from its fixture', async ({ page }) => {
       test.setTimeout(240_000);

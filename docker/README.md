@@ -181,15 +181,49 @@ docker compose up -d               # start / apply .env changes
 ### Update to a new release
 
 ```bash
-./update.sh 0.37.1     # or: ./update.sh latest
+./update.sh 0.37.2     # or: ./update.sh latest
 ```
 
-`update.sh` does the whole update: it backs up the database, `.env` and
-`config/`, migrates renamed configuration keys when a release needs it, fetches
+`update.sh` does the whole update: it brings the deployment files to the target
+release, backs up the database, `.env` and `config/`, migrates renamed
+configuration keys when a release needs it, fetches
 the new images — pulling the published ones, or building them from source with
 `--build` — restarts the stack and waits until the database migrations have
 finished, then reports the resulting schema version. Run it from the `docker/`
 directory; without arguments it updates to the version already set in `.env`.
+
+**Deployment files.** A new image does not change the files on the host, so a
+release that changes `docker-compose.yml` — a renamed container variable, a new
+health check — would never arrive. `update.sh` therefore first fetches the files
+of the target release (`docker/` and the two helpers `gt_to_g_rename.sh` and
+`gtcronrandom.sh` in `util/shellscripts/`) from the release tag and replaces
+every file that is still the one a release delivered. The replaced files are
+saved in `gt-deployment-<date>.tar.gz` first, and `.gt-deployment.sha256`
+records what was delivered, so the next update can tell a delivered file from
+one you edited. `.env`, `config/` and the Docker volumes are never touched. If
+`update.sh` itself changes, the new version takes over and repeats the run.
+
+A file you edited on the host is handled like this:
+
+| Your edit | The release | Result |
+|-----------|-------------|--------|
+| edited | leaves the file unchanged | your edit is kept |
+| edited | changes the file | the update **stops before anything is changed** and lists the file |
+
+In the second case move your change to `.env` or `config/` if you can — those
+survive every update — and run `./update.sh <version> --replace-modified`: the
+listed files are replaced by the release version, your edited copies are in the
+`gt-deployment-*.tar.gz` backup. `--skip-files` leaves all deployment files
+alone and updates the images only.
+
+**Once, on installations of 0.37.1 or older:** their `update.sh` does not refresh
+itself yet. Fetch the new `update.sh` by hand, then update as usual:
+
+```bash
+git -C .. fetch --depth 1 origin tag V0.37.2
+git -C .. checkout V0.37.2 -- docker/update.sh
+./update.sh 0.37.2
+```
 
 A release may rename a setting, for example when a key moves from the
 application prefix `gt.` to the library prefix `g.`. Since `config/` lives on
@@ -211,7 +245,7 @@ older release with a new version number:
 
 ```bash
 git -C .. fetch --depth 1 origin master && git -C .. reset --hard FETCH_HEAD
-./update.sh 0.37.1 --build
+./update.sh 0.37.2 --build
 ```
 
 The same thing by hand:
@@ -226,7 +260,7 @@ docker compose exec -T mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
 
 # 2. Only when GT_VERSION pins a version: set the new one in .env
 #    (with GT_VERSION=latest, skip this step)
-sed -i 's/^GT_VERSION=.*/GT_VERSION=0.37.1/' .env
+sed -i 's/^GT_VERSION=.*/GT_VERSION=0.37.2/' .env
 
 # 3. Fetch the new images and restart
 docker compose pull
@@ -238,7 +272,7 @@ docker compose logs -f backend
 
 Database migrations run automatically on startup, so the backend can stay in
 `starting` for a while after a release with many migrations. `GT_VERSION=latest`
-(the installer's default) tracks the newest release; set `GT_VERSION=0.37.1` to
+(the installer's default) tracks the newest release; set `GT_VERSION=0.37.2` to
 pin an exact version, which is worth doing if you want an update to be a
 deliberate, reversible step.
 

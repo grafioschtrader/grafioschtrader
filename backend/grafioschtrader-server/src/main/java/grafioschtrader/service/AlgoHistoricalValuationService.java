@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.common.ClientClock;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.*;
 import grafioschtrader.instrument.SecurityCalcService;
@@ -76,7 +77,7 @@ public class AlgoHistoricalValuationService {
    * @param field the form field the error is reported against, so the dialog that asked for the date highlights it
    */
   public static void validateDate(LocalDate date, String field) {
-    if (date == null || !date.isBefore(LocalDate.now()))
+    if (date == null || !date.isBefore(ClientClock.today()))
       throw invalid(field, "algo.completed.date.required", "");
   }
 

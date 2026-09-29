@@ -204,21 +204,22 @@ export function createSuiteHelpers(config: SuiteConfig): SuiteHelpers {
   }
 
   /**
-   * Opens the login page and waits for its form. The dev server occasionally refuses a single request while the page
-   * loads; when that request is the global scripts bundle (it carries reflect-metadata), Angular never bootstraps and
-   * the page stays on "Loading...". A second navigation loads the bundle again; a second failure is a real one.
+   * Opens the login page and waits for its form. The dev server occasionally refuses the navigation itself or a bundle
+   * request (the global scripts bundle carries reflect-metadata, without which Angular stays on "Loading..."). Retry
+   * both navigation and bootstrap once, giving the server a moment to recover; a second failure is propagated.
    */
   async function openLoginPage(page: Page): Promise<void> {
     const email = page.locator('#email');
     for (let attempt = 1; ; attempt++) {
-      await page.goto('/login');
       try {
+        await page.goto('/login');
         await email.waitFor({ state: 'visible', timeout: 15_000 });
         return;
       } catch (error) {
         if (attempt >= 2) {
           throw error;
         }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
   }

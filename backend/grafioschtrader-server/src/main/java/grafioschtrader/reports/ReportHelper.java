@@ -153,7 +153,8 @@ public abstract class ReportHelper {
     if (exactRate != null) {
       return exactRate;
     }
-    if (tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(dateCurrencyMap.getUntilDate())) {
+    if (tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(dateCurrencyMap.getUntilDate(),
+        dateCurrencyMap.getToday())) {
       log.warn("Currencypair {}/{} for Date {} ist not updated!", currency, dateCurrencyMap.getMainCurrency(),
           dateCurrencyMap.getUntilDate());
       throw new DataViolationException("currencypair", "gt.missing.currencypair.day",

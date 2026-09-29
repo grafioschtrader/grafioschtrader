@@ -6,8 +6,6 @@
   "required": [
     "strategy_name",
     "universe",
-    "data",
-    "execution",
     "cooldowns",
     "entry",
     "downside_management",
@@ -18,12 +16,12 @@
     "strategy_name": {
       "type": "string",
       "maxLength": 100,
-      "description": "Name identifying the strategy instance (required, max 100 chars)"
+      "description": "Name identifying the strategy; shown as the choice in the strategy assignment of a transaction (required, max 100 chars)"
     },
     "version": {
       "type": "string",
       "maxLength": 10,
-      "description": "Version identifier for the strategy configuration (max 10 chars)"
+      "description": "Ignored; accepted only for compatibility with earlier configurations. Version identifier for the strategy configuration (max 10 chars)"
     },
     "universe": {
       "$ref": "#/$defs/UniverseConfig"
@@ -65,14 +63,14 @@
             "single_asset",
             "watchlist"
           ],
-          "description": "Asset selection method: single_asset for one instrument, watchlist for a group"
+          "description": "Ignored; accepted only for compatibility with earlier configurations. The instrument is the security of the tree the strategy is assigned to."
         },
         "assets": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "description": "List of asset symbols or identifiers (e.g. [\"AAPL\"])",
+          "description": "Must stay empty; the instrument is the security of the tree the strategy is assigned to.",
           "maxItems": 0
         },
         "direction": {
@@ -86,13 +84,12 @@
         }
       },
       "required": [
-        "mode",
         "direction"
       ]
     },
     "DataConfig": {
       "type": "object",
-      "description": "Data source configuration for price data",
+      "description": "Optional; the only executable value is the default. Mean reversion evaluates daily closing prices only.",
       "additionalProperties": false,
       "properties": {
         "price_field": {
@@ -117,7 +114,7 @@
     },
     "ExecutionConfig": {
       "type": "object",
-      "description": "Order execution parameters",
+      "description": "Optional; the only executable value is the default. Mean reversion supports market execution without own fee or slippage model.",
       "additionalProperties": false,
       "properties": {
         "order_type": {
@@ -185,7 +182,7 @@
           "enum": [
             "dip_buy"
           ],
-          "description": "Entry strategy type: dip_buy (mean reversion), breakout, or indicator_signal"
+          "description": "Optional; the only executable value is the default. Entry strategy type: dip_buy (mean reversion), breakout, or indicator_signal"
         },
         "lookback_T": {
           "type": "integer",
@@ -207,7 +204,6 @@
         }
       },
       "required": [
-        "type",
         "lookback_T",
         "dip_reference",
         "dip_threshold_pct",
@@ -591,7 +587,7 @@
         },
         "action": {
           "type": "string",
-          "description": "Action to execute when take-profit is triggered (e.g. 'sell_all_remaining')",
+          "description": "Optional; the only executable value is the default. Action to execute when take-profit is triggered (e.g. 'sell_all_remaining')",
           "enum": [
             "sell_all_remaining"
           ]
@@ -599,8 +595,7 @@
       },
       "required": [
         "mode",
-        "reference",
-        "action"
+        "reference"
       ],
       "allOf": [
         {
@@ -651,7 +646,8 @@
       "additionalProperties": false,
       "properties": {
         "trigger": {
-          "$ref": "#/$defs/DownsideTriggerConfig"
+          "$ref": "#/$defs/DownsideTriggerConfig",
+          "description": "Additional loss condition. Optional for a hard stop; required for averaging down and for an indicator stop."
         },
         "loss_action": {
           "type": "string",
@@ -669,7 +665,6 @@
         }
       },
       "required": [
-        "trigger",
         "loss_action"
       ],
       "allOf": [
@@ -693,7 +688,9 @@
                   }
                 },
                 "required": [
-                  "enabled"
+                  "stop_type",
+                  "stop_reference",
+                  "stop_threshold_pct"
                 ]
               },
               "variant_B_average_down": {
@@ -716,17 +713,23 @@
           },
           "then": {
             "required": [
-              "variant_B_average_down"
+              "variant_B_average_down",
+              "trigger"
             ],
             "properties": {
               "variant_B_average_down": {
                 "properties": {
                   "enabled": {
                     "const": true
+                  },
+                  "recalculate_avg_cost": {
+                    "const": true
                   }
                 },
                 "required": [
-                  "enabled"
+                  "add_sizing",
+                  "max_adds",
+                  "add_step_rule"
                 ]
               },
               "variant_A_sell_loss": {
@@ -777,6 +780,33 @@
                 }
               }
             }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "variant_A_sell_loss"
+            ],
+            "properties": {
+              "loss_action": {
+                "const": "A_sell_loss"
+              },
+              "variant_A_sell_loss": {
+                "required": [
+                  "stop_type"
+                ],
+                "properties": {
+                  "stop_type": {
+                    "const": "indicator_stop"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "trigger"
+            ]
           }
         }
       ]
@@ -1035,7 +1065,7 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "description": "Whether this stop-loss variant is active"
+          "description": "Optional; loss_action selects the variant. Only an explicit false contradicts A_sell_loss."
         },
         "stop_type": {
           "type": "string",
@@ -1064,40 +1094,16 @@
           "enum": [
             "market"
           ],
-          "description": "Order type for the stop-loss exit"
+          "description": "Optional; the only executable value is the default. Order type for the stop-loss exit"
         },
         "action": {
           "type": "string",
-          "description": "Action to execute (e.g. 'sell_all_remaining')",
+          "description": "Optional; the only executable value is the default. Action to execute (e.g. 'sell_all_remaining')",
           "enum": [
             "sell_all_remaining"
           ]
         }
-      },
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "enabled"
-            ],
-            "properties": {
-              "enabled": {
-                "const": true
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "enabled",
-              "stop_type",
-              "stop_reference",
-              "stop_threshold_pct",
-              "order_type",
-              "action"
-            ]
-          }
-        }
-      ]
+      }
     },
     "AverageDownConfig": {
       "type": "object",
@@ -1106,7 +1112,7 @@
       "properties": {
         "enabled": {
           "type": "boolean",
-          "description": "Whether this averaging-down variant is active"
+          "description": "Optional; loss_action selects the variant. Only an explicit false contradicts B_average_down."
         },
         "add_sizing": {
           "$ref": "#/$defs/SizingConfig"
@@ -1121,36 +1127,9 @@
         },
         "recalculate_avg_cost": {
           "type": "boolean",
-          "description": "Whether to recalculate average cost after each additional purchase"
+          "description": "Optional; the only executable value is the default. The average cost is always recalculated after each addition."
         }
-      },
-      "allOf": [
-        {
-          "if": {
-            "required": [
-              "enabled"
-            ],
-            "properties": {
-              "enabled": {
-                "const": true
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "add_sizing",
-              "max_adds",
-              "add_step_rule",
-              "recalculate_avg_cost"
-            ],
-            "properties": {
-              "recalculate_avg_cost": {
-                "const": true
-              }
-            }
-          }
-        }
-      ]
+      }
     },
     "AddStepRuleConfig": {
       "type": "object",
@@ -1227,11 +1206,11 @@
         },
         "block_entry_if_exposure_exceeded": {
           "type": "boolean",
-          "description": "Whether to block new entries if the exposure limit is already exceeded"
+          "description": "Ignored; accepted only for compatibility with earlier configurations. An entry or addition beyond the exposure limit is always blocked."
         },
         "block_add_if_exposure_exceeded": {
           "type": "boolean",
-          "description": "Whether to block averaging-down if the exposure limit is already exceeded"
+          "description": "Ignored; accepted only for compatibility with earlier configurations. An entry or addition beyond the exposure limit is always blocked."
         }
       },
       "required": [
@@ -1242,7 +1221,7 @@
     },
     "OutputsConfig": {
       "type": "object",
-      "description": "Output configuration - which events to emit and metrics to track",
+      "description": "Ignored; accepted only for compatibility with earlier configurations. Output configuration - which events to emit and metrics to track",
       "additionalProperties": false,
       "properties": {
         "emit_events": {

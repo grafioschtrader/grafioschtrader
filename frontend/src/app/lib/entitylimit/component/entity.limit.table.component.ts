@@ -144,9 +144,13 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
       translateValues: TranslateValue.NORMAL,
       filterType: FilterType.withOptions
     });
+    this.addColumnFeqH(DataType.String, 'scopeReadable', true, false, {
+      fieldValueFN: this.getScopeReadable.bind(this),
+      filterType: FilterType.withOptions, width: 100
+    });
     this.addColumnFeqH(DataType.String, 'relationEntityName', true, false, {
       fieldValueFN: this.getRelationEntityLabel.bind(this),
-      filterType: FilterType.withOptions
+      filterType: FilterType.withOptions, width: 100
     });
     this.addColumnFeqH(DataType.String, 'countScopeKey', true, false, {
       translateValues: TranslateValue.NORMAL,
@@ -258,6 +262,24 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
     return shared === undefined
       ? ''
       : this.translateService.instant(shared ? 'DATA_SCOPE_SHARED' : 'DATA_SCOPE_PRIVATE');
+  }
+
+  /**
+   * The owner scope, count scope and relation entity of a row as one readable text, in the same order and form as the
+   * scope field of the edit dialog, so a row can be recognised in the table by what the dialog shows.
+   */
+  private getScopeReadable(entityLimit: EntityLimit, field: ColumnConfig, valueField: any): string {
+    const scopes: string[] = [];
+    if (entityLimit.ownerScopeKey) {
+      scopes.push(this.translateService.instant(entityLimit.ownerScopeKey));
+    }
+    if (entityLimit.countScopeKey) {
+      scopes.push(this.translateService.instant(entityLimit.countScopeKey));
+    }
+    if (entityLimit.relationEntityName) {
+      scopes.push(this.translateEntityName(entityLimit.relationEntityName));
+    }
+    return scopes.join(', ');
   }
 
   private getRelationEntityLabel(entityLimit: EntityLimit, field: ColumnConfig, valueField: any): string {

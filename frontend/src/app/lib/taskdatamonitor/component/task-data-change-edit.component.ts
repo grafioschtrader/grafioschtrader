@@ -216,9 +216,7 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): TaskDataChange {
     const taskDataChange = this.copyFormToPrivateBusinessObject(new TaskDataChange(), null);
-    taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime)
-      .add(moment().utcOffset() * -1, 'm')
-      .format('yyyy-MM-DD HH:mm:ss');
+    taskDataChange.earliestStartTime = moment(taskDataChange.earliestStartTime).utc().format('YYYY-MM-DD HH:mm:ss');
     // Use number input value if present (idEntityNum is not on TaskDataChange, so read from form)
     const idEntityNumValue = this.configObject.idEntityNum.formControl.value;
     if (idEntityNumValue != null) {

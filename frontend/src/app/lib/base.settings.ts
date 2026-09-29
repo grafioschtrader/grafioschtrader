@@ -1,6 +1,7 @@
 export class BaseSettings {
   public static readonly DASHBOARD_KEY = 'dashboard';
   public static readonly API_ENDPOINT = '/api/';
+  public static readonly TIME_ZONE_HEADER = 'x-time-zone';
 
   public static readonly ACTUATOR = 'actuator';
 

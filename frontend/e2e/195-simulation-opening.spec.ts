@@ -294,10 +294,13 @@ async function returnHome(page: Page): Promise<void> {
 test.describe('simulation opening', () => {
   let strategyName: string;
   let openingDate: string;
+  let loggedIn: boolean;
 
   test.beforeEach(async ({ page }) => {
     test.setTimeout(180_000);
+    loggedIn = false;
     await loginAsFixtureUser(page, OWNER);
+    loggedIn = true;
     await cleanup(page);
 
     const headers = await authHeaders(page);
@@ -355,6 +358,10 @@ test.describe('simulation opening', () => {
   });
 
   test.afterEach(async ({ page }) => {
+    // A failed login created no test data and may leave an error document without access to sessionStorage.
+    if (!loggedIn) {
+      return;
+    }
     await returnHome(page);
     await cleanup(page);
   });

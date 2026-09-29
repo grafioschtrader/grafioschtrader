@@ -627,7 +627,6 @@ verdict. Silent fall-through is not acceptable.
 | `SecurityActionService.createTransfer` / `SecurityTransfer` | **Reject** — add an `isOption()` guard to `validateAndPrepareTransfer` next to the existing `gt.security.transfer.margin.not.allowed` rejection, with its own message key. A transfer's sell leg is a bare `REDUCE` **without** `connectedIdTransaction`, which `SecurityOptionsCalc` reads as a sell-to-open, so an unguarded transfer creates a phantom short position in the source account. A lot-preserving option transfer is deferred |
 | `DIVIDEND` / `FINANCE_COST` on an `isOption()` security | **Reject** in the save path. `canHaveDividendConnector()` and `canHaveSplitConnector()` both exclude `OPTION` and so keep these connectors out of the UI, but neither is consulted by `processAndSaveTransaction`, which routes both types for any security |
 | Manually entered split on an option security | **Reject** — complements §3.10, where automatic split handling must never touch option rows |
-| `Securityaccount.getAllTransactionCostByTenant` / `…BySecurityaccount` | **Adapt** — include exercise/assignment fees (12–13), and multiply the reported price by `asset_investment_value_2` where the security has a value per point; it computes `units × quotation` today, which understates an option trade by the multiplier |
 | `Historyquote.getHistoryquoteCurrenciesForBuyAndSellByIdTenantAndMainCurrency` | **Adapt** — types 4–5 only today, so the FX rate for a cash-settled terminal date can be missing |
 | `CheckCashaccountAmountTransaction` (data verification) | **Adapt** — must use the new cash formulas (§4.0b) or it reports every option terminal event as a defect |
 | `filterMarginTransaction` / `getOpenPositionMarginPosition` | **Adapt** — write the option equivalent from the §3.6 truth table, gated on `isOption()`. Do **not** clone the margin filter: it carries a `!= FINANCE_COST` condition and a `securityRisk` expectation that are meaningless for options |
@@ -1413,7 +1412,7 @@ Backend:
 - `grafioschtrader/repository/TransactionJpaRepositoryImpl.java` — type-switch wiring, multiplier
   snapshot, holdings adjustment, cascade create/edit/delete with opener locking (§3.7–3.9).
 - `META-INF/jpa-named-queries.properties` — the three `getBuySellTrans…` rebuild queries, both
-  `countConsistencyDefects` queries, `Securityaccount.getAllTransactionCost*` and
+  `countConsistencyDefects` queries and
   `Historyquote.getHistoryquoteCurrenciesForBuyAndSellByIdTenantAndMainCurrency` (§4.0d, §3.9).
 - The two hold stored procedures, `holdSecuritySplitTransaction` and
   `holdSecuritySplitMarginTransaction` — `CREATE OR REPLACE` in the migration; last rewritten in

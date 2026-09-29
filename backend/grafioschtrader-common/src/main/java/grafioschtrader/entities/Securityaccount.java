@@ -50,10 +50,6 @@ public class Securityaccount extends Securitycashaccount implements Serializable
   @JoinColumn(name = "id_securitycash_account", nullable = false)
   private List<SecaccountTradingPeriod> tradingPeriods = new ArrayList<>();
 
-  @JsonIgnore
-  @Column(name = "weka_model")
-  private byte[] wekaModel;
-
   @PropertyAlwaysUpdatable
   @Column(name = "lowest_transaction_cost")
   private Float lowestTransactionCost;
@@ -136,14 +132,6 @@ public class Securityaccount extends Securitycashaccount implements Serializable
    */
   public void replaceTradingPeriods(List<SecaccountTradingPeriod> tradingPeriods) {
     this.tradingPeriods = tradingPeriods != null ? new ArrayList<>(tradingPeriods) : new ArrayList<>();
-  }
-
-  public byte[] getWekaModel() {
-    return wekaModel;
-  }
-
-  public void setWekaModel(byte[] wekaModel) {
-    this.wekaModel = wekaModel;
   }
 
   public Float getLowestTransactionCost() {

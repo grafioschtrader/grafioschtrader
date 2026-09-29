@@ -11,6 +11,8 @@ import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { FieldFormGroup } from '../../lib/dynamic-form/models/form.group.definition';
 import { FormConfig } from '../../lib/dynamic-form/models/form.config';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { Helper } from '../../lib/helper/helper';
+import { BaseSettings } from '../../lib/base.settings';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
@@ -113,7 +115,7 @@ export class FxMarkupPreviewComponent extends ShowRecordConfigBase implements On
         receiveCurrency: value('receiveCurrency'),
         kind: value('kind'),
         amount: value('amount'),
-        date: value('date'),
+        date: Helper.formatDateStringAsString(this.configObject.date, BaseSettings.FORMAT_DATE_SHORT_NATIVE),
         mic: value('mic')
       }
     };

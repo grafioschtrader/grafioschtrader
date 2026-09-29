@@ -3,6 +3,7 @@ package grafioschtrader.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -117,6 +119,11 @@ public class AlgoHistoricalReplayService {
   private static final Logger log = LoggerFactory.getLogger(AlgoHistoricalReplayService.class);
   /** Shortest wall-clock distance between two progress writes of a running replay. */
   private static final long PROGRESS_INTERVAL_NANOS = 1_000_000_000L;
+  /**
+   * Entries an audit trail window holds on each side of its anchor day. Twice this is what one response carries at
+   * most; a run may write up to the MAX_ALGO_EVENT_LOG limit, which is far more.
+   */
+  public static final int EVENT_WINDOW_HALF = 5000;
 
   /** The assumptions that hold for every run, whatever the environment it replays is configured with. */
   public static final String CONVENTIONS = "NEXT_CLOSE_FILL NO_SLIPPAGE"
@@ -170,7 +177,7 @@ public class AlgoHistoricalReplayService {
   /**
    * Trading days the initial purchase may take. An order decided at a close is filled at the next one, so the phase
    * legitimately spans more than a single day; a line that cannot be funded at all must not hold it open for the rest
-   * of the run.
+   * of the run. Only purchases still missing are retried, never the drift of an instrument inside its security band.
    */
   private static final int MAX_INITIAL_PURCHASE_DAYS = 5;
 
@@ -340,6 +347,28 @@ public class AlgoHistoricalReplayService {
   }
 
   /**
+   * A window of the audit trail around one day, for a reader who wants to look at a particular period of a run whose
+   * trail is too long to be sent whole. Each side is filled independently, so near the start or the end of the run the
+   * window is simply shorter rather than shifted.
+   *
+   * @param idSimTenant the simulation environment
+   * @param anchorDate  the day the window is centred on; null takes the end date of the run, which yields its newest
+   *                    entries
+   * @return up to {@link #EVENT_WINDOW_HALF} entries before the anchor day and as many from it on, newest day first
+   */
+  public SimulationRunEventWindow eventWindow(Integer idSimTenant, LocalDate anchorDate) {
+    requireOwnedSimulation(idSimTenant, currentUser());
+    AlgoSimulationResult run = results.findByIdTenant(idSimTenant).orElseThrow(() -> invalid("gt.simulation.run.none"));
+    LocalDate anchor = anchorDate == null ? run.getEndDate() : anchorDate;
+    List<AlgoEventLog> window = new ArrayList<>(
+        events.findByIdSimulationResultAndEventDateGreaterThanEqualOrderByEventDateAscIdAlgoEventAsc(
+            run.getIdSimulationResult(), anchor, Limit.of(EVENT_WINDOW_HALF)).reversed());
+    window.addAll(events.findByIdSimulationResultAndEventDateLessThanOrderByEventDateDescIdAlgoEventDesc(
+        run.getIdSimulationResult(), anchor, Limit.of(EVENT_WINDOW_HALF)));
+    return new SimulationRunEventWindow(window, events.countByIdSimulationResult(run.getIdSimulationResult()));
+  }
+
+  /**
    * Asks a running replay to stop after the day it is evaluating. The fills booked so far stay in the environment and
    * the run is labelled cancelled, without metrics.
    *
@@ -415,6 +444,8 @@ public class AlgoHistoricalReplayService {
     if (runDates.size() > maxRunTradingDays) {
       throw new DataViolationException("end.date", "gt.simulation.run.too.long", new Object[] { maxRunTradingDays });
     }
+    Map<Integer, Security> securities = replaySecurities(tenant, algoTop);
+    requireCouponRates(securities.values());
     AlgoSimulationResult run = results.findByIdTenant(idSimTenant).map(this::reconcile)
         .orElseGet(AlgoSimulationResult::new);
     if (run.getStatus() == AlgoSimulationRunStatus.RUNNING) {
@@ -439,7 +470,7 @@ public class AlgoHistoricalReplayService {
     if (request.isGenerateBondCoupons())
       run.setConventions(run.getConventions() + " REPLAY_GENERATED_COUPONS");
     var capturedInputs = replayInputs.capture(request.isApplyTaxModels(), request.isGenerateBondCoupons(),
-        run.getDividendPaymentDelayDays(), idSimTenant, replaySecurities(tenant, algoTop).values(),
+        run.getDividendPaymentDelayDays(), idSimTenant, securities.values(),
         source.securityaccounts(idSimTenant), openingDate, endDate);
     var effectiveAllocation = AlgoReplayAllocation.capture(algoTop,
         algoBuckets.findByIdTenantAndIdAlgoAssetclassParent(algoTop.getIdTenant(), algoTop.getId()),
@@ -472,6 +503,17 @@ public class AlgoHistoricalReplayService {
     run.setLosingTrades(null);
     run.setFailureMessage(null);
     return results.save(run);
+  }
+
+  /**
+   * Refuses a replay that contains a direct bond without a coupon rate. The readiness check already covers the
+   * instruments of the strategy; this also covers a bond that the environment only holds from its opening transactions.
+   */
+  private static void requireCouponRates(Collection<Security> securities) {
+    securities.stream().filter(Security::isSimulationCouponRateMissing).findFirst().ifPresent(security -> {
+      throw new DataViolationException("id.algo.top", AlgoTopReadinessService.BOND_COUPON_MISSING,
+          new Object[] { security.getName(), "" });
+    });
   }
 
   private Map<Integer, Security> replaySecurities(Tenant tenant, AlgoTop algoTop) {
@@ -722,6 +764,13 @@ public class AlgoHistoricalReplayService {
    * retries the lines it could not fill, and it is what starts the interval once it is done.
    *
    * <p>
+   * The phase only buys. The first attempt sizes every instrument to its exact target; a retry completes only an
+   * instrument not held yet or one outside its security band. The price moves between the close an order is decided at
+   * and the close it is filled at, so an exact target is never met, and chasing it would sell the winners and buy the
+   * losers in small orders every day until the attempts run out. That drift is left to the first checkpoint.
+   * </p>
+   *
+   * <p>
    * A tactical bucket is not bought in here. Its positions are opened by the entry strategy that makes it tactical, so
    * a cash-only environment whose buckets are all tactical performs no purchase at all and waits for its strategies,
    * which is correct rather than a missing buy.
@@ -735,14 +784,17 @@ public class AlgoHistoricalReplayService {
     RebalancingPlan plan;
     try {
       // The purchase is not a checkpoint, so the plan is asked to treat this very day as the last redeployment.
-      plan = rebalancing.initialPlan(state.idTenant(), state.algoTop, date, state.locale, state.market);
+      plan = rebalancing.initialPlan(state.idTenant(), state.algoTop, date, state.locale, state.market,
+          state.initialPurchaseAttempts > 0);
     } catch (DataViolationException e) {
       state.write(AlgoEventType.UNAVAILABLE, date, null, null, null, null, null, null, RATIONALE_REBALANCE_UNAVAILABLE,
           booking.describe(e, state.locale));
       settleInitialPurchase(state, date, List.of());
       return;
     }
-    List<RebalancingPlan.Line> due = bookingOrder(plan).stream().filter(line -> tradableOn(state, line, date)).toList();
+    List<RebalancingPlan.Line> due = bookingOrder(plan).stream()
+        .filter(line -> line.action() == AlgoRecommendationAction.REBALANCE_BUY && tradableOn(state, line, date))
+        .toList();
     if (due.isEmpty() || state.initialPurchaseAttempts >= MAX_INITIAL_PURCHASE_DAYS) {
       settleInitialPurchase(state, date, due.isEmpty() ? List.of() : due);
       return;

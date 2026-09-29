@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { combineLatest, of } from 'rxjs';
@@ -30,7 +31,8 @@ import { BaseSettings } from '../../base.settings';
  *
  * The same dialog serves both hosts. Opened from the user administration it is user-scoped, so the role selection is
  * absent and the proposal-aware submit button of a limit increase request applies. Opened from the limit
- * administration it offers the role selection instead.
+ * administration it offers the role selection instead, except for an existing row of a single user: role and user
+ * are mutually exclusive, so such a row is user-scoped as well.
  */
 @Component({
   selector: 'entity-limit-edit',
@@ -65,6 +67,14 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
    */
   @Input() existingEntityLimits: EntityLimit[] = [];
 
+  /**
+   * The user the dialog is scoped to: the one of the user administration, or the owner of the edited row when the
+   * limit administration opens a row of a single user.
+   */
+  private get scopedIdUser(): number {
+    return this.idUser ?? this.existingEntityLimit?.idUser;
+  }
+
   private limitKeyDefinitions: LimitKeyDefinition[] = [];
   private roleOptions: ValueKeyHtmlSelectOptions[] = [];
   /** Scopes already configured per limit key: the role id as text, the empty text for the default row. */
@@ -93,11 +103,11 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
       // cover every entity, so the list needs the search box the native select had through its type ahead.
       DynamicFieldHelper.createFieldDropdownString('keyId', 'ENTITY_NAME', true, { filter: true }),
       // Derived from the picked key and never edited directly; shown so the effect of the choice is visible. Their
-      // names must stay free of any property of the entity, because the form is filled from the entity once more
-      // after showReadableKeyParts() and the raw value would win.
+      // names must stay free of any property of the entity, otherwise the raw value would be transferred to the form
+      // and posted. For an existing row they are filled only after the entity has been transferred to the form.
       DynamicFieldHelper.createFieldInputStringHeqF('limitTypeReadable', 40, false),
       DynamicFieldHelper.createFieldInputStringHeqF('scopeReadable', 60, false),
-      ...(this.idUser == null ? [DynamicFieldHelper.createFieldSelectNumberHeqF('idRole', false)] : []),
+      ...(this.scopedIdUser == null ? [DynamicFieldHelper.createFieldSelectNumberHeqF('idRole', false)] : []),
       DynamicFieldHelper.createFieldMinMaxNumberHeqF(DataType.NumericInteger, 'limitValue', true, 1, 1000000),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'validUntil', false),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this, true)
@@ -114,10 +124,10 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
     const entityLimitService = <EntityLimitService>this.serviceEntityUpdate;
     combineLatest([
       entityLimitService.getLimitKeyDefinitions(
-        this.idUser,
+        this.scopedIdUser,
         this.existingEntityLimit ? this.existingEntityLimit.idEntityLimit : undefined
       ),
-      this.idUser == null ? entityLimitService.getRoles() : of<ValueKeyHtmlSelectOptions[]>([])
+      this.scopedIdUser == null ? entityLimitService.getRoles() : of<ValueKeyHtmlSelectOptions[]>([])
     ]).subscribe(([limitKeyDefinitions, roles]: [LimitKeyDefinition[], ValueKeyHtmlSelectOptions[]]) => {
       this.limitKeyDefinitions = limitKeyDefinitions;
       this.roleOptions = roles;
@@ -131,14 +141,9 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
       if (this.existingEntityLimit) {
         // The key identifies the row, so it stays fixed once the row exists.
         this.configObject.keyId.formControl.disable();
-        this.form.transferBusinessObjectToForm(this.existingEntityLimit);
-        this.showReadableKeyParts(
-          this.existingEntityLimit.limitTypeKey,
-          this.existingEntityLimit.ownerScopeKey,
-          this.existingEntityLimit.countScopeKey,
-          this.existingEntityLimit.relationEntityName
-        );
       }
+      // Also fills the form from the entity: every control the entity has no property for, the two readable ones
+      // included, is reset to its default, so they may only be filled afterwards.
       AuditHelper.transferToFormAndChangeButtonForProposaleEdit(
         this.translateService,
         this.gps,
@@ -149,6 +154,14 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
         this.configObject,
         this.proposeChangeEntityWithEntity
       );
+      if (this.existingEntityLimit) {
+        this.showReadableKeyParts(
+          this.existingEntityLimit.limitTypeKey,
+          this.existingEntityLimit.ownerScopeKey,
+          this.existingEntityLimit.countScopeKey,
+          this.existingEntityLimit.relationEntityName
+        );
+      }
       this.configObject.keyId.baseInputComponent.focus();
     });
   }
@@ -219,7 +232,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
    * offered any more, because choosing it would leave the role selection without a single entry.
    */
   private isKeyExhausted(keyId: string): boolean {
-    if (this.idUser != null) {
+    if (this.scopedIdUser != null) {
       return false;
     }
     const usedScopes = this.usedScopesByKeyId.get(keyId);
@@ -231,18 +244,28 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
   /**
    * Narrows the role selection to the scopes still free for the given key. A key holds at most one row per role plus
    * one default row, so an already configured combination is withheld here instead of failing on save. The empty
-   * entry stands for the default row and disappears as soon as that row exists.
+   * entry stands for the default row and disappears as soon as that row exists; a role then becomes mandatory, since
+   * leaving it empty would ask for that default row again. A role picked before the key that is no longer offered is
+   * cleared, because the native select would otherwise keep posting it while showing nothing.
    */
   private applyRoleOptions(keyId: string): void {
-    if (this.idUser != null) {
+    if (this.scopedIdUser != null) {
       return;
     }
     const usedScopes = this.usedScopesByKeyId.get(keyId) ?? new Set<string>();
-    this.configObject.idRole.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
+    const defaultFree = !usedScopes.has('');
+    const freeRoles = this.roleOptions.filter((role) => !usedScopes.has(String(role.key)));
+    const idRole = this.configObject.idRole;
+    idRole.valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
       this.translateService,
-      this.roleOptions.filter((role) => !usedScopes.has(String(role.key))),
-      !usedScopes.has('')
+      freeRoles,
+      defaultFree
     );
+    const pickedRole = idRole.formControl.value;
+    if (pickedRole != null && pickedRole !== '' && !freeRoles.some((role) => String(role.key) === String(pickedRole))) {
+      idRole.formControl.setValue(null);
+    }
+    DynamicFieldHelper.resetValidator(idRole, defaultFree ? [] : [Validators.required]);
   }
 
   /**
@@ -294,7 +317,7 @@ export class EntityLimitEditComponent extends SimpleEntityEditBase<EntityLimit> 
 
   protected override getNewOrExistingInstanceBeforeSave(value: { [name: string]: any }): EntityLimit {
     const entityLimit = new EntityLimit();
-    entityLimit.idUser = this.idUser;
+    entityLimit.idUser = this.scopedIdUser;
     this.copyFormToPublicBusinessObject(entityLimit, this.existingEntityLimit, this.proposeChangeEntityWithEntity);
     // Never post the readable fields or the five derived key parts: the backend parses and validates keyId, then
     // writes those columns from the resulting LimitKey.

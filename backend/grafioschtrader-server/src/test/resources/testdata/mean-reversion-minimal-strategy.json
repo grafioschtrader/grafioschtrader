@@ -1,0 +1,42 @@
+{
+  "strategy_name": "simple_dip",
+  "universe": {
+    "direction": "long_only"
+  },
+  "cooldowns": {
+    "after_buy_days": 5,
+    "after_sell_days": 5,
+    "max_trades_per_asset_per_30d": 4
+  },
+  "entry": {
+    "lookback_T": 20,
+    "dip_reference": {
+      "type": "price_T_ago"
+    },
+    "dip_threshold_pct": -0.08,
+    "initial_buy_sizing": {
+      "mode": "pct_portfolio",
+      "pct": 0.02
+    }
+  },
+  "profit_management": {
+    "take_profit": {
+      "mode": "pct_gain",
+      "pct": 0.06,
+      "reference": "avg_cost"
+    }
+  },
+  "downside_management": {
+    "loss_action": "A_sell_loss",
+    "variant_A_sell_loss": {
+      "stop_type": "hard_stop",
+      "stop_reference": "avg_cost",
+      "stop_threshold_pct": -0.08
+    }
+  },
+  "risk_controls": {
+    "max_position_exposure_pct": 0.05,
+    "max_position_drawdown_pct": 0.15,
+    "force_exit_on_risk_breach": true
+  }
+}

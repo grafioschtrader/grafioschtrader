@@ -37,7 +37,6 @@ public final class CustodyFeeEngine {
   private final CustodyFeeConfig config;
   private final LocalDate opening;
   private final Map<LocalDate, Double> spent = new HashMap<>();
-  private final Map<LocalDate, LocalDate> lastCreditDates = new HashMap<>();
   private final Set<String> committed = new HashSet<>();
   private final Map<Integer, Double> billed = new HashMap<>();
   private final NavigableMap<LocalDate, Double> liabilities = new TreeMap<>();
@@ -306,14 +305,22 @@ public final class CustodyFeeEngine {
     return entry == null ? 0 : entry.getValue();
   }
 
-  /** Credit preview in fee currency. Taxes and other transaction charges must never be passed here. */
+  /**
+   * Credit preview in fee currency. Taxes and other transaction charges must never be passed here.
+   *
+   * <p>
+   * Fills of one billing cycle may arrive out of date order: every instrument fills at the next close of its own
+   * exchange, so an order decided before a holiday of one exchange is dated after an order of an exchange that is open
+   * on that day but booked later. Such a fill receives what is left of the allowance. Which fill carries the credit then
+   * differs from strict date order, the credit of the cycle does not, since it is the lesser of allowance and summed
+   * commissions in either order.
+   * </p>
+   */
   public double credit(LocalDate date, double commission, Map<String, Object> trade) {
     Period p = period(date);
     if (number(p.creditAmount()) == 0 || !condition(p.creditEligibility(), trade))
       return 0;
     LocalDate cycle = cycleStart(p, date);
-    if (lastCreditDates.containsKey(cycle) && date.isBefore(lastCreditDates.get(cycle)))
-      throw failure("Commission-credit fills must be processed chronologically within a billing period");
     double allowance = openingCredits != null && cycle.equals(cycleStart(period(opening.plusDays(1)), opening))
         ? openingCredits
         : p.creditAmount();
@@ -321,10 +328,8 @@ public final class CustodyFeeEngine {
   }
 
   public void consume(LocalDate date, String fillId, double credit) {
-    if (committed.add(fillId)) {
+    if (committed.add(fillId))
       spent.merge(cycleStart(period(date), date), credit, Double::sum);
-      lastCreditDates.merge(cycleStart(period(date), date), date, (a, b) -> a.isAfter(b) ? a : b);
-    }
   }
 
   /**

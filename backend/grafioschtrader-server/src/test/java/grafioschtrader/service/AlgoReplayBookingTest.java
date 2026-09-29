@@ -3,6 +3,7 @@ package grafioschtrader.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,15 +72,47 @@ class AlgoReplayBookingTest {
   @Test
   @DisplayName("A custody charge is funded the day before, because money arriving on its own day pays nothing")
   void custodyFundingIsBookedTheDayBeforeTheCharge() throws Exception {
-    LocalDate charge = LocalDate.of(2020, 6, 30);
-    LocalDate dayBefore = charge.minusDays(1);
+    var transactions = fundCustody(180.0, 1000.0, 200.0);
+
+    var transfer = ArgumentCaptor.forClass(CashAccountTransfer.class);
+    verify(transactions).updateCreateCashaccountTransfer(transfer.capture(), any());
+    assertThat(transfer.getValue().getDepositTransaction().getTransactionDate()).isEqualTo(CHARGE.minusDays(1));
+    assertThat(transfer.getValue().getWithdrawalTransaction().getTransactionDate()).isEqualTo(CHARGE.minusDays(1));
+    assertThat(transfer.getValue().getDepositTransaction().getCashaccountAmount()).isEqualTo(20.0);
+  }
+
+  @Test
+  @DisplayName("A shortfall of a few cents is funded with the minimum transfer, so no cent transfer is written")
+  void centShortfallIsRaisedToTheMinimumTransfer() throws Exception {
+    var transactions = fundCustody(199.98, 1000.0, 200.0);
+
+    var transfer = ArgumentCaptor.forClass(CashAccountTransfer.class);
+    verify(transactions).updateCreateCashaccountTransfer(transfer.capture(), any());
+    assertThat(transfer.getValue().getDepositTransaction().getCashaccountAmount()).isEqualTo(10.0);
+    assertThat(transfer.getValue().getWithdrawalTransaction().getCashaccountAmount()).isEqualTo(-10.0);
+  }
+
+  @Test
+  @DisplayName("A source holding less than the minimum transfer keeps its residue")
+  void residueBelowTheMinimumIsNotSwept() throws Exception {
+    var transactions = fundCustody(180.0, 5.0, 200.0);
+
+    verify(transactions, never()).updateCreateCashaccountTransfer(any(), any());
+  }
+
+  private static final LocalDate CHARGE = LocalDate.of(2020, 6, 30);
+
+  /** Funds a custody charge on a CHF account from one other CHF account and returns the transaction writer. */
+  private static TransactionJpaRepository fundCustody(double targetBalance, double sourceBalance, double charge)
+      throws Exception {
+    LocalDate dayBefore = CHARGE.minusDays(1);
     Cashaccount target = cashaccount(40, "Migros CHF");
     Cashaccount source = cashaccount(41, "Migros CHF 2");
     var holdings = mock(HoldCashaccountBalanceJpaRepository.class);
-    when(holdings.getBalanceBeforeDate(40, charge)).thenReturn(180.0);
-    when(holdings.getMinBalanceFromDate(40, charge)).thenReturn(180.0);
-    when(holdings.getBalanceBeforeDate(41, dayBefore)).thenReturn(1000.0);
-    when(holdings.getMinBalanceFromDate(41, dayBefore)).thenReturn(1000.0);
+    when(holdings.getBalanceBeforeDate(40, CHARGE)).thenReturn(targetBalance);
+    when(holdings.getMinBalanceFromDate(40, CHARGE)).thenReturn(targetBalance);
+    when(holdings.getBalanceBeforeDate(41, dayBefore)).thenReturn(sourceBalance);
+    when(holdings.getMinBalanceFromDate(41, dayBefore)).thenReturn(sourceBalance);
     var globalparameters = mock(GlobalparametersService.class);
     when(globalparameters.getPrecisionForCurrency("CHF")).thenReturn(2);
     var transactions = mock(TransactionJpaRepository.class);
@@ -95,13 +128,8 @@ class AlgoReplayBookingTest {
     run.setIdSimulationResult(1);
     ReflectionTestUtils.setField(state, "run", run);
     ReflectionTestUtils.setField(state, "fx", mock(AlgoReplayFx.class));
-    booking.fundCustody(state, 30, target, charge, 200.0);
-
-    var transfer = ArgumentCaptor.forClass(CashAccountTransfer.class);
-    verify(transactions).updateCreateCashaccountTransfer(transfer.capture(), any());
-    assertThat(transfer.getValue().getDepositTransaction().getTransactionDate()).isEqualTo(dayBefore);
-    assertThat(transfer.getValue().getWithdrawalTransaction().getTransactionDate()).isEqualTo(dayBefore);
-    assertThat(transfer.getValue().getDepositTransaction().getCashaccountAmount()).isEqualTo(20.0);
+    booking.fundCustody(state, 30, target, CHARGE, charge);
+    return transactions;
   }
 
   private static Cashaccount cashaccount(int id, String name) {

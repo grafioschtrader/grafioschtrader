@@ -41,6 +41,7 @@ import grafioschtrader.repository.SimulationTenantService;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.AlgoHistoricalReplayService;
 import grafioschtrader.service.FxObservationService;
+import grafioschtrader.service.SimulationRunEventWindow;
 import grafioschtrader.service.SimulationRunSettingsDto;
 import grafioschtrader.types.TenantKindType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -173,6 +174,16 @@ public class TenantResource extends TenantBaseResource<Tenant> {
       @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant,
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "50") int size) {
     return ResponseEntity.ok(replayService.events(idTenant, page, Math.min(Math.max(size, 1), 200)));
+  }
+
+  @Operation(summary = "Window of the audit trail of the historical replay around an anchor day, newest day first", description = """
+      Returns up to 5000 entries before the anchor day and as many from it on, together with the total number of
+      entries of the run. Without an anchor day the end date of the run is used.""", tags = { TenantBase.TABNAME })
+  @GetMapping(value = "/simulation/{idTenant}/run/events/window", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SimulationRunEventWindow> getSimulationRunEventWindow(
+      @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant,
+      @Parameter(description = "Day the window is centred on, defaults to the end date of the run") @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE) LocalDate anchorDate) {
+    return ResponseEntity.ok(replayService.eventWindow(idTenant, anchorDate));
   }
 
   @Operation(summary = "Ask the running historical replay to stop after the day it is evaluating", tags = {

@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import grafiosch.common.ClientClock;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.User;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
@@ -208,9 +209,8 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     // The hierarchy always belongs to the main tenant, even when a simulation environment is active, while the
     // positions being compared belong to the tenant the user is currently working in.
-    LocalDate valuationDate = untilDate == null || !untilDate.isBefore(LocalDate.now())
-        ? AlgoRebalancingService.lastCompletedDay()
-        : untilDate;
+    LocalDate today = ClientClock.today();
+    LocalDate valuationDate = untilDate == null || !untilDate.isBefore(today) ? today.minusDays(1) : untilDate;
     Locale locale = user.createAndGetJavaLocale();
     RebalancingPlan plan = algoRebalancingService.planById(user.getIdTenant(), user.getActualIdTenant(), idAlgoTop,
         valuationDate, locale);

@@ -55,7 +55,7 @@ public interface MailSendRecvDTO {
   public Integer getIdReplyToRemote();
 
   @Schema(description = "Timestamp when the message was sent or received")
-  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   public LocalDateTime getSendRecvTime();
 
   @Schema(description = """

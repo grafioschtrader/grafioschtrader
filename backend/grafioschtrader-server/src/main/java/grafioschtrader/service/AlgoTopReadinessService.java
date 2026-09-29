@@ -48,8 +48,9 @@ import grafioschtrader.repository.WatchlistJpaRepository;
  *
  * <p>
  * Only what the engines themselves refuse is blocking: the weighting rules of {@code AlgoRebalancingService} and
- * {@code AlgoExposureBudget}, the rebalancing configuration, the security bands, and the preconditions of an active Mean
- * Reversion Dip. What the engines tolerate - an unsuitable instrument, which a replay excludes and redistributes, or an
+ * {@code AlgoExposureBudget}, the rebalancing configuration, the security bands, the preconditions of an active Mean
+ * Reversion Dip, and a direct bond without a coupon rate, whose interest a replay could not pay. What the engines
+ * tolerate - an unsuitable instrument, which a replay excludes and redistributes, or an
  * asset class without a tradable security, which simply stays uninvested - is reported without blocking. Findings that
  * depend on a date, an environment or price data are not decided here; the gate that knows that context still refuses
  * them.
@@ -69,6 +70,13 @@ public class AlgoTopReadinessService {
   public static final String SECURITY_AMBIGUOUS = "algo.readiness.security.ambiguous";
   public static final String ASSETCLASS_NO_INSTRUMENT = "algo.readiness.assetclass.no.instrument";
   public static final String INSTRUMENT_UNSUITABLE = "algo.readiness.instrument.unsuitable";
+  public static final String BOND_COUPON_MISSING = "algo.readiness.bond.coupon.missing";
+
+  /**
+   * Column of the hierarchy view that shows the distribution icon or the coupon rate of an instrument. The path does
+   * not exist on the entity; it only has to match the field of that column in the client.
+   */
+  public static final String FIELD_DISTRIBUTION = "security.distribution";
 
   private static final String FIELD_ADDED_PERCENTAGE = "addedPercentage";
   private static final String FIELD_PERCENTAGE = "percentage";
@@ -189,6 +197,10 @@ public class AlgoTopReadinessService {
       if (!validWeight(member.getPercentage())) {
         issues.add(issue(WEIGHT_INVALID, member.getIdAlgoAssetclassSecurity(), FIELD_PERCENTAGE, true, locale,
             memberLabel, String.valueOf(member.getPercentage())));
+      }
+      if (member.getSecurity() != null && member.getSecurity().isSimulationCouponRateMissing()) {
+        issues.add(issue(BOND_COUPON_MISSING, member.getIdAlgoAssetclassSecurity(), FIELD_DISTRIBUTION, true, locale,
+            memberLabel, ""));
       }
       boolean eligible = AlgoSecurityEligibility.isEligibleInstrument(member.getSecurity(), openingDate);
       if (!eligible) {

@@ -35,6 +35,9 @@ import { DataChangedService } from '../../lib/maintree/service/data.changed.serv
 import { TreeAlgoAssetclass, TreeAlgoSecurity, TreeAlgoStrategy, TreeAlgoTop } from '../model/tree.algo.base';
 import { AlgoSecurityEditComponent } from './algo-security-edit.component';
 import { Tenant } from '../../entities/tenant';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 /**
  * Shows algorithmic trading tree with its strategies.
@@ -80,6 +83,18 @@ import {
         [cellClassFn]="getAlgoCellClass.bind(this)"
         [enableSort]="false">
         <h4 caption>{{ 'ALGO_OVERVIEW' | translate }}</h4>
+        <ng-template #iconCell let-row let-value="value">
+          @if (getDistributionIcon(row); as iconName) {
+            <svg-icon
+              [name]="iconName"
+              [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"
+              tooltipPosition="top"
+              [svgStyle]="{ 'width.px': 14, 'height.px': 14 }">
+            </svg-icon>
+          } @else {
+            <span>{{ value }}</span>
+          }
+        </ng-template>
       </configurable-tree-table>
       @if (readiness) {
         <div class="readiness">
@@ -160,7 +175,9 @@ import {
     StrategyDetailComponent,
     AlgoAssetclassEditComponent,
     AlgoAssetclassAddInstrumentComponent,
-    AlgoStrategyEditComponent
+    AlgoStrategyEditComponent,
+    AngularSvgIconModule,
+    TooltipModule
   ]
 })
 export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGlobalMenuAttach, OnInit, OnDestroy {
@@ -200,10 +217,11 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     protected messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
     private simulationContext: SimulationContextService,
+    productIconService: ProductIconService,
     translateService: TranslateService,
     gps: GlobalparameterService
   ) {
-    super(algoStrategyService, translateService, gps);
+    super(algoStrategyService, productIconService, translateService, gps);
     // The strategy hierarchy belongs to the home tenant: inside a simulation environment it is shown but not
     // edited, and a read-only user may not change it either. Resolved once, because entering or leaving an
     // environment reloads the application.
@@ -243,16 +261,24 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     this.readHierarchy(this.algoTop.idAlgoAssetclassSecurity);
   }
 
-  /** Refreshes the hierarchy and warnings together after every edit, deletion or normalization. */
+  /**
+   * Refreshes the hierarchy and warnings together after every edit, deletion or normalization. The navigation tree
+   * keeps a copy of each strategy including its readiness and refuses "create simulation" on that copy, so it is
+   * refreshed as well whenever an edit below the top level changed the readiness of this strategy.
+   */
   private readHierarchy(idAlgoTop: number, notifyNavigation = false): void {
     this.algoTopService.getHierarchy(idAlgoTop).subscribe((hierarchy) => {
+      const readinessChanged =
+        this.readiness != null &&
+        this.algoTop?.idAlgoAssetclassSecurity === hierarchy.algoTop.idAlgoAssetclassSecurity &&
+        JSON.stringify(this.readiness) !== JSON.stringify(hierarchy.algoTop.readiness);
       this.invalidFields = hierarchy.invalidFields;
       this.warningFields = hierarchy.warningFields;
       this.readiness = hierarchy.algoTop.readiness;
       this.alertEditable = hierarchy.alertEditable;
       this.buildTree(hierarchy.algoTop, hierarchy.algoAssetclassList);
       this.refreshSelectedEntity();
-      if (notifyNavigation) {
+      if (notifyNavigation || readinessChanged) {
         this.dataChangedService.dataHasChanged(new ProcessedActionData(ProcessedAction.UPDATED, new AlgoTop()));
       }
     });
@@ -321,7 +347,8 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
     }
     const classes: string[] = [];
     if (this.invalidFields[rowData.idAlgoAssetclassSecurity]?.includes(field.field)) {
-      classes.push('algo-value-invalid');
+      // A missing coupon rate leaves the distribution cell empty, so only a background can mark it.
+      classes.push(field.field === AlgoTreeViewBase.DISTRIBUTION_FIELD ? 'cell-value-invalid' : 'algo-value-invalid');
     }
     if (this.warningFields[rowData.idAlgoAssetclassSecurity]?.includes(field.field)) {
       classes.push('algo-value-warning');

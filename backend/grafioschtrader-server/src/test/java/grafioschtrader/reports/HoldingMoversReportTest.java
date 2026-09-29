@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import grafiosch.common.ClientClock;
 import grafioschtrader.dto.IHeldInstrumentIntraday;
 import grafioschtrader.dto.ISecuritycurrencyIdDateCloseCreateType;
 import grafioschtrader.entities.Tenant;
@@ -28,6 +30,16 @@ import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 
 /** Exercises the report boundary without a Spring context or database. */
 class HoldingMoversReportTest {
+
+  @Test
+  void tokyoLatestCompletedSessionAndChosenDateUseLocalYesterday() {
+    try (var clock = mockStatic(ClientClock.class)) {
+      clock.when(ClientClock::today).thenReturn(LocalDate.of(2026, 9, 16));
+      Movers movers = report(1).getMovers(1, 1, LocalDate.of(2026, 9, 16), Direction.WINNERS);
+      assertEquals(LocalDate.of(2026, 9, 15), movers.branches().get(1).date());
+      assertEquals(LocalDate.of(2026, 9, 15), movers.branches().get(2).date());
+    }
+  }
 
   @Test
   void roundsBothRankingsAfterSelectingTheStrongestRawMove() {

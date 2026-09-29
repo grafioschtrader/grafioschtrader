@@ -3,6 +3,8 @@ import { DynamicDialogConfig, DynamicDialogRef } from '@openng/optimus-ui/dynami
 import { TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { Helper } from '../../lib/helper/helper';
+import { BaseSettings } from '../../lib/base.settings';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SecurityActionService } from '../service/security-action.service';
 import { SecurityAction } from '../model/security-action.model';
@@ -158,7 +160,10 @@ export class SecurityTransferCreateComponent
       idSecurity: this.idSecurity,
       idSecurityaccountSource: this.idSecurityaccountSource,
       idSecurityaccountTarget: value.idSecurityaccountTarget,
-      transferDate: value.transferDate,
+      transferDate: Helper.formatDateStringAsString(
+        this.configObject.transferDate,
+        BaseSettings.FORMAT_DATE_SHORT_NATIVE
+      ),
       units: this.units,
       note: value.note
     };

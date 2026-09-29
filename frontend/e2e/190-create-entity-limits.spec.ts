@@ -61,6 +61,24 @@ const RX = {
   createItem: /^(Create|Erstellen)\b/i
 };
 
+/**
+ * 1-based cell positions in the entity-limit table, following the column order of EntityLimitTableComponent
+ * (2 = data-scope icon, 4 = combined scope text, 9 = user). A new column there must be mirrored here.
+ */
+const COL = {
+  entity: 1,
+  limitType: 3,
+  relationEntity: 5,
+  countScope: 6,
+  ownerScope: 7,
+  role: 8,
+  limitValue: 10
+};
+
+function cell(page: Page, column: number, hasText: RegExp): Locator {
+  return page.locator(`td:nth-child(${column})`, { hasText });
+}
+
 function keyId(row: EntityLimitFixtureRow): string {
   return [row.limitType, row.entityName, row.relationEntityName ?? '', row.countScope ?? '', row.ownerScope ?? ''].join(
     '|'
@@ -271,26 +289,24 @@ async function createLimit(
   const emptyCell = /^\s*$/;
   const tableRow = table
     .locator('tbody tr')
-    .filter({ has: page.locator('td:nth-child(1)', { hasText: enumLabelRx(toLabelKey(row.entityName)) }) })
-    .filter({ has: page.locator('td:nth-child(3)', { hasText: enumLabelRx(`LIMIT_TYPE_${row.limitType}`) }) })
+    .filter({ has: cell(page, COL.entity, enumLabelRx(toLabelKey(row.entityName))) })
+    .filter({ has: cell(page, COL.limitType, enumLabelRx(`LIMIT_TYPE_${row.limitType}`)) })
     .filter({
-      has: page.locator('td:nth-child(4)', {
-        hasText: row.relationEntityName ? enumLabelRx(toLabelKey(row.relationEntityName)) : emptyCell
-      })
+      has: cell(
+        page,
+        COL.relationEntity,
+        row.relationEntityName ? enumLabelRx(toLabelKey(row.relationEntityName)) : emptyCell
+      )
     })
     .filter({
-      has: page.locator('td:nth-child(5)', {
-        hasText: row.countScope ? enumLabelRx(`COUNT_SCOPE_${row.countScope}`) : emptyCell
-      })
+      has: cell(page, COL.countScope, row.countScope ? enumLabelRx(`COUNT_SCOPE_${row.countScope}`) : emptyCell)
     })
     .filter({
-      has: page.locator('td:nth-child(6)', {
-        hasText: row.ownerScope ? enumLabelRx(`OWNER_SCOPE_${row.ownerScope}`) : emptyCell
-      })
+      has: cell(page, COL.ownerScope, row.ownerScope ? enumLabelRx(`OWNER_SCOPE_${row.ownerScope}`) : emptyCell)
     })
-    .filter({ has: page.locator('td:nth-child(7)', { hasText: enumLabelRx(row.roleName) }) });
+    .filter({ has: cell(page, COL.role, enumLabelRx(row.roleName)) });
   await expect(tableRow, `table row for ${keyId(row)}/${row.roleName}`).toHaveCount(1, { timeout: 10_000 });
-  await expect(tableRow.locator('td:nth-child(9)')).toContainText(String(row.limitValue));
+  await expect(tableRow.locator(`td:nth-child(${COL.limitValue})`)).toContainText(String(row.limitValue));
   return created;
 }
 

@@ -186,7 +186,7 @@ CREATE TABLE `algo_message_alert` (
   `id_security_currency` int(11) NOT NULL DEFAULT 0 COMMENT '0 when the signal is not about a single instrument',
   `id_tenant` int(11) NOT NULL,
   `id_algo_strategy` int(11) NOT NULL,
-  `alert_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `alert_time` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `alarm_type` tinyint(4) NOT NULL DEFAULT 1 COMMENT 'Signal kind, see grafioschtrader.types.AlgoSignalKind',
   `alarm_details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`alarm_details`)),
   `alert_day` date NOT NULL,
@@ -247,7 +247,7 @@ CREATE TABLE `algo_recommendation` (
   CONSTRAINT `FK_AlgoRecommendation_AlgoTop` FOREIGN KEY (`id_algo_assetclass_security`) REFERENCES `algo_top_asset_security` (`id_algo_assetclass_security`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoRecommendation_Securitycurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoRecommendation_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=555 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=627 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -417,9 +417,9 @@ CREATE TABLE `assetclass` (
   `spec_invest_instrument` smallint(6) NOT NULL,
   `sub_category_nls` int(11) NOT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_asset_class`),
   UNIQUE KEY `category_type` (`category_type`,`sub_category_nls`,`spec_invest_instrument`) USING BTREE,
@@ -442,9 +442,9 @@ CREATE TABLE `bankrupt_security` (
   `no_trading_since` date DEFAULT NULL,
   `note` varchar(120) DEFAULT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_bankrupt_security`),
   UNIQUE KEY `UK_BankruptSecurity` (`id_securitycurrency`),
@@ -466,7 +466,7 @@ CREATE TABLE `cashaccount` (
   `borrowing_rate` double DEFAULT NULL,
   PRIMARY KEY (`id_securitycash_account`),
   CONSTRAINT `FK_CashAccount_SecurityCashAccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=86092 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=86164 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -520,7 +520,7 @@ CREATE TABLE `correlation_set` (
   `adjust_currency` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_correlation_set`),
   UNIQUE KEY `Unique_idTenant_name` (`id_tenant`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=8839 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8849 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -556,11 +556,11 @@ CREATE TABLE `dividend` (
   `amount_adjusted` double(22,10) NOT NULL,
   `currency` char(3) NOT NULL,
   `create_type` tinyint(1) NOT NULL,
-  `create_modify_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `create_modify_time` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_dividend`),
   KEY `FK_Dividend_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Dividend_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=1131288 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1132285 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -597,9 +597,9 @@ CREATE TABLE `entity_limit` (
   `limit_value` int(11) NOT NULL,
   `valid_until` date DEFAULT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   `uk_relation_entity_name` varchar(40) GENERATED ALWAYS AS (coalesce(`relation_entity_name`,'')) STORED,
   `uk_count_scope` tinyint(4) GENERATED ALWAYS AS (coalesce(`count_scope`,-1)) STORED,
@@ -666,9 +666,9 @@ CREATE TABLE `generic_connector_def` (
   `description_nls` int(11) DEFAULT NULL,
   `activated` tinyint(1) NOT NULL DEFAULT 0,
   `created_by` int(11) DEFAULT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) DEFAULT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) DEFAULT 0,
   `token_config_yaml` text DEFAULT NULL,
   `supported_categories` varchar(255) DEFAULT NULL,
@@ -775,7 +775,7 @@ CREATE TABLE `globalparameters` (
   `property_int` int(11) DEFAULT NULL,
   `property_string` varchar(30) DEFAULT NULL,
   `property_date` date DEFAULT NULL,
-  `property_date_time` timestamp NULL DEFAULT NULL,
+  `property_date_time` datetime DEFAULT NULL,
   `property_blob` blob DEFAULT NULL,
   `changed_by_system` tinyint(1) DEFAULT 0,
   `input_rule` varchar(100) DEFAULT NULL,
@@ -799,7 +799,7 @@ CREATE TABLE `gt_net` (
   `allow_server_creation` tinyint(1) NOT NULL DEFAULT 0,
   `server_busy` tinyint(1) NOT NULL DEFAULT 0,
   `server_online` tinyint(1) NOT NULL DEFAULT 0,
-  `last_modified_time` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `last_modified_time` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `close_start_date` date DEFAULT NULL,
   PRIMARY KEY (`id_gt_net`),
   UNIQUE KEY `domainRemoteName` (`domain_remote_name`)
@@ -819,15 +819,15 @@ CREATE TABLE `gt_net_config` (
   `token_remote` varchar(32) DEFAULT NULL,
   `daily_req_limit_count` int(11) DEFAULT NULL,
   `daily_req_limit_remote_count` int(11) DEFAULT NULL,
-  `supplier_last_update` timestamp NULL DEFAULT NULL,
+  `supplier_last_update` datetime DEFAULT NULL,
   `serverlist_access_granted` tinyint(1) NOT NULL DEFAULT 0,
   `request_violation_count` tinyint(2) NOT NULL DEFAULT 0,
-  `handshake_timestamp` timestamp NULL DEFAULT NULL COMMENT 'UTC timestamp when first successful handshake completed',
+  `handshake_timestamp` datetime DEFAULT NULL COMMENT 'UTC timestamp when first successful handshake completed',
   `connection_timeout` tinyint(4) DEFAULT NULL,
   `daily_req_limit_date` date DEFAULT NULL,
   `token_this_previous` varchar(32) DEFAULT NULL COMMENT 'The token replaced by the last rotation, accepted until token_this_previous_valid_until',
   `token_this_previous_valid_until` datetime DEFAULT NULL COMMENT 'UTC instant after which token_this_previous is no longer accepted',
-  `reconnect_requested_time` timestamp NULL DEFAULT NULL COMMENT 'UTC instant of the last first contact refused because a handshake with this peer already exists',
+  `reconnect_requested_time` datetime DEFAULT NULL COMMENT 'UTC instant of the last first contact refused because a handshake with this peer already exists',
   PRIMARY KEY (`id_gt_net`),
   CONSTRAINT `FK_GTNetConfig_GTNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -886,7 +886,7 @@ CREATE TABLE `gt_net_exchange_log` (
   `log_as_supplier` tinyint(1) NOT NULL,
   `period_type` tinyint(4) NOT NULL,
   `period_start` date NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `timestamp` datetime NOT NULL DEFAULT current_timestamp(),
   `entities_sent` int(11) NOT NULL DEFAULT 0,
   `entities_updated` int(11) NOT NULL DEFAULT 0,
   `entities_in_response` int(11) NOT NULL DEFAULT 0,
@@ -977,7 +977,7 @@ DROP TABLE IF EXISTS `gt_net_lastprice`;
 CREATE TABLE `gt_net_lastprice` (
   `id_gt_net_lastprice` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net_instrument` int(11) NOT NULL,
-  `timestamp` timestamp NULL DEFAULT NULL,
+  `timestamp` datetime DEFAULT NULL,
   `open` double(22,8) DEFAULT NULL,
   `high` double(22,8) DEFAULT NULL,
   `low` double(22,8) DEFAULT NULL,
@@ -1021,7 +1021,7 @@ DROP TABLE IF EXISTS `gt_net_message`;
 CREATE TABLE `gt_net_message` (
   `id_gt_net_message` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `timestamp` datetime NOT NULL DEFAULT current_timestamp(),
   `send_recv` tinyint(1) NOT NULL,
   `id_source_gt_net_message` int(11) DEFAULT NULL,
   `reply_to` int(11) DEFAULT NULL,
@@ -1039,7 +1039,7 @@ CREATE TABLE `gt_net_message` (
   KEY `FK_GtNetMessage_GtNetMessage` (`reply_to`),
   CONSTRAINT `FK_GtNetMessage_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
   CONSTRAINT `FK_GtNetMessage_GtNetMessage` FOREIGN KEY (`reply_to`) REFERENCES `gt_net_message` (`id_gt_net_message`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=7714 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7723 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1074,7 +1074,7 @@ CREATE TABLE `gt_net_message_attempt` (
   `id_gt_net` int(11) NOT NULL COMMENT 'Target GTNet instance to receive the message',
   `id_gt_net_message` int(11) NOT NULL COMMENT 'The broadcast message to deliver',
   `has_send` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Whether delivery succeeded',
-  `send_timestamp` timestamp NULL DEFAULT NULL COMMENT 'When successfully delivered (UTC)',
+  `send_timestamp` datetime DEFAULT NULL COMMENT 'When successfully delivered (UTC)',
   `attempt_status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '0 queued, 1 waiting handshake, 2 retryable failure, 3 delivered, 4 peer retired, 5 expired',
   `try_count` int(11) NOT NULL DEFAULT 0 COMMENT 'Number of actual HTTP transmissions',
   `last_attempt_timestamp` datetime DEFAULT NULL COMMENT 'UTC time of the latest actual HTTP transmission',
@@ -1215,7 +1215,7 @@ DROP TABLE IF EXISTS `gt_net_supplier_detail_last`;
 CREATE TABLE `gt_net_supplier_detail_last` (
   `id_gt_net_supplier_detail` int(11) NOT NULL,
   `retry_intra_load` smallint(6) NOT NULL DEFAULT 0,
-  `s_timestamp` timestamp NULL DEFAULT NULL,
+  `s_timestamp` datetime DEFAULT NULL,
   PRIMARY KEY (`id_gt_net_supplier_detail`),
   CONSTRAINT `fk_supplier_detail_last` FOREIGN KEY (`id_gt_net_supplier_detail`) REFERENCES `gt_net_supplier_detail` (`id_gt_net_supplier_detail`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1238,12 +1238,12 @@ CREATE TABLE `historyquote` (
   `high` double(22,8) DEFAULT NULL,
   `low` double(22,8) DEFAULT NULL,
   `create_type` tinyint(1) DEFAULT NULL,
-  `create_modify_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `create_modify_time` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id_history_quote`),
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`),
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9649964 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9649992 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1330,7 +1330,7 @@ DROP TABLE IF EXISTS `historyquote_update_log`;
 CREATE TABLE `historyquote_update_log` (
   `id_hq_update_log` int(11) NOT NULL AUTO_INCREMENT,
   `id_stockexchange` int(11) NOT NULL,
-  `update_timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `update_timestamp` datetime NOT NULL DEFAULT current_timestamp(),
   `minutes_since_close` int(11) NOT NULL,
   `securities_count` int(11) NOT NULL,
   `securities_updated` int(11) NOT NULL DEFAULT 0,
@@ -1364,7 +1364,7 @@ CREATE TABLE `hold_cashaccount_balance` (
   `id_currency_pair_portfolio` int(11) DEFAULT NULL,
   `id_tenant` int(11) NOT NULL,
   `id_portfolio` int(11) NOT NULL,
-  `valid_timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `valid_timestamp` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `finance_cost` double NOT NULL DEFAULT 0 COMMENT 'Running FINANCE_COST total, in the currency of the cash account',
   PRIMARY KEY (`id_securitycash_account`,`from_hold_date`),
   KEY `idTenantIdPortfolioHCS` (`id_tenant`,`id_portfolio`),
@@ -1389,7 +1389,7 @@ CREATE TABLE `hold_cashaccount_deposit` (
   `deposit_tenant_currency` double NOT NULL,
   `id_tenant` int(11) NOT NULL,
   `id_portfolio` int(11) NOT NULL,
-  `valid_timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `valid_timestamp` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id_securitycash_account`,`from_hold_date`),
   KEY `fromHoldToHoldDate` (`from_hold_date`,`to_hold_date`),
   KEY `idTenantIdPortfolioHCD` (`id_tenant`,`id_portfolio`),
@@ -1417,7 +1417,7 @@ CREATE TABLE `hold_securityaccount_security` (
   `id_currency_pair_portfolio` int(11) DEFAULT NULL,
   `id_tenant` int(11) NOT NULL,
   `id_portfolio` int(11) NOT NULL,
-  `valid_timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `valid_timestamp` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id_securitycash_account`,`id_securitycurrency`,`from_hold_date`),
   UNIQUE KEY `idTenantidSecurtyFromHoldDate` (`id_tenant`,`id_securitycash_account`,`id_securitycurrency`,`from_hold_date`) USING BTREE,
   KEY `idTenantIdPortfolioHSS` (`id_tenant`,`id_portfolio`),
@@ -1529,9 +1529,9 @@ CREATE TABLE `imp_trans_platform` (
   `name` varchar(32) NOT NULL,
   `id_csv_imp_impl` varchar(32) DEFAULT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `last_modified_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_trans_imp_platform`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
@@ -1547,7 +1547,7 @@ DROP TABLE IF EXISTS `imp_trans_pos`;
 CREATE TABLE `imp_trans_pos` (
   `id_trans_pos` int(11) NOT NULL AUTO_INCREMENT,
   `id_trans_head` int(11) NOT NULL,
-  `transaction_time` timestamp NULL DEFAULT NULL,
+  `transaction_time` datetime DEFAULT NULL,
   `ex_date` date DEFAULT NULL,
   `transaction_type` smallint(6) DEFAULT NULL,
   `transaction_type_imp` varchar(20) DEFAULT NULL,
@@ -1626,9 +1626,9 @@ CREATE TABLE `imp_trans_template` (
   `valid_since` date NOT NULL,
   `template_language` varchar(5) NOT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_trans_imp_template`),
   UNIQUE KEY `UNIQUE_imp_template` (`id_trans_imp_platform`,`template_format_type`,`template_category`,`template_language`,`valid_since`),
@@ -1672,7 +1672,7 @@ CREATE TABLE `mail_send_recv` (
   `reply_to_role_private` tinyint(1) NOT NULL DEFAULT 0,
   `subject` varchar(96) NOT NULL,
   `message` varchar(4096) NOT NULL,
-  `send_recv_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `send_recv_time` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_mail_send_recv`),
   KEY `FK_MailInOut_Role` (`id_role_to`),
   KEY `id_reply_to_local` (`id_reply_to_local`),
@@ -1782,7 +1782,7 @@ CREATE TABLE `portfolio` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Portfolio_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Portfolio_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=21547 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21565 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1834,9 +1834,9 @@ CREATE TABLE `propose_request` (
   `note_request` varchar(1000) DEFAULT NULL,
   `note_accept_reject` varchar(1000) DEFAULT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_propose_request`)
 ) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -1890,9 +1890,9 @@ CREATE TABLE `risk_free_rate_mapping` (
   `currency` char(3) NOT NULL,
   `id_securitycurrency` int(11) NOT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_risk_free_rate_mapping`),
   UNIQUE KEY `uq_rfr_currency` (`currency`),
@@ -1944,7 +1944,7 @@ CREATE TABLE `security` (
   `id_connector_dividend` varchar(35) DEFAULT NULL,
   `url_dividend_extend` varchar(254) DEFAULT NULL,
   `dividend_currency` char(3) DEFAULT NULL,
-  `div_earliest_next_check` timestamp NULL DEFAULT NULL,
+  `div_earliest_next_check` datetime DEFAULT NULL,
   `retry_dividend_load` smallint(6) NOT NULL DEFAULT 0,
   `id_connector_split` varchar(35) DEFAULT NULL,
   `url_split_extend` varchar(254) DEFAULT NULL,
@@ -2022,7 +2022,7 @@ CREATE TABLE `security_action` (
   `affected_count` int(11) NOT NULL DEFAULT 0,
   `applied_count` int(11) NOT NULL DEFAULT 0,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `from_factor` int(11) DEFAULT NULL,
   `to_factor` int(11) DEFAULT NULL,
   PRIMARY KEY (`id_security_action`),
@@ -2048,7 +2048,7 @@ CREATE TABLE `security_action_application` (
   `id_tenant` int(11) NOT NULL,
   `id_transaction_sell` int(11) DEFAULT NULL,
   `id_transaction_buy` int(11) DEFAULT NULL,
-  `applied_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `applied_time` datetime NOT NULL DEFAULT current_timestamp(),
   `is_reversed` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_security_action_app`),
   UNIQUE KEY `uq_saa_action_tenant` (`id_security_action`,`id_tenant`),
@@ -2100,7 +2100,7 @@ CREATE TABLE `security_transfer` (
   `id_transaction_sell` int(11) DEFAULT NULL,
   `id_transaction_buy` int(11) DEFAULT NULL,
   `note` varchar(1024) DEFAULT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_security_transfer`),
   KEY `fk_st_tenant` (`id_tenant`),
   KEY `fk_st_security` (`id_security`),
@@ -2127,7 +2127,6 @@ DROP TABLE IF EXISTS `securityaccount`;
 CREATE TABLE `securityaccount` (
   `id_securitycash_account` int(11) NOT NULL,
   `id_trading_platform_plan` int(11) NOT NULL,
-  `weka_model` longblob DEFAULT NULL,
   `lowest_transaction_cost` float(6,2) NOT NULL,
   `fee_model_yaml` text DEFAULT NULL,
   `tax_exempt_investor` tinyint(1) DEFAULT NULL,
@@ -2156,7 +2155,7 @@ CREATE TABLE `securityaccount_trading_period` (
   PRIMARY KEY (`id_secaccount_trading_period`),
   KEY `idx_stp_secaccount` (`id_securitycash_account`),
   CONSTRAINT `fk_stp_securitycash_account` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9678 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9734 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2178,7 +2177,7 @@ CREATE TABLE `securitycashaccount` (
   UNIQUE KEY `idPortfolio_dType_name` (`id_portfolio`,`dtype`,`name`) USING BTREE,
   KEY `FK_SecurityAccount_Portfolio` (`id_portfolio`),
   CONSTRAINT `FK_SecurityAccount_Portfolio` FOREIGN KEY (`id_portfolio`) REFERENCES `portfolio` (`id_portfolio`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=86092 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=86164 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2191,7 +2190,7 @@ DROP TABLE IF EXISTS `securitycurrency`;
 CREATE TABLE `securitycurrency` (
   `id_securitycurrency` int(11) NOT NULL AUTO_INCREMENT,
   `dtype` varchar(1) NOT NULL,
-  `full_load_timestamp` timestamp NULL DEFAULT NULL,
+  `full_load_timestamp` datetime DEFAULT NULL,
   `id_connector_history` varchar(35) DEFAULT NULL,
   `url_history_extend` varchar(254) DEFAULT NULL,
   `retry_history_load` smallint(6) NOT NULL DEFAULT 0,
@@ -2200,7 +2199,7 @@ CREATE TABLE `securitycurrency` (
   `retry_intra_load` smallint(6) NOT NULL DEFAULT 0,
   `stockexchange_link` varchar(254) DEFAULT NULL,
   `note` varchar(1000) DEFAULT NULL,
-  `s_timestamp` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `s_timestamp` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `s_prev_close` double(22,8) DEFAULT NULL,
   `s_change_percentage` double(22,8) DEFAULT NULL,
   `s_open` double(18,8) DEFAULT NULL,
@@ -2211,11 +2210,11 @@ CREATE TABLE `securitycurrency` (
   `gt_net_historical_recv` tinyint(1) NOT NULL DEFAULT 0,
   `gt_net_lastprice_send` tinyint(1) NOT NULL,
   `gt_net_historical_send` tinyint(1) NOT NULL,
-  `gt_net_last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `gt_net_last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_securitycurrency`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4324 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -2235,7 +2234,7 @@ CREATE TABLE `securitysplit` (
   `from_factor` int(11) NOT NULL,
   `to_factor` int(11) NOT NULL,
   `create_type` tinyint(1) NOT NULL,
-  `create_modify_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `create_modify_time` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id_securitysplit`),
   KEY `FK_Securitysplit_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Securitysplit_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
@@ -2309,7 +2308,7 @@ CREATE TABLE `standing_order_failure` (
   `execution_date` date NOT NULL,
   `business_error` varchar(2000) DEFAULT NULL,
   `unexpected_error` varchar(4096) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_standing_order_failure`),
   KEY `idx_sof_standing_order` (`id_standing_order`),
   CONSTRAINT `fk_sof_standing_order` FOREIGN KEY (`id_standing_order`) REFERENCES `standing_order` (`id_standing_order`) ON DELETE CASCADE
@@ -2365,12 +2364,12 @@ CREATE TABLE `stockexchange` (
   `time_zone` varchar(50) NOT NULL,
   `id_index_upd_calendar` int(11) DEFAULT NULL,
   `max_calendar_upd_date` date DEFAULT NULL,
-  `last_direct_price_update` timestamp NOT NULL DEFAULT (current_timestamp() + interval -72 hour),
+  `last_direct_price_update` datetime NOT NULL DEFAULT (current_timestamp() + interval -72 hour),
   `website` varchar(128) DEFAULT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   `id_trading_calendar_rule_set` int(11) DEFAULT NULL,
   PRIMARY KEY (`id_stockexchange`),
@@ -2412,17 +2411,17 @@ CREATE TABLE `task_data_change` (
   `execution_priority` tinyint(3) NOT NULL,
   `entity` varchar(40) DEFAULT NULL,
   `id_entity` int(11) DEFAULT NULL,
-  `earliest_start_time` timestamp NOT NULL DEFAULT current_timestamp(),
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp(),
-  `exec_start_time` timestamp NULL DEFAULT NULL,
-  `exec_end_time` timestamp NULL DEFAULT NULL,
+  `earliest_start_time` datetime NOT NULL DEFAULT current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
+  `exec_start_time` datetime DEFAULT NULL,
+  `exec_end_time` datetime DEFAULT NULL,
   `old_value_varchar` varchar(30) DEFAULT NULL,
   `old_value_number` double DEFAULT NULL,
   `progress_state` tinyint(1) NOT NULL,
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=23231 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23251 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2471,7 +2470,7 @@ CREATE TABLE `tax_upload` (
   `id_tax_year` int(11) NOT NULL,
   `file_name` varchar(255) NOT NULL,
   `file_path` varchar(500) NOT NULL,
-  `upload_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `upload_date` datetime NOT NULL DEFAULT current_timestamp(),
   `record_count` int(11) DEFAULT 0,
   PRIMARY KEY (`id_tax_upload`),
   KEY `fk_tax_upload_year` (`id_tax_year`),
@@ -2581,9 +2580,9 @@ CREATE TABLE `trading_calendar_rule_set` (
   `id_extends_rule_set` int(11) DEFAULT NULL,
   `rule_yaml` text DEFAULT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_trading_calendar_rule_set`),
   UNIQUE KEY `trading_calendar_rule_set_name` (`name`),
@@ -2637,9 +2636,9 @@ CREATE TABLE `trading_platform_plan` (
   `transaction_fee_plan` smallint(6) NOT NULL,
   `id_trans_imp_platform` int(11) DEFAULT NULL,
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   `fee_model_yaml` text DEFAULT NULL,
   `country_code` char(2) DEFAULT NULL,
@@ -2667,7 +2666,7 @@ CREATE TABLE `transaction` (
   `id_tenant` int(11) NOT NULL,
   `con_id_transaction` int(11) DEFAULT NULL,
   `units` double DEFAULT NULL,
-  `transaction_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `transaction_time` datetime NOT NULL DEFAULT current_timestamp(),
   `tt_date` date NOT NULL,
   `ex_date` date DEFAULT NULL,
   `quotation` double(22,8) DEFAULT NULL,
@@ -2711,7 +2710,7 @@ CREATE TABLE `transaction` (
   CONSTRAINT `c_currency_ex_rate` CHECK (`currency_ex_rate` is not null and `currency_ex_rate` > 0 and `id_currency_pair` is not null or `currency_ex_rate` is null and `id_currency_pair` is null),
   CONSTRAINT `s_units` CHECK (`units` is not null and `units` <> 0 and `id_securitycurrency` is not null or `id_securitycurrency` is null and `units` is null),
   CONSTRAINT `s_quotation` CHECK (`quotation` is not null and (`quotation` > 0 or `quotation` <> 0 and `transaction_type` between 6 and 7) and `id_securitycurrency` is not null or `quotation` is null and `id_securitycurrency` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=1338101 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1339167 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2751,7 +2750,7 @@ CREATE TABLE `udf_metadata` (
   PRIMARY KEY (`id_udf_metadata`),
   KEY `I_UDF_Metadata_IdUser` (`id_user`),
   CONSTRAINT `FK_udfMetadata_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=6167 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6179 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2819,11 +2818,11 @@ CREATE TABLE `user` (
   `ui_show_my_property` tinyint(1) NOT NULL DEFAULT 1,
   `security_breach_count` smallint(6) NOT NULL DEFAULT 0,
   `limit_request_exceed_count` smallint(6) NOT NULL DEFAULT 0,
-  `last_role_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_role_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `created_by` int(11) NOT NULL,
-  `creation_time` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `creation_time` datetime NOT NULL DEFAULT current_timestamp(),
   `last_modified_by` int(11) NOT NULL,
-  `last_modified_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   `home_tenant_read_only` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id_user`),
@@ -2931,12 +2930,12 @@ CREATE TABLE `watchlist` (
   `id_watchlist` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
   `name` varchar(25) NOT NULL,
-  `last_timestamp` timestamp NULL DEFAULT NULL,
+  `last_timestamp` datetime DEFAULT NULL,
   PRIMARY KEY (`id_watchlist`),
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Watchlist_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Watchlist_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=61730 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=61784 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3245,4 +3244,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-26  7:53:29
+-- Dump completed on 2026-09-27 14:50:51

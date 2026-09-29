@@ -9,6 +9,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import grafiosch.common.ClientClock;
 import grafiosch.common.DateHelper;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.GlobalConstants;
@@ -53,6 +54,7 @@ public class DateTransactionCurrencypairMap {
   private DateCurrency searchDateCurrency = new DateCurrency();
   private String mainCurrency;
   private LocalDate untilDate;
+  private final LocalDate today;
   private Map<DateCurrency, Double> dateFromCurrencyMap = new HashMap<>();
 
   private Map<FromToCurrencyWithDate, Double> fromToCurrencyWithDateMap = new HashMap<>();
@@ -66,6 +68,7 @@ public class DateTransactionCurrencypairMap {
   private boolean hasTradingDaysBetweenUntilDateAndYesterday = false;
 
   public DateTransactionCurrencypairMap(final LocalDate untilDate, boolean hasTradingDaysBetweenUntilDateAndYesterday) {
+    this.today = ClientClock.today();
     this.untilDate = untilDate;
     this.hasTradingDaysBetweenUntilDateAndYesterday = hasTradingDaysBetweenUntilDateAndYesterday;
   }
@@ -86,13 +89,22 @@ public class DateTransactionCurrencypairMap {
   public DateTransactionCurrencypairMap(final String mainCurrency, final LocalDate untilDate,
       List<Object[]> dateTransactionCurrency, List<Currencypair> currencypairs,
       boolean hasTradingDaysBetweenUntilDateAndYesterday, boolean useUntilDateForFeeAndInterest) {
+    this(mainCurrency, untilDate, dateTransactionCurrency, currencypairs, hasTradingDaysBetweenUntilDateAndYesterday,
+        useUntilDateForFeeAndInterest, ClientClock.today());
+  }
+
+  /** Uses the calendar day captured by the caller before dispatching asynchronous report work. */
+  public DateTransactionCurrencypairMap(final String mainCurrency, final LocalDate untilDate,
+      List<Object[]> dateTransactionCurrency, List<Currencypair> currencypairs,
+      boolean hasTradingDaysBetweenUntilDateAndYesterday, boolean useUntilDateForFeeAndInterest, LocalDate today) {
     this.mainCurrency = mainCurrency;
+    this.today = today;
     this.untilDate = untilDate;
     this.hasTradingDaysBetweenUntilDateAndYesterday = hasTradingDaysBetweenUntilDateAndYesterday;
     this.useUntilDateForFeeAndInterest = useUntilDateForFeeAndInterest;
-    isUntilDateEqualNowOrAfter = untilDate == null || DateHelper.isTodayOrAfter(untilDate);
+    isUntilDateEqualNowOrAfter = untilDate == null || DateHelper.isTodayOrAfter(untilDate, today);
     isUntilDateEqualNowOrAfterOrInActualWeekend = untilDate == null
-        || DateHelper.isUntilDateEqualNowOrAfterOrInActualWeekend(untilDate);
+        || DateHelper.isUntilDateEqualNowOrAfterOrInActualWeekend(untilDate, today);
 
     putToDateFromCurrencyMap(dateTransactionCurrency);
     currencypairs.forEach(currencypair -> {
@@ -174,7 +186,7 @@ public class DateTransactionCurrencypairMap {
     Double closePrice = dateFromCurrencyMap.get(searchDateCurrency);
     if (closePrice == null
         && (!hasTradingDaysBetweenUntilDateAndYesterday && ChronoUnit.DAYS.between(date, untilDate) <= 1
-            || untilDate.isAfter(LocalDate.now()))) {
+            || untilDate.isAfter(today))) {
       closePrice = getClosePriceFromLastPrice(date, fromCurrency);
     }
 
@@ -191,7 +203,7 @@ public class DateTransactionCurrencypairMap {
    */
   private Double getClosePriceFromLastPrice(LocalDate date, String fromCurrency) {
     Double closePrice = null;
-    long diffDays = ChronoUnit.DAYS.between(date, LocalDate.now());
+    long diffDays = ChronoUnit.DAYS.between(date, today);
     if (diffDays <= GlobalConstants.MAX_DAY_DIFF_CURRENCY_UNTIL_NOW) {
       Currencypair currencypair = getCurrencypairByFromCurrency(fromCurrency);
       if (currencypair != null) {
@@ -211,6 +223,10 @@ public class DateTransactionCurrencypairMap {
 
   public LocalDate getUntilDate() {
     return untilDate;
+  }
+
+  public LocalDate getToday() {
+    return today;
   }
 
   public void setUntilDate(LocalDate untilDate) {

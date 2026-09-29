@@ -38,6 +38,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
@@ -210,6 +211,14 @@ public class User extends Auditable implements Serializable, UserDetails, AdminE
   private List<ProposeUserTask> userChangeLimitProposeList = new ArrayList<>();
 
   public User() {
+  }
+
+  /** Initializes the role timestamp for registration before any role-change operation has run. */
+  @PrePersist
+  protected void initializeLastRoleModifiedTime() {
+    if (lastRoleModifiedTime == null) {
+      lastRoleModifiedTime = LocalDateTime.now();
+    }
   }
 
   public User(Integer idTenant) {

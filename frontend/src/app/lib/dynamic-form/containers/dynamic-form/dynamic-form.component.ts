@@ -209,9 +209,8 @@ export class DynamicFormComponent implements OnChanges, OnInit {
           config.dataType === DataType.DateTimeNumeric ||
           config.dataType === DataType.DateString
         ) {
-          // Date is a timestamp / numeric
           if (sourceObject[config.field]) {
-            value = new Date(sourceObject[config.field]);
+            value = Helper.parseDateOnlyAsLocal(sourceObject[config.field]);
           }
         } else if (
           config.inputType === InputType.InputNumber &&

@@ -10,7 +10,10 @@ import { FilterType } from '../../lib/datashowbase/filter.type';
 import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { SimulationRunEvent } from '../model/simulation.run';
 
-/** The audit trail of a historical replay: what was decided on which day, what was executed and what was refused. */
+/**
+ * The audit trail of a historical replay: what was decided on which day, what was executed and what was refused.
+ * Content marked `caption` is passed on to the header of the table, where the parent places its choice of the period.
+ */
 @Component({
   selector: 'algo-simulation-run-table',
   standalone: true,
@@ -28,7 +31,9 @@ import { SimulationRunEvent } from '../model/simulation.run';
     [rows]="rowsPerPage"
     (pageChange)="onPage($event)"
     [scrollable]="true"
-    [scrollHeight]="scrollHeight" />`
+    [scrollHeight]="scrollHeight">
+    <ng-container ngProjectAs="[caption]"><ng-content select="[caption]" /></ng-container>
+  </configurable-table>`
 })
 export class AlgoSimulationRunTableComponent extends TableConfigBase implements OnChanges {
   @Input() rows: SimulationRunEvent[] = [];

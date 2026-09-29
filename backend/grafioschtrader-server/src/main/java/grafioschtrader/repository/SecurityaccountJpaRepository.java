@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.common.UpdateQuery;
 import grafiosch.rest.UpdateCreateDeleteWithTenantJpaRepository;
-import grafioschtrader.dto.ITransactionCost;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Securityaccount;
 
@@ -34,10 +33,4 @@ public interface SecurityaccountJpaRepository extends JpaRepository<Securityacco
 
   @UpdateQuery(value = "DELETE FROM Securityaccount s WHERE s.idSecuritycashAccount = ?1 AND s.idTenant = ?2")
   int deleteSecurityaccount(Integer idSecuritycashAccount, Integer idTenant);
-
-  @Query(nativeQuery = true)
-  List<ITransactionCost> getAllTransactionCostByTenant(Integer idTenant);
-
-  @Query(nativeQuery = true)
-  List<ITransactionCost> getAllTransactionCostBySecurityaccount(Integer idSecurityaccount);
 }

@@ -37,6 +37,7 @@ import { GTNetMessageService } from '../service/gtnet.message.service';
 import { AngularSvgIconModule, SvgIconRegistryService } from 'angular-svg-icon';
 import { BaseSettings } from '../../base.settings';
 import { TranslateHelper } from '../../helper/translate.helper';
+import { Helper } from '../../helper/helper';
 import { FilterType } from '../../datashowbase/filter.type';
 
 /**
@@ -575,7 +576,7 @@ export class GTNetMessageTreeTableComponent extends TreeTableConfigBase implemen
     // Check for discontinued message (closeStartDate)
     const closeStartDateParam = params['closeStartDate'];
     if (closeStartDateParam) {
-      const closeStartDate = new Date(closeStartDateParam.paramValue || closeStartDateParam);
+      const closeStartDate = Helper.parseDateOnlyAsLocal(closeStartDateParam.paramValue || closeStartDateParam);
       return closeStartDate > now;
     }
     return false;

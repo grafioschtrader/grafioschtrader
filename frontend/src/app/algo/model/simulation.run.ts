@@ -127,6 +127,15 @@ export enum AlgoEventType {
   RUN_END = 'RUN_END'
 }
 
+/**
+ * A bounded part of the audit trail around an anchor day, newest day first. A long run writes far more entries than one
+ * response can carry, so the total tells how much of the trail the window covers.
+ */
+export interface SimulationRunEventWindow {
+  events: SimulationRunEvent[];
+  totalElements: number;
+}
+
 /** One decision, execution, refusal or unavailable outcome of a replay, on the closing day it belongs to. */
 export interface SimulationRunEvent {
   idAlgoEvent: number;

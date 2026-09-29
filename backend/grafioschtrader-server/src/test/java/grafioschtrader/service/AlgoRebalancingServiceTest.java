@@ -157,7 +157,7 @@ class AlgoRebalancingServiceTest {
     when(market.allocation()).thenReturn(effective);
     when(market.close(any(), any())).thenReturn(100d);
     snapshot(100_000, 0, List.of());
-    var replay = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, market);
+    var replay = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, market, false);
     assertThat(replay.investmentBudget()).isEqualTo(80_000d);
     assertThat(replay.lines().stream().filter(l -> StrategyHelper.SECURITY_LEVEL_LETTER.equals(l.levelType())))
         .singleElement().satisfies(l -> assertThat(l.targetAmount()).isEqualTo(80_000d));
@@ -420,10 +420,40 @@ class AlgoRebalancingServiceTest {
   @Test
   void initialConstructionStillFillsAllExactTargets() {
     tenPositions();
-    var initial = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, (_, _) -> 1_000.0);
+    var initial = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, (_, _) -> 1_000.0,
+        false);
     assertThat(initial.executableLines()).hasSize(10);
     assertThat(initial.executableLines()).allSatisfy(line -> assertThat(line.recommendedAmount()).isEqualTo(3_000));
     assertThat(initial.classAdjustments()).isEmpty();
+  }
+
+  @Test
+  @DisplayName("A follow-up attempt of the initial purchase ignores drift inside the security band")
+  void initialFollowUpOnlyCompletesWhatIsMissing() {
+    // One class of 100%, its instruments at 96% and 4%; the default band of 5 points of the class target is 5 points
+    // of equity here. The 4% instrument is not held, so its whole target lies inside the band.
+    hierarchy(100f, 100f, 96f);
+    List<AlgoSecurity> children = List.of(memberNode(96f), otherMember(4f));
+    when(members.findByIdAlgoSecurityParentAndIdTenant(ID_BUCKET, ID_TENANT)).thenReturn(children);
+    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(31, ID_TENANT)).thenReturn(List.of());
+    AlgoHistoricalValuationService.ClosingPrices market = (_, _) -> 1_000.0;
+
+    snapshot(100_000, 94_000, List.of(position(security, 94, 94_000)));
+    RebalancingPlan exact = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, market, false);
+    assertThat(amountOf(exact, ID_SECURITY)).isCloseTo(2_000, Offset.offset(0.01));
+    RebalancingPlan banded = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, market, true);
+    assertThat(amountOf(banded, ID_SECURITY)).isNull();
+    assertThat(amountOf(banded, 41)).isCloseTo(4_000, Offset.offset(0.01));
+
+    snapshot(100_000, 90_000, List.of(position(security, 90, 90_000)));
+    banded = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, market, true);
+    assertThat(amountOf(banded, ID_SECURITY)).isCloseTo(6_000, Offset.offset(0.01));
+  }
+
+  /** Recommended amount of the executable line of an instrument, or null when the plan leaves it alone. */
+  private static Double amountOf(RebalancingPlan plan, int idSecurity) {
+    return plan.executableLines().stream().filter(line -> Integer.valueOf(idSecurity).equals(line.idSecuritycurrency()))
+        .map(RebalancingPlan.Line::recommendedAmount).findFirst().orElse(null);
   }
 
   @Test

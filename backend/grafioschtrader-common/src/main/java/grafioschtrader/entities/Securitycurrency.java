@@ -38,6 +38,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Size;
@@ -191,6 +192,18 @@ public abstract class Securitycurrency<S> extends Auditable implements Serializa
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "gt_net_last_modified_time")
   private LocalDateTime gtNetLastModifiedTime;
+
+  /** Initializes required UTC instants even when an instrument has no price or GTNet update yet. */
+  @PrePersist
+  protected void initializeTimestamps() {
+    LocalDateTime now = LocalDateTime.now();
+    if (sTimestamp == null) {
+      sTimestamp = now;
+    }
+    if (gtNetLastModifiedTime == null) {
+      gtNetLastModifiedTime = now;
+    }
+  }
 
   public abstract String getName();
 

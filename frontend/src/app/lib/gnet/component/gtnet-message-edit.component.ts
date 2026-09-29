@@ -29,6 +29,8 @@ import { GTNetService } from '../service/gtnet.service';
 import { GTNetWithMessages, MsgRequest } from '../model/gtnet';
 import { MultiTargetMsgRequest } from '../model/multi-target-msg-request';
 import { BaseSettings } from '../../base.settings';
+import { DataType } from '../../dynamic-form/models/data.type';
+import moment from 'moment';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DynamicFormComponent } from '../../dynamic-form/containers/dynamic-form/dynamic-form.component';
 
@@ -346,6 +348,11 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
         // Convert arrays (from MultiSelect/EnumSet) to comma-separated string for backend storage
         if (Array.isArray(paramValue)) {
           paramValue = paramValue.join(',');
+        } else if (
+          paramValue instanceof Date &&
+          (DataType[fDIAS.dataType] === DataType.DateString || DataType[fDIAS.dataType] === DataType.DateNumeric)
+        ) {
+          paramValue = moment(paramValue).format(BaseSettings.FORMAT_DATE_SHORT_NATIVE);
         }
         gtNetMessageParamMap[fDIAS.fieldName] = new BaseParam(paramValue);
       });

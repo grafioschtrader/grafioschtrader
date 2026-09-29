@@ -31,6 +31,22 @@ final class ConfigChecks {
   }
 
   /**
+   * Accepts a setting that has only one executable value, either omitted or spelled out with exactly that value.
+   *
+   * <p>
+   * Such settings belong to the wider draft model and are kept for later modules. Omitting them is the normal case, and a
+   * configuration that still carries them keeps working as long as it names the only value the engine can execute.
+   * </p>
+   *
+   * @param value   the configured value, or null when the setting is omitted
+   * @param allowed the only executable value
+   * @return true when the value is omitted or equal to the allowed one
+   */
+  static boolean nullOr(Object value, Object allowed) {
+    return value == null || allowed.equals(value);
+  }
+
+  /**
    * Requires an indicator or statistical rule parameter block to name a comparison and a finite bound.
    *
    * @param p           the parameter block of the rule

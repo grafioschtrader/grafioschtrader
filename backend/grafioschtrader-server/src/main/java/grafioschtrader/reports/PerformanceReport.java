@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.common.DataBusinessHelper;
@@ -139,7 +139,8 @@ public class PerformanceReport {
   private FirstAndMissingTradingDays getFirstAndMissingTradingDaysByTenant(Integer idTenant)
       throws InterruptedException, ExecutionException {
 
-    PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idTenant, PortfolioTentant.Tenant);
+    PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idTenant, PortfolioTentant.Tenant,
+        ClientClock.today());
     FirstAndMissingTradingDays firstAndMissingTradingDays = firstAndMissingTradingDaysMap.get(portfolioOrTenantKey);
     if (firstAndMissingTradingDays == null) {
       final CompletableFuture<LocalDate> firstEverHoldDayCF = CompletableFuture
@@ -188,7 +189,8 @@ public class PerformanceReport {
       throws InterruptedException, ExecutionException {
     Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
     if (portfolio != null) {
-      PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idPortfolio, PortfolioTentant.Portfolio);
+      PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idPortfolio, PortfolioTentant.Portfolio,
+          ClientClock.today());
       FirstAndMissingTradingDays firstAndMissingTradingDays = firstAndMissingTradingDaysMap.get(portfolioOrTenantKey);
       if (firstAndMissingTradingDays == null) {
         final CompletableFuture<LocalDate> firstEverHoldDayCF = CompletableFuture
@@ -231,7 +233,7 @@ public class PerformanceReport {
       final CompletableFuture<Set<LocalDate>> missingQuoteDaysCF,
       final CompletableFuture<Set<LocalDate>> combinedHolidayOfHoldingsCF)
       throws InterruptedException, ExecutionException {
-    int actYear = LocalDate.now().getYear();
+    int actYear = portfolioOrTenantKey.today.getYear();
     LocalDate fromDate = LocalDate.of(actYear - 1, 1, 1);
     LocalDate toDate = LocalDate.of(actYear - 1, 12, 31);
     final CompletableFuture<Set<LocalDate>> globalHolidaysCF = CompletableFuture
@@ -240,7 +242,7 @@ public class PerformanceReport {
         () -> tradingDaysPlusJpaRepository.findByTradingDateBetweenOrderByTradingDateDesc(fromDate, toDate));
     FirstAndMissingTradingDays firstAndMissingTradingDays = combineFirstAndMissingTradingDays(firstEverHoldDayCF.get(),
         zeroBaseDayCF.get(), globalHolidaysCF.get(), missingQuoteDaysCF.get(), combinedHolidayOfHoldingsCF.get(),
-        tradingDaysOfLastYearCF.get(), actYear - 1);
+        tradingDaysOfLastYearCF.get(), actYear - 1, portfolioOrTenantKey.today);
     firstAndMissingTradingDaysMap.put(portfolioOrTenantKey, firstAndMissingTradingDays);
     return firstAndMissingTradingDays;
   }
@@ -271,7 +273,8 @@ public class PerformanceReport {
    */
   private FirstAndMissingTradingDays combineFirstAndMissingTradingDays(LocalDate firstEverHoldDay,
       LocalDate zeroBaseDay, Set<LocalDate> globalHolidays, Set<LocalDate> missingQuoteDays,
-      Set<LocalDate> combinedHolidayOfHoldings, List<TradingDaysPlus> tradingDaysOfLastYearReverse, int lastYear) {
+      Set<LocalDate> combinedHolidayOfHoldings, List<TradingDaysPlus> tradingDaysOfLastYearReverse, int lastYear,
+      LocalDate today) {
     LocalDate firstEverTradingDay = zeroBaseDay != null ? zeroBaseDay : firstEverHoldDay;
     LocalDate fromDate = LocalDate.of(lastYear - 1, 12, 31);
     LocalDate toDate = LocalDate.of(lastYear + 1, 1, 1);
@@ -283,14 +286,14 @@ public class PerformanceReport {
         .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
     Optional<TradingDaysPlus> lastTradingDayOfLastYearOpt = tradingDaysOfLastYearReverse.stream()
         .filter(tradingDaysPlus -> !lastYearMissingDays.contains(tradingDaysPlus.getTradingDate())).findFirst();
-    LocalDate latestTradingDay = getLatestTradingDayBeforeDate(combinedMissingQuoteDaysAndHolidays, LocalDate.now(),
+    LocalDate latestTradingDay = getLatestTradingDayBeforeDate(combinedMissingQuoteDaysAndHolidays, today,
         firstEverTradingDay);
     LocalDate secondLatestTradingDay = getLatestTradingDayBeforeDate(combinedMissingQuoteDaysAndHolidays,
         latestTradingDay, firstEverTradingDay);
     LocalDate secondEverTradingDay = getFirstTradingDayAfterDate(combinedMissingQuoteDaysAndHolidays,
         firstEverTradingDay, latestTradingDay);
 
-    LocalDate leatestPossibleTradingDay = getLatestTradingDayBeforeDate(combinedHolidayOfHoldings, LocalDate.now(),
+    LocalDate leatestPossibleTradingDay = getLatestTradingDayBeforeDate(combinedHolidayOfHoldings, today,
         firstEverTradingDay);
 
     return new FirstAndMissingTradingDays(firstEverTradingDay, firstEverHoldDay, secondEverTradingDay,
@@ -740,34 +743,7 @@ public class PerformanceReport {
    * of trading day metadata for portfolios and tenants.
    * </p>
    */
-  private static class PortfolioOrTenantKey {
-    /** The identifier (portfolio ID or tenant ID). */
-    public Integer id;
-    /** The type of entity (Portfolio or Tenant). */
-    public PortfolioTentant portfolioTenant;
-
-    public PortfolioOrTenantKey(Integer id, PortfolioTentant portfolioTenant) {
-      this.id = id;
-      this.portfolioTenant = portfolioTenant;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      PortfolioOrTenantKey that = (PortfolioOrTenantKey) o;
-      return Objects.equals(id, that.id) && portfolioTenant == that.portfolioTenant;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(id, portfolioTenant);
-    }
-
+  private record PortfolioOrTenantKey(Integer id, PortfolioTentant portfolioTenant, LocalDate today) {
   }
 
   /**

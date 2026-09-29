@@ -19,6 +19,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Schema(description = "Contains a single qoute for end of day data")
@@ -38,6 +39,14 @@ public class Historyquote extends BaseHistoryquote implements Serializable {
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "create_modify_time")
   private LocalDateTime createModifyTime;
+
+  /** Supplies the UTC creation instant for connector quotes as well as manually entered quotes. */
+  @PrePersist
+  protected void initializeCreateModifyTime() {
+    if (createModifyTime == null) {
+      createModifyTime = LocalDateTime.now();
+    }
+  }
 
   public Historyquote() {
     this.createType = HistoryquoteCreateType.CONNECTOR_CREATED.getValue();

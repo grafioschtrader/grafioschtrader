@@ -17,6 +17,9 @@ import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
 import { AlgoTreeViewBase } from './algo.tree.view.base';
 import { StrategyDetailComponent } from './strategy-detail.component';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 /**
  * Shows the strategy hierarchy the latest historical replay of a simulation environment was submitted with, laid out
@@ -29,7 +32,13 @@ import { StrategyDetailComponent } from './strategy-detail.component';
   selector: 'algo-simulation-run-settings',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [TranslateModule, ConfigurableTreeTableComponent, StrategyDetailComponent],
+  imports: [
+    TranslateModule,
+    ConfigurableTreeTableComponent,
+    StrategyDetailComponent,
+    AngularSvgIconModule,
+    TooltipModule
+  ],
   template: `
     <div class="data-container">
       @if (settings === null) {
@@ -53,6 +62,18 @@ import { StrategyDetailComponent } from './strategy-detail.component';
             [rowClassFn]="getAlgoRowClass.bind(this)"
             [enableSort]="false">
             <h4 caption>{{ 'SIMULATION_RUN_SETTINGS' | translate }}</h4>
+            <ng-template #iconCell let-row let-value="value">
+              @if (getDistributionIcon(row); as iconName) {
+                <svg-icon
+                  [name]="iconName"
+                  [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"
+                  tooltipPosition="top"
+                  [svgStyle]="{ 'width.px': 14, 'height.px': 14 }">
+                </svg-icon>
+              } @else {
+                <span>{{ value }}</span>
+              }
+            </ng-template>
           </configurable-tree-table>
           @if (algoStrategyShowParamCall.algoStrategy) {
             <strategy-detail [algoStrategyParamCall]="algoStrategyShowParamCall"> </strategy-detail>
@@ -82,6 +103,7 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
    * @param activatedRoute - Carries the tenant id of the simulation environment
    * @param runService - Loads the settings of the environment's latest replay
    * @param algoStrategyService - Loads the form definition of a strategy implementation for the strategy detail
+   * @param productIconService - Provides the distribution icon shared with the watchlist
    * @param translateService - Angular translation service for internationalization support
    * @param gps - Global parameter service providing user locale and formatting preferences
    */
@@ -89,10 +111,11 @@ export class AlgoSimulationRunSettingsComponent extends AlgoTreeViewBase impleme
     private activatedRoute: ActivatedRoute,
     private runService: AlgoSimulationRunService,
     algoStrategyService: AlgoStrategyService,
+    productIconService: ProductIconService,
     translateService: TranslateService,
     gps: GlobalparameterService
   ) {
-    super(algoStrategyService, translateService, gps);
+    super(algoStrategyService, productIconService, translateService, gps);
     this.addNameAndPercentageColumns();
     this.addColumnFeqH(DataType.NumericShowZero, 'usedPercentage', true, false, {
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,

@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
+import grafiosch.common.ClientClock;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.IHeldInstrumentIntraday;
 import grafioschtrader.dto.ISecuritycurrencyIdDateClose;
@@ -137,7 +138,7 @@ public class HoldingMoversReport {
    */
   public Movers getMovers(Integer idTenant, int topN, LocalDate chosenDate, Direction direction) {
     String currency = tenantJpaRepository.getReferenceById(idTenant).getCurrency();
-    LocalDate today = LocalDate.now();
+    LocalDate today = ClientClock.today();
     LocalDate lastSession = sessionBefore(today);
     LocalDate chosen = chosenDate == null ? sessionBefore(lastSession) : sessionAtOrBefore(chosenDate);
     if (chosen != null && lastSession != null && chosen.isAfter(lastSession)) {

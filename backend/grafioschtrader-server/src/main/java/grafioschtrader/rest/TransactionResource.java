@@ -117,8 +117,10 @@ public class TransactionResource extends UpdateCreate<Transaction> {
 
   @Operation(summary = "Connect the unlinked withdrawal/deposit sides of cash account transfers", description = """
       Maintenance step after re-importing exported CSV files: transfers whose two sides were imported through
-      separate files are matched by transaction time and amounts and connected again. Only unambiguous one-to-one
-      matches are linked; ambiguous or rejected candidates are reported.""", tags = { Transaction.TABNAME })
+      separate files are matched by transaction time (to the minute) and amounts and connected again. Same-currency
+      sides need equal amounts; cross-currency sides need an implied exchange rate close to the currency pair's close of
+      that day. Only unambiguous one-to-one matches are linked; ambiguous or rejected candidates are reported.""",
+      tags = { Transaction.TABNAME })
   @PostMapping(value = "/connecttransfers", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<CashTransferRelinkResult> connectCashTransfers() {
     return new ResponseEntity<>(cashTransferRelinkService.relinkCashTransfers(), HttpStatus.OK);

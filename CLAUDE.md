@@ -621,6 +621,13 @@ covers writing one, incorporating concerns raised by someone else, staged update
   this *before* the deletion, it is usually the only place those limitations exist), decisions into the
   commit message or a GitHub issue, durable agent rules into these `CLAUDE.md` files.
 
+### Releasing
+
+A release is a commit on `master`, a tag `V<version>` and a **published** GitHub Release — only the published
+release triggers `.github/workflows/docker.yml`, which builds the GHCR images. Push `master` and the tag to both
+remotes, never with `push.bat` (it force-pushes). **Follow the `release` skill** (`.agents/skills/release/SKILL.md`)
+for the whole procedure; installation-specific hosts and remotes are in the gitignored `site.local.md` beside it.
+
 ### Git Commit Guidelines
 
 - Use imperative summaries with issue hooks (e.g., `Resolve #158`, `Continue with #143`)

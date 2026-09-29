@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.entities.User;
@@ -335,7 +336,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Override
   protected boolean historyNeedToBeReloaded(final Security securityCurrencyChanged, final Security targetSecurity) {
-    if (!securityCurrencyChanged.getActiveToDate().isAfter(LocalDate.now())) {
+    if (!securityCurrencyChanged.getActiveToDate().isAfter(ClientClock.today())) {
       return false;
     }
     if (securityCurrencyChanged.isDerivedInstrument()) {

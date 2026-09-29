@@ -2,8 +2,10 @@ package grafiosch.gtnet.model.msg;
 
 import java.time.LocalDate;
 
+import grafiosch.common.DynamicFormPropertySupport;
+import grafiosch.dynamic.model.DynamicFormPropertyHelps;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -20,6 +22,8 @@ public class DiscontinuedMsg {
 
   @Schema(description = "As of this date, the server is no longer accessible.")
   @NotNull
-  @Future
+  @FutureOrPresent
+  // The browser still restricts input to its local future; a peer may already be on that UTC day.
+  @DynamicFormPropertySupport(DynamicFormPropertyHelps.DATE_FUTURE)
   public LocalDate closeStartDate;
 }

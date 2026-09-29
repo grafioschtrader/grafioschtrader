@@ -179,9 +179,10 @@ public class Transaction extends TenantBaseID implements Serializable, Comparabl
 
   @Schema(description = """
       The transaction time is the date and time when the transaction took place. The exact time is not so important,
-      but it should be noted that the transaction time determines the sequence of transactions.""")
+      but it should be noted that the transaction time determines the sequence of transactions. It is the local time as
+      printed on the statement, without a time zone, and is shown unchanged regardless of the viewer's time zone.""")
   @Basic(optional = false)
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_ISO)
   @Column(name = "transaction_time")
   @NotNull
   @AfterEqual(value = GlobalConstants.OLDEST_TRADING_DAY, format = BaseConstants.STANDARD_DATE_FORMAT)

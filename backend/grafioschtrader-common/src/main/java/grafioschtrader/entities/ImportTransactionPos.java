@@ -85,7 +85,7 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
 
   @Basic(optional = false)
   @Column(name = "transaction_time")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_ISO)
   private LocalDateTime transactionTime;
 
   @Schema(description = "Transferred after transactions, if set.")

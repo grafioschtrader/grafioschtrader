@@ -45,8 +45,8 @@ export class GTNetMaintenanceWindowTableComponent extends TableConfigBase implem
     injector: Injector
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
-    this.addColumnFeqH(DataType.DateTimeNumeric, 'fromDateTime', true, false);
-    this.addColumnFeqH(DataType.DateTimeNumeric, 'toDateTime', true, false);
+    this.addColumnFeqH(DataType.DateTimeString, 'fromDateTime', true, false);
+    this.addColumnFeqH(DataType.DateTimeString, 'toDateTime', true, false);
     this.multiSortMeta.push({ field: 'fromDateTime', order: -1 });
     this.prepareTableAndTranslate();
   }

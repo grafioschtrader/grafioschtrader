@@ -13,12 +13,13 @@ public final class AverageDownValidator {
   /** Validates the selected averaging variant without enabling an independent stop-loss variant. */
   public static void validate(DownsideManagementConfig d) {
     var a = d.variant_B_average_down;
-    require(a != null && Boolean.TRUE.equals(a.enabled), "An enabled averaging variant is required");
+    // The loss action selects the variant; an omitted flag is fine, only an explicit false contradicts the choice.
+    require(a != null && !Boolean.FALSE.equals(a.enabled), "An enabled averaging variant is required");
     require(d.variant_A_sell_loss == null || !Boolean.TRUE.equals(d.variant_A_sell_loss.enabled),
         "Disable the sell-loss variant when averaging is selected");
     MeanReversionConfigValidator.sizing(a.add_sizing);
     require(a.max_adds != null && a.max_adds > 0, "max_adds must be positive");
-    require(Boolean.TRUE.equals(a.recalculate_avg_cost), "recalculate_avg_cost must be true");
+    require(nullOr(a.recalculate_avg_cost, Boolean.TRUE), "recalculate_avg_cost must be true");
     var step = a.add_step_rule;
     require(step != null && step.type != null && step.type != AddStepType.custom,
         "Use each_n_pct_drop or indicator_based addition steps");

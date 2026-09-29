@@ -139,9 +139,10 @@ public class AlgoMeanReversionDecisionService {
         if (!averaging && stop.stop_type == StopType.hard_stop
             && change(price, p, stop.stop_reference, direction) <= stop.stop_threshold_pct + 1e-12)
           return result(c, Action.STOP_EXIT, direction, quantity, price, "MEAN_REVERSION_STOP_EXIT");
+        // A hard stop may omit the downside trigger, its own threshold already closes the position.
         var t = downside.trigger;
-        boolean threshold = change(price, p, t.down_reference, direction) <= t.down_threshold_pct + 1e-12;
-        if (!averaging && downsideTriggered(t, history, threshold))
+        boolean threshold = t != null && change(price, p, t.down_reference, direction) <= t.down_threshold_pct + 1e-12;
+        if (!averaging && t != null && downsideTriggered(t, history, threshold))
           return result(c, Action.STOP_EXIT, direction, quantity, price, "MEAN_REVERSION_DOWNSIDE_EXIT");
         var profit = config.profit_management == null ? null : config.profit_management.take_profit;
         if (profit != null) {

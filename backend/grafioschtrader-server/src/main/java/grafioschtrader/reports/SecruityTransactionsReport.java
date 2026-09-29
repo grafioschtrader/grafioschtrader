@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafiosch.entities.User;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
@@ -158,8 +159,8 @@ public class SecruityTransactionsReport {
    * Returns security accounts with open positions for a specific security at a given point in time.
    *
    * <p>
-   * Calculates which security accounts hold open positions for the specified security, excluding weekends and
-   * considering timezone offsets. Not suitable for margin products.
+   * Calculates which security accounts hold open positions for the specified security, excluding weekends. Not suitable
+   * for margin products.
    * </p>
    *
    * @param idTenant                the tenant identifier
@@ -174,11 +175,9 @@ public class SecruityTransactionsReport {
       final Integer idSecuritycurrency, final String dateString, final boolean before,
       final Integer excludeIdTransaction, Integer idOpenMarginTransaction) {
 
-    // We need to convert the date to UTC time zone;
-    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     LocalDateTime untilDateTime = LocalDateTime.parse(dateString, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
     if (before) {
-      untilDateTime = untilDateTime.minusNanos(1_000_000).plusMinutes(user.getTimezoneOffset());
+      untilDateTime = untilDateTime.minusNanos(1_000_000);
     }
     LocalDate untilDate = untilDateTime.toLocalDate();
     final SecurityOpenPositionPerSecurityaccount securityaccountOpenPositionSecurity = new SecurityOpenPositionPerSecurityaccount();
@@ -234,10 +233,11 @@ public class SecruityTransactionsReport {
         () -> historyquoteJpaRepository.findByIdTenantAndIdSecurityFoCuHistoryquotes(idTenant, idSecuritycurrency));
     final CompletableFuture<List<Currencypair>> currencypairsFuture = CompletableFuture
         .supplyAsync(() -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(idTenant));
+    final LocalDate today = ClientClock.today();
     final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
         .supplyAsync(() -> new DateTransactionCurrencypairMap(tenant.getCurrency(), untilDate,
             dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-            this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate)));
+            this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate, today), true, today));
     return calcSummaryForTransactions(transactionsFuture.join(),
         securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
         dateCurrencyMapFuture.join());
@@ -268,10 +268,11 @@ public class SecruityTransactionsReport {
               idSecuritycurrency));
       final CompletableFuture<List<Currencypair>> currencypairsFuture = CompletableFuture.supplyAsync(
           () -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(portfolio.getIdTenant()));
+      final LocalDate today = ClientClock.today();
       final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
           .supplyAsync(() -> new DateTransactionCurrencypairMap(portfolio.getCurrency(), untilDate,
               dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-              this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate)));
+              this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate, today), true, today));
       return calcSummaryForTransactions(transactionsFuture.join(),
           securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
           dateCurrencyMapFuture.join());
@@ -302,10 +303,11 @@ public class SecruityTransactionsReport {
             .findByIdSecurityaccountAndIdSecurityFoCuHistoryquotes(idSecuritycashAccount, idSecuritycurrency));
     final CompletableFuture<List<Currencypair>> currencypairsFuture = CompletableFuture.supplyAsync(
         () -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(portfolio.getIdTenant()));
+    final LocalDate today = ClientClock.today();
     final CompletableFuture<DateTransactionCurrencypairMap> dateCurrencyMapFuture = CompletableFuture
         .supplyAsync(() -> new DateTransactionCurrencypairMap(portfolio.getCurrency(), untilDate,
             dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
-            this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate)));
+            this.tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate, today), true, today));
     return calcSummaryForTransactions(transactionsFuture.join(),
         securityJpaRepository.getReferenceById(idSecuritycurrency), untilDate, secruityTransactionsReportOptions,
         dateCurrencyMapFuture.join());

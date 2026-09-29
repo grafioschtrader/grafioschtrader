@@ -12,6 +12,7 @@ import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { HelpIds } from '../../lib/help/help.ids';
 import { TransactionService } from '../service/transaction.service';
 
 /** Data passed to the transaction CSV export dialog via the DynamicDialog configuration. */
@@ -55,7 +56,7 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5);
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = [
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'dateFrom', false),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateString, 'dateTo', false),
@@ -81,6 +82,11 @@ export class TransactionExportCsvDialogComponent extends FormBase implements OnI
         },
         error: () => (this.configObject.submit.disabled = false)
       });
+  }
+
+  /** Opens the user manual page of the transaction report, which describes the CSV export and its re-import. */
+  helpLink(): void {
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_PORTFOLIOS_TRANSACTIONLIST);
   }
 
   /** Takes the file name from the Content-Disposition header set by the backend. */

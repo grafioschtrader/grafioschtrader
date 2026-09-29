@@ -4,7 +4,7 @@
     <legend class="out-border-legend">{{fieldSetName | translate}}</legend>
     @for (field of fieldSetGroups[fieldSetName]; track field) {
     <div class="row">
-      @if (field.headerTranslated !=='null') {
+      @if (field.headerKey) {
       <div class="col-md-5 showlabel text-end">{{field.headerTranslated}}:</div>
       }
       <div class="col-md-7 nopadding wrap">

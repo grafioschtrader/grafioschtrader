@@ -2,27 +2,54 @@ package grafiosch.gtnet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import grafiosch.dynamic.model.DynamicFormPropertyHelps;
+import grafiosch.dynamic.model.DynamicModelHelper;
 import grafiosch.entities.GTNetMessage;
 import grafiosch.entities.GTNetMessage.GTNetMessageParam;
+import grafiosch.gtnet.model.msg.DiscontinuedMsg;
+import jakarta.validation.Validation;
 
 /**
- * The two producers of GTNet message parameters do not agree on a date format: the message dialog submits the raw value
- * of a date form control, which serialises as an ISO instant with a trailing {@code Z}, while a peer driving the
- * protocol directly sends what {@code LocalDate.toString()} produces. Both have to be readable — the bare form used to
- * be rejected, which left a discontinuation announcement forever unexpired and its message forever undeletable.
+ * Calendar dates from current peers and ISO instants from older message dialogs must both remain readable, including
+ * when checking whether an announcement has expired.
  */
 class MessageParamDateParserTest {
 
   @Test
-  @DisplayName("Reads the ISO instant the message dialog produces")
+  @DisplayName("Discontinuation accepts the sender's tomorrow when it is already today in UTC")
+  void discontinuationAcceptsUtcToday() {
+    Clock clock = Clock.fixed(Instant.parse("2026-09-16T03:00:00Z"), ZoneOffset.UTC);
+    try (var factory = Validation.byDefaultProvider().configure().clockProvider(() -> clock).buildValidatorFactory()) {
+      var validator = factory.getValidator();
+      var message = new DiscontinuedMsg();
+      message.closeStartDate = LocalDate.of(2026, 9, 16);
+      assertThat(validator.validate(message)).isEmpty();
+      message.closeStartDate = LocalDate.of(2026, 9, 15);
+      assertThat(validator.validate(message)).hasSize(1);
+    }
+  }
+
+  @Test
+  @DisplayName("Discontinuation retains the future-date constraint in its generated browser form")
+  void discontinuationRetainsFutureDateHint() {
+    var fields = DynamicModelHelper.getFormDefinitionOfModelClassMembers(DiscontinuedMsg.class);
+    assertThat(fields).hasSize(1);
+    assertThat(fields.getFirst().dynamicFormPropertyHelps).containsExactly(DynamicFormPropertyHelps.DATE_FUTURE);
+  }
+
+  @Test
+  @DisplayName("Reads calendar dates sent as ISO instants by older message dialogs")
   void readsIsoInstantWithZoneSuffix() {
     Map<String, GTNetMessageParam> params = params("closeStartDate", "2026-09-01T00:00:00.000Z");
 
@@ -32,7 +59,7 @@ class MessageParamDateParserTest {
   }
 
   @Test
-  @DisplayName("Reads the bare date a peer sends over the protocol")
+  @DisplayName("Reads the bare date sent by message dialogs and peers")
   void readsBareDate() {
     Map<String, GTNetMessageParam> params = params("closeStartDate", "2026-09-01");
 

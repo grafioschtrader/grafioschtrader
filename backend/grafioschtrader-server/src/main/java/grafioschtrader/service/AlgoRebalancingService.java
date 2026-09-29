@@ -194,7 +194,8 @@ public class AlgoRebalancingService {
   @Transactional(readOnly = true)
   public RebalancingPlan plan(Integer idTenant, AlgoTop algoTop, LocalDate valuationDate, Locale locale,
       LocalDate lastRebalancedOn, AlgoHistoricalValuationService.ClosingPrices market) {
-    return evaluate(idTenant, algoTop, valuationDate, locale, lastRebalancedOn, market, false, Set.of());
+    return evaluate(idTenant, algoTop, valuationDate, locale, lastRebalancedOn, market, Construction.CHECKPOINT,
+        Set.of());
   }
 
   /**
@@ -215,18 +216,43 @@ public class AlgoRebalancingService {
   @Transactional(readOnly = true)
   public RebalancingPlan followUpPlan(Integer idTenant, AlgoTop algoTop, LocalDate valuationDate, Locale locale,
       LocalDate lastRebalancedOn, AlgoHistoricalValuationService.ClosingPrices market, Set<Integer> committed) {
-    return evaluate(idTenant, algoTop, valuationDate, locale, lastRebalancedOn, market, false, committed);
+    return evaluate(idTenant, algoTop, valuationDate, locale, lastRebalancedOn, market, Construction.CHECKPOINT,
+        committed);
   }
 
-  /** Initial construction fills exact targets without the periodic selection cap or security bands. */
+  /**
+   * Plan of the initial purchase, without the periodic selection cap. The first attempt fills the exact targets. A
+   * follow-up attempt only completes what is really missing: an instrument not held yet, or one outside its security
+   * band. An order is decided at one close and filled at the next, so the prices move in between and the exact target
+   * is never met; chasing it every day would only produce small orders whose fees exceed any benefit.
+   *
+   * @param idTenant tenant whose positions are compared
+   * @param algoTop  the hierarchy that defines the targets
+   * @param date     completed day whose closing holdings and prices are used
+   * @param locale   language of the bucket labels
+   * @param market   the replay's observations
+   * @param followUp true from the second attempt of the purchase phase on, which applies the security bands
+   * @return the resolved comparison
+   */
   @Transactional(readOnly = true)
   public RebalancingPlan initialPlan(Integer idTenant, AlgoTop algoTop, LocalDate date, Locale locale,
-      AlgoHistoricalValuationService.ClosingPrices market) {
-    return evaluate(idTenant, algoTop, date, locale, date, market, true, Set.of());
+      AlgoHistoricalValuationService.ClosingPrices market, boolean followUp) {
+    return evaluate(idTenant, algoTop, date, locale, date, market,
+        followUp ? Construction.INITIAL_BANDED : Construction.INITIAL_EXACT, Set.of());
+  }
+
+  /** How the security lines of a plan are sized. */
+  private enum Construction {
+    /** Periodic rebalancing: class tolerance, selection cap and security bands of the allocator. */
+    CHECKPOINT,
+    /** First attempt of the initial purchase: every instrument to its exact target. */
+    INITIAL_EXACT,
+    /** Follow-up attempt of the initial purchase: only instruments not held yet or outside their security band. */
+    INITIAL_BANDED
   }
 
   private RebalancingPlan evaluate(Integer idTenant, AlgoTop algoTop, LocalDate valuationDate, Locale locale,
-      LocalDate lastRebalancedOn, AlgoHistoricalValuationService.ClosingPrices market, boolean initial,
+      LocalDate lastRebalancedOn, AlgoHistoricalValuationService.ClosingPrices market, Construction construction,
       Set<Integer> committed) {
     if (market.allocation() != null)
       algoTop = market.allocation().top(algoTop);
@@ -235,7 +261,7 @@ public class AlgoRebalancingService {
     Snapshot snapshot = valuation.value(idTenant, valuationDate, market, targetCurrencies(algoTop, market));
     snapshot.requireAvailable();
     return build(idTenant, algoTop, strategy, config, snapshot, valuationDate, locale, lastRebalancedOn, market,
-        initial, committed);
+        construction, committed);
   }
 
   /**
@@ -405,7 +431,8 @@ public class AlgoRebalancingService {
 
   private RebalancingPlan build(Integer idTenant, AlgoTop algoTop, AlgoStrategy strategy, RebalancingTop config,
       Snapshot snapshot, LocalDate valuationDate, Locale locale, LocalDate lastRebalancedOn,
-      AlgoHistoricalValuationService.ClosingPrices market, boolean initial, Set<Integer> committed) {
+      AlgoHistoricalValuationService.ClosingPrices market, Construction construction, Set<Integer> committed) {
+    boolean initial = construction != Construction.CHECKPOINT;
     double equity = snapshot.equity();
     double gross = snapshot.grossExposure();
     double topPercentage = requiredWeight(algoTop.getPercentage(), algoTop.getName());
@@ -443,7 +470,11 @@ public class AlgoRebalancingService {
         unusedTactical += Math.max(0, equity * bucketTargetPercentage / 100.0 - bucketActual);
       }
       if (initial) {
-        lines.addAll(securityLines(algoTop, bucket, members, bucketTargetPercentage, equity, 0, breach, tactical,
+        // The band is set in percentage points of the class target; line() compares against equity.
+        double band = construction == Construction.INITIAL_BANDED
+            ? securityBand(bucket, config) * bucketTargetPercentage / 100
+            : 0;
+        lines.addAll(securityLines(algoTop, bucket, members, bucketTargetPercentage, equity, band, breach, tactical,
             exposure, signed, unitValue, valuationDate, locale));
       } else {
         allocateClass(algoTop, bucket, members, config, bucketTargetPercentage, bucketActual, equity, budget, breach,
@@ -538,8 +569,7 @@ public class AlgoRebalancingService {
     double target = Math.max(0, equity * targetPercentage / 100);
     double gap = target - actual;
     double drift = budget > 0 ? -gap / budget * 100 : actual > 0 ? 100 : 0;
-    double band = bucket.getSecurityDeviationPercentage() == null ? config.getSecurityDeviationPercentage()
-        : bucket.getSecurityDeviationPercentage();
+    double band = securityBand(bucket, config);
     int limit = bucket.getMaxTradedSecuritiesPerAssetclass() == null ? config.getMaxTradedSecuritiesPerAssetclass()
         : bucket.getMaxTradedSecuritiesPerAssetclass();
     boolean triggered = isTriggered(gap, budget, config, committed);
@@ -565,6 +595,12 @@ public class AlgoRebalancingService {
           allocation.changes().get(candidate.idSecurity()), tactical,
           !triggered && !funds ? REASON_WITHIN_TOLERANCE : blocked != null ? blocked : "REBALANCE_NOT_SELECTED"));
     }
+  }
+
+  /** Security band of a class in percentage points of its target: the class override, else the strategy default. */
+  private static double securityBand(AlgoAssetclass bucket, RebalancingTop config) {
+    return bucket.getSecurityDeviationPercentage() == null ? config.getSecurityDeviationPercentage()
+        : bucket.getSecurityDeviationPercentage();
   }
 
   private record ClassMembers(Map<Integer, AlgoSecurity> byId,
@@ -653,9 +689,11 @@ public class AlgoRebalancingService {
       }
       double targetPercentage = bucketTargetPercentage * requiredWeight(member.getPercentage(), security.getName())
           / 100.0;
+      double actual = actualOf(member, exposure);
+      // An instrument not held yet is always due: with a small weight its whole target may lie inside the band.
       lines.add(line(StrategyHelper.SECURITY_LEVEL_LETTER, member.getIdAlgoAssetclassSecurity(),
           bucket.getIdAlgoAssetclassSecurity(), security.getIdSecuritycurrency(), security.getName(), tactical,
-          targetPercentage, actualOf(member, exposure), equity, tolerance, breach, actualOf(member, signed) < 0,
+          targetPercentage, actual, equity, actual > 0 ? tolerance : 0, breach, actualOf(member, signed) < 0,
           unitValue.of(security, valuationDate)));
     }
     return lines;

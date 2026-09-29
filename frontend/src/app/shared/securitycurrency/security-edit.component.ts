@@ -506,10 +506,10 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
 
     // Apply additional fields
     if (dto.activeFromDate) {
-      this.configObject.activeFromDate?.formControl?.setValue(new Date(dto.activeFromDate));
+      this.configObject.activeFromDate?.formControl?.setValue(Helper.parseDateOnlyAsLocal(dto.activeFromDate));
     }
     if (dto.activeToDate) {
-      this.configObject.activeToDate?.formControl?.setValue(new Date(dto.activeToDate));
+      this.configObject.activeToDate?.formControl?.setValue(Helper.parseDateOnlyAsLocal(dto.activeToDate));
     }
     if (dto.stockexchangeLink) {
       this.configObject.stockexchangeLink?.formControl?.setValue(dto.stockexchangeLink);

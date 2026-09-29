@@ -6,7 +6,7 @@ import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service
 import { LoginService } from '../../lib/login/service/log-in.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
-import { SimulationRunEvent, SimulationRunResult, SimulationRunSettings } from '../model/simulation.run';
+import { SimulationRunEventWindow, SimulationRunResult, SimulationRunSettings } from '../model/simulation.run';
 
 /**
  * The historical replay of a simulation environment.
@@ -53,19 +53,16 @@ export class AlgoSimulationRunService extends AuthServiceWithLogout<SimulationRu
       .pipe(catchError(this.handleError.bind(this)));
   }
 
-  events(
-    idTenant: number,
-    page: number,
-    size: number
-  ): Observable<{
-    content: SimulationRunEvent[];
-    totalElements: number;
-  }> {
+  /**
+   * A window of the audit trail around one day: the entries nearest to it on both sides, newest day first.
+   *
+   * @param idTenant - the simulation environment
+   * @param anchorDate - the day in 'YYYY-MM-DD' the window is centred on; omitted, the end date of the run is used
+   */
+  eventWindow(idTenant: number, anchorDate?: string): Observable<SimulationRunEventWindow> {
+    const query = anchorDate ? `?anchorDate=${anchorDate}` : '';
     return this.httpClient
-      .get<{ content: SimulationRunEvent[]; totalElements: number }>(
-        `${this.endpoint}/${idTenant}/run/events?page=${page}&size=${size}`,
-        this.getHeaders()
-      )
+      .get<SimulationRunEventWindow>(`${this.endpoint}/${idTenant}/run/events/window${query}`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 

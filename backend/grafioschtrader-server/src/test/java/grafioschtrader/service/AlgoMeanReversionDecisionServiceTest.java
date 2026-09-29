@@ -116,6 +116,25 @@ class AlgoMeanReversionDecisionServiceTest {
   }
 
   @Test
+  void minimalConfigurationOmitsFixedSettingsAndTheSecondLossRule() throws Exception {
+    // The simple example of the user manual: no data, execution, universe mode, enabled flags or downside trigger.
+    var c = config("/testdata/mean-reversion-minimal-strategy.json");
+    assertNull(c.downside_management.trigger);
+    c.entry.lookback_T = 2;
+    assertEquals(Action.ENTRY, engine.evaluate(c, context(92, Position.empty(), 10000)).action());
+    var p = new Position(10, 10, 10, 0, 100, 100, day.minusDays(10), null, 1);
+    assertEquals(Action.HOLD, engine.evaluate(c, context(95, p, 10000)).action());
+    assertEquals(Action.STOP_EXIT, engine.evaluate(c, context(92, p, 10000)).action());
+    assertEquals(Action.TAKE_PROFIT_EXIT, engine.evaluate(c, context(106, p, 10000)).action());
+    // An indicator stop and averaging down still depend on the rules of the downside trigger.
+    c.downside_management.variant_A_sell_loss.stop_type = StopType.indicator_stop;
+    assertThrows(IllegalArgumentException.class, () -> MeanReversionConfigValidator.validate(c));
+    c.downside_management.variant_A_sell_loss.stop_type = StopType.hard_stop;
+    c.downside_management.variant_A_sell_loss.enabled = false;
+    assertThrows(IllegalArgumentException.class, () -> MeanReversionConfigValidator.validate(c));
+  }
+
+  @Test
   void aTriggeredTrancheYieldsToEveryFullExitAndNamesItselfInTheIdentity() throws Exception {
     var c = config("/testdata/scale-out-strategy.json");
     var p = new Position(10, 10, 10, 0, 100, 100, day, null, 10);

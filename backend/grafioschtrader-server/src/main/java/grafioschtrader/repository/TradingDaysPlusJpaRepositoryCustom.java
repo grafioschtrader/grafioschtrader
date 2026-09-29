@@ -12,6 +12,9 @@ public interface TradingDaysPlusJpaRepositoryCustom extends TradingDaysBase {
    */
   boolean hasTradingDayBetweenUntilYesterday(LocalDate tradingDay);
 
+  /** Uses the calendar day captured on the request thread. */
+  boolean hasTradingDayBetweenUntilYesterday(LocalDate tradingDay, LocalDate today);
+
   TradingDaysWithDateBoundaries getTradingDaysByYear(int year);
 
   TradingDaysWithDateBoundaries save(SaveTradingDays saveTradingDays);

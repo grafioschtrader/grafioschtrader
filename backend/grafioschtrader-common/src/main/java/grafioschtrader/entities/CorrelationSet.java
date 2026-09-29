@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.TenantBaseID;
 import grafiosch.exceptions.DataViolationException;
@@ -267,7 +268,7 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
 
   private void validateFromToDateMinPeriods(LocalDate minDateTo) {
 
-    if ((dateTo != null && dateTo.isBefore(minDateTo)) || LocalDate.now().isBefore(minDateTo)) {
+    if ((dateTo != null && dateTo.isBefore(minDateTo)) || ClientClock.today().isBefore(minDateTo)) {
       throw new DataViolationException("date.to", "gt.dateto.min.period",
           new Object[] { GlobalConstants.REQUIRED_MIN_PERIODS });
     }

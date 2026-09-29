@@ -195,11 +195,13 @@ class CustodyFeeEngineTest {
   }
 
   @Test
-  void creditsRejectAnEarlierFillAfterALaterFillHasSpentTheAllowance() {
+  void anEarlierFillBookedAfterALaterOneReceivesTheRemainingAllowance() {
+    // Decided before Easter: the SIX fill is dated after the Easter Monday NYSE fill but booked first.
     var engine = engine(BASE);
-    engine.consume(LocalDate.of(2026, 1, 5), "later", 18);
-    assertThatThrownBy(() -> engine.credit(LocalDate.of(2026, 1, 2), 10, Map.of()))
-        .hasMessageContaining("chronologically");
+    engine.consume(LocalDate.of(2026, 1, 5), "later", 12);
+    assertThat(engine.credit(LocalDate.of(2026, 1, 2), 10, Map.of())).isEqualTo(6);
+    engine.consume(LocalDate.of(2026, 1, 2), "earlier", 6);
+    assertThat(engine.credit(LocalDate.of(2026, 1, 3), 10, Map.of())).isZero();
     assertThat(engine.credit(LocalDate.of(2026, 4, 1), 10, Map.of())).isEqualTo(10);
   }
 

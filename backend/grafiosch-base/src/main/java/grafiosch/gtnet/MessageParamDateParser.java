@@ -11,12 +11,10 @@ import grafiosch.entities.GTNetMessage.GTNetMessageParam;
  * Reads a date or date-time out of the parameter map of a {@link grafiosch.entities.GTNetMessage}.
  *
  * <p>
- * The parameters travel between peers as plain strings, and the two producers do not agree on a format: the message
- * dialog submits the raw value of a date form control, which serialises as an ISO instant with a trailing {@code Z}
- * ({@code 2026-09-01T00:00:00.000Z}), while a peer driving the protocol directly sends what
- * {@code LocalDate.toString()} produces ({@code 2026-09-01}). A parser accepting only one of the two silently loses the
- * value — {@code closeStartDate} used to be read with {@code DateTimeFormatter.ISO_DATE_TIME}, which throws on a bare
- * date, so a discontinuation was never recognised as expired and its message never became deletable.
+ * The parameters travel between peers as plain strings. The message dialog sends calendar dates as {@code yyyy-MM-dd}
+ * and date-times as UTC ISO instants with a trailing {@code Z} ({@code 2026-09-01T00:00:00.000Z}). Older instances also
+ * send calendar dates as ISO instants, so both formats remain readable. Peers driving the protocol directly can send
+ * the same bare date as {@code LocalDate.toString()}.
  * </p>
  *
  * <p>

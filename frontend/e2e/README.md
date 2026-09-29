@@ -554,15 +554,18 @@ With the backend and frontend still active, execute only this spec with
 `EntityLimitRoleResourceTest`. Its columns are
 `limitType|entityName|relationEntityName|countScope|ownerScope|roleName|limitValue|validUntil|e2e`; enum and role names
 are natural keys, nullable key parts and `validUntil` may be empty, and the final routing value is either `i` for the
-integration suite or `e2e` for Playwright. The current split is 26 integration rows and six Playwright rows, mirroring
-all 32 production `ROLE_LIMITEDIT` limits. The Playwright share includes the two nested GTNet MAX keys so the browser
-path covers relation and scope qualifiers as well as daily keys.
+integration suite or `e2e` for Playwright. The current split is 27 integration rows and six Playwright rows, 33 in
+total, mirroring the production `ROLE_LIMITEDIT` limits; both the spec and `EntityLimitRoleResourceTest` assert these
+counts. The Playwright share includes the two nested GTNet MAX keys so the browser path covers relation and scope
+qualifiers as well as daily keys.
 
 The test database migration seeds only the mandatory role-less `limit_type = 0` MAX defaults. The Suite 25 test
 creates the `i` rows through REST; spec 190 deletes only its six matching role/key rows at startup and recreates them
 through the entity-limit administration dialog as `admin`. It resolves the role id at runtime and verifies both the
 table and the persisted REST payload, so a completed or interrupted run is repeatable against the same
-`grafioschtrader_t`.
+`grafioschtrader_t`. The table check addresses cells by position through the `COL` map in the spec; a column added
+to or moved in `EntityLimitTableComponent` must be mirrored there, otherwise the row is not found although the POST
+succeeded.
 
 With the backend and frontend still active, execute only this spec with
 `npx playwright test e2e/190-create-entity-limits.spec.ts --project=grafioschtrader-e2e --no-deps`.

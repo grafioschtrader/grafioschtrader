@@ -391,8 +391,24 @@ private LocalDateTime createdAt;
 |----------|-------|----------|
 | `STANDARD_DATE_FORMAT` | `"yyyy-MM-dd"` | `LocalDate` |
 | `STANDARD_DATE_TIME_FORMAT` | `"yyyy-MM-dd'T'HH:mm:ss'Z'"` | timestamps with Z |
+| `STANDARD_LOCAL_DATE_TIME_ISO` | `"yyyy-MM-dd'T'HH:mm:ss"` | business wall-clock times (`transactionTime`) |
 | `STANDARD_LOCAL_DATE_TIME` | `"yyyy-MM-dd HH:mm"` | `LocalDateTime` (no seconds) |
 | `STANDARD_LOCAL_DATE_TIME_SECOND` | `"yyyy-MM-dd HH:mm:ss"` | `LocalDateTime` (with seconds) |
+
+**`'Z'` only on instants the server records in UTC.** The literal `'Z'` performs no conversion — it merely
+declares the value to be UTC, and the browser then shifts it by its own offset. That is right for system
+timestamps (`Auditable`, `sTimestamp`, GTNet), which the application writes in UTC. It is wrong for a time the
+user entered from a statement: the frontend sends that as local time without a zone, so a `'Z'` on the way back
+moved it by the UTC offset on every display and again on every save. Such business times use
+`STANDARD_LOCAL_DATE_TIME_ISO` and a `DATETIME` column (never `TIMESTAMP`, which depends on the host zone).
+
+**Client calendar versus server clock.** For request-time decisions about the user's today (report cutoffs,
+completed-day validation), use `grafiosch.common.ClientClock.today()`. It reads the browser's `x-time-zone`
+header, with UTC fallback for absent or invalid zones. Resolve that date on the request thread and pass it
+into asynchronous loaders; `RequestContextHolder` is not propagated to `CompletableFuture` workers. Include
+the resolved day in caches whose results depend on today. Do not use the offset stored at login for date
+calculations: it becomes stale after a daylight-saving change. Scheduled jobs, daily limits and other
+server policies retain the UTC day. Both application hosts pin their JVM and database sessions to UTC.
 
 ## Numeric Types — `double`, Never `BigDecimal`
 

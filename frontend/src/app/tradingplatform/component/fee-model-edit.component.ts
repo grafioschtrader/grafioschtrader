@@ -8,6 +8,8 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { Helper } from '../../lib/helper/helper';
+import { BaseSettings } from '../../lib/base.settings';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { TradingPlatformPlan } from '../../entities/tradingplatformplan';
 import { TradingPlatformPlanService } from '../service/trading.platform.plan.service';
@@ -296,7 +298,10 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       tradesInQuarter: this.configObject.tradesInQuarter.formControl.value,
       tradesInYear: this.configObject.tradesInYear.formControl.value,
       securityTradesInMonth: this.configObject.securityTradesInMonth.formControl.value,
-      transactionDate: this.configObject.transactionDate.formControl.value || null
+      transactionDate: Helper.formatDateStringAsString(
+        this.configObject.transactionDate,
+        BaseSettings.FORMAT_DATE_SHORT_NATIVE
+      )
     };
 
     if (this.isDynamic) {

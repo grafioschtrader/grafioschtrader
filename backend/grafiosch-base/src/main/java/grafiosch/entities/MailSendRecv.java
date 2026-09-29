@@ -14,6 +14,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
@@ -80,7 +81,7 @@ public class MailSendRecv extends BaseID<Integer> {
   private Byte replyToRolePrivate;
 
   @Schema(description = "When was the message received")
-  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "send_recv_time")
   private LocalDateTime sendRecvTime;
 
@@ -104,6 +105,14 @@ public class MailSendRecv extends BaseID<Integer> {
   private Integer idEntityContext;
 
   public MailSendRecv() {
+  }
+
+  /** Supplies the UTC instant explicitly; DATETIME does not replace an inserted NULL with its default. */
+  @PrePersist
+  protected void initializeSendRecvTime() {
+    if (sendRecvTime == null) {
+      sendRecvTime = LocalDateTime.now();
+    }
   }
 
   public MailSendRecv(SendRecvType sendRecv, Integer idUserFrom, Integer idUserTo, String roleNameTo, String subject,

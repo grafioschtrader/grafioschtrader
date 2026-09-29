@@ -28,9 +28,12 @@ import grafioschtrader.entities.AlgoStrategy;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityBondTerms;
+import grafioschtrader.entities.SecuritySimulationMetadata;
 import grafioschtrader.repository.AlgoAssetclassJpaRepository;
 import grafioschtrader.repository.AlgoStrategyJpaRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
+import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /** One small hierarchy per finding, checked without Spring or a database. */
@@ -150,6 +153,27 @@ class AlgoTopReadinessServiceTest {
         "not json");
     meanReversion.setActivatable(false);
     strategies.add(meanReversion);
+    assertTrue(check(bucket).issues().isEmpty());
+  }
+
+  @Test
+  @DisplayName("A direct bond without a coupon rate blocks; a zero coupon or an equity does not")
+  void bondWithoutCouponRate() {
+    Security security = bucket.getAlgoSecurityList().getFirst().getSecurity();
+    security.getAssetClass().setCategoryType(AssetclassType.FIXED_INCOME);
+    AlgoTopReadiness readiness = check(bucket);
+    assertBlocked(readiness, AlgoTopReadinessService.BOND_COUPON_MISSING, 3);
+    assertEquals(AlgoTopReadinessService.FIELD_DISTRIBUTION, readiness.issues().getFirst().field());
+
+    SecurityBondTerms bondTerms = new SecurityBondTerms();
+    bondTerms.setCouponRate(0.0);
+    SecuritySimulationMetadata metadata = new SecuritySimulationMetadata();
+    metadata.setBondTerms(bondTerms);
+    security.setSimulationMetadata(metadata);
+    assertTrue(check(bucket).issues().isEmpty());
+
+    security.setSimulationMetadata(null);
+    security.getAssetClass().setCategoryType(AssetclassType.EQUITIES);
     assertTrue(check(bucket).issues().isEmpty());
   }
 

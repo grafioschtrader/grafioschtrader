@@ -14,7 +14,8 @@ reads only `.claude/skills/`, so each skill additionally has a stub there that p
 stub** — Claude Code would lose the skill. Both files are UTF-8 without BOM. Details in `.agents/skills/README.md`.
 Currently available: `e2e-test` (mandatory reading before touching the Playwright suite), `create-github-issue`,
 `update-user-manual`, `specification` (mandatory before editing anything in `specification/`), `new-entity` (mandatory
-before adding a JPA entity or table).
+before adding a JPA entity or table), `release` (mandatory before bumping a version, tagging, publishing a GitHub
+Release or deploying).
 
 ## Project Structure & Module Organization
 Backend sources sit in `backend/`, a Maven multi-module workspace: `grafioschtrader-server` hosts the Spring Boot application, `grafioschtrader-common` keeps shared domain code, `grafiosch-server-base` and `grafiosch-base` provide reusable libraries, while `grafiosch-test-integration` contains end-to-end suites.

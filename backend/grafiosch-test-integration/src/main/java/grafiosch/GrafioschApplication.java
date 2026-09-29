@@ -1,5 +1,7 @@
 package grafiosch;
 
+import java.util.TimeZone;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -17,6 +19,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EntityScan(basePackages = { "grafiosch.entities", "grafiosch.integration.entities" })
 @ComponentScan(basePackages = { "grafiosch" })
 public class GrafioschApplication {
+
+  static {
+    // Spring tests also create this application without invoking main().
+    TimeZone.setDefault(TimeZone.getTimeZone(BaseConstants.TIME_ZONE));
+  }
 
   public static void main(final String[] args) {
     // ApplicationContext context =

@@ -36,6 +36,9 @@ public abstract class BaseConstants {
   /** Standard time zone used throughout the application. */
   public static final String TIME_ZONE = "UTC";
 
+  /** Browser time zone for request-scoped calendar dates. */
+  public static final String TIME_ZONE_HEADER = "x-time-zone";
+
   /** This format is indeed a standard, specifically an international one (ISO 8601). */
   public static final String STANDARD_DATE_FORMAT = "yyyy-MM-dd";
 
@@ -44,6 +47,14 @@ public abstract class BaseConstants {
    * correctly convert to local time.
    */
   public static final String STANDARD_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
+  /**
+   * ISO 8601 date-time format without a zone designator, for a business wall-clock time such as the time of a
+   * transaction as printed on the broker statement. The value is not an instant: the browser reads it as local time and
+   * shows it unchanged in every time zone. Use {@link #STANDARD_DATE_TIME_FORMAT} only for values the server records in
+   * UTC; applying it to a user-entered wall-clock time makes the browser shift that time by the UTC offset.
+   */
+  public static final String STANDARD_LOCAL_DATE_TIME_ISO = "yyyy-MM-dd'T'HH:mm:ss";
 
   /** Standard local date-time format including hours and minutes. */
   public static final String STANDARD_LOCAL_DATE_TIME = "yyyy-MM-dd HH:mm";

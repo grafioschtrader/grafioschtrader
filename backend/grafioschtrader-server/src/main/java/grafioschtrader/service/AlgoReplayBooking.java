@@ -47,6 +47,15 @@ public class AlgoReplayBooking {
    */
   static final int MAX_FUNDING_TRANSFERS = 200;
 
+  /**
+   * Smallest funding transfer, in minor units of the currency of the target account - 10.00 for a currency with two
+   * decimals. A transfer of a few cents rounds both of its sides to the same amount, and the write path then derives
+   * the exchange rate from those two amounts, which stores a rate of 1 between any two currencies. At this size the
+   * rounding moves the derived rate by no more than about a tenth of a percent. A smaller shortfall is raised to it,
+   * and a residue below it stays on its account.
+   */
+  static final int MIN_FUNDING_TRANSFER_MINOR_UNITS = 1000;
+
   /** Time of day generated fills are booked at, matching the opening deposits of the environment. */
   private static final int FILL_HOUR = 0;
 
@@ -536,6 +545,10 @@ public class AlgoReplayBooking {
    * allocation that deploys the whole equity of an environment is short of its last line by whatever the market moved
    * between the day it was sized on and the day it fills.
    * </p>
+   * <p>
+   * No transfer is smaller than {@link #MIN_FUNDING_TRANSFER_MINOR_UNITS}: a smaller shortfall brings the minimum, and
+   * a contributor that cannot give the minimum keeps its residue.
+   * </p>
    *
    * @param state        the running replay
    * @param account      the beneficiary securities account whose FX tariff applies
@@ -572,7 +585,10 @@ public class AlgoReplayBooking {
       Currencypair pair, Double rate, AlgoReplayFx.Conversion fx) {
   }
 
-  /** Requotes every reduced deposit, so the persisted pair uses the tariff of its final amount. */
+  /**
+   * Requotes every reduced deposit, so the persisted pair uses the tariff of its final amount. The deposit is at least
+   * {@link #MIN_FUNDING_TRANSFER_MINOR_UNITS}; a source that cannot pay for that minimum yields no transfer.
+   */
   private Transfer prepareTransfer(AlgoReplayState state, Integer account, Cashaccount source, Cashaccount target,
       double wanted, int precision, LocalDate date) {
     Double spendable = spendable(source, date);
@@ -585,9 +601,10 @@ public class AlgoReplayBooking {
     if (close == null || !Double.isFinite(close) || close <= 0)
       return null;
     int sourcePrecision = globalparametersService.getPrecisionForCurrency(source.getCurrency());
-    double deposited = ceil(wanted, precision);
     double step = Math.pow(10, -precision);
-    while (deposited > 0) {
+    double minimum = DataHelper.round(MIN_FUNDING_TRANSFER_MINOR_UNITS * step, precision);
+    double deposited = Math.max(ceil(wanted, precision), minimum);
+    while (deposited >= minimum) {
       var quote = pair == null ? null
           : state.fx.quote(account, source.getCurrency(), target.getCurrency(), pair, close, "TRANSFER",
               deposited / close, date, null, exactFxRates());

@@ -2,6 +2,8 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { Helper } from '../../lib/helper/helper';
+import { BaseSettings } from '../../lib/base.settings';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { SecurityActionService } from '../service/security-action.service';
 import { SecurityAction } from '../model/security-action.model';
@@ -114,7 +116,7 @@ export class SecurityActionCreateComponent extends SimpleEditBase implements OnI
       securityNew: null,
       isinOld: value.isinOld,
       isinNew: value.isinNew,
-      actionDate: value.actionDate,
+      actionDate: Helper.formatDateStringAsString(this.configObject.actionDate, BaseSettings.FORMAT_DATE_SHORT_NATIVE),
       note: value.note,
       fromFactor: value.fromFactor || null,
       toFactor: value.toFactor || null,

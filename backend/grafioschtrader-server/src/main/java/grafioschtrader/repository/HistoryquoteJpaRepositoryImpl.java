@@ -28,6 +28,7 @@ import org.springframework.util.ClassUtils;
 import com.ezylang.evalex.EvaluationException;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.Auditable;
 import grafiosch.entities.TaskDataChange;
@@ -212,14 +213,13 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   }
 
   private long checkDatePastMinus1Day(Historyquote historyquote) {
-    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     LocalDate hqDate = historyquote.getDate();
     java.time.DayOfWeek dow = hqDate.getDayOfWeek();
     if (dow == java.time.DayOfWeek.SATURDAY || dow == java.time.DayOfWeek.SUNDAY) {
       throw new IllegalArgumentException("The date must be a working day!");
     }
 
-    LocalDate nowDate = LocalDate.now(java.time.ZoneOffset.ofTotalSeconds(user.getTimezoneOffset() * -60));
+    LocalDate nowDate = ClientClock.today();
     long days = ChronoUnit.DAYS.between(hqDate, nowDate);
     if (days < 1) {
       throw new IllegalArgumentException("The date must be yesterday or older!");

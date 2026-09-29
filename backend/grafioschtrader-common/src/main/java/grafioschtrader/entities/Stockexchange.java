@@ -37,6 +37,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
@@ -140,7 +141,7 @@ public class Stockexchange extends Auditable implements Serializable {
   private LocalDate maxCalendarUpdDate;
 
   @Schema(description = "When was the last update performed for this stock exchange ")
-  @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME)
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_TIME_FORMAT)
   @Column(name = "last_direct_price_update")
   private LocalDateTime lastDirectPriceUpdate;
 
@@ -158,6 +159,14 @@ public class Stockexchange extends Auditable implements Serializable {
   private String nameTradingCalendarRuleSet;
 
   public Stockexchange() {
+  }
+
+  /** Makes a new exchange immediately eligible for a direct price update, matching its database default. */
+  @PrePersist
+  protected void initializeLastDirectPriceUpdate() {
+    if (lastDirectPriceUpdate == null) {
+      lastDirectPriceUpdate = LocalDateTime.now().minusHours(72);
+    }
   }
 
   public Stockexchange(@Size(min = 4, max = 4) String mic, @NotBlank @Size(min = 2, max = 32) String name,

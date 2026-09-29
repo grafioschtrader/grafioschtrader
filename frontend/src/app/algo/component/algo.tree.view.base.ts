@@ -18,6 +18,11 @@ import { AlgoStrategyDefinitionForm, AlgoStrategyParamCall } from '../model/algo
 import { TreeAlgoStrategy, TreeAlgoTop } from '../model/tree.algo.base';
 import { AlgoStrategyService } from '../service/algo.strategy.service';
 import { AlgoStrategyHelper } from './algo.strategy.helper';
+import { AlgoSecurity } from '../model/algo.security';
+import { Security } from '../../entities/security';
+import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
+import { AppHelper } from '../../lib/helper/app.helper';
 
 /**
  * Shared base of the views that show a strategy hierarchy as a tree: the editable live hierarchy and the frozen
@@ -27,6 +32,13 @@ import { AlgoStrategyHelper } from './algo.strategy.helper';
  */
 @Directive()
 export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
+  /**
+   * Field of the column that shows the distribution icon of an instrument, or the coupon rate of a bond. The path does
+   * not exist on the entity, the column takes its value from {@link getCouponRate} alone. The backend readiness check
+   * names the same field when it reports a bond without a coupon rate.
+   */
+  static readonly DISTRIBUTION_FIELD = 'security.distribution';
+
   algoTop: AlgoTop;
   treeNodes: TreeNode[];
   selectedNode: TreeNode;
@@ -37,13 +49,25 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
   /** Parameters of the strategy shown in the detail below the tree; its algoStrategy is null when none is selected. */
   algoStrategyShowParamCall: AlgoStrategyParamCall = new AlgoStrategyParamCall();
 
+  /** Formats the coupon rate of a bond in the distribution column. */
+  private readonly couponRateField = ShowRecordConfigBase.createColumnConfig(
+    DataType.Numeric,
+    'security.simulationMetadata.bondTerms.couponRate',
+    null,
+    true,
+    false,
+    { maxFractionDigits: 4 }
+  );
+
   /**
    * @param algoStrategyService - Loads the form definition of a strategy implementation for the strategy detail
+   * @param productIconService - Provides the distribution icon shared with the watchlist
    * @param translateService - Angular translation service for internationalization support
    * @param gps - Global parameter service providing user locale and formatting preferences
    */
   protected constructor(
     protected algoStrategyService: AlgoStrategyService,
+    protected productIconService: ProductIconService,
     translateService: TranslateService,
     gps: GlobalparameterService
   ) {
@@ -57,21 +81,65 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
    */
   protected addNameAndPercentageColumns(): ColumnConfig {
     this.addColumn(DataType.String, 'name', 'NAME', true, false, {
+      width: 400,
       fieldValueFN: this.getReadableUniqueName.bind(this)
     });
     return this.addColumn(DataType.Numeric, 'percentage', 'ALGO_PERCENTAGE', true, false, {
-      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
+      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
+      width: 80
     });
   }
 
-  /** Adds the columns that follow the percentage: the child total, the activity dates of an instrument and the ID. */
+  /**
+   * Adds the columns that follow the percentage: the child total, the activity dates of an instrument, its
+   * distribution and the ID. The distribution column shows the watchlist's distribution icon for an instrument that
+   * pays out, and the coupon rate for a bond, since a simulation pays a bond's interest from that rate. The subclass
+   * template renders it through its `iconCell` template.
+   */
   protected addTotalDateAndIdColumns(): void {
     this.addColumnFeqH(DataType.NumericShowZero, 'addedPercentage', true, false, {
-      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION
+      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
+      width: 80
     });
-    this.addColumnFeqH(DataType.DateString, 'security.activeFromDate', true, false);
-    this.addColumnFeqH(DataType.DateString, 'security.activeToDate', true, false);
+    this.addColumnFeqH(DataType.DateString, 'security.activeFromDate', true, false, { width: 80 });
+    this.addColumnFeqH(DataType.DateString, 'security.activeToDate', true, false, { width: 80 });
+    this.addColumn(DataType.String, AlgoTreeViewBase.DISTRIBUTION_FIELD, AppSettings.DISTRIBUTION_HEADER, true, false, {
+      fieldValueFN: this.getCouponRate.bind(this),
+      templateName: 'icon',
+      width: 50
+    });
     this.addColumn(DataType.String, 'idTree', 'ID', true, false);
+  }
+
+  /**
+   * Returns the distribution icon for an instrument row whose security pays out interest or dividends. A bond gets no
+   * icon, its cell shows the coupon rate instead.
+   *
+   * @param rowData - The row data object of the tree
+   * @returns The name of the registered icon, or null when the cell shows no icon
+   */
+  getDistributionIcon(rowData: any): string | null {
+    return rowData instanceof AlgoSecurity &&
+      rowData.security &&
+      !Security.isBondDirectInvestment(rowData.security.assetClass)
+      ? this.productIconService.getDistributionIcon(rowData.security)
+      : null;
+  }
+
+  /**
+   * Produces the text of the distribution column: the formatted coupon rate of a bond. It is empty for every other row
+   * and for a bond whose coupon rate is missing; the backend marks the latter as blocking a simulation.
+   */
+  getCouponRate(rowData: any, field: ColumnConfig, valueField: any): string | null {
+    return rowData instanceof AlgoSecurity && Security.isBondDirectInvestment(rowData.security?.assetClass)
+      ? AppHelper.getValueByPathWithField(
+          this.gps,
+          this.translateService,
+          rowData,
+          this.couponRateField,
+          this.couponRateField.field
+        )
+      : null;
   }
 
   getReadableUniqueName(dataobject: AlgoTreeName, field: ColumnConfig, valueField: any): string {

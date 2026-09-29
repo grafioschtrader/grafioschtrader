@@ -59,7 +59,7 @@ public class AlgoMeanReversionFillBudgetService {
     if (decision.action() == Action.ADD) {
       var averaging = config.downside_management.variant_B_average_down;
       if (config.downside_management.loss_action != grafioschtrader.algo.strategy.model.complex.enums.LossAction.B_average_down
-          || averaging == null || !Boolean.TRUE.equals(averaging.enabled))
+          || averaging == null || Boolean.FALSE.equals(averaging.enabled))
         throw new IllegalArgumentException("Averaging is no longer enabled");
       if (current == null || current.lifecycle() != context.position().lifecycle()
           || Math.signum(current.signedUnits()) != decision.direction()

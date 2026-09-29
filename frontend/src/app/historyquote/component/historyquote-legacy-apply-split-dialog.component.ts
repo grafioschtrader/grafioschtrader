@@ -7,6 +7,8 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
 import { HelpIds } from '../../lib/help/help.ids';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
+import { Helper } from '../../lib/helper/helper';
+import { BaseSettings } from '../../lib/base.settings';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { HistoryquoteLegacyService } from '../service/historyquote.legacy.service';
@@ -71,7 +73,7 @@ export class HistoryquoteLegacyApplySplitDialogComponent extends SimpleEditBase 
     this.configObject.submit.disabled = true;
     this.historyquoteLegacyService
       .applySplitToLegacy(this.idSecuritycurrency, {
-        splitDate: value.splitDate,
+        splitDate: Helper.formatDateStringAsString(this.configObject.splitDate, BaseSettings.FORMAT_DATE_SHORT_NATIVE),
         fromFactor: value.fromFactor,
         toFactor: value.toFactor
       })

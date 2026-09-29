@@ -61,7 +61,7 @@ public final class ProfitManagementValidator {
     var p = c.take_profit;
     if (p == null)
       return;
-    require(p.reference != null && "sell_all_remaining".equals(p.action),
+    require(p.reference != null && nullOr(p.action, "sell_all_remaining"),
         "Take-profit requires reference and full exit");
     require(p.mode == TriggerType.pct_gain || p.mode == TriggerType.absolute_profit,
         "Take-profit supports pct_gain or absolute_profit");

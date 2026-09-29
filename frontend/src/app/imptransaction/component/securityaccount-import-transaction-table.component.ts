@@ -46,7 +46,8 @@ import { SecurityaccountImportSetCashaccountComponent } from './securityaccount-
       [data]="entityList"
       [fields]="fields"
       [dataKey]="'importTransactionPos.idTransactionPos'"
-      [(selection)]="selectedEntities"
+      [selection]="selectedEntities"
+      (selectionChange)="onSelectionChange($event)"
       [selectionMode]="'multiple'"
       [paginator]="true"
       [rows]="rowsPerPage"
@@ -308,6 +309,17 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
   }
 
   /**
+   * Takes over the selection and lets the master view rebuild its menus. Needed because the row checkbox changes the
+   * selection on the native change event, i.e. after the click event the master view refreshes its menus on.
+   *
+   * @param selectedEntities - The rows selected now
+   */
+  onSelectionChange(selectedEntities: CombineTemplateAndImpTransPos[]): void {
+    this.selectedEntities = selectedEntities;
+    this.parentChildRowSelection?.rowSelectionChanged(this.entityList, null);
+  }
+
+  /**
    * Builds the failed parsed template state list for a given row.
    * This is called when a row is expanded to show error details.
    *
@@ -560,8 +572,9 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
     entityList: CombineTemplateAndImpTransPos[]
   ): void {
     for (let i = 0; i < selectedEntities.length; i++) {
-      let match = entityList.find(
-        (elem) => elem.importTransactionPos.idTransactionPos === entityList[i].importTransactionPos.idTransactionPos
+      const match = entityList.find(
+        (elem) =>
+          elem.importTransactionPos.idTransactionPos === selectedEntities[i].importTransactionPos.idTransactionPos
       );
       if (match) {
         selectedEntities[i] = match;

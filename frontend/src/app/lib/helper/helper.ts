@@ -185,6 +185,19 @@ export abstract class Helper {
       : null;
   }
 
+  /**
+   * Parses calendar days as local midnight so users west of UTC retain the stored day when editing.
+   * Instants, epoch numbers and wall-clock date-times keep the native Date constructor's behaviour.
+   *
+   * @param value - Backend date or date-time value to load into a calendar control
+   * @returns A Date with local calendar components for a date-only string
+   */
+  public static parseDateOnlyAsLocal(value: string | number | Date): Date {
+    return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? moment(value, BaseSettings.FORMAT_DATE_SHORT_NATIVE).toDate()
+      : new Date(value);
+  }
+
   public static flattenObject(obj: { [name: string]: any }, res = {}): { [name: string]: any } {
     Object.keys(obj).forEach((key) => {
       res[key] = obj[key];

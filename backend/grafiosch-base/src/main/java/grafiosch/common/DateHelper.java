@@ -52,7 +52,12 @@ public class DateHelper {
    * @return {@code true} if the date is today or in the future, {@code false} otherwise.
    */
   public static boolean isTodayOrAfter(LocalDate date) {
-    return !date.isBefore(LocalDate.now());
+    return isTodayOrAfter(date, LocalDate.now());
+  }
+
+  /** Checks the date against an explicitly supplied calendar day. */
+  public static boolean isTodayOrAfter(LocalDate date, LocalDate today) {
+    return !date.isBefore(today);
   }
 
   /**
@@ -63,7 +68,11 @@ public class DateHelper {
    * @return {@code true} if the condition is met, {@code false} otherwise.
    */
   public static boolean isUntilDateEqualNowOrAfterOrInActualWeekend(LocalDate date) {
-    LocalDate today = LocalDate.now();
+    return isUntilDateEqualNowOrAfterOrInActualWeekend(date, LocalDate.now());
+  }
+
+  /** Applies the recent-weekend fallback relative to an explicitly supplied calendar day. */
+  public static boolean isUntilDateEqualNowOrAfterOrInActualWeekend(LocalDate date, LocalDate today) {
     return !date.isBefore(today) || (ChronoUnit.DAYS.between(date, today) <= 2
         && (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY));
   }

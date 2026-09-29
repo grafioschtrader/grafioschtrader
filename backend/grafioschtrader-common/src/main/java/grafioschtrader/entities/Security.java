@@ -467,6 +467,17 @@ public class Security extends Securitycurrency<Security>
         && getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
   }
 
+  /**
+   * Whether a direct bond lacks the coupon rate a simulation needs to pay its interest. A simulation refuses to run
+   * with such a bond, since it would otherwise earn nothing. A coupon rate of zero is a valid zero-coupon bond.
+   */
+  @JsonIgnore
+  public boolean isSimulationCouponRateMissing() {
+    return getAssetClass() != null && isBondDirectInvestment()
+        && (simulationMetadata == null || simulationMetadata.getBondTerms() == null
+            || simulationMetadata.getBondTerms().getCouponRate() == null);
+  }
+
   @JsonIgnore
   public boolean isIssuerBearingInstrument() {
     if (getAssetClass() == null || getAssetClass().getSpecialInvestmentInstrument() == null) {

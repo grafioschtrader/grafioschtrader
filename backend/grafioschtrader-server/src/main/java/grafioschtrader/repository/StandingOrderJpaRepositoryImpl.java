@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.ezylang.evalex.Expression;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafiosch.common.DataHelper;
 import grafiosch.common.LockedWhenUsed;
 import grafiosch.common.PropertyAlwaysUpdatable;
@@ -98,9 +99,8 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
     String cashaccountCurrency = loadCashaccountCurrency(standingOrder, user.getIdTenant());
     validateStandingOrder(standingOrder, cashaccountCurrency);
     resolveCurrencypair(standingOrder, cashaccountCurrency);
-    LocalDate today = LocalDate.now();
-    if (standingOrder.getNextExecutionDate() == null && standingOrder.getLastExecutionDate() == null
-        && !today.isBefore(standingOrder.getValidFrom())) {
+    LocalDate today = ClientClock.today();
+    if (standingOrder.getNextExecutionDate() == null && standingOrder.getLastExecutionDate() == null) {
       // Brand new standing order: use validFrom as first execution date
       standingOrder.setNextExecutionDate(computeInitialNextExecutionDate(standingOrder));
     } else if (standingOrder.getNextExecutionDate() == null && standingOrder.getLastExecutionDate() != null

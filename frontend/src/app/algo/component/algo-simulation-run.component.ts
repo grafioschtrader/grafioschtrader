@@ -3,15 +3,19 @@ import { BusinessHelper } from '../../shared/helper/business.helper';
 import { AppSettings } from '../../shared/app.settings';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { ContextMenuModule } from '@openng/optimus-ui/contextmenu';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { Subscription } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { SliderModule } from '@openng/optimus-ui/slider';
+import moment from 'moment';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, finalize } from 'rxjs/operators';
 import { SingleRecordConfigBase } from '../../lib/datashowbase/single.record.config.base';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { BaseSettings } from '../../lib/base.settings';
@@ -30,6 +34,7 @@ import { AlgoSimulationRunService } from '../service/algo-simulation-run.service
 import {
   SimulationFailureMessage,
   SimulationRunEvent,
+  SimulationRunEventWindow,
   SimulationRunResult,
   SimulationRunStatus,
   splitSimulationFailureMessage
@@ -68,9 +73,11 @@ import { TaxDetailsTableComponent } from '../../taxdata/component/tax-details-ta
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgClass,
+    FormsModule,
     TranslateModule,
     ButtonModule,
     ContextMenuModule,
+    SliderModule,
     AlgoSimulationRunTableComponent,
     TaxDetailsTableComponent
   ],
@@ -173,7 +180,22 @@ import { TaxDetailsTableComponent } from '../../taxdata/component/tax-details-ta
           }
           <fieldset class="out-border">
             <legend class="out-border-legend">{{ 'SIMULATION_RUN_EVENTS' | translate }}</legend>
-            <algo-simulation-run-table [rows]="events" />
+            <algo-simulation-run-table [rows]="events">
+              @if (eventTotal > events.length) {
+                <div caption class="event-window">
+                  <span>{{ 'SIMULATION_RUN_EVENTS_ANCHOR' | translate }}: {{ anchorDateText }}</span>
+                  <p-slider
+                    class="event-window-slider"
+                    [(ngModel)]="anchorOffset"
+                    [min]="0"
+                    [max]="runDays"
+                    [ariaLabel]="'SIMULATION_RUN_EVENTS_ANCHOR' | translate"
+                    (onSlideEnd)="anchorMoved$.next()"
+                    (keyup)="anchorMoved$.next()" />
+                  <span>{{ 'SIMULATION_RUN_EVENTS_WINDOW' | translate: windowParams }}</span>
+                </div>
+              }
+            </algo-simulation-run-table>
           </fieldset>
         } @else {
           <p>{{ 'SIMULATION_RUN_NONE' | translate }}</p>
@@ -183,7 +205,19 @@ import { TaxDetailsTableComponent } from '../../taxdata/component/tax-details-ta
       }
       <p-contextMenu [target]="cmDiv" [model]="contextMenuItems" appendTo="body" />
     </div>
-  `
+  `,
+  styles: [
+    `
+      .event-window {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      .event-window-slider {
+        flex: 1;
+      }
+    `
+  ]
 })
 export class AlgoSimulationRunComponent extends SingleRecordConfigBase implements IGlobalMenuAttach, OnInit, OnDestroy {
   /** Poll interval while a run has only just started, so that a short replay still appears to finish promptly. */
@@ -204,6 +238,14 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   run: SimulationRunResult;
   failureMessage: SimulationFailureMessage;
   events: SimulationRunEvent[] = [];
+  /** Entries the run wrote in total; more than the loaded window holds when the trail is long. */
+  eventTotal = 0;
+  /** Position of the slider in days after the opening date of the run. */
+  anchorOffset: number;
+  /** Interpolation values of the text that names the loaded period and its share of the trail. */
+  windowParams: { [key: string]: string } = {};
+  /** Fires on each release or key stroke of the slider; debounced, because the keyboard has no end of a slide. */
+  readonly anchorMoved$ = new Subject<void>();
   conventions: string[] = [];
   incomeSummary: any;
   contextMenuItems: MenuItem[] = [];
@@ -217,6 +259,16 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   private wasRunning: boolean;
   private routeSubscribe: Subscription;
   private dataChangedSubscribe: Subscription;
+  private anchorSubscribe: Subscription;
+  /** Day in 'YYYY-MM-DD' the loaded window is centred on; undefined for the end of the run. */
+  private anchorDate: string;
+  /** Formats the dates and counts of the window text the same way the table formats its values. */
+  private readonly windowDateField = ShowRecordConfigBase.createColumnConfig(DataType.DateString, 'value', 'DATE');
+  private readonly windowCountField = ShowRecordConfigBase.createColumnConfig(
+    DataType.NumericInteger,
+    'value',
+    'TOTAL'
+  );
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -262,12 +314,14 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
         }
       }
     );
+    this.anchorSubscribe = this.anchorMoved$.pipe(debounceTime(400)).subscribe(() => this.onAnchorMoved());
   }
 
   ngOnDestroy(): void {
     this.stopPolling();
     this.routeSubscribe?.unsubscribe();
     this.dataChangedSubscribe?.unsubscribe();
+    this.anchorSubscribe?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 
@@ -278,6 +332,16 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
 
   get running(): boolean {
     return this.run?.status === SimulationRunStatus.RUNNING;
+  }
+
+  /** Length of the run in calendar days, the range of the slider. */
+  get runDays(): number {
+    return this.run ? moment(this.run.endDate).diff(moment(this.run.openingDate), 'days') : 0;
+  }
+
+  /** The day the slider points at, formatted as it would be in the table, while it is still being dragged. */
+  get anchorDateText(): string {
+    return this.formatWindowValue(this.windowDateField, this.offsetToDate(this.anchorOffset));
   }
 
   /** An environment created before the opening date and policy were recorded cannot be replayed until recreated. */
@@ -426,9 +490,50 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
       this.pollStartedAt = undefined;
     }
     if (run && (loadEvents || runningChanged)) {
-      this.runService.events(this.idTenant, 0, 200).subscribe((page) => (this.events = page.content));
+      if (runningChanged) {
+        // A run that starts or ends has a trail of its own, which is read from its newest day.
+        this.anchorDate = undefined;
+      }
+      this.loadEventWindow();
     }
     this.updateMenu();
+  }
+
+  /**
+   * Reads the part of the audit trail around the chosen day. A run can write far more entries than one response may
+   * carry, so the server returns a bounded window and the total, and the slider in the table header moves the window.
+   */
+  private loadEventWindow(): void {
+    this.anchorOffset = this.anchorDate
+      ? moment(this.anchorDate).diff(moment(this.run.openingDate), 'days')
+      : this.runDays;
+    this.runService.eventWindow(this.idTenant, this.anchorDate).subscribe((window: SimulationRunEventWindow) => {
+      this.events = window.events;
+      this.eventTotal = window.totalElements;
+      this.windowParams = {
+        from: this.formatWindowValue(this.windowDateField, this.events[this.events.length - 1]?.eventDate),
+        to: this.formatWindowValue(this.windowDateField, this.events[0]?.eventDate),
+        count: this.formatWindowValue(this.windowCountField, this.events.length),
+        total: this.formatWindowValue(this.windowCountField, this.eventTotal)
+      };
+    });
+  }
+
+  /** Loads the window of the day the slider was released on, unless it is the one already shown. */
+  private onAnchorMoved(): void {
+    const anchorDate = this.offsetToDate(this.anchorOffset);
+    if (this.run && anchorDate !== (this.anchorDate ?? this.run.endDate)) {
+      this.anchorDate = anchorDate;
+      this.loadEventWindow();
+    }
+  }
+
+  private offsetToDate(offset: number): string {
+    return this.run ? moment(this.run.openingDate).add(offset, 'days').format('YYYY-MM-DD') : null;
+  }
+
+  private formatWindowValue(field: ColumnConfig, value: string | number): string {
+    return value == null ? '' : this.getValueByPath({ value }, field);
   }
 
   /** Navigating from one environment to the next reuses the component, so nothing of the previous one may survive. */
@@ -439,6 +544,8 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     this.pollStartedAt = undefined;
     this.failureMessage = undefined;
     this.events = [];
+    this.eventTotal = 0;
+    this.anchorDate = undefined;
     this.conventions = [];
     this.notFound = false;
     this.updateMenu();

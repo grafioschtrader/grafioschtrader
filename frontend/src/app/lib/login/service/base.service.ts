@@ -1,4 +1,5 @@
 import { HttpHeaders } from '@angular/common/http';
+import { BaseSettings } from '../../base.settings';
 
 export abstract class BaseService {
   getHeaders(): { headers: HttpHeaders } {
@@ -30,6 +31,7 @@ export abstract class BaseService {
   protected addToken(header) {
     if (sessionStorage.getItem('jwt')) {
       header['x-auth-token'] = sessionStorage.getItem('jwt');
+      header[BaseSettings.TIME_ZONE_HEADER] = Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
   }
 }

@@ -28,23 +28,13 @@ import * as yaml from 'js-yaml';
 
 /** Default YAML template for the Mean Reversion Dip strategy */
 const STRATEGY_TEMPLATE_YAML = `strategy_name: daily_dip_with_stop
-version: "1.0"
 universe:
-  mode: watchlist
   direction: long_only
-data:
-  price_field: close
-  timeframe: 1d
-execution:
-  order_type: market
-  slippage_model: none
-  fees_model: none
 cooldowns:
   after_buy_days: 2
   after_sell_days: 2
   max_trades_per_asset_per_30d: 10
 entry:
-  type: dip_buy
   lookback_T: 10
   dip_reference:
     type: price_T_ago
@@ -74,22 +64,19 @@ profit_management:
     mode: pct_gain
     pct: 0.10
     reference: avg_cost
-    action: sell_all_remaining
 downside_management:
+  # Additional loss rule. A hard stop does not need it; indicator confirmation and averaging down do.
   trigger:
     down_reference: avg_cost
     down_threshold_pct: -0.10
     decision_basis: simple_threshold
+  # The loss action alone selects the variant: A_sell_loss sells at the stop, B_average_down buys more instead.
   loss_action: A_sell_loss
   variant_A_sell_loss:
-    enabled: true
     stop_type: hard_stop
     stop_reference: avg_cost
     stop_threshold_pct: -0.10
-    order_type: market
-    action: sell_all_remaining
   variant_B_average_down:
-    enabled: false
     add_sizing:
       mode: pct_portfolio
       pct: 0.01
@@ -98,13 +85,10 @@ downside_management:
       type: each_n_pct_drop
       reference: initial_entry_price
       drop_pct_step: 0.05
-    recalculate_avg_cost: true
 risk_controls:
   max_position_exposure_pct: 0.10
   max_position_drawdown_pct: 0.25
   force_exit_on_risk_breach: true
-  block_entry_if_exposure_exceeded: true
-  block_add_if_exposure_exceeded: true
 `;
 
 /**

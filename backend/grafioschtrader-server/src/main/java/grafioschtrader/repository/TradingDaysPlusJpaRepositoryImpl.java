@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafiosch.common.UserAccessHelper;
 import grafiosch.entities.User;
 import grafioschtrader.dto.TradingDaysWithDateBoundaries;
@@ -27,7 +28,12 @@ public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepos
 
   @Override
   public boolean hasTradingDayBetweenUntilYesterday(LocalDate tradingDay) {
-    LocalDate yesterday = LocalDate.now().minusDays(1);
+    return hasTradingDayBetweenUntilYesterday(tradingDay, ClientClock.today());
+  }
+
+  @Override
+  public synchronized boolean hasTradingDayBetweenUntilYesterday(LocalDate tradingDay, LocalDate today) {
+    LocalDate yesterday = today.minusDays(1);
     Long numberOfTradingDays = null;
     if (untilYesterday == null || !yesterday.equals(untilYesterday)) {
       // Map is out dated
@@ -54,7 +60,7 @@ public class TradingDaysPlusJpaRepositoryImpl implements TradingDaysPlusJpaRepos
   }
 
   @Override
-  public TradingDaysWithDateBoundaries save(SaveTradingDays saveTradingDays) {
+  public synchronized TradingDaysWithDateBoundaries save(SaveTradingDays saveTradingDays) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     if (UserAccessHelper.isAdmin(user)) {
       List<TradingDaysPlus> createTradingDaysPlusList = new ArrayList<>();
