@@ -39,7 +39,6 @@ export interface SecurityAccountData {
    * dependent, hence the substring match. null takes the first non-empty option.
    */
   tradingPlatformPlan: string | null;
-  lowestTransactionCost: number;
   /** Rows added on top of the two the dialog pre-fills (Equities/Direct investment, Equities/ETF). */
   tradingPeriods: TradingPeriodData[];
 }

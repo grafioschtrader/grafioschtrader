@@ -308,7 +308,6 @@ class SimulationTenantIntegrationTest {
   private Securityaccount addSecurityaccount(String name) {
     Securityaccount account = new Securityaccount(name, em.find(Cashaccount.class, cashId).getPortfolio());
     account.setIdTenant(tenantId);
-    account.setLowestTransactionCost(0f);
     account.setTradingPlatformPlan(em.createQuery("SELECT p FROM TradingPlatformPlan p", TradingPlatformPlan.class)
         .setMaxResults(1).getSingleResult());
     em.persist(account);

@@ -81,7 +81,6 @@ class SimulationCopyLimitIntegrationTest {
       em.persist(portfolio);
       Securityaccount securities = new Securityaccount("Copy securities " + i, portfolio);
       securities.setIdTenant(tenantId);
-      securities.setLowestTransactionCost(0.0f);
       securities.setTradingPlatformPlan(em.createQuery("SELECT p FROM TradingPlatformPlan p", TradingPlatformPlan.class)
           .setMaxResults(1).getSingleResult());
       em.persist(securities);

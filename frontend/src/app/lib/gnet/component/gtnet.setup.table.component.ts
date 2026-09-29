@@ -725,6 +725,8 @@ export class GTNetSetupTableComponent extends TableCrudSupportMenu<GTNet> {
     ]).subscribe({
       next: ([messages, messageAttempts]) => {
         this.gtNetMessageMap[idGtNet] = messages;
+        // Same visibility filter as the backend count, so the panel header follows the deletion
+        this.gtNetMessageCountMap[idGtNet] = messages.length;
         this.gtNetMessageAttemptMap[idGtNet] = messageAttempts;
         this.gtNetMessageAttemptCountMap[idGtNet] = messageAttempts.length;
         this.loadedMessageIds.add(idGtNet);

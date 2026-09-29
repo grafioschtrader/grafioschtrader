@@ -177,8 +177,9 @@ public class TenantResource extends TenantBaseResource<Tenant> {
   }
 
   @Operation(summary = "Window of the audit trail of the historical replay around an anchor day, newest day first", description = """
-      Returns up to 5000 entries before the anchor day and as many from it on, together with the total number of
-      entries of the run. Without an anchor day the end date of the run is used.""", tags = { TenantBase.TABNAME })
+      Returns a bounded number of entries before the anchor day and as many from it on, together with the total number
+      of entries of the run. A trail that fits into one window is returned whole, whatever the anchor day. Without an
+      anchor day the end date of the run is used.""", tags = { TenantBase.TABNAME })
   @GetMapping(value = "/simulation/{idTenant}/run/events/window", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SimulationRunEventWindow> getSimulationRunEventWindow(
       @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant,

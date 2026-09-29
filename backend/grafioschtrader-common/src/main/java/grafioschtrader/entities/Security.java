@@ -603,33 +603,44 @@ public class Security extends Securitycurrency<Security>
 
   @JsonIgnore
   public boolean canHaveDividendConnector() {
+    return distributionFrequency != DistributionFrequency.DF_NONE.getValue() && isDividendCapableInstrument();
+  }
+
+  /**
+   * Tells whether the kind of instrument can pay a dividend at all, judged by its asset class alone. Unlike
+   * {@link #canHaveDividendConnector()} the distribution frequency is deliberately ignored: a stock configured with
+   * {@code DF_NONE} may still start paying later, and the dividend calendar check must report exactly that case. A
+   * directly held bond, a derived instrument or a credit derivative never pays a dividend, so a calendar entry for it
+   * (e.g. a bond coupon) is irrelevant.
+   *
+   * @return true if the instrument could receive dividends given a matching distribution frequency
+   */
+  @JsonIgnore
+  public boolean isDividendCapableInstrument() {
     if (isDerivedInstrument()) {
       return false;
     }
-    boolean canHaveDividend = false;
-    if (distributionFrequency != DistributionFrequency.DF_NONE.getValue()) {
-      canHaveDividend = this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF
-          || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.PENSION_FUNDS
-          || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.MUTUAL_FUND;
-      switch (this.assetClass.getCategoryType()) {
-      case EQUITIES:
-      case REAL_ESTATE:
-        canHaveDividend = canHaveDividend
-            || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
-        break;
-      case COMMODITIES:
-        canHaveDividend = assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
-        break;
-      case CURRENCY_PAIR:
-        canHaveDividend = assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
-        break;
-      case CREDIT_DERIVATIVE:
-        canHaveDividend = false;
-        break;
-      default:
-        // Do nothing
-        break;
-      }
+    boolean canHaveDividend = this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF
+        || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.PENSION_FUNDS
+        || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.MUTUAL_FUND;
+    switch (this.assetClass.getCategoryType()) {
+    case EQUITIES:
+    case REAL_ESTATE:
+      canHaveDividend = canHaveDividend
+          || this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT;
+      break;
+    case COMMODITIES:
+      canHaveDividend = assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
+      break;
+    case CURRENCY_PAIR:
+      canHaveDividend = assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.ETF;
+      break;
+    case CREDIT_DERIVATIVE:
+      canHaveDividend = false;
+      break;
+    default:
+      // Do nothing
+      break;
     }
     return canHaveDividend;
   }

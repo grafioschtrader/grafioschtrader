@@ -936,7 +936,6 @@ class AlgoHistoricalReplayIntegrationTest {
     transactions.saveOnlyAttributes(funding, null, null);
     Securityaccount target = new Securityaccount("Transfer custody", portfolio);
     target.setIdTenant(idTenant);
-    target.setLowestTransactionCost(0f);
     target.setTradingPlatformPlan(
         em.find(Securityaccount.class, purchase.getIdSecurityaccount()).getTradingPlatformPlan());
     em.persist(target);
@@ -1408,7 +1407,6 @@ class AlgoHistoricalReplayIntegrationTest {
     }
     Securityaccount account = new Securityaccount("Replay custody", em.find(Cashaccount.class, cashId).getPortfolio());
     account.setIdTenant(tenantId);
-    account.setLowestTransactionCost(0f);
     account.setTradingPlatformPlan(em.createQuery("SELECT p FROM TradingPlatformPlan p", TradingPlatformPlan.class)
         .setMaxResults(1).getSingleResult());
     em.persist(account);

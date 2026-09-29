@@ -6,7 +6,6 @@ export class Securityaccount extends Securitycashaccount {
   tradingPlatformPlan: TradingPlatformPlan = null;
   hasTransaction: boolean;
   tradingPeriods: SecaccountTradingPeriod[] = [];
-  lowestTransactionCost = null;
   feeModelYaml?: string = null;
   taxExemptInvestor?: boolean = null;
 }

@@ -351,21 +351,32 @@ public class AlgoHistoricalReplayService {
    * trail is too long to be sent whole. Each side is filled independently, so near the start or the end of the run the
    * window is simply shorter rather than shifted.
    *
+   * <p>A trail that fits into one window is always returned whole, whatever the anchor. Only then does a window hold
+   * fewer entries than the run wrote exactly when the trail is too long for one, so the reader can rely on that to
+   * decide whether a choice of the period is needed at all - otherwise a window centred on the middle of a short trail
+   * would take away the means of moving it again.
+   *
    * @param idSimTenant the simulation environment
    * @param anchorDate  the day the window is centred on; null takes the end date of the run, which yields its newest
    *                    entries
-   * @return up to {@link #EVENT_WINDOW_HALF} entries before the anchor day and as many from it on, newest day first
+   * @return the whole trail when it holds at most twice {@link #EVENT_WINDOW_HALF} entries, otherwise up to
+   *         {@link #EVENT_WINDOW_HALF} entries before the anchor day and as many from it on; newest day first
    */
   public SimulationRunEventWindow eventWindow(Integer idSimTenant, LocalDate anchorDate) {
     requireOwnedSimulation(idSimTenant, currentUser());
     AlgoSimulationResult run = results.findByIdTenant(idSimTenant).orElseThrow(() -> invalid("gt.simulation.run.none"));
+    long total = events.countByIdSimulationResult(run.getIdSimulationResult());
+    if (total <= 2L * EVENT_WINDOW_HALF) {
+      return new SimulationRunEventWindow(events.findByIdSimulationResultOrderByEventDateDescIdAlgoEventDesc(
+          run.getIdSimulationResult(), PageRequest.of(0, 2 * EVENT_WINDOW_HALF)).getContent(), total);
+    }
     LocalDate anchor = anchorDate == null ? run.getEndDate() : anchorDate;
     List<AlgoEventLog> window = new ArrayList<>(
         events.findByIdSimulationResultAndEventDateGreaterThanEqualOrderByEventDateAscIdAlgoEventAsc(
             run.getIdSimulationResult(), anchor, Limit.of(EVENT_WINDOW_HALF)).reversed());
     window.addAll(events.findByIdSimulationResultAndEventDateLessThanOrderByEventDateDescIdAlgoEventDesc(
         run.getIdSimulationResult(), anchor, Limit.of(EVENT_WINDOW_HALF)));
-    return new SimulationRunEventWindow(window, events.countByIdSimulationResult(run.getIdSimulationResult()));
+    return new SimulationRunEventWindow(window, total);
   }
 
   /**

@@ -90,7 +90,6 @@ class PortfolioResourceTest extends BaseIntegrationTest {
       payload.put("name", accountFixture.name);
       payload.put("portfolio", portfolio);
       payload.put("tradingPlatformPlan", plan);
-      payload.put("lowestTransactionCost", accountFixture.lowestTransactionCost);
       payload.put("tradingPeriods", tradingPeriods);
 
       Securityaccount created = authenticatedClient(fixture.loginNickname).post()
@@ -100,7 +99,6 @@ class PortfolioResourceTest extends BaseIntegrationTest {
       assertNotNull(created);
       Assertions.assertThat(created.getIdSecuritycashAccount()).isPositive();
       Assertions.assertThat(created.getName()).isEqualTo(accountFixture.name);
-      Assertions.assertThat(created.getLowestTransactionCost()).isEqualTo(accountFixture.lowestTransactionCost);
       Assertions.assertThat(created.getTradingPlatformPlan().getIdTradingPlatformPlan())
           .isEqualTo(plan.getIdTradingPlatformPlan());
       Assertions.assertThat(toTradingPeriodKeys(created.getTradingPeriods()))
@@ -248,7 +246,6 @@ class PortfolioResourceTest extends BaseIntegrationTest {
   public static class SecurityAccountFixture {
     public String name;
     public String tradingPlatformPlan;
-    public Float lowestTransactionCost;
     public List<TradingPeriodFixture> tradingPeriods;
   }
 

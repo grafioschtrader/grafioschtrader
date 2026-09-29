@@ -50,10 +50,6 @@ public class Securityaccount extends Securitycashaccount implements Serializable
   @JoinColumn(name = "id_securitycash_account", nullable = false)
   private List<SecaccountTradingPeriod> tradingPeriods = new ArrayList<>();
 
-  @PropertyAlwaysUpdatable
-  @Column(name = "lowest_transaction_cost")
-  private Float lowestTransactionCost;
-
   @Schema(description = """
       Optional YAML-based fee model that overrides the TradingPlatformPlan's fee model
       for this specific security account. When non-null and non-blank, this takes priority.""")
@@ -132,14 +128,6 @@ public class Securityaccount extends Securitycashaccount implements Serializable
    */
   public void replaceTradingPeriods(List<SecaccountTradingPeriod> tradingPeriods) {
     this.tradingPeriods = tradingPeriods != null ? new ArrayList<>(tradingPeriods) : new ArrayList<>();
-  }
-
-  public Float getLowestTransactionCost() {
-    return lowestTransactionCost;
-  }
-
-  public void setLowestTransactionCost(Float lowestTransactionCost) {
-    this.lowestTransactionCost = lowestTransactionCost;
   }
 
   public String getFeeModelYaml() {

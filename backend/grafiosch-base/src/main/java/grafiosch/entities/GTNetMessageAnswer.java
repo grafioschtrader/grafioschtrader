@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
+import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetMessageCode;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -100,6 +101,7 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
       Priority order for evaluating this rule within its request_msg_code group. Lower values are evaluated first.
       When multiple rules exist for the same request type, they form a priority chain - the first matching condition
       determines the response.""")
+  @PropertyAlwaysUpdatable
   @Column(name = "priority", nullable = false)
   private byte priority;
 
@@ -107,12 +109,14 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
       EvalEx expression for evaluating whether this response should be sent. Can reference variables like 'hour',
       'dayOfWeek', 'dailyCount', 'requesterTimezone', and payload fields. Null or empty string means unconditional
       match (always send this response if reached in the priority chain).""")
+  @PropertyAlwaysUpdatable
   @Column(name = "response_msg_conditional")
   private String responseMsgConditional;
 
   @Schema(description = """
       Optional human-readable message to include with the response. Typically used to provide context for the
       decision, such as 'Automatically approved during business hours' or 'Capacity limit reached'.""")
+  @PropertyAlwaysUpdatable
   @Column(name = "response_msg_message")
   private String responseMsgMessage;
 
@@ -120,6 +124,7 @@ public class GTNetMessageAnswer extends BaseID<Integer> {
       Cooling-off period in days after a negative/rejection response. If set, the requesting domain must wait this
       many days before submitting another request of the same type. Helps prevent request spam and gives
       administrators time to review persistent requesters. 0 means no waiting period.""")
+  @PropertyAlwaysUpdatable
   @Min(value = 0)
   @Max(value = 9999)
   @Column(name = "wait_days_apply", nullable = false)

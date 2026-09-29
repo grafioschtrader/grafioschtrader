@@ -85,14 +85,13 @@ export class SecurityaccountEditDynamicComponent
   }
 
   ngOnInit(): void {
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5,this.helpLink.bind(this));
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.callParam = this.dynamicDialogConfig.data.callParam;
     this.config = [
       DynamicFieldHelper.createFieldInputString('name', 'SECURITYACCOUNT_NAME', 25, true),
       DynamicFieldHelper.createFieldSelectStringHeqF('tradingPlatformPlan', true, {
         dataproperty: 'tradingPlatformPlan.idTradingPlatformPlan'
       }),
-      DynamicFieldHelper.createFieldInputNumberHeqF('lowestTransactionCost', true, 3, 2, false, { inputWidth: 10 }),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeToDate', false),
       // Only the simulation tax estimate reads the exemption, and the simulation is part of rule-based trading
       ...(this.gps.useAlgo() ? [DynamicFieldHelper.createFieldTriStateCheckboxHeqF('taxExemptInvestor')] : []),
@@ -128,10 +127,6 @@ export class SecurityaccountEditDynamicComponent
     this.tradingPlatformPlanService.getAllTradingPlatform().subscribe((tradingPlatformPlans: TradingPlatformPlan[]) => {
       this.configObject.tradingPlatformPlan.valueKeyHtmlOptions =
         this.tradingPlatformPlanCreateValueKeyHtmlSelectOptions(tradingPlatformPlans);
-      DynamicFieldHelper.setCurrency(
-        this.configObject.lowestTransactionCost,
-        (<Portfolio>this.callParam.parentObject).currency
-      );
       this.form.setDefaultValuesAndEnableSubmit();
       if (this.callParam.thisObject != null) {
         this.form.transferBusinessObjectToForm(this.callParam.thisObject);

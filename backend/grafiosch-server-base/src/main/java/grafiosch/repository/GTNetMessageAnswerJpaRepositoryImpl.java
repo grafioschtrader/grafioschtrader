@@ -61,6 +61,12 @@ public class GTNetMessageAnswerJpaRepositoryImpl extends BaseRepositoryImpl<GTNe
       validateEvalExExpression(conditional);
     }
 
+    if (existingEntity != null) {
+      // The code properties have a byte getter but only Object/GTNetMessageCode setters, so the JavaBean copy of
+      // @PropertyAlwaysUpdatable fields cannot reach them; they are carried over here instead.
+      existingEntity.setRequestMsgCodeValue(newEntity.getRequestMsgCodeValue());
+      existingEntity.setResponseMsgCodeValue(newEntity.getResponseMsgCodeValue());
+    }
     return RepositoryHelper.saveOnlyAttributes(gtNetMessageAnswerJpaRepository, newEntity, existingEntity,
         updatePropertyLevelClasses);
   }

@@ -141,7 +141,7 @@ of:
 
 | Class | Meaning | Examples |
 |---|---|---|
-| **transferred** | Serialized into the ZIP and reproduced on GT-B. | All value/financial fields; `portfolio.closed_until`; `securitycashaccount.note`, `active_to_date`; `cashaccount.borrowing_rate`, margin link `connect_id_securityaccount`; `securityaccount.lowest_transaction_cost`, `fee_model_yaml`; `securitycurrency.note`; tenant attributes per decision 9. |
+| **transferred** | Serialized into the ZIP and reproduced on GT-B. | All value/financial fields; `portfolio.closed_until`; `securitycashaccount.note`, `active_to_date`; `cashaccount.borrowing_rate`, margin link `connect_id_securityaccount`; `securityaccount.fee_model_yaml`; `securitycurrency.note`; tenant attributes per decision 9. |
 | **target-local** | Never exported; GT-B value applies. | `created_by`/audit columns, GTNet send/receive flags (`gt_net_*` — GT-B's GTNet configuration differs), user identity/roles. |
 | **recomputed** | Derived on GT-B after import. | `hold_*` tables (maintained by the replay pipeline), `tenant.id_watchlist_performance` (re-pointed after watchlist remap), translated-value caches. |
 | **deliberately discarded** | Documented loss. | `tax_upload` physical files (see §4.2), algo data (unsupported, decision 1). |
@@ -163,7 +163,7 @@ is a design error, not an implementation detail.
 | `historyquoteperiods.json` | `historyquote_period` rows for period-priced instruments. |
 | `currencypairs.json` | from/to currency + connector hints + note; history in `historyquotes/`. |
 | `portfolios.json` | `refId`, name, currency, `closed_until`. |
-| `accounts.json` | Cash and security accounts: `refId`, portfolio refId, name, currency, note, `active_to_date`, trading-platform-plan descriptor reference, trading periods; cash accounts additionally `borrowing_rate` and the margin link `connectIdSecurityaccountRefId`; security accounts additionally `lowest_transaction_cost` and `fee_model_yaml`. |
+| `accounts.json` | Cash and security accounts: `refId`, portfolio refId, name, currency, note, `active_to_date`, trading-platform-plan descriptor reference, trading periods; cash accounts additionally `borrowing_rate` and the margin link `connectIdSecurityaccountRefId`; security accounts additionally `fee_model_yaml`. |
 | `watchlists.json` | Name + list of instrument refIds. |
 | `platforms.json` | Full descriptors of referenced trading-platform plans (multilingual name map, fee-plan type, `fee_model_yaml`, import-platform reference), import platforms (name + implementation), import templates (their real unique key: platform + format type + category + language + `valid_since`, plus content). Matching semantics in §4.1. |
 | `standingorders.json` | Incl. cash-account / security legs by refId. **Imported before transactions** so `idStandingOrder` references resolve during replay. |

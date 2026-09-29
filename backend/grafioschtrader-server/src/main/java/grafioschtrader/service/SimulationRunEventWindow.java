@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
     sides; the total tells how much of the trail the window covers.""")
 public record SimulationRunEventWindow(@Schema(description = """
     The entries of the window, newest day first: up to the window half size before the anchor day and as many from
-    the anchor day on. Entries of the same day keep the order in which the replay wrote them, reversed.""") List<AlgoEventLog> events,
+    the anchor day on, or the whole trail when it fits into one window. Entries of the same day keep the order in
+    which the replay wrote them, reversed.""") List<AlgoEventLog> events,
     @Schema(description = "Number of entries the run wrote in total, of which the window holds a part") long totalElements) {
 }

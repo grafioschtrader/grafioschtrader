@@ -7,7 +7,6 @@ import grafiosch.gtnet.model.msg.DiscontinuedMsg;
 import grafiosch.gtnet.model.msg.FirstHandshakeMsg;
 import grafiosch.gtnet.model.msg.MaintenanceMsg;
 import grafiosch.gtnet.model.msg.RevokeMsg;
-import grafiosch.gtnet.model.msg.UpdateServerlistRequestMsg;
 
 /**
  * The descriptors of the core protocol, codes 0 to 54.
@@ -62,7 +61,7 @@ public abstract class CoreProtocolDescriptors {
 
         // Server list (10-13). Reading the list changes nothing, so a redelivery is simply answered again.
         GTNetProtocolDescriptor.request(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C).userInitiable()
-            .requiresResponse().autoAnswerRequest().reprocessable().formModel(UpdateServerlistRequestMsg.class)
+            .requiresResponse().autoAnswerRequest().reprocessable()
             .responses(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S,
                 GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_REJECTED_S)
             .build(),

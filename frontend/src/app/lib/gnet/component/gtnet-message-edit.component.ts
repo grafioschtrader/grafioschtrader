@@ -277,7 +277,8 @@ export class GTNetMessageEditComponent extends SimpleEditBase implements OnInit 
       this.msgCallParam.formDefinitions,
       this.MESSAGE_CODE,
       this.msgCallParam.gtNetMessage.gtNetMessageParamMap,
-      this.classDescriptorInputAndShows.fieldDescriptorInputAndShows,
+      // A code without payload model has no form definition, e.g. a server list request
+      this.classDescriptorInputAndShows?.fieldDescriptorInputAndShows ?? [],
       true
     );
     this.form.transferBusinessObjectToForm(dynamicModel);

@@ -91,7 +91,6 @@ class SimulationOpeningTransactionIntegrationTest {
     otherCash = cash("Other CHF", portfolio);
     account = new Securityaccount("Opening securities", portfolio);
     account.setIdTenant(tenantId);
-    account.setLowestTransactionCost(0f);
     account.setTradingPlatformPlan(em.createQuery("SELECT p FROM TradingPlatformPlan p", TradingPlatformPlan.class)
         .setMaxResults(1).getSingleResult());
     em.persist(account);

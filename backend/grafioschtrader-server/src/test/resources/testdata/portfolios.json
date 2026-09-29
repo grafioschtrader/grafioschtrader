@@ -62,7 +62,6 @@
         {
           "name": "MB-Normal",
           "tradingPlatformPlan": "Migros Bank Standard",
-          "lowestTransactionCost": 40,
           "tradingPeriods": [
             {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
             {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
@@ -73,7 +72,6 @@
         {
           "name": "MB-Vorsorge",
           "tradingPlatformPlan": "Migros Bank Vorsorge",
-          "lowestTransactionCost": 0.01,
           "tradingPeriods": [
             {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
             {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
@@ -123,7 +121,6 @@
         {
           "name": "Swissquote",
           "tradingPlatformPlan": "Swissquote Flat Fee or Transaction Value",
-          "lowestTransactionCost": 9,
           "tradingPeriods": [
             {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
             {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"}
@@ -164,7 +161,6 @@
         {
           "name": "Migros",
           "tradingPlatformPlan": "Migros Bank Standard",
-          "lowestTransactionCost": 40,
           "tradingPeriods": [
             {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
             {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
@@ -207,7 +203,6 @@
         {
           "name": "Swissquote",
           "tradingPlatformPlan": "Swissquote Flat Fee or Transaction Value",
-          "lowestTransactionCost": 9,
           "tradingPeriods": [
             {"specInvestInstrument": "DIRECT_INVESTMENT", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
             {"specInvestInstrument": "ETF", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
@@ -251,7 +246,6 @@
         {
           "name": "Test Securities",
           "tradingPlatformPlan": null,
-          "lowestTransactionCost": 5,
           "tradingPeriods": []
         }
       ],
@@ -271,7 +265,6 @@
         {
           "name": "ST",
           "tradingPlatformPlan": "Saxo Trader",
-          "lowestTransactionCost": 5,
           "tradingPeriods": [
             {"specInvestInstrument": "CFD", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
             {"specInvestInstrument": "FOREX", "categoryType": "CURRENCY_PAIR", "dateFrom": "2000-01-03"},
@@ -313,7 +306,6 @@
         {
           "name": "CT",
           "tradingPlatformPlan": "CornèrTrader",
-          "lowestTransactionCost": 5,
           "tradingPeriods": [
             {"specInvestInstrument": "CFD", "categoryType": "EQUITIES", "dateFrom": "2000-01-03"},
             {"specInvestInstrument": "FOREX", "categoryType": "CURRENCY_PAIR", "dateFrom": "2000-01-03"},
@@ -447,7 +439,6 @@
         {
           "name": "CT",
           "tradingPlatformPlan": "CornèrTrader",
-          "lowestTransactionCost": 5,
           "tradingPeriods": [
             {"specInvestInstrument": "FOREX", "categoryType": null, "dateFrom": "2000-01-03"}
           ]

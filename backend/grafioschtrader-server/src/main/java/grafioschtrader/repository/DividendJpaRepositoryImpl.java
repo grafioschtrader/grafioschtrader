@@ -122,7 +122,7 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
           if (security.getIdConnectorDividend() != null) {
             loadAllDividendDataFromConnector(security, entry.getValue().stream()
                 .map(c -> c.getDivident(security.getIdSecuritycurrency())).collect(Collectors.toList()));
-          } else {
+          } else if (security.isDividendCapableInstrument()) {
             missingConnectorSecurities.put(security.getIdSecuritycurrency(), security);
           }
 

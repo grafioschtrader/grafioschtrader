@@ -56,14 +56,6 @@ for (const p of PORTFOLIOS) {
         await fillFormInput(dialog, '#name', sa.name);
         await selectTradingPlatformPlan(page, dialog, sa);
 
-        // Optimus UI's p-inputnumber only commits its model on blur, so dispatch input and press Tab —
-        // otherwise the reactive form stays invalid and Save remains disabled.
-        const costInput = dialog.locator('#lowestTransactionCost input');
-        await costInput.click();
-        await costInput.fill(String(sa.lowestTransactionCost));
-        await costInput.dispatchEvent('input');
-        await costInput.press('Tab');
-
         // The dialog pre-fills Equities/Direct investment and Equities/ETF; the fixture rows are added.
         for (const tp of sa.tradingPeriods) {
           await addTradingPeriod(dialog, tp, creds.locale);
