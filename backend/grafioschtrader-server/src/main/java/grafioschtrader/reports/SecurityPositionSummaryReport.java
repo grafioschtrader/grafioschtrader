@@ -15,8 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafiosch.entities.User;
 import grafioschtrader.entities.Currencypair;
+import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitysplit;
@@ -29,6 +31,7 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.repository.CashaccountJpaRepository;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
@@ -63,6 +66,9 @@ public abstract class SecurityPositionSummaryReport {
 
   @Autowired
   protected SecurityCalcService securityCalcService;
+
+  @Autowired
+  protected PortfolioJpaRepository portfolioJpaRepository;
 
   @Autowired
   protected TenantJpaRepository tenantJpaRepository;
@@ -127,6 +133,13 @@ public abstract class SecurityPositionSummaryReport {
       LocalDate untilDate) throws Exception {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
 
+    return getSecurityPositionGrandSummaryIdTenant(idTenant, includeClosedPosition, untilDate, ClientClock.today());
+  }
+
+  /** Context-based holdings entry point, also usable without an authenticated request. */
+  @Transactional(readOnly = true)
+  public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdTenant(Integer idTenant,
+      boolean includeClosedPosition, LocalDate untilDate, LocalDate today) throws Exception {
     final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
 
     final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture
@@ -135,7 +148,8 @@ public abstract class SecurityPositionSummaryReport {
         .supplyAsync(() -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(idTenant));
 
     final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(tenant.getCurrency(),
-        untilDate, dateTransactionCurrencyFuture.join(), currencypairsFuture.join(), false);
+        untilDate, dateTransactionCurrencyFuture.join(), currencypairsFuture.join(),
+        tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate, today), true, today);
 
     final List<Securityaccount> securityaccountList = tenant.getPortfolioList().stream()
         .map(portfolio -> portfolio.getSecurityaccountList()).flatMap(Collection::stream).collect(Collectors.toList());
@@ -163,25 +177,27 @@ public abstract class SecurityPositionSummaryReport {
   public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdPortfolio(final Integer idPortfolio,
       final boolean includeClosedPosition, LocalDate untilDate) throws Exception {
     final Integer idTenant = ((User) SecurityContextHolder.getContext().getAuthentication().getDetails()).getIdTenant();
-    final List<Securityaccount> securityaccountList = securityaccountJpaRepository
-        .findByPortfolio_IdPortfolioAndIdTenant(idPortfolio, idTenant);
+    return getSecurityPositionGrandSummaryIdPortfolio(idTenant, idPortfolio, includeClosedPosition, untilDate,
+        ClientClock.today());
+  }
 
-    if (securityaccountList.isEmpty()) {
-      return new SecurityPositionGrandSummary(null, null);
-    } else {
-      Tenant tenant = tenantJpaRepository.getReferenceById(securityaccountList.get(0).getPortfolio().getIdTenant());
-
-      final CompletableFuture<List<Object[]>> dateTransactionCurrencyFuture = CompletableFuture.supplyAsync(
-          () -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdPortfolio(idPortfolio));
-      final CompletableFuture<List<Currencypair>> currencypairsFuture = CompletableFuture.supplyAsync(
-          () -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(tenant.getIdTenant()));
-
-      final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(
-          securityaccountList.get(0).getPortfolio().getCurrency(), untilDate, dateTransactionCurrencyFuture.join(),
-          currencypairsFuture.join(), tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate));
-      return getSecurityPositionGrandSummary(tenant, securityaccountList, includeClosedPosition,
-          tenant.isExcludeDivTax(), dateCurrencyMap);
+  /** Portfolio ownership and currency do not depend on the presence of a securities account. */
+  @Transactional(readOnly = true)
+  public SecurityPositionGrandSummary getSecurityPositionGrandSummaryIdPortfolio(Integer idTenant, Integer idPortfolio,
+      boolean includeClosedPosition, LocalDate untilDate, LocalDate today) throws Exception {
+    Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
+    if (portfolio == null) {
+      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
+    Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
+    var transactions = CompletableFuture.supplyAsync(
+        () -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdPortfolio(idPortfolio));
+    var pairs = CompletableFuture
+        .supplyAsync(() -> currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(idTenant));
+    var currencyMap = new DateTransactionCurrencypairMap(portfolio.getCurrency(), untilDate, transactions.join(),
+        pairs.join(), tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(untilDate, today), true, today);
+    return getSecurityPositionGrandSummary(tenant, portfolio.getSecurityaccountList(), includeClosedPosition,
+        tenant.isExcludeDivTax(), currencyMap, idPortfolio);
   }
 
   /**
@@ -247,6 +263,13 @@ public abstract class SecurityPositionSummaryReport {
       final List<Securityaccount> securityaccountList, final boolean includeClosedPosition,
       final boolean excludeDivTaxcost, final DateTransactionCurrencypairMap dateCurrencyMap) throws Exception {
 
+    return getSecurityPositionGrandSummary(tenant, securityaccountList, includeClosedPosition, excludeDivTaxcost,
+        dateCurrencyMap, null);
+  }
+
+  private SecurityPositionGrandSummary getSecurityPositionGrandSummary(Tenant tenant,
+      List<Securityaccount> securityaccountList, boolean includeClosedPosition, boolean excludeDivTaxcost,
+      DateTransactionCurrencypairMap dateCurrencyMap, Integer idPortfolio) throws Exception {
     LocalDate untilDatePlus = dateCurrencyMap.getUntilDate().plusDays(1);
 
     final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = new HashMap<>();
@@ -264,11 +287,18 @@ public abstract class SecurityPositionSummaryReport {
     }
 
     SecurityPositionGrandSummary securityPositionGrandSummary = createGroupsAndCalcGrandTotal(tenant,
-        securityPositionSummaryList, dateCurrencyMap);
+        securityPositionSummaryList, dateCurrencyMap, idPortfolio);
     sortSecurityPositionSummaryInGroupsByName(securityPositionGrandSummary);
 
     return securityPositionGrandSummary;
 
+  }
+
+  /** Scope-aware hook; ordinary security-only groupings need no additional scope handling. */
+  protected SecurityPositionGrandSummary createGroupsAndCalcGrandTotal(Tenant tenant,
+      List<SecurityPositionSummary> positions, DateTransactionCurrencypairMap currencyMap, Integer idPortfolio)
+      throws Exception {
+    return createGroupsAndCalcGrandTotal(tenant, positions, currencyMap);
   }
 
   /**

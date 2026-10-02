@@ -432,6 +432,7 @@ CREATE TABLE `tenant` (
   `simulation_start_date` date DEFAULT NULL,
   `simulation_initialization_mode` varchar(24) DEFAULT NULL,
   `fee_interest_fx_at_cut_off_date` tinyint(1) NOT NULL DEFAULT 0,
+  `report_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`report_settings`)),
   PRIMARY KEY (`id_tenant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -595,7 +596,7 @@ CREATE TABLE `verificationtoken` (
 
 /*!40000 ALTER TABLE `globalparameters` DISABLE KEYS */;
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.connection.timeout',30,NULL,NULL,NULL,NULL,0,'min:5,max:40');
-INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.del.message.recv',NULL,'LP=1,HP=5,SL=5',NULL,NULL,NULL,0,'pattern:^LP=([1-9]|10),HP=([1-9]|10),SL=([1-9]|10)$');
+INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.del.message.recv',NULL,'LP=1,HP=5,SL=5,SS=10',NULL,NULL,NULL,0,'pattern:^LP=([1-9]|10),HP=([1-9]|10),SL=([1-9]|10),SS=([1-9]|10)$');
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.log.aggregate.days',NULL,'D=1,W=7,M=30,Y=365',NULL,NULL,NULL,0,'pattern:^D=\\d+,W=\\d+,M=\\d+,Y=\\d+$');
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.my.entry.id',4,NULL,NULL,NULL,NULL,1,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.use',1,NULL,NULL,NULL,NULL,0,NULL);

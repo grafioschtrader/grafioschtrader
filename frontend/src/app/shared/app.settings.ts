@@ -130,6 +130,8 @@ export class AppSettings {
   public static readonly TIME_SERIE_QUOTES = 'timeSerieQuotes';
   public static readonly SEASONALITY = 'seasonality';
   public static readonly CHART_GENERAL_PURPOSE = 'chartgeneralpurpose';
+  /** Chart id of the equity curve of a completed historical replay. */
+  public static readonly SIMULATION_EQUITY_KEY = 'simulationequity';
 
   public static readonly MAIN_BOTTOM = 'mainbottom';
   public static readonly PORTFOLIO_SUMMARY_KEY = 'portfolioSummary';

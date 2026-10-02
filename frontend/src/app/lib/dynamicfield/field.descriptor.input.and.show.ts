@@ -1,5 +1,4 @@
 import { DataType } from '../dynamic-form/models/data.type';
-import { FieldFormGroup } from '../dynamic-form/models/form.group.definition';
 
 /**
  * Specialized form property helpers that provide UI hints and behaviors for dynamic form generation.
@@ -29,7 +28,11 @@ export enum DynamicFormPropertyHelps {
  */
 export enum ConstraintValidatorType {
   /** Validates that a start date field value is before or equal to an end date field value */
-  DateRange
+  DateRange,
+  /** At least one of a group of optional fields must be entered, configuration `{fields: string[]}` */
+  AtLeastOneNotNull,
+  /** A lower numeric bound must be below the upper one when both are entered, `{lowerField, upperField}` */
+  NumberRange
 }
 
 /**
@@ -155,28 +158,4 @@ export interface FieldDescriptorInputAndShowExtended extends FieldDescriptorInpu
 
   /** ID of the user who created this field configuration. Used for user-specific customizations. */
   idUser: number;
-}
-
-/**
- * Configuration for replacing a simple field with a grouped field structure in dynamic forms.
- * This is used when a single backend field needs to be represented as multiple related input
- * components in the frontend, or when custom field grouping is required.
- *
- * @example
- * // Replace a single 'dateRange' field with a group containing 'startDate' and 'endDate' inputs
- * const replacement = new ReplaceFieldWithGroup('dateRange', dateRangeFieldGroup, 'dateRange');
- */
-export class ReplaceFieldWithGroup {
-  /**
-   * Creates a new field replacement configuration.
-   *
-   * @param replaceFieldName - The name of the field in the descriptor to be replaced with the group
-   * @param fieldFormGroup - The form group definition that will replace the simple field
-   * @param removeFieldName - The name of the field to remove from the original descriptor list
-   */
-  constructor(
-    public replaceFieldName: string,
-    public fieldFormGroup: FieldFormGroup,
-    public removeFieldName: string
-  ) {}
 }

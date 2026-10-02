@@ -1,5 +1,7 @@
 package grafioschtrader.service;
 
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -9,11 +11,7 @@ import grafiosch.dto.LimitKey;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.service.EntityLimitService;
-import grafioschtrader.entities.AlgoAssetclass;
-import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.entities.AlgoStrategy;
-import grafioschtrader.entities.AlgoTop;
-import grafioschtrader.entities.AlgoTopAssetSecurity;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.types.TenantKindType;
@@ -127,11 +125,11 @@ public class AlgoHierarchyWriteGuard {
    * Refuses the creation of hierarchy nodes or strategies beyond the tenant's lifetime cap.
    *
    * <p>
-   * The hierarchy entities are tenant private, so the generic create path checks neither a daily budget nor -
-   * because their keys are registered with {@code checkedOnGenericCreate = false} - their cap. Every repository
-   * implementation therefore calls this for a new row, which bounds the plain REST create as well as every internal
-   * caller. It must run after {@link #assertHierarchyWritable(Integer)}: the counter counts the tenant the request
-   * operates in, which is the home tenant only once the simulation context has been refused.
+   * The hierarchy entities are tenant private, so the generic create path checks neither a daily budget nor - because
+   * their keys are registered with {@code checkedOnGenericCreate = false} - their cap. Every repository implementation
+   * therefore calls this for a new row, which bounds the plain REST create as well as every internal caller. It must
+   * run after {@link #assertHierarchyWritable(Integer)}: the counter counts the tenant the request operates in, which
+   * is the home tenant only once the simulation context has been refused.
    * </p>
    *
    * @param limitKey   the {@code MAX} key of the entity about to be created
@@ -147,19 +145,32 @@ public class AlgoHierarchyWriteGuard {
   }
 
   /** Walks up from any node to the top it belongs to; a security outside any hierarchy belongs to none. */
+  /**
+   * The AlgoTop a node belongs to, read as plain ids. Loading the nodes as entities would leave an AlgoTop with its
+   * eagerly fetched strategy list in the persistence context, and the strategy the caller is about to delete is in that
+   * list: the flush of the delete then finds a managed AlgoTop referencing a removed strategy and fails.
+   */
   private Integer topOf(Integer idNode) {
-    AlgoTopAssetSecurity node = em.find(AlgoTopAssetSecurity.class, idNode);
-    if (node instanceof AlgoTop top) {
-      return top.getIdAlgoAssetclassSecurity();
+    if (!em.createQuery("SELECT t.idAlgoAssetclassSecurity FROM AlgoTop t WHERE t.idAlgoAssetclassSecurity = :id",
+        Integer.class).setParameter("id", idNode).getResultList().isEmpty()) {
+      return idNode;
     }
-    if (node instanceof AlgoAssetclass assetclass) {
-      return assetclass.getIdAlgoAssetclassParent();
+    Integer bucketParent = parentOfBucket(idNode);
+    if (bucketParent != null) {
+      return bucketParent;
     }
-    if (node instanceof AlgoSecurity security && security.getIdAlgoSecurityParent() != null) {
-      AlgoTopAssetSecurity parent = em.find(AlgoTopAssetSecurity.class, security.getIdAlgoSecurityParent());
-      return parent instanceof AlgoAssetclass assetclass ? assetclass.getIdAlgoAssetclassParent() : null;
-    }
-    return null;
+    Integer securityParent = em
+        .createQuery("SELECT s.idAlgoSecurityParent FROM AlgoSecurity s WHERE s.idAlgoAssetclassSecurity = :id",
+            Integer.class)
+        .setParameter("id", idNode).getResultList().stream().filter(Objects::nonNull).findFirst().orElse(null);
+    return securityParent == null ? null : parentOfBucket(securityParent);
+  }
+
+  private Integer parentOfBucket(Integer idNode) {
+    return em
+        .createQuery("SELECT a.idAlgoAssetclassParent FROM AlgoAssetclass a WHERE a.idAlgoAssetclassSecurity = :id",
+            Integer.class)
+        .setParameter("id", idNode).getResultList().stream().filter(Objects::nonNull).findFirst().orElse(null);
   }
 
   /** Only reservations are consulted, so an idle environment of the strategy never blocks an edit. */

@@ -375,6 +375,21 @@ When you need a native `<button>` element (e.g., for form submission), project t
 
 ## Dialog Components
 
+### Dialog Naming
+
+- Name dialog components `*DialogComponent` and their files `*-dialog.component.ts`, using kebab-case.
+  Apply the same stem to any component-specific external templates and styles.
+- If the component name already contains `Edit`, do not add `Dialog`: `CashaccountEditComponent` and
+  `PortfolioEditDynamicComponent` already identify editing forms. Inheriting from an edit base class alone
+  does not qualify for this exception.
+- `Create` is not an exception: use `TaxYearCreateDialogComponent` in `tax-year-create-dialog.component.ts`.
+  Keep an existing `Dynamic` qualifier before `Dialog`, as in `ClientCreateDynamicDialogComponent`.
+- Apply this rule to template-bound and programmatically opened dialogs in both the application and the
+  reusable library. Examples include `PerformanceReportDialogComponent` and `SecuritycurrencySearchAndSetDialogComponent`.
+- Embedded tables and other child components do not gain `Dialog` merely because a dialog contains them.
+- When renaming an existing dialog, update imports and component references while preserving its selectors,
+  inputs, outputs, routes and runtime behavior.
+
 ### Dialog Base Class Hierarchy
 
 The frontend uses a hierarchical inheritance structure for dialog components:
@@ -800,6 +815,8 @@ this.config = [
 ## Checklist for Creating New Dialog Components
 
 **IMPORTANT**: Before creating a new dialog component, follow this checklist to ensure consistency with existing patterns.
+
+- [ ] Use `*DialogComponent` / `*-dialog.component.ts` unless the component name already contains `Edit`.
 
 ### 1. Choose the Correct Base Class
 

@@ -9,12 +9,16 @@ import java.util.Locale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import grafiosch.dynamic.model.ConstraintValidatorType;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
+import grafioschtrader.algo.strategy.model.StrategyHelper;
 import grafioschtrader.algo.strategy.model.alerts.AbsoluteValuePriceAlert;
 import grafioschtrader.algo.strategy.model.alerts.AlertConfigAdapter;
+import grafioschtrader.algo.strategy.model.alerts.CrossDirection;
 import grafioschtrader.algo.strategy.model.alerts.ExpressionAlert;
 import grafioschtrader.algo.strategy.model.alerts.HoldingGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.MaCrossingAlert;
+import grafioschtrader.algo.strategy.model.alerts.MovingAverageType;
 import grafioschtrader.algo.strategy.model.alerts.PeriodPriceGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.RsiThresholdAlert;
 import grafioschtrader.entities.AlgoRuleStrategy.AlgoRuleStrategyParam;
@@ -84,9 +88,9 @@ class AlertConfigAdapterTest {
     MaCrossingAlert ma = AlertConfigAdapter
         .read(strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MA_CROSSING, null, "indicatorType", "EMA",
             "period", "50", "crossDirection", "ABOVE"), MaCrossingAlert.class);
-    assertThat(ma.getIndicatorType()).isEqualTo("EMA");
+    assertThat(ma.getIndicatorType()).isEqualTo(MovingAverageType.EMA);
     assertThat(ma.getPeriod()).isEqualTo(50);
-    assertThat(ma.getCrossDirection()).isEqualTo("ABOVE");
+    assertThat(ma.getCrossDirection()).isEqualTo(CrossDirection.ABOVE);
 
     RsiThresholdAlert rsi = AlertConfigAdapter
         .read(strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_RSI_THRESHOLD, null, "rsiPeriod", "14",
@@ -157,6 +161,17 @@ class AlertConfigAdapterTest {
             "indicatorType", "EMA", "period", "5000", "crossDirection", "ABOVE"), MaCrossingAlert.class))
                 .isInstanceOf(ValidationException.class);
 
+    // Indicator type and cross direction are selection lists; a value outside them must not reach the evaluation.
+    assertThatThrownBy(
+        () -> AlertConfigAdapter.read(strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MA_CROSSING, null,
+            "indicatorType", "WMA", "period", "50", "crossDirection", "ABOVE"), MaCrossingAlert.class))
+                .isInstanceOf(ValidationException.class).hasMessageContaining("indicatorType");
+    assertThatThrownBy(
+        () -> AlertConfigAdapter.read(
+            strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MA_CROSSING,
+                "{\"indicatorType\":\"SMA\",\"period\":50," + "\"crossDirection\":\"SIDEWAYS\"}"),
+            MaCrossingAlert.class)).isInstanceOf(ValidationException.class);
+
     assertThatThrownBy(() -> AlertConfigAdapter.read(
         strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE, "{ not json at all"),
         AbsoluteValuePriceAlert.class)).isInstanceOf(ValidationException.class);
@@ -196,6 +211,90 @@ class AlertConfigAdapterTest {
     // The mean reversion strategy is configured as JSON and has no security level model, so there is nothing to bind.
     assertThat(AlertConfigAdapter.securityLevelModelClass(
         strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP, null))).isNull();
+  }
+
+  @Test
+  @DisplayName("Thresholds are checked by the class-level constraints the edit form is generated from")
+  void classLevelConstraintsAreEnforced() {
+    // Only the period, but neither a gain nor a loss threshold: the alert could never fire.
+    assertThatThrownBy(() -> AlertConfigAdapter
+        .read(strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT, null,
+            "daysInPeriod", "30"), PeriodPriceGainLosePercentAlert.class)).isInstanceOf(ValidationException.class);
+    // A threshold without the period it is measured over.
+    assertThatThrownBy(() -> AlertConfigAdapter
+        .read(strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT, null,
+            "gainPercentage", "5"), PeriodPriceGainLosePercentAlert.class)).isInstanceOf(ValidationException.class)
+                .hasMessageContaining("daysInPeriod");
+    assertThatThrownBy(() -> AlertConfigAdapter.read(
+        strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_RSI_THRESHOLD, null, "rsiPeriod", "14"),
+        RsiThresholdAlert.class)).isInstanceOf(ValidationException.class);
+    assertThatThrownBy(
+        () -> AlertConfigAdapter.read(strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_RSI_THRESHOLD, null,
+            "rsiPeriod", "14", "lowerThreshold", "70", "upperThreshold", "30"), RsiThresholdAlert.class))
+                .isInstanceOf(ValidationException.class);
+
+    // The message comes from the NLS bundle rather than showing the unresolved key.
+    assertThatThrownBy(() -> AlertConfigAdapter.read(
+        strategy(AlgoStrategyImplementationType.AS_HOLDING_TOP_GAIN_LOSE, null, "lowerValue", "20", "upperValue", "10"),
+        HoldingGainLosePercentAlert.class)).isInstanceOf(ValidationException.class)
+            .hasMessageNotContaining("{lower.below.upper}");
+
+    // Bounds alone, a single one of the four values, and a loss threshold alone are all complete alerts.
+    assertThatCode(() -> {
+      AlertConfigAdapter.read(strategy(AlgoStrategyImplementationType.AS_HOLDING_TOP_GAIN_LOSE, null, "lowerValue",
+          "10", "upperValue", "20"), HoldingGainLosePercentAlert.class);
+      AlertConfigAdapter.read(
+          strategy(AlgoStrategyImplementationType.AS_HOLDING_TOP_GAIN_LOSE, null, "losePercentage", "5"),
+          HoldingGainLosePercentAlert.class);
+      AlertConfigAdapter.read(
+          strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE, null, "lowerValue", "10"),
+          AbsoluteValuePriceAlert.class);
+    }).doesNotThrowAnyException();
+  }
+
+  @Test
+  @DisplayName("A stored number is neither truncated nor read from a numeric prefix")
+  void numbersAreReadStrictly() {
+    var type = AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT;
+    assertThatThrownBy(() -> AlertConfigAdapter.read(
+        strategy(type, null, "daysInPeriod", "30.5", "gainPercentage", "5"), PeriodPriceGainLosePercentAlert.class))
+            .isInstanceOf(ValidationException.class).hasMessageContaining("daysInPeriod");
+    assertThatThrownBy(() -> AlertConfigAdapter.read(strategy(type, null, "daysInPeriod", "30", "gainPercentage", "5%"),
+        PeriodPriceGainLosePercentAlert.class)).isInstanceOf(ValidationException.class);
+    assertThatThrownBy(() -> AlertConfigAdapter.read(strategy(type, "{\"daysInPeriod\":30.5,\"gainPercentage\":5}"),
+        PeriodPriceGainLosePercentAlert.class)).isInstanceOf(ValidationException.class);
+    assertThatThrownBy(() -> AlertConfigAdapter.read(
+        strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE, "{\"upperValue\":1e400}"),
+        AbsoluteValuePriceAlert.class)).isInstanceOf(ValidationException.class);
+
+    // A whole number written with a zero fraction is still exact, and a decimal may carry an exponent.
+    assertThat(AlertConfigAdapter.read(strategy(type, null, "daysInPeriod", "30.0", "gainPercentage", "5"),
+        PeriodPriceGainLosePercentAlert.class).getDaysInPeriod()).isEqualTo(30);
+    assertThat(AlertConfigAdapter
+        .read(strategy(type, "{\"daysInPeriod\":30.0,\"gainPercentage\":5}"), PeriodPriceGainLosePercentAlert.class)
+        .getDaysInPeriod()).isEqualTo(30);
+    assertThat(AlertConfigAdapter
+        .read(strategy(AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE, null, "upperValue", "1.5E2"),
+            AbsoluteValuePriceAlert.class)
+        .getUpperValue()).isEqualTo(150.0);
+  }
+
+  @Test
+  @DisplayName("The edit form of a simple alert carries the cross-field constraints of its model")
+  void formDefinitionCarriesClassConstraints() {
+    var form = StrategyHelper
+        .getFormDefinitionsByAlgoStrategyImpl(AlgoStrategyImplementationType.AS_HOLDING_TOP_GAIN_LOSE);
+    assertThat(form.topFormDefinition.constraintValidatorMap).containsKeys(ConstraintValidatorType.AtLeastOneNotNull,
+        ConstraintValidatorType.NumberRange);
+    assertThat(form.securityFormDefinition.constraintValidatorMap)
+        .containsKeys(ConstraintValidatorType.AtLeastOneNotNull, ConstraintValidatorType.NumberRange);
+
+    var period = StrategyHelper.getFormDefinitionsByAlgoStrategyImpl(
+        AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_PERIOD_PRICE_GAIN_LOSE_PERCENT);
+    assertThat(period.securityFormDefinition.constraintValidatorMap)
+        .containsOnlyKeys(ConstraintValidatorType.AtLeastOneNotNull);
+    assertThat(period.securityFormDefinition.fieldDescriptorInputAndShows)
+        .filteredOn(field -> field.fieldName.equals("daysInPeriod")).allMatch(field -> field.required);
   }
 
   /**

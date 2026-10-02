@@ -3,10 +3,10 @@ import { TranslateService } from '@ngx-translate/core';
 import { DialogService, DynamicDialogRef } from '@openng/optimus-ui/dynamicdialog';
 import { GlobalparameterService } from '../../services/globalparameter.service';
 import { LoginService } from '../../login/service/log-in.service';
-import { LimitTransactionRequestDynamicComponent } from './limit.transaction.request.dynamic.component';
-import { LogoutAdminSelfReleaseDynamicComponent } from './logout.admin.self.release.dynamic.component';
-import { LogoutReleaseRequestDynamicComponent } from './logout.release.request.dynamic.component';
-import { MailSendDynamicComponent, MailSendParam } from './mail.send.dynamic.component';
+import { LimitTransactionRequestDynamicDialogComponent } from './limit-transaction-request-dynamic-dialog.component';
+import { LogoutAdminSelfReleaseDynamicDialogComponent } from './logout-admin-self-release-dynamic-dialog.component';
+import { LogoutReleaseRequestDynamicDialogComponent } from './logout-release-request-dynamic-dialog.component';
+import { MailSendDynamicDialogComponent, MailSendParam } from './mail-send-dynamic-dialog.component';
 import { DynamicDialogHelper } from './dynamicDialogHelper';
 
 export class DynamicDialogs extends DynamicDialogHelper {
@@ -18,7 +18,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
       dialogService,
-      LimitTransactionRequestDynamicComponent,
+      LimitTransactionRequestDynamicDialogComponent,
       'APPLY_LIMIT_TITLE'
     );
     dynamicDialogHelper.openDynamicDialog(400, { entityName });
@@ -37,7 +37,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
       dialogService,
-      LogoutAdminSelfReleaseDynamicComponent,
+      LogoutAdminSelfReleaseDynamicDialogComponent,
       'ADMIN_SELF_RELEASE_TITLE'
     );
     dynamicDialogHelper.openDynamicDialog(400, { email, password });
@@ -53,7 +53,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
       dialogService,
-      LogoutReleaseRequestDynamicComponent,
+      LogoutReleaseRequestDynamicDialogComponent,
       'RESET_USER_MISUSED'
     );
     dynamicDialogHelper.openDynamicDialog(400, { email, password });
@@ -68,7 +68,7 @@ export class DynamicDialogs extends DynamicDialogHelper {
     const dynamicDialogHelper = new DynamicDialogHelper(
       translateService,
       dialogService,
-      MailSendDynamicComponent,
+      MailSendDynamicDialogComponent,
       'MAIL_SEND_DIALOG'
     );
     return dynamicDialogHelper.openDynamicDialog(800, { mailSendParam });

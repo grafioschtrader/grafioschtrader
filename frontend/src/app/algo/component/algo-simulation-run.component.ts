@@ -4,7 +4,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Params } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ConfirmationService, MenuItem } from '@openng/optimus-ui/api';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -33,6 +33,7 @@ import { TenantService } from '../../tenant/service/tenant.service';
 import { AlgoSimulationRunService } from '../service/algo-simulation-run.service';
 import {
   SimulationFailureMessage,
+  SimulationRunEquityPoint,
   SimulationRunEvent,
   SimulationRunEventWindow,
   SimulationRunResult,
@@ -41,8 +42,10 @@ import {
 } from '../model/simulation.run';
 import { SimulationTenantInfo } from '../model/simulation.tenant';
 import { AlgoSimulationRunTableComponent } from './algo-simulation-run-table.component';
-import { AlgoSimulationRunStartDynamicComponent } from './algo-simulation-run-start.component';
+import { AlgoSimulationRunStartDynamicDialogComponent } from './algo-simulation-run-start-dynamic-dialog.component';
 import { TaxDetailsTableComponent } from '../../taxdata/component/tax-details-table.component';
+import { ChartDataService } from '../../shared/chart/service/chart.data.service';
+import { ChartTrace, PlotlyHelper } from '../../shared/chart/plotly.helper';
 
 /**
  * Watches and reports the historical replay of one simulation environment, and offers to start one.
@@ -52,7 +55,7 @@ import { TaxDetailsTableComponent } from '../../taxdata/component/tax-details-ta
  * so the backend refuses a request that arrives with the simulation's own identity, and a read-only user must not be
  * offered an action the write endpoint would refuse. Both therefore lose the start entry of the edit menu and the
  * cancel button rather than the figures. The inputs of a run are collected by
- * {@link AlgoSimulationRunStartDynamicComponent}, opened from this panel's edit menu or from the context menu of the
+ * {@link AlgoSimulationRunStartDynamicDialogComponent}, opened from this panel's edit menu or from the context menu of the
  * environment node; whichever opened it, the start is announced through the data changed service and picked up here.
  *
  * While a run is executing the status is polled, because the work happens on a server worker rather than in the
@@ -260,6 +263,10 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   private routeSubscribe: Subscription;
   private dataChangedSubscribe: Subscription;
   private anchorSubscribe: Subscription;
+  /** Answers the chart outlet when it asks for the equity curve, which happens each time it is opened. */
+  private requestFromChartSubscribe: Subscription;
+  /** The equity curve last loaded for the chart, kept so that a reopened chart can be served without a request. */
+  private equityCurve: SimulationRunEquityPoint[] = [];
   /** Day in 'YYYY-MM-DD' the loaded window is centred on; undefined for the end of the run. */
   private anchorDate: string;
   /** Formats the dates and counts of the window text the same way the table formats its values. */
@@ -271,6 +278,8 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   );
 
   constructor(
+    private router: Router,
+    private chartDataService: ChartDataService,
     private activatedRoute: ActivatedRoute,
     private tenantService: TenantService,
     private runService: AlgoSimulationRunService,
@@ -322,6 +331,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
     this.routeSubscribe?.unsubscribe();
     this.dataChangedSubscribe?.unsubscribe();
     this.anchorSubscribe?.unsubscribe();
+    this.requestFromChartSubscribe?.unsubscribe();
     this.activePanelService.destroyPanel(this);
   }
 
@@ -365,7 +375,7 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
   onComponentClick(_event): void {
     this.contextMenuItems = this.getEditMenu();
     this.activePanelService.activatePanel(this, {
-      showMenu: null,
+      showMenu: this.getShowMenu(),
       editMenu: this.contextMenuItems.length > 0 ? this.contextMenuItems : null
     });
   }
@@ -429,13 +439,84 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
         .getEntityFormDefinition('SimulationRunRequestDTO')
         .subscribe((formDefinition) =>
           MainTreeDynamicDialogs.getEditDialogComponent(
-            AlgoSimulationRunStartDynamicComponent,
+            AlgoSimulationRunStartDynamicDialogComponent,
             this.translateService,
             this.dialogService,
             new CallParam({ formDefinition } as any, this.simulation as any),
             'SIMULATION_RUN'
           )
         );
+    });
+  }
+
+  /** Only a completed run has an equity curve; every other state leaves the chart entry disabled. */
+  private getShowMenu(): MenuItem[] {
+    const menuItems: MenuItem[] = [
+      {
+        label: 'SIMULATION_EQUITY_CHART',
+        disabled: this.run?.status !== SimulationRunStatus.COMPLETED,
+        command: () => this.showEquityChart()
+      }
+    ];
+    TranslateHelper.translateMenuItems(menuItems, this.translateService);
+    return menuItems;
+  }
+
+  /**
+   * Loads the equity curve of the run and shows it in the chart outlet. The chart asks for its data once it is opened;
+   * when it is open already, the new curve is sent to it directly.
+   */
+  private showEquityChart(): void {
+    const idTenant = this.idTenant;
+    this.runService.equitySeries(idTenant).subscribe((curve) => {
+      this.equityCurve = curve;
+      if (!this.requestFromChartSubscribe) {
+        this.requestFromChartSubscribe = this.chartDataService.requestFromChart$.subscribe((id) => {
+          id === AppSettings.SIMULATION_EQUITY_KEY && this.sendEquityChart();
+        });
+      }
+      if (this.router.url.includes(`${AppSettings.CHART_GENERAL_PURPOSE}/${AppSettings.SIMULATION_EQUITY_KEY}`)) {
+        this.sendEquityChart();
+      } else {
+        this.router.navigate([
+          BaseSettings.MAINVIEW_KEY + '/',
+          { outlets: { mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.SIMULATION_EQUITY_KEY] } }
+        ]);
+      }
+    });
+  }
+
+  /** Two lines over the valued days: the equity of the environment and the capital invested up to each day. */
+  private sendEquityChart(): void {
+    const equity = PlotlyHelper.initializeChartTrace(this.translateService.instant('EQUITY'), 'scatter', 'lines');
+    const invested = PlotlyHelper.initializeChartTrace(
+      this.translateService.instant('INVESTED_CAPITAL'),
+      'scatter',
+      'lines'
+    );
+    this.equityCurve.forEach((point) => {
+      equity.x.push(point.date);
+      equity.y.push(point.equity);
+      invested.x.push(point.date);
+      invested.y.push(point.investedCapital);
+    });
+    const data: Partial<ChartTrace>[] = [equity, invested];
+    this.chartDataService.sentToChart({
+      data,
+      layout: {
+        legend: PlotlyHelper.getLegendUnderChart(12),
+        hovermode: 'closest',
+        xaxis: {
+          autorange: true,
+          rangeslider: this.equityCurve.length
+            ? { range: [this.equityCurve[0].date, this.equityCurve[this.equityCurve.length - 1].date] }
+            : {},
+          type: 'date'
+        }
+      },
+      options: {
+        modeBarButtonsToRemove: ['hoverCompareCartesian', 'hoverClosestCartesian']
+      }
     });
   }
 
@@ -633,6 +714,9 @@ export class AlgoSimulationRunComponent extends SingleRecordConfigBase implement
       headerSuffix: '%',
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
       fieldValueFN: this.percentageValue.bind(this)
+    });
+    this.addFieldPropertyFeqH(DataType.NumericInteger, 'maxDrawdownDurationDays', {
+      fieldsetName: this.RUN_PERFORMANCE
     });
     this.addFieldPropertyFeqH(DataType.Numeric, 'sharpeRatio', { fieldsetName: this.RUN_PERFORMANCE });
     this.addFieldPropertyFeqH(DataType.Numeric, 'paidDividends', { fieldsetName: this.RUN_PERFORMANCE });

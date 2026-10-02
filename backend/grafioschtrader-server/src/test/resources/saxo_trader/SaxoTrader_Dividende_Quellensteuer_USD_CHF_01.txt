@@ -1,0 +1,41 @@
+CH - 99999999 - 99999999
+Corporate Action Detail Report
+Berichtszeitraum: 30-Sep-2026 - 30-Sep-2026
+Generiert um: 01-Okt-2026 07:24:36 07:24:36 (W. Europe Standard Time)
+CH - 99999999 Saxo Bank CH
+Switzerland The Circle 38
+8058 Zürich-Flughafen
+Switzerland
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: CHF 30-Sep-2026 - 30-Sep-2026
+Seite 1 von 3 Konten: 80000/888888CHF Generiert um: 01-Okt-2026
+Corporate Action Detail, CHF
+Berichtszeitraum
+30-Sep-2026 bis 30-Sep-2026
+Corporate Action
+Event Bardividende Geeignete Menge 340
+Description Vanguard FTSE All-World UCITS Dist ETF Dividende pro Aktie 0.54 USD
+Symbol VWRL:xswx Umrechnungskurs 0.833672
+ISIN IE00B3RBWM25 Kapitalmaßnahmen - Bardividenden 154.02 CHF
+Kapitalmaßnahmen - Quellensteuer -38.51 CHF
+Kapitalmaßnahmen - Quellensteuer (%) 25%
+Transaction description Event Id 7777777
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: CHF 30-Sep-2026 - 30-Sep-2026
+Seite 2 von 3 Konten: 80000/888888CHF Generiert um: 01-Okt-2026
+Corporate Action Detail, CHF
+Berichtszeitraum
+30-Sep-2026 bis 30-Sep-2026
+Betrag Gebuchter Betrag
+Buchungsbetrag-ID Ex-Tag Record Date Einstellungsdatum Zahltag Umrechnungskurs
+USD CHF
+Kapitalmaßnahmen -
+88888888801 17-Sep-2026 18-Sep-2026 - 30-Sep-2026 184.75 0.833672 154.02
+Bardividenden
+Kapitalmaßnahmen -
+88888888802 17-Sep-2026 18-Sep-2026 - 30-Sep-2026 -46.19 0.833672 -38.51
+Quellensteuer
+Nettobetrag - - - - - 138.56 0.833672 115.51
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: CHF 30-Sep-2026 - 30-Sep-2026
+Seite 3 von 3 Konten: 80000/888888CHF Generiert um: 01-Okt-2026

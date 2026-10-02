@@ -54,6 +54,13 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
   algoTopOptions: SelectItem[];
   selectedIdAlgoTop: number = null;
   rebalancingSummaryFields: ColumnConfig[];
+  /** Summary figures whose header key has a {@code _TOOLTIP} companion explaining how the figure is measured. */
+  readonly summaryFieldsWithTooltip: string[] = [
+    'overallAllocationMismatchPercentage',
+    'topTargetPercentage',
+    'topActualPercentage',
+    'topDeviationPercentage'
+  ];
 
   showTable = true;
   untilDate: Date;

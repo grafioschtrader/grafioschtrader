@@ -17,7 +17,7 @@ import { User } from '../../entities/user';
 import { EntityLimitUserTableComponent } from './entity-limit-user-table.component';
 import { UserEditComponent } from './user-edit-component';
 import { EntityLimitEditComponent } from '../../entitylimit/component/entity.limit.edit.component';
-import { UserChangeOwnerEntitiesComponent } from './user-change-owner-entities.component';
+import { UserChangeOwnerEntitiesDialogComponent } from './user-change-owner-entities-dialog.component';
 import { ProcessedActionData } from '../../types/processed.action.data';
 import { ProcessedAction } from '../../types/processed.action';
 import { AuditHelper } from '../../helper/audit.helper';
@@ -103,7 +103,7 @@ import { BaseSettings } from '../../base.settings';
     EntityLimitUserTableComponent,
     UserEditComponent,
     EntityLimitEditComponent,
-    UserChangeOwnerEntitiesComponent
+    UserChangeOwnerEntitiesDialogComponent
   ]
 })
 export class UserTableComponent extends TableCrudSupportMenu<User> implements OnDestroy {

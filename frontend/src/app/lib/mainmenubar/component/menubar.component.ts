@@ -22,10 +22,10 @@ import { HelpIds } from '../../help/help.ids';
 import { MenubarModule } from '@openng/optimus-ui/menubar';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ManageClientService } from '../../manageclient/service/manage-client.service';
-import { ClientCreateDynamicComponent } from '../../manageclient/component/client-create-dynamic.component';
-import { ManagedClientsTableDialogComponent } from '../../manageclient/component/managed-clients-table.dialog.component';
-import { ShareReadAccessDynamicComponent } from '../../manageclient/component/share-read-access-dynamic.component';
-import { SharedViewersTableDialogComponent } from '../../manageclient/component/shared-viewers-table.dialog.component';
+import { ClientCreateDynamicDialogComponent } from '../../manageclient/component/client-create-dynamic-dialog.component';
+import { ManagedClientsTableDialogComponent } from '../../manageclient/component/managed-clients-table-dialog.component';
+import { ShareReadAccessDynamicDialogComponent } from '../../manageclient/component/share-read-access-dynamic-dialog.component';
+import { SharedViewersTableDialogComponent } from '../../manageclient/component/shared-viewers-table-dialog.component';
 import { GlobalSessionNames } from '../../global.session.names';
 
 /**
@@ -204,7 +204,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
   }
 
   private openShareReadAccessDialog(): void {
-    this.dialogService.open(ShareReadAccessDynamicComponent, {
+    this.dialogService.open(ShareReadAccessDynamicDialogComponent, {
       header: this.translateService.instant('SHARE_READ_ACCESS'),
       width: '450px',
       modal: true,
@@ -230,7 +230,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
   }
 
   private openCreateClientDialog(): void {
-    this.dialogService.open(ClientCreateDynamicComponent, {
+    this.dialogService.open(ClientCreateDynamicDialogComponent, {
       header: this.translateService.instant('CREATE_CLIENT'),
       width: '450px',
       modal: true,

@@ -32,6 +32,11 @@ public interface ImportTransactionPosJpaRepository
    *       purchase is negative on the transaction but may still be positive on a position whose total has not been
    *       calculated yet, or the quotation to match (<code>ip.quotation = t.quotation</code>)</li>
    * </ul>
+   * A second branch, joined by <code>UNION</code>, covers positions without a security (deposit, withdrawal, fee,
+   * interest). It matches a transaction without a security on the same cash account, transaction type and day whose
+   * total amount is equal by absolute value at cent level.
+   * <p>
+   * A position may match more than one transaction; callers keep the first pair per position.
    * Results are ordered by import position ID.
    * <p>
    * Named query: ImportTransactionPos.getIdTransactionPosWithPossibleTransactionByIdTransactionPos
@@ -53,6 +58,7 @@ public interface ImportTransactionPosJpaRepository
    *   <li>Considers positions without a transaction whose detection was not switched off by the user</li>
    *   <li>Joins on <code>transaction</code> by security, transaction type, securities account, day and units</li>
    *   <li>Requires either the same total amount (absolute value, at cent level) or the same quotation</li>
+   *   <li>Positions without a security are matched by cash account, transaction type, day and total amount</li>
    * </ul>
    * Distinct pairs are returned and ordered by import position ID.
    * <p>

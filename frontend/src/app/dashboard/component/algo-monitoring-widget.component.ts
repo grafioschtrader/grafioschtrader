@@ -124,6 +124,11 @@ export class AlgoMonitoringWidgetComponent extends ShowRecordConfigBase implemen
         DataType.NumericInteger,
         'meanReversionSignals',
         'DASHBOARD_ALGO_MEAN_REVERSION_SIGNALS'
+      ),
+      ShowRecordConfigBase.createColumnConfig(
+        DataType.NumericInteger,
+        'allocationBreaches',
+        'DASHBOARD_ALGO_ALLOCATION_BREACHES'
       )
     ];
     this.translateService

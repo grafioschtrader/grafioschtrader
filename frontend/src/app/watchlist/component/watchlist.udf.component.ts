@@ -40,7 +40,7 @@ import { SecuritycurrencyUdfComponent } from './securitycurrency-udf.component';
 import { WatchlistPriceFeedExpandedComponent } from './watchlist-price-feed-expanded.component';
 import { WatchlistDividendTableComponent } from './watchlist-dividend-table.component';
 import { WatchlistSecuritysplitTableComponent } from './watchlist-securitysplit-table.component';
-import { WatchlistAddInstrumentComponent } from './watchlist-add-instrument.component';
+import { WatchlistAddInstrumentDialogComponent } from './watchlist-add-instrument-dialog.component';
 import { CurrencypairEditComponent } from '../../shared/securitycurrency/currencypair-edit.component';
 import { SecurityEditComponent } from '../../shared/securitycurrency/security-edit.component';
 import { SecurityDerivedEditComponent } from '../../securitycurrency/component/security-derived-edit.component';
@@ -79,7 +79,7 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
     WatchlistPriceFeedExpandedComponent,
     WatchlistDividendTableComponent,
     WatchlistSecuritysplitTableComponent,
-    WatchlistAddInstrumentComponent,
+    WatchlistAddInstrumentDialogComponent,
     CurrencypairEditComponent,
     SecurityEditComponent,
     SecurityDerivedEditComponent,

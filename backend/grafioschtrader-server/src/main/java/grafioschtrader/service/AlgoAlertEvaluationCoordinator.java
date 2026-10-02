@@ -20,6 +20,12 @@ import grafioschtrader.service.AlgoAlertSchedule.Window;
 
 /**
  * Coordinates shared quote refresh, exchange eligibility and durable per-alert scheduling for every alert entry point.
+ *
+ * <p>
+ * Evaluation depends on the alert feature alone. The alerts of an AlgoTop hierarchy additionally need rule-based
+ * trading; while it is switched off they drop out of the resolved scopes and their stored state is discarded, so that
+ * switching it on again starts from a fresh observation instead of reporting a crossing that happened meanwhile.
+ * </p>
  */
 @Service
 public class AlgoAlertEvaluationCoordinator {
@@ -105,7 +111,7 @@ public class AlgoAlertEvaluationCoordinator {
   }
 
   private boolean enabled() {
-    return features.isAlgo() && features.isAlert();
+    return features.isAlert();
   }
 
   private LocalDateTime now() {
@@ -127,7 +133,7 @@ public class AlgoAlertEvaluationCoordinator {
   }
 
   private List<AlgoAlertScope> scopes(Integer tenant) {
-    List<AlgoAlertScope> all = tenant == null ? resolver.resolveAll() : resolver.resolveForTenant(tenant);
+    List<AlgoAlertScope> all = resolver.resolveAlertScopes(tenant, features.isAlgo());
     List<AlgoAlertScope> active = all.stream()
         .filter(s -> TYPES.contains(s.strategy().getAlgoStrategyImplementations())).filter(AlgoAlertScope::active)
         .toList();
@@ -162,7 +168,7 @@ public class AlgoAlertEvaluationCoordinator {
 
   // Configuration failures receive a diagnostic at the ordinary interval, without downloading anything.
   private Window forClaim(Window window) {
-    return window.reason() != null && (window.reason().startsWith("Missing") || window.reason().startsWith("Invalid"))
+    return window.reason() != null && AlgoAlertReason.CONFIGURATION.contains(window.reason())
         ? new Window(null, null, false, null)
         : window;
   }
@@ -170,7 +176,7 @@ public class AlgoAlertEvaluationCoordinator {
   private Window window(Security security, LocalDateTime now) {
     if ((security.getActiveFromDate() != null && now.toLocalDate().isBefore(security.getActiveFromDate()))
         || (security.getActiveToDate() != null && now.toLocalDate().isAfter(security.getActiveToDate())))
-      return new Window(null, null, false, "Instrument outside its active dates");
+      return new Window(null, null, false, AlgoAlertReason.INSTRUMENT_INACTIVE);
     var asset = security.getAssetClass();
     boolean crypto = asset != null && IFeedConnector.AssetclassCategory.CRYPTOCURRENCY.matches(asset.getCategoryType(),
         asset.getSpecialInvestmentInstrument());
@@ -178,7 +184,7 @@ public class AlgoAlertEvaluationCoordinator {
     if (crypto)
       return new Window(null, null, false, null);
     if (exchange == null)
-      return new Window(null, null, false, "Missing exchange");
+      return new Window(null, null, false, AlgoAlertReason.MISSING_EXCHANGE);
     Set<LocalDate> closed = new HashSet<>();
     LocalDate utcDate = now.toLocalDate();
     holidays
@@ -234,10 +240,10 @@ public class AlgoAlertEvaluationCoordinator {
       LocalDateTime evaluatedAt = now();
       String reason = c.window().reason();
       if (reason == null && failedRefreshes.contains(quote.getIdSecuritycurrency()))
-        reason = "Quote refresh failed";
+        reason = AlgoAlertReason.QUOTE_REFRESH_FAILED;
       if (reason == null
           && !AlgoAlertSchedule.fresh(quote.getSLast(), quote.getSTimestamp(), evaluatedAt, hours, c.window()))
-        reason = "Required quote is missing or stale";
+        reason = AlgoAlertReason.QUOTE_MISSING_OR_STALE;
       try {
         states.finish(scope, item.token(), evaluatedAt, quote.getSTimestamp(), reason, () -> {
           try {

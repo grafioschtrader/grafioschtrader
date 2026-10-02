@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import grafiosch.BaseConstants;
 import grafiosch.common.EnumHelper;
 import grafiosch.common.ValueFormatConverter;
 import grafiosch.exceptions.DataViolationException;
@@ -40,6 +41,8 @@ import grafioschtrader.types.TransactionType;
  * <li>overRuleSeparators - Custom number separators (e.g., "All<'|.>")</li>
  * <li>otherFlagOptions - Feature flags separated by "|"</li>
  * <li>ignoreTaxOnDivInt - Transaction type for tax exemption</li>
+ * <li>calcRounding - Accepted rounding tolerance of the total amount (e.g., "0.01,JPY=1")</li>
+ * <li>quotationDecimals - Decimal places to which the document rounds the quotation (e.g., "2,JPY=0")</li>
  * </ul>
  *
  * <p>
@@ -78,6 +81,15 @@ public abstract class TemplateConfiguration {
   private static final String CONF_CALC_ROUNDING = "calcRounding";
 
   /**
+   * Configuration key for the number of decimal places to which the document rounds the quotation (default plus
+   * optional per-currency overrides). It allows the quotation to be calculated back from the total amount.
+   */
+  private static final String CONF_QUOTATION_DECIMALS = "quotationDecimals";
+
+  /** Highest number of decimal places accepted by quotationDecimals, the precision of a stored quotation. */
+  private static final int QUOTATION_DECIMALS_MAX = BaseConstants.FID_MAX_FRACTION_DIGITS;
+
+  /**
    * Map key under which the default (currency-independent) rounding tolerance is stored in {@link #calcRoundingMap}. A
    * real per-currency override is keyed by the three-letter ISO currency code, so this sentinel cannot collide.
    */
@@ -113,6 +125,16 @@ public abstract class TemplateConfiguration {
 
   /** Raw calcRounding value that failed to parse, used to report a validation error when saving the template. */
   protected String calcRoundingConfigError;
+
+  /**
+   * Number of decimal places to which the document rounds the quotation. The default value is stored under
+   * {@link #CALC_ROUNDING_DEFAULT_KEY}; per-currency overrides are keyed by the upper-case ISO currency code of the
+   * quotation. Empty when the template does not configure quotationDecimals.
+   */
+  protected Map<String, Integer> quotationDecimalsMap = new HashMap<>();
+
+  /** Raw quotationDecimals value that failed to parse, used to report a validation error when saving the template. */
+  protected String quotationDecimalsConfigError;
 
   /** Regex pattern for matching thousand separators in numbers. */
   protected String thousandSeparatorsPattern = "";
@@ -235,7 +257,7 @@ public abstract class TemplateConfiguration {
         case CONF_DATE_FORMAT:
           dateFormat = splitEqual[1];
           dateTypeRegex = dateFormat.replaceAll("\\-", "\\\\-").replaceAll("\\.", "\\\\.")
-              .replaceFirst("yyyy", "\\\\d{4}").replaceFirst("MMM", "\\\\w+").replaceFirst("hh|HH", "\\\\d{1,2}")
+              .replaceFirst("yyyy", "\\\\d{4}").replaceFirst("M{3,}", "\\\\p{L}+").replaceFirst("hh|HH", "\\\\d{1,2}")
               .replaceAll("dd|MM|yy|mm|ss", "\\\\d{2}").replaceFirst("a", "[AaPp][Mm]");
           break;
         case CONF_TIME_FORMAT:
@@ -254,6 +276,13 @@ public abstract class TemplateConfiguration {
             parseCalcRounding(splitEqual[1]);
           } catch (RuntimeException ex) {
             calcRoundingConfigError = splitEqual.length > 1 ? splitEqual[1] : "";
+          }
+          break;
+        case CONF_QUOTATION_DECIMALS:
+          try {
+            parseQuotationDecimals(splitEqual[1]);
+          } catch (RuntimeException ex) {
+            quotationDecimalsConfigError = splitEqual.length > 1 ? splitEqual[1] : "";
           }
           break;
         default:
@@ -403,6 +432,41 @@ public abstract class TemplateConfiguration {
   }
 
   /**
+   * Parses the quotationDecimals configuration value into {@link #quotationDecimalsMap}. The syntax is that of
+   * calcRounding: a bare number sets the default and every {@code CUR=value} token sets a per-currency override, e.g.
+   * {@code 2,JPY=0}. Each value is a whole number of decimal places between 0 and {@link #QUOTATION_DECIMALS_MAX}.
+   *
+   * @param value the raw configuration value (right-hand side of {@code quotationDecimals=})
+   * @throws IllegalArgumentException if a value is not a whole number in range or a currency code is malformed
+   */
+  private void parseQuotationDecimals(String value) {
+    for (String token : value.split(",")) {
+      token = token.trim();
+      if (token.isEmpty()) {
+        continue;
+      }
+      int eq = token.indexOf('=');
+      if (eq < 0) {
+        quotationDecimalsMap.put(CALC_ROUNDING_DEFAULT_KEY, parseDecimalPlaces(token));
+      } else {
+        String currency = token.substring(0, eq).trim().toUpperCase();
+        if (!currency.matches("[A-Z]{3}")) {
+          throw new IllegalArgumentException("Invalid currency code: " + currency);
+        }
+        quotationDecimalsMap.put(currency, parseDecimalPlaces(token.substring(eq + 1)));
+      }
+    }
+  }
+
+  private int parseDecimalPlaces(String numberStr) {
+    int parsed = Integer.parseInt(numberStr.trim());
+    if (parsed < 0 || parsed > QUOTATION_DECIMALS_MAX) {
+      throw new IllegalArgumentException("Decimal places out of range: " + numberStr);
+    }
+    return parsed;
+  }
+
+  /**
    * Parses a strictly positive double using a dot as the decimal separator.
    *
    * @param numberStr the number text to parse
@@ -450,6 +514,10 @@ public abstract class TemplateConfiguration {
     if (calcRoundingConfigError != null) {
       dataViolationException.addDataViolation(CONF_CALC_ROUNDING, "gt.imptemplate.calcrounding",
           new Object[] { calcRoundingConfigError }, false);
+    }
+    if (quotationDecimalsConfigError != null) {
+      dataViolationException.addDataViolation(CONF_QUOTATION_DECIMALS, "gt.imptemplate.quotationdecimals",
+          new Object[] { quotationDecimalsConfigError }, false);
     }
   }
 
@@ -517,6 +585,17 @@ public abstract class TemplateConfiguration {
    */
   public Map<String, Double> getCalcRoundingMap() {
     return calcRoundingMap;
+  }
+
+  /**
+   * Returns the configured decimal places of the quotation. The default is keyed by {@link #CALC_ROUNDING_DEFAULT_KEY};
+   * per-currency overrides are keyed by upper-case ISO currency code. The map is empty when the template does not
+   * configure quotationDecimals.
+   *
+   * @return map of currency code (or default sentinel) to decimal places of the printed quotation
+   */
+  public Map<String, Integer> getQuotationDecimalsMap() {
+    return quotationDecimalsMap;
   }
 
   /**

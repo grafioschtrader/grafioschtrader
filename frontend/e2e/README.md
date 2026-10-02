@@ -41,6 +41,8 @@ untouched. Run the spec a second time to verify cleanup and repeatability; the f
 row selection and explicit retry. It uses the `alledit` fixture login and deterministic intercepted alert
 responses, creates no records and sends no messages. It refuses to log in unless `/api/gtinfo` reports
 `grafioschtrader_t`. The backend tests cover actual signal transactions, routing and delivery recovery.
+Match translated diagnostics by cell role and accessible name: an anchored `getByText` regex also sees the
+whitespace around Angular's interpolated text.
 
 Run against the test services with
 `npx playwright test e2e/200-alert-diagnostics.spec.ts --project=grafioschtrader-e2e --no-deps`.
@@ -217,7 +219,7 @@ makes it re-runnable against a polluted database. It carries the lowest number i
 the keys exist before every other spec — and, since the startup price update was removed from the
 `e2e` profile, before `100-schedule-batch-jobs.spec.ts` schedules that update.
 
-## Managed-client specs (085-*, 090-*)
+## Managed-client specs (085-_, 090-_)
 
 The application `loginAsFixtureUser` helper waits for the labelled portfolio root, not just the tree shell.
 If `/api/portfolio/tenant` fails with `net::ERR_CONNECTION_REFUSED`, it reloads once to recover the empty branch;
@@ -273,6 +275,11 @@ rows between the Playwright ('e') and JUnit ('i') sides like the CSV testdata fi
 The connector dialog scrolls internally (`big-dialog`), and the scroll Playwright performs before a click closes an
 open `p-multiSelect` overlay. `pickMultiSelect` therefore reopens the overlay and repeats the click until the option
 reports `aria-selected="true"`; a single click on an option is not reliable in this dialog.
+
+Editable rows become visible before their delayed autofocus runs. `addEditableTableRow` waits for the first input
+to receive focus before filling any cells, so that autofocus cannot redirect typing into the wrong field. The spec
+resumes existing connectors by adding missing endpoints, field mappings and headers; it does not treat a partially
+created definition as a completed connector.
 
 The trading calendar rule sets of 105 have a related trap: their table offers _Create_ only while no rule set is
 selected, so `createRuleSet` opens the context menu on the table caption, never on a row.
@@ -439,7 +446,7 @@ With the backend and frontend still active, execute only this spec with
 ## ISIN-change specs (135-* and 140-*)
 
 `135-create-security-action.spec.ts` reads the Playwright row from `testdata/isin_change.csv`, logs in as `admin`, and
-creates the exported 4:1 ISIN change through `SecurityActionCreateComponent`. The old instrument is selected by ISIN,
+creates the exported 4:1 ISIN change through `SecurityActionCreateDialogComponent`. The old instrument is selected by ISIN,
 so neither security ID is fixed in the fixture. The spec verifies the persisted tree representation and the exact
 sender (`S`) notification returned from `mail_send_recv`. An identical action left by a successful or interrupted run
 is retained and validated, including when it has application history that the backend protects from deletion.
@@ -461,7 +468,7 @@ npx playwright test e2e/140-apply-security-action.spec.ts --project=grafioschtra
 
 `145-security-transfer.spec.ts` reads the Playwright row from `testdata/security-transfer.csv`, logs in with the
 fixture nickname (`limit1`), and transfers the complete Repsol position from the fixture's Migros securities account
-to its Swissquote account through `SecurityTransferCreateComponent`. The pipe-delimited fixture contains only natural
+to its Swissquote account through `SecurityTransferCreateDialogComponent`. The pipe-delimited fixture contains only natural
 keys and exported business values:
 `nickname|sourcePortfolio|sourceAccount|targetPortfolio|targetAccount|securityName|isin|currency|transferDate|units|quotation|note|e2e`.
 Database, tenant, account, security, and generated transaction IDs are always resolved at runtime.
@@ -1089,11 +1096,14 @@ below the fold can never be scrolled into view and every click on it fails as "e
 
 The three specs share one shape and differ only in the rule set they activate. Each of them logs in as `alledit`,
 creates one watchlist and one AlgoTop under its own name, borrows an existing instrument by ISIN from another
-watchlist of the tenant, writes a strategy configuration through `/api/algostrategy` and then tries to activate
+watchlist of the tenant, generates the hierarchy with `/api/algotop/createfromwatchlist`, writes a strategy
+configuration on its security node through `/api/algostrategy` and then tries to activate
 deliberately defective variations of it. None of them books a trade, creates an instrument or sends a message, and
 each deletes its own two objects at the start of the run as well as at the end, so an interrupted run does not break
 the retry. The configuration is written through REST rather than through the YAML editor because a rejected
 activation has to be observed as an HTTP status rather than as a toast - the editor path is covered once, in 215.
+The dip strategy is valid only at security level; attaching it to the AlgoTop would fail hierarchy validation before
+any of the configuration checks under test.
 
 | Spec                                  | Rule set                                             | Owner name         | Fixture                                 |
 | ------------------------------------- | ---------------------------------------------------- | ------------------ | --------------------------------------- |

@@ -1,3 +1,6 @@
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { DestroyRef, inject } from '@angular/core';
+import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { SecurityaccountTable } from '../../securityaccount/component/securityaccountTable';
 import { SecurityPositionGrandSummary } from '../../entities/view/security.position.grand.summary';
@@ -52,6 +55,20 @@ import { TransactionSecurityEditComponent } from '../../transaction/component/tr
   ]
 })
 export class TenantSummariesSecurityaccountComponent extends SecurityaccountTable implements OnInit, OnDestroy {
+  private statementReports = inject(PerformanceReportDialogService);
+  private reportDestroyRef = inject(DestroyRef);
+
+  override getMenuShowOptionsParam(selected: Securitycurrency) {
+    return [
+      ...(super.getMenuShowOptionsParam(selected) || []),
+      this.statementReports.menu(
+        () => this.untilDate,
+        () => null,
+        this.reportDestroyRef
+      )
+    ];
+  }
+
   constructor(
     timeSeriesQuotesService: TimeSeriesQuotesService,
     alarmSetupService: AlarmSetupService,

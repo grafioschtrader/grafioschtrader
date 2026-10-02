@@ -29,30 +29,30 @@ public final class AlgoAlertSchedule {
     if (crypto)
       return new Window(null, null, false, null);
     if (zone == null || open == null || close == null || open.equals(close))
-      return new Window(null, null, false, "Missing or invalid exchange hours");
+      return new Window(null, null, false, AlgoAlertReason.INVALID_EXCHANGE_HOURS);
     try {
       ZoneId exchangeZone = ZoneId.of(zone);
       ZonedDateTime local = now.atZone(exchangeZone);
       LocalDate date = local.toLocalDate();
       if (weekend(date))
-        return new Window(null, null, false, "Exchange weekend");
+        return new Window(null, null, false, AlgoAlertReason.EXCHANGE_WEEKEND);
       boolean overnight = open.isAfter(close);
       LocalDate start = overnight && local.toLocalTime().isBefore(open) ? date.minusDays(1) : date;
       if (weekend(start) || holidays.contains(start))
-        return new Window(null, null, false, "Exchange non-trading day");
+        return new Window(null, null, false, AlgoAlertReason.EXCHANGE_NON_TRADING_DAY);
       Instant opening = start.atTime(open).atZone(exchangeZone).toInstant();
       Instant closing = (overnight ? start.plusDays(1) : start).atTime(close).atZone(exchangeZone).toInstant();
       LocalDateTime openingUtc = LocalDateTime.ofInstant(opening, ZoneOffset.UTC);
       LocalDateTime closingUtc = LocalDateTime.ofInstant(closing, ZoneOffset.UTC);
       if (now.isBefore(opening))
-        return new Window(openingUtc, closingUtc, false, "Exchange not open yet");
+        return new Window(openingUtc, closingUtc, false, AlgoAlertReason.EXCHANGE_NOT_OPEN);
       if (now.isBefore(closing))
         return new Window(openingUtc, closingUtc, false, null);
       if (now.isBefore(closing.plusSeconds(Math.max(0, delaySeconds))))
-        return new Window(openingUtc, closingUtc, false, "Waiting for closing quote");
+        return new Window(openingUtc, closingUtc, false, AlgoAlertReason.WAITING_CLOSING_QUOTE);
       return new Window(openingUtc, closingUtc, true, null);
     } catch (DateTimeException e) {
-      return new Window(null, null, false, "Invalid exchange time zone");
+      return new Window(null, null, false, AlgoAlertReason.INVALID_EXCHANGE_ZONE);
     }
   }
 

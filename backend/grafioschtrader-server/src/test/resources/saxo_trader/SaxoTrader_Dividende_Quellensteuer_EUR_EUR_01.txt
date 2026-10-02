@@ -1,0 +1,43 @@
+CH - 99999999 - 99999999
+Corporate Action Detail Report
+Berichtszeitraum: 30-Sep-2026 - 30-Sep-2026
+Generiert um: 01-Okt-2026 07:32:55 07:32:55 (W. Europe Standard Time)
+CH - 99999999 Saxo Bank CH
+Switzerland The Circle 38
+8058 Zürich-Flughafen
+Switzerland
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: EUR 30-Sep-2026 - 30-Sep-2026
+Seite 1 von 3 Konten: 80000/888888EUR Generiert um: 01-Okt-2026
+Corporate Action Detail, EUR
+Berichtszeitraum
+30-Sep-2026 bis 30-Sep-2026
+Corporate Action
+Event Bardividende Geeignete Menge 3500
+iShares iBonds Dec 2030 Term EUR Corp
+Description Dividende pro Aktie 0.04 EUR
+UCITS ETF
+Symbol 30IG:xetr Umrechnungskurs 1.000000
+ISIN IE000LX17BP9 Kapitalmaßnahmen - Bardividenden 135.80 EUR
+Kapitalmaßnahmen - Quellensteuer -33.95 EUR
+Kapitalmaßnahmen - Quellensteuer (%) 25%
+Transaction description Event Id 7777777
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: EUR 30-Sep-2026 - 30-Sep-2026
+Seite 2 von 3 Konten: 80000/888888EUR Generiert um: 01-Okt-2026
+Corporate Action Detail, EUR
+Berichtszeitraum
+30-Sep-2026 bis 30-Sep-2026
+Betrag Gebuchter Betrag
+Buchungsbetrag-ID Ex-Tag Record Date Einstellungsdatum Zahltag Umrechnungskurs
+EUR EUR
+Kapitalmaßnahmen -
+88888888801 17-Sep-2026 18-Sep-2026 11-Sep-2026 30-Sep-2026 135.80 1.000000 135.80
+Bardividenden
+Kapitalmaßnahmen -
+88888888802 17-Sep-2026 18-Sep-2026 11-Sep-2026 30-Sep-2026 -33.95 1.000000 -33.95
+Quellensteuer
+Nettobetrag - - - - - 101.85 1.000000 101.85
+Saxo Bank CH / The Circle 38 / 8058 Zürich-Flughafen / Switzerland CH - 99999999 Berichtszeitraum
+Währung: EUR 30-Sep-2026 - 30-Sep-2026
+Seite 3 von 3 Konten: 80000/888888EUR Generiert um: 01-Okt-2026

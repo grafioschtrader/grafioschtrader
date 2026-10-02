@@ -18,6 +18,8 @@ import grafioschtrader.types.TaskTypeExtended;
 /**
  * Five-minute eligibility scan for all rule based alerts. The configured GlobalParameters interval controls actual
  * work; the existing queue worker executes at most one pending/running task. Task ID 50 is retained for compatibility.
+ * Once per server day the task also applies the retention {@code gt.algo.alert.retention} to the recorded
+ * notifications, see {@link grafioschtrader.service.AlgoMessageAlertRetentionService}.
  */
 @Component
 public class AlgoAlarmIndicatorEvaluationTask implements ITask {

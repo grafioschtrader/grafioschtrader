@@ -6,18 +6,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
 import grafioschtrader.dto.AlgoHierarchyDto;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.AlgoTopAssetSecurity;
+import grafioschtrader.entities.HoldSecurityaccountSecurity;
 import grafioschtrader.repository.AlgoAssetclassJpaRepository;
 import grafioschtrader.repository.AlgoTopJpaRepository;
+import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 
 /** Loads the overview and decides all allocation and instrument warnings for the client. */
 @Service
@@ -28,6 +32,9 @@ public class AlgoHierarchyViewService {
 
   @org.springframework.beans.factory.annotation.Autowired
   private AlgoMonitoringService monitoring;
+
+  @org.springframework.beans.factory.annotation.Autowired
+  private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityJpaRepository;
 
   /** Uses tenant-scoped repositories so simulation viewers read only their home tenant's hierarchy. */
   public AlgoHierarchyViewService(AlgoTopJpaRepository tops, AlgoAssetclassJpaRepository assetclasses,
@@ -56,8 +63,34 @@ public class AlgoHierarchyViewService {
     Map<Integer, Set<String>> warningFields = new HashMap<>();
     LocalDate today = LocalDate.now();
     children.forEach(assetclass -> markExpired(assetclass, today, warningFields));
-    return new AlgoHierarchyDto(top, children, invalidFields, warningFields, monitoring.isAssigned(idTenant, idAlgoTop),
+    boolean assigned = monitoring.isAssigned(idTenant, idAlgoTop);
+    if (assigned) {
+      setHoldings(idTenant, children);
+    }
+    return new AlgoHierarchyDto(top, children, invalidFields, warningFields, assigned,
         monitoring.canEdit(idTenant, idAlgoTop));
+  }
+
+  /**
+   * Shows next to each instrument of the monitored hierarchy how many units the tenant holds today, so that its target
+   * weighting can be read against the actual portfolio. The units of all securities accounts are summed; a margin
+   * position counts with its nominal units.
+   */
+  private void setHoldings(Integer idTenant, List<AlgoAssetclass> children) {
+    Map<Integer, Double> unitsBySecurity = holdSecurityaccountSecurityJpaRepository
+        .findOpenPositionsAtDate(idTenant, ClientClock.today()).stream()
+        .collect(Collectors.groupingBy(hold -> hold.getHssk().getIdSecuritycurrency(),
+            Collectors.summingDouble(HoldSecurityaccountSecurity::getHodlings)));
+    for (AlgoAssetclass assetclass : children) {
+      if (assetclass.getAlgoSecurityList() != null) {
+        for (AlgoSecurity member : assetclass.getAlgoSecurityList()) {
+          if (member.getSecurity() != null) {
+            Double units = unitsBySecurity.get(member.getSecurity().getIdSecuritycurrency());
+            member.holdings = units == null || units == 0 ? null : units;
+          }
+        }
+      }
+    }
   }
 
   /** An instrument whose trading already ended is highlighted in yellow; it does not make the strategy unusable. */

@@ -111,4 +111,6 @@ export interface SuccessFailedDirectImportTransaction {
   noOfImportedTransactions: number;
   noOfDifferentSecurities: number;
   failed: boolean;
+  /** True when at least one position was not imported because it may already exist as a transaction. */
+  possibleDuplicate: boolean;
 }

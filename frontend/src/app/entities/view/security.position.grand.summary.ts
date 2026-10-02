@@ -13,6 +13,12 @@ export class SecurityPositionGrandSummary {
   toleranceThreshold: number;
   /** Composition mismatch of security exposures, excluding cash; null without positive targets. */
   overallAllocationMismatchPercentage: number | null;
+  /** AlgoTop ceiling in percentage points of net equity. */
+  topTargetPercentage: number | null;
+  /** Actual gross exposure in percentage points of net equity; null when net equity is zero. */
+  topActualPercentage: number | null;
+  /** Actual minus ceiling; positive means the gross exposure is above the ceiling. */
+  topDeviationPercentage: number | null;
   exposureBreach: boolean;
   valuationDate: string;
   /** The valuation day is a periodic checkpoint, so deviations beyond the tolerance are traded. */

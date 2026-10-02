@@ -98,6 +98,25 @@ class AlgoAlarmDeliveryServiceTest {
   }
 
   @Test
+  void bodyCarriesTheTranslatedHeadlineInsteadOfTheRawDetails() {
+    when(messages.getMessage(anyString(), any(), anyString(), any(Locale.class)))
+        .thenAnswer(i -> "T:" + i.getArgument(0));
+    alarm.setAlarmType(grafioschtrader.types.AlgoSignalKind.PRICE_ALERT);
+    alarm.setAlarmDetails("{\"bound\":\"lower\",\"threshold\":90.5,\"price\":89.75,\"direction\":\"BELOW\"}");
+    service.deliverPending();
+    verify(mail).sendInternalMail(eq(0), eq(7), anyString(),
+        argThat(body -> body.contains("T:algo.alarm.price.alert: Instrument") && !body.contains("threshold")));
+  }
+
+  @Test
+  void deliversWithAlertsOnlyWhileRuleBasedTradingIsOff() {
+    features.setAlgo(false);
+    service.deliverPending();
+    assertThat(alarm.getDeliveryStatus()).isEqualTo("DELIVERED");
+    verify(mail).sendInternalMail(eq(0), eq(7), anyString(), anyString());
+  }
+
+  @Test
   void disabledMonitoringCancelsPendingDeliveryAndCannotBeRetried() {
     when(monitoring.permitsAlert(42, 3)).thenReturn(false);
     service.deliverPending();

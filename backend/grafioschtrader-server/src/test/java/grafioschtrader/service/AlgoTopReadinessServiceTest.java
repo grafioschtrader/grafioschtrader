@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -175,6 +176,19 @@ class AlgoTopReadinessServiceTest {
     security.setSimulationMetadata(null);
     security.getAssetClass().setCategoryType(AssetclassType.EQUITIES);
     assertTrue(check(bucket).issues().isEmpty());
+  }
+
+  @Test
+  @DisplayName("A bond without a coupon rate that matured before the opening is only reported as unsuitable")
+  void maturedBondWithoutCouponRate() {
+    Security security = bucket.getAlgoSecurityList().getFirst().getSecurity();
+    security.getAssetClass().setCategoryType(AssetclassType.CONVERTIBLE_BOND);
+    security.setActiveToDate(LocalDate.of(2010, 10, 1));
+    top.setReferenceDate(LocalDate.of(2020, 2, 6));
+    AlgoTopReadiness readiness = check(bucket);
+    assertTrue(readiness.readyForReplay());
+    assertEquals(List.of(AlgoTopReadinessService.INSTRUMENT_UNSUITABLE, AlgoTopReadinessService.ASSETCLASS_NO_INSTRUMENT),
+        codes(readiness));
   }
 
   private AlgoTopReadiness check(AlgoAssetclass... buckets) {

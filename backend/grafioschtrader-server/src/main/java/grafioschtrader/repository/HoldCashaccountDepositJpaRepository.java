@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import grafioschtrader.dto.HoldConsistencyDefect;
 import grafioschtrader.entities.HoldCashaccountDeposit;
 import grafioschtrader.entities.HoldCashaccountDeposit.HoldCashaccountDepositKey;
+import grafioschtrader.reportviews.performance.IDailyExternalFlow;
 
 public interface HoldCashaccountDepositJpaRepository extends
     JpaRepository<HoldCashaccountDeposit, HoldCashaccountDepositKey>, HoldCashaccountDepositJpaRepositoryCustom {
@@ -102,6 +103,46 @@ public interface HoldCashaccountDepositJpaRepository extends
   //@formatter:on
   @Query(nativeQuery = true)
   List<HoldConsistencyDefect> countConsistencyDefects(double tolerance);
+
+  //@formatter:off
+  /**
+   * Net external flow of every calendar day of a period over all cash accounts of a tenant, in tenant currency.
+   * <p>
+   * {@code hold_cashaccount_deposit} holds one row per account and booking day with the cumulative deposit level, so the
+   * {@code LAG} difference per account is the flow of that account on that day and the sum over the accounts the net
+   * flow of the tenant. A transfer between two accounts of the tenant consists of a withdrawal and a deposit on the same
+   * day with opposite amounts and nets to zero. The inner query reads from the first row on, so that {@code LAG} knows
+   * the level before the first day of the period.
+   * <p>
+   * Named query: HoldCashaccountDeposit.getDailyExternalFlowsByTenant
+   * <ul>
+   *   <li>?1 - the tenant</li>
+   *   <li>?2 - base date of the period, exclusive</li>
+   *   <li>?3 - last date of the period, inclusive</li>
+   * </ul>
+   *
+   * @param idTenant the tenant
+   * @param dateFrom base date of the period, flows on that day are not returned
+   * @param dateTo   last date of the period
+   * @return one row per day with a non-zero net flow, ascending by date; a withdrawal is negative
+   */
+  //@formatter:on
+  @Query(nativeQuery = true)
+  List<IDailyExternalFlow> getDailyExternalFlowsByTenant(Integer idTenant, LocalDate dateFrom, LocalDate dateTo);
+
+  /**
+   * Same as {@link #getDailyExternalFlowsByTenant(Integer, LocalDate, LocalDate)} for the cash accounts of one
+   * portfolio, in portfolio currency. A transfer to another portfolio is an external flow here.
+   * <p>
+   * Named query: HoldCashaccountDeposit.getDailyExternalFlowsByPortfolio
+   *
+   * @param idPortfolio the portfolio
+   * @param dateFrom    base date of the period, exclusive
+   * @param dateTo      last date of the period, inclusive
+   * @return one row per day with a non-zero net flow, ascending by date; a withdrawal is negative
+   */
+  @Query(nativeQuery = true)
+  List<IDailyExternalFlow> getDailyExternalFlowsByPortfolio(Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo);
 
   /**
    * Projection interface representing foreign exchange rates applicable to cash account deposit and withdrawal

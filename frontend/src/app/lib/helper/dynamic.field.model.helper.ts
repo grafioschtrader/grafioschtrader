@@ -3,19 +3,18 @@ import {
   ConstraintValidatorType,
   DynamicFormPropertyHelps,
   FieldDescriptorInputAndShow,
-  FieldDescriptorInputAndShowExtended,
-  ReplaceFieldWithGroup
+  FieldDescriptorInputAndShowExtended
 } from '../dynamicfield/field.descriptor.input.and.show';
 import { FieldConfig } from '../dynamic-form/models/field.config';
 import { AppHelper } from './app.helper';
 import { DataType } from '../dynamic-form/models/data.type';
 import { BaseParam } from '../entities/base.param';
 import { DynamicFieldHelper, FieldOptions, FieldOptionsCc, VALIDATION_SPECIAL } from './dynamic.field.helper';
-import { Validators } from '@angular/forms';
+import { ValidatorFn, Validators } from '@angular/forms';
 import { RuleEvent } from '../dynamic-form/error/error.message.rules';
-import { dateRange, gteDate } from '../validator/validator';
+import { atLeastOneNotNull, dateRange, gteDate, numberRange } from '../validator/validator';
 import { ErrorMessageRules } from '../dynamic-form/error/error.message.rules';
-import { FieldFormGroup } from '../dynamic-form/models/form.group.definition';
+import { FieldFormGroup, FormGroupDefinition } from '../dynamic-form/models/form.group.definition';
 import { ValueKeyHtmlSelectOptions } from '../dynamic-form/models/value.key.html.select.options';
 import { TranslateService } from '@ngx-translate/core';
 import { SelectOptionsHelper } from './select.options.helper';
@@ -37,8 +36,14 @@ import { SelectOptionsHelper } from './select.options.helper';
 export class DynamicFieldModelHelper {
   /**
    * Creates form field configurations from a class descriptor with constraint validation support.
-   * Handles special validators like date ranges and generates appropriate form groups. If constraint
-   * validators are present, creates specialized form groups; otherwise generates standard field configs.
+   * The class-level constraints of the backend model (`@DateRange`, `@AtLeastOneNotNull`, `@NumberRange`) become
+   * form groups carrying the same rules: the fields a constraint names are placed in one group, at the position of
+   * the first of them, and constraints that share a field share the group. Without constraints the fields are
+   * generated one by one.
+   *
+   * The values of grouped fields are nested under the group name in the form value; a component reading them by
+   * field name flattens the value first (`Helper.flattenObject`), while `cleanMaskAndTransferValuesToBusinessObject`
+   * and `transferBusinessObjectToForm` work on the flattened controls anyway.
    *
    * @param translateService Angular TranslateService for translating enum options
    * @param cdias Class descriptor containing field definitions and optional constraint validators map
@@ -54,84 +59,115 @@ export class DynamicFieldModelHelper {
     addSubmitButton = false,
     submitText?: string
   ): FieldFormGroup[] {
-    let config: FieldFormGroup[];
-    if (cdias?.constraintValidatorMap && cdias.constraintValidatorMap.size > 0) {
-      let validatorCounter = 0;
-      for (const [key, value] of Object.entries(cdias.constraintValidatorMap)) {
-        validatorCounter++;
-        switch (ConstraintValidatorType[key]) {
-          case ConstraintValidatorType.DateRange:
-            config = this.createDateRangeFields(
-              translateService,
-              cdias,
-              labelPrefix,
-              validatorCounter,
-              value,
-              addSubmitButton,
-              submitText
-            );
-            break;
-        }
-      }
-      return config;
-    } else {
-      return cdias
-        ? this.ccFieldsFromDescriptorWithGroup(
-            translateService,
-            cdias.fieldDescriptorInputAndShows,
-            labelPrefix,
-            addSubmitButton,
-            null,
-            submitText
-          )
-        : [];
+    if (!cdias) {
+      return [];
     }
-  }
-
-  /**
-   * Creates a form group for date range validation with cross-field validation.
-   * Generates two date input fields where the end date must be later than the start date.
-   * Creates a FormGroup with dateRange validator and replaces individual date fields.
-   *
-   * @param translateService Angular TranslateService for translating enum options
-   * @param cdias Class descriptor containing field definitions including start and end date fields
-   * @param labelPrefix Prefix for field label translation keys
-   * @param validatorCounter Counter to ensure unique form group names (e.g., 'dateRange1', 'dateRange2')
-   * @param fields Configuration object containing startField and endField property names for validation
-   * @param addSubmitButton Whether to add a submit button to the final form
-   * @param submitText Custom submit button text
-   * @returns Array of FieldFormGroup with dateRange validator applied and original fields replaced
-   */
-  private static createDateRangeFields(
-    translateService: TranslateService,
-    cdias: ClassDescriptorInputAndShow,
-    labelPrefix: string,
-    validatorCounter: number,
-    fields: any,
-    addSubmitButton = false,
-    submitText?: string
-  ): FieldFormGroup[] {
-    const fdDate1 = cdias.fieldDescriptorInputAndShows.find((f) => f.fieldName === fields.startField);
-    const fdDate2 = cdias.fieldDescriptorInputAndShows.find((f) => f.fieldName === fields.endField);
-    const fieldConfigs = this.createConfigFieldsFromDescriptor(
-      translateService,
-      [fdDate1, fdDate2],
-      labelPrefix,
-      addSubmitButton,
-      submitText
-    );
-    const fieldFormGroup: FieldFormGroup = { formGroupName: 'dateRange' + validatorCounter, fieldConfig: fieldConfigs };
-    fieldFormGroup.validation = [dateRange(fdDate1.fieldName, fdDate2.fieldName, fdDate2.fieldName)];
-    fieldFormGroup.errors = [{ name: 'dateRange', keyi18n: 'dateRange', rules: ['dirty'] }];
-    const rfwg = new ReplaceFieldWithGroup(fdDate1.fieldName, fieldFormGroup, fdDate2.fieldName);
     return this.ccFieldsFromDescriptorWithGroup(
       translateService,
       cdias.fieldDescriptorInputAndShows,
       labelPrefix,
       addSubmitButton,
-      rfwg,
+      this.createConstraintGroups(translateService, cdias, labelPrefix),
       submitText
     );
+  }
+
+  /**
+   * Turns the class-level constraints of a descriptor into form groups. Constraints whose fields overlap are merged
+   * into one group, because a field can belong to only one form group.
+   *
+   * @param translateService Angular TranslateService for translating enum options
+   * @param cdias Class descriptor whose constraintValidatorMap is read
+   * @param labelPrefix Prefix for field label translation keys
+   * @returns One entry per form group, with the names of the fields it replaces in descriptor order
+   * @private
+   */
+  private static createConstraintGroups(
+    translateService: TranslateService,
+    cdias: ClassDescriptorInputAndShow,
+    labelPrefix: string
+  ): ConstraintFieldGroup[] {
+    const merged: ConstraintDefinition[] = [];
+    this.getConstraintEntries(cdias.constraintValidatorMap).forEach(([type, value]) => {
+      const definition = this.createConstraintDefinition(type, value);
+      if (definition) {
+        merged
+          .filter((m) => m.fields.some((f) => definition.fields.includes(f)))
+          .forEach((m) => {
+            definition.fields = [...definition.fields, ...m.fields.filter((f) => !definition.fields.includes(f))];
+            definition.validation.push(...m.validation);
+            definition.errors.push(...m.errors);
+            merged.splice(merged.indexOf(m), 1);
+          });
+        merged.push(definition);
+      }
+    });
+    return merged.map((definition, i) => {
+      const fds = cdias.fieldDescriptorInputAndShows.filter((fd) => definition.fields.includes(fd.fieldName));
+      const fieldFormGroup: FormGroupDefinition = {
+        formGroupName: 'constraintGroup' + (i + 1),
+        fieldConfig: this.createConfigFieldsFromDescriptor(translateService, fds, labelPrefix, false),
+        validation: definition.validation,
+        errors: definition.errors
+      };
+      return { fieldNames: fds.map((fd) => fd.fieldName), fieldFormGroup };
+    });
+  }
+
+  /**
+   * Reads the constraint map, which arrives from the server as a plain JSON object keyed by the constraint name.
+   *
+   * @param constraintValidatorMap the map of the descriptor, a plain object or a Map
+   * @returns the constraints as type and configuration pairs
+   * @private
+   */
+  private static getConstraintEntries(
+    constraintValidatorMap: { [key: string]: any } | Map<ConstraintValidatorType, any>
+  ): [ConstraintValidatorType, any][] {
+    if (!constraintValidatorMap) {
+      return [];
+    }
+    const entries: [string | ConstraintValidatorType, any][] =
+      constraintValidatorMap instanceof Map
+        ? [...constraintValidatorMap.entries()]
+        : Object.entries(constraintValidatorMap);
+    return entries.map(([key, value]) => [
+      typeof key === 'number' ? key : ConstraintValidatorType[key as keyof typeof ConstraintValidatorType],
+      value
+    ]);
+  }
+
+  /**
+   * Creates the group validator and its error rule for one backend class constraint.
+   *
+   * @param type the constraint type
+   * @param value the constraint configuration delivered by the backend
+   * @returns the definition, or null for a constraint type this client does not know
+   * @private
+   */
+  private static createConstraintDefinition(type: ConstraintValidatorType, value: any): ConstraintDefinition {
+    switch (type) {
+      case ConstraintValidatorType.DateRange:
+        return {
+          fields: [value.startField, value.endField],
+          validation: [dateRange(value.startField, value.endField, value.endField)],
+          errors: [{ name: 'dateRange', keyi18n: 'dateRange', rules: [RuleEvent.DIRTY] }]
+        };
+      case ConstraintValidatorType.AtLeastOneNotNull:
+        return {
+          fields: [...value.fields],
+          validation: [atLeastOneNotNull(value.fields)],
+          errors: [{ name: 'atLeastOneNotNull', keyi18n: 'atLeastOneNotNull', rules: [RuleEvent.DIRTY] }]
+        };
+      case ConstraintValidatorType.NumberRange:
+        return {
+          fields: [value.lowerField, value.upperField],
+          validation: [numberRange(value.lowerField, value.upperField)],
+          errors: [{ name: 'numberRange', keyi18n: 'numberRange', rules: [RuleEvent.DIRTY] }]
+        };
+      default:
+        return null;
+    }
   }
 
   /**
@@ -208,7 +244,7 @@ export class DynamicFieldModelHelper {
         fdExtendedList,
         labelPrefix,
         addSubmitButton,
-        null,
+        [],
         submitText
       )
     );
@@ -266,22 +302,22 @@ export class DynamicFieldModelHelper {
         fieldDescriptorInputAndShows,
         labelPrefix,
         addSubmitButton,
-        null,
+        [],
         submitText
       )
     );
   }
 
   /**
-   * Creates field configurations with optional field replacement and grouping.
-   * Processes field descriptors and handles special field replacement scenarios for
-   * grouped validation (e.g., replacing two date fields with a date range group).
+   * Creates field configurations, placing grouped fields into their form group.
+   * A field named by a group is not generated on its own: the group takes the position of its first field and the
+   * other fields of the group are left out at their own position.
    *
    * @param translateService Angular TranslateService for translating enum options
    * @param fieldDescriptorInputAndShows Array of field descriptors to process
    * @param labelPrefix Prefix for field label translation keys
    * @param addSubmitButton Whether to add a submit button at the end
-   * @param rpg Optional field replacement configuration for grouping fields into form groups
+   * @param groups Form groups of cross-field constraints, empty when there are none
    * @param submitText Custom submit button text
    * @returns Array of FieldFormGroup objects (mix of individual fields and form groups)
    */
@@ -290,14 +326,15 @@ export class DynamicFieldModelHelper {
     fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[],
     labelPrefix: string,
     addSubmitButton = false,
-    rpg: ReplaceFieldWithGroup,
+    groups: ConstraintFieldGroup[],
     submitText?: string
   ): FieldFormGroup[] {
     const fieldConfigs: FieldFormGroup[] = [];
     fieldDescriptorInputAndShows.forEach((fd) => {
-      if (rpg && (fd.fieldName === rpg.replaceFieldName || fd.fieldName === rpg.removeFieldName)) {
-        if (fd.fieldName === rpg.replaceFieldName) {
-          fieldConfigs.push(rpg.fieldFormGroup);
+      const group = groups.find((g) => g.fieldNames.includes(fd.fieldName));
+      if (group) {
+        if (fd.fieldName === group.fieldNames[0]) {
+          fieldConfigs.push(group.fieldFormGroup);
         }
       } else {
         const fieldConfig: FieldConfig = this.createConfigFieldFromDescriptor(translateService, fd, labelPrefix, null);
@@ -344,7 +381,7 @@ export class DynamicFieldModelHelper {
         fieldConfig = DynamicFieldHelper.createFieldCheckbox(targetField, labelKey);
         break;
       case DataType.String:
-        fieldConfig = this.createStringInputFromDescriptor(fd, labelKey, targetField, fieldOptionsCc);
+        fieldConfig = this.createStringInputFromDescriptor(translateService, fd, labelKey, targetField, fieldOptionsCc);
         break;
       case DataType.Numeric:
       case DataType.NumericInteger:
@@ -463,8 +500,11 @@ export class DynamicFieldModelHelper {
   /**
    * Creates string input field configuration from descriptor properties.
    * Handles various string input types based on dynamicFormPropertyHelps: EMAIL (with email validation),
-   * PASSWORD (masked input), SELECT_OPTIONS (dropdown), or standard input/textarea based on max length.
+   * PASSWORD (masked input), SELECT_OPTIONS (dropdown whose options the component supplies). Without a helper, a field
+   * backed by a Java enum becomes a dropdown of its translated constants, any other field a standard input or a
+   * textarea based on max length.
    *
+   * @param translateService Angular TranslateService for translating the constants of an enum-backed field
    * @param fd Field descriptor containing string field metadata (max length, min length, required status)
    * @param labelKey Translation key for field label
    * @param targetField Target field name (may differ from descriptor field name for aliasing)
@@ -472,6 +512,7 @@ export class DynamicFieldModelHelper {
    * @returns FieldConfig object configured for appropriate string input type with validation
    */
   private static createStringInputFromDescriptor(
+    translateService: TranslateService,
     fd: FieldDescriptorInputAndShow,
     labelKey: string,
     targetField: string,
@@ -510,6 +551,12 @@ export class DynamicFieldModelHelper {
 
         default:
       }
+    } else if (fd.enumValues?.length) {
+      // The backend sends the constants of an enum field, so they are the complete list of valid values.
+      fieldConfig = DynamicFieldHelper.createFieldSelectString(targetField, labelKey, fd.required, {
+        ...fieldOptions,
+        valueKeyHtmlOptions: this.translatedEnumOptions(translateService, fd, !fd.required)
+      });
     } else {
       if (fd.max && fd.max > 80) {
         fieldOptions.textareaRows = fieldOptions.textareaRows ? fieldOptions.textareaRows : Math.ceil(fd.max / 80);
@@ -555,22 +602,34 @@ export class DynamicFieldModelHelper {
     targetField: string,
     fieldOptionsCc?: FieldOptionsCc
   ): FieldConfig {
-    // Convert enum values to select options with translation
-    // key = enum value name (submitted value), value = translated display text
-    const untranslatedOptions: ValueKeyHtmlSelectOptions[] =
-      fd.enumValues?.map((enumValue) => new ValueKeyHtmlSelectOptions(enumValue, enumValue)) || [];
-
-    const valueKeyHtmlOptions = SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
-      translateService,
-      untranslatedOptions,
-      false
-    );
-
     const fieldOptions: FieldOptions = Object.assign({}, fieldOptionsCc, {
-      valueKeyHtmlOptions
+      valueKeyHtmlOptions: this.translatedEnumOptions(translateService, fd, false)
     });
 
     return DynamicFieldHelper.createFieldMultiSelectString(targetField, labelKey, fd.required, fieldOptions);
+  }
+
+  /**
+   * Converts the enum constants of a descriptor into select options. The key is the constant name, which is the value
+   * submitted to the backend; the displayed text is its translation, with the constant name as translation key.
+   *
+   * @param translateService Angular TranslateService for translating the constants
+   * @param fd Field descriptor whose enumValues hold the constant names
+   * @param addEmpty Whether an empty entry precedes the constants, so that an optional field can be cleared
+   * @returns The translated options, empty when the descriptor carries no constants
+   */
+  private static translatedEnumOptions(
+    translateService: TranslateService,
+    fd: FieldDescriptorInputAndShow,
+    addEmpty: boolean
+  ): ValueKeyHtmlSelectOptions[] {
+    const untranslatedOptions: ValueKeyHtmlSelectOptions[] =
+      fd.enumValues?.map((enumValue) => new ValueKeyHtmlSelectOptions(enumValue, enumValue)) || [];
+    return SelectOptionsHelper.translateExistingValueKeyHtmlSelectOptions(
+      translateService,
+      untranslatedOptions,
+      addEmpty
+    );
   }
 
   /**
@@ -619,11 +678,13 @@ export class DynamicFieldModelHelper {
     dynamicModel: any = {}
   ): any {
     fieldDescriptorInputAndShows.forEach((fieldDescriptorInputAndShow) => {
-      let value = paramMap[fieldDescriptorInputAndShow.fieldName].paramValue;
+      // An optional field left empty is not stored at all, so its parameter may be missing.
+      let value = paramMap[fieldDescriptorInputAndShow.fieldName]?.paramValue ?? null;
       switch (DataType[fieldDescriptorInputAndShow.dataType]) {
         case DataType.Numeric:
         case DataType.NumericInteger:
-          value = Number(value);
+          // Number(null) would turn an empty optional bound into 0
+          value = value === null || value === '' ? null : Number(value);
           break;
         case DataType.EnumSet:
           // Backend stores comma-separated string - convert to array for MultiSelect display
@@ -675,4 +736,22 @@ export class DynamicFieldModelHelper {
     }
     return false;
   }
+}
+
+/**
+ * A form group built from the class-level constraints of a descriptor, with the fields it takes the place of.
+ */
+interface ConstraintFieldGroup {
+  /** Names of the grouped fields in descriptor order; the group is placed where the first of them would be. */
+  fieldNames: string[];
+  fieldFormGroup: FormGroupDefinition;
+}
+
+/**
+ * Fields, group validators and error rules of one class constraint, or of several that share fields.
+ */
+interface ConstraintDefinition {
+  fields: string[];
+  validation: ValidatorFn[];
+  errors: ErrorMessageRules[];
 }

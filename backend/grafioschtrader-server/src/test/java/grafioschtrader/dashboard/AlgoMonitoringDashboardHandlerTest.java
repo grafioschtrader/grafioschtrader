@@ -98,8 +98,7 @@ class AlgoMonitoringDashboardHandlerTest {
   @Test
   @DisplayName("A checkpoint lists at most three trades, sales first and the largest first")
   void checkpointWithTrades() {
-    List<AlgoRecommendation> plan = List.of(
-        line("S", 30, 40, AlgoRecommendationAction.REBALANCE_BUY, 500.0, 1.0),
+    List<AlgoRecommendation> plan = List.of(line("S", 30, 40, AlgoRecommendationAction.REBALANCE_BUY, 500.0, 1.0),
         line("S", 31, 41, AlgoRecommendationAction.REBALANCE_BUY, 900.0, 1.0),
         line("S", 32, 42, AlgoRecommendationAction.REBALANCE_SELL, 300.0, 1.0),
         line("S", 33, 43, AlgoRecommendationAction.REBALANCE_BUY, 100.0, 1.0));
@@ -115,6 +114,19 @@ class AlgoMonitoringDashboardHandlerTest {
     assertThat(summary.sellCount()).isEqualTo(1);
     assertThat(summary.topTrades()).extracting(AlgoMonitoringSummary.Trade::securityName).containsExactly("C", "B",
         "A");
+  }
+
+  @Test
+  @DisplayName("Lines outside their tolerance band are counted, whatever their level")
+  void allocationBreachesAreCounted() {
+    AlgoRecommendation bucket = line("A", 20, null, AlgoRecommendationAction.REBALANCE_HOLD, null, -8.0);
+    AlgoRecommendation instrument = line("S", 30, 40, AlgoRecommendationAction.REBALANCE_HOLD, null, -8.0);
+    bucket.setAllocationBreach(true);
+    instrument.setAllocationBreach(true);
+    when(recommendations.findByIdTenantAndIdAlgoTopOrderByLevelTypeAscIdNodeAsc(ID_TENANT, ID_TOP)).thenReturn(
+        List.of(line("T", ID_TOP, null, AlgoRecommendationAction.REBALANCE_HOLD, null, 0.0), bucket, instrument));
+
+    assertThat(handler.summarize(user).allocationBreaches()).isEqualTo(2);
   }
 
   @Test

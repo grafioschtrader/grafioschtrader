@@ -95,7 +95,7 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
     return new ResponseEntity<>(globalparametersService.getStandingOrderQuoteToleranceRange(), HttpStatus.OK);
   }
 
-  @Operation(summary = "Returns tenant-specific standing-order capabilities", description = "Simulation tenants execute cash standing orders only during Historical Replay; main tenants use the daily scheduler.", tags = {
+  @Operation(summary = "Returns tenant-specific standing-order capabilities", description = "Simulation tenants execute standing orders only during Historical Replay; main tenants use the daily scheduler.", tags = {
       RequestGTMappings.STANDINGORDER })
   @GetMapping(value = "/capabilities", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<StandingOrderCapabilities> getCapabilities() {
@@ -103,7 +103,7 @@ public class StandingOrderResource extends UpdateCreateDeleteWithTenantResource<
     boolean simulation = tenantJpaRepository.findById(user.getIdTenant())
         .map(tenant -> tenant.getTenantKindType() == TenantKindType.SIMULATION_COPY).orElse(false);
     QuoteToleranceRange range = globalparametersService.getStandingOrderQuoteToleranceRange();
-    return ResponseEntity.ok(new StandingOrderCapabilities(simulation, true, !simulation, range.min(),
+    return ResponseEntity.ok(new StandingOrderCapabilities(simulation, true, true, range.min(),
         simulation ? Math.min(0, range.max()) : range.max()));
   }
 

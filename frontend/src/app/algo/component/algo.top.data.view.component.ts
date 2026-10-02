@@ -47,7 +47,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { StrategyDetailComponent } from './strategy-detail.component';
 import { AlgoAssetclassEditComponent } from './algo-assetclass-edit.component';
-import { AlgoAssetclassAddInstrumentComponent } from './algo-assetclass-add-instrument.component';
+import { AlgoAssetclassAddInstrumentDialogComponent } from './algo-assetclass-add-instrument-dialog.component';
 import { AlgoStrategyEditComponent } from './algo-strategy-edit.component';
 import {
   ConfigurableTreeTableComponent,
@@ -174,7 +174,7 @@ import {
     ConfigurableTreeTableComponent,
     StrategyDetailComponent,
     AlgoAssetclassEditComponent,
-    AlgoAssetclassAddInstrumentComponent,
+    AlgoAssetclassAddInstrumentDialogComponent,
     AlgoStrategyEditComponent,
     AngularSvgIconModule,
     TooltipModule
@@ -234,7 +234,7 @@ export class AlgoTopDataViewComponent extends AlgoTreeViewBase implements IGloba
       max: 100,
       maxFractionDigits: 2
     };
-    this.addTotalDateAndIdColumns();
+    this.addTotalDateAndIdColumns(true);
     this.addColumn(DataType.Boolean, 'alertEnabled', 'ALERT_ENABLED', true, false, {
       templateName: 'editableCheck'
     });

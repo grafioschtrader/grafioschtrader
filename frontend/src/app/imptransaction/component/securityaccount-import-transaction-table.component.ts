@@ -25,7 +25,7 @@ import { Transaction } from '../../entities/transaction';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { Security } from '../../entities/security';
-import { SecuritycurrencySearchAndSetComponent } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
+import { SecuritycurrencySearchAndSetDialogComponent } from '../../securitycurrency/component/securitycurrency-search-and-set-dialog.component';
 import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
@@ -34,7 +34,7 @@ import { BaseSettings } from '../../lib/base.settings';
 import { TemplateFormCheckDialogResultFailedComponent } from '../../imptranstemplate/component/template-form-check-dialog-result-failed.component';
 import { SecurityaccountImportExtendedInfoFilenameComponent } from './securityaccount-import-extended-info-filename.component';
 import { SecurityaccountImportExtendedInfoComponent } from './securityaccount-import-extended-info.component';
-import { SecurityaccountImportSetCashaccountComponent } from './securityaccount-import-set-cashaccount.component';
+import { SecurityaccountImportSetCashaccountDialogComponent } from './securityaccount-import-set-cashaccount-dialog.component';
 
 /**
  * This table is controlled by a master data selection view.
@@ -101,7 +101,7 @@ import { SecurityaccountImportSetCashaccountComponent } from './securityaccount-
     TemplateFormCheckDialogResultFailedComponent,
     SecurityaccountImportExtendedInfoFilenameComponent,
     SecurityaccountImportExtendedInfoComponent,
-    SecurityaccountImportSetCashaccountComponent
+    SecurityaccountImportSetCashaccountDialogComponent
   ]
 })
 export class SecurityaccountImportTransactionTableComponent extends TableConfigBase implements OnDestroy {
@@ -474,7 +474,7 @@ export class SecurityaccountImportTransactionTableComponent extends TableConfigB
    */
   private openSetSecurityDialog(): void {
     this.translateService.get('SET_SECURITY').subscribe((title) => {
-      const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
+      const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
         header: title,
         width: '720px',
         resizable: false,

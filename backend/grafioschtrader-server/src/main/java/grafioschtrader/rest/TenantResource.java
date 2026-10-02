@@ -33,14 +33,17 @@ import grafioschtrader.algo.SimulationRunRequestDTO;
 import grafioschtrader.algo.SimulationTenantCreateDTO;
 import grafioschtrader.algo.SimulationTenantInfo;
 import grafioschtrader.dto.FxObservationReport;
+import grafioschtrader.dto.PerformanceReportSettings;
 import grafioschtrader.dto.TaxStatementExportRequest;
 import grafioschtrader.entities.AlgoEventLog;
 import grafioschtrader.entities.AlgoSimulationResult;
 import grafioschtrader.entities.Tenant;
+import grafioschtrader.report.pdf.PerformanceReportSettingsService;
 import grafioschtrader.repository.SimulationTenantService;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.AlgoHistoricalReplayService;
 import grafioschtrader.service.FxObservationService;
+import grafioschtrader.service.SimulationRunEquityPoint;
 import grafioschtrader.service.SimulationRunEventWindow;
 import grafioschtrader.service.SimulationRunSettingsDto;
 import grafioschtrader.types.TenantKindType;
@@ -168,6 +171,16 @@ public class TenantResource extends TenantBaseResource<Tenant> {
     return replayService.settings(idTenant).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
   }
 
+  @Operation(summary = "Equity curve of the completed historical replay", description = """
+      One point per fully valued day with the equity of the environment and the capital invested up to that day. Empty
+      when the environment has never been replayed or its latest run did not complete.""", tags = {
+      TenantBase.TABNAME })
+  @GetMapping(value = "/simulation/{idTenant}/run/equity", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<SimulationRunEquityPoint>> getSimulationRunEquity(
+      @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant) {
+    return ResponseEntity.ok(replayService.equitySeries(idTenant));
+  }
+
   @Operation(summary = "Audit trail of the historical replay, newest day first", tags = { TenantBase.TABNAME })
   @GetMapping(value = "/simulation/{idTenant}/run/events", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Page<AlgoEventLog>> getSimulationRunEvents(
@@ -179,7 +192,8 @@ public class TenantResource extends TenantBaseResource<Tenant> {
   @Operation(summary = "Window of the audit trail of the historical replay around an anchor day, newest day first", description = """
       Returns a bounded number of entries before the anchor day and as many from it on, together with the total number
       of entries of the run. A trail that fits into one window is returned whole, whatever the anchor day. Without an
-      anchor day the end date of the run is used.""", tags = { TenantBase.TABNAME })
+      anchor day the end date of the run is used.""", tags = {
+      TenantBase.TABNAME })
   @GetMapping(value = "/simulation/{idTenant}/run/events/window", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SimulationRunEventWindow> getSimulationRunEventWindow(
       @Parameter(description = "ID of the simulation tenant", required = true) @PathVariable Integer idTenant,
@@ -212,6 +226,22 @@ public class TenantResource extends TenantBaseResource<Tenant> {
     tenant.setTaxExportSettings(taxExportSettings);
     tenantJpaRepository.save(tenant);
     return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @Autowired
+  private PerformanceReportSettingsService reportSettingsService;
+
+  @GetMapping(value = "/reportsettings", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<PerformanceReportSettings> getReportSettings() {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return ResponseEntity.ok(reportSettingsService.get(user.getIdTenant()));
+  }
+
+  @PatchMapping(value = "/reportsettings", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Void> saveReportSettings(@Valid @RequestBody PerformanceReportSettings settings) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    reportSettingsService.save(user.getIdTenant(), settings);
+    return ResponseEntity.ok().build();
   }
 
   @Override

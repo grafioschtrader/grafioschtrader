@@ -185,7 +185,7 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
         LocalDate date = securityPositionSummary.securitycurrency.getSTimestamp() != null
             ? securityPositionSummary.securitycurrency.getSTimestamp().toLocalDate()
             : null;
-        if (historyquote != null && (price == null
+        if (historyquote != null && (price == null || date == null
             || (date != null && (historyquote.getDate().isAfter(date) || untilDate.isBefore(date))))) {
           price = historyquote.getClose();
           date = historyquote.getDate();
@@ -193,6 +193,10 @@ public abstract class SecuritycurrencyService<S extends Securitycurrency<S>, U e
           // closing price. Whether that price was traded or was produced by filling gaps has to reach the user.
           securityPositionSummary.closePriceOrigin = LastpriceOrigin
               .ofHistoryquoteCreateType(historyquote.getCreateType());
+        }
+        if (date == null || (untilDate != null && date.isAfter(untilDate))) {
+          price = null;
+          date = null;
         }
         if (price == null) {
           // The substitute keeps the downstream calculation from failing, but it is not a price. Marking it as such is

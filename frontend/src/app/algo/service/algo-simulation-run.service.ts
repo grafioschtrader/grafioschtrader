@@ -6,7 +6,12 @@ import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service
 import { LoginService } from '../../lib/login/service/log-in.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { BaseSettings } from '../../lib/base.settings';
-import { SimulationRunEventWindow, SimulationRunResult, SimulationRunSettings } from '../model/simulation.run';
+import {
+  SimulationRunEquityPoint,
+  SimulationRunEventWindow,
+  SimulationRunResult,
+  SimulationRunSettings
+} from '../model/simulation.run';
 
 /**
  * The historical replay of a simulation environment.
@@ -50,6 +55,13 @@ export class AlgoSimulationRunService extends AuthServiceWithLogout<SimulationRu
   settings(idTenant: number): Observable<SimulationRunSettings> {
     return this.httpClient
       .get<SimulationRunSettings>(`${this.endpoint}/${idTenant}/run/settings`, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  /** The equity curve of the latest run; empty when the environment was never replayed or the run did not complete. */
+  equitySeries(idTenant: number): Observable<SimulationRunEquityPoint[]> {
+    return this.httpClient
+      .get<SimulationRunEquityPoint[]>(`${this.endpoint}/${idTenant}/run/equity`, this.getHeaders())
       .pipe(catchError(this.handleError.bind(this)));
   }
 

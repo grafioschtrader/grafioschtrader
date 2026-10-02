@@ -27,3 +27,73 @@ UPDATE globalparameters
 UPDATE globalparameters
   SET input_rule = 'pattern:^LP=([1-9]|10),HP=([1-9]|10),SL=([1-9]|10),SS=([1-9]|10)$'
   WHERE property_name = 'g.gnet.del.message.recv';
+
+-- Remembered report presentation settings, shared by the tenant.
+ALTER TABLE tenant ADD COLUMN IF NOT EXISTS report_settings JSON DEFAULT NULL;
+
+-- Mean reversion dip: dip_buy is the only entry type. A draft that named breakout or indicator_signal becomes a dip
+-- draft; it stays a draft because activatable is not touched.
+UPDATE algo_strategy SET strategy_config = JSON_REMOVE(strategy_config, '$.entry.type')
+WHERE algo_strategy_impl = 68 AND JSON_VALID(strategy_config)
+AND JSON_UNQUOTE(JSON_EXTRACT(strategy_config, '$.entry.type')) IN ('breakout', 'indicator_signal');
+
+-- The position exposure limit always applies, so the two switches that claimed to lift it are removed. The strategy
+-- configuration is read with FAIL_ON_UNKNOWN_PROPERTIES, so a stored switch would make the strategy unreadable.
+UPDATE algo_strategy SET strategy_config = JSON_REMOVE(strategy_config,
+  '$.risk_controls.block_entry_if_exposure_exceeded')
+WHERE algo_strategy_impl = 68 AND JSON_VALID(strategy_config)
+AND JSON_CONTAINS_PATH(strategy_config, 'one', '$.risk_controls.block_entry_if_exposure_exceeded');
+UPDATE algo_strategy SET strategy_config = JSON_REMOVE(strategy_config,
+  '$.risk_controls.block_add_if_exposure_exceeded')
+WHERE algo_strategy_impl = 68 AND JSON_VALID(strategy_config)
+AND JSON_CONTAINS_PATH(strategy_config, 'one', '$.risk_controls.block_add_if_exposure_exceeded');
+
+-- A plan line outside its tolerance band, so that a breach is reported once per episode: the daily evaluation compares
+-- the lines of the new plan with the flags of the plan it replaces.
+ALTER TABLE algo_recommendation ADD COLUMN IF NOT EXISTS allocation_breach TINYINT(1) NOT NULL DEFAULT 0
+  COMMENT 'The line is outside its tolerance band: class tolerance, security band or exposure ceiling';
+
+-- The tranche key also names the plan line of an allocation breach.
+ALTER TABLE algo_message_alert MODIFY COLUMN tranche_key VARCHAR(32) NOT NULL DEFAULT ''
+  COMMENT 'Profit taking tranche, or the plan line of an allocation breach; empty for every other signal';
+
+-- A strategy parameter holds the flat form value of an alert, and the expression alert accepts up to 500 characters.
+ALTER TABLE algo_rule_strategy_param MODIFY COLUMN param_value VARCHAR(500) NOT NULL;
+
+-- Retention of the recorded alert notifications, which otherwise grow without limit per tenant. A notification is
+-- deleted as soon as it exceeds one of the two limits, but only once its delivery has finished and its alert day lies
+-- more than 10 days back. An administrator's value is kept; only the input rule is refreshed.
+INSERT INTO globalparameters (property_name, property_string, changed_by_system, input_rule)
+  VALUES ('gt.algo.alert.retention', 'Days=180,MaxRecords=200', 0,
+    'pattern:^Days=[1-9][0-9]{1,2},MaxRecords=([2-9][0-9]|[1-9][0-9]{2}|1[0-9]{3}|2000)$')
+  ON DUPLICATE KEY UPDATE input_rule = VALUES(input_rule);
+
+-- The alert diagnostics translate the evaluation reason, so a fixed reason is stored as an NLS key. Rows written
+-- before still carry the English text, which the dialog would show untranslated until the pair is evaluated again.
+UPDATE algo_alert_evaluation_state SET reason = CASE reason
+  WHEN 'Instrument outside its active dates' THEN 'ALERT_REASON_INSTRUMENT_INACTIVE'
+  WHEN 'Missing exchange' THEN 'ALERT_REASON_MISSING_EXCHANGE'
+  WHEN 'Missing or invalid exchange hours' THEN 'ALERT_REASON_INVALID_EXCHANGE_HOURS'
+  WHEN 'Invalid exchange time zone' THEN 'ALERT_REASON_INVALID_EXCHANGE_ZONE'
+  WHEN 'Exchange weekend' THEN 'ALERT_REASON_EXCHANGE_WEEKEND'
+  WHEN 'Exchange non-trading day' THEN 'ALERT_REASON_EXCHANGE_NON_TRADING_DAY'
+  WHEN 'Exchange not open yet' THEN 'ALERT_REASON_EXCHANGE_NOT_OPEN'
+  WHEN 'Waiting for closing quote' THEN 'ALERT_REASON_WAITING_CLOSING_QUOTE'
+  WHEN 'Quote refresh failed' THEN 'ALERT_REASON_QUOTE_REFRESH_FAILED'
+  WHEN 'Required quote is missing or stale' THEN 'ALERT_REASON_QUOTE_MISSING_OR_STALE'
+  WHEN 'Evaluation failed' THEN 'ALERT_REASON_EVALUATION_FAILED'
+  WHEN 'Holding percentage unavailable: cost basis is zero' THEN 'ALERT_REASON_HOLDING_PERCENTAGE_UNAVAILABLE'
+  ELSE reason END
+WHERE reason IN ('Instrument outside its active dates', 'Missing exchange', 'Missing or invalid exchange hours',
+  'Invalid exchange time zone', 'Exchange weekend', 'Exchange non-trading day', 'Exchange not open yet',
+  'Waiting for closing quote', 'Quote refresh failed', 'Required quote is missing or stale', 'Evaluation failed',
+  'Holding percentage unavailable: cost basis is zero');
+
+-- Longest phase of a replay below a previous high of its cash-flow adjusted equity, in calendar days.
+ALTER TABLE algo_simulation_result ADD COLUMN IF NOT EXISTS max_drawdown_duration_days INT DEFAULT NULL
+  COMMENT 'Calendar days of the longest phase below a previous equity high, including one still open on the end date'
+  AFTER max_drawdown;
+
+-- Daily equity and invested capital of a completed replay, for its equity curve.
+ALTER TABLE algo_simulation_result ADD COLUMN IF NOT EXISTS equity_series_json LONGTEXT DEFAULT NULL
+  COMMENT 'JSON list of date, equity and invested capital of every fully valued day of a completed run';

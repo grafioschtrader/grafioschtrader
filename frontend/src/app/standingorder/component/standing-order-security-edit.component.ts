@@ -19,7 +19,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
-import { SecuritycurrencySearchAndSetComponent } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
+import { SecuritycurrencySearchAndSetDialogComponent } from '../../securitycurrency/component/securitycurrency-search-and-set-dialog.component';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { Portfolio } from '../../entities/portfolio';
 import { StandingOrderEditBase } from './standing-order-edit-base';
@@ -251,7 +251,7 @@ export class StandingOrderSecurityEditComponent extends StandingOrderEditBase im
   /** Opens the security search dialog when the security name button is clicked. */
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
     this.translateService.get('SET_SECURITY').subscribe((title) => {
-      const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
+      const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
         header: title,
         width: '720px',
         resizable: false,

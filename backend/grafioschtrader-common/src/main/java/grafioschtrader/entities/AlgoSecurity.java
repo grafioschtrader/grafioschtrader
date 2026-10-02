@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = AlgoSecurity.TABNAME)
@@ -33,6 +34,12 @@ public class AlgoSecurity extends AlgoAssetclassSecurity {
   @JoinColumn(name = "id_securitycurrency", referencedColumnName = "id_securitycurrency")
   @ManyToOne
   private Security security;
+
+  @Schema(description = """
+      Units of this instrument the tenant holds today, summed over all securities accounts. Filled only when the
+      hierarchy is read as the assigned monitoring hierarchy, and null when no position is open.""", accessMode = Schema.AccessMode.READ_ONLY)
+  @Transient
+  public Double holdings;
 
   public Integer getIdAlgoSecurityParent() {
     return idAlgoSecurityParent;

@@ -46,9 +46,8 @@ import grafioschtrader.repository.WatchlistJpaRepository;
  * <p>
  * Deactivation is reported rather than filtered. A pair whose strategy is switched off, and in the live scopes also a
  * pair of a hierarchy not assigned to monitoring or with its alert disabled, comes back with {@code active == false},
- * because the caller has to discard its crossing baselines: dropping the pair
- * silently would leave a stale baseline behind, and switching the alert on again would then report the move that
- * happened while it was off.
+ * because the caller has to discard its crossing baselines: dropping the pair silently would leave a stale baseline
+ * behind, and switching the alert on again would then report the move that happened while it was off.
  * </p>
  */
 @Service
@@ -111,6 +110,21 @@ public class AlgoAlertScopeResolver {
   }
 
   /**
+   * The pairs the live alert evaluation works on. A standalone alert needs only the alert feature, while the alerts of
+   * an AlgoTop hierarchy belong to rule-based trading and are left out while that feature is switched off.
+   *
+   * @param idTenant         tenant to restrict to, or null for every tenant
+   * @param ruleBasedTrading whether rule-based trading is enabled, which admits the hierarchy alerts
+   * @return the pairs, active and inactive
+   */
+  public List<AlgoAlertScope> resolveAlertScopes(Integer idTenant, boolean ruleBasedTrading) {
+    if (!ruleBasedTrading) {
+      return resolveStandalone(idTenant);
+    }
+    return idTenant == null ? resolveAll() : resolveForTenant(idTenant);
+  }
+
+  /**
    * The pairs of one AlgoTop hierarchy: its own strategies against the linked watchlist, each bucket's strategies
    * against that bucket's instruments, and each instrument node's strategies against itself.
    *
@@ -160,8 +174,11 @@ public class AlgoAlertScopeResolver {
     return new ArrayList<>(byPair.values());
   }
 
-  /** Reads configuration afresh, batching strategy reads without caching activation state across calls or tenants. */
-  private Hierarchy readHierarchy(AlgoTop algoTop) {
+  /**
+   * Reads configuration afresh, batching strategy reads without caching activation state across calls or tenants. Also
+   * used by {@link AlgoHierarchyAlertOverviewService}, so that the overview shows exactly the nodes this resolver walks.
+   */
+  Hierarchy readHierarchy(AlgoTop algoTop) {
     Integer idTenant = algoTop.getIdTenant();
     List<AlgoAssetclass> buckets = algoAssetclassJpaRepository.findByIdTenantAndIdAlgoAssetclassParent(idTenant,
         algoTop.getId());
@@ -181,7 +198,7 @@ public class AlgoAlertScopeResolver {
     return new Hierarchy(buckets, membersByBucket, strategiesByNode);
   }
 
-  private record Hierarchy(List<AlgoAssetclass> buckets, Map<Integer, List<AlgoSecurity>> membersByBucket,
+  record Hierarchy(List<AlgoAssetclass> buckets, Map<Integer, List<AlgoSecurity>> membersByBucket,
       Map<Integer, List<AlgoStrategy>> strategiesByNode) {
   }
 

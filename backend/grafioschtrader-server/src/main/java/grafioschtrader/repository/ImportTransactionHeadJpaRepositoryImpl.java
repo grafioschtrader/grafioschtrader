@@ -152,10 +152,13 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
 
       List<ImportTransactionPos> importTransactionPosList = importTransactionPosJpaRepository
           .findByIdTransactionHeadAndIdTenant(importTransactionHead.getIdTransactionHead(), user.getIdTenant());
-      Optional<ImportTransactionPos> itpOpt = importTransactionPosList.stream()
-          .filter(importTransactionPos -> !importTransactionPos.isReadyForTransaction()).findFirst();
-      if (itpOpt.isPresent()) {
-        return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead());
+      // A document that may already have been imported is treated like one that cannot be processed: nothing is
+      // created and the user decides in the import head whether it is a duplicate.
+      importTransactionPosJpaRepository.markPossibleDuplicatesOfHead(importTransactionHead.getIdTransactionHead(),
+          importTransactionPosList);
+      boolean possibleDuplicate = importTransactionPosList.stream().anyMatch(this::isPossibleDuplicate);
+      if (possibleDuplicate || importTransactionPosList.stream().anyMatch(itp -> !itp.isReadyForTransaction())) {
+        return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead(), possibleDuplicate);
       } else {
         return createRealTransactions(importTransactionHead, importTransactionPosList);
       }
@@ -166,18 +169,20 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
   }
 
   /**
-   * Every pdf import is ready for transaction
+   * Every pdf import is ready for transaction. A position may still be left without a transaction: when its creation
+   * failed, or when it turned out to be a possible duplicate of a transaction created from an identical document of
+   * the same upload. Then the import head is kept for the user to review.
    */
   private SuccessFailedDirectImportTransaction createRealTransactions(ImportTransactionHead importTransactionHead,
       List<ImportTransactionPos> importTransactionPosList) {
     CreatedTransactionsResult result = importTransactionPosJpaRepository
         .createAndSaveTransactionsFromImpPos(importTransactionPosList, null);
     List<SavedImpPosAndTransaction> savedImpPosAndTransactions = result.savedImpPosAndTransactions;
-    Optional<ImportTransactionPos> itpErrorOpt = importTransactionPosList.stream()
-        .filter(itp -> itp.getTransactionError() != null).findFirst();
-    if (itpErrorOpt.isPresent()) {
-      // Failed to create a transaction
-      return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead());
+    boolean failed = importTransactionPosList.stream()
+        .anyMatch(itp -> itp.getTransactionError() != null || itp.getIdTransaction() == null);
+    if (failed) {
+      return new SuccessFailedDirectImportTransaction(importTransactionHead.getIdTransactionHead(),
+          importTransactionPosList.stream().anyMatch(this::isPossibleDuplicate));
     } else {
       // An import either happens in full or not at all: a batch that would breach the total transaction limit is
       // rejected before the first write, so reaching this point means every position was imported.
@@ -464,14 +469,21 @@ public class ImportTransactionHeadJpaRepositoryImpl extends BaseRepositoryImpl<I
     return deletionOrder;
   }
 
+  private boolean isPossibleDuplicate(ImportTransactionPos itp) {
+    return itp.getIdTransaction() == null && itp.getIdTransactionMaybe() != null && itp.getIdTransactionMaybe() > 0;
+  }
+
   public static class SuccessFailedDirectImportTransaction {
     public Integer idTransactionHead;
     public Integer noOfImportedTransactions;
     public Integer noOfDifferentSecurities;
     public boolean failed = true;
+    /** True when at least one position was not imported because it may already exist as a transaction. */
+    public boolean possibleDuplicate;
 
-    public SuccessFailedDirectImportTransaction(Integer idTransactionHead) {
+    public SuccessFailedDirectImportTransaction(Integer idTransactionHead, boolean possibleDuplicate) {
       this.idTransactionHead = idTransactionHead;
+      this.possibleDuplicate = possibleDuplicate;
     }
 
     public SuccessFailedDirectImportTransaction(Integer noOfImportedTransactions, Integer noOfDifferentSecurities) {

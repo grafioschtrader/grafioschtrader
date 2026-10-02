@@ -3,7 +3,6 @@ package grafioschtrader.algo.strategy.model.alerts;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 
 /**
  * Configuration for a moving-average crossing alert (security level only). The alert fires when the security's last
@@ -11,15 +10,19 @@ import jakarta.validation.constraints.Pattern;
  * {@code period} daily closing prices loaded from the history-quote table.
  *
  * <p>
+ * The indicator type and the cross direction are enums, so the generated edit form offers them as selection lists and a
+ * value outside the enum is rejected when the stored parameters are read.
+ * </p>
+ *
+ * <p>
  * Evaluated by Tier 2 (scheduled indicator evaluation) because it requires historical price data.
  * </p>
  */
 public class MaCrossingAlert {
 
-  /** Moving-average type: "SMA" (Simple Moving Average) or "EMA" (Exponential Moving Average). */
+  /** Kind of moving average the last price is compared with. */
   @NotNull
-  @Pattern(regexp = "SMA|EMA")
-  String indicatorType;
+  MovingAverageType indicatorType;
 
   /** Number of trading days used to calculate the moving average (1..999). */
   @NotNull
@@ -27,19 +30,15 @@ public class MaCrossingAlert {
   @Max(value = 999)
   Integer period;
 
-  /**
-   * Direction of the crossing that triggers the alert: "ABOVE" fires when the last price crosses above the MA, "BELOW"
-   * fires when the last price crosses below the MA.
-   */
+  /** Direction of the crossing that triggers the alert. */
   @NotNull
-  @Pattern(regexp = "BELOW|ABOVE")
-  String crossDirection;
+  CrossDirection crossDirection;
 
-  public String getIndicatorType() {
+  public MovingAverageType getIndicatorType() {
     return indicatorType;
   }
 
-  public void setIndicatorType(String indicatorType) {
+  public void setIndicatorType(MovingAverageType indicatorType) {
     this.indicatorType = indicatorType;
   }
 
@@ -51,11 +50,11 @@ public class MaCrossingAlert {
     this.period = period;
   }
 
-  public String getCrossDirection() {
+  public CrossDirection getCrossDirection() {
     return crossDirection;
   }
 
-  public void setCrossDirection(String crossDirection) {
+  public void setCrossDirection(CrossDirection crossDirection) {
     this.crossDirection = crossDirection;
   }
 }

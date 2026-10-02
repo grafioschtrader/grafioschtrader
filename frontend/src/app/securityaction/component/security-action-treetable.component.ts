@@ -23,7 +23,7 @@ import { SharedModule } from '@openng/optimus-ui/api';
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
 import { BaseSettings } from '../../lib/base.settings';
 import { MessageToastService } from '../../lib/message/message.toast.service';
-import { SecurityActionCreateComponent } from './security-action-create.component';
+import { SecurityActionCreateDialogComponent } from './security-action-create-dialog.component';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { ProcessedAction } from '../../lib/types/processed.action';
 
@@ -69,7 +69,14 @@ enum NodeLevel {
   `,
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, TranslatePipe, Panel, SharedModule, ConfigurableTreeTableComponent, SecurityActionCreateComponent]
+  imports: [
+    NgClass,
+    TranslatePipe,
+    Panel,
+    SharedModule,
+    ConfigurableTreeTableComponent,
+    SecurityActionCreateDialogComponent
+  ]
 })
 export class SecurityActionTreetableComponent
   extends TreeTableConfigBase

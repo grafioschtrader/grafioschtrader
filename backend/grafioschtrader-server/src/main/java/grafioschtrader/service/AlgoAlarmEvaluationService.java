@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -16,12 +15,15 @@ import org.springframework.stereotype.Service;
 import com.ezylang.evalex.Expression;
 import com.ezylang.evalex.data.EvaluationValue;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.alerts.AbsoluteValuePriceAlert;
 import grafioschtrader.algo.strategy.model.alerts.AlertConfigAdapter;
+import grafioschtrader.algo.strategy.model.alerts.CrossDirection;
 import grafioschtrader.algo.strategy.model.alerts.ExpressionAlert;
 import grafioschtrader.algo.strategy.model.alerts.HoldingGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.MaCrossingAlert;
+import grafioschtrader.algo.strategy.model.alerts.MovingAverageType;
 import grafioschtrader.algo.strategy.model.alerts.PeriodPriceGainLosePercentAlert;
 import grafioschtrader.algo.strategy.model.alerts.RsiThresholdAlert;
 import grafioschtrader.common.DataBusinessHelper;
@@ -96,6 +98,9 @@ public class AlgoAlarmEvaluationService {
   @Autowired
   private AlgoMeanReversionEvaluationService meanReversion;
 
+  @Autowired
+  private AlgoMessageAlertRetentionService retention;
+
   /** Evaluates new intraday observations, subject to exchange hours and quote freshness. */
   public void evaluateSimpleAlerts(List<Security> updatedSecurities) {
     coordinator.intraday(updatedSecurities);
@@ -110,6 +115,11 @@ public class AlgoAlarmEvaluationService {
    * can react to a single fresh quote; a rebalancing compares a whole hierarchy against a whole portfolio at one
    * closing date, so it is evaluated once per AlgoTop per day and would gain nothing from the per instrument leases.
    * </p>
+   *
+   * <p>
+   * The retention of the recorded notifications runs last and once per server day, so the notifications delivered just
+   * before already carry their final state.
+   * </p>
    */
   public void evaluateIndicatorAlerts() {
     coordinator.background();
@@ -117,12 +127,18 @@ public class AlgoAlarmEvaluationService {
     for (Integer tenant : meanReversion.tenantIds())
       meanReversion.evaluate(tenant, false);
     delivery.deliverPending();
+    if (retention.isPurgeDue())
+      retention.purge();
   }
 
-  /** Whether any active alert or any rebalancing is due; used before enqueuing background work. */
+  /**
+   * Whether any active alert, rebalancing or delivery is due, or the retention has not yet run today; used before
+   * enqueuing background work. Each step of the background pass checks its own due state, so a task enqueued for one of
+   * them leaves the others untouched.
+   */
   public boolean hasDueAlerts() {
     return coordinator.hasDueAlerts() || rebalancing.hasDueRebalancing() || delivery.hasDueDeliveries()
-        || meanReversion.hasDue();
+        || meanReversion.hasDue() || retention.isPurgeDue();
   }
 
   /**
@@ -178,9 +194,8 @@ public class AlgoAlarmEvaluationService {
           scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(), AlgoAlertStateService.BOUND_LOWER,
           fingerprint, price, config.getLowerValue());
       if (crossing == AlgoCrossingResult.CROSSED_DOWN) {
-        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today,
-            String.format(Locale.ROOT, "{\"bound\":\"lower\",\"threshold\":%s,\"price\":%s,\"direction\":\"BELOW\"}",
-                config.getLowerValue(), price));
+        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today, AlgoAlarmDetails.of("bound", "lower", "threshold",
+            config.getLowerValue(), "price", price, "direction", "BELOW"));
       }
     }
     if (config.getUpperValue() != null) {
@@ -188,9 +203,8 @@ public class AlgoAlarmEvaluationService {
           scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(), AlgoAlertStateService.BOUND_UPPER,
           fingerprint, price, config.getUpperValue());
       if (crossing == AlgoCrossingResult.CROSSED_UP) {
-        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today,
-            String.format(Locale.ROOT, "{\"bound\":\"upper\",\"threshold\":%s,\"price\":%s,\"direction\":\"ABOVE\"}",
-                config.getUpperValue(), price));
+        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today, AlgoAlarmDetails.of("bound", "upper", "threshold",
+            config.getUpperValue(), "price", price, "direction", "ABOVE"));
       }
     }
   }
@@ -217,21 +231,21 @@ public class AlgoAlarmEvaluationService {
       var crossing = algoAlertStateService.observe(scope.idTenant(), scope.strategy().getIdAlgoRuleStrategy(),
           security.getIdSecuritycurrency(), "HOLDING_LOWER", fingerprint, price, config.getLowerValue());
       if (crossing == AlgoCrossingResult.CROSSED_DOWN)
-        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today, String.format(Locale.ROOT,
-            "{\"bound\":\"lower\",\"threshold\":%s,\"price\":%s}", config.getLowerValue(), price));
+        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today,
+            AlgoAlarmDetails.of("bound", "lower", "threshold", config.getLowerValue(), "price", price));
     }
     if (config.getUpperValue() != null) {
       var crossing = algoAlertStateService.observe(scope.idTenant(), scope.strategy().getIdAlgoRuleStrategy(),
           security.getIdSecuritycurrency(), "HOLDING_UPPER", fingerprint, price, config.getUpperValue());
       if (crossing == AlgoCrossingResult.CROSSED_UP)
-        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today, String.format(Locale.ROOT,
-            "{\"bound\":\"upper\",\"threshold\":%s,\"price\":%s}", config.getUpperValue(), price));
+        fire(scope, AlgoSignalKind.PRICE_ALERT, crossing, today,
+            AlgoAlarmDetails.of("bound", "upper", "threshold", config.getUpperValue(), "price", price));
     }
     if (holding.gainLossPercentage() == null) {
       // Price-bound observations remain valid even when the percentage cost basis is undefined.
       if (config.getGainPercentage() != null || config.getLosePercentage() != null)
         throw new AlgoAlertEvaluationStateService.PartialEvaluationException(
-            "Holding percentage unavailable: cost basis is zero");
+            AlgoAlertReason.HOLDING_PERCENTAGE_UNAVAILABLE);
       return;
     }
     double percentage = holding.gainLossPercentage();
@@ -240,9 +254,8 @@ public class AlgoAlarmEvaluationService {
     if (gainReached || lossReached) {
       fire(scope, AlgoSignalKind.HOLDING_GAIN_LOSS,
           gainReached ? AlgoCrossingResult.CROSSED_UP : AlgoCrossingResult.CROSSED_DOWN, today,
-          String.format(Locale.ROOT,
-              "{\"positionGainLossPercent\":%s,\"gainThreshold\":%s,\"loseThreshold\":%s,\"price\":%s}",
-              DataBusinessHelper.roundPercentage(percentage), config.getGainPercentage(), config.getLosePercentage(),
+          AlgoAlarmDetails.of("positionGainLossPercent", DataBusinessHelper.roundPercentage(percentage),
+              "gainThreshold", config.getGainPercentage(), "loseThreshold", config.getLosePercentage(), "price",
               price));
     }
   }
@@ -277,11 +290,10 @@ public class AlgoAlarmEvaluationService {
     if (gainReached || lossReached) {
       fire(scope, AlgoSignalKind.PERIOD_PRICE_CHANGE,
           gainReached ? AlgoCrossingResult.CROSSED_UP : AlgoCrossingResult.CROSSED_DOWN, today,
-          String.format(Locale.ROOT,
-              "{\"changePercent\":%s,\"gainThreshold\":%s,\"loseThreshold\":%s,\"daysInPeriod\":%d,"
-                  + "\"referenceDate\":\"%s\",\"referenceClose\":%s,\"price\":%s}",
-              DataBusinessHelper.roundPercentage(changePercent), config.getGainPercentage(), config.getLosePercentage(),
-              config.getDaysInPeriod(), reference.get().getDate(), referenceClose, price));
+          AlgoAlarmDetails.of("changePercent", DataBusinessHelper.roundPercentage(changePercent), "gainThreshold",
+              config.getGainPercentage(), "loseThreshold", config.getLosePercentage(), "daysInPeriod",
+              config.getDaysInPeriod(), "referenceDate", reference.get().getDate(), "referenceClose", referenceClose,
+              "price", price));
     }
   }
 
@@ -302,7 +314,7 @@ public class AlgoAlarmEvaluationService {
       return;
     }
     TaIndicatorData[] maData;
-    if ("EMA".equals(config.getIndicatorType())) {
+    if (config.getIndicatorType() == MovingAverageType.EMA) {
       ExponentialMovingAverage ema = new ExponentialMovingAverage(config.getPeriod(), history.size());
       history.forEach(hq -> ema.addData(hq.getDate(), hq.getClose()));
       maData = ema.getTaIndicatorData();
@@ -319,13 +331,12 @@ public class AlgoAlarmEvaluationService {
     AlgoCrossingResult crossing = algoAlertStateService.observe(scope.idTenant(),
         scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(), AlgoAlertStateService.BOUND_MA,
         AlertConfigAdapter.fingerprint(scope.strategy()), price, average);
-    boolean wanted = "ABOVE".equals(config.getCrossDirection()) ? crossing == AlgoCrossingResult.CROSSED_UP
+    boolean wanted = config.getCrossDirection() == CrossDirection.ABOVE ? crossing == AlgoCrossingResult.CROSSED_UP
         : crossing == AlgoCrossingResult.CROSSED_DOWN;
     if (wanted) {
       fire(scope, AlgoSignalKind.MA_CROSSING, crossing, today,
-          String.format(Locale.ROOT,
-              "{\"indicatorType\":\"%s\",\"period\":%d,\"maValue\":%.4f,\"price\":%s,\"crossDirection\":\"%s\"}",
-              config.getIndicatorType(), config.getPeriod(), average, price, config.getCrossDirection()));
+          AlgoAlarmDetails.of("indicatorType", config.getIndicatorType(), "period", config.getPeriod(), "maValue",
+              DataHelper.round(average, 4), "price", price, "crossDirection", config.getCrossDirection()));
     }
   }
 
@@ -354,8 +365,8 @@ public class AlgoAlarmEvaluationService {
           scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(),
           AlgoAlertStateService.BOUND_RSI_LOWER, fingerprint, value, config.getLowerThreshold());
       if (crossing == AlgoCrossingResult.CROSSED_DOWN) {
-        fire(scope, AlgoSignalKind.RSI_THRESHOLD, crossing, today, String.format(Locale.ROOT,
-            "{\"rsiValue\":%.2f,\"threshold\":%s,\"direction\":\"OVERSOLD\"}", value, config.getLowerThreshold()));
+        fire(scope, AlgoSignalKind.RSI_THRESHOLD, crossing, today, AlgoAlarmDetails.of("rsiValue",
+            DataHelper.round(value, 2), "threshold", config.getLowerThreshold(), "direction", "OVERSOLD"));
       }
     }
     if (config.getUpperThreshold() != null) {
@@ -363,8 +374,8 @@ public class AlgoAlarmEvaluationService {
           scope.strategy().getIdAlgoRuleStrategy(), security.getIdSecuritycurrency(),
           AlgoAlertStateService.BOUND_RSI_UPPER, fingerprint, value, config.getUpperThreshold());
       if (crossing == AlgoCrossingResult.CROSSED_UP) {
-        fire(scope, AlgoSignalKind.RSI_THRESHOLD, crossing, today, String.format(Locale.ROOT,
-            "{\"rsiValue\":%.2f,\"threshold\":%s,\"direction\":\"OVERBOUGHT\"}", value, config.getUpperThreshold()));
+        fire(scope, AlgoSignalKind.RSI_THRESHOLD, crossing, today, AlgoAlarmDetails.of("rsiValue",
+            DataHelper.round(value, 2), "threshold", config.getUpperThreshold(), "direction", "OVERBOUGHT"));
       }
     }
   }
@@ -397,10 +408,9 @@ public class AlgoAlarmEvaluationService {
     boolean triggered = result.isBooleanValue() ? result.getBooleanValue()
         : result.getNumberValue().compareTo(BigDecimal.ZERO) != 0;
     if (triggered) {
-      Object value = result.isBooleanValue() ? result.getBooleanValue() : result.getNumberValue();
+      Object value = result.isBooleanValue() ? result.getBooleanValue() : result.getNumberValue().doubleValue();
       fire(scope, AlgoSignalKind.EXPRESSION, AlgoCrossingResult.NO_CHANGE, today,
-          String.format(Locale.ROOT, "{\"expression\":\"%s\",\"result\":%s,\"price\":%s}",
-              expressionText.replace("\\", "\\\\").replace("\"", "\\\""), value, price));
+          AlgoAlarmDetails.of("expression", expressionText, "result", value, "price", price));
     }
   }
 

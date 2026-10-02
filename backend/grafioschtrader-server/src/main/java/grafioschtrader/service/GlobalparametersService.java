@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.PropertyStringParser;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.Globalparameters;
 import grafiosch.entities.User;
@@ -24,6 +25,7 @@ import grafiosch.service.EntityLimitService;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.config.LimitKeyConfig;
+import grafioschtrader.dto.AlgoAlertRetention;
 import grafioschtrader.dto.QuoteToleranceRange;
 
 /**
@@ -52,6 +54,33 @@ public class GlobalparametersService {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_ALGO_ALARM_EVALUATION_INTERVAL_HOURS)
         .map(Globalparameters::getPropertyInt).filter(value -> value >= 2 && value <= 6)
         .orElse(GlobalParamKeyDefault.DEFAULT_ALGO_ALARM_EVALUATION_INTERVAL_HOURS);
+  }
+
+  /**
+   * Retention of the recorded alert notifications. Each limit is checked against its admissible range on its own, so a
+   * row written outside the administrator dialog falls back to the default for the offending limit only. The lower
+   * bound of the days also keeps the age limit out of the window in which a notification still guards against a
+   * repeated alarm.
+   *
+   * @return the configured limits, or the defaults where a limit is missing or out of range
+   * @see GlobalParamKeyDefault#GLOB_KEY_ALGO_ALERT_RETENTION
+   */
+  public AlgoAlertRetention getAlgoAlertRetention() {
+    PropertyStringParser parser = PropertyStringParser
+        .parse(globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_ALGO_ALERT_RETENTION)
+            .map(Globalparameters::getPropertyString).orElse(null));
+    return new AlgoAlertRetention(
+        boundedOrDefault(parser.getIntValue(GlobalParamKeyDefault.ALGO_ALERT_RETENTION_DAYS, -1),
+            GlobalParamKeyDefault.MIN_ALGO_ALERT_RETENTION_DAYS, GlobalParamKeyDefault.MAX_ALGO_ALERT_RETENTION_DAYS,
+            GlobalParamKeyDefault.DEFAULT_ALGO_ALERT_RETENTION_DAYS),
+        boundedOrDefault(parser.getIntValue(GlobalParamKeyDefault.ALGO_ALERT_RETENTION_MAX_RECORDS, -1),
+            GlobalParamKeyDefault.MIN_ALGO_ALERT_RETENTION_MAX_RECORDS,
+            GlobalParamKeyDefault.MAX_ALGO_ALERT_RETENTION_MAX_RECORDS,
+            GlobalParamKeyDefault.DEFAULT_ALGO_ALERT_RETENTION_MAX_RECORDS));
+  }
+
+  private static int boundedOrDefault(int value, int min, int max, int defaultValue) {
+    return value >= min && value <= max ? value : defaultValue;
   }
 
   /**

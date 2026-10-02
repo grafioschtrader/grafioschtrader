@@ -20,8 +20,8 @@ import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upl
 import { BaseSettings } from '../../lib/base.settings';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
-import { TaxCountryCreateComponent } from './tax-country-create.component';
-import { TaxYearCreateComponent } from './tax-year-create.component';
+import { TaxCountryCreateDialogComponent } from './tax-country-create-dialog.component';
+import { TaxYearCreateDialogComponent } from './tax-year-create-dialog.component';
 import { ProcessedActionData } from '../../lib/types/processed.action.data';
 import { TaxExchangeRateTableComponent } from './tax-exchange-rate-table.component';
 import { TaxModelEditComponent } from './tax-model-edit.component';
@@ -299,7 +299,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
 
   private createCountry(): void {
     this.translateService.get('CREATE_TAX_COUNTRY').subscribe((title) => {
-      const ref = this.dialogService.open(TaxCountryCreateComponent, {
+      const ref = this.dialogService.open(TaxCountryCreateDialogComponent, {
         data: { existingCountries: this.existingCountries },
         closeOnEscape: true,
         header: title,
@@ -318,7 +318,7 @@ export class TaxDataTreetableComponent extends TreeTableConfigBase implements On
   private createYear(): void {
     const country: TaxCountry = this.selectedNode.data.entity;
     this.translateService.get('CREATE_TAX_YEAR').subscribe((title) => {
-      const ref = this.dialogService.open(TaxYearCreateComponent, {
+      const ref = this.dialogService.open(TaxYearCreateDialogComponent, {
         header: title,
         width: '400px',
         modal: true,

@@ -119,6 +119,12 @@ public class ImportProperties {
   private Map<String, Double> calcRoundingMap;
 
   /**
+   * Decimal places of the printed quotation carried over from the import template. Keyed by upper-case ISO currency
+   * code with a default sentinel entry; see {@code TemplateConfiguration.getQuotationDecimalsMap()}. May be null.
+   */
+  private Map<String, Integer> quotationDecimalsMap;
+
+  /**
    * Creates transaction properties with the specified configuration.
    *
    * @param transactionTypesMap Mapping from document text to transaction types
@@ -430,6 +436,14 @@ public class ImportProperties {
 
   public void setCalcRoundingMap(Map<String, Double> calcRoundingMap) {
     this.calcRoundingMap = calcRoundingMap;
+  }
+
+  public Map<String, Integer> getQuotationDecimalsMap() {
+    return quotationDecimalsMap;
+  }
+
+  public void setQuotationDecimalsMap(Map<String, Integer> quotationDecimalsMap) {
+    this.quotationDecimalsMap = quotationDecimalsMap;
   }
 
   @Override

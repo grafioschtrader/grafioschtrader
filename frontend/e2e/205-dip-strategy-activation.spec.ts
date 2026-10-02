@@ -2,6 +2,7 @@ import { expect, Page, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { loginAsFixtureUser } from './helpers';
+import { createStrategySecurityNode } from './strategy-activation.helpers';
 
 /**
  * Activation of the baseline dip-buy strategy — the simplest complete rule set the engine supports: buy after a
@@ -104,17 +105,12 @@ test('a dip strategy activates on daily data, stays a draft when ambiguous and r
   });
   expect(added.ok(), await added.text()).toBeTruthy();
 
-  // The AlgoTop is the root of the hierarchy; its percentage is the share of equity the whole strategy may use.
-  const created = await page.request.post('/api/algotop/create', {
-    headers: auth,
-    data: { name, idWatchlist, percentage: 100, assetclassPercentageList: [] }
-  });
-  expect(created.ok(), await created.text()).toBeTruthy();
-  const top = await created.json();
+  // Dip strategies belong to the instrument node, below the root and its asset-class allocation.
+  const securityNode = await createStrategySecurityNode(page, auth, name, idWatchlist, instrument.idSecuritycurrency);
 
   // The baseline configuration is executable as it stands, so it is accepted as activatable straight away.
   const strategy = {
-    idAlgoAssetclassSecurity: top.idAlgoAssetclassSecurity,
+    idAlgoAssetclassSecurity: securityNode.idAlgoAssetclassSecurity,
     algoStrategyImplementations: 'AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP',
     activatable: true,
     strategyConfig: JSON.stringify(configuration)

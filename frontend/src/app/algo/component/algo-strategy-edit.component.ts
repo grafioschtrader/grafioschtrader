@@ -10,7 +10,10 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { AlgoCallParam } from '../model/algo.dialog.visible';
 import { AlgoStrategyImplementationType } from '../../shared/types/algo.strategy.implementation.type';
 import { Subscription } from 'rxjs';
-import { FieldDescriptorInputAndShow } from '../../lib/dynamicfield/field.descriptor.input.and.show';
+import {
+  ClassDescriptorInputAndShow,
+  FieldDescriptorInputAndShow
+} from '../../lib/dynamicfield/field.descriptor.input.and.show';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { FieldConfig } from '../../lib/dynamic-form/models/field.config';
 import { BaseParam } from '../../lib/entities/base.param';
@@ -25,6 +28,8 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { YamlEditorComponent } from './yaml-editor.component';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import * as yaml from 'js-yaml';
+import { FormHelper } from '../../lib/dynamic-form/components/FormHelper';
+import { Helper } from '../../lib/helper/helper';
 
 /** Default YAML template for the Mean Reversion Dip strategy */
 const STRATEGY_TEMPLATE_YAML = `strategy_name: daily_dip_with_stop
@@ -150,6 +155,9 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
   isComplexStrategy = false;
 
   fieldDescriptorInputAndShows: FieldDescriptorInputAndShow[];
+
+  /** Fields and cross-field constraints of the selected simple strategy on the level of the edited node. */
+  private formDefinition: ClassDescriptorInputAndShow;
 
   dialogWidth = '700px';
 
@@ -285,10 +293,7 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
           this.createComplexStrategyInput();
         } else {
           this.isComplexStrategy = false;
-          this.fieldDescriptorInputAndShows = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
-            this.algoCallParam.parentObject,
-            iasd
-          );
+          this.setFormDefinition(AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam.parentObject, iasd));
           this.strategyDefaults = iasd.defaultValues ?? {};
           this.createDynamicInputFields();
         }
@@ -299,9 +304,8 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
         this.createComplexStrategyInput();
       } else {
         this.isComplexStrategy = false;
-        this.fieldDescriptorInputAndShows = AlgoStrategyHelper.getFieldDescriptorInputAndShowByLevel(
-          this.algoCallParam.parentObject,
-          inputAndShowDefinition
+        this.setFormDefinition(
+          AlgoStrategyHelper.getFormDefinitionByLevel(this.algoCallParam.parentObject, inputAndShowDefinition)
         );
         this.strategyDefaults = inputAndShowDefinition.defaultValues ?? {};
         this.createDynamicInputFields();
@@ -356,18 +360,34 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
 
   private strategyDefaults: Record<string, number> = {};
 
+  /**
+   * Keeps the form definition of the selected strategy for the level the strategy is attached to.
+   *
+   * @param formDefinition the fields and cross-field constraints of that level
+   */
+  private setFormDefinition(formDefinition: ClassDescriptorInputAndShow): void {
+    this.formDefinition = formDefinition;
+    this.fieldDescriptorInputAndShows = formDefinition.fieldDescriptorInputAndShows;
+  }
+
+  /**
+   * Generates the inputs of a simple strategy. The cross-field constraints of the model, such as the requirement of at
+   * least one threshold, become form groups, so the form refuses what the server would reject.
+   */
   private createDynamicInputFields(): void {
     this.dialogWidth = '700px';
     const submitButton = this.config[this.config.length - 1];
     submitButton.invisible = false;
-    const fieldConfig: FieldConfig[] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
-      this.translateService,
-      this.fieldDescriptorInputAndShows,
-      AppSettings.PREFIX_ALGO_FIELD,
-      false
+    const fieldConfig = <FieldConfig[]>(
+      DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+        this.translateService,
+        this.formDefinition,
+        AppSettings.PREFIX_ALGO_FIELD,
+        false
+      )
     );
 
-    fieldConfig.forEach((field) => {
+    FormHelper.flattenConfigMap(fieldConfig).forEach((field) => {
       if (this.strategyDefaults[field.field] != null) field.defaultValue = this.strategyDefaults[field.field];
     });
     this.config = [this.config[0], ...fieldConfig, submitButton];
@@ -410,9 +430,15 @@ export class AlgoStrategyEditComponent extends SimpleEntityEditBase<AlgoStrategy
       algoStrategy.algoRuleStrategyParamMap = {};
     } else {
       algoStrategy.algoRuleStrategyParamMap = {};
-      this.fieldDescriptorInputAndShows.forEach(
-        (fDIAS) => (algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new BaseParam(value[fDIAS.fieldName]))
-      );
+      // Fields of a cross-field constraint are nested under their form group.
+      const fieldValues = Helper.flattenObject(value);
+      // A field left empty is not sent: the parameter table holds values only, and a missing parameter is an unset bound.
+      this.fieldDescriptorInputAndShows
+        .filter((fDIAS) => fieldValues[fDIAS.fieldName] != null && fieldValues[fDIAS.fieldName] !== '')
+        .forEach(
+          (fDIAS) =>
+            (algoStrategy.algoRuleStrategyParamMap[fDIAS.fieldName] = new BaseParam(fieldValues[fDIAS.fieldName]))
+        );
     }
     return algoStrategy;
   }

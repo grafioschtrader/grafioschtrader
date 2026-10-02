@@ -29,7 +29,7 @@ import {
   widgetFromDescriptor
 } from './dashboard.types';
 import { DASHBOARD_CONFIG_SUMMARIES, DASHBOARD_RENDERERS } from './dashboard-summary.component';
-import { DashboardConfigComponent } from './dashboard-config.component';
+import { DashboardConfigDialogComponent } from './dashboard-config-dialog.component';
 import { DashboardMasonryDirective } from './dashboard-masonry.directive';
 import { ProcessedActionData } from '../types/processed.action.data';
 import { ProcessedAction } from '../types/processed.action';
@@ -45,7 +45,7 @@ import { ProcessedAction } from '../types/processed.action';
     ButtonModule,
     DragDropModule,
     NgComponentOutlet,
-    DashboardConfigComponent,
+    DashboardConfigDialogComponent,
     DashboardMasonryDirective
   ],
   templateUrl: './dashboard.component.html',

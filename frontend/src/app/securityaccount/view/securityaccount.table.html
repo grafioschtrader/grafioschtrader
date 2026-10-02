@@ -10,7 +10,7 @@
       @for (rsf of rebalancingSummaryFields; track rsf.field) {
       <span
         class="rebalancing-summary-item"
-        [pTooltip]="rsf.field === 'overallAllocationMismatchPercentage' ? ('OVERALL_ALLOCATION_MISMATCH_PERCENTAGE_TOOLTIP' | translate) : null">
+        [pTooltip]="summaryFieldsWithTooltip.includes(rsf.field) ? (rsf.headerKey + '_TOOLTIP' | translate) : null">
         <strong>{{ rsf.headerTranslated }}:</strong> {{ getValueByPath(securityPositionSummary, rsf) }}
       </span>
       } @if (securityPositionSummary.periodicDue) {

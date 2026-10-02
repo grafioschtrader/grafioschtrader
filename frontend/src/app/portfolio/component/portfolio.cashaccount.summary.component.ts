@@ -1,3 +1,5 @@
+import { DestroyRef, inject } from '@angular/core';
+import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { Component, Injector, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -95,6 +97,20 @@ export class PortfolioCashaccountSummaryComponent
   private columnConfigs: ColumnConfig[] = [];
   private excludedDivTaxColumn: ColumnConfig;
   private tenantLimit: TenantLimit;
+
+  private statementReports = inject(PerformanceReportDialogService);
+  private reportDestroyRef = inject(DestroyRef);
+
+  override getMenuShowOptions() {
+    return [
+      ...(super.getMenuShowOptions() || []),
+      this.statementReports.menu(
+        () => this.untilDate,
+        () => this.portfolio?.idPortfolio,
+        this.reportDestroyRef
+      )
+    ];
+  }
 
   constructor(
     private parentChildRegisterService: ParentChildRegisterService,
@@ -453,6 +469,7 @@ export class PortfolioCashaccountSummaryComponent
     this.selectedAccountPositionSummary = selectedAccountPositionSummary;
     this.contextMenuItems = this.prepareEditMenu(this.selectedAccountPositionSummary);
     this.activePanelService.activatePanel(this, {
+      showMenu: this.getMenuShowOptions(),
       editMenu: this.contextMenuItems
     });
   }

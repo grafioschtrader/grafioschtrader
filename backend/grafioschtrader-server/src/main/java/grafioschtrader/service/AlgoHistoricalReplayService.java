@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -42,6 +43,7 @@ import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.entities.StandingOrderSecurity;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.exceptions.TransactionLimitExceededException;
@@ -56,8 +58,11 @@ import grafioschtrader.repository.AlgoTradingRepository;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
+import grafioschtrader.repository.SecurityJpaRepository;
+import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.SimulationLedgerCache;
 import grafioschtrader.repository.SimulationSourceRepository;
+import grafioschtrader.repository.StandingOrderJpaRepository;
 import grafioschtrader.service.AlgoMeanReversionDecisionService.Decision;
 import grafioschtrader.service.AlgoMeanReversionScopeEvaluator.Proposal;
 import grafioschtrader.types.AlgoEventType;
@@ -234,6 +239,12 @@ public class AlgoHistoricalReplayService {
   @Autowired
   private SimulationSourceRepository source;
   @Autowired
+  private SecuritysplitJpaRepository securitySplits;
+  @Autowired
+  private SecurityJpaRepository securityJpaRepository;
+  @Autowired
+  private StandingOrderJpaRepository standingOrders;
+  @Autowired
   private TransactionCostEvalExEstimator costEstimator;
   @Autowired
   private HoldSecurityaccountSecurityJpaRepository securityHoldings;
@@ -255,6 +266,8 @@ public class AlgoHistoricalReplayService {
   private AlgoReplayInputs replayInputs;
   @Autowired
   private AlgoReplayStandingOrderService replayStandingOrders;
+  @Autowired
+  private AlgoReplayOverdraftInterest overdraftInterest;
   @Autowired
   private TaxEvalExEstimator taxEstimator;
   @jakarta.persistence.PersistenceContext
@@ -331,6 +344,16 @@ public class AlgoHistoricalReplayService {
             run.getInputAssumptionsJson() == null ? null
                 : AlgoReplayInputs.read(run.getInputAssumptionsJson()).allocation(),
             run.getStartedAt()));
+  }
+
+  /**
+   * @param idSimTenant the simulation environment
+   * @return the equity curve of its latest run, empty when it has never been replayed or the run did not complete
+   */
+  public List<SimulationRunEquityPoint> equitySeries(Integer idSimTenant) {
+    requireOwnedSimulation(idSimTenant, currentUser());
+    return results.findByIdTenant(idSimTenant).map(run -> AlgoReplayInputs.readEquitySeries(run.getEquitySeriesJson()))
+        .orElse(List.of());
   }
 
   /**
@@ -455,8 +478,10 @@ public class AlgoHistoricalReplayService {
     if (runDates.size() > maxRunTradingDays) {
       throw new DataViolationException("end.date", "gt.simulation.run.too.long", new Object[] { maxRunTradingDays });
     }
-    Map<Integer, Security> securities = replaySecurities(tenant, algoTop);
-    requireCouponRates(securities.values());
+    List<StandingOrderSecurity> securityOrders = standingOrders.findByIdTenant(idSimTenant).stream()
+        .filter(StandingOrderSecurity.class::isInstance).map(StandingOrderSecurity.class::cast).toList();
+    Map<Integer, Security> securities = replaySecurities(tenant, algoTop, securityOrders);
+    requireCouponRates(tenant, algoTop, securities.values(), openingDate, securityOrders);
     AlgoSimulationResult run = results.findByIdTenant(idSimTenant).map(this::reconcile)
         .orElseGet(AlgoSimulationResult::new);
     if (run.getStatus() == AlgoSimulationRunStatus.RUNNING) {
@@ -482,7 +507,7 @@ public class AlgoHistoricalReplayService {
       run.setConventions(run.getConventions() + " REPLAY_GENERATED_COUPONS");
     var capturedInputs = replayInputs.capture(request.isApplyTaxModels(), request.isGenerateBondCoupons(),
         run.getDividendPaymentDelayDays(), idSimTenant, securities.values(),
-        source.securityaccounts(idSimTenant), openingDate, endDate);
+        source.securityaccounts(idSimTenant), source.cashaccounts(idSimTenant), openingDate, endDate);
     var effectiveAllocation = AlgoReplayAllocation.capture(algoTop,
         algoBuckets.findByIdTenantAndIdAlgoAssetclassParent(algoTop.getIdTenant(), algoTop.getId()),
         bucket -> algoMembers.findByIdAlgoSecurityParentAndIdTenant(bucket.getId(), algoTop.getIdTenant()),
@@ -500,6 +525,8 @@ public class AlgoHistoricalReplayService {
     run.setConventions(run.getConventions() + " " + AlgoReplayFx.convention(withFees));
     run.setConventions(run.getConventions()
         + (withFees.custodyOpening().isEmpty() ? " REPLAY_CUSTODY_UNMODELLED" : " REPLAY_CUSTODY_MODELLED"));
+    if (!withFees.borrowingRatesOrEmpty().isEmpty())
+      run.setConventions(run.getConventions() + " " + AlgoReplayOverdraftInterest.CONVENTION);
     run.setTaxIncomeSummaryJson(null);
     run.setPaidDividends(null);
     run.setFxMarkupPaid(null);
@@ -508,6 +535,8 @@ public class AlgoHistoricalReplayService {
     run.setTotalReturn(null);
     run.setAnnualizedReturn(null);
     run.setMaxDrawdown(null);
+    run.setMaxDrawdownDurationDays(null);
+    run.setEquitySeriesJson(null);
     run.setSharpeRatio(null);
     run.setTotalTrades(null);
     run.setWinningTrades(null);
@@ -517,17 +546,54 @@ public class AlgoHistoricalReplayService {
   }
 
   /**
-   * Refuses a replay that contains a direct bond without a coupon rate. The readiness check already covers the
-   * instruments of the strategy; this also covers a bond that the environment only holds from its opening transactions.
+   * Refuses a replay that contains a direct bond without a coupon rate, as long as that bond can still earn interest
+   * after the opening day. The readiness check already covers the instruments of the strategy; this also covers a bond
+   * that the environment only holds from its opening transactions. The environment carries the whole transaction
+   * history of its owner, so a bond that was sold long before the opening, or that matured on or before it, is ignored:
+   * the replay never pays it a coupon. A bond a security standing order buys after the opening day counts as well.
    */
-  private static void requireCouponRates(Collection<Security> securities) {
-    securities.stream().filter(Security::isSimulationCouponRateMissing).findFirst().ifPresent(security -> {
-      throw new DataViolationException("id.algo.top", AlgoTopReadinessService.BOND_COUPON_MISSING,
-          new Object[] { security.getName(), "" });
-    });
+  private void requireCouponRates(Tenant tenant, AlgoTop algoTop, Collection<Security> securities,
+      LocalDate openingDate, List<StandingOrderSecurity> securityOrders) {
+    List<Security> candidates = securities.stream().filter(Security::isSimulationCouponRateMissing)
+        .filter(security -> security.getActiveToDate() == null || security.getActiveToDate().isAfter(openingDate))
+        .toList();
+    if (candidates.isEmpty()) {
+      return;
+    }
+    Set<Integer> members = strategyMembers(tenant, algoTop, openingDate);
+    securityOrders.stream()
+        .filter(order -> order.getTransactionType() == TransactionType.ACCUMULATE
+            && order.getValidTo().isAfter(openingDate))
+        .forEach(order -> members.add(order.getSecurity().getId()));
+    List<Transaction> ledger = source.transactions(tenant.getId(), openingDate.plusDays(1));
+    candidates.stream()
+        .filter(security -> members.contains(security.getId()) || !terminalHoldings(ledger, security, openingDate,
+            securitySplits.findByIdSecuritycurrencyOrderBySplitDateAsc(security.getId())).isEmpty())
+        .findFirst().ifPresent(security -> {
+          throw new DataViolationException("id.algo.top", AlgoTopReadinessService.BOND_COUPON_MISSING,
+              new Object[] { security.getName(), "" });
+        });
   }
 
-  private Map<Integer, Security> replaySecurities(Tenant tenant, AlgoTop algoTop) {
+  /** @return the strategy instruments a replay opening on the given day may still trade */
+  private Set<Integer> strategyMembers(Tenant tenant, AlgoTop algoTop, LocalDate openingDate) {
+    Integer owner = tenant.getIdParentTenant();
+    Set<Integer> members = new HashSet<>();
+    algoBuckets.findByIdTenantAndIdAlgoAssetclassParent(owner, algoTop.getId())
+        .forEach(bucket -> algoMembers.findByIdAlgoSecurityParentAndIdTenant(bucket.getId(), owner).forEach(member -> {
+          if (AlgoSecurityEligibility.isEligibleInstrument(member.getSecurity(), openingDate.plusDays(1)))
+            members.add(member.getSecurity().getId());
+        }));
+    return members;
+  }
+
+  /**
+   * The instruments a replay captures inputs for: everything the opening ledger touched, every instrument of the
+   * hierarchy and every instrument a security standing order of the environment trades. Only a captured instrument has
+   * its life dates, splits and income frozen with the run.
+   */
+  private Map<Integer, Security> replaySecurities(Tenant tenant, AlgoTop algoTop,
+      List<StandingOrderSecurity> securityOrders) {
     Map<Integer, Security> securities = new TreeMap<>();
     source.transactions(tenant.getId(), tenant.getSimulationStartDate().plusDays(1)).forEach(transaction -> {
       if (transaction.getSecurity() != null)
@@ -539,6 +605,7 @@ public class AlgoHistoricalReplayService {
           if (member.getSecurity() != null)
             securities.put(member.getSecurity().getId(), member.getSecurity());
         }));
+    securityOrders.forEach(order -> securities.putIfAbsent(order.getSecurity().getId(), order.getSecurity()));
     return securities;
   }
 
@@ -604,12 +671,20 @@ public class AlgoHistoricalReplayService {
     state.custody = custodyService.open(state, source.securityaccounts(idTenant), source.cashaccounts(idTenant));
     state.costs.setCustody(state.custody);
     market.setCustodyLiabilities(state.custody::liabilities);
+    state.overdraftInterest = overdraftInterest.open(state, source.cashaccounts(idTenant));
     Map<LocalDate, List<AlgoReplayInputs.CashStandingOrder>> cashOrderSchedule = replayStandingOrders
         .schedule(state.inputs, run.getOpeningDate(), run.getEndDate());
+    Map<LocalDate, List<AlgoReplayStandingOrderService.ScheduledSecurityOrder>> securityOrderSchedule = replayStandingOrders
+        .scheduleSecurities(state.inputs, run.getOpeningDate(), run.getEndDate(),
+            (order, date) -> state.securities.containsKey(order.idSecurity())
+                && calendar.isSessionDate(state.securities.get(order.idSecurity()), date),
+            (order, date) -> tradableOn(state, state.securities.get(order.idSecurity()), date));
     Set<LocalDate> evaluationDates = Set.copyOf(runDates);
     TreeSet<LocalDate> timeline = new TreeSet<>(runDates);
     timeline.addAll(cashOrderSchedule.keySet());
+    timeline.addAll(securityOrderSchedule.keySet());
     timeline.addAll(state.custody.dates());
+    timeline.addAll(state.overdraftInterest.dates());
     try {
       opening = valuation.value(idTenant, run.getOpeningDate(), market);
       state.writeMarker(AlgoEventType.RUN_START, run.getOpeningDate(),
@@ -628,53 +703,25 @@ public class AlgoHistoricalReplayService {
       var openingSnapshot = opening;
       state.observeEquity(run.getOpeningDate(), () -> openingSnapshot);
       state.decisionEquity.put(run.getOpeningDate(), opening);
+      var schedules = new TimelineSchedules(cashOrderSchedule, securityOrderSchedule, liquidations,
+          liquidationComplete, evaluationDates);
       for (LocalDate date : timeline) {
         if (registry.isCancelled(idTenant)) {
           finish(state, AlgoSimulationRunStatus.CANCELLED, "gt.simulation.run.cancelled");
           return;
         }
-        replayStandingOrders.execute(state, date, cashOrderSchedule.getOrDefault(date, List.of()));
-        state.custody.process(date, true);
-        if (liquidationComplete != null && !date.isAfter(liquidationComplete)) {
-          processDividends(state, date);
-          if (evaluationDates.contains(date)) {
-            processTerminalEvents(state, date);
-          }
-          state.observeEquity(date, () -> valuation.value(state.idTenant(), date, state.market));
-          liquidation.execute(state, date, liquidations.getOrDefault(date, List.of()));
-          if (date.equals(liquidationComplete)) {
-            var afterLiquidation = valuation.value(state.idTenant(), date, state.market);
-            afterLiquidation.requireAvailable();
-            state.decisionEquity.put(date, afterLiquidation);
-            state.initialPurchaseRequired = afterLiquidation.positions().isEmpty();
-          }
-          if (date.isBefore(liquidationComplete)) {
-            state.custody.process(date, false);
-            if (evaluationDates.contains(date)) {
-              state.done++;
-              reportProgress(state, date);
-            }
-            continue;
-          }
+        processTimelineDate(state, date, schedules);
+        // The end date is closed only after its terminal events below, which still book on it.
+        if (!date.equals(run.getEndDate())) {
+          state.overdraftInterest.close(date);
         }
-        if (!evaluationDates.contains(date)) {
-          // Income moves its own booking to a trading day, a redemption or terminal close does not and would be refused
-          // as transaction.time.notrading. The terminal schedule keeps such an expiry pending for the next trading day.
-          processDividends(state, date);
-          state.custody.process(date, false);
-          // Keep the existing trading-day sampling convention of the performance metrics.
-          continue;
-        }
-        replayDay(state, date);
-        state.custody.process(date, false);
-        state.done++;
-        reportProgress(state, date);
       }
       processDividends(state, run.getEndDate());
       LocalDate lastRunDate = runDates.isEmpty() ? null : runDates.getLast();
       if (lastRunDate == null || run.getEndDate().isAfter(lastRunDate)) {
         processTerminalEvents(state, run.getEndDate());
       }
+      state.overdraftInterest.close(run.getEndDate());
       finish(state, AlgoSimulationRunStatus.COMPLETED, null);
     } catch (RuntimeException failure) {
       LocalDate lastDate = state.lastValuationDate();
@@ -685,6 +732,64 @@ public class AlgoHistoricalReplayService {
       }
       throw failure;
     }
+  }
+
+  /** What a run has scheduled for its timeline days besides the trading days themselves. */
+  private record TimelineSchedules(Map<LocalDate, List<AlgoReplayInputs.CashStandingOrder>> cashOrders,
+      Map<LocalDate, List<AlgoReplayStandingOrderService.ScheduledSecurityOrder>> securityOrders,
+      Map<LocalDate, List<AlgoReplayLiquidation.Close>> liquidations, LocalDate liquidationComplete,
+      Set<LocalDate> evaluationDates) {
+  }
+
+  /**
+   * Everything one day of the timeline books, in order: standing orders, custody fees due before the orders, the
+   * liquidation phase or the ordinary replay of a trading day, and the custody fees due after it. A day that is no
+   * trading day only processes income and custody.
+   *
+   * @param state     the running replay
+   * @param date      the timeline day
+   * @param schedules what the run has scheduled for its days
+   */
+  private void processTimelineDate(AlgoReplayState state, LocalDate date, TimelineSchedules schedules) {
+    replayStandingOrders.execute(state, date, schedules.cashOrders().getOrDefault(date, List.of()));
+    replayStandingOrders.executeSecurities(state, date, schedules.securityOrders().getOrDefault(date, List.of()));
+    state.custody.process(date, true);
+    LocalDate liquidationComplete = schedules.liquidationComplete();
+    boolean evaluated = schedules.evaluationDates().contains(date);
+    if (liquidationComplete != null && !date.isAfter(liquidationComplete)) {
+      processDividends(state, date);
+      if (evaluated) {
+        processTerminalEvents(state, date);
+      }
+      state.observeEquity(date, () -> valuation.value(state.idTenant(), date, state.market));
+      liquidation.execute(state, date, schedules.liquidations().getOrDefault(date, List.of()));
+      if (date.equals(liquidationComplete)) {
+        var afterLiquidation = valuation.value(state.idTenant(), date, state.market);
+        afterLiquidation.requireAvailable();
+        state.decisionEquity.put(date, afterLiquidation);
+        state.initialPurchaseRequired = afterLiquidation.positions().isEmpty();
+      }
+      if (date.isBefore(liquidationComplete)) {
+        state.custody.process(date, false);
+        if (evaluated) {
+          state.done++;
+          reportProgress(state, date);
+        }
+        return;
+      }
+    }
+    if (!evaluated) {
+      // Income moves its own booking to a trading day, a redemption or terminal close does not and would be refused
+      // as transaction.time.notrading. The terminal schedule keeps such an expiry pending for the next trading day.
+      processDividends(state, date);
+      state.custody.process(date, false);
+      // Keep the existing trading-day sampling convention of the performance metrics.
+      return;
+    }
+    replayDay(state, date);
+    state.custody.process(date, false);
+    state.done++;
+    reportProgress(state, date);
   }
 
   /**
@@ -1231,9 +1336,11 @@ public class AlgoHistoricalReplayService {
       run.setTradingDaysDone(state.done);
       run.setFailureMessage(failure);
       if (status == AlgoSimulationRunStatus.COMPLETED) {
-        var metrics = AlgoReplayMetrics.of(state.equity, state.roundTrips.closedTrades(),
-            new AlgoReplayMetrics.EquityPoint(state.run.getEndDate(), terminal.equity(), terminalPriced,
-                terminalExternalFlow));
+        var terminalPoint = new AlgoReplayMetrics.EquityPoint(state.run.getEndDate(), terminal.equity(),
+            terminalPriced, terminalExternalFlow);
+        var metrics = AlgoReplayMetrics.of(state.equity, state.roundTrips.closedTrades(), terminalPoint);
+        run.setEquitySeriesJson(
+            AlgoReplayInputs.write(equityCurve(AlgoReplayMetrics.valuationSeries(state.equity, terminalPoint))));
         run.setPaidDividends(state.dividends.paidTotal());
         run.setFxMarkupPaid(state.fx.paid());
         run.setFxUncoveredConversions(state.fx.uncovered());
@@ -1244,6 +1351,7 @@ public class AlgoHistoricalReplayService {
         run.setTotalReturn(metrics.totalReturn());
         run.setAnnualizedReturn(metrics.annualizedReturn());
         run.setMaxDrawdown(metrics.maxDrawdown());
+        run.setMaxDrawdownDurationDays(metrics.maxDrawdownDurationDays());
         run.setSharpeRatio(metrics.sharpeRatio());
         run.setTotalTrades(metrics.totalTrades());
         run.setWinningTrades(metrics.winningTrades());
@@ -1257,6 +1365,27 @@ public class AlgoHistoricalReplayService {
     state.writeMarker(AlgoEventType.RUN_END,
         status == AlgoSimulationRunStatus.COMPLETED ? state.run.getEndDate() : state.lastValuationDate(),
         status.name());
+  }
+
+  /**
+   * The equity curve of a completed run: its fully valued days with the capital invested up to each of them. The
+   * invested capital starts at the equity of the first point and grows by the deposits and withdrawals of every later
+   * point, each of which carries the flows booked since the preceding fully valued day, in tenant currency.
+   *
+   * @param series the valuation series the metrics were calculated from
+   * @return one point per fully valued day, in order
+   */
+  static List<SimulationRunEquityPoint> equityCurve(List<AlgoReplayMetrics.EquityPoint> series) {
+    List<SimulationRunEquityPoint> curve = new ArrayList<>();
+    double investedCapital = 0;
+    for (AlgoReplayMetrics.EquityPoint point : series) {
+      if (!point.priced()) {
+        continue;
+      }
+      investedCapital = curve.isEmpty() ? point.equity() : investedCapital + point.externalCashFlow();
+      curve.add(new SimulationRunEquityPoint(point.date(), point.equity(), investedCapital));
+    }
+    return curve;
   }
 
   private AlgoHistoricalValuationService.Snapshot finishValuations(AlgoReplayState state) {
@@ -1367,6 +1496,6 @@ public class AlgoHistoricalReplayService {
         rebalancing.hasRebalancingStrategy(algoTop),
         entityLimitService.resolve(user, LimitKeyConfig.KEY_ALGO_EVENT_LOG).orElse(null), source, algoBuckets,
         algoMembers, costEstimator, taxEstimator, incomeService, events, transactionTemplate,
-        globalparametersService.getCurrencyPrecision(), booking.fxRates(market));
+        globalparametersService.getCurrencyPrecision(), booking.fxRates(market), securityJpaRepository::findAllById);
   }
 }

@@ -7,8 +7,10 @@ import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import grafiosch.BaseConstants;
+import grafioschtrader.common.ReturnSeries;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -45,6 +47,19 @@ public class PeriodWindow {
 
   @Schema(description = "List of period steps within this window - 5 for weekly analysis or 12 for yearly analysis")
   public List<PeriodStepMissingHoliday> periodStepList;
+
+  @Schema(description = """
+      Time-weighted return of the window in percent, chained from the base of its first step to its last step. Null
+      when the window has no step, for example when it consists only of holidays or days with missing prices.""")
+  public Double twrPercent;
+
+  /** Index of the holding the first step of this window is measured from; null while no step was added. */
+  @JsonIgnore
+  private Integer firstBaseIndex;
+
+  /** Index of the holding of the last step of this window. */
+  @JsonIgnore
+  private Integer lastStepIndex;
 
   /**
    * Constructs a new period window with the specified time boundaries and aggregation level.
@@ -87,13 +102,43 @@ public class PeriodWindow {
    * @param securitiesMC           securities market value in main currency
    * @param totalBalanceMC         total portfolio balance in main currency
    * @param missingDayCount        number of days with missing data in this step
+   * @param baseDate               date of the valuation the step is measured from
+   * @param twrPercent             time-weighted return of the step in percent, may be null
+   * @param complete               whether the step covers exactly one trading day or one month
    */
   public void addPeriodStep(WeekYear weekYear, LocalDate localDate, double externalCashTransferMC, double gainMC,
-      double marginCloseGainMC, double cashBalanceMC, double securitiesMC, double totalBalanceMC, int missingDayCount) {
+      double marginCloseGainMC, double cashBalanceMC, double securitiesMC, double totalBalanceMC, int missingDayCount,
+      LocalDate baseDate, Double twrPercent, boolean complete) {
     int offset = (int) (weekYear == WeekYear.WM_WEEK ? ChronoUnit.DAYS.between(startDate, localDate)
         : ChronoUnit.MONTHS.between(startDate, localDate));
     periodStepList.set(offset, new PeriodStep(localDate, externalCashTransferMC, gainMC, marginCloseGainMC,
-        cashBalanceMC, securitiesMC, totalBalanceMC, missingDayCount));
+        cashBalanceMC, securitiesMC, totalBalanceMC, missingDayCount, baseDate, twrPercent, complete));
+  }
+
+  /**
+   * Remembers the holdings a step of this window was measured between, so that the window return can be chained over
+   * all its steps once the series is complete.
+   *
+   * @param base index of the holding the step is measured from; kept only for the first step of the window
+   * @param step index of the holding of the step
+   */
+  public void registerStepIndexes(int base, int step) {
+    if (firstBaseIndex == null) {
+      firstBaseIndex = base;
+    }
+    lastStepIndex = step;
+  }
+
+  /**
+   * Sets the time-weighted return of the window from the wealth index of the whole series. A window without any step
+   * keeps null; the following window then chains across the gap.
+   *
+   * @param series the time-weighted series of the report
+   */
+  public void fillTwrPercent(ReturnSeries series) {
+    if (firstBaseIndex != null) {
+      twrPercent = PerformancePeriodMetrics.percent(series.linked(firstBaseIndex, lastStepIndex));
+    }
   }
 
   /**
@@ -120,8 +165,8 @@ public class PeriodWindow {
    *
    * <p>
    * This method is called when the period gain has not been calculated through other means. It iterates through all
-   * period steps, identifies trading days (PeriodStep instances), and sums their individual gains to produce the total
-   * period performance.
+   * period steps, identifies trading days (PeriodStep instances), and sums their individual gains including the open
+   * margin result, the same figure the cells of the window show, to produce the total period performance.
    * </p>
    *
    * <p>
@@ -133,7 +178,7 @@ public class PeriodWindow {
     if (gainPeriodMC == null) {
       gainPeriodMC = 0.0;
       periodStepList.stream().filter(periodStep -> periodStep instanceof PeriodStep)
-          .forEach(periodStep -> gainPeriodMC += ((PeriodStep) periodStep).gainMC);
+          .forEach(periodStep -> gainPeriodMC += ((PeriodStep) periodStep).getTotalGainMC());
     }
   }
 

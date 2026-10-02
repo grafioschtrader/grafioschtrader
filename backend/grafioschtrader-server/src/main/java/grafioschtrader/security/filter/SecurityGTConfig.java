@@ -66,6 +66,11 @@ import grafioschtrader.security.TokenAuthenticationService;
 @Order(1)
 public class SecurityGTConfig {
 
+  /** Writes that are either account-self operations or read-only evaluations. */
+  public static final java.util.Set<String> READ_ONLY_WRITE_ALLOW_LIST = java.util.Set.of(
+      RequestGTMappings.TENANT_MAP + "/switchto/**", RequestGTMappings.HOLDING_MAP + "/report/pdf",
+      RequestMappings.USER_MAP + "/password", RequestMappings.USER_MAP + "/nicknamelocale");
+
   @Autowired
   private MessageSource messages;
 
@@ -154,9 +159,7 @@ public class SecurityGTConfig {
     // Block writes for users operating in a read-only tenant (read-only client, or advisor with READ-level access).
     // Account-self paths and the tenant switch-back path stay writable so the user can still manage their own account
     // and leave the read-only tenant.
-    http.addFilterAfter(
-        new TenantReadOnlyFilter(messages, java.util.Set.of(RequestGTMappings.TENANT_MAP + "/switchto/**",
-            RequestMappings.USER_MAP + "/password", RequestMappings.USER_MAP + "/nicknamelocale")),
+    http.addFilterAfter(new TenantReadOnlyFilter(messages, READ_ONLY_WRITE_ALLOW_LIST),
         TenantContextAccessFilter.class);
     return http.build();
   }

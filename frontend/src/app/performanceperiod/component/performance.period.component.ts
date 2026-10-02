@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy, inject } from '@angular/core';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { FormBase } from '../../lib/edit/form.base';
@@ -31,6 +31,8 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { ProgressBarModule } from '@openng/optimus-ui/progressbar';
 import { TenantPerformanceFromToDiffComponent } from './performance-period-from-to-diff.component';
 import { TenantPerformanceTreetableComponent } from './performance-period-treetable.component';
+import { PerformancePeriodMetricsComponent } from './performance-period-metrics.component';
+import { PerformanceReportDialogService } from '../service/performance-report-dialog.service';
 
 /**
  * Performance over a certain period for a tenant or portfolio.
@@ -56,7 +58,7 @@ import { TenantPerformanceTreetableComponent } from './performance-period-treeta
         (submitBt)="submit($event)">
       </dynamic-form>
 
-      @if (loading) {
+      @if (loading || reportDialogService.opening) {
         <div class="progress-bar-box">
           <h4>{{ 'LOADING' | translate }}</h4>
           <p-progressBar mode="indeterminate" [style]="{ height: '6px' }"></p-progressBar>
@@ -65,6 +67,8 @@ import { TenantPerformanceTreetableComponent } from './performance-period-treeta
 
       <performance-period-from-to-diff [periodHoldingsAndDiff]="periodHoldingsAndDiff">
       </performance-period-from-to-diff>
+
+      <performance-period-metrics [metrics]="performancePeriod?.metrics"></performance-period-metrics>
 
       <performance-period-treetable [performancePeriod]="performancePeriod"> </performance-period-treetable>
     </div>
@@ -78,6 +82,7 @@ import { TenantPerformanceTreetableComponent } from './performance-period-treeta
     DynamicFormModule,
     ProgressBarModule,
     TenantPerformanceFromToDiffComponent,
+    PerformancePeriodMetricsComponent,
     TenantPerformanceTreetableComponent
   ]
 })
@@ -92,16 +97,24 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
   dateFormatPipe: string;
   firstAndMissingTradingDays: FirstAndMissingTradingDays;
   loading = false;
+  readonly reportDialogService = inject(PerformanceReportDialogService);
   menuItems: MenuItem[] = [
     {
       label: 'SHOW_CHART',
       disabled: !this.performancePeriod,
       command: (event) => this.navigateToChartRoute()
+    },
+    {
+      label: 'PDF_REPORT' + BaseSettings.DIALOG_MENU_SUFFIX,
+      disabled: true,
+      command: () => this.openPdfReport()
     }
   ];
   chartData: Partial<ChartTrace>[];
   private subscriptionRequestFromChart: Subscription;
   private idPortfolio: number;
+  private reportWindow: PerformanceWindowDef;
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private router: Router,
@@ -209,6 +222,8 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
         ];
         this.configObject.submit.disabled = false;
         this.menuItems[0].disabled = false;
+        this.menuItems[1].disabled = false;
+        this.reportWindow = { ...pWD };
         this.changeToOpenChart();
         this.loading = false;
       },
@@ -223,6 +238,13 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
     this.dateFromSubscribe && this.dateFromSubscribe.unsubscribe();
     this.dateToSubscribe && this.dateToSubscribe.unsubscribe();
     this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
+  }
+
+  /** The dialog uses the dates of the displayed calculation, not the possibly edited form values. */
+  private openPdfReport(): void {
+    if (this.reportWindow) {
+      this.reportDialogService.open(this.reportWindow, this.destroyRef);
+    }
   }
 
   private createInputFormDefinition(): void {
@@ -247,14 +269,13 @@ export class PerformancePeriodComponent extends FormBase implements OnInit, OnDe
       dateTo.isBefore(this.firstAndMissingTradingDays.latestTradingDay) &&
       (dateTo.day() === Weekday.Saturday ||
         dateTo.day() === Weekday.Sunday ||
-        this.firstAndMissingTradingDays.holidayAndMissingQuoteDays.indexOf(dateTo.toDate()) >= 0)
+        this.firstAndMissingTradingDays.holidayAndMissingQuoteDays.some((day) => dateTo.isSame(day, 'day')))
     ) {
       dateTo = moment(dateTo).add(1, 'd');
     }
     this.configObject.dateTo.calendarConfig.minDate = dateTo.toDate();
-    if (
-      this.configObject.dateTo.formControl.value.getTime() < this.configObject.dateTo.calendarConfig.minDate.getTime()
-    ) {
+    const currentDateTo: Date = this.configObject.dateTo.formControl.value;
+    if (currentDateTo && currentDateTo.getTime() < this.configObject.dateTo.calendarConfig.minDate.getTime()) {
       this.configObject.dateTo.formControl.setValue(null);
     }
   }

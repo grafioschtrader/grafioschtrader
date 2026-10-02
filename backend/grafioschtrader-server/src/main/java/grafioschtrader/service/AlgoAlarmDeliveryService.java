@@ -34,6 +34,7 @@ public class AlgoAlarmDeliveryService {
   private final SendMailInternalExternalService mail;
   private final MailExternalService smtp;
   private final MessageSource messages;
+  private final AlgoAlarmTextRenderer renderer;
   private final FeatureConfig features;
   private final TransactionTemplate transaction;
   private Clock clock = Clock.systemUTC();
@@ -56,6 +57,7 @@ public class AlgoAlarmDeliveryService {
     this.mail = mail;
     this.smtp = smtp;
     this.messages = messages;
+    this.renderer = new AlgoAlarmTextRenderer(messages);
     this.features = features;
     transaction = new TransactionTemplate(manager);
     transaction.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -65,8 +67,9 @@ public class AlgoAlarmDeliveryService {
     return LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
   }
 
+  /** Delivery is the transport of every alert, so it depends on the alert feature alone. */
   private boolean enabled() {
-    return features.isAlgo() && features.isAlert();
+    return features.isAlert();
   }
 
   /** Checks only pending transport work, independently of exchange calendars and evaluation intervals. */
@@ -175,9 +178,9 @@ public class AlgoAlarmDeliveryService {
       Locale locale = owner.getLocaleStr() == null ? Locale.ENGLISH : owner.createAndGetJavaLocale();
       String subject = messages.getMessage("algo.alarm.subject",
           new Object[] { a.getContextName() == null ? a.getIdAlgoStrategy() : a.getContextName() }, locale);
-      String body = messages.getMessage("algo.alarm.mail.body.prefix", null, locale) + "\n"
-          + (a.getSecurityName() == null ? a.getIdSecurityCurrency() : a.getSecurityName()) + "\n"
-          + a.getAlarmDetails();
+      String body = renderer.body(a.getAlarmType(),
+          a.getSecurityName() == null ? String.valueOf(a.getIdSecurityCurrency()) : a.getSecurityName(),
+          a.getAlarmDetails(), locale);
       a.setRecipientUserId(owner.getIdUser());
       a.setRecipientEmail(owner.getUsername());
       a.setDeliveryChannels(channels.name());

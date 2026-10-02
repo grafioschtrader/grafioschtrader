@@ -198,11 +198,12 @@ public class AlgoTopReadinessService {
         issues.add(issue(WEIGHT_INVALID, member.getIdAlgoAssetclassSecurity(), FIELD_PERCENTAGE, true, locale,
             memberLabel, String.valueOf(member.getPercentage())));
       }
-      if (member.getSecurity() != null && member.getSecurity().isSimulationCouponRateMissing()) {
+      boolean eligible = AlgoSecurityEligibility.isEligibleInstrument(member.getSecurity(), openingDate);
+      // A replay excludes an unsuitable instrument, so it never pays that bond a coupon.
+      if (eligible && member.getSecurity().isSimulationCouponRateMissing()) {
         issues.add(issue(BOND_COUPON_MISSING, member.getIdAlgoAssetclassSecurity(), FIELD_DISTRIBUTION, true, locale,
             memberLabel, ""));
       }
-      boolean eligible = AlgoSecurityEligibility.isEligibleInstrument(member.getSecurity(), openingDate);
       if (!eligible) {
         issues.add(issue(INSTRUMENT_UNSUITABLE, member.getIdAlgoAssetclassSecurity(), FIELD_NAME, false, locale,
             memberLabel, ""));

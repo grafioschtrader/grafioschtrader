@@ -37,12 +37,21 @@ public class EnumRegistry<S, T extends IBaseEnum<S>> {
    * This guard fails fast on a cross-enum value collision (for example when a base enum and an application enum are
    * merged into the same registry).
    *
+   * <p>
+   * Adding a constant that is already registered is a no-op. The registries are static while an application startup
+   * that fills them can run more than once in one JVM - every Spring test context with its own configuration starts it
+   * again - and registering the same constant twice is no conflict.
+   * </p>
+   *
    * @param newTypes an array of enum types to be added
-   * @throws IllegalStateException if a type's value duplicates one that is already registered
+   * @throws IllegalStateException if a type's value duplicates the value of a different registered type
    */
   public void addTypes(T[] newTypes) {
     for (T newType : newTypes) {
       T existing = getTypeByValue(newType.getValue());
+      if (existing == newType) {
+        continue;
+      }
       if (existing != null) {
         throw new IllegalStateException(
             String.format("Duplicate value %s in enum registry: %s collides with already registered %s",

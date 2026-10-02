@@ -1,6 +1,6 @@
 package grafioschtrader.algo.strategy.model.alerts;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -50,7 +50,7 @@ public class ExpressionAlert {
    * The expression may resolve to a boolean or numeric value; boolean {@code true} or a non-zero numeric result
    * triggers the alert. Maximum 500 characters.
    */
-  @NotNull
+  @NotBlank
   @Size(max = 500)
   String expression;
 

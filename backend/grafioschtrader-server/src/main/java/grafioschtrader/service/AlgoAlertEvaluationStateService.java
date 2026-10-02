@@ -103,7 +103,7 @@ public class AlgoAlertEvaluationStateService {
 
   private void recordUnavailable(AlgoAlertEvaluationState state, String reason) {
     state.setOutcome("UNAVAILABLE");
-    String text = reason == null ? "Evaluation failed" : reason;
+    String text = reason == null ? AlgoAlertReason.EVALUATION_FAILED : reason;
     state.setReason(text.substring(0, Math.min(text.length(), 1000)));
     state.setLeaseToken(null);
     state.setLeaseUntil(null);

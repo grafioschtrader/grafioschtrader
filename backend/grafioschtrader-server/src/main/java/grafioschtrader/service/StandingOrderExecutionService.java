@@ -60,7 +60,22 @@ public class StandingOrderExecutionService {
 
   private static final Logger log = LoggerFactory.getLogger(StandingOrderExecutionService.class);
 
-  private static final int MAX_TRADING_DAY_ADJUSTMENT_ITERATIONS = 10;
+  /** Steps a security standing order may be moved to reach a session of its exchange; shared with the replay. */
+  static final int MAX_TRADING_DAY_ADJUSTMENT_ITERATIONS = 10;
+
+  /** Message key of an amount-based order whose amount does not buy a single unit. */
+  static final String ZERO_UNITS_KEY = "standing.order.exec.zero.units";
+
+  /**
+   * Units, costs and cash account amount of one execution of a security standing order.
+   *
+   * @param units             the units to book
+   * @param taxCost           the tax cost in the security currency, 0 when none applies
+   * @param transactionCost   the transaction cost in the security currency, 0 when none applies
+   * @param cashaccountAmount the signed amount booked on the cash account, in its currency: negative for a purchase
+   */
+  record SecurityOrderAmounts(double units, double taxCost, double transactionCost, double cashaccountAmount) {
+  }
 
   @Autowired
   private EntityLimitService entityLimitService;
@@ -332,54 +347,8 @@ public class StandingOrderExecutionService {
             new Object[] { idSecurity, effectiveDate, sos.getIdStandingOrder() }, "standing.order.exec.no.price",
             getTenantLocale(sos.getIdTenant()))));
 
-    // 2. Determine units and costs
-    double units;
-    double taxCost;
-    double transactionCost;
-    TransactionType txType = sos.getTransactionType();
-
-    if (sos.getUnits() != null) {
-      // Unit-based mode
-      units = sos.getUnits();
-      taxCost = evaluateCost(sos.getTaxCost(), sos.getTaxCostFormula(), units, quotation, units * quotation);
-      transactionCost = evaluateCost(sos.getTransactionCost(), sos.getTransactionCostFormula(), units, quotation,
-          units * quotation);
-    } else {
-      // Amount-based mode
-      double investAmount = sos.getInvestAmount();
-
-      // First pass: estimate units without costs, then refine
-      if (sos.isAmountIncludesCosts()) {
-        // Gross: costs come out of investAmount
-        double estimatedTax = evaluateCost(sos.getTaxCost(), sos.getTaxCostFormula(), investAmount / quotation,
-            quotation, investAmount);
-        double estimatedTxCost = evaluateCost(sos.getTransactionCost(), sos.getTransactionCostFormula(),
-            investAmount / quotation, quotation, investAmount);
-        units = (investAmount - estimatedTax - estimatedTxCost) / quotation;
-      } else {
-        // Net: investAmount is the pure investment, costs added on top
-        units = investAmount / quotation;
-      }
-
-      if (!sos.isFractionalUnits()) {
-        units = Math.floor(units);
-      }
-
-      if (units <= 0) {
-        throw new StandingOrderBusinessException(
-            messageSource.getMessage("standing.order.exec.zero.units", new Object[] { sos.getIdStandingOrder() },
-                "standing.order.exec.zero.units", getTenantLocale(sos.getIdTenant())));
-      }
-
-      // Re-evaluate costs with actual units
-      double amount = units * quotation;
-      taxCost = evaluateCost(sos.getTaxCost(), sos.getTaxCostFormula(), units, quotation, amount);
-      transactionCost = evaluateCost(sos.getTransactionCost(), sos.getTransactionCostFormula(), units, quotation,
-          amount);
-    }
-
-    // 3. Exchange rate lookup. A missing rate must not pass silently: the security and the cash account are then in
-    // different currencies and an unconverted amount would be booked.
+    // 2. Exchange rate lookup. A missing rate must not pass silently: the security and the cash account are then in
+    // different currencies and an unconverted amount would be booked. It precedes the calculation, which needs it.
     Double currencyExRate = null;
     if (sos.getIdCurrencypair() != null) {
       currencyExRate = findCloseWithinTolerance(sos.getIdCurrencypair(), effectiveDate, sos.getQuoteToleranceDays())
@@ -389,26 +358,24 @@ public class StandingOrderExecutionService {
                   "standing.order.exec.no.exchange.rate", getTenantLocale(sos.getIdTenant()))));
     }
 
-    // 4. Compute cashaccountAmount: ACCUMULATE = -(u*q + tax + txCost), REDUCE = +(u*q - tax - txCost)
-    double grossAmount = units * quotation;
-    double cashaccountAmount;
-    if (txType == TransactionType.ACCUMULATE) {
-      cashaccountAmount = -(grossAmount + taxCost + transactionCost);
-    } else {
-      cashaccountAmount = grossAmount - taxCost - transactionCost;
-    }
-
-    // Apply exchange rate conversion if applicable
-    if (currencyExRate != null) {
-      cashaccountAmount = DataBusinessHelper.divideMultiplyExchangeRate(cashaccountAmount, currencyExRate,
+    // 3. Units, costs and cash account amount
+    SecurityOrderAmounts amounts;
+    try {
+      amounts = securityOrderAmounts(sos.getUnits(), sos.getInvestAmount(), sos.isAmountIncludesCosts(),
+          sos.isFractionalUnits(), sos.getTaxCost(), sos.getTaxCostFormula(), sos.getTransactionCost(),
+          sos.getTransactionCostFormula(), sos.getTransactionType(), quotation, currencyExRate,
           sos.getSecurity().getCurrency(), sos.getCashaccount().getCurrency());
+    } catch (StandingOrderBusinessException e) {
+      throw new StandingOrderBusinessException(messageSource.getMessage(e.getMessage(),
+          new Object[] { sos.getIdStandingOrder() }, e.getMessage(), getTenantLocale(sos.getIdTenant())));
     }
 
-    // 5. Build transaction
+    // 4. Build transaction
     Transaction tx = new Transaction(sos.getIdSecurityaccount(), sos.getCashaccount(), sos.getSecurity(),
-        cashaccountAmount, units, quotation, txType, taxCost > 0 ? taxCost : null,
-        transactionCost > 0 ? transactionCost : null, null, effectiveDate.atStartOfDay(), currencyExRate,
-        sos.getIdCurrencypair(), null, null);
+        amounts.cashaccountAmount(), amounts.units(), quotation, sos.getTransactionType(),
+        amounts.taxCost() > 0 ? amounts.taxCost() : null,
+        amounts.transactionCost() > 0 ? amounts.transactionCost() : null, null, effectiveDate.atStartOfDay(),
+        currencyExRate, sos.getIdCurrencypair(), null, null);
     tx.setIdTenant(sos.getIdTenant());
     tx.setNote(sos.getNote());
     tx.setIdStandingOrder(sos.getIdStandingOrder());
@@ -443,6 +410,72 @@ public class StandingOrderExecutionService {
   }
 
   // ---- Static helpers (package-visible for unit testing) ----
+
+  /**
+   * Calculates units, costs and the cash account amount of one execution of a security standing order. Shared by the
+   * daily execution and by Historical Replay, so that both book the same transaction for the same price.
+   *
+   * <p>
+   * A unit-based order books its units as they are. An amount-based order derives them from the amount: gross, the
+   * costs estimated on the whole amount come out of it; net, the whole amount is invested and the costs are added on
+   * top. Without fractional units the result is rounded down, and the costs are then evaluated again on the units
+   * actually booked.
+   * </p>
+   *
+   * @param units                  the fixed units, or null for an amount-based order
+   * @param investAmount           the amount to invest in the security currency, used when {@code units} is null
+   * @param amountIncludesCosts    whether the costs are paid out of {@code investAmount}
+   * @param fractionalUnits        whether fractional units may be booked
+   * @param taxCost                the fixed tax cost, which takes priority over {@code taxCostFormula}
+   * @param taxCostFormula         the EvalEx tax cost formula with the variables u, q and a
+   * @param transactionCost        the fixed transaction cost, which takes priority over {@code transactionCostFormula}
+   * @param transactionCostFormula the EvalEx transaction cost formula with the variables u, q and a
+   * @param type                   ACCUMULATE or REDUCE
+   * @param quotation              the price of one unit in the security currency
+   * @param exchangeRate           the rate of the order's currency pair, or null when no conversion applies
+   * @param securityCurrency       the currency of the security
+   * @param cashaccountCurrency    the currency of the cash account
+   * @return the amounts to book
+   * @throws StandingOrderBusinessException with the message {@link #ZERO_UNITS_KEY} when an amount-based order would
+   *                                        book no unit
+   */
+  static SecurityOrderAmounts securityOrderAmounts(Double units, Double investAmount, boolean amountIncludesCosts,
+      boolean fractionalUnits, Double taxCost, String taxCostFormula, Double transactionCost,
+      String transactionCostFormula, TransactionType type, double quotation, Double exchangeRate,
+      String securityCurrency, String cashaccountCurrency) {
+    double bookedUnits;
+    if (units != null) {
+      bookedUnits = units;
+    } else {
+      if (amountIncludesCosts) {
+        // Gross: costs come out of investAmount
+        double estimatedTax = evaluateCost(taxCost, taxCostFormula, investAmount / quotation, quotation, investAmount);
+        double estimatedTxCost = evaluateCost(transactionCost, transactionCostFormula, investAmount / quotation,
+            quotation, investAmount);
+        bookedUnits = (investAmount - estimatedTax - estimatedTxCost) / quotation;
+      } else {
+        // Net: investAmount is the pure investment, costs added on top
+        bookedUnits = investAmount / quotation;
+      }
+      if (!fractionalUnits) {
+        bookedUnits = Math.floor(bookedUnits);
+      }
+      if (bookedUnits <= 0) {
+        throw new StandingOrderBusinessException(ZERO_UNITS_KEY);
+      }
+    }
+    double grossAmount = bookedUnits * quotation;
+    double tax = evaluateCost(taxCost, taxCostFormula, bookedUnits, quotation, grossAmount);
+    double cost = evaluateCost(transactionCost, transactionCostFormula, bookedUnits, quotation, grossAmount);
+    // ACCUMULATE = -(u*q + tax + txCost), REDUCE = +(u*q - tax - txCost)
+    double cashaccountAmount = type == TransactionType.ACCUMULATE ? -(grossAmount + tax + cost)
+        : grossAmount - tax - cost;
+    if (exchangeRate != null) {
+      cashaccountAmount = DataBusinessHelper.divideMultiplyExchangeRate(cashaccountAmount, exchangeRate,
+          securityCurrency, cashaccountCurrency);
+    }
+    return new SecurityOrderAmounts(bookedUnits, tax, cost, cashaccountAmount);
+  }
 
   /**
    * Builds the candidate quote dates for a tolerance, in the order in which they should be tried. The magnitude of the

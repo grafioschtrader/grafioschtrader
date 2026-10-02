@@ -1,3 +1,6 @@
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { DestroyRef, inject } from '@angular/core';
+import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { SecurityaccountTable } from './securityaccountTable';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -55,6 +58,20 @@ import { TransactionSecurityEditComponent } from '../../transaction/component/tr
 })
 export class SecurityaccountSummariesComponent extends SecurityaccountTable implements OnInit, OnDestroy {
   private routeSubscribe: Subscription;
+
+  private statementReports = inject(PerformanceReportDialogService);
+  private reportDestroyRef = inject(DestroyRef);
+
+  override getMenuShowOptionsParam(selected: Securitycurrency) {
+    return [
+      ...(super.getMenuShowOptionsParam(selected) || []),
+      this.statementReports.menu(
+        () => this.untilDate,
+        () => this.idPortfolio,
+        this.reportDestroyRef
+      )
+    ];
+  }
 
   constructor(
     private treeNavState: TreeNavigationStateService,

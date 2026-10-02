@@ -39,8 +39,8 @@ import tools.jackson.databind.ObjectMapper;
  * <p>
  * It summarizes the plan the daily evaluation stored rather than calculating one: a live plan values every position,
  * which a start page should not do on every load, and the stored plan is exactly what the last notification was based
- * on. The full plan has a line per bucket and instrument and nearly always proposes nothing, so the card condenses it to
- * a state, the largest drift and at most three trades, and leaves everything else to the rebalancing report.
+ * on. The full plan has a line per bucket and instrument and nearly always proposes nothing, so the card condenses it
+ * to a state, the largest drift and at most three trades, and leaves everything else to the rebalancing report.
  * </p>
  *
  * <p>
@@ -129,15 +129,16 @@ public class AlgoMonitoringDashboardHandler implements DashboardWidgetHandler {
     LocalDate lastCheckpoint = plan.stream().map(AlgoRecommendation::getCheckpointDate).filter(Objects::nonNull)
         .max(Comparator.naturalOrder()).orElse(null);
     AlgoRecommendation largest = plan.stream()
-        .filter(r -> StrategyHelper.ASSET_CLASS_LEVEL_LETTER.equals(r.getLevelType())
-            && r.getDeviationPercentage() != null)
+        .filter(
+            r -> StrategyHelper.ASSET_CLASS_LEVEL_LETTER.equals(r.getLevelType()) && r.getDeviationPercentage() != null)
         .max(Comparator.comparingDouble(r -> Math.abs(r.getDeviationPercentage()))).orElse(null);
     return new AlgoMonitoringSummary(null, statusKey, algoTop.getIdAlgoAssetclassSecurity(), algoTop.getName(),
         first.getValuationDate(), first.getCurrency(), periodicDue, lastCheckpoint,
         algoRebalancingService.nextCheckpointDate(algoTop, lastCheckpoint), buys.size(), sum(buys), sells.size(),
         sum(sells), blocked,
         largest == null ? null : algoRebalancingService.bucketLabel(largest.getIdNode(), user.createAndGetJavaLocale()),
-        largest == null ? null : largest.getDeviationPercentage(), meanReversionSignals, topTrades(buys, sells));
+        largest == null ? null : largest.getDeviationPercentage(), meanReversionSignals,
+        (int) plan.stream().filter(AlgoRecommendation::isAllocationBreach).count(), topTrades(buys, sells));
   }
 
   /** Mean reversion proposals of the monitored hierarchy that ask for a trade. */
@@ -152,8 +153,8 @@ public class AlgoMonitoringDashboardHandler implements DashboardWidgetHandler {
     Comparator<AlgoRecommendation> bySize = Comparator
         .comparingDouble((AlgoRecommendation r) -> r.getRecommendedAmount() == null ? 0 : r.getRecommendedAmount())
         .reversed();
-    List<AlgoRecommendation> trades = Stream
-        .concat(sells.stream().sorted(bySize), buys.stream().sorted(bySize)).limit(MAX_TRADES).toList();
+    List<AlgoRecommendation> trades = Stream.concat(sells.stream().sorted(bySize), buys.stream().sorted(bySize))
+        .limit(MAX_TRADES).toList();
     Map<Integer, String> names = securityJpaRepository
         .findAllById(trades.stream().map(AlgoRecommendation::getIdSecuritycurrency).toList()).stream()
         .collect(Collectors.toMap(Security::getIdSecuritycurrency, Security::getName, (a, _) -> a));

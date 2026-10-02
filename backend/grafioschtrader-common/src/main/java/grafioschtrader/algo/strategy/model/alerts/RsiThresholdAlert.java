@@ -1,5 +1,7 @@
 package grafioschtrader.algo.strategy.model.alerts;
 
+import grafiosch.validation.AtLeastOneNotNull;
+import grafiosch.validation.NumberRange;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -7,12 +9,15 @@ import jakarta.validation.constraints.NotNull;
 /**
  * Configuration for an RSI (Relative Strength Index) threshold alert (security level only). The alert fires when the
  * RSI value drops below the lower threshold (oversold) or rises above the upper threshold (overbought). At least one of
- * the two thresholds should be set; if both are set, either breach triggers the alert.
+ * the two thresholds must be set; if both are set, the lower one must be below the upper one and either breach triggers
+ * the alert.
  *
  * <p>
  * Evaluated by Tier 2 (scheduled indicator evaluation) because it requires historical price data for RSI calculation.
  * </p>
  */
+@AtLeastOneNotNull(fields = { "lowerThreshold", "upperThreshold" })
+@NumberRange(lower = "lowerThreshold", upper = "upperThreshold")
 public class RsiThresholdAlert {
 
   /** Number of trading days used to calculate the RSI (typically 14). */

@@ -22,8 +22,8 @@ import jakarta.persistence.Table;
 /**
  * One line of the rebalancing plan of an AlgoTop: how far a node of the hierarchy deviates from its target and what
  * would close the difference. Target and actual values are not stored; the rebalancing report recalculates the plan
- * live, and the stored line keeps only what the monitoring reads back. A recommendation is a proposal for the user, never a booking - the live
- * evaluation writes these rows and a notification, and leaves the portfolio untouched.
+ * live, and the stored line keeps only what the monitoring reads back. A recommendation is a proposal for the user,
+ * never a booking - the live evaluation writes these rows and a notification, and leaves the portfolio untouched.
  *
  * <p>
  * The rows are the current plan rather than a history. Each evaluation of an AlgoTop replaces its own rows, which is
@@ -35,9 +35,9 @@ import jakarta.persistence.Table;
  *
  * <p>
  * The rows exist for monitoring only: they belong to the main tenant and to the AlgoTop assigned to monitoring
- * ({@code tenant.id_algo_top}). Another hierarchy, typically one kept for simulation, has no stored plan; the allocation
- * report calculates it on demand, and a historical replay keeps its checkpoint in memory and stores no plan, so a
- * simulation environment never holds a row.
+ * ({@code tenant.id_algo_top}). Another hierarchy, typically one kept for simulation, has no stored plan; the
+ * allocation report calculates it on demand, and a historical replay keeps its checkpoint in memory and stores no plan,
+ * so a simulation environment never holds a row.
  * </p>
  *
  * <p>
@@ -150,6 +150,14 @@ public class AlgoRecommendation extends TenantBaseID implements Serializable {
    */
   @Column(name = "rationale")
   private String rationale;
+
+  /**
+   * The line is outside its tolerance band: a class beyond the class tolerance, an instrument beyond its security band,
+   * or the AlgoTop above its exposure ceiling. The daily evaluation compares it with the flag of the plan it replaces,
+   * so that a breach is reported once when it begins rather than on every day it lasts.
+   */
+  @Column(name = "allocation_breach")
+  private boolean allocationBreach;
 
   public AlgoRecommendation() {
   }
@@ -295,6 +303,14 @@ public class AlgoRecommendation extends TenantBaseID implements Serializable {
 
   public void setRationale(String rationale) {
     this.rationale = rationale;
+  }
+
+  public boolean isAllocationBreach() {
+    return allocationBreach;
+  }
+
+  public void setAllocationBreach(boolean allocationBreach) {
+    this.allocationBreach = allocationBreach;
   }
 
 }

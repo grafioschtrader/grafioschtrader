@@ -129,10 +129,10 @@ class AlgoReplayFxTest {
     plan.setFeeModelYaml("broken after capture");
     var restored = AlgoReplayInputs.read(AlgoReplayInputs.write(captured));
     var fx = new AlgoReplayFx(restored, "CHF", (_, _, _) -> .8, warnings::add);
-    assertThat(restored.version()).isEqualTo(5);
+    assertThat(restored.version()).isEqualTo(AlgoReplayInputs.SNAPSHOT_VERSION);
     assertThat(fx.quote(1, "CHF", "USD", pair, .8, "TRADE", 80, DATE, null).percent()).isEqualTo(1);
     assertThat(fx.quote(2, "CHF", "USD", pair, .8, "TRADE", 80, DATE, null).percent()).isZero();
-    var old = AlgoReplayInputs.read(AlgoReplayInputs.write(captured).replace("\"version\":5", "\"version\":4"));
+    var old = AlgoReplayInputs.read(AlgoReplayInputs.write(captured).replace("\"version\":" + AlgoReplayInputs.SNAPSHOT_VERSION, "\"version\":4"));
     assertThat(AlgoReplayFx.convention(old)).isEqualTo("FX_AT_EOD_MID");
     assertThat(new AlgoReplayFx(old, "CHF", (_, _, _) -> .8, warnings::add)
         .quote(1, "CHF", "USD", pair, .8, "TRADE", 80, DATE, null).percent()).isZero();

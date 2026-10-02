@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -413,6 +414,8 @@ class SimulationOpeningTransactionIntegrationTest {
     action.setIsinNew(successor.getIsin());
     action.setActionDate(DATE.minusDays(1));
     action.setCreatedBy(0);
+    // The column is a DATETIME since V0.37.2: an explicit NULL is refused rather than replaced by the default.
+    action.setCreationTime(LocalDateTime.now());
     em.persist(action);
     em.flush();
     return action;
@@ -434,6 +437,7 @@ class SimulationOpeningTransactionIntegrationTest {
     upload.setTaxYear(year);
     upload.setFileName("opening-protection.xml");
     upload.setFilePath("opening-protection.xml");
+    upload.setUploadDate(LocalDateTime.now());
     em.persist(upload);
     IctaxSecurityTaxData data = new IctaxSecurityTaxData();
     data.setIdTaxUpload(upload.getIdTaxUpload());

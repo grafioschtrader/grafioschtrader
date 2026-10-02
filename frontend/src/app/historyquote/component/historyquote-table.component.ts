@@ -54,7 +54,7 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 import { HistoryquoteQualityComponent } from './historyquote-quality.component';
 import { HistoryquoteEditComponent } from './historyquote-edit.component';
 import { UploadFileDialogComponent } from '../../lib/generaldialog/component/upload-file-dialog.component';
-import { HistoryquoteQualityFillGapsComponent } from './historyquote-quality-fill-gaps.component';
+import { HistoryquoteQualityFillGapsDialogComponent } from './historyquote-quality-fill-gaps-dialog.component';
 import { HistoryquoteDeleteDialogComponent } from './historyquote-delete-dialog.component';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 
@@ -172,7 +172,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
     HistoryquoteQualityComponent,
     HistoryquoteEditComponent,
     UploadFileDialogComponent,
-    HistoryquoteQualityFillGapsComponent,
+    HistoryquoteQualityFillGapsDialogComponent,
     HistoryquoteDeleteDialogComponent
   ]
 })

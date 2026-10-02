@@ -60,11 +60,14 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
     }
     // Generic edits and older clients must not overwrite a preference owned by the monitoring overview.
     algoStrategy.setAlertEnabled(existingEntity == null || existingEntity.isAlertEnabled());
-    if (algoStrategyJpaRepository.getAlgoLevelType(algoStrategy.getIdAlgoAssetclassSecurity(),
-        algoStrategy.getIdTenant()) == null)
+    String algoLevel = algoStrategyJpaRepository.getAlgoLevelType(algoStrategy.getIdAlgoAssetclassSecurity(),
+        algoStrategy.getIdTenant());
+    if (algoLevel == null)
       throw new SecurityException("Strategy parent does not belong to this tenant");
+    validatePlacement(algoStrategy, existingEntity, AlgoLevelType.getAlgoLeveType(algoLevel));
     StrategyClassBindingDefinition scbd = StrategyHelper.getStrategyBindingMap()
         .get(algoStrategy.getAlgoStrategyImplementations());
+    AlertConfigAdapter.removeUnsetParams(algoStrategy);
     if (algoStrategy.getAlgoStrategyImplementations() == AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING) {
       try {
         var config = AlertConfigAdapter.read(algoStrategy,
@@ -108,6 +111,34 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
       evaluationStateRepository.deleteByIdAlgoStrategy(saved.getIdAlgoRuleStrategy());
     }
     return saved;
+  }
+
+  /**
+   * Enforces on the server what the edit dialog only offers: the strategy types a level of the hierarchy accepts, a
+   * type that may not repeat on the same node at most once, and an implementation type that stays what it was created
+   * as. The dialog derives its selection list from the same {@link StrategyHelper} rules, so a request the dialog can
+   * produce always passes; only a direct API call can fail here.
+   *
+   * @param algoStrategy   the strategy to be saved
+   * @param existingEntity the stored strategy on an update, null on a create
+   * @param algoLevelType  the level of the node the strategy is attached to
+   */
+  private void validatePlacement(AlgoStrategy algoStrategy, AlgoStrategy existingEntity, AlgoLevelType algoLevelType) {
+    AlgoStrategyImplementationType type = algoStrategy.getAlgoStrategyImplementations();
+    if (existingEntity != null && existingEntity.getAlgoStrategyImplementations() != type) {
+      throw new DataViolationException("strategy.type", "algo.strategy.type.immutable", null);
+    }
+    if (!getStrategiesForLevel(algoLevelType).contains(type)) {
+      throw new DataViolationException("strategy.type", "algo.strategy.level.invalid", null);
+    }
+    Set<AlgoStrategyImplementationType> otherStrategiesOnNode = algoStrategyJpaRepository
+        .findByIdAlgoAssetclassSecurityAndIdTenant(algoStrategy.getIdAlgoAssetclassSecurity(),
+            algoStrategy.getIdTenant())
+        .stream().filter(other -> !other.getIdAlgoRuleStrategy().equals(algoStrategy.getIdAlgoRuleStrategy()))
+        .map(AlgoStrategy::getAlgoStrategyImplementations).collect(Collectors.toSet());
+    if (!StrategyHelper.getUnusedStrategiesForManualAdding(otherStrategiesOnNode, algoLevelType).contains(type)) {
+      throw new DataViolationException("strategy.type", "algo.strategy.duplicate", null);
+    }
   }
 
   @Autowired

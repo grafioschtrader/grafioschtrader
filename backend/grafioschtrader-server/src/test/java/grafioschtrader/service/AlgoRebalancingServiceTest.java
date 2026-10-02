@@ -3,10 +3,16 @@ package grafioschtrader.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyByte;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -48,6 +54,9 @@ import grafioschtrader.service.AlgoHistoricalValuationService.Position;
 import grafioschtrader.service.AlgoHistoricalValuationService.Snapshot;
 import grafioschtrader.types.AlgoRebalancingTrigger;
 import grafioschtrader.types.AlgoRecommendationAction;
+import grafioschtrader.types.AlgoSignalKind;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The allocation arithmetic of the rebalancing, against hand-calculated numbers.
@@ -420,8 +429,7 @@ class AlgoRebalancingServiceTest {
   @Test
   void initialConstructionStillFillsAllExactTargets() {
     tenPositions();
-    var initial = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, (_, _) -> 1_000.0,
-        false);
+    var initial = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, (_, _) -> 1_000.0, false);
     assertThat(initial.executableLines()).hasSize(10);
     assertThat(initial.executableLines()).allSatisfy(line -> assertThat(line.recommendedAmount()).isEqualTo(3_000));
     assertThat(initial.classAdjustments()).isEmpty();
@@ -535,6 +543,153 @@ class AlgoRebalancingServiceTest {
 
   private RebalancingPlan plan() {
     return service.plan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT);
+  }
+
+  @Test
+  @DisplayName("A class and an instrument breach beyond their bands, the AlgoTop above its ceiling")
+  void breachesFollowTheClassToleranceTheSecurityBandAndTheCeiling() {
+    hierarchy(50f, 100f, 100f);
+    // Drift of 20 % of the budget against a class tolerance of 2, and the instrument 20 points below its weight.
+    snapshot(100_000, 40_000, List.of(position(security, 40, 40_000)));
+    var below = AlgoRebalancingService.allocationBreaches(plan());
+    assertThat(below).extracting(b -> b.line().levelType()).containsExactly("A", "S");
+    assertThat(below).allMatch(b -> b.direction() == -1);
+    assertThat(below).extracting(AlgoRebalancingService.AllocationBreach::key).containsExactly("A:" + ID_BUCKET,
+        "S:" + ID_MEMBER);
+
+    // One percent above the budget: within both bands, but above the exposure ceiling.
+    snapshot(100_000, 50_500, List.of(position(security, 50.5, 50_500)));
+    var ceiling = AlgoRebalancingService.allocationBreaches(plan());
+    assertThat(ceiling).singleElement().satisfies(b -> {
+      assertThat(b.line().levelType()).isEqualTo("T");
+      assertThat(b.direction()).isEqualTo((byte) 1);
+    });
+
+    snapshot(100_000, 50_000, List.of(position(security, 50, 50_000)));
+    assertThat(AlgoRebalancingService.allocationBreaches(plan())).isEmpty();
+  }
+
+  @Test
+  @DisplayName("A breach is reported when it begins, not again while it lasts, and again after it has ended")
+  void breachIsReportedOncePerEpisode() {
+    AlgoAlarmRecorder recorder = mock(AlgoAlarmRecorder.class);
+    ReflectionTestUtils.setField(service, "algoAlarmRecorder", recorder);
+    when(features.isAlgo()).thenReturn(true);
+    hierarchy(50f, 100f, 100f);
+    when(algoTops.findAll()).thenReturn(List.of(algoTop));
+    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(true);
+    List<AlgoRecommendation> stored = new ArrayList<>();
+    doAnswer(invocation -> {
+      stored.clear();
+      stored.addAll(invocation.getArgument(2));
+      return null;
+    }).when(writer).replace(any(), any(), any());
+    when(recommendations.findByIdTenantAndIdAlgoTopOrderByLevelTypeAscIdNodeAsc(ID_TENANT, ID_ALGO_TOP))
+        .thenAnswer(_ -> List.copyOf(stored));
+    snapshot(100_000, 40_000, List.of(position(security, 40, 40_000)));
+
+    service.evaluateAll();
+    verify(recorder).recordPlanLine(eq(ID_TENANT), eq(rebalancing), eq("Balanced"), eq(0), eq("Strategic equities"),
+        eq(AlgoSignalKind.ALLOCATION_BREACH), eq((byte) -1), eq("A:" + ID_BUCKET), anyString(), any());
+    verify(recorder).recordPlanLine(eq(ID_TENANT), eq(rebalancing), eq("Balanced"), eq(ID_SECURITY), eq("World ETF"),
+        eq(AlgoSignalKind.ALLOCATION_BREACH), eq((byte) -1), eq("S:" + ID_MEMBER), anyString(), any());
+    assertThat(stored).filteredOn(AlgoRecommendation::isAllocationBreach).hasSize(2);
+
+    // Still outside the next day: the episode continues and nothing is reported.
+    clearInvocations(recorder);
+    service.evaluateAll();
+    verify(recorder, never()).recordPlanLine(any(), any(), any(), any(), any(), any(), anyByte(), any(), any(), any());
+
+    // Back inside ends the episode; leaving the band again begins a new one.
+    snapshot(100_000, 50_000, List.of(position(security, 50, 50_000)));
+    service.evaluateAll();
+    assertThat(stored).noneMatch(AlgoRecommendation::isAllocationBreach);
+    snapshot(100_000, 40_000, List.of(position(security, 40, 40_000)));
+    service.evaluateAll();
+    verify(recorder, times(2)).recordPlanLine(any(), any(), any(), any(), any(), eq(AlgoSignalKind.ALLOCATION_BREACH),
+        anyByte(), any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("A due checkpoint raises one REBALANCE_DRIFT signal per tradable instrument, reductions first")
+  void dueCheckpointSignalsEveryTradableLineReductionsFirst() {
+    AlgoAlarmRecorder recorder = mock(AlgoAlarmRecorder.class);
+    ReflectionTestUtils.setField(service, "algoAlarmRecorder", recorder);
+    when(features.isAlgo()).thenReturn(true);
+    // Two classes of 50%. The plan lists them by label, so the purchase in "bonds" precedes the sale in "equities";
+    // the notification must reverse that.
+    hierarchy(50f, 50f, 100f);
+    AlgoAssetclass bonds = new AlgoAssetclass();
+    bonds.setIdAlgoAssetclassSecurity(21);
+    bonds.setIdTenant(ID_TENANT);
+    bonds.setPercentage(50f);
+    bonds.setName("Strategic bonds");
+    AlgoSecurity bondMember = otherMember(100f);
+    when(buckets.findByIdTenantAndIdAlgoAssetclassParent(ID_TENANT, ID_ALGO_TOP))
+        .thenReturn(List.of(bucketNode(), bonds));
+    when(members.findByIdAlgoSecurityParentAndIdTenant(21, ID_TENANT)).thenReturn(List.of(bondMember));
+    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(21, ID_TENANT)).thenReturn(List.of());
+    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(31, ID_TENANT)).thenReturn(List.of());
+    when(algoTops.findAll()).thenReturn(List.of(algoTop));
+    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(true);
+    // Each class targets 25'000; equities hold 10'000 too much, bonds 10'000 too little.
+    snapshot(100_000, 50_000,
+        List.of(position(security, 35, 35_000), position(bondMember.getSecurity(), 15, 15_000)));
+    // Never evaluated before, so the checkpoint is due whatever today is.
+    when(recommendations.findLastCheckpointDate(anyInt(), anyInt())).thenReturn(Optional.empty());
+
+    service.evaluateAll();
+
+    ArgumentCaptor<AlgoAlertScope> scopes = ArgumentCaptor.forClass(AlgoAlertScope.class);
+    ArgumentCaptor<Byte> directions = ArgumentCaptor.forClass(Byte.class);
+    ArgumentCaptor<String> details = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<LocalDate> days = ArgumentCaptor.forClass(LocalDate.class);
+    verify(recorder, times(2)).record(scopes.capture(), eq(AlgoSignalKind.REBALANCE_DRIFT), directions.capture(),
+        details.capture(), days.capture());
+    assertThat(scopes.getAllValues()).extracting(scope -> scope.security().getIdSecuritycurrency())
+        .containsExactly(ID_SECURITY, 41);
+    assertThat(directions.getAllValues()).containsExactly((byte) 1, (byte) -1);
+    assertThat(scopes.getAllValues()).allSatisfy(scope -> {
+      assertThat(scope.idTenant()).isEqualTo(ID_TENANT);
+      assertThat(scope.strategy()).isSameAs(rebalancing);
+      assertThat(scope.contextName()).isEqualTo("Balanced");
+    });
+    assertThat(days.getAllValues()).containsOnly(LocalDate.now());
+    JsonMapper mapper = JsonMapper.builder().build();
+    List<JsonNode> nodes = details.getAllValues().stream().map(mapper::readTree).toList();
+    assertThat(nodes).extracting(node -> node.get("action").asString())
+        .containsExactly(AlgoRecommendationAction.REBALANCE_SELL.name(), AlgoRecommendationAction.REBALANCE_BUY.name());
+    assertThat(nodes).allSatisfy(node -> {
+      assertThat(node.get("trigger").asString()).isEqualTo(AlgoRebalancingTrigger.PERIODIC.name());
+      for (String field : new String[] { "target", "actual", "deviation" }) {
+        assertThat(node.path(field).isNumber()).as(field).isTrue();
+      }
+    });
+
+    // The same drift between two checkpoints is reported in the plan but signals nothing.
+    clearInvocations(recorder);
+    when(recommendations.findLastCheckpointDate(anyInt(), anyInt()))
+        .thenReturn(Optional.of(AlgoRebalancingService.lastCompletedDay()));
+    service.evaluateAll();
+    verify(recorder, never()).record(any(), any(), anyByte(), anyString(), any());
+  }
+
+  @Test
+  @DisplayName("A draft rebalancing strategy gets neither a stored plan nor a signal from a manual evaluation")
+  void manualEvaluationSkipsADraft() {
+    AlgoAlarmRecorder recorder = mock(AlgoAlarmRecorder.class);
+    ReflectionTestUtils.setField(service, "algoAlarmRecorder", recorder);
+    when(features.isAlgo()).thenReturn(true);
+    when(algoTops.findAll()).thenReturn(List.of(algoTop));
+    when(algoTops.findByIdTenantOrderByName(ID_TENANT)).thenReturn(List.of(algoTop));
+    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(true);
+    rebalancing.setActivatable(false);
+
+    assertThat(service.hasDueRebalancing()).isFalse();
+    service.evaluateForTenant(ID_TENANT);
+
+    verify(writer, never()).replace(any(), any(), any());
+    verifyNoInteractions(recorder, valuation);
   }
 
   @Test

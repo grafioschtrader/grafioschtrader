@@ -59,6 +59,9 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   private static final String PDF_FILE = "P";
   private static final String PDF_TEXT_FILE = "T";
 
+  /** Floating point slack when testing whether a calculated quotation lies within the printed rounding interval. */
+  private static final double QUOTATION_ROUNDING_EPSILON = 1e-9;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Basic(optional = false)
@@ -249,6 +252,15 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
   @Schema(hidden = true)
   @Transient
   private transient Map<String, Double> calcRoundingMap;
+
+  /**
+   * Decimal places of the printed quotation carried over from the import template during a single import run. Keyed by
+   * upper-case ISO currency code with a default sentinel entry. Not persisted; it is only needed once, when the
+   * position is created, to replace a rounded quotation with the one calculated back from the total amount.
+   */
+  @Schema(hidden = true)
+  @Transient
+  private transient Map<String, Integer> quotationDecimalsMap;
 
   public ImportTransactionPos() {
   }
@@ -756,8 +768,10 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     importTransactionPos.setIdFilePart(ip.getFileOrLineNumber());
     importTransactionPos.setKnownOtherFlags(ip.getKnownOtherFlags());
     importTransactionPos.setCalcRoundingMap(ip.getCalcRoundingMap());
-    Double exchangeRate = ip.getCex() != null || ip.getCin() != null && !ip.getCac().equals(ip.getCin()) ? ip.getCex()
-        : null;
+    importTransactionPos.setQuotationDecimalsMap(ip.getQuotationDecimalsMap());
+    // Some documents print an exchange rate of 1 although instrument and cash account share the currency. Such a rate
+    // converts nothing and has no currency pair, so it is dropped.
+    Double exchangeRate = ip.getCin() != null && ip.getCin().equals(ip.getCac()) ? null : ip.getCex();
     importTransactionPos.setCurrencyExRate(exchangeRate);
     importTransactionPos.setTransactionCost(ip.getTc1(), ip.getTc2(), ip.getTc3(), ip.getReduce(), false);
     return importTransactionPos;
@@ -863,6 +877,89 @@ public class ImportTransactionPos extends TenantBaseID implements Comparable<Imp
     }
     Double step = currencyAccount == null ? null : calcRoundingMap.get(currencyAccount.toUpperCase());
     return step != null ? step : calcRoundingMap.get(TemplateConfiguration.CALC_ROUNDING_DEFAULT_KEY);
+  }
+
+  public Map<String, Integer> getQuotationDecimalsMap() {
+    return quotationDecimalsMap;
+  }
+
+  public void setQuotationDecimalsMap(Map<String, Integer> quotationDecimalsMap) {
+    this.quotationDecimalsMap = quotationDecimalsMap;
+  }
+
+  /**
+   * Resolves the number of decimal places to which the document rounds the quotation, from the template configuration
+   * carried over during a single import run. The quotation is expressed in the instrument currency, or in the cash
+   * account currency when the document names none, and a per-currency override of that currency takes precedence over
+   * the configured default.
+   *
+   * @return the decimal places of the printed quotation, or null if the template configured none for this currency
+   */
+  public Integer resolveQuotationDecimals() {
+    if (quotationDecimalsMap == null || quotationDecimalsMap.isEmpty()) {
+      return null;
+    }
+    String currency = currencySecurity != null ? currencySecurity : currencyAccount;
+    Integer decimals = currency == null ? null : quotationDecimalsMap.get(currency.toUpperCase());
+    return decimals != null ? decimals : quotationDecimalsMap.get(TemplateConfiguration.CALC_ROUNDING_DEFAULT_KEY);
+  }
+
+  /**
+   * Replaces a quotation that the document prints rounded with the exact one calculated back from the total amount.
+   * Some platforms print the dividend per unit with two decimal places only, e.g. 0.04 for a true 0.0388, so that units
+   * times quotation never reconciles with the booked amount. The calculated quotation is only accepted when it rounds
+   * to the printed one, i.e. it lies within half a unit of the last printed decimal place; with two decimal places 0.04
+   * accepts values from 0.035 to 0.045. Anything outside that interval indicates an inconsistent document or a wrongly
+   * extracted field and is rejected.
+   *
+   * @param decimals number of decimal places to which the document rounds the quotation
+   * @return false if a calculated quotation exists but lies outside the rounding interval of the printed one, in which
+   *         case the quotation remains unchanged; true otherwise
+   */
+  public boolean replaceRoundedQuotation(int decimals) {
+    Double calculated = reverseCalculateQuotation();
+    if (calculated == null) {
+      return true;
+    }
+    double halfStep = 0.5 / Math.pow(10, decimals);
+    if (calculated <= 0 || Math.abs(calculated - quotation) > halfStep + QUOTATION_ROUNDING_EPSILON) {
+      return false;
+    }
+    quotation = DataHelper.round(calculated, BaseConstants.FID_MAX_FRACTION_DIGITS);
+    calcDiffCashaccountAmountWhenPossible();
+    return true;
+  }
+
+  /**
+   * Calculates the quotation back from the total amount by inverting the formula of {@link #calcCashaccountAmount()}:
+   * the total amount is converted into the instrument currency, then taxes, transaction costs and accrued interest are
+   * added back for a sale or a dividend and subtracted for a purchase.
+   *
+   * @return the calculated quotation, or null if the position does not reconcile only by its quotation: it is no buy,
+   *         sell or dividend, a value is missing, it already reconciles, its quotation is corrected by the bond
+   *         frequency, or its amounts are in different currencies without an exchange rate
+   */
+  public Double reverseCalculateQuotation() {
+    if (!canReverseCalculateQuotation() || calcDiffCashaccountAmount() == 0.0) {
+      return null;
+    }
+    double rate = currencyExRate != null ? currencyExRate : 1.0;
+    double costs = getTaxCostEx() + getTransactionCostEx();
+    double accruedInterestC = accruedInterest != null ? accruedInterest : 0;
+    double amount = Math.abs(cashaccountAmount) / rate;
+    double gross = getTransactionType() == TransactionType.ACCUMULATE ? amount - costs - accruedInterestC
+        : amount + costs - accruedInterestC;
+    return gross / units;
+  }
+
+  private boolean canReverseCalculateQuotation() {
+    TransactionType transactionType = getTransactionType();
+    return (transactionType == TransactionType.ACCUMULATE || transactionType == TransactionType.REDUCE
+        || transactionType == TransactionType.DIVIDEND) && units != null && units != 0.0 && quotation != null
+        && cashaccountAmount != null
+        && (importTransactionPosFailedList == null || importTransactionPosFailedList.isEmpty())
+        && !getKnownOtherFlags().contains(ImportKnownOtherFlags.CAN_BOND_QUOTATION_CORRECTION)
+        && (currencyExRate != null || currencySecurity == null || currencySecurity.equals(currencyAccount));
   }
 
   public Double getCalcRoundingStep() {

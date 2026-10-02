@@ -47,6 +47,11 @@ public enum AlgoEventType {
   FUNDING_TRANSFER,
   /** A frozen cash-account standing order was booked on its adjusted effective date. */
   CASH_STANDING_ORDER,
+  /**
+   * A frozen security standing order bought or sold its instrument on its scheduled date, moved onto a session of the
+   * instrument's exchange, at that day's close and with the costs the standing order itself defines.
+   */
+  SECURITY_STANDING_ORDER,
   /** Gross income earned by the units held before the ex-date. */
   DIVIDEND_ENTITLEMENT,
   /** An earned receivable was paid into the simulation cash ledger. */
@@ -67,6 +72,11 @@ public enum AlgoEventType {
   OPENING_EXCLUDED_CLOSE,
   /** A recurring custody charge booked on its settlement date. */
   CUSTODY_FEE,
+  /**
+   * Interest accrued on the negative balance of a cash account with a borrowing rate, charged at a month end or on the
+   * end date of the run.
+   */
+  OVERDRAFT_INTEREST,
   /** Commission credits consumed by an accepted trade. */
   CUSTODY_CREDIT;
 

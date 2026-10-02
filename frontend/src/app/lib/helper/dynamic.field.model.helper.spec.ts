@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TranslateService } from '@ngx-translate/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
+import { of } from 'rxjs';
 import { DynamicFieldModelHelper } from './dynamic.field.model.helper';
 import {
   ClassDescriptorInputAndShow,
@@ -8,6 +9,8 @@ import {
 } from '../dynamicfield/field.descriptor.input.and.show';
 import { InputType } from '../dynamic-form/models/input.type';
 import { Helper } from './helper';
+import { FieldConfig } from '../dynamic-form/models/field.config';
+import { FormGroupDefinition } from '../dynamic-form/models/form.group.definition';
 
 function descriptor(max: number | null): ClassDescriptorInputAndShow {
   return {
@@ -48,6 +51,40 @@ describe('DynamicFieldModelHelper SELECT_OPTIONS width', () => {
     );
     expect(config[0].inputType).toBe(InputType.Select);
     expect(config[0].inputWidth).toBe(5);
+  });
+});
+
+describe('DynamicFieldModelHelper enum-backed string field', () => {
+  const translateService = { get: (key: string) => of('T_' + key) } as unknown as TranslateService;
+  const enumDescriptor = (required: boolean): FieldDescriptorInputAndShow => ({
+    fieldName: 'crossDirection',
+    dataType: 'String',
+    required,
+    min: null,
+    max: null,
+    enumType: 'CrossDirection',
+    enumValues: ['ABOVE', 'BELOW'],
+    dynamicFormPropertyHelps: null
+  });
+
+  it('renders the constants sent by the backend as a select with translated labels', () => {
+    const [field] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
+      translateService,
+      [enumDescriptor(true)],
+      'ALGO_F_'
+    );
+    expect(field.inputType).toBe(InputType.Select);
+    expect(field.valueKeyHtmlOptions.map((o) => o.key)).toEqual(['ABOVE', 'BELOW']);
+    expect(field.valueKeyHtmlOptions.map((o) => o.value)).toEqual(['T_ABOVE', 'T_BELOW']);
+  });
+
+  it('offers an empty entry only for an optional field', () => {
+    const [field] = DynamicFieldModelHelper.createConfigFieldsFromDescriptor(
+      translateService,
+      [enumDescriptor(false)],
+      ''
+    );
+    expect(field.valueKeyHtmlOptions.map((o) => o.key)).toEqual(['', 'ABOVE', 'BELOW']);
   });
 });
 
@@ -185,5 +222,91 @@ describe('DynamicFieldModelHelper numeric bounds', () => {
     expect(Number.isFinite(field.inputWidth)).toBe(true);
     const control = new FormControl(-1000, field.validation);
     expect(control.valid).toBe(true);
+  });
+});
+
+describe('DynamicFieldModelHelper class-level constraints', () => {
+  const translateService = {} as TranslateService;
+  const optionalNumber = (fieldName: string): FieldDescriptorInputAndShow => ({
+    fieldName,
+    dataType: 'NumericInteger',
+    required: false,
+    min: 0,
+    max: 500,
+    enumType: null,
+    enumValues: null,
+    dynamicFormPropertyHelps: []
+  });
+
+  /** The form definition of the holding gain/lose alert, as the backend serializes it. */
+  const holdingAlert = (): ClassDescriptorInputAndShow => ({
+    fieldDescriptorInputAndShows: ['gainPercentage', 'losePercentage', 'upperValue', 'lowerValue'].map(optionalNumber),
+    constraintValidatorMap: {
+      AtLeastOneNotNull: { fields: ['gainPercentage', 'losePercentage', 'upperValue', 'lowerValue'] },
+      NumberRange: { lowerField: 'lowerValue', upperField: 'upperValue' }
+    }
+  });
+
+  it('merges constraints sharing fields into one form group placed at the first field', () => {
+    const config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+      translateService,
+      holdingAlert(),
+      ''
+    );
+    expect(config).toHaveLength(1);
+    const group = config[0] as FormGroupDefinition;
+    expect(group.formGroupName).toBeDefined();
+    expect(group.fieldConfig.map((f) => f.field)).toEqual([
+      'gainPercentage',
+      'losePercentage',
+      'upperValue',
+      'lowerValue'
+    ]);
+    expect(group.validation).toHaveLength(2);
+    expect(group.errors.map((e) => e.keyi18n)).toEqual(expect.arrayContaining(['atLeastOneNotNull', 'numberRange']));
+  });
+
+  it('keeps unconstrained fields at their position around the group', () => {
+    const config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+      translateService,
+      {
+        fieldDescriptorInputAndShows: ['daysInPeriod', 'gainPercentage', 'losePercentage'].map(optionalNumber),
+        constraintValidatorMap: { AtLeastOneNotNull: { fields: ['gainPercentage', 'losePercentage'] } }
+      },
+      ''
+    );
+    expect(config).toHaveLength(2);
+    expect((config[0] as FieldConfig).field).toBe('daysInPeriod');
+    expect((config[1] as FormGroupDefinition).fieldConfig.map((f) => f.field)).toEqual([
+      'gainPercentage',
+      'losePercentage'
+    ]);
+  });
+
+  it('applies the backend rules to the form group', () => {
+    const group = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+      translateService,
+      holdingAlert(),
+      ''
+    )[0] as FormGroupDefinition;
+    const formGroup = new FormGroup(
+      Object.fromEntries(group.fieldConfig.map((f) => [f.field, new FormControl(null, f.validation)])),
+      group.validation
+    );
+    expect(formGroup.hasError('atLeastOneNotNull')).toBe(true);
+    formGroup.patchValue({ lowerValue: 20, upperValue: 10 });
+    expect(formGroup.hasError('atLeastOneNotNull')).toBe(false);
+    expect(formGroup.hasError('numberRange')).toBe(true);
+    formGroup.patchValue({ lowerValue: 10, upperValue: 20 });
+    expect(formGroup.valid).toBe(true);
+  });
+
+  it('generates plain fields when the descriptor has no constraints', () => {
+    const config = DynamicFieldModelHelper.createFieldsFromClassDescriptorInputAndShow(
+      translateService,
+      { fieldDescriptorInputAndShows: [optionalNumber('a')], constraintValidatorMap: {} },
+      ''
+    );
+    expect((config[0] as FieldConfig).field).toBe('a');
   });
 });

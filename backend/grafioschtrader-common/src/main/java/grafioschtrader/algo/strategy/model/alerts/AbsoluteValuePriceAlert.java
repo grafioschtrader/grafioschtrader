@@ -1,11 +1,15 @@
 package grafioschtrader.algo.strategy.model.alerts;
 
+import grafiosch.validation.AtLeastOneNotNull;
+import grafiosch.validation.NumberRange;
 import jakarta.validation.constraints.Min;
 
 /**
  * Warn if a security exceeds a lower or upper threshold.<\br> Can only used on the security level.
  *
  */
+@AtLeastOneNotNull(fields = { "lowerValue", "upperValue" })
+@NumberRange(lower = "lowerValue", upper = "upperValue")
 public class AbsoluteValuePriceAlert {
 
   @Min(value = 0)

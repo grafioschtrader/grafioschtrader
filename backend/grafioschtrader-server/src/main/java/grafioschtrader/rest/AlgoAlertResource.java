@@ -2,7 +2,6 @@ package grafioschtrader.rest;
 
 import java.util.*;
 
-import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +36,12 @@ public class AlgoAlertResource {
 
   @org.springframework.beans.factory.annotation.Autowired
   private HistoryquoteJpaRepository historyquotes;
+
+  @org.springframework.beans.factory.annotation.Autowired
+  private AlgoHierarchyAlertOverviewService hierarchyAlertOverview;
+
+  @org.springframework.beans.factory.annotation.Autowired
+  private AlgoMessageAlertRetentionService retention;
 
   @Schema(description = "Current daily-close strategy decision; quantities are proposals, not fills")
   public record TradingDto(Integer idAlgoStrategy, Integer idSecuritycurrency, String contextName, String strategyName,
@@ -112,7 +117,7 @@ public class AlgoAlertResource {
     Map<String, AlgoAlertEvaluationState> states = new HashMap<>();
     evaluations.findByIdTenant(tenant)
         .forEach(s -> states.put(s.getIdAlgoStrategy() + ":" + s.getIdSecuritycurrency(), s));
-    return scopes.resolveForTenant(tenant).stream()
+    return scopes.resolveAlertScopes(tenant, features.isAlgo()).stream()
         .filter(s -> AlgoAlertEvaluationCoordinator.isAlertType(s.strategy().getAlgoStrategyImplementations()))
         .map(s -> {
           var state = states.get(s.strategy().getIdAlgoRuleStrategy() + ":" + s.security().getIdSecuritycurrency());
@@ -128,37 +133,57 @@ public class AlgoAlertResource {
     return value == null ? null : value.toString();
   }
 
-  @GetMapping("/statuses")
-  public List<String> statuses() {
-    tenant(false);
-    return List.of("PENDING", "SENDING", "RETRY", "FAILED", "REVIEW_REQUIRED", "DELIVERED", "CANCELLED");
+  /**
+   * The alerts of every AlgoTop hierarchy of the tenant, each marked with whether the live evaluation considers it.
+   * Only the assigned monitoring hierarchy is evaluated, so this shows the user which alerts are dormant. Empty while
+   * rule-based trading is switched off, since the hierarchy alerts then are not evaluated at all.
+   */
+  @GetMapping("/hierarchies")
+  public List<grafioschtrader.dto.AlgoTopAlertGroupDto> hierarchies() {
+    User user = tenant(false);
+    return features.isAlgo() ? hierarchyAlertOverview.overview(user.getActualIdTenant(), user.getLanguage())
+        : List.of();
   }
 
-  @Schema(description = "A page of recorded notifications; transport payloads and leases are not exposed")
-  public record NotificationsDto(List<NotificationDto> content, long totalElements) {
-  }
-
-  @Schema(description = "Signal and per-channel delivery diagnostics")
+  @Schema(description = """
+      Signal and per-channel delivery diagnostics of one recorded notification; transport payloads and leases are not
+      exposed""")
   public record NotificationDto(Integer id, String contextName, String securityName, String alertTime,
       String deliveryStatus, String deliveryChannels, int deliveryAttempts, String nextAttemptAt,
-      String internalCompletedAt, String externalCompletedAt, String deliveryError, String alarmDetails) {
+      String internalCompletedAt, String externalCompletedAt, String deliveryError, String alarmDetails,
+      @Schema(description = """
+          Whether the user may delete the notification now: its delivery has finished and it is older than the window in
+          which it still guards against the same alarm being sent again""") boolean deletable) {
   }
 
+  /**
+   * Every recorded notification of the tenant, newest first. The whole list is returned because the client pages, sorts
+   * and filters it in its table, like every other table of the application.
+   */
   @GetMapping("/notifications")
-  public NotificationsDto notifications(@RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "25") int size, @RequestParam(required = false) String status) {
+  public List<NotificationDto> notifications() {
     Integer tenant = tenant(false).getActualIdTenant();
-    if (page < 0 || size < 1 || size > 100)
-      throw new IllegalArgumentException("Invalid page size");
-    Pageable paging = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "idAlgoMessageAlert"));
-    Page<AlgoMessageAlert> result = status == null || status.isBlank() ? alarms.findByIdTenant(tenant, paging)
-        : alarms.findByIdTenantAndDeliveryStatus(tenant, status, paging);
-    return new NotificationsDto(result.stream()
+    java.time.LocalDate today = java.time.LocalDate.now();
+    return alarms.findByIdTenantOrderByIdAlgoMessageAlertDesc(tenant).stream()
         .map(a -> new NotificationDto(a.getIdAlgoMessageAlert(), a.getContextName(), a.getSecurityName(),
             text(a.getAlertTime()), a.getDeliveryStatus(), a.getDeliveryChannels(), a.getDeliveryAttempts(),
             text(a.getNextAttemptAt()), text(a.getInternalCompletedAt()), text(a.getExternalCompletedAt()),
-            a.getDeliveryError(), a.getAlarmDetails()))
-        .toList(), result.getTotalElements());
+            a.getDeliveryError(), a.getAlarmDetails(), AlgoMessageAlertRetentionService.isDeletable(a, today)))
+        .toList();
+  }
+
+  /**
+   * Deletes the selected notifications of the tenant. The selection is deleted completely or not at all; it is refused
+   * when it contains a notification that is still being delivered or still guards against a repeated alarm. One call
+   * counts as one alert action against the daily limit, however many notifications it removes.
+   */
+  @PostMapping("/notifications/deletes")
+  public ResponseEntity<Void> deleteNotifications(@RequestBody List<Integer> ids) {
+    User user = tenant(true);
+    limits.check(user, ACTION_LIMIT, 1);
+    retention.deleteByUser(user.getActualIdTenant(), ids);
+    limits.log(user.getIdUser(), ACTION_LIMIT, OperationType.DELETE, 1);
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/notifications/{id}/retry")
@@ -193,7 +218,7 @@ public class AlgoAlertResource {
     Tenant tenant = tenants.findById(user.getIdTenant()).orElseThrow();
     if (tenant.getTenantKindType() == TenantKindType.SIMULATION_COPY)
       throw new grafiosch.exceptions.DataViolationException("name", "gt.algo.alert.live.only", null);
-    if (write && (user.isTenantAccessReadOnly() || !features.isAlgo() || !features.isAlert()))
+    if (write && (user.isTenantAccessReadOnly() || !features.isAlert()))
       throw new SecurityException(grafiosch.BaseConstants.CLIENT_SECURITY_BREACH);
     return user;
   }

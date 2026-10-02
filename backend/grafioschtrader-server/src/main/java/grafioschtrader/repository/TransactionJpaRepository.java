@@ -46,6 +46,57 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
   @Query(name = "Transaction.findFxTransferObservations")
   List<Transaction> findFxTransferObservations(Integer idTenant, LocalDate from, LocalDate to);
 
+  /**
+   * Named query Transaction.findFeesByIdTenantBetween: the separately booked fees (transaction type FEE) of a tenant
+   * whose booking date lies in the period, with their cash account fetched for the currency conversion.
+   *
+   * @param idTenant the tenant
+   * @param dateFrom base date of the period, exclusive
+   * @param dateTo   last date of the period, inclusive
+   * @return the fee transactions, unordered
+   */
+  @Query(name = "Transaction.findFeesByIdTenantBetween")
+  List<Transaction> findFeesByIdTenantBetween(Integer idTenant, LocalDate dateFrom, LocalDate dateTo);
+
+  /**
+   * Named query Transaction.findFeesByIdPortfolioBetween: same as
+   * {@link #findFeesByIdTenantBetween(Integer, LocalDate, LocalDate)} for the cash accounts of one portfolio.
+   *
+   * @param idPortfolio the portfolio
+   * @param dateFrom    base date of the period, exclusive
+   * @param dateTo      last date of the period, inclusive
+   * @return the fee transactions, unordered
+   */
+  @Query(name = "Transaction.findFeesByIdPortfolioBetween")
+  List<Transaction> findFeesByIdPortfolioBetween(Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo);
+
+  /**
+   * Named query Transaction.findByIdTenantAndTransactionDateBetweenForReport: all bookings with cash account, security
+   * and asset class fetched for PDF rendering; ordered by transaction time and id.
+   *
+   * @param idTenant authenticated tenant
+   * @param dateFrom excluded valuation base (transactionDate, not transactionTime)
+   * @param dateTo   inclusive last booking date
+   * @return the tenant's bookings, including both legs of internal transfers
+   */
+  @Query(name = "Transaction.findByIdTenantAndTransactionDateBetweenForReport")
+  List<Transaction> findByIdTenantAndTransactionDateBetweenForReport(Integer idTenant, LocalDate dateFrom,
+      LocalDate dateTo);
+
+  /**
+   * Named query Transaction.findByIdTenantAndIdPortfolioAndTransactionDateBetweenForReport: scope by the booked cash
+   * account's portfolio, preserving only that portfolio's transfer legs. Associations and ordering as above.
+   *
+   * @param idTenant    authenticated tenant
+   * @param dateFrom    excluded valuation base
+   * @param dateTo      inclusive last booking date
+   * @param idPortfolio owned portfolio
+   * @return scoped bookings ordered by transaction time and id
+   */
+  @Query(name = "Transaction.findByIdTenantAndIdPortfolioAndTransactionDateBetweenForReport")
+  List<Transaction> findByIdTenantAndIdPortfolioAndTransactionDateBetweenForReport(Integer idTenant, LocalDate dateFrom,
+      LocalDate dateTo, Integer idPortfolio);
+
   /** Detaches replay output before a simulation standing order is deleted. */
   @Transactional
   @Modifying

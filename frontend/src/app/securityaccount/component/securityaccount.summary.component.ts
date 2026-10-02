@@ -31,7 +31,7 @@ import { TreeNavigationStateService } from '../../lib/maintree/service/tree.navi
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { Securityaccount } from '../../entities/securityaccount';
 import { SecurityPositionSummary } from '../../entities/view/security.position.summary';
-import { SecurityTransferCreateComponent } from '../../securityaction/component/security-transfer-create.component';
+import { SecurityTransferCreateDialogComponent } from '../../securityaction/component/security-transfer-create-dialog.component';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { CommonModule } from '@angular/common';
 import { TableModule } from '@openng/optimus-ui/table';
@@ -188,7 +188,7 @@ export class SecurityaccountSummaryComponent extends SecurityaccountTable implem
   private handleTransferSecurity(securityPositionSummary: SecurityPositionSummary): void {
     const dialogService = this.injector.get(DialogService);
     this.translateService.get('CREATE_SECURITY_TRANSFER').subscribe((title) => {
-      const ref = dialogService.open(SecurityTransferCreateComponent, {
+      const ref = dialogService.open(SecurityTransferCreateDialogComponent, {
         header: title,
         width: '500px',
         modal: true,

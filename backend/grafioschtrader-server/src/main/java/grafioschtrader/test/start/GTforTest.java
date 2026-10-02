@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import grafiosch.BaseConstants;
 import grafiosch.gtnet.handler.GTNetCoolingOffService;
+import grafiosch.gtnet.handler.GTNetServerListImporter;
 import grafioschtrader.GrafioschtraderApplication;
 import jakarta.annotation.PostConstruct;
 
@@ -27,7 +28,8 @@ import jakarta.annotation.PostConstruct;
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = GrafioschtraderApplication.class),
     @ComponentScan.Filter(type = FilterType.REGEX, pattern = "grafiosch\\.gtnet\\.handler\\..*"),
     @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = grafiosch.gtnet.GTNetLifecycleListener.class) })
-@Import(GTNetCoolingOffService.class)
+// The message handlers stay out of the test context; these two are services the repositories depend on.
+@Import({ GTNetCoolingOffService.class, GTNetServerListImporter.class })
 
 // Since Spring Boot 3.2 it requires and read this properties
 @PropertySource("classpath:application-test.properties")

@@ -26,6 +26,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.algo.SimulationTenantCreateDTO;
+import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoSimulationResult;
 import grafioschtrader.entities.AlgoTop;
 import grafioschtrader.entities.Cashaccount;
@@ -128,6 +129,13 @@ class AlgoReplayLifecycleRaceTest {
       top.setPercentage(100f);
       top.setIdWatchlist(watchlist.getId());
       em.persist(top);
+      // A replay needs weights that add up to 100 %. One empty class is enough: it is reported, but it does not block.
+      AlgoAssetclass bucket = new AlgoAssetclass();
+      bucket.setIdTenant(homeIdTenant);
+      bucket.setIdAlgoAssetclassParent(top.getId());
+      bucket.setName(PREFIX + " class");
+      bucket.setPercentage(100f);
+      em.persist(bucket);
       // The trading calendar is written by a scheduled task rather than seeded, so without this the run would span
       // no day and prepare would refuse it.
       for (LocalDate date = opening; !date.isAfter(end); date = date.plusDays(1)) {

@@ -36,7 +36,7 @@ import { BusinessHelper } from '../../shared/helper/business.helper';
 import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
 import { WatchlistSecurityExists } from '../../entities/dnd/watchlist.security.exists';
-import { MailSendParam } from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
+import { MailSendParam } from '../../lib/dynamicdialog/component/mail-send-dynamic-dialog.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppSettings } from '../../shared/app.settings';
 import { UDFGeneralCallParam } from '../../lib/udfmeta/model/udf.metadata';

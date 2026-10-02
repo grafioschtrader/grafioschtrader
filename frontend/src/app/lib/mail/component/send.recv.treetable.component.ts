@@ -15,7 +15,7 @@ import { MailInboxWithSend, MailSendRecv, SendRecvType } from '../model/mail.sen
 import { SvgIconRegistryService } from 'angular-svg-icon';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { TranslateHelper } from '../../helper/translate.helper';
-import { MailSendParam } from '../../dynamicdialog/component/mail.send.dynamic.component';
+import { MailSendParam } from '../../dynamicdialog/component/mail-send-dynamic-dialog.component';
 import { AppHelper } from '../../helper/app.helper';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { MessageToastService } from '../../message/message.toast.service';

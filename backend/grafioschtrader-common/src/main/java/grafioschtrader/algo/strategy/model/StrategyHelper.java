@@ -84,10 +84,9 @@ public abstract class StrategyHelper {
     StrategyClassBindingDefinition scbd = strategyBindingMap.get(algoStrategyImplementations);
 
     var definition = new InputAndShowDefinitionStrategy(
-        DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoTopModel),
-        DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoAssetclassModel),
-        DynamicModelHelper.getFormDefinitionOfModelClassMembers(scbd.algoSecurityModel),
-        scbd.complexConfigClass != null);
+        DynamicModelHelper.getFormDefinitionOfModelClass(scbd.algoTopModel),
+        DynamicModelHelper.getFormDefinitionOfModelClass(scbd.algoAssetclassModel),
+        DynamicModelHelper.getFormDefinitionOfModelClass(scbd.algoSecurityModel), scbd.complexConfigClass != null);
     if (algoStrategyImplementations == AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING) {
       RebalancingTop defaults = new RebalancingTop();
       definition.defaultValues = Map.of("securityDeviationPercentage", defaults.getSecurityDeviationPercentage(),

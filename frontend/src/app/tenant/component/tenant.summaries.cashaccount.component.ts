@@ -1,3 +1,5 @@
+import { DestroyRef, inject } from '@angular/core';
+import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
@@ -60,6 +62,9 @@ export class TenantSummariesCashaccountComponent
   private excludedDivTaxColumn: ColumnConfig;
   private subscriptionRequestFromChart: Subscription;
   private CHART_TITLE = 'CASH_BALANCE_SECURITIES';
+
+  private statementReports = inject(PerformanceReportDialogService);
+  private reportDestroyRef = inject(DestroyRef);
 
   constructor(
     private portfolioService: PortfolioService,
@@ -219,6 +224,13 @@ export class TenantSummariesCashaccountComponent
     if (otherMenuShowOptions) {
       menuItems.push(...otherMenuShowOptions);
     }
+    menuItems.push(
+      this.statementReports.menu(
+        () => this.untilDate,
+        () => null,
+        this.reportDestroyRef
+      )
+    );
     menuItems.push({ separator: true });
     menuItems.push({
       label: 'SHOW_CHART',

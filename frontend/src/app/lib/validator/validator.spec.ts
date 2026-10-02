@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { FormControl, FormGroup } from '@angular/forms';
-import { isPresent, gtWithMask, gteWithMask, webUrl, dateRange } from './validator';
+import { isPresent, gtWithMask, gteWithMask, webUrl, dateRange, atLeastOneNotNull, numberRange } from './validator';
 
 describe('isPresent', () => {
   it('returns true for string value', () => {
@@ -138,5 +138,36 @@ describe('dateRange', () => {
     });
     const validator = dateRange('from', 'to', 'from');
     expect(validator(group)).toBeNull();
+  });
+});
+
+describe('atLeastOneNotNull', () => {
+  const group = (a: any, b: any) =>
+    new FormGroup({ a: new FormControl(a), b: new FormControl(b) }, atLeastOneNotNull(['a', 'b']));
+
+  it('reports a group in which every field is empty', () => {
+    expect(group(null, '').hasError('atLeastOneNotNull')).toBe(true);
+    expect(group(undefined, '  ').hasError('atLeastOneNotNull')).toBe(true);
+  });
+
+  it('accepts a single entered field, zero included', () => {
+    expect(group(0, null).valid).toBe(true);
+    expect(group(null, 'x').valid).toBe(true);
+  });
+});
+
+describe('numberRange', () => {
+  const group = (lower: any, upper: any) =>
+    new FormGroup({ lower: new FormControl(lower), upper: new FormControl(upper) }, numberRange('lower', 'upper'));
+
+  it('accepts ascending bounds and a missing bound', () => {
+    expect(group(1, 2).valid).toBe(true);
+    expect(group(null, 2).valid).toBe(true);
+    expect(group(5, null).valid).toBe(true);
+  });
+
+  it('reports equal and descending bounds', () => {
+    expect(group(2, 2).hasError('numberRange')).toBe(true);
+    expect(group(3, 2).hasError('numberRange')).toBe(true);
   });
 });

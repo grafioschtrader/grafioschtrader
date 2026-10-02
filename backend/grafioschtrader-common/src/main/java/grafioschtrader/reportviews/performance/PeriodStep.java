@@ -44,6 +44,22 @@ public class PeriodStep extends PeriodStepMissingHoliday {
   @Schema(description = "Number of days with missing data within this period step")
   public int missingDayCount;
 
+  @Schema(description = """
+      Date of the valuation this step is measured from, i.e. the previous step. In the yearly split it lies in an
+      earlier month than lastDate unless the last valuation of the previous month is missing.""")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public LocalDate baseDate;
+
+  @Schema(description = """
+      Time-weighted return from baseDate to lastDate in percent, chained from the daily returns in between. Null when
+      no usable daily return lies in between.""")
+  public Double twrPercent;
+
+  @Schema(description = """
+      Whether the step covers exactly one trading day (weekly split) or exactly one month (yearly split). Only complete
+      steps are ranked as best or worst step.""")
+  public boolean complete;
+
   /**
    * Constructs a new period step with complete financial performance data.
    *
@@ -55,9 +71,13 @@ public class PeriodStep extends PeriodStepMissingHoliday {
    * @param securitiesMC           securities value in main currency
    * @param totalBalanceMC         total balance in main currency
    * @param missingDayCount        number of missing data days
+   * @param baseDate               date of the valuation the step is measured from
+   * @param twrPercent             time-weighted return from baseDate to lastDate in percent, may be null
+   * @param complete               whether the step covers exactly one trading day or one month
    */
   public PeriodStep(LocalDate lastDate, double externalCashTransferMC, double gainMC, double marginCloseGainMC,
-      double cashBalanceMC, double securitiesMC, double totalBalanceMC, int missingDayCount) {
+      double cashBalanceMC, double securitiesMC, double totalBalanceMC, int missingDayCount, LocalDate baseDate,
+      Double twrPercent, boolean complete) {
     super(HolidayMissing.HM_TRADING_DAY);
     this.lastDate = lastDate;
     this.gainMC = gainMC;
@@ -67,6 +87,9 @@ public class PeriodStep extends PeriodStepMissingHoliday {
     this.securitiesMC = securitiesMC;
     this.totalBalanceMC = totalBalanceMC;
     this.missingDayCount = missingDayCount;
+    this.baseDate = baseDate;
+    this.twrPercent = twrPercent;
+    this.complete = complete;
   }
 
   @Schema(description = "Combined total of investment gains and margin gains in main currency")

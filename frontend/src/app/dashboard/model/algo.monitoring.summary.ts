@@ -30,5 +30,7 @@ export interface AlgoMonitoringSummary {
   /** Actual minus target share of that bucket, in percentage points of net equity. */
   largestDeviationPercentage: number | null;
   meanReversionSignals: number;
+  /** Plan lines outside their tolerance band: classes, instruments and the exposure ceiling. */
+  allocationBreaches: number;
   topTrades: AlgoMonitoringTrade[];
 }

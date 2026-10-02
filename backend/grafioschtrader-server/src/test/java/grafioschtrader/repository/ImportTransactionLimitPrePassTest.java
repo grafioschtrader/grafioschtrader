@@ -89,6 +89,25 @@ class ImportTransactionLimitPrePassTest {
     assertThat(count(List.of(foreign, pos(2, null)), null)).isEqualTo(1);
   }
 
+  @Test
+  @DisplayName("A possible duplicate produces none, a confirmed non-duplicate one")
+  void possibleDuplicateCountsZero() {
+    ImportTransactionPos duplicate = pos(1, null);
+    duplicate.setIdTransactionMaybe(500);
+    ImportTransactionPos confirmed = pos(2, null);
+    confirmed.setIdTransactionMaybe(0);
+    assertThat(count(List.of(duplicate, confirmed), null)).isEqualTo(1);
+  }
+
+  @Test
+  @DisplayName("A connected transfer with one side flagged as possible duplicate produces none")
+  void connectedTransferWithDuplicateSideCountsZero() {
+    ImportTransactionPos withdrawal = pos(1, null);
+    ImportTransactionPos deposit = pos(2, null);
+    deposit.setIdTransactionMaybe(500);
+    assertThat(count(List.of(withdrawal, deposit), connect(withdrawal, deposit))).isZero();
+  }
+
   private int count(List<ImportTransactionPos> positions, Map<Integer, ImportTransactionPos> idItpMap) {
     return ImportTransactionPosJpaRepositoryImpl.countNewTransactions(positions, idItpMap, importTransactionHead,
         ID_TENANT);

@@ -152,7 +152,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
     List<ImportTransactionPos> importTransactionPosList = importTransactionPosJpaRepository
         .findByIdTransactionHeadAndIdTenant(idTransactionHead, user.getIdTenant());
-    setIdTrasactionMayBeForImportTransactionHead(idTransactionHead, importTransactionPosList);
+    markPossibleDuplicatesOfHead(idTransactionHead, importTransactionPosList);
 
     importTransactionPosList.forEach(importTransactionPos -> {
       importTransactionPos.calcDiffCashaccountAmountWhenPossible();
@@ -279,27 +279,14 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
     return saveAndCheckReady(changedImportTransactionPosList);
   }
 
-  /**
-   * Sets potential duplicate transaction references for all import positions under a transaction header. This method
-   * automatically identifies existing transactions that may match the import positions based on security, transaction
-   * type, cash account, date, units, and amounts. It helps users identify potential duplicates before creating new
-   * transactions.
-   *
-   * <p>
-   * The method queries for potential matches and updates only positions that haven't been explicitly marked as "not
-   * duplicates" (idTransactionMaybe != 0). Positions with confirmed non-duplicate status retain their setting.
-   * </p>
-   *
-   * @param idTransactionHead        The transaction header ID to process
-   * @param importTransactionPosList List of import positions to check for duplicates
-   */
-  private void setIdTrasactionMayBeForImportTransactionHead(Integer idTransactionHead,
+  @Override
+  public void markPossibleDuplicatesOfHead(Integer idTransactionHead,
       List<ImportTransactionPos> importTransactionPosList) {
     List<ImportTransactionPos> itpList = new ArrayList<>();
     Map<Integer, Integer> mayHasTransactionIdPosMap = Arrays
         .stream(importTransactionPosJpaRepository
             .getIdTransactionPosWithPossibleTransactionByIdTransactionHead(idTransactionHead))
-        .collect(Collectors.toMap(p -> p[0], p -> p[1]));
+        .collect(Collectors.toMap(p -> p[0], p -> p[1], (a, _) -> a));
     importTransactionPosList.forEach(itp -> {
       var valueBefore = itp.getIdTransactionMaybe();
       if (!(itp.getIdTransactionMaybe() != null && itp.getIdTransactionMaybe().equals(0))) {
@@ -332,17 +319,16 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
    * @return Updated list of saved import transaction positions with readiness and duplicate status
    */
   private List<ImportTransactionPos> saveAndCheckReady(List<ImportTransactionPos> importTransactionPosList) {
-    // Import position with transaction can never be changed also a transaction
-    // with a maybe transaction only when dTransactionMaybe == 0
+    // Only a position without a transaction can be a duplicate; the query itself skips those the user confirmed
+    // as no duplicate (idTransactionMaybe == 0).
     List<Integer> idTransactionPosList = importTransactionPosList.stream()
-        .filter(itp -> itp.getIdTransaction() == null
-            || (itp.getIdTransactionMaybe() != null || itp.getIdTransactionMaybe().equals(0)))
-        .map(ImportTransactionPos::getIdTransactionPos).collect(Collectors.toList());
+        .filter(itp -> itp.getIdTransaction() == null).map(ImportTransactionPos::getIdTransactionPos)
+        .collect(Collectors.toList());
     Map<Integer, Integer> mayHasTransactionIdPosMap = idTransactionPosList.isEmpty() ? new HashMap<>()
         : Arrays
             .stream(importTransactionPosJpaRepository
                 .getIdTransactionPosWithPossibleTransactionByIdTransactionPos(idTransactionPosList))
-            .collect(Collectors.toMap(p -> p[0], p -> p[1]));
+            .collect(Collectors.toMap(p -> p[0], p -> p[1], (a, _) -> a));
     importTransactionPosList.forEach(itp -> {
       setCheckReadyForSingleTransaction(itp);
       if ((itp.getIdTransactionMaybe() == null || !itp.getIdTransactionMaybe().equals(0))) {
@@ -354,6 +340,7 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
 
   @Override
   public void setCheckReadyForSingleTransaction(ImportTransactionPos itp) {
+    replaceRoundedQuotationOnce(itp);
     if (itp.getCashaccount() != null && itp.getTransactionTime() != null && itp.getTransactionType() != null
         && itp.getCashaccountAmount() != null) {
       switch (itp.getTransactionType()) {
@@ -382,6 +369,31 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       default:
         itp.setReadyForTransaction(true);
         break;
+      }
+    }
+  }
+
+  /**
+   * Replaces a quotation printed rounded by the document with the one calculated back from the total amount, when the
+   * import template configures quotationDecimals. The configuration is transient and only present while the position is
+   * created, so this happens once; it is cleared afterwards so that later checks in the same run leave the quotation
+   * alone. A calculated quotation outside the rounding interval of the printed one keeps the printed quotation and is
+   * reported as transaction error, which also leaves the calculation difference visible.
+   *
+   * @param itp the newly created import position
+   */
+  private void replaceRoundedQuotationOnce(ImportTransactionPos itp) {
+    Integer decimals = itp.resolveQuotationDecimals();
+    itp.setQuotationDecimalsMap(null);
+    if (decimals != null) {
+      Double printedQuotation = itp.getQuotation();
+      if (!itp.replaceRoundedQuotation(decimals)) {
+        itp.setTransactionError(messageSource.getMessage("gt.import.quotation.outside.rounding",
+            new Object[] { String.valueOf(printedQuotation),
+                String
+                    .valueOf(DataHelper.round(itp.reverseCalculateQuotation(), BaseConstants.FID_MAX_FRACTION_DIGITS)),
+                decimals },
+            RestHelper.getUserLocale()));
       }
     }
   }
@@ -500,6 +512,13 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
           boolean connectedTransfer = idItpMap != null && itp.getConnectedIdTransactionPos() != null
               && idItpMap.containsKey(itp.getIdTransactionPos());
           ImportTransactionPos otherItp = connectedTransfer ? idItpMap.get(itp.getConnectedIdTransactionPos()) : null;
+          if (isPossibleDuplicate(itp) || connectedTransfer && isPossibleDuplicate(otherItp)) {
+            // Left as import position; the user may still confirm it as no duplicate and convert it afterwards
+            if (connectedTransfer) {
+              doneCashaccountTranssferId.add(otherItp.getIdTransactionPos());
+            }
+            continue;
+          }
           Integer idCurrencypair = null;
           // Only transaction that belongs to this tenant will be processed
           if (itp.isReadyForTransaction()
@@ -533,6 +552,32 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
     }
     return new CreatedTransactionsResult(savedImpPosAndTransactions);
+  }
+
+  /**
+   * Decides right before a transaction would be written whether the position may already exist as a transaction. The
+   * check is repeated here instead of trusting the stored flag, because the flag is only refreshed when an import head
+   * is loaded or a position changes: a direct PDF import never loads the head, and an identical position converted
+   * earlier in the same batch only exists as a transaction from that moment on. A found match is stored in
+   * {@code idTransactionMaybe}, so the position shows up as a possible duplicate.
+   *
+   * @param itp the position about to be converted, its {@code idTransactionMaybe} is refreshed in place
+   * @return true when the position must not be converted; false when it has a transaction already (an update), the
+   *         user confirmed it as no duplicate, or no matching transaction exists
+   */
+  private boolean isPossibleDuplicate(ImportTransactionPos itp) {
+    if (itp.getIdTransaction() != null || Integer.valueOf(0).equals(itp.getIdTransactionMaybe())) {
+      return false;
+    }
+    Integer[][] matches = importTransactionPosJpaRepository
+        .getIdTransactionPosWithPossibleTransactionByIdTransactionPos(List.of(itp.getIdTransactionPos()));
+    Integer idTransactionMaybe = matches.length == 0 ? null : matches[0][1];
+    if (!Objects.equals(idTransactionMaybe, itp.getIdTransactionMaybe())) {
+      // A stale reference (the matching transaction was deleted meanwhile) is cleared as well
+      itp.setIdTransactionMaybe(idTransactionMaybe);
+      importTransactionPosJpaRepository.save(itp);
+    }
+    return idTransactionMaybe != null;
   }
 
   /**
@@ -611,13 +656,24 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       }
       if (!itp.isReadyForTransaction()
           || !itp.getIdTransactionHead().equals(importTransactionHead.getIdTransactionHead())
-          || !itp.getCashaccount().getIdTenant().equals(idTenant)) {
+          || !itp.getCashaccount().getIdTenant().equals(idTenant) || isMarkedAsPossibleDuplicate(itp)
+          || connectedTransfer && isMarkedAsPossibleDuplicate(otherItp)) {
         continue;
       }
       newTransactions += (itp.getIdTransaction() == null ? 1 : 0)
           + (connectedTransfer && otherItp.getIdTransaction() == null ? 1 : 0);
     }
     return newTransactions;
+  }
+
+  /**
+   * A position already flagged as a possible duplicate is skipped by the write loop. The write loop refreshes the flag
+   * per position, so the count can deviate in two rare cases: identical positions of the same batch are only flagged
+   * while writing (count too high), and a stale flag whose transaction was deleted is cleared while writing (count too
+   * low). Like the cap itself, this bounds flooding rather than being exact.
+   */
+  private static boolean isMarkedAsPossibleDuplicate(ImportTransactionPos itp) {
+    return itp.getIdTransaction() == null && itp.getIdTransactionMaybe() != null && itp.getIdTransactionMaybe() > 0;
   }
 
   /**
@@ -829,6 +885,10 @@ public class ImportTransactionPosJpaRepositoryImpl implements ImportTransactionP
       default:
         currencypair = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(itp.getCurrencySecurity(),
             itp.getCashaccount().getCurrency());
+      }
+      if (currencypair == null) {
+        // Source and target currency are equal or unknown, there is no pair to convert with
+        return null;
       }
       if (currencypairs == null && loadCurrencypairsWhenNotLoaded) {
         currencypairs = this.currencypairJpaRepository.findAll();

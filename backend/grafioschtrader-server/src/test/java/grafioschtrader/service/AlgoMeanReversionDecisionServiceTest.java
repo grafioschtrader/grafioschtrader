@@ -116,6 +116,24 @@ class AlgoMeanReversionDecisionServiceTest {
   }
 
   @Test
+  void removedEntryTypesAndExposureSwitchesAreRejected() throws Exception {
+    var mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+    String json = mapper.writeValueAsString(config());
+    // The exposure limit always applies, so a switch claiming to lift it is an unknown field.
+    var switchSet = (tools.jackson.databind.node.ObjectNode) mapper.readTree(json);
+    ((tools.jackson.databind.node.ObjectNode) switchSet.get("risk_controls")).put("block_entry_if_exposure_exceeded",
+        false);
+    assertThrows(Exception.class, () -> StrategyConfigValidator.executable(mapper.writeValueAsString(switchSet)));
+    // dip_buy is the only entry type left.
+    var breakout = (tools.jackson.databind.node.ObjectNode) mapper.readTree(json);
+    ((tools.jackson.databind.node.ObjectNode) breakout.get("entry")).put("type", "breakout");
+    assertThrows(Exception.class, () -> StrategyConfigValidator.executable(mapper.writeValueAsString(breakout)));
+    var dip = (tools.jackson.databind.node.ObjectNode) mapper.readTree(json);
+    ((tools.jackson.databind.node.ObjectNode) dip.get("entry")).put("type", "dip_buy");
+    assertDoesNotThrow(() -> StrategyConfigValidator.executable(mapper.writeValueAsString(dip)));
+  }
+
+  @Test
   void minimalConfigurationOmitsFixedSettingsAndTheSecondLossRule() throws Exception {
     // The simple example of the user manual: no data, execution, universe mode, enabled flags or downside trigger.
     var c = config("/testdata/mean-reversion-minimal-strategy.json");

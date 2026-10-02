@@ -119,8 +119,8 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["dip_buy", "breakout", "indicator_signal"],
-          "description": "Entry strategy type: dip_buy (mean reversion), breakout, or indicator_signal"
+          "enum": ["dip_buy"],
+          "description": "Entry strategy type; dip_buy is the only type"
         },
         "lookback_T": { "type": "integer", "minimum": 1, "description": "Lookback period in bars for dip detection" },
         "dip_reference": {
@@ -476,14 +476,6 @@
         "force_exit_on_risk_breach": {
           "type": "boolean",
           "description": "Whether to force-liquidate the position when risk limits are breached"
-        },
-        "block_entry_if_exposure_exceeded": {
-          "type": "boolean",
-          "description": "Whether to block new entries if the exposure limit is already exceeded"
-        },
-        "block_add_if_exposure_exceeded": {
-          "type": "boolean",
-          "description": "Whether to block averaging-down if the exposure limit is already exceeded"
         }
       }
     },

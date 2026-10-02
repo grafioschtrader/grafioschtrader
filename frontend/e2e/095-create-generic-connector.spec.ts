@@ -39,14 +39,16 @@ const CREATE_ENDPOINT_RX = /(Create|Erstellen)\s*(Endpoint|Endpunkt|ENDPOINT)/i;
 const ACTIVATE_RX = /^\s*(Activate|Aktivieren|ACTIVATE)(\s*\.\.\.)?\s*$/i;
 const DEACTIVATE_RX = /^\s*(Deactivate|Deaktivieren|DEACTIVATE)(\s*\.\.\.)?\s*$/i;
 
-/** Waits for the next successful /genericconnector save round-trip triggered by `click`. */
+/** Waits for the save and reports rejected responses instead of hiding them behind a timeout. */
 async function saveAndWait(page: Page, method: 'POST' | 'PUT', click: () => Promise<void>): Promise<void> {
-  const response = page.waitForResponse(
-    (r) => r.url().includes('/genericconnector') && r.request().method() === method && r.ok(),
-    { timeout: 20_000 }
-  );
-  await click();
-  await response;
+  const [response] = await Promise.all([
+    page.waitForResponse(
+      (r) => new URL(r.url()).pathname === '/api/genericconnector' && r.request().method() === method,
+      { timeout: 20_000 }
+    ),
+    click()
+  ]);
+  expect(response.ok(), await response.text()).toBeTruthy();
   // saveConnector()/handleCloseEditDialog re-read all connectors and re-render the accordion.
   await page.waitForTimeout(800);
 }
@@ -65,7 +67,9 @@ async function selectConnector(page: Page, readableName: string): Promise<void> 
   await select.selectOption({ index: 0 });
   await select.dispatchEvent('change');
   await page.waitForTimeout(300);
-  await select.selectOption({ value: await option.getAttribute('value') });
+  const value = await option.getAttribute('value');
+  expect(value, 'the connector option has an ID').not.toBeNull();
+  await select.selectOption(value!);
   await select.dispatchEvent('change');
   await page.locator('generic-connector-def-detail').waitFor({ state: 'visible', timeout: 10_000 });
   await page.waitForTimeout(400);
@@ -247,18 +251,28 @@ test.describe.serial('generic connectors — create as alledit, activate as admi
       await loginAsFixtureUser(page, CREATOR);
       await openGenericConnectorView(page);
 
-      // Idempotency: skip when the connector already exists (dropdown option label = readableName).
-      const existing = page.locator('select#idGenericConnector option', { hasText: c.readableName });
-      if ((await existing.count()) > 0) {
-        return;
+      // Resume a partially saved connector after a failed run without deleting shared feed definitions.
+      const headers = { 'x-auth-token': (await page.evaluate(() => sessionStorage.getItem('jwt')))! };
+      const response = await page.request.get('/api/genericconnector', { headers });
+      expect(response.ok(), await response.text()).toBeTruthy();
+      const existing: GenericConnectorDefData | undefined = (await response.json()).find(
+        (connector: GenericConnectorDefData) => connector.shortId === c.shortId
+      );
+      if (!existing) {
+        await createConnectorDef(page, c);
       }
-
-      await createConnectorDef(page, c);
       await selectConnector(page, c.readableName);
 
       // Endpoints — the accordion orders panels by (feedSupport, instrumentType), which matches the
       // JSON export order, so endpoint i corresponds to panel i.
       for (const ep of c.endpoints) {
+        if (
+          existing?.endpoints.some(
+            (saved) => saved.feedSupport === ep.feedSupport && saved.instrumentType === ep.instrumentType
+          )
+        ) {
+          continue;
+        }
         await createEndpoint(page, ep);
         await selectConnector(page, c.readableName);
       }
@@ -266,7 +280,13 @@ test.describe.serial('generic connectors — create as alledit, activate as admi
       // Field mappings — every row save PUTs the whole connector and re-renders the accordion, so
       // the panel/table locators are re-resolved on each iteration.
       for (let i = 0; i < c.endpoints.length; i++) {
+        const savedEndpoint = existing?.endpoints.find(
+          (ep) => ep.feedSupport === c.endpoints[i].feedSupport && ep.instrumentType === c.endpoints[i].instrumentType
+        );
         for (const m of c.endpoints[i].fieldMappings) {
+          if (savedEndpoint?.fieldMappings.some((saved) => saved.targetField === m.targetField)) {
+            continue;
+          }
           const table = page
             .locator('generic-connector-endpoint-panel')
             .nth(i)
@@ -293,13 +313,15 @@ test.describe.serial('generic connectors — create as alledit, activate as admi
 
       // HTTP headers (currently only gettex) — same editable-table pattern on the header table.
       for (const h of c.httpHeaders) {
+        if (existing?.httpHeaders.some((saved) => saved.headerName === h.headerName)) {
+          continue;
+        }
         const table = page.locator('generic-connector-http-header-table');
         await table.waitFor({ state: 'visible', timeout: 10_000 });
         await saveAndWait(page, 'PUT', () =>
           addEditableTableRow(page, table, async (row) => {
-            const textInputs = row.locator('input[type="text"]');
-            await textInputs.nth(0).fill(h.headerName);
-            await textInputs.nth(1).fill(h.headerValue);
+            await row.locator('input[data-field="headerName"]').fill(h.headerName);
+            await row.locator('input[data-field="headerValue"]').fill(h.headerValue);
           })
         );
       }
@@ -309,6 +331,12 @@ test.describe.serial('generic connectors — create as alledit, activate as admi
       const detail = page.locator('generic-connector-def-detail');
       await expect(detail.getByText(c.shortId, { exact: false }).first()).toBeVisible({ timeout: 10_000 });
       await expect(page.locator('generic-connector-endpoint-panel')).toHaveCount(c.endpoints.length);
+      for (const h of c.httpHeaders) {
+        const row = page.locator('generic-connector-http-header-table tbody tr').filter({
+          has: page.getByRole('cell', { name: h.headerName, exact: true })
+        });
+        await expect(row.getByRole('cell', { name: h.headerValue, exact: true })).toBeVisible();
+      }
       for (let i = 0; i < c.endpoints.length; i++) {
         await expect(
           page

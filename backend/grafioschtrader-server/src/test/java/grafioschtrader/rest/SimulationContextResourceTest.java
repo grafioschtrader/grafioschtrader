@@ -205,16 +205,14 @@ class SimulationContextResourceTest extends BaseIntegrationTest {
   @Order(7)
   @DisplayName("Every alert endpoint is refused from an environment and available at home")
   void alertsAreAHomeTenantFunction() {
-    inOwnSimulation().get().uri(ALGO_ALERT_MAP + "/statuses").exchange().expectStatus().isBadRequest();
     inOwnSimulation().get().uri(ALGO_ALERT_MAP + "/evaluations").exchange().expectStatus().isBadRequest();
     inOwnSimulation().get().uri(ALGO_ALERT_MAP + "/trading").exchange().expectStatus().isBadRequest();
-    inOwnSimulation().get().uri(ALGO_ALERT_MAP + "/notifications?page=0&size=10").exchange().expectStatus()
-        .isBadRequest();
+    inOwnSimulation().get().uri(ALGO_ALERT_MAP + "/notifications").exchange().expectStatus().isBadRequest();
     inOwnSimulation().post().uri(RequestGTMappings.ALGOTOP_MAP + "/evaluatealarms").exchange().expectStatus()
         .isBadRequest();
 
-    authenticatedClient(RestTestHelper.ALLEDIT).get().uri(ALGO_ALERT_MAP + "/statuses").exchange().expectStatus()
-        .isOk();
+    authenticatedClient(RestTestHelper.ALLEDIT).get().uri(ALGO_ALERT_MAP + "/notifications").exchange()
+        .expectStatus().isOk();
   }
 
   @Test

@@ -182,7 +182,11 @@ export class SecurityaccountImportTransactionComponent
         this.importTransactionTemplates = importTransactionTemplates;
         if (params[AppSettings.SUCCESS_FAILED_IMP_TRANS]) {
           this.successFailedDirectImportTransaction = JSON.parse(params[AppSettings.SUCCESS_FAILED_IMP_TRANS]);
-          this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'FAILED_TRANS_FROM_IMPORT');
+          if (this.successFailedDirectImportTransaction.possibleDuplicate) {
+            this.messageToastService.showMessageI18n(InfoLevelType.WARNING, 'POSSIBLE_DUPLICATE_TRANS_FROM_IMPORT');
+          } else {
+            this.messageToastService.showMessageI18n(InfoLevelType.ERROR, 'FAILED_TRANS_FROM_IMPORT');
+          }
         }
         setTimeout(() => {
           this.valueChangedMainField();

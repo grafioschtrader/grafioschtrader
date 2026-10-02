@@ -390,6 +390,7 @@ public class GenericTransactionImportCSV extends GenericTransactionImportCsvPdfB
     ImportProperties importProperties = new ImportProperties(template.getTransactionTypesMap(),
         template.getImportKnownOtherFlagsSet().clone(), lineNumber, template.getIgnoreTaxOnDivInt());
     importProperties.setCalcRoundingMap(template.getCalcRoundingMap());
+    importProperties.setQuotationDecimalsMap(template.getQuotationDecimalsMap());
     for (int i = 0; i < values.length; i++) {
       String propertyName = template.getColumnPropertyMapping().get(i);
       if (propertyName != null) {

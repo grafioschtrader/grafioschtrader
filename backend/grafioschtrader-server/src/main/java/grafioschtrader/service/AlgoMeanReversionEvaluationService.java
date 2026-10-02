@@ -69,8 +69,8 @@ public class AlgoMeanReversionEvaluationService {
       return false;
     LocalDate today = LocalDate.now(clock);
     // Only the assigned monitoring hierarchy keeps live proposals; the notification preference does not matter here.
-    return tops.findAll().stream().filter(top -> monitoring.isAssigned(top.getIdTenant(), top.getId())).flatMap(top -> scopes.resolveForAlgoTop(top).stream())
-        .filter(s -> s.active() && isMeanReversion(s.strategy()))
+    return tops.findAll().stream().filter(top -> monitoring.isAssigned(top.getIdTenant(), top.getId()))
+        .flatMap(top -> scopes.resolveForAlgoTop(top).stream()).filter(s -> s.active() && isMeanReversion(s.strategy()))
         .anyMatch(s -> recommendations
             .findByIdTenantAndIdAlgoStrategyAndIdSecuritycurrencyAndTriggerKind(s.idTenant(), s.strategy().getId(),
                 s.security().getId(), AlgoRebalancingTrigger.MEAN_REVERSION)
@@ -79,9 +79,9 @@ public class AlgoMeanReversionEvaluationService {
 
   /**
    * One transaction serializes all parent budgets and atomically records recommendations and notifications. Only the
-   * hierarchy assigned to monitoring is evaluated: another hierarchy, typically kept for simulation, would reserve budget
-   * against the real holdings and propose trades nobody follows. Proposals of any other hierarchy, including those of a
-   * previous assignment, are removed with the stale rows at the end; a tenant without assignment keeps none.
+   * hierarchy assigned to monitoring is evaluated: another hierarchy, typically kept for simulation, would reserve
+   * budget against the real holdings and propose trades nobody follows. Proposals of any other hierarchy, including
+   * those of a previous assignment, are removed with the stale rows at the end; a tenant without assignment keeps none.
    */
   @Transactional
   public void evaluate(Integer tenantId, boolean manual) {
@@ -92,8 +92,8 @@ public class AlgoMeanReversionEvaluationService {
       throw new IllegalArgumentException("Live evaluation requires the main tenant");
     LocalDate today = LocalDate.now(clock);
     Integer assigned = tenant.getIdAlgoTop();
-    if (!manual && tops.findByIdTenantOrderByName(tenantId).stream()
-        .filter(top -> top.getId().equals(assigned)).flatMap(top -> scopes.resolveForAlgoTop(top).stream()).filter(s -> s.active() && isMeanReversion(s.strategy()))
+    if (!manual && tops.findByIdTenantOrderByName(tenantId).stream().filter(top -> top.getId().equals(assigned))
+        .flatMap(top -> scopes.resolveForAlgoTop(top).stream()).filter(s -> s.active() && isMeanReversion(s.strategy()))
         .noneMatch(s -> recommendations
             .findByIdTenantAndIdAlgoStrategyAndIdSecuritycurrencyAndTriggerKind(tenantId, s.strategy().getId(),
                 s.security().getId(), AlgoRebalancingTrigger.MEAN_REVERSION)
@@ -132,9 +132,7 @@ public class AlgoMeanReversionEvaluationService {
       recommendations.save(row);
       retained.add(row.getId());
       if (decision.actionable()) {
-        recorder.record(
-            scope, signalKind(decision), (byte) decision.direction(), decision.tranche(), decision.identity() + " | "
-                + decision.rationale() + " | units=" + decision.quantity() + " | price=" + decision.price(),
+        recorder.record(scope, signalKind(decision), (byte) decision.direction(), decision.tranche(), details(decision),
             row.getValuationDate());
       }
     }
@@ -150,6 +148,16 @@ public class AlgoMeanReversionEvaluationService {
         ? buy ? AlgoRecommendationAction.REBALANCE_BUY : AlgoRecommendationAction.REBALANCE_SELL
         : decision.action() == AlgoMeanReversionDecisionService.Action.HOLD ? AlgoRecommendationAction.REBALANCE_HOLD
             : AlgoRecommendationAction.REBALANCE_BLOCKED;
+  }
+
+  /**
+   * The alarm details of an actionable decision. The rationale is stored as its bare key, so the notification can be
+   * written in the reader's language.
+   */
+  static String details(Decision decision) {
+    return AlgoAlarmDetails.of("action", decision.action(), "reason", decision.rationale(), "units",
+        decision.quantity(), "price", decision.price(), "tranche", decision.tranche() == null ? "" : decision.tranche(),
+        "identity", decision.identity());
   }
 
   static AlgoSignalKind signalKind(Decision decision) {

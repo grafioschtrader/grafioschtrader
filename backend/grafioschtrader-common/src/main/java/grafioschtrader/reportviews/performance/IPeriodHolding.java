@@ -58,7 +58,9 @@ public interface IPeriodHolding {
   double getCashBalanceMC();
 
   /**
-   * External cash transfers (deposits or withdrawals) on the date, in MC.
+   * Cumulative external cash transfers (deposits less withdrawals) up to and including the date, in MC. It is a level,
+   * not the flow of the day: it sums the deposit column of {@code hold_cashaccount_deposit} over the rows valid on that
+   * date, so the flow between two dates is the difference of their values.
    */
   double getExternalCashTransferMC();
 
@@ -68,7 +70,10 @@ public interface IPeriodHolding {
   double getSecuritiesMC();
 
   /**
-   * Realized gain/loss from closing margin positions on the date, in MC.
+   * Open result of the margin positions on the date, in MC:
+   * {@code holdings × split_price_factor × (price − margin_average_price / split_price_factor) × exchange rate}. It is
+   * complementary to {@link #getSecuritiesMC()}, which contains only positions without a margin average price, and is
+   * therefore part of the total value of the day.
    */
   double getMarginCloseGainMC();
 

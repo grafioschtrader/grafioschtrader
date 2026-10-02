@@ -148,6 +148,17 @@ public interface ImportTransactionPosJpaRepositoryCustom {
   List<ImportTransactionPos> setIdTransactionMayBe(Integer idTransactionMaybe, List<Integer> idTransactionPosList);
 
   /**
+   * Marks every position of an import head that may already exist as a transaction, so it is not imported twice. A
+   * match references the existing transaction in {@code idTransactionMaybe}; positions without a match are reset to
+   * null. Positions the user confirmed as no duplicate ({@code idTransactionMaybe == 0}) keep that setting. Only
+   * changed positions are saved; the passed entities are updated in place.
+   *
+   * @param idTransactionHead        the import head whose positions are checked
+   * @param importTransactionPosList the positions of that head, updated in place
+   */
+  void markPossibleDuplicatesOfHead(Integer idTransactionHead, List<ImportTransactionPos> importTransactionPosList);
+
+  /**
    * Validates and updates the readiness status for a single import transaction position. This method performs
    * comprehensive validation to determine if the position contains sufficient and valid data to create a financial
    * transaction.
@@ -219,6 +230,13 @@ public interface ImportTransactionPosJpaRepositoryCustom {
    * The total per-tenant transaction limit ({@code gt.max.transaction}) is enforced here: as many positions as fit
    * under the cap are created, the remaining ones are skipped (left untouched for a later import) and counted. Already
    * created transactions are never rolled back.
+   * </p>
+   *
+   * <p>
+   * A position that may already exist as a transaction is never converted: it is checked again right before its
+   * transaction would be written, which also catches an identical position converted earlier in the same batch. Such a
+   * position is left without a transaction and keeps the reference in {@code idTransactionMaybe}. Only after the user
+   * confirmed it as no duplicate ({@code idTransactionMaybe == 0}) is it converted.
    * </p>
    *
    * @param importTransactionPosList List of validated import positions to convert

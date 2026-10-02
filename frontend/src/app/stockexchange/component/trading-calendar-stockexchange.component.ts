@@ -18,7 +18,7 @@ import { TradingDaysWithDateBoundaries } from '../../tradingcalendar/model/tradi
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { MenuItem } from '@openng/optimus-ui/api';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { TradingCalendarOtherExchangeDynamicComponent } from './trading.calendar.other.exchange.dynamic.component';
+import { TradingCalendarOtherExchangeDynamicDialogComponent } from './trading-calendar-other-exchange-dynamic-dialog.component';
 import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
 import moment from 'moment';
 import { AuditHelper } from '../../lib/helper/audit.helper';
@@ -189,7 +189,7 @@ export class TradingCalendarStockexchangeComponent extends TradingCalendarBase i
 
   copyCalendarFromOtherExchange(fullCopy: boolean): void {
     this.translateService.get(fullCopy ? this.COPY_FULL_TITLE_KEY : this.COPY_YEAR_TITLE_KEY).subscribe((msg) => {
-      const ref = this.dialogService.open(TradingCalendarOtherExchangeDynamicComponent, {
+      const ref = this.dialogService.open(TradingCalendarOtherExchangeDynamicDialogComponent, {
         data: {
           copyTradingDaysFromSourceToTarget: new CopyTradingDaysFromSourceToTarget(
             this.stockexchange.idStockexchange,

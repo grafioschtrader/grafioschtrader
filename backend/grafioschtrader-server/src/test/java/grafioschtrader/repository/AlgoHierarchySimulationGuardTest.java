@@ -163,30 +163,37 @@ class AlgoHierarchySimulationGuardTest {
         + algoStrategyJpaRepository.findByIdAlgoAssetclassSecurityAndIdTenant(top.getId(), homeIdTenant).size();
   }
 
+  private <E> E detached(E entity) {
+    em.detach(entity);
+    return entity;
+  }
+
   @Test
   @DisplayName("Every hierarchy mutation is refused in a simulation and leaves the home rows untouched")
   void allMutationsRefusedInSimulation() {
     String before = homeState();
     authenticate(simulationIdTenant);
 
-    AlgoTop topChange = algoTopJpaRepository.findById(top.getId()).orElseThrow();
+    // Every change is made on a detached copy: a managed entity would be written by the flush of homeState() through
+    // dirty checking, whatever the refused repository call did.
+    AlgoTop topChange = detached(algoTopJpaRepository.findById(top.getId()).orElseThrow());
     topChange.setName("Guard strategy renamed");
     assertRefused(() -> algoTopJpaRepository.saveOnlyAttributes(topChange, topChange, levels()));
     assertRefused(() -> algoTopJpaRepository.normalizeChildPercentages(top.getId(), homeIdTenant));
     assertRefused(() -> algoTopJpaRepository.normalizeAllPercentages(top.getId(), homeIdTenant));
     assertRefused(() -> algoTopJpaRepository.delEntityWithTenant(top.getId(), homeIdTenant));
 
-    AlgoAssetclass bucketChange = algoAssetclassJpaRepository.findById(bucket.getId()).orElseThrow();
+    AlgoAssetclass bucketChange = detached(algoAssetclassJpaRepository.findById(bucket.getId()).orElseThrow());
     bucketChange.setPercentage(1f);
     assertRefused(() -> algoAssetclassJpaRepository.saveOnlyAttributes(bucketChange, bucketChange, levels()));
     assertRefused(() -> algoAssetclassJpaRepository.delEntityWithTenant(bucket.getId(), homeIdTenant));
 
-    AlgoSecurity memberChange = algoSecurityJpaRepository.findById(member.getId()).orElseThrow();
+    AlgoSecurity memberChange = detached(algoSecurityJpaRepository.findById(member.getId()).orElseThrow());
     memberChange.setPercentage(2f);
     assertRefused(() -> algoSecurityJpaRepository.saveOnlyAttributes(memberChange, memberChange, levels()));
     assertRefused(() -> algoSecurityJpaRepository.delEntityWithTenant(member.getId(), homeIdTenant));
 
-    AlgoStrategy strategyChange = algoStrategyJpaRepository.findById(strategy.getId()).orElseThrow();
+    AlgoStrategy strategyChange = detached(algoStrategyJpaRepository.findById(strategy.getId()).orElseThrow());
     assertRefused(() -> algoStrategyJpaRepository.saveOnlyAttributes(strategyChange, strategyChange, levels()));
     assertRefused(() -> algoStrategyJpaRepository.delEntityWithTenant(strategy.getId(), homeIdTenant));
 

@@ -19,6 +19,7 @@ import grafiosch.BaseConstants;
 import grafiosch.entities.TenantBase;
 import grafiosch.validation.AfterEqual;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.dto.PerformanceReportSettings;
 import grafioschtrader.dto.TaxStatementExportRequest;
 import grafioschtrader.types.SimulationInitializationMode;
 import grafioschtrader.types.TenantKindType;
@@ -142,6 +143,20 @@ public class Tenant extends TenantBase implements Serializable {
   @Type(JsonType.class)
   @Column(name = "tax_export_settings", columnDefinition = "json")
   private TaxStatementExportRequest taxExportSettings;
+
+  @Schema(description = "Remembered PDF report dialog settings; written only through the report settings endpoint.")
+  @Type(JsonType.class)
+  @Column(name = "report_settings", columnDefinition = "json")
+  @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
+  private PerformanceReportSettings reportSettings;
+
+  public PerformanceReportSettings getReportSettings() {
+    return reportSettings;
+  }
+
+  public void setReportSettings(PerformanceReportSettings settings) {
+    reportSettings = settings;
+  }
 
   @Schema(description = """
       Opt-in to the Grafioschtrader authored import templates (receipt PDFs, transaction CSV export). When set, an

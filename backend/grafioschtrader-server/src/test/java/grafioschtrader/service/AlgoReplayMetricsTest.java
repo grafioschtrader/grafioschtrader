@@ -142,6 +142,7 @@ class AlgoReplayMetricsTest {
     assertNull(metrics.annualizedReturn());
     assertNull(metrics.sharpeRatio());
     assertEquals(0.0, metrics.maxDrawdown(), 1e-12, "a single observation is its own peak");
+    assertEquals(0, metrics.maxDrawdownDurationDays());
   }
 
   @Test
@@ -196,6 +197,7 @@ class AlgoReplayMetricsTest {
     assertNull(metrics.annualizedReturn());
     assertNull(metrics.sharpeRatio());
     assertNull(metrics.maxDrawdown(), "there was no observation to draw down from");
+    assertNull(metrics.maxDrawdownDurationDays());
   }
 
   @Test
@@ -206,5 +208,65 @@ class AlgoReplayMetricsTest {
 
     assertEquals(-0.5, metrics.maxDrawdown(), 1e-12);
     assertEquals(-0.2, metrics.totalReturn(), 1e-12);
+  }
+
+  @Test
+  @DisplayName("The drawdown duration runs from the peak to the first day that regains it")
+  void drawdownDurationEndsAtTheRecovery() {
+    var metrics = AlgoReplayMetrics.of(List.of(priced(START, 100), priced(START.plusDays(1), 110),
+        priced(START.plusDays(2), 99), priced(START.plusDays(3), 105), priced(START.plusDays(4), 111)), List.of());
+
+    assertEquals(3, metrics.maxDrawdownDurationDays(), "peak of 110 on the second day, regained on the fifth");
+  }
+
+  @Test
+  @DisplayName("A decline still open on the end date counts up to the last observation")
+  void openDrawdownCountsToTheEnd() {
+    var series = List.of(priced(START, 100), priced(START.plusDays(1), 110), priced(START.plusDays(2), 99),
+        priced(START.plusDays(3), 105));
+
+    assertEquals(2, AlgoReplayMetrics.of(series, List.of()).maxDrawdownDurationDays());
+    assertEquals(5, AlgoReplayMetrics.of(series, List.of(), priced(START.plusDays(6), 104)).maxDrawdownDurationDays(),
+        "a terminal point after the last trading day extends the open phase");
+  }
+
+  @Test
+  @DisplayName("A deposit at the low neither ends nor shortens the decline")
+  void depositDoesNotShortenTheDrawdownDuration() {
+    // The deposit of 20 lifts equity above the old peak of 100, but it earns nothing: the adjusted wealth stays at 90 %
+    // and is regained only on the fourth day, when 110 has grown to 123.
+    var metrics = AlgoReplayMetrics.of(List.of(priced(START, 100), priced(START.plusDays(1), 90),
+        new EquityPoint(START.plusDays(2), 110, true, 20), priced(START.plusDays(3), 123)), List.of());
+
+    assertEquals(3, metrics.maxDrawdownDurationDays());
+  }
+
+  @Test
+  @DisplayName("The terminal valuation extends the series only when it lies after the last evaluated day")
+  void valuationSeriesAppendsOnlyALaterTerminal() {
+    var series = List.of(priced(START, 100), priced(START.plusDays(1), 101));
+
+    assertEquals(3, AlgoReplayMetrics.valuationSeries(series, priced(START.plusDays(3), 102)).size());
+    assertEquals(START.plusDays(3), AlgoReplayMetrics.valuationSeries(series, priced(START.plusDays(3), 102)).getLast()
+        .date());
+    assertEquals(series, AlgoReplayMetrics.valuationSeries(series, priced(START.plusDays(1), 105)),
+        "an end date that was evaluated as a trading day is not added twice");
+    assertEquals(1, AlgoReplayMetrics.valuationSeries(List.of(), priced(START, 100)).size());
+  }
+
+  @Test
+  @DisplayName("The equity curve starts invested capital at the first valued day and adds every later flow")
+  void equityCurveAccumulatesExternalFlows() {
+    var curve = AlgoHistoricalReplayService.equityCurve(List.of(new EquityPoint(START, 1000, true, 0),
+        new EquityPoint(START.plusDays(1), 1010, false, 0), new EquityPoint(START.plusDays(2), 1530, true, 500),
+        new EquityPoint(START.plusDays(3), 1320, true, -200)));
+
+    assertEquals(3, curve.size(), "a day without a complete valuation is no point of the curve");
+    assertEquals(START, curve.getFirst().date());
+    assertEquals(curve.getFirst().equity(), curve.getFirst().investedCapital());
+    assertEquals(1500, curve.get(1).investedCapital(), 1e-12);
+    assertEquals(1300, curve.get(2).investedCapital(), 1e-12);
+    assertEquals(curve, AlgoReplayInputs.readEquitySeries(AlgoReplayInputs.write(curve)), "stored and read back");
+    assertEquals(List.of(), AlgoReplayInputs.readEquitySeries(null));
   }
 }

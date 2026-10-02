@@ -11,11 +11,12 @@ import grafioschtrader.algo.strategy.model.complex.enums.*;
  * Executable daily-close contract. Drafts retain the wider configuration model for later modules.
  *
  * <p>
- * The contract demands only settings that influence a decision. Settings with a single executable value (data source,
- * execution, entry type, the exit action) and settings the engine never reads (universe mode, version, outputs) may be
- * omitted; when present they must name that single value, so configurations written against the earlier, stricter
- * contract remain executable. The loss action alone selects the downside variant; its {@code enabled} flag may be
- * omitted and only contradicts the choice when it is explicitly false.
+ * The contract demands only settings that influence a decision. The entry type may be omitted because
+ * {@link grafioschtrader.algo.strategy.model.complex.enums.EntryType#dip_buy} is its only value. Settings with a single
+ * executable value (data source, execution, the exit action) and settings the engine never reads (universe mode,
+ * version, outputs) may be omitted as well; when present they must name that single value, so configurations written
+ * against the earlier, stricter contract remain executable. The loss action alone selects the downside variant; its
+ * {@code enabled} flag may be omitted and only contradicts the choice when it is explicitly false.
  * </p>
  */
 public final class MeanReversionConfigValidator {
@@ -75,8 +76,9 @@ public final class MeanReversionConfigValidator {
       require(d.variant_B_average_down == null || !Boolean.TRUE.equals(d.variant_B_average_down.enabled),
           "Disable averaging when sell-loss is selected");
       var a = d.variant_A_sell_loss;
-      require(a != null && !Boolean.FALSE.equals(a.enabled) && a.stop_type != null && a.stop_reference != null
-          && nullOr(a.order_type, OrderType.market) && nullOr(a.action, "sell_all_remaining"),
+      require(
+          a != null && !Boolean.FALSE.equals(a.enabled) && a.stop_type != null && a.stop_reference != null
+              && nullOr(a.order_type, OrderType.market) && nullOr(a.action, "sell_all_remaining"),
           "A full market stop exit is required");
       negativeFraction(a.stop_threshold_pct, "stop_threshold_pct");
       indicatorStop = a.stop_type == StopType.indicator_stop;

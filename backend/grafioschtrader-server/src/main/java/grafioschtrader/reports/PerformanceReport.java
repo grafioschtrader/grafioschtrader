@@ -27,19 +27,28 @@ import grafiosch.common.ClientClock;
 import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Portfolio;
+import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TradingDaysPlus;
+import grafioschtrader.entities.Transaction;
+import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.dashboard.LastSessionsPerformancePayload.LastSessions;
 import grafioschtrader.reportviews.dashboard.LastSessionsPerformancePayload.Session;
 import grafioschtrader.reportviews.performance.FirstAndMissingTradingDays;
+import grafioschtrader.reportviews.performance.IDailyExternalFlow;
 import grafioschtrader.reportviews.performance.IPeriodHolding;
 import grafioschtrader.reportviews.performance.PerformancePeriod;
 import grafioschtrader.reportviews.performance.PeriodHoldingAndDiff;
 import grafioschtrader.reportviews.performance.WeekYear;
+import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.HistoryquoteJpaRepository;
+import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
+import grafioschtrader.repository.TransactionJpaRepository;
 
 /**
  * Service component responsible for generating period performance reports for portfolios and tenants.
@@ -101,6 +110,18 @@ public class PerformanceReport {
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
+  @Autowired
+  private HoldCashaccountDepositJpaRepository holdCashaccountDepositJpaRepository;
+
+  @Autowired
+  private TransactionJpaRepository transactionJpaRepository;
+
+  @Autowired
+  private HistoryquoteJpaRepository historyquoteJpaRepository;
+
+  @Autowired
+  private CurrencypairJpaRepository currencypairJpaRepository;
+
   /**
    * Cache for trading day metadata with 2-minute expiration to improve performance. Maps portfolio/tenant keys to their
    * corresponding trading day information.
@@ -121,7 +142,7 @@ public class PerformanceReport {
   public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByTenant()
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return getFirstAndMissingTradingDaysByTenant(user.getIdTenant());
+    return getFirstAndMissingTradingDaysByTenant(user.getIdTenant(), ClientClock.today());
   }
 
   /**
@@ -136,11 +157,10 @@ public class PerformanceReport {
    * @param idTenant the tenant identifier
    * @return comprehensive trading day metadata for the tenant
    */
-  private FirstAndMissingTradingDays getFirstAndMissingTradingDaysByTenant(Integer idTenant)
+  public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByTenant(Integer idTenant, LocalDate today)
       throws InterruptedException, ExecutionException {
 
-    PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idTenant, PortfolioTentant.Tenant,
-        ClientClock.today());
+    PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idTenant, PortfolioTentant.Tenant, today);
     FirstAndMissingTradingDays firstAndMissingTradingDays = firstAndMissingTradingDaysMap.get(portfolioOrTenantKey);
     if (firstAndMissingTradingDays == null) {
       final CompletableFuture<LocalDate> firstEverHoldDayCF = CompletableFuture
@@ -187,10 +207,16 @@ public class PerformanceReport {
    */
   public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByPortfolio(Integer idTenant, Integer idPortfolio)
       throws InterruptedException, ExecutionException {
+    return getFirstAndMissingTradingDaysByPortfolio(idTenant, idPortfolio, ClientClock.today());
+  }
+
+  /** Trading calendar for a caller with an explicit tenant and calendar day. */
+  public FirstAndMissingTradingDays getFirstAndMissingTradingDaysByPortfolio(Integer idTenant, Integer idPortfolio,
+      LocalDate today) throws InterruptedException, ExecutionException {
     Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
     if (portfolio != null) {
       PortfolioOrTenantKey portfolioOrTenantKey = new PortfolioOrTenantKey(idPortfolio, PortfolioTentant.Portfolio,
-          ClientClock.today());
+          today);
       FirstAndMissingTradingDays firstAndMissingTradingDays = firstAndMissingTradingDaysMap.get(portfolioOrTenantKey);
       if (firstAndMissingTradingDays == null) {
         final CompletableFuture<LocalDate> firstEverHoldDayCF = CompletableFuture
@@ -377,6 +403,12 @@ public class PerformanceReport {
    * <li>Security position changes and market valuations</li>
    * <li>Dividend, interest, and fee aggregations</li>
    * <li>Net gain/loss calculations</li>
+   * <li>Time-weighted return of the period, of every window and of every step, and p.a. from 360 days on</li>
+   * <li>Money-weighted return (internal rate of return) with the status of its search</li>
+   * <li>Maximum and current drawdown with high, low and recovery date, annualized volatility, best and worst complete
+   * step</li>
+   * <li>Average invested capital, account and custody fees of the period and their ratio to that capital</li>
+   * <li>Data basis: calendar days, expected and valued trading days, returns across gaps, daily returns used</li>
    * </ul>
    *
    * @param dateFrom    the start date of the performance period (inclusive)
@@ -389,15 +421,34 @@ public class PerformanceReport {
       throws Exception {
 
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    FirstAndMissingTradingDays firstAndMissingTradingDays = this
-        .getFirstAndMissingTradingDaysByTenant(user.getIdTenant());
-    checkInputParam(firstAndMissingTradingDays, user.getLocaleStr(), dateFrom, dateTo, periodSplit,
-        () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByTenant(user.getIdTenant()));
+    return getPeriodPerformanceByTenant(user.getIdTenant(), user.getLocaleStr(), ClientClock.today(), dateFrom, dateTo,
+        periodSplit);
+  }
+
+  /** Same period calculation for background callers, without a request or security context. */
+  public PerformancePeriod getPeriodPerformanceByTenant(Integer idTenant, String localeStr, LocalDate today,
+      LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit) throws Exception {
+    return getPeriodPerformanceByTenant(idTenant, localeStr, today, dateFrom, dateTo, periodSplit, true);
+  }
+
+  /** Calendar-year strips may include a short first year; date and ownership validation always apply. */
+  public PerformancePeriod getPeriodPerformanceByTenant(Integer idTenant, String localeStr, LocalDate today,
+      LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit, boolean validateSplit) throws Exception {
+    FirstAndMissingTradingDays firstAndMissingTradingDays = this.getFirstAndMissingTradingDaysByTenant(idTenant, today);
+    checkInputParam(firstAndMissingTradingDays, localeStr, dateFrom, dateTo, validateSplit ? periodSplit : null,
+        () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByTenant(idTenant));
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
+    FlowsAndFees flowsAndFees = loadFlowsAndFees(idTenant, tenant.getCurrency(), tenant.isFeeInterestFxAtCutOffDate(),
+        dateTo, today,
+        () -> holdCashaccountDepositJpaRepository.getDailyExternalFlowsByTenant(idTenant, dateFrom, dateTo),
+        () -> transactionJpaRepository.findFeesByIdTenantBetween(idTenant, dateFrom, dateTo),
+        () -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdTenant(idTenant),
+        () -> currencypairJpaRepository.getAllCurrencypairsForTenantByTenant(idTenant));
     List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
-        holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(user.getIdTenant(), dateFrom, dateTo), dateFrom,
+        holdSecurityaccountSecurityRepository.getPeriodHoldingsByTenant(idTenant, dateFrom, dateTo), dateFrom,
         firstAndMissingTradingDays,
-        () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByTenant(user.getIdTenant(), dateFrom));
-    return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit);
+        () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByTenant(idTenant, dateFrom));
+    return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees);
   }
 
   /**
@@ -423,14 +474,92 @@ public class PerformanceReport {
   public PerformancePeriod getPeriodPerformanceByPortfolio(Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo,
       WeekYear periodSplit) throws Exception {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    FirstAndMissingTradingDays firstAndMissingTradingDays = this.getFirstAndMissingTradingDaysByPortfolio(idPortfolio);
-    checkInputParam(firstAndMissingTradingDays, user.getLocaleStr(), dateFrom, dateTo, periodSplit,
+    return getPeriodPerformanceByPortfolio(user.getIdTenant(), user.getLocaleStr(), ClientClock.today(), idPortfolio,
+        dateFrom, dateTo, periodSplit);
+  }
+
+  /** Portfolio-scoped calculation with explicit authorization scope and calendar day. */
+  public PerformancePeriod getPeriodPerformanceByPortfolio(Integer idTenant, String localeStr, LocalDate today,
+      Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit) throws Exception {
+    return getPeriodPerformanceByPortfolio(idTenant, localeStr, today, idPortfolio, dateFrom, dateTo, periodSplit,
+        true);
+  }
+
+  /** Calendar-year strips may include a short first year; date and ownership validation always apply. */
+  public PerformancePeriod getPeriodPerformanceByPortfolio(Integer idTenant, String localeStr, LocalDate today,
+      Integer idPortfolio, LocalDate dateFrom, LocalDate dateTo, WeekYear periodSplit, boolean validateSplit)
+      throws Exception {
+    FirstAndMissingTradingDays firstAndMissingTradingDays = this.getFirstAndMissingTradingDaysByPortfolio(idTenant,
+        idPortfolio, today);
+    checkInputParam(firstAndMissingTradingDays, localeStr, dateFrom, dateTo, validateSplit ? periodSplit : null,
         () -> holdSecurityaccountSecurityRepository.getCurrencypairsWithoutAnyQuoteByPortfolio(idPortfolio));
+    final Portfolio portfolio = portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio);
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
+    FlowsAndFees flowsAndFees = loadFlowsAndFees(idTenant, portfolio.getCurrency(),
+        tenant.isFeeInterestFxAtCutOffDate(), dateTo, today,
+        () -> holdCashaccountDepositJpaRepository.getDailyExternalFlowsByPortfolio(idPortfolio, dateFrom, dateTo),
+        () -> transactionJpaRepository.findFeesByIdPortfolioBetween(idPortfolio, dateFrom, dateTo),
+        () -> historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdPortfolio(idPortfolio),
+        () -> currencypairJpaRepository.getAllCurrencypairsForPortfolioByPortfolio(idPortfolio));
     List<IPeriodHolding> periodHoldings = prependZeroBaseHolding(
         holdSecurityaccountSecurityRepository.getPeriodHoldingsByPortfolio(idPortfolio, dateFrom, dateTo), dateFrom,
         firstAndMissingTradingDays,
         () -> holdSecurityaccountSecurityRepository.getPeriodHoldingZeroBaseByPortfolio(idPortfolio, dateFrom));
-    return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit);
+    return getPeriodPerformance(firstAndMissingTradingDays, periodHoldings, periodSplit, flowsAndFees);
+  }
+
+  //@formatter:off
+  /**
+   * Loads what the relative figures of the report need beyond the daily holdings: the dated external flows and the fee
+   * bookings of the period, the latter converted into the main currency.
+   *
+   * <p>
+   * The fees are converted exactly like the fee column of the cash account summary, including the tenant setting that
+   * converts fees and interest at the rate of the cut-off date. The difference of the cumulative fee column of two
+   * holdings would not do: it is revalued at the rate of each reporting day and so moves with the exchange rate even
+   * when nothing was booked. A fee whose rate is unavailable is left out rather than aborting the report, as in the
+   * cash account summary.
+   * </p>
+   *
+   * <p>
+   * The client's calendar day and the trading day check are resolved here on the request thread, because
+   * {@code ClientClock} is not propagated to the workers of {@code CompletableFuture}.
+   * </p>
+   *
+   * @param idTenant                 tenant of the request, used to load the exchange rates of the cut-off date
+   * @param mainCurrency             currency of the tenant or of the portfolio
+   * @param feeInterestFxAtCutOffDate tenant setting for the conversion rate of fees
+   * @param dateTo                   last date of the period, the cut-off date of the conversion
+   * @param flowsSupplier            loads the dated external flows of the scope
+   * @param feesSupplier             loads the fee bookings of the period
+   * @param quotesSupplier           loads the exchange rates of every foreign-currency booking date
+   * @param currencypairsSupplier    loads the currency pairs of the scope
+   * @return the flows and the fee sum of the period
+   */
+  //@formatter:on
+  private FlowsAndFees loadFlowsAndFees(Integer idTenant, String mainCurrency, boolean feeInterestFxAtCutOffDate,
+      LocalDate dateTo, LocalDate today, Supplier<List<IDailyExternalFlow>> flowsSupplier,
+      Supplier<List<Transaction>> feesSupplier, Supplier<List<Object[]>> quotesSupplier,
+      Supplier<List<Currencypair>> currencypairsSupplier) {
+    final boolean hasTradingDay = tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(dateTo, today);
+    final CompletableFuture<List<IDailyExternalFlow>> flowsCF = CompletableFuture.supplyAsync(flowsSupplier);
+    final CompletableFuture<List<Transaction>> feesCF = CompletableFuture.supplyAsync(feesSupplier);
+    final CompletableFuture<List<Object[]>> quotesCF = CompletableFuture.supplyAsync(quotesSupplier);
+    final CompletableFuture<List<Currencypair>> currencypairsCF = CompletableFuture.supplyAsync(currencypairsSupplier);
+
+    DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(mainCurrency, dateTo,
+        quotesCF.join(), currencypairsCF.join(), hasTradingDay, feeInterestFxAtCutOffDate, today);
+    ReportHelper.loadUntilDateHistoryquotes(idTenant, historyquoteJpaRepository, dateCurrencyMap);
+    double feesMC = 0;
+    int skippedFees = 0;
+    for (Transaction fee : feesCF.join()) {
+      if (fee.getExchangeRateOnCurrencyOrNull(mainCurrency, dateCurrencyMap) != null) {
+        feesMC += fee.getFeeMC(dateCurrencyMap);
+      } else {
+        skippedFees++;
+      }
+    }
+    return new FlowsAndFees(flowsCF.join(), feesMC, skippedFees);
   }
 
   //@formatter:off
@@ -486,11 +615,12 @@ public class PerformanceReport {
    * @param firstAndMissingTradingDays trading day metadata for validation and processing
    * @param periodHoldings             list of daily holding snapshots for the period
    * @param periodSplit                aggregation level (weekly or yearly)
+   * @param flowsAndFees               dated external flows and fees of the period for the relative figures
    * @return structured performance analysis
    * @throws Exception if data processing encounters errors
    */
   private PerformancePeriod getPeriodPerformance(FirstAndMissingTradingDays firstAndMissingTradingDays,
-      List<IPeriodHolding> periodHoldings, WeekYear periodSplit) throws Exception {
+      List<IPeriodHolding> periodHoldings, WeekYear periodSplit, FlowsAndFees flowsAndFees) throws Exception {
     PeriodHoldingAndDiff firstDayTotals = new PeriodHoldingAndDiff();
     PeriodHoldingAndDiff lastDayTotals = new PeriodHoldingAndDiff();
     if (!periodHoldings.isEmpty()) {
@@ -500,7 +630,8 @@ public class PerformanceReport {
     PerformancePeriod periodPerformance = new PerformancePeriod(periodSplit, firstDayTotals, lastDayTotals,
         lastDayTotals.calculateDiff(firstDayTotals));
     if (!periodHoldings.isEmpty()) {
-      periodPerformance.createPeriodWindows(firstAndMissingTradingDays, periodHoldings);
+      periodPerformance.createPeriodWindows(firstAndMissingTradingDays, periodHoldings, flowsAndFees.dailyFlows(),
+          flowsAndFees.feesMC(), flowsAndFees.skippedFees());
     }
     return periodPerformance;
   }
@@ -535,7 +666,7 @@ public class PerformanceReport {
   public LastSessions getLastSessionsPerformance(Integer idTenant, Integer idPortfolio, int sessions)
       throws InterruptedException, ExecutionException {
     FirstAndMissingTradingDays firstAndMissingTradingDays = idPortfolio == null
-        ? getFirstAndMissingTradingDaysByTenant(idTenant)
+        ? getFirstAndMissingTradingDaysByTenant(idTenant, ClientClock.today())
         : getFirstAndMissingTradingDaysByPortfolio(idTenant, idPortfolio);
     String currency = idPortfolio == null ? tenantJpaRepository.getReferenceById(idTenant).getCurrency()
         : portfolioJpaRepository.findByIdTenantAndIdPortfolio(idTenant, idPortfolio).getCurrency();
@@ -744,6 +875,15 @@ public class PerformanceReport {
    * </p>
    */
   private record PortfolioOrTenantKey(Integer id, PortfolioTentant portfolioTenant, LocalDate today) {
+  }
+
+  /**
+   * Dated external flows and fees of the period, the inputs of the relative figures beyond the daily holdings.
+   *
+   * @param dailyFlows net external flow per calendar day of the scope, ascending by date
+   * @param feesMC     separately booked fees of the period in main currency, a charge is positive
+   */
+  private record FlowsAndFees(List<IDailyExternalFlow> dailyFlows, double feesMC, int skippedFees) {
   }
 
   /**

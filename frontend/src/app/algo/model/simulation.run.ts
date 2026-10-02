@@ -27,6 +27,8 @@ export interface SimulationRunResult {
   totalReturn?: number;
   annualizedReturn?: number;
   maxDrawdown?: number;
+  /** Calendar days of the longest phase below a previous equity high, including one still open on the end date. */
+  maxDrawdownDurationDays?: number;
   sharpeRatio?: number;
   totalTrades?: number;
   winningTrades?: number;
@@ -39,6 +41,21 @@ export interface SimulationRunResult {
   fxUncoveredConversions?: number;
   /** Unpaid entitlements in tenant currency at the end date. */
   dividendReceivables?: number;
+}
+
+/**
+ * One point of the equity curve of a completed replay: a day whose closing state could be valued completely.
+ */
+export interface SimulationRunEquityPoint {
+  /** The valued day in 'YYYY-MM-DD', the opening date for the first point. */
+  date: string;
+  /** Closing equity of the environment, in its currency. */
+  equity: number;
+  /**
+   * Equity of the first point plus all deposits and withdrawals booked since. The distance to the equity is what the
+   * run earned, so a deposit raises both lines and does not appear as a gain.
+   */
+  investedCapital: number;
 }
 
 /**
@@ -108,6 +125,7 @@ export enum SimulationRunStatus {
 export enum AlgoEventType {
   CUSTODY_FEE = 'CUSTODY_FEE',
   CUSTODY_CREDIT = 'CUSTODY_CREDIT',
+  OVERDRAFT_INTEREST = 'OVERDRAFT_INTEREST',
   RUN_START = 'RUN_START',
   OPENING_EXCLUDED_CLOSE = 'OPENING_EXCLUDED_CLOSE',
   ALLOCATION_PLAN = 'ALLOCATION_PLAN',
@@ -120,6 +138,7 @@ export enum AlgoEventType {
   REBALANCE_FILL = 'REBALANCE_FILL',
   FUNDING_TRANSFER = 'FUNDING_TRANSFER',
   CASH_STANDING_ORDER = 'CASH_STANDING_ORDER',
+  SECURITY_STANDING_ORDER = 'SECURITY_STANDING_ORDER',
   DIVIDEND_ENTITLEMENT = 'DIVIDEND_ENTITLEMENT',
   DIVIDEND_PAYMENT = 'DIVIDEND_PAYMENT',
   MATURITY_REDEMPTION = 'MATURITY_REDEMPTION',

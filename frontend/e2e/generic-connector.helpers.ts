@@ -375,6 +375,11 @@ export async function addEditableTableRow(
   // addNewRow() enters edit mode after a ~50ms setTimeout.
   const row = table.locator('tbody tr').last();
   await row.locator('button:has(i.pi-check)').waitFor({ state: 'visible', timeout: 5_000 });
+  // startEditingRow() focuses and selects the first input another 100ms after showing the editors.
+  // Wait for that focus before filling: otherwise it can redirect typing from the second cell into the first.
+  await expect(
+    row.locator('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])').first()
+  ).toBeFocused();
   await fill(row);
   await row.locator('button:has(i.pi-check)').click();
 }

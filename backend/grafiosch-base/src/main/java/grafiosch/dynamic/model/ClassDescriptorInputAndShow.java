@@ -44,4 +44,29 @@ public class ClassDescriptorInputAndShow {
     }
 
   }
+
+  /**
+   * Configuration of {@link ConstraintValidatorType#AtLeastOneNotNull}: the fields of which at least one must hold a
+   * value.
+   */
+  public static class AtLeastOneNotNullClass {
+    public String[] fields;
+
+    public AtLeastOneNotNullClass(String[] fields) {
+      this.fields = fields;
+    }
+  }
+
+  /**
+   * Configuration of {@link ConstraintValidatorType#NumberRange}: the fields holding the lower and the upper bound.
+   */
+  public static class NumberRangeClass {
+    public String lowerField;
+    public String upperField;
+
+    public NumberRangeClass(String lowerField, String upperField) {
+      this.lowerField = lowerField;
+      this.upperField = upperField;
+    }
+  }
 }

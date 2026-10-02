@@ -140,6 +140,14 @@ public class AlgoSimulationResult extends TenantBaseID {
   private String hierarchySnapshot;
 
   @Schema(description = """
+      The cash-flow adjusted equity of a completed run as JSON: one point per fully valued day with its equity and the
+      capital invested up to it, which is the opening equity plus all deposits and withdrawals. Served by its own
+      endpoint rather than with the polled run; empty for a run that did not complete.""")
+  @JsonIgnore
+  @Column(name = "equity_series_json", columnDefinition = "LONGTEXT")
+  private String equitySeriesJson;
+
+  @Schema(description = """
       Space separated message keys of the price, cost and metric conventions the run was calculated under, for
       example NEXT_CLOSE_FILL NO_TRANSACTION_COST. The result view resolves and lists them.""")
   @Column(name = "conventions", length = 1000)
@@ -156,6 +164,13 @@ public class AlgoSimulationResult extends TenantBaseID {
   @Schema(description = "Largest peak to trough decline of the daily equity series, as a negative decimal")
   @Column(name = "max_drawdown")
   private Double maxDrawdown;
+
+  @Schema(description = """
+      Calendar days of the longest phase the cash-flow adjusted equity spent below a previous high, from that high to the
+      first day that regains it. A phase still open on the end date counts up to the last observation; 0 when the equity
+      never fell below a high.""")
+  @Column(name = "max_drawdown_duration_days")
+  private Integer maxDrawdownDurationDays;
 
   @Schema(description = """
       Mean daily return divided by its standard deviation, annualized with the square root of 252 and calculated
@@ -365,6 +380,22 @@ public class AlgoSimulationResult extends TenantBaseID {
 
   public void setMaxDrawdown(Double maxDrawdown) {
     this.maxDrawdown = maxDrawdown;
+  }
+
+  public Integer getMaxDrawdownDurationDays() {
+    return maxDrawdownDurationDays;
+  }
+
+  public void setMaxDrawdownDurationDays(Integer maxDrawdownDurationDays) {
+    this.maxDrawdownDurationDays = maxDrawdownDurationDays;
+  }
+
+  public String getEquitySeriesJson() {
+    return equitySeriesJson;
+  }
+
+  public void setEquitySeriesJson(String equitySeriesJson) {
+    this.equitySeriesJson = equitySeriesJson;
   }
 
   public Double getSharpeRatio() {

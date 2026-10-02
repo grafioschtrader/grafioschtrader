@@ -168,7 +168,7 @@ async function rowAcrossPages(page: Page, table: Locator, displayName: string): 
 
 /**
  * Assigns an instrument to one of the derived dialog's input-button fields (baseProductName or
- * additionalInstrumentName_<var>). The button opens SecuritycurrencySearchAndSetComponent as a
+ * additionalInstrumentName_<var>). The button opens SecuritycurrencySearchAndSetDialogComponent as a
  * separate DynamicDialog stacked on top of the derived dialog, so it must never be addressed
  * through a bare '.p-dialog'.
  */

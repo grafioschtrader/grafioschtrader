@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.within;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ import grafioschtrader.entities.SecuritySimulationMetadata;
 import grafioschtrader.entities.SecurityTransfer;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.StandingOrderCashaccount;
+import grafioschtrader.entities.StandingOrderSecurity;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.TradingPlatformPlan;
@@ -287,6 +289,8 @@ class AlgoHistoricalReplayIntegrationTest {
   @Test
   void maturedBondCopiedIntoTheEnvironmentIsRedeemedOnTheFirstRunDate() throws Exception {
     Security security = asDirectBond(allocation());
+    // A replay refuses a direct bond without a coupon rate; the bond has matured, so no coupon falls into the run.
+    setBondTerms(security, 12d, grafioschtrader.types.CouponDayCount.ACT_ACT_ICMA);
     security.setActiveFromDate(opening.minusYears(1));
     security.setActiveToDate(opening);
     em.flush();
@@ -309,6 +313,8 @@ class AlgoHistoricalReplayIntegrationTest {
   @Test
   void maturityRedemptionFailsTheRunWhenTheTransactionLimitIsReached() throws Exception {
     Security security = asDirectBond(allocation());
+    // A replay refuses a direct bond without a coupon rate; the bond has matured, so no coupon falls into the run.
+    setBondTerms(security, 12d, grafioschtrader.types.CouponDayCount.ACT_ACT_ICMA);
     security.setActiveFromDate(opening.minusYears(1));
     security.setActiveToDate(opening);
     em.flush();
@@ -868,6 +874,8 @@ class AlgoHistoricalReplayIntegrationTest {
     action.setIsinNew(successor.getIsin());
     action.setActionDate(opening.plusDays(withPair ? 3 : 1));
     action.setCreatedBy(0);
+    // The column is a DATETIME since V0.37.2: an explicit NULL is refused rather than replaced by the default.
+    action.setCreationTime(LocalDateTime.now());
     em.persist(action);
     securityaccount();
     Tenant environment = environment();
@@ -993,6 +1001,7 @@ class AlgoHistoricalReplayIntegrationTest {
     assertThat(run.getWinningTrades()).isZero();
     assertThat(run.getLosingTrades()).isZero();
     assertThat(run.getMaxDrawdown()).as("cash alone cannot fall below its own peak").isEqualTo(0.0);
+    assertThat(run.getMaxDrawdownDurationDays()).as("and so never spends a day below it").isZero();
     assertThat(run.getSharpeRatio()).as("an equity that never moved has no deviation to divide by").isNull();
 
     var ledger = source.transactions(environment.getId(), end.plusDays(1));
@@ -1071,11 +1080,131 @@ class AlgoHistoricalReplayIntegrationTest {
     assertThat(events.findByIdSimulationResultOrderByEventDateDescIdAlgoEventDesc(first.getIdSimulationResult(),
         PageRequest.of(0, 200)).getContent())
             .filteredOn(event -> event.getEventType() == AlgoEventType.CASH_STANDING_ORDER).hasSize(3);
+    // The environment holds only cash, so every point of its curve has earned nothing: the deposits raise the equity
+    // and the invested capital alike.
+    List<SimulationRunEquityPoint> curve = replay.equitySeries(environment.getId());
+    assertThat(curve).hasSizeGreaterThanOrEqualTo(2);
+    assertThat(curve.getFirst().date()).isEqualTo(opening);
+    assertThat(curve.getFirst().investedCapital()).isEqualTo(curve.getFirst().equity());
+    assertThat(curve).allSatisfy(point -> assertThat(point.investedCapital()).isCloseTo(point.equity(), within(1e-6)));
+    assertThat(curve.getLast().investedCapital()).isCloseTo(1_300.0, within(1e-6));
 
     AlgoSimulationResult second = run(environment);
     assertThat(second.getIdSimulationResult()).isEqualTo(first.getIdSimulationResult());
     assertThat(source.transactions(environment.getId(), end.plusDays(1)))
         .filteredOn(transaction -> order.getId().equals(transaction.getIdStandingOrder())).hasSize(3);
+  }
+
+  @Test
+  @DisplayName("An overdrawn account with a borrowing rate is charged ACT/360 interest at the month end")
+  void overdraftInterestIsChargedAtMonthEnd() throws Exception {
+    Tenant environment = environment(Map.of(cashId, 1_000.0));
+    Cashaccount simulationCash = source.cashaccounts(environment.getId()).stream()
+        .filter(account -> "CHF".equals(account.getCurrency())).findFirst().orElseThrow();
+    em.find(Cashaccount.class, simulationCash.getId()).setBorrowingRate(3.6);
+    // Withdrawing 11 000 on Tuesday 16 June leaves -10 000, which at 3.6 % costs 1.00 a day.
+    StandingOrderCashaccount order = new StandingOrderCashaccount();
+    order.setIdTenant(environment.getId());
+    order.setCashaccount(simulationCash);
+    order.setCashaccountAmount(11_000.0);
+    order.setTransactionType(TransactionType.WITHDRAWAL);
+    order.setRepeatUnit(RepeatUnit.MONTHS);
+    order.setRepeatInterval((short) 1);
+    order.setDayOfExecution((byte) 16);
+    order.setPeriodDayPosition(PeriodDayPosition.SPECIFIC_DAY);
+    order.setWeekendAdjust(WeekendAdjustType.AFTER);
+    order.setQuoteToleranceDays((byte) 0);
+    order.setValidFrom(opening.plusDays(1));
+    order.setValidTo(opening.plusDays(1));
+    order.setNextExecutionDate(order.getValidFrom());
+    em.persist(order);
+    em.flush();
+
+    for (int iteration = 0; iteration < 2; iteration++) {
+      AlgoSimulationResult result = run(environment);
+      assertThat(result.getStatus()).as("failure: %s", result.getFailureMessage())
+          .isEqualTo(AlgoSimulationRunStatus.COMPLETED);
+      assertThat(result.getConventions()).contains(AlgoReplayOverdraftInterest.CONVENTION);
+      // 16 to 30 June are 15 days at 1.00; the month end is the end date of the run.
+      assertThat(source.transactions(environment.getId(), end.plusDays(1)))
+          .filteredOn(transaction -> transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT)
+          .singleElement().satisfies(interest -> {
+            assertThat(interest.getTransactionDate()).isEqualTo(end);
+            assertThat(interest.getCashaccountAmount()).isEqualTo(-15.0);
+            assertThat(interest.isSimulationOpening()).isFalse();
+          });
+      assertThat(trailOf(result)).containsOnlyOnce(AlgoEventType.OVERDRAFT_INTEREST);
+      // Interest is an expense: the curve ends 15 below the invested capital.
+      List<SimulationRunEquityPoint> curve = replay.equitySeries(environment.getId());
+      assertThat(curve.getLast().investedCapital() - curve.getLast().equity()).isCloseTo(15.0, within(1e-6));
+    }
+  }
+
+  @Test
+  @DisplayName("A security savings plan buys an instrument outside the hierarchy, which then receives its dividends")
+  void replaySecurityStandingOrders() throws Exception {
+    securityaccount();
+    Security security = tradeableChfInstrument();
+    clearDividendHistory(security);
+    priceEveryDay(security);
+    // Ex-date Thursday 25 June, after the purchases of 16 and 23 June; paid on Friday 26 June.
+    var dividend = new grafioschtrader.entities.Dividend(security.getId(), opening.plusDays(10), opening.plusDays(11),
+        2.0, 2.0, "CHF", grafioschtrader.types.CreateType.ADD_MODIFIED_USER);
+    dividend.setCreateModifyTime(opening.atStartOfDay());
+    em.persist(dividend);
+    em.flush();
+    em.clear();
+    Tenant environment = environment(Map.of(cashId, 10_000.0));
+    StandingOrderSecurity order = new StandingOrderSecurity();
+    order.setIdTenant(environment.getId());
+    order.setCashaccount(source.cashaccounts(environment.getId()).stream()
+        .filter(account -> "CHF".equals(account.getCurrency())).findFirst().orElseThrow());
+    order.setIdSecurityaccount(source.securityaccounts(environment.getId()).getFirst().getId());
+    order.setSecurity(em.find(Security.class, security.getId()));
+    order.setTransactionType(TransactionType.ACCUMULATE);
+    order.setInvestAmount(1_000.0);
+    order.setAmountIncludesCosts(true);
+    order.setFractionalUnits(false);
+    order.setTransactionCost(10.0);
+    order.setRepeatUnit(RepeatUnit.DAYS);
+    order.setRepeatInterval((short) 7);
+    order.setPeriodDayPosition(PeriodDayPosition.SPECIFIC_DAY);
+    order.setWeekendAdjust(WeekendAdjustType.AFTER);
+    order.setQuoteToleranceDays((byte) 0);
+    order.setValidFrom(opening.plusDays(1));
+    order.setValidTo(end);
+    order.setNextExecutionDate(order.getValidFrom());
+    order.setNote("Replay security savings plan");
+    em.persist(order);
+    em.flush();
+
+    for (int iteration = 0; iteration < 2; iteration++) {
+      AlgoSimulationResult result = run(environment);
+      assertThat(result.getStatus()).as("failure: %s", result.getFailureMessage())
+          .isEqualTo(AlgoSimulationRunStatus.COMPLETED);
+      List<Transaction> ledger = source.transactions(environment.getId(), end.plusDays(1));
+      // (1000 - 10) / 100 = 9.9, rounded down to 9 whole units; 9 * 100 + 10 debited each time.
+      List<Transaction> purchases = ledger.stream()
+          .filter(transaction -> order.getId().equals(transaction.getIdStandingOrder())).toList();
+      assertThat(purchases).hasSize(3).allSatisfy(transaction -> {
+        assertThat(transaction.getTransactionType()).isEqualTo(TransactionType.ACCUMULATE);
+        assertThat(transaction.getSecurity().getId()).isEqualTo(security.getId());
+        assertThat(transaction.getUnits()).isEqualTo(9.0);
+        assertThat(transaction.getQuotation()).isEqualTo(PRICE);
+        assertThat(transaction.getTransactionCost()).isEqualTo(10.0);
+        assertThat(transaction.getCashaccountAmount()).isEqualTo(-910.0);
+        assertThat(transaction.isSimulationOpening()).isFalse();
+      });
+      assertThat(purchases.stream().map(Transaction::getTransactionDate).toList())
+          .containsExactly(opening.plusDays(1), opening.plusDays(8), opening.plusDays(15));
+      assertThat(ledger).filteredOn(transaction -> transaction.getTransactionType() == TransactionType.DIVIDEND)
+          .singleElement().satisfies(payment -> {
+            assertThat(payment.getTransactionDate()).isEqualTo(opening.plusDays(11));
+            assertThat(payment.getCashaccountAmount()).isEqualTo(18 * 2.0);
+          });
+      assertThat(trailOf(result)).filteredOn(type -> type == AlgoEventType.SECURITY_STANDING_ORDER).hasSize(3);
+      assertThat(trailOf(result)).doesNotContain(AlgoEventType.UNAVAILABLE);
+    }
   }
 
   @Test

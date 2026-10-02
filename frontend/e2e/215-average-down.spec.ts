@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { dump } from 'js-yaml';
 import { loginAsFixtureUser } from './helpers';
+import { createStrategySecurityNode } from './strategy-activation.helpers';
 
 /**
  * Activation of the averaging variant — the downside rule that answers a falling price by buying more instead of
@@ -115,20 +116,15 @@ test('averaging down activates, refuses unsupported additions and survives an ed
   });
   expect(added.ok(), await added.text()).toBeTruthy();
 
-  // The AlgoTop is the root of the hierarchy; its percentage is the share of equity the whole strategy may use.
-  const created = await page.request.post('/api/algotop/create', {
-    headers: auth,
-    data: { name, idWatchlist, percentage: 100, assetclassPercentageList: [] }
-  });
-  expect(created.ok(), await created.text()).toBeTruthy();
-  const top = await created.json();
+  // Dip strategies belong to the instrument node, below the root and its asset-class allocation.
+  const securityNode = await createStrategySecurityNode(page, auth, name, idWatchlist, instrument.idSecuritycurrency);
 
   // The fixture combines averaging on the downside with a tranche exit on the upside; both are executable, so the
   // strategy is activatable straight away and comes back out of the backend unchanged.
   const saved = await page.request.post('/api/algostrategy', {
     headers: auth,
     data: {
-      idAlgoAssetclassSecurity: top.idAlgoAssetclassSecurity,
+      idAlgoAssetclassSecurity: securityNode.idAlgoAssetclassSecurity,
       algoStrategyImplementations: 'AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP',
       activatable: true,
       strategyConfig: JSON.stringify(configuration)

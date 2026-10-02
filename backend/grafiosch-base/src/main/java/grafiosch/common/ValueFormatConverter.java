@@ -8,9 +8,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.PropertyUtils;
@@ -34,10 +37,18 @@ import grafiosch.BaseConstants;
  * property setting on arbitrary objects.
  */
 public class ValueFormatConverter {
+  /** German month abbreviations, lower case, that English does not share, mapped to the English abbreviation. */
+  private static final Map<String, String> GERMAN_TO_ENGLISH_MONTH = Map.of("mär", "Mar", "mrz", "Mar", "märz", "Mar",
+      "mai", "May", "okt", "Oct", "dez", "Dec");
+
+  private static final Pattern LETTERS_PATTERN = Pattern.compile("\\p{L}+");
+
   private NumberFormat numberFormat;
   private DateTimeFormatter localTimeFormater;
   private DateTimeFormatter localDateFormatter;
   private DateTimeFormatter localDateFormatterFallback;
+  /** English formatter of the date pattern, used after German month abbreviations were replaced by English ones. */
+  private DateTimeFormatter localDateFormatterEnglish;
   private String thousandSeparatorsPattern;
   private Locale userLocale;
 
@@ -64,8 +75,9 @@ public class ValueFormatConverter {
    */
   public ValueFormatConverter(String dateFormat, String localTimeFormat, char thousandSeparators,
       String thousandSeparatorsPattern, char decimalSeparator, Locale userLocale) {
+    localDateFormatterEnglish = DateTimeFormatter.ofPattern(dateFormat, Locale.ENGLISH);
     if (localTimeFormat == null) {
-      localDateFormatter = DateTimeFormatter.ofPattern(dateFormat, Locale.ENGLISH);
+      localDateFormatter = localDateFormatterEnglish;
     } else {
       localTimeFormater = DateTimeFormatter.ofPattern(localTimeFormat);
       localDateFormatter = DateTimeFormatter.ofPattern(dateFormat, userLocale);
@@ -111,6 +123,7 @@ public class ValueFormatConverter {
    * - Date: parses using SimpleDateFormat or converts from timestamp<br>
    * - LocalDate: parses using configured DateTimeFormatter<br>
    * - LocalTime: parses using configured time formatter<br>
+   * - Enum: resolves the constant of that name<br>
    * - String: used as-is<br>
    *
    * The clearZeroEmpty option allows automatic clearing of zero numeric values and blank strings by setting them to
@@ -140,27 +153,13 @@ public class ValueFormatConverter {
       value = cleanThousandSeparator(value);
       convertValue = numberFormat.parse(value).longValue();
     } else if (LocalDate.class == dataType) {
-      try {
-        convertValue = LocalDate.parse(value, localDateFormatter);
-      } catch (Exception e) {
-        convertValue = LocalDate.parse(value, localDateFormatterFallback);
-      }
+      convertValue = parseDate(value, LocalDate::parse);
     } else if (LocalDateTime.class == dataType) {
-      try {
-        convertValue = LocalDateTime.parse(value, localDateFormatter);
-      } catch (Exception e1) {
-        try {
-          convertValue = LocalDate.parse(value, localDateFormatter).atStartOfDay();
-        } catch (Exception e2) {
-          try {
-            convertValue = LocalDate.parse(value, localDateFormatterFallback).atStartOfDay();
-          } catch (Exception e3) {
-            convertValue = LocalDateTime.parse(value, localDateFormatterFallback);
-          }
-        }
-      }
+      convertValue = parseDate(value, ValueFormatConverter::parseDateTimeOrDate);
     } else if (LocalTime.class == dataType) {
       convertValue = LocalTime.parse(value, localTimeFormater);
+    } else if (dataType.isEnum()) {
+      convertValue = toEnumConstant(dataType, value);
     }
 
     if (clearZeroEmpty
@@ -170,6 +169,62 @@ public class ValueFormatConverter {
     }
 
     PropertyUtils.setSimpleProperty(bean, fieldName, convertValue);
+  }
+
+  /**
+   * Resolves the constant of an enum property from its name, which is how a generated form submits an enum field.
+   *
+   * @param enumType the enum class of the property
+   * @param name     the constant name
+   * @return the matching constant
+   * @throws IllegalArgumentException if the enum has no constant of that name
+   */
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private static Object toEnumConstant(Class<?> enumType, String name) {
+    return Enum.valueOf((Class<? extends Enum>) enumType, name.trim());
+  }
+
+  /**
+   * Parses a date with the user locale formatter, then with the fallback locale formatter. As a last resort, German
+   * month abbreviations are replaced with the English ones and the value is parsed in English. Documents abbreviate
+   * months the German way without a dot ("Okt", "Dez", "Mär"), which the CLDR German format ("Okt.", "Dez.", "März")
+   * does not accept, and neither does English.
+   *
+   * @param value  the date text
+   * @param parser parses the text with a given formatter
+   * @return the parsed date
+   * @throws DateTimeParseException if no formatter accepts the value
+   */
+  private <T> T parseDate(String value, BiFunction<String, DateTimeFormatter, T> parser) {
+    try {
+      return parser.apply(value, localDateFormatter);
+    } catch (DateTimeParseException e) {
+      if (localDateFormatterFallback != null) {
+        try {
+          return parser.apply(value, localDateFormatterFallback);
+        } catch (DateTimeParseException _) {
+          // The last resort follows
+        }
+      }
+      String englishMonth = germanMonthToEnglish(value);
+      if (localDateFormatterEnglish == null || englishMonth.equals(value)) {
+        throw e;
+      }
+      return parser.apply(englishMonth, localDateFormatterEnglish);
+    }
+  }
+
+  private static LocalDateTime parseDateTimeOrDate(String value, DateTimeFormatter formatter) {
+    try {
+      return LocalDateTime.parse(value, formatter);
+    } catch (DateTimeParseException e) {
+      return LocalDate.parse(value, formatter).atStartOfDay();
+    }
+  }
+
+  private static String germanMonthToEnglish(String value) {
+    return LETTERS_PATTERN.matcher(value).replaceAll(m -> Matcher
+        .quoteReplacement(GERMAN_TO_ENGLISH_MONTH.getOrDefault(m.group().toLowerCase(Locale.GERMAN), m.group())));
   }
 
   private String cleanThousandSeparator(String number) {

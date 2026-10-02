@@ -18,9 +18,17 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.types.TransactionType;
 import grafioschtrader.types.WeekendAdjustType;
 
-/** Captures tax, income, instrument, and cash-standing-order inputs before a worker is queued. */
+/** Captures tax, income, instrument, and standing-order inputs before a worker is queued. */
 @Service
 public class AlgoReplayInputs {
+  /**
+   * Version a newly captured snapshot is written with. Version 6 adds the security standing orders and the borrowing
+   * rates of the cash accounts; a snapshot of an earlier version has neither, which its readers treat as empty. A new
+   * component goes at the end of the canonical constructor, the previous canonical constructor stays as a compatibility
+   * constructor, and the version is raised once a release has written snapshots of the current one.
+   */
+  public static final int SNAPSHOT_VERSION = 6;
+
   private final TaxCountryJpaRepository countries;
   private final DividendJpaRepository dividends;
   private final SecuritysplitJpaRepository splits;
@@ -97,11 +105,47 @@ public class AlgoReplayInputs {
       LocalDate validFrom, LocalDate validTo, String note) {
   }
 
+  /**
+   * Frozen security standing order used by one replay. Its costs are the fixed values or formulas of the standing order
+   * itself, as in the live execution, and not the fee model of the security account.
+   *
+   * @param securityCurrency currency of the instrument, in which quotation and costs are expressed
+   * @param idCurrencypair   pair converting the security currency into the cash account currency, null when both
+   *                         currencies are equal
+   */
+  public record SecurityStandingOrder(Integer id, Integer idSecurity, Integer idSecurityaccount, Integer idCashaccount,
+      String cashaccountName, String cashaccountCurrency, String securityCurrency, TransactionType transactionType,
+      Double units, Double investAmount, boolean amountIncludesCosts, boolean fractionalUnits, Double taxCost,
+      String taxCostFormula, Double transactionCost, String transactionCostFormula, Integer idCurrencypair,
+      RepeatUnit repeatUnit, short repeatInterval, Byte dayOfExecution, Byte monthOfExecution,
+      PeriodDayPosition periodDayPosition, WeekendAdjustType weekendAdjust, byte quoteToleranceDays,
+      LocalDate validFrom, LocalDate validTo, String note) {
+  }
+
   public record Snapshot(int version, boolean applyTaxModels, boolean generateBondCoupons, int dividendDelay,
       Map<String, String> countryModels, Map<Integer, Account> accounts, Map<Integer, Instrument> instruments,
       List<CashStandingOrder> cashStandingOrders, Map<Integer, Float> leverageFactors, AlgoReplayAllocation allocation,
       Map<Integer, String> feeModels, Map<Integer, grafioschtrader.dto.CustodyOpeningState> custodyOpening,
-      Map<Integer, grafioschtrader.dto.FxFeeConfig> fxModels) {
+      Map<Integer, grafioschtrader.dto.FxFeeConfig> fxModels, List<SecurityStandingOrder> securityStandingOrders,
+      Map<Integer, Double> borrowingRates) {
+    public Snapshot(int version, boolean taxes, boolean coupons, int delay, Map<String, String> models,
+        Map<Integer, Account> accounts, Map<Integer, Instrument> instruments, List<CashStandingOrder> orders,
+        Map<Integer, Float> leverage, AlgoReplayAllocation allocation, Map<Integer, String> fees,
+        Map<Integer, grafioschtrader.dto.CustodyOpeningState> opening, Map<Integer, grafioschtrader.dto.FxFeeConfig> fx,
+        List<SecurityStandingOrder> securityOrders) {
+      this(version, taxes, coupons, delay, models, accounts, instruments, orders, leverage, allocation, fees, opening, fx,
+          securityOrders, Map.of());
+    }
+
+    public Snapshot(int version, boolean taxes, boolean coupons, int delay, Map<String, String> models,
+        Map<Integer, Account> accounts, Map<Integer, Instrument> instruments, List<CashStandingOrder> orders,
+        Map<Integer, Float> leverage, AlgoReplayAllocation allocation, Map<Integer, String> fees,
+        Map<Integer, grafioschtrader.dto.CustodyOpeningState> opening,
+        Map<Integer, grafioschtrader.dto.FxFeeConfig> fx) {
+      this(version, taxes, coupons, delay, models, accounts, instruments, orders, leverage, allocation, fees, opening, fx,
+          List.of());
+    }
+
     public Snapshot(int version, boolean taxes, boolean coupons, int delay, Map<String, String> models,
         Map<Integer, Account> accounts, Map<Integer, Instrument> instruments, List<CashStandingOrder> orders,
         Map<Integer, Float> leverage, AlgoReplayAllocation allocation, Map<Integer, String> fees,
@@ -124,8 +168,9 @@ public class AlgoReplayInputs {
 
     public Snapshot withFees(Map<Integer, String> models, Map<Integer, grafioschtrader.dto.CustodyOpeningState> opening,
         Map<Integer, grafioschtrader.dto.FxFeeConfig> fx) {
-      return new Snapshot(5, applyTaxModels, generateBondCoupons, dividendDelay, countryModels, accounts, instruments,
-          cashStandingOrders, leverageFactors, allocation, models, opening, fx);
+      return new Snapshot(SNAPSHOT_VERSION, applyTaxModels, generateBondCoupons, dividendDelay, countryModels, accounts,
+          instruments, cashStandingOrders, leverageFactors, allocation, models, opening, fx, securityStandingOrders,
+          borrowingRates);
     }
 
     /** Compatibility constructor for historical fixtures and snapshots without an exclusion policy. */
@@ -145,12 +190,26 @@ public class AlgoReplayInputs {
 
     public Snapshot withAllocation(AlgoReplayAllocation effective) {
       return new Snapshot(version, applyTaxModels, generateBondCoupons, dividendDelay, countryModels, accounts,
-          instruments, cashStandingOrders, leverageFactors, effective, feeModels, custodyOpening, fxModels);
+          instruments, cashStandingOrders, leverageFactors, effective, feeModels, custodyOpening, fxModels,
+          securityStandingOrders, borrowingRates);
+    }
+
+    /**
+     * @return the annual borrowing rate in percent by cash account id, only for accounts whose rate is above zero; empty
+     *         for a snapshot captured before the rates were frozen
+     */
+    public Map<Integer, Double> borrowingRatesOrEmpty() {
+      return borrowingRates == null ? Map.of() : borrowingRates;
+    }
+
+    /** @return the frozen security standing orders, empty for a snapshot captured before they existed */
+    public List<SecurityStandingOrder> securityStandingOrdersOrEmpty() {
+      return securityStandingOrders == null ? List.of() : securityStandingOrders;
     }
   }
 
   public Snapshot capture(boolean taxes, boolean coupons, int delay, Integer idTenant, Collection<Security> securities,
-      List<Securityaccount> accounts, LocalDate opening, LocalDate end) {
+      List<Securityaccount> accounts, List<Cashaccount> cashaccounts, LocalDate opening, LocalDate end) {
     Map<String, String> models = new TreeMap<>();
     if (taxes)
       countries.findAll().forEach(country -> {
@@ -170,12 +229,31 @@ public class AlgoReplayInputs {
     for (Security security : securities)
       instrumentInputs.put(security.getId(),
           instrument(security, coupons, delay, opening, end, tradingEnd.get(security.getId())));
-    List<CashStandingOrder> cashOrders = standingOrders.findByIdTenant(idTenant).stream()
-        .filter(StandingOrderCashaccount.class::isInstance).map(StandingOrderCashaccount.class::cast)
-        .map(this::cashStandingOrder).toList();
+    List<StandingOrder> tenantOrders = standingOrders.findByIdTenant(idTenant);
+    List<CashStandingOrder> cashOrders = tenantOrders.stream().filter(StandingOrderCashaccount.class::isInstance)
+        .map(StandingOrderCashaccount.class::cast).map(this::cashStandingOrder).toList();
+    List<SecurityStandingOrder> securityOrders = tenantOrders.stream()
+        .filter(StandingOrderSecurity.class::isInstance).map(StandingOrderSecurity.class::cast)
+        .map(AlgoReplayInputs::securityStandingOrder).toList();
     Map<Integer, Float> leverage = new TreeMap<>();
     securities.forEach(s -> leverage.put(s.getId(), s.getLeverageFactor()));
-    return new Snapshot(3, taxes, coupons, delay, models, accountInputs, instrumentInputs, cashOrders, leverage, null);
+    // An account with a rate of zero may be overdrawn but costs nothing, so only a positive rate is frozen.
+    Map<Integer, Double> borrowingRates = new TreeMap<>();
+    cashaccounts.stream().filter(c -> c.getBorrowingRate() != null && c.getBorrowingRate() > 0)
+        .forEach(c -> borrowingRates.put(c.getId(), c.getBorrowingRate()));
+    return new Snapshot(SNAPSHOT_VERSION, taxes, coupons, delay, models, accountInputs, instrumentInputs, cashOrders,
+        leverage, null, Map.of(), Map.of(), Map.of(), securityOrders, borrowingRates);
+  }
+
+  private static SecurityStandingOrder securityStandingOrder(StandingOrderSecurity order) {
+    return new SecurityStandingOrder(order.getIdStandingOrder(), order.getSecurity().getId(),
+        order.getIdSecurityaccount(), order.getCashaccount().getId(), order.getCashaccount().getName(),
+        order.getCashaccount().getCurrency(), order.getSecurity().getCurrency(), order.getTransactionType(),
+        order.getUnits(), order.getInvestAmount(), order.isAmountIncludesCosts(), order.isFractionalUnits(),
+        order.getTaxCost(), order.getTaxCostFormula(), order.getTransactionCost(), order.getTransactionCostFormula(),
+        order.getIdCurrencypair(), order.getRepeatUnit(), order.getRepeatInterval(), order.getDayOfExecution(),
+        order.getMonthOfExecution(), order.getPeriodDayPosition(), order.getWeekendAdjust(),
+        order.getQuoteToleranceDays(), order.getValidFrom(), order.getValidTo(), order.getNote());
   }
 
   private CashStandingOrder cashStandingOrder(StandingOrderCashaccount order) {
@@ -271,11 +349,27 @@ public class AlgoReplayInputs {
     }
   }
 
+  /**
+   * Reads the equity curve a completed run stored with {@link #write}.
+   *
+   * @param json the stored curve, null for a run without one
+   * @return the points of the curve, empty for null
+   */
+  public static List<SimulationRunEquityPoint> readEquitySeries(String json) {
+    if (json == null) {
+      return List.of();
+    }
+    try {
+      return List.of(JSON.readValue(json, SimulationRunEquityPoint[].class));
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid replay equity series", e);
+    }
+  }
+
   public static Snapshot read(String json) {
     try {
       Snapshot snapshot = JSON.readValue(json, Snapshot.class);
-      if (snapshot.version() != 1 && snapshot.version() != 2 && snapshot.version() != 3 && snapshot.version() != 4
-          && snapshot.version() != 5)
+      if (snapshot.version() < 1 || snapshot.version() > SNAPSHOT_VERSION)
         throw new IllegalArgumentException("Unsupported replay assumption version");
       return snapshot;
     } catch (Exception e) {

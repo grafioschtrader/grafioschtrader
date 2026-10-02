@@ -5,7 +5,7 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SecuritycurrencySearch } from '../../entities/search/securitycurrency.search';
 import { SecurityService } from '../service/security.service';
-import { CallBackSetSecurity } from './securitycurrency-search-and-set.component';
+import { CallBackSetSecurity } from './securitycurrency-search-and-set-dialog.component';
 import { CurrencypairService } from '../service/currencypair.service';
 import { combineLatest, Observable } from 'rxjs';
 import { Currencypair } from '../../entities/currencypair';

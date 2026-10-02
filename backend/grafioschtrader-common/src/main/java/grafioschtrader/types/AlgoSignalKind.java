@@ -7,24 +7,25 @@ import java.util.Arrays;
  * two different kinds fired on the same day for the same instrument are two alarms rather than one.
  *
  * <p>
- * The values 1 to 6 are the ones the {@code algo_message_alert.alarm_type} column has always documented. Only the alert
- * kinds are produced today; the trading kinds are reserved for the strategy signals that later strategy modules add
- * through the same notification path, and their numbers must not be reused for anything else.
+ * Every constant is produced, either by the alert evaluation or by a strategy module. The numbers are stored in
+ * {@code algo_message_alert.alarm_type}, so none of them may be reused for anything else.
  * </p>
  */
 public enum AlgoSignalKind {
 
   /** A configured bound on the instrument price was crossed. */
   PRICE_ALERT((byte) 1),
-  /** An entry condition of a trading strategy was met. Reserved, not produced yet. */
+  /** An entry or add-on condition of a trading strategy was met; produced by AlgoMeanReversionEvaluationService. */
   ENTRY_SIGNAL((byte) 2),
-  /** A profit taking tranche became executable. Reserved, not produced yet. */
+  /** A profit taking tranche or exit became executable; produced by AlgoMeanReversionEvaluationService. */
   PROFIT_TAKE((byte) 3),
-  /** A stop loss or other downside exit condition was met. Reserved, not produced yet. */
+  /** A stop loss or other downside exit condition was met; produced by AlgoMeanReversionEvaluationService. */
   STOP_LOSS((byte) 4),
-  /** An allocation drifted beyond its rebalancing tolerance. Reserved, not produced yet. */
+  /**
+   * A rebalancing checkpoint is due and has an executable line; produced by AlgoRebalancingService.notifyActionable.
+   */
   REBALANCE_DRIFT((byte) 5),
-  /** A risk control was breached. Reserved, not produced yet. */
+  /** A risk control forced an exit; produced by AlgoMeanReversionEvaluationService. */
   RISK_BREACH((byte) 6),
   /** The gain or loss of an actual holding passed a configured threshold. */
   HOLDING_GAIN_LOSS((byte) 7),
@@ -35,7 +36,12 @@ public enum AlgoSignalKind {
   /** The RSI crossed a configured threshold. */
   RSI_THRESHOLD((byte) 10),
   /** A user supplied expression evaluated to true. */
-  EXPRESSION((byte) 11);
+  EXPRESSION((byte) 11),
+  /**
+   * A class, an instrument or the exposure of the monitored hierarchy left its tolerance band between two checkpoints;
+   * produced by AlgoRebalancingService. A notification only: unlike {@link #REBALANCE_DRIFT} it asks for no trade.
+   */
+  ALLOCATION_BREACH((byte) 12);
 
   private final Byte value;
 

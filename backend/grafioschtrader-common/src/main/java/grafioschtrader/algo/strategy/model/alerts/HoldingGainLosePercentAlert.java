@@ -1,5 +1,7 @@
 package grafioschtrader.algo.strategy.model.alerts;
 
+import grafiosch.validation.AtLeastOneNotNull;
+import grafiosch.validation.NumberRange;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
@@ -7,6 +9,8 @@ import jakarta.validation.constraints.Min;
  * Alert when a certain position in a portfolio gains or loses a certain percentage and/or crosses an absolute price
  * threshold. At least one of (gainPercentage, losePercentage, upperValue, lowerValue) must be non-null.
  */
+@AtLeastOneNotNull(fields = { "gainPercentage", "losePercentage", "upperValue", "lowerValue" })
+@NumberRange(lower = "lowerValue", upper = "upperValue")
 public class HoldingGainLosePercentAlert {
   @Min(value = 1)
   @Max(value = 500)

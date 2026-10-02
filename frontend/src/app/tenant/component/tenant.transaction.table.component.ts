@@ -24,7 +24,7 @@ import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-
 import { TransactionCashaccountEditSingleComponent } from '../../transaction/component/transaction-cashaccount-editsingle.component';
 import { TransactionCashaccountEditDoubleComponent } from '../../transaction/component/transaction-cashaccount-editdouble.component';
 import { TransactionSecurityEditComponent } from '../../transaction/component/transaction-security-edit.component';
-import { TransactionCashaccountConnectDebitCreditComponent } from '../../transaction/component/transaction-cashaccount-connect-debit-credit-component';
+import { TransactionCashaccountConnectDebitCreditDialogComponent } from '../../transaction/component/transaction-cashaccount-connect-debit-credit-dialog.component';
 import { StandingOrderCashaccountEditComponent } from '../../standingorder/component/standing-order-cashaccount-edit.component';
 import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
 
@@ -45,7 +45,7 @@ import { StandingOrderSecurityEditComponent } from '../../standingorder/componen
     TransactionCashaccountEditSingleComponent,
     TransactionCashaccountEditDoubleComponent,
     TransactionSecurityEditComponent,
-    TransactionCashaccountConnectDebitCreditComponent,
+    TransactionCashaccountConnectDebitCreditDialogComponent,
     StandingOrderCashaccountEditComponent,
     StandingOrderSecurityEditComponent
   ]

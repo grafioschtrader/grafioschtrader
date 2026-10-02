@@ -102,9 +102,49 @@ class SecurityGroupByAlgoBucketRebalancingReportTest {
     assertEquals(3, grand.securityPositionGroupSummaryList.size());
   }
 
+  @Test
+  void topLevelAndImplicitCashTargetAreReported() {
+    var report = report(100_000, 15_000, 85_000, 80);
+    var grand = summary();
+    var cash = new SecurityPositionDynamicGroupSummary<String>("Cash");
+    grand.calcGrandTotal(cash);
+    when(securities.findAllById(any())).thenReturn(List.of(security(1), security(2)));
+
+    report.completeComparison(grand);
+
+    assertEquals(80.0, grand.getTopTargetPercentage());
+    assertEquals(85.0, grand.getTopActualPercentage());
+    assertEquals(5.0, grand.getTopDeviationPercentage());
+    assertEquals(20.0, cash.getGroupTargetPercentage());
+    assertEquals(15.0, cash.getGroupActualPercentage());
+    assertEquals(-5.0, cash.getGroupDeviationPercentage());
+  }
+
+  @Test
+  void zeroNetEquityLeavesTheTopShareAndCashTargetOpen() {
+    var report = report(0, 0, 0, 80);
+    var grand = summary();
+    var cash = new SecurityPositionDynamicGroupSummary<String>("Cash");
+    grand.calcGrandTotal(cash);
+    when(securities.findAllById(any())).thenReturn(List.of(security(1), security(2)));
+
+    report.completeComparison(grand);
+
+    assertEquals(80.0, grand.getTopTargetPercentage());
+    assertNull(grand.getTopActualPercentage());
+    assertNull(grand.getTopDeviationPercentage());
+    assertNull(cash.getGroupTargetPercentage());
+    assertNull(cash.getGroupDeviationPercentage());
+  }
+
   private SecurityGroupByAlgoBucketRebalancingReport report() {
-    var plan = new RebalancingPlan(7, 227, 1, "Strategy", LocalDate.of(2026, 9, 20), "CHF", 100, 0, 100, 100, 0, 100, 5,
-        false, false, true,
+    return report(100, 0, 100, 100);
+  }
+
+  private SecurityGroupByAlgoBucketRebalancingReport report(double netEquity, double actualCash, double grossExposure,
+      double topPercentage) {
+    var plan = new RebalancingPlan(7, 227, 1, "Strategy", LocalDate.of(2026, 9, 20), "CHF", netEquity, actualCash,
+        grossExposure, netEquity * topPercentage / 100, 0, topPercentage, 5, false, false, true,
         List.of(line("A", 10, 227, null, "First", 50), line("S", 11, 10, 1, "One", 50),
             line("A", 20, 227, null, "Second", 50), line("S", 21, 20, 2, "Two", 50),
             line("A", 30, 227, null, "Empty", 0)));

@@ -40,6 +40,8 @@ class AlgoAlertAtomicityIntegrationTest {
       top.setPercentage(100f);
       top.setIdWatchlist(watchlist.getId());
       em.persist(top);
+      // A hierarchy alert is recorded only for the hierarchy assigned to portfolio monitoring.
+      tenant.setIdAlgoTop(top.getId());
       AlgoStrategy strategy = new AlgoStrategy();
       strategy.setIdTenant(tenant.getId());
       strategy.setIdAlgoAssetclassSecurity(top.getId());

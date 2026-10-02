@@ -1,8 +1,12 @@
 package grafioschtrader.service;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+
+import grafioschtrader.common.ReturnSeries;
+import grafioschtrader.common.ReturnSeries.Convention;
+import grafioschtrader.common.ReturnSeries.ValuationPoint;
 
 /**
  * The result figures of a historical replay, calculated from its daily equity and its closed round trips.
@@ -28,14 +32,22 @@ import java.util.List;
  * <li>A day whose closing state could not be valued completely is not an observation. Its equity would be the sum of
  * whatever happened to be priced, so counting it would report a loss the portfolio never took and would annualize the
  * result over days the run never measured. Such days are dropped here and listed in the course of the run instead.</li>
+ * <li>The drawdown duration counts the calendar days of the longest phase the cash-flow adjusted wealth index spent
+ * below a previous high, from that high to the first day that regains it. A phase still open on the end date counts up
+ * to the last observation.</li>
  * <li>A round trip counts once it is closed. A position still open on the end date belongs to no trade, so it neither
  * wins nor loses; its value is in the terminal equity instead.</li>
  * </ul>
+ *
+ * <p>
+ * The return arithmetic is shared with the period performance report through {@link ReturnSeries}; the replay uses
+ * {@link Convention#REPLAY}, which keeps the start-of-period convention for every flow described above.
+ * </p>
  */
 public final class AlgoReplayMetrics {
 
   /** Trading days a standard deviation of daily returns is scaled by to become an annual figure. */
-  public static final double TRADING_DAYS_PER_YEAR = 252.0;
+  public static final double TRADING_DAYS_PER_YEAR = ReturnSeries.TRADING_DAYS_PER_YEAR;
 
   /**
    * Closing equity of the environment on one day of the run, in tenant currency.
@@ -62,8 +74,8 @@ public final class AlgoReplayMetrics {
   }
 
   /** Empty fields are undefined rather than zero; the result view says which and why. */
-  public record Metrics(Double totalReturn, Double annualizedReturn, Double maxDrawdown, Double sharpeRatio,
-      int totalTrades, int winningTrades, int losingTrades) {
+  public record Metrics(Double totalReturn, Double annualizedReturn, Double maxDrawdown,
+      Integer maxDrawdownDurationDays, Double sharpeRatio, int totalTrades, int winningTrades, int losingTrades) {
   }
 
   private AlgoReplayMetrics() {
@@ -76,61 +88,51 @@ public final class AlgoReplayMetrics {
    */
   public static Metrics of(List<EquityPoint> series, List<Trade> trades) {
     List<EquityPoint> observed = series.stream().filter(EquityPoint::priced).toList();
-    double[] returns = periodReturns(observed);
-    Double totalReturn = totalReturn(returns);
+    ReturnSeries returnSeries = returnSeries(observed);
+    Double totalReturn = returnSeries.totalReturn();
     int winning = (int) trades.stream().filter(t -> t.realizedGain() > 0).count();
     int losing = (int) trades.stream().filter(t -> t.realizedGain() < 0).count();
-    return new Metrics(totalReturn, annualizedReturn(observed, totalReturn),
-        observed.isEmpty() ? null : maxDrawdown(returns), sharpeRatio(returns), trades.size(), winning, losing);
+    return new Metrics(totalReturn, ReturnSeries.annualize(totalReturn, returnSeries.calendarDays(), 0),
+        observed.isEmpty() ? null : maxDrawdown(returnSeries),
+        observed.isEmpty() ? null : maxDrawdownDurationDays(returnSeries), sharpeRatio(returnSeries.usableReturns()),
+        trades.size(), winning, losing);
   }
 
   /** Terminal calendar-day income affects return and drawdown, without adding a Sharpe trading-day observation. */
   public static Metrics of(List<EquityPoint> series, List<Trade> trades, EquityPoint terminal) {
-    List<EquityPoint> valuationSeries = new java.util.ArrayList<>(series);
-    if (valuationSeries.isEmpty() || terminal.date().isAfter(valuationSeries.getLast().date()))
-      valuationSeries.add(terminal);
-    Metrics result = of(valuationSeries, trades);
+    Metrics result = of(valuationSeries(series, terminal), trades);
     return new Metrics(result.totalReturn(), result.annualizedReturn(), result.maxDrawdown(),
-        sharpeRatio(periodReturns(series.stream().filter(EquityPoint::priced).toList())), result.totalTrades(),
-        result.winningTrades(), result.losingTrades());
+        result.maxDrawdownDurationDays(), sharpeRatio(returnSeries(series.stream().filter(EquityPoint::priced).toList()).usableReturns()),
+        result.totalTrades(), result.winningTrades(), result.losingTrades());
   }
 
-  private static Double totalReturn(double[] returns) {
-    if (returns.length == 0) {
-      return null;
+  /**
+   * The series the return and drawdown figures of a completed run are calculated from, which is also the series its
+   * equity curve shows. The valuation of the end date is appended only when it lies after the last evaluated day: an end
+   * date that is itself a trading day was already valued as one.
+   *
+   * @param series   the closing equity of every evaluated day, in order
+   * @param terminal the valuation of the end date
+   * @return a new list holding the series and, where it extends it, the terminal point
+   */
+  public static List<EquityPoint> valuationSeries(List<EquityPoint> series, EquityPoint terminal) {
+    List<EquityPoint> valuationSeries = new ArrayList<>(series);
+    if (valuationSeries.isEmpty() || terminal.date().isAfter(valuationSeries.getLast().date())) {
+      valuationSeries.add(terminal);
     }
-    double wealth = 1;
-    for (double value : returns) {
-      wealth *= 1 + value;
-    }
-    return wealth - 1;
+    return valuationSeries;
   }
 
-  private static Double annualizedReturn(List<EquityPoint> series, Double totalReturn) {
-    if (totalReturn == null) {
-      return null;
-    }
-    long days = ChronoUnit.DAYS.between(series.getFirst().date(), series.getLast().date());
-    // A run shorter than a day cannot be scaled to a year, and a portfolio wiped out entirely has no growth rate.
-    if (days <= 0 || 1 + totalReturn <= 0) {
-      return null;
-    }
-    return Math.pow(1 + totalReturn, 365.0 / days) - 1;
+  /** A series without any usable return has no decline, which is a drawdown of zero rather than an empty one. */
+  private static Double maxDrawdown(ReturnSeries returnSeries) {
+    Double depth = returnSeries.drawdown().depth();
+    return depth == null ? 0.0 : depth;
   }
 
-  private static Double maxDrawdown(double[] returns) {
-    if (returns.length == 0) {
-      return 0.0;
-    }
-    double wealth = 1;
-    double peak = 1;
-    double worst = 0;
-    for (double value : returns) {
-      wealth *= 1 + value;
-      peak = Math.max(peak, wealth);
-      worst = Math.min(worst, wealth / peak - 1);
-    }
-    return worst;
+  /** Like the depth, a series without any usable return never was below a high, which is a duration of zero. */
+  private static Integer maxDrawdownDurationDays(ReturnSeries returnSeries) {
+    Integer days = returnSeries.maxDrawdownDurationDays();
+    return days == null ? 0 : days;
   }
 
   private static Double sharpeRatio(double[] returns) {
@@ -153,18 +155,14 @@ public final class AlgoReplayMetrics {
     return mean / deviation * Math.sqrt(TRADING_DAYS_PER_YEAR);
   }
 
-  /** Cash-flow-adjusted returns between consecutive observations. */
-  private static double[] periodReturns(List<EquityPoint> series) {
-    double[] returns = new double[Math.max(0, series.size() - 1)];
-    int count = 0;
-    for (int i = 1; i < series.size(); i++) {
-      double capitalBase = series.get(i - 1).equity() + series.get(i).externalCashFlow();
-      if (capitalBase > 0) {
-        returns[count++] = series.get(i).equity() / capitalBase - 1;
-      }
-    }
-    double[] result = new double[count];
-    System.arraycopy(returns, 0, result, 0, count);
-    return result;
+  /**
+   * Maps the observed points onto the shared return series. Each flow counts as booked before the valuation of its
+   * period, so the capital base is the previous equity plus the flow.
+   */
+  private static ReturnSeries returnSeries(List<EquityPoint> observed) {
+    return ReturnSeries.of(
+        observed.stream()
+            .map(point -> new ValuationPoint(point.date(), point.equity(), point.externalCashFlow(), 0, true)).toList(),
+        Convention.REPLAY);
   }
 }

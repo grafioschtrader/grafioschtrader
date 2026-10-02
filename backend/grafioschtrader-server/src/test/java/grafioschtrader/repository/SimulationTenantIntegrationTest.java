@@ -83,6 +83,10 @@ class SimulationTenantIntegrationTest {
     top.setIdWatchlist(watchlist.getId());
     em.persist(top);
     topId = top.getId();
+    // An environment can only be created from a strategy whose weights add up to 100 %; one empty class is enough.
+    AlgoAssetclass bucket = new AlgoAssetclass(tenantId, topId, null, 100f);
+    bucket.setName("Opening allocation");
+    em.persist(bucket);
     em.flush();
     em.clear();
     balances.createCashaccountBalanceEntireByTenant(tenantId);
@@ -95,11 +99,6 @@ class SimulationTenantIntegrationTest {
 
   @Test
   void allModesHaveDatedConsistentOpeningLedgersAndIndependentMetadata() throws Exception {
-    // A cash-only opening still needs a complete allocation for the current replay-readiness check.
-    AlgoAssetclass bucket = new AlgoAssetclass(tenantId, topId, null, 100f);
-    bucket.setName("Opening allocation");
-    em.persist(bucket);
-    em.flush();
     for (SimulationInitializationMode mode : SimulationInitializationMode.values()) {
       SimulationTenantCreateDTO dto = request(mode);
       if (mode == SimulationInitializationMode.MANUAL_CASH)

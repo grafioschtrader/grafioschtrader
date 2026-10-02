@@ -2,6 +2,7 @@ package grafioschtrader.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.springframework.transaction.support.TransactionTemplate;
@@ -58,6 +60,8 @@ class AlgoReplayState {
   final AlgoReplayFx fx;
   AlgoReplayFx.Conversion pendingFx;
   AlgoReplayCustodyService.Session custody;
+  /** Accrues and charges the interest of overdrawn cash accounts; it does nothing when no account bears interest. */
+  AlgoReplayOverdraftInterest.Session overdraftInterest;
   double pendingCustodyCredit;
   /** Buys and sells of the opening ledger in the opening year; they already use up allowances of the first periods. */
   final List<Transaction> openingTrades = new ArrayList<>();
@@ -115,7 +119,8 @@ class AlgoReplayState {
       SimulationSourceRepository source, AlgoAssetclassJpaRepository algoBuckets, AlgoSecurityJpaRepository algoMembers,
       TransactionCostEvalExEstimator costEstimator, TaxEvalExEstimator taxEstimator,
       AlgoReplayIncomeService incomeService, AlgoEventLogJpaRepository events, TransactionTemplate transactionTemplate,
-      Map<String, Integer> currencyPrecision, FxMarkupEngine.TierRate fxRates) {
+      Map<String, Integer> currencyPrecision, FxMarkupEngine.TierRate fxRates,
+      Function<Collection<Integer>, List<Security>> securityLoader) {
     this.run = run;
     this.tenant = tenant;
     this.algoTop = algoTop;
@@ -171,6 +176,13 @@ class AlgoReplayState {
             }
           }
         }));
+    // An instrument that only a security standing order buys receives income, expiry and valuation like any other.
+    List<Integer> standingOrderSecurities = inputs.securityStandingOrdersOrEmpty().stream()
+        .map(AlgoReplayInputs.SecurityStandingOrder::idSecurity).filter(id -> !securities.containsKey(id)).distinct()
+        .toList();
+    if (!standingOrderSecurities.isEmpty()) {
+      securityLoader.apply(standingOrderSecurities).forEach(security -> securities.put(security.getId(), security));
+    }
     this.accounts = new AlgoReplayAccounts(securityaccounts, source.cashaccounts(run.getIdTenant()), openingLedger,
         tenant.getCurrency(), priorities);
     securities.keySet().forEach(this::registerExpiry);

@@ -8,7 +8,7 @@
   <groupId>grafioschtrader</groupId>
   <artifactId>grafioschtrader</artifactId>
   <packaging>pom</packaging>
-  <version>0.37.2</version>
+  <version>0.37.3</version>
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -50,7 +50,18 @@
       <dependency>
         <groupId>org.apache.pdfbox</groupId>
         <artifactId>pdfbox</artifactId>
-        <version>3.0.8</version>
+        <version>${pdfbox.version}</version>
+      </dependency>
+      <!-- FOP also brings FontBox; subsetting requires the exact PDFBox companion version. -->
+      <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>fontbox</artifactId>
+        <version>${pdfbox.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox-io</artifactId>
+        <version>${pdfbox.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springdoc</groupId>
@@ -76,6 +87,7 @@
   </organization>
   <!-- define the common properties used throughout the modules - allows us to keep things consistent -->
   <properties>
+    <pdfbox.version>3.0.8</pdfbox.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>25</java.version>

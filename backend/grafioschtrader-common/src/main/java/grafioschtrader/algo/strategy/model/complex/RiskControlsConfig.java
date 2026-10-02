@@ -4,7 +4,8 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 
 /**
- * Risk management parameters: position exposure limits, drawdown limits, and breach actions.
+ * Risk management parameters of one position: exposure limit, drawdown limit and breach action. The position exposure
+ * limit applies to every entry and every addition; no setting lifts it.
  */
 
 public class RiskControlsConfig {
@@ -18,8 +19,4 @@ public class RiskControlsConfig {
   public Double max_position_drawdown_pct;
 
   public Boolean force_exit_on_risk_breach;
-
-  public Boolean block_entry_if_exposure_exceeded;
-
-  public Boolean block_add_if_exposure_exceeded;
 }

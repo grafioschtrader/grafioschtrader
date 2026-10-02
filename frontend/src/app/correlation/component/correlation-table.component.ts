@@ -36,7 +36,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
-import { CorrelationAddInstrumentComponent } from './correlation-add-instrument.component';
+import { CorrelationAddInstrumentDialogComponent } from './correlation-add-instrument-dialog.component';
 import { InstrumentStatisticsResultComponent } from '../../shared/securitycurrency/instrument-statistics-result.component';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 
@@ -154,7 +154,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
     FormsModule,
     TranslateModule,
     TableModule,
-    CorrelationAddInstrumentComponent,
+    CorrelationAddInstrumentDialogComponent,
     InstrumentStatisticsResultComponent
   ]
 })

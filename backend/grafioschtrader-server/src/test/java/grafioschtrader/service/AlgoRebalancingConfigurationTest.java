@@ -57,7 +57,7 @@ class AlgoRebalancingConfigurationTest {
         .getFormDefinitionsByAlgoStrategyImpl(AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING);
     assertThat(form.defaultValues).containsEntry("securityDeviationPercentage", 5.0)
         .containsEntry("maxTradedSecuritiesPerAssetclass", 3);
-    assertThat(form.topFormDefinitionList).extracting(field -> field.fieldName).contains("securityDeviationPercentage",
+    assertThat(form.topFormDefinition.fieldDescriptorInputAndShows).extracting(field -> field.fieldName).contains("securityDeviationPercentage",
         "maxTradedSecuritiesPerAssetclass");
   }
 
@@ -68,6 +68,7 @@ class AlgoRebalancingConfigurationTest {
     ReflectionTestUtils.setField(repository, "algoAssetclassJpaRepository", persistence);
     ReflectionTestUtils.setField(repository, "hierarchyWriteGuard", mock(AlgoHierarchyWriteGuard.class));
     ReflectionTestUtils.setField(repository, "alertScopeLifecycle", mock(AlgoAlertScopeLifecycle.class));
+    ReflectionTestUtils.setField(repository, "accountPriority", mock(AlgoAccountPriorityService.class));
     return repository;
   }
 }

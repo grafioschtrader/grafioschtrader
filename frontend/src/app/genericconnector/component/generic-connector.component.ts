@@ -32,7 +32,7 @@ import { GenericConnectorHttpHeader } from '../../entities/generic.connector.htt
 import { GenericConnectorTestDialogComponent } from './generic-connector-test-dialog.component';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { DynamicDialogs } from '../../lib/dynamicdialog/component/dynamic.dialogs';
-import { MailSendParam } from '../../lib/dynamicdialog/component/mail.send.dynamic.component';
+import { MailSendParam } from '../../lib/dynamicdialog/component/mail-send-dynamic-dialog.component';
 import { AppSettings } from '../../shared/app.settings';
 
 /**

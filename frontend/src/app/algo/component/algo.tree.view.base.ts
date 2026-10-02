@@ -92,11 +92,14 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
 
   /**
    * Adds the columns that follow the percentage: the child total, the activity dates of an instrument, its
-   * distribution and the ID. The distribution column shows the watchlist's distribution icon for an instrument that
-   * pays out, and the coupon rate for a bond, since a simulation pays a bond's interest from that rate. The subclass
-   * template renders it through its `iconCell` template.
+   * distribution, optionally its current holdings, and the ID. The distribution column shows the watchlist's
+   * distribution icon for an instrument that pays out, and the coupon rate for a bond, since a simulation pays a bond's
+   * interest from that rate. The subclass template renders it through its `iconCell` template.
+   *
+   * @param withHoldings - Adds the column with the units the tenant holds today; the server fills it only for the
+   *   assigned monitoring hierarchy (default: false)
    */
-  protected addTotalDateAndIdColumns(): void {
+  protected addTotalDateAndIdColumns(withHoldings = false): void {
     this.addColumnFeqH(DataType.NumericShowZero, 'addedPercentage', true, false, {
       maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
       width: 80
@@ -108,6 +111,9 @@ export abstract class AlgoTreeViewBase extends TreeTableConfigBase {
       templateName: 'icon',
       width: 50
     });
+    if (withHoldings) {
+      this.addColumn(DataType.Numeric, 'holdings', 'HOLDING', true, false, { width: 80 });
+    }
     this.addColumn(DataType.String, 'idTree', 'ID', true, false);
   }
 

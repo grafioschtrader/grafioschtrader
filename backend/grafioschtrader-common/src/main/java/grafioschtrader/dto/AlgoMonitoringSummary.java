@@ -33,6 +33,8 @@ public record AlgoMonitoringSummary(
     @Schema(description = "Label of the bucket furthest from its target; null without bucket lines") String largestDeviationBucket,
     @Schema(description = "Its actual minus target share, in percentage points of net equity") Double largestDeviationPercentage,
     @Schema(description = "Number of mean reversion proposals asking for a trade") int meanReversionSignals,
+    @Schema(description = """
+        Number of plan lines outside their tolerance band: classes, instruments and the exposure ceiling""") int allocationBreaches,
     @Schema(description = "The largest proposed trades, at most three, sales first") List<Trade> topTrades) {
 
   @Schema(description = "One proposed trade of the stored plan")
@@ -44,7 +46,7 @@ public record AlgoMonitoringSummary(
 
   /** A summary that only carries the reason why there is nothing to summarize. */
   public static AlgoMonitoringSummary reason(String reasonKey) {
-    return new AlgoMonitoringSummary(reasonKey, null, null, null, null, null, false, null, null, 0, 0, 0, 0, 0, null, null, 0,
-        List.of());
+    return new AlgoMonitoringSummary(reasonKey, null, null, null, null, null, false, null, null, 0, 0, 0, 0, 0, null,
+        null, 0, 0, List.of());
   }
 }

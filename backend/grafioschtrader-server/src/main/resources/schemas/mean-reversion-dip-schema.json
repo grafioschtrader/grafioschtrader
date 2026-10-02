@@ -182,7 +182,7 @@
           "enum": [
             "dip_buy"
           ],
-          "description": "Optional; the only executable value is the default. Entry strategy type: dip_buy (mean reversion), breakout, or indicator_signal"
+          "description": "Optional; dip_buy is the only entry type"
         },
         "lookback_T": {
           "type": "integer",
@@ -1183,7 +1183,7 @@
     },
     "RiskControlsConfig": {
       "type": "object",
-      "description": "Risk management parameters - portfolio-level exposure and drawdown limits",
+      "description": "Risk management parameters of one position - exposure and drawdown limits",
       "additionalProperties": false,
       "properties": {
         "max_position_exposure_pct": {
@@ -1203,14 +1203,6 @@
         "force_exit_on_risk_breach": {
           "type": "boolean",
           "description": "Whether to force-liquidate the position when risk limits are breached"
-        },
-        "block_entry_if_exposure_exceeded": {
-          "type": "boolean",
-          "description": "Ignored; accepted only for compatibility with earlier configurations. An entry or addition beyond the exposure limit is always blocked."
-        },
-        "block_add_if_exposure_exceeded": {
-          "type": "boolean",
-          "description": "Ignored; accepted only for compatibility with earlier configurations. An entry or addition beyond the exposure limit is always blocked."
         }
       },
       "required": [

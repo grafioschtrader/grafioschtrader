@@ -109,7 +109,7 @@ export function findSecurityAction(
   );
 }
 
-/** Creates an ISIN change through SecurityActionCreateComponent. */
+/** Creates an ISIN change through SecurityActionCreateDialogComponent. */
 export async function createIsinChange(page: Page, fixture: IsinChangeFixture, locale: string): Promise<void> {
   await test.step(`create ${fixture.isinOld} -> ${fixture.isinNew}`, async () => {
     const rootRow = systemActionsRow(page);

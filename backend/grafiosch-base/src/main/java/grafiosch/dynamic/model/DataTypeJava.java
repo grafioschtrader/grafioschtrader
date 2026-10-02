@@ -37,10 +37,10 @@ public enum DataTypeJava {
   /** Exact decimal amounts, including coupon rates and nominal values. */
   BigDecimal(java.math.BigDecimal.class),
 
-  /** Integer wrapper class ({@code Integer.class}) */
-  Integer(Integer.class),
+  /** Primitive integer type ({@code int.class}) */
+  Integer(int.class),
 
-  /** Integer wrapper class ({@code Integer.class}) - alternative mapping */
+  /** Integer wrapper class ({@code Integer.class}) */
   IntegerC(Integer.class),
 
   /** String class ({@code String.class}) for text data */

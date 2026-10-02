@@ -76,10 +76,6 @@ public class StandingOrderJpaRepositoryImpl extends BaseRepositoryImpl<StandingO
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     boolean simulation = isSimulation(user.getIdTenant());
 
-    if (simulation && standingOrder instanceof StandingOrderSecurity) {
-      throw new DataViolationException("standing.order", "standing.order.simulation.cash.only", null);
-    }
-
     // Tenant limit check on create
     if (existingEntity == null) {
       Optional<Integer> maxAllowedOpt = entityLimitService.resolve(user, LimitKeyConfig.KEY_STANDING_ORDER);

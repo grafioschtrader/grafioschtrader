@@ -1,27 +1,30 @@
 package grafioschtrader.algo.strategy.model;
 
 import java.io.Serializable;
-import java.util.List;
 
-import grafiosch.dynamic.model.FieldDescriptorInputAndShow;
+import grafiosch.dynamic.model.ClassDescriptorInputAndShow;
 
+/**
+ * Edit form of a simple strategy for each level of the algo hierarchy. Each level carries the fields of its model class
+ * together with the cross-field constraints declared on that class, so the form rejects what the save would.
+ */
 public class InputAndShowDefinitionStrategy implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public List<FieldDescriptorInputAndShow> topFormDefinitionList;
-  public List<FieldDescriptorInputAndShow> assetclassFormDefinitionList;
-  public List<FieldDescriptorInputAndShow> securityFormDefinitionList;
+  public ClassDescriptorInputAndShow topFormDefinition;
+  public ClassDescriptorInputAndShow assetclassFormDefinition;
+  public ClassDescriptorInputAndShow securityFormDefinition;
   public boolean isComplexStrategy;
   public java.util.Map<String, Object> defaultValues = java.util.Map.of();
 
-  public InputAndShowDefinitionStrategy(List<FieldDescriptorInputAndShow> topFormDefinitionList,
-      List<FieldDescriptorInputAndShow> assetclassFormDefinitionList,
-      List<FieldDescriptorInputAndShow> securityFormDefinitionList, boolean isComplexStrategy) {
+  public InputAndShowDefinitionStrategy(ClassDescriptorInputAndShow topFormDefinition,
+      ClassDescriptorInputAndShow assetclassFormDefinition, ClassDescriptorInputAndShow securityFormDefinition,
+      boolean isComplexStrategy) {
     super();
-    this.topFormDefinitionList = topFormDefinitionList;
-    this.assetclassFormDefinitionList = assetclassFormDefinitionList;
-    this.securityFormDefinitionList = securityFormDefinitionList;
+    this.topFormDefinition = topFormDefinition;
+    this.assetclassFormDefinition = assetclassFormDefinition;
+    this.securityFormDefinition = securityFormDefinition;
     this.isComplexStrategy = isComplexStrategy;
   }
 

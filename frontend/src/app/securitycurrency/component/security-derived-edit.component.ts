@@ -13,7 +13,7 @@ import { AppHelper } from '../../lib/helper/app.helper';
 import { SecurityDerived, SecurityEditSupport } from '../../shared/securitycurrency/security.edit.support';
 import { AuditHelper } from '../../lib/helper/audit.helper';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
-import { SecuritycurrencySearchAndSetComponent } from './securitycurrency-search-and-set.component';
+import { SecuritycurrencySearchAndSetDialogComponent } from './securitycurrency-search-and-set-dialog.component';
 import { DynamicFieldHelper } from '../../lib/helper/dynamic.field.helper';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { combineLatest, Observable, Subscription } from 'rxjs';
@@ -170,7 +170,7 @@ export class SecurityDerivedEditComponent extends SimpleEditBase implements OnIn
   handleSecurityClick(fieldConfig: FieldConfig): void {
     this.dialogSecurityTargetFieldname = fieldConfig.field;
     this.translateService.get('SET_SECURITY').subscribe((title) => {
-      const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
+      const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
         header: title,
         width: '720px',
         resizable: false,

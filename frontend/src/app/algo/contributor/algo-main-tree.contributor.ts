@@ -19,16 +19,16 @@ import { InfoLevelType } from '../../lib/message/info.leve.type';
 import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { FeatureType } from '../../lib/login/model/configuration-with-login';
-import { AlgoRuleStrategyCreateDynamicComponent } from '../component/algo.rule.strategy.create.component';
-import { AlgoCreateFromPortfolioDynamicComponent } from '../component/algo-create-from-portfolio.component';
-import { AlgoCreateFromWatchlistDynamicComponent } from '../component/algo-create-from-watchlist.component';
+import { AlgoRuleStrategyCreateDynamicDialogComponent } from '../component/algo-rule-strategy-create-dynamic-dialog.component';
+import { AlgoCreateFromPortfolioDynamicDialogComponent } from '../component/algo-create-from-portfolio-dynamic-dialog.component';
+import { AlgoCreateFromWatchlistDynamicDialogComponent } from '../component/algo-create-from-watchlist-dynamic-dialog.component';
 import { AlgoTopCreateFromPortfolio, AlgoTopCreateFromWatchlist } from '../../entities/backend/algo.top.create';
 import { TenantService } from '../../tenant/service/tenant.service';
 import { ManageClientService } from '../../lib/manageclient/service/manage-client.service';
 import { SimulationContextService } from '../service/simulation.context.service';
 import { SimulationTenantInfo } from '../model/simulation.tenant';
-import { AlgoSimulationCreateDynamicComponent } from '../component/algo-simulation-create.component';
-import { AlgoSimulationRunStartDynamicComponent } from '../component/algo-simulation-run-start.component';
+import { AlgoSimulationCreateDynamicDialogComponent } from '../component/algo-simulation-create-dynamic-dialog.component';
+import { AlgoSimulationRunStartDynamicDialogComponent } from '../component/algo-simulation-run-start-dynamic-dialog.component';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { Cashaccount } from '../../entities/cashaccount';
 import { Tenant } from '../../entities/tenant';
@@ -178,7 +178,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             command: () =>
               this.callbacks
                 ?.handleEdit(
-                  AlgoRuleStrategyCreateDynamicComponent,
+                  AlgoRuleStrategyCreateDynamicDialogComponent,
                   null,
                   new AlgoTopCreate(),
                   'ALGO_PORTFOLIO_STRATEGY'
@@ -194,7 +194,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             command: () =>
               this.callbacks
                 ?.handleEdit(
-                  AlgoCreateFromPortfolioDynamicComponent,
+                  AlgoCreateFromPortfolioDynamicDialogComponent,
                   null,
                   new AlgoTopCreateFromPortfolio(),
                   'CREATE_STRATEGY_FROM_PORTFOLIO'
@@ -210,7 +210,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
             command: () =>
               this.callbacks
                 ?.handleEdit(
-                  AlgoCreateFromWatchlistDynamicComponent,
+                  AlgoCreateFromWatchlistDynamicDialogComponent,
                   null,
                   new AlgoTopCreateFromWatchlist(),
                   'CREATE_STRATEGY_FROM_WATCHLIST'
@@ -247,7 +247,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
                 }
                 this.callbacks
                   ?.handleEdit(
-                    AlgoSimulationCreateDynamicComponent,
+                    AlgoSimulationCreateDynamicDialogComponent,
                     { cashAccounts, formDefinition },
                     algoTop,
                     'CREATE_SIMULATION'
@@ -387,7 +387,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
     AppHelper.confirmationDialog(this.translateService, this.confirmationService, 'SIMULATION_RUN_CONFIRM', () => {
       this.gps.getEntityFormDefinition('SimulationRunRequestDTO').subscribe((formDefinition) =>
         this.callbacks
-          ?.handleEdit(AlgoSimulationRunStartDynamicComponent, { formDefinition }, sim, 'SIMULATION_RUN')
+          ?.handleEdit(AlgoSimulationRunStartDynamicDialogComponent, { formDefinition }, sim, 'SIMULATION_RUN')
           ?.subscribe((result) => {
             if (result) {
               this.callbacks?.navigateToNode(typeNodeData);

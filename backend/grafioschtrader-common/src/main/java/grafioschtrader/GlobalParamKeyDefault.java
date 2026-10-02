@@ -28,6 +28,29 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   public static final int DEFAULT_ALGO_ALARM_EVALUATION_INTERVAL_HOURS = 4;
 
   /**
+   * Retention of the recorded alert notifications per tenant, in the form {@code Days=180,MaxRecords=200}. A
+   * notification is removed as soon as it exceeds either limit, provided it has finished its delivery and is older than
+   * {@link #ALGO_ALERT_PROTECTED_DAYS}.
+   */
+  public static final String GLOB_KEY_ALGO_ALERT_RETENTION = GlobalConstants.GT_PREFIX + "algo.alert.retention";
+  public static final String ALGO_ALERT_RETENTION_DAYS = "Days";
+  public static final String ALGO_ALERT_RETENTION_MAX_RECORDS = "MaxRecords";
+  public static final int DEFAULT_ALGO_ALERT_RETENTION_DAYS = 180;
+  public static final int MIN_ALGO_ALERT_RETENTION_DAYS = 10;
+  public static final int MAX_ALGO_ALERT_RETENTION_DAYS = 999;
+  public static final int DEFAULT_ALGO_ALERT_RETENTION_MAX_RECORDS = 200;
+  public static final int MIN_ALGO_ALERT_RETENTION_MAX_RECORDS = 20;
+  public static final int MAX_ALGO_ALERT_RETENTION_MAX_RECORDS = 2000;
+
+  /**
+   * Days during which a recorded notification can neither be deleted by the user nor by the retention: its row is the
+   * only guard against the same alarm being sent again. A level triggered alert is evaluated several times a day, and a
+   * mean reversion signal is keyed by its valuation date, which stays the same over weekends, holidays and stale
+   * prices. Equal to the smallest retention in days, so the age limit never reaches into the window.
+   */
+  public static final int ALGO_ALERT_PROTECTED_DAYS = MIN_ALGO_ALERT_RETENTION_DAYS;
+
+  /**
    * Longest horizon a single historical replay may cover, counted in trading days rather than calendar days. The
    * ceiling protects the replay worker pool: one run occupies a worker for its whole horizon, so an unbounded one
    * starves every other replay of the instance. An administrator raises or lowers it according to how much hardware the

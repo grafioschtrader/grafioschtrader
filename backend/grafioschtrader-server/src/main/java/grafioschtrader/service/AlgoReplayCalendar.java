@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.TradingDaysMinus.TradingDaysMinusKey;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.repository.TradingDaysMinusJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
@@ -133,6 +134,24 @@ public class AlgoReplayCalendar {
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * Whether the exchange of the instrument holds a session on the given date, as the execution of a security standing
+   * order asks it. The global calendar {@code trading_days_plus} must contain the date - which is also what the write
+   * path demands of every security transaction - and the exchange must not be closed on it in
+   * {@code trading_days_minus}. An instrument without an exchange is answered by the global calendar alone.
+   *
+   * @param security the instrument to be traded
+   * @param date     the date to test
+   * @return true when the instrument can be traded on that date
+   */
+  public boolean isSessionDate(Security security, LocalDate date) {
+    if (!tradingDays.existsById(date)) {
+      return false;
+    }
+    return security.getStockexchange() == null
+        || !holidays.existsById(new TradingDaysMinusKey(security.getStockexchange().getIdStockexchange(), date));
   }
 
   private boolean isCrypto(Security security) {

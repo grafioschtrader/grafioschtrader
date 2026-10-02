@@ -28,6 +28,40 @@ export const atLeastOneFieldValidator = (group: UntypedFormGroup): { [key: strin
   return isAtLeastOne ? null : { required: true };
 };
 
+/**
+ * Whether a form value counts as entered. Unlike a truthiness check, 0 is a value; an empty or blank string is not.
+ */
+const isEntered = (value: any): boolean =>
+  value !== null && value !== undefined && !(typeof value === 'string' && value.trim() === '');
+
+/**
+ * Group validator mirroring the backend class constraint `@AtLeastOneNotNull`: at least one of the named fields of
+ * the group must hold a value.
+ *
+ * @param fields - Names of the controls of which one must be entered
+ * @returns A validator reporting `atLeastOneNotNull` when all of them are empty
+ */
+export const atLeastOneNotNull =
+  (fields: string[]): ValidatorFn =>
+  (group: AbstractControl): ValidationErrors | null =>
+    fields.some((field) => isEntered(group.get(field)?.value)) ? null : { atLeastOneNotNull: true };
+
+/**
+ * Group validator mirroring the backend class constraint `@NumberRange`: when both bounds are entered, the lower one
+ * must be strictly below the upper one. An empty bound is always valid.
+ *
+ * @param lowerField - Name of the control holding the lower bound
+ * @param upperField - Name of the control holding the upper bound
+ * @returns A validator reporting `numberRange` when the bounds are not ascending
+ */
+export const numberRange =
+  (lowerField: string, upperField: string): ValidatorFn =>
+  (group: AbstractControl): ValidationErrors | null => {
+    const lower = group.get(lowerField)?.value;
+    const upper = group.get(upperField)?.value;
+    return isEntered(lower) && isEntered(upper) && Number(lower) >= Number(upper) ? { numberRange: true } : null;
+  };
+
 export const gtWithMask =
   (gt: number): ValidatorFn =>
   (control: AbstractControl): ValidationErrors | null => {

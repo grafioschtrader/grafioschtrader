@@ -1,4 +1,4 @@
-import { AlgoAlertDiagnosticsComponent } from './algo-alert-diagnostics.component';
+import { AlgoAlertDiagnosticsDialogComponent } from './algo-alert-diagnostics-dialog.component';
 import { ButtonModule } from '@openng/optimus-ui/button';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -26,12 +26,15 @@ import { AlgoCallParam, AlgoStrategyDefinitionForm } from '../model/algo.dialog.
 import { ConfigurableTreeTableComponent } from '../../lib/datashowbase/configurable-tree-table.component';
 import { AlgoStrategyEditComponent } from './algo-strategy-edit.component';
 import { AppSettings } from '../../shared/app.settings';
+import { AlgoHierarchyAlertOverviewComponent } from './algo-hierarchy-alert-overview.component';
 
 /**
  * Landing page of the rule-based trading root node. Shows the portfolio-independent (standalone) alerts of the tenant
  * in a tree table: each alerted security is a parent row, its alert strategies are the child rows. The live alert of
  * a strategy is switched with its alertEnabled checkbox; strategies are created, edited and deleted via the context
- * menu. Alerts that belong to a strategy hierarchy are not listed here, they are managed in the view of their hierarchy.
+ * menu. Below them a read-only tree lists the alerts of the strategy hierarchies, marking those of every hierarchy
+ * that is not assigned to monitoring as dormant; these alerts are managed in the view of their hierarchy. That tree is
+ * left out inside a simulation environment, where no live alert is evaluated.
  */
 @Component({
   selector: 'algo-standalone-alert',
@@ -64,6 +67,9 @@ import { AppSettings } from '../../shared/app.settings';
         (checkboxChange)="onCheckboxChange($event)"
         (componentClick)="onComponentClick($event)">
       </configurable-tree-table>
+      @if (!simulationContext.isInSimulation()) {
+        <algo-hierarchy-alert-overview />
+      }
     </div>
 
     @if (visibleStrategyDialog) {
@@ -78,11 +84,12 @@ import { AppSettings } from '../../shared/app.settings';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ButtonModule,
-    AlgoAlertDiagnosticsComponent,
+    AlgoAlertDiagnosticsDialogComponent,
     CommonModule,
     TranslateModule,
     ConfigurableTreeTableComponent,
-    AlgoStrategyEditComponent
+    AlgoStrategyEditComponent,
+    AlgoHierarchyAlertOverviewComponent
   ]
 })
 export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements OnInit, OnDestroy, IGlobalMenuAttach {
@@ -103,7 +110,7 @@ export class AlgoStandaloneAlertComponent extends TreeTableConfigBase implements
     private activePanelService: ActivePanelService,
     private algoSecurityService: AlgoSecurityService,
     private algoStrategyService: AlgoStrategyService,
-    private simulationContext: SimulationContextService,
+    protected simulationContext: SimulationContextService,
     private messageToastService: MessageToastService,
     private confirmationService: ConfirmationService,
     translateService: TranslateService,

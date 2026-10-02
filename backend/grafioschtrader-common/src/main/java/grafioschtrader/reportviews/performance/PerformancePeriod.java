@@ -2,6 +2,7 @@ package grafioschtrader.reportviews.performance;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +11,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafioschtrader.common.DataBusinessHelper;
+import grafioschtrader.common.MoneyWeightedReturn;
+import grafioschtrader.common.MoneyWeightedReturn.DatedFlow;
+import grafioschtrader.common.ReturnSeries;
+import grafioschtrader.common.ReturnSeries.Convention;
+import grafioschtrader.common.ReturnSeries.ValuationPoint;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -26,6 +34,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * <li>Daily performance differences for charting</li>
  * <li>Structured period windows (weekly or yearly aggregation)</li>
  * <li>Column-wise summaries for tabular display</li>
+ * <li>Relative return, risk and cost figures ({@link PerformancePeriodMetrics}), and the time-weighted return of every
+ * window and every step</li>
  * </ul>
  *
  * <p>
@@ -76,6 +86,27 @@ public class PerformancePeriod {
 
   @Schema(description = "First chart day difference for baseline reference.")
   private PerformanceChartDayDiff firstChartDayDiff;
+
+  @Schema(description = "Return, risk and cost figures of the whole period; null while no holdings exist.")
+  private PerformancePeriodMetrics metrics;
+
+  @JsonIgnore
+  private ReturnSeries returnSeries;
+
+  @JsonIgnore
+  private List<Double> externalCashTransfers = List.of();
+
+  /** Exact chart valuations, kept out of the REST representation. */
+  @JsonIgnore
+  public ReturnSeries getReturnSeries() {
+    return returnSeries;
+  }
+
+  /** Cumulative external flows at the same indexes as the retained valuation series. */
+  @JsonIgnore
+  public List<Double> getExternalCashTransfers() {
+    return externalCashTransfers;
+  }
 
   /**
    * Creates a new performance period analysis with the specified parameters.
@@ -134,16 +165,134 @@ public class PerformancePeriod {
    * <li>Yearly aggregation: Creates monthly windows with last-day-of-month filtering</li>
    * </ul>
    *
+   * <p>
+   * Beforehand the daily holdings are turned into the time-weighted series of the report, from which every step and
+   * every window receives its return and the metrics of the whole period are derived.
+   * </p>
+   *
    * @param firstAndMissingTradingDays trading day metadata for handling holidays and missing data
-   * @param periodHoldings             list of daily holding data for the analysis period
+   * @param periodHoldings             list of daily holding data for the analysis period, the first one is the excluded
+   *                                   base
+   * @param dailyFlows                 net external flows per calendar day of the scope, ascending by date
+   * @param feesMC                     separately booked fees of the period in main currency, a charge is positive
    */
   public void createPeriodWindows(FirstAndMissingTradingDays firstAndMissingTradingDays,
-      List<IPeriodHolding> periodHoldings) {
+      List<IPeriodHolding> periodHoldings, List<IDailyExternalFlow> dailyFlows, double feesMC) {
+    createPeriodWindows(firstAndMissingTradingDays, periodHoldings, dailyFlows, feesMC, 0);
+  }
+
+  /** Builds the screen figures and records fee bookings omitted for lack of an exchange rate. */
+  public void createPeriodWindows(FirstAndMissingTradingDays firstAndMissingTradingDays,
+      List<IPeriodHolding> periodHoldings, List<IDailyExternalFlow> dailyFlows, double feesMC, int skippedFees) {
+    ReturnSeries series = ReturnSeries.of(toValuationPoints(periodHoldings, dailyFlows, firstAndMissingTradingDays),
+        Convention.REPORT);
+    returnSeries = series;
+    externalCashTransfers = periodHoldings.stream().map(IPeriodHolding::getExternalCashTransferMC).toList();
     if (periodSplit == WeekYear.WM_WEEK) {
-      createPeriodWindowsYear(WeekYear.WM_WEEK, firstAndMissingTradingDays, periodHoldings, null);
+      createPeriodWindowsYear(WeekYear.WM_WEEK, firstAndMissingTradingDays, periodHoldings, null, series);
     } else {
-      createPeriodWindowsYear(WeekYear.WM_YEAR, firstAndMissingTradingDays, periodHoldings, new FilterLastDayMonth());
+      createPeriodWindowsYear(WeekYear.WM_YEAR, firstAndMissingTradingDays, periodHoldings, new FilterLastDayMonth(),
+          series);
     }
+    periodWindows.forEach(periodWindow -> periodWindow.fillTwrPercent(series));
+    createMetrics(firstAndMissingTradingDays, periodHoldings, dailyFlows, feesMC, series, skippedFees);
+  }
+
+  /**
+   * Turns the daily holdings into the valuation points of the time-weighted series. The value includes the open result
+   * of margin positions. The net flow of an interval comes from the cumulative external cash transfer of the holdings;
+   * the dated flows only tell how much of it was withdrawn, so that the withdrawals count as flowed at the end and the
+   * rest as flowed at the start of the interval.
+   */
+  private List<ValuationPoint> toValuationPoints(List<IPeriodHolding> periodHoldings,
+      List<IDailyExternalFlow> dailyFlows, FirstAndMissingTradingDays fmtd) {
+    List<ValuationPoint> points = new ArrayList<>(periodHoldings.size());
+    int flowIndex = 0;
+    for (int i = 0; i < periodHoldings.size(); i++) {
+      IPeriodHolding periodHolding = periodHoldings.get(i);
+      LocalDate date = periodHolding.getDate();
+      if (i == 0) {
+        points.add(new ValuationPoint(date, totalValue(periodHolding), 0, 0, true));
+        continue;
+      }
+      LocalDate dateBefore = periodHoldings.get(i - 1).getDate();
+      double outflow = 0;
+      for (; flowIndex < dailyFlows.size() && !dailyFlows.get(flowIndex).getFlowDate().isAfter(date); flowIndex++) {
+        IDailyExternalFlow flow = dailyFlows.get(flowIndex);
+        if (flow.getFlowDate().isAfter(dateBefore) && flow.getFlowMC() < 0) {
+          outflow -= flow.getFlowMC();
+        }
+      }
+      double netFlow = periodHolding.getExternalCashTransferMC()
+          - periodHoldings.get(i - 1).getExternalCashTransferMC();
+      points.add(new ValuationPoint(date, totalValue(periodHolding), Math.max(0, netFlow + outflow), outflow,
+          noExpectedTradingDayBetween(dateBefore, date, fmtd)));
+    }
+    return points;
+  }
+
+  private static double totalValue(IPeriodHolding periodHolding) {
+    return periodHolding.getCashBalanceMC() + periodHolding.getSecuritiesMC() + periodHolding.getMarginCloseGainMC();
+  }
+
+  /** An expected trading day is a weekday that is no holiday of the held instruments. */
+  private static boolean isExpectedTradingDay(LocalDate date, FirstAndMissingTradingDays fmtd) {
+    return date.getDayOfWeek() != DayOfWeek.SATURDAY && date.getDayOfWeek() != DayOfWeek.SUNDAY
+        && !fmtd.isHoliday(date);
+  }
+
+  /**
+   * Whether no expected trading day lies strictly between the two dates, i.e. the interval misses no valuation.
+   * Weekends and holidays do not make an interval irregular, a day with missing prices does.
+   */
+  private static boolean noExpectedTradingDayBetween(LocalDate from, LocalDate to, FirstAndMissingTradingDays fmtd) {
+    for (LocalDate date = from.plusDays(1); date.isBefore(to); date = date.plusDays(1)) {
+      if (isExpectedTradingDay(date, fmtd)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Whether a step covers exactly what its column stands for. In the weekly split that is a single trading day without
+   * gap. In the yearly split it is one whole month: the base is the last expected trading day of the previous month and
+   * the step ends on the last expected trading day of its month. A month whose last valuation is missing therefore
+   * makes both its own step and the following one incomplete.
+   */
+  private static boolean isCompleteStep(WeekYear weekYear, LocalDate baseDate, LocalDate lastDate,
+      FirstAndMissingTradingDays fmtd) {
+    if (weekYear == WeekYear.WM_WEEK) {
+      return noExpectedTradingDayBetween(baseDate, lastDate, fmtd);
+    }
+    return YearMonth.from(baseDate).plusMonths(1).equals(YearMonth.from(lastDate))
+        && isLastExpectedTradingDayOfMonth(baseDate, fmtd) && isLastExpectedTradingDayOfMonth(lastDate, fmtd);
+  }
+
+  private static boolean isLastExpectedTradingDayOfMonth(LocalDate date, FirstAndMissingTradingDays fmtd) {
+    return noExpectedTradingDayBetween(date, date.with(TemporalAdjusters.lastDayOfMonth()).plusDays(1), fmtd);
+  }
+
+  /**
+   * Derives the figures of the whole period from the series, the money-weighted return of the dated flows and the steps
+   * of all windows.
+   */
+  private void createMetrics(FirstAndMissingTradingDays fmtd, List<IPeriodHolding> periodHoldings,
+      List<IDailyExternalFlow> dailyFlows, double feesMC, ReturnSeries series, int skippedFees) {
+    IPeriodHolding first = periodHoldings.getFirst();
+    IPeriodHolding last = periodHoldings.getLast();
+    List<DatedFlow> flows = dailyFlows.stream().map(f -> new DatedFlow(f.getFlowDate(), f.getFlowMC())).toList();
+    MoneyWeightedReturn.Result mwr = MoneyWeightedReturn.solve(first.getDate(), totalValue(first), last.getDate(),
+        totalValue(last), flows);
+    int expectedSessions = 0;
+    for (LocalDate date = first.getDate().plusDays(1); !date.isAfter(last.getDate()); date = date.plusDays(1)) {
+      if (isExpectedTradingDay(date, fmtd)) {
+        expectedSessions++;
+      }
+    }
+    List<PeriodStep> steps = periodWindows.stream().flatMap(periodWindow -> periodWindow.periodStepList.stream())
+        .filter(PeriodStep.class::isInstance).map(PeriodStep.class::cast).toList();
+    metrics = PerformancePeriodMetrics.of(series, mwr, expectedSessions, steps, feesMC, skippedFees);
   }
 
   /**
@@ -164,9 +313,10 @@ public class PerformancePeriod {
    * @param firstAndMissingTradingDays trading day metadata for validation
    * @param periodHoldings             list of daily holding data
    * @param filter                     optional filter for determining period boundaries (used for monthly aggregation)
+   * @param series                     time-weighted series of the holdings, same indexes as periodHoldings
    */
   private void createPeriodWindowsYear(WeekYear weekYear, FirstAndMissingTradingDays firstAndMissingTradingDays,
-      List<IPeriodHolding> periodHoldings, IFilterPeriodDay filter) {
+      List<IPeriodHolding> periodHoldings, IFilterPeriodDay filter, ReturnSeries series) {
     List<LocalDate> weekDays = LongStream
         .range(firstDayTotals.getDate().toEpochDay(), lastDayTotals.getDate().toEpochDay() + 1)
         .mapToObj(LocalDate::ofEpochDay)
@@ -214,9 +364,11 @@ public class PerformancePeriod {
           // Should have history data
           if (filter == null || filter.nextPeriodStartsNewWindow(periodHoldings, periodHolding.getDate(), phIndex)) {
 
-            lastDayWeekGainMap.put(weekStartDay, periodHolding.getGainMC());
+            lastDayWeekGainMap.put(weekStartDay, totalGainMC(periodHolding));
             if (phIndex > 0) {
               IPeriodHolding pHDayBefore = periodHoldings.get(lastIndex);
+              LocalDate baseDate = pHDayBefore.getDate();
+              periodWindow.registerStepIndexes(lastIndex, phIndex);
               periodWindow.addPeriodStep(weekYear, weekDay,
                   DataBusinessHelper.roundStandard(
                       periodHolding.getExternalCashTransferMC() - pHDayBefore.getExternalCashTransferMC()),
@@ -227,11 +379,13 @@ public class PerformancePeriod {
                   DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - pHDayBefore.getSecuritiesMC()),
                   DataBusinessHelper.roundStandard(periodHolding.getSecuritiesMC() - pHDayBefore.getSecuritiesMC()
                       + periodHolding.getCashBalanceMC() - pHDayBefore.getCashBalanceMC()),
-                  missingDayCountFromDayToDay);
+                  missingDayCountFromDayToDay, baseDate,
+                  PerformancePeriodMetrics.percent(series.linked(lastIndex, phIndex)),
+                  isCompleteStep(weekYear, baseDate, weekDay, firstAndMissingTradingDays));
               lastIndex = phIndex;
               int columnIndex = (weekYear == WeekYear.WM_WEEK) ? weekDay.getDayOfWeek().getValue() - 1
                   : weekDay.getMonthValue() - 1;
-              sumPeriodColSteps[columnIndex] += periodHolding.getGainMC() - pHDayBefore.getGainMC();
+              sumPeriodColSteps[columnIndex] += totalGainMC(periodHolding) - totalGainMC(pHDayBefore);
 
             }
             missingDayCountFromDayToDay = 0;
@@ -246,6 +400,11 @@ public class PerformancePeriod {
     if (periodWindows.size() >= 2) {
       periodWindows.get(periodWindows.size() - 1).fillMissinGainPeriodMCByPeriodStep();
     }
+  }
+
+  /** Gain including the open result of margin positions, the figure every cell of the period table shows. */
+  private static double totalGainMC(IPeriodHolding periodHolding) {
+    return periodHolding.getGainMC() + periodHolding.getMarginCloseGainMC();
   }
 
   /**
@@ -307,6 +466,10 @@ public class PerformancePeriod {
 
   public List<PeriodWindow> getPeriodWindows() {
     return periodWindows;
+  }
+
+  public PerformancePeriodMetrics getMetrics() {
+    return metrics;
   }
 
   /**

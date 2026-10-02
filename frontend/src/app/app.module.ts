@@ -110,7 +110,7 @@ import { TemplateFormCheckDialogResultSuccessComponent } from './imptranstemplat
 // eslint-disable-next-line max-len
 import { TemplateFormCheckDialogResultFailedComponent } from './imptranstemplate/component/template-form-check-dialog-result-failed.component';
 import { ImportTransactionPosService } from './imptransaction/service/import.transaction.pos.service';
-import { SecurityaccountImportSetCashaccountComponent } from './imptransaction/component/securityaccount-import-set-cashaccount.component';
+import { SecurityaccountImportSetCashaccountDialogComponent } from './imptransaction/component/securityaccount-import-set-cashaccount-dialog.component';
 import { SecurityaccountImportExtendedInfoComponent } from './imptransaction/component/securityaccount-import-extended-info.component';
 import { ProposeChangeEntityService } from './lib/proposechange/service/propose.change.entity.service';
 import { setupProposeChangeEntityHandlers } from './shared/changerequest/propose.change.entity.handlers.setup';
@@ -148,7 +148,7 @@ import { TenantPerformanceTabMenuComponent } from './tenant/component/tenant.per
 import { PerformancePeriodComponent } from './performanceperiod/component/performance.period.component';
 import { TenantPerformanceEodMissingComponent } from './tenant/component/tenant.performance.eod.missing.component';
 import { HoldingService } from './performanceperiod/service/holding.service';
-import { TradingCalendarOtherExchangeDynamicComponent } from './stockexchange/component/trading.calendar.other.exchange.dynamic.component';
+import { TradingCalendarOtherExchangeDynamicDialogComponent } from './stockexchange/component/trading-calendar-other-exchange-dynamic-dialog.component';
 import { TenantPerformanceEodMissingTableComponent } from './tenant/component/tenant-performance-eod-missing-table.component';
 // eslint-disable-next-line max-len
 import { SecurityHistoryquoteQualityTreetableComponent } from './securitycurrency/component/security.historyquote.quality.treetable.component';
@@ -180,7 +180,7 @@ import { DividendService } from './watchlist/service/dividend.service';
 import { CardModule } from '@openng/optimus-ui/card';
 import { GlobalSettingsTableComponent } from './lib/globalsettings/global.settings.table.component';
 import { GlobalSettingsEditComponent } from './lib/globalsettings/global.settings-edit.component';
-import { UserChangeOwnerEntitiesComponent } from './lib/user/component/user-change-owner-entities.component';
+import { UserChangeOwnerEntitiesDialogComponent } from './lib/user/component/user-change-owner-entities-dialog.component';
 import { MultipleRequestToOneService } from './shared/service/multiple.request.to.one.service';
 import { TaskDataChangeService } from './lib/taskdatamonitor/service/task.data.change.service';
 import { TaskDataChangeTableComponent } from './lib/taskdatamonitor/component/task.data.change.table.component';
@@ -260,11 +260,11 @@ import { SecurityDerivedEditComponent } from './securitycurrency/component/secur
 import { SecurityEditComponent } from './shared/securitycurrency/security-edit.component';
 import { SecurityUDFEditComponent } from './securitycurrency/component/security-udf-edit.component';
 import { CurrencypairEditComponent } from './shared/securitycurrency/currencypair-edit.component';
-import { CorrelationAddInstrumentComponent } from './correlation/component/correlation-add-instrument.component';
+import { CorrelationAddInstrumentDialogComponent } from './correlation/component/correlation-add-instrument-dialog.component';
 import { InstrumentStatisticsResultComponent } from './shared/securitycurrency/instrument-statistics-result.component';
 import { CorrelationSetEditComponent } from './correlation/component/correlation-set-edit.component';
 import { WatchlistEditDynamicComponent } from './watchlist/component/watchlist.edit.dynamic.component';
-import { SecuritycurrencySearchAndSetComponent } from './securitycurrency/component/securitycurrency-search-and-set.component';
+import { SecuritycurrencySearchAndSetDialogComponent } from './securitycurrency/component/securitycurrency-search-and-set-dialog.component';
 import { SecuritycurrencySearchAndSetTableComponent } from './securitycurrency/component/securitycurrency-search-and-set-table.component';
 import { InstrumentAnnualisedReturnComponent } from './shared/securitycurrency/instrument.annualised.return.component';
 import { InstrumentYearPerformanceTableComponent } from './shared/securitycurrency/instrument-year-performance-table.component';
@@ -304,7 +304,7 @@ const createTranslateLoader = (http: HttpClient) =>
     ContextMenuModule,
     CorrelationComponent,
     CorrelationTableComponent,
-    CorrelationAddInstrumentComponent,
+    CorrelationAddInstrumentDialogComponent,
     CorrelationSetEditComponent,
     CurrencypairEditComponent,
     GTNetEditComponent,
@@ -319,7 +319,7 @@ const createTranslateLoader = (http: HttpClient) =>
     GTNetImportHeadSelectDialogComponent,
     SecurityaccountImportExtendedInfoComponent,
     SecurityaccountImportExtendedInfoFilenameComponent,
-    SecurityaccountImportSetCashaccountComponent,
+    SecurityaccountImportSetCashaccountDialogComponent,
     SecurityaccountImportTransactionEditHeadComponent,
     SecurityaccountImportTransactionTableComponent,
     SecurityaccountImportTransactionComponent,
@@ -345,7 +345,7 @@ const createTranslateLoader = (http: HttpClient) =>
     SecurityHistoryquotePeriodEditTableComponent,
     SecuritysplitEditTableComponent,
     SecurityUDFEditComponent,
-    SecuritycurrencySearchAndSetComponent,
+    SecuritycurrencySearchAndSetDialogComponent,
     SecuritycurrencySearchAndSetTableComponent,
     TemplateFormCheckDialogComponent,
     TemplateFormCheckDialogResultFailedComponent,
@@ -367,7 +367,7 @@ const createTranslateLoader = (http: HttpClient) =>
     TenantTransactionCostExtendedComponent,
     TenantTransactionTableComponent,
     TradingCalendarGlobalComponent,
-    TradingCalendarOtherExchangeDynamicComponent,
+    TradingCalendarOtherExchangeDynamicDialogComponent,
     TransformPdfToTxtDialogComponent,
     WatchlistAddInstrumentTableComponent,
     CorrelationSetAddInstrumentTableComponent,
@@ -405,7 +405,7 @@ const createTranslateLoader = (http: HttpClient) =>
     UploadFileDialogComponent,
     UserTableComponent,
     UserEditComponent,
-    UserChangeOwnerEntitiesComponent,
+    UserChangeOwnerEntitiesDialogComponent,
     EntityLimitUserTableComponent,
     EntityLimitEditComponent,
     EntityLimitTableComponent,

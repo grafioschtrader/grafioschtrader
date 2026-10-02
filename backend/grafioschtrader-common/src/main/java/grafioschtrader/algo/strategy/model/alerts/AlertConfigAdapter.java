@@ -1,11 +1,17 @@
 package grafioschtrader.algo.strategy.model.alerts;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
+
+import org.hibernate.validator.messageinterpolation.ResourceBundleMessageInterpolator;
+import org.hibernate.validator.resourceloading.PlatformResourceBundleLocator;
 
 import grafiosch.common.ValueFormatConverter;
 import grafiosch.entities.BaseParam;
@@ -18,6 +24,7 @@ import jakarta.validation.Validation;
 import jakarta.validation.ValidationException;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -41,9 +48,23 @@ import tools.jackson.databind.ObjectMapper;
  */
 public abstract class AlertConfigAdapter {
 
-  private static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
+  /**
+   * Resolves the messages of the class-level constraints, such as {@code {at.least.one.not.null}}, from the bundle of
+   * grafiosch-base; a constraint whose key is not there falls back to the texts of the validator itself.
+   */
+  private static final ValidatorFactory VALIDATOR_FACTORY = Validation.byDefaultProvider().configure()
+      .messageInterpolator(new ResourceBundleMessageInterpolator(new PlatformResourceBundleLocator("i18n/messages")))
+      .buildValidatorFactory();
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+  private static final Set<Class<?>> INTEGRAL_TYPES = Set.of(Integer.class, int.class, Long.class, long.class,
+      Short.class, short.class);
+
+  /** A whole number; "5.0" is still five and is accepted, only a fraction that would be cut off is not. */
+  private static final Pattern INTEGER_PATTERN = Pattern.compile("-?\\d+(\\.0+)?");
+
+  private static final Pattern DECIMAL_PATTERN = Pattern.compile("-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?");
 
   /**
    * Numbers arrive from the browser as JSON, so their decimal separator is always a point and they carry no grouping
@@ -161,6 +182,20 @@ public abstract class AlertConfigAdapter {
     return binding == null ? null : binding.algoSecurityModel;
   }
 
+  /**
+   * Removes the parameters of the fields the user left empty. The form sends every field of the model, an empty one
+   * without a value, but the parameter table cannot hold a missing value; an absent parameter is how an optional bound
+   * is expressed, and {@link #read(AlgoStrategy, Class)} reads it as null either way.
+   *
+   * @param strategy the strategy whose flat parameters are cleaned in place
+   */
+  public static void removeUnsetParams(AlgoRuleStrategy strategy) {
+    Map<String, AlgoRuleStrategy.AlgoRuleStrategyParam> params = strategy.getAlgoRuleStrategyParamMap();
+    if (params != null) {
+      params.values().removeIf(p -> p == null || !isSet(p.getParamValue()));
+    }
+  }
+
   private static boolean hasAnyValue(Map<String, AlgoRuleStrategy.AlgoRuleStrategyParam> params) {
     return params != null && params.values().stream().anyMatch(p -> p != null && isSet(p.getParamValue()));
   }
@@ -198,7 +233,7 @@ public abstract class AlertConfigAdapter {
         continue;
       }
       try {
-        validateRebalancingNumber(modelClass, fieldName, param.getParamValue());
+        requireCanonicalNumber(dataType, fieldName, param.getParamValue());
         converter.convertAndSetValue(model, fieldName, param.getParamValue(), dataType);
       } catch (Exception e) {
         throw new ValidationException("Parameter " + fieldName + " of " + modelClass.getSimpleName()
@@ -210,29 +245,30 @@ public abstract class AlertConfigAdapter {
 
   private static <T> T fromJson(String json, Class<T> modelClass) {
     try {
-      if (modelClass == grafioschtrader.algo.strategy.model.rebalacing.RebalancingTop.class) {
-        var tree = OBJECT_MAPPER.readTree(json);
-        for (String name : new String[] { "securityDeviationPercentage", "maxTradedSecuritiesPerAssetclass" }) {
-          var value = tree.get(name);
-          if (value != null && !value.isNull())
-            validateRebalancingNumber(modelClass, name, value.toString());
-        }
-      }
-      return OBJECT_MAPPER.readValue(json, modelClass);
+      JsonNode tree = OBJECT_MAPPER.readTree(json);
+      requireWholeNumbers(tree, modelClass);
+      return OBJECT_MAPPER.treeToValue(tree, modelClass);
     } catch (Exception e) {
       throw new ValidationException(
           "Stored JSON configuration is not a valid " + modelClass.getSimpleName() + ": " + e.getMessage(), e);
     }
   }
 
-  /** The generic number converter truncates integer inputs and accepts numeric prefixes; allocation limits must not. */
-  private static void validateRebalancingNumber(Class<?> modelClass, String field, String value) {
-    if (modelClass != grafioschtrader.algo.strategy.model.rebalacing.RebalancingTop.class)
-      return;
-    if ("maxTradedSecuritiesPerAssetclass".equals(field)) {
-      Integer.parseInt(value);
-    } else if ("securityDeviationPercentage".equals(field) && !Double.isFinite(Double.parseDouble(value))) {
-      throw new ValidationException("Security allocation band must be finite");
+  /**
+   * The JSON counterpart of {@link #requireCanonicalNumber(Class, String, String)} for integral fields. Jackson
+   * truncates a fraction into an integral field, so 1.5 securities per class would be read as 1; 5.0 is whole and
+   * passes, exactly as it does in the flat parameters.
+   *
+   * @param tree       the parsed configuration
+   * @param modelClass the model the configuration is read into
+   * @throws ValidationException if an integral field holds a fraction
+   */
+  private static void requireWholeNumbers(JsonNode tree, Class<?> modelClass) {
+    for (Field field : modelClass.getDeclaredFields()) {
+      JsonNode node = INTEGRAL_TYPES.contains(field.getType()) ? tree.get(field.getName()) : null;
+      if (node != null && node.isFloatingPointNumber() && node.doubleValue() != Math.rint(node.doubleValue())) {
+        throw new ValidationException(field.getName() + " must be a whole number, not " + node);
+      }
     }
   }
 
@@ -244,48 +280,71 @@ public abstract class AlertConfigAdapter {
     }
   }
 
+  /**
+   * Checks the model against its Bean Validation constraints, the class-level ones included. Which thresholds are
+   * required and in which order they must lie is declared on the model with {@code @AtLeastOneNotNull} and
+   * {@code @NumberRange}, the same annotations the edit form is generated from, so the form and this check cannot drift
+   * apart. Only what no form can produce is checked here by hand.
+   */
   private static <T> void validate(T model) {
-    switch (model) {
-    case AbsoluteValuePriceAlert a -> bounds(a.getLowerValue(), a.getUpperValue());
-    case RsiThresholdAlert a -> bounds(a.getLowerThreshold(), a.getUpperThreshold());
-    case HoldingGainLosePercentAlert a -> {
-      requireAny(a.getGainPercentage(), a.getLosePercentage(), a.getLowerValue(), a.getUpperValue());
-      if (a.getLowerValue() != null || a.getUpperValue() != null)
-        bounds(a.getLowerValue(), a.getUpperValue());
-    }
-    case PeriodPriceGainLosePercentAlert a -> {
-      requireAny(a.getGainPercentage(), a.getLosePercentage());
-      if (a.getDaysInPeriod() == null)
-        throw new ValidationException("Lookback period is required");
-    }
-    case ExpressionAlert a -> {
-      if (a.getExpression() == null || a.getExpression().isBlank())
-        throw new ValidationException("Expression is required");
-    }
-    default -> {
-    }
-    }
+    requireFiniteNumbers(model);
     Validator validator = VALIDATOR_FACTORY.getValidator();
     Set<ConstraintViolation<T>> violations = validator.validate(model);
     if (!violations.isEmpty()) {
       StringBuilder message = new StringBuilder("Invalid ").append(model.getClass().getSimpleName()).append(':');
-      violations.forEach(v -> message.append(' ').append(v.getPropertyPath()).append(' ').append(v.getMessage()));
+      violations.forEach(v -> {
+        String path = v.getPropertyPath().toString();
+        message.append(' ').append(path.isEmpty() ? "" : path + " ").append(v.getMessage());
+      });
       throw new ValidationException(message.toString());
     }
   }
 
-  private static void requireAny(Number... values) {
-    if (java.util.Arrays.stream(values).allMatch(java.util.Objects::isNull))
-      throw new ValidationException("At least one threshold is required");
+  /**
+   * Rejects NaN and infinity in every floating point field of the model. Positive infinity satisfies {@code @Min}, and
+   * NaN is no bound a price can be compared with. Neither can come from the form; a JSON exponent beyond the double
+   * range turns into infinity on the way in.
+   *
+   * @param model the populated model
+   */
+  private static void requireFiniteNumbers(Object model) {
+    for (Field field : model.getClass().getDeclaredFields()) {
+      if (Modifier.isStatic(field.getModifiers())
+          || field.getType() != Double.class && field.getType() != double.class) {
+        continue;
+      }
+      try {
+        field.setAccessible(true);
+        Double value = (Double) field.get(model);
+        if (value != null && !Double.isFinite(value)) {
+          throw new ValidationException(
+              field.getName() + " of " + model.getClass().getSimpleName() + " must be finite");
+        }
+      } catch (IllegalAccessException e) {
+        throw new IllegalStateException(e);
+      }
+    }
   }
 
-  private static void bounds(Number lower, Number upper) {
-    requireAny(lower, upper);
-    if (lower != null && !Double.isFinite(lower.doubleValue())
-        || upper != null && !Double.isFinite(upper.doubleValue()))
-      throw new ValidationException("Thresholds must be finite");
-    if (lower != null && upper != null && lower.doubleValue() >= upper.doubleValue())
-      throw new ValidationException("Lower threshold must be below upper threshold");
+  /**
+   * Accepts a stored number only in the form the browser writes it: digits, an optional fraction and exponent for a
+   * floating point field, a whole number for an integral one. The number converter alone is lenient in two ways that
+   * would otherwise go unnoticed: it parses the longest numeric prefix, so "5garbage" became 5, and it truncates, so
+   * 1.5 days or securities became 1.
+   *
+   * @param dataType  the type of the model field
+   * @param fieldName the field, for the message
+   * @param value     the stored parameter value
+   * @throws ValidationException if the value is not a number of that type
+   */
+  private static void requireCanonicalNumber(Class<?> dataType, String fieldName, String value) {
+    String trimmed = value.trim();
+    if (INTEGRAL_TYPES.contains(dataType) && !INTEGER_PATTERN.matcher(trimmed).matches()) {
+      throw new ValidationException(fieldName + " must be a whole number, not " + value);
+    }
+    if ((dataType == Double.class || dataType == double.class) && !DECIMAL_PATTERN.matcher(trimmed).matches()) {
+      throw new ValidationException(fieldName + " must be a number, not " + value);
+    }
   }
 
 }

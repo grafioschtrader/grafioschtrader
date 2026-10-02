@@ -14,6 +14,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Portfolio-level grand summary aggregating all security positions with multi-currency normalization")
 public class SecurityPositionGrandSummary {
+  /** Conversion rates used by this valuation, retained for document rendering without a second quote query. */
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  public java.util.Map<String, Double> exchangeRates = java.util.Map.of();
+
   public List<ClassAdjustment> classAdjustments;
 
   /**
@@ -41,6 +45,17 @@ public class SecurityPositionGrandSummary {
 
   @Schema(description = "Mismatch of normalized target and actual gross security exposures, excluding cash: 0 to 100 percent; null without positive targets")
   public Double overallAllocationMismatchPercentage;
+
+  @Schema(description = "AlgoTop ceiling in percentage points of net equity")
+  public Double topTargetPercentage;
+
+  @Schema(description = "Actual gross exposure in percentage points of net equity; null when net equity is zero")
+  public Double topActualPercentage;
+
+  @Schema(description = """
+      Actual gross exposure minus the AlgoTop ceiling, in percentage points of net equity. Positive means above the
+      ceiling; null when the actual share is unknown.""")
+  public Double topDeviationPercentage;
 
   @Schema(description = """
       Gross exposure is above the permitted ceiling, or net equity is not positive. Exposure increasing
@@ -127,6 +142,18 @@ public class SecurityPositionGrandSummary {
   public Double getOverallAllocationMismatchPercentage() {
     return overallAllocationMismatchPercentage == null ? null
         : DataBusinessHelper.roundPercentage(overallAllocationMismatchPercentage);
+  }
+
+  public Double getTopTargetPercentage() {
+    return topTargetPercentage == null ? null : DataBusinessHelper.roundPercentage(topTargetPercentage);
+  }
+
+  public Double getTopActualPercentage() {
+    return topActualPercentage == null ? null : DataBusinessHelper.roundPercentage(topActualPercentage);
+  }
+
+  public Double getTopDeviationPercentage() {
+    return topDeviationPercentage == null ? null : DataBusinessHelper.roundPercentage(topDeviationPercentage);
   }
 
   /** Round report diagnostics on output, keeping the original plan available at calculation precision. */

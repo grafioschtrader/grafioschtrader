@@ -58,25 +58,44 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
       final Tenant tenant, List<SecurityPositionSummary> securityPositionSummaryList,
       DateTransactionCurrencypairMap dateCurrencyMap) throws Exception {
     Map<T, SecurityPositionDynamicGroupSummary<T>> groupMap = new HashMap<>();
+    var positions = securityPositionSummaryList.stream()
+        .filter(p -> includeEmptyCashAccounts() || p.getSecurity().getIdSecuritycurrency() >= 0 || p.valueSecurity != 0)
+        .toList();
 
-    ReportHelper.loadUntilDateHistoryquotes(historyquoteJpaRepository, dateCurrencyMap);
+    ReportHelper.loadUntilDateHistoryquotes(tenant.getIdTenant(), historyquoteJpaRepository, dateCurrencyMap);
+    Map<String, Double> exchangeRates = reportExchangeRates(positions, dateCurrencyMap);
 
-    for (final SecurityPositionSummary securityPositionSummary : securityPositionSummaryList) {
+    for (final SecurityPositionSummary securityPositionSummary : positions) {
       Security security = securityPositionSummary.getSecurity();
 
-      if (security.getIdSecuritycurrency() < 0 && securityPositionSummary.valueSecurity == 0) {
-        continue;
+      Double rate = exchangeRates.get(security.getCurrency());
+      if (rate == null) {
+        securityPositionSummary.priceMissing = true;
       }
-      double currencyExchangeRate = ReportHelper.getReportExchangeRate(security.getCurrency(), dateCurrencyMap,
-          tradingDaysPlusJpaRepository);
-
       T groupValue = getGroupValue(security);
       SecurityPositionDynamicGroupSummary<T> securityPositionDynamicGroupSummary = groupMap.computeIfAbsent(groupValue,
           gv -> new SecurityPositionDynamicGroupSummary<>(gv));
-      securityPositionSummary.calcMainCurrency(currencyExchangeRate);
+      securityPositionSummary.calcMainCurrency(rate == null ? 0 : rate);
       securityPositionDynamicGroupSummary.addToGroupSummaryAndCalcGroupTotals(securityPositionSummary);
     }
-    return createAndCalcGrandTotal(groupMap, dateCurrencyMap);
+    var summary = createAndCalcGrandTotal(groupMap, dateCurrencyMap);
+    summary.exchangeRates = Map.copyOf(exchangeRates);
+    return summary;
+  }
+
+  /** Most groupings omit empty cash; statements also list zero-balance accounts. */
+  protected boolean includeEmptyCashAccounts() {
+    return false;
+  }
+
+  /** Each grouping can define its reporting-date rate policy while retaining the rates used in the summary. */
+  protected Map<String, Double> reportExchangeRates(List<SecurityPositionSummary> positions,
+      DateTransactionCurrencypairMap currencyMap) {
+    Map<String, Double> rates = new HashMap<>();
+    for (String currency : positions.stream().map(p -> p.getSecurity().getCurrency()).distinct().toList()) {
+      rates.put(currency, ReportHelper.getReportExchangeRate(currency, currencyMap, tradingDaysPlusJpaRepository));
+    }
+    return rates;
   }
 
   /**
@@ -156,32 +175,39 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
    */
   protected void addCashaccountAsASecurity(final Tenant tenant,
       List<SecurityPositionSummary> securityPositionSummaryList, DateTransactionCurrencypairMap dateCurrencyMap) {
+    addCashaccountAsASecurity(tenant, securityPositionSummaryList, dateCurrencyMap, null);
+  }
+
+  /** Adds each cash account of the requested scope once, including cash-only portfolios. */
+  protected void addCashaccountAsASecurity(Tenant tenant, List<SecurityPositionSummary> securityPositionSummaryList,
+      DateTransactionCurrencypairMap dateCurrencyMap, Integer idPortfolio) {
     Assetclass assetclassMainCurrency = new Assetclass();
     assetclassMainCurrency.setCategoryType(AssetclassType.CURRENCY_CASH);
     Assetclass assetclassForeignCurrency = new Assetclass();
     assetclassForeignCurrency.setCategoryType(AssetclassType.CURRENCY_FOREIGN);
     LocalDate untilDatePlus = dateCurrencyMap.getUntilDate().plusDays(1);
 
-    tenant.getPortfolioList().forEach(portfolio -> {
-      portfolio.getCashaccountList().forEach(cashaccount -> {
-        Security security = new Security();
-        security.setIdSecuritycurrency(cashaccount.getId() * -1);
-        security.setName(cashaccount.getName());
-        security.setCurrency(cashaccount.getCurrency());
-        SecurityPositionSummary securityPositionSummary = new SecurityPositionSummary(dateCurrencyMap.getMainCurrency(),
-            security, globalparametersService.getCurrencyPrecision());
-        securityPositionSummaryList.add(securityPositionSummary);
+    tenant.getPortfolioList().stream().filter(p -> idPortfolio == null || idPortfolio.equals(p.getIdPortfolio()))
+        .forEach(portfolio -> {
+          portfolio.getCashaccountList().forEach(cashaccount -> {
+            Security security = new Security();
+            security.setIdSecuritycurrency(cashaccount.getId() * -1);
+            security.setName(cashaccount.getName());
+            security.setCurrency(cashaccount.getCurrency());
+            SecurityPositionSummary securityPositionSummary = new SecurityPositionSummary(
+                dateCurrencyMap.getMainCurrency(), security, globalparametersService.getCurrencyPrecision());
+            securityPositionSummaryList.add(securityPositionSummary);
 
-        securityPositionSummary.valueSecurity = cashaccount
-            .calculateBalanceOnTransactions(untilDatePlus.atStartOfDay());
-        // securityPositionSummary.valueSecurity = cashaccount.getBalance();
-        if (cashaccount.getCurrency().equals(dateCurrencyMap.getMainCurrency())) {
-          security.setAssetClass(assetclassMainCurrency);
-        } else {
-          security.setAssetClass(assetclassForeignCurrency);
-        }
-      });
-    });
+            securityPositionSummary.valueSecurity = cashaccount
+                .calculateBalanceOnTransactions(untilDatePlus.atStartOfDay());
+            // securityPositionSummary.valueSecurity = cashaccount.getBalance();
+            if (cashaccount.getCurrency().equals(dateCurrencyMap.getMainCurrency())) {
+              security.setAssetClass(assetclassMainCurrency);
+            } else {
+              security.setAssetClass(assetclassForeignCurrency);
+            }
+          });
+        });
   }
 
   @SuppressWarnings("unchecked")

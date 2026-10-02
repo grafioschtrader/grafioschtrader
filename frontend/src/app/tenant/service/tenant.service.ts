@@ -18,11 +18,27 @@ import {
   SimulationDateBounds
 } from '../../algo/model/simulation.tenant';
 import { TaxStatementExportRequest } from '../../taxdata/service/tax-data.service';
+import { PerformanceReportSettings } from '../../performanceperiod/model/performance-report';
 
 @Injectable()
 export class TenantService extends AuthServiceWithLogout<Tenant> {
   constructor(loginService: LoginService, httpClient: HttpClient, messageToastService: MessageToastService) {
     super(loginService, httpClient, messageToastService);
+  }
+
+  getReportSettings(): Observable<PerformanceReportSettings | null> {
+    return this.httpClient
+      .get<PerformanceReportSettings | null>(
+        `${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/reportsettings`,
+        this.getHeaders()
+      )
+      .pipe(catchError(this.handleError.bind(this)));
+  }
+
+  saveReportSettings(settings: PerformanceReportSettings): Observable<void> {
+    return this.httpClient
+      .patch<void>(`${BaseSettings.API_ENDPOINT}${BaseSettings.TENANT_KEY}/reportsettings`, settings, this.getHeaders())
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getFxObservations(): Observable<FxObservationReport> {

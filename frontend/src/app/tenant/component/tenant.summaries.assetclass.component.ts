@@ -1,3 +1,6 @@
+import { Securitycurrency } from '../../entities/securitycurrency';
+import { DestroyRef, inject } from '@angular/core';
+import { PerformanceReportDialogService } from '../../performanceperiod/service/performance-report-dialog.service';
 import { SecurityaccountService } from '../../securityaccount/service/securityaccount.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -69,6 +72,20 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
   ]
 })
 export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable implements OnInit, OnDestroy {
+  private statementReports = inject(PerformanceReportDialogService);
+  private reportDestroyRef = inject(DestroyRef);
+
+  override getMenuShowOptionsParam(selected: Securitycurrency) {
+    return [
+      ...(super.getMenuShowOptionsParam(selected) || []),
+      this.statementReports.menu(
+        () => this.untilDate,
+        () => null,
+        this.reportDestroyRef
+      )
+    ];
+  }
+
   constructor(
     private parentChildRegisterService: ParentChildRegisterService,
     private algoTopService: AlgoTopService,
@@ -326,6 +343,13 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
         DataType.NumericRaw,
         'overallAllocationMismatchPercentage',
         'OVERALL_ALLOCATION_MISMATCH_PERCENTAGE'
+      ),
+      ShowRecordConfigBase.createColumnConfig(DataType.NumericRaw, 'topTargetPercentage', 'TOP_TARGET_PERCENTAGE'),
+      ShowRecordConfigBase.createColumnConfig(DataType.NumericRaw, 'topActualPercentage', 'TOP_ACTUAL_PERCENTAGE'),
+      ShowRecordConfigBase.createColumnConfig(
+        DataType.NumericRaw,
+        'topDeviationPercentage',
+        'TOP_DEVIATION_PERCENTAGE'
       ),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'grandNetEquityMC', 'NET_EQUITY'),
       ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'grandActualCashMC', 'ACTUAL_CASH'),

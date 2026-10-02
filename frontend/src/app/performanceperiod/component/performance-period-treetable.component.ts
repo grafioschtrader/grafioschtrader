@@ -24,6 +24,12 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
 /**
  * Shows a tree table with periodic windows on the first column, which can be week or year.
  * The header shows gain for each day or each month.
+ *
+ * Every window row shows its gain per step, the gain of the window and, in its own column, the time-weighted return of
+ * the window, so that windows can be compared without expanding them. The first child row holds the time-weighted
+ * return of each step; its tooltip names the span of the step, which in the yearly split can reach into the previous
+ * month when a valuation is missing. The amounts of the rows, the column totals and the grand total all include the
+ * open result of margin positions.
  */
 @Component({
   selector: 'performance-period-treetable',
@@ -58,7 +64,7 @@ import { TooltipModule } from '@openng/optimus-ui/tooltip';
                 @switch (field.templateName) {
                   @case ('greenRed') {
                     <span
-                      [pTooltip]="getValueByPath(rowData, field)"
+                      [pTooltip]="getCellTooltip(rowData, field)"
                       [style.color]="isValueByPathMinusWithEmptyColor(rowData, field) ? 'red' : 'green'">
                       {{ getValueByPath(rowData, field) }}
                     </span>
@@ -188,6 +194,9 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
   readonly CASH_BALANCE_MC = 'cashBalanceMC';
   readonly TOTAL_SECURITIES_MC = 'securitiesMC';
   readonly MARGIN_CLOSE_GAIN_MC = 'marginCloseGainMC';
+  readonly TWR_PERCENT = 'twrPercent';
+  /** Field path of the column with the time-weighted return of a window. */
+  readonly WINDOW_TWR_FIELD = 'periodWindow.twrPercent';
 
   HolidayMissing: typeof HolidayMissing = HolidayMissing;
 
@@ -202,7 +211,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
 
   ngOnInit(): void {
     this.translateService
-      .get(['CASH_BALANCE', AppSettings.SECURITY.toUpperCase(), 'MARGIN_CLOSE_GAIN'])
+      .get(['CASH_BALANCE', AppSettings.SECURITY.toUpperCase(), 'MARGIN_CLOSE_GAIN', 'TWR_PERCENT'])
       .subscribe((translatedTexts) => (this.translatedTexts = translatedTexts));
     this.addColumnFeqH(DataType.String, 'period', true, false, {
       width: 120,
@@ -213,6 +222,13 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
       fieldValueFN: this.getLastColumn.bind(this),
       templateName: 'greenRed',
       columnGroupConfigs: [new ColumnGroupConfig(null, null, this.getGrandTotal.bind(this))]
+    });
+    this.addColumn(DataType.NumericShowZero, this.WINDOW_TWR_FIELD, 'TWR_PERCENT', true, false, {
+      headerSuffix: '%',
+      maxFractionDigits: AppSettings.FID_PERCENTAGE_FRACTION,
+      fieldValueFN: this.getTwrColumn.bind(this),
+      templateName: 'greenRed',
+      columnGroupConfigs: [new ColumnGroupConfig(null, null, this.getTotalTwr.bind(this))]
     });
     this.translateHeadersAndColumns();
   }
@@ -236,6 +252,9 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
       case this.MARGIN_CLOSE_GAIN_MC:
         colVal = this.translatedTexts['MARGIN_CLOSE_GAIN'];
         break;
+      case this.TWR_PERCENT:
+        colVal = this.translatedTexts['TWR_PERCENT'] + ' %';
+        break;
 
       default:
         if (this.performancePeriod.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
@@ -256,9 +275,63 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
     return dataobject.showField === this.GAIN_MC ? valueField : null;
   }
 
+  /**
+   * Shows the time-weighted return of the window in the window row only; the child rows leave the column empty.
+   *
+   * @param dataobject Row of the tree table
+   * @param field Column configuration of the return column
+   * @param valueField Already formatted return of the window
+   * @returns The formatted return for the window row, otherwise null
+   */
+  getTwrColumn(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
+    return dataobject.showField === this.GAIN_MC ? valueField : null;
+  }
+
+  /**
+   * Delivers the footer value of the return column: the time-weighted return of the whole period, which is the chaining
+   * of all window returns and therefore not a sum.
+   *
+   * @param columnConfig Column configuration of the return column, provides the numeric formatting
+   * @returns The formatted return of the whole period or undefined when no data is loaded
+   */
+  getTotalTwr(columnConfig: ColumnConfig, arrIndex: number, data: any, rowIndex: number): string {
+    return AppHelper.getValueByPathWithField(
+      this.gps,
+      this.translateService,
+      this.performancePeriod,
+      columnConfig,
+      'metrics.twrPercent'
+    );
+  }
+
+  /**
+   * Tooltip of a body cell. A step return names the span from its base to its last date, because in the yearly split a
+   * step whose month lacks its last valuation reaches into the previous month. Every other cell repeats its value.
+   *
+   * @param dataobject Row of the tree table
+   * @param field Column configuration of the cell
+   * @returns The tooltip text
+   */
+  getCellTooltip(dataobject: PeriodWindowWithField, field: ColumnConfig): string {
+    if (dataobject.showField === this.TWR_PERCENT && !isNaN(<any>field.field)) {
+      const psmh = <PeriodStep>dataobject.periodWindow.periodStepList[+field.field];
+      if (psmh.hasOwnProperty(this.TWR_PERCENT)) {
+        return (
+          AppHelper.getDateByFormat(this.gps, psmh.baseDate) +
+          ' - ' +
+          AppHelper.getDateByFormat(this.gps, psmh.lastDate)
+        );
+      }
+    }
+    return this.getValueByPath(dataobject, field);
+  }
+
   getDataValue(dataobject: PeriodWindowWithField, field: ColumnConfig, valueField: any): string | number {
     const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
     if (psmh.hasOwnProperty(dataobject.showField)) {
+      if ((<PeriodStep>psmh)[dataobject.showField] == null) {
+        return null;
+      }
       return AppHelper.numberFormat(
         this.gps,
         (<PeriodStep>psmh)[dataobject.showField],
@@ -286,9 +359,10 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
   }
 
   /**
-   * Delivers the grand total of the last column. The column totals of the footer come from sumPeriodColSteps, which
+   * Delivers the grand total of the gain column. The column totals of the footer come from sumPeriodColSteps, which
    * holds one entry per period step (5 for weeks, 12 for months) and therefore no total over all steps. That value is
-   * the gain of the whole evaluated period and is taken from the difference of the first and the last day.
+   * the gain of the whole evaluated period including the open margin result, taken from the difference of the first and
+   * the last day, the same figure the cells of a row add up to.
    *
    * @param columnConfig Column configuration of the total column, provides the numeric formatting
    * @param arrIndex Index of the column group configuration, not used here
@@ -302,25 +376,32 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
       this.translateService,
       this.performancePeriod,
       columnConfig,
-      'difference.gainMC'
+      'difference.totalGainMC'
     );
   }
 
   /**
-   * Determines the sign of a footer value for its red or green colouring. The last column shows the gain of the whole
-   * period, all other columns a column total of sumPeriodColSteps.
+   * Determines the sign of a footer value for its red or green colouring. The return column shows the time-weighted
+   * return of the whole period, the gain column the gain of the whole period, all other columns a column total of
+   * sumPeriodColSteps.
    *
    * @param field Column configuration of the footer cell
    * @returns True when the displayed total is negative
    */
   isFooterValueMinus(field: ColumnConfig): boolean {
+    if (field.field === this.WINDOW_TWR_FIELD) {
+      return this.performancePeriod?.metrics?.twrPercent < 0;
+    }
     return isNaN(<any>field.field)
-      ? this.performancePeriod?.difference.gainMC < 0
+      ? this.performancePeriod?.difference.totalGainMC < 0
       : this.isValueByPathMinus(this.performancePeriod?.sumPeriodColSteps, field);
   }
 
   isValueByPathMinusWithEmptyColor(dataobject: PeriodWindowWithField, field: ColumnConfig): boolean {
-    if (isNaN(<any>field.field) && field.dataType === DataType.Numeric) {
+    if (
+      isNaN(<any>field.field) &&
+      (field.dataType === DataType.Numeric || field.dataType === DataType.NumericShowZero)
+    ) {
       return super.isValueByPathMinus(dataobject, field);
     } else {
       const psmh: PeriodStepMissingHoliday = dataobject.periodWindow.periodStepList[+field.field];
@@ -341,7 +422,7 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
   private createPeriodTreeTableDefinition(): void {
     if (this.performancePeriod) {
       if (this.performancePeriod.periodSplit !== this.lastPeriodSplit) {
-        this.fields.length > 2 && this.spliceColumns(1, this.fields.length - 2);
+        this.fields.length > 3 && this.spliceColumns(1, this.fields.length - 3);
         const calendarLang = Helper.CALENDAR_LANG[this.gps.getUserLang()];
         if (this.performancePeriod.periodSplit === WeekYear[WeekYear.WM_WEEK]) {
           // for week-day
@@ -383,6 +464,12 @@ export class TenantPerformanceTreetableComponent extends TreeTableConfigBase imp
           leaf: false
         };
         pwTreeNode.children = [
+          {
+            data: new PeriodWindowWithField(this.TWR_PERCENT, periodWindow),
+            children: [],
+            expanded: false,
+            leaf: true
+          },
           {
             data: new PeriodWindowWithField(this.CASH_BALANCE_MC, periodWindow),
             children: [],

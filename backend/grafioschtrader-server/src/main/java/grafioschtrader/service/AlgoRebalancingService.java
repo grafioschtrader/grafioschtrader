@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import grafiosch.common.DataHelper;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.algo.RebalancingPlan;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
@@ -492,8 +494,8 @@ public class AlgoRebalancingService {
   }
 
   /** One bucket of the hierarchy with its members and its resolved target and actual exposure. */
-  record BucketInput(AlgoAssetclass bucket, List<AlgoSecurity> members, boolean tactical,
-      double targetPercentage, double actual) {
+  record BucketInput(AlgoAssetclass bucket, List<AlgoSecurity> members, boolean tactical, double targetPercentage,
+      double actual) {
   }
 
   private List<BucketInput> bucketInputs(AlgoTop algoTop, List<AlgoAssetclass> buckets, double topPercentage,
@@ -518,12 +520,12 @@ public class AlgoRebalancingService {
   }
 
   /**
-   * The sales that pay for the purchases of the triggered classes when the cash of the portfolio does not. A rebalancing
-   * redistributes what is invested rather than bringing in new money, so the purchase of an underweight class is
-   * financed out of the overweight ones - also when each of them is still inside its own tolerance, which is the usual
-   * case in a fully invested portfolio: the overweight that mirrors one large underweight is spread over several
-   * classes. The missing amount is taken from every overweight class in proportion to its overweight, and never more
-   * than that overweight, so no class is pushed below its own target.
+   * The sales that pay for the purchases of the triggered classes when the cash of the portfolio does not. A
+   * rebalancing redistributes what is invested rather than bringing in new money, so the purchase of an underweight
+   * class is financed out of the overweight ones - also when each of them is still inside its own tolerance, which is
+   * the usual case in a fully invested portfolio: the overweight that mirrors one large underweight is spread over
+   * several classes. The missing amount is taken from every overweight class in proportion to its overweight, and never
+   * more than that overweight, so no class is pushed below its own target.
    *
    * @param inputs    the buckets of the hierarchy
    * @param equity    net equity of the portfolio
@@ -562,9 +564,9 @@ public class AlgoRebalancingService {
   /** The parent decides the adjustment; securities only decide where that adjustment can be placed. */
   private void allocateClass(AlgoTop top, AlgoAssetclass bucket, List<AlgoSecurity> members, RebalancingTop config,
       double targetPercentage, double actual, double equity, double budget, boolean breach, boolean tactical,
-      boolean committed, double funding, boolean shortClass, Map<Integer, Double> exposure, Map<Integer, Double> signed, UnitValues unitValues, LocalDate date, Locale locale,
-      AlgoHistoricalValuationService.ClosingPrices market, List<RebalancingPlan.Line> lines,
-      List<RebalancingPlan.ClassAdjustment> adjustments) {
+      boolean committed, double funding, boolean shortClass, Map<Integer, Double> exposure, Map<Integer, Double> signed,
+      UnitValues unitValues, LocalDate date, Locale locale, AlgoHistoricalValuationService.ClosingPrices market,
+      List<RebalancingPlan.Line> lines, List<RebalancingPlan.ClassAdjustment> adjustments) {
     requireWeightsComplete(members.stream().map(AlgoSecurity::getPercentage).toList(), label(bucket, locale));
     double target = Math.max(0, equity * targetPercentage / 100);
     double gap = target - actual;
@@ -649,10 +651,11 @@ public class AlgoRebalancingService {
         : line.action() != AlgoRecommendationAction.REBALANCE_HOLD ? line.action()
             : (change < 0) != shortClass ? AlgoRecommendationAction.REBALANCE_SELL
                 : AlgoRecommendationAction.REBALANCE_BUY;
-    lines.set(index, new RebalancingPlan.Line(line.levelType(), line.idNode(), line.idParentNode(), null, line.label(),
-        line.tactical(), line.targetPercentage(), line.actualPercentage(), line.deviation(), line.targetAmount(),
-        line.actualAmount(), action,
-        selected ? Math.abs(change) : null, null, limitReason == null ? line.rationale() : limitReason, drift, change));
+    lines.set(index,
+        new RebalancingPlan.Line(line.levelType(), line.idNode(), line.idParentNode(), null, line.label(),
+            line.tactical(), line.targetPercentage(), line.actualPercentage(), line.deviation(), line.targetAmount(),
+            line.actualAmount(), action, selected ? Math.abs(change) : null, null,
+            limitReason == null ? line.rationale() : limitReason, drift, change));
   }
 
   private RebalancingPlan.Line selectedLine(AlgoAssetclass bucket, AlgoSecurity member, double targetPercentage,
@@ -951,7 +954,10 @@ public class AlgoRebalancingService {
    */
   public void evaluateForTenant(Integer idTenant) {
     if (features.isAlgo()) {
-      algoTopJpaRepository.findByIdTenantOrderByName(idTenant).stream().filter(this::isMonitored)
+      // A draft strategy gets neither a stored plan nor a signal, exactly as in the daily pass; the report still
+      // compares it on request.
+      algoTopJpaRepository.findByIdTenantOrderByName(idTenant).stream()
+          .filter(algoTop -> isMonitored(algoTop) && hasActivatableRebalancingStrategy(algoTop))
           .forEach(algoTop -> evaluateOne(idTenant, algoTop, false));
     }
   }
@@ -965,16 +971,17 @@ public class AlgoRebalancingService {
     return algoMonitoringService.isAssigned(algoTop.getIdTenant(), algoTop.getId());
   }
 
-  private boolean isDueToday(AlgoTop algoTop) {
-    if (!isMonitored(algoTop)) {
-      return false;
-    }
-    boolean configured = algoStrategyJpaRepository
+  /** Whether the AlgoTop carries a rebalancing strategy that is not a draft. */
+  private boolean hasActivatableRebalancingStrategy(AlgoTop algoTop) {
+    return algoStrategyJpaRepository
         .findByIdAlgoAssetclassSecurityAndIdTenant(algoTop.getIdAlgoAssetclassSecurity(), algoTop.getIdTenant())
         .stream()
         .anyMatch(s -> s.getAlgoStrategyImplementations() == AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING
             && s.isActivatable());
-    if (!configured) {
+  }
+
+  private boolean isDueToday(AlgoTop algoTop) {
+    if (!isMonitored(algoTop) || !hasActivatableRebalancingStrategy(algoTop)) {
       return false;
     }
     return algoRecommendationJpaRepository.findLastRunDate(algoTop.getIdTenant(), algoTop.getIdAlgoAssetclassSecurity())
@@ -1000,11 +1007,17 @@ public class AlgoRebalancingService {
       log.info("Rebalancing of AlgoTop {} was skipped: {}", algoTop.getIdAlgoAssetclassSecurity(), e.getMessage());
       return;
     }
+    // The breaches of the plan being replaced tell which ones are already known; read them before replacing it.
+    Set<String> knownBreaches = algoRecommendationJpaRepository
+        .findByIdTenantAndIdAlgoTopOrderByLevelTypeAscIdNodeAsc(idTenant, algoTop.getIdAlgoAssetclassSecurity())
+        .stream().filter(AlgoRecommendation::isAllocationBreach).map(r -> lineKey(r.getLevelType(), r.getIdNode()))
+        .collect(Collectors.toSet());
     // The plan is replaced every day so the allocation report stays current; only the signal waits for a checkpoint.
     persist(plan);
     if (plan.trigger() != AlgoRebalancingTrigger.NONE) {
       notifyActionable(plan, algoTop);
     }
+    notifyAllocationBreaches(plan, algoTop, knownBreaches);
   }
 
   /**
@@ -1022,11 +1035,15 @@ public class AlgoRebalancingService {
   public void persist(RebalancingPlan plan) {
     LocalDate checkpoint = plan.periodicDue() ? plan.valuationDate()
         : algoRecommendationJpaRepository.findLastCheckpointDate(plan.idTenant(), plan.idAlgoTop()).orElse(null);
-    List<AlgoRecommendation> rows = plan.lines().stream().map(line -> toEntity(plan, line, checkpoint)).toList();
+    Set<String> breaches = allocationBreaches(plan).stream().map(AllocationBreach::key).collect(Collectors.toSet());
+    List<AlgoRecommendation> rows = plan.lines().stream()
+        .map(line -> toEntity(plan, line, checkpoint, breaches.contains(lineKey(line.levelType(), line.idNode()))))
+        .toList();
     algoRecommendationWriter.replace(plan.idTenant(), plan.idAlgoTop(), rows);
   }
 
-  private AlgoRecommendation toEntity(RebalancingPlan plan, RebalancingPlan.Line line, LocalDate checkpoint) {
+  private AlgoRecommendation toEntity(RebalancingPlan plan, RebalancingPlan.Line line, LocalDate checkpoint,
+      boolean allocationBreach) {
     AlgoRecommendation row = new AlgoRecommendation();
     row.setIdTenant(plan.idTenant());
     row.setIdAlgoTop(plan.idAlgoTop());
@@ -1044,7 +1061,101 @@ public class AlgoRebalancingService {
     row.setRecommendedUnits(line.recommendedUnits());
     row.setTriggerKind(plan.trigger());
     row.setRationale(line.rationale());
+    row.setAllocationBreach(allocationBreach);
     return row;
+  }
+
+  /**
+   * A line of a plan outside its tolerance band.
+   *
+   * @param line    the plan line
+   * @param measure the signed figure compared with the band: for the AlgoTop the gross exposure minus the ceiling in
+   *                percentage points of net equity, for a class its drift in percent of the investment budget, for an
+   *                instrument its deviation in percentage points of the class target
+   * @param band    the tolerance the measure exceeds, 0 for the exposure ceiling
+   */
+  record AllocationBreach(RebalancingPlan.Line line, double measure, double band) {
+
+    String key() {
+      return lineKey(line.levelType(), line.idNode());
+    }
+
+    /** The AlgoTop can only breach upwards; a class or an instrument is above or below its band. */
+    byte direction() {
+      return (byte) (StrategyHelper.TOP_LEVEL_LETTER.equals(line.levelType()) || measure > 0 ? 1 : -1);
+    }
+  }
+
+  /** Identifies a plan line across two evaluations; also the line key of its alarm. */
+  static String lineKey(String levelType, Integer idNode) {
+    return levelType + ":" + idNode;
+  }
+
+  /**
+   * The lines of a plan that are outside their tolerance band, independent of whether a checkpoint is due. The AlgoTop
+   * breaches when its gross exposure exceeds the ceiling or net equity is not positive; a class when its drift exceeds
+   * the class tolerance, the same test that makes it traded at a checkpoint; an instrument when its deviation within
+   * the class exceeds the security band. A tactical node has a ceiling rather than a target and never breaches.
+   *
+   * @param plan the evaluated plan
+   * @return the breached lines in plan order
+   */
+  static List<AllocationBreach> allocationBreaches(RebalancingPlan plan) {
+    Map<Integer, RebalancingPlan.ClassAdjustment> adjustments = new HashMap<>();
+    plan.classAdjustments().forEach(a -> adjustments.put(a.idNode(), a));
+    List<AllocationBreach> breaches = new ArrayList<>();
+    for (RebalancingPlan.Line line : plan.lines()) {
+      if (line.tactical()) {
+        continue;
+      }
+      if (StrategyHelper.TOP_LEVEL_LETTER.equals(line.levelType())) {
+        if (plan.exposureBreach()) {
+          breaches.add(new AllocationBreach(line, line.deviation() == null ? 0 : line.deviation(), 0));
+        }
+      } else if (StrategyHelper.ASSET_CLASS_LEVEL_LETTER.equals(line.levelType())) {
+        addBeyondBand(breaches, line, plan.tolerancePercentage());
+      } else {
+        RebalancingPlan.ClassAdjustment parent = adjustments.get(line.idParentNode());
+        if (parent != null) {
+          addBeyondBand(breaches, line, parent.securityDeviationPercentage());
+        }
+      }
+    }
+    return breaches;
+  }
+
+  private static void addBeyondBand(List<AllocationBreach> breaches, RebalancingPlan.Line line, double band) {
+    if (line.parentDeviation() != null && Math.abs(line.parentDeviation()) > band + 1e-8) {
+      breaches.add(new AllocationBreach(line, line.parentDeviation(), band));
+    }
+  }
+
+  /**
+   * Reports every line that left its tolerance band since the plan it replaces. A line that stays outside for weeks is
+   * reported once; it is reported again only after it has been inside in between. This is a notification only: it does
+   * not make a checkpoint due, does not move the checkpoint date and does not propose a trade.
+   *
+   * @param plan          the plan just stored
+   * @param algoTop       the monitored hierarchy
+   * @param knownBreaches line keys that were already outside in the replaced plan
+   */
+  private void notifyAllocationBreaches(RebalancingPlan plan, AlgoTop algoTop, Set<String> knownBreaches) {
+    List<AllocationBreach> breaches = allocationBreaches(plan).stream()
+        .filter(breach -> !knownBreaches.contains(breach.key())).toList();
+    if (breaches.isEmpty()) {
+      return;
+    }
+    AlgoStrategy strategy = requireRebalancingStrategy(algoTop);
+    LocalDate today = LocalDate.now();
+    for (AllocationBreach breach : breaches) {
+      RebalancingPlan.Line line = breach.line();
+      algoAlarmRecorder.recordPlanLine(plan.idTenant(), strategy, algoTop.getName(),
+          line.idSecuritycurrency() == null ? 0 : line.idSecuritycurrency(), line.label(),
+          AlgoSignalKind.ALLOCATION_BREACH, breach.direction(), breach.key(),
+          AlgoAlarmDetails.of("level", line.levelType(), "target", round2(line.targetPercentage()), "actual",
+              round2(line.actualPercentage()), "measure", round2(breach.measure()), "band", round2(breach.band())),
+          today);
+    }
   }
 
   /**
@@ -1077,13 +1188,16 @@ public class AlgoRebalancingService {
     return securities;
   }
 
-  /** Locale independent, like every other signal detail: the delivery renders the text in the reader's language. */
+  /** Locale independent JSON; {@link AlgoAlarmTextRenderer} renders it in the reader's language. */
   private static String details(RebalancingPlan plan, RebalancingPlan.Line line) {
-    return String.format(Locale.ROOT,
-        "{\"trigger\":\"%s\",\"action\":\"%s\",\"target\":%.2f,\"actual\":%.2f,\"deviation\":%.2f,"
-            + "\"amount\":%.2f,\"currency\":\"%s\",\"reason\":\"%s\"}",
-        plan.trigger(), line.action(), line.targetPercentage(), line.actualPercentage(), line.deviation(),
-        Optional.ofNullable(line.recommendedAmount()).orElse(0.0), plan.currency(), line.rationale());
+    return AlgoAlarmDetails.of("trigger", plan.trigger(), "action", line.action(), "target",
+        round2(line.targetPercentage()), "actual", round2(line.actualPercentage()), "deviation",
+        round2(line.deviation()), "amount", round2(Optional.ofNullable(line.recommendedAmount()).orElse(0.0)),
+        "currency", plan.currency(), "reason", line.rationale());
+  }
+
+  private static Double round2(Double value) {
+    return value == null ? null : DataHelper.round(value, 2);
   }
 
   private boolean isCheckpointDue(Integer idTenant, AlgoTop algoTop, RebalancingTop config, LocalDate valuationDate,

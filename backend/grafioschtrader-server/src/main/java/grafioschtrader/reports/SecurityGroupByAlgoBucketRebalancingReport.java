@@ -29,9 +29,10 @@ import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
  * <p>
  * Grouping by bucket rather than by asset class type is what makes the comparison meaningful. A target exists per
  * bucket, and a bucket is not an asset class: a named tactical bucket has no asset class type at all, and one asset
- * class type can be split over several buckets. Two groups complete the picture and have no target of their own - cash,
- * which is what is left outside the investment budget, and the holdings the hierarchy does not mention, which the user
- * can see and reduce but which no target describes.
+ * class type can be split over several buckets. Two groups complete the picture. Cash is what is left outside the
+ * investment budget; its implicit target is 100 minus the AlgoTop percentage, a lower bound rather than a goal. The
+ * holdings the hierarchy does not mention have no target at all: the user can see and reduce them, but no target
+ * describes them. The grand summary adds the AlgoTop level itself, gross exposure against the ceiling.
  * </p>
  *
  * <p>
@@ -158,6 +159,10 @@ public class SecurityGroupByAlgoBucketRebalancingReport extends SecurityGroupByB
     grand.classAdjustments = plan.classAdjustments();
     grand.toleranceThreshold = plan.tolerancePercentage();
     grand.overallAllocationMismatchPercentage = plan.overallAllocationMismatchPercentage();
+    grand.topTargetPercentage = plan.topPercentage();
+    grand.topActualPercentage = share(plan.grossExposure());
+    grand.topDeviationPercentage = grand.topActualPercentage == null ? null
+        : grand.topActualPercentage - plan.topPercentage();
     grand.exposureBreach = plan.exposureBreach();
     grand.valuationDate = plan.valuationDate();
     grand.periodicDue = plan.periodicDue();
@@ -202,7 +207,13 @@ public class SecurityGroupByAlgoBucketRebalancingReport extends SecurityGroupByB
           group.groupRecommendedAction = grafioschtrader.types.AlgoRecommendationAction.REBALANCE_HOLD;
       });
     } else if (cashLabel.equals(group.groupField)) {
+      // The AlgoTop ceiling bounds the exposure and leaves the rest as cash, so its complement is a lower bound for
+      // cash: a negative deviation means less cash than the ceiling leaves over.
       group.groupActualPercentage = share(plan.actualCash());
+      if (group.groupActualPercentage != null) {
+        group.groupTargetPercentage = 100.0 - plan.topPercentage();
+        group.groupDeviationPercentage = group.groupActualPercentage - group.groupTargetPercentage;
+      }
     } else if (unallocatedLabel.equals(group.groupField)) {
       group.groupActualPercentage = share(plan.grossExposure() - allocatedExposure());
     }

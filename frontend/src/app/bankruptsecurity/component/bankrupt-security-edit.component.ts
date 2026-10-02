@@ -17,7 +17,7 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { BankruptSecurity } from '../../entities/bankrupt.security';
 import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
 import { Security } from '../../entities/security';
-import { SecuritycurrencySearchAndSetComponent } from '../../securitycurrency/component/securitycurrency-search-and-set.component';
+import { SecuritycurrencySearchAndSetDialogComponent } from '../../securitycurrency/component/securitycurrency-search-and-set-dialog.component';
 import { SupplementCriteria } from '../../securitycurrency/model/supplement.criteria';
 import { BankruptSecurityService } from '../service/bankrupt.security.service';
 import { BankruptSecurityCallParam } from './bankrupt.security.call.param';
@@ -115,7 +115,7 @@ export class BankruptSecurityEditComponent extends SimpleEntityEditBase<Bankrupt
 
   handleSecuritySearchClick(fieldConfig: FieldConfig): void {
     this.translateService.get('SET_SECURITY').subscribe((title) => {
-      const ref = this.dialogService.open(SecuritycurrencySearchAndSetComponent, {
+      const ref = this.dialogService.open(SecuritycurrencySearchAndSetDialogComponent, {
         header: title,
         width: '720px',
         resizable: false,

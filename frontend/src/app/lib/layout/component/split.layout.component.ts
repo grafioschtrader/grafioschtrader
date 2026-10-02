@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { MenubarComponent } from '../../mainmenubar/component/menubar.component';
 import { MainTreeComponent } from '../../maintree/component/main-tree.component';
-import { MainDialogComponent } from '../../mainmenubar/component/main.dialog.component';
+import { MainDialogComponent } from '../../mainmenubar/component/main-dialog.component';
 
 declare function Split(ids, options);
 

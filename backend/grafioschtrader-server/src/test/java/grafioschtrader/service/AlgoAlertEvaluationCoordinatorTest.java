@@ -25,13 +25,13 @@ class AlgoAlertEvaluationCoordinatorTest {
   private final TradingDaysMinusJpaRepository holidays = mock(TradingDaysMinusJpaRepository.class);
   private final GlobalparametersService parameters = mock(GlobalparametersService.class);
   private final AlgoAlarmEvaluationService evaluator = mock(AlgoAlarmEvaluationService.class);
+  private final FeatureConfig features = mock(FeatureConfig.class);
   private AlgoAlertEvaluationCoordinator coordinator;
   private final LocalDateTime now = LocalDateTime.parse("2026-09-04T12:00:00");
   private Security security;
 
   @BeforeEach
   void setup() {
-    FeatureConfig features = mock(FeatureConfig.class);
     when(features.isAlgo()).thenReturn(true);
     when(features.isAlert()).thenReturn(true);
     when(parameters.getAlgoAlarmEvaluationIntervalHours()).thenReturn(4);
@@ -70,7 +70,7 @@ class AlgoAlertEvaluationCoordinatorTest {
         AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_EXPRESSION)) {
       scopes.add(scope(scopes.size() + 1, scopes.size() + 100, type));
     }
-    when(resolver.resolveAll()).thenReturn(scopes);
+    when(resolver.resolveAlertScopes(null, true)).thenReturn(scopes);
     when(securities.updateLastPriceByList(anyList())).thenAnswer(_ -> {
       security.setSTimestamp(now);
       security.setSLast(105.0);
@@ -87,19 +87,19 @@ class AlgoAlertEvaluationCoordinatorTest {
 
   @Test
   void staleReturnedQuoteIsUnavailableAndCannotAdvanceBaseline() {
-    when(resolver.resolveAll())
+    when(resolver.resolveAlertScopes(null, true))
         .thenReturn(List.of(scope(1, 100, AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE)));
     when(securities.updateLastPriceByList(anyList())).thenReturn(List.of(security));
     coordinator.background();
     verify(states).finish(any(), eq("claim"), eq(now), eq(security.getSTimestamp()),
-        eq("Required quote is missing or stale"), any());
+        eq(AlgoAlertReason.QUOTE_MISSING_OR_STALE), any());
     verifyNoInteractions(evaluator);
   }
 
   @Test
   void scanDoesNotDownloadAndRecentAttemptAvoidsEnqueue() {
     AlgoAlertScope scope = scope(1, 100, AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE);
-    when(resolver.resolveAll()).thenReturn(List.of(scope));
+    when(resolver.resolveAlertScopes(null, true)).thenReturn(List.of(scope));
     assertThat(coordinator.hasDueAlerts()).isTrue();
     AlgoAlertEvaluationState state = new AlgoAlertEvaluationState();
     state.setConfigFingerprint(
@@ -117,19 +117,37 @@ class AlgoAlertEvaluationCoordinatorTest {
   void manualUsesOnlyCallerTenantAndBypassesWeekend() {
     ReflectionTestUtils.setField(coordinator, "clock",
         Clock.fixed(Instant.parse("2026-09-06T12:00:00Z"), ZoneOffset.UTC));
-    when(resolver.resolveForTenant(7))
+    when(resolver.resolveAlertScopes(7, true))
         .thenReturn(List.of(scope(7, 100, AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE)));
     coordinator.manual(7);
-    verify(resolver).resolveForTenant(7);
-    verify(resolver, never()).resolveAll();
+    verify(resolver).resolveAlertScopes(7, true);
+    verify(resolver, never()).resolveAlertScopes(isNull(), anyBoolean());
     verify(states).claim(any(), any(), eq(4), any(), eq(false), eq(false));
+  }
+
+  @Test
+  void alertsWithoutRuleBasedTradingEvaluateStandaloneScopesOnly() {
+    when(features.isAlgo()).thenReturn(false);
+    when(resolver.resolveAlertScopes(null, false))
+        .thenReturn(List.of(scope(1, 100, AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE)));
+    assertThat(coordinator.hasDueAlerts()).isTrue();
+    verify(resolver).resolveAlertScopes(null, false);
+    verify(resolver, never()).resolveAlertScopes(isNull(), eq(true));
+  }
+
+  @Test
+  void alertFeatureOffEvaluatesNothing() {
+    when(features.isAlert()).thenReturn(false);
+    assertThat(coordinator.hasDueAlerts()).isFalse();
+    coordinator.background();
+    verifyNoInteractions(resolver, states, securities);
   }
 
   @Test
   void weekendDoesNotDownloadOrClaim() {
     ReflectionTestUtils.setField(coordinator, "clock",
         Clock.fixed(Instant.parse("2026-09-06T12:00:00Z"), ZoneOffset.UTC));
-    when(resolver.resolveAll())
+    when(resolver.resolveAlertScopes(null, true))
         .thenReturn(List.of(scope(1, 100, AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_ABSOLUTE_PRICE)));
     coordinator.background();
     verifyNoInteractions(states, securities);

@@ -227,7 +227,7 @@ export async function reconcileSecurityTransfer(
   });
 }
 
-/** Opens the source account, selects the fixture security, and launches SecurityTransferCreateComponent. */
+/** Opens the source account, selects the fixture security, and launches SecurityTransferCreateDialogComponent. */
 export async function openSecurityTransferDialog(
   page: Page,
   fixture: SecurityTransferFixture,
@@ -264,7 +264,7 @@ export async function openSecurityTransferDialog(
   });
 }
 
-/** Populates every editable SecurityTransferCreateComponent field from the fixture and submits it. */
+/** Populates every editable SecurityTransferCreateDialogComponent field from the fixture and submits it. */
 export async function submitSecurityTransfer(
   page: Page,
   dialog: Locator,

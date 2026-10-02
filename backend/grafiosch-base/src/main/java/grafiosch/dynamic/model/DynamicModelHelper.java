@@ -17,10 +17,14 @@ import java.util.stream.Collectors;
 import grafiosch.BaseConstants;
 import grafiosch.common.DynamicFormField;
 import grafiosch.common.DynamicFormPropertySupport;
+import grafiosch.dynamic.model.ClassDescriptorInputAndShow.AtLeastOneNotNullClass;
 import grafiosch.dynamic.model.ClassDescriptorInputAndShow.DateRangeClass;
+import grafiosch.dynamic.model.ClassDescriptorInputAndShow.NumberRangeClass;
 import grafiosch.dynamic.model.udf.UDFDataHelper;
 import grafiosch.validation.AfterEqual;
+import grafiosch.validation.AtLeastOneNotNull;
 import grafiosch.validation.DateRange;
+import grafiosch.validation.NumberRange;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -57,6 +61,8 @@ import jakarta.validation.constraints.Size;
  * <li><strong>Class-level annotations:</strong>
  * <ul>
  * <li>{@code @DateRange} - Adds date range validation constraint</li>
+ * <li>{@code @AtLeastOneNotNull} - At least one of a group of optional fields must be entered</li>
+ * <li>{@code @NumberRange} - A lower numeric bound must be below the upper one</li>
  * </ul>
  * </li>
  * </ul>
@@ -79,12 +85,7 @@ public abstract class DynamicModelHelper {
   public static ClassDescriptorInputAndShow getFormDefinitionOfModelClass(Class<?> modelClass) {
     ClassDescriptorInputAndShow cdiss = new ClassDescriptorInputAndShow(
         getFormDefinitionOfModelClassMembers(modelClass));
-    for (Annotation annotation : modelClass.getDeclaredAnnotations()) {
-      if (annotation.annotationType() == DateRange.class) {
-        cdiss.putConstraint(ConstraintValidatorType.DateRange,
-            new DateRangeClass(((DateRange) annotation).start(), ((DateRange) annotation).end()));
-      }
-    }
+    applyClassConstraintAnnotations(modelClass, cdiss);
     return cdiss;
   }
 
@@ -163,13 +164,32 @@ public abstract class DynamicModelHelper {
    */
   public static ClassDescriptorInputAndShow getFormDefinitionOfEntityClass(Class<?> entityClass, int dialogId) {
     ClassDescriptorInputAndShow cdiss = new ClassDescriptorInputAndShow(getEntityFormFields(entityClass, dialogId));
-    for (Annotation annotation : entityClass.getDeclaredAnnotations()) {
-      if (annotation.annotationType() == DateRange.class) {
-        cdiss.putConstraint(ConstraintValidatorType.DateRange,
-            new DateRangeClass(((DateRange) annotation).start(), ((DateRange) annotation).end()));
+    applyClassConstraintAnnotations(entityClass, cdiss);
+    return cdiss;
+  }
+
+  /**
+   * Passes the class-level constraints of a model on to its form definition, so that the frontend can check the same
+   * cross-field rules the server validates. Without this, a form the user can submit is one the server rejects.
+   *
+   * @param modelClass the class whose declared annotations are read
+   * @param cdiss      the descriptor that receives the constraints
+   */
+  private static void applyClassConstraintAnnotations(Class<?> modelClass, ClassDescriptorInputAndShow cdiss) {
+    if (modelClass == null) {
+      return;
+    }
+    for (Annotation annotation : modelClass.getDeclaredAnnotations()) {
+      if (annotation instanceof DateRange dateRange) {
+        cdiss.putConstraint(ConstraintValidatorType.DateRange, new DateRangeClass(dateRange.start(), dateRange.end()));
+      } else if (annotation instanceof AtLeastOneNotNull atLeastOneNotNull) {
+        cdiss.putConstraint(ConstraintValidatorType.AtLeastOneNotNull,
+            new AtLeastOneNotNullClass(atLeastOneNotNull.fields()));
+      } else if (annotation instanceof NumberRange numberRange) {
+        cdiss.putConstraint(ConstraintValidatorType.NumberRange,
+            new NumberRangeClass(numberRange.lower(), numberRange.upper()));
       }
     }
-    return cdiss;
   }
 
   /**
