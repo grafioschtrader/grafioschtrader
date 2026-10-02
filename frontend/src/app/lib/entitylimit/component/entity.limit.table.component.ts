@@ -146,11 +146,13 @@ export class EntityLimitTableComponent extends TableCrudSupportMenu<EntityLimit>
     });
     this.addColumnFeqH(DataType.String, 'scopeReadable', true, false, {
       fieldValueFN: this.getScopeReadable.bind(this),
-      filterType: FilterType.withOptions, width: 100
+      filterType: FilterType.withOptions,
+      width: 100
     });
     this.addColumnFeqH(DataType.String, 'relationEntityName', true, false, {
       fieldValueFN: this.getRelationEntityLabel.bind(this),
-      filterType: FilterType.withOptions, width: 100
+      filterType: FilterType.withOptions,
+      width: 100
     });
     this.addColumnFeqH(DataType.String, 'countScopeKey', true, false, {
       translateValues: TranslateValue.NORMAL,
