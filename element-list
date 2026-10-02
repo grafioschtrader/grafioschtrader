@@ -119,6 +119,7 @@ grafioschtrader.priceupdate
 grafioschtrader.priceupdate.historyquote
 grafioschtrader.priceupdate.intraday
 grafioschtrader.receipt
+grafioschtrader.report.pdf
 grafioschtrader.reports
 grafioschtrader.reports.udfalluserfields
 grafioschtrader.reportviews

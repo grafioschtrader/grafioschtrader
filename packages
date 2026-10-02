@@ -136,6 +136,7 @@ grafioschtrader.rest
 grafioschtrader.gtnet.handler.impl
 grafioschtrader.gtnet.handler.impl.lastprice
 grafioschtrader.gtnet.handler.impl.historyquote
+grafioschtrader.report.pdf
 grafioschtrader.instrument
 grafioschtrader.platform
 grafioschtrader.platform.degiro
