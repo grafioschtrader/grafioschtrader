@@ -18,7 +18,7 @@ gt_reset() {
   declare -gA BOOTSTRAP_APT=()
   BOOTSTRAP_APPROVED=no BOOTSTRAP_WEB=''
   declare -ga PRIVATE_DIRS=() PRIVATE_FILES=()
-  CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader
+  CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader SWAP_MB=2048
   CORE_REPO=/home/grafioschtrader/build/grafioschtrader
   CORE_REMOTE=https://github.com/grafioschtrader/grafioschtrader.git
   case "${LC_ALL:-${LC_MESSAGES:-${LANG:-en}}}" in de*) LANG_CODE=de ;; esac
@@ -40,6 +40,7 @@ gt_message() {
     partial) en='Foreign installation pieces must not be adopted or removed'; de='Fremde Installationsteile dürfen weder übernommen noch entfernt werden' ;;
     running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'; de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail fortsetzen' ;;
     memory) en='Low RAM: %s'; de='Wenig RAM: %s' ;;
+    swap) en='Low RAM without swap, and no swap file can be created: %s'; de='Wenig RAM ohne Swap, und keine Swap-Datei möglich: %s' ;;
     legacy) en='Legacy platform: %s'; de='Ältere Plattform: %s' ;;
     footer) en='Check finished: %s blocking recommendations. Run without a mode to review the installation plan.'; de='Prüfung beendet: %s blockierende Empfehlungen. Ohne Modus starten, um den Installationsplan zu prüfen.' ;;
     root) en='Run inventory modes as root for a complete inventory.'; de='Bestandsaufnahme für einen vollständigen Bericht als root ausführen.' ;;

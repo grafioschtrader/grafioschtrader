@@ -75,7 +75,7 @@ domain_answers() {
   local entry mode
   gt_core_toolchain_plan() { :; }
   gt_core_build_plan() { :; }
-  for entry in DUCKDNS_UPDATER SWAP FIREWALL_ALLOW VHOST_INCLUDE; do
+  for entry in DUCKDNS_UPDATER FIREWALL_ALLOW VHOST_INCLUDE; do
     defaults
     [[ "$entry" != DUCKDNS_UPDATER ]] || { domain_answers; ANSWER[DOMAIN]=demo.duckdns.org; }
     ANSWER[$entry]=yes
@@ -114,7 +114,8 @@ domain_answers() {
 @test "safe optional defaults and resumed choices pass the same stage contract" {
   FACT[dns.duckdns]=no
   [ "$(gt_default DUCKDNS_UPDATER)" = no ]
-  [ "$(gt_default SWAP)" = no ]
+  [ "$(gt_default SWAP)" = yes ]
+  ANSWER[SWAP]=yes
   FACT[host.class]=unfinished STATE[scope]=core
   gt_stage_contract
 }

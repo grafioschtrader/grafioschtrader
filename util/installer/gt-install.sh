@@ -19,7 +19,7 @@ gt_reset() {
   declare -gA BOOTSTRAP_APT=()
   BOOTSTRAP_APPROVED=no BOOTSTRAP_WEB=''
   declare -ga PRIVATE_DIRS=() PRIVATE_FILES=()
-  CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader
+  CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader SWAP_MB=2048
   CORE_REPO=/home/grafioschtrader/build/grafioschtrader
   CORE_REMOTE=https://github.com/grafioschtrader/grafioschtrader.git
   case "${LC_ALL:-${LC_MESSAGES:-${LANG:-en}}}" in de*) LANG_CODE=de ;; esac
@@ -41,6 +41,7 @@ gt_message() {
     partial) en='Foreign installation pieces must not be adopted or removed'; de='Fremde Installationsteile dürfen weder übernommen noch entfernt werden' ;;
     running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'; de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail fortsetzen' ;;
     memory) en='Low RAM: %s'; de='Wenig RAM: %s' ;;
+    swap) en='Low RAM without swap, and no swap file can be created: %s'; de='Wenig RAM ohne Swap, und keine Swap-Datei möglich: %s' ;;
     legacy) en='Legacy platform: %s'; de='Ältere Plattform: %s' ;;
     footer) en='Check finished: %s blocking recommendations. Run without a mode to review the installation plan.'; de='Prüfung beendet: %s blockierende Empfehlungen. Ohne Modus starten, um den Installationsplan zu prüfen.' ;;
     root) en='Run inventory modes as root for a complete inventory.'; de='Bestandsaufnahme für einen vollständigen Bericht als root ausführen.' ;;
@@ -666,7 +667,7 @@ gt_dynamic_dns() {
 }
 gt_action() { ACTION[$1]=$2 REASON[$1]=$3; [[ "$2" != block ]] || BLOCKS=$((BLOCKS+1)); }
 gt_compatibility() {
-  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]} arch=${FACT[architecture]} candidate version device opt
+  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]} arch=${FACT[architecture]} candidate version device
   ACTION=() REASON=() DISKS=() DISK_FREE=() DISK_NEED=()
   BLOCKS=0
   unset 'FACT[disk.unknown]'
@@ -751,8 +752,14 @@ gt_compatibility() {
     (( version >= 3700 )) || gt_note WARN memory 'downloaded frontend can be newer than the backend source'
     FACT[frontend.mode]=build; (( version >= 3700 )) || FACT[frontend.mode]=download
     if (( version < 4000 )) && [[ "${FACT[memory.SwapTotal]}" == 0 ]]; then
-      gt_action swap install 'offer 2 GiB swap in question stage; verify btrfs support'
-      gt_disk / 2048
+      gt_swap_support
+      if [[ "${FACT[swap.method]}" == none ]]; then
+        gt_action swap reuse 'no swap file possible'
+        gt_note WARN swap "${FACT[swap.reason]}"
+      else
+        gt_action swap install "offer $SWAP_MB MiB /swapfile in question stage (${FACT[swap.method]})"
+        gt_disk / "$SWAP_MB"
+      fi
     else gt_action swap reuse 'no additional swap proposed'; fi
     if [[ "${FACT[memory.MemAvailable]}" =~ ^[0-9]+$ ]] && (( ${FACT[memory.MemAvailable]} < version / 2 )); then
       gt_note WARN memory 'other processes use more than half of RAM'
@@ -761,11 +768,7 @@ gt_compatibility() {
   else gt_action memory block 'RAM size UNKNOWN'; fi
   gt_disk /home 4096
   gt_disk /var/www 0
-  # Isolated Node and build tools; a vendor JDK adds its download and its unpacked tree, both on /opt.
-  opt=300
-  [[ "${ACTION[java]:-}" != isolate ]] || opt=$((opt + 600))
-  [[ "${ACTION[maven]:-}" != isolate ]] || opt=$((opt + 30))
-  gt_disk /opt "$opt"
+  gt_disk /opt "$(gt_opt_need)"
   gt_disk "${FACT[database.datadir]}" 2048
   gt_action disk reuse 'requirements aggregated by filesystem device'
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_action disk block 'disk capacity UNKNOWN'
@@ -847,6 +850,28 @@ gt_report() {
   gt_message footer "$BLOCKS"
   gt_toolchain_guidance
 }
+# Isolated Node and build tools; a vendor JDK adds its download and its unpacked tree, both on /opt.
+gt_opt_need() {
+  local need=300
+  [[ "${ACTION[java]:-}" != isolate ]] || need=$((need + 600))
+  [[ "${ACTION[maven]:-}" != isolate ]] || need=$((need + 30))
+  echo "$need"
+}
+
+# A swap file needs a root filesystem whose blocks swapon can map directly. btrfs needs its own mkswapfile
+# (btrfs-progs 6.1 and later); other filesystems are not offered a swap file.
+gt_swap_support() {
+  FACT[swap.filesystem]=$(stat -Lf -c %T "$(gt_path /)" 2>/dev/null) || FACT[swap.filesystem]=unknown
+  FACT[swap.reason]=''
+  case "${FACT[swap.filesystem]}" in
+    ext2/ext3|xfs) FACT[swap.method]=mkswap ;;
+    btrfs)
+      if gt_probe btrfs filesystem mkswapfile --help >/dev/null; then FACT[swap.method]=btrfs
+      else FACT[swap.method]=none FACT[swap.reason]='btrfs root without btrfs filesystem mkswapfile'; fi ;;
+    *) FACT[swap.method]=none FACT[swap.reason]="root filesystem ${FACT[swap.filesystem]} cannot hold a swap file" ;;
+  esac
+}
+
 gt_inventory() {
   gt_source_revision
   gt_system
@@ -1055,7 +1080,8 @@ gt_default() {
     SMTP_CONFIGURE|SMTP_AUTH) echo yes ;;
     SMTP_SECURITY) case "${ANSWER[SMTP_PORT]:-}" in 587) echo starttls ;; 465) echo tls ;; esac ;;
     SMTP_TEST) echo yes ;;
-    SWAP) echo no ;;
+    # Only offered when RAM is below 4000 MB, no swap exists and the root filesystem supports a swap file.
+    SWAP) echo yes ;;
     DB_REUSE_EMPTY|NODE_REPLACE|VHOST_INCLUDE|FIREWALL_ALLOW) echo no ;;
     BUFFER_POOL)
       value=${FACT[database.schemas]:-unknown}
@@ -1637,7 +1663,7 @@ gt_plan_web() {
     'Konfigurationstest und HTTP-Vergleich vorhandener Vhosts vor/nach Reload; bei Fehler wiederherstellen.'
 }
 gt_plan_storage() {
-  local path=${ANSWER[DOCROOT]} actual device max mem=${FACT[memory.MemTotal]:-unknown} filesystem
+  local path=${ANSWER[DOCROOT]} actual device max mem=${FACT[memory.MemTotal]:-unknown}
   actual=$(gt_path "$path")
   if [[ -L "$actual" || -e "$actual" && ! -d "$actual" ]]; then
     gt_plan_block "Document root is a symlink or not a directory: $path" "Dokumentenverzeichnis ist ein Symlink oder kein Verzeichnis: $path"
@@ -1650,16 +1676,9 @@ gt_plan_storage() {
     'Nur dieses Verzeichnis ist für grafioschtrader beschreibbar; gemeinsame Inhalte erhalten.'
   [[ -e "$actual" ]] || gt_plan_row create "$path/index.html" 'Landing page in newly created document root' 'Startseite im neu angelegten Dokumentenverzeichnis'
   DISKS=() DISK_FREE=() DISK_NEED=(); unset 'FACT[disk.unknown]'
-  gt_disk /home 4096; gt_disk /opt 300; gt_disk "${FACT[database.datadir]}" 2048; gt_disk "$path" 300
-  if [[ "${ANSWER[SWAP]:-no}" == yes ]]; then
-    filesystem=$(stat -Lf -c %T "$(gt_path /)" 2>/dev/null) || filesystem=unknown
-    if [[ "$filesystem" == btrfs || "$filesystem" == unknown ]]; then
-      gt_plan_block 'Swap creation on btrfs/UNKNOWN needs a supported mkswapfile implementation.' 'Swap auf btrfs/UNKNOWN benötigt eine geprüfte mkswapfile-Implementierung.'
-    fi
-    gt_disk / 2048; gt_plan_file /swapfile '2 GiB swap, mode 600'
-    gt_plan_row backup '/etc/fstab.gt-install.<timestamp>' 'Before adding swap entry' 'Vor Ergänzung des Swap-Eintrags'
-    gt_plan_row modify /etc/fstab '/swapfile; activate swap' '/swapfile; Swap aktivieren'
-  fi
+  gt_disk /home 4096; gt_disk /opt "$(gt_opt_need)"; gt_disk "${FACT[database.datadir]}" 2048; gt_disk "$path" 300
+  if [[ "${ANSWER[SWAP]:-no}" == yes && "${STATE[step.swap]:-}" != complete ]]; then gt_disk / "$SWAP_MB"; fi
+  gt_swap_plan
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_plan_block 'Disk capacity UNKNOWN.' 'Freier Speicherplatz UNKNOWN.'
   for device in "${!DISK_NEED[@]}"; do
     (( DISK_FREE[$device] >= DISK_NEED[$device] )) || gt_plan_block "Device $device: ${DISK_NEED[$device]} MiB required, ${DISK_FREE[$device]} MiB available."
@@ -1919,7 +1938,7 @@ gt_plan_application() {
 gt_stage_contract() {
   local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
   local -A used=()
-  for key in DUCKDNS_UPDATER SWAP FIREWALL_ALLOW VHOST_INCLUDE; do
+  for key in DUCKDNS_UPDATER FIREWALL_ALLOW VHOST_INCLUDE; do
     [[ "${ANSWER[$key]:-no}" != yes ]] || gt_plan_block \
       "$key=yes is not implemented; select no before starting installation." \
       "$key=yes ist noch nicht implementiert; vor Installationsbeginn no wählen."
@@ -2331,6 +2350,125 @@ gt_core_base_packages() {
     done
   fi
   gt_core_mark step.base_packages complete
+}
+
+# The swap file and its fstab line are the installer's own resources. A foreign /swapfile or fstab entry is
+# never adopted; a resumed run recognizes its own by the journal.
+gt_swap_plan() {
+  local swapfile fstab
+  [[ "${ANSWER[SWAP]:-no}" == yes ]] || return 0
+  swapfile=$(gt_path /swapfile) fstab=$(gt_path /etc/fstab)
+  if [[ "${STATE[step.swap]:-}" == complete ]]; then
+    gt_plan_row reuse /swapfile 'Installer-created swap file; verify it is active and listed in /etc/fstab' \
+      'Vom Installer angelegte Swap-Datei; prüfen, dass sie aktiv und in /etc/fstab eingetragen ist'
+    return 0
+  fi
+  if [[ "${ACTION[swap]:-}" != install && -z "${STATE[resource.swapfile]:-}" ]]; then
+    gt_plan_block 'A swap file is only created on a host with less than 4000 MB RAM and no swap.' \
+      'Eine Swap-Datei wird nur auf einem Host mit weniger als 4000 MB RAM und ohne Swap angelegt.'
+    return 0
+  fi
+  [[ -n "${FACT[swap.method]:-}" ]] || gt_swap_support
+  [[ "${FACT[swap.method]}" != none ]] || gt_plan_block "Swap file unsupported: ${FACT[swap.reason]}"
+  if [[ ( -e "$swapfile" || -L "$swapfile" ) && -z "${STATE[resource.swapfile]:-}" ]]; then
+    gt_plan_block 'A foreign /swapfile exists; it is not adopted.' \
+      'Eine fremde /swapfile existiert; sie wird nicht übernommen.'
+  fi
+  if gt_swap_listed "$fstab" && [[ -z "${STATE[resource.fstab_backup]:-}" ]]; then
+    gt_plan_block '/etc/fstab already lists /swapfile; it is not adopted.' \
+      '/etc/fstab enthält bereits /swapfile; der Eintrag wird nicht übernommen.'
+  fi
+  gt_plan_row create /swapfile "$SWAP_MB MiB swap file (${FACT[swap.method]}), mode 600, activated now" \
+    "$SWAP_MB MiB Swap-Datei (${FACT[swap.method]}), Modus 600, sofort aktiviert"
+  gt_plan_row backup '/etc/fstab.gt-install.<timestamp>' 'Before adding the swap entry' \
+    'Vor Ergänzung des Swap-Eintrags'
+  gt_plan_row modify /etc/fstab "Append '/swapfile none swap sw 0 0'; swap stays active after a reboot" \
+    "'/swapfile none swap sw 0 0' anfügen; Swap bleibt nach einem Neustart aktiv"
+}
+
+gt_swap_listed() { grep -qE '^[[:space:]]*/swapfile[[:space:]]' "$1" 2>/dev/null; }
+
+gt_swap_valid() {
+  [[ -f "$1" && ! -L "$1" && "$(stat -c '%u:%a:%s' "$1")" == "$EUID:600:$((SWAP_MB * 1048576))" ]] || return 2
+  [[ "$(blkid -p -s TYPE -o value -- "$1" 2>/dev/null)" == swap ]]
+}
+
+gt_swap_active() {
+  local path name
+  path=$(readlink -f -- "$1") || return 2
+  while IFS= read -r name; do [[ "$name" != "$path" ]] || return 0; done < <(swapon --show=NAME --noheadings)
+  return 1
+}
+
+# Write the swap file under a private name and publish it by rename, so an interrupted dd or mkswap never leaves a
+# partial /swapfile behind.
+gt_swap_create() {
+  local swapfile=$1 temporary
+  temporary="${swapfile%/*}/.gt-swapfile-${STATE[run_id]}"
+  gt_swap_support
+  [[ "${FACT[swap.method]}" != none ]] || { gt_core_error "Swap file unsupported: ${FACT[swap.reason]}"; return 2; }
+  gt_core_mark resource.swapfile intent || return 2
+  rm -f -- "$temporary" || return 2
+  if [[ "${FACT[swap.method]}" == btrfs ]]; then
+    gt_core_run btrfs filesystem mkswapfile --size "${SWAP_MB}m" "$temporary" >/dev/null || return 2
+  else
+    (umask 077 && gt_core_run dd if=/dev/zero of="$temporary" bs=1M count="$SWAP_MB" status=none) || return 2
+    gt_core_run mkswap "$temporary" >/dev/null || return 2
+  fi
+  chmod 600 "$temporary" || return 2
+  mv -T -- "$temporary" "$swapfile"
+}
+
+# Append the entry through a copy beside fstab; the timestamped backup stays for the administrator.
+gt_swap_fstab() {
+  local fstab=$1 backup temporary digest
+  if [[ -n "${STATE[file.fstab]:-}" ]]; then
+    gt_core_error 'The installer-written /swapfile line left /etc/fstab.'; return 2
+  fi
+  backup="$fstab.gt-install.$(date -u +%Y%m%dT%H%M%SZ)"
+  cp -p -- "$fstab" "$backup" || return 2
+  gt_core_mark resource.fstab_backup "$backup" || return 2
+  temporary=$(mktemp "$fstab.XXXXXX") || return 2
+  PRIVATE_FILES+=("$temporary")
+  { cat -- "$fstab"; [[ -z "$(tail -c 1 -- "$fstab")" ]] || printf '\n'; printf '/swapfile none swap sw 0 0\n'; } \
+    > "$temporary" || return 2
+  chmod --reference="$fstab" -- "$temporary" || return 2
+  chown --reference="$fstab" -- "$temporary" || return 2
+  mv -T -- "$temporary" "$fstab" || return 2
+  digest=$(sha256sum -- "$fstab") || return 2
+  gt_core_mark file.fstab "${digest%% *}"
+}
+
+# Swap comes before any build: a small host needs it to compile the backend.
+gt_core_swap() {
+  local swapfile fstab
+  [[ "${ANSWER[SWAP]:-no}" == yes ]] || return 0
+  swapfile=$(gt_path /swapfile) fstab=$(gt_path /etc/fstab)
+  gt_no_symlinks "$swapfile" || return 2
+  gt_no_symlinks "$fstab" || return 2
+  if [[ "${STATE[step.swap]:-}" != complete ]]; then
+    if [[ -e "$swapfile" ]]; then
+      if [[ -z "${STATE[resource.swapfile]:-}" ]]; then
+        gt_core_error 'A foreign /swapfile exists; it is not adopted.'; return 2
+      fi
+    else
+      [[ "${STATE[resource.swapfile]:-intent}" == intent ]] || return 2
+      gt_swap_create "$swapfile" || return 2
+    fi
+    if ! gt_swap_listed "$fstab"; then gt_swap_fstab "$fstab" || return 2
+    elif [[ -z "${STATE[resource.fstab_backup]:-}" ]]; then
+      gt_core_error '/etc/fstab already lists /swapfile; it is not adopted.'; return 2
+    fi
+  fi
+  gt_swap_valid "$swapfile" || { gt_core_error '/swapfile is not the installer-created swap file.'; return 2; }
+  [[ "$(grep -cE '^[[:space:]]*/swapfile[[:space:]]+none[[:space:]]+swap[[:space:]]' "$fstab")" == 1 ]] || {
+    gt_core_error '/etc/fstab must list /swapfile exactly once.'; return 2;
+  }
+  gt_swap_active "$swapfile" || gt_core_run swapon -- "$swapfile" || return 2
+  gt_swap_active "$swapfile" || return 2
+  [[ "${STATE[step.swap]:-}" != complete ]] || return 0
+  gt_core_mark resource.swapfile owned || return 2
+  gt_core_mark step.swap complete
 }
 
 gt_as_app() {
@@ -3434,6 +3572,7 @@ gt_core_plan() {
   done
   [[ "${FACT[init]}" == systemd ]] || gt_plan_block 'Core installation requires systemd.'
   gt_plan_base_packages
+  gt_swap_plan
   gt_core_toolchain_plan
   gt_core_build_plan
   [[ "${FACT[source.requirements]}" == remote ]] || gt_plan_block 'Pinned source requirements must be available.'
@@ -3499,7 +3638,7 @@ gt_core_snapshot() {
   local key
   for key in "${!FACT[@]}"; do
     case "$key" in
-      dns.status|plan.names|network.public_ipv4|network.global_ipv6|core.plan|host.*|source.*|os.*|architecture|init|java.suitable|java.alternatives|javac.alternatives|maven.path|node.path|node.version|node.origin|toolchain.*|apt.candidate.*|database.vendor|database.version|database.gt_tables|database.gt_user|database.users|database.schemas|database.buffer_pool_config|packages|dpkg.lock)
+      dns.status|plan.names|network.public_ipv4|network.global_ipv6|core.plan|host.*|source.*|os.*|architecture|init|java.suitable|java.alternatives|javac.alternatives|maven.path|node.path|node.version|node.origin|toolchain.*|swap.*|memory.SwapTotal|apt.candidate.*|database.vendor|database.version|database.gt_tables|database.gt_user|database.users|database.schemas|database.buffer_pool_config|packages|dpkg.lock)
         printf '%s=%s\n' "$key" "${FACT[$key]}" ;;
     esac
   done
@@ -3508,7 +3647,7 @@ gt_core_snapshot() {
 
 gt_core_execute() {
   local step
-  for step in base_packages toolchains user buildtools clone database configure; do
+  for step in base_packages swap toolchains user buildtools clone database configure; do
     printf '%s: %s\n' "$(gt_text 'Core step' 'Kernschritt')" "$step"
     "gt_core_$step" || { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
   done

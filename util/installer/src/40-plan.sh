@@ -247,7 +247,7 @@ gt_plan_web() {
     'Konfigurationstest und HTTP-Vergleich vorhandener Vhosts vor/nach Reload; bei Fehler wiederherstellen.'
 }
 gt_plan_storage() {
-  local path=${ANSWER[DOCROOT]} actual device max mem=${FACT[memory.MemTotal]:-unknown} filesystem
+  local path=${ANSWER[DOCROOT]} actual device max mem=${FACT[memory.MemTotal]:-unknown}
   actual=$(gt_path "$path")
   if [[ -L "$actual" || -e "$actual" && ! -d "$actual" ]]; then
     gt_plan_block "Document root is a symlink or not a directory: $path" "Dokumentenverzeichnis ist ein Symlink oder kein Verzeichnis: $path"
@@ -260,16 +260,9 @@ gt_plan_storage() {
     'Nur dieses Verzeichnis ist für grafioschtrader beschreibbar; gemeinsame Inhalte erhalten.'
   [[ -e "$actual" ]] || gt_plan_row create "$path/index.html" 'Landing page in newly created document root' 'Startseite im neu angelegten Dokumentenverzeichnis'
   DISKS=() DISK_FREE=() DISK_NEED=(); unset 'FACT[disk.unknown]'
-  gt_disk /home 4096; gt_disk /opt 300; gt_disk "${FACT[database.datadir]}" 2048; gt_disk "$path" 300
-  if [[ "${ANSWER[SWAP]:-no}" == yes ]]; then
-    filesystem=$(stat -Lf -c %T "$(gt_path /)" 2>/dev/null) || filesystem=unknown
-    if [[ "$filesystem" == btrfs || "$filesystem" == unknown ]]; then
-      gt_plan_block 'Swap creation on btrfs/UNKNOWN needs a supported mkswapfile implementation.' 'Swap auf btrfs/UNKNOWN benötigt eine geprüfte mkswapfile-Implementierung.'
-    fi
-    gt_disk / 2048; gt_plan_file /swapfile '2 GiB swap, mode 600'
-    gt_plan_row backup '/etc/fstab.gt-install.<timestamp>' 'Before adding swap entry' 'Vor Ergänzung des Swap-Eintrags'
-    gt_plan_row modify /etc/fstab '/swapfile; activate swap' '/swapfile; Swap aktivieren'
-  fi
+  gt_disk /home 4096; gt_disk /opt "$(gt_opt_need)"; gt_disk "${FACT[database.datadir]}" 2048; gt_disk "$path" 300
+  if [[ "${ANSWER[SWAP]:-no}" == yes && "${STATE[step.swap]:-}" != complete ]]; then gt_disk / "$SWAP_MB"; fi
+  gt_swap_plan
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_plan_block 'Disk capacity UNKNOWN.' 'Freier Speicherplatz UNKNOWN.'
   for device in "${!DISK_NEED[@]}"; do
     (( DISK_FREE[$device] >= DISK_NEED[$device] )) || gt_plan_block "Device $device: ${DISK_NEED[$device]} MiB required, ${DISK_FREE[$device]} MiB available."
@@ -529,7 +522,7 @@ gt_plan_application() {
 gt_stage_contract() {
   local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
   local -A used=()
-  for key in DUCKDNS_UPDATER SWAP FIREWALL_ALLOW VHOST_INCLUDE; do
+  for key in DUCKDNS_UPDATER FIREWALL_ALLOW VHOST_INCLUDE; do
     [[ "${ANSWER[$key]:-no}" != yes ]] || gt_plan_block \
       "$key=yes is not implemented; select no before starting installation." \
       "$key=yes ist noch nicht implementiert; vor Installationsbeginn no wählen."

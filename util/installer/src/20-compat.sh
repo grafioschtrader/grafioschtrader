@@ -1,6 +1,6 @@
 gt_action() { ACTION[$1]=$2 REASON[$1]=$3; [[ "$2" != block ]] || BLOCKS=$((BLOCKS+1)); }
 gt_compatibility() {
-  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]} arch=${FACT[architecture]} candidate version device opt
+  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]} arch=${FACT[architecture]} candidate version device
   ACTION=() REASON=() DISKS=() DISK_FREE=() DISK_NEED=()
   BLOCKS=0
   unset 'FACT[disk.unknown]'
@@ -85,8 +85,14 @@ gt_compatibility() {
     (( version >= 3700 )) || gt_note WARN memory 'downloaded frontend can be newer than the backend source'
     FACT[frontend.mode]=build; (( version >= 3700 )) || FACT[frontend.mode]=download
     if (( version < 4000 )) && [[ "${FACT[memory.SwapTotal]}" == 0 ]]; then
-      gt_action swap install 'offer 2 GiB swap in question stage; verify btrfs support'
-      gt_disk / 2048
+      gt_swap_support
+      if [[ "${FACT[swap.method]}" == none ]]; then
+        gt_action swap reuse 'no swap file possible'
+        gt_note WARN swap "${FACT[swap.reason]}"
+      else
+        gt_action swap install "offer $SWAP_MB MiB /swapfile in question stage (${FACT[swap.method]})"
+        gt_disk / "$SWAP_MB"
+      fi
     else gt_action swap reuse 'no additional swap proposed'; fi
     if [[ "${FACT[memory.MemAvailable]}" =~ ^[0-9]+$ ]] && (( ${FACT[memory.MemAvailable]} < version / 2 )); then
       gt_note WARN memory 'other processes use more than half of RAM'
@@ -95,11 +101,7 @@ gt_compatibility() {
   else gt_action memory block 'RAM size UNKNOWN'; fi
   gt_disk /home 4096
   gt_disk /var/www 0
-  # Isolated Node and build tools; a vendor JDK adds its download and its unpacked tree, both on /opt.
-  opt=300
-  [[ "${ACTION[java]:-}" != isolate ]] || opt=$((opt + 600))
-  [[ "${ACTION[maven]:-}" != isolate ]] || opt=$((opt + 30))
-  gt_disk /opt "$opt"
+  gt_disk /opt "$(gt_opt_need)"
   gt_disk "${FACT[database.datadir]}" 2048
   gt_action disk reuse 'requirements aggregated by filesystem device'
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_action disk block 'disk capacity UNKNOWN'
@@ -181,6 +183,28 @@ gt_report() {
   gt_message footer "$BLOCKS"
   gt_toolchain_guidance
 }
+# Isolated Node and build tools; a vendor JDK adds its download and its unpacked tree, both on /opt.
+gt_opt_need() {
+  local need=300
+  [[ "${ACTION[java]:-}" != isolate ]] || need=$((need + 600))
+  [[ "${ACTION[maven]:-}" != isolate ]] || need=$((need + 30))
+  echo "$need"
+}
+
+# A swap file needs a root filesystem whose blocks swapon can map directly. btrfs needs its own mkswapfile
+# (btrfs-progs 6.1 and later); other filesystems are not offered a swap file.
+gt_swap_support() {
+  FACT[swap.filesystem]=$(stat -Lf -c %T "$(gt_path /)" 2>/dev/null) || FACT[swap.filesystem]=unknown
+  FACT[swap.reason]=''
+  case "${FACT[swap.filesystem]}" in
+    ext2/ext3|xfs) FACT[swap.method]=mkswap ;;
+    btrfs)
+      if gt_probe btrfs filesystem mkswapfile --help >/dev/null; then FACT[swap.method]=btrfs
+      else FACT[swap.method]=none FACT[swap.reason]='btrfs root without btrfs filesystem mkswapfile'; fi ;;
+    *) FACT[swap.method]=none FACT[swap.reason]="root filesystem ${FACT[swap.filesystem]} cannot hold a swap file" ;;
+  esac
+}
+
 gt_inventory() {
   gt_source_revision
   gt_system

@@ -358,24 +358,13 @@ from 8081 upward, excluding both backend connectors. Apply explicitly selected u
 
 ### 5.6 Memory, swap and disk
 
-| Finding | Consequence |
-|---|---|
-| `MemTotal` < 2000 MB | `WARN`: backend build and operation are slow; swap strongly advised |
-| `MemTotal` < 3700 MB | frontend is downloaded, not built (`gtupfrontend.sh` decides on `MemTotal`) — `WARN`, because `latest.tar.gz` is rebuilt on every frontend push to `master` and can be newer than the built backend |
-| `MemAvailable` far below `MemTotal` | `WARN` naming the largest other processes: other services already use memory the build and the heap are planned with |
-| `MemTotal` < 4000 MB and no swap | swap file offered in §6 |
+The memory warnings, heap defaults and space requirements are planned by `gt_compatibility` and
+`gt_memory_defaults`; the swap file contract (`gt_core_swap`) is documented in `util/installer/README.md`.
 
-The Java heap default comes from the table of `docker/install.sh` (< 3000 MB → `-Xms128m -Xmx896m`, < 6000 MB →
-`-Xms256m -Xmx1792m`, otherwise `-Xms512m -Xmx2048m`). Heap plus offered buffer pool above 60 % of `MemTotal` lowers
-the heap proposal one row.
-
-Space requirements: 4 GB for the clone, `~/.m2`, `node_modules` and build output under `/home`, 2 GB in the MariaDB
-`datadir`, the swap file size when one is planned, and 300 MB under `/opt` for isolated toolchains. When several of
-these paths share a filesystem (same device number), their requirements are summed for that filesystem. A shortfall
-is a `block`.
-
-The swap file is `/swapfile`, 2 GB, with an `/etc/fstab` entry. On btrfs it is created with `btrfs filesystem
-mkswapfile`; where that is unavailable, swap is skipped with a note.
+Verify them on a real host below 4000 MB RAM without swap (§9): the swap file exists before the first backend build
+and stays active after a reboot, and below 3700 MB `gtupfrontend.sh` downloads the frontend instead of building it.
+That `latest.tar.gz` is rebuilt on every frontend push to `master` and can be newer than the built backend; this
+limitation belongs in the gt-user-manual (§10).
 
 ### 5.7 DNS and public reachability
 
@@ -590,7 +579,7 @@ after its own additional resources and the existing application, web, TLS and ma
 ### 8.1 State file
 
 Extend the core journal in `/var/lib/gt-install/state` and its strict parser with the remaining bootstrap
-resources: packages, repositories/keyrings, isolated toolchains, swap, web files, backups and final verification
+resources: packages, repositories/keyrings, web files, backups and final verification
 milestones. Preserve the application-stage resource hashes and first-start journal. Retain atomic replacement, private permissions, the
 installation ID and the separate protected secret store. Preserve schema-1 single-stage journals, including
 completed journals, the approved full-plan receipt, the bundle digest and completion timestamp. Extend the

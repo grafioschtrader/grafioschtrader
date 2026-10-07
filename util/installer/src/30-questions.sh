@@ -180,7 +180,8 @@ gt_default() {
     SMTP_CONFIGURE|SMTP_AUTH) echo yes ;;
     SMTP_SECURITY) case "${ANSWER[SMTP_PORT]:-}" in 587) echo starttls ;; 465) echo tls ;; esac ;;
     SMTP_TEST) echo yes ;;
-    SWAP) echo no ;;
+    # Only offered when RAM is below 4000 MB, no swap exists and the root filesystem supports a swap file.
+    SWAP) echo yes ;;
     DB_REUSE_EMPTY|NODE_REPLACE|VHOST_INCLUDE|FIREWALL_ALLOW) echo no ;;
     BUFFER_POOL)
       value=${FACT[database.schemas]:-unknown}

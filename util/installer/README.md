@@ -91,9 +91,9 @@ category and `/var/log/grafioschtrader.log`, never raw application diagnostics. 
 attempt must be inspected and stopped before retrying if it is not already healthy. No database is dropped or repaired.
 
 Planning and installation share a stage contract, including on resumption. Before saving immutable answers or
-executing the core, it rejects `DUCKDNS_UPDATER=yes`, `SWAP=yes`, `FIREWALL_ALLOW=yes`, `VHOST_INCLUDE=yes`,
+executing the core, it rejects `DUCKDNS_UPDATER=yes`, `FIREWALL_ALLOW=yes`, `VHOST_INCLUDE=yes`,
 `WEBSERVER=none` and selected names belonging to foreign vhosts. These execution paths are not implemented yet.
-DuckDNS updater and swap default to `no`; arrange them externally when needed. The proxy-port default starts at
+The DuckDNS updater defaults to `no`; arrange it externally when needed. The proxy-port default starts at
 8081 and excludes the selected backend ports. Ports 80/443 and duplicate connector/proxy ports are rejected with
 the offending answer named. Existing journals with unsupported selections also stop; original secrets and
 ownership records must be retained. Changing saved installation answers remains pending work.
@@ -351,7 +351,8 @@ The core performs these steps:
 2. Install missing base packages (`git`, `curl`, `wget`, `ca-certificates`, `gnupg`, `sudo`, `openssl`, `logrotate`,
    `whiptail`, `tzdata`) from the confirmed plan, refusing removals and upgrades. Verify their installed status;
    resume an interrupted transaction by installing only what remains missing. Already completed base packages
-   must still be present. Resolve Java/Maven, install the confirmed APT versions or vendor archives when needed,
+   must still be present. Create the swap file when selected (see below). Resolve Java/Maven, install the
+   confirmed APT versions or vendor archives when needed,
    preserve existing alternatives and verify
    `java`, `javac` and Maven with the selected JDK. Create the disabled-login-password `grafioschtrader` user,
    prepare Node/npm and the isolated build tools, then clone the planned source commit into
@@ -372,6 +373,21 @@ web server, firewall, TLS, DuckDNS update or mail test is performed. The full dr
 the core's own confirmation plan lists only its actual changes. Existing classic/Docker installations and foreign
 installation pieces are refused. Java/Maven vendor archives and Node archives are installed automatically as
 described below.
+
+### Swap file
+
+A host with less than 4000 MB RAM and no active swap is asked `SWAP` (default `yes`) when its root filesystem
+can hold a swap file: ext2/3/4 and xfs get `dd` plus `mkswap`, btrfs gets `btrfs filesystem mkswapfile`
+(btrfs-progs 6.1 and later). Any other root filesystem, or btrfs without `mkswapfile`, is reported with a note
+and not asked. The plan reserves 2 GiB on the root filesystem.
+
+The core creates the swap right after the base packages, so the backend build already has it. It writes the
+2 GiB file under a private name beside `/swapfile`, formats it, sets mode 600, publishes it by rename and
+activates it. It copies `/etc/fstab` to `/etc/fstab.gt-install.<timestamp>` and appends
+`/swapfile none swap sw 0 0` through a copy beside the file. The journal records the swap file, the backup and
+the fstab digest. A resumed run discards an interrupted swap file and recognizes its own fstab line; a completed
+run only verifies the file and the single fstab entry, and activates the swap again when needed. A foreign
+`/swapfile` or an existing `/swapfile` line in `/etc/fstab` is never adopted and stops the plan.
 
 ### Java and Maven installation choices
 
