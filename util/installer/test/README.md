@@ -233,20 +233,32 @@ nginx reloads; boot enablement and integration with the real application belong 
 
 ## Actual build and systemd reboot in QEMU
 
-`vm-host.sh` and `vm-guest.sh` run the application acceptance in a disposable Ubuntu 24.04 amd64 VM with its
+`vm-host.sh` runs acceptance in a disposable Ubuntu 24.04 amd64 VM with its
 own kernel and systemd PID 1. The controller requires `/dev/kvm`, at least 16 GB of available host RAM and
 space for a 60 GB sparse guest disk. It assigns 12 GB and eight virtual CPUs to the guest. Docker needs only
 the KVM device and a read-only repository mount; no privileged container, host database mount or published
 network port is used. SSH forwards to loopback inside the controller container with a newly generated key.
 
 The controller downloads the [official Ubuntu cloud image](https://cloud-images.ubuntu.com/noble/current/),
-verifies its SHA-256 and records it with the source revisions. It snapshots Git HEAD and overlays the current
+verifies its SHA-256 and records it with the source revisions. The default `GT_VM_MODE=bootstrap` runs
+`vm-bootstrap.sh`: it invokes the actual modeless CLI with a private answers file and `--yes`. The installer
+resolves and pins the public source commit itself. The driver installs only probe prerequisites and a local SMTP
+fixture; Java, Maven, MariaDB, Node, base packages, application builds and the web server belong to the installer.
+
+The driver pauses the installer after its first-start intent, lets the real service finish migrations, then
+terminates the installer with SIGTERM. A modeless `--yes` retry supplies no answers or database-root password.
+It must preserve the installation ID and secrets, reach `scope=bootstrap` / `status=complete`, verify the actual
+backend and LAN frontend and submit exactly one message to the guest-only SMTP sink. After reboot it verifies
+a changed kernel boot ID, automatic database/backend/web startup and application health. A completed modeless
+rerun must preserve journal, result, build log, artifacts and secrets and must not send another message.
+
+`GT_VM_MODE=stages` retains the individual-stage acceptance in `vm-guest.sh`. It snapshots Git HEAD and overlays the current
 installer, its changed shell helpers and the application's connection-initialization properties. Other uncommitted
 application changes and local ignored credentials are excluded. This isolated snapshot gets its own commit;
 the working repository is never committed or reset by the test. The current installer is copied separately
 and its SHA-256 recorded, allowing a verifier fix to resume against the same built application commit.
 
-The guest invokes the real core execution functions with that local source pin and generated fixture passwords.
+In stage mode, the guest invokes the real core execution functions with that local source pin and generated fixture passwords.
 Java/Maven prerequisites are installed by the test driver; core CLI inventory, interactive prompts and vendor
 fallback selection are covered by the separate suites. MariaDB, encryption, Node installation, both complete
 application builds, systemd, sudoers and logrotation all run for real. No service-command adapter is used.
@@ -272,9 +284,19 @@ the named container is removed. Retry the host script to resume an interrupted c
 missing or corrupt original credentials deliberately block recovery. Application passwords and the fixture's
 root-password input stay inside the disposable guest. Logs and `results/PASS` distinguish a completed run from
 an interrupted one. Real ARM, low-memory frontend downloads and the remaining distribution matrix require
-separate runs. Set `GT_VM_WEB=apache2` and `GT_VM_DOMAIN=yes` on the controller container to test Apache/AJP
-and existing-certificate TLS with an isolated test CA. The default is nginx without a domain. Mail delivery
-and a later update to master remain separate from this VM test.
+separate runs. Set `GT_VM_WEB=apache2` to select Apache. Domain/TLS acceptance currently requires
+`GT_VM_MODE=stages` and `GT_VM_DOMAIN=yes`; it uses an isolated test CA. The default is modeless bootstrap with
+nginx and LAN HTTP. Public mail delivery, interactive typing and a later update to master remain separate checks.
+
+Modeless acceptance on 2026-10-07 passed on Ubuntu 24.04 amd64 with nginx and kernel `6.8.0-142-generic`.
+The actual CLI installed the toolchains, database and web server, built the application, and resumed after
+SIGTERM (exit 143) with a populated schema and first-start intent still pending. Resumption exited 0 with
+`status=complete`, unchanged secrets/identity and exactly one accepted local SMTP message. Reboot changed
+the kernel boot ID; all three services started automatically and the real LAN frontend/API passed verification.
+A completed modeless rerun preserved journal, result, build log, artifacts and secrets without another message.
+Application commit: `9d0a04ee0f3230f387a8e2d1a62a29e956db56e6`; installer SHA-256:
+`3fa9e8dc385721bb40eed773cb20e708f7e62ceffb463ea931b455107d09a29b`; cloud image SHA-256:
+`6a81c37564db9b1ee84e141922625e1d7c5b389b99bb3c572e0243607d5bb4d2`.
 
 Local acceptance on 2026-10-05 passed with kernel `6.8.0-142-generic`, Java `25.0.4.1`, Node `24.21.0` and
 MariaDB `10.11.14` on Ubuntu 24.04 amd64. All six Maven reactor modules built successfully, the production

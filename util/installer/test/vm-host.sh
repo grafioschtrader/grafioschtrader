@@ -2,13 +2,22 @@
 # QEMU controller inside a disposable Docker container; repository is read-only.
 set -euo pipefail
 [[ -f /.dockerenv && -c /dev/kvm && $EUID == 0 && -d /repo/.git ]]
+# Keep the running controller stable while the host checkout is being edited.
+if [[ "${BASH_SOURCE[0]}" != /work/vm-host-run.sh ]]; then
+  cp -- "${BASH_SOURCE[0]}" /work/vm-host-run.sh
+  exec bash /work/vm-host-run.sh "$@"
+fi
 cd /work
 umask 077
 GT_VM_WEB=${GT_VM_WEB:-nginx}
 GT_VM_DOMAIN=${GT_VM_DOMAIN:-no}
+GT_VM_MODE=${GT_VM_MODE:-bootstrap}
 [[ "$GT_VM_WEB" == nginx || "$GT_VM_WEB" == apache2 ]]
 [[ "$GT_VM_DOMAIN" == yes || "$GT_VM_DOMAIN" == no ]]
+[[ "$GT_VM_MODE" == stages || "$GT_VM_MODE" == bootstrap && "$GT_VM_DOMAIN" == no ]]
 mkdir -p results
+rm -f results/PASS
+git -c safe.directory=/repo -C /repo rev-parse HEAD > results/base-commit
 ssh_guest() {
   ssh -i /work/guest-key -p 2222 -o BatchMode=yes -o ConnectTimeout=5 \
     -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/work/known-hosts ubuntu@127.0.0.1 "$@"
@@ -41,7 +50,7 @@ for ((attempt=0; attempt<120; attempt++)); do
   sleep 3
 done
 ssh_guest 'sudo cloud-init status --wait'
-if ! ssh_guest 'test -d /opt/gt-acceptance/source/.git'; then
+if [[ "$GT_VM_MODE" == stages ]] && ! ssh_guest 'test -d /opt/gt-acceptance/source/.git'; then
   mkdir snapshot
   git -c safe.directory=/repo -C /repo archive HEAD | tar -x -C snapshot
   # Only installer-owned changes are overlaid; unrelated work in progress is excluded.
@@ -57,16 +66,24 @@ if ! ssh_guest 'test -d /opt/gt-acceptance/source/.git'; then
   ssh_guest 'sudo mkdir -p /opt/gt-acceptance/source && sudo chmod 755 /opt/gt-acceptance /opt/gt-acceptance/source'
   ssh_guest 'sudo tar -xzf - -C /opt/gt-acceptance/source && sudo chmod -R a+rX /opt/gt-acceptance/source' < source.tar.gz
 fi
+ssh_guest 'sudo mkdir -p /opt/gt-acceptance'
 ssh_guest 'sudo git config --system --replace-all safe.directory /opt/gt-acceptance/source && sudo git config --system --add safe.directory /opt/gt-acceptance/source/.git'
 ssh_guest 'sudo tee /opt/gt-acceptance/installer.sh >/dev/null' < /repo/util/installer/gt-install.sh
 sha256sum /repo/util/installer/gt-install.sh > results/installer.sha256
 ssh_guest 'sudo tee /opt/gt-acceptance/guest.sh >/dev/null' < /repo/util/installer/test/vm-guest.sh
 guest_script='sudo bash /opt/gt-acceptance/guest.sh'
+if [[ "$GT_VM_MODE" == bootstrap ]]; then
+  ssh_guest 'sudo tee /opt/gt-acceptance/bootstrap.sh >/dev/null' < /repo/util/installer/test/vm-bootstrap.sh
+  guest_script='sudo bash /opt/gt-acceptance/bootstrap.sh'
+  ssh_guest "$guest_script prepare $GT_VM_WEB" > results/prepare.log 2>&1
+  ssh_guest "$guest_script install" >> results/bootstrap.log 2>&1
+else
 if ! ssh_guest 'sudo grep -qx step.core=complete /var/lib/gt-install/state'; then
   ssh_guest "$guest_script core $GT_VM_WEB $GT_VM_DOMAIN" > results/core.log 2>&1
 fi
 ssh_guest "$guest_script application" > results/application.log 2>&1
 ssh_guest "$guest_script web" > results/web.log 2>&1
+fi
 ssh_guest 'sudo systemctl reboot' || true
 sleep 10
 for ((attempt=0; attempt<120; attempt++)); do
@@ -79,6 +96,12 @@ backend_http=9090
 ssh_guest "uname -r; systemctl is-active mariadb grafioschtrader $GT_VM_WEB; curl -fsS http://127.0.0.1:$backend_http/api/gtinfo" > results/runtime.txt
 ssh_guest 'sudo cat /var/lib/gt-install/app-build.log' > results/build.log
 ssh_guest 'sudo journalctl -u grafioschtrader.service --no-pager' > results/service.log
+if [[ "$GT_VM_MODE" == bootstrap ]]; then
+  ssh_guest 'sudo cat /root/gt-bootstrap-acceptance/initial.log' > results/initial.log
+  ssh_guest 'sudo cat /root/gt-bootstrap-acceptance/resumed.log' > results/resumed.log
+  ssh_guest 'sudo cat /var/lib/gt-install/result' > results/result.txt
+  ssh_guest "sudo sed -n 's/^built_commit=//p' /var/lib/gt-install/state" > results/source-commit
+fi
 sha256sum base.img > results/cloud-image.sha256
-printf 'PASS: real build, %s LAN access, domain TLS=%s, systemd startup, guest reboot and idempotent resume.\n' "$GT_VM_WEB" "$GT_VM_DOMAIN" | tee results/PASS
+printf 'PASS: mode=%s, real build, %s LAN access, domain TLS=%s, systemd startup, reboot and resume.\n' "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" | tee results/PASS
 ssh_guest 'sudo systemctl poweroff' || true
