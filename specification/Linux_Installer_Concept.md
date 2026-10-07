@@ -609,7 +609,7 @@ existing installation does not prove that a clean bootstrap works. QEMU/VM accep
 
 | Scenario | Required evidence |
 |---|---|
-| fresh installation per primary combination of §1.2, and one per legacy row | backend built locally, frontend served, listeners on loopback as in §5.5, migrations complete, no `uca1400` column, service up again after a reboot |
+| fresh installation per primary release of §1.2 on arm64, and one per legacy row (Debian 11, Ubuntu 22.04, armhf) | backend built locally, frontend served, listeners on loopback as in §5.5, migrations complete, no `uca1400` column, service up again after a reboot |
 | `--check` and `--dry-run` on the reference hosts: Debian 13 with nginx and Home Assistant, Debian 13 with nginx, Armbian on Ubuntu 26.04 with Apache, Debian 11 with Apache, Ubuntu 22.04 armhf with Apache, Debian 12 with Apache and a socket-activated MariaDB, and the Debian 13 Docker host | correct class (§4.2) on each, complete component report, no file, package or service changed |
 | interruption during toolchain, application, web and TLS changes | resumption recognizes its own resources, reuses the secrets, re-verifies, creates nothing twice |
 | rerun after success | "completed" result with update instructions, no change |

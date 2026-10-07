@@ -276,7 +276,7 @@ nginx reloads; boot enablement and integration with the real application belong 
 ## Actual build and systemd reboot in QEMU
 
 `vm-host.sh` runs acceptance in a disposable amd64 VM with its own kernel and systemd PID 1: Ubuntu 24.04 by
-default, Debian 12 with `GT_VM_OS=debian-12`. Debian 12 has no JDK 25 in APT, so its run exercises the vendor JDK
+default, or `GT_VM_OS=debian-12`, `debian-13` or `ubuntu-26.04`; the additional releases run in bootstrap mode. Debian 12 has no JDK 25 in APT, so its run exercises the vendor JDK
 archive while Debian's APT Maven pulls in a shared Java 17; it is supported in bootstrap mode only, because the
 stage driver installs Java from APT. A controller container keeps one guest disk and refuses another release;
 use a new container per release, for example
@@ -358,6 +358,21 @@ SIGTERM, one accepted local SMTP message, reboot with automatic startup and a re
 as on Ubuntu. Application commit: `838ae5272a57c129472752821df4271dae0dd6ff`; installer SHA-256:
 `2e1b5263b6ddd5d76eb558c2351143c3e576d2ce44f38980de843ed9561dc37b`; cloud image SHA-256:
 `9ebb87ba8e3e0ab593e39cb89fed15dda05e5997b575285a7fae4ac4bc42ad20`.
+
+Modeless acceptance on 2026-10-07 passed on Debian 13.7 amd64 with nginx and kernel `6.12.111+deb13-cloud-amd64`.
+Debian 13 offers `openjdk-25-jdk-headless` `25.0.4.1+1-1~deb13u1` and Maven `3.9.9-1` in APT, which the installer
+used. MariaDB `11.8.6` maps utf8mb4 to the `uca1400` collations by default; the backend's connection
+initialization kept the schema on `utf8mb4_general_ci` through all migrations. `/tmp` is a tmpfs. Build,
+resumption, one accepted mail, reboot and the completed rerun passed; the result carried no warning. Application
+commit: `35c41a8af27cb581f632c5ad2cd31c73e7687e37`; installer SHA-256:
+`9e1b7d3367c62fad0ac689ccc5d334687df454dde6d7e47d76e64a948d0c7931`; cloud image SHA-256:
+`b2aca2bee42c7082fd6aba4a5bb1a89612087a405e99896920f3346f7b23b9d1`.
+
+Modeless acceptance on 2026-10-07 passed on Ubuntu 26.04.1 LTS amd64 with nginx and kernel `7.0.0-34-generic`.
+The installer used `openjdk-25-jdk-headless` `25.0.4.1+1-1~26.04.4` and Maven `3.9.12-1` from APT with MariaDB
+`11.8.6`. Build, resumption, one accepted mail, reboot and the completed rerun passed; the result carried no
+warning. Application commit and installer SHA-256 as for Debian 13; cloud image SHA-256:
+`8800651811af9a85465ad1d552add729947bb16488dddb4a9b5305a3d97332b2`.
 
 Small-host acceptance on 2026-10-07 passed on the same Debian 12 image with `GT_VM_MEMORY=3072` (2983 MiB
 `MemTotal`, no swap). The installer asked for and created the 2 GiB `/swapfile` before the first build, wrote

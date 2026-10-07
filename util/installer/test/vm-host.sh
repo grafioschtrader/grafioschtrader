@@ -29,6 +29,14 @@ case "$GT_VM_OS" in
     [[ "$GT_VM_MODE" == bootstrap ]]
     image_base=https://cloud.debian.org/images/cloud/bookworm/latest image=debian-12-genericcloud-amd64.qcow2
     sums=SHA512SUMS sum_tool=sha512sum guest_user=debian ;;
+  debian-13)
+    [[ "$GT_VM_MODE" == bootstrap ]]
+    image_base=https://cloud.debian.org/images/cloud/trixie/latest image=debian-13-genericcloud-amd64.qcow2
+    sums=SHA512SUMS sum_tool=sha512sum guest_user=debian ;;
+  ubuntu-26.04)
+    [[ "$GT_VM_MODE" == bootstrap ]]
+    image_base=https://cloud-images.ubuntu.com/releases/26.04/release image=ubuntu-26.04-server-cloudimg-amd64.img
+    sums=SHA256SUMS sum_tool=sha256sum guest_user=ubuntu ;;
   *) exit 2 ;;
 esac
 # A controller keeps one guest disk; another release needs its own controller container.
