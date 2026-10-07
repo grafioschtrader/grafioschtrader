@@ -158,6 +158,7 @@ gt_bootstrap_plan() {
       /etc/apache2/conf-enabled/grafioschtrader-listen.conf "Listen ${ANSWER[TLS_PROXY_LISTEN]}"
   fi
   gt_plan_row enable "${ANSWER[WEBSERVER]}.service" 'Start/reload selected web server and enable boot after route verification.'
+  gt_firewall_plan
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]]; then
     gt_plan_row consent letsencrypt 'HTTP-01 issuance/reuse, renewal test and scoped reload hook/timer; terms: https://letsencrypt.org/repository/'
   fi

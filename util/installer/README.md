@@ -91,7 +91,7 @@ category and `/var/log/grafioschtrader.log`, never raw application diagnostics. 
 attempt must be inspected and stopped before retrying if it is not already healthy. No database is dropped or repaired.
 
 Planning and installation share a stage contract, including on resumption. Before saving immutable answers or
-executing the core, it rejects `DUCKDNS_UPDATER=yes`, `FIREWALL_ALLOW=yes`, `VHOST_INCLUDE=yes`,
+executing the core, it rejects `DUCKDNS_UPDATER=yes`, `VHOST_INCLUDE=yes`,
 `WEBSERVER=none` and selected names belonging to foreign vhosts. These execution paths are not implemented yet.
 The DuckDNS updater defaults to `no`; arrange it externally when needed. The proxy-port default starts at
 8081 and excludes the selected backend ports. Ports 80/443 and duplicate connector/proxy ports are rejected with
@@ -374,6 +374,25 @@ the core's own confirmation plan lists only its actual changes. Existing classic
 installation pieces are refused. Java/Maven vendor archives and Node archives are installed automatically as
 described below.
 
+### ufw rules
+
+`FIREWALL_ALLOW` is asked only while ufw is active and defaults to `yes`; without the rules the selected routes
+would stay unreachable. It allows exactly the selected web routes:
+
+| Route | Rule |
+|---|---|
+| LAN site, and HTTP-01 / redirect for a domain | `ufw allow 80/tcp` |
+| `letsencrypt` or `existing` TLS | `ufw allow 443/tcp` |
+| `proxy` TLS with `TLS_PROXY_FROM` | `ufw allow from <address> to any port <TLS_PROXY_LISTEN> proto tcp` |
+| `proxy` TLS without a source address | `ufw allow <TLS_PROXY_LISTEN>/tcp` |
+
+SSH is never opened or changed: a global `22/tcp` rule could widen access that the administrator restricted, and the
+installer does not need it. Both web stages add the rules right after starting the web server, before any site or
+certificate, so Let's Encrypt's HTTP-01 request passes an active ufw. A rule that `ufw show added` already lists is
+journaled as `preexisting` and never claimed; a rule the installer adds is journaled as intent before `ufw allow`
+and as owned afterwards. A completed stage only verifies that every rule is still listed; a rule the installer
+added and an administrator removed later stops the stage instead of being re-added silently.
+
 ### Swap file
 
 A host with less than 4000 MB RAM and no active swap is asked `SWAP` (default `yes`) when its root filesystem
@@ -582,8 +601,9 @@ An inactive database is never started by an authentication probe. Failed authent
 
 New passwords require matching confirmation; empty input retries and never generates a replacement. Existing
 credentials are entered once. Input is hidden and preserves spaces, quotes, backslashes, dollar signs and equals
-signs literally. NUL and control characters are rejected. Ctrl-C or end-of-input cancels. Terminal echo is restored
-on normal completion and handled cancellation. Secret values never enter the printable answer map, reports or
+signs literally. NUL and control characters are rejected. Ctrl-C or end-of-input cancels; while a password is
+entered the terminal runs with `-echo -isig`, so Ctrl-C arrives as an input byte and cancels without depending on
+signal timing. Terminal echo and signal keys are restored on normal completion and handled cancellation. Secret values never enter the printable answer map, reports or
 external command arguments. Temporary MariaDB option files are mode 600 inside private scratch space and removed
 after use and on exit. Shell tracing is disabled before secret handling.
 

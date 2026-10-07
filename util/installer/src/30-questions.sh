@@ -41,7 +41,7 @@ DOCROOT|path|always||Absolute document root; existing application content must r
 TIMEZONE|timezone|always||Host time zone used for the first cron setup|Host-Zeitzone für die erste Cron-Einrichtung
 SWAP|yesno|swap||Create 2 GiB at /swapfile and add it to /etc/fstab|2 GiB unter /swapfile anlegen und in /etc/fstab eintragen
 NODE_REPLACE|yesno|node_shared||Replace shared Node.js instead of isolating; affects other consumers|Gemeinsames Node.js ersetzen statt isolieren; betrifft andere Anwendungen
-FIREWALL_ALLOW|yesno|ufw||Add ufw TCP rules for 22 and the selected web ports|ufw-TCP-Regeln für 22 und die gewählten Web-Ports ergänzen
+FIREWALL_ALLOW|yesno|ufw||Allow the selected web ports in ufw; SSH and existing rules stay unchanged|Gewählte Web-Ports in ufw freigeben; SSH und bestehende Regeln bleiben unverändert
 QUESTIONS
 }
 
@@ -182,7 +182,9 @@ gt_default() {
     SMTP_TEST) echo yes ;;
     # Only offered when RAM is below 4000 MB, no swap exists and the root filesystem supports a swap file.
     SWAP) echo yes ;;
-    DB_REUSE_EMPTY|NODE_REPLACE|VHOST_INCLUDE|FIREWALL_ALLOW) echo no ;;
+    DB_REUSE_EMPTY|NODE_REPLACE|VHOST_INCLUDE) echo no ;;
+    # Only asked while ufw is active; without the rules the LAN and domain routes would stay unreachable.
+    FIREWALL_ALLOW) echo yes ;;
     BUFFER_POOL)
       value=${FACT[database.schemas]:-unknown}
       if [[ "${FACT[database.vendor]:-}" == absent ]]; then echo yes
@@ -354,10 +356,12 @@ gt_restore_terminal() {
 }
 
 gt_read_secret() {
-  # read normally discards NUL. Read one byte with a NUL delimiter to reject it explicitly.
+  # read normally discards NUL. Read one byte with a NUL delimiter to reject it explicitly. Ctrl-C arrives as a
+  # byte because gt_ask_secret clears isig; it cancels like EOF.
   local char invalid=no LC_ALL=C
   SECRET_INPUT=''
   while IFS= read -r -n 1 -d '' -u "$QUESTION_FD" char; do
+    [[ "$char" != $'\003' ]] || break
     [[ "$char" != $'\n' ]] || { [[ "$invalid" == no ]] && gt_valid_secret "$SECRET_INPUT"; return $?; }
     if [[ -z "$char" || "$char" == *[$'\001'-$'\037'$'\177']* ]]; then
       if [[ -t "$QUESTION_FD" && ( "$char" == $'\177' || "$char" == $'\010' ) ]]; then
@@ -374,7 +378,9 @@ gt_ask_secret() {
   local key=$1 twice=${2:-no} first status
   if [[ -t "$QUESTION_FD" ]]; then
     TTY_STATE=$(stty -g <&"$QUESTION_FD") || return 2
-    stty -echo <&"$QUESTION_FD" || { gt_restore_terminal; return 2; }
+    # -isig turns Ctrl-C into an input byte that gt_read_secret cancels on: a terminal SIGINT racing the
+    # character-wise read could otherwise leave the prompt waiting for another key.
+    stty -echo -isig <&"$QUESTION_FD" || { gt_restore_terminal; return 2; }
   fi
   while :; do
     printf '%s (%s): ' "$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")" "$key" >&"$QUESTION_OUTPUT"

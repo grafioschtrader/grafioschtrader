@@ -448,8 +448,9 @@ gt_install_extended_web() {
   (( ${#PLAN_BLOCKERS[@]} == 0 )) || return 2
   before="${FACT[web.snapshot]}:${FACT[web.transaction]}:${FACT[web.names]}:${FACT[web.lan]}:$(gt_tls_snapshot):$(sha256sum "$(gt_path /var/lib/gt-install/state)")"
   printf 'Web: %s; LAN: http://%s/grafioschtrader/; domain: %s; TLS: %s\n' "$web" "${FACT[web.lan]}" "${ANSWER[DOMAIN]:-none}" "${ANSWER[TLS_SOURCE]:-none}"
-  gt_text 'Install required web packages, own sites and Apache modules; verify routes and shared sites. Certbot uses HTTP-01 and a scoped renewal test. Firewall unchanged.' \
-    'Benötigte Web-Pakete, eigene Sites und Apache-Module installieren; Routen und bestehende Sites prüfen. Certbot nutzt HTTP-01 und einen begrenzten Erneuerungstest. Firewall unverändert.'
+  gt_text 'Install required web packages, own sites and Apache modules; verify routes and shared sites. Certbot uses HTTP-01 and a scoped renewal test.' \
+    'Benötigte Web-Pakete, eigene Sites und Apache-Module installieren; Routen und bestehende Sites prüfen. Certbot nutzt HTTP-01 und einen begrenzten Erneuerungstest.'
+  gt_firewall_summary
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt && "${FACT[tls.reuse]:-no}" != yes ]]; then
     gt_text "Confirmation also accepts the Let's Encrypt terms: https://letsencrypt.org/repository/" \
       "Die Bestätigung akzeptiert auch die Bedingungen von Let's Encrypt: https://letsencrypt.org/repository/"
@@ -478,6 +479,8 @@ gt_install_extended_web() {
       -o DPkg::Lock::Timeout=600 install "${packages[@]}" || return 2
   fi
   gt_core_run systemctl start "$web.service" || return 2
+  # Before any site or certificate: HTTP-01 must reach port 80 through an active ufw.
+  gt_web_firewall || return 2
   gt_site_test && gt_site_inventory > "$SCRATCH/web-inventory" && gt_nginx_statuses > "$SCRATCH/web-before" && gt_site_baseline || return 2
   if [[ "$web" == apache2 ]]; then
     gt_apache_default_disable || return 2

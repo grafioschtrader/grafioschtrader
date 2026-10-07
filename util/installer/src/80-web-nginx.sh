@@ -198,6 +198,74 @@ gt_web_activate() {
   return 2
 }
 
+# ufw rules for the selected web routes, one ufw argument list per line. The LAN site always listens on 80, which
+# Let's Encrypt's HTTP-01 also needs; SSH and every existing rule stay as they are.
+gt_firewall_rules() {
+  [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]] || return 0
+  printf 'allow 80/tcp\n'
+  [[ -n "${ANSWER[DOMAIN]:-}" ]] || return 0
+  case "${ANSWER[TLS_SOURCE]:-}" in
+    letsencrypt|existing) printf 'allow 443/tcp\n' ;;
+    proxy)
+      if [[ -n "${ANSWER[TLS_PROXY_FROM]:-}" ]]; then
+        printf 'allow from %s to any port %s proto tcp\n' "${ANSWER[TLS_PROXY_FROM]}" "${ANSWER[TLS_PROXY_LISTEN]}"
+      else printf 'allow %s/tcp\n' "${ANSWER[TLS_PROXY_LISTEN]}"; fi ;;
+  esac
+}
+
+gt_firewall_plan() {
+  local rule
+  [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]] || return 0
+  [[ "${FACT[firewall.ufw]:-}" == *'Status: active'* ]] ||
+    gt_plan_block 'FIREWALL_ALLOW requires an active ufw.' 'FIREWALL_ALLOW benötigt ein aktives ufw.'
+  while IFS= read -r rule; do
+    gt_plan_row modify ufw "ufw $rule; SSH and existing rules unchanged" \
+      "ufw $rule; SSH und bestehende Regeln unverändert"
+  done < <(gt_firewall_rules)
+}
+
+gt_firewall_key() {
+  local digest
+  digest=$(printf '%s' "$1" | sha256sum) || return 2
+  printf 'resource.ufw.%s\n' "${digest:0:16}"
+}
+
+# Rules already present before this installer are recorded as preexisting and never claimed. An interrupted run's
+# intent becomes ownership once ufw lists the rule.
+gt_web_firewall() {
+  local rule key added
+  local -a words
+  [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]] || return 0
+  added=$(gt_core_run ufw show added) || { gt_core_error 'ufw rules cannot be listed.'; return 2; }
+  while IFS= read -r rule; do
+    key=$(gt_firewall_key "$rule") || return 2
+    if grep -Fxq -- "ufw $rule" <<< "$added"; then
+      case "${STATE[$key]:-}" in
+        '') gt_core_mark "$key" "preexisting:$rule" || return 2 ;;
+        intent:*) gt_core_mark "$key" "owned:$rule" || return 2 ;;
+      esac
+      continue
+    fi
+    [[ "${STATE[$key]:-intent:}" == intent:* ]] || { gt_core_error "ufw rule disappeared: $rule"; return 2; }
+    gt_core_mark "$key" "intent:$rule" || return 2
+    read -r -a words <<< "$rule"
+    gt_core_run ufw "${words[@]}" < /dev/null > /dev/null || { gt_core_error "ufw $rule failed."; return 2; }
+    gt_core_mark "$key" "owned:$rule" || return 2
+  done < <(gt_firewall_rules)
+  added=$(gt_core_run ufw show added) || return 2
+  while IFS= read -r rule; do
+    grep -Fxq -- "ufw $rule" <<< "$added" || { gt_core_error "ufw does not list: $rule"; return 2; }
+  done < <(gt_firewall_rules)
+  [[ "${STATE[step.firewall]:-}" == complete ]] || gt_core_mark step.firewall complete
+}
+
+gt_firewall_summary() {
+  if [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]]; then
+    gt_text "ufw: $(gt_firewall_rules | paste -sd ';' -); SSH and existing rules unchanged." \
+      "ufw: $(gt_firewall_rules | paste -sd ';' -); SSH und bestehende Regeln unverändert."
+  else gt_text 'Firewall unchanged.' 'Firewall unverändert.'; fi
+}
+
 gt_install_web() {
   local state_dir before after reply package
   local completed_status
@@ -216,8 +284,9 @@ gt_install_web() {
   fi
   gt_web_preflight || { gt_core_error 'Web preflight failed; no web changes made.'; return 2; }
   before="$(sha256sum "$state_dir/state"):${FACT[web.snapshot]}:${FACT[web.package]}:${FACT[web.lan]}"
-  gt_text 'LAN stage: install nginx if absent; add an owned HTTP vhost, verify frontend/API and existing sites, enable nginx at boot. Firewall unchanged.' \
-    'LAN-Stufe: nginx bei Bedarf installieren; eigenen HTTP-Vhost ergänzen, Frontend/API und bestehende Sites prüfen, nginx beim Boot aktivieren. Firewall unverändert.'
+  gt_text 'LAN stage: install nginx if absent; add an owned HTTP vhost, verify frontend/API and existing sites, enable nginx at boot.' \
+    'LAN-Stufe: nginx bei Bedarf installieren; eigenen HTTP-Vhost ergänzen, Frontend/API und bestehende Sites prüfen, nginx beim Boot aktivieren.'
+  gt_firewall_summary
   printf 'URL: http://%s/grafioschtrader/\nDocument root: %s\n' "${FACT[web.lan]}" "${ANSWER[DOCROOT]}"
   if [[ "$CORE_CONFIRM" != yes ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
@@ -236,6 +305,7 @@ gt_install_web() {
     gt_core_run systemctl start nginx.service || return 2
     gt_web_preflight || return 2
   fi
+  gt_web_firewall || return 2
   if [[ "${STATE[step.web]:-}" == complete ]]; then
     [[ -L "$(gt_path /etc/nginx/sites-enabled/grafioschtrader)" ]] && gt_web_verify || return 2
     gt_core_run systemctl is-enabled --quiet nginx.service || return 2

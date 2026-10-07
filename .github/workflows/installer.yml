@@ -120,6 +120,8 @@ jobs:
         run: docker run --rm -v "$PWD:/repo:ro" gt-installer-web bats util/installer/test/web.bats
       - name: Verify real nginx and HTTP integration
         run: docker run --rm -v "$PWD:/repo:ro" gt-installer-web bash util/installer/test/web-container.sh
+      - name: Verify real ufw rules in the container's own network namespace
+        run: docker run --rm --cap-add NET_ADMIN -v "$PWD:/repo:ro" ubuntu:24.04 bash /repo/util/installer/test/firewall-container.sh
       - name: Check domain and mail recovery rules
         run: docker run --rm -v "$PWD:/repo:ro" gt-installer-web bats util/installer/test/domain-mail.bats util/installer/test/certbot-reuse.bats
       - name: Verify local SMTP transports and authentication

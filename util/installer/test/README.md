@@ -74,6 +74,12 @@ CI acceptance of the terminal wait change requires two consecutive green `instal
 [run 37632497540](https://github.com/grafioschtrader/grafioschtrader/actions/runs/37632497540) passed for
 `ee5fb9f4aceceda16de9e0b683f812532934e6a7`. Local tests do not replace those workflow runs.
 
+When Ctrl-C still raised a terminal SIGINT, the Ctrl-C case occasionally waited for one more keystroke: 33 of
+400 runs with 16 parallel tests on WSL Ubuntu 24.04. With `-isig` Ctrl-C is an input byte; 2 of 2560 such runs
+still exceeded the 15-second deadline under that load. Run the test repeatedly under parallel load before
+changing the reader. Background jobs of a non-interactive shell ignore SIGINT, and a shell started with an
+ignored signal cannot trap it; restore `SIG_DFL` before starting such a stress run.
+
 `bootstrap.bats` checks modeless selection, approval before journal publication, scope transition, package
 dependency/version pinning, changed-plan rejection, populated-schema resumption without root credentials,
 stage ordering and exact mail/result exit codes. Full-plan DNS prerequisites must be available before any changes.
@@ -149,6 +155,17 @@ The container has no systemd: a test adapter starts `mariadbd` directly. A local
 application properties and the repository's Jasypt plugin version in a minimal Maven POM. Thus this checks real
 database and encryption operations, but does not verify systemd integration, the complete application build or a
 running backend. The GitHub Actions core job runs this integration in its own fresh container.
+
+## ufw rules
+
+`firewall.bats` covers the rule set per web route (never SSH), the question default and condition, plan rows,
+the stage-contract removal, preexisting and owned rules, resumption of an interrupted rule, removed rules,
+failing `ufw` calls and the order before any site or certificate. `firewall-container.sh` runs the real `ufw`
+in a disposable Ubuntu container whose rules stay in its own network namespace:
+
+```bash
+docker run --rm --cap-add NET_ADMIN -v "$PWD:/repo:ro" ubuntu:24.04 bash /repo/util/installer/test/firewall-container.sh
+```
 
 ## Java and Maven
 

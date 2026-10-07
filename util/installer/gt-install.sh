@@ -941,7 +941,7 @@ DOCROOT|path|always||Absolute document root; existing application content must r
 TIMEZONE|timezone|always||Host time zone used for the first cron setup|Host-Zeitzone für die erste Cron-Einrichtung
 SWAP|yesno|swap||Create 2 GiB at /swapfile and add it to /etc/fstab|2 GiB unter /swapfile anlegen und in /etc/fstab eintragen
 NODE_REPLACE|yesno|node_shared||Replace shared Node.js instead of isolating; affects other consumers|Gemeinsames Node.js ersetzen statt isolieren; betrifft andere Anwendungen
-FIREWALL_ALLOW|yesno|ufw||Add ufw TCP rules for 22 and the selected web ports|ufw-TCP-Regeln für 22 und die gewählten Web-Ports ergänzen
+FIREWALL_ALLOW|yesno|ufw||Allow the selected web ports in ufw; SSH and existing rules stay unchanged|Gewählte Web-Ports in ufw freigeben; SSH und bestehende Regeln bleiben unverändert
 QUESTIONS
 }
 
@@ -1082,7 +1082,9 @@ gt_default() {
     SMTP_TEST) echo yes ;;
     # Only offered when RAM is below 4000 MB, no swap exists and the root filesystem supports a swap file.
     SWAP) echo yes ;;
-    DB_REUSE_EMPTY|NODE_REPLACE|VHOST_INCLUDE|FIREWALL_ALLOW) echo no ;;
+    DB_REUSE_EMPTY|NODE_REPLACE|VHOST_INCLUDE) echo no ;;
+    # Only asked while ufw is active; without the rules the LAN and domain routes would stay unreachable.
+    FIREWALL_ALLOW) echo yes ;;
     BUFFER_POOL)
       value=${FACT[database.schemas]:-unknown}
       if [[ "${FACT[database.vendor]:-}" == absent ]]; then echo yes
@@ -1254,10 +1256,12 @@ gt_restore_terminal() {
 }
 
 gt_read_secret() {
-  # read normally discards NUL. Read one byte with a NUL delimiter to reject it explicitly.
+  # read normally discards NUL. Read one byte with a NUL delimiter to reject it explicitly. Ctrl-C arrives as a
+  # byte because gt_ask_secret clears isig; it cancels like EOF.
   local char invalid=no LC_ALL=C
   SECRET_INPUT=''
   while IFS= read -r -n 1 -d '' -u "$QUESTION_FD" char; do
+    [[ "$char" != $'\003' ]] || break
     [[ "$char" != $'\n' ]] || { [[ "$invalid" == no ]] && gt_valid_secret "$SECRET_INPUT"; return $?; }
     if [[ -z "$char" || "$char" == *[$'\001'-$'\037'$'\177']* ]]; then
       if [[ -t "$QUESTION_FD" && ( "$char" == $'\177' || "$char" == $'\010' ) ]]; then
@@ -1274,7 +1278,9 @@ gt_ask_secret() {
   local key=$1 twice=${2:-no} first status
   if [[ -t "$QUESTION_FD" ]]; then
     TTY_STATE=$(stty -g <&"$QUESTION_FD") || return 2
-    stty -echo <&"$QUESTION_FD" || { gt_restore_terminal; return 2; }
+    # -isig turns Ctrl-C into an input byte that gt_read_secret cancels on: a terminal SIGINT racing the
+    # character-wise read could otherwise leave the prompt waiting for another key.
+    stty -echo -isig <&"$QUESTION_FD" || { gt_restore_terminal; return 2; }
   fi
   while :; do
     printf '%s (%s): ' "$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")" "$key" >&"$QUESTION_OUTPUT"
@@ -1899,7 +1905,7 @@ gt_plan_tls() {
   fi
 }
 gt_plan_application() {
-  local file webports='80 443'
+  local file
   gt_plan_row create user:grafioschtrader 'Home /home/grafioschtrader; disabled login password' 'Home /home/grafioschtrader; Anmeldung per Passwort gesperrt'
   for file in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service /etc/logrotate.d/grafioschtrader \
       /home/grafioschtrader/gtvar.sh /home/grafioschtrader/grafioschtrader.sh; do
@@ -1924,11 +1930,7 @@ gt_plan_application() {
     fi
   else gt_plan_warn 'Mail skipped: nobody can complete registration or become administrator; result would be incomplete.' \
     'Mail übersprungen: Niemand kann eine Registrierung abschließen oder Administrator werden; Ergebnis wäre unvollständig.'; fi
-  if [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]]; then
-    [[ "${ANSWER[TLS_SOURCE]:-}" != proxy ]] || webports=${ANSWER[TLS_PROXY_LISTEN]}
-    [[ -n "${ANSWER[DOMAIN]}" ]] || webports=80
-    gt_plan_row modify ufw "allow TCP 22 $webports; existing rules retained"
-  fi
+  gt_firewall_plan
   gt_plan_row create /var/lib/gt-install/state 'Execution only: atomic progress, planned/built commits, owned resources; re-inventory before execution' \
     'Erst bei Ausführung: atomarer Fortschritt, geplante/gebaute Commits, eigene Ressourcen; Bestand vorher erneut prüfen'
 }
@@ -1938,7 +1940,7 @@ gt_plan_application() {
 gt_stage_contract() {
   local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
   local -A used=()
-  for key in DUCKDNS_UPDATER FIREWALL_ALLOW VHOST_INCLUDE; do
+  for key in DUCKDNS_UPDATER VHOST_INCLUDE; do
     [[ "${ANSWER[$key]:-no}" != yes ]] || gt_plan_block \
       "$key=yes is not implemented; select no before starting installation." \
       "$key=yes ist noch nicht implementiert; vor Installationsbeginn no wählen."
@@ -4415,6 +4417,74 @@ gt_web_activate() {
   return 2
 }
 
+# ufw rules for the selected web routes, one ufw argument list per line. The LAN site always listens on 80, which
+# Let's Encrypt's HTTP-01 also needs; SSH and every existing rule stay as they are.
+gt_firewall_rules() {
+  [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]] || return 0
+  printf 'allow 80/tcp\n'
+  [[ -n "${ANSWER[DOMAIN]:-}" ]] || return 0
+  case "${ANSWER[TLS_SOURCE]:-}" in
+    letsencrypt|existing) printf 'allow 443/tcp\n' ;;
+    proxy)
+      if [[ -n "${ANSWER[TLS_PROXY_FROM]:-}" ]]; then
+        printf 'allow from %s to any port %s proto tcp\n' "${ANSWER[TLS_PROXY_FROM]}" "${ANSWER[TLS_PROXY_LISTEN]}"
+      else printf 'allow %s/tcp\n' "${ANSWER[TLS_PROXY_LISTEN]}"; fi ;;
+  esac
+}
+
+gt_firewall_plan() {
+  local rule
+  [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]] || return 0
+  [[ "${FACT[firewall.ufw]:-}" == *'Status: active'* ]] ||
+    gt_plan_block 'FIREWALL_ALLOW requires an active ufw.' 'FIREWALL_ALLOW benötigt ein aktives ufw.'
+  while IFS= read -r rule; do
+    gt_plan_row modify ufw "ufw $rule; SSH and existing rules unchanged" \
+      "ufw $rule; SSH und bestehende Regeln unverändert"
+  done < <(gt_firewall_rules)
+}
+
+gt_firewall_key() {
+  local digest
+  digest=$(printf '%s' "$1" | sha256sum) || return 2
+  printf 'resource.ufw.%s\n' "${digest:0:16}"
+}
+
+# Rules already present before this installer are recorded as preexisting and never claimed. An interrupted run's
+# intent becomes ownership once ufw lists the rule.
+gt_web_firewall() {
+  local rule key added
+  local -a words
+  [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]] || return 0
+  added=$(gt_core_run ufw show added) || { gt_core_error 'ufw rules cannot be listed.'; return 2; }
+  while IFS= read -r rule; do
+    key=$(gt_firewall_key "$rule") || return 2
+    if grep -Fxq -- "ufw $rule" <<< "$added"; then
+      case "${STATE[$key]:-}" in
+        '') gt_core_mark "$key" "preexisting:$rule" || return 2 ;;
+        intent:*) gt_core_mark "$key" "owned:$rule" || return 2 ;;
+      esac
+      continue
+    fi
+    [[ "${STATE[$key]:-intent:}" == intent:* ]] || { gt_core_error "ufw rule disappeared: $rule"; return 2; }
+    gt_core_mark "$key" "intent:$rule" || return 2
+    read -r -a words <<< "$rule"
+    gt_core_run ufw "${words[@]}" < /dev/null > /dev/null || { gt_core_error "ufw $rule failed."; return 2; }
+    gt_core_mark "$key" "owned:$rule" || return 2
+  done < <(gt_firewall_rules)
+  added=$(gt_core_run ufw show added) || return 2
+  while IFS= read -r rule; do
+    grep -Fxq -- "ufw $rule" <<< "$added" || { gt_core_error "ufw does not list: $rule"; return 2; }
+  done < <(gt_firewall_rules)
+  [[ "${STATE[step.firewall]:-}" == complete ]] || gt_core_mark step.firewall complete
+}
+
+gt_firewall_summary() {
+  if [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]]; then
+    gt_text "ufw: $(gt_firewall_rules | paste -sd ';' -); SSH and existing rules unchanged." \
+      "ufw: $(gt_firewall_rules | paste -sd ';' -); SSH und bestehende Regeln unverändert."
+  else gt_text 'Firewall unchanged.' 'Firewall unverändert.'; fi
+}
+
 gt_install_web() {
   local state_dir before after reply package
   local completed_status
@@ -4433,8 +4503,9 @@ gt_install_web() {
   fi
   gt_web_preflight || { gt_core_error 'Web preflight failed; no web changes made.'; return 2; }
   before="$(sha256sum "$state_dir/state"):${FACT[web.snapshot]}:${FACT[web.package]}:${FACT[web.lan]}"
-  gt_text 'LAN stage: install nginx if absent; add an owned HTTP vhost, verify frontend/API and existing sites, enable nginx at boot. Firewall unchanged.' \
-    'LAN-Stufe: nginx bei Bedarf installieren; eigenen HTTP-Vhost ergänzen, Frontend/API und bestehende Sites prüfen, nginx beim Boot aktivieren. Firewall unverändert.'
+  gt_text 'LAN stage: install nginx if absent; add an owned HTTP vhost, verify frontend/API and existing sites, enable nginx at boot.' \
+    'LAN-Stufe: nginx bei Bedarf installieren; eigenen HTTP-Vhost ergänzen, Frontend/API und bestehende Sites prüfen, nginx beim Boot aktivieren.'
+  gt_firewall_summary
   printf 'URL: http://%s/grafioschtrader/\nDocument root: %s\n' "${FACT[web.lan]}" "${ANSWER[DOCROOT]}"
   if [[ "$CORE_CONFIRM" != yes ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
@@ -4453,6 +4524,7 @@ gt_install_web() {
     gt_core_run systemctl start nginx.service || return 2
     gt_web_preflight || return 2
   fi
+  gt_web_firewall || return 2
   if [[ "${STATE[step.web]:-}" == complete ]]; then
     [[ -L "$(gt_path /etc/nginx/sites-enabled/grafioschtrader)" ]] && gt_web_verify || return 2
     gt_core_run systemctl is-enabled --quiet nginx.service || return 2
@@ -4980,8 +5052,9 @@ gt_install_extended_web() {
   (( ${#PLAN_BLOCKERS[@]} == 0 )) || return 2
   before="${FACT[web.snapshot]}:${FACT[web.transaction]}:${FACT[web.names]}:${FACT[web.lan]}:$(gt_tls_snapshot):$(sha256sum "$(gt_path /var/lib/gt-install/state)")"
   printf 'Web: %s; LAN: http://%s/grafioschtrader/; domain: %s; TLS: %s\n' "$web" "${FACT[web.lan]}" "${ANSWER[DOMAIN]:-none}" "${ANSWER[TLS_SOURCE]:-none}"
-  gt_text 'Install required web packages, own sites and Apache modules; verify routes and shared sites. Certbot uses HTTP-01 and a scoped renewal test. Firewall unchanged.' \
-    'Benötigte Web-Pakete, eigene Sites und Apache-Module installieren; Routen und bestehende Sites prüfen. Certbot nutzt HTTP-01 und einen begrenzten Erneuerungstest. Firewall unverändert.'
+  gt_text 'Install required web packages, own sites and Apache modules; verify routes and shared sites. Certbot uses HTTP-01 and a scoped renewal test.' \
+    'Benötigte Web-Pakete, eigene Sites und Apache-Module installieren; Routen und bestehende Sites prüfen. Certbot nutzt HTTP-01 und einen begrenzten Erneuerungstest.'
+  gt_firewall_summary
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt && "${FACT[tls.reuse]:-no}" != yes ]]; then
     gt_text "Confirmation also accepts the Let's Encrypt terms: https://letsencrypt.org/repository/" \
       "Die Bestätigung akzeptiert auch die Bedingungen von Let's Encrypt: https://letsencrypt.org/repository/"
@@ -5010,6 +5083,8 @@ gt_install_extended_web() {
       -o DPkg::Lock::Timeout=600 install "${packages[@]}" || return 2
   fi
   gt_core_run systemctl start "$web.service" || return 2
+  # Before any site or certificate: HTTP-01 must reach port 80 through an active ufw.
+  gt_web_firewall || return 2
   gt_site_test && gt_site_inventory > "$SCRATCH/web-inventory" && gt_nginx_statuses > "$SCRATCH/web-before" && gt_site_baseline || return 2
   if [[ "$web" == apache2 ]]; then
     gt_apache_default_disable || return 2
@@ -5261,9 +5336,12 @@ gt_check_mail() {
 # Completion is a recorded installation outcome, not a health check after later updates.
 # Reports use only selected public fields; neither secrets nor diagnostic logs are copied.
 gt_result_remember_warnings() {
-  local warning digest
+  local warning digest journal
+  # The unfinished-journal note describes this installer's own resumption, never a property of the host; a
+  # completed result must not repeat it.
+  journal="WARN: $(gt_message running)"
   for warning in "${NOTES[@]}" "${PLAN_WARNINGS[@]/#/WARN: }"; do
-    [[ "$warning" == 'WARN: '* ]] || continue
+    [[ "$warning" == 'WARN: '* && "$warning" != "$journal" ]] || continue
     digest=$(printf '%s' "$warning" | sha256sum) || return 1
     STATE[resource.warning.${digest%% *}]=$warning
   done
@@ -5605,6 +5683,7 @@ gt_bootstrap_plan() {
       /etc/apache2/conf-enabled/grafioschtrader-listen.conf "Listen ${ANSWER[TLS_PROXY_LISTEN]}"
   fi
   gt_plan_row enable "${ANSWER[WEBSERVER]}.service" 'Start/reload selected web server and enable boot after route verification.'
+  gt_firewall_plan
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]]; then
     gt_plan_row consent letsencrypt 'HTTP-01 issuance/reuse, renewal test and scoped reload hook/timer; terms: https://letsencrypt.org/repository/'
   fi

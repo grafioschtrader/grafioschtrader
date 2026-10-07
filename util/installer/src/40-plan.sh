@@ -483,7 +483,7 @@ gt_plan_tls() {
   fi
 }
 gt_plan_application() {
-  local file webports='80 443'
+  local file
   gt_plan_row create user:grafioschtrader 'Home /home/grafioschtrader; disabled login password' 'Home /home/grafioschtrader; Anmeldung per Passwort gesperrt'
   for file in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service /etc/logrotate.d/grafioschtrader \
       /home/grafioschtrader/gtvar.sh /home/grafioschtrader/grafioschtrader.sh; do
@@ -508,11 +508,7 @@ gt_plan_application() {
     fi
   else gt_plan_warn 'Mail skipped: nobody can complete registration or become administrator; result would be incomplete.' \
     'Mail übersprungen: Niemand kann eine Registrierung abschließen oder Administrator werden; Ergebnis wäre unvollständig.'; fi
-  if [[ "${ANSWER[FIREWALL_ALLOW]:-no}" == yes ]]; then
-    [[ "${ANSWER[TLS_SOURCE]:-}" != proxy ]] || webports=${ANSWER[TLS_PROXY_LISTEN]}
-    [[ -n "${ANSWER[DOMAIN]}" ]] || webports=80
-    gt_plan_row modify ufw "allow TCP 22 $webports; existing rules retained"
-  fi
+  gt_firewall_plan
   gt_plan_row create /var/lib/gt-install/state 'Execution only: atomic progress, planned/built commits, owned resources; re-inventory before execution' \
     'Erst bei Ausführung: atomarer Fortschritt, geplante/gebaute Commits, eigene Ressourcen; Bestand vorher erneut prüfen'
 }
@@ -522,7 +518,7 @@ gt_plan_application() {
 gt_stage_contract() {
   local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
   local -A used=()
-  for key in DUCKDNS_UPDATER FIREWALL_ALLOW VHOST_INCLUDE; do
+  for key in DUCKDNS_UPDATER VHOST_INCLUDE; do
     [[ "${ANSWER[$key]:-no}" != yes ]] || gt_plan_block \
       "$key=yes is not implemented; select no before starting installation." \
       "$key=yes ist noch nicht implementiert; vor Installationsbeginn no wählen."

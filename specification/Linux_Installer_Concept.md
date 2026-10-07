@@ -353,8 +353,8 @@ listeners and websites intact. When no integration is possible, write the propos
 `/root/gt-install-webserver.conf` and report the installation as incomplete (§7.5).
 
 Allow proxy port 80 when it is free and domain/LAN routing is unambiguous; otherwise propose the next free port
-from 8081 upward, excluding both backend connectors. Apply explicitly selected ufw rules through
-`FIREWALL_ALLOW`. A file-based root landing page may be created only inside an installer-owned document root.
+from 8081 upward, excluding both backend connectors. When the LAN site moves off port 80, `gt_firewall_rules` must
+allow its port instead. A file-based root landing page may be created only inside an installer-owned document root.
 
 ### 5.6 Memory, swap and disk
 

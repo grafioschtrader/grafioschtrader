@@ -1,9 +1,12 @@
 # Completion is a recorded installation outcome, not a health check after later updates.
 # Reports use only selected public fields; neither secrets nor diagnostic logs are copied.
 gt_result_remember_warnings() {
-  local warning digest
+  local warning digest journal
+  # The unfinished-journal note describes this installer's own resumption, never a property of the host; a
+  # completed result must not repeat it.
+  journal="WARN: $(gt_message running)"
   for warning in "${NOTES[@]}" "${PLAN_WARNINGS[@]/#/WARN: }"; do
-    [[ "$warning" == 'WARN: '* ]] || continue
+    [[ "$warning" == 'WARN: '* && "$warning" != "$journal" ]] || continue
     digest=$(printf '%s' "$warning" | sha256sum) || return 1
     STATE[resource.warning.${digest%% *}]=$warning
   done

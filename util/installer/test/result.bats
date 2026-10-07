@@ -64,6 +64,21 @@ save_answers() {
   [ "${FACT[host.class]}" = completed ]
 }
 
+@test "a resumed run's unfinished-journal note never reaches the completed result" {
+  gt_note WARN running
+  gt_note WARN memory 'backend build may be slow; swap advised'
+  gt_handover
+  [ "${STATE[status]}" = complete ]
+  grep -q 'WARN: Low RAM: backend build may be slow' "$ROOT/var/lib/gt-install/result"
+  run grep -q 'Unfinished installer state' "$ROOT/var/lib/gt-install/result"
+  [ "$status" -ne 0 ]
+  LANG_CODE=de NOTES=()
+  gt_note WARN running
+  gt_result_remember_warnings
+  run grep -c '^resource.warning' <(printf '%s\n' "${!STATE[@]}")
+  [ "$output" -eq 1 ]
+}
+
 @test "mail without sending is complete only when the confirmed test was not requested" {
   ANSWER[SMTP_TEST]=no STATE[resource.mail_delivery]=not-requested
   save_answers
