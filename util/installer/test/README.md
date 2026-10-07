@@ -153,7 +153,12 @@ running backend. The GitHub Actions core job runs this integration in its own fr
 ## Java and Maven
 
 `toolchains.bats` covers candidate selection, exact version pinning, manual fallback guidance for amd64/arm64/armhf,
-Maven's selected `JAVA_HOME`, interrupted journals, alternative restoration and blocked removals/upgrades.
+Maven's selected `JAVA_HOME`, interrupted journals, alternative restoration and blocked removals/upgrades. Vendor
+archive cases use metadata fixtures for Temurin (amd64/arm64), Liberica (armhf, newest of several releases) and
+the Apache Maven listing. They cover forged download links and malformed checksums, offline resumption with the
+journaled archive, foreign destinations, architecture changes, strict journal validation, checksum mismatches,
+replacement of a partial stage, the archive-host fallback, an unexpected top-level directory, tampered published
+trees and selection of the archive's own destination without APT or alternatives.
 
 `toolchains-container.sh` **installs Java 25 and Maven and creates the application user**. Use only a fresh,
 dedicated container from `toolchains.Dockerfile`. It starts with a shared Java 17, injects a failure after the
@@ -167,8 +172,28 @@ docker run --rm -v "$PWD:/repo:ro" gt-installer-toolchains bash util/installer/t
 docker image rm gt-installer-toolchains
 ```
 
-This covers real APT packages on Ubuntu 24.04 amd64. Alternative archives and other distribution/architecture
-combinations have fixture coverage and manual instructions; they are not claimed as real installation tests.
+This covers real APT packages on Ubuntu 24.04 amd64.
+
+`toolchains-archive-container.sh` **downloads and installs real vendor archives and creates the application user**.
+Use only a fresh, dedicated container from `toolchains-archive.Dockerfile`: Debian 12 with a shared Java 17 and no
+JDK 25 in APT. It resolves the current Temurin archive, lets the real download and checksum pass, interrupts the
+extraction, reloads the journal and resumes. It then verifies the published JDK, the unchanged Java 17
+selections, the absence of an alternatives entry for the archive and Maven on Java 25 as `grafioschtrader`.
+Completed toolchains must neither download nor invoke APT again. `GT_TEST_MAVEN=apt` uses Debian 12's APT Maven;
+`GT_TEST_MAVEN=archive` treats it as too old, as Debian 11's Maven 3.6 is, and installs the Apache Maven archive.
+Each run downloads the JDK twice (about 140 MB each):
+
+```bash
+docker build -t gt-installer-toolchains-archive - < util/installer/test/toolchains-archive.Dockerfile
+docker run --rm -e GT_TEST_MAVEN=apt -v "$PWD:/repo:ro" gt-installer-toolchains-archive \
+  bash util/installer/test/toolchains-archive-container.sh
+docker run --rm -e GT_TEST_MAVEN=archive -v "$PWD:/repo:ro" gt-installer-toolchains-archive \
+  bash util/installer/test/toolchains-archive-container.sh
+docker image rm gt-installer-toolchains-archive
+```
+
+These containers run on amd64. The Temurin arm64 and Liberica armhf archives have fixture coverage only; real
+installations on those architectures belong to the platform acceptance.
 
 ## Node and npm build tools
 

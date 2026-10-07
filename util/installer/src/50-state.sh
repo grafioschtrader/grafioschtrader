@@ -74,9 +74,14 @@ gt_state_load() {
       built_commit) [[ "$value" =~ ^[a-f0-9]{40}$ ]] || return 2 ;;
       installer_sha256) [[ "$value" =~ ^[a-f0-9]{64}$ ]] || return 2 ;;
       completed_at) [[ "$value" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || return 2 ;;
-      toolchain.java.package) [[ "$value" == none || "$value" =~ ^openjdk-[0-9]+-jdk-headless$ ]] || return 2 ;;
-      toolchain.maven.package) [[ "$value" == none || "$value" == maven ]] || return 2 ;;
+      toolchain.java.package)
+        [[ "$value" == none || "$value" == archive || "$value" =~ ^openjdk-[0-9]+-jdk-headless$ ]] || return 2 ;;
+      toolchain.maven.package) [[ "$value" == none || "$value" == maven || "$value" == archive ]] || return 2 ;;
       toolchain.java.version|toolchain.maven.version) [[ "$value" =~ ^[a-zA-Z0-9.+:~_-]+$ ]] || return 2 ;;
+      # Archive fields are checked together after parsing (gt_toolchain_archive_valid).
+      toolchain.java.source|toolchain.maven.source) [[ "$value" =~ ^(temurin|liberica|apache)$ ]] || return 2 ;;
+      toolchain.java.file|toolchain.maven.file) [[ "$value" =~ ^[a-zA-Z0-9._+-]+\.tar\.gz$ ]] || return 2 ;;
+      toolchain.java.checksum|toolchain.maven.checksum) [[ "$value" =~ ^sha(1|256|512):[a-f0-9]+$ ]] || return 2 ;;
       toolchain.alternatives) [[ "$value" == saved ]] || return 2 ;;
       alternative.*) [[ "${key#alternative.}" =~ ^[a-zA-Z0-9_.+-]+$ && "$value" == /* ]] || return 2 ;;
       build.*) gt_build_field "${key#build.}" "$value" || return 2 ;;
@@ -98,8 +103,21 @@ gt_state_load() {
     [[ "${STATE[step.toolchains]}" =~ ^(pending|running|complete)$ ]] || return 2
     for key in java maven; do
       [[ -n "${STATE[toolchain.$key.package]:-}" && -n "${STATE[toolchain.$key.version]:-}" ]] || return 2
+      if [[ "${STATE[toolchain.$key.package]}" == archive ]]; then
+        gt_toolchain_archive_valid "$key" "${STATE[toolchain.$key.source]:-}" "${STATE[toolchain.$key.version]}" \
+          "${STATE[toolchain.$key.file]:-}" "${STATE[toolchain.$key.checksum]:-}" || return 2
+      else
+        for value in source file checksum; do
+          [[ -z "${STATE[toolchain.$key.$value]+set}" ]] || return 2
+        done
+      fi
     done
   fi
+  for key in java maven; do
+    for value in source file checksum; do
+      [[ -n "${STATE[step.toolchains]:-}" || -z "${STATE[toolchain.$key.$value]+set}" ]] || return 2
+    done
+  done
   for key in new_database_server database_before account_before; do
     [[ "${STATE[$key]:-}" == yes || "${STATE[$key]:-}" == no ]] || return 2
   done

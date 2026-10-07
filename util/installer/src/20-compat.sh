@@ -1,6 +1,6 @@
 gt_action() { ACTION[$1]=$2 REASON[$1]=$3; [[ "$2" != block ]] || BLOCKS=$((BLOCKS+1)); }
 gt_compatibility() {
-  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]} arch=${FACT[architecture]} candidate version device
+  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]} arch=${FACT[architecture]} candidate version device opt
   ACTION=() REASON=() DISKS=() DISK_FREE=() DISK_NEED=()
   BLOCKS=0
   unset 'FACT[disk.unknown]'
@@ -34,13 +34,13 @@ gt_compatibility() {
     (( version == JAVA_REQUIRED )) || gt_note WARN unavailable 'Java newer than the tested major'
   elif [[ "$candidate" != unknown && "$candidate" != '(none)' ]]; then
     gt_action java install "distribution JDK candidate $candidate; preserve alternatives"
-  elif [[ "$arch" == armhf ]]; then gt_action java isolate 'Liberica JDK tarball; preserve alternatives'
-  else gt_action java install 'Temurin JDK repository; preserve alternatives'; fi
+  elif [[ "$arch" == armhf ]]; then gt_action java isolate 'verified Liberica JDK archive; alternatives unchanged'
+  else gt_action java isolate 'verified Eclipse Temurin JDK archive; alternatives unchanged'; fi
   version=${FACT[maven.version]}
   candidate=${CANDIDATE[maven]:-unknown}; candidate=${candidate#*:}; candidate=${candidate%%-*}
   if gt_version_at_least "$version" 3.8; then gt_action maven reuse "${FACT[maven.path]}"
   elif gt_version_at_least "$candidate" 3.8; then gt_action maven install "distribution Maven $candidate"
-  else gt_action maven isolate 'verified Apache Maven 3.9 tarball'; fi
+  else gt_action maven isolate 'verified Apache Maven 3 archive'; fi
   if gt_node_satisfies "${FACT[node.version]}" "$NODE_REQUIRED"; then gt_action node reuse "${FACT[node.path]}"
   elif [[ "${FACT[node.version]}" != absent && "${FACT[node.consumers]}" != no ]]; then
     gt_action node isolate 'official Node tarball; other consumers must keep their runtime'
@@ -95,7 +95,11 @@ gt_compatibility() {
   else gt_action memory block 'RAM size UNKNOWN'; fi
   gt_disk /home 4096
   gt_disk /var/www 0
-  gt_disk /opt 300
+  # Isolated Node and build tools; a vendor JDK adds its download and its unpacked tree, both on /opt.
+  opt=300
+  [[ "${ACTION[java]:-}" != isolate ]] || opt=$((opt + 600))
+  [[ "${ACTION[maven]:-}" != isolate ]] || opt=$((opt + 30))
+  gt_disk /opt "$opt"
   gt_disk "${FACT[database.datadir]}" 2048
   gt_action disk reuse 'requirements aggregated by filesystem device'
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_action disk block 'disk capacity UNKNOWN'

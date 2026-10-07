@@ -1,5 +1,5 @@
 gt_core_begin() {
-  local key
+  local key field
   gt_private_dir "$(gt_path /var/lib/gt-install)" && gt_private_dir "$(gt_path /root/.gt-install)" || return 2
   [[ ! -e "$(gt_path /root/.gt-install/secrets)" && ! -e "$(gt_path /var/lib/gt-install/state)" ]] || return 2
   STATE=([schema]=1 [status]=running [scope]=core [planned_commit]="${FACT[source.commit]}"
@@ -14,6 +14,9 @@ gt_core_begin() {
     for key in java maven; do
       STATE[toolchain.$key.package]=${FACT[toolchain.$key.package]}
       STATE[toolchain.$key.version]=${FACT[toolchain.$key.version]}
+      [[ "${FACT[toolchain.$key.package]}" == archive ]] || continue
+      # The confirmed archive, not a newer vendor release, is what resumption downloads and verifies.
+      for field in source file checksum; do STATE[toolchain.$key.$field]=${FACT[toolchain.$key.$field]}; done
     done
   fi
   for key in "${!ANSWER[@]}"; do STATE[answer.$key]=${ANSWER[$key]}; done
@@ -463,25 +466,241 @@ gt_toolchain_guidance() {
   if [[ "${ACTION[java]:-reuse}" != reuse ]]; then
     printf '\n'; gt_text 'Java installation choices' 'Java-Installationswege'
     printf '  apt-cache policy openjdk-%s-jdk-headless\n' "$JAVA_REQUIRED"
-    gt_text 'A suitable APT candidate is installed by --install-core after confirmation. Refresh missing/stale lists with sudo apt-get update, then repeat the installer.' \
-      'Einen passenden APT-Kandidaten installiert --install-core nach Bestätigung. Fehlende/veraltete Listen mit sudo apt-get update erneuern und den Installer wiederholen.'
+    gt_text 'A suitable APT candidate is installed after confirmation; refresh stale lists with sudo apt-get update.' \
+      'Ein passender APT-Kandidat wird nach Bestätigung installiert; alte Listen mit sudo apt-get update erneuern.'
+    gt_text 'Otherwise the plan resolves a vendor JDK archive (Eclipse Temurin on amd64/arm64, BellSoft Liberica' \
+      'Andernfalls ermittelt der Plan ein Hersteller-JDK-Archiv (Eclipse Temurin auf amd64/arm64, BellSoft Liberica'
+    gt_text 'on armhf), verifies its vendor checksum and unpacks it into a new /opt/jdk-<version>-<vendor>.' \
+      'auf armhf), prüft die Herstellerprüfsumme und entpackt es in ein neues /opt/jdk-<Version>-<Hersteller>.'
+    gt_text 'Alternatives and the system Java selection stay unchanged.' \
+      'Alternativen und die System-Java-Auswahl bleiben unverändert.'
     architecture=${FACT[architecture]:-unknown}
-    case "$architecture" in amd64) archive=amd64 ;; arm64) archive=aarch64 ;; armhf) archive=arm32-vfp-hflt ;; *) archive=unknown ;; esac
+    case "$architecture" in
+      amd64) archive=amd64 ;; arm64) archive=aarch64 ;; armhf) archive=arm32-vfp-hflt ;; *) archive=unknown ;;
+    esac
+    gt_text 'If the vendor metadata cannot be resolved, install it manually:' \
+      'Falls die Herstellerdaten nicht ermittelt werden können, manuell installieren:'
     printf '  Liberica JDK %s: Linux %s (%s), tar.gz\n' "$JAVA_REQUIRED" "$archive" "$architecture"
-    gt_text 'Without a suitable APT candidate: select the current matching JDK archive, verify its vendor checksum, unpack into a new /usr/local/jdk-25 directory and verify bin/java --version and bin/javac --version. Keep the system Java selection; the installer detects this directory.' \
-      'Ohne passenden APT-Kandidaten: aktuelles passendes JDK-Archiv wählen, Herstellerprüfsumme prüfen, in ein neues Verzeichnis /usr/local/jdk-25 entpacken und bin/java --version sowie bin/javac --version prüfen. System-Java beibehalten; der Installer erkennt dieses Verzeichnis.'
-    printf '  https://github.com/grafioschtrader/grafioschtrader/wiki/Install-Java\n  https://bell-sw.com/pages/downloads/\n'
+    gt_text 'Select the current matching JDK archive, verify its vendor checksum, unpack into a new /usr/local/jdk-25' \
+      'Aktuelles passendes JDK-Archiv wählen, Herstellerprüfsumme prüfen, in ein neues /usr/local/jdk-25 entpacken'
+    gt_text 'and verify bin/java --version and bin/javac --version. The installer detects this directory.' \
+      'und bin/java --version sowie bin/javac --version prüfen. Der Installer erkennt dieses Verzeichnis.'
+    printf '  https://github.com/grafioschtrader/grafioschtrader/wiki/Install-Java\n'
+    printf '  https://bell-sw.com/pages/downloads/\n'
   fi
   if [[ "${ACTION[maven]:-reuse}" != reuse ]]; then
     printf '\n'; gt_text 'Maven installation choices' 'Maven-Installationswege'
     printf '  apt-cache policy maven\n'
-    gt_text 'APT Maven >= 3.8 is installed after confirmation. Otherwise download a current stable Maven 3 binary tar.gz plus its SHA-512 from Apache, verify it, and unpack into a new /opt/apache-maven-<version> directory. No global PATH or /opt/maven symlink change is needed; the installer detects the versioned directory and supplies its selected JAVA_HOME.' \
-      'APT-Maven >= 3.8 wird nach Bestätigung installiert. Andernfalls ein aktuelles stabiles Maven-3-Binärarchiv tar.gz und dessen SHA-512 von Apache laden, prüfen und in ein neues /opt/apache-maven-<Version> entpacken. Weder globaler PATH noch /opt/maven-Symlink müssen geändert werden; der Installer erkennt das Versionsverzeichnis und setzt sein gewähltes JAVA_HOME.'
-    printf '  https://github.com/grafioschtrader/grafioschtrader/wiki/Installing-the-Latest-Release-of-Apache-Maven\n  https://maven.apache.org/download.cgi\n'
+    gt_text 'APT Maven >= 3.8 is installed after confirmation. Otherwise the plan resolves the current stable' \
+      'APT-Maven >= 3.8 wird nach Bestätigung installiert. Andernfalls ermittelt der Plan das aktuelle stabile'
+    gt_text 'Maven 3 binary archive plus SHA-512 from Apache and unpacks it into a new /opt/apache-maven-<version>.' \
+      'Maven-3-Binärarchiv samt SHA-512 von Apache und entpackt es in ein neues /opt/apache-maven-<Version>.'
+    gt_text 'Neither the global PATH nor an /opt/maven symlink is changed. If the Apache metadata cannot be resolved,' \
+      'Weder globaler PATH noch ein /opt/maven-Symlink werden geändert. Falls die Apache-Daten nicht ermittelbar'
+    gt_text 'perform these steps manually; the installer detects the versioned directory.' \
+      'sind, diese Schritte manuell ausführen; der Installer erkennt das Versionsverzeichnis.'
+    printf '  https://github.com/grafioschtrader/grafioschtrader/wiki/Installing-the-Latest-Release-of-Apache-Maven\n'
+    printf '  https://maven.apache.org/download.cgi\n'
   fi
 }
 
-# Choose only candidates from already configured APT sources; alternative installation is guided explicitly.
+# Vendor archives isolate Java/Maven for Grafioschtrader in a new versioned directory. They never register
+# alternatives or change the global PATH; gtvar.sh, the launcher and the unit name the selected paths.
+gt_toolchain_source() {
+  case "$1:$2" in
+    java:amd64|java:arm64) echo temurin ;;
+    java:armhf) echo liberica ;;
+    maven:amd64|maven:arm64|maven:armhf) echo apache ;;
+    *) return 2 ;;
+  esac
+}
+
+gt_toolchain_file() {
+  local tool=$1 source=$2 version=$3 arch=$4 major=${3%%[.+]*} build=${3/+/_}
+  case "$tool:$source:$arch" in
+    java:temurin:amd64) printf 'OpenJDK%sU-jdk_x64_linux_hotspot_%s.tar.gz\n' "$major" "$build" ;;
+    java:temurin:arm64) printf 'OpenJDK%sU-jdk_aarch64_linux_hotspot_%s.tar.gz\n' "$major" "$build" ;;
+    java:liberica:armhf) printf 'bellsoft-jdk%s-linux-arm32-vfp-hflt.tar.gz\n' "$version" ;;
+    maven:apache:*) printf 'apache-maven-%s-bin.tar.gz\n' "$version" ;;
+    *) return 2 ;;
+  esac
+}
+
+# The archive's single top-level directory, checked before extraction.
+gt_toolchain_root() {
+  case "$1" in
+    temurin) printf 'jdk-%s\n' "$2" ;;
+    liberica) printf 'jdk-%s\n' "${2%%+*}" ;;
+    apache) printf 'apache-maven-%s\n' "$2" ;;
+    *) return 2 ;;
+  esac
+}
+
+# Destinations avoid '+' so they remain literal paths in gtvar.sh, the launcher and the systemd unit.
+gt_toolchain_home() {
+  case "$1" in
+    java) printf '/opt/jdk-%s-%s\n' "${3/+/_}" "$2" ;;
+    maven) printf '/opt/apache-maven-%s\n' "$3" ;;
+    *) return 2 ;;
+  esac
+}
+
+gt_toolchain_resource() { [[ "$1" == java ]] && echo jdk || echo maven_archive; }
+
+gt_toolchain_urls() {
+  local source=$1 version=$2 file=$3
+  case "$source" in
+    temurin) printf 'https://github.com/adoptium/temurin%s-binaries/releases/download/jdk-%s/%s\n' \
+      "${version%%[.+]*}" "${version/+/%2B}" "$file" ;;
+    liberica) printf 'https://github.com/bell-sw/Liberica/releases/download/%s/%s\n' "$version" "$file" ;;
+    # The CDN serves current releases only; the archive keeps a journaled version available for resumption.
+    apache) printf 'https://dlcdn.apache.org/maven/maven-3/%s/binaries/%s\n' "$version" "$file"
+      printf 'https://archive.apache.org/dist/maven/maven-3/%s/binaries/%s\n' "$version" "$file" ;;
+    *) return 2 ;;
+  esac
+}
+
+# Journaled metadata is literal data. Download URLs and destinations derive from these validated fields only.
+gt_toolchain_archive_valid() {
+  local tool=$1 source=$2 version=$3 file=$4 checksum=$5 arch
+  case "$source" in
+    temurin) [[ "$checksum" =~ ^sha256:[a-f0-9]{64}$ ]] ;;
+    # BellSoft publishes SHA-1 only; it is compared with a file downloaded over HTTPS from the vendor release.
+    liberica) [[ "$checksum" =~ ^sha1:[a-f0-9]{40}$ ]] ;;
+    apache) [[ "$checksum" =~ ^sha512:[a-f0-9]{128}$ ]] ;;
+    *) false ;;
+  esac || return 2
+  if [[ "$tool" == java ]]; then [[ "$version" =~ ^[0-9]+(\.[0-9]+){0,3}\+[0-9]+$ ]] || return 2
+  else [[ "$tool" == maven && "$version" =~ ^3\.[0-9]+\.[0-9]+$ ]] || return 2; fi
+  for arch in amd64 arm64 armhf; do
+    [[ "$(gt_toolchain_source "$tool" "$arch")" == "$source" &&
+      "$(gt_toolchain_file "$tool" "$source" "$version" "$arch")" == "$file" ]] && return 0
+  done
+  return 2
+}
+
+gt_toolchain_fetch() {
+  gt_probe curl --proto '=https' --tlsv1.2 -fsSL --connect-timeout 5 --max-time 10 "$1" -o "$2"
+}
+
+gt_jdk_metadata() {
+  python3 - "$1" "$JAVA_REQUIRED" "$2" "$3" <<'PY'
+# @python jdk-metadata.py
+PY
+}
+
+# Resolve the newest vendor archive for this architecture before confirmation.
+gt_toolchain_resolve() {
+  local tool=$1 arch=${FACT[architecture]:-unknown} source token url metadata version='' file='' checksum=''
+  source=$(gt_toolchain_source "$tool" "$arch") || return 2
+  case "$source" in
+    temurin|liberica)
+      if [[ "$source" == temurin ]]; then
+        [[ "$arch" == amd64 ]] && token=x64 || token=aarch64
+        url="https://api.adoptium.net/v3/assets/latest/$JAVA_REQUIRED/hotspot?architecture=$token"
+        url+='&image_type=jdk&os=linux&vendor=eclipse'
+      else
+        token=arm32-vfp-hflt
+        url="https://api.bell-sw.com/v1/liberica/releases?version-feature=$JAVA_REQUIRED&version-modifier=latest"
+        url+='&bitness=32&os=linux&arch=arm&package-type=tar.gz&bundle-type=jdk'
+      fi
+      gt_toolchain_fetch "$url" "$SCRATCH/jdk-metadata" || return 2
+      metadata=$(gt_jdk_metadata "$source" "$token" "$SCRATCH/jdk-metadata") || return 2
+      IFS=$'\t' read -r version file checksum <<< "$metadata" ;;
+    apache)
+      gt_toolchain_fetch https://downloads.apache.org/maven/maven-3/ "$SCRATCH/maven-index" || return 2
+      version=$(grep -oE 'href="3\.[0-9]+\.[0-9]+/"' "$SCRATCH/maven-index" | sed -E 's/^href="(.*)\/"$/\1/' |
+        LC_ALL=C sort -t . -k1,1n -k2,2n -k3,3n | tail -n 1)
+      [[ "$version" =~ ^3\.[0-9]+\.[0-9]+$ ]] || return 2
+      file=$(gt_toolchain_file maven apache "$version" "$arch") || return 2
+      url="https://downloads.apache.org/maven/maven-3/$version/binaries/$file.sha512"
+      gt_toolchain_fetch "$url" "$SCRATCH/maven-sha512" || return 2
+      checksum=sha512:$(awk 'NR == 1 {print $1}' "$SCRATCH/maven-sha512") ;;
+  esac
+  gt_toolchain_archive_valid "$tool" "$source" "$version" "$file" "$checksum" || return 2
+  [[ "$(gt_toolchain_file "$tool" "$source" "$version" "$arch")" == "$file" ]] || return 2
+  [[ "$tool" != java || "${version%%[.+]*}" == "$JAVA_REQUIRED" ]] || return 2
+  FACT[toolchain.$tool.source]=$source FACT[toolchain.$tool.version]=$version
+  FACT[toolchain.$tool.file]=$file FACT[toolchain.$tool.checksum]=$checksum
+}
+
+# A resumed journal keeps its recorded archive; a new plan resolves the current one. The exact version, file and
+# checksum are part of the confirmed plan.
+gt_toolchain_archive_plan() {
+  local tool=$1 key target label summary arch=${FACT[architecture]:-unknown}
+  for key in python3 tar gzip; do
+    command -v "$key" >/dev/null || { gt_plan_block "Toolchain archive installation requires $key."; return 0; }
+  done
+  if [[ "${STATE[toolchain.$tool.package]:-}" == archive ]]; then
+    for key in source version file checksum; do FACT[toolchain.$tool.$key]=${STATE[toolchain.$tool.$key]}; done
+    key=$(gt_toolchain_file "$tool" "${FACT[toolchain.$tool.source]}" "${FACT[toolchain.$tool.version]}" "$arch")
+    [[ "$key" == "${FACT[toolchain.$tool.file]}" ]] ||
+      gt_plan_block "Recorded $tool archive ${FACT[toolchain.$tool.file]} does not match architecture $arch."
+  elif ! gt_toolchain_resolve "$tool"; then
+    gt_plan_block "Could not resolve a verified $tool archive and checksum from its vendor; check network access \
+or follow the alternative instructions above." "Kein geprüftes $tool-Archiv mit Prüfsumme vom Hersteller \
+ermittelbar; Netzwerkzugang prüfen oder alternative Anleitung oben befolgen."
+    return 0
+  fi
+  FACT[toolchain.$tool.package]=archive FACT[toolchain.$tool.path]=pending
+  target=$(gt_toolchain_home "$tool" "${FACT[toolchain.$tool.source]}" "${FACT[toolchain.$tool.version]}")
+  key=$(gt_toolchain_resource "$tool")
+  if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.$key]:-}" ]]; then
+    gt_plan_block "Foreign $tool destination exists: $target"
+  fi
+  case "${FACT[toolchain.$tool.source]}" in
+    temurin) label='Eclipse Temurin' ;;
+    liberica) label='BellSoft Liberica' ;;
+    *) label='Apache Maven' ;;
+  esac
+  summary="$label ${FACT[toolchain.$tool.version]}; ${FACT[toolchain.$tool.file]}; ${FACT[toolchain.$tool.checksum]}"
+  gt_plan_row isolate "$target" "$summary; alternatives and global PATH unchanged" \
+    "$summary; Alternativen und globaler PATH unverändert"
+}
+
+gt_toolchain_download() {
+  # A JDK is large; slow lines need more than the build-tool limit. The URL derives from validated metadata.
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL --connect-timeout 10 --max-time 3600 --retry 2 \
+    "$1" -o "$2"
+}
+
+gt_toolchain_checksum() {
+  local algorithm=${2%%:*} value
+  case "$algorithm" in sha1|sha256|sha512) value=$("${algorithm}sum" -- "$1") || return 2 ;; *) return 2 ;; esac
+  [[ "${value%% *}" == "${2#*:}" ]]
+}
+
+# Unpack into a private stage and publish it by rename, so an interrupted download or extraction is discarded and
+# repeated on resumption. An existing destination is accepted only with its recorded tree digest.
+gt_toolchain_archive_install() {
+  local tool=$1 id source=${STATE[toolchain.$1.source]} version=${STATE[toolchain.$1.version]}
+  local file=${STATE[toolchain.$1.file]} target stage archive url='' root
+  target=$(gt_toolchain_home "$tool" "$source" "$version") || return 2
+  id=$(gt_toolchain_resource "$tool"); stage="${target%/*}/.gt-$id-${STATE[run_id]}"
+  if [[ ! -e "$target" && ! -L "$target" ]]; then
+    gt_build_stage "$id" "$stage" || return 2
+    # The download stays on the destination's filesystem, which the disk plan covers: a JDK archive can exceed
+    # a tmpfs /tmp on small hosts. Discarding the stage also discards a partial download.
+    archive="$stage/.gt-download.tar.gz"
+    while IFS= read -r url; do
+      gt_toolchain_download "$url" "$archive" && break
+    done < <(gt_toolchain_urls "$source" "$version" "$file")
+    [[ -n "$url" ]] || { gt_core_error "Download of $file failed."; return 2; }
+    gt_toolchain_checksum "$archive" "${STATE[toolchain.$tool.checksum]}" || {
+      gt_core_error "Checksum of $file differs from the confirmed plan."; return 2;
+    }
+    root=$(gt_toolchain_root "$source" "$version") || return 2
+    gt_build_archive_safe "$archive" "$root" || return 2
+    tar --extract --gzip --file "$archive" --directory "$stage" --strip-components=1 \
+      --no-same-owner --no-same-permissions || return 2
+    rm -f -- "$archive"
+    chmod -R a+rX,go-w "$stage" || return 2
+    chmod 755 "$stage" || return 2
+  fi
+  gt_build_publish "$id" "$stage" "$target"
+}
+
+# Prefer candidates from already configured APT sources; otherwise plan a verified vendor archive.
 gt_core_toolchain_plan() {
   local tool package candidate installed home key value
   FACT[toolchain.java.package]=none FACT[toolchain.maven.package]=none
@@ -496,7 +715,10 @@ gt_core_toolchain_plan() {
       gt_plan_row reuse "$tool" "${STATE[$key]}"
       continue
     fi
-    if [[ -n "${STATE[toolchain.$tool.package]:-}" ]]; then
+    if [[ "${STATE[toolchain.$tool.package]:-}" == archive ]]; then
+      gt_toolchain_archive_plan "$tool"
+      continue
+    elif [[ -n "${STATE[toolchain.$tool.package]:-}" ]]; then
       package=${STATE[toolchain.$tool.package]}
       candidate=${STATE[toolchain.$tool.version]}
       if [[ "$package" == none ]]; then
@@ -521,8 +743,7 @@ gt_core_toolchain_plan() {
       if [[ ! "$candidate" =~ ^[a-zA-Z0-9.+:~_-]+$ || "$candidate" == unknown ]] ||
           { [[ "$tool" == maven ]] && ! gt_version_at_least "$value" 3.8; } ||
           { [[ "$tool" == java ]] && [[ ! "$value" =~ ^$JAVA_REQUIRED([.+~-]|$) ]]; }; then
-        gt_plan_block "No suitable APT $tool candidate. Follow the alternative installation instructions above, then rerun --install-core." \
-          "Kein passender APT-Kandidat für $tool. Alternative Installationsanleitung oben ausführen, danach --install-core wiederholen."
+        gt_toolchain_archive_plan "$tool"
         continue
       fi
       if [[ -n "${PACKAGE[$package]:-}" ]]; then
@@ -538,7 +759,8 @@ gt_core_toolchain_plan() {
     fi
     gt_plan_row install "$tool" "$package=$candidate; verify executables before creating the application user"
   done
-  if [[ "${FACT[toolchain.java.package]}:${FACT[toolchain.maven.package]}" != none:none ]]; then
+  # Only APT packages can change alternatives; vendor archives never register them.
+  if [[ ! "${FACT[toolchain.java.package]}:${FACT[toolchain.maven.package]}" =~ ^(none|archive):(none|archive)$ ]]; then
     command -v update-alternatives >/dev/null || gt_plan_block 'update-alternatives is required before toolchain installation.'
     gt_plan_row preserve java-alternatives 'Restore previous selections after APT, including failed transactions; changed automatic selections become manual.' \
       'Bisherige Auswahl nach APT wiederherstellen, auch bei Fehlern; geänderte automatische Auswahlen werden manuell.'
@@ -586,15 +808,19 @@ gt_alternatives_restore() {
 }
 
 gt_core_toolchains() {
-  local tool package version transaction line failed=0
-  local -a requested=()
+  local tool package version transaction line home maven failed=0
+  local -a requested=() archives=()
   if [[ "${STATE[step.toolchains]:-complete}" == complete ]]; then
     gt_toolchain_verify "${STATE[java_home]}" "${STATE[maven]}"
     return $?
   fi
   for tool in java maven; do
     package=${STATE[toolchain.$tool.package]}; version=${STATE[toolchain.$tool.version]}
-    [[ "$package" == none ]] || requested+=("$package=$version")
+    case "$package" in
+      none) ;;
+      archive) archives+=("$tool") ;;
+      *) requested+=("$package=$version") ;;
+    esac
   done
   if (( ${#requested[@]} )); then
     # Restore a selection changed by an interrupted previous transaction before doing more work.
@@ -610,13 +836,25 @@ gt_core_toolchains() {
     gt_alternatives_restore || return 2
     (( failed == 0 )) || return 2
   fi
+  if (( ${#archives[@]} )); then
+    [[ "${STATE[step.toolchains]}" == running ]] || gt_core_mark step.toolchains running || return 2
+    for tool in "${archives[@]}"; do
+      gt_toolchain_archive_install "$tool" || { gt_core_error "Could not install the confirmed $tool archive."; return 2; }
+    done
+  fi
   gt_java; gt_runtimes
-  gt_toolchain_verify "${FACT[java.suitable]}" "${FACT[maven.path]}" || {
+  # An archive is selected by its own destination, never by whatever discovery happens to rank first.
+  home=${FACT[java.suitable]} maven=${FACT[maven.path]}
+  [[ "${STATE[toolchain.java.package]}" != archive ]] ||
+    home=$(gt_toolchain_home java "${STATE[toolchain.java.source]}" "${STATE[toolchain.java.version]}")
+  [[ "${STATE[toolchain.maven.package]}" != archive ]] ||
+    maven=$(gt_toolchain_home maven apache "${STATE[toolchain.maven.version]}")/bin/mvn
+  gt_toolchain_verify "$home" "$maven" || {
     gt_core_error 'Java, javac and Maven must run successfully with the selected JDK.'; return 2;
   }
-  [[ "${STATE[java_home]}" == pending || "${STATE[java_home]}" == "${FACT[java.suitable]}" ]] || return 2
-  [[ "${STATE[maven]}" == pending || "${STATE[maven]}" == "${FACT[maven.path]}" ]] || return 2
-  STATE[java_home]=${FACT[java.suitable]} STATE[maven]=${FACT[maven.path]}
+  [[ "${STATE[java_home]}" == pending || "${STATE[java_home]}" == "$home" ]] || return 2
+  [[ "${STATE[maven]}" == pending || "${STATE[maven]}" == "$maven" ]] || return 2
+  STATE[java_home]=$home STATE[maven]=$maven
   gt_core_mark step.toolchains complete
 }
 

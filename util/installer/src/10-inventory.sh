@@ -329,7 +329,8 @@ gt_network() {
   [[ "$value" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || value=unknown
   FACT[network.public_ipv4]=$value
   local -A hosts=([github.com]=1 [raw.githubusercontent.com]=1 [registry.npmjs.org]=1 [repo.maven.apache.org]=1
-    [deb.nodesource.com]=1 [nodejs.org]=1 [packages.adoptium.net]=1 [download.bell-sw.com]=1 [dlcdn.apache.org]=1)
+    [deb.nodesource.com]=1 [nodejs.org]=1 [api.adoptium.net]=1 [api.bell-sw.com]=1 [downloads.apache.org]=1
+    [dlcdn.apache.org]=1)
   while IFS= read -r -d '' file; do
     while IFS= read -r url; do
       host=${url#*://}; host=${host%%/*}; host=${host##*@}

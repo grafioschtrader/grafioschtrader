@@ -95,29 +95,23 @@ gt_plan_web_runtime() {
 }
 
 gt_plan_toolchains() {
-  local item candidate
+  local item
   gt_plan_base_packages
+  # Archives resolve the same vendor release, file and checksum that the installing run confirms.
   case "${ACTION[java]}" in
     reuse) gt_plan_row reuse java "${REASON[java]}" ;;
-    install)
-      candidate=${CANDIDATE[openjdk-$JAVA_REQUIRED-jdk-headless]:-unknown}
-      if [[ "$candidate" != unknown && "$candidate" != '(none)' ]]; then gt_plan_package "openjdk-$JAVA_REQUIRED-jdk-headless"
-      else
-        gt_plan_file /etc/apt/keyrings/adoptium.gpg 'Adoptium signing key; verify fingerprint' 'Adoptium-Signaturschlüssel; Fingerabdruck prüfen'
-        gt_plan_file /etc/apt/sources.list.d/adoptium.sources 'signed-by Adoptium source' 'Adoptium-Quelle mit signed-by'
-        gt_plan_row install "package:temurin-$JAVA_REQUIRED-jdk" 'candidate available after repository setup' 'Kandidat nach Einrichtung der Paketquelle verfügbar'
-        gt_plan_block 'Temurin package transaction must be resolved after repository setup.' 'Temurin-Pakettransaktion muss nach Einrichtung der Paketquelle geprüft werden.'
-      fi ;;
-    isolate) gt_plan_file "/opt/jdk-$JAVA_REQUIRED-gt" 'Liberica JDK tarball, verified checksum' 'Liberica-JDK-Archiv mit geprüfter Prüfsumme' ;;
+    install) gt_plan_package "openjdk-$JAVA_REQUIRED-jdk-headless" ;;
+    isolate) gt_toolchain_archive_plan java ;;
   esac
-  gt_plan_row preserve java-alternatives 'Restore every changed selection; automatic groups may become manual.' \
-    'Alle geänderten Alternativen zurücksetzen; automatische Gruppen können auf manuell wechseln.'
   case "${ACTION[maven]}" in
     install) gt_plan_package maven ;;
-    isolate) gt_plan_row isolate '/opt/apache-maven-<version>' 'Apache Maven 3.9 archive, verified SHA-512; resolve exact version before execution' \
-      'Apache-Maven-3.9-Archiv mit geprüfter SHA-512; genaue Version vor Ausführung festlegen' ;;
+    isolate) gt_toolchain_archive_plan maven ;;
     reuse) gt_plan_row reuse maven "${REASON[maven]}" ;;
   esac
+  if [[ "${ACTION[java]}" == install || "${ACTION[maven]}" == install ]]; then
+    gt_plan_row preserve java-alternatives 'Restore every changed selection; automatic groups may become manual.' \
+      'Alle geänderten Alternativen zurücksetzen; automatische Gruppen können auf manuell wechseln.'
+  fi
   if [[ "${ACTION[node]}" == reuse ]]; then gt_plan_row reuse node "${REASON[node]}"
   elif [[ "${ANSWER[NODE_REPLACE]:-no}" != yes || "${FACT[architecture]}" == armhf ]]; then
     gt_plan_file /opt/nodejs-gt 'Official Node archive satisfying source requirements; verify SHASUMS256.txt' \

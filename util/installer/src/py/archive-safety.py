@@ -1,5 +1,5 @@
 import posixpath, sys, tarfile
-with tarfile.open(sys.argv[1], 'r:xz') as archive:
+with tarfile.open(sys.argv[1], 'r:*') as archive:
     members = archive.getmembers(); links = {m.name.rstrip('/') for m in members if m.issym()}
     root = sys.argv[2]
     for m in members:

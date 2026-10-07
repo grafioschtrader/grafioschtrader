@@ -8,6 +8,103 @@ setup() {
   FACT[java.suitable]=absent FACT[maven.path]=absent FACT[architecture]=amd64
   ACTION[java]=install ACTION[maven]=install
   CANDIDATE[openjdk-25-jdk-headless]='25.0.1+8-1' CANDIDATE[maven]='3.8.7-1'
+  TEMURIN_SHA=$(printf 'd%.0s' {1..64}) MAVEN_SHA=$(printf 'a%.0s' {1..128})
+  RUN_ID=00000000000000000000000000000001
+  FORGED=''
+}
+
+# Vendor metadata fixtures: only the metadata URLs the planner derives are answered.
+vendor_fixture() {
+  gt_probe() {
+    local arg previous='' url='' output=''
+    printf '%s\n' "$*" >> "$PROBES"
+    [[ "$1" == curl ]] || return 127
+    for arg in "$@"; do
+      [[ "$previous" != -o ]] || output=$arg
+      [[ "$arg" != https://* ]] || url=$arg
+      previous=$arg
+    done
+    local adoptium='https://api.adoptium.net/v3/assets/latest/25/hotspot?architecture='
+    local filter='&image_type=jdk&os=linux&vendor=eclipse' maven=https://downloads.apache.org/maven/maven-3
+    case "$url" in
+      "${adoptium}x64$filter") temurin_json x64 ;;
+      "${adoptium}aarch64$filter") temurin_json aarch64 ;;
+      https://api.bell-sw.com/v1/liberica/releases\?*'&bitness=32&os=linux&arch=arm&'*) liberica_json ;;
+      "$maven/")
+        printf '<a href="3.9.16/">3.9.16/</a>\n<a href="3.10.0-rc-1/">3.10.0-rc-1/</a>\n'
+        printf '<a href="3.10.0/">3.10.0/</a>\n' ;;
+      "$maven/3.10.0/binaries/apache-maven-3.10.0-bin.tar.gz.sha512") printf '%s\n' "$MAVEN_SHA" ;;
+      *) return 1 ;;
+    esac > "$output"
+  }
+}
+
+temurin_json() {
+  local name="OpenJDK25U-jdk_$1_linux_hotspot_25.0.4.1_1.tar.gz" checksum=$TEMURIN_SHA
+  local link="https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/$name"
+  [[ "$FORGED" != link ]] || link="https://downloads.example.org/$name"
+  [[ "$FORGED" != checksum ]] || checksum=not-a-checksum
+  printf '[{"release_name":"jdk-25.0.4.1+1","binary":{"os":"linux","architecture":"%s","image_type":"jdk",' "$1"
+  printf '"jvm_impl":"hotspot","package":{"name":"%s","checksum":"%s","link":"%s"}}}]\n' "$name" "$checksum" "$link"
+}
+
+liberica_entry() {
+  local name="bellsoft-jdk$1-linux-arm32-vfp-hflt.tar.gz"
+  printf '{"version":"%s","filename":"%s",' "$1" "$name"
+  printf '"downloadUrl":"https://github.com/bell-sw/Liberica/releases/download/%s/%s",' "$1" "$name"
+  printf '"sha1":"%s","os":"linux","bundleType":"jdk","packageType":"tar.gz",' "$2"
+  printf '"GA":true,"FX":false,"featureVersion":25}'
+}
+
+# The numerically newest release must win over list order: 25.0.4.1+1 is newer than 25.0.4+9.
+liberica_json() {
+  printf '[%s,%s]\n' "$(liberica_entry 25.0.4.1+1 "$(printf 'c%.0s' {1..40})")" \
+    "$(liberica_entry 25.0.4+9 "$(printf 'b%.0s' {1..40})")"
+}
+
+journal_archives() {
+  STATE[toolchain.java.package]=archive STATE[toolchain.java.source]=temurin STATE[toolchain.java.version]=25.0.2+10
+  STATE[toolchain.java.file]=OpenJDK25U-jdk_x64_linux_hotspot_25.0.2_10.tar.gz
+  STATE[toolchain.java.checksum]=sha256:$TEMURIN_SHA
+  STATE[toolchain.maven.package]=archive STATE[toolchain.maven.source]=apache STATE[toolchain.maven.version]=3.9.16
+  STATE[toolchain.maven.file]=apache-maven-3.9.16-bin.tar.gz STATE[toolchain.maven.checksum]=sha512:$MAVEN_SHA
+}
+
+journal_state() {
+  STATE=([schema]=1 [status]=running [scope]=core [run_id]=$RUN_ID
+    [planned_commit]=0000000000000000000000000000000000000001 [java_home]=pending [maven]=pending
+    [new_database_server]=yes [database_before]=no [account_before]=no [step.toolchains]=pending)
+  journal_archives
+}
+
+# Destinations below the fixture root; the real ones are absolute paths under /opt.
+fixture_homes() {
+  gt_toolchain_home() {
+    case "$1" in
+      java) printf '%s/opt/jdk-%s-%s\n' "$ROOT" "${3/+/_}" "$2" ;;
+      maven) printf '%s/opt/apache-maven-%s\n' "$ROOT" "$3" ;;
+    esac
+  }
+}
+
+maven_archive_fixture() {
+  local root=${1:-apache-maven-3.10.0}
+  mkdir -p "$BATS_TEST_TMPDIR/fixture/$root/bin" "$ROOT/var/lib/gt-install" "$ROOT/opt"
+  chmod 700 "$ROOT/var/lib/gt-install"
+  printf '#!/bin/sh\necho "Apache Maven 3.10.0"\n' > "$BATS_TEST_TMPDIR/fixture/$root/bin/mvn"
+  chmod 755 "$BATS_TEST_TMPDIR/fixture/$root/bin/mvn"
+  tar -C "$BATS_TEST_TMPDIR/fixture" -czf "$BATS_TEST_TMPDIR/maven.tar.gz" "$root"
+  FIXTURE_SHA=$(sha512sum "$BATS_TEST_TMPDIR/maven.tar.gz"); FIXTURE_SHA=${FIXTURE_SHA%% *}
+  STATE[run_id]=$RUN_ID STATE[toolchain.maven.package]=archive STATE[toolchain.maven.source]=apache
+  STATE[toolchain.maven.version]=3.10.0 STATE[toolchain.maven.file]=apache-maven-3.10.0-bin.tar.gz
+  STATE[toolchain.maven.checksum]=sha512:$FIXTURE_SHA
+  fixture_homes
+  DOWNLOAD_FAIL=''
+  gt_toolchain_download() {
+    printf '%s\n' "$1" >> "$SCRATCH/downloads"
+    [[ -z "$DOWNLOAD_FAIL" || "$1" != *"$DOWNLOAD_FAIL"* ]] || return 22
+    cp "$BATS_TEST_TMPDIR/maven.tar.gz" "$2"
+  }
 }
 
 @test "APT toolchain plan pins real candidates without assuming distribution availability" {
@@ -19,13 +116,15 @@ setup() {
   ! grep -E 'apt-get .*install|update-alternatives --set' "$PROBES"
 }
 
-@test "unavailable JDK and old Maven give architecture-specific alternatives without authorizing execution" {
+@test "unresolvable vendor archives block execution and keep architecture-specific manual instructions" {
   for arch in amd64 arm64 armhf; do
     FACT[architecture]=$arch
     CANDIDATE[openjdk-25-jdk-headless]='(none)' CANDIDATE[maven]='3.6.3-5'
     PLAN_BLOCKERS=() PLAN_PACKAGES=()
     gt_core_toolchain_plan
     [ "${#PLAN_BLOCKERS[@]}" -eq 2 ]
+    [[ "${PLAN_BLOCKERS[0]}" == *'Could not resolve a verified java archive'* ]]
+    [[ "${PLAN_BLOCKERS[1]}" == *'Could not resolve a verified maven archive'* ]]
     [ "${#PLAN_PACKAGES[@]}" -eq 0 ]
     run gt_toolchain_guidance
     [[ "$output" == *'Install-Java'* && "$output" == *'maven.apache.org/download.cgi'* ]]
@@ -35,6 +134,161 @@ setup() {
       armhf) [[ "$output" == *'Linux arm32-vfp-hflt'* ]] ;;
     esac
   done
+}
+
+@test "missing APT JDK and old Maven plan pinned vendor archives on every architecture" {
+  vendor_fixture
+  for arch in amd64 arm64 armhf; do
+    FACT[architecture]=$arch
+    CANDIDATE[openjdk-25-jdk-headless]='(none)' CANDIDATE[maven]='3.6.3-5'
+    PLAN=() PLAN_BLOCKERS=() PLAN_PACKAGES=()
+    gt_core_toolchain_plan
+    [ "${#PLAN_BLOCKERS[@]}" -eq 0 ]
+    [ "${#PLAN_PACKAGES[@]}" -eq 0 ]
+    [ "${FACT[toolchain.java.package]}:${FACT[toolchain.maven.package]}" = archive:archive ]
+    [ "${FACT[toolchain.java.path]}:${FACT[toolchain.maven.path]}" = pending:pending ]
+    [ "${FACT[toolchain.maven.version]}" = 3.10.0 ]
+    [ "${FACT[toolchain.maven.checksum]}" = "sha512:$MAVEN_SHA" ]
+    row="isolate | /opt/apache-maven-3.10.0 | Apache Maven 3.10.0; apache-maven-3.10.0-bin.tar.gz; sha512:$MAVEN_SHA"
+    [[ "${PLAN[*]}" == *"$row"* ]]
+    # Archives never touch alternatives, so the plan does not announce their recovery.
+    [[ "${PLAN[*]}" != *java-alternatives* ]]
+    case "$arch" in
+      amd64)
+        [ "${FACT[toolchain.java.file]}" = OpenJDK25U-jdk_x64_linux_hotspot_25.0.4.1_1.tar.gz ]
+        [ "${FACT[toolchain.java.checksum]}" = "sha256:$TEMURIN_SHA" ]
+        [[ "${PLAN[*]}" == *'isolate | /opt/jdk-25.0.4.1_1-temurin | Eclipse Temurin 25.0.4.1+1'* ]] ;;
+      arm64)
+        [ "${FACT[toolchain.java.file]}" = OpenJDK25U-jdk_aarch64_linux_hotspot_25.0.4.1_1.tar.gz ] ;;
+      armhf)
+        [ "${FACT[toolchain.java.version]}" = 25.0.4.1+1 ]
+        [ "${FACT[toolchain.java.checksum]}" = "sha1:$(printf 'c%.0s' {1..40})" ]
+        [[ "${PLAN[*]}" == *'isolate | /opt/jdk-25.0.4.1_1-liberica | BellSoft Liberica 25.0.4.1+1'* ]] ;;
+    esac
+  done
+  ! grep -E 'apt-get .*install|update-alternatives --set' "$PROBES"
+}
+
+@test "vendor metadata with a foreign download link or a malformed checksum blocks planning" {
+  vendor_fixture
+  CANDIDATE[openjdk-25-jdk-headless]='(none)'
+  for FORGED in link checksum; do
+    PLAN=() PLAN_BLOCKERS=() PLAN_PACKAGES=()
+    gt_core_toolchain_plan
+    [ "${#PLAN_BLOCKERS[@]}" -eq 1 ]
+    [[ "${PLAN_BLOCKERS[0]}" == *'Could not resolve a verified java archive'* ]]
+    [ "${FACT[toolchain.java.package]}" = none ]
+  done
+}
+
+@test "a resumed plan keeps the journaled archive offline and refuses foreign destinations or architectures" {
+  gt_probe() { printf '%s\n' "$*" >> "$PROBES"; return 1; }
+  fixture_homes
+  STATE[scope]=core STATE[step.toolchains]=running
+  journal_archives
+  gt_core_toolchain_plan
+  [ "${#PLAN_BLOCKERS[@]}" -eq 0 ]
+  [ "${FACT[toolchain.java.version]}:${FACT[toolchain.maven.version]}" = 25.0.2+10:3.9.16 ]
+  [ "${FACT[toolchain.java.checksum]}" = "sha256:$TEMURIN_SHA" ]
+  ! grep -q curl "$PROBES"
+  mkdir -p "$ROOT/opt/apache-maven-3.9.16"
+  PLAN_BLOCKERS=()
+  gt_core_toolchain_plan
+  [[ "${PLAN_BLOCKERS[*]}" == *"Foreign maven destination exists: $ROOT/opt/apache-maven-3.9.16"* ]]
+  # The installer's own interrupted publication is not foreign.
+  STATE[resource.maven_archive]=intent PLAN_BLOCKERS=()
+  gt_core_toolchain_plan
+  [ "${#PLAN_BLOCKERS[@]}" -eq 0 ]
+  FACT[architecture]=arm64 PLAN_BLOCKERS=()
+  gt_core_toolchain_plan
+  [[ "${PLAN_BLOCKERS[*]}" == *'does not match architecture arm64'* ]]
+}
+
+@test "archive journal fields round trip and inconsistent records are rejected" {
+  local change
+  mkdir -p "$ROOT/var/lib/gt-install"
+  chmod 700 "$ROOT/var/lib/gt-install"
+  journal_state
+  gt_state_save
+  gt_state_load
+  [ "${STATE[toolchain.java.checksum]}" = "sha256:$TEMURIN_SHA" ]
+  [ "${STATE[toolchain.maven.file]}" = apache-maven-3.9.16-bin.tar.gz ]
+  for change in toolchain.java.file=OpenJDK25U-jdk_x64_linux_hotspot_25.0.3_1.tar.gz \
+      "toolchain.maven.checksum=sha256:$TEMURIN_SHA" toolchain.java.source=liberica \
+      toolchain.maven.version=4.0.0 toolchain.java.file=../../etc/passwd.tar.gz; do
+    journal_state
+    STATE[${change%%=*}]=${change#*=}
+    gt_state_save
+    run gt_state_load
+    [ "$status" -ne 0 ]
+  done
+  # Archive fields beside an APT selection are not silently ignored.
+  journal_state
+  STATE[toolchain.maven.package]=maven STATE[toolchain.maven.version]=3.8.7-1
+  gt_state_save
+  run gt_state_load
+  [ "$status" -ne 0 ]
+}
+
+@test "a checksum mismatch never extracts and resumption replaces a partial stage" {
+  local stage target
+  maven_archive_fixture
+  target="$ROOT/opt/apache-maven-3.10.0" stage="$ROOT/opt/.gt-maven_archive-$RUN_ID"
+  STATE[toolchain.maven.checksum]=sha512:$MAVEN_SHA
+  if gt_toolchain_archive_install maven; then return 1; fi
+  [ ! -e "$target" ]
+  # Only the rejected download is in the stage; nothing was extracted.
+  [ "$(ls -A "$stage")" = .gt-download.tar.gz ]
+  [ "${STATE[resource.maven_archive]}" = intent ]
+  # An interruption during extraction leaves a populated stage behind.
+  touch "$stage/partial"
+  STATE[toolchain.maven.checksum]=sha512:$FIXTURE_SHA
+  DOWNLOAD_FAIL=dlcdn.apache.org
+  gt_toolchain_archive_install maven
+  [ -x "$target/bin/mvn" ]
+  [ ! -e "$target/partial" ]
+  [ ! -e "$stage" ]
+  [ ! -e "$target/.gt-download.tar.gz" ]
+  [ "$(stat -c '%a' "$target")" = 755 ]
+  [ "${STATE[resource.maven_archive]}" = owned ]
+  [[ "${STATE[file.maven_archive]}" =~ ^[a-f0-9]{64}$ ]]
+  # The CDN only serves current releases; the archive host keeps the journaled version.
+  [ "$(tail -n 1 "$SCRATCH/downloads")" = \
+    https://archive.apache.org/dist/maven/maven-3/3.10.0/binaries/apache-maven-3.10.0-bin.tar.gz ]
+  [ "$(wc -l < "$SCRATCH/downloads")" -eq 3 ]
+  gt_toolchain_archive_install maven
+  [ "$(wc -l < "$SCRATCH/downloads")" -eq 3 ]
+  printf 'changed\n' >> "$target/bin/mvn"
+  if gt_toolchain_archive_install maven; then return 1; fi
+}
+
+@test "an archive with an unexpected top-level directory is refused before extraction" {
+  maven_archive_fixture evil
+  STATE[toolchain.maven.checksum]=sha512:$FIXTURE_SHA
+  if gt_toolchain_archive_install maven; then return 1; fi
+  [ ! -e "$ROOT/opt/apache-maven-3.10.0" ]
+  [ "$(ls -A "$ROOT/opt/.gt-maven_archive-$RUN_ID")" = .gt-download.tar.gz ]
+}
+
+@test "confirmed archives install without APT or alternatives and select their own destinations" {
+  alternatives_fixture
+  journal_state
+  gt_toolchain_archive_install() { printf '%s\n' "$1" >> "$SCRATCH/archives"; }
+  gt_core_run() { touch "$SCRATCH/apt"; return 99; }
+  # Discovery may rank another JDK first; the confirmed archive must still be selected.
+  gt_java() { FACT[java.suitable]=/usr/lib/jvm/other-25; }
+  gt_runtimes() { FACT[maven.path]=/usr/bin/mvn; }
+  gt_toolchain_verify() { printf '%s %s\n' "$1" "$2" > "$SCRATCH/verified"; }
+  gt_core_toolchains
+  [ "$(cat "$SCRATCH/archives")" = $'java\nmaven' ]
+  [ ! -e "$SCRATCH/apt" ]
+  [ ! -e "$SCRATCH/restores" ]
+  [ -z "${STATE[toolchain.alternatives]:-}" ]
+  [ "$(cat "$SCRATCH/verified")" = '/opt/jdk-25.0.2_10-temurin /opt/apache-maven-3.9.16/bin/mvn' ]
+  [ "${STATE[java_home]}:${STATE[maven]}" = /opt/jdk-25.0.2_10-temurin:/opt/apache-maven-3.9.16/bin/mvn ]
+  [ "${STATE[step.toolchains]}" = complete ]
+  gt_state_load
+  [ "${STATE[java_home]}" = /opt/jdk-25.0.2_10-temurin ]
 }
 
 @test "existing suitable toolchains bypass APT and keep their paths" {

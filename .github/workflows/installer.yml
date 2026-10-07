@@ -83,6 +83,12 @@ jobs:
         run: docker build -t gt-installer-toolchains - < util/installer/test/toolchains.Dockerfile
       - name: Check APT installation, Java selection and interruption recovery
         run: docker run --rm -v "$PWD:/repo:ro" gt-installer-toolchains bash util/installer/test/toolchains-container.sh
+      - name: Build disposable Debian 12 host without an APT JDK 25
+        run: docker build -t gt-installer-toolchains-archive - < util/installer/test/toolchains-archive.Dockerfile
+      - name: Check Temurin archive with APT Maven, interrupted extraction and unchanged alternatives
+        run: docker run --rm -e GT_TEST_MAVEN=apt -v "$PWD:/repo:ro" gt-installer-toolchains-archive bash util/installer/test/toolchains-archive-container.sh
+      - name: Check Temurin and Apache Maven archives as needed on Debian 11
+        run: docker run --rm -e GT_TEST_MAVEN=archive -v "$PWD:/repo:ro" gt-installer-toolchains-archive bash util/installer/test/toolchains-archive-container.sh
   node:
     needs: bundle
     runs-on: ubuntu-latest

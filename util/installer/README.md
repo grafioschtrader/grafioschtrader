@@ -336,8 +336,9 @@ downloads remain separate acceptance work; see [the test instructions](test/READ
 
 `--install-core` supports fresh Debian/Ubuntu hosts with systemd and the inventory prerequisites (`git`, `curl`,
 `openssl`, `runuser`, `useradd`, `passwd`, `flock`, `sha256sum`). It reuses suitable **JDK 25+ and Maven 3.8+**
-installations or installs suitable packages from the host's configured APT sources. Package installation requires
-current APT metadata and `fuser` from `psmisc`; Java/Maven installation also requires `update-alternatives`.
+installations, installs suitable packages from the host's configured APT sources, or otherwise installs verified
+vendor archives. Package installation requires current APT metadata and `fuser` from `psmisc`; Java/Maven APT
+installation also requires `update-alternatives`. Vendor archives require `python3`, `tar` and `gzip`;
 Node/build-tool preparation requires `python3`, `tar` and `xz` (`xz-utils`). Missing prerequisites are reported
 before execution; install them and repeat the command.
 It displays a plan for this scope and asks for the literal confirmation `install-core`. With an answers file,
@@ -350,8 +351,8 @@ The core performs these steps:
 2. Install missing base packages (`git`, `curl`, `wget`, `ca-certificates`, `gnupg`, `sudo`, `openssl`, `logrotate`,
    `whiptail`, `tzdata`) from the confirmed plan, refusing removals and upgrades. Verify their installed status;
    resume an interrupted transaction by installing only what remains missing. Already completed base packages
-   must still be present. Resolve Java/Maven, install the confirmed APT versions when needed, preserve existing
-   alternatives and verify
+   must still be present. Resolve Java/Maven, install the confirmed APT versions or vendor archives when needed,
+   preserve existing alternatives and verify
    `java`, `javac` and Maven with the selected JDK. Create the disabled-login-password `grafioschtrader` user,
    prepare Node/npm and the isolated build tools, then clone the planned source commit into
    `/home/grafioschtrader/build/grafioschtrader`, running Git as that user.
@@ -369,28 +370,59 @@ The core performs these steps:
 Success returns **10**, meaning **core ready, full installation unfinished**. No backend build, application service,
 web server, firewall, TLS, DuckDNS update or mail test is performed. The full dry-run still describes later steps;
 the core's own confirmation plan lists only its actual changes. Existing classic/Docker installations and foreign
-installation pieces are refused. Java/Maven vendor repositories and archives are not installed automatically;
-when needed, the report provides the architecture-specific alternative and its installation guide. Node archives
-are installed automatically as described below.
+installation pieces are refused. Java/Maven vendor archives and Node archives are installed automatically as
+described below.
 
 ### Java and Maven installation choices
 
 Availability is determined from `apt-cache policy openjdk-25-jdk-headless` and `apt-cache policy maven`, not from
 a distribution/version table. Refresh missing or old package lists with `sudo apt-get update` and rerun the
-installer. Read-only modes never refresh them. APT must offer JDK 25 and Maven >= 3.8; exact candidate versions
-are shown before confirmation, rechecked and recorded for recovery. Transactions needing package removals or
-upgrades remain blocked. Existing suitable installations are reused without an APT transaction.
+installer. Read-only modes never refresh them. An APT candidate is used when it offers JDK 25 or Maven >= 3.8;
+exact candidate versions are shown before confirmation, rechecked and recorded for recovery. Transactions needing
+package removals or upgrades remain blocked. Existing suitable installations are reused without an APT
+transaction. Debian 12, for example, has no JDK 25 in APT but Maven 3.8: Java comes from the vendor archive below,
+Maven from APT.
 
-Before installing, the core journals existing `update-alternatives` selections. It restores changed selections
+Before an APT installation, the core journals existing `update-alternatives` selections. It restores changed selections
 after success or failure, including an interrupted run on resumption. A changed automatic selection becomes
 manual to retain its original target; a previously absent group may use its new package default. APT may pull
 an additional distribution JRE for Maven. GT still builds and runs with its explicitly selected JDK, regardless
 of the system default. `gtvar.sh` includes both selected toolchain paths; Maven probes use this JDK even before
 the application user exists.
 
-If APT has no suitable candidate, the report blocks installation and names these manual alternatives:
+If APT has no suitable candidate, the plan resolves a vendor archive before confirmation and shows its exact
+version, file name and checksum:
 
-| Component | Alternative and discovery location |
+| Component | Source | Checksum | Destination |
+|---|---|---|---|
+| Java on amd64/arm64 | Eclipse Temurin, from `api.adoptium.net` (latest release of the required major) | SHA-256 from the Adoptium API | `/opt/jdk-<version>-temurin` |
+| Java on armhf | BellSoft Liberica, from `api.bell-sw.com`; Temurin ships no 32-bit Arm JDK | SHA-1 from the BellSoft API, the only checksum BellSoft publishes | `/opt/jdk-<version>-liberica` |
+| Maven | Highest stable Maven 3 release listed on `downloads.apache.org` | SHA-512 from `downloads.apache.org` | `/opt/apache-maven-<version>` |
+
+The `+` of a JDK version becomes `_` in the destination, for example `/opt/jdk-25.0.4.1_1-temurin`, so the path
+stays literal in `gtvar.sh`, the launcher and the systemd unit. Vendor metadata is literal data: the planner
+accepts an entry only when its file name and download link equal the ones derived from version and
+architecture, and it never downloads from a link taken from the response. JDK archives come from the vendors'
+GitHub releases; Maven comes from `dlcdn.apache.org`, falling back to `archive.apache.org` once the CDN no longer
+lists the confirmed version.
+
+The journal records source, version, file name and checksum. Resumption downloads exactly this archive, never a
+newer release, and needs no vendor metadata. The archive is downloaded into a private stage beside the
+destination (`/opt/.gt-jdk-<run>`, `/opt/.gt-maven_archive-<run>`), so it never fills a small tmpfs `/tmp`, and
+compared with the recorded checksum. Its members are checked to stay below the expected top-level directory. It
+is then unpacked into the same stage, the download is removed, and the stage is published by rename with a
+recorded tree digest. The disk plan adds 600 MiB on `/opt` for a JDK archive and 30 MiB for Maven. A stage left by an interrupted download or extraction is
+discarded and rebuilt; a published destination is accepted only with its recorded digest. An existing
+destination the journal does not own blocks the plan.
+
+Archives never register alternatives, never change `/etc/profile.d`, the global `PATH` or an existing
+`/opt/maven` link, and leave every other Java selection untouched. The selected paths reach the build and service
+through `gtvar.sh`, the launcher and the unit, exactly like APT toolchains. The core selects an archive by its
+own destination, not by discovery order. Later updates of an archive toolchain are manual: install the new
+release into a new directory and adapt `gtvar.sh` and the launcher. When the plan cannot resolve the vendor
+metadata, for example without access to the vendor APIs, it blocks and prints the manual alternative:
+
+| Component | Manual alternative and discovery location |
 |---|---|
 | Java | A current Java 25 JDK archive, for example Liberica: `amd64` -> `linux-amd64`, `arm64` -> `linux-aarch64`, `armhf` -> `linux-arm32-vfp-hflt`. Verify the vendor checksum and unpack into a **new** `/usr/local/jdk-25` directory. Check `/usr/local/jdk-25/bin/java --version` and `/usr/local/jdk-25/bin/javac --version`. |
 | Maven | A current stable Maven 3 **binary** `tar.gz` and its SHA-512 from Apache. Verify the checksum, then unpack into a **new** `/opt/apache-maven-<version>` directory. The installer also detects `/opt/maven/bin/mvn` if that symlink already exists. |
@@ -399,9 +431,8 @@ Follow the project guides for [Java](https://github.com/grafioschtrader/grafiosc
 [Maven](https://github.com/grafioschtrader/grafioschtrader/wiki/Installing-the-Latest-Release-of-Apache-Maven).
 Choose current downloads from [BellSoft](https://bell-sw.com/pages/downloads/) or
 [Apache Maven](https://maven.apache.org/download.cgi); the old example Maven version in the wiki is not pinned
-into this installer. Never extract over an existing installation. Archive installations need manual updates.
-There is no need to change global alternatives, `/etc/profile.d`, or an existing `/opt/maven` link for GT:
-rerun `--check` after manual installation to verify discovery, then `--install-core`.
+into this installer. Never extract over an existing installation. Rerun `--check` after manual installation to
+verify discovery, then the installation.
 
 ### Node.js, npm and frontend build tools
 
