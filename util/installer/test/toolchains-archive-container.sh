@@ -45,7 +45,7 @@ stage="/opt/.gt-jdk-${STATE[run_id]}"
 
 # The real download and checksum succeed; the extraction is interrupted after writing part of the tree.
 tar() {
-  [[ "$1" == --extract && "$*" == *"${STATE[toolchain.java.file]}"* ]] || { command tar "$@"; return; }
+  [[ "$1" == --extract && "$*" == *"$stage/.gt-download.tar.gz"* ]] || { command tar "$@"; return; }
   command tar "$@" --wildcards '*/release'
   return 1
 }
