@@ -57,7 +57,7 @@ public final class DashboardDtos {
 
   @Schema(description = "Registered widget with server-authoritative form constraints and defaults.")
   public record Descriptor(String type, String titleKey, String descriptionKey, String defaultWidth,
-      Map<String, Integer> defaultConfig, ClassDescriptorInputAndShow formDefinition) {
+      Map<String, Object> defaultConfig, ClassDescriptorInputAndShow formDefinition) {
   }
 
   public record Catalogue(List<Descriptor> descriptors, int remainingCapacity, List<JsonNode> defaults) {

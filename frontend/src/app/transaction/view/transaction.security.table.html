@@ -19,6 +19,7 @@
   [scrollable]="false"
   [valueGetterFn]="getValueByPath.bind(this)"
   [negativeValueFn]="isValueByPathMinus.bind(this)"
+  [cellStyleFn]="getCellStyle.bind(this)"
   [contextMenuAppendTo]="'body'">
 </configurable-table>
 

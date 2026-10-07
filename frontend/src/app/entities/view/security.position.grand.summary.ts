@@ -29,10 +29,16 @@ export class SecurityPositionGrandSummary {
   nextCheckpointDate: string | null;
 
   grandAccountValueSecurityMC: number;
+  /** 100, or null when the report total is not positive. */
+  grandShareOfTotalPercentage: number;
   currency: string;
 
   grandGainLossSecurityMC: number;
   grandGainLossCurrencyMC: number;
+  /** Disposal cost estimate of the report, only present when it is switched on. */
+  grandDisposalCostMC?: number;
+  grandValueAfterDisposalMC?: number;
+  grandDisposalComplete?: boolean;
   grandTaxCostMC: number;
   grandTransactionCostMC: number;
   securityPositionGroupSummaryList: SecurityPositionGroupSummary[];

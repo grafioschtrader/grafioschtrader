@@ -4,6 +4,7 @@ import { AppSettings } from '../../shared/app.settings';
 import { AccountPositionGrandSummary } from '../../entities/view/account.position.grand.summary';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
+import { SecurityDividendsChart } from '../../entities/view/securitydividends/security.dividends.chart';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthServiceWithLogout } from '../../lib/login/service/base.auth.service.with.logout';
@@ -67,6 +68,28 @@ export class PortfolioService extends AuthServiceWithLogout<Portfolio> implement
         )
         .pipe(catchError(this.handleError.bind(this)))
     );
+  }
+
+  /**
+   * Loads the income and costs of the dividends report aggregated per year, month and asset class for its charts.
+   *
+   * @param idsSecurityaccount - Security accounts to include; [] or [-1] includes all
+   * @param idsCashaccount - Cash accounts to include; [-1] includes all
+   * @returns The chart data in the tenant's main currency
+   */
+  getSecurityDividendsChartByTenant(
+    idsSecurityaccount: number[],
+    idsCashaccount: number[]
+  ): Observable<SecurityDividendsChart> {
+    let httpParams = new HttpParams();
+    httpParams = httpParams.append('idsSecurityaccount', idsSecurityaccount.join(','));
+    httpParams = httpParams.append('idsCashaccount', idsCashaccount.join(','));
+    return <Observable<SecurityDividendsChart>>this.httpClient
+      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.PORTFOLIO_KEY}/dividendschart`, {
+        headers: this.prepareHeaders(),
+        params: httpParams
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getSecurityDividendsGrandTotalByTenant(

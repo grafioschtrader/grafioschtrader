@@ -39,6 +39,8 @@ import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.helper.AccountGroupMap;
 import grafioschtrader.repository.helper.GroupPortfolio;
+import grafioschtrader.service.DisposalCostEstimator;
+import grafioschtrader.service.DisposalPositionCollector;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
@@ -94,6 +96,9 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
 
   @Autowired
   private SecuritysplitJpaRepository securitysplitJpaRepository;
+
+  @Autowired
+  private DisposalCostEstimator disposalCostEstimator;
 
   private GlobalparametersService globalparametersService;
 
@@ -243,14 +248,18 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
       portfolioCalcEveryTransaction(everyKindOfTransactionsUntilDate, accessCashaccountPositionSummary, mainCurrency,
           dateCurrencyMap, exchangeRateConnectedTransactionMap);
 
+      final DisposalPositionCollector disposalCollector = disposalCostEstimator.newCollectorIfEnabled(idTenant);
       final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = calcSecurityTransaction(
-          everyKindOfTransactionsUntilDate, securitysplitMap, excludeDivTaxcost, dateCurrencyMap);
+          everyKindOfTransactionsUntilDate, securitysplitMap, excludeDivTaxcost, dateCurrencyMap, disposalCollector);
+      final DisposalCostEstimator.Session disposalSession = disposalCostEstimator
+          .newSession(dateCurrencyMap.getUntilDate(), disposalCollector);
 
       final CurrencySecurityaccountCurrenyResult currencySecurityaccountCurrenyResult = calcAndCreatePortfolioSeucrityTotalPerCurrency(
-          securityPositionSummaryMap, dateCurrencyMap, portfolio.getCashaccountList());
+          securityPositionSummaryMap, dateCurrencyMap, portfolio.getCashaccountList(), disposalSession);
 
       portfolioEndCalc(accountGroupMap, accessCashaccountPositionSummary, currencySecurityaccountCurrenyResult,
           dateCurrencyMap);
+      estimateTransferMarkups(accessCashaccountPositionSummary, disposalSession, portfolio, mainCurrency);
 
     }
     this.currencypairJpaRepository.calcGainLossBasedOnDateOrNewestPrice(accountGroupMap.getAllForeignCurrency(),
@@ -372,20 +381,46 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * @param securitysplitMap                 mapping of securities to their historical stock splits
    * @param excludeDivTaxcost                whether to exclude dividend tax costs from position calculations
    * @param dateCurrencyMap                  currency exchange rate context for multi-currency securities
+   * @param disposalCollector                collects units, settlement and trades for the disposal cost estimate,
+   *                                         null when the estimate is switched off
    * @return map of securities to their calculated position summaries
    */
   private Map<Security, SecurityPositionSummary> calcSecurityTransaction(
       final List<Transaction> everyKindOfTransactionsUntilDate,
       final Map<Integer, List<Securitysplit>> securitysplitMap, final boolean excludeDivTaxcost,
-      final DateTransactionCurrencypairMap dateCurrencyMap) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, final DisposalPositionCollector disposalCollector) {
     final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = new HashMap<>();
     for (final Transaction transaction : everyKindOfTransactionsUntilDate) {
       if (transaction.getSecurity() != null) {
         securityCalcService.calcSingleSecurityTransaction(transaction, securityPositionSummaryMap, securitysplitMap,
             excludeDivTaxcost, dateCurrencyMap);
+        if (disposalCollector != null) {
+          disposalCollector.accept(transaction, securitysplitMap);
+        }
       }
     }
     return securityPositionSummaryMap;
+  }
+
+  /**
+   * Sets on every cash account of a portfolio the markup of converting its balance, together with the net disposal
+   * proceeds of the securities settling in its currency, into the main currency. Does nothing while the disposal cost
+   * estimate is switched off.
+   *
+   * @param acps            the cash account summaries of the portfolio
+   * @param disposalSession the disposal cost estimate of the report, null when it is switched off
+   * @param portfolio       the portfolio, supplying the security accounts whose fx section applies
+   * @param mainCurrency    the currency of the report
+   */
+  private void estimateTransferMarkups(final AccessCashaccountPositionSummary acps,
+      final DisposalCostEstimator.Session disposalSession, final Portfolio portfolio, final String mainCurrency) {
+    if (disposalSession != null) {
+      acps.cashaccountPositionSummaryByCashaccountMap.values().forEach(cps -> {
+        var markup = disposalSession.transferMarkup(cps.getCashaccount(), portfolio.getSecurityaccountList(),
+            mainCurrency, cps.getDisposalTransferAmount());
+        cps.setDisposalTransfer(markup.percent(), markup.detail());
+      });
+    }
   }
 
   /**
@@ -634,14 +669,20 @@ public class AccountPositionGroupSummaryReport extends SecurityCashaccountGroupB
    * @param securityPositionSummaryMap calculated security positions by security
    * @param dateCurrencyMap            currency exchange rate context for market valuations
    * @param cashaccountList            list of cash accounts to determine security account groupings
+   * @param disposalSession            the disposal cost estimate of the report, null when it is switched off
    * @return organized security position results grouped by currency and security account
    */
   private CurrencySecurityaccountCurrenyResult calcAndCreatePortfolioSeucrityTotalPerCurrency(
       final Map<Security, SecurityPositionSummary> securityPositionSummaryMap,
-      final DateTransactionCurrencypairMap dateCurrencyMap, final List<Cashaccount> cashaccountList) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, final List<Cashaccount> cashaccountList,
+      final DisposalCostEstimator.Session disposalSession) {
 
     final List<SecurityPositionSummary> securityPositionSummaryList = securityJpaRepository
         .processOpenPositionsWithActualPrice(dateCurrencyMap.getUntilDate(), securityPositionSummaryMap);
+    if (disposalSession != null) {
+      disposalSession.estimatePositions(securityPositionSummaryList,
+          currency -> ReportHelper.getReportExchangeRate(currency, dateCurrencyMap, tradingDaysPlusJpaRepository));
+    }
     final List<SecurityPositionSummary> closedSecurityPositionList = securityPositionSummaryMap.entrySet().stream()
         .filter(map -> map.getValue().units == 0).map(map -> map.getValue()).collect(Collectors.toList());
     securityPositionSummaryList.addAll(closedSecurityPositionList);

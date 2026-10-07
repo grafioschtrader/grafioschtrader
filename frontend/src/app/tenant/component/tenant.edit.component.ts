@@ -77,6 +77,8 @@ export abstract class TenantEditComponent {
         sessionStorage.setItem(GlobalGTSessionNames.TENANT_CLOSED_UNTIL, tenantNew.closedUntil || '');
         // Update sessionStorage with the opt-in to the Grafioschtrader import templates
         this.gpsGT.setTenantUseGtImportTemplates(tenantNew.useGtImportTemplates);
+        // Update sessionStorage with the tenant switch of the disposal cost estimate
+        this.gpsGT.setTenantDisposalCostEstimate(tenantNew.disposalCostEstimate);
         this.closeInputDialog(tenantNew);
       },
       error: () => (this.configObject.submit.disabled = false)
@@ -125,6 +127,7 @@ export abstract class TenantEditComponent {
       }),
       DynamicFieldHelper.createFieldDropdownStringHeqF('country', false, { filter: true }),
       DynamicFieldHelper.createFieldCheckboxHeqF('useGtImportTemplates'),
+      DynamicFieldHelper.createFieldCheckboxHeqF('disposalCostEstimate'),
       DynamicFieldHelper.createSubmitButton()
     ];
     const submitButton = fieldConfig[fieldConfig.length - 1];
@@ -133,6 +136,11 @@ export abstract class TenantEditComponent {
     }
     if (isRegistration) {
       return [fieldConfig[0], fieldConfig[1], fieldConfig[2], fieldConfig[5], submitButton];
+    }
+    if (!this.gpsGT.isDisposalCostEstimateAvailable()) {
+      // The administrator has not switched the estimate on for this instance, so the tenant has nothing to switch.
+      // Removed before the import templates checkbox, whose index it would otherwise shift.
+      fieldConfig.splice(7, 1);
     }
     if (this.gpsGT.getGtImportPlatformId() == null) {
       // No administrator has chosen the import platform of this instance, so there is nothing to opt in to.

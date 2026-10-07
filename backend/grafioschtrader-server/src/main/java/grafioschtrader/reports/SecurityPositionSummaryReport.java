@@ -37,6 +37,8 @@ import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
+import grafioschtrader.service.DisposalCostEstimator;
+import grafioschtrader.service.DisposalPositionCollector;
 import grafioschtrader.service.GlobalparametersService;
 
 /**
@@ -87,6 +89,9 @@ public abstract class SecurityPositionSummaryReport {
 
   @Autowired
   SecruityTransactionsReport secruityTransactionsReport;
+
+  @Autowired
+  protected DisposalCostEstimator disposalCostEstimator;
 
   @Autowired
   protected CurrencypairJpaRepository currencypairJpaRepository;
@@ -273,11 +278,13 @@ public abstract class SecurityPositionSummaryReport {
     LocalDate untilDatePlus = dateCurrencyMap.getUntilDate().plusDays(1);
 
     final Map<Security, SecurityPositionSummary> securityPositionSummaryMap = new HashMap<>();
+    final DisposalPositionCollector disposalCollector = disposalCostEstimator.newCollectorIfEnabled(tenant.getIdTenant());
     securityaccountList.stream().forEach((securityaccount) -> createPositionSummaryForSecurityaccount(securityaccount,
-        securityPositionSummaryMap, excludeDivTaxcost, untilDatePlus, dateCurrencyMap));
+        securityPositionSummaryMap, excludeDivTaxcost, untilDatePlus, dateCurrencyMap, disposalCollector));
 
     final List<SecurityPositionSummary> securityPositionSummaryList = securityJpaRepository
         .processOpenPositionsWithActualPrice(dateCurrencyMap.getUntilDate(), securityPositionSummaryMap);
+    estimateDisposalCosts(securityPositionSummaryList, disposalCollector, dateCurrencyMap);
 
     if (includeClosedPosition) {
       // Include closed positions for output
@@ -292,6 +299,24 @@ public abstract class SecurityPositionSummaryReport {
 
     return securityPositionGrandSummary;
 
+  }
+
+  /**
+   * Estimates the disposal costs of the hypothetical sale of every open position, when the global parameter and the
+   * tenant switch the estimate on. Must run after the positions were valued and before the main currency conversion.
+   *
+   * @param positions       the valued open positions
+   * @param collector       what was collected while the transactions were walked, null when the estimate is off
+   * @param dateCurrencyMap currency context of the report, used for the account value a tiered fee model may need
+   */
+  private void estimateDisposalCosts(List<SecurityPositionSummary> positions, DisposalPositionCollector collector,
+      DateTransactionCurrencypairMap dateCurrencyMap) {
+    DisposalCostEstimator.Session session = disposalCostEstimator.newSession(dateCurrencyMap.getUntilDate(),
+        collector);
+    if (session != null) {
+      session.estimatePositions(positions,
+          currency -> ReportHelper.getReportExchangeRate(currency, dateCurrencyMap, tradingDaysPlusJpaRepository));
+    }
   }
 
   /** Scope-aware hook; ordinary security-only groupings need no additional scope handling. */
@@ -309,10 +334,12 @@ public abstract class SecurityPositionSummaryReport {
    * @param summarySecurityMap Contains the calculations for each individual security.
    * @param excludeDivTaxcost  If true, tax withholdings are not taken into account.
    * @param dateCurrencyMap    Contains the currency information
+   * @param disposalCollector  Collects units, settlement and trades for the disposal cost estimate, null when it is off
    */
   private void createPositionSummaryForSecurityaccount(final Securityaccount securityaccount,
       final Map<Security, SecurityPositionSummary> summarySecurityMap, final boolean excludeDivTaxcost,
-      final LocalDate untilDatePlus, final DateTransactionCurrencypairMap dateCurrencyMap) {
+      final LocalDate untilDatePlus, final DateTransactionCurrencypairMap dateCurrencyMap,
+      final DisposalPositionCollector disposalCollector) {
 
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdSecuritycashaccount(securityaccount.getIdSecuritycashAccount());
@@ -326,6 +353,9 @@ public abstract class SecurityPositionSummaryReport {
         // We don't want transaction without a Security, for example FEE
         securityCalcService.calcSingleSecurityTransaction(transaction, summarySecurityMap, securitysplitMap,
             excludeDivTaxcost, dateCurrencyMap);
+        if (disposalCollector != null) {
+          disposalCollector.accept(transaction, securitysplitMap);
+        }
       }
     }
   }

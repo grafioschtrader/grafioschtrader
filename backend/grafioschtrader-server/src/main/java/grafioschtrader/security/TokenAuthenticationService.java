@@ -111,6 +111,8 @@ public class TokenAuthenticationService extends TokenAuthentication {
         tenantClosedUntil, globalparametersService.getGtImportPlatformId(), useGtImportTemplates);
     // gtNetLogEnabled is set by TokenAuthentication.addJwtTokenToHeader, together with the GTNET feature flag.
     configurationWithLogin.forceConnectorMatch = globalparametersService.getForceConnectorMatch();
+    configurationWithLogin.disposalCostEstimate = globalparametersService.isDisposalCostEstimate();
+    configurationWithLogin.tenantDisposalCostEstimate = (tenant != null) && tenant.isDisposalCostEstimate();
     boolean gtNetEnabled = featureConfig.isGtnet();
     configurationWithLogin.gtNetHasHistoricalExchangePeer = gtNetEnabled
         && gtNetJpaRepository.existsExchangePeerByEntityKind(GTNetExchangeKindType.HISTORICAL_PRICES.getValue());
@@ -193,6 +195,21 @@ public class TokenAuthenticationService extends TokenAuthentication {
      * whether to request the pre-filtered connector list (mode 2) or accept the full list (modes 0 and 1).
      */
     public int forceConnectorMatch;
+
+    /**
+     * True when the reports estimate the disposal costs of the hypothetical sale (see
+     * {@link grafioschtrader.GlobalParamKeyDefault#GLOB_KEY_DISPOSAL_COST_ESTIMATE}). Only then does the tenant dialog
+     * offer {@link #tenantDisposalCostEstimate}, and the dealer country input of a trading platform plan is shown only
+     * then, or when rule-based trading is enabled.
+     */
+    public boolean disposalCostEstimate;
+
+    /**
+     * Whether this tenant keeps the disposal cost estimate switched on. Together with {@link #disposalCostEstimate} it
+     * decides whether the estimate is effective for the tenant, and with it whether the frontend shows the disposal cost
+     * columns and the exempt investor input of a security account.
+     */
+    public boolean tenantDisposalCostEstimate;
 
     /**
      * Creates a comprehensive GrafioschTrader configuration object.

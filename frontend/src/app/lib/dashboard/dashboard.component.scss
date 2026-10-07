@@ -87,6 +87,28 @@
   box-shadow: 0 1px 4px rgb(0 0 0 / 15%);
   overflow-wrap: anywhere;
 }
+/* A maximized card takes over the grid: the other cards are only hidden, so they keep their data and their state, and
+   the masonry is switched off while one card spans every column. Its height is the visible height of the scrolling
+   pane, set by the component as --dashboard-max-height. */
+.dashboard-grid.dashboard-has-maximized > .dashboard-card:not(.dashboard-card-maximized) {
+  display: none;
+}
+.dashboard-grid.dashboard-has-maximized > .dashboard-card.dashboard-card-maximized {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  height: var(--dashboard-max-height, 70vh);
+}
+.dashboard-card-maximized .dashboard-card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dashboard-card-maximized .dashboard-card-body > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
 .dashboard-card h3 {
   font-size: 1.1rem;
   margin: 0;

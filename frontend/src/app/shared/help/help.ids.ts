@@ -23,6 +23,7 @@ export const AppHelpIds: Record<string, string> = {
   HELP_PORTFOLIOS_SECURITY_ACCOUNT_REPORT: 'reportportfolio/securityaccountreport',
   HELP_PORTFOLIOS_SECURITY_CASH_ACCOUNT_REPORT: 'reportportfolio/securitycashaccountreport',
   HELP_PORTFOLIOS_DIVIDENDS: 'reportportfolio/dividends',
+  HELP_PORTFOLIOS_DIVIDENDS_CHARTS: 'reportportfolio/dividends/charts',
   HELP_PORTFOLIOS_TRANSACTIONCOSTS: 'reportportfolio/transactioncosts',
   HELP_PORTFOLIOS_TRANSACTIONLIST: 'reportportfolio/transactionlist',
 

@@ -433,6 +433,7 @@ CREATE TABLE `tenant` (
   `simulation_initialization_mode` varchar(24) DEFAULT NULL,
   `fee_interest_fx_at_cut_off_date` tinyint(1) NOT NULL DEFAULT 0,
   `report_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`report_settings`)),
+  `disposal_cost_estimate` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Tenant opt-out of the disposal cost estimate; effective only while gt.disposal.cost.estimate is 1',
   PRIMARY KEY (`id_tenant`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

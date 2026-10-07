@@ -14,6 +14,7 @@ import { TASK_TYPE_ENUM } from './lib/taskdatamonitor/service/task.type.enum.tok
 import { PERSONAL_DATA_ZIP_NAME } from './lib/mainmenubar/service/personal.data.zip.token';
 import {
   DASHBOARD_CONFIG_SUMMARIES,
+  DASHBOARD_MAXIMIZABLE,
   DASHBOARD_RENDERERS,
   DashboardSummaryComponent
 } from './lib/dashboard/dashboard-summary.component';
@@ -22,6 +23,7 @@ import { DataType } from './lib/dynamic-form/models/data.type';
 import { HoldingMoversWidgetComponent } from './dashboard/component/holding-movers-widget.component';
 import { AlgoMonitoringWidgetComponent } from './dashboard/component/algo-monitoring-widget.component';
 import { LastSessionsPerformanceWidgetComponent } from './dashboard/component/last-sessions-performance-widget.component';
+import { PerformanceTotalChartWidgetComponent } from './dashboard/component/performance-total-chart-widget.component';
 import { TaskType } from './shared/types/task.type';
 import { PortfolioService } from './portfolio/service/portfolio.service';
 import { TreeModule } from '@openng/optimus-ui/tree';
@@ -64,6 +66,8 @@ import { TimeSeriesChartComponent } from './historyquote/component/time.series.c
 import { ViewSizeChangedService } from './lib/layout/service/view.size.changed.service';
 import { ChartGeneralPurposeComponent } from './shared/chart/component/chart.general.purpose.component';
 import { ChartDataService } from './shared/chart/service/chart.data.service';
+import { TenantDividendsChartService } from './tenant/service/tenant.dividends.chart.service';
+import { TenantHoldingsChartService } from './tenant/service/tenant.holdings.chart.service';
 import { TableModule } from '@openng/optimus-ui/table';
 import { TimeSeriesQuotesService } from './historyquote/service/time.series.quotes.service';
 import { CorrelationComponent } from './correlation/component/correlation.component';
@@ -457,6 +461,8 @@ const createTranslateLoader = (http: HttpClient) =>
     AssetclassService,
     CashaccountService,
     ChartDataService,
+    TenantDividendsChartService,
+    TenantHoldingsChartService,
     ConfirmationService,
     ConnectorApiKeyService,
     CorrelationSetService,
@@ -581,9 +587,12 @@ const createTranslateLoader = (http: HttpClient) =>
         HOLDING_WINNERS: HoldingMoversWidgetComponent,
         HOLDING_LOSERS: HoldingMoversWidgetComponent,
         PERFORMANCE_LAST_SESSIONS: LastSessionsPerformanceWidgetComponent,
+        PERFORMANCE_TOTAL_CHART: PerformanceTotalChartWidgetComponent,
         ALGO_MONITORING: AlgoMonitoringWidgetComponent
       }
     },
+    // Only the chart gains from the space of the whole dashboard area; the table cards are not maximizable.
+    { provide: DASHBOARD_MAXIMIZABLE, useValue: new Set(['PERFORMANCE_TOTAL_CHART']) },
     {
       provide: DASHBOARD_CONFIG_SUMMARIES,
       useValue: {

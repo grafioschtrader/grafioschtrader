@@ -1,8 +1,18 @@
-import { ChangeDetectionStrategy, Component, HostListener, Inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  Inject,
+  NgZone,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from '@openng/optimus-ui/button';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { CdkDrag, CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { Subscription } from 'rxjs';
 import { ShowRecordConfigBase } from '../datashowbase/show.record.config.base';
@@ -28,7 +38,7 @@ import {
   moveDashboardWidget,
   widgetFromDescriptor
 } from './dashboard.types';
-import { DASHBOARD_CONFIG_SUMMARIES, DASHBOARD_RENDERERS } from './dashboard-summary.component';
+import { DASHBOARD_CONFIG_SUMMARIES, DASHBOARD_MAXIMIZABLE, DASHBOARD_RENDERERS } from './dashboard-summary.component';
 import { DashboardConfigDialogComponent } from './dashboard-config-dialog.component';
 import { DashboardMasonryDirective } from './dashboard-masonry.directive';
 import { ProcessedActionData } from '../types/processed.action.data';
@@ -43,6 +53,7 @@ import { ProcessedAction } from '../types/processed.action';
     TranslateModule,
     FormsModule,
     ButtonModule,
+    TooltipModule,
     DragDropModule,
     NgComponentOutlet,
     DashboardConfigDialogComponent,
@@ -67,8 +78,15 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   resetPending = false;
   configuring: { descriptor: DashboardDescriptor; widget: DashboardWidget } | null = null;
   refreshing = new Set<string>();
+  /**
+   * The card that currently takes over the dashboard area, or null. Pure view state: it is never part of the saved
+   * layout and ends with editing, a client switch or a reload that no longer contains the card.
+   */
+  maximizedId: string | null = null;
   widths: DashboardWidth[] = ['THIRD', 'HALF', 'TWO_THIRDS', 'FULL'];
   readonly spans = { THIRD: 4, HALF: 6, TWO_THIRDS: 8, FULL: 12 };
+  /** Below this a maximized card would be smaller than an ordinary one, so the pane scrolls instead. */
+  private static readonly MIN_MAXIMIZED_HEIGHT = 300;
   readonly timeField = ShowRecordConfigBase.createColumnConfig(DataType.DateTimeString, 'dataAsOf', '');
   readonly generatedField = ShowRecordConfigBase.createColumnConfig(DataType.DateTimeString, 'generatedAt', '');
   readonly tenantField = ShowRecordConfigBase.createColumnConfig(DataType.NumericInteger, 'activeTenantId', '');
@@ -82,6 +100,8 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   private subscriptions = new Subscription();
   private generation = 0;
   private catalogueLoading = false;
+  /** Watches the scrolling pane while a card is maximized, so the card follows the splitter and the window. */
+  private paneObserver: ResizeObserver | null = null;
 
   constructor(
     translate: TranslateService,
@@ -89,7 +109,10 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     private service: DashboardService,
     private activePanel: ActivePanelService,
     @Inject(DASHBOARD_RENDERERS) public renderers: Record<string, any>,
-    @Inject(DASHBOARD_CONFIG_SUMMARIES) private configSummaries: Record<string, ColumnConfig>
+    @Inject(DASHBOARD_CONFIG_SUMMARIES) private configSummaries: Record<string, ColumnConfig>,
+    @Inject(DASHBOARD_MAXIMIZABLE) private maximizableTypes: ReadonlySet<string>,
+    private host: ElementRef<HTMLElement>,
+    private zone: NgZone
   ) {
     super(translate, gps);
   }
@@ -100,6 +123,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   }
   ngOnDestroy(): void {
     this.generation++;
+    this.stopFollowingPane();
     this.subscriptions.unsubscribe();
     this.activePanel.destroyPanel(this);
   }
@@ -138,6 +162,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
       this.catalogue = null;
       this.loading = false;
       this.editing = false;
+      this.restore();
       this.refreshing.clear();
       this.load();
       return false;
@@ -160,6 +185,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
           );
           this.document = document;
           this.loading = false;
+          if (!document.widgets.some((w) => w.instanceId === this.maximizedId)) this.restore();
           this.onComponentClick(null);
           if (document.schemaVersion !== 1) this.error = 'DASHBOARD_SCHEMA';
         },
@@ -178,6 +204,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   }
   edit(): void {
     if (!this.canEdit) return;
+    this.restore();
     this.draft = structuredClone(this.document.widgets);
     this.editing = true;
     this.resetPending = false;
@@ -345,6 +372,58 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
           })
       })
     );
+  }
+  /** Only the types the application lists offer the button; the table cards have no use for the space. */
+  maximizable(widget: DashboardWidget): boolean {
+    return this.maximizableTypes.has(widget.type);
+  }
+  /**
+   * Lets one card take over the dashboard area, like maximizing a window. The other cards are only hidden, so they
+   * keep their data and their own state, and the card is scrolled to the top of the pane it fills.
+   */
+  maximize(widget: DashboardWidget): void {
+    if (this.editing || !this.maximizable(widget)) return;
+    this.maximizedId = widget.instanceId;
+    this.followPane();
+  }
+  restore(): void {
+    if (!this.maximizedId) return;
+    this.maximizedId = null;
+    this.stopFollowingPane();
+    this.host.nativeElement.style.removeProperty('--dashboard-max-height');
+  }
+  /** Esc restores a maximized card, unless the settings dialog is open and Esc belongs to it. */
+  @HostListener('document:keydown.escape') onEscape(): void {
+    if (!this.configuring) this.restore();
+  }
+  private followPane(): void {
+    this.stopFollowingPane();
+    const pane = this.scrollPane();
+    this.zone.runOutsideAngular(() => {
+      // The first callback arrives once the card has been rendered maximized, which is when it can be measured.
+      this.paneObserver = new ResizeObserver(() => this.fitMaximized(pane));
+      this.paneObserver.observe(pane);
+    });
+  }
+  private stopFollowingPane(): void {
+    this.paneObserver?.disconnect();
+    this.paneObserver = null;
+  }
+  /** Gives the maximized card the visible height of the pane and moves it to the top of that pane. */
+  private fitMaximized(pane: HTMLElement): void {
+    const card = this.host.nativeElement.querySelector<HTMLElement>('.dashboard-card-maximized');
+    if (!card) return;
+    const height = Math.max(DashboardComponent.MIN_MAXIMIZED_HEIGHT, pane.clientHeight - 16);
+    this.host.nativeElement.style.setProperty('--dashboard-max-height', `${height}px`);
+    card.scrollIntoView({ block: 'start' });
+  }
+  /** The nearest ancestor that scrolls, which in the split layout is the main panel. */
+  private scrollPane(): HTMLElement {
+    for (let element = this.host.nativeElement.parentElement; element; element = element.parentElement) {
+      const overflowY = getComputedStyle(element).overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll') return element;
+    }
+    return document.documentElement;
   }
   canLeave(): boolean {
     return !this.saving && (!this.dirty || window.confirm(this.translateService.instant('DASHBOARD_DISCARD')));

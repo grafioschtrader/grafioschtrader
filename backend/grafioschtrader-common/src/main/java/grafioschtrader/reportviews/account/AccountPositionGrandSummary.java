@@ -3,6 +3,8 @@ package grafioschtrader.reportviews.account;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import grafiosch.common.DataHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -52,6 +54,18 @@ public class AccountPositionGrandSummary {
   @Schema(description = "Total excluded dividend tax across all portfolios in main currency")
   public double grandExcludedDivTaxMC = 0.0;
 
+  @Schema(description = "Known disposal costs of all accounts in main currency, null unless the estimate is switched on")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double grandDisposalCostMC;
+
+  @Schema(description = "Total value in main currency less the known disposal costs")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double grandValueAfterDisposalMC;
+
+  @Schema(description = "False when a disposal cost component of any account is unknown")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean grandDisposalComplete;
+
   @Schema(description = "Number of decimal places for monetary precision in the main currency")
   private int precisionMC;
 
@@ -82,6 +96,14 @@ public class AccountPositionGrandSummary {
       grandAccountFeesMC += accountPositionGroupSummary.groupAccountFeesMC;
       grandAccountInterestMC += accountPositionGroupSummary.groupAccountInterestMC;
       grandExcludedDivTaxMC += accountPositionGroupSummary.groupExcludedDivTaxMC;
+      if (accountPositionGroupSummary.groupDisposalCostMC != null) {
+        grandDisposalCostMC = (grandDisposalCostMC == null ? 0.0 : grandDisposalCostMC)
+            + accountPositionGroupSummary.groupDisposalCostMC;
+        grandValueAfterDisposalMC = (grandValueAfterDisposalMC == null ? 0.0 : grandValueAfterDisposalMC)
+            + accountPositionGroupSummary.groupValueAfterDisposalMC;
+        grandDisposalComplete = (grandDisposalComplete == null || grandDisposalComplete)
+            && accountPositionGroupSummary.groupDisposalComplete;
+      }
       accountPositionGroupSummary.missingExchangeRates.stream().filter(mer -> !missingExchangeRates.contains(mer))
           .forEach(missingExchangeRates::add);
     }
@@ -129,6 +151,14 @@ public class AccountPositionGrandSummary {
 
   public double getGrandExcludedDivTaxMC() {
     return DataHelper.round(grandExcludedDivTaxMC, precisionMC);
+  }
+
+  public Double getGrandDisposalCostMC() {
+    return grandDisposalCostMC == null ? null : DataHelper.round(grandDisposalCostMC, precisionMC);
+  }
+
+  public Double getGrandValueAfterDisposalMC() {
+    return grandValueAfterDisposalMC == null ? null : DataHelper.round(grandValueAfterDisposalMC, precisionMC);
   }
 
   public int getPrecisionMC() {

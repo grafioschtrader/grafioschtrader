@@ -113,6 +113,9 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   /** Default mode for connector / asset class compatibility enforcement (0=off, 1=server only, 2=server + UI). */
   public static final int DEFAULT_FORCE_CONNECTOR_MATCH = 0;
 
+  /** Default of the disposal cost estimate switch: off, the reports value positions by a free hypothetical sale. */
+  public static final int DEFAULT_DISPOSAL_COST_ESTIMATE = 0;
+
   /** Default maximum number of split entries a user may record per instrument. */
   public static final int DEFAULT_MAX_INSTRUMENT_SPLITS = 20;
   /** Default maximum number of history-quote periods a user may record per instrument. */
@@ -193,6 +196,12 @@ public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
    * server-side AND tells the frontend dropdown to hide incompatible connectors.
    */
   public static final String GLOB_KEY_FORCE_CONNECTOR_MATCH = GlobalConstants.GT_PREFIX + "force.connector.match";
+
+  /**
+   * Switch (0 = off, 1 = on) for estimating the disposal costs of the hypothetical sale of every open position from the
+   * fee model and the simulation tax model YAML: commission, transaction tax and currency conversion markup.
+   */
+  public static final String GLOB_KEY_DISPOSAL_COST_ESTIMATE = GlobalConstants.GT_PREFIX + "disposal.cost.estimate";
 
   /**
    * Id of the import platform holding the Grafioschtrader authored import templates (receipt PDFs, transaction CSV

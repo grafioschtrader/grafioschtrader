@@ -1,7 +1,7 @@
 import { Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { PortfolioService } from '../../portfolio/service/portfolio.service';
 import { SecurityDividendsGrandTotal } from '../../entities/view/securitydividends/security.dividends.grand.total';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SecurityDividendsYearGroup } from '../../entities/view/securitydividends/security.dividends.year.group';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
@@ -31,6 +31,7 @@ import { TenantDividendSecurityAccountSelectionDialogComponent } from './tenant-
 import { TenantDividendsCashaccountExtendedComponent } from './tenant-dividends-cashaccount-extended.component';
 import { TenantDividendsSecurityExtendedComponent } from './tenant-dividends-security-extended.component';
 import { TaxStatementExportDialogComponent } from '../../taxdata/component/tax-statement-export-dialog.component';
+import { TenantDividendsChartService } from '../service/tenant.dividends.chart.service';
 
 /**
  * Shows the dividends and some other information like transaction cost grouped by year.
@@ -83,6 +84,8 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     private activePanelService: ActivePanelService,
     private transactionService: TransactionService,
     private messageToastService: MessageToastService,
+    private tenantDividendsChartService: TenantDividendsChartService,
+    private router: Router,
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
@@ -193,6 +196,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       this.getAccountSettings(AppSettings.DIV_SECURITYACCOUNTS),
       idsCashaccount.length === 0 ? [-1] : idsCashaccount
     );
+    this.tenantDividendsChartService.setAccounts(this.idsAccounts);
     this.readData();
     this.multiSortMeta.push({ field: 'year', order: 1 });
     this.onComponentClick(null);
@@ -249,6 +253,10 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       });
     }
     menuItems.push(
+      {
+        label: 'SHOW_CHARTS',
+        command: () => this.navigateToChartRoute()
+      },
       { separator: true },
       {
         label: 'FILTER_TRANSACTIONS_TO_YEAR_END',
@@ -278,6 +286,26 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
     this.contextMenuItems = menuItems;
   }
 
+  /**
+   * Opens the income charts in the lower display area. The chart component receives the account selection and the
+   * selected year through {@link TenantDividendsChartService}.
+   */
+  private navigateToChartRoute(): void {
+    this.router.navigate([
+      BaseSettings.MAINVIEW_KEY + '/',
+      { outlets: { mainbottom: [AppSettings.TENANT_DIVIDENDS_CHART] } }
+    ]);
+  }
+
+  /**
+   * Switches the year of the income charts to the year of the selected row.
+   *
+   * @param event - The row select event of the year table
+   */
+  onRowSelect(event: any): void {
+    this.tenantDividendsChartService.selectYear(event.data.year);
+  }
+
   onContextMenuSelect(event: any): void {
     this.securityDividendsGrandTotalSelected = event.data;
     this.buildContextMenu();
@@ -295,6 +323,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
         unmatched: result.unmatched
       });
       this.readData();
+      this.tenantDividendsChartService.notifyDataChanged();
     });
   }
 
@@ -330,6 +359,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
       this.idsAccounts = processedActionData.data;
       this.writeAccountSettings(AppSettings.DIV_SECURITYACCOUNTS, this.idsAccounts.idsSecurityaccount);
       this.writeAccountSettings(AppSettings.DIV_CASHACCOUNTS, this.idsAccounts.idsCashaccount);
+      this.tenantDividendsChartService.setAccounts(this.idsAccounts);
       this.readData();
     }
   }
@@ -337,6 +367,7 @@ export class TenantDividendsComponent extends TableConfigBase implements IGlobal
   transactionDataChanged(processedActionData: ProcessedActionData) {
     if (processedActionData.action !== ProcessedAction.NO_CHANGE) {
       this.readData();
+      this.tenantDividendsChartService.notifyDataChanged();
     }
   }
 

@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
@@ -34,6 +35,8 @@ import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import grafioschtrader.reportviews.securitydividends.CashAccountPosition;
+import grafioschtrader.reportviews.securitydividends.SecurityDividendsChart;
+import grafioschtrader.reportviews.securitydividends.SecurityDividendsChart.IncomeYear;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsGrandTotal;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsPosition;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsYearGroup;
@@ -49,6 +52,8 @@ import grafioschtrader.repository.TaxYearCorrectionJpaRepository;
 import grafioschtrader.repository.TaxYearJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.types.TaxYearCorrectionType;
 import grafioschtrader.types.TransactionType;
 
@@ -180,6 +185,80 @@ public class SecurityDividendsReport {
     securityDividendsGrandTotal.availableTaxYears = taxYearJpaRepository.findAll().stream().map(TaxYear::getTaxYear)
         .distinct().sorted(Comparator.reverseOrder()).toList();
     return securityDividendsGrandTotal;
+  }
+
+  /**
+   * Aggregates the income and costs of the dividends report for its charts: per year, per month and per asset class,
+   * all in the tenant's main currency.
+   *
+   * <p>
+   * It reads the same transactions with the same account selection as
+   * {@link #getSecurityDividendsGrandTotalByTenant(Integer, List, List)} and converts them with the same exchange rate
+   * rules, so the yearly totals reconcile with the dividends table. The month is the month of the booking date.
+   * Distributions of instruments in the asset class category FIXED_INCOME or CONVERTIBLE_BOND count as interest, all
+   * other distributions as dividends.
+   * </p>
+   *
+   * @param idTenant           the tenant for whom the chart data is built
+   * @param idsSecurityaccount security account IDs to include; Arrays.asList(-1) or an empty list includes all
+   * @param idsCashaccount     cash account IDs to include; Arrays.asList(-1) includes all
+   * @return the aggregated chart data, with a year entry for every year between the first and the last transaction
+   */
+  public SecurityDividendsChart getSecurityDividendsChartByTenant(final Integer idTenant,
+      final List<Integer> idsSecurityaccount, final List<Integer> idsCashaccount) {
+    final Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
+    final SecurityDividendsChart chart = new SecurityDividendsChart(tenant.getCurrency(), globalparametersService
+        .getCurrencyPrecision().getOrDefault(tenant.getCurrency(), BaseConstants.FID_STANDARD_FRACTION_DIGITS));
+    final DateTransactionCurrencypairMap dateCurrencyMap = getHistoryquoteAndCurrencypairs(tenant);
+    final Map<Integer, Cashaccount> cashAccountsMap = getCashAccountMap(tenant, idsCashaccount);
+    for (final Transaction transaction : getTransactions(cashAccountsMap.values(), idsSecurityaccount)) {
+      addTransactionToChart(chart, transaction, dateCurrencyMap);
+    }
+    chart.fillYearGaps();
+    return chart;
+  }
+
+  /**
+   * Adds one transaction to the chart data. Deposits, withdrawals, buys and sells only open the year; distributions,
+   * cash account interest, fees and finance costs are converted to the main currency and added to their bucket.
+   *
+   * @param chart           the chart data to extend
+   * @param transaction     the transaction to add; transactions must arrive in ascending date order
+   * @param dateCurrencyMap currency conversion data, whose until date follows the year like in the table report
+   */
+  private void addTransactionToChart(SecurityDividendsChart chart, Transaction transaction,
+      DateTransactionCurrencypairMap dateCurrencyMap) {
+    final int year = transaction.getTransactionTime().getYear();
+    final int monthIndex = transaction.getTransactionTime().getMonthValue() - 1;
+    final IncomeYear incomeYear = chart.getOrCreateIncomeYear(year);
+    final String mainCurrency = dateCurrencyMap.getMainCurrency();
+    final Security security = transaction.getSecurity();
+    if (security != null) {
+      dateCurrencyMap.setUntilDate(LocalDate.of(year, 12, 31));
+      if (transaction.getTransactionType() == TransactionType.DIVIDEND) {
+        double rate = SecurityDividendsPosition.calcDividendExchangeRate(transaction, dateCurrencyMap);
+        double netMC = transaction.getCashaccountAmount() * rate;
+        double taxMC = transaction.getTaxCost() == null ? 0.0 : transaction.getTaxCost() * rate;
+        AssetclassType categoryType = security.getAssetClass().getCategoryType();
+        incomeYear.addDistribution(monthIndex,
+            categoryType == AssetclassType.FIXED_INCOME || categoryType == AssetclassType.CONVERTIBLE_BOND, netMC,
+            taxMC);
+        chart.addAssetclassIncome(year, security.getAssetClass(), netMC, taxMC);
+      } else if (transaction.getTransactionType() == TransactionType.FINANCE_COST) {
+        double costMC = transaction.getCashaccountAmount()
+            * SecurityDividendsPosition.calcFinanceCostExchangeRate(transaction, dateCurrencyMap);
+        if (security.getAssetClass().getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.FOREX) {
+          incomeYear.financeCostForexMC += costMC;
+        } else {
+          incomeYear.financeCostCfdMC += costMC;
+        }
+      }
+    } else if (transaction.getTransactionType() == TransactionType.INTEREST_CASHACCOUNT) {
+      incomeYear.addCashInterest(monthIndex,
+          transaction.getCashaccountAmount() * transaction.getExchangeRateOnCurrency(mainCurrency, dateCurrencyMap));
+    } else if (transaction.getTransactionType() == TransactionType.FEE) {
+      incomeYear.feeMC += transaction.getFeeMC(dateCurrencyMap);
+    }
   }
 
   /**

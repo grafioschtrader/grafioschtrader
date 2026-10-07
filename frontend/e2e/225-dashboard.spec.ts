@@ -6,6 +6,7 @@ import {
   cardOrder,
   closeConfiguration,
   COMMON_TYPES,
+  editedConfig,
   configureWidget,
   dashboardHeaders,
   DashboardUser,
@@ -16,6 +17,7 @@ import {
   resetDashboard,
   RX,
   saveDashboard,
+  SELECT_SETTINGS,
   SETTINGS,
   test,
   verifyDashboardTestTarget
@@ -43,6 +45,14 @@ for (const nickname of ['admin', 'alledit', 'user', 'limit1'] as DashboardUser[]
 
       for (const widget of dashboard.widgets) {
         await test.step(`validate and edit ${widget.type}`, async () => {
+          const select = SELECT_SETTINGS[widget.type];
+          if (select) {
+            const dialog = await openConfiguration(page, widget.type);
+            await dialog.locator(`#${select.field}`).selectOption(select.edited);
+            await dialog.getByRole('button', { name: RX.submit }).click();
+            await expect(page.locator('dashboard-config')).toHaveCount(0);
+            return;
+          }
           const setting = SETTINGS[widget.type];
           if (!setting) {
             await expect(card(page, widget.type).getByRole('button', { name: RX.configure })).toHaveCount(0);
@@ -70,16 +80,17 @@ for (const nickname of ['admin', 'alledit', 'user', 'limit1'] as DashboardUser[]
       expect(saved.widgets).toEqual(
         dashboard.widgets.map((widget) => ({
           ...widget,
-          config: SETTINGS[widget.type] ? { [SETTINGS[widget.type].field]: SETTINGS[widget.type].edited } : {}
+          config: editedConfig(widget.type)
         }))
       );
       await expectReloadedLayout(page, saved.widgets);
       await editDashboard(page);
-      for (const widget of saved.widgets.filter((w) => SETTINGS[w.type])) {
+      for (const widget of saved.widgets.filter((w) => SETTINGS[w.type] || SELECT_SETTINGS[w.type])) {
         const dialog = await openConfiguration(page, widget.type);
-        await expect(dialog.locator(`#${SETTINGS[widget.type].field}`)).toHaveValue(
-          String(SETTINGS[widget.type].edited)
-        );
+        const [field, edited] = SETTINGS[widget.type]
+          ? [SETTINGS[widget.type].field, String(SETTINGS[widget.type].edited)]
+          : [SELECT_SETTINGS[widget.type].field, SELECT_SETTINGS[widget.type].edited];
+        await expect(dialog.locator(`#${field}`)).toHaveValue(edited);
         await closeConfiguration(page, dialog);
       }
       await page.getByRole('button', { name: RX.cancel }).click();

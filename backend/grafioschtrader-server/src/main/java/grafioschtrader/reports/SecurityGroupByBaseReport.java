@@ -118,7 +118,7 @@ public class SecurityGroupByBaseReport<T> extends SecurityPositionSummaryReport 
           (SecurityPositionDynamicGroupSummary<SecurityPositionDynamicGroupSummary<T>>) ospcs.getValue());
     }
     securityPositionGrandSummary.roundGrandTotals();
-
+    securityPositionGrandSummary.calcShareOfTotalPercentages();
     return securityPositionGrandSummary;
   }
 

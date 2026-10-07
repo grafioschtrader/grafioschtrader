@@ -42,6 +42,17 @@ public class TransactionCostEstimateRequest {
   @Schema(description = "Total portfolio/account value for tier determination")
   private Double fixedAssets;
 
+  @Schema(description = """
+      Total value (securities, cash balance and result of closed margin positions) of the portfolio of the security
+      account at the close of the last day before the trade date, in the portfolio currency. Taken from the daily total
+      value; null when no such day has been computed, in which case a rule using it cannot be evaluated.""")
+  private Double portfolioTotal;
+
+  @Schema(description = """
+      Total value of all portfolios of the tenant at the close of the last day before the trade date, in the tenant
+      currency. Taken from the daily total value; null when no such day has been computed.""")
+  private Double tenantTotal;
+
   @Schema(description = "Trade direction: 0 = buy, 1 = sell")
   private Integer tradeDirection;
 
@@ -172,6 +183,22 @@ public class TransactionCostEstimateRequest {
 
   public void setFixedAssets(Double fixedAssets) {
     this.fixedAssets = fixedAssets;
+  }
+
+  public Double getPortfolioTotal() {
+    return portfolioTotal;
+  }
+
+  public void setPortfolioTotal(Double portfolioTotal) {
+    this.portfolioTotal = portfolioTotal;
+  }
+
+  public Double getTenantTotal() {
+    return tenantTotal;
+  }
+
+  public void setTenantTotal(Double tenantTotal) {
+    this.tenantTotal = tenantTotal;
   }
 
   public Integer getTradeDirection() {

@@ -78,7 +78,9 @@ public interface IPeriodHolding {
   double getMarginCloseGainMC();
 
   /**
-   * Market risk (unrealized value) of positions on the date, in MC.
+   * Security risk of the positions on the date, in MC: the market value of every held position, margin positions at
+   * their full exposure, multiplied by the leverage factor of the instrument. It is the same figure as the security
+   * risk of the security account reports, so a leveraged or inverse instrument contributes with its factor.
    */
   double getSecurityRiskMC();
 

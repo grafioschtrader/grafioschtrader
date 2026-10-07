@@ -19,6 +19,7 @@ import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository.Cashaccoun
 import grafioschtrader.repository.helper.HoldingsHelper;
 import grafioschtrader.repository.helper.TenantHoldRebuildRunner;
 import grafioschtrader.repository.helper.TransactionPreImage;
+import grafioschtrader.service.HoldDailyTotalMarker;
 
 /**
  * Implementation of custom repository methods for managing cash account balance holdings.
@@ -55,6 +56,9 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
 
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
+
+  @Autowired
+  private HoldDailyTotalMarker holdDailyTotalMarker;
 
   @Override
   public void createCashaccountBalanceEntireForAllTenants() {
@@ -139,6 +143,10 @@ public class HoldCashaccountBalanceJpaRepositoryImpl implements HoldCashaccountB
     } else {
       replayFrom(tenant, idCashaccount, preImage.earliestAffectedDate(transactionDate));
     }
+    // Every transaction create, update, delete, cash transfer and import passes through here, together with the
+    // security holdings it changes, so this one call keeps hold_daily_total in step with all of them.
+    holdDailyTotalMarker.markDirty(tenant.getIdTenant(),
+        preImage == null ? transactionDate : preImage.earliestAffectedDate(transactionDate));
   }
 
   /**

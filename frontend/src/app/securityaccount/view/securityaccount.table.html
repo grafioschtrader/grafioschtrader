@@ -125,7 +125,7 @@
             <span><i [ngClass]="{'fa fa-check': getValueByPath(el, field)}" aria-hidden="true"></i></span>
             } @case ('greenRed') {
             <span
-              [pTooltip]="getValueByPath(el, field)"
+              [pTooltip]="getCellTooltip(el, field)"
               [style.color]='isValueByPathMinus(el, field)? "red": "inherit"'
               tooltipPosition="top">
               {{ getValueByPath(el, field) }}
@@ -146,7 +146,8 @@
             [class]="(field.dataType===DataType.Numeric || field.dataType===DataType.NumericInteger
                 || field.dataType===DataType.NumericRaw || field.dataType===DataType.NumericShowZero
                 || field.dataType===DataType.DateTimeNumeric)? 'text-end': ''"
-            [colSpan]="field.columnGroupConfigs && field.columnGroupConfigs[0].colspan ? field.columnGroupConfigs[0].colspan: null">
+            [colSpan]="field.columnGroupConfigs && field.columnGroupConfigs[0].colspan ? field.columnGroupConfigs[0].colspan: null"
+            [ngStyle]="getGroupCellStyle(field, groupChangeIndexMap.get(rowIndex))">
             @switch (field.templateName) { @case ('greenRed') {
             <span
               [style.color]='isColumnTotalByRowIndexMinus(field, 0, groupChangeIndexMap, rowIndex)? "red": "inherit"'>
@@ -171,6 +172,7 @@
                 || field.dataType===DataType.NumericRaw || field.dataType===DataType.NumericShowZero
                 || field.dataType===DataType.NumericInteger)? 'text-end': ''"
             [style.width.px]="field.width"
+            [ngStyle]="getGrandCellStyle(field)"
             class="row-total">
             @switch (field.templateName) { @case ('greenRed') {
             <span [style.color]='isValueColumnTotalMinus(field, 1, securityPositionSummary, null)? "red": "inherit"'>

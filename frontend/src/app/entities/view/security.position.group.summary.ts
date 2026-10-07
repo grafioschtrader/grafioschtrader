@@ -15,7 +15,13 @@ export class SecurityPositionGroupSummary {
   public groupRecommendationReason: string;
 
   public groupAccountValueSecurityMC: number;
+  /** Share of the group in the report total; null when the total is not positive. */
+  public groupShareOfTotalPercentage: number;
   public groupGainLossSecurityMC: number;
   public groupGainLossCurrencyMC: number;
+  /** Disposal cost estimate of the group, only present when it is switched on. */
+  public groupDisposalCostMC?: number;
+  public groupValueAfterDisposalMC?: number;
+  public groupDisposalComplete?: boolean;
   public securityPositionSummaryList: SecurityPositionSummary[];
 }

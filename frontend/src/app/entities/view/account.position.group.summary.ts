@@ -14,6 +14,9 @@ export class AccountPositionGroupSummary {
   groupGainLossSecuritiesMC: number;
   groupGainLossCurrencyMC: number;
   groupExcludedDivTaxMC: number;
+  groupDisposalCostMC?: number;
+  groupValueAfterDisposalMC?: number;
+  groupDisposalComplete?: boolean;
   excludeDivTax: boolean;
   groupName: string;
   currency: string;

@@ -632,6 +632,8 @@ taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.REBUILD_HOL
 
 Schedule it, do not call the rebuild inline: it has to run after the current transaction has committed so that it sees the rows that were just written.
 
+The daily total value in `hold_daily_total` (GitHub issue #270) is derived from the hold tables and follows them through `HoldDailyTotalMarker`, which is called where they are written — `HoldCashaccountBalanceJpaRepositoryImpl.adjustCashaccountBalance` for every transaction path, and the full rebuild, currency change, split rebuild and changed-exchange-rate deposit tasks. A bypass that schedules the rebuild above is therefore covered without further work; a new path writing the hold tables in some other way must call `HoldDailyTotalMarker.markDirty(idTenant, fromDate)` (or `markDirtyInFull`) itself.
+
 Sanctioned bypasses and why they are safe:
 
 | Path | Why it bypasses | Compensation |

@@ -281,6 +281,36 @@ public class AlgoReplayInputs {
     return stored != null ? stored : CouponDayCount.defaultForCurrency(currency);
   }
 
+  /**
+   * @param security the instrument
+   * @return true for a directly held fixed income or convertible bond, the instruments that accrue coupon interest
+   */
+  static boolean isDirectBond(Security security) {
+    var asset = security.getAssetClass();
+    return asset != null && asset.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
+        && (asset.getCategoryType() == AssetclassType.FIXED_INCOME
+            || asset.getCategoryType() == AssetclassType.CONVERTIBLE_BOND);
+  }
+
+  /**
+   * Builds the regular coupon terms of a directly held bond from its coupon rate, maturity, distribution frequency and
+   * day-count convention. The replay generates coupons from them, and the disposal cost estimate of the reports
+   * derives the accrued interest of a hypothetical sale from them.
+   *
+   * @param security the instrument
+   * @return the terms, null when the instrument is not a direct bond; the terms may still be incomplete, which
+   *         {@link AlgoReplayCouponSchedule} rejects
+   */
+  static AlgoReplayCouponSchedule.Terms couponTerms(Security security) {
+    if (!isDirectBond(security))
+      return null;
+    SecurityBondTerms storedTerms = security.getSimulationMetadata() == null ? null
+        : security.getSimulationMetadata().getBondTerms();
+    return new AlgoReplayCouponSchedule.Terms(storedTerms == null ? null : storedTerms.getCouponRate(),
+        security.getActiveToDate(), security.getDistributionFrequency().getValue(),
+        couponDayCount(storedTerms, security.getCurrency()));
+  }
+
   private Instrument instrument(Security security, boolean generate, int delay, LocalDate opening, LocalDate end,
       LocalDate tradingEndDate) {
     List<Securitysplit> securitySplits = splits.findByIdSecuritycurrencyOrderBySplitDateAsc(security.getId());
@@ -300,17 +330,8 @@ public class AlgoReplayInputs {
     }
     observations.sort(Comparator.comparing(Observation::exDate).thenComparing(Observation::id));
     var asset = security.getAssetClass();
-    boolean bond = asset != null
-        && asset.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.DIRECT_INVESTMENT
-        && (asset.getCategoryType() == AssetclassType.FIXED_INCOME
-            || asset.getCategoryType() == AssetclassType.CONVERTIBLE_BOND);
-    SecurityBondTerms storedTerms = security.getSimulationMetadata() == null ? null
-        : security.getSimulationMetadata().getBondTerms();
-    var terms = bond
-        ? new AlgoReplayCouponSchedule.Terms(storedTerms == null ? null : storedTerms.getCouponRate(),
-            security.getActiveToDate(), security.getDistributionFrequency().getValue(),
-            couponDayCount(storedTerms, security.getCurrency()))
-        : null;
+    boolean bond = isDirectBond(security);
+    var terms = couponTerms(security);
     String source = "STORED";
     String warning = bond && !observations.isEmpty() ? "INCOME_STORED_COVERAGE" : null;
     if (bond && observations.isEmpty()) {

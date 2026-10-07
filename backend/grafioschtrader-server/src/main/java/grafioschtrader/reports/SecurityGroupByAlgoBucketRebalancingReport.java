@@ -93,6 +93,7 @@ public class SecurityGroupByAlgoBucketRebalancingReport extends SecurityGroupByB
   void completeComparison(SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<String>> grand) {
     addMissingStrategyPositions(grand);
     applyPlan(grand);
+    grand.calcShareOfTotalPercentages();
   }
 
   /** Add zero holdings after valuation: target-only instruments must neither affect totals nor require FX quotes. */

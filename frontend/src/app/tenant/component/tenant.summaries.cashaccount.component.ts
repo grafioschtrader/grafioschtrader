@@ -25,6 +25,8 @@ import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { FilterService, MenuItem, SelectItem } from '@openng/optimus-ui/api';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { BaseSettings } from '../../lib/base.settings';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
 import { CommonModule } from '@angular/common';
 import { TableModule } from '@openng/optimus-ui/table';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
@@ -195,6 +197,7 @@ export class TenantSummariesCashaccountComponent
         columnGroupConfigs: [new ColumnGroupConfig('groupValueMC'), new ColumnGroupConfig('grandValueMC')]
       })
     );
+    this.addDisposalCostColumns(injector.get(GlobalparameterGTService));
 
     this.untilDate = BusinessHelper.getUntilDateBySessionStorage();
 
@@ -282,6 +285,91 @@ export class TenantSummariesCashaccountComponent
     this.activePanelService.destroyPanel(this);
     this.routeSubscribe && this.routeSubscribe.unsubscribe();
     this.subscriptionRequestFromChart && this.subscriptionRequestFromChart.unsubscribe();
+  }
+
+  /**
+   * Highlights the disposal cost cells of an account whose estimate is incomplete.
+   *
+   * @param accountPositionSummary - The cash account of the row
+   * @param field - The column
+   * @returns The highlighting style or an empty style
+   */
+  getCellStyle(accountPositionSummary: AccountPositionSummary, field: ColumnConfig): { [key: string]: string } {
+    return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) &&
+      accountPositionSummary?.disposalComplete === false
+      ? DisposalCostHelper.INCOMPLETE_STYLE
+      : {};
+  }
+
+  /**
+   * Highlights the disposal cost total of a group whose estimate is incomplete.
+   *
+   * @param field - The column of the group row
+   * @param group - The group summary of that row
+   * @returns The highlighting style or an empty style
+   */
+  getGroupCellStyle(field: ColumnConfig, group: AccountPositionGroupSummary): { [key: string]: string } {
+    return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && group?.groupDisposalComplete === false
+      ? DisposalCostHelper.INCOMPLETE_STYLE
+      : {};
+  }
+
+  /**
+   * Highlights the disposal cost grand total when the estimate of any account is incomplete.
+   *
+   * @param field - The column of the footer row
+   * @returns The highlighting style merged with the column width
+   */
+  getGrandCellStyle(field: ColumnConfig): { [key: string]: string } {
+    const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
+    return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) &&
+      this.accountPositionGrandSummary?.grandDisposalComplete === false
+      ? { ...widthStyle, ...DisposalCostHelper.INCOMPLETE_STYLE }
+      : widthStyle;
+  }
+
+  /**
+   * Tooltip of an account cell: for the disposal cost columns the matched rule or the reason of an unknown conversion
+   * markup into the main currency, otherwise the displayed value.
+   *
+   * @param accountPositionSummary - The cash account of the row
+   * @param field - The column
+   * @returns The tooltip text
+   */
+  getCellTooltip(accountPositionSummary: AccountPositionSummary, field: ColumnConfig): string {
+    if (DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && accountPositionSummary?.disposalDetails) {
+      return DisposalCostHelper.getDetailsText(accountPositionSummary.disposalDetails, this.translateService, this.gps);
+    }
+    return this.getValueByPath(accountPositionSummary, field);
+  }
+
+  /**
+   * Adds the estimated disposal costs and the value after them, only when gt.disposal.cost.estimate and the switch of
+   * the tenant are both on.
+   *
+   * @param gpsGT - Supplies the switches stored at login
+   */
+  private addDisposalCostColumns(gpsGT: GlobalparameterGTService): void {
+    if (gpsGT.useDisposalCostEstimate()) {
+      this.columnConfigs.push(
+        this.addColumnFeqH(DataType.Numeric, 'disposalCostMC', true, true, {
+          templateName: 'greenRed',
+          columnGroupConfigs: [
+            new ColumnGroupConfig('groupDisposalCostMC'),
+            new ColumnGroupConfig('grandDisposalCostMC')
+          ]
+        })
+      );
+      this.columnConfigs.push(
+        this.addColumnFeqH(DataType.Numeric, 'valueAfterDisposalMC', true, true, {
+          templateName: 'greenRed',
+          columnGroupConfigs: [
+            new ColumnGroupConfig('groupValueAfterDisposalMC'),
+            new ColumnGroupConfig('grandValueAfterDisposalMC')
+          ]
+        })
+      );
+    }
   }
 
   private readData(): void {

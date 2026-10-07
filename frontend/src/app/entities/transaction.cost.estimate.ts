@@ -8,6 +8,8 @@ export interface TransactionCostEstimateRequest {
   mic?: string;
   currency?: string;
   fixedAssets?: number;
+  portfolioTotal?: number;
+  tenantTotal?: number;
   tradeDirection?: number;
   settlementCurrency?: string;
   tradesInMonth?: number;

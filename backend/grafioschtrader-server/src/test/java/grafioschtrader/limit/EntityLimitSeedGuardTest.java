@@ -38,15 +38,15 @@ import grafioschtrader.config.LimitKeyConfig;
  *
  * <p>
  * The two cannot be derived from each other: a Flyway script cannot read the Java registry, so the fresh-install
- * defaults appear literally in the SQL, and a key registered without a seed statement would be silently unlimited
- * until someone notices. This test is the reason that cannot happen, in the spirit of {@code NlsBundleGuardTest}.
+ * defaults appear literally in the SQL, and a key registered without a seed statement would be silently unlimited until
+ * someone notices. This test is the reason that cannot happen, in the spirit of {@code NlsBundleGuardTest}.
  * </p>
  *
  * <p>
- * It covers both families, because both fail the same silent way. A {@code MAX} key is registered in Java and seeded
- * in SQL, so the two lists have to agree. A daily key is not registered at all - it is derived - so nothing but this
- * test says that an entity a user may write through {@code UpdateCreate} actually has a budget: a missing row resolves
- * to unlimited without a trace.
+ * It covers both families, because both fail the same silent way. A {@code MAX} key is registered in Java and seeded in
+ * SQL, so the two lists have to agree. A daily key is not registered at all - it is derived - so nothing but this test
+ * says that an entity a user may write through {@code UpdateCreate} actually has a budget: a missing row resolves to
+ * unlimited without a trace.
  * </p>
  *
  * <p>
@@ -73,8 +73,8 @@ class EntityLimitSeedGuardTest {
   private static final String ROLE_LIMIT_FIXTURE_RESOURCE = "/testdata/limit_entity.csv";
 
   /** One seed row of the MAX block: entity name, relation, scopes, property name and default value. */
-  private static final Pattern MAX_SEED = Pattern.compile(
-      "SELECT\\s+'(?<entity>[^']+)',\\s*(?<relation>NULL|'[^']*'),\\s*(?<countScope>NULL|\\d+),"
+  private static final Pattern MAX_SEED = Pattern
+      .compile("SELECT\\s+'(?<entity>[^']+)',\\s*(?<relation>NULL|'[^']*'),\\s*(?<countScope>NULL|\\d+),"
           + "\\s*(?<ownerScope>\\d+),\\s*(?<property>NULL|'[^']*'),\\s*(?<value>\\d+)");
 
   /**
@@ -98,25 +98,23 @@ class EntityLimitSeedGuardTest {
   private static final String AFTER_DAILY_MARKER = "-- 6. Carry over";
 
   /** One row of the role scoped MAX block, which carries a limit value in place of a property name and a default. */
-  private static final Pattern ROLE_MAX_SEED = Pattern.compile(
-      "UNION ALL SELECT\\s+'(?<entity>[^']+)',\\s*(?<relation>NULL|'[^']*'),\\s*(?<countScope>NULL|\\d+),"
+  private static final Pattern ROLE_MAX_SEED = Pattern
+      .compile("UNION ALL SELECT\\s+'(?<entity>[^']+)',\\s*(?<relation>NULL|'[^']*'),\\s*(?<countScope>NULL|\\d+),"
           + "\\s*(?<ownerScope>\\d+),\\s*(?<value>\\d+)");
 
   /** The first row of the role scoped MAX block, which spells its column aliases out. */
-  private static final Pattern ROLE_MAX_SEED_FIRST = Pattern.compile(
-      "SELECT\\s+'(?<entity>[^']+)' AS entity_name.*?(?<ownerScope>\\d+) AS owner_scope,"
-          + "\\s*(?<value>\\d+) AS limit_value",
-      Pattern.DOTALL);
+  private static final Pattern ROLE_MAX_SEED_FIRST = Pattern
+      .compile("SELECT\\s+'(?<entity>[^']+)' AS entity_name.*?(?<ownerScope>\\d+) AS owner_scope,"
+          + "\\s*(?<value>\\d+) AS limit_value", Pattern.DOTALL);
 
   /** One row of the daily block: the limit type and the entity or pseudo entity name it is written for. */
   private static final Pattern DAILY_SEED = Pattern
       .compile("SELECT\\s+(?<type>[12])(?: AS limit_type)?,\\s*'(?<entity>[^']+)'");
 
   /** One complete role-scoped daily row: limit type, entity name and seeded value. */
-  private static final Pattern ROLE_DAILY_SEED = Pattern.compile(
-      "(?:SELECT|UNION ALL SELECT)\\s+(?<type>[12])(?:\\s+AS limit_type)?\\s*,\\s*'(?<entity>[^']+)'"
-          + "(?:\\s+AS entity_name)?\\s*,\\s*(?:NULL|'[^']*')(?:\\s+AS property_name)?\\s*,"
-          + "\\s*(?<value>\\d+)");
+  private static final Pattern ROLE_DAILY_SEED = Pattern
+      .compile("(?:SELECT|UNION ALL SELECT)\\s+(?<type>[12])(?:\\s+AS limit_type)?\\s*,\\s*'(?<entity>[^']+)'"
+          + "(?:\\s+AS entity_name)?\\s*,\\s*(?:NULL|'[^']*')(?:\\s+AS property_name)?\\s*," + "\\s*(?<value>\\d+)");
 
   /** Packages holding the REST controllers that may extend {@link UpdateCreate}. */
   private static final String[] RESOURCE_PACKAGES = { "grafiosch.rest", "grafioschtrader.rest" };
@@ -142,12 +140,16 @@ class EntityLimitSeedGuardTest {
   private static String e2eMigration;
   /** The entity_limit statements of every migration after {@link #MIGRATION_RESOURCE} that write no role row. */
   private static List<String> laterDefaultStatements;
+  /** Role-scoped seeds added after the migration that introduced entity limits. */
+  private static List<String> laterRoleStatements;
 
   @BeforeAll
   static void loadMigrationAndRegistry() throws IOException {
     migration = loadResource(MIGRATION_RESOURCE);
     e2eMigration = loadResource(E2E_MIGRATION_RESOURCE);
-    laterDefaultStatements = loadLaterDefaultStatements();
+    List<String> laterStatements = loadLaterStatements();
+    laterDefaultStatements = laterStatements.stream().filter(sql -> !sql.contains("id_role")).toList();
+    laterRoleStatements = laterStatements.stream().filter(sql -> sql.contains("id_role")).toList();
     LimitKeyRegistry.clear();
     LimitKeyConfig.initialize();
   }
@@ -169,8 +171,7 @@ class EntityLimitSeedGuardTest {
   void e2eBootstrapSeedsOnlyMaxLimits() {
     assertThat(e2eMigration).doesNotContain("`id_role`").doesNotContain("ROLE_LIMITEDIT");
     assertThat(Pattern.compile("(?:SELECT|UNION ALL SELECT)\\s+[12](?:\\s|,)").matcher(e2eMigration).find())
-        .as("role limits must be created from testdata/limit_entity.csv by their owning test")
-        .isFalse();
+        .as("role limits must be created from testdata/limit_entity.csv by their owning test").isFalse();
   }
 
   /**
@@ -193,8 +194,8 @@ class EntityLimitSeedGuardTest {
             + row.defaultValue + ", which is above the default of " + matches.get(0).defaultValue());
       }
     }
-    assertThat(violations)
-        .as("role scoped MAX seed violations:%n%s", String.join(System.lineSeparator(), violations)).isEmpty();
+    assertThat(violations).as("role scoped MAX seed violations:%n%s", String.join(System.lineSeparator(), violations))
+        .isEmpty();
   }
 
   @Test
@@ -204,9 +205,9 @@ class EntityLimitSeedGuardTest {
     List<FixtureRoleSeedRow> fixtureRows = readRoleLimitFixture();
     List<RoleSeedRow> fixtureSeedRows = fixtureRows.stream().map(FixtureRoleSeedRow::seedRow).toList();
 
-    assertThat(migrationRows).hasSize(32).doesNotHaveDuplicates();
+    assertThat(migrationRows).hasSize(33).doesNotHaveDuplicates();
     assertThat(fixtureSeedRows).containsExactlyInAnyOrderElementsOf(migrationRows).doesNotHaveDuplicates();
-    assertThat(fixtureRows).filteredOn(row -> "i".equals(row.routing())).hasSize(26);
+    assertThat(fixtureRows).filteredOn(row -> "i".equals(row.routing())).hasSize(27);
     assertThat(fixtureRows).filteredOn(row -> "e2e".equals(row.routing())).hasSize(6);
   }
 
@@ -248,8 +249,8 @@ class EntityLimitSeedGuardTest {
         violations.add("pseudo entity name " + pseudoName + " is registered for a daily CUD limit but never seeded");
       }
     }
-    assertThat(violations)
-        .as("daily CUD pseudo name violations:%n%s", String.join(System.lineSeparator(), violations)).isEmpty();
+    assertThat(violations).as("daily CUD pseudo name violations:%n%s", String.join(System.lineSeparator(), violations))
+        .isEmpty();
   }
 
   @Test
@@ -267,8 +268,8 @@ class EntityLimitSeedGuardTest {
             + " is read by a seed statement but never deleted, so it would linger as dead configuration");
       }
     }
-    assertThat(violations).as("globalparameters cleanup violations:%n%s",
-        String.join(System.lineSeparator(), violations)).isEmpty();
+    assertThat(violations)
+        .as("globalparameters cleanup violations:%n%s", String.join(System.lineSeparator(), violations)).isEmpty();
   }
 
   @Test
@@ -291,12 +292,13 @@ class EntityLimitSeedGuardTest {
       } else if (matches.size() > 1) {
         violations.add("limit key " + registration.limitKey().keyId() + " is seeded " + matches.size() + " times");
       } else if (matches.get(0).defaultValue != registration.defaultValue()) {
-        violations.add("limit key " + registration.limitKey().keyId() + " is seeded with "
-            + matches.get(0).defaultValue + " but the registry default is " + registration.defaultValue());
+        violations.add("limit key " + registration.limitKey().keyId() + " is seeded with " + matches.get(0).defaultValue
+            + " but the registry default is " + registration.defaultValue());
       }
     }
-    assertThat(violations).as("entity_limit seed violations in %s:%n%s", source,
-        String.join(System.lineSeparator(), violations)).isEmpty();
+    assertThat(violations)
+        .as("entity_limit seed violations in %s:%n%s", source, String.join(System.lineSeparator(), violations))
+        .isEmpty();
   }
 
   private List<SeedRow> findSeedRows(LimitKeyRegistration registration, String seedSql, List<String> laterStatements) {
@@ -310,7 +312,7 @@ class EntityLimitSeedGuardTest {
    * Collects the entity_limit statements of every production migration after {@link #MIGRATION_RESOURCE}. Only default
    * rows are taken: a role scoped row is a tighter row on top of a mandatory default and never replaces it.
    */
-  private static List<String> loadLaterDefaultStatements() throws IOException {
+  private static List<String> loadLaterStatements() throws IOException {
     List<String> statements = new ArrayList<>();
     String introducingScript = MIGRATION_RESOURCE.substring(MIGRATION_RESOURCE.lastIndexOf('/') + 1);
     for (Resource resource : new PathMatchingResourcePatternResolver().getResources(PRODUCTION_MIGRATIONS_PATTERN)) {
@@ -320,9 +322,7 @@ class EntityLimitSeedGuardTest {
       try (InputStream in = resource.getInputStream()) {
         Matcher matcher = ENTITY_LIMIT_INSERT.matcher(new String(in.readAllBytes(), StandardCharsets.UTF_8));
         while (matcher.find()) {
-          if (!matcher.group().contains("id_role")) {
-            statements.add(matcher.group());
-          }
+          statements.add(matcher.group());
         }
       }
     }
@@ -382,16 +382,22 @@ class EntityLimitSeedGuardTest {
       CountScope countScope = row.countScope == null ? null
           : CountScope.getCountScopeByValue(row.countScope.byteValue());
       OwnerScope ownerScope = OwnerScope.getOwnerScopeByValue((byte) row.ownerScope);
-      rows.add(new RoleSeedRow(
-          new LimitKey(LimitType.MAX, row.entityName, row.relationEntityName, countScope, ownerScope),
-          "ROLE_LIMITEDIT", row.defaultValue));
+      rows.add(
+          new RoleSeedRow(new LimitKey(LimitType.MAX, row.entityName, row.relationEntityName, countScope, ownerScope),
+              "ROLE_LIMITEDIT", row.defaultValue));
     }
 
-    Matcher matcher = ROLE_DAILY_SEED.matcher(dailyBlock());
-    while (matcher.find()) {
-      LimitType limitType = "1".equals(matcher.group("type")) ? LimitType.DAY_CUD : LimitType.DAY_READ;
-      rows.add(new RoleSeedRow(new LimitKey(limitType, matcher.group("entity"), null, null, null),
-          "ROLE_LIMITEDIT", Integer.parseInt(matcher.group("value"))));
+    List<String> dailySources = new ArrayList<>(laterRoleStatements);
+    dailySources.add(dailyBlock());
+    for (String source : dailySources) {
+      assertThat(source).as("role-scoped seed must target the role used by the fixture")
+          .contains("r.rolename = 'ROLE_LIMITEDIT'");
+      Matcher matcher = ROLE_DAILY_SEED.matcher(source);
+      while (matcher.find()) {
+        LimitType limitType = "1".equals(matcher.group("type")) ? LimitType.DAY_CUD : LimitType.DAY_READ;
+        rows.add(new RoleSeedRow(new LimitKey(limitType, matcher.group("entity"), null, null, null), "ROLE_LIMITEDIT",
+            Integer.parseInt(matcher.group("value"))));
+      }
     }
     return rows;
   }
@@ -399,8 +405,8 @@ class EntityLimitSeedGuardTest {
   private List<FixtureRoleSeedRow> readRoleLimitFixture() throws IOException {
     String[] lines = loadResource(ROLE_LIMIT_FIXTURE_RESOURCE).split("\\R");
     assertThat(lines).isNotEmpty();
-    assertThat(lines[0]).isEqualTo(
-        "limitType|entityName|relationEntityName|countScope|ownerScope|roleName|limitValue|validUntil|e2e");
+    assertThat(lines[0])
+        .isEqualTo("limitType|entityName|relationEntityName|countScope|ownerScope|roleName|limitValue|validUntil|e2e");
 
     List<FixtureRoleSeedRow> rows = new ArrayList<>();
     for (int index = 1; index < lines.length; index++) {
@@ -411,25 +417,25 @@ class EntityLimitSeedGuardTest {
       assertThat(columns).as("column count in %s line %d", ROLE_LIMIT_FIXTURE_RESOURCE, index + 1).hasSize(9);
       CountScope countScope = columns[3].isBlank() ? null : CountScope.valueOf(columns[3]);
       OwnerScope ownerScope = columns[4].isBlank() ? null : OwnerScope.valueOf(columns[4]);
-      var limitKey = new LimitKey(LimitType.valueOf(columns[0]), columns[1],
-          columns[2].isBlank() ? null : columns[2], countScope, ownerScope);
+      var limitKey = new LimitKey(LimitType.valueOf(columns[0]), columns[1], columns[2].isBlank() ? null : columns[2],
+          countScope, ownerScope);
       assertThat(columns[5]).as("role name in %s line %d", ROLE_LIMIT_FIXTURE_RESOURCE, index + 1)
           .isEqualTo("ROLE_LIMITEDIT");
       assertThat(columns[7]).as("validUntil in migration-owned fixture row %d", index + 1).isEmpty();
       assertThat(columns[8]).as("routing in %s line %d", ROLE_LIMIT_FIXTURE_RESOURCE, index + 1).isIn("i", "e2e");
-      rows.add(new FixtureRoleSeedRow(
-          new RoleSeedRow(limitKey, columns[5], Integer.parseInt(columns[6])), columns[8]));
+      rows.add(new FixtureRoleSeedRow(new RoleSeedRow(limitKey, columns[5], Integer.parseInt(columns[6])), columns[8]));
     }
     return rows;
   }
 
   /**
    * Entity and pseudo entity names carrying a DAY_CUD row, that is limit type 1: the role rows of the daily block and
-   * the default rows later migrations add, such as the budget of the manual alert actions in V0_37_0.
+   * the default and role rows later migrations add, such as manual alert actions and bankrupt securities in V0_37_0.
    */
   private Set<String> readDailySeededEntityNames() {
     Set<String> names = new LinkedHashSet<>();
     List<String> sources = new ArrayList<>(laterDefaultStatements);
+    sources.addAll(laterRoleStatements);
     sources.add(dailyBlock());
     for (String source : sources) {
       Matcher matcher = DAILY_SEED.matcher(source);

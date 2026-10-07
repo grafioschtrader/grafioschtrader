@@ -13,6 +13,12 @@ import { GlobalparameterService } from '../../lib/services/globalparameter.servi
  */
 export class TransactionSecurityFieldDefinition {
   /**
+   * Row path to the currency of the security. It only resolves on rows whose transaction still carries its security;
+   * the transaction list of a single security arrives without it, so {@link applySecurityCurrency} sets the fallback.
+   */
+  private static readonly SECURITY_CURRENCY_PATH = 'transaction.security.currency';
+
+  /**
    * Creates and configures standard column definitions for transaction security displays.
    * Adds columns for transaction details including dates, amounts, costs, and gains/losses.
    * Supports conditional column display based on margin instrument type and optional parameters.
@@ -52,7 +58,7 @@ export class TransactionSecurityFieldDefinition {
       maxFractionDigits: gps.getMaxFractionDigits()
     });
     tcm.addColumnFeqH(DataType.Numeric, 'transaction.taxCost', true, false, {
-      currencyPrecisionField: 'transaction.security.currency'
+      currencyPrecisionField: TransactionSecurityFieldDefinition.SECURITY_CURRENCY_PATH
     });
 
     if (tsop && tsop.indexOf(TransactionSecurityOptionalParam.SHOW_TAXABLE_COLUMN) >= 0) {
@@ -60,13 +66,13 @@ export class TransactionSecurityFieldDefinition {
     }
     tcm.addColumnFeqH(DataType.Numeric, 'holdingsSplitAdjusted', true, false);
     tcm.addColumnFeqH(DataType.Numeric, 'transaction.transactionCost', true, false, {
-      currencyPrecisionField: 'transaction.security.currency'
+      currencyPrecisionField: TransactionSecurityFieldDefinition.SECURITY_CURRENCY_PATH
     });
     tcm.addColumnFeqH(DataType.Numeric, 'transaction.cashaccountAmount', true, false, {
       currencyPrecisionField: 'transaction.cashaccount.currency'
     });
     tcm.addColumn(DataType.Numeric, 'transactionGainLoss', 'GAIN', true, false, {
-      currencyPrecisionField: 'transaction.security.currency'
+      currencyPrecisionField: TransactionSecurityFieldDefinition.SECURITY_CURRENCY_PATH
     });
     tcm.addColumn(DataType.Numeric, 'transactionGainLossPercentage', 'GAIN_PERCENTAGE', true, false);
     tcm.addColumn(DataType.Numeric, 'transactionExchangeRate', 'EXCHANGE_RATE', true, false, {
@@ -79,5 +85,19 @@ export class TransactionSecurityFieldDefinition {
     tcm.fields.filter((cc) => cc.dataType === DataType.Numeric).map((cc) => (cc.templateName = 'greenRed'));
     tcm.prepareTableAndTranslate();
     return currencyColumnConfigMC;
+  }
+
+  /**
+   * Formats the amounts in security currency with the precision of that currency. The backend removes the security
+   * from every transaction of the list to keep the payload small, so the row path of these columns does not resolve
+   * and the currency of the position summary is set as the column's fixed currency instead.
+   *
+   * @param fields The column definitions created by {@link getFieldDefinition}
+   * @param securityCurrency The currency of the security whose transactions are shown
+   */
+  static applySecurityCurrency(fields: ColumnConfig[], securityCurrency: string): void {
+    fields
+      .filter((cc) => cc.currencyPrecisionField === TransactionSecurityFieldDefinition.SECURITY_CURRENCY_PATH)
+      .forEach((cc) => (cc.fixedCurrency = securityCurrency));
   }
 }

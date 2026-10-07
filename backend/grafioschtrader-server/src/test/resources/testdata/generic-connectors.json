@@ -236,7 +236,7 @@
         "en": "[historical]Enter the FUW <b>listing key</b> of a security shown on <a href=\"https://www.fuw.ch/\" target=\"_blank\">Finanz und Wirtschaft</a>. Open the instrument page on fuw.ch; its URL ends with <code>valor-VALOR/BC/CURRENCY</code> &ndash; enter these three numbers joined by hyphens, e.g. <b>322646-44-814</b> for Allianz (Xetra). No API key is required. <b>Important:</b> FUW provides only a rolling history of about the last 10 years (back to roughly today minus 10 years), regardless of when the instrument was actually launched; older end-of-day data is not available from this source.[intra]Same listing key as for historical data. Delivers the last price together with open, daily high, daily low, volume and the percentage change for the day."
       }
     },
-    "domainUrl": "https://wp.fuw.ch/wp-json/fuw/v1/",
+    "domainUrl": "https://www.fuw.ch/boerse/api/",
     "needsApiKey": false,
     "rateLimitType": "NONE",
     "rateLimitRequests": null,
@@ -256,7 +256,7 @@
       {
         "feedSupport": "FS_HISTORY",
         "instrumentType": "SECURITY",
-        "urlTemplate": "marketdata/chartdata/{ticker}?keyType=LISTING_ID&dataSource=wfg&refCurrency=undefined&timeRange=max",
+        "urlTemplate": "marketdata/chartdata/{ticker}?timeRange=max",
         "httpMethod": "GET",
         "responseFormat": "JSON",
         "numberFormat": "PLAIN",
@@ -329,16 +329,16 @@
       {
         "feedSupport": "FS_INTRA",
         "instrumentType": "SECURITY",
-        "urlTemplate": "marketdata/quotes/{ticker}?keyType=LISTING_ID&dataSource=wfg&dataheader=true",
+        "urlTemplate": "marketdata/quotes/{ticker}",
         "httpMethod": "GET",
         "responseFormat": "JSON",
         "numberFormat": "PLAIN",
         "dateFormatType": "UNIX_MILLIS",
         "dateFormatPattern": null,
         "jsonDataStructure": "ARRAY_OF_OBJECTS",
-        "jsonDataPath": "Values",
+        "jsonDataPath": "payload",
         "jsonColumnNamesPath": null,
-        "jsonStatusPath": "Status",
+        "jsonStatusPath": "status",
         "jsonStatusOkValue": "Success",
         "csvDelimiter": null,
         "csvSkipHeaderLines": 1,

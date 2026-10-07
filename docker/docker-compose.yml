@@ -36,6 +36,9 @@ services:
       G_JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
       G_MAIN_USER_ADMIN_MAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL in .env}
       G_ALLOWED_USERS: ${GT_ALLOWED_USERS:-20}
+      # Only Caddy on the dedicated proxy network may supply client IP headers.
+      G_SECURITY_LOGIN_TRUSTEDPROXIES: "127.0.0.1,::1,${GT_PROXY_NETWORK_PREFIX:-172.30.231}.2"
+      SERVER_FORWARD_HEADERS_STRATEGY: none
       GT_USE_WEBSOCKET: ${GT_USE_WEBSOCKET:-false}
       # Secrets are supplied as plain env vars above, which override the ENC(...) values in
       # application.properties — Jasypt is never used, the value below is a placeholder.
@@ -55,6 +58,9 @@ services:
       SPRING_CONFIG_ADDITIONAL_LOCATION: optional:file:/config/
     volumes:
       - ./config:/config:ro
+    networks:
+      - default
+      - proxy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/actuator/health"]
       interval: 30s
@@ -84,6 +90,9 @@ services:
     volumes:
       - caddy_data:/data
       - caddy_config:/config
+    networks:
+      proxy:
+        ipv4_address: ${GT_PROXY_NETWORK_PREFIX:-172.30.231}.2
 
   # Optional: keeps a DuckDNS subdomain pointed at this host's public IP.
   # Enable with COMPOSE_PROFILES=duckdns in .env
@@ -95,6 +104,15 @@ services:
       SUBDOMAINS: ${DUCKDNS_SUBDOMAIN:-}
       TOKEN: ${DUCKDNS_TOKEN:-}
       TZ: Etc/UTC
+
+networks:
+  default:
+  proxy:
+    ipam:
+      config:
+        - subnet: ${GT_PROXY_NETWORK_PREFIX:-172.30.231}.0/24
+          # Dynamic peers must never acquire Caddy's address before it starts.
+          ip_range: ${GT_PROXY_NETWORK_PREFIX:-172.30.231}.128/25
 
 volumes:
   db_data:

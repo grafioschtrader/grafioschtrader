@@ -50,6 +50,16 @@ export class GtAfterLoginHandler extends AfterLoginHandler {
       String(configurationWithLogin.forceConnectorMatch ?? 0)
     );
 
+    // Store whether the disposal costs of the hypothetical sale are estimated
+    sessionStorage.setItem(
+      GlobalGTSessionNames.DISPOSAL_COST_ESTIMATE,
+      String(!!configurationWithLogin.disposalCostEstimate)
+    );
+    sessionStorage.setItem(
+      GlobalGTSessionNames.TENANT_DISPOSAL_COST_ESTIMATE,
+      String(!!configurationWithLogin.tenantDisposalCostEstimate)
+    );
+
     BaseSettings.resetInterFractionLimit(AppSettings, GlobalSessionNames.STANDARD_CURRENCY_PRECISIONS_AND_LIMITS);
   }
 }

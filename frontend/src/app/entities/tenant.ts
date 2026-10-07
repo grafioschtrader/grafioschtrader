@@ -19,6 +19,9 @@ export class Tenant extends TenantBase {
   /** Convert account costs and account interest with the rate of the cut-off date instead of the booking day. */
   feeInterestFxAtCutOffDate = false;
 
+  /** Keeps the disposal cost estimate on for this tenant; effective only while the instance switch is on too. */
+  disposalCostEstimate = true;
+
   public override getId(): number {
     return this.idTenant;
   }

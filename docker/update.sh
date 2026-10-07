@@ -3,7 +3,7 @@
 # Update a Docker-based Grafioschtrader installation.
 #
 #   ./update.sh              update to the version currently set in .env
-#   ./update.sh 0.37.3      switch to an exact version
+#   ./update.sh 0.38.1      switch to an exact version
 #   ./update.sh latest       track the newest release
 #   ./update.sh --build      build the images from source instead of pulling
 #   ./update.sh --replace-modified   also replace deployment files edited here
@@ -231,7 +231,7 @@ elif [ "${GT_DEPLOYMENT_REFRESHED:-}" != 1 ]; then
   PREVIOUS_VERSION="$(grep -oP '^GT_VERSION=\K.*' .env || true)"
   RELEASE="$(resolve_release "${TARGET:-${PREVIOUS_VERSION:-latest}}")"
   [ -n "$RELEASE" ] || fail "the newest release could not be determined — nothing was changed.
-       Name the version explicitly (./update.sh 0.37.3), or run with --skip-files to update the images alone."
+       Name the version explicitly (./update.sh 0.38.1), or run with --skip-files to update the images alone."
   refresh_deployment_files "$RELEASE" "$PREVIOUS_VERSION"
 fi
 

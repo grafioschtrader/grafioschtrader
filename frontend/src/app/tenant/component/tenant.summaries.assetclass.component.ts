@@ -42,6 +42,10 @@ import { TranslateValue } from '../../lib/datashowbase/column.config';
 import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { FeatureType } from '../../lib/login/model/configuration-with-login';
 import { GlobalSessionNames } from '../../lib/global.session.names';
+import { BaseSettings } from '../../lib/base.settings';
+import { TenantHoldingsChartService } from '../service/tenant.holdings.chart.service';
+import { SecurityPositionDynamicGrandSummary } from '../../entities/view/security.position.dynamic.grand.summary';
+import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 
 /**
  * It groups asset classes of securities and includes balance of cash accounts as an asset class.
@@ -74,6 +78,7 @@ import { GlobalSessionNames } from '../../lib/global.session.names';
 export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable implements OnInit, OnDestroy {
   private statementReports = inject(PerformanceReportDialogService);
   private reportDestroyRef = inject(DestroyRef);
+  private tenantHoldingsChartService = inject(TenantHoldingsChartService);
 
   override getMenuShowOptionsParam(selected: Securitycurrency) {
     return [
@@ -209,6 +214,34 @@ export class TenantSummariesAssetclassComponent extends SecurityaccountBaseTable
 
   protected override getTitleChart(): string {
     return this.translatedTitle;
+  }
+
+  /**
+   * This report has a chart component of its own, in which the user selects between the asset class chart and the
+   * holdings treemap.
+   */
+  protected override navigateToChartRoute(): void {
+    this.router.navigate([
+      BaseSettings.MAINVIEW_KEY + '/',
+      { outlets: { mainbottom: [AppSettings.DEPOT_CASH_CHART] } }
+    ]);
+  }
+
+  /**
+   * Publishes every loaded report to the chart component, whether it is open or not; a chart opened later receives the
+   * latest one. Called after each load, so a changed date, the closed positions or a strategy switch refresh the chart.
+   */
+  protected override changeToOpenChart(): void {
+    const title = this.getTitleChart();
+    const summary = <SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<any>>>(
+      this.securityPositionSummary
+    );
+    this.tenantHoldingsChartService.publish({
+      title,
+      summary,
+      assetclassChart: this.securityaccountGroupBase.getChartDefinition(title, summary),
+      rebalancing: !!this.selectedIdAlgoTop
+    });
   }
 
   protected override getComponentId(): string {

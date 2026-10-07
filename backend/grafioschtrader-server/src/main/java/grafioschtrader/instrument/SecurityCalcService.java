@@ -12,6 +12,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
@@ -124,6 +125,28 @@ public class SecurityCalcService {
       final DateTransactionCurrencypairMap dateCurrencyMap, SecurityTransactionSummary securityTransactionSummary) {
     getSecurityCalc(securityPositionSummary.getSecurity()).createHypotheticalSellTransaction(securityPositionSummary,
         lastPrice, securitysplitMap, dateCurrencyMap, securityTransactionSummary, negativeIdNumberCreater);
+  }
+
+  /**
+   * Creates the hypothetical sale of a non-margin position carrying the estimated disposal costs, so that the
+   * transaction list shows the sale with its commission and tax. Margin instruments ignore the estimate, because their
+   * disposal costs are not estimated.
+   *
+   * @param disposalEstimate the estimated costs of the sale in security currency, null for a sale without costs
+   * @see #createHypotheticalSellTransaction(SecurityPositionSummary, double, Map, DateTransactionCurrencypairMap,
+   *      SecurityTransactionSummary)
+   */
+  public void createHypotheticalSellTransaction(final SecurityPositionSummary securityPositionSummary,
+      final double lastPrice, final Map<Integer, List<Securitysplit>> securitysplitMap,
+      final DateTransactionCurrencypairMap dateCurrencyMap, SecurityTransactionSummary securityTransactionSummary,
+      DisposalEstimate disposalEstimate) {
+    if (disposalEstimate == null || securityPositionSummary.getSecurity().isMarginInstrument()) {
+      createHypotheticalSellTransaction(securityPositionSummary, lastPrice, securitysplitMap, dateCurrencyMap,
+          securityTransactionSummary);
+    } else {
+      securityGeneralCalc.createHypotheticalSellTransaction(securityPositionSummary, lastPrice, securitysplitMap,
+          dateCurrencyMap, securityTransactionSummary, negativeIdNumberCreater, disposalEstimate);
+    }
   }
 
   private SecurityBaseCalc getSecurityCalc(Security security) {

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import grafiosch.common.DataHelper;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -45,6 +47,18 @@ public class AccountPositionGroupSummary {
 
   @Schema(description = "Total excluded dividend tax within this group in main currency")
   public double groupExcludedDivTaxMC = 0.0;
+
+  @Schema(description = "Known disposal costs of the group in main currency, null unless the estimate is switched on")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double groupDisposalCostMC;
+
+  @Schema(description = "Total value of the group in main currency less the known disposal costs")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double groupValueAfterDisposalMC;
+
+  @Schema(description = "False when a disposal cost component of an account of the group is unknown")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean groupDisposalComplete;
 
   @Schema(description = "Whether dividend tax exclusion is enabled for the tenant")
   public boolean excludeDivTax;
@@ -154,6 +168,14 @@ public class AccountPositionGroupSummary {
       groupValueSecuritiesMC += accountPositionSummary.valueSecuritiesMC;
       groupGainLossSecuritiesMC += accountPositionSummary.gainLossSecuritiesMC;
       groupExcludedDivTaxMC += accountPositionSummary.excludedDivTaxMC;
+      if (accountPositionSummary.disposalCostMC != null) {
+        groupDisposalCostMC = (groupDisposalCostMC == null ? 0.0 : groupDisposalCostMC)
+            + accountPositionSummary.disposalCostMC;
+        groupValueAfterDisposalMC = (groupValueAfterDisposalMC == null ? 0.0 : groupValueAfterDisposalMC)
+            + accountPositionSummary.valueAfterDisposalMC;
+        groupDisposalComplete = (groupDisposalComplete == null || groupDisposalComplete)
+            && accountPositionSummary.disposalComplete;
+      }
     }
   }
 
@@ -199,6 +221,14 @@ public class AccountPositionGroupSummary {
 
   public double getGroupExcludedDivTaxMC() {
     return DataHelper.round(groupExcludedDivTaxMC, precisionMC);
+  }
+
+  public Double getGroupDisposalCostMC() {
+    return groupDisposalCostMC == null ? null : DataHelper.round(groupDisposalCostMC, precisionMC);
+  }
+
+  public Double getGroupValueAfterDisposalMC() {
+    return groupValueAfterDisposalMC == null ? null : DataHelper.round(groupValueAfterDisposalMC, precisionMC);
   }
 
   @Override

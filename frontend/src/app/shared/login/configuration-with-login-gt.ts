@@ -47,6 +47,18 @@ export interface ConfigurationWithLoginGT extends ConfigurationWithLogin {
   forceConnectorMatch: number;
 
   /**
+   * True when an administrator has switched on the estimate of the disposal costs of the hypothetical sale from the
+   * fee and tax models (gt.disposal.cost.estimate). Shows the dealer country input and offers the tenant switch.
+   */
+  disposalCostEstimate: boolean;
+
+  /**
+   * Whether this tenant keeps the disposal cost estimate switched on. Together with disposalCostEstimate it shows the
+   * disposal cost columns and the exempt investor input.
+   */
+  tenantDisposalCostEstimate: boolean;
+
+  /**
    * The import platform of this instance holding the GT authored import templates (receipt PDFs, transaction
    * CSV export), chosen by an administrator. Null when no platform is configured.
    */

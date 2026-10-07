@@ -1,11 +1,16 @@
 package grafioschtrader.reportviews.transaction;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.reportviews.securityaccount.DisposalCostDetail;
+import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.types.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -55,6 +60,22 @@ public class SecurityTransactionPosition {
 
   @Schema(description = "Total holdings after this transaction (split-adjusted)")
   public Double holdingsSplitAdjusted;
+
+  @Schema(description = """
+      Only on a hypothetical sale with the disposal cost estimate switched on: true when the estimated transaction
+      cost is incomplete, because a fee model or a matching rule is missing for at least one security account.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean disposalTransactionCostIncomplete;
+
+  @Schema(description = """
+      Only on a hypothetical sale with the disposal cost estimate switched on: true when the estimated tax is
+      incomplete, because a tax model, a matching rule or a required input is missing.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean disposalTaxCostIncomplete;
+
+  @Schema(description = "Matched rules and reasons of unknown components of the estimated costs of a hypothetical sale")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public List<DisposalCostDetail> disposalDetails;
 
   /** Decimal precision for main currency formatting */
   private int precisionMC;

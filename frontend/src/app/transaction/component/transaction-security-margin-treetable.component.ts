@@ -291,6 +291,10 @@ export class TransactionSecurityMarginTreetableComponent extends TransactionCont
         cc.fixedCurrency = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
         this.setFieldHeaderTranslation(cc);
       });
+      TransactionSecurityFieldDefinition.applySecurityCurrency(
+        this.fields,
+        this.securityTransactionSummary.securityPositionSummary.security.currency
+      );
       // Build the tree locally, then set firstRowIndexOnPage BEFORE transactionNodes so
       // Optimus's TreeTable.updateSerializedValue (triggered by [value]) reads the
       // correct `first` and slices the right page in one CD cycle. setTimeout would land

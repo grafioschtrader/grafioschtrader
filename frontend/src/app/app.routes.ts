@@ -17,6 +17,8 @@ import { WatchlistTabMenuComponent } from './watchlist/component/watchlist.tab.m
 import { WatchlistPerformanceComponent } from './watchlist/component/watchlist.performance.component';
 import { TimeSeriesChartComponent } from './historyquote/component/time.series.chart.component';
 import { SeasonalityComponent } from './historyquote/component/seasonality.component';
+import { TenantDividendsChartComponent } from './tenant/component/tenant-dividends-chart.component';
+import { TenantHoldingsChartComponent } from './tenant/component/tenant-holdings-chart.component';
 import { ChartGeneralPurposeComponent } from './shared/chart/component/chart.general.purpose.component';
 import { RegistrationTokenVerifyComponent } from './lib/login/component/registration.token.verify.component';
 import { CorrelationComponent } from './correlation/component/correlation.component';
@@ -270,6 +272,18 @@ const APP_ROUTES: Routes = [
       {
         path: AppSettings.SEASONALITY,
         component: SeasonalityComponent,
+        outlet: AppSettings.MAIN_BOTTOM,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.TENANT_DIVIDENDS_CHART,
+        component: TenantDividendsChartComponent,
+        outlet: AppSettings.MAIN_BOTTOM,
+        canActivate: [authGuard]
+      },
+      {
+        path: AppSettings.DEPOT_CASH_CHART,
+        component: TenantHoldingsChartComponent,
         outlet: AppSettings.MAIN_BOTTOM,
         canActivate: [authGuard]
       },

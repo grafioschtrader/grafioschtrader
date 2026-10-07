@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TradingPlatformPlanService } from '../service/trading.platform.plan.service';
@@ -51,6 +52,7 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
   constructor(
     private importTransactionPlatformService: ImportTransactionPlatformService,
     private tradingPlatformPlanService: TradingPlatformPlanService,
+    private gpsGT: GlobalparameterGTService,
     translateService: TranslateService,
     gps: GlobalparameterService,
     messageToastService: MessageToastService
@@ -81,8 +83,9 @@ export class TradingPlatformPlanEditComponent extends SimpleEntityEditBase<Tradi
       DynamicFieldHelper.createFieldSelectString('idTransactionImportPlatform', 'IMPORT_TRANSACTION_PLATFORM', false, {
         dataproperty: 'importTransactionPlatform.idTransactionImportPlatform'
       }),
-      // The dealer country only feeds the simulation tax estimate (Swiss stamp duty) of rule-based trading
-      ...(this.gps.useAlgo()
+      // The dealer country feeds the tax estimate (Swiss stamp duty) of the simulation and of the disposal costs. A plan
+      // is shared by all tenants, so only the instance switch counts here, not the one of the current tenant.
+      ...(this.gps.useAlgo() || this.gpsGT.isDisposalCostEstimateAvailable()
         ? [DynamicFieldHelper.createFieldDropdownString('countryCode', 'DEALER_COUNTRY', false, { filter: true })]
         : []),
       ...AuditHelper.getFullNoteRequestInputDefinition(this.closeDialog, this)

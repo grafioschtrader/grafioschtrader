@@ -57,7 +57,8 @@
   <div class="dashboard-edit-layout" [class.dashboard-with-tray]="editing && !resetPending">
     <div
       class="dashboard-grid"
-      [dashboardMasonry]="!editing"
+      [class.dashboard-has-maximized]="!!maximizedId"
+      [dashboardMasonry]="!editing && !maximizedId"
       cdkDropList
       id="dashboardGrid"
       cdkDropListOrientation="mixed"
@@ -72,6 +73,7 @@
           cdkDrag
           [cdkDragData]="widget"
           [style.--card-span]="spans[widget.width]"
+          [class.dashboard-card-maximized]="widget.instanceId === maximizedId"
           [attr.data-widget-type]="widget.type">
           <header>
             <h3>{{ 'DASHBOARD_' + widget.type | translate }}</h3>
@@ -83,6 +85,25 @@
                 [label]="'DASHBOARD_REFRESH' | translate"
                 [disabled]="loading || refreshing.has(widget.instanceId)"
                 (onClick)="refresh(widget)" />
+              @if (maximizable(widget)) {
+                @if (widget.instanceId === maximizedId) {
+                  <p-button
+                    [attr.aria-label]="'DASHBOARD_RESTORE' | translate"
+                    [pTooltip]="'DASHBOARD_RESTORE' | translate"
+                    [text]="true"
+                    (onClick)="restore()">
+                    <i class="pi pi-window-minimize" pButtonIcon></i>
+                  </p-button>
+                } @else {
+                  <p-button
+                    [attr.aria-label]="'DASHBOARD_MAXIMIZE' | translate"
+                    [pTooltip]="'DASHBOARD_MAXIMIZE' | translate"
+                    [text]="true"
+                    (onClick)="maximize(widget)">
+                    <i class="pi pi-window-maximize" pButtonIcon></i>
+                  </p-button>
+                }
+              }
             }
           </header>
           @if (editing && !resetPending) {
@@ -124,7 +145,17 @@
                 <p role="alert">{{ result.errorCode | translate }}</p>
               }
               @if (result.payload && renderers[widget.type]) {
-                <ng-container *ngComponentOutlet="renderers[widget.type]; inputs: { result: result }" />
+                @if (maximizable(widget)) {
+                  <div class="dashboard-card-body">
+                    <ng-container
+                      *ngComponentOutlet="
+                        renderers[widget.type];
+                        inputs: { result: result, maximized: widget.instanceId === maximizedId }
+                      " />
+                  </div>
+                } @else {
+                  <ng-container *ngComponentOutlet="renderers[widget.type]; inputs: { result: result }" />
+                }
               }
               @if (result.dataAsOf) {
                 <small>{{ 'DASHBOARD_LOADED_AT' | translate }}: {{ getValueByPath(result, timeField) }}</small>

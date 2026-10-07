@@ -68,7 +68,18 @@ public class SecurityGroupByAssetclassWithCashReport extends SecurityGroupByBase
       Tenant tenant, List<SecurityPositionSummary> positions, DateTransactionCurrencypairMap currencyMap,
       Integer idPortfolio) throws Exception {
     addCashaccountAsASecurity(tenant, positions, currencyMap, idPortfolio);
-    return super.createGroupsAndCalcGrandTotal(tenant, positions, currencyMap);
+    var summary = super.createGroupsAndCalcGrandTotal(tenant, positions, currencyMap);
+    summary.holdingsTreemap = HoldingsTreemapBuilder.build(assetclassGroups(summary), currencyMap.getMainCurrency(),
+        globalparametersService.getPrecisionForCurrency(currencyMap.getMainCurrency()),
+        summary.grandAccountValueSecurityMC);
+    return summary;
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<SecurityPositionDynamicGroupSummary<AssetclassType>> assetclassGroups(
+      SecurityPositionDynamicGrandSummary<SecurityPositionDynamicGroupSummary<AssetclassType>> summary) {
+    return summary.securityPositionGroupSummaryList.stream()
+        .map(group -> (SecurityPositionDynamicGroupSummary<AssetclassType>) group).toList();
   }
 
   /** Historical valuations use only rates up to the cutoff, also on non-trading days and in portfolio currency. */

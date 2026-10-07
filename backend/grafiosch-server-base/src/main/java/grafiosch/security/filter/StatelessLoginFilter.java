@@ -113,10 +113,12 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
    * @param authenticationManager        Spring Security authentication manager
    * @param proposeUserTaskJpaRepository repository for user task proposals
    * @param messages                     message source for internationalized error messages
+   * @param loginAttemptServiceIpAddress shared login counter with configured proxy trust
    */
   public StatelessLoginFilter(final String urlMapping, final TokenAuthentication tokenAuthentication,
       final UserService userService, final AuthenticationManager authenticationManager,
-      ProposeUserTaskJpaRepository proposeUserTaskJpaRepository, final MessageSource messages) {
+      ProposeUserTaskJpaRepository proposeUserTaskJpaRepository, final MessageSource messages,
+      LoginAttemptServiceIpAddress loginAttemptServiceIpAddress) {
     super(urlMapping);
     this.tokenAuthentication = tokenAuthentication;
     this.userService = userService;
@@ -124,7 +126,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
     this.setAuthenticationFailureHandler(new CustomAuthenticationFailureHandler());
     this.proposeUserTaskJpaRepository = proposeUserTaskJpaRepository;
     this.messages = messages;
-    this.loginAttemptServiceIpAddress = new LoginAttemptServiceIpAddress();
+    this.loginAttemptServiceIpAddress = loginAttemptServiceIpAddress;
   }
 
   @Override

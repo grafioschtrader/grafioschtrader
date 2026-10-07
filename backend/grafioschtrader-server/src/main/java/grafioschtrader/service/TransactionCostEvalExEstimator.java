@@ -198,6 +198,13 @@ public class TransactionCostEvalExEstimator {
     if (req.getFixedAssets() != null) {
       bindings.put("fixedAssets", req.getFixedAssets());
     }
+    // Deliberately not defaulted: an unknown total must leave a rule using it unevaluated rather than grade it as 0.
+    if (req.getPortfolioTotal() != null) {
+      bindings.put("portfolioTotal", req.getPortfolioTotal());
+    }
+    if (req.getTenantTotal() != null) {
+      bindings.put("tenantTotal", req.getTenantTotal());
+    }
     if (req.getTradeDirection() != null) {
       bindings.put("tradeDirection", req.getTradeDirection());
     }

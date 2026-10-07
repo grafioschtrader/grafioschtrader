@@ -332,6 +332,16 @@ public class GlobalparametersService {
   }
 
   /**
+   * Tells whether the reports estimate the disposal costs of the hypothetical sale of open positions.
+   *
+   * @return true when {@link GlobalParamKeyDefault#GLOB_KEY_DISPOSAL_COST_ESTIMATE} is set to a value other than 0
+   */
+  public boolean isDisposalCostEstimate() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_DISPOSAL_COST_ESTIMATE)
+        .map(Globalparameters::getPropertyInt).orElse(GlobalParamKeyDefault.DEFAULT_DISPOSAL_COST_ESTIMATE) != 0;
+  }
+
+  /**
    * Gets the import platform holding the Grafioschtrader authored import templates. There is no default: an instance
    * whose administrator has not picked a platform does not offer the templates at all.
    *

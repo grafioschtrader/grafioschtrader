@@ -25,6 +25,7 @@ import grafiosch.security.filter.StatelessAuthenticationFilter;
 import grafiosch.security.filter.StatelessLoginFilter;
 import grafiosch.security.filter.TenantContextAccessFilter;
 import grafiosch.security.filter.TenantReadOnlyFilter;
+import grafiosch.service.LoginAttemptServiceIpAddress;
 import grafiosch.service.UserService;
 import grafioschtrader.rest.RequestGTMappings;
 import grafioschtrader.security.TokenAuthenticationService;
@@ -76,6 +77,9 @@ public class SecurityGTConfig {
 
   @Autowired
   private UserService userService;
+
+  @Autowired
+  private LoginAttemptServiceIpAddress loginAttemptServiceIpAddress;
 
   @Autowired
   private TokenAuthenticationService tokenAuthenticationService;
@@ -145,8 +149,10 @@ public class SecurityGTConfig {
       SecurityConfig.configureGlobalParameters(http);
     }); // Close authorizeHttpRequests
 
-    http.addFilterBefore(new StatelessLoginFilter("/api/login", tokenAuthenticationService, userService,
-        authenticationManager, proposeUserTaskJpaRepository, messages), UsernamePasswordAuthenticationFilter.class);
+    http.addFilterBefore(
+        new StatelessLoginFilter("/api/login", tokenAuthenticationService, userService, authenticationManager,
+            proposeUserTaskJpaRepository, messages, loginAttemptServiceIpAddress),
+        UsernamePasswordAuthenticationFilter.class);
 
     http.addFilterBefore(
         new StatelessAuthenticationFilter(tokenAuthenticationService, messages, userService, limitRequest),

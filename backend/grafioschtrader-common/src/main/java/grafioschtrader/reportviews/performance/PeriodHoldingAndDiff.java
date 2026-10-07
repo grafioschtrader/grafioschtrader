@@ -73,7 +73,10 @@ public class PeriodHoldingAndDiff {
   @Schema(description = "Realized gains from closed margin positions in main currency.")
   private double marginCloseGainMC;
 
-  @Schema(description = "Market risk (unrealized value) of open positions in main currency.")
+  @Schema(description = """
+      Security risk of the open positions in main currency: the market value of every held position, margin positions
+      at their full exposure, multiplied by the leverage factor of the instrument. Equal to the security risk of the
+      security account reports.""")
   private double securityRiskMC;
 
   @Schema(description = "Total investment gain/loss in main currency.")

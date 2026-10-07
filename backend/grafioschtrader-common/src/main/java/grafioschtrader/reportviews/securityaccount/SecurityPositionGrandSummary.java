@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
@@ -99,6 +100,16 @@ public class SecurityPositionGrandSummary {
   @Schema(description = "Total currency exchange gains/losses from foreign currency exposure")
   public double grandGainLossCurrencyMC = 0.0;
 
+  @Schema(description = """
+      Sum of the known disposal costs of all estimated positions in main currency. Null unless the disposal cost
+      estimate is switched on and at least one position was estimated.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double grandDisposalCostMC;
+
+  @Schema(description = "False when the disposal costs of at least one position are incomplete")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean grandDisposalComplete;
+
   /**
    * Decimal precision for monetary value display based on the main currency's standard precision (e.g., 2 for USD/EUR,
    * 0 for JPY). Used by getter methods to provide appropriately rounded values for user interfaces and reports while
@@ -125,6 +136,39 @@ public class SecurityPositionGrandSummary {
     grandGainLossSecurityMC += securityPositionGroupSummary.groupGainLossSecurityMC;
     grandSecurityRiskMC += securityPositionGroupSummary.groupSecurityRiskMC;
     grandGainLossCurrencyMC += securityPositionGroupSummary.groupGainLossCurrencyMC;
+    if (securityPositionGroupSummary.groupDisposalCostMC != null) {
+      grandDisposalCostMC = (grandDisposalCostMC == null ? 0.0 : grandDisposalCostMC)
+          + securityPositionGroupSummary.groupDisposalCostMC;
+      grandDisposalComplete = (grandDisposalComplete == null || grandDisposalComplete)
+          && securityPositionGroupSummary.groupDisposalComplete;
+    }
+  }
+
+  /**
+   * Sets the share of every position and every group in the report total, so that the shares of all positions add up
+   * to 100. The denominator is the net total, which is why a position with a negative account value - a CFD or Forex
+   * position at a loss, an overdrawn cash account - gets a negative share and the remaining positions together exceed
+   * 100. When the total is not positive the shares carry no meaning (a negative denominator would invert every sign),
+   * so they are all reset to null. Must be called again whenever the group structure changes after the grand total was
+   * calculated.
+   */
+  public void calcShareOfTotalPercentages() {
+    boolean positiveTotal = grandAccountValueSecurityMC > 0;
+    for (SecurityPositionGroupSummary group : securityPositionGroupSummaryList) {
+      group.groupShareOfTotalPercentage = positiveTotal ? shareOfTotal(group.groupAccountValueSecurityMC) : null;
+      for (SecurityPositionSummary position : group.securityPositionSummaryList) {
+        position.shareOfTotalPercentage = positiveTotal ? shareOfTotal(position.accountValueSecurityMC) : null;
+      }
+    }
+  }
+
+  private double shareOfTotal(double accountValueMC) {
+    return accountValueMC * 100.0 / grandAccountValueSecurityMC;
+  }
+
+  @Schema(description = "Share of the report total in percentage points: 100, or null when the total is not positive")
+  public Double getGrandShareOfTotalPercentage() {
+    return grandAccountValueSecurityMC > 0 ? 100.0 : null;
   }
 
   public void roundGrandTotals() {
@@ -170,6 +214,17 @@ public class SecurityPositionGrandSummary {
 
   public double getGrandAccountValueSecurityMC() {
     return DataHelper.round(grandAccountValueSecurityMC, precision);
+  }
+
+  public Double getGrandDisposalCostMC() {
+    return grandDisposalCostMC == null ? null : DataHelper.round(grandDisposalCostMC, precision);
+  }
+
+  @Schema(description = "Total account value in main currency less the known disposal costs")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double getGrandValueAfterDisposalMC() {
+    return grandDisposalCostMC == null ? null
+        : DataHelper.round(grandAccountValueSecurityMC - grandDisposalCostMC, precision);
   }
 
   public double getGrandSecurityRiskMC() {

@@ -1,6 +1,10 @@
 #!/bin/bash
 
+# The installer parses java_required, node_required and angular_cli_required without executing this script.
+# Keep each literal assignment on its own line, in the forms used below.
+
 # Source the environment variables
+# shellcheck source=/dev/null
 . ~/gtvar.sh
 
 # Required Node.js versions
@@ -20,8 +24,7 @@ ensure_semver_installed() {
         echo "'semver' is not installed globally. Installing it now..."
         echo "=========================================================="
         tput sgr0
-        npm install -g semver
-        if [ $? -ne 0 ]; then
+        if ! npm install -g semver; then
             tput setaf 1
             echo "=========================================================="
             echo "Failed to install 'semver'. Please install it manually with:"

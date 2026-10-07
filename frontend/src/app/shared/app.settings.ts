@@ -129,6 +129,10 @@ export class AppSettings {
 
   public static readonly TIME_SERIE_QUOTES = 'timeSerieQuotes';
   public static readonly SEASONALITY = 'seasonality';
+  /** Lower display area route of the income charts of the dividends view. */
+  public static readonly TENANT_DIVIDENDS_CHART = 'tenantdividendschart';
+  /** Lower display area route of the charts of the report "security asset classes with cash". */
+  public static readonly DEPOT_CASH_CHART = 'depotcashchart';
   public static readonly CHART_GENERAL_PURPOSE = 'chartgeneralpurpose';
   /** Chart id of the equity curve of a completed historical replay. */
   public static readonly SIMULATION_EQUITY_KEY = 'simulationequity';
@@ -196,6 +200,8 @@ export class AppSettings {
   public static readonly CHART_SHAPES_STORE = 'chart_shapes_';
   public static readonly DIV_SECURITYACCOUNTS = 'div_securityaccounts';
   public static readonly DIV_CASHACCOUNTS = 'div_cashaccounts';
+  public static readonly DIV_CHART_TYPE = 'div_chart_type';
+  public static readonly DEPOT_CASH_CHART_TYPE = 'depotcash_chart_type';
   public static readonly WATCHLIST_PERFORMANCE_TIMEFRAME_STORE = 'u_watchlist_performance_timeframe_1';
 
   // Some definitions of property names which are used in more than one class

@@ -164,6 +164,36 @@ export class GlobalparameterGTService extends BaseAuthService<Globalparameters> 
   }
 
   /**
+   * True when an administrator has switched the disposal cost estimate on for this instance
+   * (gt.disposal.cost.estimate). Only then does the tenant dialog offer the tenant its own switch.
+   */
+  public isDisposalCostEstimateAvailable(): boolean {
+    return sessionStorage.getItem(GlobalGTSessionNames.DISPOSAL_COST_ESTIMATE) === 'true';
+  }
+
+  /**
+   * Records whether this tenant keeps the disposal cost estimate switched on. Written at login and refreshed by the
+   * tenant edit dialog.
+   *
+   * @param disposalCostEstimate the tenant's switch
+   */
+  public setTenantDisposalCostEstimate(disposalCostEstimate: boolean): void {
+    sessionStorage.setItem(GlobalGTSessionNames.TENANT_DISPOSAL_COST_ESTIMATE, String(!!disposalCostEstimate));
+  }
+
+  /**
+   * True when the reports of the current tenant estimate the disposal costs of the hypothetical sale. Two settings
+   * have to agree: the instance switch gt.disposal.cost.estimate and the switch of the tenant. The disposal cost
+   * columns are shown only then.
+   */
+  public useDisposalCostEstimate(): boolean {
+    return (
+      this.isDisposalCostEstimateAvailable() &&
+      sessionStorage.getItem(GlobalGTSessionNames.TENANT_DISPOSAL_COST_ESTIMATE) === 'true'
+    );
+  }
+
+  /**
    * True when the given currency code is one of the supported cryptocurrencies stored at login.
    */
   public isCryptocurrency(currencyCode: string): boolean {

@@ -3,6 +3,8 @@ package grafioschtrader.reportviews.securityaccount;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import grafiosch.common.DataHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.types.AlgoRecommendationAction;
@@ -41,6 +43,11 @@ public abstract class SecurityPositionGroupSummary {
   @Schema(description = "Total current market value of all securities in the group in main currency")
   public double groupAccountValueSecurityMC;
 
+  @Schema(description = """
+      Share of the group in the report total, in percentage points: groupAccountValueSecurityMC divided by
+      grandAccountValueSecurityMC. Null when the report total is not positive.""")
+  public Double groupShareOfTotalPercentage;
+
   @Schema(description = "Total gains/losses for all securities in the group in main currency")
   public double groupGainLossSecurityMC = 0.0;
 
@@ -55,6 +62,16 @@ public abstract class SecurityPositionGroupSummary {
 
   @Schema(description = "Total excluded dividend tax for all securities in the group in main currency")
   public double groupExcludedDivTaxMC;
+
+  @Schema(description = """
+      Sum of the known disposal costs of the estimated positions of the group in main currency. Null when no position
+      of the group was estimated.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double groupDisposalCostMC;
+
+  @Schema(description = "False when the disposal costs of at least one position of the group are incomplete")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean groupDisposalComplete;
 
   @Schema(description = "List of individual security position summaries within this group")
   public List<SecurityPositionSummary> securityPositionSummaryList = new ArrayList<>();
@@ -104,7 +121,12 @@ public abstract class SecurityPositionGroupSummary {
 
     groupSecurityRiskMC += securityPositionSummary.securityRiskMC;
     groupExcludedDivTaxMC += securityPositionSummary.excludedDivTaxMC;
-
+    if (securityPositionSummary.disposalComplete != null && securityPositionSummary.disposalCostMC != null) {
+      groupDisposalCostMC = (groupDisposalCostMC == null ? 0.0 : groupDisposalCostMC)
+          + securityPositionSummary.disposalCostMC;
+      groupDisposalComplete = (groupDisposalComplete == null || groupDisposalComplete)
+          && securityPositionSummary.disposalComplete;
+    }
   }
 
   /** Match the percentage precision of individual report positions without rounding the aggregation fields. */
@@ -129,6 +151,10 @@ public abstract class SecurityPositionGroupSummary {
         : DataBusinessHelper.roundPercentage(groupSecurityDeviationPercentage);
   }
 
+  public Double getGroupShareOfTotalPercentage() {
+    return groupShareOfTotalPercentage == null ? null : DataBusinessHelper.roundPercentage(groupShareOfTotalPercentage);
+  }
+
   public double getGroupAccountValueSecurityMC() {
     return DataHelper.round(groupAccountValueSecurityMC, precisionMC);
   }
@@ -151,6 +177,17 @@ public abstract class SecurityPositionGroupSummary {
 
   public double getGroupExcludedDivTaxMC() {
     return DataHelper.round(groupExcludedDivTaxMC, precisionMC);
+  }
+
+  public Double getGroupDisposalCostMC() {
+    return groupDisposalCostMC == null ? null : DataHelper.round(groupDisposalCostMC, precisionMC);
+  }
+
+  @Schema(description = "Account value of the group in main currency less its known disposal costs")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double getGroupValueAfterDisposalMC() {
+    return groupDisposalCostMC == null ? null
+        : DataHelper.round(groupAccountValueSecurityMC - groupDisposalCostMC, precisionMC);
   }
 
 }

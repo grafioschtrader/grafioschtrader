@@ -38,8 +38,15 @@ import org.junit.jupiter.api.Test;
  * </p>
  *
  * <p>
- * All three properties are invisible to the compiler and are only observable with a database that actually lacks a rate
- * or holds a wrong id, which is why they are asserted here on the statement text.
+ * The two period queries also have to compute the security risk exactly like the security account reports, where
+ * {@code SecurityPositionGroupSummary} multiplies the market value by the leverage factor of the instrument. Without
+ * the factor a leveraged or inverse instrument shows a different security risk in the period performance than in the
+ * security accounts, which only becomes visible with a leveraged holding in the database.
+ * </p>
+ *
+ * <p>
+ * All of these properties are invisible to the compiler and are only observable with a database that actually lacks a rate,
+ * holds a wrong id or a leveraged position, which is why they are asserted here on the statement text.
  * </p>
  */
 class HoldingsNamedQueryGuardTest {
@@ -74,6 +81,10 @@ class HoldingsNamedQueryGuardTest {
         expect(violations, name, sql.contains("as missingFxSecurities"), "counts the positions without a rate");
         expect(violations, name, sql.contains("countQuotes = countSecurities AND missingFxSecurities = 0"),
             "discards a day with a position without a rate");
+        expect(violations, name, sql.contains("LEFT JOIN security s ON s.id_securitycurrency = hss.id_securitycurrency"),
+            "joins the security of a position");
+        expect(violations, name, sql.contains("s.leverage_factor * (IFNULL(hqs.close, 0) + IFNULL(hqp.price, 0))"),
+            "multiplies the security risk by the leverage factor");
       }
     }
 

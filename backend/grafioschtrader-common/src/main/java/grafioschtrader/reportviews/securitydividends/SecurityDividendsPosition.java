@@ -186,12 +186,25 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
    */
   public void updateDividendPosition(Transaction transaction, DateTransactionCurrencypairMap dateCurrencyMap) {
     this.unitsAtEndOfYear = transaction.getUnits();
+    updatedTaxes(transaction, calcDividendExchangeRate(transaction, dateCurrencyMap));
+  }
+
+  /**
+   * Determines the rate that converts the cash account amount and the tax cost of a dividend transaction into the main
+   * currency. Shared by the dividends report and its charts, so both arrive at identical main currency values.
+   *
+   * @param transaction     the dividend transaction
+   * @param dateCurrencyMap currency conversion data for calculations
+   * @return the factor to multiply amounts in the cash account currency with; 1 when no conversion is needed or no rate
+   *         is available
+   */
+  public static double calcDividendExchangeRate(Transaction transaction,
+      DateTransactionCurrencypairMap dateCurrencyMap) {
     Double exchangeRate = DataBusinessHelper.getCurrencyExchangeRateToMainCurreny(transaction, dateCurrencyMap);
-    exchangeRate = exchangeRate == null
-        || transaction.getCashaccount().getCurrency().equals(dateCurrencyMap.getMainCurrency()) ? 1
-            : transaction.getSecurity().getCurrency().equals(dateCurrencyMap.getMainCurrency()) ? 1 / exchangeRate
-                : exchangeRate;
-    updatedTaxes(transaction, exchangeRate);
+    return exchangeRate == null || transaction.getCashaccount().getCurrency().equals(dateCurrencyMap.getMainCurrency())
+        ? 1
+        : transaction.getSecurity().getCurrency().equals(dateCurrencyMap.getMainCurrency()) ? 1 / exchangeRate
+            : exchangeRate;
   }
 
   /**
@@ -262,18 +275,28 @@ public class SecurityDividendsPosition extends AccountDividendPosition {
    */
   public void updateFinanceCost(Transaction transaction, SecurityDividendsYearGroup securityDividendsYearGroup,
       DateTransactionCurrencypairMap dateCurrencyMap) {
-    String cashCurrency = transaction.getCashaccount().getCurrency();
-    double exchangeRate;
-    if (cashCurrency.equals(dateCurrencyMap.getMainCurrency())) {
-      exchangeRate = 1.0;
-    } else {
-      Double rate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
-          cashCurrency, false);
-      exchangeRate = rate != null ? rate : 1.0;
-    }
-    double costMC = transaction.getCashaccountAmount() * exchangeRate;
+    double costMC = transaction.getCashaccountAmount() * calcFinanceCostExchangeRate(transaction, dateCurrencyMap);
     this.financeCostMC += costMC;
     securityDividendsYearGroup.yearFinanceCostMC += costMC;
+  }
+
+  /**
+   * Determines the rate that converts the cash account amount of a FINANCE_COST transaction into the main currency.
+   * Shared by the dividends report and its charts, so both arrive at identical main currency values.
+   *
+   * @param transaction     the FINANCE_COST transaction
+   * @param dateCurrencyMap currency conversion data
+   * @return the factor to multiply the cash account amount with; 1 when no conversion is needed or no rate is available
+   */
+  public static double calcFinanceCostExchangeRate(Transaction transaction,
+      DateTransactionCurrencypairMap dateCurrencyMap) {
+    String cashCurrency = transaction.getCashaccount().getCurrency();
+    if (cashCurrency.equals(dateCurrencyMap.getMainCurrency())) {
+      return 1.0;
+    }
+    Double rate = dateCurrencyMap.getPriceByDateAndFromCurrency(transaction.getTransactionDateAsLocalDate(),
+        cashCurrency, false);
+    return rate != null ? rate : 1.0;
   }
 
   public double getFinanceCostMC() {

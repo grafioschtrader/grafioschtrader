@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
@@ -99,11 +100,64 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public double accountValueSecurityMC;
 
   @Schema(description = """
+      Share of this position in the report total, in percentage points: accountValueSecurityMC divided by
+      grandAccountValueSecurityMC. Negative for a position with a negative account value, such as a CFD or Forex
+      position at a loss or an overdrawn cash account. Null when the report total is not positive.""")
+  public Double shareOfTotalPercentage;
+
+  @Schema(description = """
       Gain or loss in the main currency caused purely by exchange rate movement, measured over the whole position:
       the net amount still invested in the security currency valued at the reporting date rate, less the same flows
       valued at the rates that applied when they happened. Purchases, sales, dividends and accrued interest all
       count. Together with gainLossSecurityMC it adds up to the complete main currency result of the position.""")
   public double gainLossCurrencyMC;
+
+  /////////////////////////////////////////////////////////////
+  // Disposal cost estimate of the hypothetical sale. Every member stays null unless the global parameter
+  // gt.disposal.cost.estimate is switched on, so the JSON of the reports is unchanged otherwise.
+  /////////////////////////////////////////////////////////////
+
+  @Schema(description = """
+      Estimated commission of selling the whole position at the report date, in security currency. Null when it was
+      not estimated or when no security account could be priced.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double disposalTransactionCost;
+
+  @Schema(description = "Estimated transaction tax of selling the whole position, in security currency")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double disposalTaxCost;
+
+  @Schema(description = """
+      Estimated markup of converting the proceeds into the currency of the settlement cash account, in security
+      currency. Zero when the security settles in its own currency.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double disposalFxCost;
+
+  @Schema(description = "Sum of the known disposal cost components in main currency")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double disposalCostMC;
+
+  @Schema(description = "Account value in main currency less the known disposal costs")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double valueAfterDisposalMC;
+
+  @Schema(description = """
+      False when at least one disposal cost component could not be estimated, for example because a fee model, a
+      tax model or a matching rule is missing. Null when the position was not estimated at all, which is the case for
+      closed positions, margin instruments and cash accounts.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean disposalComplete;
+
+  @Schema(description = "Matched rules and reasons of unknown components, per security account")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public List<DisposalCostDetail> disposalDetails;
+
+  /**
+   * Net proceeds in security currency of the units that settle into a cash account in the currency of the security.
+   * The portfolio report converts them into the main currency together with the balance of that cash account.
+   */
+  @JsonIgnore
+  public double disposalSameCurrencyNet;
 
   /////////////////////////////////////////////////////////////
   // The following members are only for internal use
@@ -169,6 +223,22 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public Double transactionExchangeRate;
 
+  /**
+   * Unrealized gain/loss of the open margin positions in security currency, keyed by the currency of the cash account
+   * each position settles into. Closing a position books its gain/loss to the cash account of the opening transaction,
+   * which is not necessarily in the currency of the security (a CHF/JPY Forex position is priced in JPY and may settle
+   * into a CHF account). Only set for margin instruments.
+   */
+  @JsonIgnore
+  public Map<String, Double> marginGainLossBySettlementCurrency;
+
+  /**
+   * {@link #marginGainLossBySettlementCurrency} converted to main currency with the rate of the security currency, so
+   * its values add up to {@link #accountValueSecurityMC} up to rounding. Only set for margin instruments.
+   */
+  @JsonIgnore
+  public Map<String, Double> marginGainLossBySettlementCurrencyMC;
+
   /** Contains open margin position with transaction id as key TransactionsMarginOpenUnits. */
   @JsonIgnore
   private Map<Integer, TransactionsMarginOpenUnits> transactionsMarginOpenUnitsMap;
@@ -229,6 +299,10 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     return securityDeviationPercentage == null ? null : DataBusinessHelper.roundPercentage(securityDeviationPercentage);
   }
 
+  public Double getShareOfTotalPercentage() {
+    return shareOfTotalPercentage == null ? null : DataBusinessHelper.roundPercentage(shareOfTotalPercentage);
+  }
+
   public double getUnits() {
     return DataBusinessHelper.round(units);
   }
@@ -285,6 +359,41 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     return DataHelper.round(gainLossCurrencyMC, precisionMC);
   }
 
+  public Double getDisposalTransactionCost() {
+    return disposalTransactionCost == null ? null : DataHelper.round(disposalTransactionCost, precision);
+  }
+
+  public Double getDisposalTaxCost() {
+    return disposalTaxCost == null ? null : DataHelper.round(disposalTaxCost, precision);
+  }
+
+  public Double getDisposalFxCost() {
+    return disposalFxCost == null ? null : DataHelper.round(disposalFxCost, precision);
+  }
+
+  public Double getDisposalCostMC() {
+    return disposalCostMC == null ? null : DataHelper.round(disposalCostMC, precisionMC);
+  }
+
+  public Double getValueAfterDisposalMC() {
+    return valueAfterDisposalMC == null ? null : DataHelper.round(valueAfterDisposalMC, precisionMC);
+  }
+
+  /**
+   * Takes over the disposal cost estimate of the hypothetical sale. The main currency amounts follow in
+   * {@link #calcMainCurrency(double)}.
+   *
+   * @param estimate the estimate in security currency
+   */
+  public void applyDisposalEstimate(DisposalEstimate estimate) {
+    disposalTransactionCost = estimate.commission();
+    disposalTaxCost = estimate.tax();
+    disposalFxCost = estimate.fxCost();
+    disposalComplete = estimate.complete();
+    disposalDetails = estimate.details().isEmpty() ? null : estimate.details();
+    disposalSameCurrencyNet = estimate.sameCurrencyNet();
+  }
+
   /**
    * Resets position metrics for open margin calculation scenarios. Used when recalculating margin positions from
    * transaction history, ensuring clean starting state for accurate position reconstruction.
@@ -314,10 +423,14 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    */
   private void calcGainLossByPriceForMargin(final Double price) {
     double openWinLose = 0d;
+    marginGainLossBySettlementCurrency = new HashMap<>();
     for (TransactionsMarginOpenUnits tmou : transactionsMarginOpenUnitsMap.values()) {
       // TODO fix transaction cost
       if (!tmou.markForRemove) {
-        openWinLose += tmou.calcGainLossOnPositionClose(price, 0);
+        double gainLoss = tmou.calcGainLossOnPositionClose(price, 0);
+        openWinLose += gainLoss;
+        marginGainLossBySettlementCurrency.merge(tmou.openTransaction.getCashaccount().getCurrency(),
+            DataBusinessHelper.roundStandard(gainLoss), Double::sum);
       }
     }
     gainLossSecurity = DataBusinessHelper.roundStandard(gainLossSecurity + openWinLose);
@@ -343,6 +456,12 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     valueSecurityMC = valueSecurity * currencyExchangeRate;
     if (securitycurrency.isMarginInstrument()) {
       accountValueSecurityMC = accountValueSecurity * currencyExchangeRate;
+      if (marginGainLossBySettlementCurrency != null) {
+        marginGainLossBySettlementCurrencyMC = new HashMap<>();
+        marginGainLossBySettlementCurrency
+            .forEach((currency, gainLoss) -> marginGainLossBySettlementCurrencyMC.put(currency,
+                gainLoss * currencyExchangeRate));
+      }
     } else {
       accountValueSecurity = valueSecurity;
       accountValueSecurityMC = valueSecurityMC;
@@ -351,6 +470,12 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     transactionCostMC = transactionCost * currencyExchangeRate;
     taxCostMC = taxCost * currencyExchangeRate;
     excludedDivTaxMC = excludedDivTax * currencyExchangeRate;
+    if (disposalComplete != null) {
+      disposalCostMC = ((disposalTransactionCost == null ? 0.0 : disposalTransactionCost)
+          + (disposalTaxCost == null ? 0.0 : disposalTaxCost) + (disposalFxCost == null ? 0.0 : disposalFxCost))
+          * currencyExchangeRate;
+      valueAfterDisposalMC = accountValueSecurityMC - disposalCostMC;
+    }
 
     if (securitycurrency.getId() < 0) {
       // It is may be a cash account and not a real security

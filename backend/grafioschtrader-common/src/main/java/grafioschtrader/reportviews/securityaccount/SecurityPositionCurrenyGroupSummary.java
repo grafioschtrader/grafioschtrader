@@ -1,5 +1,7 @@
 package grafioschtrader.reportviews.securityaccount;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import grafiosch.common.DataHelper;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -26,6 +28,14 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
   public double groupAccountValueSecurity;
   public double groupTaxCost = 0.0;
 
+  /**
+   * Net disposal proceeds in this currency of the positions that settle into a cash account of this currency. The
+   * portfolio report adds them to the cash balance before it estimates the markup of converting that currency into the
+   * main currency.
+   */
+  @JsonIgnore
+  public double groupDisposalSameCurrencyNet;
+
   public SecurityPositionCurrenyGroupSummary(String currency, double currencyExchangeRate, int precision) {
     super(precision);
     this.currency = currency;
@@ -39,6 +49,7 @@ public class SecurityPositionCurrenyGroupSummary extends SecurityPositionGroupSu
     groupTaxCost += securityPositionSummary.taxCost;
     groupGainLossSecurity += securityPositionSummary.gainLossSecurity;
     groupTransactionCost += securityPositionSummary.transactionCost;
+    groupDisposalSameCurrencyNet += securityPositionSummary.disposalSameCurrencyNet;
   }
 
   public double getGroupGainLossSecurity() {

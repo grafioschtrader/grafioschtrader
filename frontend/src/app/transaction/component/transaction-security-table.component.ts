@@ -27,6 +27,7 @@ import { CommonModule } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { TransactionSecurityEditComponent } from './transaction-security-edit.component';
 import { StandingOrderSecurityEditComponent } from '../../standingorder/component/standing-order-security-edit.component';
+import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
 
 /**
  * Component that displays transaction data for a single security instrument in a tabular format. This component serves as a
@@ -163,6 +164,24 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
     this.setMenuItemsToActivePanel();
   }
 
+  /**
+   * Highlights the estimated tax and transaction cost of the hypothetical sale when the disposal cost estimate could
+   * not price them completely, because a fee model, a tax model or a matching rule is missing.
+   *
+   * @param position The row
+   * @param field The column
+   * @returns The highlighting style, or null for an ordinary cell
+   */
+  getCellStyle(position: SecurityTransactionPosition, field: ColumnConfig): { [key: string]: string } | null {
+    if (
+      (field.field === 'transaction.taxCost' && position.disposalTaxCostIncomplete) ||
+      (field.field === 'transaction.transactionCost' && position.disposalTransactionCostIncomplete)
+    ) {
+      return DisposalCostHelper.INCOMPLETE_STYLE;
+    }
+    return null;
+  }
+
   /** Cleanup method called when the component is destroyed. */
   ngOnDestroy(): void {
     super.destroy();
@@ -197,6 +216,10 @@ export class TransactionSecurityTableComponent extends TransactionContextMenu im
         cc.fixedCurrency = this.securityTransactionSummary.securityPositionSummary.mainCurrency;
         this.setFieldHeaderTranslation(cc);
       });
+      TransactionSecurityFieldDefinition.applySecurityCurrency(
+        this.fields,
+        this.securityTransactionSummary.securityPositionSummary.security.currency
+      );
     });
   }
 

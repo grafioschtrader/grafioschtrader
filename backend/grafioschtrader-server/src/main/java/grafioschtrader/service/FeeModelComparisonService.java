@@ -17,6 +17,7 @@ import grafioschtrader.dto.TransactionCostEstimateResult;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.repository.HoldDailyTotalJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManager;
@@ -36,6 +37,9 @@ public class FeeModelComparisonService {
 
   @Autowired
   private EntityManager entityManager;
+
+  @Autowired
+  private HoldDailyTotalJpaRepository holdDailyTotalJpaRepository;
 
   /**
    * Loads BUY/SELL transactions for the given security account and compares actual costs with the fee model estimates.
@@ -65,6 +69,7 @@ public class FeeModelComparisonService {
             : "(unnamed)";
 
     List<Transaction> transactions = loadBuySellTransactions(idSecuritycashAccount);
+    TradeTotals totals = loadTotals(sa, transactions);
 
     FeeModelComparisonResponse response = new FeeModelComparisonResponse();
     response.setPlanName(planName);
@@ -82,7 +87,7 @@ public class FeeModelComparisonService {
 
     for (Transaction tx : transactions) {
       // Counted before the zero-cost filter: a free trade still uses up an allowance.
-      TransactionCostEstimateRequest request = buildRequest(tx, plan, counter);
+      TransactionCostEstimateRequest request = buildRequest(tx, plan, counter, totals);
       counter.record(tx.getIdSecurityaccount(), tx.getSecurity().getId(), tradeDate(tx), String.valueOf(tx.getId()));
       if (tx.getTransactionCost() == null || tx.getTransactionCost() == 0.0) {
         if (excludeZeroCost) {
@@ -92,6 +97,13 @@ public class FeeModelComparisonService {
       }
 
       FeeModelComparisonDetail detail = buildDetail(tx, request);
+      String unknownTotal = unknownTotal(effectiveYaml, request);
+      if (unknownTotal != null) {
+        detail.setError(unknownTotal);
+        errors++;
+        details.add(detail);
+        continue;
+      }
 
       TransactionCostEstimateResult result;
       try {
@@ -178,6 +190,8 @@ public class FeeModelComparisonService {
    * <p>
    * {@code fixedAssets} is 0 here: the report walks years of transactions and the account value of each of those days
    * is not loaded, so a tiered model is graded against an unknown rather than against a value of the wrong day.
+   * {@code portfolioTotal} and {@code tenantTotal} are known, from the daily total value of the last day before each
+   * trade; they stay null for a trade before the first computed day.
    * </p>
    * <p>
    * The trade counts are those of the transactions walked before this one, which is why the transactions are loaded in
@@ -185,13 +199,49 @@ public class FeeModelComparisonService {
    * </p>
    */
   private TransactionCostEstimateRequest buildRequest(Transaction tx, TradingPlatformPlan plan,
-      FeeTradeCounter counter) {
+      FeeTradeCounter counter, TradeTotals totals) {
     LocalDate date = tradeDate(tx);
-    return TransactionCostEvalExEstimator.buildRequest(tx.getSecurity(), tx.getUnits() != null ? tx.getUnits() : 0.0,
-        tx.getQuotation() != null ? tx.getQuotation() : 0.0, tx.getTransactionType(), date,
-        plan == null ? null : plan.getIdTradingPlatformPlan(), 0.0,
+    TransactionCostEstimateRequest request = TransactionCostEvalExEstimator.buildRequest(tx.getSecurity(),
+        tx.getUnits() != null ? tx.getUnits() : 0.0, tx.getQuotation() != null ? tx.getQuotation() : 0.0,
+        tx.getTransactionType(), date, plan == null ? null : plan.getIdTradingPlatformPlan(), 0.0,
         tx.getCashaccount() == null ? null : tx.getCashaccount().getCurrency(),
         counter.counts(tx.getIdSecurityaccount(), tx.getSecurity().getId(), date));
+    request.setPortfolioTotal(totals.portfolio() == null ? null : totals.portfolio().totalBefore(date));
+    request.setTenantTotal(totals.tenant().totalBefore(date));
+    return request;
+  }
+
+  /**
+   * Loads the daily total value of the portfolio of the security account and of the tenant up to the last trade, once
+   * for the whole report.
+   */
+  private TradeTotals loadTotals(Securityaccount sa, List<Transaction> transactions) {
+    LocalDate toDate = transactions.isEmpty() ? LocalDate.now() : tradeDate(transactions.getLast());
+    Integer idPortfolio = sa.getPortfolio() == null ? null : sa.getPortfolio().getIdPortfolio();
+    return new TradeTotals(
+        idPortfolio == null ? null
+            : HoldDailyTotalHistory.load(holdDailyTotalJpaRepository, sa.getIdTenant(), idPortfolio, toDate),
+        HoldDailyTotalHistory.load(holdDailyTotalJpaRepository, sa.getIdTenant(), null, toDate));
+  }
+
+  /**
+   * Reports a total value the model needs but that is unknown for the trade, so that the trade counts as an error
+   * rather than being graded against 0.
+   *
+   * @return the error text, null when every total the model uses is known
+   */
+  static String unknownTotal(String yaml, TransactionCostEstimateRequest request) {
+    if (request.getPortfolioTotal() == null && yaml.contains("portfolioTotal")) {
+      return "portfolioTotal unknown: no daily total value of the portfolio before " + request.getTransactionDate();
+    }
+    if (request.getTenantTotal() == null && yaml.contains("tenantTotal")) {
+      return "tenantTotal unknown: no daily total value of the tenant before " + request.getTransactionDate();
+    }
+    return null;
+  }
+
+  /** The daily total value of the portfolio, null when the account has none, and of the tenant. */
+  private record TradeTotals(HoldDailyTotalHistory portfolio, HoldDailyTotalHistory tenant) {
   }
 
   private static LocalDate tradeDate(Transaction tx) {

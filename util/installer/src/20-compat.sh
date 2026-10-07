@@ -1,0 +1,201 @@
+gt_action() { ACTION[$1]=$2 REASON[$1]=$3; [[ "$2" != block ]] || BLOCKS=$((BLOCKS+1)); }
+gt_compatibility() {
+  local distro=${FACT[os.ID]} release=${FACT[os.VERSION_ID]} arch=${FACT[architecture]} candidate version device
+  ACTION=() REASON=() DISKS=() DISK_FREE=() DISK_NEED=()
+  BLOCKS=0
+  unset 'FACT[disk.unknown]'
+  if [[ "$distro" != debian && "$distro" != ubuntu ]]; then
+    case " ${FACT[os.ID_LIKE]} " in *' ubuntu '*) distro=ubuntu ;; *' debian '*) distro=debian ;; esac
+  fi
+  case "$distro:$release" in
+    debian:12|debian:13|ubuntu:24.04|ubuntu:26.04) gt_action platform reuse 'supported primary release' ;;
+    debian:11) gt_action platform reuse 'legacy release'; gt_note WARN legacy 'Debian 11 LTS ended 2026-08-31' ;;
+    ubuntu:22.04) gt_action platform reuse 'legacy release'; gt_note WARN legacy 'Ubuntu 22.04 standard support ends 2027-04' ;;
+    *) gt_action platform block 'unsupported or unknown distribution/release' ;;
+  esac
+  case "$arch" in amd64|arm64) gt_action architecture reuse "$arch" ;; armhf)
+    if [[ "$(date -u +%F)" < 2027-04-30 ]]; then gt_action architecture reuse armhf; gt_note WARN legacy 'armhf requires Node 22; support ends 2027-04-30'
+    else gt_action architecture block 'armhf Node 22 support ended 2027-04-30'; fi ;;
+    *) gt_action architecture block 'unsupported or unknown architecture' ;;
+  esac
+  if [[ "${FACT[init]}" == systemd ]]; then gt_action init reuse systemd; else gt_action init block 'PID 1 must be systemd'; fi
+  case "${FACT[host.class]}" in
+    classic|completed) gt_action host reuse 'existing installation; bootstrap disabled'; gt_note WARN existing './gtupdate.sh (grafioschtrader)' ;;
+    docker) gt_action host reuse 'existing Docker installation; bootstrap disabled'; gt_note WARN existing docker/update.sh ;;
+    foreign-partial|invalid-state) gt_action host block 'existing foreign pieces or invalid installer state'; gt_note WARN partial ;;
+    unknown) gt_action host block 'installation inventory UNKNOWN' ;;
+    unfinished) gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running ;;
+    *) gt_action host install 'fresh host' ;;
+  esac
+  candidate=${CANDIDATE[openjdk-$JAVA_REQUIRED-jdk-headless]:-unknown}
+  if [[ "${FACT[java.suitable]}" != absent ]]; then
+    gt_action java reuse "${FACT[java.suitable]}; preserve system alternatives"
+    version=${FACT[java.version]%%.*}
+    (( version == JAVA_REQUIRED )) || gt_note WARN unavailable 'Java newer than the tested major'
+  elif [[ "$candidate" != unknown && "$candidate" != '(none)' ]]; then
+    gt_action java install "distribution JDK candidate $candidate; preserve alternatives"
+  elif [[ "$arch" == armhf ]]; then gt_action java isolate 'Liberica JDK tarball; preserve alternatives'
+  else gt_action java install 'Temurin JDK repository; preserve alternatives'; fi
+  version=${FACT[maven.version]}
+  candidate=${CANDIDATE[maven]:-unknown}; candidate=${candidate#*:}; candidate=${candidate%%-*}
+  if gt_version_at_least "$version" 3.8; then gt_action maven reuse "${FACT[maven.path]}"
+  elif gt_version_at_least "$candidate" 3.8; then gt_action maven install "distribution Maven $candidate"
+  else gt_action maven isolate 'verified Apache Maven 3.9 tarball'; fi
+  if gt_node_satisfies "${FACT[node.version]}" "$NODE_REQUIRED"; then gt_action node reuse "${FACT[node.path]}"
+  elif [[ "${FACT[node.version]}" != absent && "${FACT[node.consumers]}" != no ]]; then
+    gt_action node isolate 'official Node tarball; other consumers must keep their runtime'
+  else gt_action node install 'isolated official Node 24 archive on amd64/arm64; Node 22 on armhf'; fi
+  if gt_version_at_least "${FACT[angular.version]}" "$CLI_REQUIRED"; then gt_action angular_cli reuse "${FACT[angular.version]}"
+  else gt_action angular_cli install "Angular CLI $CLI_REQUIRED using selected Node/npm"; fi
+  if [[ "${FACT[semver.version]}" =~ ^[0-9]+\. ]]; then gt_action semver reuse "${FACT[semver.version]}"
+  else gt_action semver install 'global npm semver using selected Node/npm'; fi
+  case "${FACT[database.vendor]}" in
+    absent)
+      gt_action mariadb install 'MariaDB server/client'
+      candidate=${CANDIDATE[mariadb-server]:-unknown}; candidate=${candidate#*:}; candidate=${candidate%%-*}
+      if gt_version_at_least "$candidate" 11.5 && [[ "${FACT[source.collation]}" != yes ]]; then
+        gt_action mariadb block 'planned connection collation initialization absent or unknown'
+      fi ;;
+    mariadb)
+      if gt_version_at_least "${FACT[database.version]}" 10.3; then gt_action mariadb reuse "${FACT[database.version]}"
+      else gt_action mariadb block 'MariaDB 10.3 or newer required'; fi
+      if gt_version_at_least "${FACT[database.version]}" 11.5 && [[ "${FACT[source.collation]}" != yes ]]; then
+        gt_action mariadb block 'planned connection collation initialization absent or unknown'
+      fi ;;
+    *) gt_action mariadb block 'Oracle MySQL or unknown database vendor' ;;
+  esac
+  case "${FACT[database.gt_tables]}" in
+    absent) gt_action database install 'create grafioschtrader database' ;;
+    0) gt_action database reuse 'empty database; confirmation required in question stage' ;;
+    unknown)
+      if [[ "${FACT[database.vendor]}" == absent ]]; then gt_action database install 'create after installing MariaDB'
+      else gt_action database block 'database contents UNKNOWN; authenticate before planning changes'; fi ;;
+    *) gt_action database block 'non-empty grafioschtrader database must not be adopted' ;;
+  esac
+  case "${FACT[database.gt_user]}" in
+    present) gt_action database_user reuse 'password must be supplied and verified later; never rotate it' ;;
+    absent) gt_action database_user install 'grafioschtrader@localhost' ;;
+    *) gt_action database_user block 'database accounts UNKNOWN until authenticated inventory' ;;
+  esac
+  if [[ "${FACT[database.vendor]}" == absent ]]; then gt_action database_user install 'create after installing MariaDB'; fi
+  gt_web_recommendation
+  version=${FACT[memory.MemTotal]}
+  if [[ "$version" =~ ^[0-9]+$ ]]; then
+    (( version >= 2000 )) || gt_note WARN memory 'backend build may be slow; swap advised'
+    (( version >= 3700 )) || gt_note WARN memory 'downloaded frontend can be newer than the backend source'
+    FACT[frontend.mode]=build; (( version >= 3700 )) || FACT[frontend.mode]=download
+    if (( version < 4000 )) && [[ "${FACT[memory.SwapTotal]}" == 0 ]]; then
+      gt_action swap install 'offer 2 GiB swap in question stage; verify btrfs support'
+      gt_disk / 2048
+    else gt_action swap reuse 'no additional swap proposed'; fi
+    if [[ "${FACT[memory.MemAvailable]}" =~ ^[0-9]+$ ]] && (( ${FACT[memory.MemAvailable]} < version / 2 )); then
+      gt_note WARN memory 'other processes use more than half of RAM'
+      FACT[memory.largest_processes]=$(gt_probe ps -eo pid,comm,rss --sort=-rss | head -n 6) || FACT[memory.largest_processes]=unknown
+    fi
+  else gt_action memory block 'RAM size UNKNOWN'; fi
+  gt_disk /home 4096
+  gt_disk /var/www 0
+  gt_disk /opt 300
+  gt_disk "${FACT[database.datadir]}" 2048
+  gt_action disk reuse 'requirements aggregated by filesystem device'
+  [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_action disk block 'disk capacity UNKNOWN'
+  for device in "${!DISK_NEED[@]}"; do
+    if (( DISK_FREE[$device] < DISK_NEED[$device] )); then gt_action disk block "device $device needs ${DISK_NEED[$device]} MiB; ${DISK_FREE[$device]} MiB free"; fi
+  done
+  # A check never authorizes a package transaction or adopts an existing installation.
+}
+
+gt_port_free() {
+  [[ "${FACT[listeners]}" != unknown ]] || return 1
+  ! awk -v port="$1" '$4 ~ (":" port "$") {found=1} END {exit !found}' <<< "${FACT[listeners]}"
+}
+gt_next_port() {
+  local port=$1
+  [[ "${FACT[listeners]}" != unknown ]] || { echo unknown; return; }
+  while (( port < 65536 )); do gt_port_free "$port" && { echo "$port"; return; }; port=$((port+1)); done
+  echo unknown
+}
+gt_proxy_port_default() {
+  local port=8081
+  [[ "${FACT[listeners]:-unknown}" != unknown ]] || { echo unknown; return; }
+  while (( port < 65536 )); do
+    if [[ "$port" != "${ANSWER[BACKEND_PORT]:-${FACT[ports.backend_primary]:-9090}}" &&
+          "$port" != "${ANSWER[BACKEND_HTTP_PORT]:-${FACT[ports.backend_http]:-8080}}" ]] && gt_port_free "$port"; then
+      echo "$port"; return
+    fi
+    port=$((port+1))
+  done
+  echo unknown
+}
+gt_web_recommendation() {
+  local owners
+  owners=$(awk '$4 ~ /:(80|443)$/ {print}' <<< "${FACT[listeners]}")
+  if [[ "${FACT[listeners]}" == unknown ]]; then gt_action web block 'port owners UNKNOWN'
+  elif [[ -n "$owners" && "$owners" != *nginx* && "$owners" != *apache2* ]]; then
+    gt_action web reuse 'foreign proxy owns 80/443; choose proxy topology or no web integration later'
+  elif [[ "$owners" == *nginx* && "$owners" != *apache2* ]]; then gt_action web reuse nginx
+  elif [[ "$owners" == *apache2* && "$owners" != *nginx* ]]; then gt_action web reuse apache2
+  elif [[ "${FACT[web.nginx]}" != absent && "${FACT[web.apache2]}" == absent ]]; then gt_action web reuse nginx
+  elif [[ "${FACT[web.apache2]}" != absent && "${FACT[web.nginx]}" == absent ]]; then gt_action web reuse apache2
+  else gt_action web install 'selection required; default nginx'; fi
+  FACT[ports.backend_primary]=$(gt_next_port 9090)
+  FACT[ports.backend_http]=$(gt_next_port 8080)
+  if [[ "${FACT[ports.backend_primary]}" == "${FACT[ports.backend_http]}" && "${FACT[ports.backend_primary]}" != unknown ]]; then
+    FACT[ports.backend_primary]=$(gt_next_port "$((${FACT[ports.backend_primary]}+1))")
+  fi
+  FACT[ports.proxy_http]=$(gt_proxy_port_default)
+  return 0
+}
+
+gt_report_rows() {
+  local title=$1 row
+  shift
+  printf '\n[%s]\n' "$title"
+  for row in "$@"; do gt_safe "$row"; printf '\n'; done
+}
+gt_report() {
+  local key
+  gt_message title
+  gt_message facts
+  while IFS= read -r key; do
+    printf '%s=' "$key"; gt_safe "${FACT[$key]}"; printf '\n'
+  done < <(printf '%s\n' "${!FACT[@]}" | LC_ALL=C sort)
+  gt_report_rows JDKs "${JDKS[@]}"
+  gt_report_rows disks "${DISKS[@]}"
+  gt_report_rows consumers "${CONSUMERS[@]}"
+  gt_report_rows web "${WEB[@]}"
+  gt_report_rows certificates "${CERTS[@]}"
+  gt_report_rows network "${NETWORK[@]}"
+  printf '\n'; gt_message actions
+  BLOCKS=0
+  while IFS= read -r key; do
+    [[ "${ACTION[$key]}" != block ]] || BLOCKS=$((BLOCKS+1))
+    printf '%-18s %-8s ' "$key" "${ACTION[$key]}"; gt_safe "${REASON[$key]}"; printf '\n'
+  done < <(printf '%s\n' "${!ACTION[@]}" | LC_ALL=C sort)
+  printf '\n'; gt_message notes
+  for key in "${NOTES[@]}"; do gt_safe "$key"; printf '\n'; done | LC_ALL=C sort -u
+  gt_message footer "$BLOCKS"
+  gt_toolchain_guidance
+}
+gt_inventory() {
+  gt_source_revision
+  gt_system
+  gt_packages
+  gt_installation
+  gt_java
+  gt_runtimes
+  gt_consumers
+  gt_database
+  gt_network
+  gt_web
+  gt_dynamic_dns
+}
+gt_check() {
+  gt_inventory
+  gt_compatibility
+  gt_report
+  (( BLOCKS == 0 )) || return 2
+}
+
+# Question definitions contain no shell expressions. Conditions, defaults and validation are shared
+# by the plain renderer and the planner; future front ends must use these same functions.

@@ -95,7 +95,7 @@ export abstract class SecurityaccountGroupBaseDynamic<S> extends Securityaccount
 
     spdgs.securityPositionGroupSummaryList.forEach((spgs: SecurityPositionDynamicGroupSummary<AssetclassType>) => {
       labels.push(this.translatedGroupValues[spgs.groupField]);
-      valuesGross.push((spgs.groupAccountValueSecurityMC / spdgs.grandAccountValueSecurityMC) * 100);
+      valuesGross.push(spgs.groupShareOfTotalPercentage);
       const enumGroup = (<any>AssetclassType)[spgs.groupField];
       if (enumGroup === AssetclassType.CURRENCY_FOREIGN || enumGroup === AssetclassType.CURRENCY_CASH) {
         valuesNet.push(spgs.groupAccountValueSecurityMC);

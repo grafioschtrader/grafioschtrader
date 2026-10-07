@@ -20,8 +20,9 @@ import grafiosch.repository.ProposeUserTaskJpaRepository;
 import grafiosch.rest.RequestMappings;
 import grafiosch.security.SecurityConfig;
 import grafiosch.security.filter.StatelessAuthenticationFilter;
-import grafiosch.security.filter.TenantContextAccessFilter;
 import grafiosch.security.filter.StatelessLoginFilter;
+import grafiosch.security.filter.TenantContextAccessFilter;
+import grafiosch.service.LoginAttemptServiceIpAddress;
 import grafiosch.service.UserService;
 
 /**
@@ -43,7 +44,8 @@ public class SecurityIntegrationConfig {
   SecurityFilterChain filterChain(HttpSecurity http, IntegrationTokenAuthenticationService tokenAuthentication,
       UserService userService, AuthenticationManager authenticationManager,
       ProposeUserTaskJpaRepository proposeUserTaskJpaRepository, MessageSource messages,
-      @Value("${gt.limit.request}") boolean limitRequest) throws Exception {
+      LoginAttemptServiceIpAddress loginAttemptServiceIpAddress, @Value("${gt.limit.request}") boolean limitRequest)
+      throws Exception {
     http.csrf(csrf -> csrf.disable());
     http.authorizeHttpRequests(authz -> authz
         .requestMatchers(HttpMethod.GET, "/api/integration-info", "/api/actuator/**", "/swagger-ui/**", "/api-docs/**")
@@ -55,8 +57,10 @@ public class SecurityIntegrationConfig {
         .requestMatchers(HttpMethod.GET, RequestMappings.M2M_API + "**").permitAll()
         .requestMatchers(HttpMethod.POST, RequestMappings.M2M_API + "**").permitAll());
     SecurityConfig.configureGlobalParameters(http);
-    http.addFilterBefore(new StatelessLoginFilter("/api/login", tokenAuthentication, userService, authenticationManager,
-        proposeUserTaskJpaRepository, messages), UsernamePasswordAuthenticationFilter.class);
+    http.addFilterBefore(
+        new StatelessLoginFilter("/api/login", tokenAuthentication, userService, authenticationManager,
+            proposeUserTaskJpaRepository, messages, loginAttemptServiceIpAddress),
+        UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(new StatelessAuthenticationFilter(tokenAuthentication, messages, userService, limitRequest),
         UsernamePasswordAuthenticationFilter.class);
     // Mirrors SecurityGTConfig: a token naming a tenant the user may no longer use is rejected on every request, with

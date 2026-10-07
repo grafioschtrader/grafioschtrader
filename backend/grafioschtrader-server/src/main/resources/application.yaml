@@ -84,7 +84,7 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0.10.0
   datasource:
-    driver-class-name: org.mariadb.jdbc.Driver  
+    driver-class-name: org.mariadb.jdbc.Driver
   jackson:
     serialization:
       FAIL_ON_EMPTY_BEANS: false

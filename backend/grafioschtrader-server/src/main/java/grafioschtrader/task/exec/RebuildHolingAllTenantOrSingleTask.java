@@ -13,6 +13,7 @@ import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
+import grafioschtrader.service.HoldDailyTotalMarker;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
@@ -32,6 +33,9 @@ public class RebuildHolingAllTenantOrSingleTask implements ITask {
   @Autowired
   private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
+  @Autowired
+  private HoldDailyTotalMarker holdDailyTotalMarker;
+
   @Override
   public ITaskType getTaskType() {
     return TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT;
@@ -49,10 +53,12 @@ public class RebuildHolingAllTenantOrSingleTask implements ITask {
       holdSecurityaccountSecurityRepository.createSecurityHoldingsEntireForAllTenant();
       holdCashaccountDepositJpaRepository.createCashaccountDepositTimeFrameForAllTenant();
       holdCashaccountBalanceJpaRepository.createCashaccountBalanceEntireForAllTenants();
+      holdDailyTotalMarker.markAllDirtyInFull();
     } else {
       holdSecurityaccountSecurityRepository.createSecurityHoldingsEntireByTenant(idTenant);
       holdCashaccountDepositJpaRepository.createCashaccountDepositTimeFrameByTenant(idTenant);
       holdCashaccountBalanceJpaRepository.createCashaccountBalanceEntireByTenant(idTenant);
+      holdDailyTotalMarker.markDirtyInFull(idTenant);
     }
   }
 

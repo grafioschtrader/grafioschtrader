@@ -54,3 +54,13 @@ export const DASHBOARD_CONFIG_SUMMARIES = new InjectionToken<Record<string, Colu
     factory: () => ({})
   }
 );
+
+/**
+ * Widget types whose card offers a maximize button, letting it take over the whole dashboard area for a while. Only a
+ * card that gains from the space - a chart, for instance - is worth listing; a renderer of a listed type receives a
+ * `maximized` input next to `result`. None of the library widgets is maximizable.
+ */
+export const DASHBOARD_MAXIMIZABLE = new InjectionToken<ReadonlySet<string>>('DASHBOARD_MAXIMIZABLE', {
+  providedIn: 'root',
+  factory: () => new Set<string>()
+});

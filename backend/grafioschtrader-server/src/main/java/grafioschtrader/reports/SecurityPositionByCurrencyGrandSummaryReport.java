@@ -48,6 +48,7 @@ public class SecurityPositionByCurrencyGrandSummaryReport extends SecurityPositi
     for (final Map.Entry<String, SecurityPositionCurrenyGroupSummary> ospcs : currencyTotalMap.entrySet()) {
       securityPositionGrandSummary.calcGrandTotal(ospcs.getValue());
     }
+    securityPositionGrandSummary.calcShareOfTotalPercentages();
 
     return securityPositionGrandSummary;
   }

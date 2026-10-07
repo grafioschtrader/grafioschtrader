@@ -169,6 +169,8 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       DynamicFieldHelper.createFieldSelectStringHeqF('mic', false),
       DynamicFieldHelper.createFieldSelectStringHeqF('currency', false),
       DynamicFieldHelper.createFieldInputNumberHeqF('fixedAssets', false, 12, 2, false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('portfolioTotal', false, 12, 2, false),
+      DynamicFieldHelper.createFieldInputNumberHeqF('tenantTotal', false, 12, 2, false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('specInvestInstrument', false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('categoryType', false),
       DynamicFieldHelper.createFieldSelectNumberHeqF('tradeDirection', false),
@@ -292,6 +294,8 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
       mic: this.configObject.mic.formControl.value || null,
       currency: this.configObject.currency.formControl.value || null,
       fixedAssets: this.configObject.fixedAssets.formControl.value,
+      portfolioTotal: this.configObject.portfolioTotal.formControl.value,
+      tenantTotal: this.configObject.tenantTotal.formControl.value,
       tradeDirection: this.configObject.tradeDirection.formControl.value,
       settlementCurrency: this.configObject.settlementCurrency.formControl.value || null,
       tradesInMonth: this.configObject.tradesInMonth.formControl.value,
@@ -381,6 +385,20 @@ export class FeeModelEditComponent extends SimpleEditBase implements OnInit {
         insertText: 'fixedAssets',
         detail: 'variable (numeric)',
         documentation: 'Total portfolio/account value for tier determination'
+      },
+      {
+        label: 'portfolioTotal',
+        insertText: 'portfolioTotal',
+        detail: 'variable (numeric)',
+        documentation:
+          'Total value (securities, cash balance, closed margin results) of the portfolio of the security account on the last day before the trade, in the portfolio currency'
+      },
+      {
+        label: 'tenantTotal',
+        insertText: 'tenantTotal',
+        detail: 'variable (numeric)',
+        documentation:
+          'Total value of all portfolios of the tenant on the last day before the trade, in the tenant currency'
       },
       {
         label: 'tradeDirection',

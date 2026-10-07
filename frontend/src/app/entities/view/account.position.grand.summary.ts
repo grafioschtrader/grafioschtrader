@@ -13,6 +13,9 @@ export class AccountPositionGrandSummary {
   grandAccountFeesMC: number;
   grandAccountInterestMC: number;
   grandExcludedDivTaxMC: number;
+  grandDisposalCostMC?: number;
+  grandValueAfterDisposalMC?: number;
+  grandDisposalComplete?: boolean;
 
   /** While this is not empty every grand total above excludes the listed currencies and is therefore incomplete. */
   missingExchangeRates: MissingExchangeRate[];

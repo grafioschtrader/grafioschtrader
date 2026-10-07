@@ -1,4 +1,7 @@
 import { IGlobalMenuAttach } from '../../lib/mainmenubar/component/iglobal.menu.attach';
+import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
+import { DisposalCostHelper } from '../../shared/helper/disposal.cost.helper';
+import { SecurityPositionGroupSummary } from '../../entities/view/security.position.group.summary';
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { SecurityPositionDynamicGroupSummary } from '../../entities/view/security.position.dynamic.group.summary';
 import { Directive, ElementRef, Injector, ViewChild } from '@angular/core';
@@ -274,9 +277,53 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
    */
   getCellStyle(positionSummary: SecurityPositionSummary, field: ColumnConfig): { [key: string]: string } {
     const widthStyle = field.width ? { 'flex-basis': '0 0 ' + field.width + 'px' } : {};
+    if (DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && positionSummary?.disposalComplete === false) {
+      return { ...widthStyle, ...DisposalCostHelper.INCOMPLETE_STYLE };
+    }
     return field.field === 'closePrice' && positionSummary?.closePriceOrigin === LastpriceOrigin.HISTORY_INTERPOLATED
       ? { ...widthStyle, 'background-color': 'rgba(234, 179, 8, 0.30)' }
       : widthStyle;
+  }
+
+  /**
+   * Highlights the disposal cost total of a group whose estimate is incomplete.
+   *
+   * @param field - Column of the group row
+   * @param group - Group summary of that row
+   * @returns The highlighting style or an empty style
+   */
+  getGroupCellStyle(field: ColumnConfig, group: SecurityPositionGroupSummary): { [key: string]: string } {
+    return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && group?.groupDisposalComplete === false
+      ? DisposalCostHelper.INCOMPLETE_STYLE
+      : {};
+  }
+
+  /**
+   * Highlights the disposal cost grand total when the estimate of any position is incomplete.
+   *
+   * @param field - Column of the footer row
+   * @returns The highlighting style or an empty style
+   */
+  getGrandCellStyle(field: ColumnConfig): { [key: string]: string } {
+    return DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) &&
+      this.securityPositionSummary?.grandDisposalComplete === false
+      ? DisposalCostHelper.INCOMPLETE_STYLE
+      : {};
+  }
+
+  /**
+   * Tooltip of a position cell: for the disposal cost columns the matched rules and the reasons of unknown parts,
+   * otherwise the displayed value.
+   *
+   * @param positionSummary - The position of the row
+   * @param field - The column
+   * @returns The tooltip text
+   */
+  getCellTooltip(positionSummary: SecurityPositionSummary, field: ColumnConfig): string {
+    if (DisposalCostHelper.DISPOSAL_FIELDS.includes(field.field) && positionSummary?.disposalDetails) {
+      return DisposalCostHelper.getDetailsText(positionSummary.disposalDetails, this.translateService, this.gps);
+    }
+    return this.getValueByPath(positionSummary, field);
   }
 
   getInstrumentIcon(securityPositionSummary: SecurityPositionSummary): string {
@@ -380,8 +427,46 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
       )
     );
 
+    this.addDisposalCostColumns();
+
+    this.addColumnFeqH(DataType.NumericRaw, 'shareOfTotalPercentage', true, true, {
+      width: 60,
+      templateName: 'greenRed',
+      columnGroupConfigs: [
+        new ColumnGroupConfig('groupShareOfTotalPercentage'),
+        new ColumnGroupConfig('grandShareOfTotalPercentage')
+      ]
+    });
+
     this.securityaccountGroupBase.extendColumns(this.internalColumnConfigs);
     this.fields.filter((cc) => cc.dataType === DataType.Numeric).map((cc) => (cc.templateName = 'greenRed'));
+  }
+
+  /**
+   * Adds the estimated disposal costs of the hypothetical sale and the value after them, only when the global parameter
+   * gt.disposal.cost.estimate and the switch of the tenant are both on.
+   */
+  private addDisposalCostColumns(): void {
+    if (this.injector?.get(GlobalparameterGTService).useDisposalCostEstimate()) {
+      this.internalColumnConfigs.push(
+        this.addColumnFeqH(DataType.Numeric, 'disposalCostMC', true, true, {
+          width: 80,
+          columnGroupConfigs: [
+            new ColumnGroupConfig('groupDisposalCostMC'),
+            new ColumnGroupConfig('grandDisposalCostMC')
+          ]
+        })
+      );
+      this.internalColumnConfigs.push(
+        this.addColumnFeqH(DataType.Numeric, 'valueAfterDisposalMC', true, true, {
+          width: 100,
+          columnGroupConfigs: [
+            new ColumnGroupConfig('groupValueAfterDisposalMC'),
+            new ColumnGroupConfig('grandValueAfterDisposalMC')
+          ]
+        })
+      );
+    }
   }
 
   protected getDataToView(data: SecurityPositionGrandSummary) {
@@ -440,7 +525,11 @@ export abstract class SecurityaccountBaseTable extends TableConfigBase implement
     return optionalParameters;
   }
 
-  private navigateToChartRoute() {
+  /**
+   * Opens the chart of this report in the lower display area. The general purpose chart requests its definition by the
+   * component id of this report; a report with a chart component of its own overrides this.
+   */
+  protected navigateToChartRoute(): void {
     !this.subscriptionRequestFromChart && this.prepareChartDataWithRequest();
     this.router.navigate([
       BaseSettings.MAINVIEW_KEY + '/',

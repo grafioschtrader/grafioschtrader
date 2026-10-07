@@ -25,6 +25,7 @@ import grafioschtrader.reports.AccountPositionGroupSummaryReport;
 import grafioschtrader.reports.SecurityDividendsReport;
 import grafioschtrader.reports.SecurityTransactionCostReport;
 import grafioschtrader.reportviews.account.AccountPositionGrandSummary;
+import grafioschtrader.reportviews.securitydividends.SecurityDividendsChart;
 import grafioschtrader.reportviews.securitydividends.SecurityDividendsGrandTotal;
 import grafioschtrader.reportviews.transactioncost.TransactionCostGrandSummary;
 import grafioschtrader.repository.PortfolioJpaRepository;
@@ -111,6 +112,19 @@ public class PortfolioResource extends UpdateCreateDeleteWithTenantResource<Port
       @Parameter(description = "List of cash accounts Ids", required = true) @RequestParam() final List<Integer> idsCashaccount) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     return new ResponseEntity<>(securityDividendsReport.getSecurityDividendsGrandTotalByTenant(user.getIdTenant(),
+        idsSecurityaccount, idsCashaccount), HttpStatus.OK);
+  }
+
+  @Operation(summary = "Returns the income and costs of the dividends report aggregated for charts", description = """
+      Dividends, bond interest, cash account interest, withholding tax, fees and finance costs per year, per month and
+      per asset class in the main currency. Uses the same transactions and exchange rates as /dividends.""", tags = {
+      Portfolio.TABNAME })
+  @GetMapping(value = "/dividendschart", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<SecurityDividendsChart> getDividendsChartByTenant(
+      @Parameter(description = "List of security accounts Ids", required = true) @RequestParam() final List<Integer> idsSecurityaccount,
+      @Parameter(description = "List of cash accounts Ids", required = true) @RequestParam() final List<Integer> idsCashaccount) {
+    final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    return new ResponseEntity<>(securityDividendsReport.getSecurityDividendsChartByTenant(user.getIdTenant(),
         idsSecurityaccount, idsCashaccount), HttpStatus.OK);
   }
 

@@ -213,7 +213,8 @@ public interface HoldSecurityaccountSecurityJpaRepository
   //@formatter:off
   /**
    * Retrieves daily aggregated tenant holdings for the specified tenant and date range.
-   * - Calculates aggregated values of security positions, margin gains, and market risk when all required quotes are available.
+   * - Calculates aggregated values of security positions, margin gains, and security risk (market value multiplied by
+   *   the leverage factor of the security, as in the security account reports) when all required quotes are available.
    * - Summarizes cash deposits, dividends, interest, and fees (negated) from tenant cash account balances.
    * - Applies currency conversion to tenant currency using historical quotes.
    * - Includes external cash transfers to compute net gain per day.
@@ -242,7 +243,8 @@ public interface HoldSecurityaccountSecurityJpaRepository
   //@formatter:off
   /**
    * Retrieves daily aggregated portfolio holdings for the specified portfolio and date range.
-   * - Calculates security position values, margin gains, and market risk when all required quotes are available.
+   * - Calculates security position values, margin gains, and security risk (market value multiplied by the leverage
+   *   factor of the security, as in the security account reports) when all required quotes are available.
    * - Summarizes cash deposits, dividends, interest, and fees (negated) from cash account balances.
    * - Applies currency conversion to portfolio currency using historical quotes.
    * - Includes external cash transfers to compute net gain per day.

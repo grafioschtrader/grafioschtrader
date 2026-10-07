@@ -83,7 +83,7 @@ public class FxMarkupPreviewService {
   }
 
   /** Does not create a pair or download quotes. Either stored direction is accepted. */
-  private Double close(String from, String to, LocalDate date) {
+  Double close(String from, String to, LocalDate date) {
     var wanted = DataBusinessHelper.getCurrencypairWithSetOfFromAndTo(from, to);
     for (var pair : pairs.findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency(wanted.getFromCurrency(),
         wanted.getToCurrency())) {

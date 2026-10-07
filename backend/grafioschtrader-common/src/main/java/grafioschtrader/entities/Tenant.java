@@ -176,6 +176,13 @@ public class Tenant extends TenantBase implements Serializable {
   @Column(name = "fee_interest_fx_at_cut_off_date")
   private boolean feeInterestFxAtCutOffDate;
 
+  @Schema(description = """
+      Opt-out of the disposal cost estimate of the hypothetical sale. The estimate and its report columns are effective
+      only while this flag and the global parameter gt.disposal.cost.estimate are both on; the flag is offered to the
+      user only while the global parameter is on. A simulation tenant follows the flag of its main tenant.""")
+  @Column(name = "disposal_cost_estimate")
+  private boolean disposalCostEstimate = true;
+
   @JsonCreator
   public Tenant() {
   }
@@ -294,6 +301,14 @@ public class Tenant extends TenantBase implements Serializable {
     this.feeInterestFxAtCutOffDate = feeInterestFxAtCutOffDate;
   }
 
+  public boolean isDisposalCostEstimate() {
+    return disposalCostEstimate;
+  }
+
+  public void setDisposalCostEstimate(boolean disposalCostEstimate) {
+    this.disposalCostEstimate = disposalCostEstimate;
+  }
+
   public void updateThis(Tenant sourceTenant) {
     this.setTenantName(sourceTenant.getTenantName());
     this.setCurrency(sourceTenant.getCurrency());
@@ -302,6 +317,7 @@ public class Tenant extends TenantBase implements Serializable {
     this.setCountry(sourceTenant.getCountry());
     this.setUseGtImportTemplates(sourceTenant.isUseGtImportTemplates());
     this.setFeeInterestFxAtCutOffDate(sourceTenant.isFeeInterestFxAtCutOffDate());
+    this.setDisposalCostEstimate(sourceTenant.isDisposalCostEstimate());
   }
 
   @Override

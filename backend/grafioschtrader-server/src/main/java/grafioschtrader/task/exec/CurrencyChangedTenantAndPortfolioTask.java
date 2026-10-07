@@ -14,6 +14,7 @@ import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
 import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
+import grafioschtrader.service.HoldDailyTotalMarker;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.types.TaskTypeExtended;
@@ -39,6 +40,9 @@ public class CurrencyChangedTenantAndPortfolioTask implements ITask {
   @Autowired
   private HoldCashaccountBalanceJpaRepository holdCashaccountBalanceJpaRepository;
 
+  @Autowired
+  private HoldDailyTotalMarker holdDailyTotalMarker;
+
   @Override
   public ITaskType getTaskType() {
     return TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_AND_PORTFOLIO;
@@ -56,6 +60,7 @@ public class CurrencyChangedTenantAndPortfolioTask implements ITask {
       holdSecurityaccountSecurityRepository.createSecurityHoldingsEntireByTenant(idTenant);
       holdCashaccountDepositJpaRepository.createCashaccountDepositTimeFrameByTenant(idTenant);
       holdCashaccountBalanceJpaRepository.createCashaccountBalanceEntireByTenant(idTenant);
+      holdDailyTotalMarker.markDirtyInFull(idTenant);
     }
   }
 

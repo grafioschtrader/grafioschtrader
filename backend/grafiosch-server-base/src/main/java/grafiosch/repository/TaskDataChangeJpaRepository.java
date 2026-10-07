@@ -30,6 +30,18 @@ public interface TaskDataChangeJpaRepository extends JpaRepository<TaskDataChang
   Optional<TaskDataChange> findByIdTaskAndIdEntityAndProgressStateType(byte idTask, Integer idEntity,
       byte progressStateType);
 
+  /**
+   * Whether a task of the given type for the given entity is in the given state. Unlike
+   * {@link #findByIdTaskAndIdEntityAndProgressStateType(byte, Integer, byte)} it does not fail when several such tasks
+   * exist, which concurrent enqueuing can produce. A null {@code idEntity} matches the tasks without an entity.
+   *
+   * @param idTask            the task type value
+   * @param idEntity          the entity the task is for, or null for the tasks without an entity
+   * @param progressStateType the progress state, normally waiting
+   * @return true when at least one such task exists
+   */
+  boolean existsByIdTaskAndIdEntityAndProgressStateType(byte idTask, Integer idEntity, byte progressStateType);
+
   @Transactional
   void removeByIdTaskDataChangeAndProgressStateTypeNot(Integer idTaskDataChange, byte progressStateType);
 

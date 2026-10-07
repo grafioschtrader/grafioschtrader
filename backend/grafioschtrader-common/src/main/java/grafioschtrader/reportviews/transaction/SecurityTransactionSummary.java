@@ -6,6 +6,7 @@ import java.util.Map;
 
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -59,6 +60,21 @@ public class SecurityTransactionSummary {
     } else {
       transactionPositionList.add(new SecurityTransactionPosition(transaction, securityPositionSummary));
     }
+  }
+
+  /**
+   * Adds the position of a hypothetical sale whose costs were estimated, marking the cost components that are
+   * incomplete so the client can highlight them.
+   *
+   * @param transaction the hypothetical sale, already carrying the known estimated costs
+   * @param estimate    the disposal cost estimate the costs were taken from
+   */
+  public void createAndAddPositionGainLoss(Transaction transaction, DisposalEstimate estimate) {
+    SecurityTransactionPosition position = new SecurityTransactionPosition(transaction, securityPositionSummary);
+    position.disposalTransactionCostIncomplete = !estimate.commissionComplete();
+    position.disposalTaxCostIncomplete = !estimate.taxComplete();
+    position.disposalDetails = estimate.details().isEmpty() ? null : estimate.details();
+    transactionPositionList.add(position);
   }
 
   /**

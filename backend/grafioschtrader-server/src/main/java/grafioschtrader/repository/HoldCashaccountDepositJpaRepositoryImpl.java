@@ -27,6 +27,7 @@ import grafioschtrader.repository.HoldCashaccountDepositJpaRepository.Cashaccoun
 import grafioschtrader.repository.helper.HoldingsHelper;
 import grafioschtrader.repository.helper.TenantHoldRebuildRunner;
 import grafioschtrader.repository.helper.TransactionPreImage;
+import grafioschtrader.service.HoldDailyTotalMarker;
 import grafioschtrader.types.TransactionType;
 
 /**
@@ -72,6 +73,9 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
 
   @Autowired
   private TransactionJpaRepository transactionJpaRepository;
+
+  @Autowired
+  private HoldDailyTotalMarker holdDailyTotalMarker;
 
   @Override
   public void createCashaccountDepositTimeFrameForAllTenant() {
@@ -180,6 +184,12 @@ public class HoldCashaccountDepositJpaRepositoryImpl implements HoldCashaccountD
       }
     }
     holdCashaccountDepositJpaRepository.saveAll(holdCashaccountList);
+    // The deposits feed the external cash transfers of hold_daily_total. The earliest replayed transaction of each
+    // cash account is the first day that changed; per tenant the earliest of those counts.
+    transactions.stream()
+        .collect(Collectors.toMap(Transaction::getIdTenant, Transaction::getTransactionDate,
+            (d1, d2) -> d1.isBefore(d2) ? d1 : d2))
+        .forEach(holdDailyTotalMarker::markDirty);
   }
 
   /**

@@ -3,12 +3,14 @@ package grafioschtrader.instrument;
 import java.util.List;
 import java.util.Map;
 
+import grafiosch.common.DataHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.config.NegativeIdNumberCreater;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.DateTransactionCurrencypairMap;
+import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.reportviews.transaction.SecurityTransactionSummary;
 import grafioschtrader.types.AssetclassType;
@@ -131,6 +133,21 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   void createHypotheticalSellTransaction(SecurityPositionSummary securityPositionSummary, double lastPrice,
       Map<Integer, List<Securitysplit>> securitysplitMap, DateTransactionCurrencypairMap dateCurrencyMap,
       SecurityTransactionSummary securityTransactionSummary, NegativeIdNumberCreater negativeIdNumberCreater) {
+    createHypotheticalSellTransaction(securityPositionSummary, lastPrice, securitysplitMap, dateCurrencyMap,
+        securityTransactionSummary, negativeIdNumberCreater, null);
+  }
+
+  /**
+   * Like {@link #createHypotheticalSellTransaction(SecurityPositionSummary, double, Map, DateTransactionCurrencypairMap,
+   * SecurityTransactionSummary, NegativeIdNumberCreater)}, but the sale carries the estimated commission and tax, so
+   * its gain or loss is the one after these costs. The cash account amount is reduced by them accordingly.
+   *
+   * @param disposalEstimate the estimated costs of the sale in security currency, null for a sale without costs
+   */
+  void createHypotheticalSellTransaction(SecurityPositionSummary securityPositionSummary, double lastPrice,
+      Map<Integer, List<Securitysplit>> securitysplitMap, DateTransactionCurrencypairMap dateCurrencyMap,
+      SecurityTransactionSummary securityTransactionSummary, NegativeIdNumberCreater negativeIdNumberCreater,
+      DisposalEstimate disposalEstimate) {
 
     if (securityPositionSummary.units != 0.0) {
       final double beforeUnits = securityPositionSummary.units;
@@ -138,12 +155,27 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
           securityPositionSummary, lastPrice, negativeIdNumberCreater);
 
       transaction.setUnits(securityPositionSummary.units);
+      if (disposalEstimate != null) {
+        // Rounded like a booked cost, so the sale shows and deducts the amounts the currency can actually carry
+        Double commission = disposalEstimate.commission() == null ? null
+            : DataHelper.round(disposalEstimate.commission(), securityPositionSummary.precision);
+        Double tax = disposalEstimate.tax() == null ? null
+            : DataHelper.round(disposalEstimate.tax(), securityPositionSummary.precision);
+        transaction.setTransactionCost(commission);
+        transaction.setTaxCost(tax);
+        transaction.setCashaccountAmount(transaction.getCashaccountAmount() - (commission == null ? 0.0 : commission)
+            - (tax == null ? 0.0 : tax));
+      }
       calcTransactionPosition(transaction, securityPositionSummary, false, securitysplitMap, false, dateCurrencyMap,
           negativeIdNumberCreater);
       securityPositionSummary.units = beforeUnits;
       securityPositionSummary.valueSecurity = beforeUnits * lastPrice;
       if (securityTransactionSummary != null) {
-        securityTransactionSummary.createAndAddPositionGainLoss(transaction);
+        if (disposalEstimate == null) {
+          securityTransactionSummary.createAndAddPositionGainLoss(transaction);
+        } else {
+          securityTransactionSummary.createAndAddPositionGainLoss(transaction, disposalEstimate);
+        }
       }
     }
   }

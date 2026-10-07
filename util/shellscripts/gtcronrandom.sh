@@ -5,7 +5,7 @@
 # Grafioschtrader ships every installation with the same cron defaults, so without a change
 # every GT instance world-wide queries the free public data providers (Yahoo, Finnhub,
 # Boursorama, ...) within the same minute. This script picks one random anchor between 05:00
-# and 07:00 LOCAL time and moves the whole morning chain there, as long as all of its
+# and 06:53 LOCAL time and moves the whole morning chain there, as long as all of its
 # properties are still at the values Grafioschtrader shipped. A value that somebody changed
 # is never overwritten - which also makes the script idempotent, because after the first run
 # the values differ from the defaults.
@@ -34,8 +34,13 @@ DRY_RUN=false
 # gaps between the jobs are data rather than magic numbers.
 #
 # Those gaps are not cosmetic: gt.standing.order.execution needs the closing
-# prices written by gt.eod.cron.quotation, and the two checks report on what
-# the jobs before them have produced. Randomizing one key alone re-orders them.
+# prices written by gt.eod.cron.quotation, the two checks report on what the
+# jobs before them have produced, and gt.hold.daily.total.update values the
+# new prices and bookings. Randomizing one key alone re-orders them.
+#
+# An hour field may list several hours, as gt.hold.daily.total.update does with
+# its late evening run ("07,22"). Only the FIRST hour belongs to the chain and is
+# moved; the further hours are kept as they are.
 #
 # IMPORTANT: this table mirrors
 # backend/grafioschtrader-server/src/main/resources/application.properties.
@@ -48,6 +53,7 @@ CRON_KEYS=(
   "gt.standing.order.execution"
   "gt.check.inactive.dividend"
   "gt.hold.consistency.check"
+  "gt.hold.daily.total.update"
 )
 CRON_DEFAULTS=(
   "0 54 05 * * ?"
@@ -55,12 +61,13 @@ CRON_DEFAULTS=(
   "0 15 06 * * ?"
   "0 30 06 * * ?"
   "0 45 06 * * ?"
+  "0 0 07,22 * * ?"
 )
 
-# Anchor window in local time: 05:00 up to and including 06:59. The chain spans
-# 51 minutes, so its last job still starts before 08:00 local time.
+# Anchor window in local time: 05:00 up to and including 06:53. The chain spans
+# 66 minutes, so its last job still starts before 08:00 local time.
 WINDOW_START_MIN=$((5 * 60))
-WINDOW_SLOTS=120
+WINDOW_SLOTS=114
 
 usage() {
   sed -n '3,22p' "$0" | sed 's/^# \{0,1\}//'
@@ -115,11 +122,23 @@ has_commented_line() {
   grep -qE "^[[:space:]]*[#!][[:space:]]*${escaped}[[:space:]]*=" "$PROP_FILE"
 }
 
-# Cron fields are "second minute hour ...", so "0 54 05 * * ?" is 05:54.
+# Cron fields are "second minute hour ...", so "0 54 05 * * ?" is 05:54. Of an hour
+# list such as "07,22" only the first hour counts, the one belonging to the chain.
 cron_to_minutes() {
   local fields
   read -r -a fields <<< "$1"
-  echo $(( 10#${fields[2]} * 60 + 10#${fields[1]} ))
+  local hour="${fields[2]%%,*}"
+  echo $(( 10#${hour} * 60 + 10#${fields[1]} ))
+}
+
+# The hours after the first one of an hour list, with the leading comma (",22"),
+# empty for a single hour. They are carried over unchanged.
+cron_further_hours() {
+  local fields
+  read -r -a fields <<< "$1"
+  if [[ "${fields[2]}" == *,* ]]; then
+    echo ",${fields[2]#*,}"
+  fi
 }
 
 # The seconds field of the shipped default.
@@ -211,8 +230,9 @@ for i in "${!CRON_KEYS[@]}"; do
   offset=$(( $(cron_to_minutes "$default") - anchor_default_min ))
   new_utc=$(( ( anchor_utc + offset + 1440 ) % 1440 ))
   new_local=$(( ( anchor_local + offset + 1440 ) % 1440 ))
-  new_value="$(printf '%s %d %02d %s' \
-    "$(cron_seconds "$default")" $(( new_utc % 60 )) $(( new_utc / 60 )) "$(cron_tail "$default")")"
+  new_value="$(printf '%s %d %02d%s %s' \
+    "$(cron_seconds "$default")" $(( new_utc % 60 )) $(( new_utc / 60 )) "$(cron_further_hours "$default")" \
+    "$(cron_tail "$default")")"
 
   printf '  %-30s %-7s %-7s %s\n' "$key" "$(hhmm "$new_local")" "$(hhmm "$new_utc")" "$new_value"
 

@@ -44,6 +44,9 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
+import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
+import grafioschtrader.service.DisposalCostEstimator;
+import grafioschtrader.service.DisposalPositionCollector;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.types.TransactionType;
 
@@ -55,6 +58,9 @@ public class SecruityTransactionsReport {
 
   @Autowired
   protected SecurityCalcService securityCalcService;
+
+  @Autowired
+  private DisposalCostEstimator disposalCostEstimator;
 
   @Autowired
   protected TransactionJpaRepository transactionJpaRepository;
@@ -198,6 +204,32 @@ public class SecruityTransactionsReport {
       }
     }
     return securityaccountOpenPositionSecurity;
+  }
+
+  /**
+   * Opens the disposal cost estimate for the hypothetical sale of a security, when the global parameter and the tenant
+   * of the transactions switch it on. Margin instruments are never estimated.
+   *
+   * @param security         the security of the transaction list
+   * @param transactions     the transactions of the security in the scope of the list
+   * @param untilDate        the day of the hypothetical sale, null for today
+   * @param securitySplitMap the splits of the security
+   * @return the session, null when the estimate is off or does not apply
+   */
+  private DisposalCostEstimator.Session createDisposalSession(Security security, List<Transaction> transactions,
+      LocalDate untilDate, Map<Integer, List<Securitysplit>> securitySplitMap) {
+    if (security == null || security.isMarginInstrument() || transactions.isEmpty()) {
+      return null;
+    }
+    DisposalPositionCollector collector = disposalCostEstimator
+        .newCollectorIfEnabled(transactions.getFirst().getIdTenant());
+    if (collector == null) {
+      return null;
+    }
+    LocalDate saleDate = untilDate == null ? LocalDate.now() : untilDate;
+    transactions.stream().filter(t -> !t.getTransactionDate().isAfter(saleDate))
+        .forEach(t -> collector.accept(t, securitySplitMap));
+    return disposalCostEstimator.newSession(saleDate, collector);
   }
 
   /**
@@ -375,14 +407,21 @@ public class SecruityTransactionsReport {
     if ((securityTransactionSummary.securityPositionSummary.units != 0.0
         || !securityTransactionSummary.transactionPositionList.isEmpty())
         && secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
+      final DisposalCostEstimator.Session disposalSession = createDisposalSession(
+          securityTransactionSummary.securityPositionSummary.getSecurity(), transactions, untilDate,
+          securitySplitMap);
       securityJpaRepository.calcGainLossBasedOnDateOrNewestPrice(securityTransactionSummary.securityPositionSummary,
           new IPositionCloseOnLatestPrice<Security, SecurityPositionSummary>() {
 
             @Override
             public void calculatePositionClose(final SecurityPositionSummary securityPositionSummary,
                 final Double lastPrice) {
+              DisposalEstimate disposalEstimate = disposalSession == null || securityPositionSummary.units == 0.0
+                  ? null
+                  : disposalSession.estimateSell(securityPositionSummary.getSecurity(), securityPositionSummary.units,
+                      lastPrice, securityPositionSummary.usedIdSecurityaccount);
               securityCalcService.createHypotheticalSellTransaction(securityPositionSummary, lastPrice,
-                  securitySplitMap, dateCurrencyMap, securityTransactionSummary);
+                  securitySplitMap, dateCurrencyMap, securityTransactionSummary, disposalEstimate);
             }
           }, untilDate);
     }

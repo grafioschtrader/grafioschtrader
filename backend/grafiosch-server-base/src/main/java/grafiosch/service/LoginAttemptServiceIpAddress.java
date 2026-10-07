@@ -1,6 +1,13 @@
 package grafiosch.service;
 
+import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.map.PassiveExpiringMap;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import grafiosch.BaseConstants;
@@ -77,11 +84,22 @@ public class LoginAttemptServiceIpAddress {
    */
   private PassiveExpiringMap<String, Integer> attemptsIPAdressCache;
 
-  public LoginAttemptServiceIpAddress() {
+  /** Literal proxy addresses allowed to supply forwarding information; never resolved through DNS. */
+  private final Set<String> trustedProxies;
+
+  /**
+   * Creates the login counter with an explicit proxy trust boundary.
+   *
+   * @param trustedProxyAddresses comma-separated literal IPv4/IPv6 addresses; empty disables header trust
+   */
+  public LoginAttemptServiceIpAddress(
+      @Value("${g.security.login.trusted-proxies:127.0.0.1,::1}") String trustedProxyAddresses) {
+    trustedProxies = Arrays.stream(trustedProxyAddresses.split(",")).map(String::trim).filter(s -> !s.isEmpty())
+        .map(address -> InetAddress.ofLiteral(address).getHostAddress()).collect(Collectors.toUnmodifiableSet());
     attemptsIPAdressCache = new PassiveExpiringMap<>(BaseConstants.SUSPEND_IP_ADDRESS_TIME);
   }
 
-  public void loginSucceeded(HttpServletRequest request) {
+  public synchronized void loginSucceeded(HttpServletRequest request) {
     attemptsIPAdressCache.remove(getClientIP(request));
   }
 
@@ -96,7 +114,7 @@ public class LoginAttemptServiceIpAddress {
    *
    * @param request the HTTP request containing the client IP address information
    */
-  public void loginFailed(HttpServletRequest request) {
+  public synchronized void loginFailed(HttpServletRequest request) {
     String ipAddress = getClientIP(request);
     int attempts = attemptsIPAdressCache.getOrDefault(ipAddress, 0);
     attempts++;
@@ -115,54 +133,47 @@ public class LoginAttemptServiceIpAddress {
    * @param request the HTTP request containing the client IP address information
    * @return true if the IP address is blocked, false if login attempts are allowed
    */
-  public boolean isBlocked(HttpServletRequest request) {
+  public synchronized boolean isBlocked(HttpServletRequest request) {
     Integer attempts = attemptsIPAdressCache.getOrDefault(getClientIP(request), 0);
     return attempts >= BaseConstants.MAX_LOGIN_ATTEMPT;
   }
 
   /**
-   * Extracts the real client IP address from the HTTP request.
+   * Walks the forwarding chain from the direct peer toward the client, stopping at the first untrusted address. Direct
+   * HTTP and AJP clients cannot choose their counter through a header. Malformed hops fall back to the peer; equivalent
+   * IPv6 spellings use one counter. Trusted edge proxies must overwrite client-supplied headers.
    *
-   * <p>
-   * This method correctly identifies the client IP address even when requests pass through load balancers, reverse
-   * proxies, or CDNs that add forwarding headers. It prioritizes the X-Forwarded-For header when present, falling back
-   * to the direct remote address when not available.
-   * </p>
-   *
-   * <p>
-   * <strong>IP Resolution Priority:</strong>
-   * </p>
-   * <ol>
-   * <li>X-Forwarded-For header (first IP if multiple are present)</li>
-   * <li>Direct remote address from the request</li>
-   * </ol>
-   *
-   * <p>
-   * <strong>Proxy Chain Handling:</strong>
-   * </p>
-   * <p>
-   * When the X-Forwarded-For header contains multiple IP addresses (indicating a chain of proxies), the method uses the
-   * first IP address, which represents the original client. Subsequent addresses in the header represent intermediate
-   * proxies in the request chain.
-   * </p>
-   *
-   * <p>
-   * <strong>Security Considerations:</strong>
-   * </p>
-   * <p>
-   * The X-Forwarded-For header can be spoofed by malicious clients, but this method assumes the header is set by
-   * trusted infrastructure components like load balancers or reverse proxies in a properly configured environment.
-   * </p>
-   *
-   * @param request the HTTP request containing IP address information
-   * @return the client IP address as a string
+   * @param request request before any container/filter forwarding-address rewriting
+   * @return canonical client address, or the direct peer when no trustworthy chain is available
    */
   private String getClientIP(HttpServletRequest request) {
-    String xfHeader = request.getHeader("X-Forwarded-For");
-    if (xfHeader == null) {
+    String peer = literalAddress(request.getRemoteAddr());
+    if (peer == null) {
       return request.getRemoteAddr();
     }
-    return xfHeader.split(",")[0];
+    if (!trustedProxies.contains(peer)) {
+      return peer;
+    }
+    String header = String.join(",", Collections.list(request.getHeaders("X-Forwarded-For")));
+    if (header.isEmpty()) {
+      return peer;
+    }
+    String current = peer;
+    String[] hops = header.split(",", -1);
+    for (int i = hops.length - 1; i >= 0 && trustedProxies.contains(current); i--) {
+      current = literalAddress(hops[i].trim());
+      if (current == null) {
+        return peer;
+      }
+    }
+    return current;
   }
 
+  private String literalAddress(String address) {
+    try {
+      return address == null || address.contains("%") ? null : InetAddress.ofLiteral(address).getHostAddress();
+    } catch (IllegalArgumentException _) {
+      return null;
+    }
+  }
 }

@@ -93,8 +93,10 @@ export class SecurityaccountEditDynamicComponent
         dataproperty: 'tradingPlatformPlan.idTradingPlatformPlan'
       }),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateNumeric, 'activeToDate', false),
-      // Only the simulation tax estimate reads the exemption, and the simulation is part of rule-based trading
-      ...(this.gps.useAlgo() ? [DynamicFieldHelper.createFieldTriStateCheckboxHeqF('taxExemptInvestor')] : []),
+      // The exemption feeds the tax estimate of the simulation (rule-based trading) and of the disposal costs
+      ...(this.gps.useAlgo() || this.gpsGT.useDisposalCostEstimate()
+        ? [DynamicFieldHelper.createFieldTriStateCheckboxHeqF('taxExemptInvestor')]
+        : []),
       DynamicFieldHelper.createFieldTextareaInputStringHeqF('note', BaseSettings.FID_MAX_LETTERS, false),
       DynamicFieldHelper.createSubmitButton()
     ];

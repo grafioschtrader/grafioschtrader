@@ -42,6 +42,7 @@ import grafioschtrader.reports.SecurityGroupByAssetclassWithCashReport;
 import grafioschtrader.reports.SecurityGroupByBaseReport;
 import grafioschtrader.reports.SecurityPositionByCurrencyGrandSummaryReport;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionGrandSummary;
+import grafioschtrader.repository.HoldDailyTotalJpaRepository;
 import grafioschtrader.repository.SecurityaccountJpaRepository;
 import grafioschtrader.service.AlgoAccountPriorityService;
 import grafioschtrader.service.AlgoRebalancingService;
@@ -83,6 +84,9 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
 
   @Autowired
   private SecurityaccountJpaRepository securityaccountJpaRepository;
+
+  @Autowired
+  private HoldDailyTotalJpaRepository holdDailyTotalJpaRepository;
 
   @Autowired
   private SecurityPositionByCurrencyGrandSummaryReport securityPositionGrandSummaryReport;
@@ -163,20 +167,42 @@ public class SecurityaccountResource extends UpdateCreateDeleteWithTenantResourc
 
   @Operation(summary = "Estimate transaction cost from inline YAML fee model", description = """
       Resolves the unsaved document for a securities account owned by the active tenant. An empty or FX-only
-      account document inherits the plan's commissions. This preview does not save the document.""", tags = {
-      Securityaccount.TABNAME })
+      account document inherits the plan's commissions. This preview does not save the document. A portfolioTotal or
+      tenantTotal left empty is taken from the daily total value of the last day before the transaction date, for the
+      portfolio of the account and for the tenant.""", tags = { Securityaccount.TABNAME })
   @PostMapping(value = "/estimatecostyaml", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<TransactionCostEstimateResult> estimateCostFromYaml(
       @RequestBody TransactionCostEstimateRequest request) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
     try {
       var account = fxMarkupPreviewService.ownedAccount(request.getIdSecurityaccount(), user.getIdTenant());
+      fillTotals(request, account);
       var model = FeeModelResolver.resolve(account, request.getYaml());
       return ResponseEntity
           .ok(model.commissionYaml() == null ? TransactionCostEstimateResult.error("No commission model configured")
               : transactionCostEvalExEstimator.evaluateYaml(model.commissionYaml(), request));
     } catch (IllegalArgumentException e) {
       return ResponseEntity.ok(TransactionCostEstimateResult.error(e.getMessage()));
+    }
+  }
+
+  /**
+   * Completes the fee model variables portfolioTotal and tenantTotal the user left empty with the daily total value of
+   * the last day before the transaction date. A value that has not been computed stays empty, so that a rule using it
+   * reports an error instead of grading the fee against 0.
+   */
+  private void fillTotals(TransactionCostEstimateRequest request, Securityaccount account) {
+    LocalDate date = request.getTransactionDate() == null || request.getTransactionDate().isBlank()
+        ? ClientClock.today()
+        : LocalDate.parse(request.getTransactionDate());
+    if (request.getPortfolioTotal() == null && account.getPortfolio() != null) {
+      request.setPortfolioTotal(holdDailyTotalJpaRepository
+          .getLastOnOrBefore(account.getIdTenant(), account.getPortfolio().getIdPortfolio(), date.minusDays(1))
+          .totalBalanceMC());
+    }
+    if (request.getTenantTotal() == null) {
+      request.setTenantTotal(holdDailyTotalJpaRepository
+          .getLastOnOrBefore(account.getIdTenant(), null, date.minusDays(1)).totalBalanceMC());
     }
   }
 

@@ -49,6 +49,17 @@ export enum GlobalGTSessionNames {
   FORCE_CONNECTOR_MATCH = 'forceConnectorMatch',
 
   /**
+   * Whether the disposal costs of the hypothetical sale are estimated (gt.disposal.cost.estimate).
+   */
+  DISPOSAL_COST_ESTIMATE = 'disposalCostEstimate',
+
+  /**
+   * Whether this tenant keeps the disposal cost estimate switched on. Effective only together with
+   * DISPOSAL_COST_ESTIMATE.
+   */
+  TENANT_DISPOSAL_COST_ESTIMATE = 'tenantDisposalCostEstimate',
+
+  /**
    * Per-instrument editing limits (max splits / max history-quote periods) as a JSON-serialized
    * {@link MaxInstrumentLimits} object.
    */

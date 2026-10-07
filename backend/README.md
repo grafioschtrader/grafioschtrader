@@ -48,8 +48,8 @@ yet begun.
 a value by hand, convert your local time to UTC first - on a server in Central European Summer Time,
 06:20 local is `0 20 04 * * ?`.
 
-**Move the whole morning chain, not one job alone.** Three further jobs depend on the two above and
-run after them, so all five belong together:
+**Move the whole morning chain, not one job alone.** Four further jobs depend on the two above and
+run after them, so all six belong together:
 
 | Property | Purpose |
 |---|---|
@@ -58,14 +58,15 @@ run after them, so all five belong together:
 | `gt.standing.order.execution` | executes the standing orders, needs the closing prices of the price run |
 | `gt.check.inactive.dividend` | checks for inactive instruments and missing dividends |
 | `gt.hold.consistency.check` | compares the `hold_*` tables against the transactions and reports drift |
+| `gt.hold.daily.total.update` | stores the daily total value per client and portfolio; its second hour, a late evening run after the US close, is not part of the chain and is not moved |
 
 If you move only `gt.eod.cron.quotation`, the standing orders may be executed before the new prices
-have arrived and would then use the closing prices of the previous day. Shift all five by the same
+have arrived and would then use the closing prices of the previous day. Shift all six by the same
 amount so that their order and their spacing are preserved.
 
 **This normally happens automatically.** On the first build after an installation, `gtupbackend.sh`
-runs `util/shellscripts/gtcronrandom.sh`, which draws one random slot between 05:00 and 07:00 local
-time and moves the whole chain there - but only while all five properties are still at their
+runs `util/shellscripts/gtcronrandom.sh`, which draws one random slot between 05:00 and 06:53 local
+time and moves the whole chain there - but only while all six properties are still at their
 delivered values. As soon as one of them differs, the script reports this and never touches your
 schedule again. Set the environment variable `GT_CRON_RANDOMIZE=off` to switch the mechanism off, or
 run the script yourself:

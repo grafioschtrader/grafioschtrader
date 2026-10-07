@@ -1,8 +1,10 @@
 package grafioschtrader.reportviews.account;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import grafiosch.BaseConstants;
 import grafiosch.common.DataHelper;
@@ -10,6 +12,7 @@ import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.reportviews.SecuritycurrencyPositionSummary;
+import grafioschtrader.reportviews.securityaccount.DisposalCostDetail;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionCurrenyGroupSummary;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -81,6 +84,45 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
 
   @Schema(description = "Total value combining cash balance and securities value in main currency")
   public double valueMC;
+
+  @Schema(description = """
+      Known disposal costs of this account in main currency: the disposal costs of the securities attached to it plus,
+      for an account in a foreign currency, the markup of converting the cash balance and the proceeds settling in
+      that currency into the main currency. Null unless the disposal cost estimate is switched on.""")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double disposalCostMC;
+
+  @Schema(description = "Total value in main currency less the known disposal costs")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Double valueAfterDisposalMC;
+
+  @Schema(description = "False when a disposal cost component of this account or of its securities is unknown")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public Boolean disposalComplete;
+
+  @Schema(description = "Matched rule or reason of an unknown markup for the conversion into the main currency")
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public List<DisposalCostDetail> disposalDetails;
+
+  /** True when the disposal cost estimate is switched on; set together with the conversion markup. */
+  @JsonIgnore
+  private boolean disposalEstimate;
+
+  /** Markup in percent of converting this currency into the main currency, null when it is unknown. */
+  @JsonIgnore
+  private Double disposalTransferPercent;
+
+  /** Known disposal costs of the securities attached to this account in main currency. */
+  @JsonIgnore
+  private Double securitiesDisposalCostMC;
+
+  /** Completeness of the disposal costs of the securities attached to this account, null when none was estimated. */
+  @JsonIgnore
+  private Boolean securitiesDisposalComplete;
+
+  /** Net proceeds of the attached securities settling in the currency of this account. */
+  @JsonIgnore
+  private double disposalSameCurrencyNet;
 
   /**
    * The cash account entity that this position summary represents. Contains the account details, currency, portfolio
@@ -180,7 +222,32 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
       this.gainLossSecuritiesMC = securityPositionCurrenyGroupSummary.groupGainLossSecurityMC;
       this.valueSecuritiesMC = securityPositionCurrenyGroupSummary.groupAccountValueSecurityMC;
       this.excludedDivTaxMC = securityPositionCurrenyGroupSummary.groupExcludedDivTaxMC;
+      this.securitiesDisposalCostMC = securityPositionCurrenyGroupSummary.groupDisposalCostMC;
+      this.securitiesDisposalComplete = securityPositionCurrenyGroupSummary.groupDisposalComplete;
+      this.disposalSameCurrencyNet = securityPositionCurrenyGroupSummary.groupDisposalSameCurrencyNet;
     }
+  }
+
+  /**
+   * @return cash balance plus the net disposal proceeds of the securities settling in the currency of this account,
+   *         the amount a liquidation would have to convert into the main currency
+   */
+  @JsonIgnore
+  public double getDisposalTransferAmount() {
+    return cashBalance + disposalSameCurrencyNet;
+  }
+
+  /**
+   * Switches the disposal cost estimate on for this account and sets the markup of converting its currency into the
+   * main currency.
+   *
+   * @param transferPercent markup in percent, 0 for an account in the main currency, null when it is unknown
+   * @param detail          the matched rule or the reason of an unknown markup, may be null
+   */
+  public void setDisposalTransfer(Double transferPercent, DisposalCostDetail detail) {
+    disposalEstimate = true;
+    disposalTransferPercent = transferPercent;
+    disposalDetails = detail == null ? null : List.of(detail);
   }
 
   /**
@@ -192,6 +259,22 @@ public class CashaccountPositionSummary extends SecuritycurrencyPositionSummary<
   public void calcTotals(double currencyExchangeRate) {
     cashBalanceMC = DataHelper.round(cashBalance * currencyExchangeRate, BaseConstants.FID_STANDARD_FRACTION_DIGITS);
     this.valueMC = cashBalanceMC + valueSecuritiesMC;
+    if (disposalEstimate) {
+      double transferMC = disposalTransferPercent == null ? 0.0
+          : Math.max(0.0, getDisposalTransferAmount()) * disposalTransferPercent / 100.0 * currencyExchangeRate;
+      disposalCostMC = (securitiesDisposalCostMC == null ? 0.0 : securitiesDisposalCostMC) + transferMC;
+      valueAfterDisposalMC = valueMC - disposalCostMC;
+      disposalComplete = disposalTransferPercent != null
+          && (securitiesDisposalComplete == null || securitiesDisposalComplete);
+    }
+  }
+
+  public Double getDisposalCostMC() {
+    return disposalCostMC == null ? null : DataHelper.round(disposalCostMC, precisionMC);
+  }
+
+  public Double getValueAfterDisposalMC() {
+    return valueAfterDisposalMC == null ? null : DataHelper.round(valueAfterDisposalMC, precisionMC);
   }
 
   @Override

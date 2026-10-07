@@ -43,6 +43,7 @@ export const COMMON_TYPES = [
   'HOLDING_WINNERS',
   'HOLDING_LOSERS',
   'PERFORMANCE_LAST_SESSIONS',
+  'PERFORMANCE_TOTAL_CHART',
   'ALGO_MONITORING'
 ];
 
@@ -55,6 +56,18 @@ export const SETTINGS: Record<string, { field: string; min: number; max: number;
   HOLDING_LOSERS: { field: 'topN', min: 1, max: 5, edited: 5 },
   PERFORMANCE_LAST_SESSIONS: { field: 'days', min: 2, max: 10, edited: 7 }
 };
+
+/** Types whose one setting is a select of backend constants instead of a bounded number. */
+export const SELECT_SETTINGS: Record<string, { field: string; edited: string }> = {
+  PERFORMANCE_TOTAL_CHART: { field: 'range', edited: 'CHART_RANGE_3Y' }
+};
+
+/** The saved configuration a type has after the edit step of the role test. */
+export function editedConfig(type: string): Record<string, number | string> {
+  if (SETTINGS[type]) return { [SETTINGS[type].field]: SETTINGS[type].edited };
+  if (SELECT_SETTINGS[type]) return { [SELECT_SETTINGS[type].field]: SELECT_SETTINGS[type].edited };
+  return {};
+}
 
 /** Both the configured backend and the browser's proxy must lead to the isolated test database before login. */
 export async function verifyDashboardTestTarget(page: Page): Promise<void> {
@@ -134,7 +147,8 @@ export async function openConfiguration(page: Page, type: string): Promise<Locat
   const dialog = page.locator('dashboard-config .p-dialog:visible');
   await expect(dialog).toBeVisible();
   // onShow initializes the form asynchronously; filling it earlier can be overwritten by its original value.
-  await expect(dialog.locator(`#${SETTINGS[type].field}`)).toHaveValue(/\d+/);
+  if (SELECT_SETTINGS[type]) await expect(dialog.locator(`#${SELECT_SETTINGS[type].field}`)).toHaveValue(/.+/);
+  else await expect(dialog.locator(`#${SETTINGS[type].field}`)).toHaveValue(/\d+/);
   return dialog;
 }
 
@@ -160,6 +174,11 @@ export async function saveDashboard(page: Page, status = 200): Promise<Dashboard
   expect(response.status(), await response.text()).toBe(status);
   const request = response.request().postDataJSON();
   for (const widget of request.widgets as DashboardWidget[]) {
+    const select = SELECT_SETTINGS[widget.type];
+    if (select) {
+      expect(typeof widget.config[select.field], `${widget.type}.${select.field} must be a JSON string`).toBe('string');
+      continue;
+    }
     const setting = SETTINGS[widget.type];
     if (!setting) {
       expect(widget.config, `${widget.type} declares no settings`).toEqual({});

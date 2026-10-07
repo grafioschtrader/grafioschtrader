@@ -85,6 +85,9 @@ export enum TaskTypeExtended {
   /** Compares the hold tables against the transactions they are derived from and reports drift to the main admin */
   HOLD_TABLE_CONSISTENCY_CHECK = 54,
 
+  /** Brings the daily total value per tenant and portfolio in hold_daily_total up to date */
+  HOLD_DAILY_TOTAL_UPDATE = 55,
+
   // System tasks (80+ band): use oldValueNumber/oldValueString and cannot be created by a user
 
   /** Update task migrated from V_0 */
