@@ -16,6 +16,8 @@ gt_reset() {
   MODE='' ANSWERS_FILE='' TTY_STATE='' SECRET_INPUT=''
   declare -gA STATE=() PROPERTIES=() BUILD=()
   declare -gA RESULT=()
+  declare -gA BOOTSTRAP_APT=()
+  BOOTSTRAP_APPROVED=no BOOTSTRAP_WEB=''
   declare -ga PRIVATE_DIRS=() PRIVATE_FILES=()
   CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader
   CORE_REPO=/home/grafioschtrader/build/grafioschtrader
@@ -40,7 +42,7 @@ gt_message() {
     running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'; de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail fortsetzen' ;;
     memory) en='Low RAM: %s'; de='Wenig RAM: %s' ;;
     legacy) en='Legacy platform: %s'; de='Ältere Plattform: %s' ;;
-    footer) en='Check finished: %s blocking recommendations. Full application installation is not implemented yet.'; de='Prüfung beendet: %s blockierende Empfehlungen. Die vollständige Anwendungsinstallation ist noch nicht implementiert.' ;;
+    footer) en='Check finished: %s blocking recommendations. Run without a mode to review the installation plan.'; de='Prüfung beendet: %s blockierende Empfehlungen. Ohne Modus starten, um den Installationsplan zu prüfen.' ;;
     root) en='Run inventory modes as root for a complete inventory.'; de='Bestandsaufnahme für einen vollständigen Bericht als root ausführen.' ;;
     mode) en='Use --check, --dry-run, --prepare, --install-core, --install-app, --install-web or --check-mail; see --help.'; de='--check, --dry-run, --prepare, --install-core, --install-app, --install-web oder --check-mail verwenden; siehe --help.' ;;
     pipe) en='Download the script to a file before running it; piped execution is refused.'; de='Skript vor dem Ausführen als Datei speichern; Ausführung über eine Pipe wird abgelehnt.' ;;
@@ -1753,7 +1755,7 @@ gt_verify_dns() {
 gt_prepare_dns() {
   local before reply
   gt_dns_required || return 0
-  case "$MODE" in --install-core|--install-web) ;; *) return 2 ;; esac
+  case "$MODE" in --install-core|--install-web) ;; --bootstrap) gt_verify_dns; return $? ;; *) return 2 ;; esac
   if ! gt_dns_tool_available; then
     gt_text 'Missing DNS check prerequisite: dig (bind9-dnsutils). Only its prerequisite transaction can proceed.' \
       'Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils). Zunächst ist nur diese Paketinstallation möglich.'
@@ -2178,7 +2180,7 @@ gt_state_load() {
     STATE[$key]=$value
   done <<< "$PRIVATE_CONTENT"
   PRIVATE_CONTENT=''
-  [[ "${STATE[schema]:-}:${STATE[scope]:-}" == 1:core &&
+  [[ "${STATE[schema]:-}" == 1 && "${STATE[scope]:-}" =~ ^(core|bootstrap)$ &&
       "${STATE[status]:-}" =~ ^(running|complete)$ &&
       "${STATE[run_id]:-}" =~ ^[a-f0-9]{32}$ && "${STATE[planned_commit]:-}" =~ ^[a-f0-9]{40}$ ]] || return 2
   for key in java_home maven; do
@@ -2195,6 +2197,9 @@ gt_state_load() {
   for key in new_database_server database_before account_before; do
     [[ "${STATE[$key]:-}" == yes || "${STATE[$key]:-}" == no ]] || return 2
   done
+  if [[ "${STATE[scope]}" == bootstrap ]]; then
+    [[ "${STATE[resource.bootstrap_plan]:-}" =~ ^[a-f0-9]{64}$ ]] || return 2
+  fi
   if [[ "${STATE[status]}" == complete ]]; then
     gt_completion_valid || return 2
   else
@@ -2267,6 +2272,9 @@ gt_core_mark() { STATE[$1]=$2; gt_state_save; }
 
 gt_core_run() {
   # Only non-secret commands use this channel. SQL and Maven output use private captures.
+  if [[ "$BOOTSTRAP_APPROVED" == yes && "$1 ${2:-} ${3:-}" == 'env DEBIAN_FRONTEND=noninteractive apt-get' ]]; then
+    gt_bootstrap_apt_run "$@"; return $?
+  fi
   "$@"
 }
 
@@ -3132,7 +3140,7 @@ gt_core_plan() {
   for key in runuser useradd passwd git curl openssl flock sha256sum; do
     command -v "$key" >/dev/null || gt_plan_block "Missing prerequisite: $key"
   done
-  [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished && "${STATE[scope]:-}" == core ]] || gt_plan_block 'Only fresh hosts and this core journal can be used.'
+  [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished && "${STATE[scope]:-}" =~ ^(core|bootstrap)$ ]] || gt_plan_block 'Only fresh hosts and this installer journal can be used.'
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" != secret ]] || continue
     [[ "$key" != DB_REUSE_EMPTY || "${STATE[database_before]:-}" != no ]] || continue
@@ -3157,8 +3165,12 @@ gt_core_plan() {
       [[ "$database_check" == *'GRANT ALL PRIVILEGES ON `grafioschtrader`.* TO '* ]] || gt_plan_block 'Existing account lacks required schema privileges; it will not be altered.'
     fi
   fi
-  gt_plan_row configure core 'This scope stops after database and encrypted configuration; no build, backend service, web server or TLS changes.' \
-    'Diese Stufe endet nach Datenbank und verschlüsselter Konfiguration; kein Build, Backend-Dienst, Webserver oder TLS.'
+  # MODE is the shared CLI selection from 00-common.sh, not a local file mode.
+  # shellcheck disable=SC2153
+  if [[ "$MODE" != --bootstrap ]]; then
+    gt_plan_row configure core 'This scope stops after database and encrypted configuration; no build, backend service, web server or TLS changes.' \
+      'Diese Stufe endet nach Datenbank und verschlüsselter Konfiguration; kein Build, Backend-Dienst, Webserver oder TLS.'
+  fi
   gt_plan_row create /var/lib/gt-install 'Root-only lock and atomic resumption journal (700/600)'
   gt_plan_row create /root/.gt-install/secrets 'Application secrets only (600); no database root password'
   gt_plan_row create user:grafioschtrader 'Disabled password; owned home and source checkout'
@@ -3287,6 +3299,13 @@ gt_app_preflight() {
     digest=$(gt_build_digest "$path") || return 2
     [[ "$digest" == "${STATE[file.$file]:-}" ]] || return 2
   done
+  gt_app_targets || return 2
+  gt_app_database
+}
+
+# Also run before the full bootstrap has created its user or database.
+gt_app_targets() {
+  local path entry file digest mode changed
   # Do not mask a distribution unit or any foreign override, including runtime units.
   for path in /run/systemd/system /usr/lib/systemd/system /lib/systemd/system /etc/systemd/system; do
     [[ ! -e "$(gt_path "$path/grafioschtrader.service.d")" && ! -L "$(gt_path "$path/grafioschtrader.service.d")" ]] || return 2
@@ -3309,7 +3328,7 @@ gt_app_preflight() {
   path=$(gt_path /var/log/grafioschtrader.log)
   gt_no_symlinks "$path" || return 2
   [[ ! -e "$path" || -n "${STATE[resource.app_log]:-}" ]] || return 2
-  if [[ -z "${STATE[step.app_build]:-}" ]]; then
+  if [[ -z "${STATE[step.app_build]:-}" && -d "$CORE_HOME" ]]; then
     [[ -z "$(find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader*.jar' -print -quit)" ]] || return 2
   fi
   if [[ -z "${STATE[step.app_start]:-}" ]]; then
@@ -3319,7 +3338,7 @@ gt_app_preflight() {
       gt_core_error 'Selected backend port is occupied.'; return 2
     fi
   fi
-  gt_app_database
+  return 0
 }
 
 gt_app_scripts() {
@@ -3496,13 +3515,117 @@ for line in sys.stdin:
   gt_app_database
 }
 
+gt_app_start_log() {
+  python3 - "$1" "$(gt_path /var/log/grafioschtrader.log)" "${STATE[resource.app_log_cursor]:-}" <<'PY'
+"""Inspect only a journaled startup's log suffix; never print application output."""
+
+import hashlib
+import os
+import re
+import stat
+import sys
+
+
+def cursor(stream, info, offset):
+    stream.seek(max(0, offset - 64))
+    anchor = hashlib.sha256(stream.read(min(offset, 64))).hexdigest()
+    return f"{info.st_dev}:{info.st_ino}:{offset}:{anchor}"
+
+
+def main():
+    operation, path = sys.argv[1:3]
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, "rb") as stream:
+        info = os.fstat(stream.fileno())
+        if not stat.S_ISREG(info.st_mode):
+            return 2
+        if operation == "cursor":
+            print(cursor(stream, info, info.st_size))
+            return 0
+        saved = sys.argv[3]
+        if operation != "scan" or not re.fullmatch(r"\d+:\d+:\d+:[a-f0-9]{64}", saved):
+            return 2
+        device, inode, offset, _ = saved.split(":")
+        offset = int(offset)
+        # Rotation, truncation and copytruncate followed by regrowth invalidate
+        # the old offset. A short boundary hash detects the latter case too.
+        if (int(device), int(inode)) != (info.st_dev, info.st_ino) or offset > info.st_size:
+            offset = 0
+        elif cursor(stream, info, offset) != saved:
+            offset = 0
+        stream.seek(offset)
+        remaining = info.st_size - offset
+        tail = b""
+        patterns = (
+            (b"Access denied for user", "database-authentication"),
+            (b"FlywayException", "migration"),
+            (b"APPLICATION FAILED TO START", "application-start"),
+        )
+        while remaining > 0:
+            chunk = stream.read(min(65536, remaining))
+            if not chunk:
+                break
+            remaining -= len(chunk)
+            text = tail + chunk
+            for pattern, label in patterns:
+                if pattern in text:
+                    print(label)
+                    return 10
+            tail = text[-64:]
+        return 0
+
+
+try:
+    sys.exit(main())
+except (OSError, ValueError, IndexError):
+    sys.exit(2)
+PY
+}
+
+gt_app_start_boundary() {
+  local active invocation
+  active=$(gt_core_run systemctl show --property=ActiveState --value grafioschtrader.service) || return 2
+  invocation=$(gt_core_run systemctl show --property=InvocationID --value grafioschtrader.service) || return 2
+  [[ -z "$invocation" || "$invocation" =~ ^[a-f0-9]{32}$ ]] || return 2
+  if [[ "$active" == active || "$active" == activating ]]; then
+    [[ -n "$invocation" && -n "${STATE[resource.app_log_cursor]:-}" ]] || return 2
+    if [[ "$invocation" != "${STATE[resource.app_start_invocation]:-}" ]]; then
+      # Recover a crash between starting the service and saving InvocationID.
+      [[ "${STATE[resource.app_start_pending]:-}" == yes &&
+        "$invocation" != "${STATE[resource.app_start_previous]:-}" ]] || return 2
+    fi
+  elif [[ "$active" == inactive || "$active" == failed ]]; then
+    STATE[resource.app_log_cursor]=$(gt_app_start_log cursor) || return 2
+    STATE[resource.app_start_previous]=$invocation STATE[resource.app_start_pending]=yes
+    gt_state_save || return 2
+  else return 2; fi
+}
+
 gt_app_start() {
   local deadline=$((SECONDS+900)) status active
   gt_app_database && gt_app_artifacts || return 2
+  # A healthy resumed service needs no new startup boundary and no restart.
+  if [[ -n "${STATE[step.app_start]:-}" ]] && gt_app_verify; then
+    gt_core_run systemctl enable grafioschtrader.service && gt_core_mark step.app_start complete
+    return $?
+  fi
+  gt_app_start_boundary || {
+    gt_core_error 'Cannot identify the current startup. Inspect /var/log/grafioschtrader.log; stop the owned service before retrying an unjournaled start.'; return 2;
+  }
   if [[ -z "${STATE[step.app_start]:-}" ]]; then gt_core_mark step.app_start intent || return 2; fi
   # The write-ahead entry is the sole permission to resume a populated GT schema.
   gt_core_run systemctl start grafioschtrader.service || return 2
+  STATE[resource.app_start_invocation]=$(gt_core_run systemctl show --property=InvocationID --value grafioschtrader.service) || return 2
+  STATE[resource.app_start_pending]=no
+  gt_state_save || return 2
   while (( SECONDS < deadline )); do
+    local diagnostic
+    status=0
+    diagnostic=$(gt_app_start_log scan) || status=$?
+    if (( status != 0 )); then
+      gt_core_error "Startup stopped (${diagnostic:-log-unavailable}); inspect /var/log/grafioschtrader.log. No automatic database rollback."
+      return 2
+    fi
     gt_app_verify; status=$?
     if (( status == 0 )); then
       gt_core_run systemctl enable grafioschtrader.service || return 2
@@ -4750,6 +4873,9 @@ gt_result_milestones() {
 
 gt_completion_valid() {
   local step
+  if [[ "${STATE[scope]:-}" == bootstrap ]]; then
+    [[ "${STATE[resource.bootstrap_plan]:-}" =~ ^[a-f0-9]{64}$ ]] || return 2
+  fi
   [[ "${STATE[completed_at]:-}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ &&
       "${STATE[installer_sha256]:-}" =~ ^[a-f0-9]{64}$ &&
       "${STATE[built_commit]:-}" == "${STATE[planned_commit]:-}" &&
@@ -4880,8 +5006,218 @@ gt_completed() {
     'Installation abgeschlossen; für weitere Updates den Updater verwenden.'
   gt_result_print
 }
+# The full controller approves one concrete plan. Existing stage preflights still
+# run at their execution boundaries; approval never bypasses ownership checks.
+gt_bootstrap_apt_parse() {
+  local line package version
+  while IFS= read -r line; do
+    case "$line" in
+      'Remv '*) return 2 ;;
+      'Inst '*)
+        [[ "$line" =~ ^Inst[[:space:]]+([^[:space:]]+)[[:space:]]+\(([^[:space:]]+) ]] || return 2
+        package=${BASH_REMATCH[1]} version=${BASH_REMATCH[2]}
+        [[ "$package" =~ ^[a-z0-9][a-z0-9+.:_-]*$ && "$version" =~ ^[a-zA-Z0-9.+:~_-]+$ ]] || return 2
+        printf '%s\t%s\n' "$package" "$version" ;;
+    esac
+  done
+}
+
+gt_bootstrap_apt_plan() {
+  local package transaction records version
+  local -a requested=()
+  BOOTSTRAP_APT=()
+  for package in "${!PLAN_PACKAGES[@]}"; do
+    [[ "${PLAN_PACKAGES[$package]}" != install ]] || requested+=("$package")
+  done
+  if (( ${#requested[@]} )); then
+    [[ "${FACT[dpkg.lock]:-}" == free && "${FACT[apt.age_hours]:-unknown}" != unknown ]] || return 2
+    (( ${FACT[apt.age_hours]} <= 24 )) || return 2
+    transaction=$(gt_probe env LC_ALL=C apt-get --simulate --no-remove --no-upgrade \
+      -o Dir::Cache::pkgcache= -o Dir::Cache::srcpkgcache= install "${requested[@]}") || return 2
+    records=$(gt_bootstrap_apt_parse <<< "$transaction") || return 2
+    while IFS=$'\t' read -r package version; do
+      [[ -n "$package" ]] || continue
+      BOOTSTRAP_APT[$package]=$version
+      gt_plan_row install "package:$package" "$version"
+    done <<< "$records"
+  fi
+  FACT[bootstrap.apt]=$(printf '%s\n' "${records:-}" | LC_ALL=C sort | sha256sum)
+}
+
+gt_bootstrap_apt_run() {
+  local arg found=no transaction records package version
+  local -a requested=() pins=()
+  for arg in "$@"; do
+    if [[ "$found" == yes ]]; then requested+=("$arg")
+    elif [[ "$arg" == install ]]; then found=yes; fi
+  done
+  [[ "$found" == yes && ${#requested[@]} -gt 0 ]] || return 2
+  transaction=$(gt_probe env LC_ALL=C apt-get --simulate --no-remove --no-upgrade \
+    -o Dir::Cache::pkgcache= -o Dir::Cache::srcpkgcache= install "${requested[@]}") || return 2
+  records=$(gt_bootstrap_apt_parse <<< "$transaction") || return 2
+  while IFS=$'\t' read -r package version; do
+    [[ -n "$package" ]] || continue
+    [[ "${BOOTSTRAP_APT[$package]:-}" == "$version" ]] || {
+      gt_core_error 'APT transaction differs from the approved full plan; run again to review it.'; return 2;
+    }
+    pins+=("$package=$version")
+  done <<< "$records"
+  # Pin dependencies as well as requested packages; never silently resolve a new
+  # version after the final simulation. --no-remove/--no-upgrade remain in force.
+  "$@" "${pins[@]}"
+}
+
+gt_bootstrap_web_review() {
+  local web=${ANSWER[WEBSERVER]} executable address certificate='' tls
+  executable=$web; [[ "$web" != apache2 ]] || executable=apache2ctl
+  address=$(gt_probe ip -4 route get 1.1.1.1) || return 2
+  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
+  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  FACT[web.lan]=$address
+  [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
+  if [[ "$web" == nginx && -z "${ANSWER[DOMAIN]:-}" ]]; then gt_nginx_owned || return 2
+  else gt_site_owned || return 2; fi
+  if command -v "$executable" >/dev/null; then
+    if [[ "$web" == nginx ]]; then
+      nginx -V 2>&1 | grep -q -- '--conf-path=/etc/nginx/nginx.conf' || return 2
+    fi
+    gt_site_test || return 2
+    FACT[web.snapshot]=$(gt_site_inventory) || return 2
+    gt_core_run systemctl is-active --quiet "$web.service" || return 2
+    gt_nginx_statuses > "$SCRATCH/bootstrap-web-statuses" || return 2
+  else
+    [[ ! -e "$(gt_path "/etc/$web")" && ! -L "$(gt_path "/etc/$web")" && -z "${PACKAGE[$web]:-}" ]] || return 2
+    FACT[web.snapshot]=absent
+  fi
+  tls=$(gt_tls_snapshot)
+  # The fresh journal receives its random identity only after approval.
+  [[ "${FACT[tls.selection]:-}" != - ]] || tls='new-installer-lineage'
+  if [[ "${ANSWER[TLS_SOURCE]:-}" == existing || "${FACT[tls.reuse]:-}" == yes ]]; then
+    certificate=$(sha256sum "$(gt_path "${FACT[tls.cert]}")") || return 2
+  fi
+  FACT[bootstrap.web]="${FACT[web.snapshot]}:${FACT[web.lan]}:${FACT[web.names]:-}:$tls:$certificate"
+}
+
+gt_bootstrap_app_review() {
+  local file path digest
+  gt_app_targets || return 2
+  for file in gtupdate.sh gtupbackend.sh gtupfrontend.sh gtupfrontback.sh checkversion.sh merger.sh \
+      gt_to_g_rename.sh gtcronrandom.sh; do
+    path="$CORE_HOME/$file"
+    gt_no_symlinks "$path" || return 2
+    if [[ -e "$path" ]]; then
+      [[ -f "$path" && "$(stat -c '%U:%a' "$path")" == grafioschtrader:700 ]] || return 2
+      digest=$(sha256sum "$path"); digest=${digest%% *}
+      [[ "$digest" == "${STATE[file.app_$file]:-}" ]] || return 2
+    fi
+  done
+  # The first build must never invoke an older helper that also starts/stops services.
+  if [[ "${STATE[step.core]:-}" != complete ]]; then
+    for file in gtupbackend.sh gtupfrontend.sh; do
+      gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 \
+        "https://raw.githubusercontent.com/grafioschtrader/grafioschtrader/${FACT[source.commit]}/util/shellscripts/$file" \
+        > "$SCRATCH/bootstrap-$file" || return 2
+      grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/bootstrap-$file" || return 2
+    done
+  fi
+}
+
+gt_bootstrap_plan() {
+  local key id target
+  if [[ "${STATE[step.core]:-}" == complete ]]; then
+    PLAN=() PLAN_BLOCKERS=() PLAN_WARNINGS=() PLAN_PACKAGES=()
+    # A journaled first start reaches the post-start verifier, never the core's
+    # empty-schema planner. Root database credentials are unnecessary here.
+    gt_app_preflight || gt_plan_block 'Owned application resources or database cannot be verified.'
+    gt_plan_row verify core 'Reuse original installation identity, source pin and secrets; no database bootstrap.'
+    for key in platform architecture disk; do
+      [[ "${ACTION[$key]:-block}" != block ]] || gt_plan_block "$key: ${REASON[$key]:-unknown}"
+    done
+  else
+    gt_core_plan || :
+    [[ -z "${STATE[step.app_start]:-}" ]] || gt_plan_block 'First start is journaled but the core is incomplete.'
+  fi
+  local -a core_rows=("${PLAN[@]}") core_blocks=("${PLAN_BLOCKERS[@]}") core_warnings=("${PLAN_WARNINGS[@]}")
+  gt_domain_plan || gt_plan_block 'Resolve domain/TLS checks before the full bootstrap.'
+  PLAN=("${core_rows[@]}" "${PLAN[@]}")
+  PLAN_BLOCKERS=("${core_blocks[@]}" "${PLAN_BLOCKERS[@]}")
+  PLAN_WARNINGS=("${core_warnings[@]}" "${PLAN_WARNINGS[@]}")
+  gt_bootstrap_app_review || gt_plan_block 'Foreign/changed application target or unsupported pinned build helpers.'
+  gt_bootstrap_web_review || gt_plan_block 'Web targets, LAN address or shared web configuration cannot be verified.'
+  gt_plan_web_runtime
+  gt_plan_row configure application 'Update helpers, sudoers (start/stop only), systemd unit, weekly log rotation (8 copies), protected build log.'
+  for target in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service \
+      /etc/logrotate.d/grafioschtrader /var/log/grafioschtrader.log; do
+    gt_plan_row manage "$target" 'Create or verify installer-owned target; foreign targets block.'
+  done
+  gt_plan_row configure timezone "${ANSWER[TIMEZONE]}; choose and persist the application cron slot once."
+  gt_plan_row build "$CORE_HOME" "${STATE[planned_commit]:-${FACT[source.commit]}}; backend from source; frontend=${FACT[frontend.mode]:-from-pinned-helper}"
+  gt_plan_row manage "${ANSWER[DOCROOT]}/grafioschtrader" 'Owned frontend directory; shared document root preserved.'
+  gt_plan_row enable grafioschtrader.service 'Start migrations, verify production database and loopback listeners, then enable boot.'
+  for id in lan http domain; do
+    [[ "$id" == lan || -n "${ANSWER[DOMAIN]:-}" ]] || continue
+    [[ "$id" != http || "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]] || continue
+    target=$(gt_site_path "$id")
+    gt_plan_row manage "$target" 'Own vhost and sites-enabled link; validate before reload and compare shared sites.'
+  done
+  if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then
+    gt_plan_row configure apache2 'Enable required modules; disable only the distribution default site; preserve rollback records.'
+    [[ "${ANSWER[TLS_SOURCE]:-}" != proxy ]] || gt_plan_row manage \
+      /etc/apache2/conf-enabled/grafioschtrader-listen.conf "Listen ${ANSWER[TLS_PROXY_LISTEN]}"
+  fi
+  gt_plan_row enable "${ANSWER[WEBSERVER]}.service" 'Start/reload selected web server and enable boot after route verification.'
+  if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]]; then
+    gt_plan_row consent letsencrypt 'HTTP-01 issuance/reuse, renewal test and scoped reload hook/timer; terms: https://letsencrypt.org/repository/'
+  fi
+  if [[ "${ANSWER[SMTP_CONFIGURE]}" == yes ]]; then
+    gt_plan_row verify SMTP "${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; TLS=${ANSWER[SMTP_SECURITY]}; sender=${ANSWER[SMTP_USER]}; recipient=${ANSWER[ADMIN_EMAIL]}; send=${ANSWER[SMTP_TEST]}"
+    [[ "${STATE[step.mail]:-}" != intent ]] || gt_plan_warn 'Previous mail attempt was interrupted; resumption may submit the same Message-ID again.'
+    [[ "${STATE[resource.mail_delivery]:-}" != accepted ]] || gt_plan_row reuse SMTP 'Recorded server acceptance; no duplicate test message.'
+  else gt_plan_warn 'SMTP skipped: registration remains unavailable; final result will be incomplete.'; fi
+  gt_plan_row publish /var/lib/gt-install/result 'Verify milestones and publish the protected result; completion requires backend, web, TLS and mail evidence.'
+  gt_bootstrap_apt_plan || gt_plan_block 'Full APT transaction unavailable, stale, or would upgrade/remove packages.'
+  FACT[bootstrap.plan]=$(printf '%s\n' "${PLAN[@]}" | sha256sum)
+  (( ${#PLAN_BLOCKERS[@]} == 0 ))
+}
+
+gt_execution_plan() {
+  if [[ "$MODE" == --bootstrap ]]; then gt_bootstrap_plan; else gt_core_plan; fi
+}
+
+gt_install_snapshot() {
+  gt_core_snapshot
+  [[ "$MODE" == --bootstrap ]] || return 0
+  printf '%s\n' "${FACT[bootstrap.plan]}" "${FACT[bootstrap.apt]}" "${FACT[bootstrap.web]}" \
+    "${FACT[listeners]:-}" "${FACT[timezone]:-}"
+  [[ ! -e "$(gt_path /var/lib/gt-install/state)" ]] || sha256sum "$(gt_path /var/lib/gt-install/state)"
+}
+
+gt_bootstrap_execute() {
+  local status=0 stage
+  local CORE_CONFIRM=yes
+  for stage in app web mail; do
+    if [[ "$stage" == web ]]; then
+      gt_domain_plan && gt_bootstrap_web_review || return 2
+      [[ "$BOOTSTRAP_WEB" == "${FACT[bootstrap.web]}" ]] || {
+        gt_core_error 'Web/DNS/TLS configuration changed since full-plan approval; run again.'; return 2;
+      }
+    fi
+    status=0
+    case "$stage" in
+      app) gt_install_app || status=$? ;;
+      web) gt_install_web || status=$? ;;
+      mail) gt_check_mail || status=$? ;;
+    esac
+    if [[ "$stage" == mail ]]; then return "$status"; fi
+    if (( status != 10 )); then
+      (( status != 0 )) || status=2
+      return "$status"
+    fi
+  done
+}
 gt_install_core() {
-  local key resume=no before after reply file state_dir
+  local key resume=no before after reply file state_dir status=0 confirmation=install-core
+  [[ "$MODE" != --bootstrap ]] || confirmation=install
   local completed_status
   completed_status=0
   gt_completed || completed_status=$?
@@ -4893,12 +5229,12 @@ gt_install_core() {
       gt_core_error 'Invalid journal or missing/invalid original secrets; recover them before resuming.'; return 2
     fi
     resume=yes
-    [[ -z "${STATE[step.app]:-}" ]] || { gt_core_error 'Application stage has begun; resume with --install-app.'; return 2; }
+    [[ "$MODE" == --bootstrap || -z "${STATE[step.app]:-}" ]] || { gt_core_error 'Application stage has begun; resume without a mode or with --install-app.'; return 2; }
   fi
   gt_inventory; gt_compatibility; gt_report
   if [[ "$resume" == no && "${FACT[host.class]}" != fresh ]]; then gt_core_error 'Host is not fresh.'; return 2; fi
   if [[ -n "$ANSWERS_FILE" ]]; then gt_answers_file "$ANSWERS_FILE" || return 2; fi
-  if [[ -z "$ANSWERS_FILE" || "$CORE_CONFIRM" != yes ]]; then
+  if [[ "$CORE_CONFIRM" != yes || "$resume" == no && -z "$ANSWERS_FILE" ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || { gt_core_error 'Terminal required, or use --answers FILE --yes.'; return 2; }
     QUESTION_OUTPUT=$QUESTION_FD
   fi
@@ -4913,41 +5249,52 @@ gt_install_core() {
       if [[ "${Q_TYPE[$key]}" == secret ]]; then [[ "${FILE_ANSWERS[$key]}" == "${SECRET[$key]:-}" ]] || return 2
       else [[ "${FILE_ANSWERS[$key]}" == "${ANSWER[$key]:-}" ]] || return 2; fi
     done
-    if [[ "${STATE[new_database_server]}" == yes || "${FACT[database.query]}" != ok ]]; then
-      gt_collect_secret DB_ROOT_PASSWORD || return $?
-    fi
-    if [[ "${FACT[database.vendor]}" != absent ]]; then
-      file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2
-      gt_database "$file"; rm -f -- "$file"
-      gt_compatibility
+    if [[ "$MODE" != --bootstrap || "${STATE[step.core]:-}" != complete ]]; then
+      if [[ "${STATE[new_database_server]}" == yes || "${FACT[database.query]}" != ok ]]; then
+        gt_collect_secret DB_ROOT_PASSWORD || return $?
+      fi
+      if [[ "${FACT[database.vendor]}" != absent ]]; then
+        file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2
+        gt_database "$file"; rm -f -- "$file"
+        gt_compatibility
+      fi
     fi
   fi
-  if ! gt_core_plan; then gt_plan_report; return 2; fi
-  gt_prepare_dns || return $?
-  gt_core_plan; local plan_status=$?
+  if ! gt_execution_plan; then gt_plan_report; return 2; fi
+  if [[ "$MODE" != --bootstrap ]]; then gt_prepare_dns || return $?; fi
+  gt_execution_plan; local plan_status=$?
   gt_plan_report
   (( plan_status == 0 )) || return 2
+  before=$(gt_install_snapshot | LC_ALL=C sort | sha256sum)
   if [[ "$CORE_CONFIRM" != yes ]]; then
-    printf '%s: ' "$(gt_text 'Type install-core to execute exactly this scope' 'install-core eingeben, um genau diese Stufe auszuführen')" >&"$QUESTION_OUTPUT"
-    IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == install-core ]] || return 130
+    printf '%s: %s: ' "$(gt_text 'Type the following to execute this plan' 'Zur Ausführung dieses Plans Folgendes eingeben')" "$confirmation" >&"$QUESTION_OUTPUT"
+    IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == "$confirmation" ]] || return 130
   fi
-  before=$(gt_core_snapshot | LC_ALL=C sort | sha256sum)
   gt_inventory
   if [[ "${FACT[database.vendor]}" != absent && -n "${SECRET[DB_ROOT_PASSWORD]:-}" ]]; then
     file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2; gt_database "$file"; rm -f -- "$file"
   fi
   gt_compatibility
-  gt_verify_dns || return 2
-  if ! gt_core_plan; then gt_plan_report; return 2; fi
-  after=$(gt_core_snapshot | LC_ALL=C sort | sha256sum)
+  if [[ "$MODE" != --bootstrap ]]; then gt_verify_dns || return 2; fi
+  if ! gt_execution_plan; then gt_plan_report; return 2; fi
+  after=$(gt_install_snapshot | LC_ALL=C sort | sha256sum)
   [[ "$before" == "$after" ]] || { gt_core_error 'Inventory changed after planning; run again to review a fresh plan.'; return 2; }
   gt_private_dir "$state_dir" || return 2
   gt_no_symlinks "$state_dir/lock" || return 2
   if [[ -z "$LOCK_FD" ]]; then exec {LOCK_FD}>"$state_dir/lock" || return 2; fi
   flock -n "$LOCK_FD" || { gt_message lock >&2; return 2; }
   if [[ "$resume" == no ]]; then gt_core_begin || return 2; fi
-  gt_build_record || return 2
-  gt_core_execute
+  if [[ "$MODE" == --bootstrap ]]; then
+    STATE[scope]=bootstrap STATE[resource.bootstrap_plan]=${before%% *}
+    gt_state_save || return 2
+    BOOTSTRAP_APPROVED=yes BOOTSTRAP_WEB=${FACT[bootstrap.web]}
+  fi
+  if [[ "$MODE" != --bootstrap || "${STATE[step.core]:-}" != complete ]]; then
+    gt_build_record || return 2
+    gt_core_execute || status=$?
+    (( status == 10 )) || return "$status"
+  fi
+  if [[ "$MODE" == --bootstrap ]]; then gt_bootstrap_execute; else return 10; fi
 }
 
 gt_cleanup() {
@@ -4972,12 +5319,22 @@ main() {
       --answers) [[ $# -gt 0 && -z "$ANSWERS_FILE" && -n "$1" && "$1" != --* ]] || { gt_message mode >&2; return 2; }; ANSWERS_FILE=$1; shift ;;
       --plain) ;;
       --yes) CORE_CONFIRM=yes ;;
-      --help|-h) printf 'Usage: sudo bash gt-install.sh {--check|--dry-run|--prepare [--answers FILE]|--install-core [--answers FILE] [--yes]|--install-app [--yes]|--install-web [--yes]|--check-mail [--yes]} [--plain]\n'; return 0 ;;
+      --help|-h)
+        cat <<'USAGE'
+Usage: sudo bash gt-install.sh [--answers FILE] [--yes] [--plain]
+Without a mode: review and confirm the full bootstrap, or resume its journal.
+Optional stages (all accept --plain):
+  --check | --dry-run | --prepare [--answers FILE]
+  --install-core [--answers FILE] [--yes]
+  --install-app [--yes] | --install-web [--yes] | --check-mail [--yes]
+USAGE
+        return 0 ;;
       *) gt_message mode >&2; return 2 ;;
     esac
   done
-  [[ -n "$MODE" && ( -z "$ANSWERS_FILE" || "$MODE" == --prepare || "$MODE" == --install-core ) &&
-    ( "$CORE_CONFIRM" == no || "$MODE" == --install-core || "$MODE" == --install-app || "$MODE" == --install-web || "$MODE" == --check-mail ) ]] || { gt_message mode >&2; return 2; }
+  [[ -n "$MODE" ]] || MODE=--bootstrap
+  [[ ( -z "$ANSWERS_FILE" || "$MODE" == --bootstrap || "$MODE" == --prepare || "$MODE" == --install-core ) &&
+    ( "$CORE_CONFIRM" == no || "$MODE" == --bootstrap || "$MODE" == --install-core || "$MODE" == --install-app || "$MODE" == --install-web || "$MODE" == --check-mail ) ]] || { gt_message mode >&2; return 2; }
   [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]] || { gt_message pipe >&2; return 2; }
   (( EUID == 0 )) || { gt_message root >&2; return 2; }
   command -v timeout >/dev/null || { gt_message unavailable timeout >&2; return 1; }
@@ -4991,7 +5348,7 @@ main() {
   trap 'exit 130' INT
   trap 'exit 143' TERM
   export GIT_TERMINAL_PROMPT=0
-  case "$MODE" in --dry-run) gt_dry_run ;; --prepare) gt_prepare ;; --install-core) gt_install_core ;; --install-app) gt_install_app ;; --install-web) gt_install_web ;; --check-mail) gt_check_mail ;; *) gt_check ;; esac
+  case "$MODE" in --dry-run) gt_dry_run ;; --prepare) gt_prepare ;; --bootstrap|--install-core) gt_install_core ;; --install-app) gt_install_app ;; --install-web) gt_install_web ;; --check-mail) gt_check_mail ;; *) gt_check ;; esac
 }
 
 [[ "${GT_INSTALL_SOURCE_ONLY:-}" == 1 ]] || main "$@"

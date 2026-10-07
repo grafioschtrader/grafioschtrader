@@ -70,8 +70,16 @@ The terminal test uses fake secrets and a real pseudo-terminal to verify mismatc
 Ctrl-C/SIGTERM handling and echo restoration. It never contacts a database or modifies an installation.
 `test_secret_terminal.py` deterministically covers delayed child exit after PTY closure, the shared deadline
 and preservation of exit status. It runs in the shell check; the PTY integration test remains a separate CI step.
-CI acceptance of the terminal wait change requires two consecutive green `installer.yml` runs. Local tests
-do not replace those workflow runs.
+CI acceptance of the terminal wait change requires two consecutive green `installer.yml` runs. Both attempts of
+[run 37632497540](https://github.com/grafioschtrader/grafioschtrader/actions/runs/37632497540) passed for
+`ee5fb9f4aceceda16de9e0b683f812532934e6a7`. Local tests do not replace those workflow runs.
+
+`bootstrap.bats` checks modeless selection, approval before journal publication, scope transition, package
+dependency/version pinning, changed-plan rejection, populated-schema resumption without root credentials,
+stage ordering and exact mail/result exit codes. Full-plan DNS prerequisites must be available before any changes.
+The startup tests in `app.bats` cover historical-log exclusion, failure redaction, split tokens, rotation,
+copytruncate/regrowth, systemd invocation recovery and immediate termination before polling or boot enablement.
+These fixture tests do not replace full-installation and reboot acceptance on explicitly requested disposable VMs.
 
 `result.bats` covers schema-1 compatibility, private result publication, completed-journal validation, all
 read-only completed entrypoints, pending/failed/skipped milestones, proxy TLS, no-send SMTP, warning persistence,

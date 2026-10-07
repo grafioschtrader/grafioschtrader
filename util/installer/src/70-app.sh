@@ -80,6 +80,13 @@ gt_app_preflight() {
     digest=$(gt_build_digest "$path") || return 2
     [[ "$digest" == "${STATE[file.$file]:-}" ]] || return 2
   done
+  gt_app_targets || return 2
+  gt_app_database
+}
+
+# Also run before the full bootstrap has created its user or database.
+gt_app_targets() {
+  local path entry file digest mode changed
   # Do not mask a distribution unit or any foreign override, including runtime units.
   for path in /run/systemd/system /usr/lib/systemd/system /lib/systemd/system /etc/systemd/system; do
     [[ ! -e "$(gt_path "$path/grafioschtrader.service.d")" && ! -L "$(gt_path "$path/grafioschtrader.service.d")" ]] || return 2
@@ -102,7 +109,7 @@ gt_app_preflight() {
   path=$(gt_path /var/log/grafioschtrader.log)
   gt_no_symlinks "$path" || return 2
   [[ ! -e "$path" || -n "${STATE[resource.app_log]:-}" ]] || return 2
-  if [[ -z "${STATE[step.app_build]:-}" ]]; then
+  if [[ -z "${STATE[step.app_build]:-}" && -d "$CORE_HOME" ]]; then
     [[ -z "$(find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader*.jar' -print -quit)" ]] || return 2
   fi
   if [[ -z "${STATE[step.app_start]:-}" ]]; then
@@ -112,7 +119,7 @@ gt_app_preflight() {
       gt_core_error 'Selected backend port is occupied.'; return 2
     fi
   fi
-  gt_app_database
+  return 0
 }
 
 gt_app_scripts() {
@@ -280,13 +287,56 @@ gt_app_verify() {
   gt_app_database
 }
 
+gt_app_start_log() {
+  python3 - "$1" "$(gt_path /var/log/grafioschtrader.log)" "${STATE[resource.app_log_cursor]:-}" <<'PY'
+# @python startup-log.py
+PY
+}
+
+gt_app_start_boundary() {
+  local active invocation
+  active=$(gt_core_run systemctl show --property=ActiveState --value grafioschtrader.service) || return 2
+  invocation=$(gt_core_run systemctl show --property=InvocationID --value grafioschtrader.service) || return 2
+  [[ -z "$invocation" || "$invocation" =~ ^[a-f0-9]{32}$ ]] || return 2
+  if [[ "$active" == active || "$active" == activating ]]; then
+    [[ -n "$invocation" && -n "${STATE[resource.app_log_cursor]:-}" ]] || return 2
+    if [[ "$invocation" != "${STATE[resource.app_start_invocation]:-}" ]]; then
+      # Recover a crash between starting the service and saving InvocationID.
+      [[ "${STATE[resource.app_start_pending]:-}" == yes &&
+        "$invocation" != "${STATE[resource.app_start_previous]:-}" ]] || return 2
+    fi
+  elif [[ "$active" == inactive || "$active" == failed ]]; then
+    STATE[resource.app_log_cursor]=$(gt_app_start_log cursor) || return 2
+    STATE[resource.app_start_previous]=$invocation STATE[resource.app_start_pending]=yes
+    gt_state_save || return 2
+  else return 2; fi
+}
+
 gt_app_start() {
   local deadline=$((SECONDS+900)) status active
   gt_app_database && gt_app_artifacts || return 2
+  # A healthy resumed service needs no new startup boundary and no restart.
+  if [[ -n "${STATE[step.app_start]:-}" ]] && gt_app_verify; then
+    gt_core_run systemctl enable grafioschtrader.service && gt_core_mark step.app_start complete
+    return $?
+  fi
+  gt_app_start_boundary || {
+    gt_core_error 'Cannot identify the current startup. Inspect /var/log/grafioschtrader.log; stop the owned service before retrying an unjournaled start.'; return 2;
+  }
   if [[ -z "${STATE[step.app_start]:-}" ]]; then gt_core_mark step.app_start intent || return 2; fi
   # The write-ahead entry is the sole permission to resume a populated GT schema.
   gt_core_run systemctl start grafioschtrader.service || return 2
+  STATE[resource.app_start_invocation]=$(gt_core_run systemctl show --property=InvocationID --value grafioschtrader.service) || return 2
+  STATE[resource.app_start_pending]=no
+  gt_state_save || return 2
   while (( SECONDS < deadline )); do
+    local diagnostic
+    status=0
+    diagnostic=$(gt_app_start_log scan) || status=$?
+    if (( status != 0 )); then
+      gt_core_error "Startup stopped (${diagnostic:-log-unavailable}); inspect /var/log/grafioschtrader.log. No automatic database rollback."
+      return 2
+    fi
     gt_app_verify; status=$?
     if (( status == 0 )); then
       gt_core_run systemctl enable grafioschtrader.service || return 2

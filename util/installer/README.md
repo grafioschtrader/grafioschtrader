@@ -1,9 +1,9 @@
-# Linux installer: core, application, web/TLS and mail stages
+# Linux installer: bootstrap and individual stages
 
 ## Development and bundle
 
 Edit `src/*.sh` and `src/py/*.py`, then regenerate `gt-install.sh`. The generated file is versioned and remains the
-only download needed on an installation host. Its command line and `GT_INSTALL_SOURCE_ONLY=1` guard are unchanged.
+only download needed on an installation host. `GT_INSTALL_SOURCE_ONLY=1` suppresses the command-line entry point.
 Do not edit it directly or run the source modules as standalone installation commands.
 
 ```bash
@@ -33,6 +33,7 @@ when embedded in a heredoc. Unknown markers, unused helpers and invalid Python s
 | `81-web-sites.sh` | domain sites, Apache, TLS and shared-site verification |
 | `90-mail.sh` | SMTP check and its recorded outcome |
 | `95-result.sh` | recorded milestones, final hand-over and read-only completion recognition |
+| `96-bootstrap.sh` | full-plan approval, pinned APT transactions and stage orchestration |
 | `99-main.sh` | core execution entry point, cleanup, CLI and source-only guard |
 | `py/*.py` | embedded Python programs, compiled and tested as source files |
 
@@ -43,9 +44,11 @@ meaningfully applied to an individual module.
 
 ## Invocation
 
-The installer provides inventory, planning, credential preparation and an explicitly selected installation core:
+Start without a mode for the full bootstrap. The inventory, preparation and individual stages remain available:
 
 ```bash
+sudo bash util/installer/gt-install.sh
+sudo bash util/installer/gt-install.sh --answers /root/gt-answers --yes
 sudo bash util/installer/gt-install.sh --check
 sudo bash util/installer/gt-install.sh --check --plain
 sudo bash util/installer/gt-install.sh --dry-run --plain
@@ -60,10 +63,32 @@ sudo bash util/installer/gt-install.sh --check-mail
 
 The script is self-contained and can be copied to a Debian/Ubuntu host. Save it as a file before running it;
 execution through `curl | bash` is refused. `--help` works without root. Modes cannot be combined; `--answers` is
-accepted with `--prepare` and `--install-core`. The three `--install-*` modes make installation changes;
+accepted without a mode, with `--prepare` and with `--install-core`. The three `--install-*` modes make installation changes;
 `--check-mail` records verification and can send the previously selected test message. Each accepts `--yes`
-to use the saved scope without another terminal confirmation. Full-bootstrap orchestration, the local DuckDNS
-updater, foreign-vhost snippets and Whiptail dialogs remain pending. Running without a mode is refused.
+to use the saved scope without another terminal confirmation. The local DuckDNS updater, foreign-vhost snippets
+and Whiptail dialogs remain pending.
+
+The modeless controller presents core, package dependencies and versions, application build/start, web/TLS and
+mail delivery in one plan. Type `install` to approve it; `--yes` supplies that confirmation for unattended runs.
+A fresh unattended run also needs `--answers`; a resumed `--yes` run reuses its saved answers and original secrets.
+Changed answers are refused. Missing root credentials still require input when database bootstrap is unfinished.
+Once the core is complete, resumption goes through application verification and never repeats empty-schema setup.
+
+The controller rechecks inventory after approval and pins every newly installed APT dependency to an approved
+version. Changed transactions stop for a new plan. It checks foreign application targets and the effective shared
+web configuration before core changes, then compares web/DNS/TLS configuration again after the build. Individual
+stage preflights remain active. Existing schema-1 core journals can enter `scope=bootstrap` only after approval;
+completed journals stay read-only. The result and exit-code contract below also applies to modeless installation.
+
+For domain installations using local TLS, install `bind9-dnsutils` first if `dig` is missing, then run the modeless
+installer again. The full plan blocks before any changes until DNS and the certificate-name set can be checked.
+The separately selected core/web stages retain their explicitly confirmed DNS-prerequisite transaction.
+
+Startup diagnostics recognize `Access denied for user`, `FlywayException` and `APPLICATION FAILED TO START`
+without waiting for the 15-minute health timeout. A persisted log cursor and systemd invocation identity limit
+the scan to the current attempt, including resumption and log rotation. Public output contains only a failure
+category and `/var/log/grafioschtrader.log`, never raw application diagnostics. An older unjournaled running
+attempt must be inspected and stopped before retrying if it is not already healthy. No database is dropped or repaired.
 
 Planning and installation share a stage contract, including on resumption. Before saving immutable answers or
 executing the core, it rejects `DUCKDNS_UPDATER=yes`, `SWAP=yes`, `FIREWALL_ALLOW=yes`, `VHOST_INCLUDE=yes`,
@@ -418,7 +443,7 @@ existing encrypted properties and the service encryption key are retained.
 store `/root/.gt-install/secrets` have mode 600 and are root-owned. They are literal data files, never sourced.
 Publication flushes the temporary file before atomic rename and the destination filesystem afterward, so a
 successful journal/secret write does not rely on delayed operating-system buffers.
-The journal records `schema=1`, `scope=core`, `status=running`, a unique installation ID, pinned source revision,
+The journal records `schema=1`, `scope=core` or `scope=bootstrap`, `status=running`, a unique installation ID, pinned source revision,
 validated answers, selected toolchain paths, resource intent/ownership and hashes of managed files. The secret
 store is bound to the same installation ID. It contains DB/Jasypt/JWT and applicable SMTP/DuckDNS values;
 **the MariaDB root password is never persisted**.

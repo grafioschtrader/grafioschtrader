@@ -370,7 +370,7 @@ gt_verify_dns() {
 gt_prepare_dns() {
   local before reply
   gt_dns_required || return 0
-  case "$MODE" in --install-core|--install-web) ;; *) return 2 ;; esac
+  case "$MODE" in --install-core|--install-web) ;; --bootstrap) gt_verify_dns; return $? ;; *) return 2 ;; esac
   if ! gt_dns_tool_available; then
     gt_text 'Missing DNS check prerequisite: dig (bind9-dnsutils). Only its prerequisite transaction can proceed.' \
       'Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils). Zunächst ist nur diese Paketinstallation möglich.'

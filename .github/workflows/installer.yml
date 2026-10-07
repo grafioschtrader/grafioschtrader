@@ -59,8 +59,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y bats shellcheck openssl mariadb-client
       - name: Check scripts, inventory, planning, and update failures
         run: bash util/installer/test/check-shell.sh
-      - name: Check root-owned answers files
-        run: sudo bats util/installer/test/credentials.bats util/installer/test/core.bats
+      - name: Check root-owned answers and modeless bootstrap
+        run: sudo bats util/installer/test/credentials.bats util/installer/test/core.bats util/installer/test/bootstrap.bats
       - name: Check hidden terminal input and cancellation
         run: python3 util/installer/test/secret-terminal.py
   core:

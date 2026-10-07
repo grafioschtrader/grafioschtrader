@@ -15,6 +15,8 @@ gt_reset() {
   MODE='' ANSWERS_FILE='' TTY_STATE='' SECRET_INPUT=''
   declare -gA STATE=() PROPERTIES=() BUILD=()
   declare -gA RESULT=()
+  declare -gA BOOTSTRAP_APT=()
+  BOOTSTRAP_APPROVED=no BOOTSTRAP_WEB=''
   declare -ga PRIVATE_DIRS=() PRIVATE_FILES=()
   CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader
   CORE_REPO=/home/grafioschtrader/build/grafioschtrader
@@ -39,7 +41,7 @@ gt_message() {
     running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'; de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail fortsetzen' ;;
     memory) en='Low RAM: %s'; de='Wenig RAM: %s' ;;
     legacy) en='Legacy platform: %s'; de='Ältere Plattform: %s' ;;
-    footer) en='Check finished: %s blocking recommendations. Full application installation is not implemented yet.'; de='Prüfung beendet: %s blockierende Empfehlungen. Die vollständige Anwendungsinstallation ist noch nicht implementiert.' ;;
+    footer) en='Check finished: %s blocking recommendations. Run without a mode to review the installation plan.'; de='Prüfung beendet: %s blockierende Empfehlungen. Ohne Modus starten, um den Installationsplan zu prüfen.' ;;
     root) en='Run inventory modes as root for a complete inventory.'; de='Bestandsaufnahme für einen vollständigen Bericht als root ausführen.' ;;
     mode) en='Use --check, --dry-run, --prepare, --install-core, --install-app, --install-web or --check-mail; see --help.'; de='--check, --dry-run, --prepare, --install-core, --install-app, --install-web oder --check-mail verwenden; siehe --help.' ;;
     pipe) en='Download the script to a file before running it; piped execution is refused.'; de='Skript vor dem Ausführen als Datei speichern; Ausführung über eine Pipe wird abgelehnt.' ;;

@@ -86,7 +86,7 @@ gt_state_load() {
     STATE[$key]=$value
   done <<< "$PRIVATE_CONTENT"
   PRIVATE_CONTENT=''
-  [[ "${STATE[schema]:-}:${STATE[scope]:-}" == 1:core &&
+  [[ "${STATE[schema]:-}" == 1 && "${STATE[scope]:-}" =~ ^(core|bootstrap)$ &&
       "${STATE[status]:-}" =~ ^(running|complete)$ &&
       "${STATE[run_id]:-}" =~ ^[a-f0-9]{32}$ && "${STATE[planned_commit]:-}" =~ ^[a-f0-9]{40}$ ]] || return 2
   for key in java_home maven; do
@@ -103,6 +103,9 @@ gt_state_load() {
   for key in new_database_server database_before account_before; do
     [[ "${STATE[$key]:-}" == yes || "${STATE[$key]:-}" == no ]] || return 2
   done
+  if [[ "${STATE[scope]}" == bootstrap ]]; then
+    [[ "${STATE[resource.bootstrap_plan]:-}" =~ ^[a-f0-9]{64}$ ]] || return 2
+  fi
   if [[ "${STATE[status]}" == complete ]]; then
     gt_completion_valid || return 2
   else

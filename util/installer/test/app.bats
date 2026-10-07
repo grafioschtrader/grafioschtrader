@@ -80,7 +80,10 @@ setup() {
 @test "first-start intent is persisted before service start and failure never enables boot" {
   gt_app_database() { :; }
   gt_app_artifacts() { :; }
+  gt_app_start_boundary() { :; }
+  gt_app_start_log() { :; }
   gt_core_run() {
+    [[ "$2" != show ]] || { printf '%032d\n' 1; return; }
     [[ "$*" == 'systemctl start grafioschtrader.service' ]] || return 99
     grep -qx step.app_start=intent "$ROOT/var/lib/gt-install/state" || return 99
     echo started >> "$ROOT/events"
@@ -94,6 +97,8 @@ setup() {
 @test "successful verification precedes boot enablement and app step remains incomplete on enable failure" {
   gt_app_database() { :; }
   gt_app_artifacts() { :; }
+  gt_app_start_boundary() { :; }
+  gt_app_start_log() { :; }
   gt_app_verify() { touch "$ROOT/verified"; }
   gt_core_run() {
     [[ "$2" != enable ]] || { [ -e "$ROOT/verified" ]; return 1; }
@@ -101,6 +106,78 @@ setup() {
   run gt_app_start
   [ "$status" -eq 2 ]
   ! grep -qx step.app_start=complete "$ROOT/var/lib/gt-install/state"
+}
+
+@test "startup scanner ignores historical errors and redacts fresh diagnostic content" {
+  printf 'FlywayException old password=old-secret\n' > "$ROOT/var/log/grafioschtrader.log"
+  STATE[resource.app_log_cursor]=$(gt_app_start_log cursor)
+  gt_app_start_log scan
+  printf 'Access denied for user secret-user password=new-secret\n' >> "$ROOT/var/log/grafioschtrader.log"
+  run gt_app_start_log scan
+  [ "$status" -eq 10 ]
+  [ "$output" = database-authentication ]
+}
+
+@test "startup scanner handles rotation truncation regrowth and split error tokens" {
+  local marker
+  for marker in FlywayException 'APPLICATION FAILED TO START'; do
+    printf '%100s\n' old > "$ROOT/var/log/grafioschtrader.log"
+    STATE[resource.app_log_cursor]=$(gt_app_start_log cursor)
+    printf '%65530s%s\n' new "$marker" > "$ROOT/var/log/grafioschtrader.log"
+    run gt_app_start_log scan
+    [ "$status" -eq 10 ]
+  done
+  STATE[resource.app_log_cursor]=$(gt_app_start_log cursor)
+  mv "$ROOT/var/log/grafioschtrader.log" "$ROOT/var/log/old.log"
+  echo FlywayException > "$ROOT/var/log/grafioschtrader.log"
+  run gt_app_start_log scan
+  [ "$status" -eq 10 ]
+  STATE[resource.app_log_cursor]=bad
+  run gt_app_start_log scan
+  [ "$status" -eq 2 ]
+}
+
+@test "startup boundary persists before start and resumes its invocation across interrupted publication" {
+  echo historical > "$ROOT/var/log/grafioschtrader.log"
+  TEST_ACTIVE=inactive TEST_INVOCATION=''
+  gt_core_run() {
+    case "$3" in
+      --property=ActiveState) echo "$TEST_ACTIVE" ;;
+      --property=InvocationID) echo "$TEST_INVOCATION" ;;
+      *) return 99 ;;
+    esac
+  }
+  gt_app_start_boundary
+  [ "${STATE[resource.app_start_pending]}" = yes ]
+  local saved=${STATE[resource.app_log_cursor]}
+  grep -q '^resource.app_log_cursor=' "$ROOT/var/lib/gt-install/state"
+  TEST_ACTIVE=active TEST_INVOCATION=00000000000000000000000000000001
+  echo FlywayException >> "$ROOT/var/log/grafioschtrader.log"
+  gt_app_start_boundary
+  [ "${STATE[resource.app_log_cursor]}" = "$saved" ]
+  STATE[resource.app_start_pending]=no STATE[resource.app_start_invocation]=$TEST_INVOCATION
+  gt_app_start_boundary
+  TEST_INVOCATION=00000000000000000000000000000002
+  run gt_app_start_boundary
+  [ "$status" -eq 2 ]
+}
+
+@test "fatal startup diagnostics stop before polling or boot enablement" {
+  gt_app_database() { :; }
+  gt_app_artifacts() { :; }
+  gt_app_start_boundary() { :; }
+  gt_app_start_log() { echo migration; return 10; }
+  gt_app_verify() { echo unexpected-verification; return 99; }
+  sleep() { echo unexpected-wait; return 99; }
+  gt_core_run() {
+    [[ "$2" != enable ]] || { echo unexpected-enable; return 99; }
+    [[ "$2" != show ]] || printf '%032d\n' 1
+    return 0
+  }
+  run gt_app_start
+  [ "$status" -eq 2 ]
+  [[ "$output" == *'Startup stopped (migration)'* ]]
+  [[ "$output" != *unexpected* ]]
 }
 
 app_verify_fixture() {

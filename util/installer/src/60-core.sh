@@ -26,6 +26,9 @@ gt_core_mark() { STATE[$1]=$2; gt_state_save; }
 
 gt_core_run() {
   # Only non-secret commands use this channel. SQL and Maven output use private captures.
+  if [[ "$BOOTSTRAP_APPROVED" == yes && "$1 ${2:-} ${3:-}" == 'env DEBIAN_FRONTEND=noninteractive apt-get' ]]; then
+    gt_bootstrap_apt_run "$@"; return $?
+  fi
   "$@"
 }
 
@@ -855,7 +858,7 @@ gt_core_plan() {
   for key in runuser useradd passwd git curl openssl flock sha256sum; do
     command -v "$key" >/dev/null || gt_plan_block "Missing prerequisite: $key"
   done
-  [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished && "${STATE[scope]:-}" == core ]] || gt_plan_block 'Only fresh hosts and this core journal can be used.'
+  [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished && "${STATE[scope]:-}" =~ ^(core|bootstrap)$ ]] || gt_plan_block 'Only fresh hosts and this installer journal can be used.'
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" != secret ]] || continue
     [[ "$key" != DB_REUSE_EMPTY || "${STATE[database_before]:-}" != no ]] || continue
@@ -880,8 +883,12 @@ gt_core_plan() {
       [[ "$database_check" == *'GRANT ALL PRIVILEGES ON `grafioschtrader`.* TO '* ]] || gt_plan_block 'Existing account lacks required schema privileges; it will not be altered.'
     fi
   fi
-  gt_plan_row configure core 'This scope stops after database and encrypted configuration; no build, backend service, web server or TLS changes.' \
-    'Diese Stufe endet nach Datenbank und verschlüsselter Konfiguration; kein Build, Backend-Dienst, Webserver oder TLS.'
+  # MODE is the shared CLI selection from 00-common.sh, not a local file mode.
+  # shellcheck disable=SC2153
+  if [[ "$MODE" != --bootstrap ]]; then
+    gt_plan_row configure core 'This scope stops after database and encrypted configuration; no build, backend service, web server or TLS changes.' \
+      'Diese Stufe endet nach Datenbank und verschlüsselter Konfiguration; kein Build, Backend-Dienst, Webserver oder TLS.'
+  fi
   gt_plan_row create /var/lib/gt-install 'Root-only lock and atomic resumption journal (700/600)'
   gt_plan_row create /root/.gt-install/secrets 'Application secrets only (600); no database root password'
   gt_plan_row create user:grafioschtrader 'Disabled password; owned home and source checkout'

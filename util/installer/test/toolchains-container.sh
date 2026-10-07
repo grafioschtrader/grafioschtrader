@@ -14,11 +14,14 @@ umask 077
 original_java=$(readlink -f /usr/bin/java)
 original_javac=$(readlink -f /usr/bin/javac)
 [[ "$original_java" == */java-17-* ]]
-gt_packages; gt_java; gt_runtimes
+# Cached local images may contain APT lists older than the full planner permits.
+apt-get update -qq
+gt_system; gt_packages; gt_java; gt_runtimes
 [[ "${FACT[java.suitable]}" == absent && "${FACT[maven.path]}" == absent ]]
 ACTION[java]=install ACTION[maven]=install
 gt_core_toolchain_plan; gt_plan_packages
 if (( ${#PLAN_BLOCKERS[@]} )); then gt_plan_report; exit 1; fi
+gt_bootstrap_apt_plan
 [[ "${FACT[toolchain.java.package]}" == openjdk-25-jdk-headless && "${FACT[toolchain.maven.package]}" == maven ]]
 FACT[source.commit]=0000000000000000000000000000000000000001
 FACT[database.vendor]=absent FACT[database.gt_tables]=absent FACT[database.gt_user]=absent
@@ -30,7 +33,8 @@ saved_secrets=$(cat /root/.gt-install/secrets)
 
 # The real APT transaction completes; inject a failing return before finalizing the step.
 gt_core_run() {
-  "$@" || return $?
+  if [[ "$1" == env ]]; then gt_bootstrap_apt_run "$@" || return $?
+  else "$@" || return $?; fi
   [[ "$1" != env ]]
 }
 if gt_core_toolchains; then echo 'Expected interrupted toolchain step' >&2; exit 1; fi
@@ -48,4 +52,4 @@ version=$(gt_as_app "${STATE[maven]}" -v)
 [[ "$version" == *'Apache Maven '* && "$version" == *'Java version: 25'* ]]
 gt_core_run() { echo 'Completed toolchains must not invoke APT or alternatives' >&2; return 99; }
 gt_core_toolchains
-printf 'PASS: real pinned APT Java 25/Maven installation, interrupted recovery, original Java 17 selections and service-user Maven on Java 25.\n'
+printf 'PASS: full-plan pinned APT Java 25/Maven dependencies, interrupted recovery, original Java 17 selections and service-user Maven on Java 25.\n'

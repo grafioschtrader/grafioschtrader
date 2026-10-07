@@ -31,6 +31,22 @@ save_answers() {
   [ -z "${STATE[installer_sha256]:-}" ]
 }
 
+@test "bootstrap completion requires its approved plan and preserves read-only reruns" {
+  STATE[scope]=bootstrap
+  run gt_handover
+  [ "$status" -eq 2 ]
+  STATE[resource.bootstrap_plan]=$(printf approved | sha256sum)
+  STATE[resource.bootstrap_plan]=${STATE[resource.bootstrap_plan]%% *}
+  gt_handover
+  gt_state_load
+  [ "${STATE[scope]}" = bootstrap ]
+  gt_secrets_load() { echo unexpected-secrets; return 99; }
+  MODE=--bootstrap
+  run gt_install_core
+  [ "$status" -eq 0 ]
+  [[ "$output" != *unexpected-secrets* ]]
+}
+
 @test "hand-over publishes a private complete report with pinned identity and warnings" {
   NOTES=('WARN: low memory') PLAN_WARNINGS=('frontend may be newer')
   SECRET[SMTP_PASSWORD]='secret-only-fixture'

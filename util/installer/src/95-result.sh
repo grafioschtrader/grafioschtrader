@@ -52,6 +52,9 @@ gt_result_milestones() {
 
 gt_completion_valid() {
   local step
+  if [[ "${STATE[scope]:-}" == bootstrap ]]; then
+    [[ "${STATE[resource.bootstrap_plan]:-}" =~ ^[a-f0-9]{64}$ ]] || return 2
+  fi
   [[ "${STATE[completed_at]:-}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ &&
       "${STATE[installer_sha256]:-}" =~ ^[a-f0-9]{64}$ &&
       "${STATE[built_commit]:-}" == "${STATE[planned_commit]:-}" &&
