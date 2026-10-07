@@ -33,6 +33,21 @@ wait_installer() {
   return 2
 }
 
+# Small hosts: the installer's own heap and swap defaults apply. The swap file must be active, also after a reboot
+# through /etc/fstab, and below 3700 MiB the frontend is the downloaded release instead of a local build.
+verify_small_host() {
+  local memory
+  memory=$(awk '$1 == "MemTotal:" {print int($2 / 1024)}' /proc/meminfo)
+  printf 'MemTotal: %s MiB, SWAP=%s, JAVA_HEAP=%s\n' "$memory" "${ANSWER[SWAP]:-not asked}" "${ANSWER[JAVA_HEAP]}"
+  (( memory >= 4000 )) || [[ "${ANSWER[SWAP]:-}" == yes && "${STATE[step.swap]:-}" == complete ]]
+  if [[ "${ANSWER[SWAP]:-no}" == yes ]]; then
+    gt_swap_valid /swapfile
+    gt_swap_active /swapfile
+    [[ $(grep -cE '^/swapfile[[:space:]]+none[[:space:]]+swap[[:space:]]' /etc/fstab) == 1 ]]
+  fi
+  (( memory >= 3700 )) || grep -q 'releases/download/Latest/latest.tar.gz' /var/lib/gt-install/app-build.log
+}
+
 load_verifiers() {
   if declare -F gt_cleanup >/dev/null && [[ -n "${SCRATCH:-}" ]]; then gt_cleanup; fi
   export GT_INSTALL_SOURCE_ONLY=1
@@ -100,7 +115,6 @@ SMTP_USER=sender@example.invalid
 SMTP_SECURITY=none
 SMTP_TEST=yes
 ALLOWED_USERS=20
-JAVA_HEAP=-Xms256m -Xmx2048m
 TIMEZONE=Etc/UTC
 ANSWERS
         printf 'DB_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nJASYPT_PASSWORD=%s\n' \
@@ -157,6 +171,7 @@ ANSWERS
     gt_app_verify; gt_app_artifacts
     FACT[web.lan]=${STATE[resource.web_lan]}
     gt_web_verify
+    verify_small_host
     cat /proc/sys/kernel/random/boot_id > "$acceptance/boot-id"
     sha256sum /var/lib/gt-install/state /var/lib/gt-install/result /var/lib/gt-install/app-build.log \
       > "$acceptance/completed.sha256"
@@ -174,6 +189,7 @@ ANSWERS
     until gt_app_verify; do (( SECONDS < deadline )) || exit 2; sleep 3; done
     FACT[web.lan]=${STATE[resource.web_lan]}
     gt_web_verify; gt_core_config_valid; gt_app_artifacts
+    verify_small_host
     env -u GT_INSTALL_SOURCE_ONLY bash /opt/gt-acceptance/installer.sh --yes
     sha256sum --check "$acceptance/completed.sha256"
     sha256sum --check "$acceptance/secrets.sha256"

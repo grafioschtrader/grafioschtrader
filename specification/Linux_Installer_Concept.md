@@ -361,9 +361,9 @@ from 8081 upward, excluding both backend connectors. Apply explicitly selected u
 The memory warnings, heap defaults and space requirements are planned by `gt_compatibility` and
 `gt_memory_defaults`; the swap file contract (`gt_core_swap`) is documented in `util/installer/README.md`.
 
-Verify them on a real host below 4000 MB RAM without swap (§9): the swap file exists before the first backend build
-and stays active after a reboot, and below 3700 MB `gtupfrontend.sh` downloads the frontend instead of building it.
-That `latest.tar.gz` is rebuilt on every frontend push to `master` and can be newer than the built backend; this
+Verify the low-memory path on a real arm64 or armhf host below 4000 MB RAM without swap (§9), where the swap file
+and the frontend download carry the first build on the slowest hardware. Below 3700 MB `gtupfrontend.sh` downloads
+`latest.tar.gz`, which is rebuilt on every frontend push to `master` and can be newer than the built backend; this
 limitation belongs in the gt-user-manual (§10).
 
 ### 5.7 DNS and public reachability

@@ -13,6 +13,9 @@ GT_VM_WEB=${GT_VM_WEB:-nginx}
 GT_VM_DOMAIN=${GT_VM_DOMAIN:-no}
 GT_VM_MODE=${GT_VM_MODE:-bootstrap}
 GT_VM_OS=${GT_VM_OS:-ubuntu-24.04}
+# Below 4000 MiB the installer offers a swap file, below 3700 MiB the frontend is downloaded instead of built.
+GT_VM_MEMORY=${GT_VM_MEMORY:-12288}
+[[ "$GT_VM_MEMORY" =~ ^[1-9][0-9]*$ ]] && (( GT_VM_MEMORY >= 2048 ))
 [[ "$GT_VM_WEB" == nginx || "$GT_VM_WEB" == apache2 ]]
 [[ "$GT_VM_DOMAIN" == yes || "$GT_VM_DOMAIN" == no ]]
 [[ "$GT_VM_MODE" == stages || "$GT_VM_MODE" == bootstrap && "$GT_VM_DOMAIN" == no ]]
@@ -60,7 +63,7 @@ if [[ ! -e guest.qcow2 ]]; then
   cloud-localds seed.img user-data meta-data
 fi
 if [[ ! -e qemu.pid ]] || ! kill -0 "$(cat qemu.pid)" 2>/dev/null; then
-  qemu-system-x86_64 -enable-kvm -cpu host -smp 8 -m 12288 -display none \
+  qemu-system-x86_64 -enable-kvm -cpu host -smp 8 -m "$GT_VM_MEMORY" -display none \
     -drive file=/work/guest.qcow2,if=virtio,format=qcow2 -drive file=/work/seed.img,format=raw,if=virtio \
     -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 -device virtio-net-pci,netdev=net0 \
     -serial file:/work/results/console.log -monitor none -daemonize -pidfile /work/qemu.pid
@@ -128,6 +131,7 @@ if [[ "$GT_VM_MODE" == bootstrap ]]; then
 fi
 sha256sum base.img > results/cloud-image.sha256
 printf '%s\n' "$GT_VM_OS" > results/guest-os
-printf 'PASS: %s, mode=%s, real build, %s LAN access, domain TLS=%s, systemd startup, reboot and resume.\n' \
-  "$GT_VM_OS" "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" | tee results/PASS
+printf 'PASS: %s, %s MiB RAM, mode=%s, real build, %s LAN access, domain TLS=%s, %s\n' \
+  "$GT_VM_OS" "$GT_VM_MEMORY" "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" 'systemd startup, reboot and resume.' \
+  | tee results/PASS
 ssh_guest 'sudo systemctl poweroff' || true

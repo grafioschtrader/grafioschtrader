@@ -263,7 +263,11 @@ default, Debian 12 with `GT_VM_OS=debian-12`. Debian 12 has no JDK 25 in APT, so
 archive while Debian's APT Maven pulls in a shared Java 17; it is supported in bootstrap mode only, because the
 stage driver installs Java from APT. A controller container keeps one guest disk and refuses another release;
 use a new container per release, for example
-`docker exec -e GT_VM_OS=debian-12 gt-installer-vm-debian12 bash /repo/util/installer/test/vm-host.sh`. The controller requires `/dev/kvm`, at least 16 GB of available host RAM and
+`docker exec -e GT_VM_OS=debian-12 gt-installer-vm-debian12 bash /repo/util/installer/test/vm-host.sh`.
+`GT_VM_MEMORY` sets the guest RAM in MiB (default 12288). Below 4000 MiB the bootstrap driver leaves `SWAP` and
+`JAVA_HEAP` to the installer defaults and requires the swap file to be active and listed once in `/etc/fstab`,
+after the installation and again after the reboot; below 3700 MiB it also requires the downloaded frontend
+release instead of a local build. The controller requires `/dev/kvm`, at least 16 GB of available host RAM and
 space for a 60 GB sparse guest disk. It assigns 12 GB and eight virtual CPUs to the guest. Docker needs only
 the KVM device and a read-only repository mount; no privileged container, host database mount or published
 network port is used. SSH forwards to loopback inside the controller container with a newly generated key.
@@ -337,6 +341,15 @@ SIGTERM, one accepted local SMTP message, reboot with automatic startup and a re
 as on Ubuntu. Application commit: `838ae5272a57c129472752821df4271dae0dd6ff`; installer SHA-256:
 `2e1b5263b6ddd5d76eb558c2351143c3e576d2ce44f38980de843ed9561dc37b`; cloud image SHA-256:
 `9ebb87ba8e3e0ab593e39cb89fed15dda05e5997b575285a7fae4ac4bc42ad20`.
+
+Small-host acceptance on 2026-10-07 passed on the same Debian 12 image with `GT_VM_MEMORY=3072` (2983 MiB
+`MemTotal`, no swap). The installer asked for and created the 2 GiB `/swapfile` before the first build, wrote
+the single `/swapfile none swap sw 0 0` line after the backup `/etc/fstab.gt-install.<timestamp>`, proposed
+`-Xms128m -Xmx896m` and downloaded the frontend release instead of running `ng build`. The swap was active
+after the installation, after the SIGTERM resumption and, through `/etc/fstab`, after the reboot. The result
+reported `status=complete` with the low-RAM frontend warning. Application commit:
+`2a60e6a42bc7605c1ed420c4922ebb1fb654d364`; installer SHA-256:
+`9a77106a4c557152921a5cda580fce79bff9d10317dddf52c0ed660937c6e7a9`.
 
 Local acceptance on 2026-10-05 passed with kernel `6.8.0-142-generic`, Java `25.0.4.1`, Node `24.21.0` and
 MariaDB `10.11.14` on Ubuntu 24.04 amd64. All six Maven reactor modules built successfully, the production
