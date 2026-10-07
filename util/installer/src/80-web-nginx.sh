@@ -200,6 +200,10 @@ gt_web_activate() {
 
 gt_install_web() {
   local state_dir before after reply package
+  local completed_status
+  completed_status=0
+  gt_completed || completed_status=$?
+  (( completed_status == 3 )) || return "$completed_status"
   state_dir=$(gt_path /var/lib/gt-install)
   gt_question_model
   gt_state_load && gt_secrets_load || return 2

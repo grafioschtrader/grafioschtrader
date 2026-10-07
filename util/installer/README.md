@@ -32,6 +32,7 @@ when embedded in a heredoc. Unknown markers, unused helpers and invalid Python s
 | `80-web-nginx.sh` | nginx inventory, LAN routing, verification and rollback |
 | `81-web-sites.sh` | domain sites, Apache, TLS and shared-site verification |
 | `90-mail.sh` | SMTP check and its recorded outcome |
+| `95-result.sh` | recorded milestones, final hand-over and read-only completion recognition |
 | `99-main.sh` | core execution entry point, cleanup, CLI and source-only guard |
 | `py/*.py` | embedded Python programs, compiled and tested as source files |
 
@@ -177,8 +178,48 @@ acceptance is journaled; repeated completed checks send no duplicate. If the pro
 acceptance and durable recording, a retry can resubmit the same Message-ID and the command says so.
 Old journal-only milestones require another configuration and SMTP check; an already accepted message is not resent.
 This verifies resolved application settings with the SMTP probe, not the application's registration-mail workflow.
-`SMTP_CONFIGURE=no` records `skipped` and leaves registration incomplete. Success returns **10**; final
-installation reporting and hand-over remain pending.
+`SMTP_CONFIGURE=no` records `skipped` and leaves registration incomplete. Every normal mail-stage exit,
+including a previously verified or skipped check, produces the hand-over report below. SMTP transport failures
+record a failed mail milestone and return **10**; incompatible application configuration blocks with **2**.
+
+## Final hand-over
+
+Run `--check-mail` after the application and web stages. It combines their recorded evidence into `backend`,
+`web`, `tls` and `mail` milestones. A certificate only issued or selected for reuse is still pending until the
+web stage verifies HTTPS. LAN installations skip TLS; an external proxy that cannot be reached from the host
+records `unverified` and asks for an external check. This report records installation acceptance, not ongoing health.
+
+| Overall result | Condition | Exit |
+|---|---|---|
+| `complete` | backend, web and mail `ok`; TLS `ok`, `unverified` or `skipped`; complete build/start evidence | 0 |
+| `incomplete` | backend `ok`, with pending web/mail/TLS or skipped/failed mail or failed TLS | 10 |
+| `failed` | backend/web failed or result publication failed | 1 |
+| `blocked` | invalid state, configuration or ownership prevents proceeding | 2 |
+
+The report includes the browser URL, administrator registration address, update/configuration instructions,
+planned and built commits, the SHA-256 of the installer bundle used for hand-over, and recorded warnings.
+`mail_delivery` distinguishes SMTP acceptance (`accepted`, not proof of inbox delivery), a successful check
+without sending (`not-requested`), skipped mail, pending verification and uncertain delivery after interruption.
+An incomplete report lists the remaining actions. Saved answers remain immutable; changing a skipped SMTP
+selection requires the future re-planning support and cannot be achieved just by repeating the check.
+
+The same public fields are atomically written as literal `key=value` lines to `/var/lib/gt-install/result`
+(root-owned, mode 600). Do not source this file as shell code. Technical keys and milestone values are stable;
+explanations use the selected English or German language. Credentials and private diagnostic logs are excluded.
+Warnings raised during journaled stages are retained across retries. Older journals can only report warnings
+still available when they resume.
+
+The result is published before `status=complete` and the UTC `completed_at` are committed to the journal.
+An interruption between these writes leaves the journal resumable; saved SMTP acceptance prevents a duplicate
+message. Incomplete results retain `status=running`. Schema 1 and `scope=core` remain compatible with earlier
+single-stage journals; `step.core=complete` alone never means the application installation is complete.
+
+After completion, `--check`, `--dry-run`, `--prepare`, all `--install-*` modes and `--check-mail` validate the
+journal and display the recorded result without reading secrets, checking deployment hashes, contacting SMTP
+or changing files. This remains true after `gtupdate.sh` changes the deployed JAR. Update as `grafioschtrader`
+from `/home/grafioschtrader` with `./gtupdate.sh`. Template keys in `application.properties` are merged;
+additional keys belong in `application-production.properties`, which is preserved unchanged. Keep the generated
+launchers and assigned cron slot. Restoring files never reverses database migrations.
 
 ## nginx and LAN access
 
@@ -217,7 +258,7 @@ sites and the application/database are preserved. Repeat `--install-web` after r
 `nginx -t`, `journalctl -u nginx` and `/var/log/nginx/error.log` for nginx diagnostics.
 
 Success enables nginx at boot, records `step.web=complete`, prints the LAN URL and returns **10**.
-The installation remains incomplete pending mail verification and final hand-over. A repeated successful
+The installation remains incomplete until `--check-mail` performs mail verification and final hand-over. A repeated successful
 stage rechecks the running site and enablement without rewriting/reloading it. Foreign-vhost snippets and
 firewall changes remain separate work.
 
@@ -529,10 +570,10 @@ Exit codes:
 
 | Code | Meaning |
 |---|---|
-| `0` | Check/plan/preparation completed without blockers, or dry-run identified an existing installation needing no bootstrap; review warnings |
-| `10` | Selected core/application/web/mail stage finished; final hand-over is still pending |
+| `0` | Check/plan/preparation without blockers, successful hand-over, or previously completed installation; review warnings |
+| `10` | Core/application/web stage finished, or hand-over reports an incomplete installation |
 | `2` | Check/plan contains a bootstrap blocker, a core step failed, or invocation/root/lock/terminal requirements were not satisfied |
-| `1` | The checker could not initialize its required execution environment |
+| `1` | Required execution environment unavailable, failed hand-over milestone, or result/journal publication failed |
 | `130` | Question input ended or the user cancelled with `!quit` / Ctrl-C |
 
 The checker writes no installation state, persistent log, package metadata, or configuration. Its scratch

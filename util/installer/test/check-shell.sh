@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../../.."
 bash util/installer/build.sh --check
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s util/installer/test -p test_build.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s util/installer/test -p test_secret_terminal.py
 scripts=(util/installer/gt-install.sh util/installer/build.sh util/shellscripts/gtupbackend.sh util/shellscripts/gtupfrontend.sh
   util/shellscripts/gtupfrontback.sh util/shellscripts/installroot.sh
   util/shellscripts/grafioschtrader.sh util/shellscripts/checkversion.sh)

@@ -176,6 +176,16 @@ mail_ready() {
   [ "${STATE[step.mail]}" = skipped ]
 }
 
+@test "SMTP transport failure records incomplete result while keeping mail resumable" {
+  mail_ready
+  gt_mail_probe() { return 1; }
+  run gt_check_mail
+  [ "$status" -eq 10 ]
+  grep -qx 'mail=failed' "$ROOT/var/lib/gt-install/result"
+  grep -qx 'status=incomplete' "$ROOT/var/lib/gt-install/result"
+  grep -qx 'step.mail=failed' "$ROOT/var/lib/gt-install/state"
+}
+
 @test "mail command refuses new answer files and combined installation modes" {
   run env GT_INSTALL_SOURCE_ONLY=0 bash "$REPO/util/installer/gt-install.sh" --check-mail --answers /root/answers --yes
   [ "$status" -eq 2 ]

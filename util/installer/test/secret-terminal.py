@@ -13,6 +13,18 @@ SCRIPT = Path(__file__).resolve().parents[1] / "gt-install.sh"
 FIXTURE = b'  fake-$HOME-"quote"-\\backslash=only  '
 
 
+def wait_for_child(child, deadline):
+    """PTY closure can precede process exit; share the terminal's original deadline."""
+    while True:
+        waited, status = os.waitpid(child, os.WNOHANG)
+        if waited == child:
+            return status
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise AssertionError("credential reader did not exit")
+        time.sleep(min(0.01, remaining))
+
+
 def exercise(cancel=None):
     child, terminal = pty.fork()
     if child == 0:
@@ -32,6 +44,7 @@ printf 'FINISHED\n'
     output = bytearray()
     initial = termios.tcgetattr(terminal)
     deadline = time.monotonic() + 15
+    reaped = False
 
     def receive_until(marker):
         start = len(output)
@@ -76,8 +89,8 @@ printf 'FINISHED\n'
                 if not block:
                     break
                 output.extend(block)
-        waited, status = os.waitpid(child, os.WNOHANG)
-        assert waited == child, "credential reader did not exit"
+        status = wait_for_child(child, deadline)
+        reaped = True
         expected = 128 + cancel if cancel else 0
         assert os.waitstatus_to_exitcode(status) == expected, "unexpected terminal exit status"
         assert b"fake-$HOME" not in output and b"mismatch-test-only" not in output, "secret echoed"
@@ -86,13 +99,15 @@ printf 'FINISHED\n'
             assert b"FINISHED" in output
     finally:
         try:
-            os.kill(child, signal.SIGKILL)
-            os.waitpid(child, 0)
-        except ProcessLookupError:
+            if not reaped:
+                os.kill(child, signal.SIGKILL)
+                os.waitpid(child, 0)
+        except (ProcessLookupError, ChildProcessError):
             pass
         os.close(terminal)
 
 
-for cancellation in (None, signal.SIGINT, signal.SIGTERM):
-    exercise(cancellation)
-print("PASS: hidden input, mismatch retry, trace suppression, Ctrl-C/SIGTERM and echo restoration")
+if __name__ == "__main__":
+    for cancellation in (None, signal.SIGINT, signal.SIGTERM):
+        exercise(cancellation)
+    print("PASS: hidden input, mismatch retry, trace suppression, Ctrl-C/SIGTERM and echo restoration")

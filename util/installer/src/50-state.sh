@@ -55,7 +55,10 @@ gt_atomic_map() {
   sync -f "${file%/*}"
 }
 
-gt_state_save() { gt_atomic_map "$(gt_path /var/lib/gt-install/state)" STATE; }
+gt_state_save() {
+  gt_result_remember_warnings || return 1
+  gt_atomic_map "$(gt_path /var/lib/gt-install/state)" STATE
+}
 
 gt_state_load() {
   local line key value
@@ -69,6 +72,8 @@ gt_state_load() {
     case "$key" in
       schema|status|scope|run_id|planned_commit|java_home|maven|new_database_server|database_before|account_before|root_auth|step.*|resource.*|file.*) ;;
       built_commit) [[ "$value" =~ ^[a-f0-9]{40}$ ]] || return 2 ;;
+      installer_sha256) [[ "$value" =~ ^[a-f0-9]{64}$ ]] || return 2 ;;
+      completed_at) [[ "$value" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || return 2 ;;
       toolchain.java.package) [[ "$value" == none || "$value" =~ ^openjdk-[0-9]+-jdk-headless$ ]] || return 2 ;;
       toolchain.maven.package) [[ "$value" == none || "$value" == maven ]] || return 2 ;;
       toolchain.java.version|toolchain.maven.version) [[ "$value" =~ ^[a-zA-Z0-9.+:~_-]+$ ]] || return 2 ;;
@@ -81,7 +86,8 @@ gt_state_load() {
     STATE[$key]=$value
   done <<< "$PRIVATE_CONTENT"
   PRIVATE_CONTENT=''
-  [[ "${STATE[schema]:-}:${STATE[status]:-}:${STATE[scope]:-}" == 1:running:core &&
+  [[ "${STATE[schema]:-}:${STATE[scope]:-}" == 1:core &&
+      "${STATE[status]:-}" =~ ^(running|complete)$ &&
       "${STATE[run_id]:-}" =~ ^[a-f0-9]{32}$ && "${STATE[planned_commit]:-}" =~ ^[a-f0-9]{40}$ ]] || return 2
   for key in java_home maven; do
     if [[ "${STATE[$key]:-}" == pending ]]; then
@@ -97,6 +103,11 @@ gt_state_load() {
   for key in new_database_server database_before account_before; do
     [[ "${STATE[$key]:-}" == yes || "${STATE[$key]:-}" == no ]] || return 2
   done
+  if [[ "${STATE[status]}" == complete ]]; then
+    gt_completion_valid || return 2
+  else
+    [[ -z "${STATE[completed_at]:-}" ]] || return 2
+  fi
 }
 
 # The local map is consumed by gt_atomic_map through its nameref.

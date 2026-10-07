@@ -659,6 +659,9 @@ gt_plan_report() {
 }
 gt_dry_run() {
   local status=0
+  gt_completed || status=$?
+  (( status == 3 )) || return "$status"
+  status=0
   gt_inventory; gt_compatibility; gt_report
   if [[ "${FACT[host.class]}" == fresh ]]; then
     if ! { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null; then
@@ -676,6 +679,9 @@ gt_dry_run() {
 
 gt_prepare() {
   local status=0
+  gt_completed || status=$?
+  (( status == 3 )) || return "$status"
+  status=0
   gt_inventory; gt_compatibility; gt_report
   gt_question_model
   if [[ "${FACT[host.class]}" == fresh ]]; then

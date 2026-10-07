@@ -14,6 +14,7 @@ gt_reset() {
   declare -gA SECRET=() SECRET_STATUS=() FILE_ANSWERS=()
   MODE='' ANSWERS_FILE='' TTY_STATE='' SECRET_INPUT=''
   declare -gA STATE=() PROPERTIES=() BUILD=()
+  declare -gA RESULT=()
   declare -ga PRIVATE_DIRS=() PRIVATE_FILES=()
   CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader
   CORE_REPO=/home/grafioschtrader/build/grafioschtrader

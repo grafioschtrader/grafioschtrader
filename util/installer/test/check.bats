@@ -83,12 +83,12 @@ setup() {
   ! grep -q '^free' "$PROBES"
 }
 
-@test "completed installer state takes priority over other installation evidence" {
+@test "invalid completed journal cannot masquerade as a completed installation" {
   mkdir -p "$ROOT/var/lib/gt-install" "$ROOT/etc/systemd/system"
   printf 'schema=1\nstatus=complete\nbuilt_commit=abc\nsecrets=TOP_SECRET\n' > "$ROOT/var/lib/gt-install/state"
   touch "$ROOT/etc/systemd/system/grafioschtrader.service"
   gt_installation
-  [ "${FACT[host.class]}" = completed ]
+  [ "${FACT[host.class]}" = invalid-state ]
   [[ "${FACT[*]}" != *TOP_SECRET* ]]
 }
 

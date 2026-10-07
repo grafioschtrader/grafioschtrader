@@ -304,6 +304,10 @@ gt_app_start() {
 
 gt_install_app() {
   local reply step before after state_dir
+  local completed_status
+  completed_status=0
+  gt_completed || completed_status=$?
+  (( completed_status == 3 )) || return "$completed_status"
   state_dir=$(gt_path /var/lib/gt-install)
   gt_question_model
   if ! gt_state_load || ! gt_secrets_load; then gt_core_error 'Valid core journal and original secrets required.'; return 2; fi

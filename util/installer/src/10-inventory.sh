@@ -81,12 +81,18 @@ gt_installation() {
   if [[ -e "$state_file" ]]; then
     status=$(gt_literal "$state_file" status) || status=unknown
     FACT[state.status]=$status
-    for key in schema installer_commit planned_commit built_commit completed_at; do
+    for key in schema installer_sha256 planned_commit built_commit completed_at; do
       FACT[state.$key]=$(gt_literal "$state_file" "$key") || FACT[state.$key]=unknown
     done
     # Only completion markers are shown, never arbitrary state values or the secrets file.
     FACT[state.completed_steps]=$(awk -F= '$1~/^step[._][a-zA-Z0-9_.-]+$/ && $2~/^(complete|completed|ok|1)$/ {print $1}' "$state_file" 2>/dev/null)
-    case "$status" in complete) FACT[host.class]=completed ;; running) FACT[host.class]=unfinished ;; *) FACT[host.class]='invalid-state' ;; esac
+    case "$status" in
+      complete)
+        gt_question_model
+        if gt_state_load; then FACT[host.class]=completed; else FACT[host.class]='invalid-state'; fi ;;
+      running) FACT[host.class]=unfinished ;;
+      *) FACT[host.class]='invalid-state' ;;
+    esac
   elif [[ "$unit$vars$updater" == yesyesyes ]]; then FACT[host.class]=classic
   elif [[ "$user$unit$vars$updater$jar$sudoers" == *yes* ]]; then FACT[host.class]=foreign-partial
   elif [[ "${FACT[containers]}" == *ghcr.io/grafioschtrader/grafioschtrader-* ]]; then FACT[host.class]=docker

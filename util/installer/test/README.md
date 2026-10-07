@@ -68,6 +68,16 @@ python3 util/installer/test/secret-terminal.py
 
 The terminal test uses fake secrets and a real pseudo-terminal to verify mismatch retry, trace suppression,
 Ctrl-C/SIGTERM handling and echo restoration. It never contacts a database or modifies an installation.
+`test_secret_terminal.py` deterministically covers delayed child exit after PTY closure, the shared deadline
+and preservation of exit status. It runs in the shell check; the PTY integration test remains a separate CI step.
+CI acceptance of the terminal wait change requires two consecutive green `installer.yml` runs. Local tests
+do not replace those workflow runs.
+
+`result.bats` covers schema-1 compatibility, private result publication, completed-journal validation, all
+read-only completed entrypoints, pending/failed/skipped milestones, proxy TLS, no-send SMTP, warning persistence,
+and interruption between result publication and journal completion. It checks that the accepted message is not
+sent again and that later update artifact drift does not reopen a completed installation. `domain-mail.bats`
+and the SMTP container also exercise the hand-over through the actual mail-stage controller.
 
 `smoke-prepare.sh` runs the actual `--prepare --answers` CLI with a temporary root-owned fixture file. Run it only
 in a fresh disposable container with OpenSSL installed. It verifies the secret-status report and scratch cleanup;

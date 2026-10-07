@@ -48,11 +48,15 @@ gt_mail_probe() {
 # @python mail-probe.py
 PY
   printf '%s\0' "${configuration[@]}" "$send" \
-    "<gt-install-${STATE[run_id]}@localhost>" | python3 "$SCRATCH/mail-check.py" > "$SCRATCH/mail-result"
+    "<gt-install-${STATE[run_id]}@localhost>" | python3 "$SCRATCH/mail-check.py" > "$SCRATCH/mail-result" || return 1
 }
 
 gt_check_mail() {
   local state_dir field reply result send
+  local completed_status
+  completed_status=0
+  gt_completed || completed_status=$?
+  (( completed_status == 3 )) || return "$completed_status"
   state_dir=$(gt_path /var/lib/gt-install)
   gt_question_model
   gt_state_load && gt_secrets_load || return 2
@@ -64,7 +68,7 @@ gt_check_mail() {
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == no ]]; then
     gt_core_mark step.mail skipped || return 2
     gt_text 'Mail skipped; registration cannot be completed. Installation remains incomplete.' 'Mail übersprungen; Registrierung kann nicht abgeschlossen werden. Installation bleibt unvollständig.'
-    return 10
+    gt_handover; return $?
   fi
   for field in SMTP_HOST SMTP_PORT SMTP_USER SMTP_AUTH SMTP_SECURITY SMTP_TEST ADMIN_EMAIL; do
     gt_validate_answer "$field" "${ANSWER[$field]:-}" || return 2
@@ -76,7 +80,9 @@ gt_check_mail() {
     gt_core_mark step.mail complete || return 2
   fi
   if [[ "${STATE[step.mail]:-}" == complete && "${STATE[resource.mail_configuration]:-}" == application-v1 ]]; then
-    gt_text 'Mail milestone already verified; no duplicate test message sent.' 'Mail-Prüfung bereits erfolgreich; keine erneute Testnachricht gesendet.'; return 10
+    gt_text 'Mail milestone already verified; no duplicate test message sent.' \
+      'Mail-Prüfung bereits erfolgreich; keine erneute Testnachricht gesendet.'
+    gt_handover; return $?
   fi
   printf 'SMTP: %s:%s; transport=%s; auth=%s; sender=%s; recipient=%s; send=%s\n' \
     "${ANSWER[SMTP_HOST]}" "${ANSWER[SMTP_PORT]}" "${ANSWER[SMTP_SECURITY]}" "${ANSWER[SMTP_AUTH]}" "${ANSWER[SMTP_USER]}" "${ANSWER[ADMIN_EMAIL]}" "${ANSWER[SMTP_TEST]}"
@@ -99,7 +105,12 @@ gt_check_mail() {
   elif (( result == 0 )) && [[ -f "$SCRATCH/mail-result" ]] && grep -qx connected "$SCRATCH/mail-result"; then
     [[ "${STATE[resource.mail_delivery]:-}" == accepted ]] || gt_core_mark resource.mail_delivery not-requested || return 2
     gt_text 'SMTP connection, selected TLS and authentication verified; no test message requested.' 'SMTP-Verbindung, gewähltes TLS und Anmeldung geprüft; keine Testnachricht gewünscht.'
-  else gt_core_error 'Mail check failed; resolve SMTP settings/server access, then repeat --check-mail.'; return 2; fi
+  else
+    gt_core_error 'Mail check failed; resolve SMTP settings/server access, then repeat --check-mail.'
+    if (( result == 2 )); then gt_handover blocked; return $?; fi
+    gt_core_mark step.mail failed || return 1
+    gt_handover; return $?
+  fi
   gt_core_mark resource.mail_configuration application-v1 && gt_core_mark step.mail complete || return 2
-  return 10
+  gt_handover
 }

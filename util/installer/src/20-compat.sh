@@ -191,6 +191,10 @@ gt_inventory() {
   gt_dynamic_dns
 }
 gt_check() {
+  local completed_status
+  completed_status=0
+  gt_completed || completed_status=$?
+  (( completed_status == 3 )) || return "$completed_status"
   gt_inventory
   gt_compatibility
   gt_report

@@ -1,5 +1,9 @@
 gt_install_core() {
   local key resume=no before after reply file state_dir
+  local completed_status
+  completed_status=0
+  gt_completed || completed_status=$?
+  (( completed_status == 3 )) || return "$completed_status"
   state_dir=$(gt_path /var/lib/gt-install)
   gt_question_model
   if [[ -e "$state_dir/state" || -L "$state_dir/state" ]]; then
