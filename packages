@@ -23,6 +23,7 @@ grafiosch.config
 grafiosch.security
 grafiosch.security.filter
 grafiosch.service
+grafiosch.installer
 grafiosch.repository
 grafiosch.m2m
 grafiosch.m2m.client
