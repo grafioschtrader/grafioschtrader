@@ -268,9 +268,9 @@ The APT, vendor-archive and manual paths of `gt_core_toolchain_plan` and `gt_cor
 `util/installer/README.md`. Archive resolution needs `python3`; bootstrap it on minimal hosts together with the
 prerequisites of §5.3.
 
-Verify on real hosts (§9) that the Temurin archive on Debian 12 amd64 and arm64 and the Liberica archive on armhf
-serve the application service through a real systemd startup and reboot and later `gtupdate.sh` builds, while a
-different shared system Java remains selected.
+Verify on real hosts (§9) that the Temurin archive on arm64 and the Liberica archive on armhf serve the
+application service through a real systemd startup and reboot, and that a later `gtupdate.sh` build uses the
+archive JDK on every architecture, while a different shared system Java remains selected.
 
 ### 5.2 Maven
 

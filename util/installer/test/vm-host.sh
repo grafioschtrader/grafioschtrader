@@ -12,24 +12,44 @@ umask 077
 GT_VM_WEB=${GT_VM_WEB:-nginx}
 GT_VM_DOMAIN=${GT_VM_DOMAIN:-no}
 GT_VM_MODE=${GT_VM_MODE:-bootstrap}
+GT_VM_OS=${GT_VM_OS:-ubuntu-24.04}
 [[ "$GT_VM_WEB" == nginx || "$GT_VM_WEB" == apache2 ]]
 [[ "$GT_VM_DOMAIN" == yes || "$GT_VM_DOMAIN" == no ]]
 [[ "$GT_VM_MODE" == stages || "$GT_VM_MODE" == bootstrap && "$GT_VM_DOMAIN" == no ]]
+case "$GT_VM_OS" in
+  ubuntu-24.04)
+    image_base=https://cloud-images.ubuntu.com/noble/current image=noble-server-cloudimg-amd64.img
+    sums=SHA256SUMS sum_tool=sha256sum guest_user=ubuntu ;;
+  # Debian 12 has no APT JDK 25, so the installer must use the vendor archive. The stage driver installs
+  # Java/Maven from APT itself; this release therefore runs in bootstrap mode only.
+  debian-12)
+    [[ "$GT_VM_MODE" == bootstrap ]]
+    image_base=https://cloud.debian.org/images/cloud/bookworm/latest image=debian-12-genericcloud-amd64.qcow2
+    sums=SHA512SUMS sum_tool=sha512sum guest_user=debian ;;
+  *) exit 2 ;;
+esac
+# A controller keeps one guest disk; another release needs its own controller container.
+if [[ -e guest-os && "$(cat guest-os)" != "$GT_VM_OS" ]]; then
+  echo "This controller holds a $(cat guest-os) guest; use a new container for $GT_VM_OS." >&2
+  exit 2
+fi
 mkdir -p results
 rm -f results/PASS
 git -c safe.directory=/repo -C /repo rev-parse HEAD > results/base-commit
 ssh_guest() {
   ssh -i /work/guest-key -p 2222 -o BatchMode=yes -o ConnectTimeout=5 \
-    -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/work/known-hosts ubuntu@127.0.0.1 "$@"
+    -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/work/known-hosts "$guest_user@127.0.0.1" "$@"
 }
 if [[ ! -e guest.qcow2 ]]; then
   curl --fail --silent --show-error --location --retry 3 --connect-timeout 15 --max-time 60 \
-    https://cloud-images.ubuntu.com/noble/current/SHA256SUMS -o SHA256SUMS
+    "$image_base/$sums" -o "$sums"
   curl --fail --silent --show-error --location --retry 3 --retry-all-errors --continue-at - \
     --connect-timeout 15 --speed-limit 1024 --speed-time 60 \
-    https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img -o base.img
-  awk '$2 == "*noble-server-cloudimg-amd64.img" || $2 == "noble-server-cloudimg-amd64.img" {print $1 "  base.img"; found=1} END {exit !found}' SHA256SUMS > base.sha256
-  sha256sum --check base.sha256
+    "$image_base/$image" -o base.img
+  awk -v image="$image" '$2 == "*" image || $2 == image {print $1 "  base.img"; found=1} END {exit !found}' \
+    "$sums" > base.sum
+  "$sum_tool" --check base.sum
+  printf '%s\n' "$GT_VM_OS" > guest-os
   qemu-img create -f qcow2 -F qcow2 -b /work/base.img guest.qcow2 60G
   ssh-keygen -q -t ed25519 -N '' -f guest-key
   {
@@ -67,7 +87,11 @@ if [[ "$GT_VM_MODE" == stages ]] && ! ssh_guest 'test -d /opt/gt-acceptance/sour
   ssh_guest 'sudo tar -xzf - -C /opt/gt-acceptance/source && sudo chmod -R a+rX /opt/gt-acceptance/source' < source.tar.gz
 fi
 ssh_guest 'sudo mkdir -p /opt/gt-acceptance'
-ssh_guest 'sudo git config --system --replace-all safe.directory /opt/gt-acceptance/source && sudo git config --system --add safe.directory /opt/gt-acceptance/source/.git'
+# Only the stage mode uses the local source snapshot; bootstrap clones the public repository, and a fresh Debian
+# cloud image has no git before the guest driver installs it.
+if [[ "$GT_VM_MODE" == stages ]]; then
+  ssh_guest 'sudo git config --system --replace-all safe.directory /opt/gt-acceptance/source && sudo git config --system --add safe.directory /opt/gt-acceptance/source/.git'
+fi
 ssh_guest 'sudo tee /opt/gt-acceptance/installer.sh >/dev/null' < /repo/util/installer/gt-install.sh
 sha256sum /repo/util/installer/gt-install.sh > results/installer.sha256
 ssh_guest 'sudo tee /opt/gt-acceptance/guest.sh >/dev/null' < /repo/util/installer/test/vm-guest.sh
@@ -103,5 +127,7 @@ if [[ "$GT_VM_MODE" == bootstrap ]]; then
   ssh_guest "sudo sed -n 's/^built_commit=//p' /var/lib/gt-install/state" > results/source-commit
 fi
 sha256sum base.img > results/cloud-image.sha256
-printf 'PASS: mode=%s, real build, %s LAN access, domain TLS=%s, systemd startup, reboot and resume.\n' "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" | tee results/PASS
+printf '%s\n' "$GT_VM_OS" > results/guest-os
+printf 'PASS: %s, mode=%s, real build, %s LAN access, domain TLS=%s, systemd startup, reboot and resume.\n' \
+  "$GT_VM_OS" "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" | tee results/PASS
 ssh_guest 'sudo systemctl poweroff' || true

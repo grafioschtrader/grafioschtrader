@@ -258,14 +258,19 @@ nginx reloads; boot enablement and integration with the real application belong 
 
 ## Actual build and systemd reboot in QEMU
 
-`vm-host.sh` runs acceptance in a disposable Ubuntu 24.04 amd64 VM with its
-own kernel and systemd PID 1. The controller requires `/dev/kvm`, at least 16 GB of available host RAM and
+`vm-host.sh` runs acceptance in a disposable amd64 VM with its own kernel and systemd PID 1: Ubuntu 24.04 by
+default, Debian 12 with `GT_VM_OS=debian-12`. Debian 12 has no JDK 25 in APT, so its run exercises the vendor JDK
+archive while Debian's APT Maven pulls in a shared Java 17; it is supported in bootstrap mode only, because the
+stage driver installs Java from APT. A controller container keeps one guest disk and refuses another release;
+use a new container per release, for example
+`docker exec -e GT_VM_OS=debian-12 gt-installer-vm-debian12 bash /repo/util/installer/test/vm-host.sh`. The controller requires `/dev/kvm`, at least 16 GB of available host RAM and
 space for a 60 GB sparse guest disk. It assigns 12 GB and eight virtual CPUs to the guest. Docker needs only
 the KVM device and a read-only repository mount; no privileged container, host database mount or published
 network port is used. SSH forwards to loopback inside the controller container with a newly generated key.
 
-The controller downloads the [official Ubuntu cloud image](https://cloud-images.ubuntu.com/noble/current/),
-verifies its SHA-256 and records it with the source revisions. The default `GT_VM_MODE=bootstrap` runs
+The controller downloads the [official Ubuntu cloud image](https://cloud-images.ubuntu.com/noble/current/)
+or the [Debian 12 genericcloud image](https://cloud.debian.org/images/cloud/bookworm/latest/), verifies it
+against the vendor's SHA-256 or SHA-512 list and records its SHA-256 with the source revisions. The default `GT_VM_MODE=bootstrap` runs
 `vm-bootstrap.sh`: it invokes the actual modeless CLI with a private answers file and `--yes`. The installer
 resolves and pins the public source commit itself. The driver installs only probe prerequisites and a local SMTP
 fixture; Java, Maven, MariaDB, Node, base packages, application builds and the web server belong to the installer.
@@ -322,6 +327,16 @@ A completed modeless rerun preserved journal, result, build log, artifacts and s
 Application commit: `9d0a04ee0f3230f387a8e2d1a62a29e956db56e6`; installer SHA-256:
 `3fa9e8dc385721bb40eed773cb20e708f7e62ceffb463ea931b455107d09a29b`; cloud image SHA-256:
 `6a81c37564db9b1ee84e141922625e1d7c5b389b99bb3c572e0243607d5bb4d2`.
+
+Modeless acceptance on 2026-10-07 also passed on Debian 12 amd64 with nginx and kernel `6.1.0-53-cloud-amd64`.
+APT offered no JDK 25: the installer planned and installed the Temurin `25.0.4.1+1` archive
+(`OpenJDK25U-jdk_x64_linux_hotspot_25.0.4.1_1.tar.gz`, SHA-256 `dbb69839…cf41e`) into
+`/opt/jdk-25.0.4.1_1-temurin`, and Maven `3.8.7-1` from APT. Maven's APT dependencies installed a shared Java 17,
+which remained the system selection; the archive JDK has no alternatives entry. Build, service, resumption after
+SIGTERM, one accepted local SMTP message, reboot with automatic startup and a read-only completed rerun passed
+as on Ubuntu. Application commit: `838ae5272a57c129472752821df4271dae0dd6ff`; installer SHA-256:
+`2e1b5263b6ddd5d76eb558c2351143c3e576d2ce44f38980de843ed9561dc37b`; cloud image SHA-256:
+`9ebb87ba8e3e0ab593e39cb89fed15dda05e5997b575285a7fae4ac4bc42ad20`.
 
 Local acceptance on 2026-10-05 passed with kernel `6.8.0-142-generic`, Java `25.0.4.1`, Node `24.21.0` and
 MariaDB `10.11.14` on Ubuntu 24.04 amd64. All six Maven reactor modules built successfully, the production
