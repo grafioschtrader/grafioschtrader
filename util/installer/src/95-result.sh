@@ -1,12 +1,25 @@
 # Completion is a recorded installation outcome, not a health check after later updates.
 # Reports use only selected public fields; neither secrets nor diagnostic logs are copied.
+# The unfinished-journal notes and the pending DNS steps describe this installer's own next steps, never a
+# property of the host; a result must not repeat them. An earlier run in either language may have recorded them.
+gt_result_transient() {
+  local language candidate
+  for language in en de; do
+    for candidate in "$(LANG_CODE=$language gt_message running)" "$(LANG_CODE=$language gt_message resume)" \
+        "$(LANG_CODE=$language gt_dns_tool_notice)" "$(LANG_CODE=$language gt_dns_update_notice)"; do
+      [[ "$1" != "WARN: $candidate" ]] || return 0
+    done
+  done
+  return 1
+}
+
 gt_result_remember_warnings() {
-  local warning digest journal
-  # The unfinished-journal note describes this installer's own resumption, never a property of the host; a
-  # completed result must not repeat it.
-  journal="WARN: $(gt_message running)"
+  local warning digest key
+  for key in "${!STATE[@]}"; do
+    [[ "$key" != resource.warning.* ]] || ! gt_result_transient "${STATE[$key]}" || unset "STATE[$key]"
+  done
   for warning in "${NOTES[@]}" "${PLAN_WARNINGS[@]/#/WARN: }"; do
-    [[ "$warning" == 'WARN: '* && "$warning" != "$journal" ]] || continue
+    if [[ "$warning" != 'WARN: '* ]] || gt_result_transient "$warning"; then continue; fi
     digest=$(printf '%s' "$warning" | sha256sum) || return 1
     STATE[resource.warning.${digest%% *}]=$warning
   done

@@ -81,9 +81,13 @@ web configuration before core changes, then compares web/DNS/TLS configuration a
 stage preflights remain active. Existing schema-1 core journals can enter `scope=bootstrap` only after approval;
 completed journals stay read-only. The result and exit-code contract below also applies to modeless installation.
 
-For domain installations using local TLS, install `bind9-dnsutils` first if `dig` is missing, then run the modeless
-installer again. The full plan blocks before any changes until DNS and the certificate-name set can be checked.
-The separately selected core/web stages retain their explicitly confirmed DNS-prerequisite transaction.
+For domain installations using local TLS, `bind9-dnsutils` is a base package when `dig` is missing. With the
+installer's own DuckDNS updater the full plan approves it with the other packages: the certificate names are the
+domain and `www`, and the DuckDNS step updates and verifies the records before any certificate. Without the updater
+the names depend on the current records, so install `bind9-dnsutils` first and run the modeless installer again;
+the full plan blocks before any changes until DNS can be checked. The separately selected core/web stages retain
+their explicitly confirmed DNS-prerequisite transaction. Plan notices about these DNS steps are not repeated in the
+result, and `--check` names a run without a mode for resuming an unfinished full installation.
 
 Startup diagnostics recognize `Access denied for user`, `FlywayException` and `APPLICATION FAILED TO START`
 without waiting for the 15-minute health timeout. A persisted log cursor and systemd invocation identity limit

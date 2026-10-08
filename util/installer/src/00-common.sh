@@ -39,6 +39,7 @@ gt_message() {
     existing) en='Existing installation: use %s; bootstrap must leave it untouched'; de='Bestehende Installation: %s verwenden; Erstinstallation darf sie nicht ändern' ;;
     partial) en='Foreign installation pieces must not be adopted or removed'; de='Fremde Installationsteile dürfen weder übernommen noch entfernt werden' ;;
     running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'; de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail fortsetzen' ;;
+    resume) en='Unfinished full installation; run the installer again without a mode to resume it'; de='Unfertige Gesamtinstallation; Installer erneut ohne Modus starten, um sie fortzusetzen' ;;
     memory) en='Low RAM: %s'; de='Wenig RAM: %s' ;;
     swap) en='Low RAM without swap, and no swap file can be created: %s'; de='Wenig RAM ohne Swap, und keine Swap-Datei möglich: %s' ;;
     legacy) en='Legacy platform: %s'; de='Ältere Plattform: %s' ;;

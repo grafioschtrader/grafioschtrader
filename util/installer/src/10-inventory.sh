@@ -81,7 +81,7 @@ gt_installation() {
   if [[ -e "$state_file" ]]; then
     status=$(gt_literal "$state_file" status) || status=unknown
     FACT[state.status]=$status
-    for key in schema installer_sha256 planned_commit built_commit completed_at; do
+    for key in schema scope installer_sha256 planned_commit built_commit completed_at; do
       FACT[state.$key]=$(gt_literal "$state_file" "$key") || FACT[state.$key]=unknown
     done
     # Only completion markers are shown, never arbitrary state values or the secrets file.

@@ -79,6 +79,20 @@ save_answers() {
   [ "$output" -eq 1 ]
 }
 
+@test "plan notices about the installer's own DNS steps leave the result, also when recorded earlier" {
+  STATE[resource.warning.old]="WARN: $(LANG_CODE=en gt_dns_update_notice)"
+  STATE[resource.warning.tool]="WARN: $(LANG_CODE=de gt_dns_tool_notice)"
+  STATE[resource.warning.resume]="WARN: $(gt_message resume)"
+  gt_plan_warn "$(gt_dns_update_notice)"
+  gt_note WARN memory 'backend build may be slow; swap advised'
+  gt_result_remember_warnings
+  [ -z "${STATE[resource.warning.old]:-}" ] && [ -z "${STATE[resource.warning.tool]:-}" ]
+  [ -z "${STATE[resource.warning.resume]:-}" ]
+  run grep -c '^resource.warning' <(printf '%s\n' "${!STATE[@]}")
+  [ "$output" -eq 1 ]
+  [[ "$(printf '%s\n' "${STATE[@]}")" == *'Low RAM: backend build may be slow'* ]]
+}
+
 @test "mail without sending is complete only when the confirmed test was not requested" {
   ANSWER[SMTP_TEST]=no STATE[resource.mail_delivery]=not-requested
   save_answers

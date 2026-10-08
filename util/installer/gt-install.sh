@@ -40,6 +40,7 @@ gt_message() {
     existing) en='Existing installation: use %s; bootstrap must leave it untouched'; de='Bestehende Installation: %s verwenden; Erstinstallation darf sie nicht ändern' ;;
     partial) en='Foreign installation pieces must not be adopted or removed'; de='Fremde Installationsteile dürfen weder übernommen noch entfernt werden' ;;
     running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'; de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail fortsetzen' ;;
+    resume) en='Unfinished full installation; run the installer again without a mode to resume it'; de='Unfertige Gesamtinstallation; Installer erneut ohne Modus starten, um sie fortzusetzen' ;;
     memory) en='Low RAM: %s'; de='Wenig RAM: %s' ;;
     swap) en='Low RAM without swap, and no swap file can be created: %s'; de='Wenig RAM ohne Swap, und keine Swap-Datei möglich: %s' ;;
     legacy) en='Legacy platform: %s'; de='Ältere Plattform: %s' ;;
@@ -245,7 +246,7 @@ gt_installation() {
   if [[ -e "$state_file" ]]; then
     status=$(gt_literal "$state_file" status) || status=unknown
     FACT[state.status]=$status
-    for key in schema installer_sha256 planned_commit built_commit completed_at; do
+    for key in schema scope installer_sha256 planned_commit built_commit completed_at; do
       FACT[state.$key]=$(gt_literal "$state_file" "$key") || FACT[state.$key]=unknown
     done
     # Only completion markers are shown, never arbitrary state values or the secrets file.
@@ -710,7 +711,11 @@ gt_compatibility() {
     docker) gt_action host reuse 'existing Docker installation; bootstrap disabled'; gt_note WARN existing docker/update.sh ;;
     foreign-partial|invalid-state) gt_action host block 'existing foreign pieces or invalid installer state'; gt_note WARN partial ;;
     unknown) gt_action host block 'installation inventory UNKNOWN' ;;
-    unfinished) gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running ;;
+    unfinished)
+      # A modeless run resumes its own journal; only a staged installation continues with the stage options.
+      if [[ "${FACT[state.scope]:-}" == bootstrap ]]; then
+        gt_action host block 'resumption requires a run without a mode and a valid journal'; gt_note WARN resume
+      else gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running; fi ;;
     *) gt_action host install 'fresh host' ;;
   esac
   candidate=${CANDIDATE[openjdk-$JAVA_REQUIRED-jdk-headless]:-unknown}
@@ -1553,6 +1558,10 @@ gt_plan_packages() {
 # Planning and execution consume the same package/module selections.
 gt_base_package_names() {
   printf '%s\n' git curl wget ca-certificates gnupg sudo openssl logrotate whiptail tzdata
+  # Domain TLS checks DNS with dig. A dig from another package is used as it is.
+  if gt_dns_required && { ! gt_dns_tool_available || [[ -n "${PACKAGE[bind9-dnsutils]:-}" ]]; }; then
+    printf '%s\n' bind9-dnsutils
+  fi
 }
 
 gt_plan_base_packages() {
@@ -1772,6 +1781,24 @@ gt_plan_storage() {
 gt_dns_required() { [[ -n "${ANSWER[DOMAIN]:-}" && "${ANSWER[TLS_SOURCE]:-}" != proxy ]]; }
 gt_dns_tool_available() { command -v dig >/dev/null 2>&1; }
 
+# Plan-time notices about the installer's own DNS steps. The result never keeps them.
+gt_dns_tool_notice() {
+  gt_text 'dig is installed with the base packages; DNS is verified after the DuckDNS update.' \
+    'dig wird mit den Basispaketen installiert; DNS wird nach dem DuckDNS-Update geprüft.'
+}
+
+gt_dns_update_notice() {
+  gt_text 'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
+    'DNS weicht ab; der Installer aktualisiert DuckDNS vor dem Build und prüft die Einträge vor jedem Zertifikat.'
+}
+
+# The full bootstrap installs dig with its approved package transaction before the DuckDNS step, which updates and
+# verifies the records before any certificate. Its certificate names do not depend on the records found now.
+gt_dns_tool_deferred() {
+  [[ "$MODE" == --bootstrap && "${ANSWER[DUCKDNS_UPDATER]:-no}" == yes && "${STATE[step.duckdns]:-}" != complete &&
+     "${PLAN_PACKAGES[bind9-dnsutils]:-}" == install ]]
+}
+
 # Inputs are normalized, newline-separated address sets. Every published address
 # must be usable, but a host need not publish all of its stable IPv6 addresses.
 gt_dns_records_match() {
@@ -1795,6 +1822,11 @@ gt_plan_dns() {
   if ! gt_dns_tool_available; then
     FACT[dns.status]='missing-tool'
     gt_plan_package bind9-dnsutils
+    if gt_dns_tool_deferred; then
+      FACT[dns.status]=pending-update FACT[plan.names]="$domain www.$domain"
+      gt_plan_warn "$(gt_dns_tool_notice)"
+      return 0
+    fi
     gt_plan_block 'Missing DNS check prerequisite: dig (bind9-dnsutils). Install the confirmed prerequisite, then repeat DNS checks.' \
       'Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils). Bestätigtes Voraussetzungspaket installieren, danach DNS erneut prüfen.'
     return 0
@@ -1821,9 +1853,7 @@ gt_plan_dns() {
   if [[ "$mismatched" == yes && "${ANSWER[DUCKDNS_UPDATER]:-no}" == yes &&
       "${STATE[step.duckdns]:-}" != complete ]]; then
     FACT[dns.status]=pending-update
-    gt_plan_warn \
-      'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
-      'DNS weicht ab; der Installer aktualisiert DuckDNS vor dem Build und prüft die Einträge vor jedem Zertifikat.'
+    gt_plan_warn "$(gt_dns_update_notice)"
   elif [[ "$mismatched" == yes ]]; then
     FACT[dns.status]=mismatch
     if [[ "${ANSWER[TLS_SOURCE]}" == letsencrypt ]]; then
@@ -6139,13 +6169,26 @@ gt_check_mail() {
 }
 # Completion is a recorded installation outcome, not a health check after later updates.
 # Reports use only selected public fields; neither secrets nor diagnostic logs are copied.
+# The unfinished-journal notes and the pending DNS steps describe this installer's own next steps, never a
+# property of the host; a result must not repeat them. An earlier run in either language may have recorded them.
+gt_result_transient() {
+  local language candidate
+  for language in en de; do
+    for candidate in "$(LANG_CODE=$language gt_message running)" "$(LANG_CODE=$language gt_message resume)" \
+        "$(LANG_CODE=$language gt_dns_tool_notice)" "$(LANG_CODE=$language gt_dns_update_notice)"; do
+      [[ "$1" != "WARN: $candidate" ]] || return 0
+    done
+  done
+  return 1
+}
+
 gt_result_remember_warnings() {
-  local warning digest journal
-  # The unfinished-journal note describes this installer's own resumption, never a property of the host; a
-  # completed result must not repeat it.
-  journal="WARN: $(gt_message running)"
+  local warning digest key
+  for key in "${!STATE[@]}"; do
+    [[ "$key" != resource.warning.* ]] || ! gt_result_transient "${STATE[$key]}" || unset "STATE[$key]"
+  done
   for warning in "${NOTES[@]}" "${PLAN_WARNINGS[@]/#/WARN: }"; do
-    [[ "$warning" == 'WARN: '* && "$warning" != "$journal" ]] || continue
+    if [[ "$warning" != 'WARN: '* ]] || gt_result_transient "$warning"; then continue; fi
     digest=$(printf '%s' "$warning" | sha256sum) || return 1
     STATE[resource.warning.${digest%% *}]=$warning
   done

@@ -24,7 +24,11 @@ gt_compatibility() {
     docker) gt_action host reuse 'existing Docker installation; bootstrap disabled'; gt_note WARN existing docker/update.sh ;;
     foreign-partial|invalid-state) gt_action host block 'existing foreign pieces or invalid installer state'; gt_note WARN partial ;;
     unknown) gt_action host block 'installation inventory UNKNOWN' ;;
-    unfinished) gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running ;;
+    unfinished)
+      # A modeless run resumes its own journal; only a staged installation continues with the stage options.
+      if [[ "${FACT[state.scope]:-}" == bootstrap ]]; then
+        gt_action host block 'resumption requires a run without a mode and a valid journal'; gt_note WARN resume
+      else gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running; fi ;;
     *) gt_action host install 'fresh host' ;;
   esac
   candidate=${CANDIDATE[openjdk-$JAVA_REQUIRED-jdk-headless]:-unknown}

@@ -230,6 +230,22 @@ setup() {
   [ "${ACTION[database]}" = block ]
 }
 
+@test "an unfinished full installation is resumed without a mode, a staged one with its options" {
+  collect_check
+  FACT[host.class]=unfinished FACT[state.scope]=bootstrap NOTES=()
+  gt_compatibility
+  [ "${ACTION[host]}" = block ]
+  [[ "${REASON[host]}" == *'without a mode'* && "${REASON[host]}" != *--install-core* ]]
+  [[ "${NOTES[*]}" == *'run the installer again without a mode'* && "${NOTES[*]}" != *--install-core* ]]
+  FACT[state.scope]=core NOTES=()
+  gt_compatibility
+  [[ "${REASON[host]}" == *--install-core* && "${NOTES[*]}" == *--install-core* ]]
+  mkdir -p "$ROOT/var/lib/gt-install"
+  printf 'status=running\nscope=bootstrap\n' > "$ROOT/var/lib/gt-install/state"
+  gt_installation
+  [ "${FACT[state.scope]}" = bootstrap ]
+}
+
 @test "distribution derivatives and supported architecture combinations are recognized" {
   collect_check
   for distro in debian ubuntu; do

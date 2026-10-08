@@ -432,6 +432,30 @@ domain_answers() {
   [ "${#PLAN_PACKAGES[@]}" -eq 0 ]
 }
 
+@test "a full DuckDNS bootstrap without dig installs it with the base packages instead of blocking" {
+  domain_answers
+  ANSWER[DUCKDNS_UPDATER]=yes DNS_TOOL_AVAILABLE=no MODE=--bootstrap
+  gt_base_package_names | grep -qx bind9-dnsutils
+  gt_plan_base_packages
+  gt_plan_dns
+  [ "${#PLAN_BLOCKERS[@]}" -eq 0 ]
+  [[ "${PLAN_WARNINGS[*]}" == *'dig is installed with the base packages'* ]]
+  [ "${PLAN_PACKAGES[bind9-dnsutils]}" = install ]
+  [ "${FACT[plan.names]}" = 'example.org www.example.org' ]
+  ! grep -q '^dig ' "$PROBES"
+  # Without the own updater the certificate names depend on records only dig can read.
+  ANSWER[DUCKDNS_UPDATER]=no PLAN_WARNINGS=()
+  gt_plan_dns
+  [[ "${PLAN_BLOCKERS[*]}" == *'Missing DNS check prerequisite'* ]]
+  # A dig from another package is used as it is; a LAN-only installation needs none.
+  DNS_TOOL_AVAILABLE=yes
+  ! gt_base_package_names | grep -qx bind9-dnsutils
+  PACKAGE[bind9-dnsutils]=1:9.20
+  gt_base_package_names | grep -qx bind9-dnsutils
+  ANSWER[DOMAIN]=''
+  ! gt_base_package_names | grep -qx bind9-dnsutils
+}
+
 @test "AAAA records can be a nonempty normalized subset of stable host addresses" {
   domain_answers
   ANSWER[DNS_FAMILY]=ipv6 DNS_A=''

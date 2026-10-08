@@ -56,6 +56,10 @@ gt_plan_packages() {
 # Planning and execution consume the same package/module selections.
 gt_base_package_names() {
   printf '%s\n' git curl wget ca-certificates gnupg sudo openssl logrotate whiptail tzdata
+  # Domain TLS checks DNS with dig. A dig from another package is used as it is.
+  if gt_dns_required && { ! gt_dns_tool_available || [[ -n "${PACKAGE[bind9-dnsutils]:-}" ]]; }; then
+    printf '%s\n' bind9-dnsutils
+  fi
 }
 
 gt_plan_base_packages() {
@@ -275,6 +279,24 @@ gt_plan_storage() {
 gt_dns_required() { [[ -n "${ANSWER[DOMAIN]:-}" && "${ANSWER[TLS_SOURCE]:-}" != proxy ]]; }
 gt_dns_tool_available() { command -v dig >/dev/null 2>&1; }
 
+# Plan-time notices about the installer's own DNS steps. The result never keeps them.
+gt_dns_tool_notice() {
+  gt_text 'dig is installed with the base packages; DNS is verified after the DuckDNS update.' \
+    'dig wird mit den Basispaketen installiert; DNS wird nach dem DuckDNS-Update geprüft.'
+}
+
+gt_dns_update_notice() {
+  gt_text 'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
+    'DNS weicht ab; der Installer aktualisiert DuckDNS vor dem Build und prüft die Einträge vor jedem Zertifikat.'
+}
+
+# The full bootstrap installs dig with its approved package transaction before the DuckDNS step, which updates and
+# verifies the records before any certificate. Its certificate names do not depend on the records found now.
+gt_dns_tool_deferred() {
+  [[ "$MODE" == --bootstrap && "${ANSWER[DUCKDNS_UPDATER]:-no}" == yes && "${STATE[step.duckdns]:-}" != complete &&
+     "${PLAN_PACKAGES[bind9-dnsutils]:-}" == install ]]
+}
+
 # Inputs are normalized, newline-separated address sets. Every published address
 # must be usable, but a host need not publish all of its stable IPv6 addresses.
 gt_dns_records_match() {
@@ -298,6 +320,11 @@ gt_plan_dns() {
   if ! gt_dns_tool_available; then
     FACT[dns.status]='missing-tool'
     gt_plan_package bind9-dnsutils
+    if gt_dns_tool_deferred; then
+      FACT[dns.status]=pending-update FACT[plan.names]="$domain www.$domain"
+      gt_plan_warn "$(gt_dns_tool_notice)"
+      return 0
+    fi
     gt_plan_block 'Missing DNS check prerequisite: dig (bind9-dnsutils). Install the confirmed prerequisite, then repeat DNS checks.' \
       'Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils). Bestätigtes Voraussetzungspaket installieren, danach DNS erneut prüfen.'
     return 0
@@ -324,9 +351,7 @@ gt_plan_dns() {
   if [[ "$mismatched" == yes && "${ANSWER[DUCKDNS_UPDATER]:-no}" == yes &&
       "${STATE[step.duckdns]:-}" != complete ]]; then
     FACT[dns.status]=pending-update
-    gt_plan_warn \
-      'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
-      'DNS weicht ab; der Installer aktualisiert DuckDNS vor dem Build und prüft die Einträge vor jedem Zertifikat.'
+    gt_plan_warn "$(gt_dns_update_notice)"
   elif [[ "$mismatched" == yes ]]; then
     FACT[dns.status]=mismatch
     if [[ "${ANSWER[TLS_SOURCE]}" == letsencrypt ]]; then
