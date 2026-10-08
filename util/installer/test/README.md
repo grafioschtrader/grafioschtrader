@@ -446,6 +446,19 @@ was corrected by hand to the Liberica archive. Reboot and the completed rerun pa
 listens on loopback only. Application commit: `611e25fccc6e41a631405cf8ea5d9e2b1918c86f`; final installer
 SHA-256: `17845e53581e4c593d5c869c691b0ffb8abc20d10b0b7db99bb674c3fcfe1686`.
 
+Real-hardware acceptance on Debian 13 arm64 passed on 2026-10-08 on a Radxa ROCK 4C+ (4 GB, zram swap, SD card)
+with Armbian 26.11, kernel `6.18.54-current-rockchip64`, nginx `1.26.3`, Let's Encrypt and the installer's own
+DuckDNS updater, dual-homed like the ROCK 5B. The image had neither git nor dig; the modeless plan installed both
+with its approved base packages and checked DNS after the DuckDNS update. The installer used `openjdk-25` and
+Maven `3.9.9` from APT, the isolated Node `24.21.0` with a local `ng build` (3852 MB `MemTotal`), MariaDB `11.8.6`,
+a 1024M buffer pool and `-Xms128m -Xmx896m`; the build took about 20 minutes. A reboot during the first build
+found one defect: with `armbian-ramlog` enabled, Armbian rewrites `/var/log/` to `/var/log.hdd/` in every
+`/etc/logrotate.d` file at boot, so the resumed run took the installer's own logrotate file for a foreign one.
+After that fix the run resumed by itself, rebuilt and completed without warnings in the result. Reboot and the
+completed rerun passed without change; MariaDB listens on loopback only. Application commit:
+`c7ae51427adbeef147b058806cf5a136ba6c1acc`; final installer SHA-256:
+`a8607a5b009bbfdc3a085585e4ab0d11b3ef576729fa3e92478789ff14952676`.
+
 Small-host acceptance on 2026-10-07 passed on the same Debian 12 image with `GT_VM_MEMORY=3072` (2983 MiB
 `MemTotal`, no swap). The installer asked for and created the 2 GiB `/swapfile` before the first build, wrote
 the single `/swapfile none swap sw 0 0` line after the backup `/etc/fstab.gt-install.<timestamp>`, proposed
