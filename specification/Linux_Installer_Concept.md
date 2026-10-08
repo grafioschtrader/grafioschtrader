@@ -46,7 +46,7 @@ wiki and forum answers apply to an installer-made host without distinction.
 |---|---|---|---|
 | primary | Debian 12, Debian 13, Ubuntu 24.04, Ubuntu 26.04 (incl. Raspberry Pi OS and Armbian on these bases) | amd64, arm64 | every release × architecture |
 | legacy | Debian 11, Ubuntu 22.04 | amd64, arm64 | one combination each |
-| legacy | any of the above | armhf | one combination (Ubuntu 22.04) |
+| legacy | any of the above | armhf | one combination |
 
 Armbian reports `ID=ubuntu` or `ID=debian` with the base release; Raspberry Pi OS reports `ID=debian`. The
 installer decides on `ID`, `ID_LIKE` and `VERSION_ID` alone.
@@ -268,9 +268,8 @@ The APT, vendor-archive and manual paths of `gt_core_toolchain_plan` and `gt_cor
 `util/installer/README.md`. Archive resolution needs `python3`; bootstrap it on minimal hosts together with the
 prerequisites of §5.3.
 
-Verify on real hosts (§9) that the Temurin archive on arm64 and the Liberica archive on armhf serve the
-application service through a real systemd startup and reboot, and that a later `gtupdate.sh` build uses the
-archive JDK on every architecture, while a different shared system Java remains selected.
+Verify on real hosts (§9) that a later `gtupdate.sh` build uses the archive JDK on every architecture, while a
+different shared system Java remains selected.
 
 ### 5.2 Maven
 
@@ -357,8 +356,8 @@ allow its port instead. A file-based root landing page may be created only insid
 The memory warnings, heap defaults and space requirements are planned by `gt_compatibility` and
 `gt_memory_defaults`; the swap file contract (`gt_core_swap`) is documented in `util/installer/README.md`.
 
-Verify the low-memory path on a real arm64 or armhf host below 4000 MB RAM without swap (§9), where the swap file
-and the frontend download carry the first build on the slowest hardware. Below 3700 MB `gtupfrontend.sh` downloads
+Verify the swap file on a real arm64 or armhf host below 4000 MB RAM without any swap (§9), where it has to carry
+the first build. Below 3700 MB `gtupfrontend.sh` downloads
 `latest.tar.gz`, which is rebuilt on every frontend push to `master` and can be newer than the built backend; this
 limitation belongs in the gt-user-manual (§10).
 
@@ -585,7 +584,7 @@ existing installation does not prove that a clean bootstrap works. QEMU/VM accep
 
 | Scenario | Required evidence |
 |---|---|
-| fresh installation on arm64 for each primary release of §1.2 other than Debian 12, and one per legacy row (Debian 11, Ubuntu 22.04, armhf) | backend built locally, frontend served, listeners on loopback as in §5.5, migrations complete, no `uca1400` column, service up again after a reboot |
+| fresh installation on arm64 for each primary release of §1.2 other than Debian 12, and one per legacy row (Debian 11, Ubuntu 22.04) | backend built locally, frontend served, listeners on loopback as in §5.5, migrations complete, no `uca1400` column, service up again after a reboot |
 | `--check` and `--dry-run` on the reference hosts: Debian 13 with nginx and Home Assistant, Debian 13 with nginx, Armbian on Ubuntu 26.04 with Apache, Debian 11 with Apache, Ubuntu 22.04 armhf with Apache, Debian 12 with Apache and a socket-activated MariaDB, and the Debian 13 Docker host | correct class (§4.2) on each, complete component report, no file, package or service changed |
 | interruption during toolchain, application, web and TLS changes | resumption recognizes its own resources, reuses the secrets, re-verifies, creates nothing twice |
 | injected Maven, `npm ci`, download, extraction and frontend build failures | non-zero result in both build branches, no invalid deployment, diagnostics in the log |

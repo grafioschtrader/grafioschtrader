@@ -254,8 +254,8 @@ docker run --rm -e GT_TEST_MAVEN=archive -v "$PWD:/repo:ro" gt-installer-toolcha
 docker image rm gt-installer-toolchains-archive
 ```
 
-These containers run on amd64. The Temurin arm64 and Liberica armhf archives have fixture coverage only; real
-installations on those architectures belong to the platform acceptance.
+These containers run on amd64. The Temurin arm64 and Liberica armhf archives have fixture coverage here; the
+real-hardware acceptances below installed both.
 
 ## Node and npm build tools
 
@@ -433,6 +433,18 @@ listening on 3306 of every address (disabled by hand on this host), and no way t
 and the completed rerun passed without change; the result kept the planning-time DNS warning. Application commit:
 `611e25fccc6e41a631405cf8ea5d9e2b1918c86f`; final installer SHA-256:
 `eeb0bedacf064d4d6da38dc8fa1ae8805549a36d23fecd76ec3f5cbccff9c309`.
+
+Real-hardware acceptance on armhf passed on 2026-10-08 on an Odroid XU4 (armv7l, 2 GB, zram swap of 994 MiB) with
+Armbian 26.8 on Debian 13, kernel `6.6.151-current-odroidxu4`, Apache `2.4.68`, Let's Encrypt and the installer's
+own DuckDNS updater, dual-homed like the ROCK 5B. The installer used the Liberica `25.0.4.1+1` arm32 archive,
+Maven `3.9.9` from APT, Node 22 for the build tools, the downloaded frontend release (below 3700 MB RAM), MariaDB
+`11.8.6`, `-Xms128m -Xmx896m` and a 384M buffer pool; the backend build took about 20 minutes. Three defects
+surfaced: the minimal image has no git, so the source lookup and the core prerequisite check blocked before the
+plan could install it; and Debian builds `openjdk-25` for armhf as the interpreter-only Zero VM, whose first TLS
+handshake took about 30 seconds, so Maven Central dropped it and the Jasypt step failed. The journal of that run
+was corrected by hand to the Liberica archive. Reboot and the completed rerun passed without change; MariaDB
+listens on loopback only. Application commit: `611e25fccc6e41a631405cf8ea5d9e2b1918c86f`; final installer
+SHA-256: `17845e53581e4c593d5c869c691b0ffb8abc20d10b0b7db99bb674c3fcfe1686`.
 
 Small-host acceptance on 2026-10-07 passed on the same Debian 12 image with `GT_VM_MEMORY=3072` (2983 MiB
 `MemTotal`, no swap). The installer asked for and created the 2 GiB `/swapfile` before the first build, wrote
