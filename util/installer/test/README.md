@@ -183,6 +183,9 @@ fixtures, including the result action, a hand-edited proposal and the full-plan 
 `LAN_ADDRESS` default and prompt, the chosen address in the web stages, vhost matching and domain checklist, the
 blocker for an address of no interface, and the default-route fallback for journals without the answer.
 
+`mariadb-socket.bats` covers a newly installed MariaDB whose package enabled `mariadb.socket`: the socket is
+disabled once, the server restarted, a listener beyond loopback stops the core, and a shared server is not touched.
+
 ## DuckDNS updater
 
 `duckdns.bats` runs the generated `duck.sh` against `curl` and `ip` fixtures: the token appears only in the private

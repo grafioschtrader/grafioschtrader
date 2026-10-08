@@ -363,7 +363,9 @@ The core performs these steps:
 3. Install distribution MariaDB packages when absent, without package removals/upgrades. On this new server only,
    set the requested root password while preserving `unix_socket`, remove anonymous accounts and the default
    `test` schema. Verify the password under the fresh service user's OS identity, reject a wrong password and
-   verify passwordless Linux-root socket administration independently.
+   verify passwordless Linux-root socket administration independently. Debian's package also enables
+   `mariadb.socket`, which listens on port 3306 of every address and bypasses `bind-address`; the installer
+   disables it on this new server, restarts MariaDB and stops unless port 3306 listens on loopback only.
 4. Create an empty `grafioschtrader` schema with `utf8mb4` / `utf8mb4_general_ci` and its account when absent.
    Existing empty schemas require consent and matching charset/collation. Existing accounts require their current
    password and existing schema privileges; their passwords and grants are not changed. Verify TCP login to
