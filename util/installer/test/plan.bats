@@ -50,6 +50,20 @@ domain_answers() {
   done
 }
 
+@test "a minimal image without git plans the base package instead of blocking" {
+  gt_core_toolchain_plan() { :; }
+  gt_core_build_plan() { :; }
+  command() { if [[ "$1" == -v && "$2" == git ]]; then return 1; fi; builtin command "$@"; }
+  unset 'PACKAGE[git]'
+  gt_core_plan || true
+  [ "${PLAN_PACKAGES[git]}" = install ]
+  [[ "${PLAN_BLOCKERS[*]}" != *'Missing prerequisite: git'* ]]
+  # An installed package whose command is gone is still a blocker.
+  PACKAGE[git]=1:2.47.3
+  gt_core_plan || true
+  [[ "${PLAN_BLOCKERS[*]}" == *'Missing prerequisite: git'* ]]
+}
+
 @test "web plans select Certbot webroot without server plugins and list actual Apache modules" {
   domain_answers
   ANSWER[WEBSERVER]=apache2 ANSWER[BACKEND_HTTP_PORT]=8080

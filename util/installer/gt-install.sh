@@ -3855,8 +3855,10 @@ gt_core_plan() {
   gt_core_toolchain_plan
   gt_core_build_plan
   [[ "${FACT[source.requirements]}" == remote ]] || gt_plan_block 'Pinned source requirements must be available.'
+  # git, curl and openssl are base packages: a minimal image gets them from the planned transaction.
   for key in runuser useradd passwd git curl openssl flock sha256sum; do
-    command -v "$key" >/dev/null || gt_plan_block "Missing prerequisite: $key"
+    command -v "$key" >/dev/null || [[ "${PLAN_PACKAGES[$key]:-}" == install ]] ||
+      gt_plan_block "Missing prerequisite: $key"
   done
   [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished && "${STATE[scope]:-}" =~ ^(core|bootstrap)$ ]] || gt_plan_block 'Only fresh hosts and this installer journal can be used.'
   for key in "${QUESTIONS[@]}"; do
