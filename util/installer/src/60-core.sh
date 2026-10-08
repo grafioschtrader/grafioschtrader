@@ -306,9 +306,9 @@ config=$(mktemp "$dir/.curl.XXXXXX") || exit 2
 trap 'rm -f -- "$config"' EXIT
 printf 'url = "https://www.duckdns.org/update?domains=%s&token=%s&ip=&ipv6=%s"\n' "$domains" "$token" "$ipv6" \
   > "$config"
-option=-4
-[[ "$family" != ipv6 ]] || option=-6
-answer=$(curl "$option" --proto '=https' --tlsv1.2 -fsS --connect-timeout 10 --max-time 30 -K "$config" \
+# www.duckdns.org has IPv4 addresses only. The IPv6 address travels in the ipv6 parameter, and the empty ip
+# parameter leaves the A record to the address DuckDNS sees, which an IPv6-only domain never gains.
+answer=$(curl -4 --proto '=https' --tlsv1.2 -fsS --connect-timeout 10 --max-time 30 -K "$config" \
   2>/dev/null) || { log "KO curl exit $?"; exit 2; }
 if [[ "$answer" == OK ]]; then log OK; exit 0; fi
 log 'KO rejected by DuckDNS'
@@ -317,9 +317,11 @@ SCRIPT
 }
 
 gt_duckdns_units() {
-  printf '[Unit]\nDescription=Grafioschtrader DuckDNS update\nWants=network-online.target\n'
-  printf 'After=network-online.target\n\n[Service]\nType=oneshot\nUser=grafioschtrader\nExecStart=%s\n' \
-    "$CORE_HOME/duckdns/duck.sh" > "$SCRATCH/duckdns.service"
+  {
+    printf '[Unit]\nDescription=Grafioschtrader DuckDNS update\nWants=network-online.target\n'
+    printf 'After=network-online.target\n\n[Service]\nType=oneshot\nUser=grafioschtrader\nExecStart=%s\n' \
+      "$CORE_HOME/duckdns/duck.sh"
+  } > "$SCRATCH/duckdns.service"
   printf '[Unit]\nDescription=Grafioschtrader DuckDNS update every five minutes\n\n[Timer]\nOnCalendar=%s\n' \
     "$(gt_duckdns_calendar)" > "$SCRATCH/duckdns.timer"
   printf 'OnBootSec=1min\nAccuracySec=1s\n\n[Install]\nWantedBy=timers.target\n' >> "$SCRATCH/duckdns.timer"

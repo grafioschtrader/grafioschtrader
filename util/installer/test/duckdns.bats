@@ -49,12 +49,15 @@ updater() {
   [[ "$(tail -n 1 "$CORE_HOME/duckdns/duck.log")" == *' OK' ]]
 }
 
-@test "address families: ipv4 sends no IPv6 address, ipv6 uses IPv6 transport and needs a stable address" {
+@test "address families: ipv4 sends no IPv6 address, ipv6 sends it over IPv4 transport and needs a stable address" {
   updater ipv4
   grep -q 'ip=&ipv6="$' "$CURL_CONFIGS"
   : > "$CURL_ARGS"
+  # www.duckdns.org has no AAAA record; the IPv6 address is a parameter, never the transport.
   updater ipv6
-  grep -q -- '^-6 ' "$CURL_ARGS"
+  grep -q -- '^-4 ' "$CURL_ARGS"
+  run grep -q -- '-6' "$CURL_ARGS"
+  [ "$status" -ne 0 ]
   NO_IPV6=yes
   run updater ipv6
   [ "$status" -eq 3 ]
@@ -105,6 +108,10 @@ core_fixture() {
   [ "${STATE[step.duckdns]}" = complete ]
   grep -q 'OnCalendar=\*:0[0-4]/5:[0-5][0-9]' "$SCRATCH/duckdns_timer"
   grep -qx 'User=grafioschtrader' "$SCRATCH/duckdns_service"
+  # Every directive belongs to a section; systemd ignores assignments before the first one.
+  [ "$(head -n 1 "$SCRATCH/duckdns_service")" = '[Unit]' ]
+  grep -qx 'Wants=network-online.target' "$SCRATCH/duckdns_service"
+  [ "$(head -n 1 "$SCRATCH/duckdns_timer")" = '[Unit]' ]
   [ "$(cat "$CORE_HOME/duckdns/token")" = "$TOKEN" ]
   [ "$(stat -c '%a' "$CORE_HOME/duckdns/token")" = 600 ]
   gt_core_duckdns

@@ -65,8 +65,7 @@ The script is self-contained and can be copied to a Debian/Ubuntu host. Save it 
 execution through `curl | bash` is refused. `--help` works without root. Modes cannot be combined; `--answers` is
 accepted without a mode, with `--prepare` and with `--install-core`. The three `--install-*` modes make installation changes;
 `--check-mail` records verification and can send the previously selected test message. Each accepts `--yes`
-to use the saved scope without another terminal confirmation. The local DuckDNS updater, foreign-vhost snippets
-and Whiptail dialogs remain pending.
+to use the saved scope without another terminal confirmation. Whiptail dialogs remain pending.
 
 The modeless controller presents core, package dependencies and versions, application build/start, web/TLS and
 mail delivery in one plan. Type `install` to approve it; `--yes` supplies that confirmation for unattended runs.
@@ -445,10 +444,12 @@ the build:
 | `~/duckdns/token` (600) | the token only |
 | `/etc/systemd/system/grafioschtrader-duckdns.service`, `.timer` | runs the script as `grafioschtrader` every five minutes at a minute/second offset derived from the host name, and one minute after boot |
 
-`DNS_FAMILY=ipv4` and `both` request over IPv4 with an empty `ip=`, so DuckDNS takes the requesting address;
-`ipv6` and `both` send `ipv6=<address>`; `ipv6` requests over IPv6. With `ipv6`, an A record left by an earlier
-updater is not removed: remove it on duckdns.org, otherwise the DNS check reports the mismatch. A systemd timer is
-used instead of cron because systemd is a precondition of the installer, while minimal cloud images ship no cron.
+Every request goes over IPv4, because `www.duckdns.org` has no IPv6 address, and always with an empty `ip=`.
+`DNS_FAMILY=ipv4` and `both` let DuckDNS take the requesting address for the A record; `ipv6` and `both` send
+`ipv6=<address>`, and an `ipv6` request that carries the address gains no A record. With `ipv6`, an A record left
+by an earlier updater is not removed: remove it on duckdns.org, otherwise the DNS check reports the mismatch. A
+systemd timer is used instead of cron because systemd is a precondition of the installer, while minimal cloud images
+ship no cron.
 
 The token never appears in a process argument, the log or a message. The script writes the token-bearing URL into
 a private `mktemp` curl configuration (umask 077) beside itself, passes it with `-K` and removes it on exit; curl's

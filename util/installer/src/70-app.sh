@@ -1,16 +1,22 @@
 # Privileged configuration has a separate publisher: app-owned helpers must never
 # determine the ownership or contents of sudoers, units or logrotate configuration.
 gt_app_root_file() {
-  local id=$1 input=$2 target=$3 mode=$4 digest current temporary
+  local id=$1 input=$2 target=$3 mode=$4 digest current=absent temporary
   gt_no_symlinks "$target" || return 2
   digest=$(sha256sum "$input"); digest=${digest%% *}
   if [[ -e "$target" ]]; then
     [[ -f "$target" && "$(stat -c '%u:%a' "$target")" == "0:$mode" ]] || return 2
     current=$(sha256sum "$target"); current=${current%% *}
-    [[ "$current" == "${STATE[file.$id]:-}" && "$current" == "$digest" ]] || return 2
-    return 0
+    # Only the installer's own, unedited content is replaced, so a newer installer can repair what an older one
+    # wrote; .previous covers an interrupted replacement.
+    [[ -n "${STATE[file.$id]:-}" && ( "$current" == "${STATE[file.$id]}" ||
+       "$current" == "${STATE[file.$id.previous]:-}" ) ]] || return 2
+    [[ "$current" != "$digest" || "${STATE[file.$id]}" != "$digest" ]] || return 0
+  else
+    [[ -z "${STATE[file.$id]:-}" || "${STATE[file.$id]}" == "$digest" ||
+       "${STATE[file.$id.previous]:-}" == absent ]] || return 2
   fi
-  [[ -z "${STATE[file.$id]:-}" || "${STATE[file.$id]}" == "$digest" ]] || return 2
+  STATE[file.$id.previous]=$current
   gt_core_mark "file.$id" "$digest" || return 2
   temporary=$(mktemp "${target}.gt-install.XXXXXX") || return 2
   PRIVATE_FILES+=("$temporary")

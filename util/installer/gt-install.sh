@@ -2665,9 +2665,9 @@ config=$(mktemp "$dir/.curl.XXXXXX") || exit 2
 trap 'rm -f -- "$config"' EXIT
 printf 'url = "https://www.duckdns.org/update?domains=%s&token=%s&ip=&ipv6=%s"\n' "$domains" "$token" "$ipv6" \
   > "$config"
-option=-4
-[[ "$family" != ipv6 ]] || option=-6
-answer=$(curl "$option" --proto '=https' --tlsv1.2 -fsS --connect-timeout 10 --max-time 30 -K "$config" \
+# www.duckdns.org has IPv4 addresses only. The IPv6 address travels in the ipv6 parameter, and the empty ip
+# parameter leaves the A record to the address DuckDNS sees, which an IPv6-only domain never gains.
+answer=$(curl -4 --proto '=https' --tlsv1.2 -fsS --connect-timeout 10 --max-time 30 -K "$config" \
   2>/dev/null) || { log "KO curl exit $?"; exit 2; }
 if [[ "$answer" == OK ]]; then log OK; exit 0; fi
 log 'KO rejected by DuckDNS'
@@ -2676,9 +2676,11 @@ SCRIPT
 }
 
 gt_duckdns_units() {
-  printf '[Unit]\nDescription=Grafioschtrader DuckDNS update\nWants=network-online.target\n'
-  printf 'After=network-online.target\n\n[Service]\nType=oneshot\nUser=grafioschtrader\nExecStart=%s\n' \
-    "$CORE_HOME/duckdns/duck.sh" > "$SCRATCH/duckdns.service"
+  {
+    printf '[Unit]\nDescription=Grafioschtrader DuckDNS update\nWants=network-online.target\n'
+    printf 'After=network-online.target\n\n[Service]\nType=oneshot\nUser=grafioschtrader\nExecStart=%s\n' \
+      "$CORE_HOME/duckdns/duck.sh"
+  } > "$SCRATCH/duckdns.service"
   printf '[Unit]\nDescription=Grafioschtrader DuckDNS update every five minutes\n\n[Timer]\nOnCalendar=%s\n' \
     "$(gt_duckdns_calendar)" > "$SCRATCH/duckdns.timer"
   printf 'OnBootSec=1min\nAccuracySec=1s\n\n[Install]\nWantedBy=timers.target\n' >> "$SCRATCH/duckdns.timer"
@@ -3915,16 +3917,22 @@ gt_core_execute() {
 # Privileged configuration has a separate publisher: app-owned helpers must never
 # determine the ownership or contents of sudoers, units or logrotate configuration.
 gt_app_root_file() {
-  local id=$1 input=$2 target=$3 mode=$4 digest current temporary
+  local id=$1 input=$2 target=$3 mode=$4 digest current=absent temporary
   gt_no_symlinks "$target" || return 2
   digest=$(sha256sum "$input"); digest=${digest%% *}
   if [[ -e "$target" ]]; then
     [[ -f "$target" && "$(stat -c '%u:%a' "$target")" == "0:$mode" ]] || return 2
     current=$(sha256sum "$target"); current=${current%% *}
-    [[ "$current" == "${STATE[file.$id]:-}" && "$current" == "$digest" ]] || return 2
-    return 0
+    # Only the installer's own, unedited content is replaced, so a newer installer can repair what an older one
+    # wrote; .previous covers an interrupted replacement.
+    [[ -n "${STATE[file.$id]:-}" && ( "$current" == "${STATE[file.$id]}" ||
+       "$current" == "${STATE[file.$id.previous]:-}" ) ]] || return 2
+    [[ "$current" != "$digest" || "${STATE[file.$id]}" != "$digest" ]] || return 0
+  else
+    [[ -z "${STATE[file.$id]:-}" || "${STATE[file.$id]}" == "$digest" ||
+       "${STATE[file.$id.previous]:-}" == absent ]] || return 2
   fi
-  [[ -z "${STATE[file.$id]:-}" || "${STATE[file.$id]}" == "$digest" ]] || return 2
+  STATE[file.$id.previous]=$current
   gt_core_mark "file.$id" "$digest" || return 2
   temporary=$(mktemp "${target}.gt-install.XXXXXX") || return 2
   PRIVATE_FILES+=("$temporary")

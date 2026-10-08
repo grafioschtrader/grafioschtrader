@@ -50,6 +50,15 @@ setup() {
   gt_app_root_file fixture "$SCRATCH/input" "$target" 644
   [ "$(stat -c '%u:%a' "$target")" = 0:644 ]
   gt_app_root_file fixture "$SCRATCH/input" "$target" 644
+  # A newer installer replaces its own unedited file, also when the replacement was interrupted after journaling.
+  printf 'unit fixture, repaired\n' > "$SCRATCH/input"
+  mv() { return 1; }
+  if gt_app_root_file fixture "$SCRATCH/input" "$target" 644; then false; fi
+  unset -f mv
+  [ "$(cat "$target")" = 'unit fixture' ]
+  [ "${STATE[file.fixture.previous]}" != absent ]
+  gt_app_root_file fixture "$SCRATCH/input" "$target" 644
+  [ "$(cat "$target")" = 'unit fixture, repaired' ]
   echo drift >> "$target"
   run gt_app_root_file fixture "$SCRATCH/input" "$target" 644
   [ "$status" -ne 0 ]
