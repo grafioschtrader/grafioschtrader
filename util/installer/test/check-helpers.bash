@@ -25,10 +25,12 @@ gt_dns_tool_available() { [[ "$DNS_TOOL_AVAILABLE" == yes ]]; }
 gt_probe() {
   printf '%s\n' "$*" >> "$PROBES"
   case "$1" in
-    git) [[ "$ONLINE" == yes ]] || return 1; printf '%040d\trefs/heads/master\n' 1 ;;
+    git) [[ "${GIT_MISSING:-no}" == no ]] || return 127
+      [[ "$ONLINE" == yes ]] || return 1; printf '%040d\trefs/heads/master\n' 1 ;;
     curl)
       [[ "$ONLINE" == yes ]] || return 1
       case "$*" in
+        *info/refs*) printf '001e# service=git-upload-pack\n00000151%040d HEAD\0multi_ack\n003f%040d refs/heads/master\n0046%040d refs/heads/master-old\n0000' 1 1 2 ;;
         *checkversion.sh*) printf 'java_required=25\nnode_required="^22.22.3 || ^24.15.0 || >=26.0.0"\nangular_cli_required=22\n' ;;
         *application.properties*) printf "spring.datasource.hikari.connection-init-sql=SET time_zone = '+00:00' /*M!110200 , character_set_collations = 'utf8mb3=utf8mb3_general_ci,utf8mb4=utf8mb4_general_ci' */\n" ;;
         *url_effective*) echo 'https://release-assets.githubusercontent.com/test?signature=SECRET' ;;

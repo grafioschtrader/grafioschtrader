@@ -748,7 +748,7 @@ neither becomes a fresh host. Existing classic installations continue to use `gt
 `UNKNOWN` means a probe failed, was unavailable, or could not safely be performed. In particular, the checker does
 not connect to an inactive socket-activated MariaDB server, and failed root socket authentication does not mean
 the database or account is absent. Inventory itself requests no database password. Sources are pinned to the commit resolved
-from `master`; failed downloads fall back to explicitly provisional built-in version floors. The downloaded
+from `master`, with `git ls-remote` or, on a minimal image without git, GitHub's ref advertisement through `curl`; failed downloads fall back to explicitly provisional built-in version floors. The downloaded
 `checkversion.sh` is parsed as data and never executed.
 
 Web configuration is read statically, including enabled files and resolvable includes. Literal vhost names and

@@ -75,6 +75,17 @@ setup() {
   ! grep -q 'npm install' "$PROBES"
 }
 
+@test "source lookup without git reads the same commit from the ref advertisement" {
+  ONLINE=yes GIT_MISSING=yes
+  gt_source_revision
+  [ "${FACT[source.commit]}" = 0000000000000000000000000000000000000001 ]
+  [ "${FACT[source.requirements]}" = remote ]
+  grep -q 'info/refs?service=git-upload-pack' "$PROBES"
+  ONLINE=no
+  gt_source_revision
+  [ "${FACT[source.requirements]}" = fallback ]
+}
+
 @test "system inventory reads memory independently of translated free output" {
   gt_system
   [ "${FACT[memory.MemTotal]}" = 7812 ]

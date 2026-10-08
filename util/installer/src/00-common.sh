@@ -125,12 +125,20 @@ gt_parse_requirements() {
   [[ "$java" =~ ^[1-9][0-9]*$ && "$cli" =~ ^[1-9][0-9]*$ ]] && gt_node_range_valid "$node" || return 1
   JAVA_REQUIRED=$java NODE_REQUIRED=$node CLI_REQUIRED=$cli
 }
+# A minimal image has no git before the package stage installs it. GitHub's smart-HTTP ref advertisement names the
+# same commit through curl; a 4-digit pkt-line length precedes the hash, which the leftmost match skips.
+gt_remote_master() {
+  local url=https://github.com/grafioschtrader/grafioschtrader.git status=0
+  gt_probe git -c credential.helper= -c core.askPass= ls-remote "$url" refs/heads/master || status=$?
+  (( status == 127 )) || return "$status"
+  gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 "$url/info/refs?service=git-upload-pack" |
+    grep -aoE -m 1 '[0-9a-f]{40} refs/heads/master$'
+}
 gt_source_revision() {
   local remote commit base
   FACT[source.requirements]=fallback FACT[source.commit]=unknown FACT[source.collation]=unknown
   if [[ "${STATE[planned_commit]:-}" =~ ^[a-f0-9]{40}$ ]]; then remote="${STATE[planned_commit]} refs/heads/master"
-  else remote=$(gt_probe git -c credential.helper= -c core.askPass= ls-remote \
-      https://github.com/grafioschtrader/grafioschtrader.git refs/heads/master) || remote=''; fi
+  else remote=$(gt_remote_master) || remote=''; fi
   if [[ -n "$remote" ]]; then
     read -r commit _ <<< "$remote"
     if [[ "$commit" =~ ^[a-f0-9]{40}$ ]]; then
