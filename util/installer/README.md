@@ -91,9 +91,9 @@ category and `/var/log/grafioschtrader.log`, never raw application diagnostics. 
 attempt must be inspected and stopped before retrying if it is not already healthy. No database is dropped or repaired.
 
 Planning and installation share a stage contract, including on resumption. Before saving immutable answers or
-executing the core, it rejects `DUCKDNS_UPDATER=yes`, `VHOST_INCLUDE=yes`,
+executing the core, it rejects `VHOST_INCLUDE=yes`,
 `WEBSERVER=none` and selected names belonging to foreign vhosts. These execution paths are not implemented yet.
-The DuckDNS updater defaults to `no`; arrange it externally when needed. The proxy-port default starts at
+The proxy-port default starts at
 8081 and excludes the selected backend ports. Ports 80/443 and duplicate connector/proxy ports are rejected with
 the offending answer named. Existing journals with unsupported selections also stop; original secrets and
 ownership records must be retained. Changing saved installation answers remains pending work.
@@ -160,7 +160,7 @@ the real backend identity, exact frontend index/JavaScript and nested routes. Fa
 previous own links and reloads; a failed ACME request retains HTTP. Apache module enablement is recorded for
 rollback. Original shared-site statuses survive resumption. Repeat `--install-web` after resolving the cause;
 configuration drift or missing original secrets blocks it. Certbot diagnostics are root-only in
-`/var/lib/gt-install/tls.log`. A selected local DuckDNS updater blocks before core execution; an existing router
+`/var/lib/gt-install/tls.log`. A local DuckDNS updater is installed by the core (see below); an existing router
 or other client may manage DuckDNS with `DUCKDNS_UPDATER=no`.
 
 ### Client addresses and login lockout
@@ -373,6 +373,39 @@ web server, firewall, TLS, DuckDNS update or mail test is performed. The full dr
 the core's own confirmation plan lists only its actual changes. Existing classic/Docker installations and foreign
 installation pieces are refused. Java/Maven vendor archives and Node archives are installed automatically as
 described below.
+
+### DuckDNS updater
+
+For a `<name>.duckdns.org` domain `DUCKDNS_UPDATER` is asked; it defaults to `no` when the inventory found an
+updater in a crontab, `/etc/cron.d`, a systemd unit, `/etc/ddclient.conf` or a DuckDNS container, and to `yes`
+otherwise. A router-side client is invisible to the host, so the question is always asked. With `yes` the plan
+blocks while a foreign updater exists, and `DUCKDNS_TOKEN` is collected: a UUID, checked at the prompt, in an
+answers file and in the secret store.
+
+The core installs the updater right after creating the `grafioschtrader` user, so the records converge during
+the build:
+
+| File | Content |
+|---|---|
+| `~/duckdns/duck.sh` (700) | reads the token, determines the stable global IPv6 address of the default-route interface on every run, calls `https://www.duckdns.org/update` and logs `OK`/`KO` to `~/duckdns/duck.log` (kept at most 2000 lines) |
+| `~/duckdns/token` (600) | the token only |
+| `/etc/systemd/system/grafioschtrader-duckdns.service`, `.timer` | runs the script as `grafioschtrader` every five minutes at a minute/second offset derived from the host name, and one minute after boot |
+
+`DNS_FAMILY=ipv4` and `both` request over IPv4 with an empty `ip=`, so DuckDNS takes the requesting address;
+`ipv6` and `both` send `ipv6=<address>`; `ipv6` requests over IPv6. With `ipv6`, an A record left by an earlier
+updater is not removed: remove it on duckdns.org, otherwise the DNS check reports the mismatch. A systemd timer is
+used instead of cron because systemd is a precondition of the installer, while minimal cloud images ship no cron.
+
+The token never appears in a process argument, the log or a message. The script writes the token-bearing URL into
+a private `mktemp` curl configuration (umask 077) beside itself, passes it with `-K` and removes it on exit; curl's
+own diagnostics are discarded and only its exit status is logged. Before the first update the plan accepts DNS
+records that do not match yet with a warning, and the certificate names are `<name>.duckdns.org` and
+`www.<name>.duckdns.org`, because DuckDNS answers every name below the subdomain with the same records. The core
+starts the service once: `KO` stops the installation before any certificate with a hint on the token and the
+subdomain; otherwise it waits up to three minutes, in 10-second steps, until the domain resolves to the host's
+selected addresses, then enables the timer. A completed step only re-publishes unchanged files and keeps the timer
+enabled; the journal recognizes the installer's own units, so a later plan does not count them as a foreign
+updater.
 
 ### ufw rules
 

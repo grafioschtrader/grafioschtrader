@@ -404,30 +404,11 @@ asks, with `both` as the default when both families exist and the explanation th
 DS-Lite or CGNAT line. Let's Encrypt validates over IPv6 when an AAAA record exists, so with `both` the router must
 admit port 80 on both families; a record for a family that is not reachable is worse than no record.
 
-**Existing DuckDNS updater.** A second updater fights the first over the same record. The inventory (§4.1) searches
-the crontabs of all users (`/var/spool/cron/crontabs/*`), `/etc/crontab`, `/etc/cron.d/*` and systemd timer units for
-`duckdns.org/update`, `/etc/ddclient.conf` for the domain, and running containers for a DuckDNS image. A router-side
-client is invisible to the host, so `DUCKDNS_UPDATER` (§6.1) is always asked, defaulting to `no` when an updater was
-found and to `yes` otherwise. With `no`, the installer uses the domain as it is and asks for no token.
-
-**The updater the installer installs** is `/home/grafioschtrader/duckdns/duck.sh` (mode 700, owned by
-`grafioschtrader`, because it holds the token) with a cron entry for that user every five minutes, at a minute offset
-derived from the host name so that not every installation calls DuckDNS in the same second. On every run it reads
-the addresses afresh — a delegated IPv6 prefix changes — and calls
-`https://www.duckdns.org/update?domains=<subdomain>&token=<token>&ip=<ipv4>&ipv6=<ipv6>`:
-
-| `DNS_FAMILY` | `ip=` | `ipv6=` |
-|---|---|---|
-| `ipv4` | empty (DuckDNS takes the requesting address), request with `curl -4` | empty |
-| `ipv6` | empty | the global address from above |
-| `both` | empty, request with `curl -4` | the global address from above |
-
-The response (`OK`/`KO`) goes to `~/duckdns/duck.log`. The interface is never hard-coded; the `wlan0` of the wiki
-script is a property of one installation.
-
-After the local DuckDNS updater succeeds, repeat the DNS validation in `gt_domain_plan` for up to three minutes.
-Resolve the certificate name set only after this wait; preserve that set across resumption. If the update returns
-`KO`, stop with a token/subdomain error without requesting a certificate or disclosing the token.
+**DuckDNS updater.** Detection, the `DUCKDNS_UPDATER` default, the token handling and the updater installed by
+`gt_core_duckdns` (script, protected token file and systemd timer) are documented in `util/installer/README.md`.
+Verify with a real DuckDNS subdomain (§9): after the update the records equal the host's addresses for every
+`DNS_FAMILY`, with `ipv6` no A record exists, the certificate is issued for both names, and the timer follows a
+changed IPv6 prefix within five minutes.
 
 ### 5.8 TLS
 
@@ -623,7 +604,7 @@ existing installation does not prove that a clean bootstrap works. QEMU/VM accep
 | other Node.js and Java consumers, a shared document root, a PHP location on the same nginx vhost | consumers still on their runtime, alternatives unchanged, other sites answer as before |
 | occupied 8080/9090, several vhosts | alternative ports used consistently, no listener off loopback, no traffic routed to another site |
 | SMTP skipped, snippet not included, certbot failing | `incomplete` with the remaining actions, working steps kept |
-| DuckDNS with the installer's updater, `DNS_FAMILY` `ipv4`, `ipv6` and `both` | records equal the host's addresses; with `ipv6` no A record exists; certificate issued; the cron run follows an address change |
+| DuckDNS with the installer's updater, `DNS_FAMILY` `ipv4`, `ipv6` and `both` | records equal the host's addresses; with `ipv6` no A record exists; certificate issued; the timer run follows an address change |
 | DuckDNS with an updater already in a crontab | found by the inventory, `DUCKDNS_UPDATER` defaults to `no`, no second updater, no token asked |
 | own domain with correct records, with a wrong A record, without a `www` record | certificate issued; mismatch reported with both values and the certbot command; certificate and vhost without `www` |
 | `proxy` with Caddy on the same host owning 80/443, and with a proxy on another machine | local vhost on the chosen port, `X-Forwarded-For` reaches the login lockout as the client address, registration link carries the public URL |

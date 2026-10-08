@@ -156,7 +156,7 @@ gt_secrets_load() {
       DB_PASSWORD|JASYPT_PASSWORD|JWT_SECRET|SMTP_PASSWORD|DUCKDNS_TOKEN) ;;
       *) return 2 ;;
     esac
-    [[ -z "${loaded[$key]+set}" ]] && gt_valid_secret "$value" || return 2
+    [[ -z "${loaded[$key]+set}" ]] && gt_secret_valid_for "$key" "$value" || return 2
     loaded[$key]=$value
   done <<< "$PRIVATE_CONTENT"
   PRIVATE_CONTENT=''

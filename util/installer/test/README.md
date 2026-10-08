@@ -156,6 +156,17 @@ application properties and the repository's Jasypt plugin version in a minimal M
 database and encryption operations, but does not verify systemd integration, the complete application build or a
 running backend. The GitHub Actions core job runs this integration in its own fresh container.
 
+## DuckDNS updater
+
+`duckdns.bats` runs the generated `duck.sh` against `curl` and `ip` fixtures: the token appears only in the private
+curl configuration, never in arguments or the log, and the configuration is removed; `ipv4`, `ipv6` and `both`
+send the expected parameters over the expected transport; `KO`, curl failures, a missing IPv6 address and an
+invalid token file fail distinctly. Core cases cover the single update, the DNS wait with its 3-minute limit, the
+timer, a rejected token without disclosure and the completed rerun. Plan cases cover foreign updaters and
+containers versus the installer's own units, lowercase subdomains, and the pending-update DNS warning with fixed
+certificate names. `credentials.bats` checks the UUID format at the prompt. A real DuckDNS account is not used by
+any automated test.
+
 ## ufw rules
 
 `firewall.bats` covers the rule set per web route (never SSH), the question default and condition, plan rows,

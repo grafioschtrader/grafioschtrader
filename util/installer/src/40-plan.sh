@@ -316,8 +316,17 @@ gt_plan_dns() {
     done
   done
   [[ "$matched_www" != yes ]] || FACT[plan.names]+=" www.$domain"
+  # DuckDNS answers every name below the subdomain with the same records. With the installer's own updater the
+  # certificate names therefore do not depend on the records found before the first update.
+  [[ "${ANSWER[DUCKDNS_UPDATER]:-no}" != yes ]] || FACT[plan.names]="$domain www.$domain"
   FACT[dns.status]=matched
-  if [[ "$mismatched" == yes ]]; then
+  if [[ "$mismatched" == yes && "${ANSWER[DUCKDNS_UPDATER]:-no}" == yes &&
+      "${STATE[step.duckdns]:-}" != complete ]]; then
+    FACT[dns.status]=pending-update
+    gt_plan_warn \
+      'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
+      'DNS weicht ab; der Installer aktualisiert DuckDNS vor dem Build und prüft die Einträge vor jedem Zertifikat.'
+  elif [[ "$mismatched" == yes ]]; then
     FACT[dns.status]=mismatch
     if [[ "${ANSWER[TLS_SOURCE]}" == letsencrypt ]]; then
       gt_plan_block 'DNS does not match selected address families or is UNKNOWN; resolve before certbot. No DNS update was sent.' \
@@ -475,12 +484,7 @@ gt_plan_tls() {
       [[ -n "${ANSWER[TLS_PROXY_FROM]}" ]] || gt_plan_warn 'Proxy source restriction is empty; all sources could supply forwarded headers.' 'Proxy-Quellbeschränkung ist leer; alle Quellen könnten Forwarded-Header liefern.' ;;
     lan) gt_plan_row skip tls 'LAN-only HTTP, no certificate' 'HTTP nur im LAN, kein Zertifikat' ;;
   esac
-  if [[ "${ANSWER[DUCKDNS_UPDATER]:-no}" == yes ]]; then
-    if [[ "${FACT[dns.duckdns]}" == yes ]]; then gt_plan_block 'An existing DuckDNS updater must not be duplicated.' 'Ein vorhandener DuckDNS-Updater darf nicht dupliziert werden.'; fi
-    gt_plan_file /home/grafioschtrader/duckdns/duck.sh "DuckDNS ${ANSWER[DNS_FAMILY]}; token collected only during installation; mode 700"
-    gt_plan_row modify 'crontab:grafioschtrader' 'DuckDNS every five minutes, derived minute offset; preserve existing jobs' \
-      'DuckDNS alle fünf Minuten, abgeleiteter Minutenversatz; vorhandene Jobs erhalten'
-  fi
+  gt_duckdns_plan
 }
 gt_plan_application() {
   local file
@@ -518,11 +522,9 @@ gt_plan_application() {
 gt_stage_contract() {
   local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
   local -A used=()
-  for key in DUCKDNS_UPDATER VHOST_INCLUDE; do
-    [[ "${ANSWER[$key]:-no}" != yes ]] || gt_plan_block \
-      "$key=yes is not implemented; select no before starting installation." \
-      "$key=yes ist noch nicht implementiert; vor Installationsbeginn no wählen."
-  done
+  [[ "${ANSWER[VHOST_INCLUDE]:-no}" != yes ]] || gt_plan_block \
+    'VHOST_INCLUDE=yes is not implemented; select no before starting installation.' \
+    'VHOST_INCLUDE=yes ist noch nicht implementiert; vor Installationsbeginn no wählen.'
   [[ "${ANSWER[WEBSERVER]:-}" != none ]] || gt_plan_block \
     'WEBSERVER=none is not implemented; select nginx or apache2.' \
     'WEBSERVER=none ist noch nicht implementiert; nginx oder apache2 wählen.'

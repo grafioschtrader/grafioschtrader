@@ -75,7 +75,7 @@ domain_answers() {
   local entry mode
   gt_core_toolchain_plan() { :; }
   gt_core_build_plan() { :; }
-  for entry in DUCKDNS_UPDATER VHOST_INCLUDE; do
+  for entry in VHOST_INCLUDE; do
     defaults
     [[ "$entry" != DUCKDNS_UPDATER ]] || { domain_answers; ANSWER[DOMAIN]=demo.duckdns.org; }
     ANSWER[$entry]=yes
@@ -113,6 +113,8 @@ domain_answers() {
 
 @test "safe optional defaults and resumed choices pass the same stage contract" {
   FACT[dns.duckdns]=no
+  [ "$(gt_default DUCKDNS_UPDATER)" = yes ]
+  FACT[dns.duckdns]=yes
   [ "$(gt_default DUCKDNS_UPDATER)" = no ]
   [ "$(gt_default SWAP)" = yes ]
   ANSWER[SWAP]=yes
@@ -464,12 +466,14 @@ domain_answers() {
   domain_answers
   ANSWER[DOMAIN]=demo.duckdns.org ANSWER[DUCKDNS_UPDATER]=yes
   gt_plan || true
-  [[ "${PLAN_BLOCKERS[*]}" == *'DUCKDNS_UPDATER=yes is not implemented'* ]]
+  [[ "${PLAN_BLOCKERS[*]}" != *DUCKDNS_UPDATER* ]]
   [[ "${PLAN[*]}" == *'/home/grafioschtrader/duckdns/duck.sh'* ]]
-  ! grep -q 'duckdns.org/update' "$PROBES"
-  FACT[dns.duckdns]=yes
+  [[ "${PLAN[*]}" == *'grafioschtrader-duckdns.service, .timer'* ]]
+  run grep -q 'duckdns.org/update' "$PROBES"
+  [ "$status" -ne 0 ]
+  FACT[dns.duckdns]=yes FACT[dns.updater_files]="$ROOT/etc/cron.d/duck "
   gt_plan || true
-  [[ "${PLAN_BLOCKERS[*]}" == *'must not be duplicated'* ]]
+  [[ "${PLAN_BLOCKERS[*]}" == *"must not be duplicated: $ROOT/etc/cron.d/duck"* ]]
 }
 
 @test "certificate validation uses real OpenSSL and rejects untrusted chain and unsafe key permissions" {

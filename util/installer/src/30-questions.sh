@@ -164,7 +164,8 @@ gt_default() {
       if [[ "${FACT[network.global_ipv6]:-unknown}" != unknown && -n "${FACT[network.global_ipv6]:-}" ]]; then
         [[ "${FACT[network.public_ipv4]:-unknown}" == unknown ]] && echo ipv6 || echo both
       else echo ipv4; fi ;;
-    DUCKDNS_UPDATER) echo no ;;
+    # An updater found on this host keeps the records; a second one would fight it over the same record.
+    DUCKDNS_UPDATER) [[ "${FACT[dns.duckdns]:-no}" == yes ]] && echo no || echo yes ;;
     TLS_SOURCE) gt_tls_default ;;
     LETSENCRYPT_CERT_NAME) gt_certbot_default ;;
     TLS_CERT|TLS_KEY) gt_certificate_default "$1" ;;
@@ -348,6 +349,13 @@ gt_valid_secret() {
   [[ -n "$1" && "$1" != *[$'\001'-$'\037'$'\177']* ]]
 }
 
+# Key-specific formats on top of gt_valid_secret. A DuckDNS token is a UUID; the check catches typing errors before
+# the first update and keeps the token free of characters that would need URL or curl-configuration escaping.
+gt_secret_valid_for() {
+  gt_valid_secret "$2" || return 1
+  [[ "$1" != DUCKDNS_TOKEN ]] || gt_duckdns_valid_token "$2"
+}
+
 gt_restore_terminal() {
   if [[ -n "$TTY_STATE" ]]; then
     stty "$TTY_STATE" <&"$QUESTION_FD"
@@ -387,6 +395,7 @@ gt_ask_secret() {
     status=0; gt_read_secret || status=$?
     printf '\n' >&"$QUESTION_OUTPUT"
     if (( status == 130 )); then gt_restore_terminal; return 130; fi
+    (( status != 0 )) || gt_secret_valid_for "$key" "$SECRET_INPUT" || status=1
     if (( status == 0 )); then
       first=$SECRET_INPUT
       if [[ "$twice" == yes ]]; then
@@ -455,7 +464,7 @@ gt_file_questions() {
 gt_collect_secret() {
   local key=$1 twice=${2:-no}
   if [[ -n "$ANSWERS_FILE" ]]; then
-    gt_valid_secret "${FILE_ANSWERS[$key]:-}" || { gt_secret_error; return 2; }
+    gt_secret_valid_for "$key" "${FILE_ANSWERS[$key]:-}" || { gt_secret_error; return 2; }
     SECRET[$key]=${FILE_ANSWERS[$key]} SECRET_STATUS[$key]=collected
   else gt_ask_secret "$key" "$twice"; fi
 }

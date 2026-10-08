@@ -56,10 +56,24 @@ file_fixture() {
   for byte in '\0' '\r' '\t' '\033' '\177'; do
     printf 'left%bmiddle\nvalid-secret\n' "$byte" > "$SCRATCH/input"
     exec {QUESTION_FD}<"$SCRATCH/input"
-    gt_ask_secret DUCKDNS_TOKEN > "$SCRATCH/out" 2>&1
-    [ "${SECRET[DUCKDNS_TOKEN]}" = valid-secret ]
+    gt_ask_secret SMTP_PASSWORD > "$SCRATCH/out" 2>&1
+    [ "${SECRET[SMTP_PASSWORD]}" = valid-secret ]
     grep -q 'invalid' "$SCRATCH/out"
   done
+}
+
+@test "a DuckDNS token must be a UUID at the prompt, in an answers file and in the secret store" {
+  local token=0123abcd-4567-89ab-cdef-0123456789ab
+  input $'not-a-token\n0123ABCD-4567-89AB-CDEF-0123456789AB\n'"$token"
+  gt_ask_secret DUCKDNS_TOKEN > "$SCRATCH/out" 2>&1
+  [ "${SECRET[DUCKDNS_TOKEN]}" = "$token" ]
+  [ "$(grep -c 'try again' "$SCRATCH/out")" -eq 2 ]
+  run grep -q "$token" "$SCRATCH/out"
+  [ "$status" -ne 0 ]
+  gt_secret_valid_for DUCKDNS_TOKEN "$token"
+  run gt_secret_valid_for DUCKDNS_TOKEN "$token&ip=1"
+  [ "$status" -ne 0 ]
+  gt_secret_valid_for SMTP_PASSWORD 'any & thing'
 }
 
 @test "EOF cancels without retaining a partial secret" {

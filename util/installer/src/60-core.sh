@@ -216,6 +216,184 @@ gt_core_user() {
   gt_core_mark resource.user owned
 }
 
+# DuckDNS updater: a script and its token in ~/duckdns, run by a systemd timer as grafioschtrader. systemd is a
+# precondition of the installer, while cron is missing from minimal cloud images.
+GT_DUCKDNS_UNIT='grafioschtrader-duckdns'
+
+gt_duckdns_subdomain() {
+  local domain=${ANSWER[DOMAIN]:-}
+  [[ "$domain" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.duckdns\.org$ ]] || return 2
+  printf '%s\n' "${domain%.duckdns.org}"
+}
+
+gt_duckdns_valid_token() { [[ "$1" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; }
+
+# Spread installations over the five-minute cycle so they do not all call DuckDNS in the same second.
+gt_duckdns_calendar() {
+  local value
+  value=$(printf '%s' "${FACT[host.name]:-$(hostname)}" | cksum) || return 2
+  value=${value%% *}
+  printf '*:%02d/5:%02d\n' $(( value % 5 )) $(( value / 5 % 60 ))
+}
+
+# Foreign updaters found by the inventory; the installer's own units are recognized by the journal.
+gt_duckdns_foreign() {
+  local file
+  [[ "${FACT[containers]:-}" != *duckdns* ]] || printf 'container\n'
+  for file in ${FACT[dns.updater_files]:-}; do
+    case "$file" in
+      */etc/systemd/system/"$GT_DUCKDNS_UNIT".service) [[ -n "${STATE[file.duckdns_service]:-}" ]] && continue ;;
+      */etc/systemd/system/"$GT_DUCKDNS_UNIT".timer) [[ -n "${STATE[file.duckdns_timer]:-}" ]] && continue ;;
+    esac
+    printf '%s\n' "$file"
+  done
+}
+
+gt_duckdns_plan() {
+  local updaters
+  [[ "${ANSWER[DUCKDNS_UPDATER]:-no}" == yes ]] || return 0
+  gt_duckdns_subdomain >/dev/null || gt_plan_block 'DUCKDNS_UPDATER needs a lowercase <name>.duckdns.org domain.' \
+    'DUCKDNS_UPDATER benötigt eine Domain <name>.duckdns.org in Kleinbuchstaben.'
+  updaters=$(gt_duckdns_foreign | paste -sd ' ' -)
+  [[ -z "$updaters" ]] || gt_plan_block "An existing DuckDNS updater must not be duplicated: $updaters" \
+    "Ein vorhandener DuckDNS-Updater darf nicht dupliziert werden: $updaters"
+  if [[ "${STATE[step.duckdns]:-}" == complete ]]; then
+    gt_plan_row reuse "$GT_DUCKDNS_UNIT.timer" 'Installer-owned DuckDNS updater; verify files and timer' \
+      'Installer-eigener DuckDNS-Updater; Dateien und Timer prüfen'
+    return 0
+  fi
+  gt_plan_row create "$CORE_HOME/duckdns/duck.sh" \
+    "Updater for ${ANSWER[DNS_FAMILY]:-ipv4}, mode 700; token in a 600 file beside it" \
+    "Updater für ${ANSWER[DNS_FAMILY]:-ipv4}, Modus 700; Token in einer 600-Datei daneben"
+  gt_plan_row create "/etc/systemd/system/$GT_DUCKDNS_UNIT.service, .timer" \
+    "Every five minutes at $(gt_duckdns_calendar), as grafioschtrader" \
+    "Alle fünf Minuten zu $(gt_duckdns_calendar), als grafioschtrader"
+  gt_plan_row verify DuckDNS \
+    'Update once before the build; KO stops before any certificate; wait up to 3 minutes for DNS' \
+    'Vor dem Build einmal aktualisieren; KO stoppt vor jedem Zertifikat; bis zu 3 Minuten auf DNS warten'
+}
+
+gt_duckdns_script() {
+  local subdomain=$1 family=$2
+  printf '#!/bin/bash\n'
+  printf '# DuckDNS updater installed by gt-install. The token stays in the protected file beside this script and\n'
+  printf '# reaches curl through a private configuration file, never through the command line or the log.\n'
+  printf 'set -uo pipefail\numask 077\n'
+  printf 'dir=%q domains=%q family=%q\n' "$CORE_HOME/duckdns" "$subdomain" "$family"
+  cat <<'SCRIPT'
+log() {
+  printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" >> "$dir/duck.log"
+  if (( $(wc -l < "$dir/duck.log") > 2000 )); then
+    tail -n 1000 "$dir/duck.log" > "$dir/duck.log.new" && mv -f "$dir/duck.log.new" "$dir/duck.log"
+  fi
+}
+token=$(< "$dir/token") || { log 'KO token file unreadable'; exit 2; }
+if [[ ! "$token" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+  log 'KO token file invalid'
+  exit 2
+fi
+ipv6=''
+if [[ "$family" != ipv4 ]]; then
+  # A delegated prefix changes, so the stable global address is read again on every run.
+  interface=$(ip -6 route show default | awk '{for (i = 1; i < NF; i++) if ($i == "dev") {print $(i + 1); exit}}')
+  if [[ -n "$interface" ]]; then
+    ipv6=$(ip -6 addr show dev "$interface" scope global -temporary -deprecated |
+      awk '$1 == "inet6" && $2 !~ /^(f[cd]|fe[89ab])/ {sub(/\/.*/, "", $2); print $2; exit}')
+  fi
+  [[ "$ipv6" =~ ^[0-9a-f:]+$ ]] || { log 'KO no stable global IPv6 address'; exit 3; }
+fi
+config=$(mktemp "$dir/.curl.XXXXXX") || exit 2
+trap 'rm -f -- "$config"' EXIT
+printf 'url = "https://www.duckdns.org/update?domains=%s&token=%s&ip=&ipv6=%s"\n' "$domains" "$token" "$ipv6" \
+  > "$config"
+option=-4
+[[ "$family" != ipv6 ]] || option=-6
+answer=$(curl "$option" --proto '=https' --tlsv1.2 -fsS --connect-timeout 10 --max-time 30 -K "$config" \
+  2>/dev/null) || { log "KO curl exit $?"; exit 2; }
+if [[ "$answer" == OK ]]; then log OK; exit 0; fi
+log 'KO rejected by DuckDNS'
+exit 1
+SCRIPT
+}
+
+gt_duckdns_units() {
+  printf '[Unit]\nDescription=Grafioschtrader DuckDNS update\nWants=network-online.target\n'
+  printf 'After=network-online.target\n\n[Service]\nType=oneshot\nUser=grafioschtrader\nExecStart=%s\n' \
+    "$CORE_HOME/duckdns/duck.sh" > "$SCRATCH/duckdns.service"
+  printf '[Unit]\nDescription=Grafioschtrader DuckDNS update every five minutes\n\n[Timer]\nOnCalendar=%s\n' \
+    "$(gt_duckdns_calendar)" > "$SCRATCH/duckdns.timer"
+  printf 'OnBootSec=1min\nAccuracySec=1s\n\n[Install]\nWantedBy=timers.target\n' >> "$SCRATCH/duckdns.timer"
+}
+
+# The A/AAAA records of the domain match this host for the selected address families.
+gt_duckdns_dns_ready() {
+  local family records expected result
+  gt_domain_network || return 1
+  for family in A AAAA; do
+    result=$(gt_probe dig +time=2 +tries=1 +noall +answer "${ANSWER[DOMAIN]}" "$family") || return 1
+    records=$(awk -v type="$family" '$4==type {print tolower($5)}' <<< "$result" | LC_ALL=C sort -u |
+      gt_normalize_addresses)
+    expected=${FACT[network.global_ipv6]:-unknown}
+    [[ "$family" != A ]] || expected=${FACT[network.public_ipv4]:-unknown}
+    expected=$(gt_normalize_addresses <<< "$expected")
+    gt_dns_records_match "$family" "$records" "$expected" || return 1
+  done
+}
+
+gt_duckdns_update() {
+  local reason
+  if ! gt_core_run systemctl start "$GT_DUCKDNS_UNIT.service"; then
+    reason=$(tail -n 1 "$CORE_HOME/duckdns/duck.log" 2>/dev/null) || reason=''
+    case "$reason" in
+      *'KO rejected by DuckDNS')
+        gt_core_error 'DuckDNS rejected the update; check the token and the subdomain on duckdns.org.' ;;
+      *'KO no stable global IPv6 address') gt_core_error 'No stable global IPv6 address for the DuckDNS AAAA record.' ;;
+      *) gt_core_error "DuckDNS update failed: ${reason#* }" ;;
+    esac
+    return 2
+  fi
+}
+
+gt_core_duckdns() {
+  local dir subdomain deadline unit
+  [[ "${ANSWER[DUCKDNS_UPDATER]:-no}" == yes ]] || return 0
+  subdomain=$(gt_duckdns_subdomain) || return 2
+  if ! gt_duckdns_valid_token "${SECRET[DUCKDNS_TOKEN]:-}"; then
+    gt_core_error 'The DuckDNS token is missing or malformed.'; return 2
+  fi
+  dir=$CORE_HOME/duckdns
+  gt_no_symlinks "$dir" || return 2
+  if [[ ! -d "$dir" ]]; then install -d -o grafioschtrader -g grafioschtrader -m 700 "$dir" || return 2; fi
+  [[ "$(stat -c '%U:%a' "$dir")" == grafioschtrader:700 ]] || return 2
+  gt_duckdns_script "$subdomain" "${ANSWER[DNS_FAMILY]:-ipv4}" > "$SCRATCH/duck.sh" || return 2
+  printf '%s\n' "${SECRET[DUCKDNS_TOKEN]}" > "$SCRATCH/duckdns-token" || return 2
+  gt_core_publish duckdns_script "$SCRATCH/duck.sh" "$dir/duck.sh" 700 || return 2
+  gt_core_publish duckdns_token "$SCRATCH/duckdns-token" "$dir/token" 600 || return 2
+  rm -f -- "$SCRATCH/duckdns-token"
+  gt_duckdns_units || return 2
+  unit=$(gt_path "/etc/systemd/system/$GT_DUCKDNS_UNIT")
+  gt_app_root_file duckdns_service "$SCRATCH/duckdns.service" "$unit.service" 644 || return 2
+  gt_app_root_file duckdns_timer "$SCRATCH/duckdns.timer" "$unit.timer" 644 || return 2
+  gt_core_run systemctl daemon-reload || return 2
+  if [[ "${STATE[step.duckdns]:-}" != complete ]]; then
+    gt_duckdns_update || return 2
+    # Recursive resolvers may still hold the previous records for their TTL.
+    if gt_dns_required; then
+      deadline=$((SECONDS + 180))
+      until gt_duckdns_dns_ready; do
+        (( SECONDS < deadline )) || {
+          gt_core_error "DuckDNS accepted the update, but ${ANSWER[DOMAIN]} does not resolve to this host's \
+selected addresses after 3 minutes."
+          return 2
+        }
+        sleep 10
+      done
+    fi
+  fi
+  gt_core_run systemctl enable --now "$GT_DUCKDNS_UNIT.timer" || return 2
+  [[ "${STATE[step.duckdns]:-}" == complete ]] || gt_core_mark step.duckdns complete
+}
+
 gt_core_clone() {
   local stage="$CORE_HOME/build/.gt-source-${STATE[run_id]}" remote commit
   gt_no_symlinks "$CORE_REPO" && gt_no_symlinks "$stage" || return 2
@@ -1210,6 +1388,7 @@ gt_core_plan() {
   [[ "${FACT[init]}" == systemd ]] || gt_plan_block 'Core installation requires systemd.'
   gt_plan_base_packages
   gt_swap_plan
+  gt_duckdns_plan
   gt_core_toolchain_plan
   gt_core_build_plan
   [[ "${FACT[source.requirements]}" == remote ]] || gt_plan_block 'Pinned source requirements must be available.'
@@ -1284,7 +1463,7 @@ gt_core_snapshot() {
 
 gt_core_execute() {
   local step
-  for step in base_packages swap toolchains user buildtools clone database configure; do
+  for step in base_packages swap toolchains user duckdns buildtools clone database configure; do
     printf '%s: %s\n' "$(gt_text 'Core step' 'Kernschritt')" "$step"
     "gt_core_$step" || { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
   done
