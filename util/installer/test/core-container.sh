@@ -57,7 +57,9 @@ gt_core_clone
 # creation, Git, filesystem permissions and Maven all run for real in this container.
 gt_core_run() {
   if [[ "$1" == systemctl ]]; then
-    [[ "$2" == start && "$3" == mariadb.service ]] || return 2
+    # The package's offline-enabled mariadb.socket never listens without systemd; the server below binds loopback.
+    [[ "$*" != 'systemctl disable --now mariadb.socket' ]] || return 0
+    [[ "$2" =~ ^(start|restart)$ && "$3" == mariadb.service ]] || return 2
     if ! mariadb --no-defaults -NBe 'SELECT 1' >/dev/null 2>&1; then
       install -d -o mysql -g mysql /run/mysqld
       mariadbd --user=mysql --bind-address=127.0.0.1 > /tmp/gt-mariadb-test.log 2>&1 &
