@@ -3981,6 +3981,16 @@ gt_core_execute() {
     'Installationskern eingerichtet. Installation bleibt unvollständig: Build, Dienst, Web/TLS und Anwendungsprüfungen stehen aus.'
   return 10
 }
+# While armbian-ramlog keeps /var/log in RAM, Armbian's boot-time hardware optimization rewrites /var/log/ to
+# /var/log.hdd/ in every /etc/logrotate.d file, and back once it is disabled. Both spellings are the installer's
+# content, which stays as Armbian left it.
+gt_app_root_digest() {
+  local digest
+  if [[ "$1" == app_logrotate ]]; then digest=$(sed 's#/var/log\.hdd/#/var/log/#g' "$2" | sha256sum) || return 2
+  else digest=$(sha256sum < "$2") || return 2; fi
+  printf '%s' "${digest%% *}"
+}
+
 # Privileged configuration has a separate publisher: app-owned helpers must never
 # determine the ownership or contents of sudoers, units or logrotate configuration.
 gt_app_root_file() {
@@ -3989,7 +3999,7 @@ gt_app_root_file() {
   digest=$(sha256sum "$input"); digest=${digest%% *}
   if [[ -e "$target" ]]; then
     [[ -f "$target" && "$(stat -c '%u:%a' "$target")" == "0:$mode" ]] || return 2
-    current=$(sha256sum "$target"); current=${current%% *}
+    current=$(gt_app_root_digest "$id" "$target") || return 2
     # Only the installer's own, unedited content is replaced, so a newer installer can repair what an older one
     # wrote; .previous covers an interrupted replacement.
     [[ -n "${STATE[file.$id]:-}" && ( "$current" == "${STATE[file.$id]}" ||
@@ -4087,7 +4097,7 @@ gt_app_targets() {
     gt_no_symlinks "$path" || return 2
     [[ ! -e "$path" || -n "${STATE[file.app_${entry%%:*}]:-}" ]] || { gt_core_error "Foreign file: $file"; return 2; }
     if [[ -e "$path" ]]; then
-      digest=$(sha256sum "$path"); digest=${digest%% *}
+      digest=$(gt_app_root_digest "app_${entry%%:*}" "$path") || return 2
       mode=644; [[ "${entry%%:*}" != sudoers ]] || mode=440
       [[ "$digest" == "${STATE[file.app_${entry%%:*}]}" && "$(stat -c '%u:%a' "$path")" == "0:$mode" ]] || return 2
     fi

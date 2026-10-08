@@ -68,6 +68,25 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
+@test "Armbian's boot-time /var/log.hdd rewrite of the own logrotate file is neither drift nor reverted" {
+  [ "$EUID" -eq 0 ] || skip 'Root file ownership requires root'
+  local target="$ROOT/etc/logrotate.d/grafioschtrader"
+  mkdir -p "${target%/*}"
+  printf '/var/log/grafioschtrader.log {\n    weekly\n}\n' > "$SCRATCH/input"
+  gt_app_root_file app_logrotate "$SCRATCH/input" "$target" 644
+  sed -i 's#/var/log/#/var/log.hdd/#g' "$target"
+  ANSWER[DOCROOT]=/var/www/gt STATE[step.app_start]=complete
+  gt_app_targets
+  gt_app_root_file app_logrotate "$SCRATCH/input" "$target" 644
+  grep -q '^/var/log.hdd/grafioschtrader.log' "$target"
+  # Only the Armbian path spelling is the installer's content; any other edit still blocks.
+  sed -i 's/weekly/daily/' "$target"
+  run gt_app_targets
+  [ "$status" -eq 2 ]
+  run gt_app_root_file app_logrotate "$SCRATCH/input" "$target" 644
+  [ "$status" -ne 0 ]
+}
+
 @test "build failure cannot cross the first-start boundary" {
   gt_state_load() { :; }
   gt_secrets_load() { :; }
