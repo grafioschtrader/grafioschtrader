@@ -592,12 +592,14 @@ gt_site_activate() {
   gt_site_link "$id" on || return 2
   if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service"; then
     for ((attempt=0; attempt<10; attempt++)); do
-      if gt_web_verify "$base" "$host_resolution"; then
+      # Old workers keep answering for a moment after a reload; only the last attempt's errors are reported.
+      if gt_web_verify "$base" "$host_resolution" 2> "$SCRATCH/web-verify.err"; then
         if gt_site_compare; then gt_core_mark "step.site_$id" complete; return $?; fi
         break
       fi
       sleep 1
     done
+    cat "$SCRATCH/web-verify.err" >&2
   fi
   gt_site_link "$id" off || return 2
   if [[ "$id" == domain && "${STATE[resource.domain_previous_http]:-}" == yes ]]; then gt_site_link http on || return 2; fi

@@ -2881,7 +2881,20 @@ gt_core_packages() {
       -o DPkg::Lock::Timeout=600 install mariadb-server mariadb-client || return 2
   fi
   gt_core_mark resource.mariadb owned || return 2
-  gt_core_run systemctl start mariadb.service
+  # Debian's postinst also enables mariadb.socket, whose ListenStream=3306 accepts on every address and bypasses
+  # bind-address. A server installed here serves loopback only, like the backend.
+  if systemctl is-enabled --quiet mariadb.socket 2>/dev/null || systemctl is-active --quiet mariadb.socket; then
+    gt_core_run systemctl disable --now mariadb.socket || return 2
+    gt_core_run systemctl restart mariadb.service || return 2
+  fi
+  gt_core_run systemctl start mariadb.service || return 2
+  gt_mariadb_loopback_only || { gt_core_error 'The new MariaDB server listens beyond loopback on port 3306.'; return 2; }
+}
+
+gt_mariadb_loopback_only() {
+  local listeners
+  listeners=$(ss -Htln) || return 1
+  ! awk '$4 ~ /:3306$/ && $4 !~ /^(127\.|\[?::1\]?:|\[::ffff:127\.)/ {found=1} END {exit !found}' <<< "$listeners"
 }
 
 gt_core_root_auth() {
@@ -5626,12 +5639,14 @@ gt_site_activate() {
   gt_site_link "$id" on || return 2
   if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service"; then
     for ((attempt=0; attempt<10; attempt++)); do
-      if gt_web_verify "$base" "$host_resolution"; then
+      # Old workers keep answering for a moment after a reload; only the last attempt's errors are reported.
+      if gt_web_verify "$base" "$host_resolution" 2> "$SCRATCH/web-verify.err"; then
         if gt_site_compare; then gt_core_mark "step.site_$id" complete; return $?; fi
         break
       fi
       sleep 1
     done
+    cat "$SCRATCH/web-verify.err" >&2
   fi
   gt_site_link "$id" off || return 2
   if [[ "$id" == domain && "${STATE[resource.domain_previous_http]:-}" == yes ]]; then gt_site_link http on || return 2; fi
