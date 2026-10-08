@@ -474,6 +474,9 @@ gt_network() {
   local value interface host url status file
   gt_capture network.ipv4_route ip -4 route get 1.1.1.1
   FACT[network.lan_ipv4]=$(awk '{for(i=1;i<NF;i++) if($i=="src") print $(i+1)}' <<< "${FACT[network.ipv4_route]}")
+  # A host on two networks (Ethernet intranet, WLAN uplink) offers each of its addresses for the LAN site.
+  if value=$(gt_probe ip -4 -o addr show scope global); then FACT[network.ipv4_addresses]=$(gt_ipv4_addresses <<< "$value")
+  else FACT[network.ipv4_addresses]=unknown; gt_note UNKNOWN unavailable network.ipv4_addresses; fi
   gt_capture network.ipv6_route ip -6 route show default
   interface=$(awk '{for(i=1;i<NF;i++) if($i=="dev") {print $(i+1); exit}}' <<< "${FACT[network.ipv6_route]}")
   FACT[network.global_ipv6]=unknown
@@ -917,6 +920,7 @@ TLS_CERT|path|existing_tls||Readable full-chain certificate file; renewal remain
 TLS_KEY|path|existing_tls||Private key file, readable only by its owner|Privater Schlüssel, nur für den Eigentümer lesbar
 TLS_PROXY_LISTEN|port|proxy||Local HTTP port receiving proxy traffic|Lokaler HTTP-Port für Proxy-Anfragen
 TLS_PROXY_FROM|address|proxy||Proxy IP address; empty allows every source|IP-Adresse des Proxys; leer erlaubt alle Quellen
+LAN_ADDRESS|lan|always||IPv4 address of this host for the LAN site http://<address>/|IPv4-Adresse dieses Hosts für die LAN-Seite http://<Adresse>/
 WEBSERVER|choice|always|nginx apache2 none|Web integration; none leaves manual configuration pending|Web-Integration; none lässt die manuelle Konfiguration offen
 VHOST_INCLUDE|yesno|vhost||Permit an include in the identified vhost after backup and route checks|Include im erkannten Vhost nach Sicherung und Routenprüfung erlauben
 BACKEND_PORT|port|always||Primary backend port, bound to loopback|Primärer Backend-Port, an Loopback gebunden
@@ -1057,7 +1061,7 @@ gt_vhost_root_default() {
     read -r label directive value <<< "$row"
     case "$directive" in server_name|ServerName|ServerAlias)
       for name in ${value//\"/}; do
-        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" || "$name" == "${FACT[network.lan_ipv4]:-unknown}" ]]; then matches[$label]=1; fi
+        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" || "$name" == "$(gt_lan_planned)" ]]; then matches[$label]=1; fi
       done ;;
     esac
   done
@@ -1085,6 +1089,8 @@ gt_default() {
     LETSENCRYPT_CERT_NAME) gt_certbot_default ;;
     TLS_CERT|TLS_KEY) gt_certificate_default "$1" ;;
     TLS_PROXY_LISTEN) gt_proxy_port_default ;;
+    # The source address towards the internet; a host with a separate intranet interface chooses that one.
+    LAN_ADDRESS) if gt_lan_candidate "${FACT[network.lan_ipv4]:-}"; then echo "${FACT[network.lan_ipv4]}"; fi ;;
     WEBSERVER)
       case "${REASON[web]:-}" in nginx|apache2) echo "${REASON[web]}" ;;
         'foreign proxy'*) [[ "${ANSWER[TLS_SOURCE]:-}" == proxy ]] && echo nginx || echo none ;;
@@ -1146,6 +1152,30 @@ gt_valid_address() {
     for octet in "${parts[@]}"; do [[ ${#octet} -le 3 ]] && (( 10#$octet <= 255 )) || return 1; done
   fi
 }
+gt_lan_candidate() {
+  [[ "$1" == *.* && "$1" != 127.* && "$1" != 0.* ]] && gt_valid_address "$1"
+}
+# Space-separated IPv4 addresses from `ip -4 -o addr show` on stdin, in interface order.
+gt_ipv4_addresses() {
+  awk '$3 == "inet" {sub(/\/.*/, "", $4); if (!seen[$4]++) out = out (out == "" ? "" : " ") $4} END {print out}'
+}
+# The LAN address the plan works with before anything is installed.
+gt_lan_planned() { printf '%s' "${ANSWER[LAN_ADDRESS]:-${FACT[network.lan_ipv4]:-unknown}}"; }
+# The LAN address the web stages serve, checked against the live host: the LAN_ADDRESS answer, or the default
+# route's source address for journals written before that question existed.
+gt_lan_address() {
+  local address=${ANSWER[LAN_ADDRESS]:-} assigned
+  if [[ -z "$address" ]]; then
+    address=$(gt_probe ip -4 route get 1.1.1.1) || return 2
+    address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
+  fi
+  gt_lan_candidate "$address" || return 2
+  assigned=$(gt_probe ip -4 -o addr show scope global) || return 2
+  [[ " $(gt_ipv4_addresses <<< "$assigned") " == *" $address "* ]] || {
+    gt_core_error "LAN address $address is not assigned to an interface of this host."; return 2;
+  }
+  printf '%s\n' "$address"
+}
 gt_normalize_addresses() {
   local address left right part count fill i
   local -a pieces
@@ -1188,6 +1218,8 @@ gt_validate_answer() {
     lineage) [[ -z "$value" || "$value" == - || "$value" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,99}$ ]] ;;
     timezone) gt_valid_path "/$value" && [[ "$value" == UTC || -f "$(gt_path "/usr/share/zoneinfo/$value")" ]] ;;
     address) [[ -z "$value" ]] || gt_valid_address "$value" ;;
+    # Empty keeps journals written before LAN_ADDRESS existed valid; they use the default route's source address.
+    lan) [[ -z "$value" ]] || gt_lan_candidate "$value" ;;
     heap)
       [[ "$value" =~ ^-Xms([1-9][0-9]{0,5})([mg])\ -Xmx([1-9][0-9]{0,5})([mg])$ ]] || return 1
       min=${BASH_REMATCH[1]}; max=${BASH_REMATCH[3]}
@@ -1201,11 +1233,14 @@ gt_validate_answer() {
 }
 
 gt_ask() {
-  local key=$1 value default prompt
+  local key=$1 value default prompt choices=${Q_CHOICES[$1]}
   default=$(gt_default "$key")
   prompt=$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")
+  # The host's own addresses are the sensible answers, but any of them may be typed.
+  [[ "$key" != LAN_ADDRESS || "${FACT[network.ipv4_addresses]:-unknown}" == unknown ]] ||
+    choices=${FACT[network.ipv4_addresses]}
   while :; do
-    printf '%s (%s)%s [%s]: ' "$prompt" "$key" "${Q_CHOICES[$key]:+ ${Q_CHOICES[$key]}}" "$default" >&"$QUESTION_OUTPUT"
+    printf '%s (%s)%s [%s]: ' "$prompt" "$key" "${choices:+ $choices}" "$default" >&"$QUESTION_OUTPUT"
     if ! IFS= read -r -u "$QUESTION_FD" value || [[ "$value" == '!quit' ]]; then return 130; fi
     [[ -n "$value" ]] || value=$default
     [[ "$key" != DOMAIN ]] || value=${value,,}
@@ -1221,7 +1256,7 @@ gt_dns_checklist() {
   else
     gt_text 'Domain checklist: configure A/AAAA records for the selected reachable families and admit TCP 80/443 at the router/firewall.' \
       'Domain-Checkliste: A/AAAA für die gewählten erreichbaren Familien setzen und TCP 80/443 an Router/Firewall freigeben.'
-    printf 'IPv4=%s IPv6=%s LAN=%s\n' "${FACT[network.public_ipv4]:-unknown}" "${FACT[network.global_ipv6]:-unknown}" "${FACT[network.lan_ipv4]:-unknown}"
+    printf 'IPv4=%s IPv6=%s LAN=%s\n' "${FACT[network.public_ipv4]:-unknown}" "${FACT[network.global_ipv6]:-unknown}" "$(gt_lan_planned)"
     if [[ "${ANSWER[DOMAIN]}" == *.duckdns.org ]]; then
       gt_text 'DuckDNS: create the account and subdomain yourself; keep the token for installation.' \
         'DuckDNS: Konto und Subdomain selbst anlegen; Token für die Installation bereithalten.'
@@ -1645,7 +1680,7 @@ gt_plan_web() {
       for name in ${value//\"/}; do
         # In include mode the parser below, not this static evidence, resolves the domain's virtual host.
         if [[ -n "$domain" && " ${FACT[plan.names]:-$domain} " == *" $name "* ]] && ! gt_vhost_include_mode ||
-            [[ "$name" == "${FACT[network.lan_ipv4]:-unknown}" ]]; then matches[$label]=1; fi
+            [[ "$name" == "$(gt_lan_planned)" ]]; then matches[$label]=1; fi
         [[ "$name" != *'*'* && "$name" != '~'* ]] || unknown=yes
       done ;;
     esac
@@ -1974,6 +2009,13 @@ gt_stage_contract() {
       'VHOST_INCLUDE=yes needs a domain and TLS_SOURCE=existing with the certificate of that virtual host.' \
       'VHOST_INCLUDE=yes benötigt eine Domain und TLS_SOURCE=existing mit dem Zertifikat dieses Vhosts.'
   fi
+  # The LAN site answers on one of this host's own addresses; later stages check the live host again.
+  if [[ "${FACT[network.ipv4_addresses]:-unknown}" != unknown ]]; then
+    value=$(gt_lan_planned)
+    [[ " ${FACT[network.ipv4_addresses]} " == *" $value "* ]] || gt_plan_block \
+      "LAN_ADDRESS $value is not assigned to this host; choose one of: ${FACT[network.ipv4_addresses]:-none}." \
+      "LAN_ADDRESS $value gehört nicht zu diesem Host; eine davon wählen: ${FACT[network.ipv4_addresses]:-keine}."
+  fi
   # Without an own nginx or Apache nothing answers the HTTP-01 challenge.
   [[ "${ANSWER[WEBSERVER]:-}:${ANSWER[TLS_SOURCE]:-}" != none:letsencrypt ]] || gt_plan_block \
     "WEBSERVER=none needs TLS_SOURCE=existing or proxy; Let's Encrypt requires nginx or Apache." \
@@ -2015,7 +2057,7 @@ gt_stage_contract() {
         if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" ]] && ! gt_vhost_include_mode; then
           gt_plan_block \
             "Selected name $name belongs to a foreign vhost; select VHOST_INCLUDE=yes with TLS_SOURCE=existing."
-        elif [[ -n "${FACT[network.lan_ipv4]:-}" && "$name" == "${FACT[network.lan_ipv4]}" ]]; then
+        elif [[ "$name" == "$(gt_lan_planned)" ]]; then
           gt_plan_block "The LAN address $name belongs to a foreign vhost; the LAN site needs it."
         fi
       done ;;
@@ -4520,9 +4562,7 @@ gt_web_preflight() {
   [[ "$(cat "$(gt_path /proc/1/comm)")" == systemd ]] || return 2
   gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
   gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" || return 2
-  address=$(ip -4 route get 1.1.1.1) || return 2
-  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
-  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  address=$(gt_lan_address) || return 2
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || {
     gt_core_error 'LAN address changed; review the owned vhost before continuing.'; return 2;
   }
@@ -5373,9 +5413,7 @@ gt_install_manual_web() {
   local address
   gt_stage_preflight || return 2
   [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
-  address=$(ip -4 route get 1.1.1.1) || return 2
-  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
-  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  address=$(gt_lan_address) || return 2
   FACT[web.lan]=$address
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
   [[ -n "${STATE[resource.web_lan]:-}" ]] || gt_core_mark resource.web_lan "$address" || return 2
@@ -5520,9 +5558,7 @@ gt_extended_preflight() {
   gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
   gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" || return 2
   [[ "$web" != apache2 ]] || gt_validate_answer BACKEND_HTTP_PORT "${ANSWER[BACKEND_HTTP_PORT]:-}" || return 2
-  address=$(ip -4 route get 1.1.1.1) || return 2
-  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
-  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  address=$(gt_lan_address) || return 2
   FACT[web.lan]=$address
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
   gt_domain_plan && gt_site_owned || return 2
@@ -6251,9 +6287,7 @@ gt_bootstrap_apt_run() {
 gt_bootstrap_web_review() {
   local web=${ANSWER[WEBSERVER]} executable address certificate='' tls
   executable=$web; [[ "$web" != apache2 ]] || executable=apache2ctl
-  address=$(gt_probe ip -4 route get 1.1.1.1) || return 2
-  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
-  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  address=$(gt_lan_address) || return 2
   FACT[web.lan]=$address
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
   # Another web server serves the routes; the installer only writes its proposal and verifies the result.

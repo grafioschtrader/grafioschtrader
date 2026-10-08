@@ -395,9 +395,7 @@ gt_install_manual_web() {
   local address
   gt_stage_preflight || return 2
   [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
-  address=$(ip -4 route get 1.1.1.1) || return 2
-  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
-  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  address=$(gt_lan_address) || return 2
   FACT[web.lan]=$address
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
   [[ -n "${STATE[resource.web_lan]:-}" ]] || gt_core_mark resource.web_lan "$address" || return 2
@@ -534,9 +532,7 @@ gt_extended_preflight() {
   gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
   gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" || return 2
   [[ "$web" != apache2 ]] || gt_validate_answer BACKEND_HTTP_PORT "${ANSWER[BACKEND_HTTP_PORT]:-}" || return 2
-  address=$(ip -4 route get 1.1.1.1) || return 2
-  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
-  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  address=$(gt_lan_address) || return 2
   FACT[web.lan]=$address
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
   gt_domain_plan && gt_site_owned || return 2

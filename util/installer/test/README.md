@@ -179,6 +179,10 @@ selects `WEBSERVER=none`: the stage stays pending until the server takes the ngi
 `/root/gt-install-webserver.conf` literally, then verifies it. `web-manual.bats` covers the same paths with
 fixtures, including the result action, a hand-edited proposal and the full-plan web review.
 
+`lan-address.bats` uses a fixture host with the default route on one address and a second, intranet-only one: the
+`LAN_ADDRESS` default and prompt, the chosen address in the web stages, vhost matching and domain checklist, the
+blocker for an address of no interface, and the default-route fallback for journals without the answer.
+
 ## DuckDNS updater
 
 `duckdns.bats` runs the generated `duck.sh` against `curl` and `ip` fixtures: the token appears only in the private

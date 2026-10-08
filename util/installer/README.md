@@ -254,8 +254,12 @@ configuration and built artifacts are checked again; no passwords are requested 
 or database bootstrap runs. A missing nginx is installed from configured APT sources after a simulated
 transaction excludes removals and upgrades. Existing nginx must be running with a valid distribution configuration.
 
-The stage derives the primary IPv4 address from the default route, shows the LAN URL and installs
-`/etc/nginx/sites-available/grafioschtrader` with a matching link in `sites-enabled`. The address is recorded;
+The stage serves the `LAN_ADDRESS` answer, shows the LAN URL and installs
+`/etc/nginx/sites-available/grafioschtrader` with a matching link in `sites-enabled`. `LAN_ADDRESS` defaults to the
+source address of the default route; the question lists every global IPv4 address of the host, so a machine whose
+default route leaves over WLAN while the intranet is on Ethernet selects the Ethernet address. An address that
+belongs to no interface of the host blocks the plan and every web stage. Journals written before the question
+existed keep the default-route address. The address is recorded;
 an address change blocks resumption until the configuration is reviewed. Use a stable LAN address or DHCP
 reservation. Port 80 must be free or owned by nginx. The firewall and router are not changed; clients need
 an existing permitted network path to HTTP port 80. This stage configures HTTP, with no certificate.

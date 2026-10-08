@@ -15,7 +15,7 @@ setup_check() {
   ARCH=amd64
   IMAGES='' INSTALLED='' LISTENERS='' GT_USER=no SERVICE_ACTIVE=no SOCKET_ACTIVE=no SQL_FAIL=no ONLINE=no
   APT_OUTPUT='' APT_FAIL=no DNS_A=198.51.100.12 DNS_AAAA='' DNS_FAIL=no OPENSSL_REAL=no
-  DNS_TOOL_AVAILABLE=yes
+  DNS_TOOL_AVAILABLE=yes LAN_ADDRESSES='192.168.1.2 10.0.0.2'
   SQL_PASSWORD_ONLY=no SQL_GT_LOGIN=grafioschtrader@localhost
 }
 
@@ -64,6 +64,13 @@ gt_probe() {
       case "$*" in
         *'-4 route'*) echo '1.1.1.1 via 192.168.1.1 dev eth0 src 192.168.1.2 uid 0' ;;
         *'route show default'*) echo 'default via fe80::1 dev eth0' ;;
+        *'-4 -o addr show'*)
+          local address index=2
+          for address in $LAN_ADDRESSES; do
+            printf '%s: eth%s    inet %s/24 scope global eth%s\\       valid_lft forever\n' \
+              "$index" "$index" "$address" "$index"
+            index=$((index+1))
+          done ;;
         *'addr show'*) printf '    inet6 2001:db8::12/64 scope global\n    inet6 fd12::12/64 scope global\n' ;;
       esac ;;
     */mvn) echo 'Apache Maven 3.9.9' ;;

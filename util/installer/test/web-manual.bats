@@ -6,7 +6,7 @@ setup() {
   source "$BATS_TEST_DIRNAME/check-helpers.bash"
   gt_question_model
   ANSWER=([WEBSERVER]=none [DOMAIN]=example.org [TLS_SOURCE]=existing [DOCROOT]=/var/www/gt [BACKEND_PORT]=9090
-    [TLS_CERT]=/etc/ssl/site.pem [TLS_KEY]=/etc/ssl/site.key)
+    [TLS_CERT]=/etc/ssl/site.pem [TLS_KEY]=/etc/ssl/site.key [LAN_ADDRESS]=192.0.2.20)
   STATE=([run_id]=00000000000000000000000000000001 [step.app]=complete)
   FACT[web.lan]=192.0.2.20
   mkdir -p "$ROOT/root" "$ROOT/var/lib/gt-install" "$ROOT/etc/nginx/snippets"
@@ -18,7 +18,7 @@ setup() {
   gt_app_verify() { :; }
   gt_web_firewall() { :; }
   gt_app_root_file() { cp "$2" "$3"; }
-  ip() { echo '1.1.1.1 via 192.0.2.1 dev eth0 src 192.0.2.20 uid 0'; }
+  LAN_ADDRESSES='192.168.1.2 192.0.2.20'
   LAN=fail DOMAIN_TLS=fail
   gt_web_verify() {
     printf '%s\n' "$*" >> "$SCRATCH/verified"
@@ -101,7 +101,6 @@ setup() {
 
 @test "the full-plan web review of WEBSERVER=none checks no web server, only the LAN address" {
   STATE[resource.web_lan]=192.0.2.20
-  gt_probe() { echo '1.1.1.1 via 192.0.2.1 dev eth0 src 192.0.2.20 uid 0'; }
   gt_site_owned() { touch "$SCRATCH/sites-checked"; return 2; }
   gt_bootstrap_web_review
   [ "${FACT[bootstrap.web]}" = 'none:192.0.2.20:' ]

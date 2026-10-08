@@ -318,6 +318,9 @@ gt_network() {
   local value interface host url status file
   gt_capture network.ipv4_route ip -4 route get 1.1.1.1
   FACT[network.lan_ipv4]=$(awk '{for(i=1;i<NF;i++) if($i=="src") print $(i+1)}' <<< "${FACT[network.ipv4_route]}")
+  # A host on two networks (Ethernet intranet, WLAN uplink) offers each of its addresses for the LAN site.
+  if value=$(gt_probe ip -4 -o addr show scope global); then FACT[network.ipv4_addresses]=$(gt_ipv4_addresses <<< "$value")
+  else FACT[network.ipv4_addresses]=unknown; gt_note UNKNOWN unavailable network.ipv4_addresses; fi
   gt_capture network.ipv6_route ip -6 route show default
   interface=$(awk '{for(i=1;i<NF;i++) if($i=="dev") {print $(i+1); exit}}' <<< "${FACT[network.ipv6_route]}")
   FACT[network.global_ipv6]=unknown

@@ -101,9 +101,7 @@ gt_web_preflight() {
   [[ "$(cat "$(gt_path /proc/1/comm)")" == systemd ]] || return 2
   gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
   gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" || return 2
-  address=$(ip -4 route get 1.1.1.1) || return 2
-  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
-  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  address=$(gt_lan_address) || return 2
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || {
     gt_core_error 'LAN address changed; review the owned vhost before continuing.'; return 2;
   }

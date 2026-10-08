@@ -391,8 +391,8 @@ The user can stop here, complete the list and start again; nothing has been chan
   excluding `fd00::/8`, `fe80::/10`, temporary (privacy) and deprecated addresses — `ip -6 addr show dev <if> scope
   global -temporary -deprecated`. Privacy addresses change daily and cannot carry a record.
 - *IPv4:* the address the internet sees, from an echo service (`curl -4 -s https://ifconfig.co`), and the LAN address
-  from `ip -4 route get 1.1.1.1`. A private LAN address means the router translates, so the port forwarding of the
-  checklist is required.
+  `LAN_ADDRESS`, one of the host's global IPv4 addresses. A private LAN address means the router translates, so the
+  port forwarding of the checklist is required.
 
 Whether IPv4 is reachable from the internet at all cannot be proven from the host: behind DS-Lite or carrier-grade
 NAT the echo service answers with a shared address that no port forwarding reaches. `DNS_FAMILY` (§6.1) therefore

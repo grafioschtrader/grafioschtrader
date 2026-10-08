@@ -199,7 +199,7 @@ gt_plan_web() {
       for name in ${value//\"/}; do
         # In include mode the parser below, not this static evidence, resolves the domain's virtual host.
         if [[ -n "$domain" && " ${FACT[plan.names]:-$domain} " == *" $name "* ]] && ! gt_vhost_include_mode ||
-            [[ "$name" == "${FACT[network.lan_ipv4]:-unknown}" ]]; then matches[$label]=1; fi
+            [[ "$name" == "$(gt_lan_planned)" ]]; then matches[$label]=1; fi
         [[ "$name" != *'*'* && "$name" != '~'* ]] || unknown=yes
       done ;;
     esac
@@ -528,6 +528,13 @@ gt_stage_contract() {
       'VHOST_INCLUDE=yes needs a domain and TLS_SOURCE=existing with the certificate of that virtual host.' \
       'VHOST_INCLUDE=yes benötigt eine Domain und TLS_SOURCE=existing mit dem Zertifikat dieses Vhosts.'
   fi
+  # The LAN site answers on one of this host's own addresses; later stages check the live host again.
+  if [[ "${FACT[network.ipv4_addresses]:-unknown}" != unknown ]]; then
+    value=$(gt_lan_planned)
+    [[ " ${FACT[network.ipv4_addresses]} " == *" $value "* ]] || gt_plan_block \
+      "LAN_ADDRESS $value is not assigned to this host; choose one of: ${FACT[network.ipv4_addresses]:-none}." \
+      "LAN_ADDRESS $value gehört nicht zu diesem Host; eine davon wählen: ${FACT[network.ipv4_addresses]:-keine}."
+  fi
   # Without an own nginx or Apache nothing answers the HTTP-01 challenge.
   [[ "${ANSWER[WEBSERVER]:-}:${ANSWER[TLS_SOURCE]:-}" != none:letsencrypt ]] || gt_plan_block \
     "WEBSERVER=none needs TLS_SOURCE=existing or proxy; Let's Encrypt requires nginx or Apache." \
@@ -569,7 +576,7 @@ gt_stage_contract() {
         if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" ]] && ! gt_vhost_include_mode; then
           gt_plan_block \
             "Selected name $name belongs to a foreign vhost; select VHOST_INCLUDE=yes with TLS_SOURCE=existing."
-        elif [[ -n "${FACT[network.lan_ipv4]:-}" && "$name" == "${FACT[network.lan_ipv4]}" ]]; then
+        elif [[ "$name" == "$(gt_lan_planned)" ]]; then
           gt_plan_block "The LAN address $name belongs to a foreign vhost; the LAN site needs it."
         fi
       done ;;

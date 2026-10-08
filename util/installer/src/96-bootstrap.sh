@@ -62,9 +62,7 @@ gt_bootstrap_apt_run() {
 gt_bootstrap_web_review() {
   local web=${ANSWER[WEBSERVER]} executable address certificate='' tls
   executable=$web; [[ "$web" != apache2 ]] || executable=apache2ctl
-  address=$(gt_probe ip -4 route get 1.1.1.1) || return 2
-  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
-  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  address=$(gt_lan_address) || return 2
   FACT[web.lan]=$address
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
   # Another web server serves the routes; the installer only writes its proposal and verifies the result.
