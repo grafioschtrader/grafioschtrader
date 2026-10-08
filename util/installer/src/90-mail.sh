@@ -51,6 +51,67 @@ PY
     "<gt-install-${STATE[run_id]}@localhost>" | python3 "$SCRATCH/mail-check.py" > "$SCRATCH/mail-result" || return 1
 }
 
+# A wrong SMTP password shows up only in the mail check, after the backend was built with it. Until the mail
+# milestone is verified, --check-mail --answers FILE accepts a corrected SMTP_PASSWORD; every other answer and
+# secret in FILE must still match the journal.
+gt_mail_password() {
+  local key value reply
+  [[ "${STATE[step.app]:-}" == complete && "${STATE[step.mail]:-}" != complete &&
+     "${ANSWER[SMTP_CONFIGURE]:-}:${ANSWER[SMTP_AUTH]:-}" == yes:yes ]] || {
+    gt_core_error 'Only an authenticated mail configuration that is not yet verified accepts a new SMTP password.'
+    return 2
+  }
+  gt_answers_file "$ANSWERS_FILE" || return 2
+  for key in "${!FILE_ANSWERS[@]}"; do
+    [[ "$key" != SMTP_PASSWORD && "$key" != DB_ROOT_PASSWORD ]] || continue
+    if [[ "${Q_TYPE[$key]}" == secret ]]; then value=${SECRET[$key]:-}; else value=${ANSWER[$key]:-}; fi
+    [[ "${FILE_ANSWERS[$key]}" == "$value" ]] || {
+      gt_core_error "$key differs from the installation; only SMTP_PASSWORD can change before mail is verified."
+      return 2
+    }
+  done
+  value=${FILE_ANSWERS[SMTP_PASSWORD]-}
+  FILE_ANSWERS=()
+  gt_valid_secret "$value" || { gt_core_error 'The answers file needs a valid SMTP_PASSWORD.'; return 2; }
+  [[ "$value" != "${SECRET[SMTP_PASSWORD]}" ]] || return 0
+  gt_text 'SMTP_PASSWORD changes: encrypt it into application.properties, rebuild the backend of the installed commit and restart Grafioschtrader.' \
+    'SMTP_PASSWORD ändert sich: in application.properties verschlüsseln, Backend des installierten Commits neu bauen und Grafioschtrader neu starten.'
+  if [[ "$CORE_CONFIRM" != yes ]]; then
+    { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
+    printf 'change-mail-password: ' >&"$QUESTION_FD"
+    IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == change-mail-password ]] || return 130
+  fi
+  # The journal intent precedes the new secret, so an interruption resumes the change instead of the old build.
+  gt_core_mark step.mail_password intent || return 2
+  SECRET[SMTP_PASSWORD]=$value
+  gt_secrets_save || return 2
+  gt_mail_password_apply
+}
+
+# Replaces only spring.mail.password: application.properties also holds the cron slots chosen at installation.
+gt_mail_password_apply() {
+  local target="$CORE_REPO/backend/grafioschtrader-server/src/main/resources/application.properties" log commit
+  gt_core_config_valid || return 2
+  gt_encrypt_secret SMTP_PASSWORD || return 2
+  PROPERTIES=([spring.mail.password]=$ENCRYPTED)
+  gt_properties_render "$target" "$SCRATCH/application.config" || return 2
+  gt_core_publish properties "$SCRATCH/application.config" "$target" 600 || return 2
+  # The properties are packaged into the JAR, so only a new backend build carries the password.
+  log="$(gt_path /var/lib/gt-install)/app-build.log"
+  printf '%s\n' "Build log: $log"
+  gt_core_run systemctl stop grafioschtrader.service || return 2
+  gt_core_mark step.app_build running || return 2
+  gt_as_app env GT_INSTALL_BUILD_ONLY=1 GT_CRON_RANDOMIZE=off bash "$CORE_HOME/gtupbackend.sh" >> "$log" 2>&1 || {
+    gt_core_error "Backend build failed; inspect $log and repeat --check-mail."; return 2;
+  }
+  gt_core_config_valid && gt_app_artifacts || return 2
+  commit=$(gt_as_app git -C "$CORE_REPO" rev-parse HEAD) || return 2
+  [[ "$commit" == "${STATE[planned_commit]}" ]] || return 2
+  gt_core_mark step.app_build complete || return 2
+  gt_app_start || return 2
+  gt_core_mark step.mail_password complete
+}
+
 gt_check_mail() {
   local state_dir field reply result send
   local completed_status
@@ -64,6 +125,8 @@ gt_check_mail() {
   gt_no_symlinks "$state_dir/lock" || return 2
   if [[ -z "$LOCK_FD" ]]; then exec {LOCK_FD}<"$state_dir/lock" || return 2; fi
   flock -n "$LOCK_FD" || return 2
+  if [[ "$MODE" == --check-mail && -n "$ANSWERS_FILE" ]]; then gt_mail_password || return $?
+  elif [[ "${STATE[step.mail_password]:-}" == intent ]]; then gt_mail_password_apply || return 2; fi
   [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == no ]]; then
     gt_core_mark step.mail skipped || return 2

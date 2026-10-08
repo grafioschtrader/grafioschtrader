@@ -59,11 +59,13 @@ sudo bash util/installer/gt-install.sh --install-core --answers /root/gt-answers
 sudo bash util/installer/gt-install.sh --install-app
 sudo bash util/installer/gt-install.sh --install-web
 sudo bash util/installer/gt-install.sh --check-mail
+sudo bash util/installer/gt-install.sh --check-mail --answers /root/gt-answers --yes
 ```
 
 The script is self-contained and can be copied to a Debian/Ubuntu host. Save it as a file before running it;
 execution through `curl | bash` is refused. `--help` works without root. Modes cannot be combined; `--answers` is
-accepted without a mode, with `--prepare` and with `--install-core`. The three `--install-*` modes make installation changes;
+accepted without a mode, with `--prepare`, `--install-core` and `--check-mail`. The three `--install-*` modes make
+installation changes;
 `--check-mail` records verification and can send the previously selected test message. Each accepts `--yes`
 to use the saved scope without another terminal confirmation. Whiptail dialogs remain pending.
 
@@ -226,6 +228,13 @@ planned and built commits, the SHA-256 of the installer bundle used for hand-ove
 without sending (`not-requested`), skipped mail, pending verification and uncertain delivery after interruption.
 An incomplete report lists the remaining actions. Saved answers remain immutable; changing a skipped SMTP
 selection requires the future re-planning support and cannot be achieved just by repeating the check.
+
+The one exception is the SMTP password, because a wrong one shows up only in this check. Until the mail milestone
+is verified, `--check-mail --answers FILE` accepts a corrected `SMTP_PASSWORD`; every other answer and secret in
+`FILE` must match the installation. After confirmation (`change-mail-password` or `--yes`) the installer journals
+the change, stores the new secret, replaces only `spring.mail.password` in `application.properties` (the cron slots
+stay), rebuilds the backend of the installed commit, because the properties are packaged into the JAR, restarts
+Grafioschtrader and repeats the mail check. An interrupted change resumes with the next `--check-mail`.
 
 The same public fields are atomically written as literal `key=value` lines to `/var/lib/gt-install/result`
 (root-owned, mode 600). Do not source this file as shell code. Technical keys and milestone values are stable;

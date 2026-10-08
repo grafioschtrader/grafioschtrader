@@ -109,14 +109,16 @@ Without a mode: review and confirm the full bootstrap, or resume its journal.
 Optional stages (all accept --plain):
   --check | --dry-run | --prepare [--answers FILE]
   --install-core [--answers FILE] [--yes]
-  --install-app [--yes] | --install-web [--yes] | --check-mail [--yes]
+  --install-app [--yes] | --install-web [--yes]
+  --check-mail [--answers FILE] [--yes]   FILE may correct SMTP_PASSWORD until mail is verified
 USAGE
         return 0 ;;
       *) gt_message mode >&2; return 2 ;;
     esac
   done
   [[ -n "$MODE" ]] || MODE=--bootstrap
-  [[ ( -z "$ANSWERS_FILE" || "$MODE" == --bootstrap || "$MODE" == --prepare || "$MODE" == --install-core ) &&
+  [[ ( -z "$ANSWERS_FILE" || "$MODE" == --bootstrap || "$MODE" == --prepare || "$MODE" == --install-core ||
+      "$MODE" == --check-mail ) &&
     ( "$CORE_CONFIRM" == no || "$MODE" == --bootstrap || "$MODE" == --install-core || "$MODE" == --install-app || "$MODE" == --install-web || "$MODE" == --check-mail ) ]] || { gt_message mode >&2; return 2; }
   [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]] || { gt_message pipe >&2; return 2; }
   (( EUID == 0 )) || { gt_message root >&2; return 2; }
