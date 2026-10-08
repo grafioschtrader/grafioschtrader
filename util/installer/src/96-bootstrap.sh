@@ -148,6 +148,8 @@ gt_bootstrap_plan() {
   gt_plan_row enable grafioschtrader.service 'Start migrations, verify production database and loopback listeners, then enable boot.'
   for id in lan http domain; do
     [[ "$id" == lan || -n "${ANSWER[DOMAIN]:-}" ]] || continue
+    # In include mode the existing virtual host serves the domain; its snippet rows come from gt_domain_plan.
+    [[ "$id" == lan ]] || ! gt_vhost_include_mode || continue
     [[ "$id" != http || "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]] || continue
     target=$(gt_site_path "$id")
     gt_plan_row manage "$target" 'Own vhost and sites-enabled link; validate before reload and compare shared sites.'

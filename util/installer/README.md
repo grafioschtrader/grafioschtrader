@@ -91,8 +91,8 @@ category and `/var/log/grafioschtrader.log`, never raw application diagnostics. 
 attempt must be inspected and stopped before retrying if it is not already healthy. No database is dropped or repaired.
 
 Planning and installation share a stage contract, including on resumption. Before saving immutable answers or
-executing the core, it rejects `VHOST_INCLUDE=yes`,
-`WEBSERVER=none` and selected names belonging to foreign vhosts. These execution paths are not implemented yet.
+executing the core, it rejects `WEBSERVER=none`, which is not implemented yet, and selected names belonging to
+foreign vhosts, except a domain included with `VHOST_INCLUDE=yes` and `TLS_SOURCE=existing` (see below).
 The proxy-port default starts at
 8081 and excludes the selected backend ports. Ports 80/443 and duplicate connector/proxy ports are rejected with
 the offending answer named. Existing journals with unsupported selections also stop; original secrets and
@@ -373,6 +373,39 @@ web server, firewall, TLS, DuckDNS update or mail test is performed. The full dr
 the core's own confirmation plan lists only its actual changes. Existing classic/Docker installations and foreign
 installation pieces are refused. Java/Maven vendor archives and Node archives are installed automatically as
 described below.
+
+### Including Grafioschtrader into an existing HTTPS site
+
+When an existing nginx or Apache site of this host already serves the domain, `TLS_SOURCE` defaults to
+`existing` and `VHOST_INCLUDE` is asked (default `no`). With `VHOST_INCLUDE=yes` and `TLS_SOURCE=existing`
+the installer creates no own domain site and requests no certificate: the existing site keeps terminating TLS
+and renewing its certificate, and Grafioschtrader's routes are included into it. The LAN site stays an own site;
+a foreign site serving the LAN address still blocks.
+
+The target is resolved from the configuration itself: for nginx by parsing `sites-enabled` and `conf.d` with
+their plain includes, for Apache from `apache2ctl -t -D DUMP_VHOSTS` at the web stage (read-only modes never run
+`apache2ctl`). Exactly one HTTPS block must serve the domain; port-80 blocks of the same domain, usually
+redirects, stay untouched. The plan blocks on a second HTTPS block, a dynamic include, an nginx block whose
+opening line does not end with `{`, an Apache `RewriteRule` in the virtual host, and any existing location,
+`ProxyPass` or `Alias` on `/api`, `/m2m`, `/socket`, `/ws` or `/grafioschtrader`. `TLS_CERT`/`TLS_KEY` must be
+that block's own certificate and key.
+
+| Server | Snippet | Include inserted after the opening line of the block |
+|---|---|---|
+| nginx | `/etc/nginx/snippets/grafioschtrader.conf` | `include /etc/nginx/snippets/grafioschtrader.conf;` |
+| Apache | `/etc/apache2/conf-available/grafioschtrader.conf` (not enabled globally) | `Include /etc/apache2/conf-available/grafioschtrader.conf` |
+
+The nginx snippet declares every route with `^~`, so regex locations of the site, such as `\.php$` or a caching
+rule for `\.(js|css)$`, cannot capture Grafioschtrader's paths. The Apache snippet uses `Alias` for the frontend
+and one `<Location>` per backend route, so proxy and forwarding headers apply to those paths only and the site's
+own requests are unchanged. Both forward the client address as `X-Forwarded-For` and `https` as the protocol.
+
+Before the edit the file is copied to `<file>.gt-install.<timestamp>`, and the journal records target, backup
+and the digest of the edited file. A configuration test, a reload, the verification of Grafioschtrader through
+`https://<domain>` and the comparison of every existing site's responses before and after decide; any failure
+copies the backup back and reloads. A completed include is only verified again; an edit of the target file by
+someone else afterwards stops the stage instead of being overwritten. Restoring web files never rolls back
+database migrations.
 
 ### DuckDNS updater
 

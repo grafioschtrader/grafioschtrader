@@ -156,6 +156,23 @@ application properties and the repository's Jasypt plugin version in a minimal M
 database and encryption operations, but does not verify systemd integration, the complete application build or a
 running backend. The GitHub Actions core job runs this integration in its own fresh container.
 
+## Include into an existing HTTPS site
+
+`vhost.bats` parses a Certbot-style nginx site (HTTP redirect block plus HTTPS block with Certbot's include,
+a PHP and a caching regex location) and an Apache virtual host dump. It covers the target selection, the
+refusal of overlapping locations, a second HTTPS block, dynamic includes, an unusual opening line, an Apache
+`RewriteRule` and overlapping `ProxyPass`, the `^~` and `<Location>` scoping of the snippets, the certificate
+match, insertion, journal, verification, rollback with resumption and a changed target. `vhost-container.sh`
+repeats it with real nginx and Apache in a disposable container from `web.Dockerfile`: an existing HTTPS site
+with its own test certificate, PHP and static-file rules; a forced verification failure must restore the file
+byte for byte, then the include must serve the frontend and API through the domain while the site's own paths
+answer as before.
+
+```bash
+docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/test/vhost-container.sh nginx
+docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/test/vhost-container.sh apache2
+```
+
 ## DuckDNS updater
 
 `duckdns.bats` runs the generated `duck.sh` against `curl` and `ip` fixtures: the token appears only in the private

@@ -160,6 +160,179 @@ EOF
   fi
 }
 
+# Include mode: an existing HTTPS virtual host serves the domain and keeps its TLS; the installer adds its routes as a
+# snippet included into exactly that block. The LAN site stays an own site.
+gt_vhost_include_mode() {
+  [[ "${ANSWER[VHOST_INCLUDE]:-no}" == yes && -n "${ANSWER[DOMAIN]:-}" && "${ANSWER[TLS_SOURCE]:-}" == existing ]]
+}
+
+gt_vhost_snippet_path() {
+  if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then printf '/etc/nginx/snippets/grafioschtrader.conf\n'
+  else printf '/etc/apache2/conf-available/grafioschtrader.conf\n'; fi
+}
+
+gt_vhost_include_line() {
+  if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then printf '    include %s;\n' "$(gt_vhost_snippet_path)"
+  else printf '    Include %s\n' "$(gt_vhost_snippet_path)"; fi
+}
+
+# Routes only, scoped to their paths: ^~ keeps regex locations of the foreign site (PHP, static caching) from
+# capturing them, and Apache settings live in <Location> blocks so the foreign site keeps its own proxy headers.
+# shellcheck disable=SC2016
+gt_vhost_snippet_render() {
+  local route target port=${ANSWER[BACKEND_PORT]} http=${ANSWER[BACKEND_HTTP_PORT]:-} docroot=${ANSWER[DOCROOT]}
+  printf '# Grafioschtrader routes for %s, included by gt-install. Do not edit; rerun the installer instead.\n' \
+    "${ANSWER[DOMAIN]}"
+  if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then
+    printf 'location = /grafioschtrader { return 301 /grafioschtrader/; }\n'
+    printf 'location ^~ /grafioschtrader/ {\n    root %s;\n    index index.html;\n' "$docroot"
+    printf '    try_files $uri $uri/ /grafioschtrader/index.html;\n    gzip on;\n'
+    printf '    gzip_types text/plain text/css text/xml application/javascript application/json application/wasm'
+    printf ' application/xml image/svg+xml;\n}\n'
+    for route in /api /m2m /socket/websocket /ws; do
+      target=$route; [[ "$route" != /socket/websocket ]] || target=/socket
+      printf 'location ^~ %s {\n    proxy_pass http://127.0.0.1:%s%s;\n' "$route" "$port" "$target"
+      printf '    client_max_body_size 50m;\n    proxy_set_header Host $host;\n'
+      printf '    proxy_set_header X-Real-IP $remote_addr;\n'
+      printf '    proxy_set_header X-Forwarded-For $remote_addr;\n    proxy_set_header X-Forwarded-Proto $scheme;\n'
+      if [[ "$route" == /ws || "$route" == /socket/websocket ]]; then
+        printf '    proxy_http_version 1.1;\n    proxy_set_header Upgrade $http_upgrade;\n'
+        printf '    proxy_set_header Connection "upgrade";\n'
+      fi
+      printf '}\n'
+    done
+  else
+    printf 'Alias /grafioschtrader %s/grafioschtrader\n' "$docroot"
+    printf '<Directory %s/grafioschtrader>\n    Options -Indexes\n    AllowOverride None\n' "$docroot"
+    printf '    Require all granted\n    DirectoryIndex index.html\n    FallbackResource /grafioschtrader/index.html\n'
+    printf '    AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml application/javascript'
+    printf ' application/json application/wasm application/xml image/svg+xml\n</Directory>\n'
+    for route in /socket/websocket /ws /api /m2m; do
+      case "$route" in
+        /socket/websocket) target=ws://127.0.0.1:$http/socket ;;
+        /ws) target=ws://127.0.0.1:$http/ws ;;
+        *) target=ajp://127.0.0.1:$port$route ;;
+      esac
+      printf '<Location %s>\n    ProxyPass %s\n' "$route" "$target"
+      printf '    ProxyPreserveHost On\n    LimitRequestBody 52428800\n'
+      printf '    RequestHeader set X-Real-IP "expr=%%{REMOTE_ADDR}"\n'
+      printf '    RequestHeader set X-Forwarded-For "expr=%%{REMOTE_ADDR}"\n'
+      printf '    RequestHeader set X-Forwarded-Proto "https"\n</Location>\n'
+    done
+  fi
+}
+
+gt_vhost_target_probe() {
+  python3 - "${ANSWER[WEBSERVER]}" "$ROOT" "${ANSWER[DOMAIN]}" "$(gt_vhost_snippet_path)" \
+    "$SCRATCH/apache-vhosts" <<'PY'
+# @python vhost-target.py
+PY
+}
+
+# The parsed configuration, not the static inventory, decides the target block.
+gt_vhost_target() {
+  local line
+  if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then
+    gt_core_run apache2ctl -t -D DUMP_VHOSTS > "$SCRATCH/apache-vhosts" 2> "$SCRATCH/apache-dump.log" || return 2
+  fi
+  line=$(gt_vhost_target_probe) || return 2
+  IFS=$'\t' read -r 'FACT[vhost.file]' 'FACT[vhost.line]' 'FACT[vhost.cert]' 'FACT[vhost.key]' 'FACT[vhost.state]' \
+    <<< "$line"
+  gt_valid_path "${FACT[vhost.file]}" && [[ "${FACT[vhost.line]}" =~ ^[1-9][0-9]*$ ]] || return 2
+  [[ "${FACT[vhost.state]}" == ready || "${FACT[vhost.state]}" == included ]]
+}
+
+gt_vhost_plan() {
+  local include
+  gt_vhost_include_mode || return 0
+  if ! gt_vhost_target; then
+    gt_plan_block 'No unambiguous, conflict-free HTTPS virtual host serves the domain; see the message above.' \
+      'Kein eindeutiger, konfliktfreier HTTPS-Vhost bedient die Domain; siehe Meldung oben.'
+    return 0
+  fi
+  if [[ "${FACT[vhost.cert]}" != "${ANSWER[TLS_CERT]:-}" || "${FACT[vhost.key]}" != "${ANSWER[TLS_KEY]:-}" ]]; then
+    gt_plan_block "TLS_CERT/TLS_KEY must be the certificate of the existing virtual host: ${FACT[vhost.cert]}" \
+      "TLS_CERT/TLS_KEY müssen das Zertifikat des vorhandenen Vhosts sein: ${FACT[vhost.cert]}"
+  fi
+  if [[ "${FACT[vhost.state]}" == included && "${STATE[resource.vhost_target]:-}" != "${FACT[vhost.file]}" ]]; then
+    gt_plan_block 'The virtual host already includes the snippet without a journal record.' \
+      'Der Vhost bindet das Snippet bereits ein, ohne Journaleintrag.'
+  fi
+  gt_plan_row create "$(gt_vhost_snippet_path)" \
+    'GT routes for the existing HTTPS virtual host; its TLS stays unchanged' \
+    'GT-Routen für den vorhandenen HTTPS-Vhost; dessen TLS bleibt unverändert'
+  gt_plan_row backup "${FACT[vhost.file]}.gt-install.<timestamp>" 'Before inserting the include; restored on failure' \
+    'Vor dem Einfügen des Includes; bei Fehler wiederhergestellt'
+  include=$(gt_vhost_include_line | sed 's/^ *//')
+  gt_plan_row modify "${FACT[vhost.file]}" "Insert '$include' after line ${FACT[vhost.line]}" \
+    "'$include' nach Zeile ${FACT[vhost.line]} einfügen"
+}
+
+gt_vhost_restore() {
+  local target=${STATE[resource.vhost_target]} backup=${STATE[resource.vhost_backup]:-}
+  [[ -n "$backup" && -f "$(gt_path "$backup")" ]] || return 2
+  cp -p -- "$(gt_path "$backup")" "$(gt_path "$target")" || return 2
+  gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service"
+}
+
+# Insert the include after a backup; configuration test, route verification through the domain and the comparison
+# of all existing sites decide, and any failure restores the backup.
+gt_vhost_include() {
+  local target snippet digest temporary backup resolve line
+  snippet=$(gt_vhost_snippet_path)
+  gt_vhost_snippet_render > "$SCRATCH/vhost-snippet" || return 2
+  # The LAN site, activated before, already enabled the proxy, AJP, WebSocket and header modules this snippet uses.
+  gt_app_root_file vhost_snippet "$SCRATCH/vhost-snippet" "$(gt_path "$snippet")" 644 || return 2
+  gt_vhost_target || { gt_core_error 'The target virtual host can no longer be identified unambiguously.'; return 2; }
+  target=$(gt_path "${FACT[vhost.file]}")
+  gt_no_symlinks "$target" || return 2
+  resolve="${ANSWER[DOMAIN]}:443:127.0.0.1"
+  if [[ "${FACT[vhost.state]}" == included ]]; then
+    [[ "${STATE[resource.vhost_target]:-}" == "${FACT[vhost.file]}" ]] || return 2
+    digest=$(sha256sum -- "$target"); digest=${digest%% *}
+    [[ "$digest" == "${STATE[file.vhost_target]:-}" ]] || {
+      gt_core_error "${FACT[vhost.file]} changed after the installer edited it; restore or re-plan."; return 2;
+    }
+  else
+    backup="${FACT[vhost.file]}.gt-install.$(date -u +%Y%m%dT%H%M%SZ)"
+    cp -p -- "$target" "$(gt_path "$backup")" || return 2
+    gt_core_mark resource.vhost_target "${FACT[vhost.file]}" && gt_core_mark resource.vhost_backup "$backup" || return 2
+    gt_core_mark step.vhost_include running || return 2
+    temporary=$(mktemp "$target.gt-install.XXXXXX") || return 2
+    PRIVATE_FILES+=("$temporary")
+    line=${FACT[vhost.line]}
+    { head -n "$line" -- "$target"; gt_vhost_include_line; tail -n "+$((line + 1))" -- "$target"; } > "$temporary" ||
+      return 2
+    chmod --reference="$target" -- "$temporary" || return 2
+    chown --reference="$target" -- "$temporary" || return 2
+    mv -T -- "$temporary" "$target" || return 2
+    digest=$(sha256sum -- "$target"); digest=${digest%% *}
+    gt_core_mark file.vhost_target "$digest" || return 2
+  fi
+  if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service" &&
+      gt_web_verify "https://${ANSWER[DOMAIN]}" "$resolve" && gt_site_compare; then
+    gt_core_mark step.vhost_include complete
+    return $?
+  fi
+  gt_vhost_restore || { gt_core_error 'Restoring the virtual host failed; inspect the web server log.'; return 2; }
+  STATE[file.vhost_target]='' && gt_core_mark step.vhost_include failed || return 2
+  gt_core_error "Including Grafioschtrader into ${FACT[vhost.file]} failed verification; the backup was restored."
+  return 2
+}
+
+# The existing virtual host terminates TLS for the domain; a completed include is only verified again.
+gt_vhost_web() {
+  if [[ "${STATE[step.vhost_include]:-}" != complete ]]; then
+    gt_vhost_include || return 2
+  elif ! gt_vhost_target || [[ "${FACT[vhost.state]}" != included ]] ||
+      ! gt_web_verify "https://${ANSWER[DOMAIN]}" "${ANSWER[DOMAIN]}:443:127.0.0.1"; then
+    gt_core_error \
+      "The Grafioschtrader include in ${STATE[resource.vhost_target]:-the virtual host} is missing or failing."
+    return 2
+  fi
+  [[ "${STATE[step.tls]:-}" == complete ]] || gt_core_mark step.tls complete
+}
+
 gt_site_render_lan() {
   if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then gt_nginx_render
   else
@@ -192,6 +365,9 @@ gt_domain_plan() {
     gt_plan_dns
     FACT[web.names]=${FACT[plan.names]}
   fi
+  # In include mode the existing virtual host serves the domain: no own domain site, and only the domain itself
+  # must be covered by its certificate.
+  if gt_vhost_include_mode; then FACT[web.names]='' FACT[plan.names]=${ANSWER[DOMAIN]}; fi
   if [[ -n "${STATE[resource.web_names]:-}" ]]; then
     [[ "${STATE[resource.web_names]}" == "${FACT[web.names]}" ]] || { gt_core_error 'DNS certificate-name set changed; restore the recorded DNS names before resuming.'; return 2; }
   fi
@@ -201,7 +377,8 @@ gt_domain_plan() {
         gt_validate_answer "$field" "${ANSWER[$field]:-}" || { gt_core_error "Invalid/missing answer: $field"; return 2; }
       done
       FACT[tls.cert]=${ANSWER[TLS_CERT]} FACT[tls.key]=${ANSWER[TLS_KEY]}
-      gt_plan_certificate ;;
+      gt_plan_certificate
+      gt_vhost_plan ;;
     letsencrypt)
       gt_validate_answer LETSENCRYPT_EMAIL "${ANSWER[LETSENCRYPT_EMAIL]:-}" || {
         gt_core_error 'Invalid/missing answer: LETSENCRYPT_EMAIL'; return 2;
@@ -504,7 +681,9 @@ gt_install_extended_web() {
   else
     link=$(gt_site_path lan); [[ -L "${link/sites-available/sites-enabled}" ]] && gt_web_verify || return 2
   fi
-  if [[ -n "${ANSWER[DOMAIN]:-}" ]]; then
+  if [[ -n "${ANSWER[DOMAIN]:-}" ]] && gt_vhost_include_mode; then
+    gt_vhost_web || return 2
+  elif [[ -n "${ANSWER[DOMAIN]:-}" ]]; then
     if [[ "${ANSWER[TLS_SOURCE]}" == letsencrypt && "${STATE[step.site_domain]:-}" != complete ]]; then
       if [[ "${FACT[tls.reuse]:-no}" != yes && -z "${STATE[file.site_domain]:-}" ]]; then
         gt_domain_render http > "$SCRATCH/site-http"

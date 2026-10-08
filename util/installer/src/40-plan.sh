@@ -183,7 +183,7 @@ gt_plan_ports() {
   gt_plan_row configure backend "127.0.0.1:${ANSWER[BACKEND_PORT]} (${ANSWER[WEBSERVER]}); HTTP=${ANSWER[BACKEND_HTTP_PORT]:-same}"
 }
 gt_plan_web() {
-  local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root='' conflict=no unknown=no file kind=''
+  local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root='' unknown=no file kind=''
   local -A matches=()
   if [[ "$web" == none ]]; then
     gt_plan_file /root/gt-install-webserver.conf 'Manual proxy configuration; web milestone remains pending.' 'Manuelle Proxy-Konfiguration; Web-Meilenstein bleibt offen.'
@@ -197,7 +197,9 @@ gt_plan_web() {
     read -r label directive value <<< "$row"
     case "$directive" in server_name|ServerName|ServerAlias)
       for name in ${value//\"/}; do
-        if [[ -n "$domain" && " ${FACT[plan.names]:-$domain} " == *" $name "* || "$name" == "${FACT[network.lan_ipv4]:-unknown}" ]]; then matches[$label]=1; fi
+        # In include mode the parser below, not this static evidence, resolves the domain's virtual host.
+        if [[ -n "$domain" && " ${FACT[plan.names]:-$domain} " == *" $name "* ]] && ! gt_vhost_include_mode ||
+            [[ "$name" == "${FACT[network.lan_ipv4]:-unknown}" ]]; then matches[$label]=1; fi
         [[ "$name" != *'*'* && "$name" != '~'* ]] || unknown=yes
       done ;;
     esac
@@ -209,25 +211,24 @@ gt_plan_web() {
       case "$directive" in
         server_kind) kind=$value ;;
         root|DocumentRoot) root=${value//\"/} ;;
-        location|ProxyPass|ProxyPassMatch) [[ "$value" != *'/api'* && "$value" != *'/m2m'* && "$value" != *'/socket'* && "$value" != *'/ws'* && "$value" != *'/grafioschtrader'* ]] || conflict=yes ;;
       esac
     done
     [[ "$web:$kind" == nginx:nginx || "$web:$kind" == apache2:apache ]] || unknown=yes
   elif (( ${#matches[@]} > 1 )); then unknown=yes; fi
   FACT[plan.vhost_root]=$root
-  if [[ -n "$match" ]]; then
-    if [[ -z "$root" || "${ANSWER[DOCROOT]}" != "$root" ]]; then
-      gt_plan_block 'Snippet document root must match the identified vhost root.' 'Dokumentenverzeichnis des Snippets muss zum erkannten Vhost passen.'
-    fi
-    [[ "$web" == nginx ]] && file=/etc/nginx/snippets/grafioschtrader.conf || file=/etc/apache2/conf-available/grafioschtrader.conf
-    gt_plan_file "$file" 'GT routes and frontend fallback' 'GT-Routen und Frontend-Fallback'
-    if [[ "${ANSWER[VHOST_INCLUDE]:-no}" == yes && "$unknown" == no && "$conflict" == no ]]; then
-      gt_plan_row backup "${match%#*}.gt-install.<timestamp>" 'Before inserting include; restore on validation failure.' 'Vor Include-Einfügung; bei fehlgeschlagener Prüfung wiederherstellen.'
-      gt_plan_row modify "$match" "include $file"
+  if gt_vhost_include_mode; then
+    # Read-only modes never run apache2ctl; the web stage resolves an Apache target through its vhost dump.
+    if [[ "$web" == nginx ]]; then gt_vhost_plan
     else
-      gt_plan_block 'Existing vhost needs an unambiguous, conflict-free include and explicit consent.' \
-        'Vorhandener Vhost benötigt einen eindeutigen, konfliktfreien Include und ausdrückliche Zustimmung.'
+      gt_plan_row create "$(gt_vhost_snippet_path)" \
+        'GT routes; the HTTPS virtual host is resolved and backed up at the web stage' \
+        'GT-Routen; der HTTPS-Vhost wird in der Web-Stufe ermittelt und gesichert'
     fi
+  fi
+  if [[ -n "$match" ]]; then
+    gt_plan_block "An existing vhost serves the LAN address or the domain; the domain can only be shared with \
+VHOST_INCLUDE=yes and TLS_SOURCE=existing." "Ein vorhandener Vhost bedient die LAN-Adresse oder die Domain; die \
+Domain lässt sich nur mit VHOST_INCLUDE=yes und TLS_SOURCE=existing teilen."
   else
     [[ "$web" == nginx ]] && file=/etc/nginx/sites-available/grafioschtrader || file=/etc/apache2/sites-available/grafioschtrader.conf
     gt_plan_file "$file" 'Own vhost: /api, /m2m, /socket/websocket, /ws, /grafioschtrader; preserve other sites.' \
@@ -522,9 +523,11 @@ gt_plan_application() {
 gt_stage_contract() {
   local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
   local -A used=()
-  [[ "${ANSWER[VHOST_INCLUDE]:-no}" != yes ]] || gt_plan_block \
-    'VHOST_INCLUDE=yes is not implemented; select no before starting installation.' \
-    'VHOST_INCLUDE=yes ist noch nicht implementiert; vor Installationsbeginn no wählen.'
+  if [[ "${ANSWER[VHOST_INCLUDE]:-no}" == yes ]] && ! gt_vhost_include_mode; then
+    gt_plan_block \
+      'VHOST_INCLUDE=yes needs a domain and TLS_SOURCE=existing with the certificate of that virtual host.' \
+      'VHOST_INCLUDE=yes benötigt eine Domain und TLS_SOURCE=existing mit dem Zertifikat dieses Vhosts.'
+  fi
   [[ "${ANSWER[WEBSERVER]:-}" != none ]] || gt_plan_block \
     'WEBSERVER=none is not implemented; select nginx or apache2.' \
     'WEBSERVER=none ist noch nicht implementiert; nginx oder apache2 wählen.'
@@ -561,9 +564,12 @@ gt_stage_contract() {
         esac
       fi
       for name in ${value//\"/}; do
-        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" ||
-              -n "${FACT[network.lan_ipv4]:-}" && "$name" == "${FACT[network.lan_ipv4]}" ]]; then
-          gt_plan_block "Selected name $name belongs to a foreign vhost; snippet integration is not implemented."
+        # The domain may belong to the existing virtual host the snippet is included into; the LAN address never.
+        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" ]] && ! gt_vhost_include_mode; then
+          gt_plan_block \
+            "Selected name $name belongs to a foreign vhost; select VHOST_INCLUDE=yes with TLS_SOURCE=existing."
+        elif [[ -n "${FACT[network.lan_ipv4]:-}" && "$name" == "${FACT[network.lan_ipv4]}" ]]; then
+          gt_plan_block "The LAN address $name belongs to a foreign vhost; the LAN site needs it."
         fi
       done ;;
     esac

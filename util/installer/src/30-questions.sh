@@ -55,7 +55,7 @@ gt_question_applies() {
     existing_tls) [[ "${ANSWER[TLS_SOURCE]:-}" == existing ]] ;;
     proxy) [[ "${ANSWER[TLS_SOURCE]:-}" == proxy ]] ;;
     apache) [[ "${ANSWER[WEBSERVER]:-}" == apache2 ]] ;;
-    vhost) [[ "${ANSWER[WEBSERVER]:-none}" != none && ${#WEB[@]} -gt 0 ]] ;;
+    vhost) [[ "${ANSWER[WEBSERVER]:-none}" != none ]] && gt_vhost_claims_domain ;;
     smtp) [[ "${ANSWER[SMTP_CONFIGURE]:-}" == yes ]] ;;
     smtp_auth) [[ "${ANSWER[SMTP_CONFIGURE]:-}" == yes && "${ANSWER[SMTP_AUTH]:-}" == yes ]] ;;
     empty_db) [[ "${FACT[database.gt_tables]:-}" == 0 ]] ;;
@@ -89,8 +89,23 @@ gt_certificate_covers() {
   gt_probe openssl x509 -in "$1" -noout -ext subjectAltName | grep -q 'DNS:' || return 1
   gt_probe openssl verify -trusted "$1" -partial_chain -no_check_time -verify_hostname "$2" "$1" >/dev/null
 }
+# An existing site of this host, not one of the installer's own, already serves the domain.
+gt_vhost_claims_domain() {
+  local row label directive value name
+  [[ -n "${ANSWER[DOMAIN]:-}" ]] || return 1
+  for row in "${WEB[@]}"; do
+    read -r label directive value <<< "$row"
+    case "$directive" in server_name|ServerName|ServerAlias) ;; *) continue ;; esac
+    case "${label%#*}" in */sites-enabled/grafioschtrader*) continue ;; esac
+    for name in ${value//\"/}; do [[ "$name" != "${ANSWER[DOMAIN]}" ]] || return 0; done
+  done
+  return 1
+}
+
 gt_tls_default() {
   local row file existing=no
+  # The existing site keeps terminating TLS when Grafioschtrader is included into it.
+  if gt_vhost_claims_domain; then echo existing; return; fi
   for row in "${CERTS[@]}"; do
     file=${row%%: *}
     if [[ -r "$file" ]] && gt_certificate_covers "$file" "${ANSWER[DOMAIN]}"; then

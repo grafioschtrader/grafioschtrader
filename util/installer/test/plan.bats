@@ -354,18 +354,17 @@ domain_answers() {
   [ "${ANSWER[DOCROOT]}" = /var/www/foreign ]
   ANSWER[VHOST_INCLUDE]=no
   gt_plan || true
-  [[ "${PLAN_BLOCKERS[*]}" == *'explicit consent'* ]]
+  [[ "${PLAN_BLOCKERS[*]}" == *'only be shared with VHOST_INCLUDE=yes and TLS_SOURCE=existing'* ]]
+  # Consent alone is not enough: the existing site keeps its TLS, so the domain needs TLS_SOURCE=existing.
   ANSWER[VHOST_INCLUDE]=yes
   gt_plan || true
-  [[ "${PLAN_BLOCKERS[*]}" == *'foreign vhost'* ]]
-  [[ "${PLAN[*]}" == *'/etc/nginx/sites-enabled/foreign.gt-install.<timestamp>'* ]]
-  ANSWER[DOCROOT]=/var/www/elsewhere
+  [[ "${PLAN_BLOCKERS[*]}" == *'VHOST_INCLUDE=yes needs a domain and TLS_SOURCE=existing'* ]]
+  [[ "${PLAN[*]}" != *'.gt-install.<timestamp>'* ]]
+  # Without parsable configuration files the parser resolves no target and the plan blocks.
+  ANSWER[TLS_SOURCE]=existing ANSWER[TLS_CERT]=/cert.pem ANSWER[TLS_KEY]=/key.pem
+  unset 'ANSWER[LETSENCRYPT_EMAIL]'
   gt_plan || true
-  [[ "${PLAN_BLOCKERS[*]}" == *'Snippet document root must match'* ]]
-  ANSWER[DOCROOT]=/var/www/foreign
-  WEB+=('/etc/nginx/sites-enabled/foreign#1 location /api {')
-  gt_plan || true
-  [[ "${PLAN_BLOCKERS[*]}" == *'conflict-free'* ]]
+  [[ "${PLAN_BLOCKERS[*]}" == *'No unambiguous, conflict-free HTTPS virtual host serves the domain'* ]]
 }
 
 @test "unknown include context blocks web edits despite consent" {

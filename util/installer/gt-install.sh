@@ -955,7 +955,7 @@ gt_question_applies() {
     existing_tls) [[ "${ANSWER[TLS_SOURCE]:-}" == existing ]] ;;
     proxy) [[ "${ANSWER[TLS_SOURCE]:-}" == proxy ]] ;;
     apache) [[ "${ANSWER[WEBSERVER]:-}" == apache2 ]] ;;
-    vhost) [[ "${ANSWER[WEBSERVER]:-none}" != none && ${#WEB[@]} -gt 0 ]] ;;
+    vhost) [[ "${ANSWER[WEBSERVER]:-none}" != none ]] && gt_vhost_claims_domain ;;
     smtp) [[ "${ANSWER[SMTP_CONFIGURE]:-}" == yes ]] ;;
     smtp_auth) [[ "${ANSWER[SMTP_CONFIGURE]:-}" == yes && "${ANSWER[SMTP_AUTH]:-}" == yes ]] ;;
     empty_db) [[ "${FACT[database.gt_tables]:-}" == 0 ]] ;;
@@ -989,8 +989,23 @@ gt_certificate_covers() {
   gt_probe openssl x509 -in "$1" -noout -ext subjectAltName | grep -q 'DNS:' || return 1
   gt_probe openssl verify -trusted "$1" -partial_chain -no_check_time -verify_hostname "$2" "$1" >/dev/null
 }
+# An existing site of this host, not one of the installer's own, already serves the domain.
+gt_vhost_claims_domain() {
+  local row label directive value name
+  [[ -n "${ANSWER[DOMAIN]:-}" ]] || return 1
+  for row in "${WEB[@]}"; do
+    read -r label directive value <<< "$row"
+    case "$directive" in server_name|ServerName|ServerAlias) ;; *) continue ;; esac
+    case "${label%#*}" in */sites-enabled/grafioschtrader*) continue ;; esac
+    for name in ${value//\"/}; do [[ "$name" != "${ANSWER[DOMAIN]}" ]] || return 0; done
+  done
+  return 1
+}
+
 gt_tls_default() {
   local row file existing=no
+  # The existing site keeps terminating TLS when Grafioschtrader is included into it.
+  if gt_vhost_claims_domain; then echo existing; return; fi
   for row in "${CERTS[@]}"; do
     file=${row%%: *}
     if [[ -r "$file" ]] && gt_certificate_covers "$file" "${ANSWER[DOMAIN]}"; then
@@ -1614,7 +1629,7 @@ gt_plan_ports() {
   gt_plan_row configure backend "127.0.0.1:${ANSWER[BACKEND_PORT]} (${ANSWER[WEBSERVER]}); HTTP=${ANSWER[BACKEND_HTTP_PORT]:-same}"
 }
 gt_plan_web() {
-  local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root='' conflict=no unknown=no file kind=''
+  local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root='' unknown=no file kind=''
   local -A matches=()
   if [[ "$web" == none ]]; then
     gt_plan_file /root/gt-install-webserver.conf 'Manual proxy configuration; web milestone remains pending.' 'Manuelle Proxy-Konfiguration; Web-Meilenstein bleibt offen.'
@@ -1628,7 +1643,9 @@ gt_plan_web() {
     read -r label directive value <<< "$row"
     case "$directive" in server_name|ServerName|ServerAlias)
       for name in ${value//\"/}; do
-        if [[ -n "$domain" && " ${FACT[plan.names]:-$domain} " == *" $name "* || "$name" == "${FACT[network.lan_ipv4]:-unknown}" ]]; then matches[$label]=1; fi
+        # In include mode the parser below, not this static evidence, resolves the domain's virtual host.
+        if [[ -n "$domain" && " ${FACT[plan.names]:-$domain} " == *" $name "* ]] && ! gt_vhost_include_mode ||
+            [[ "$name" == "${FACT[network.lan_ipv4]:-unknown}" ]]; then matches[$label]=1; fi
         [[ "$name" != *'*'* && "$name" != '~'* ]] || unknown=yes
       done ;;
     esac
@@ -1640,25 +1657,24 @@ gt_plan_web() {
       case "$directive" in
         server_kind) kind=$value ;;
         root|DocumentRoot) root=${value//\"/} ;;
-        location|ProxyPass|ProxyPassMatch) [[ "$value" != *'/api'* && "$value" != *'/m2m'* && "$value" != *'/socket'* && "$value" != *'/ws'* && "$value" != *'/grafioschtrader'* ]] || conflict=yes ;;
       esac
     done
     [[ "$web:$kind" == nginx:nginx || "$web:$kind" == apache2:apache ]] || unknown=yes
   elif (( ${#matches[@]} > 1 )); then unknown=yes; fi
   FACT[plan.vhost_root]=$root
-  if [[ -n "$match" ]]; then
-    if [[ -z "$root" || "${ANSWER[DOCROOT]}" != "$root" ]]; then
-      gt_plan_block 'Snippet document root must match the identified vhost root.' 'Dokumentenverzeichnis des Snippets muss zum erkannten Vhost passen.'
-    fi
-    [[ "$web" == nginx ]] && file=/etc/nginx/snippets/grafioschtrader.conf || file=/etc/apache2/conf-available/grafioschtrader.conf
-    gt_plan_file "$file" 'GT routes and frontend fallback' 'GT-Routen und Frontend-Fallback'
-    if [[ "${ANSWER[VHOST_INCLUDE]:-no}" == yes && "$unknown" == no && "$conflict" == no ]]; then
-      gt_plan_row backup "${match%#*}.gt-install.<timestamp>" 'Before inserting include; restore on validation failure.' 'Vor Include-Einfügung; bei fehlgeschlagener Prüfung wiederherstellen.'
-      gt_plan_row modify "$match" "include $file"
+  if gt_vhost_include_mode; then
+    # Read-only modes never run apache2ctl; the web stage resolves an Apache target through its vhost dump.
+    if [[ "$web" == nginx ]]; then gt_vhost_plan
     else
-      gt_plan_block 'Existing vhost needs an unambiguous, conflict-free include and explicit consent.' \
-        'Vorhandener Vhost benötigt einen eindeutigen, konfliktfreien Include und ausdrückliche Zustimmung.'
+      gt_plan_row create "$(gt_vhost_snippet_path)" \
+        'GT routes; the HTTPS virtual host is resolved and backed up at the web stage' \
+        'GT-Routen; der HTTPS-Vhost wird in der Web-Stufe ermittelt und gesichert'
     fi
+  fi
+  if [[ -n "$match" ]]; then
+    gt_plan_block "An existing vhost serves the LAN address or the domain; the domain can only be shared with \
+VHOST_INCLUDE=yes and TLS_SOURCE=existing." "Ein vorhandener Vhost bedient die LAN-Adresse oder die Domain; die \
+Domain lässt sich nur mit VHOST_INCLUDE=yes und TLS_SOURCE=existing teilen."
   else
     [[ "$web" == nginx ]] && file=/etc/nginx/sites-available/grafioschtrader || file=/etc/apache2/sites-available/grafioschtrader.conf
     gt_plan_file "$file" 'Own vhost: /api, /m2m, /socket/websocket, /ws, /grafioschtrader; preserve other sites.' \
@@ -1953,9 +1969,11 @@ gt_plan_application() {
 gt_stage_contract() {
   local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
   local -A used=()
-  [[ "${ANSWER[VHOST_INCLUDE]:-no}" != yes ]] || gt_plan_block \
-    'VHOST_INCLUDE=yes is not implemented; select no before starting installation.' \
-    'VHOST_INCLUDE=yes ist noch nicht implementiert; vor Installationsbeginn no wählen.'
+  if [[ "${ANSWER[VHOST_INCLUDE]:-no}" == yes ]] && ! gt_vhost_include_mode; then
+    gt_plan_block \
+      'VHOST_INCLUDE=yes needs a domain and TLS_SOURCE=existing with the certificate of that virtual host.' \
+      'VHOST_INCLUDE=yes benötigt eine Domain und TLS_SOURCE=existing mit dem Zertifikat dieses Vhosts.'
+  fi
   [[ "${ANSWER[WEBSERVER]:-}" != none ]] || gt_plan_block \
     'WEBSERVER=none is not implemented; select nginx or apache2.' \
     'WEBSERVER=none ist noch nicht implementiert; nginx oder apache2 wählen.'
@@ -1992,9 +2010,12 @@ gt_stage_contract() {
         esac
       fi
       for name in ${value//\"/}; do
-        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" ||
-              -n "${FACT[network.lan_ipv4]:-}" && "$name" == "${FACT[network.lan_ipv4]}" ]]; then
-          gt_plan_block "Selected name $name belongs to a foreign vhost; snippet integration is not implemented."
+        # The domain may belong to the existing virtual host the snippet is included into; the LAN address never.
+        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" ]] && ! gt_vhost_include_mode; then
+          gt_plan_block \
+            "Selected name $name belongs to a foreign vhost; select VHOST_INCLUDE=yes with TLS_SOURCE=existing."
+        elif [[ -n "${FACT[network.lan_ipv4]:-}" && "$name" == "${FACT[network.lan_ipv4]}" ]]; then
+          gt_plan_block "The LAN address $name belongs to a foreign vhost; the LAN site needs it."
         fi
       done ;;
     esac
@@ -4946,6 +4967,348 @@ EOF
   fi
 }
 
+# Include mode: an existing HTTPS virtual host serves the domain and keeps its TLS; the installer adds its routes as a
+# snippet included into exactly that block. The LAN site stays an own site.
+gt_vhost_include_mode() {
+  [[ "${ANSWER[VHOST_INCLUDE]:-no}" == yes && -n "${ANSWER[DOMAIN]:-}" && "${ANSWER[TLS_SOURCE]:-}" == existing ]]
+}
+
+gt_vhost_snippet_path() {
+  if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then printf '/etc/nginx/snippets/grafioschtrader.conf\n'
+  else printf '/etc/apache2/conf-available/grafioschtrader.conf\n'; fi
+}
+
+gt_vhost_include_line() {
+  if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then printf '    include %s;\n' "$(gt_vhost_snippet_path)"
+  else printf '    Include %s\n' "$(gt_vhost_snippet_path)"; fi
+}
+
+# Routes only, scoped to their paths: ^~ keeps regex locations of the foreign site (PHP, static caching) from
+# capturing them, and Apache settings live in <Location> blocks so the foreign site keeps its own proxy headers.
+# shellcheck disable=SC2016
+gt_vhost_snippet_render() {
+  local route target port=${ANSWER[BACKEND_PORT]} http=${ANSWER[BACKEND_HTTP_PORT]:-} docroot=${ANSWER[DOCROOT]}
+  printf '# Grafioschtrader routes for %s, included by gt-install. Do not edit; rerun the installer instead.\n' \
+    "${ANSWER[DOMAIN]}"
+  if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then
+    printf 'location = /grafioschtrader { return 301 /grafioschtrader/; }\n'
+    printf 'location ^~ /grafioschtrader/ {\n    root %s;\n    index index.html;\n' "$docroot"
+    printf '    try_files $uri $uri/ /grafioschtrader/index.html;\n    gzip on;\n'
+    printf '    gzip_types text/plain text/css text/xml application/javascript application/json application/wasm'
+    printf ' application/xml image/svg+xml;\n}\n'
+    for route in /api /m2m /socket/websocket /ws; do
+      target=$route; [[ "$route" != /socket/websocket ]] || target=/socket
+      printf 'location ^~ %s {\n    proxy_pass http://127.0.0.1:%s%s;\n' "$route" "$port" "$target"
+      printf '    client_max_body_size 50m;\n    proxy_set_header Host $host;\n'
+      printf '    proxy_set_header X-Real-IP $remote_addr;\n'
+      printf '    proxy_set_header X-Forwarded-For $remote_addr;\n    proxy_set_header X-Forwarded-Proto $scheme;\n'
+      if [[ "$route" == /ws || "$route" == /socket/websocket ]]; then
+        printf '    proxy_http_version 1.1;\n    proxy_set_header Upgrade $http_upgrade;\n'
+        printf '    proxy_set_header Connection "upgrade";\n'
+      fi
+      printf '}\n'
+    done
+  else
+    printf 'Alias /grafioschtrader %s/grafioschtrader\n' "$docroot"
+    printf '<Directory %s/grafioschtrader>\n    Options -Indexes\n    AllowOverride None\n' "$docroot"
+    printf '    Require all granted\n    DirectoryIndex index.html\n    FallbackResource /grafioschtrader/index.html\n'
+    printf '    AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml application/javascript'
+    printf ' application/json application/wasm application/xml image/svg+xml\n</Directory>\n'
+    for route in /socket/websocket /ws /api /m2m; do
+      case "$route" in
+        /socket/websocket) target=ws://127.0.0.1:$http/socket ;;
+        /ws) target=ws://127.0.0.1:$http/ws ;;
+        *) target=ajp://127.0.0.1:$port$route ;;
+      esac
+      printf '<Location %s>\n    ProxyPass %s\n' "$route" "$target"
+      printf '    ProxyPreserveHost On\n    LimitRequestBody 52428800\n'
+      printf '    RequestHeader set X-Real-IP "expr=%%{REMOTE_ADDR}"\n'
+      printf '    RequestHeader set X-Forwarded-For "expr=%%{REMOTE_ADDR}"\n'
+      printf '    RequestHeader set X-Forwarded-Proto "https"\n</Location>\n'
+    done
+  fi
+}
+
+gt_vhost_target_probe() {
+  python3 - "${ANSWER[WEBSERVER]}" "$ROOT" "${ANSWER[DOMAIN]}" "$(gt_vhost_snippet_path)" \
+    "$SCRATCH/apache-vhosts" <<'PY'
+import glob, pathlib, re, sys
+# Finds the one HTTPS server block that serves the domain, where the snippet include may be inserted.
+# Prints: file, line after which to insert, certificate, key, state (ready or included).
+kind, root, domain, snippet, dump = sys.argv[1:6]
+ROUTES = ('/api', '/m2m', '/socket', '/ws', '/grafioschtrader')
+
+
+def fail(message):
+    print('vhost include: ' + message, file=sys.stderr)
+    sys.exit(2)
+
+
+def read(path):
+    try:
+        return pathlib.Path(root + path).read_text()
+    except (OSError, UnicodeDecodeError):
+        fail('cannot read ' + path)
+
+
+def tokens(text):
+    """nginx tokens with line numbers; quotes and comments follow nginx syntax."""
+    result, index, line = [], 0, 1
+    while index < len(text):
+        char = text[index]
+        if char == '\n':
+            line += 1; index += 1
+        elif char.isspace():
+            index += 1
+        elif char == '#':
+            while index < len(text) and text[index] != '\n': index += 1
+        elif char in '{};':
+            result.append((char, line)); index += 1
+        elif char in '"\'':
+            end = index + 1
+            while end < len(text) and text[end] != char:
+                end += 2 if text[end] == '\\' else 1
+            if end >= len(text): fail('unterminated quote')
+            result.append((text[index + 1:end], line)); line += text[index:end].count('\n'); index = end + 1
+        else:
+            end = index
+            while end < len(text) and not text[end].isspace() and text[end] not in '{};#"\'': end += 1
+            result.append((text[index:end], line)); index = end
+    return result
+
+
+def blocks(items, start=0, nested=False):
+    nodes, words = [], []
+    index = start
+    while index < len(items):
+        token, line = items[index]; index += 1
+        if token == '}':
+            if words or not nested: fail('ambiguous nginx block')
+            return nodes, index
+        if token == '{':
+            if not words: fail('block without directive')
+            children, end = blocks(items, index, True)
+            nodes.append({'words': [w for w, _ in words], 'line': words[0][1], 'open': line, 'children': children})
+            index = end; words = []
+        elif token == ';':
+            if not words: fail('empty directive')
+            nodes.append({'words': [w for w, _ in words], 'line': words[0][1], 'children': None}); words = []
+        else:
+            words.append((token, line))
+    if words or nested: fail('unterminated nginx directive')
+    return nodes, index
+
+
+def nginx_includes(node, seen):
+    """Directives of a block, with plain includes resolved; dynamic includes are not evaluable."""
+    result = []
+    for child in node:
+        if child['children'] is None and child['words'][0] == 'include':
+            if len(child['words']) != 2 or '$' in child['words'][1]: fail('dynamic include in the server block')
+            pattern = child['words'][1]
+            pattern = pattern if pattern.startswith('/') else '/etc/nginx/' + pattern
+            result.append(child)
+            if pattern == snippet: continue
+            for match in sorted(glob.glob(root + pattern)):
+                path = match[len(root):] if root else match
+                if path in seen: fail('recursive include')
+                result.extend(nginx_includes(blocks(tokens(read(path)))[0], seen | {path}))
+        else:
+            result.append(child)
+    return result
+
+
+def conflicting(path):
+    return any(path == route or path.startswith(route) for route in ROUTES)
+
+
+def nginx():
+    files = sorted(glob.glob(root + '/etc/nginx/sites-enabled/*') + glob.glob(root + '/etc/nginx/conf.d/*.conf'))
+    https, ssl_names = [], set()
+    for match in files:
+        path = str(pathlib.Path(match).resolve())
+        path = path[len(root):] if root and path.startswith(root) else path
+        text = read(path)
+        items = tokens(text)
+        for node in blocks(items)[0]:
+            if node['words'] != ['server'] or node['children'] is None: continue
+            directives = nginx_includes(node['children'], {path})
+            names = [w for d in directives if d['words'][0] == 'server_name' for w in d['words'][1:]]
+            if domain not in names: continue
+            listens = [d['words'][1:] for d in directives if d['words'][0] == 'listen']
+            secure = any('ssl' in listen or listen[:1] == ['443'] for listen in listens)
+            if not secure: continue
+            https.append((path, node, directives, items))
+    if len(https) != 1: fail(f'expected exactly one HTTPS server block for {domain}, found {len(https)}')
+    path, node, directives, items = https[0]
+    following = [token for token, line in items if line == node['open']]
+    if following[-1:] != ['{'] or following.count('{') != 1: fail('the server block must open with "{" ending its line')
+    included = sum(1 for d in node['children'] if d['words'] == ['include', snippet])
+    if included > 1: fail('the snippet is included more than once')
+    for directive in directives:
+        if directive['words'][0] != 'location' or directive['children'] is None: continue
+        arguments = directive['words'][1:]
+        if arguments[0] in ('~', '~*'): continue
+        if conflicting(arguments[-1]):
+            fail('existing location ' + ' '.join(arguments) + ' overlaps a Grafioschtrader route')
+    cert = next((d['words'][1] for d in directives if d['words'][0] == 'ssl_certificate'), '')
+    key = next((d['words'][1] for d in directives if d['words'][0] == 'ssl_certificate_key'), '')
+    print(path, node['open'], cert, key, 'included' if included else 'ready', sep='\t')
+
+
+def apache():
+    entries, binding, current = set(), None, None
+    for line in pathlib.Path(dump).read_text().splitlines():
+        match = re.match(r'^(\S+:\d+)\s+is a NameVirtualHost', line)
+        if match: binding = match[1]; continue
+        match = re.match(r'^\s*(?:(\S+:\d+)\s+|(?:port (\d+) namevhost|default server)\s+)'
+                         r'(\S+)\s+\((/[^()]+):(\d+)\)', line)
+        if match:
+            bind = match[1] or binding or ''
+            current = (bind, match[4], int(match[5]))
+            if match[3] == domain and bind.endswith(':443'): entries.add(current[1:])
+            continue
+        match = re.match(r'^\s+alias (\S+)', line)
+        if match and current and match[1] == domain and current[0].endswith(':443'): entries.add(current[1:])
+    if len(entries) != 1: fail(f'expected exactly one HTTPS virtual host for {domain}, found {len(entries)}')
+    path, start = entries.pop()
+    # The dump names the sites-enabled link; the include goes into the file it points to.
+    path = str(pathlib.Path(root + path).resolve())
+    path = path[len(root):] if root and path.startswith(root) else path
+    lines = read(path).splitlines()
+    if not lines[start - 1].lstrip().lower().startswith('<virtualhost'): fail('virtual host start not found')
+    end = next((i for i in range(start, len(lines)) if lines[i].strip().lower() == '</virtualhost>'), None)
+    if end is None: fail('virtual host end not found')
+    body = list(lines[start:end])
+    included, cert, key, index = 0, '', '', 0
+    while index < len(body):
+        words = body[index].split(); index += 1
+        if not words or words[0].startswith('#'): continue
+        directive = words[0].lower()
+        if directive in ('include', 'includeoptional'):
+            if len(words) != 2 or '$' in words[1]: fail('dynamic include in the virtual host')
+            if words[1] == snippet: included += 1; continue
+            for match in sorted(glob.glob(root + words[1])):
+                body.extend(pathlib.Path(match).read_text().splitlines())
+            continue
+        if directive == 'rewriterule': fail('RewriteRule in the virtual host needs manual integration')
+        if directive in ('proxypass', 'alias', 'scriptalias', 'redirect', '<location') and len(words) > 1:
+            if conflicting(words[1].rstrip('>').strip('"')):
+                fail('existing ' + words[0] + ' ' + words[1] + ' overlaps a Grafioschtrader route')
+        if directive == 'sslcertificatefile' and len(words) > 1: cert = words[1].strip('"')
+        if directive == 'sslcertificatekeyfile' and len(words) > 1: key = words[1].strip('"')
+    if included > 1: fail('the snippet is included more than once')
+    print(path, start, cert, key, 'included' if included else 'ready', sep='\t')
+
+
+nginx() if kind == 'nginx' else apache()
+PY
+}
+
+# The parsed configuration, not the static inventory, decides the target block.
+gt_vhost_target() {
+  local line
+  if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then
+    gt_core_run apache2ctl -t -D DUMP_VHOSTS > "$SCRATCH/apache-vhosts" 2> "$SCRATCH/apache-dump.log" || return 2
+  fi
+  line=$(gt_vhost_target_probe) || return 2
+  IFS=$'\t' read -r 'FACT[vhost.file]' 'FACT[vhost.line]' 'FACT[vhost.cert]' 'FACT[vhost.key]' 'FACT[vhost.state]' \
+    <<< "$line"
+  gt_valid_path "${FACT[vhost.file]}" && [[ "${FACT[vhost.line]}" =~ ^[1-9][0-9]*$ ]] || return 2
+  [[ "${FACT[vhost.state]}" == ready || "${FACT[vhost.state]}" == included ]]
+}
+
+gt_vhost_plan() {
+  local include
+  gt_vhost_include_mode || return 0
+  if ! gt_vhost_target; then
+    gt_plan_block 'No unambiguous, conflict-free HTTPS virtual host serves the domain; see the message above.' \
+      'Kein eindeutiger, konfliktfreier HTTPS-Vhost bedient die Domain; siehe Meldung oben.'
+    return 0
+  fi
+  if [[ "${FACT[vhost.cert]}" != "${ANSWER[TLS_CERT]:-}" || "${FACT[vhost.key]}" != "${ANSWER[TLS_KEY]:-}" ]]; then
+    gt_plan_block "TLS_CERT/TLS_KEY must be the certificate of the existing virtual host: ${FACT[vhost.cert]}" \
+      "TLS_CERT/TLS_KEY müssen das Zertifikat des vorhandenen Vhosts sein: ${FACT[vhost.cert]}"
+  fi
+  if [[ "${FACT[vhost.state]}" == included && "${STATE[resource.vhost_target]:-}" != "${FACT[vhost.file]}" ]]; then
+    gt_plan_block 'The virtual host already includes the snippet without a journal record.' \
+      'Der Vhost bindet das Snippet bereits ein, ohne Journaleintrag.'
+  fi
+  gt_plan_row create "$(gt_vhost_snippet_path)" \
+    'GT routes for the existing HTTPS virtual host; its TLS stays unchanged' \
+    'GT-Routen für den vorhandenen HTTPS-Vhost; dessen TLS bleibt unverändert'
+  gt_plan_row backup "${FACT[vhost.file]}.gt-install.<timestamp>" 'Before inserting the include; restored on failure' \
+    'Vor dem Einfügen des Includes; bei Fehler wiederhergestellt'
+  include=$(gt_vhost_include_line | sed 's/^ *//')
+  gt_plan_row modify "${FACT[vhost.file]}" "Insert '$include' after line ${FACT[vhost.line]}" \
+    "'$include' nach Zeile ${FACT[vhost.line]} einfügen"
+}
+
+gt_vhost_restore() {
+  local target=${STATE[resource.vhost_target]} backup=${STATE[resource.vhost_backup]:-}
+  [[ -n "$backup" && -f "$(gt_path "$backup")" ]] || return 2
+  cp -p -- "$(gt_path "$backup")" "$(gt_path "$target")" || return 2
+  gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service"
+}
+
+# Insert the include after a backup; configuration test, route verification through the domain and the comparison
+# of all existing sites decide, and any failure restores the backup.
+gt_vhost_include() {
+  local target snippet digest temporary backup resolve line
+  snippet=$(gt_vhost_snippet_path)
+  gt_vhost_snippet_render > "$SCRATCH/vhost-snippet" || return 2
+  # The LAN site, activated before, already enabled the proxy, AJP, WebSocket and header modules this snippet uses.
+  gt_app_root_file vhost_snippet "$SCRATCH/vhost-snippet" "$(gt_path "$snippet")" 644 || return 2
+  gt_vhost_target || { gt_core_error 'The target virtual host can no longer be identified unambiguously.'; return 2; }
+  target=$(gt_path "${FACT[vhost.file]}")
+  gt_no_symlinks "$target" || return 2
+  resolve="${ANSWER[DOMAIN]}:443:127.0.0.1"
+  if [[ "${FACT[vhost.state]}" == included ]]; then
+    [[ "${STATE[resource.vhost_target]:-}" == "${FACT[vhost.file]}" ]] || return 2
+    digest=$(sha256sum -- "$target"); digest=${digest%% *}
+    [[ "$digest" == "${STATE[file.vhost_target]:-}" ]] || {
+      gt_core_error "${FACT[vhost.file]} changed after the installer edited it; restore or re-plan."; return 2;
+    }
+  else
+    backup="${FACT[vhost.file]}.gt-install.$(date -u +%Y%m%dT%H%M%SZ)"
+    cp -p -- "$target" "$(gt_path "$backup")" || return 2
+    gt_core_mark resource.vhost_target "${FACT[vhost.file]}" && gt_core_mark resource.vhost_backup "$backup" || return 2
+    gt_core_mark step.vhost_include running || return 2
+    temporary=$(mktemp "$target.gt-install.XXXXXX") || return 2
+    PRIVATE_FILES+=("$temporary")
+    line=${FACT[vhost.line]}
+    { head -n "$line" -- "$target"; gt_vhost_include_line; tail -n "+$((line + 1))" -- "$target"; } > "$temporary" ||
+      return 2
+    chmod --reference="$target" -- "$temporary" || return 2
+    chown --reference="$target" -- "$temporary" || return 2
+    mv -T -- "$temporary" "$target" || return 2
+    digest=$(sha256sum -- "$target"); digest=${digest%% *}
+    gt_core_mark file.vhost_target "$digest" || return 2
+  fi
+  if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service" &&
+      gt_web_verify "https://${ANSWER[DOMAIN]}" "$resolve" && gt_site_compare; then
+    gt_core_mark step.vhost_include complete
+    return $?
+  fi
+  gt_vhost_restore || { gt_core_error 'Restoring the virtual host failed; inspect the web server log.'; return 2; }
+  STATE[file.vhost_target]='' && gt_core_mark step.vhost_include failed || return 2
+  gt_core_error "Including Grafioschtrader into ${FACT[vhost.file]} failed verification; the backup was restored."
+  return 2
+}
+
+# The existing virtual host terminates TLS for the domain; a completed include is only verified again.
+gt_vhost_web() {
+  if [[ "${STATE[step.vhost_include]:-}" != complete ]]; then
+    gt_vhost_include || return 2
+  elif ! gt_vhost_target || [[ "${FACT[vhost.state]}" != included ]] ||
+      ! gt_web_verify "https://${ANSWER[DOMAIN]}" "${ANSWER[DOMAIN]}:443:127.0.0.1"; then
+    gt_core_error \
+      "The Grafioschtrader include in ${STATE[resource.vhost_target]:-the virtual host} is missing or failing."
+    return 2
+  fi
+  [[ "${STATE[step.tls]:-}" == complete ]] || gt_core_mark step.tls complete
+}
+
 gt_site_render_lan() {
   if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then gt_nginx_render
   else
@@ -4978,6 +5341,9 @@ gt_domain_plan() {
     gt_plan_dns
     FACT[web.names]=${FACT[plan.names]}
   fi
+  # In include mode the existing virtual host serves the domain: no own domain site, and only the domain itself
+  # must be covered by its certificate.
+  if gt_vhost_include_mode; then FACT[web.names]='' FACT[plan.names]=${ANSWER[DOMAIN]}; fi
   if [[ -n "${STATE[resource.web_names]:-}" ]]; then
     [[ "${STATE[resource.web_names]}" == "${FACT[web.names]}" ]] || { gt_core_error 'DNS certificate-name set changed; restore the recorded DNS names before resuming.'; return 2; }
   fi
@@ -4987,7 +5353,8 @@ gt_domain_plan() {
         gt_validate_answer "$field" "${ANSWER[$field]:-}" || { gt_core_error "Invalid/missing answer: $field"; return 2; }
       done
       FACT[tls.cert]=${ANSWER[TLS_CERT]} FACT[tls.key]=${ANSWER[TLS_KEY]}
-      gt_plan_certificate ;;
+      gt_plan_certificate
+      gt_vhost_plan ;;
     letsencrypt)
       gt_validate_answer LETSENCRYPT_EMAIL "${ANSWER[LETSENCRYPT_EMAIL]:-}" || {
         gt_core_error 'Invalid/missing answer: LETSENCRYPT_EMAIL'; return 2;
@@ -5298,7 +5665,9 @@ gt_install_extended_web() {
   else
     link=$(gt_site_path lan); [[ -L "${link/sites-available/sites-enabled}" ]] && gt_web_verify || return 2
   fi
-  if [[ -n "${ANSWER[DOMAIN]:-}" ]]; then
+  if [[ -n "${ANSWER[DOMAIN]:-}" ]] && gt_vhost_include_mode; then
+    gt_vhost_web || return 2
+  elif [[ -n "${ANSWER[DOMAIN]:-}" ]]; then
     if [[ "${ANSWER[TLS_SOURCE]}" == letsencrypt && "${STATE[step.site_domain]:-}" != complete ]]; then
       if [[ "${FACT[tls.reuse]:-no}" != yes && -z "${STATE[file.site_domain]:-}" ]]; then
         gt_domain_render http > "$SCRATCH/site-http"
@@ -5863,6 +6232,8 @@ gt_bootstrap_plan() {
   gt_plan_row enable grafioschtrader.service 'Start migrations, verify production database and loopback listeners, then enable boot.'
   for id in lan http domain; do
     [[ "$id" == lan || -n "${ANSWER[DOMAIN]:-}" ]] || continue
+    # In include mode the existing virtual host serves the domain; its snippet rows come from gt_domain_plan.
+    [[ "$id" == lan ]] || ! gt_vhost_include_mode || continue
     [[ "$id" != http || "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]] || continue
     target=$(gt_site_path "$id")
     gt_plan_row manage "$target" 'Own vhost and sites-enabled link; validate before reload and compare shared sites.'

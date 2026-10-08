@@ -339,12 +339,10 @@ other databases on that server. Both need consent.
 Integrate `gt_install_web` into full bootstrap using the saved selection and the ownership, routing and
 verification contract documented in [`util/installer/README.md`](../util/installer/README.md).
 
-**Shared vhosts.** When an existing nginx or Apache vhost owns the selected name, publish the GT routes as
-`/etc/nginx/snippets/grafioschtrader.conf` or `/etc/apache2/conf-available/grafioschtrader.conf`. Check the effective
-vhost for existing `/api`, `/m2m`, `/socket`, `/ws` and `/grafioschtrader` routes. With no conflict and an unambiguous
-insertion point, offer a consented include after a backup `<file>.gt-install.<timestamp>`. Otherwise leave the
-snippet for manual inclusion and report web integration as pending. Restore the backup if configuration testing,
-route verification or comparison with the original shared-site responses fails.
+**Shared vhosts.** The consented include into the one HTTPS block that serves the domain is documented in
+`util/installer/README.md`. When that block is ambiguous or conflicts with a Grafioschtrader route, publish the
+snippet for manual inclusion and report web integration as pending (§7.5) instead of blocking the plan. A foreign
+vhost that serves the LAN address keeps blocking; the LAN site needs its own block.
 
 **Co-resident proxies.** Extend `gt_extended_preflight` and the site renderers for a different local process
 owning port 80. With `TLS_SOURCE=proxy`, place the domain and LAN access on the approved `TLS_PROXY_LISTEN`
