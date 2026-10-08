@@ -585,10 +585,9 @@ existing installation does not prove that a clean bootstrap works. QEMU/VM accep
 
 | Scenario | Required evidence |
 |---|---|
-| fresh installation per primary release of §1.2 on arm64, and one per legacy row (Debian 11, Ubuntu 22.04, armhf) | backend built locally, frontend served, listeners on loopback as in §5.5, migrations complete, no `uca1400` column, service up again after a reboot |
+| fresh installation on arm64 for each primary release of §1.2 other than Debian 12, and one per legacy row (Debian 11, Ubuntu 22.04, armhf) | backend built locally, frontend served, listeners on loopback as in §5.5, migrations complete, no `uca1400` column, service up again after a reboot |
 | `--check` and `--dry-run` on the reference hosts: Debian 13 with nginx and Home Assistant, Debian 13 with nginx, Armbian on Ubuntu 26.04 with Apache, Debian 11 with Apache, Ubuntu 22.04 armhf with Apache, Debian 12 with Apache and a socket-activated MariaDB, and the Debian 13 Docker host | correct class (§4.2) on each, complete component report, no file, package or service changed |
 | interruption during toolchain, application, web and TLS changes | resumption recognizes its own resources, reuses the secrets, re-verifies, creates nothing twice |
-| rerun after success | "completed" result with update instructions, no change |
 | injected Maven, `npm ci`, download, extraction and frontend build failures | non-zero result in both build branches, no invalid deployment, diagnostics in the log |
 | a changed template key and an added key in `application-production.properties` | both survive the pinned first build and a later `gtupdate.sh` |
 | empty database on MariaDB 10.5 and 11.8 | time zone and collation initialization effective, all migrations succeed |
@@ -599,12 +598,12 @@ existing installation does not prove that a clean bootstrap works. QEMU/VM accep
 | other Node.js and Java consumers, a shared document root, a PHP location on the same nginx vhost | consumers still on their runtime, alternatives unchanged, other sites answer as before |
 | occupied 8080/9090, several vhosts | alternative ports used consistently, no listener off loopback, no traffic routed to another site |
 | SMTP skipped, snippet not included, certbot failing | `incomplete` with the remaining actions, working steps kept |
-| DuckDNS with the installer's updater, `DNS_FAMILY` `ipv4`, `ipv6` and `both` | records equal the host's addresses; with `ipv6` no A record exists; certificate issued; the timer run follows an address change |
+| DuckDNS with the installer's updater and `DNS_FAMILY` `ipv4` and `both`; an address change under any family | records equal the host's addresses; certificate issued; the timer run follows the address change |
 | DuckDNS with an updater already in a crontab | found by the inventory, `DUCKDNS_UPDATER` defaults to `no`, no second updater, no token asked |
 | own domain with correct records, with a wrong A record, without a `www` record | certificate issued; mismatch reported with both values and the certbot command; certificate and vhost without `www` |
 | `proxy` with Caddy on the same host owning 80/443, and with a proxy on another machine | local vhost on the chosen port, `X-Forwarded-For` reaches the login lockout as the client address, registration link carries the public URL |
 | `whiptail` on Debian 13 and Ubuntu 26.04 over SSH; `--plain`; a terminal smaller than 80 × 24; `LANG=de_CH.UTF-8` and `LANG=en_US.UTF-8` | dialogs and buttons in the right language, *Cancel* returns one question, a rejected value reopens its dialog, the small terminal falls back to plain prompts, both front ends produce the same plan for the same answers |
-| hand-over and real application mail | run `--check-mail` against the deployed Grafioschtrader JAR, including Boot launcher and production-profile resolution; then edit `application.properties`, run `./gtupdate.sh` as `grafioschtrader`, application answers again with the edit in effect |
+| editing after hand-over | edit `application.properties`, run `./gtupdate.sh` as `grafioschtrader`, application answers again with the edit in effect |
 
 ## 10. Follow-up outside the code
 

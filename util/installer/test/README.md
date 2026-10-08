@@ -419,6 +419,21 @@ The installer used `openjdk-25-jdk-headless` `25.0.4.1+1-1~26.04.4` and Maven `3
 warning. Application commit and installer SHA-256 as for Debian 13; cloud image SHA-256:
 `8800651811af9a85465ad1d552add729947bb16488dddb4a9b5305a3d97332b2`.
 
+Real-hardware acceptance on 2026-10-08 passed on a Radxa ROCK 5B (arm64, 16 GB, SD card) with Debian 12.15,
+kernel `6.1.84-8-rk2410`, nginx `1.22.1`, Let's Encrypt and the installer's own DuckDNS updater. The host is
+dual-homed: the intranet on Ethernet without a default route, the internet over WLAN; `LAN_ADDRESS` selected the
+Ethernet address. The installer used the Temurin `25.0.4.1+1` aarch64 archive, Maven `3.8.7` from APT, the
+isolated Node `24.21.0` with a local `ng build`, and MariaDB `10.11.18`. `bind9-dnsutils` was installed first, as
+documented for a modeless domain installation. With `DNS_FAMILY=ipv6` the update set the AAAA record to the WLAN
+address and left no A record; the certificate covers the domain and `www`. The run found and resumed past five
+defects that VMs do not show: the DuckDNS request over IPv6 (DuckDNS has no IPv6 address), a DuckDNS unit missing
+its first lines, write-once root files that a fixed installer could not replace, Debian's `mariadb.socket`
+listening on 3306 of every address (disabled by hand on this host), and no way to correct a wrong SMTP password;
+`--check-mail --answers` then rebuilt the backend with the corrected password and the test mail was accepted. Reboot
+and the completed rerun passed without change; the result kept the planning-time DNS warning. Application commit:
+`611e25fccc6e41a631405cf8ea5d9e2b1918c86f`; final installer SHA-256:
+`eeb0bedacf064d4d6da38dc8fa1ae8805549a36d23fecd76ec3f5cbccff9c309`.
+
 Small-host acceptance on 2026-10-07 passed on the same Debian 12 image with `GT_VM_MEMORY=3072` (2983 MiB
 `MemTotal`, no swap). The installer asked for and created the 2 GiB `/swapfile` before the first build, wrote
 the single `/swapfile none swap sw 0 0` line after the backup `/etc/fstab.gt-install.<timestamp>`, proposed
