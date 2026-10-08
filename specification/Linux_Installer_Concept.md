@@ -339,16 +339,14 @@ other databases on that server. Both need consent.
 Integrate `gt_install_web` into full bootstrap using the saved selection and the ownership, routing and
 verification contract documented in [`util/installer/README.md`](../util/installer/README.md).
 
-**Shared vhosts.** The consented include into the one HTTPS block that serves the domain is documented in
-`util/installer/README.md`. When that block is ambiguous or conflicts with a Grafioschtrader route, publish the
-snippet for manual inclusion and report web integration as pending (§7.5) instead of blocking the plan. A foreign
-vhost that serves the LAN address keeps blocking; the LAN site needs its own block.
+**Shared vhosts.** The consented include into the one HTTPS block that serves the domain, its manual fallback and
+`WEBSERVER=none` are documented in `util/installer/README.md`. A foreign vhost that serves the LAN address keeps
+blocking; the LAN site needs its own block.
 
 **Co-resident proxies.** Extend `gt_extended_preflight` and the site renderers for a different local process
 owning port 80. With `TLS_SOURCE=proxy`, place the domain and LAN access on the approved `TLS_PROXY_LISTEN`
 without starting a conflicting distribution default site. Show the LAN URL including its port. Keep all foreign
-listeners and websites intact. When no integration is possible, write the proposed configuration to
-`/root/gt-install-webserver.conf` and report the installation as incomplete (§7.5).
+listeners and websites intact. When no integration is possible, the administrator selects `WEBSERVER=none`.
 
 Allow proxy port 80 when it is free and domain/LAN routing is unambiguous; otherwise propose the next free port
 from 8081 upward, excluding both backend connectors. When the LAN site moves off port 80, `gt_firewall_rules` must
@@ -546,8 +544,7 @@ environment containing credentials is restricted to that process and not retaine
 
 Extend `gt_handover` and the completion guard in `util/installer/src/95-result.sh` for new resources.
 The result format, milestone meanings, SMTP delivery distinctions, publication ordering and completed-rerun
-behavior are documented in `util/installer/README.md`. Extend the existing result with pending foreign-vhost
-inclusion and `WEBSERVER=none`; preserve incomplete outcomes until those routes are verified.
+behavior are documented in `util/installer/README.md`.
 
 Persist warnings from each newly added bootstrap stage. Show the same result in the Whiptail interface and
 retain `/var/lib/gt-install/result` for unattended runs. A full-bootstrap journal may be marked complete only

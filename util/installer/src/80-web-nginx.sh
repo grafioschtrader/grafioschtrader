@@ -279,6 +279,7 @@ gt_install_web() {
   gt_no_symlinks "$state_dir/lock" || return 2
   if [[ -z "$LOCK_FD" ]]; then exec {LOCK_FD}<"$state_dir/lock" || return 2; fi
   flock -n "$LOCK_FD" || return 2
+  if [[ "${ANSWER[WEBSERVER]:-}" == none ]]; then gt_install_manual_web; return $?; fi
   if [[ "${ANSWER[WEBSERVER]:-}" == apache2 || -n "${ANSWER[DOMAIN]:-}" ]]; then
     gt_install_extended_web; return $?
   fi

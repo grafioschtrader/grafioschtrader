@@ -173,6 +173,12 @@ docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/
 docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/test/vhost-container.sh apache2
 ```
 
+A second argument selects the manual paths. `manual` adds a second HTTPS block for the domain: the installer must
+leave the site byte for byte unchanged and stay pending, then verify after the administrator's include. `none`
+selects `WEBSERVER=none`: the stage stays pending until the server takes the nginx or Apache part of
+`/root/gt-install-webserver.conf` literally, then verifies it. `web-manual.bats` covers the same paths with
+fixtures, including the result action, a hand-edited proposal and the full-plan web review.
+
 ## DuckDNS updater
 
 `duckdns.bats` runs the generated `duck.sh` against `curl` and `ip` fixtures: the token appears only in the private

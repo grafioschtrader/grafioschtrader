@@ -67,6 +67,8 @@ gt_bootstrap_web_review() {
   [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
   FACT[web.lan]=$address
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
+  # Another web server serves the routes; the installer only writes its proposal and verifies the result.
+  if [[ "$web" == none ]]; then FACT[bootstrap.web]="none:${FACT[web.lan]}:${FACT[web.names]:-}"; return 0; fi
   if [[ "$web" == nginx && -z "${ANSWER[DOMAIN]:-}" ]]; then gt_nginx_owned || return 2
   else gt_site_owned || return 2; fi
   if command -v "$executable" >/dev/null; then
@@ -147,6 +149,7 @@ gt_bootstrap_plan() {
   gt_plan_row manage "${ANSWER[DOCROOT]}/grafioschtrader" 'Owned frontend directory; shared document root preserved.'
   gt_plan_row enable grafioschtrader.service 'Start migrations, verify production database and loopback listeners, then enable boot.'
   for id in lan http domain; do
+    [[ "${ANSWER[WEBSERVER]}" != none ]] || break
     [[ "$id" == lan || -n "${ANSWER[DOMAIN]:-}" ]] || continue
     # In include mode the existing virtual host serves the domain; its snippet rows come from gt_domain_plan.
     [[ "$id" == lan ]] || ! gt_vhost_include_mode || continue
@@ -159,7 +162,16 @@ gt_bootstrap_plan() {
     [[ "${ANSWER[TLS_SOURCE]:-}" != proxy ]] || gt_plan_row manage \
       /etc/apache2/conf-enabled/grafioschtrader-listen.conf "Listen ${ANSWER[TLS_PROXY_LISTEN]}"
   fi
-  gt_plan_row enable "${ANSWER[WEBSERVER]}.service" 'Start/reload selected web server and enable boot after route verification.'
+  if [[ "${ANSWER[WEBSERVER]}" == none ]]; then
+    gt_plan_row create "$GT_WEB_MANUAL" \
+      'Proposed nginx and Apache routes for the own web server; nothing is activated' \
+      'Vorgeschlagene nginx- und Apache-Routen für den eigenen Webserver; nichts wird aktiviert'
+    gt_plan_row verify web 'LAN and domain routes once they answer; until then the result stays incomplete' \
+      'LAN- und Domain-Routen, sobald sie antworten; bis dahin bleibt das Ergebnis unvollständig'
+  else
+    gt_plan_row enable "${ANSWER[WEBSERVER]}.service" \
+      'Start/reload selected web server and enable boot after route verification.'
+  fi
   gt_firewall_plan
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]]; then
     gt_plan_row consent letsencrypt 'HTTP-01 issuance/reuse, renewal test and scoped reload hook/timer; terms: https://letsencrypt.org/repository/'

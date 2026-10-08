@@ -3,8 +3,11 @@
 # web.Dockerfile. The site keeps its TLS, its PHP and static-file rules; a failed verification restores it.
 set -Eeuo pipefail
 [[ $EUID == 0 && -f /.dockerenv && ! -e /var/lib/gt-install ]]
-web=${1:-nginx}
+web=${1:-nginx} mode=${2:-include}
 [[ "$web" == nginx || "$web" == apache2 ]]
+# include: automatic include; manual: an ambiguous target waits for the administrator's include; none: another
+# web server takes the proposed routes literally.
+[[ "$mode" == include || "$mode" == manual || "$mode" == none ]]
 export GT_INSTALL_SOURCE_ONLY=1
 # shellcheck source=util/installer/gt-install.sh
 source /repo/util/installer/gt-install.sh
@@ -105,6 +108,75 @@ gt_site_inventory
 gt_nginx_statuses > "$SCRATCH/web-before"
 gt_site_baseline
 [[ "$web" != apache2 ]] || gt_apache_modules lan
+reload() {
+  if [[ "$web" == nginx ]]; then nginx -t -q && nginx -s reload; else apache2ctl configtest && apache2ctl graceful; fi
+  sleep 1
+}
+if [[ "$mode" == manual ]]; then
+  # A second HTTPS block for the domain makes the target ambiguous: the installer edits nothing.
+  if [[ "$web" == nginx ]]; then
+    printf 'server {\n    listen 443 ssl;\n    server_name gt.test;\n' > /etc/nginx/conf.d/second.conf
+    printf '    ssl_certificate %s;\n    ssl_certificate_key %s;\n}\n' "$cert" "$key" >> /etc/nginx/conf.d/second.conf
+  else
+    printf '<VirtualHost *:443>\n    ServerName gt.test\n    SSLEngine on\n' > /etc/apache2/sites-enabled/zz-second.conf
+    printf '    SSLCertificateFile %s\n    SSLCertificateKeyFile %s\n</VirtualHost>\n' "$cert" "$key" \
+      >> /etc/apache2/sites-enabled/zz-second.conf
+  fi
+  reload
+  cp -p "$target" "$SCRATCH/site.original"
+  status=0
+  gt_vhost_web || status=$?
+  [[ "$status" == 3 && "${STATE[step.vhost_include]}" == manual ]]
+  cmp "$target" "$SCRATCH/site.original"
+  # The administrator removes the duplicate and includes the published snippet into the site's HTTPS block.
+  rm -f /etc/nginx/conf.d/second.conf /etc/apache2/sites-enabled/zz-second.conf
+  line=$(grep -n -m 2 -E '^server \{$|^<VirtualHost \*:443>$' "$target" | tail -n 1 | cut -d: -f1)
+  sed -i "${line}a\\$(gt_vhost_include_line)" "$target"
+  reload
+  gt_vhost_web
+  [[ "${STATE[step.vhost_include]}:${STATE[step.tls]}" == complete:complete ]]
+  [[ "$(site /grafioschtrader/main.js)" == 200 && "$(cat "$SCRATCH/body")" == 'console.log("GT test");' ]]
+  site_unchanged
+  echo "PASS: $web manual include: ambiguous target left untouched, administrator's include verified."
+  exit 0
+fi
+if [[ "$mode" == none ]]; then
+  # The own web server serves the LAN address with the proposed routes, copied literally.
+  ANSWER[WEBSERVER]=none ANSWER[TLS_SOURCE]=proxy ANSWER[TLS_PROXY_LISTEN]=8081 ANSWER[TLS_PROXY_FROM]=192.0.2.1
+  ANSWER[BACKEND_PORT]=9091
+  STATE[step.app]=complete
+  gt_stage_preflight() { :; }
+  gt_core_config_valid() { :; }
+  gt_app_artifacts() { :; }
+  gt_app_verify() { :; }
+  status=0
+  gt_install_manual_web || status=$?
+  [[ "$status" == 10 && "${STATE[step.web]}" == pending ]]
+  proposal=/root/gt-install-webserver.conf
+  if [[ "$web" == nginx ]]; then
+    { printf 'server {\n    listen 80;\n    server_name %s;\n' "${FACT[web.lan]}"
+      sed -n '/^# ---- nginx/,/^# ---- Apache/p' "$proposal" | grep -v '^# ----'; printf '}\n'; } \
+      > /etc/nginx/sites-enabled/own
+  else
+    a2enmod -q proxy_http > /dev/null
+    { printf '<VirtualHost *:80>\n    ServerName %s\n' "${FACT[web.lan]}"
+      sed -n '/^# ---- Apache/,$p' "$proposal" | grep -v '^# ----'; printf '</VirtualHost>\n'; } \
+      > /etc/apache2/sites-enabled/own.conf
+    apache2ctl restart; sleep 1
+  fi
+  reload
+  gt_install_manual_web || status=$?
+  [[ "${STATE[step.web]}:${STATE[step.tls]}" == complete:unverified ]]
+  curl --noproxy '*' -fsS "http://${FACT[web.lan]}/api/gtinfo" > "$SCRATCH/body"
+  python3 - "$SCRATCH/body" <<'PY'
+import json, sys
+headers = {k.lower(): v for k, v in json.load(open(sys.argv[1]))['headers'].items()}
+assert headers.get('x-forwarded-proto') == 'http', headers
+PY
+  site_unchanged
+  echo "PASS: $web WEBSERVER=none: pending until the own server serves the proposed routes, then verified."
+  exit 0
+fi
 gt_vhost_plan
 (( ${#PLAN_BLOCKERS[@]} == 0 ))
 

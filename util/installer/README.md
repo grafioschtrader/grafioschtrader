@@ -91,7 +91,7 @@ category and `/var/log/grafioschtrader.log`, never raw application diagnostics. 
 attempt must be inspected and stopped before retrying if it is not already healthy. No database is dropped or repaired.
 
 Planning and installation share a stage contract, including on resumption. Before saving immutable answers or
-executing the core, it rejects `WEBSERVER=none`, which is not implemented yet, and selected names belonging to
+executing the core, it rejects `WEBSERVER=none` with `TLS_SOURCE=letsencrypt` and selected names belonging to
 foreign vhosts, except a domain included with `VHOST_INCLUDE=yes` and `TLS_SOURCE=existing` (see below).
 The proxy-port default starts at
 8081 and excludes the selected backend ports. Ports 80/443 and duplicate connector/proxy ports are rejected with
@@ -406,6 +406,23 @@ and the digest of the edited file. A configuration test, a reload, the verificat
 copies the backup back and reloads. A completed include is only verified again; an edit of the target file by
 someone else afterwards stops the stage instead of being overwritten. Restoring web files never rolls back
 database migrations.
+
+Without an unambiguous, conflict-free target the installer edits no foreign file. It publishes the snippet,
+reports `web=pending` (result `incomplete`) and names the snippet in the result. After the administrator includes
+it into the right block and reloads, the next run of the installer verifies Grafioschtrader through
+`https://<domain>` and completes; it never tries the automatic insertion for that installation again.
+
+### Another web server (`WEBSERVER=none`)
+
+With `WEBSERVER=none` another web server, reverse proxy or tunnel serves Grafioschtrader; it requires
+`TLS_SOURCE=existing` or `proxy` for a domain, because nothing local would answer Let's Encrypt's HTTP-01
+request. The installer installs no web server and writes `/root/gt-install-webserver.conf` (600): nginx locations
+and Apache directives for the own server block, with the backend reached over HTTP on `BACKEND_PORT` and the
+request scheme forwarded. Nothing in that file is active; an edited copy is not overwritten. The web stage then
+verifies `http://<lan>/grafioschtrader/` and, for a domain, `https://<domain>/grafioschtrader/` (behind an upstream
+proxy an unverifiable public check is recorded as `tls=unverified`, as for own sites). While they do not answer, the
+result is `incomplete` with `web=pending`; a later run of the installer verifies again and completes. Selected ufw
+rules are applied in both cases.
 
 ### DuckDNS updater
 

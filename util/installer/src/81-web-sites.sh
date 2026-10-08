@@ -179,11 +179,16 @@ gt_vhost_include_line() {
 # Routes only, scoped to their paths: ^~ keeps regex locations of the foreign site (PHP, static caching) from
 # capturing them, and Apache settings live in <Location> blocks so the foreign site keeps its own proxy headers.
 # shellcheck disable=SC2016
+# Arguments: the server syntax (default: the selected web server) and "manual" for the proposal written for another
+# web server, which reaches the backend over HTTP only and keeps the request scheme.
 gt_vhost_snippet_render() {
-  local route target port=${ANSWER[BACKEND_PORT]} http=${ANSWER[BACKEND_HTTP_PORT]:-} docroot=${ANSWER[DOCROOT]}
-  printf '# Grafioschtrader routes for %s, included by gt-install. Do not edit; rerun the installer instead.\n' \
-    "${ANSWER[DOMAIN]}"
-  if [[ "${ANSWER[WEBSERVER]}" == nginx ]]; then
+  local server=${1:-${ANSWER[WEBSERVER]}} manual=${2:-} route target port=${ANSWER[BACKEND_PORT]}
+  local http=${ANSWER[BACKEND_HTTP_PORT]:-} docroot=${ANSWER[DOCROOT]} scheme='"https"'
+  if [[ -z "$manual" ]]; then
+    printf '# Grafioschtrader routes for %s, included by gt-install. Do not edit; rerun the installer instead.\n' \
+      "${ANSWER[DOMAIN]}"
+  else http=$port scheme='"expr=%{REQUEST_SCHEME}"'; fi
+  if [[ "$server" == nginx ]]; then
     printf 'location = /grafioschtrader { return 301 /grafioschtrader/; }\n'
     printf 'location ^~ /grafioschtrader/ {\n    root %s;\n    index index.html;\n' "$docroot"
     printf '    try_files $uri $uri/ /grafioschtrader/index.html;\n    gzip on;\n'
@@ -211,13 +216,13 @@ gt_vhost_snippet_render() {
       case "$route" in
         /socket/websocket) target=ws://127.0.0.1:$http/socket ;;
         /ws) target=ws://127.0.0.1:$http/ws ;;
-        *) target=ajp://127.0.0.1:$port$route ;;
+        *) target=ajp://127.0.0.1:$port$route; [[ -z "$manual" ]] || target=http://127.0.0.1:$port$route ;;
       esac
       printf '<Location %s>\n    ProxyPass %s\n' "$route" "$target"
       printf '    ProxyPreserveHost On\n    LimitRequestBody 52428800\n'
       printf '    RequestHeader set X-Real-IP "expr=%%{REMOTE_ADDR}"\n'
       printf '    RequestHeader set X-Forwarded-For "expr=%%{REMOTE_ADDR}"\n'
-      printf '    RequestHeader set X-Forwarded-Proto "https"\n</Location>\n'
+      printf '    RequestHeader set X-Forwarded-Proto %s\n</Location>\n' "$scheme"
     done
   fi
 }
@@ -246,8 +251,13 @@ gt_vhost_plan() {
   local include
   gt_vhost_include_mode || return 0
   if ! gt_vhost_target; then
-    gt_plan_block 'No unambiguous, conflict-free HTTPS virtual host serves the domain; see the message above.' \
-      'Kein eindeutiger, konfliktfreier HTTPS-Vhost bedient die Domain; siehe Meldung oben.'
+    # Without an unambiguous target the installer edits nothing; the snippet waits for a manual include.
+    gt_plan_warn "No unambiguous, conflict-free HTTPS virtual host serves the domain (see the message above): \
+the snippet is published for a manual include, and web integration stays pending until it verifies." \
+      "Kein eindeutiger, konfliktfreier HTTPS-Vhost bedient die Domain (siehe Meldung oben): das Snippet wird \
+zum manuellen Einbinden veröffentlicht; die Web-Anbindung bleibt offen, bis sie sich prüfen lässt."
+    gt_plan_row create "$(gt_vhost_snippet_path)" 'GT routes for a manual include into the HTTPS virtual host' \
+      'GT-Routen zum manuellen Einbinden in den HTTPS-Vhost'
     return 0
   fi
   if [[ "${FACT[vhost.cert]}" != "${ANSWER[TLS_CERT]:-}" || "${FACT[vhost.key]}" != "${ANSWER[TLS_KEY]:-}" ]]; then
@@ -320,17 +330,95 @@ gt_vhost_include() {
   return 2
 }
 
-# The existing virtual host terminates TLS for the domain; a completed include is only verified again.
+# The existing virtual host terminates TLS for the domain. Without an unambiguous target the snippet waits for a
+# manual include: the function returns 3 until the routes verify through the domain. A completed include is only
+# verified again.
 gt_vhost_web() {
-  if [[ "${STATE[step.vhost_include]:-}" != complete ]]; then
+  local snippet step=${STATE[step.vhost_include]:-}
+  if [[ "$step" == complete ]]; then
+    if [[ -z "${STATE[resource.web_manual]:-}" ]] && { ! gt_vhost_target || [[ "${FACT[vhost.state]}" != included ]]; }
+    then
+      gt_core_error "The Grafioschtrader include in ${STATE[resource.vhost_target]:-the virtual host} is missing."
+      return 2
+    fi
+    if ! gt_web_verify "https://${ANSWER[DOMAIN]}" "${ANSWER[DOMAIN]}:443:127.0.0.1"; then
+      gt_core_error "Grafioschtrader no longer answers through https://${ANSWER[DOMAIN]}."; return 2
+    fi
+  elif [[ "$step" != manual ]] && gt_vhost_target 2> "$SCRATCH/vhost-target.log"; then
     gt_vhost_include || return 2
-  elif ! gt_vhost_target || [[ "${FACT[vhost.state]}" != included ]] ||
-      ! gt_web_verify "https://${ANSWER[DOMAIN]}" "${ANSWER[DOMAIN]}:443:127.0.0.1"; then
-    gt_core_error \
-      "The Grafioschtrader include in ${STATE[resource.vhost_target]:-the virtual host} is missing or failing."
-    return 2
+  else
+    snippet=$(gt_vhost_snippet_path)
+    gt_vhost_snippet_render > "$SCRATCH/vhost-snippet" || return 2
+    gt_app_root_file vhost_snippet "$SCRATCH/vhost-snippet" "$(gt_path "$snippet")" 644 || return 2
+    [[ "${STATE[resource.web_manual]:-}" == "$snippet" ]] || gt_core_mark resource.web_manual "$snippet" || return 2
+    if ! gt_web_verify "https://${ANSWER[DOMAIN]}" "${ANSWER[DOMAIN]}:443:127.0.0.1"; then
+      [[ "$step" == manual ]] || gt_core_mark step.vhost_include manual || return 2
+      gt_text "Include $snippet into the HTTPS virtual host of ${ANSWER[DOMAIN]}, reload it, then run the \
+installer again." "$snippet in den HTTPS-Vhost von ${ANSWER[DOMAIN]} einbinden, neu laden und den Installer \
+erneut ausführen."
+      return 3
+    fi
+    gt_core_mark step.vhost_include complete || return 2
   fi
   [[ "${STATE[step.tls]:-}" == complete ]] || gt_core_mark step.tls complete
+}
+
+# WEBSERVER=none: another web server, reverse proxy or tunnel serves the routes. The installer proposes them and
+# verifies them once they answer; until then the web milestone is pending.
+GT_WEB_MANUAL='/root/gt-install-webserver.conf'
+
+gt_web_manual_render() {
+  printf '# Grafioschtrader web integration proposed by gt-install. Nothing in this file is active.\n'
+  printf '# Serve these routes for http://%s/ (LAN, port 80)' "${FACT[web.lan]}"
+  [[ -z "${ANSWER[DOMAIN]:-}" ]] || printf ' and https://%s/' "${ANSWER[DOMAIN]}"
+  printf '.\n# Frontend files: %s/grafioschtrader; backend: http://127.0.0.1:%s, WebSockets at /ws and\n' \
+    "${ANSWER[DOCROOT]}" "${ANSWER[BACKEND_PORT]}"
+  printf '# /socket/websocket. Afterwards run the installer again; it verifies the routes and completes.\n\n'
+  printf '# ---- nginx: inside each server block ----\n'
+  gt_vhost_snippet_render nginx manual
+  printf '\n# ---- Apache: inside each <VirtualHost>; needs mod_proxy_http, mod_proxy_wstunnel, mod_headers ----\n'
+  gt_vhost_snippet_render apache2 manual
+}
+
+gt_web_manual_verified() {
+  gt_web_verify "http://${FACT[web.lan]}" || return 1
+  [[ -n "${ANSWER[DOMAIN]:-}" ]] || return 0
+  if [[ "${ANSWER[TLS_SOURCE]}" == proxy ]]; then
+    gt_web_verify "https://${ANSWER[DOMAIN]}" || [[ "${STATE[step.tls]:-}" == unverified ]] ||
+      gt_core_mark step.tls unverified || return 1
+  else
+    gt_web_verify "https://${ANSWER[DOMAIN]}" "${ANSWER[DOMAIN]}:443:127.0.0.1" || return 1
+  fi
+}
+
+gt_install_manual_web() {
+  local address
+  gt_stage_preflight || return 2
+  [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
+  address=$(ip -4 route get 1.1.1.1) || return 2
+  address=$(awk '{for(i=1;i<NF;i++) if($i=="src") {print $(i+1); exit}}' <<< "$address")
+  [[ "$address" == *.* && "$address" != 127.* && "$address" != 0.* ]] && gt_valid_address "$address" || return 2
+  FACT[web.lan]=$address
+  [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || return 2
+  [[ -n "${STATE[resource.web_lan]:-}" ]] || gt_core_mark resource.web_lan "$address" || return 2
+  gt_web_manual_render > "$SCRATCH/web-manual" || return 2
+  gt_app_root_file web_manual "$SCRATCH/web-manual" "$(gt_path "$GT_WEB_MANUAL")" 600 || {
+    gt_core_error "$GT_WEB_MANUAL differs from the proposal for this installation; remove it to regenerate."; return 2;
+  }
+  [[ "${STATE[resource.web_manual]:-}" == "$GT_WEB_MANUAL" ]] || gt_core_mark resource.web_manual "$GT_WEB_MANUAL" ||
+    return 2
+  gt_web_firewall || return 2
+  if gt_web_manual_verified; then
+    [[ -z "${ANSWER[DOMAIN]:-}" || "${STATE[step.tls]:-}" == unverified ]] || gt_core_mark step.tls complete || return 2
+    gt_core_mark step.web complete || return 2
+    gt_text 'Web routes of the own web server verified.' 'Web-Routen des eigenen Webservers geprüft.'
+  else
+    [[ "${STATE[step.web]:-}" == pending ]] || gt_core_mark step.web pending || return 2
+    gt_text "Web integration pending: add the routes from $GT_WEB_MANUAL to your web server, then run the \
+installer again." "Web-Anbindung offen: die Routen aus $GT_WEB_MANUAL im eigenen Webserver ergänzen, danach den \
+Installer erneut ausführen."
+  fi
+  return 10
 }
 
 gt_site_render_lan() {
@@ -609,7 +697,7 @@ gt_tls_verify() {
 }
 
 gt_install_extended_web() {
-  local before after reply id port name web=${ANSWER[WEBSERVER]} package missing=no link
+  local before after reply id port name web=${ANSWER[WEBSERVER]} package missing=no link status=0
   local -a packages=()
   gt_stage_preflight || return 2
   [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
@@ -682,7 +770,8 @@ gt_install_extended_web() {
     link=$(gt_site_path lan); [[ -L "${link/sites-available/sites-enabled}" ]] && gt_web_verify || return 2
   fi
   if [[ -n "${ANSWER[DOMAIN]:-}" ]] && gt_vhost_include_mode; then
-    gt_vhost_web || return 2
+    gt_vhost_web || status=$?
+    (( status == 0 || status == 3 )) || return 2
   elif [[ -n "${ANSWER[DOMAIN]:-}" ]]; then
     if [[ "${ANSWER[TLS_SOURCE]}" == letsencrypt && "${STATE[step.site_domain]:-}" != complete ]]; then
       if [[ "${FACT[tls.reuse]:-no}" != yes && -z "${STATE[file.site_domain]:-}" ]]; then
@@ -722,7 +811,15 @@ gt_install_extended_web() {
       gt_text 'External proxy HTTPS not verified from this host; verify from outside the LAN.' 'HTTPS am vorgeschalteten Proxy hier nicht verifiziert; von außerhalb des LAN prüfen.'
     fi
   else gt_core_mark step.tls skipped || return 2; fi
-  gt_web_verify && gt_site_compare && gt_core_run systemctl enable "$web.service" && gt_core_mark step.web complete || return 2
+  gt_web_verify && gt_site_compare && gt_core_run systemctl enable "$web.service" || return 2
+  if (( status == 3 )); then
+    # The LAN site works; the domain waits for the manual include. A rerun of the installer verifies and completes.
+    [[ "${STATE[step.web]:-}" == pending ]] || gt_core_mark step.web pending || return 2
+    gt_text 'LAN routes verified; web integration for the domain stays pending until the manual include verifies.' \
+      'LAN-Routen geprüft; die Web-Anbindung der Domain bleibt offen, bis sich das manuelle Einbinden prüfen lässt.'
+    return 10
+  fi
+  gt_core_mark step.web complete || return 2
   gt_text 'Web routes verified. Run --check-mail for the mail milestone; final hand-over remains pending.' 'Web-Routen geprüft. --check-mail führt die Mail-Prüfung aus; abschließende Übergabe bleibt offen.'
   return 10
 }

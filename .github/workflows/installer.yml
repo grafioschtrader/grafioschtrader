@@ -158,6 +158,10 @@ jobs:
         run: docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/test/domain-container.sh ${{ matrix.web }}
       - name: Verify the include into an existing HTTPS site and its rollback
         run: docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/test/vhost-container.sh ${{ matrix.web }}
+      - name: Verify a pending manual include for an ambiguous HTTPS site
+        run: docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/test/vhost-container.sh ${{ matrix.web }} manual
+      - name: Verify WEBSERVER=none with the proposed routes in another server
+        run: docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/test/vhost-container.sh ${{ matrix.web }} none
       - name: Verify external proxy headers and source restriction
         run: docker run --rm -v "$PWD:/repo:ro" gt-installer-domain-test bash util/installer/test/domain-container.sh ${{ matrix.web }} proxy
       - name: Verify actual HTTP-01 issuance and renewal against local Pebble

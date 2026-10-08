@@ -528,9 +528,10 @@ gt_stage_contract() {
       'VHOST_INCLUDE=yes needs a domain and TLS_SOURCE=existing with the certificate of that virtual host.' \
       'VHOST_INCLUDE=yes benötigt eine Domain und TLS_SOURCE=existing mit dem Zertifikat dieses Vhosts.'
   fi
-  [[ "${ANSWER[WEBSERVER]:-}" != none ]] || gt_plan_block \
-    'WEBSERVER=none is not implemented; select nginx or apache2.' \
-    'WEBSERVER=none ist noch nicht implementiert; nginx oder apache2 wählen.'
+  # Without an own nginx or Apache nothing answers the HTTP-01 challenge.
+  [[ "${ANSWER[WEBSERVER]:-}:${ANSWER[TLS_SOURCE]:-}" != none:letsencrypt ]] || gt_plan_block \
+    "WEBSERVER=none needs TLS_SOURCE=existing or proxy; Let's Encrypt requires nginx or Apache." \
+    "WEBSERVER=none benötigt TLS_SOURCE=existing oder proxy; Let's Encrypt erfordert nginx oder Apache."
   for key in BACKEND_PORT BACKEND_HTTP_PORT TLS_PROXY_LISTEN; do
     [[ "$key" != TLS_PROXY_LISTEN || "${ANSWER[TLS_SOURCE]:-}" == proxy ]] || continue
     port=${ANSWER[$key]:-}; [[ -n "$port" ]] || continue

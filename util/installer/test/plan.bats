@@ -91,7 +91,11 @@ domain_answers() {
   defaults
   ANSWER[WEBSERVER]=none
   gt_core_plan || true
-  [[ "${PLAN_BLOCKERS[*]}" == *'WEBSERVER=none'* ]]
+  [[ "${PLAN_BLOCKERS[*]}" != *'WEBSERVER=none'* ]]
+  # Without an own nginx or Apache nothing answers Let's Encrypt's HTTP-01 challenge.
+  domain_answers
+  gt_core_plan || true
+  [[ "${PLAN_BLOCKERS[*]}" == *'WEBSERVER=none needs TLS_SOURCE=existing or proxy'* ]]
 }
 
 @test "proxy port defaults avoid both backend ports and unsupported web ports" {
@@ -360,11 +364,13 @@ domain_answers() {
   gt_plan || true
   [[ "${PLAN_BLOCKERS[*]}" == *'VHOST_INCLUDE=yes needs a domain and TLS_SOURCE=existing'* ]]
   [[ "${PLAN[*]}" != *'.gt-install.<timestamp>'* ]]
-  # Without parsable configuration files the parser resolves no target and the plan blocks.
+  # Without a parsable target the installer edits nothing and publishes the snippet for a manual include.
   ANSWER[TLS_SOURCE]=existing ANSWER[TLS_CERT]=/cert.pem ANSWER[TLS_KEY]=/key.pem
   unset 'ANSWER[LETSENCRYPT_EMAIL]'
   gt_plan || true
-  [[ "${PLAN_BLOCKERS[*]}" == *'No unambiguous, conflict-free HTTPS virtual host serves the domain'* ]]
+  [[ "${PLAN_WARNINGS[*]}" == *'the snippet is published for a manual include'* ]]
+  [[ "${PLAN[*]}" == *'GT routes for a manual include'* ]]
+  [[ "${PLAN[*]}" != *'.gt-install.<timestamp>'* ]]
 }
 
 @test "unknown include context blocks web edits despite consent" {

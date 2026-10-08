@@ -112,9 +112,15 @@ gt_result_actions() {
     RESULT[action.mail]=$(gt_text 'Resolve SMTP settings or server access, then repeat --check-mail.' \
       'SMTP-Einstellungen oder Serverzugriff klären, danach --check-mail wiederholen.')
   fi
-  [[ "${RESULT[web]}" == ok ]] || RESULT[action.web]=$(gt_text \
-    'Complete web integration with --install-web, then repeat --check-mail.' \
-    'Webanbindung mit --install-web abschließen, danach --check-mail wiederholen.')
+  if [[ "${RESULT[web]}" != ok && -n "${STATE[resource.web_manual]:-}" ]]; then
+    RESULT[action.web]=$(gt_text \
+      "Add the routes from ${STATE[resource.web_manual]} to your web server, then run the installer again; \
+it verifies them and completes." "Routen aus ${STATE[resource.web_manual]} im Webserver ergänzen, danach den \
+Installer erneut ausführen; er prüft sie und schließt ab.")
+  elif [[ "${RESULT[web]}" != ok ]]; then
+    RESULT[action.web]=$(gt_text 'Complete web integration with --install-web, then repeat --check-mail.' \
+      'Webanbindung mit --install-web abschließen, danach --check-mail wiederholen.')
+  fi
   if [[ "${RESULT[tls]}" == unverified ]]; then
     RESULT[action.tls]=$(gt_text "Verify ${RESULT[url]} from outside this network." \
       "${RESULT[url]} von außerhalb dieses Netzes prüfen.")
