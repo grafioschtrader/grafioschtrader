@@ -1023,6 +1023,10 @@ gt_core_toolchain_plan() {
     else package=maven; home=${FACT[maven.path]}; fi
     if [[ -n "${STATE[scope]:-}" && "${STATE[step.toolchains]:-complete}" == complete ]]; then
       [[ "$tool" == java ]] && key=java_home || key=maven
+      if [[ "$tool" == java && -n "${STATE[java_home]:-}" ]] && ! gt_jdk_jit "${STATE[java_home]}"; then
+        gt_plan_block "Recorded Java ${STATE[java_home]} is the interpreter-only Zero VM; reinstall the host with this installer."
+        continue
+      fi
       [[ "$home" == "${STATE[$key]}" ]] || gt_plan_block "Selected $tool path changed; restore ${STATE[$key]}."
       gt_plan_row reuse "$tool" "${STATE[$key]}"
       continue
@@ -1052,7 +1056,9 @@ gt_core_toolchain_plan() {
         continue
       fi
       value=${candidate#*:}; value=${value%%-*}
+      # The armhf distribution JDK is the Zero VM (see gt_jdk_jit); Liberica ships HotSpot with a JIT.
       if [[ ! "$candidate" =~ ^[a-zA-Z0-9.+:~_-]+$ || "$candidate" == unknown ]] ||
+          [[ "$tool" == java && "${FACT[architecture]}" == armhf ]] ||
           { [[ "$tool" == maven ]] && ! gt_version_at_least "$value" 3.8; } ||
           { [[ "$tool" == java ]] && [[ ! "$value" =~ ^$JAVA_REQUIRED([.+~-]|$) ]]; }; then
         gt_toolchain_archive_plan "$tool"

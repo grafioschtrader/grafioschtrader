@@ -100,8 +100,15 @@ gt_installation() {
   fi
 }
 
+# Debian builds OpenJDK for armhf as the interpreter-only Zero VM (lib/zero), which runs Maven and the backend
+# orders of magnitude slower; a remote TLS server even drops its first handshake. Only HotSpot JDKs with a JIT
+# (lib/server or lib/client) are suitable.
+gt_jdk_jit() {
+  [[ -f "$1/lib/server/libjvm.so" || -f "$1/lib/client/libjvm.so" ]]
+}
+
 gt_java() {
-  local dir executable version vendor javac value selected
+  local dir executable version vendor javac jit value selected
   local -A seen=()
   # update-alternatives queries do not change the selection or its auto/manual mode.
   FACT[java.alternatives]=$(gt_probe update-alternatives --query java) || FACT[java.alternatives]=unknown
@@ -131,8 +138,9 @@ gt_java() {
     version=$(gt_literal "$dir/release" JAVA_VERSION) || version=unknown
     vendor=$(gt_literal "$dir/release" IMPLEMENTOR) || vendor=unknown
     javac=no; [[ -x "$dir/bin/java" && -x "$dir/bin/javac" ]] && javac=yes
-    JDKS+=("$dir version=$version vendor=$vendor javac=$javac")
-    if [[ "$version" =~ ^([0-9]+)(\.|$) && "$javac" == yes ]] && (( BASH_REMATCH[1] >= JAVA_REQUIRED )); then
+    jit=no; gt_jdk_jit "$dir" && jit=yes
+    JDKS+=("$dir version=$version vendor=$vendor javac=$javac jit=$jit")
+    if [[ "$version" =~ ^([0-9]+)(\.|$) && "$javac" == yes && "$jit" == yes ]] && (( BASH_REMATCH[1] >= JAVA_REQUIRED )); then
       if [[ "${FACT[java.suitable]}" == absent || ( "${FACT[java.version]%%.*}" != "$JAVA_REQUIRED" && "${version%%.*}" == "$JAVA_REQUIRED" ) ]]; then
         FACT[java.suitable]=$dir FACT[java.version]=$version
       fi

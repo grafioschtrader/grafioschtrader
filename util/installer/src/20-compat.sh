@@ -32,7 +32,7 @@ gt_compatibility() {
     gt_action java reuse "${FACT[java.suitable]}; preserve system alternatives"
     version=${FACT[java.version]%%.*}
     (( version == JAVA_REQUIRED )) || gt_note WARN unavailable 'Java newer than the tested major'
-  elif [[ "$candidate" != unknown && "$candidate" != '(none)' ]]; then
+  elif [[ "$candidate" != unknown && "$candidate" != '(none)' && "$arch" != armhf ]]; then
     gt_action java install "distribution JDK candidate $candidate; preserve alternatives"
   elif [[ "$arch" == armhf ]]; then gt_action java isolate 'verified Liberica JDK archive; alternatives unchanged'
   else gt_action java isolate 'verified Eclipse Temurin JDK archive; alternatives unchanged'; fi

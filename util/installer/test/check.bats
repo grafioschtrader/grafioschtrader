@@ -143,9 +143,17 @@ setup() {
   cp "$ROOT/opt/jdk25/bin/javac" "$ROOT/opt/jdk25/bin/java"
   chmod +x "$ROOT/opt/jdk25/bin/javac"
   chmod +x "$ROOT/opt/jdk25/bin/java"
+  # The interpreter-only Zero VM of Debian's armhf build has a JDK layout but no JIT.
+  cp -r "$ROOT/opt/jdk25" "$ROOT/opt/jdk25-zero"
+  mkdir -p "$ROOT/opt/jdk25/lib/server" "$ROOT/opt/jdk25-zero/lib/zero"
+  touch "$ROOT/opt/jdk25/lib/server/libjvm.so" "$ROOT/opt/jdk25-zero/lib/zero/libjvm.so"
   gt_java
   [ "${FACT[java.suitable]}" = "$ROOT/opt/jdk25" ]
-  [ "${#JDKS[@]}" -ge 2 ]
+  [ "${#JDKS[@]}" -ge 3 ]
+  [[ "${JDKS[*]}" == *"$ROOT/opt/jdk25-zero version=25.0.1 vendor=Test vendor javac=yes jit=no"* ]]
+  rm -r "$ROOT/opt/jdk25"
+  gt_java
+  [ "${FACT[java.suitable]}" = absent ]
 }
 
 @test "inactive socket-activated database is never connected to or started" {

@@ -515,7 +515,9 @@ installer. Read-only modes never refresh them. An APT candidate is used when it 
 exact candidate versions are shown before confirmation, rechecked and recorded for recovery. Transactions needing
 package removals or upgrades remain blocked. Existing suitable installations are reused without an APT
 transaction. Debian 12, for example, has no JDK 25 in APT but Maven 3.8: Java comes from the vendor archive below,
-Maven from APT.
+Maven from APT. On armhf the APT JDK is never used: Debian builds it as the interpreter-only Zero VM, under which
+Maven and the backend run unusably slowly (Maven Central even drops the first TLS handshake). Only JDKs with a
+HotSpot JIT (`lib/server` or `lib/client`) count as suitable, so armhf always gets Liberica.
 
 Before an APT installation, the core journals existing `update-alternatives` selections. It restores changed selections
 after success or failure, including an interrupted run on resumption. A changed automatic selection becomes

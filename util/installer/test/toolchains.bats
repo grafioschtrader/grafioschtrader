@@ -169,6 +169,29 @@ maven_archive_fixture() {
   ! grep -E 'apt-get .*install|update-alternatives --set' "$PROBES"
 }
 
+@test "armhf ignores the APT JDK, which Debian builds as the Zero VM, and plans Liberica" {
+  vendor_fixture
+  FACT[architecture]=armhf
+  gt_core_toolchain_plan
+  [ "${#PLAN_BLOCKERS[@]}" -eq 0 ]
+  [ "${FACT[toolchain.java.package]}" = archive ]
+  [[ "${PLAN[*]}" == *'BellSoft Liberica 25.0.4.1+1'* ]]
+  [ -z "${PLAN_PACKAGES[openjdk-25-jdk-headless=25.0.1+8-1]:-}" ]
+  [ "${PLAN_PACKAGES[maven=3.8.7-1]}" = install ]
+}
+
+@test "a journal that recorded a Zero VM JDK blocks resumption instead of building with it" {
+  mkdir -p "$ROOT/usr/lib/jvm/java-25-openjdk-armhf/lib/zero"
+  STATE[scope]=bootstrap STATE[step.toolchains]=complete STATE[maven]=/usr/bin/mvn
+  STATE[java_home]=$ROOT/usr/lib/jvm/java-25-openjdk-armhf FACT[maven.path]=/usr/bin/mvn
+  gt_core_toolchain_plan || true
+  [[ "${PLAN_BLOCKERS[*]}" == *'is the interpreter-only Zero VM'* ]]
+  mkdir -p "${STATE[java_home]}/lib/server" && touch "${STATE[java_home]}/lib/server/libjvm.so"
+  FACT[java.suitable]=${STATE[java_home]} PLAN_BLOCKERS=()
+  gt_core_toolchain_plan || true
+  [ "${#PLAN_BLOCKERS[@]}" -eq 0 ]
+}
+
 @test "vendor metadata with a foreign download link or a malformed checksum blocks planning" {
   vendor_fixture
   CANDIDATE[openjdk-25-jdk-headless]='(none)'
@@ -335,7 +358,8 @@ maven_archive_fixture() {
   fake_executable java
   fake_executable mvn
   unset JAVA_HOME
-  mkdir -p "$ROOT/usr/local/jdk-25/bin" "$ROOT/opt/apache-maven-3.9.9/bin"
+  mkdir -p "$ROOT/usr/local/jdk-25/bin" "$ROOT/usr/local/jdk-25/lib/server" "$ROOT/opt/apache-maven-3.9.9/bin"
+  touch "$ROOT/usr/local/jdk-25/lib/server/libjvm.so"
   printf 'JAVA_VERSION="25.0.1"\nIMPLEMENTOR="Manual fixture"\n' > "$ROOT/usr/local/jdk-25/release"
   for executable in "$ROOT/usr/local/jdk-25/bin/java" "$ROOT/usr/local/jdk-25/bin/javac" "$ROOT/opt/apache-maven-3.9.9/bin/mvn"; do
     printf '#!/bin/sh\nexit 99\n' > "$executable"

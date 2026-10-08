@@ -264,8 +264,15 @@ gt_installation() {
   fi
 }
 
+# Debian builds OpenJDK for armhf as the interpreter-only Zero VM (lib/zero), which runs Maven and the backend
+# orders of magnitude slower; a remote TLS server even drops its first handshake. Only HotSpot JDKs with a JIT
+# (lib/server or lib/client) are suitable.
+gt_jdk_jit() {
+  [[ -f "$1/lib/server/libjvm.so" || -f "$1/lib/client/libjvm.so" ]]
+}
+
 gt_java() {
-  local dir executable version vendor javac value selected
+  local dir executable version vendor javac jit value selected
   local -A seen=()
   # update-alternatives queries do not change the selection or its auto/manual mode.
   FACT[java.alternatives]=$(gt_probe update-alternatives --query java) || FACT[java.alternatives]=unknown
@@ -295,8 +302,9 @@ gt_java() {
     version=$(gt_literal "$dir/release" JAVA_VERSION) || version=unknown
     vendor=$(gt_literal "$dir/release" IMPLEMENTOR) || vendor=unknown
     javac=no; [[ -x "$dir/bin/java" && -x "$dir/bin/javac" ]] && javac=yes
-    JDKS+=("$dir version=$version vendor=$vendor javac=$javac")
-    if [[ "$version" =~ ^([0-9]+)(\.|$) && "$javac" == yes ]] && (( BASH_REMATCH[1] >= JAVA_REQUIRED )); then
+    jit=no; gt_jdk_jit "$dir" && jit=yes
+    JDKS+=("$dir version=$version vendor=$vendor javac=$javac jit=$jit")
+    if [[ "$version" =~ ^([0-9]+)(\.|$) && "$javac" == yes && "$jit" == yes ]] && (( BASH_REMATCH[1] >= JAVA_REQUIRED )); then
       if [[ "${FACT[java.suitable]}" == absent || ( "${FACT[java.version]%%.*}" != "$JAVA_REQUIRED" && "${version%%.*}" == "$JAVA_REQUIRED" ) ]]; then
         FACT[java.suitable]=$dir FACT[java.version]=$version
       fi
@@ -710,7 +718,7 @@ gt_compatibility() {
     gt_action java reuse "${FACT[java.suitable]}; preserve system alternatives"
     version=${FACT[java.version]%%.*}
     (( version == JAVA_REQUIRED )) || gt_note WARN unavailable 'Java newer than the tested major'
-  elif [[ "$candidate" != unknown && "$candidate" != '(none)' ]]; then
+  elif [[ "$candidate" != unknown && "$candidate" != '(none)' && "$arch" != armhf ]]; then
     gt_action java install "distribution JDK candidate $candidate; preserve alternatives"
   elif [[ "$arch" == armhf ]]; then gt_action java isolate 'verified Liberica JDK archive; alternatives unchanged'
   else gt_action java isolate 'verified Eclipse Temurin JDK archive; alternatives unchanged'; fi
@@ -3435,6 +3443,10 @@ gt_core_toolchain_plan() {
     else package=maven; home=${FACT[maven.path]}; fi
     if [[ -n "${STATE[scope]:-}" && "${STATE[step.toolchains]:-complete}" == complete ]]; then
       [[ "$tool" == java ]] && key=java_home || key=maven
+      if [[ "$tool" == java && -n "${STATE[java_home]:-}" ]] && ! gt_jdk_jit "${STATE[java_home]}"; then
+        gt_plan_block "Recorded Java ${STATE[java_home]} is the interpreter-only Zero VM; reinstall the host with this installer."
+        continue
+      fi
       [[ "$home" == "${STATE[$key]}" ]] || gt_plan_block "Selected $tool path changed; restore ${STATE[$key]}."
       gt_plan_row reuse "$tool" "${STATE[$key]}"
       continue
@@ -3464,7 +3476,9 @@ gt_core_toolchain_plan() {
         continue
       fi
       value=${candidate#*:}; value=${value%%-*}
+      # The armhf distribution JDK is the Zero VM (see gt_jdk_jit); Liberica ships HotSpot with a JIT.
       if [[ ! "$candidate" =~ ^[a-zA-Z0-9.+:~_-]+$ || "$candidate" == unknown ]] ||
+          [[ "$tool" == java && "${FACT[architecture]}" == armhf ]] ||
           { [[ "$tool" == maven ]] && ! gt_version_at_least "$value" 3.8; } ||
           { [[ "$tool" == java ]] && [[ ! "$value" =~ ^$JAVA_REQUIRED([.+~-]|$) ]]; }; then
         gt_toolchain_archive_plan "$tool"
