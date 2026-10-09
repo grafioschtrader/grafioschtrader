@@ -127,6 +127,11 @@ setup() {
   IMAGES=ghcr.io/grafioschtrader/grafioschtrader-backend:latest
   gt_installation
   [ "${FACT[host.class]}" = docker ]
+  # A service user left over from an earlier classic installation does not hide the Docker installation.
+  GT_USER=yes
+  gt_installation
+  [ "${FACT[host.class]}" = docker ]
+  [[ "${FACT[host.pieces]}" == 'user=yes '* ]]
   mkdir -p "$ROOT/var/lib/gt-install"
   printf 'status=invalid\n' > "$ROOT/var/lib/gt-install/state"
   gt_installation

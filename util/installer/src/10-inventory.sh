@@ -96,8 +96,10 @@ gt_installation() {
       *) FACT[host.class]='invalid-state' ;;
     esac
   elif [[ "$unit$vars$updater" == yesyesyes ]]; then FACT[host.class]=classic
-  elif [[ "$user$unit$vars$updater$jar$sudoers" == *yes* ]]; then FACT[host.class]=foreign-partial
+  # GT containers are the installation even beside leftovers of an earlier classic one (a service user, an empty
+  # native database): their updater is docker/update.sh, and bootstrap stays disabled either way.
   elif [[ "${FACT[containers]}" == *ghcr.io/grafioschtrader/grafioschtrader-* ]]; then FACT[host.class]=docker
+  elif [[ "$user$unit$vars$updater$jar$sudoers" == *yes* ]]; then FACT[host.class]=foreign-partial
   elif [[ "${FACT[containers]}" == unknown ]]; then FACT[host.class]=unknown
   fi
 }
