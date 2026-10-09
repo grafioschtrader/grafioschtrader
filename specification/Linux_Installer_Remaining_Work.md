@@ -6,15 +6,22 @@
 **Scope:** the bootstrap installer for the classic (non-Docker) installation of Grafioschtrader on Debian and Ubuntu,
 `util/installer/`. Its behaviour is defined by the sources in `util/installer/src/`, the generated bundle
 `util/installer/gt-install.sh` and [`util/installer/README.md`](../util/installer/README.md); the acceptance record
-lives in [`util/installer/test/README.md`](../util/installer/test/README.md). This document fixes the remaining work
-packages and the order in which they are done (§1–§4). Each package ends with its acceptance; a package starts only
-after the one before it is committed, except where §5 allows otherwise.
+lives in [`util/installer/test/README.md`](../util/installer/test/README.md), the administrator documentation in the
+wiki page *Installation with the Linux installer*, linked from the gt-user-manual page *Installation and Update*. This
+document fixes the remaining work packages and the order in which they are done (§1–§4). Each package ends with its
+acceptance; a package starts only after the one before it is committed, except where §5 allows otherwise.
 
 Supported platforms stay as the installer reports them: primary are Debian 12, Debian 13, Ubuntu 24.04 and Ubuntu
 26.04 (including Raspberry Pi OS and Armbian on these bases) on amd64 and arm64; legacy are Debian 11 and Ubuntu 22.04
 on amd64 and arm64, and armhf on any of them, which stays on Node.js 22 and becomes `block` after 2027-04-30.
 
 ## 1. CI on the Ubuntu 26 runner
+
+The CI runs only on pushed commits, and hosts receive the installer and the helpers in `util/shellscripts/` only through
+`master`: the installer downloaded from GitHub pins the current `master` commit and builds with the `gtupfrontend.sh`,
+`gtupbackend.sh` and `checkversion.sh` of that commit. Publication therefore goes in this order: `master` of the
+application repository, then the wiki, then the gt-user-manual, because the wiki page describes the dialogs and password
+generation of the published installer.
 
 The `ubuntu-latest` label moves to Ubuntu 26 from 2026-10-19. After that date run `.github/workflows/installer.yml`
 by `workflow_dispatch` and confirm every job green on the new image, including the `core` job's
@@ -33,12 +40,16 @@ release, kernel, toolchain versions, application commit and installer SHA-256.
 Every fresh installation is started the way an administrator starts it: over SSH, with `sudo` from the
 administrator's own home directory and the session's `LANG`, at least once in German. In QEMU this is
 `GT_VM_MODE=dialogs` (`util/installer/test/vm-dialogs.py`); a run started through `systemd-run` in `/` without a
-locale does not count as a fresh installation.
+locale does not count as a fresh installation. Once issue #274 is resolved, `dialog-check` in
+`util/installer/test/vm-bootstrap.sh` turns its note about a credential in `/var/log/grafioschtrader.log` into a
+failure.
 
 **Fresh installations still owed:**
 
 | Release and architecture | Required evidence |
 |---|---|
+| Debian 12 amd64, Ubuntu 24.04 amd64, in QEMU with `GT_VM_MODE=dialogs` | the evidence of the row below, the small-terminal fallback and the other language's dialogs |
+| Debian 12 or 13 arm64 on real hardware, started in a German SSH session from the administrator's home | the evidence of the row below |
 | Ubuntu 24.04 arm64, Ubuntu 26.04 arm64 | backend built locally, frontend served, listeners on loopback, migrations complete, no `uca1400` column, service up again after a reboot, rerun without a step |
 | Debian 11 (legacy), Ubuntu 22.04 (legacy), one architecture each | the same, plus the legacy `WARN` with its reason |
 | any primary release on a real host below 4000 MB RAM without zram and without swap | the swap file carries the first build |
@@ -110,8 +121,8 @@ removing the package leaves an installed Grafioschtrader untouched.
 
 | Order | Package | Depends on |
 |---|---|---|
-| 1 | §1 CI on the Ubuntu 26 runner | 2026-10-19 |
-| 2 | §2 Acceptance matrix | — ; rows may start whenever hosts are available |
+| 1 | §1 CI on the Ubuntu 26 runner | `master` published; 2026-10-19 |
+| 2 | §2 Acceptance matrix | rows may start whenever hosts are available; real hosts need the published `master` |
 | 3 | §3 Changing the SMTP selection later | — |
 | 4 | §4 Debian package | §2 complete for every primary combination |
 
