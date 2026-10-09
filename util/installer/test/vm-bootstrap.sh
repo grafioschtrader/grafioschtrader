@@ -48,6 +48,17 @@ verify_small_host() {
   (( memory >= 3700 )) || grep -q 'releases/download/Latest/latest.tar.gz' /var/lib/gt-install/app-build.log
 }
 
+# A legacy release installs with a recorded warning that names the release and the end of its support.
+verify_legacy() {
+  local release
+  # shellcheck source=/dev/null
+  release=$(. /etc/os-release && printf '%s:%s' "$ID" "$VERSION_ID")
+  case "$release" in
+    ubuntu:22.04)
+      grep -E '^warning\.[0-9]+=WARN: (Legacy platform|Ältere Plattform): ' /var/lib/gt-install/result ;;
+  esac
+}
+
 load_verifiers() {
   if declare -F gt_cleanup >/dev/null && [[ -n "${SCRATCH:-}" ]]; then gt_cleanup; fi
   export GT_INSTALL_SOURCE_ONLY=1
@@ -193,6 +204,7 @@ ANSWERS
     FACT[web.lan]=${STATE[resource.web_lan]}
     gt_web_verify
     verify_small_host
+    verify_legacy
     cat /proc/sys/kernel/random/boot_id > "$acceptance/boot-id"
     sha256sum /var/lib/gt-install/state /var/lib/gt-install/result /var/lib/gt-install/app-build.log \
       > "$acceptance/completed.sha256"
@@ -218,6 +230,7 @@ ANSWERS
     FACT[web.lan]=${STATE[resource.web_lan]}
     gt_web_verify
     verify_small_host
+    verify_legacy
     # Typed and generated credentials never reach the installer's logs, journal or result.
     for key in DB_PASSWORD JASYPT_PASSWORD; do
       [[ -n "${SECRET[$key]:-}" ]]

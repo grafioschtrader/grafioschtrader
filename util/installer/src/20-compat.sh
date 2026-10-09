@@ -9,7 +9,9 @@ gt_compatibility() {
   fi
   case "$distro:$release" in
     debian:12|debian:13|ubuntu:24.04|ubuntu:26.04) gt_action platform reuse 'supported primary release' ;;
-    debian:11) gt_action platform reuse 'legacy release'; gt_note WARN legacy 'Debian 11 LTS ended 2026-08-31' ;;
+    # security.debian.org no longer serves bullseye packages, so APT fails at the first security update; a host
+    # without security updates must not serve the application either.
+    debian:11) gt_action platform block 'Debian 11 LTS ended 2026-08-31; upgrade to Debian 12 or 13' ;;
     ubuntu:22.04) gt_action platform reuse 'legacy release'
       gt_note WARN legacy 'Ubuntu 22.04 standard support ends 2027-04' ;;
     *) gt_action platform block 'unsupported or unknown distribution/release' ;;

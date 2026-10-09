@@ -271,7 +271,7 @@ JDK 25 in APT. It resolves the current Temurin archive, lets the real download a
 extraction, reloads the journal and resumes. It then verifies the published JDK, the unchanged Java 17
 selections, the absence of an alternatives entry for the archive and Maven on Java 25 as `grafioschtrader`.
 Completed toolchains must neither download nor invoke APT again. `GT_TEST_MAVEN=apt` uses Debian 12's APT Maven;
-`GT_TEST_MAVEN=archive` treats it as too old, as Debian 11's Maven 3.6 is, and installs the Apache Maven archive.
+`GT_TEST_MAVEN=archive` treats it as too old, as Ubuntu 22.04's Maven 3.6 is, and installs the Apache Maven archive.
 Each run downloads the JDK twice (about 140 MB each):
 
 ```bash
@@ -350,7 +350,7 @@ nginx reloads; boot enablement and integration with the real application belong 
 ## Actual build and systemd reboot in QEMU
 
 `vm-host.sh` runs acceptance in a disposable amd64 VM with its own kernel and systemd PID 1: Ubuntu 24.04 by
-default, or `GT_VM_OS=debian-12`, `debian-13` or `ubuntu-26.04`; the additional releases run in bootstrap mode. Debian 12 has no JDK 25 in APT, so its run exercises the vendor JDK
+default, or `GT_VM_OS=debian-12`, `debian-13`, `ubuntu-26.04` or the legacy `ubuntu-22.04`; the additional releases run in bootstrap or dialogs mode. Debian 12 has no JDK 25 in APT, so its run exercises the vendor JDK
 archive while Debian's APT Maven pulls in a shared Java 17; it is supported in bootstrap mode only, because the
 stage driver installs Java from APT. A controller container keeps one guest disk and refuses another release;
 use a new container per release, for example
@@ -513,6 +513,17 @@ skipped-mail warning; `--check-mail --answers` with the SMTP lines then rebuilt 
 and a result without any warning. Reboot and the read-only completed rerun passed. Maven `3.9.9` from APT, Node
 `24.21.0`. Application commit and installer SHA-256 as for the Debian 12 dialog run; cloud image SHA-256:
 `b2aca2bee42c7082fd6aba4a5bb1a89612087a405e99896920f3346f7b23b9d1`.
+
+Legacy dialog acceptance (`GT_VM_MODE=dialogs`, 8192 MiB) on 2026-10-09 passed on Ubuntu 22.04 amd64, kernel
+`5.15.0-198-generic`, in `en_US.UTF-8` with the evidence of the dialog runs above; the result carried
+`WARN: Legacy platform: Ubuntu 22.04 standard support ends 2027-04`. The installer used `openjdk-25-jdk-headless`
+`25.0.4.1+1-1~22.04.4` from APT, the Apache Maven `3.10.0` archive (APT offers 3.6), Node `24.21.0`, `@angular/cli`
+`22.2.2`, MariaDB `10.6.23` and nginx `1.18.0`. Application commit: `b0662727ce645de00e9bb1c8bdbf94c7d1304220`;
+installer SHA-256 as for the Debian 12 dialog run; cloud image SHA-256:
+`012d81fade7e8ff4428fc35dfeee711d66d1f47d5ea9c5c8ced96a85b959835c`. The same attempt on Debian 11 failed before the
+installer started: after the end of its LTS on 2026-08-31, `security.debian.org` still indexes `bullseye-security`
+but no longer serves its packages (404), so every APT installation that pulls a security update fails. Debian 11
+is therefore refused as an unsupported release.
 
 The first attempts of this acceptance found two faults that the unattended runs, started through `systemd-run` in
 `/` without a locale, could not reach. `runuser` kept the administrator's working directory, a 0700 home on

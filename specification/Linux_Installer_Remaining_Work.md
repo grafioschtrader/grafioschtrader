@@ -12,8 +12,9 @@ document fixes the remaining work packages and the order in which they are done 
 acceptance; a package starts only after the one before it is committed, except where §4 allows otherwise.
 
 Supported platforms stay as the installer reports them: primary are Debian 12, Debian 13, Ubuntu 24.04 and Ubuntu
-26.04 (including Raspberry Pi OS and Armbian on these bases) on amd64 and arm64; legacy are Debian 11 and Ubuntu 22.04
-on amd64 and arm64, and armhf on any of them, which stays on Node.js 22 and becomes `block` after 2027-04-30.
+26.04 (including Raspberry Pi OS and Armbian on these bases) on amd64 and arm64; legacy is Ubuntu 22.04 on amd64 and
+arm64, and armhf on any of them, which stays on Node.js 22 and becomes `block` after 2027-04-30. Debian 11 is
+refused: its LTS ended on 2026-08-31 and `security.debian.org` no longer serves its packages.
 
 ## 1. CI on the Ubuntu 26 runner
 
@@ -50,7 +51,6 @@ failure.
 |---|---|
 | Debian 12 or 13 arm64 on real hardware, started in a German SSH session from the administrator's home | the evidence of the row below |
 | Ubuntu 24.04 arm64, Ubuntu 26.04 arm64 | backend built locally, frontend served, listeners on loopback, migrations complete, no `uca1400` column, service up again after a reboot, rerun without a step |
-| Debian 11 (legacy), Ubuntu 22.04 (legacy), one architecture each | the same, plus the legacy `WARN` with its reason |
 | any primary release on a real host below 4000 MB RAM without zram and without swap | the swap file carries the first build |
 
 **Read-only runs on the reference hosts** (`--check` and `--dry-run`): correct host class, complete component
@@ -73,7 +73,7 @@ report, no file, package or service changed.
 | own domain with correct records, with a wrong A record, without a `www` record | certificate issued; mismatch reported with both values and the certbot command; certificate and vhost without `www` |
 | `TLS_SOURCE=existing` | the referenced certificate is served; no copy, no renewal hook |
 | `TLS_SOURCE=proxy` with Caddy on the same host owning 80/443, and with a proxy on another machine | local vhost on the chosen port, `X-Forwarded-For` reaches the login lockout as the client address, registration link carries the public URL |
-| existing MariaDB with socket access, with password-only access; MariaDB 10.5 | no credential question when privileged socket access succeeds; otherwise the current password once; no foreign root password or plugin changed; all migrations succeed on 10.5 |
+| existing MariaDB with socket access, with password-only access | no credential question when privileged socket access succeeds; otherwise the current password once; no foreign root password or plugin changed |
 | other Node.js and Java consumers, a shared document root, a PHP location on the same nginx vhost | consumers still on their runtime, alternatives unchanged, other sites answer as before |
 | occupied 8080/9090, several vhosts | alternative ports used consistently, no listener off loopback, no traffic routed to another site |
 | secrets with shell, SQL and properties special characters; cancellation during execution | literal values survive; no value in the installer's logs, errors or argv, nor in `/var/log/grafioschtrader.log` once issue #274 is resolved; temporary credentials removed on every exit path |
@@ -111,4 +111,4 @@ removing the package leaves an installed Grafioschtrader untouched.
 
 | # | Decision | Reason |
 |---|---|---|
-| 1 | Bash script first, thin `.deb` second; no application package | the jar contains the user's configuration and is rebuilt by `gtupdate.sh` outside any package manager; Java 25 cannot be expressed as a dependency on Debian 11/12 |
+| 1 | Bash script first, thin `.deb` second; no application package | the jar contains the user's configuration and is rebuilt by `gtupdate.sh` outside any package manager; Java 25 cannot be expressed as a dependency on Debian 12 |

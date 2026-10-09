@@ -89,7 +89,7 @@ jobs:
         run: docker build -t gt-installer-toolchains-archive - < util/installer/test/toolchains-archive.Dockerfile
       - name: Check Temurin archive with APT Maven, interrupted extraction and unchanged alternatives
         run: docker run --rm -e GT_TEST_MAVEN=apt -v "$PWD:/repo:ro" gt-installer-toolchains-archive bash util/installer/test/toolchains-archive-container.sh
-      - name: Check Temurin and Apache Maven archives as needed on Debian 11
+      - name: Check Temurin and Apache Maven archives when APT Maven is too old
         run: docker run --rm -e GT_TEST_MAVEN=archive -v "$PWD:/repo:ro" gt-installer-toolchains-archive bash util/installer/test/toolchains-archive-container.sh
   node:
     needs: bundle

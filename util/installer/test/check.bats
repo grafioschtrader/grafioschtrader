@@ -264,6 +264,19 @@ setup() {
   [ "${ACTION[platform]}" = reuse ]
 }
 
+@test "Debian 11 blocks after its LTS ended while Ubuntu 22.04 stays a legacy warning" {
+  collect_check
+  FACT[os.ID]=debian FACT[os.VERSION_ID]=11 FACT[architecture]=amd64
+  gt_compatibility
+  [ "${ACTION[platform]}" = block ]
+  [[ "${REASON[platform]}" == *'upgrade to Debian 12 or 13'* ]]
+  NOTES=()
+  FACT[os.ID]=ubuntu FACT[os.VERSION_ID]=22.04
+  gt_compatibility
+  [ "${ACTION[platform]}" = reuse ]
+  [[ "${NOTES[*]}" == *'WARN: Legacy platform: Ubuntu 22.04 standard support ends 2027-04'* ]]
+}
+
 @test "unsupported systems and MySQL are blocking findings" {
   collect_check
   FACT[os.ID]=fedora FACT[os.VERSION_ID]=44 FACT[os.ID_LIKE]=unknown

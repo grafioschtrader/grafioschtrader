@@ -47,6 +47,11 @@ case "$GT_VM_OS" in
     [[ "$GT_VM_MODE" != stages ]]
     image_base=https://cloud-images.ubuntu.com/releases/26.04/release image=ubuntu-26.04-server-cloudimg-amd64.img
     sums=SHA256SUMS sum_tool=sha256sum guest_user=ubuntu ;;
+  # The legacy release: the installer warns and continues. Like the newer additions it runs without the stage driver.
+  ubuntu-22.04)
+    [[ "$GT_VM_MODE" != stages ]]
+    image_base=https://cloud-images.ubuntu.com/jammy/current image=jammy-server-cloudimg-amd64.img
+    sums=SHA256SUMS sum_tool=sha256sum guest_user=ubuntu ;;
   *) exit 2 ;;
 esac
 # A controller keeps one guest disk; another release needs its own controller container.

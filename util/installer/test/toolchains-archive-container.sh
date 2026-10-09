@@ -1,7 +1,7 @@
 #!/bin/bash
 # Mutating integration: only a fresh dedicated container built from toolchains-archive.Dockerfile.
 # Debian 12 has no APT JDK 25, so Java always comes from the vendor archive. GT_TEST_MAVEN=apt keeps the
-# Debian 12 APT Maven; GT_TEST_MAVEN=archive treats it as too old, as Debian 11's Maven 3.6 is, so the
+# Debian 12 APT Maven; GT_TEST_MAVEN=archive treats it as too old, as Ubuntu 22.04's Maven 3.6 is, so the
 # Apache Maven archive is downloaded and verified as well.
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
