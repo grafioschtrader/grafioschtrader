@@ -49,7 +49,7 @@ failure.
 
 | Release and architecture | Required evidence |
 |---|---|
-| Ubuntu 24.04 arm64, Ubuntu 26.04 arm64 | backend built locally, frontend served, listeners on loopback, migrations complete, no `uca1400` column, service up again after a reboot, rerun without a step |
+| Ubuntu 24.04 arm64 | backend built locally, frontend served, listeners on loopback, migrations complete, no `uca1400` column, service up again after a reboot, rerun without a step |
 
 **Read-only runs on the reference hosts** (`--check` and `--dry-run`): correct host class, complete component
 report, no file, package or service changed.

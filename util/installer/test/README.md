@@ -607,6 +607,20 @@ mariadb-common mysql-common`) and restarting MariaDB let the run resume. Applica
 `bfab35b63cc98ceb10abb6970c766eb53b368420`; installer SHA-256:
 `516708ebf333a1b9138eb64673b2ccd6789135ee055bc8cde790196cef89daf3`.
 
+Ubuntu 26.04 arm64 acceptance on 2026-10-09 passed on a freshly set up Orange Pi 5 Plus (RK3588, 16 GB, SD card) with
+Armbian 26.8.3 on Ubuntu 26.04 (resolute), kernel `6.1.115-vendor-rk35xx`, whose system locale is German. The host
+has one Ethernet port in the intranet without a default route and one towards the internet with global IPv6
+addresses. The modeless installation with an answers file ran from `/home/hugo` as root in a `de_CH.UTF-8` session,
+first time through in about 11 minutes: it installed git and `dig` with the base packages, the Temurin
+`25.0.4.1+1` and Apache Maven `3.10.0` archives, Node `24.21.0`, MariaDB `11.8.6` and nginx `1.28.3`, built the
+backend and the frontend (`ng build`, 65 s) locally, moved the DuckDNS record `gt16o2.duckdns.org` to the host's
+stable IPv6 address and reached `status=complete` with Let's Encrypt and an accepted test message. MariaDB and the
+backend listened on loopback only, both migrations of the baseline succeeded and no column or table uses a
+`uca1400` collation. After a reboot all three services started by themselves, LAN, API and HTTPS answered, and a
+modeless German rerun reported `host.class=completed` with journal, result, build log and secrets unchanged.
+Application commit: `838e547e0ade62e9121c7a75bb24ca51ee9f63ea`; installer SHA-256:
+`ea4a259d0fb8ab7f054c136eb1db7250f6ea20f6e98c9d086ddbb1b5f51480d4`.
+
 Real-hardware acceptance on Debian 13 arm64 passed on 2026-10-08 on a Radxa ROCK 4C+ (4 GB, zram swap, SD card)
 with Armbian 26.11, kernel `6.18.54-current-rockchip64`, nginx `1.26.3`, Let's Encrypt and the installer's own
 DuckDNS updater, dual-homed like the ROCK 5B. The image had neither git nor dig; the modeless plan installed both
