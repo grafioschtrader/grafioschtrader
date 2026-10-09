@@ -573,6 +573,23 @@ was corrected by hand to the Liberica archive. Reboot and the completed rerun pa
 listens on loopback only. Application commit: `611e25fccc6e41a631405cf8ea5d9e2b1918c86f`; final installer
 SHA-256: `17845e53581e4c593d5c869c691b0ffb8abc20d10b0b7db99bb674c3fcfe1686`.
 
+Low-memory acceptance on 2026-10-09 passed on the same Odroid XU4 (1988 MiB `MemTotal`), kernel
+`6.6.151-current-odroidxu4`, after the earlier installation and its packages were removed and Armbian's zram swap
+was disabled, so the host had no swap at all. The modeless installation with an answers file (`--answers FILE
+--yes`, started as root from the administrator's home) planned and created the 2 GiB `/swapfile` with its
+`/etc/fstab` line before the first build, chose the installer's heap default `-Xms128m -Xmx896m`, the Liberica
+`25.0.4.1+1` arm32 archive, Maven `3.9.9` from APT, Node `22.23.3` for the build tools, the downloaded frontend
+release, MariaDB `11.8.6` and Apache `2.4.68`, and reached `status=complete` with Let's Encrypt and an accepted test
+message. The backend build took 4:51 min. A 20-second memory sampler recorded at most 1017 MiB used RAM and 23 MiB
+used swap: below 3700 MiB the frontend is downloaded, so the swap file only backs the Maven and `javac` build.
+After a reboot the swap file was active again from `/etc/fstab`, MariaDB, the backend and Apache started by
+themselves and `/api/gtinfo` answered after 189 seconds of uptime. Two attempts before had stopped in the plan
+without changing anything: once because the APT lists were older than 24 hours and the pinned helpers could not be
+fetched during an internet outage, once because Armbian's ramlog had restored the removed
+`/var/log/grafioschtrader.log` from `/var/log.hdd` at boot. Application commit:
+`c63be7145b153d30ca7fb8cfea795e573d1a14a0`; installer SHA-256:
+`e57c60fd4614ecc5f8862947b2cc094fbd321f5af472f8073213f54648770c2d`.
+
 Real-hardware acceptance on Debian 13 arm64 passed on 2026-10-08 on a Radxa ROCK 4C+ (4 GB, zram swap, SD card)
 with Armbian 26.11, kernel `6.18.54-current-rockchip64`, nginx `1.26.3`, Let's Encrypt and the installer's own
 DuckDNS updater, dual-homed like the ROCK 5B. The image had neither git nor dig; the modeless plan installed both
