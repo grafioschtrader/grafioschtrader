@@ -546,6 +546,19 @@ hint, and both modes exit 0. On both hosts the package list, unit files, `/var/l
 `/etc`, `/usr`, `/opt`, `/var/www` and `/home/grafioschtrader` were unchanged. The only service difference was
 `systemd-timedated`, which the inventory's `timedatectl show` starts through D-Bus and which ends itself when idle.
 
+The same read-only acceptance passed on 2026-10-09 on the other three reference hosts with the installer of
+`838e547e0ade62e9121c7a75bb24ca51ee9f63ea` (SHA-256
+`ea4a259d0fb8ab7f054c136eb1db7250f6ea20f6e98c9d086ddbb1b5f51480d4`), placed only in a temporary directory under
+`/tmp` and removed afterwards: `.82` (Raspberry Pi 5, Debian 12 arm64, kernel `6.12.47+rpt-rpi-2712`, Apache with
+AJP, MariaDB `10.11.18` behind a socket unit on `*:3306`), `.83` and `.84` (Raspberry Pi 5, Debian 13 arm64, same
+kernel, nginx, MariaDB `11.8.6`; `.83` also serves Home Assistant and phpMyAdmin). All three reported
+`host.class=classic` with the `./gtupdate.sh` hint; `--check` exits 2 for the non-empty database, `--dry-run` 0. On
+`.82` the report warns that MariaDB listens beyond loopback and leaves the shared server's networking unchanged.
+Package list, unit files, `/var/lib/gt-install` and the files under `/etc`, `/usr`, `/var/www` and
+`/home/grafioschtrader` were unchanged; `systemd-timedated` was again the only service difference. The only new
+files, under `/opt/zigbee2mqtt` on `.82`, came from that host's zigbee2mqtt service, which restarted every few
+seconds because its USB adapter was missing.
+
 Real-hardware acceptance on 2026-10-08 passed on a Radxa ROCK 5B (arm64, 16 GB, SD card) with Debian 12.15,
 kernel `6.1.84-8-rk2410`, nginx `1.22.1`, Let's Encrypt and the installer's own DuckDNS updater. The host is
 dual-homed: the intranet on Ethernet without a default route, the internet over WLAN; `LAN_ADDRESS` selected the

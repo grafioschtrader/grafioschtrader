@@ -51,15 +51,6 @@ failure.
 |---|---|
 | Ubuntu 24.04 arm64 | backend built locally, frontend served, listeners on loopback, migrations complete, no `uca1400` column, service up again after a reboot, rerun without a step |
 
-**Read-only runs on the reference hosts** (`--check` and `--dry-run`): correct host class, complete component
-report, no file, package or service changed.
-
-| Host | System | Web |
-|---|---|---|
-| 192.168.100.83 | Debian 13 arm64 | nginx with Home Assistant and phpMyAdmin |
-| 192.168.100.84 | Debian 13 arm64 | nginx |
-| 192.168.100.82 | Debian 12 arm64, MariaDB through a socket unit on `*:3306` | Apache (AJP) |
-
 **Scenarios on real hosts** (so far covered by container or fixture tests only):
 
 | Scenario | Required evidence |
