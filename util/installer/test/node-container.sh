@@ -49,7 +49,8 @@ gt_core_buildtools
 [[ "$(sha256sum /usr/local/bin/node)" == "$shared_node" && -f /usr/local/lib/node_modules/gt-fixture/package.json ]]
 gt_core_variables
 # Exercise the real updater preflight with its generated environment and the service user's npm prefix.
-gt_as_app bash util/shellscripts/checkversion.sh > "$SCRATCH/version-check"
+# gt_as_app runs in the service user's home, so the script needs an absolute path.
+gt_as_app bash "$PWD/util/shellscripts/checkversion.sh" > "$SCRATCH/version-check"
 grep -q 'All checks passed!' "$SCRATCH/version-check"
 gt_build_download() { echo 'Completed build tools must not download again' >&2; return 99; }
 gt_core_buildtools
