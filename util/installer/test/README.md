@@ -489,7 +489,8 @@ Debian 13, where `npx` failed with `EACCES` and `checkversion.sh` rejected Node 
 reached `gtupfrontend.sh`, whose `free -m` then printed `Speicher:` instead of `Mem:`. `gt_as_app` now runs in the
 service user's home with `LC_ALL=C.UTF-8`, and both helpers call `LC_ALL=C free -m`. Independently of the installer,
 the backend's Hibernate startup message `HHH10001005` writes the JDBC URL that MariaDB Connector/J reports,
-including `password=`, to `/var/log/grafioschtrader.log` (mode 640); `dialog-check` records this as a note.
+including `password=`, to `/var/log/grafioschtrader.log` (mode 640); `dialog-check` records this as a note until
+issue #274 is resolved.
 
 Real-hardware acceptance on 2026-10-08 passed on a Radxa ROCK 5B (arm64, 16 GB, SD card) with Debian 12.15,
 kernel `6.1.84-8-rk2410`, nginx `1.22.1`, Let's Encrypt and the installer's own DuckDNS updater. The host is

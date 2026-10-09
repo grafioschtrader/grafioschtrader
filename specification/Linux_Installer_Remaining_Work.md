@@ -7,91 +7,33 @@
 `util/installer/`. Its behaviour is defined by the sources in `util/installer/src/`, the generated bundle
 `util/installer/gt-install.sh` and [`util/installer/README.md`](../util/installer/README.md); the acceptance record
 lives in [`util/installer/test/README.md`](../util/installer/test/README.md). This document fixes the remaining work
-packages and the order in which they are done (§1–§6). Each package ends with its acceptance; a package starts only
-after the one before it is committed, except where §7 allows otherwise.
+packages and the order in which they are done (§1–§5). Each package ends with its acceptance; a package starts only
+after the one before it is committed, except where §6 allows otherwise.
 
 Supported platforms stay as the installer reports them: primary are Debian 12, Debian 13, Ubuntu 24.04 and Ubuntu
 26.04 (including Raspberry Pi OS and Armbian on these bases) on amd64 and arm64; legacy are Debian 11 and Ubuntu 22.04
 on amd64 and arm64, and armhf on any of them, which stays on Node.js 22 and becomes `block` after 2027-04-30.
 
-## 1. CI maintenance
+## 1. CI on the Ubuntu 26 runner
 
-Done first because it is small and the runner change is dated.
+The `ubuntu-latest` label moves to Ubuntu 26 from 2026-10-19. After that date run `.github/workflows/installer.yml`
+by `workflow_dispatch` and confirm every job green on the new image, including the `core` job's
+`dialogs-container.sh` step. Pin `ubuntu-24.04` in a job only when a suite cannot run on 26 and record the reason in
+`util/installer/test/README.md`.
 
-- `.github/workflows/installer.yml` uses `actions/checkout@v4`, whose Node.js 20 runtime GitHub forces onto Node.js
-  24 with a deprecation warning in every job. Move every `actions/checkout` (and any other action reporting the
-  same warning) to the release that targets Node.js 24.
-- The `ubuntu-latest` label moves to Ubuntu 26 from 2026-10-19. After that date run `installer.yml` by
-  `workflow_dispatch` and confirm every container suite green on the new image; pin `ubuntu-24.04` in a job only
-  when a suite cannot run on 26 and record the reason in `util/installer/test/README.md`.
-- Bring the long lines of `util/installer/src/*.sh` to the project's 120-character limit (currently 365 lines in the
-  sources), regenerate the bundle with `bash util/installer/build.sh` and commit both together.
+**Acceptance:** two consecutive green `installer.yml` runs on Ubuntu 26 without a Node.js deprecation warning of an
+action.
 
-**Acceptance:** two consecutive green `installer.yml` runs on Ubuntu 26 without a deprecation warning;
-`bash util/installer/test/check-shell.sh` green as root and as a user.
-
-## 2. Whiptail front end and password generation
-
-The installer runs in a terminal, locally or over SSH. It has two interactive front ends next to the answers file:
-
-| Front end | Used when | Look |
-|---|---|---|
-| `whiptail` | a terminal is attached, `whiptail` exists, `TERM` is not `dumb`, and the terminal has at least 80 × 24 cells | full-screen dialogs as in `raspi-config`: input boxes, password boxes without echo, menus and radio lists, yes/no boxes, a progress gauge |
-| plain prompts | `--plain`, or one of the `whiptail` conditions fails | one line per question (the existing front end) |
-| answers file | `--answers <file>` | no interaction (the existing front end) |
-
-`whiptail` is already one of the base packages of an installing run; the read-only modes install nothing and fall
-back to plain prompts when it is missing.
-
-**One question model.** The `whiptail` front end renders the same definitions as the plain prompts:
-`gt_question_model`, `gt_question_applies`, `gt_default`, `gt_validate_answer` and `gt_valid_secret` in
-`util/installer/src/30-questions.sh`. Credentials stay in the separate `SECRET` map and never reach
-`gt_plan_report`. The same answers produce the same plan in both front ends.
-
-**Screens**, in this order:
-
-1. the inventory and compatibility report as a scrollable text box;
-2. for a domain, the DNS checklist as a message box with *Continue* and *Stop here*;
-3. the questions;
-4. the summary and action plan as a scrollable text box with *Install* and *Cancel*;
-5. during execution a gauge with the current step and the last line of its log; the first build drives the gauge
-   from the build log, so a run of many minutes on a single-board computer visibly progresses;
-6. the final report as a scrollable text box, printed to the terminal again after `whiptail` exits so it stays in
-   the scrollback.
-
-**Navigation.** *Cancel* returns one question; *Esc* asks whether to abort. A rejected value reopens the same dialog
-with the validator's message. When going back changes an earlier answer, answers and secrets whose conditions no
-longer hold are discarded and dependent defaults and checks are recomputed. The planner's document-root safeguards
-stay: modifying a foreign vhost requires its effective configuration, routes, document root and exact include
-location to be known.
-
-**Credentials.** New passwords are entered twice without echo; credentials of existing accounts and tokens once
-without echo.
-
-**Password generation.** New DB, MariaDB root and Jasypt passwords may be generated by an explicit action in both
-interactive front ends. Empty input never selects it, and existing credentials cannot be generated. Use the
-alphabet of `gen_secret` in `docker/install.sh` (`openssl rand -base64`, removing `/`, `+`, `=`) with 24 characters.
-A generated password is shown once on `/dev/tty` for the user to record, never in the log, the plan or the report.
-The internally generated JWT secret stays at 48 characters.
-
-**Language.** Dialog texts, help texts and buttons are German when `LANG` (or `LC_ALL`, `LC_MESSAGES`) starts with
-`de`, English otherwise; button labels are passed with `--yes-button`, `--no-button`, `--ok-button` and
-`--cancel-button`. The log stays English.
-
-**Tests.** Bats cases with a stubbed `whiptail` for: the front-end selection (including a terminal below 80 × 24),
-*Cancel* stepping back, a rejected value reopening its dialog, discarded dependent answers after a change, password
-confirmation, explicit generation, and the identical plan for the same answers in both front ends. Remove the
-sentence "Whiptail dialogs remain pending" from `util/installer/README.md` and document the front end there.
-
-**Acceptance:** `whiptail` over SSH on Debian 13 and Ubuntu 26.04 with `LANG=de_CH.UTF-8` and `LANG=en_US.UTF-8`;
-dialogs and buttons in the right language, the small-terminal fallback works, and an installation driven only by
-dialogs completes.
-
-## 3. Acceptance matrix
+## 2. Acceptance matrix
 
 Full installations run only on disposable systems; production hosts contribute read-only evidence. QEMU/VM runs
 require an explicit request. Every passed acceptance is recorded in `util/installer/test/README.md` with host,
 release, kernel, toolchain versions, application commit and installer SHA-256.
+
+Every fresh installation is started the way an administrator starts it: over SSH, with `sudo` from the
+administrator's own home directory and the session's `LANG`, at least once in German. In QEMU this is
+`GT_VM_MODE=dialogs` (`util/installer/test/vm-dialogs.py`); a run started through `systemd-run` in `/` without a
+locale does not count as a fresh installation.
 
 **Fresh installations still owed:**
 
@@ -124,11 +66,11 @@ report, no file, package or service changed.
 | existing MariaDB with socket access, with password-only access; MariaDB 10.5 | no credential question when privileged socket access succeeds; otherwise the current password once; no foreign root password or plugin changed; all migrations succeed on 10.5 |
 | other Node.js and Java consumers, a shared document root, a PHP location on the same nginx vhost | consumers still on their runtime, alternatives unchanged, other sites answer as before |
 | occupied 8080/9090, several vhosts | alternative ports used consistently, no listener off loopback, no traffic routed to another site |
-| secrets with shell, SQL and properties special characters; cancellation during execution | literal values survive; no value in logs, errors or argv; temporary credentials removed on every exit path |
+| secrets with shell, SQL and properties special characters; cancellation during execution | literal values survive; no value in the installer's logs, errors or argv, nor in `/var/log/grafioschtrader.log` once issue #274 is resolved; temporary credentials removed on every exit path |
 | administrator address different from the SMTP sender | `g.main.user.admin.mail` holds the chosen address; registration at exactly that address receives administrator roles |
-| editing after hand-over | edit `application.properties` and add a key to `application-production.properties`, run `./gtupdate.sh` as `grafioschtrader`; the application answers with the edit in effect, `merger.sh` kept the template key and the production file is unchanged |
+| editing after hand-over | edit `application.properties` and add a key to `application-production.properties`, run `./gtupdate.sh` as `grafioschtrader` in a German SSH session; the application answers with the edit in effect, `merger.sh` kept the template key and the production file is unchanged |
 
-## 4. Documentation
+## 3. Documentation
 
 **Wiki.** The page *Installation on Debian 10 to 13 based Linux* names the installer as the primary way; the manual
 steps stay as reference for unsupported systems. The nginx sub-page points nginx at 8080, which contradicts its own
@@ -138,6 +80,11 @@ steps stay as reference for unsupported systems. The nginx sub-page points nginx
 
 - download and invocation (`--check`, `--dry-run`, modeless installation, `--answers` with `--yes`, `--plain`),
   resumption by running the installer again without a mode, and `--check-mail` for a wrong SMTP password;
+- the dialogs: when they appear (terminal of at least 80 × 24, `whiptail` present, otherwise single-line prompts),
+  their order, *Back* and *Esc*, Tab to reach the buttons of a scrollable text, and the transcript printed after the
+  last dialog;
+- generating new passwords (*Generate a password*, or `!generate` in the single-line prompts), that a generated
+  password is shown only once, and that existing credentials and tokens cannot be generated;
 - armhf stays on Node.js 22 and is refused from 2027-04-30;
 - below 3700 MB RAM the frontend is downloaded as `latest.tar.gz` from the GitHub release `Latest`, which is rebuilt
   on every frontend push to `master` and can be newer than the built backend;
@@ -155,11 +102,12 @@ steps stay as reference for unsupported systems. The nginx sub-page points nginx
   database, start the service and let the migrations bring it to the built version;
 - limitations: the SMTP login is also the sender address; nginx configurations with wildcard or regex names,
   dynamic includes, address-specific port-80 listeners or a shared port 80 without `default_server` are integrated
-  manually, as the installer's report describes.
+  manually, as the installer's report describes; a new password that is literally `!generate` cannot be typed in
+  the single-line prompts.
 
 **Acceptance:** both language versions build, and every limitation above is findable on the installation pages.
 
-## 5. Changing the SMTP selection later
+## 4. Changing the SMTP selection later
 
 Saved answers are immutable; a changed answer is refused. The one exception today is the SMTP password through
 `--check-mail`. Extend this to the whole SMTP selection: an installation completed with `SMTP_CONFIGURE=no`, or with
@@ -169,15 +117,15 @@ wrong SMTP settings, can set or change `SMTP_HOST`, `SMTP_PORT`, `SMTP_AUTH`, `S
 - Only the owned configuration affected by mail is regenerated; the application is rebuilt and restarted as for the
   SMTP password.
 - The original database, Jasypt and JWT secrets are preserved; the installation ID and resource ownership stay.
-- All other saved answers stay immutable; domain and TLS changes remain the manual procedure of §4.
+- All other saved answers stay immutable; domain and TLS changes remain the manual procedure of §3.
 - The result changes from `incomplete` to `complete` once the mail milestone passes.
 
 **Acceptance:** Bats cases for the accepted SMTP change and for a refused change of any other answer; on a real host,
 an installation done without SMTP gains mail and reaches `status=complete`.
 
-## 6. Stage 2 — Debian package
+## 5. Stage 2 — Debian package
 
-Starts only after §3 has installed a disposable machine of every primary release and architecture.
+Starts only after §2 has installed a disposable machine of every primary release and architecture.
 
 `grafioschtrader-installer`, `Architecture: all`:
 
@@ -193,24 +141,19 @@ Starts only after §3 has installed a disposable machine of every primary releas
 **Acceptance:** the package installs and upgrades on Debian 12 and Ubuntu 24.04, `sudo gt-install --check` runs, and
 removing the package leaves an installed Grafioschtrader untouched.
 
-## 7. Order
+## 6. Order
 
 | Order | Package | Depends on |
 |---|---|---|
-| 1 | §1 CI maintenance | — |
-| 2 | §2 Whiptail front end and password generation | §1 |
-| 3 | §3 Acceptance matrix | §2 for the `whiptail` rows; the other rows may start earlier when hosts are available |
-| 4 | §4 Documentation | §2, so the pages describe the dialogs |
-| 5 | §5 Changing the SMTP selection later | — |
-| 6 | §6 Debian package | §3 complete for every primary combination |
+| 1 | §1 CI on the Ubuntu 26 runner | 2026-10-19 |
+| 2 | §2 Acceptance matrix | — ; rows may start whenever hosts are available |
+| 3 | §3 Documentation | — |
+| 4 | §4 Changing the SMTP selection later | — |
+| 5 | §5 Debian package | §2 complete for every primary combination |
 
-## 8. Decisions
+## 7. Decisions
 
 | # | Decision | Reason |
 |---|---|---|
-| 1 | Terminal interface with `whiptail`, plain prompts as fallback; no desktop dialog, no web wizard | headless hosts reached by SSH; `whiptail` is preinstalled on Debian and Ubuntu; a web wizard would expose secrets in the LAN |
-| 2 | Every question defined once, rendered by interchangeable front ends | identical validation in dialog, prompt and answers file; testable without a terminal |
-| 3 | Manual entry by default for new DB, root and Jasypt passwords, generation only by explicit choice | each credential is consciously supplied or selected; external credentials cannot be invented |
-| 4 | Prompts German or English after `LANG` | the audience arrives through the German and English wiki and videos |
-| 5 | Only the SMTP selection becomes changeable; domain and TLS changes stay manual | mail is the only incomplete milestone a user can fix without touching web or certificates |
-| 6 | Bash script first, thin `.deb` second; no application package | the jar contains the user's configuration and is rebuilt by `gtupdate.sh` outside any package manager; Java 25 cannot be expressed as a dependency on Debian 11/12 |
+| 1 | Only the SMTP selection becomes changeable; domain and TLS changes stay manual | mail is the only incomplete milestone a user can fix without touching web or certificates |
+| 2 | Bash script first, thin `.deb` second; no application package | the jar contains the user's configuration and is rebuilt by `gtupdate.sh` outside any package manager; Java 25 cannot be expressed as a dependency on Debian 11/12 |
