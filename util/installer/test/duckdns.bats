@@ -56,7 +56,8 @@ updater() {
   # www.duckdns.org has no AAAA record; the IPv6 address is a parameter, never the transport.
   updater ipv6
   grep -q -- '^-4 ' "$CURL_ARGS"
-  run grep -q -- '-6' "$CURL_ARGS"
+  # A whole argument only: the temporary path of the config file may contain "-6" (bats-run-6…).
+  run grep -qE -- '(^| )-6( |$)' "$CURL_ARGS"
   [ "$status" -ne 0 ]
   NO_IPV6=yes
   run updater ipv6
