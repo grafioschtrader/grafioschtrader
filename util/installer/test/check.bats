@@ -277,6 +277,17 @@ setup() {
   [[ "${NOTES[*]}" == *'WARN: Legacy platform: Ubuntu 22.04 standard support ends 2027-04'* ]]
 }
 
+@test "an existing MariaDB older than 10.6 blocks while 10.6 is reused" {
+  collect_check
+  FACT[database.vendor]=mariadb FACT[database.version]=10.5.29
+  gt_compatibility
+  [ "${ACTION[mariadb]}" = block ]
+  [ "${REASON[mariadb]}" = 'MariaDB 10.6 or newer required' ]
+  FACT[database.version]=10.6.23
+  gt_compatibility
+  [ "${ACTION[mariadb]}" = reuse ]
+}
+
 @test "unsupported systems and MySQL are blocking findings" {
   collect_check
   FACT[os.ID]=fedora FACT[os.VERSION_ID]=44 FACT[os.ID_LIKE]=unknown

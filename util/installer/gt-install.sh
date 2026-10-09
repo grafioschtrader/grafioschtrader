@@ -811,8 +811,10 @@ gt_compatibility() {
         gt_action mariadb block 'planned connection collation initialization absent or unknown'
       fi ;;
     mariadb)
-      if gt_version_at_least "${FACT[database.version]}" 10.3; then gt_action mariadb reuse "${FACT[database.version]}"
-      else gt_action mariadb block 'MariaDB 10.3 or newer required'; fi
+      # 10.6 is the oldest MariaDB a supported release ships (Ubuntu 22.04) and the oldest the migrations were
+      # accepted on.
+      if gt_version_at_least "${FACT[database.version]}" 10.6; then gt_action mariadb reuse "${FACT[database.version]}"
+      else gt_action mariadb block 'MariaDB 10.6 or newer required'; fi
       if gt_version_at_least "${FACT[database.version]}" 11.5 && [[ "${FACT[source.collation]}" != yes ]]; then
         gt_action mariadb block 'planned connection collation initialization absent or unknown'
       fi ;;
