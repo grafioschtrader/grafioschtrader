@@ -7,12 +7,13 @@ bash util/installer/test/check-shell.sh
 ```
 
 After editing `util/installer/src/`, run `bash util/installer/build.sh` first. The check script verifies bundle
-identity without writing to the checkout, checks syntax and ShellCheck for modules and the bundle, runs the ten
+identity without writing to the checkout, checks syntax and ShellCheck for modules and the bundle, runs the eleven
 `test_build.py` tests and then the existing Bats suite. Python compilation writes bytecode only into temporary
 test directories. Build tests cover deterministic assembly, drift rejection, missing/unexpected sources, invalid
-Python, heredoc boundaries, literal inline quoting and the downloaded file's independence from its source tree.
+Python, heredoc boundaries, literal inline quoting, the downloaded file's independence from its source tree and the
+120-character limit of the shell sources.
 
-The ten bundle tests also run with Windows Python and Git Bash first on `PATH`:
+The eleven bundle tests also run with Windows Python and Git Bash first on `PATH`:
 `python -m unittest discover -s util/installer/test -p test_build.py`. Fixtures use explicit LF endings;
 shell subprocesses use the resolved Bash path and the same Python interpreter as the test runner.
 
@@ -111,6 +112,30 @@ directory. To enforce the read-only contract, run both smoke scripts with a read
 docker run --rm --read-only --tmpfs /tmp -v "$PWD:/repo:ro" ubuntu:24.04 \
   bash /repo/util/installer/test/smoke-plan.sh
 ```
+
+## Front ends
+
+`dialogs.bats` runs the whiptail front end against `whiptail-stub.sh`, a scripted whiptail that answers dialogs by
+their title, accepts the proposal of every other dialog and logs each call's arguments. It covers the front-end
+selection (terminal below 80 × 24, `--plain`, `--yes`, `TERM=dumb`, missing whiptail, modes without questions),
+German and English texts and buttons, Back stepping to the previous question and the abort question on the first
+one, a rejected value reopening its dialog with the expected form, discarded answers and secrets after a changed
+answer together with a recomputed default, the DNS checklist's *Stop here*, password confirmation, Back from the
+first credential to the last question, explicit generation in both front ends (never for existing credentials,
+never by empty input, never in the log or plan) and the identical plan for the same answers in both front ends.
+The stub never answers a password box by itself, and the tests assert that no credential reaches its log.
+
+`smoke-dialogs.py` drives the real whiptail through a pseudo-terminal: a German `--dry-run` and an English
+`--prepare` that generates the three new passwords. It checks the dialog sequence, buttons and key help, the printed
+transcript, that each generated password was on the screen exactly once and never in the transcript, and that no
+scratch directory remains. `dialogs-container.sh` prepares a fresh container for it (whiptail, Python, the German
+locale, `ss` and `openssl`); `installer.yml` runs it in the `core` job:
+
+```bash
+docker run --rm -v "$PWD:/repo:ro" ubuntu:24.04 bash /repo/util/installer/test/dialogs-container.sh
+```
+
+Neither replaces the acceptance over SSH on real Debian 13 and Ubuntu 26.04 hosts in both languages.
 
 ## Installation core
 

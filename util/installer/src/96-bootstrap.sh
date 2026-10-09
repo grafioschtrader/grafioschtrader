@@ -219,6 +219,7 @@ gt_bootstrap_execute() {
       }
     fi
     status=0
+    [[ "$stage" == app ]] || gt_progress "$stage" "$stage"
     case "$stage" in
       app) gt_install_app || status=$? ;;
       web) gt_install_web || status=$? ;;

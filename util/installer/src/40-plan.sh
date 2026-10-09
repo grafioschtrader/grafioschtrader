@@ -438,16 +438,21 @@ gt_prepare_dns() {
   if ! gt_dns_tool_available; then
     gt_text 'Missing DNS check prerequisite: dig (bind9-dnsutils). Only its prerequisite transaction can proceed.' \
       'Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils). Zunächst ist nur diese Paketinstallation möglich.'
-    if ! gt_dns_tools_plan; then gt_plan_report; return 2; fi
-    gt_plan_report
+    if ! gt_dns_tools_plan; then gt_show_plan; return 2; fi
     before=${FACT[dns.tools_plan]}
-    if [[ "$CORE_CONFIRM" != yes ]]; then
-      if [[ -z "$QUESTION_FD" ]]; then
-        { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
+    if [[ "$FRONTEND" == whiptail && "$CORE_CONFIRM" != yes ]]; then
+      gt_plan_report > "$SCRATCH/plan.txt"
+      gt_confirm install-dns-tools || return 130
+    else
+      gt_plan_report
+      if [[ "$CORE_CONFIRM" != yes ]]; then
+        if [[ -z "$QUESTION_FD" ]]; then
+          { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
+        fi
+        printf '%s: ' "$(gt_text 'Type install-dns-tools to install this prerequisite only' \
+          'install-dns-tools eingeben, um nur diese Voraussetzung zu installieren')" >&"$QUESTION_FD"
+        IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == install-dns-tools ]] || return 130
       fi
-      printf '%s: ' "$(gt_text 'Type install-dns-tools to install this prerequisite only' \
-        'install-dns-tools eingeben, um nur diese Voraussetzung zu installieren')" >&"$QUESTION_FD"
-      IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == install-dns-tools ]] || return 130
     fi
     gt_dns_tools_plan || { gt_plan_report; return 2; }
     [[ "$before" == "${FACT[dns.tools_plan]}" ]] || {
@@ -788,7 +793,7 @@ gt_dry_run() {
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
   status=0
-  gt_inventory; gt_compatibility; gt_report
+  gt_inventory; gt_compatibility; gt_show_report || return $?
   if [[ "${FACT[host.class]}" == fresh ]]; then
     if ! { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null; then
       gt_text 'Dry-run requires a terminal for questions; use --check for unattended inventory.' \
@@ -799,7 +804,7 @@ gt_dry_run() {
     gt_questions || return $?
   fi
   gt_plan || status=$?
-  gt_plan_report
+  gt_show_plan
   return "$status"
 }
 
@@ -808,7 +813,7 @@ gt_prepare() {
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
   status=0
-  gt_inventory; gt_compatibility; gt_report
+  gt_inventory; gt_compatibility; gt_show_report || return $?
   gt_question_model
   if [[ "${FACT[host.class]}" == fresh ]]; then
     if [[ -n "$ANSWERS_FILE" ]]; then
@@ -824,12 +829,13 @@ gt_prepare() {
         'Nur Vorbereitung: Geheimnisse werden beim Beenden verworfen; es wird nichts installiert.' >&"$QUESTION_OUTPUT"
     fi
     gt_prepare_root || return $?
-    if [[ -n "$ANSWERS_FILE" ]]; then gt_file_questions || return $?
-    else gt_questions || return $?; fi
-    gt_prepare_secrets || return $?
+    if [[ -n "$ANSWERS_FILE" ]]; then
+      gt_file_questions || return $?
+      gt_prepare_secrets || return $?
+    else gt_interactive_answers || return $?; fi
   fi
   gt_plan || status=$?
-  gt_plan_report
+  gt_show_plan
   de='Vorbereitung endet hier. Erfasste/erzeugte Geheimnisse werden verworfen;'
   de+=' die übergebene Antwortdatei bleibt unverändert.'
   gt_text 'Preparation ends here. Collected/generated secrets are discarded; the supplied answers file is unchanged.' \

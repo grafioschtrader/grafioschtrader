@@ -25,6 +25,7 @@ when embedded in a heredoc. Unknown markers, unused helpers and invalid Python s
 | `10-inventory.sh` | host, packages, runtimes, database, network, web and DNS inventory |
 | `20-compat.sh` | compatibility, port recommendations, inventory orchestration and reports |
 | `30-questions.sh` | defaults, validation, prompts, answer files and credential preparation |
+| `35-dialogs.sh` | front-end selection, whiptail dialogs, password generation, progress gauge and transcript |
 | `40-plan.sh` | action plans, shared stage contracts and dry-run/preparation orchestration |
 | `50-state.sh` | private files, atomic journal and secret storage |
 | `60-core.sh` | user, clone, database, encrypted configuration, toolchains and build tools |
@@ -67,7 +68,48 @@ execution through `curl | bash` is refused. `--help` works without root. Modes c
 accepted without a mode, with `--prepare`, `--install-core` and `--check-mail`. The three `--install-*` modes make
 installation changes;
 `--check-mail` records verification and can send the previously selected test message. Each accepts `--yes`
-to use the saved scope without another terminal confirmation. Whiptail dialogs remain pending.
+to use the saved scope without another terminal confirmation.
+
+## Front ends
+
+The installer runs in a terminal, locally or over SSH. Every question is defined once in `gt_question_model`;
+its conditions, defaults and validation (`gt_question_applies`, `gt_default`, `gt_validate_answer`,
+`gt_valid_secret`) are shared by all front ends, so the same answers produce the same plan.
+
+| Front end | Used when | Look |
+|---|---|---|
+| `whiptail` | a run without a mode, `--install-core`, `--dry-run` or `--prepare` with a terminal attached, `whiptail` present, `TERM` set and not `dumb`, at least 80 × 24 cells, and neither `--plain` nor `--yes` | full-screen dialogs: input boxes, password boxes without echo, menus, yes/no boxes, a progress gauge |
+| plain prompts | `--plain`, or one of the `whiptail` conditions fails | one line per question; `!quit` cancels |
+| answers file | `--answers FILE` | no questions; with `--yes` no interaction at all |
+
+`whiptail` is one of the base packages of an installing run; the read-only modes install nothing and use the
+plain prompts when it is missing. `--check` and the stages without questions (`--install-app`, `--install-web`,
+`--check-mail`) keep their line output.
+
+The dialogs appear in this order: the inventory and compatibility report as a scrollable text box; for a domain,
+the DNS checklist with *Continue* and *Stop here* once the TLS source is chosen; the questions and credentials;
+the summary and action plan with *Install* and *Cancel* (dry-run and preparation only show it); during execution
+a gauge with the current step, its elapsed minutes and the last line of its log — the first build moves the gauge
+by the npm, Angular and Maven reactor progress of `/var/lib/gt-install/app-build.log`; finally the result as a
+text box. Step output that the plain front end prints goes to a private execution log while the gauge is shown.
+When the last dialog closes, everything shown in dialogs — report, plan, execution output and result — is printed
+to the terminal, so it stays in the scrollback; this also happens after an abort.
+
+*Back* (the Cancel button) returns one question; on the first question and on credentials without a previous step
+it asks whether to abort, as does *Esc*. A rejected value reopens the same dialog with the reason and the expected
+form. Going back and changing an answer discards answers and secrets whose conditions no longer hold; an answer that
+was the default of its time is recomputed from the new answers, any other earlier answer is offered again. Back from
+the first credential returns to the last question. Scrollable texts keep the focus on the text; Tab reaches the
+buttons, as the header line says. Dialog texts, help texts and buttons are German when `LANG`, `LC_ALL` or
+`LC_MESSAGES` starts with `de`, English otherwise; build, TLS and journal logs stay English.
+
+New passwords (`DB_ROOT_PASSWORD` for a new server, `DB_PASSWORD` for a new account, `JASYPT_PASSWORD`) can be
+generated instead of typed: in the dialogs by choosing *Generate a password*, in the plain prompts by typing
+`!generate`. Empty input never generates, and credentials of existing accounts, the SMTP password and the DuckDNS
+token cannot be generated. A generated password has 24 characters of the `gen_secret` alphabet of
+`docker/install.sh` (`openssl rand -base64` without `/`, `+`, `=`). It is shown once on the terminal to be recorded
+and never written to a log, the plan, the transcript or the result; the plan lists it as `generated`. The internal
+JWT secret keeps its 48 characters.
 
 The modeless controller presents core, package dependencies and versions, application build/start, web/TLS and
 mail delivery in one plan. Type `install` to approve it; `--yes` supplies that confirmation for unattended runs.
@@ -658,9 +700,10 @@ external command arguments.
 ## Dry-run
 
 `--dry-run` first inventories the host, then asks applicable questions in a terminal and prints the proposed
-actions. The current renderer uses plain prompts with or without `--plain`; German locales select German prompts.
-Enter accepts a default, `!quit` or end-of-input cancels with exit code `130`. Questions read from `/dev/tty`, so
-redirecting the report to a file does not consume answers from stdin. A fresh host needs an attached terminal.
+actions, in dialogs or plain prompts as described under [Front ends](#front-ends); German locales select German
+texts. In the plain prompts Enter accepts a default, `!quit` or end-of-input cancels with exit code `130`; a rejected
+value is followed by the expected form. Questions read from `/dev/tty`, so redirecting the report to a file does not
+consume answers from stdin. A fresh host needs an attached terminal.
 
 The shared question model covers domain and DNS families, TLS provider, web server, backend ports, administrator,
 mail, database reuse, Java heap, document root, time zone, swap, shared Node replacement and firewall changes.
@@ -704,8 +747,10 @@ An inactive database is never started by an authentication probe. Failed authent
 | `SMTP_PASSWORD` | `SMTP_CONFIGURE=yes` and `SMTP_AUTH=yes`, once. | Current mail-account password or app password, for `spring.mail.password`. |
 | `DUCKDNS_TOKEN` | DuckDNS domain with `DUCKDNS_UPDATER=yes`, once. | Existing DuckDNS token; unnecessary when a router or another client updates DNS. |
 
-New passwords require matching confirmation; empty input retries and never generates a replacement. Existing
-credentials are entered once. Input is hidden and preserves spaces, quotes, backslashes, dollar signs and equals
+New passwords require matching confirmation or an explicit request to generate them (see [Front ends](#front-ends));
+empty input retries and never generates a replacement. Existing credentials are entered once. In the plain prompts a
+new password that is literally `!generate` cannot be typed; use the dialogs or the answers file for it. Plain input
+is hidden and preserves spaces, quotes, backslashes, dollar signs and equals
 signs literally. NUL and control characters are rejected. Ctrl-C or end-of-input cancels; while a password is
 entered the terminal runs with `-echo -isig`, so Ctrl-C arrives as an input byte and cancels without depending on
 signal timing. Terminal echo and signal keys are restored on normal completion and handled cancellation. Secret values never enter the printable answer map, reports or

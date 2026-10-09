@@ -9,7 +9,7 @@ import tempfile
 
 
 MODULES = (
-    "00-common.sh", "10-inventory.sh", "20-compat.sh", "30-questions.sh",
+    "00-common.sh", "10-inventory.sh", "20-compat.sh", "30-questions.sh", "35-dialogs.sh",
     "40-plan.sh", "50-state.sh", "60-core.sh", "70-app.sh",
     "80-web-nginx.sh", "81-web-sites.sh", "90-mail.sh", "95-result.sh", "96-bootstrap.sh", "99-main.sh",
 )

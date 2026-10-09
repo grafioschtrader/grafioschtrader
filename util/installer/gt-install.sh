@@ -12,6 +12,10 @@ gt_reset() {
   declare -gA ANSWER=() Q_TYPE=() Q_WHEN=() Q_CHOICES=() Q_EN=() Q_DE=() PLAN_PACKAGES=()
   declare -ga QUESTIONS=() PLAN=() PLAN_BLOCKERS=() PLAN_WARNINGS=()
   QUESTION_FD='' QUESTION_OUTPUT=2
+  FRONTEND=plain PLAIN_FORCED=no TERM_ROWS=0 TERM_COLS=0 TRANSCRIPT=''
+  GAUGE_PID='' GAUGE_PHASES='' GAUGE_STATE='' GAUGE_RUN='' EXEC_LOG='' OUT_SAVE='' ERR_SAVE=''
+  declare -gA ANSWER_DEFAULTED=()
+  declare -ga WT_HISTORY=()
   declare -gA SECRET=() SECRET_STATUS=() FILE_ANSWERS=()
   MODE='' ANSWERS_FILE='' TTY_STATE='' SECRET_INPUT=''
   declare -gA STATE=() PROPERTIES=() BUILD=()
@@ -1373,6 +1377,7 @@ gt_ask() {
     if gt_validate_answer "$key" "$value"; then ANSWER[$key]=$value; return 0; fi
     gt_text 'Invalid value; try again. !quit cancels.' 'Ungültiger Wert; erneut eingeben. !quit bricht ab.' \
       >&"$QUESTION_OUTPUT"
+    gt_validation_hint "$key" >&"$QUESTION_OUTPUT"
   done
 }
 gt_dns_checklist() {
@@ -1398,10 +1403,15 @@ gt_dns_checklist() {
     fi
   fi
 }
+# Asks the applicable questions in the selected front end. The whiptail front end accepts "last" to re-enter at the
+# last question after Back from the first credential; every other call starts with empty answers.
 gt_questions() {
-  local key
-  ANSWER=()
-  gt_question_model
+  local key from=${1:-}
+  if [[ "$from" != last ]]; then
+    ANSWER=() ANSWER_DEFAULTED=()
+    gt_question_model
+  fi
+  if [[ "$FRONTEND" == whiptail ]]; then gt_wt_questions "$from"; return $?; fi
   if [[ "$MODE" == --install-core ]]; then
     gt_text 'Core configuration: the plan will name the changes before execution. !quit cancels.' \
       'Kernkonfiguration: Der Plan benennt die Änderungen vor der Ausführung. !quit bricht ab.' >&"$QUESTION_OUTPUT"
@@ -1470,7 +1480,10 @@ gt_read_secret() {
 
 gt_ask_secret() {
   set +vx
-  local key=$1 twice=${2:-no} first status
+  local key=$1 twice=${2:-no} first status prompt
+  prompt=$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")
+  # Only a new password may be generated, and only by typing the explicit request; empty input never selects it.
+  [[ "$twice" != yes ]] || prompt+=$(gt_text '; !generate creates one' '; !generate erzeugt eines')
   if [[ -t "$QUESTION_FD" ]]; then
     TTY_STATE=$(stty -g <&"$QUESTION_FD") || return 2
     # -isig turns Ctrl-C into an input byte that gt_read_secret cancels on: a terminal SIGINT racing the
@@ -1478,10 +1491,16 @@ gt_ask_secret() {
     stty -echo -isig <&"$QUESTION_FD" || { gt_restore_terminal; return 2; }
   fi
   while :; do
-    printf '%s (%s): ' "$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")" "$key" >&"$QUESTION_OUTPUT"
+    printf '%s (%s): ' "$prompt" "$key" >&"$QUESTION_OUTPUT"
     status=0; gt_read_secret || status=$?
     printf '\n' >&"$QUESTION_OUTPUT"
     if (( status == 130 )); then gt_restore_terminal; return 130; fi
+    if (( status == 0 )) && [[ "$twice" == yes && "$SECRET_INPUT" == '!generate' ]]; then
+      SECRET_INPUT=''
+      gt_restore_terminal
+      gt_secret_generate "$key" || return 2
+      gt_secret_show_generated "$key"; return $?
+    fi
     (( status != 0 )) || gt_secret_valid_for "$key" "$SECRET_INPUT" || status=1
     if (( status == 0 )); then
       first=$SECRET_INPUT
@@ -1549,11 +1568,14 @@ gt_file_questions() {
   done
 }
 
+# twice=yes marks a new password: entered twice, or generated on explicit request. back=no turns Back of the
+# whiptail dialog into the abort question, for a credential that has no previous step.
 gt_collect_secret() {
-  local key=$1 twice=${2:-no}
+  local key=$1 twice=${2:-no} back=${3:-yes}
   if [[ -n "$ANSWERS_FILE" ]]; then
     gt_secret_valid_for "$key" "${FILE_ANSWERS[$key]:-}" || { gt_secret_error; return 2; }
     SECRET[$key]=${FILE_ANSWERS[$key]} SECRET_STATUS[$key]=collected
+  elif [[ "$FRONTEND" == whiptail ]]; then gt_wt_secret "$key" "$twice" "$back"
   else gt_ask_secret "$key" "$twice"; fi
 }
 
@@ -1570,10 +1592,10 @@ gt_prepare_root() {
   local file
   gt_question_applies DB_ROOT_PASSWORD || return 0
   if [[ "${FACT[database.vendor]}" == absent ]]; then
-    gt_collect_secret DB_ROOT_PASSWORD yes; return $?
+    gt_collect_secret DB_ROOT_PASSWORD yes no; return $?
   fi
   [[ "${FACT[database.vendor]}" == mariadb && "${FACT[database.active]}" == yes ]] || { gt_secret_error; return 2; }
-  gt_collect_secret DB_ROOT_PASSWORD || return $?
+  gt_collect_secret DB_ROOT_PASSWORD no no || return $?
   file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2
   gt_database "$file"
   rm -f -- "$file"
@@ -1585,19 +1607,28 @@ gt_prepare_root() {
   gt_compatibility
 }
 
+# Returns GT_BACK when Back leaves the first credential, so the caller can return to the questions.
 gt_prepare_secrets() {
   set +vx
-  local key twice file client value
+  local key twice file client value i=0 status
+  local -a keys=()
   unset 'FACT[database.gt_auth]'
   [[ "${FACT[database.vendor]}" == absent || "${FACT[database.gt_user]}" == absent ||
     "${FACT[database.gt_user]}" == present ]] || { gt_secret_error; return 2; }
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" == secret && "$key" != DB_ROOT_PASSWORD ]] || continue
-    gt_question_applies "$key" || continue
-    twice=no
+    gt_question_applies "$key" && keys+=("$key")
+  done
+  while (( i < ${#keys[@]} )); do
+    key=${keys[i]} twice=no
     [[ "$key" != JASYPT_PASSWORD ]] || twice=yes
     [[ "$key" != DB_PASSWORD || "${FACT[database.gt_user]}" == present ]] || twice=yes
-    gt_collect_secret "$key" "$twice" || return $?
+    status=0; gt_collect_secret "$key" "$twice" || status=$?
+    case "$status" in
+      0) i=$((i+1)) ;;
+      1) (( i > 0 )) || return "$GT_BACK"; i=$((i-1)) ;;
+      *) return "$status" ;;
+    esac
   done
   if [[ "${FACT[database.gt_user]}" == present ]]; then
     [[ "${FACT[database.active]}" == yes ]] || { gt_secret_error; return 2; }
@@ -1619,6 +1650,469 @@ gt_prepare_secrets() {
 
 # A plan consists of display data, never executable command strings. Even blocked plans remain
 # inspectable. Revalidate every answer here so future front ends cannot bypass the model.
+# Interactive front ends. The plain prompts and the whiptail dialogs render the same question model: conditions,
+# defaults and validation come only from gt_question_applies, gt_default and gt_validate_answer. Whiptail is chosen
+# for the flows that ask questions when a usable terminal of at least 80 x 24 cells exists; --plain, --yes, a dumb
+# terminal or a missing whiptail select the plain prompts. Results travel through --output-fd, so no answer or
+# credential ever appears in a command line.
+
+# Exit status of a dialog sequence whose first item was left with Back; the caller returns to its own last step.
+GT_BACK=75
+
+gt_terminal_size() {
+  local fd size=''
+  { exec {fd}<>/dev/tty; } 2>/dev/null || return 1
+  [[ ! -t "$fd" ]] || size=$(stty size <&"$fd" 2>/dev/null)
+  exec {fd}<&-
+  [[ "$size" =~ ^([0-9]+)\ ([0-9]+)$ ]] || return 1
+  TERM_ROWS=${BASH_REMATCH[1]} TERM_COLS=${BASH_REMATCH[2]}
+}
+
+gt_frontend_select() {
+  FRONTEND=plain
+  case "$MODE" in --bootstrap|--install-core|--dry-run|--prepare) ;; *) return 0 ;; esac
+  [[ "$PLAIN_FORCED" != yes && "$CORE_CONFIRM" != yes ]] || return 0
+  [[ -n "${TERM:-}" && "$TERM" != dumb ]] || return 0
+  command -v whiptail >/dev/null || return 0
+  gt_terminal_size || return 0
+  (( TERM_ROWS >= 24 && TERM_COLS >= 80 )) || return 0
+  FRONTEND=whiptail
+}
+
+gt_tty_open() {
+  if [[ -z "$QUESTION_FD" ]]; then { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2; fi
+  QUESTION_OUTPUT=$QUESTION_FD
+}
+
+# Scrollable texts keep the focus on the text, so the key help names Tab for reaching the buttons.
+gt_wt_backtitle() {
+  gt_text 'Grafioschtrader installation  ·  Tab: buttons  ·  Esc: abort' \
+    'Grafioschtrader-Installation  ·  Tab: Schaltflächen  ·  Esc: Abbruch'
+}
+
+# Runs one dialog on the terminal and prints its result on stdout; the exit status is whiptail's: 0 OK or Yes,
+# 1 Cancel, Back or No, 255 Esc.
+gt_wt() {
+  gt_tty_open || return 2
+  whiptail --backtitle "$(gt_wt_backtitle)" --output-fd 3 "$@" \
+    3>&1 1>&"$QUESTION_FD" 2>&"$QUESTION_FD" <&"$QUESTION_FD"
+}
+
+gt_wt_width() { if (( TERM_COLS > 104 )); then echo 100; else echo $((TERM_COLS - 4)); fi; }
+gt_wt_height() { echo $((TERM_ROWS - 4)); }
+
+# Esc asks before anything is abandoned; 0 means the user wants to abort.
+gt_wt_abort() {
+  gt_wt --title "$(gt_text 'Abort' 'Abbrechen')" --defaultno \
+    --yes-button "$(gt_text 'Abort' 'Abbrechen')" --no-button "$(gt_text 'Continue' 'Weiter')" \
+    --yesno -- "$(gt_text 'Abort the installer? Nothing confirmed so far is executed.' \
+      'Installer abbrechen? Bisher nicht bestätigte Schritte werden nicht ausgeführt.')" 9 "$(gt_wt_width)" >/dev/null
+}
+
+# Shows a file in a scrollable text box and adds it to the transcript printed when the run ends.
+gt_wt_textbox() {
+  local title=$1 file=$2 status
+  cat -- "$file" >> "$TRANSCRIPT"
+  while :; do
+    status=0
+    gt_wt --title "$title" --scrolltext --ok-button "$(gt_text Continue Weiter)" \
+      --textbox -- "$file" "$(gt_wt_height)" "$(gt_wt_width)" >/dev/null || status=$?
+    (( status == 255 )) || return 0
+    if gt_wt_abort; then return 130; fi
+  done
+}
+
+# The inventory and compatibility report: printed in the plain front end, a text box in whiptail.
+gt_show_report() {
+  if [[ "$FRONTEND" != whiptail ]]; then gt_report; return 0; fi
+  gt_report > "$SCRATCH/report.txt"
+  gt_wt_textbox "$(gt_text 'Inventory and compatibility' 'Bestandsaufnahme und Kompatibilität')" \
+    "$SCRATCH/report.txt"
+}
+
+# The plan report. With a confirmation word, whiptail asks Install/Cancel on the plan itself, the plain front end
+# asks for the word; without one the plan is only shown.
+gt_show_plan() {
+  if [[ "$FRONTEND" != whiptail ]]; then gt_plan_report; return 0; fi
+  gt_plan_report > "$SCRATCH/plan.txt"
+  gt_wt_textbox "$(gt_text 'Summary and action plan' 'Zusammenfassung und Aktionsplan')" "$SCRATCH/plan.txt"
+}
+
+gt_confirm() {
+  local word=$1 prompt reply status
+  if [[ "$FRONTEND" == whiptail ]]; then
+    while :; do
+      status=0
+      gt_wt --title "$(gt_text 'Summary and action plan' 'Zusammenfassung und Aktionsplan')" --scrolltext \
+        --yes-button "$(gt_text Install Installieren)" --no-button "$(gt_text Cancel Abbrechen)" \
+        --yesno -- "$(< "$SCRATCH/plan.txt")" "$(gt_wt_height)" "$(gt_wt_width)" >/dev/null || status=$?
+      case "$status" in 0) return 0 ;; 1) return 130 ;; esac
+      if gt_wt_abort; then return 130; fi
+    done
+  fi
+  prompt=$(gt_text 'Type the following to execute this plan' 'Zur Ausführung dieses Plans Folgendes eingeben')
+  printf '%s: %s: ' "$prompt" "$word" >&"$QUESTION_OUTPUT"
+  IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == "$word" ]] || return 130
+}
+
+# A short explanation of what a rejected value has to look like, shown above the reopened dialog.
+gt_validation_hint() {
+  case "${Q_TYPE[$1]}" in
+    domain) gt_text 'Enter a DNS name such as gt.example.org, or leave it empty for LAN only.' \
+      'Einen DNS-Namen wie gt.example.org eingeben oder für nur LAN leer lassen.' ;;
+    host) gt_text 'Enter a host name such as smtp.example.org.' 'Einen Hostnamen wie smtp.example.org eingeben.' ;;
+    email) gt_text 'Enter an e-mail address such as admin@example.org.' \
+      'Eine E-Mail-Adresse wie admin@example.org eingeben.' ;;
+    port) gt_text 'Enter a port from 1 to 65535.' 'Einen Port von 1 bis 65535 eingeben.' ;;
+    integer) gt_text 'Enter a positive whole number.' 'Eine positive ganze Zahl eingeben.' ;;
+    path) gt_text 'Enter an absolute path of letters, digits, dots, underscores, hyphens and slashes.' \
+      'Einen absoluten Pfad aus Buchstaben, Ziffern, Punkten, Unter- und Bindestrichen und Schrägstrichen eingeben.' ;;
+    lineage) gt_text 'Enter a Certbot certificate name, or - for a new certificate.' \
+      'Einen Certbot-Zertifikatsnamen eingeben, oder - für ein neues Zertifikat.' ;;
+    timezone) gt_text 'Enter a time zone such as Europe/Zurich or UTC.' \
+      'Eine Zeitzone wie Europe/Zurich oder UTC eingeben.' ;;
+    address) gt_text 'Enter an IPv4 or IPv6 address, or leave it empty.' \
+      'Eine IPv4- oder IPv6-Adresse eingeben oder leer lassen.' ;;
+    lan) gt_text 'Enter an IPv4 address of this host outside 127.0.0.0/8.' \
+      'Eine IPv4-Adresse dieses Hosts ausserhalb von 127.0.0.0/8 eingeben.' ;;
+    heap) gt_text 'Enter -Xms<size> -Xmx<size> with m or g; the minimum must not exceed the maximum.' \
+      '-Xms<Größe> -Xmx<Größe> mit m oder g eingeben; das Minimum darf das Maximum nicht übersteigen.' ;;
+    *) gt_text 'Choose one of the offered values.' 'Einen der angebotenen Werte wählen.' ;;
+  esac
+}
+
+gt_choice_label() {
+  case "$1:$2" in
+    *:yes) gt_text Yes Ja ;;
+    *:no) gt_text No Nein ;;
+    DNS_FAMILY:ipv4) gt_text 'IPv4 only' 'Nur IPv4' ;;
+    DNS_FAMILY:ipv6) gt_text 'IPv6 only (DS-Lite, CGNAT)' 'Nur IPv6 (DS-Lite, CGNAT)' ;;
+    DNS_FAMILY:both) gt_text 'IPv4 and IPv6' 'IPv4 und IPv6' ;;
+    TLS_SOURCE:letsencrypt)
+      gt_text "Let's Encrypt certificate through certbot" "Let's-Encrypt-Zertifikat über certbot" ;;
+    TLS_SOURCE:existing) gt_text 'Existing certificate on this host' 'Vorhandenes Zertifikat auf diesem Host' ;;
+    TLS_SOURCE:proxy) gt_text 'TLS-terminating proxy in front of this host' \
+      'TLS-terminierender Proxy vor diesem Host' ;;
+    WEBSERVER:nginx) printf 'nginx' ;;
+    WEBSERVER:apache2) printf 'Apache' ;;
+    WEBSERVER:none) gt_text 'Own web server, configured by hand' 'Eigener Webserver, von Hand konfiguriert' ;;
+    SMTP_SECURITY:starttls) printf 'STARTTLS' ;;
+    SMTP_SECURITY:tls) printf 'TLS' ;;
+    SMTP_SECURITY:none) gt_text 'None, unauthenticated relay only' 'Keine, nur Relay ohne Anmeldung' ;;
+    *) printf '%s' "$2" ;;
+  esac
+}
+
+# One question as a dialog. 0 stores the answer, 1 means Back, 130 abort. An earlier answer is offered again unless
+# it was the default of its time, in which case the default is recomputed from the current answers.
+gt_wt_ask() {
+  local key=$1 value default prompt text error='' status item width
+  local -a items=() selected=()
+  width=$(gt_wt_width)
+  default=$(gt_default "$key")
+  if [[ -n "${ANSWER[$key]+set}" && "${ANSWER_DEFAULTED[$key]:-}" != yes ]]; then default=${ANSWER[$key]}; fi
+  prompt=$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")
+  if [[ "$key" == LAN_ADDRESS && "${FACT[network.ipv4_addresses]:-unknown}" != unknown ]]; then
+    prompt+=$'\n'"$(gt_text 'Addresses of this host' 'Adressen dieses Hosts'): ${FACT[network.ipv4_addresses]}"
+  fi
+  while :; do
+    text=$prompt
+    [[ -z "$error" ]] || text="$error"$'\n\n'"$prompt"
+    status=0
+    case "${Q_TYPE[$key]}" in
+      yesno|choice)
+        items=() selected=()
+        for item in ${Q_CHOICES[$key]}; do items+=("$item" "$(gt_choice_label "$key" "$item")"); done
+        [[ -z "$default" ]] || selected=(--default-item "$default")
+        value=$(gt_wt --title "$key" --notags --ok-button OK --cancel-button "$(gt_text Back Zurück)" \
+          "${selected[@]}" --menu -- "$text" $(( ${#items[@]} / 2 + 14 )) "$width" $(( ${#items[@]} / 2 )) \
+          "${items[@]}") || status=$?
+        ;;
+      *)
+        value=$(gt_wt --title "$key" --ok-button OK --cancel-button "$(gt_text Back Zurück)" \
+          --inputbox -- "$text" 14 "$width" "$default") || status=$?
+        ;;
+    esac
+    case "$status" in
+      0) ;;
+      1) return 1 ;;
+      *) if gt_wt_abort; then return 130; fi; continue ;;
+    esac
+    # As in the plain prompts, an empty field takes the current default.
+    [[ -n "$value" ]] || value=$(gt_default "$key")
+    [[ "$key" != DOMAIN ]] || value=${value,,}
+    if gt_validate_answer "$key" "$value"; then
+      ANSWER[$key]=$value
+      if [[ "$value" == "$(gt_default "$key")" ]]; then ANSWER_DEFAULTED[$key]=yes; else ANSWER_DEFAULTED[$key]=no; fi
+      return 0
+    fi
+    error="$(gt_text 'Invalid value' 'Ungültiger Wert'): $(gt_safe "$value")"$'\n'"$(gt_validation_hint "$key")"
+    default=$value
+  done
+}
+
+# The DNS checklist of a domain with Continue and Stop here; 0 continues, 130 stops the run.
+gt_wt_dns_checklist() {
+  local text status
+  text=$(gt_dns_checklist)
+  [[ -n "$text" ]] || return 0
+  while :; do
+    status=0
+    gt_wt --title "$(gt_text 'DNS checklist' 'DNS-Checkliste')" \
+      --yes-button "$(gt_text Continue Weiter)" --no-button "$(gt_text 'Stop here' 'Hier anhalten')" \
+      --yesno -- "$text" 16 "$(gt_wt_width)" >/dev/null || status=$?
+    case "$status" in 0) return 0 ;; 1) return 130 ;; esac
+    if gt_wt_abort; then return 130; fi
+  done
+}
+
+# Walks the question model with Back. Leaving the first question with Back asks whether to abort. "last" re-enters at
+# the last question asked, which is where Back from the first credential leads.
+gt_wt_questions() {
+  local from=${1:-} i=0 key status
+  if [[ "$from" == last ]] && (( ${#WT_HISTORY[@]} )); then
+    i=${WT_HISTORY[-1]}; unset 'WT_HISTORY[-1]'
+  else WT_HISTORY=(); fi
+  while (( i < ${#QUESTIONS[@]} )); do
+    key=${QUESTIONS[i]}
+    if ! gt_question_applies "$key"; then
+      # A changed earlier answer can switch a question off; its answer or secret must not survive.
+      unset 'ANSWER[$key]' 'ANSWER_DEFAULTED[$key]' 'SECRET[$key]' 'SECRET_STATUS[$key]'
+      i=$((i+1)); continue
+    fi
+    if [[ "${Q_TYPE[$key]}" == secret ]]; then i=$((i+1)); continue; fi
+    if [[ "$key" == WEBSERVER && ( "${REASON[web]:-}" == nginx || "${REASON[web]:-}" == apache2 ) ]]; then
+      ANSWER[$key]=${REASON[web]}; i=$((i+1)); continue
+    fi
+    status=0; gt_wt_ask "$key" || status=$?
+    case "$status" in
+      0)
+        WT_HISTORY+=("$i")
+        if [[ "$key" == TLS_SOURCE ]]; then gt_wt_dns_checklist || return $?; fi
+        i=$((i+1)) ;;
+      1)
+        if (( ${#WT_HISTORY[@]} == 0 )); then
+          if gt_wt_abort; then return 130; fi
+        else i=${WT_HISTORY[-1]}; unset 'WT_HISTORY[-1]'; fi ;;
+      *) return "$status" ;;
+    esac
+  done
+}
+
+# Questions followed by credentials, with Back from the first credential leading to the last question.
+gt_interactive_answers() {
+  local status from=''
+  while :; do
+    gt_questions "$from" || return $?
+    status=0; gt_prepare_secrets || status=$?
+    (( status == GT_BACK )) || return "$status"
+    from=last
+  done
+}
+
+# A new password made of the alphabet of gen_secret in docker/install.sh.
+gt_secret_generate() {
+  local value
+  value=$(gt_probe openssl rand -base64 48) || return 2
+  value=${value//[$'/+=\n']/}; value=${value:0:24}
+  [[ "$value" =~ ^[a-zA-Z0-9]{24}$ ]] || return 2
+  SECRET[$1]=$value SECRET_STATUS[$1]=generated
+}
+
+# The generated value appears once on the terminal for the user to record, never in a log, plan or report.
+gt_secret_show_generated() {
+  set +vx
+  local key=$1 file reply en de
+  en="Generated password for $key. Record it now; it is not shown again."
+  de="Erzeugtes Passwort für $key. Jetzt notieren; es wird nicht erneut angezeigt."
+  if [[ "$FRONTEND" == whiptail ]]; then
+    file=$(umask 077; mktemp "$SCRATCH/generated.XXXXXX") || return 2
+    printf '%s\n\n    %s\n' "$(gt_text "$en" "$de")" "${SECRET[$key]}" > "$file"
+    gt_wt --title "$key" --ok-button "$(gt_text 'Recorded' 'Notiert')" \
+      --textbox -- "$file" 12 "$(gt_wt_width)" > /dev/null
+    rm -f -- "$file"
+  else
+    printf '%s\n    %s\n%s' "$(gt_text "$en" "$de")" "${SECRET[$key]}" \
+      "$(gt_text 'Press Enter once recorded. ' 'Nach dem Notieren Enter drücken. ')" >&"$QUESTION_OUTPUT"
+    IFS= read -r -u "$QUESTION_FD" reply || return 130
+  fi
+  return 0
+}
+
+# A credential as password dialogs. New passwords are entered twice or generated by an explicit menu choice;
+# credentials of existing accounts and tokens are entered once. 0 stores it, 1 means Back, 130 abort.
+gt_wt_secret() {
+  set +vx
+  local key=$1 twice=${2:-no} back=${3:-yes} first second status error='' prompt text width action
+  width=$(gt_wt_width)
+  prompt=$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")
+  while :; do
+    status=0
+    if [[ "$twice" == yes && -z "$error" ]]; then
+      action=$(gt_wt --title "$key" --notags --ok-button OK --cancel-button "$(gt_text Back Zurück)" \
+        --default-item enter --menu -- "$prompt" 12 "$width" 2 \
+        enter "$(gt_text 'Enter a password' 'Passwort eingeben')" \
+        generate "$(gt_text 'Generate a password' 'Passwort erzeugen')") || status=$?
+      if (( status == 0 )) && [[ "$action" == generate ]]; then
+        gt_secret_generate "$key" || return 2
+        gt_secret_show_generated "$key"; return $?
+      fi
+    fi
+    if (( status == 0 )); then
+      text=$prompt
+      [[ -z "$error" ]] || text="$error"$'\n\n'"$prompt"
+      first=$(gt_wt --title "$key" --ok-button OK --cancel-button "$(gt_text Back Zurück)" \
+        --passwordbox -- "$text" 12 "$width") || status=$?
+    fi
+    if (( status == 0 )) && ! gt_secret_valid_for "$key" "$first"; then
+      error=$(gt_text 'Empty or invalid input.' 'Leere oder ungültige Eingabe.'); continue
+    fi
+    if (( status == 0 )) && [[ "$twice" == yes ]]; then
+      second=$(gt_wt --title "$key" --ok-button OK --cancel-button "$(gt_text Back Zurück)" \
+        --passwordbox -- "$(gt_text 'Repeat password' 'Passwort wiederholen')" 10 "$width") || status=$?
+      if (( status == 0 )) && [[ "$first" != "$second" ]]; then
+        first='' second=''
+        error=$(gt_text 'The two entries differ.' 'Die beiden Eingaben unterscheiden sich.'); continue
+      fi
+    fi
+    case "$status" in
+      0) SECRET[$key]=$first SECRET_STATUS[$key]=collected; first='' second=''; return 0 ;;
+      1) [[ "$back" != yes ]] || return 1 ;;
+    esac
+    if gt_wt_abort; then return 130; fi
+    error=''
+  done
+}
+
+# Progress of the execution. The plain front end prints the given line as before; whiptail shows a gauge with the
+# current step and the last line of its log, fed by a background reader of a small state file.
+gt_progress() {
+  local phase=$1 step=$2 line=${3:-}
+  if [[ -n "$GAUGE_PID" ]]; then
+    printf '%s %s %(%s)T\n' "$phase" "$step" -1 > "$GAUGE_STATE.new" && mv -f -- "$GAUGE_STATE.new" "$GAUGE_STATE"
+  fi
+  [[ -z "$line" ]] || printf '%s\n' "$line"
+}
+
+gt_gauge_weights() {
+  printf '%s\n' 'core base_packages 4' 'core swap 1' 'core toolchains 8' 'core user 1' 'core duckdns 1' \
+    'core buildtools 6' 'core clone 4' 'core database 2' 'core configure 3' \
+    'app scripts 1' 'app resources 1' 'app service 1' 'app cron 1' 'app build 50' 'app start 6' \
+    'web web 7' 'mail mail 3'
+}
+
+gt_gauge_label() {
+  case "$1" in
+    base_packages) gt_text 'Base packages' 'Basispakete' ;;
+    swap) gt_text 'Swap file' 'Auslagerungsdatei' ;;
+    toolchains) gt_text 'Java and Maven' 'Java und Maven' ;;
+    user) gt_text 'Service user' 'Dienstbenutzer' ;;
+    duckdns) printf 'DuckDNS' ;;
+    buildtools) gt_text 'Node.js and build tools' 'Node.js und Build-Werkzeuge' ;;
+    clone) gt_text 'Source code' 'Quellcode' ;;
+    database) gt_text 'Database' 'Datenbank' ;;
+    configure) gt_text 'Encrypted configuration' 'Verschlüsselte Konfiguration' ;;
+    scripts) gt_text 'Update scripts' 'Update-Skripte' ;;
+    resources) gt_text 'System resources' 'Systemressourcen' ;;
+    service) gt_text 'Service unit' 'Dienst-Unit' ;;
+    cron) gt_text 'Scheduled tasks' 'Zeitgesteuerte Aufgaben' ;;
+    build) gt_text 'Build of frontend and backend' 'Build von Frontend und Backend' ;;
+    start) gt_text 'First start and database migrations' 'Erster Start und Datenbankmigrationen' ;;
+    web) gt_text 'Web server and TLS' 'Webserver und TLS' ;;
+    mail) gt_text 'Mail check' 'Mail-Prüfung' ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
+# Fraction of the first build in percent, read from the build log: npm, the Angular bundle, then the Maven reactor
+# with its [module/modules] counter.
+gt_build_fraction() {
+  local log=$1 reactor
+  [[ -r "$log" ]] || { echo 0; return; }
+  if grep -q 'BUILD SUCCESS' "$log"; then echo 100; return; fi
+  reactor=$(grep -oE 'Building .* \[[0-9]+/[0-9]+\]' "$log" | tail -n 1 | grep -oE '[0-9]+/[0-9]+\]$') || reactor=''
+  if [[ "$reactor" =~ ^([0-9]+)/([0-9]+)\]$ ]] && (( BASH_REMATCH[2] > 0 )); then
+    echo $(( 45 + 55 * (BASH_REMATCH[1] - 1) / BASH_REMATCH[2] )); return
+  fi
+  if grep -qE 'Application bundle generation complete|Initial total|latest\.tar\.gz' "$log"; then echo 40; return; fi
+  if grep -qE 'added [0-9]+ packages' "$log"; then echo 15; return; fi
+  echo 0
+}
+
+gt_gauge_feed() {
+  local phase step started total=0 done_weight=0 weight p s w found=no percent fraction log line minutes
+  local build_log
+  build_log="$(gt_path /var/lib/gt-install)/app-build.log"
+  while read -r p s w; do [[ " $GAUGE_PHASES " != *" $p "* ]] || total=$((total + w)); done < <(gt_gauge_weights)
+  (( total > 0 )) || total=1
+  while [[ -e "$GAUGE_RUN" ]]; do
+    if read -r phase step started < "$GAUGE_STATE" 2>/dev/null && [[ -n "${step:-}" ]]; then
+      done_weight=0 weight=0 found=no
+      while read -r p s w; do
+        [[ " $GAUGE_PHASES " == *" $p "* ]] || continue
+        if [[ "$p:$s" == "$phase:$step" ]]; then weight=$w found=yes; break; fi
+        done_weight=$((done_weight + w))
+      done < <(gt_gauge_weights)
+      [[ "$found" == yes ]] || done_weight=0
+      fraction=0 log=$EXEC_LOG
+      if [[ "$step" == build ]]; then fraction=$(gt_build_fraction "$build_log"); log=$build_log; fi
+      percent=$(( (100 * done_weight + weight * fraction) / total ))
+      minutes=$(( ($(printf '%(%s)T' -1) - started) / 60 ))
+      line=$(tail -n 1 "$log" 2>/dev/null) || line=''
+      line=$(gt_safe "$line"); line=${line:0:$(( $(gt_wt_width) - 6 ))}
+      printf 'XXX\n%d\n%s (%s min)\n\n%s\nXXX\n' "$percent" "$(gt_gauge_label "$step")" "$minutes" "$line"
+    fi
+    sleep 1
+  done
+}
+
+gt_gauge_start() {
+  [[ "$FRONTEND" == whiptail && -z "$GAUGE_PID" ]] || return 0
+  case "$MODE" in
+    --bootstrap) GAUGE_PHASES='core app web mail' ;;
+    --install-core) GAUGE_PHASES=core ;;
+    *) return 0 ;;
+  esac
+  gt_tty_open || return 2
+  GAUGE_STATE="$SCRATCH/gauge-state" GAUGE_RUN="$SCRATCH/gauge-run" EXEC_LOG="$SCRATCH/execution.log"
+  : > "$GAUGE_STATE"; : > "$GAUGE_RUN"; : > "$EXEC_LOG"
+  gt_gauge_feed | whiptail --backtitle "$(gt_text 'Grafioschtrader installation' 'Grafioschtrader-Installation')" \
+    --title "$(gt_text 'Installing' 'Installation läuft')" --gauge -- '' 10 "$(gt_wt_width)" 0 \
+    >&"$QUESTION_FD" 2>&1 &
+  GAUGE_PID=$!
+  # Step output would draw over the gauge; it goes to the execution log and is printed when the gauge ends.
+  exec {OUT_SAVE}>&1 {ERR_SAVE}>&2
+  exec >> "$EXEC_LOG" 2>&1
+}
+
+gt_gauge_stop() {
+  [[ -n "$GAUGE_PID" ]] || return 0
+  exec 1>&"$OUT_SAVE" 2>&"$ERR_SAVE" {OUT_SAVE}>&- {ERR_SAVE}>&-
+  rm -f -- "$GAUGE_RUN"
+  wait "$GAUGE_PID" 2>/dev/null || :
+  GAUGE_PID=''
+  cat -- "$EXEC_LOG" >> "$TRANSCRIPT"
+}
+
+# Ends the dialogs of a run: the execution result as a text box, then everything shown in dialogs is printed to the
+# terminal so it stays in the scrollback.
+gt_frontend_finish() {
+  local file
+  [[ "$FRONTEND" == whiptail ]] || return 0
+  gt_gauge_stop
+  if [[ -s "${EXEC_LOG:-}" ]]; then
+    file=$EXEC_LOG
+    [[ ! -s "$SCRATCH/result.txt" ]] || file="$SCRATCH/result.txt"
+    gt_wt --title "$(gt_text 'Result' 'Ergebnis')" --scrolltext --ok-button OK \
+      --textbox -- "$file" "$(gt_wt_height)" "$(gt_wt_width)" >/dev/null || :
+  fi
+}
+
+gt_transcript_print() {
+  [[ "$FRONTEND" == whiptail && -s "${TRANSCRIPT:-}" ]] || return 0
+  printf '\n'
+  cat -- "$TRANSCRIPT"
+}
 gt_plan_row() { PLAN+=("$1 | $2 | $(gt_text "$3" "${4:-$3}")"); }
 gt_plan_block() { PLAN_BLOCKERS+=("$(gt_text "$1" "${2:-$1}")"); }
 gt_plan_warn() { PLAN_WARNINGS+=("$(gt_text "$1" "${2:-$1}")"); }
@@ -2059,16 +2553,21 @@ gt_prepare_dns() {
   if ! gt_dns_tool_available; then
     gt_text 'Missing DNS check prerequisite: dig (bind9-dnsutils). Only its prerequisite transaction can proceed.' \
       'Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils). Zunächst ist nur diese Paketinstallation möglich.'
-    if ! gt_dns_tools_plan; then gt_plan_report; return 2; fi
-    gt_plan_report
+    if ! gt_dns_tools_plan; then gt_show_plan; return 2; fi
     before=${FACT[dns.tools_plan]}
-    if [[ "$CORE_CONFIRM" != yes ]]; then
-      if [[ -z "$QUESTION_FD" ]]; then
-        { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
+    if [[ "$FRONTEND" == whiptail && "$CORE_CONFIRM" != yes ]]; then
+      gt_plan_report > "$SCRATCH/plan.txt"
+      gt_confirm install-dns-tools || return 130
+    else
+      gt_plan_report
+      if [[ "$CORE_CONFIRM" != yes ]]; then
+        if [[ -z "$QUESTION_FD" ]]; then
+          { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
+        fi
+        printf '%s: ' "$(gt_text 'Type install-dns-tools to install this prerequisite only' \
+          'install-dns-tools eingeben, um nur diese Voraussetzung zu installieren')" >&"$QUESTION_FD"
+        IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == install-dns-tools ]] || return 130
       fi
-      printf '%s: ' "$(gt_text 'Type install-dns-tools to install this prerequisite only' \
-        'install-dns-tools eingeben, um nur diese Voraussetzung zu installieren')" >&"$QUESTION_FD"
-      IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == install-dns-tools ]] || return 130
     fi
     gt_dns_tools_plan || { gt_plan_report; return 2; }
     [[ "$before" == "${FACT[dns.tools_plan]}" ]] || {
@@ -2409,7 +2908,7 @@ gt_dry_run() {
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
   status=0
-  gt_inventory; gt_compatibility; gt_report
+  gt_inventory; gt_compatibility; gt_show_report || return $?
   if [[ "${FACT[host.class]}" == fresh ]]; then
     if ! { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null; then
       gt_text 'Dry-run requires a terminal for questions; use --check for unattended inventory.' \
@@ -2420,7 +2919,7 @@ gt_dry_run() {
     gt_questions || return $?
   fi
   gt_plan || status=$?
-  gt_plan_report
+  gt_show_plan
   return "$status"
 }
 
@@ -2429,7 +2928,7 @@ gt_prepare() {
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
   status=0
-  gt_inventory; gt_compatibility; gt_report
+  gt_inventory; gt_compatibility; gt_show_report || return $?
   gt_question_model
   if [[ "${FACT[host.class]}" == fresh ]]; then
     if [[ -n "$ANSWERS_FILE" ]]; then
@@ -2445,12 +2944,13 @@ gt_prepare() {
         'Nur Vorbereitung: Geheimnisse werden beim Beenden verworfen; es wird nichts installiert.' >&"$QUESTION_OUTPUT"
     fi
     gt_prepare_root || return $?
-    if [[ -n "$ANSWERS_FILE" ]]; then gt_file_questions || return $?
-    else gt_questions || return $?; fi
-    gt_prepare_secrets || return $?
+    if [[ -n "$ANSWERS_FILE" ]]; then
+      gt_file_questions || return $?
+      gt_prepare_secrets || return $?
+    else gt_interactive_answers || return $?; fi
   fi
   gt_plan || status=$?
-  gt_plan_report
+  gt_show_plan
   de='Vorbereitung endet hier. Erfasste/erzeugte Geheimnisse werden verworfen;'
   de+=' die übergebene Antwortdatei bleibt unverändert.'
   gt_text 'Preparation ends here. Collected/generated secrets are discarded; the supplied answers file is unchanged.' \
@@ -4284,7 +4784,7 @@ gt_core_snapshot() {
 gt_core_execute() {
   local step en de
   for step in base_packages swap toolchains user duckdns buildtools clone database configure; do
-    printf '%s: %s\n' "$(gt_text 'Core step' 'Kernschritt')" "$step"
+    gt_progress core "$step" "$(gt_text 'Core step' 'Kernschritt'): $step"
     "gt_core_$step" ||
       { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
   done
@@ -4785,7 +5285,7 @@ gt_install_app() {
   [[ "$before" == "$after" ]] && gt_app_preflight || return 2
   gt_core_mark step.app running || return 2
   for step in scripts resources service cron build start; do
-    printf 'Application step: %s\n' "$step"
+    gt_progress app "$step" "Application step: $step"
     message="$step; inspect /var/lib/gt-install/app-build.log and /var/log/grafioschtrader.log,"
     message+=' then resume --install-app. No automatic database rollback.'
     "gt_app_$step" || { gt_core_error "$message"; return 2; }
@@ -6743,10 +7243,14 @@ Installer erneut ausführen; er prüft sie und schließt ab.")
 
 gt_result_print() {
   local key
-  gt_text 'Installation result (recorded milestones)' 'Installationsergebnis (gespeicherte Prüfergebnisse)'
-  while IFS= read -r key; do
-    printf '%s=%s\n' "$key" "$(gt_safe "${RESULT[$key]}")"
-  done < <(printf '%s\n' "${!RESULT[@]}" | LC_ALL=C sort)
+  {
+    gt_text 'Installation result (recorded milestones)' 'Installationsergebnis (gespeicherte Prüfergebnisse)'
+    while IFS= read -r key; do
+      printf '%s=%s\n' "$key" "$(gt_safe "${RESULT[$key]}")"
+    done < <(printf '%s\n' "${!RESULT[@]}" | LC_ALL=C sort)
+  } > "$SCRATCH/result.txt"
+  # The whiptail front end shows this file as its final text box.
+  cat -- "$SCRATCH/result.txt"
 }
 
 gt_handover() {
@@ -7017,6 +7521,7 @@ gt_bootstrap_execute() {
       }
     fi
     status=0
+    [[ "$stage" == app ]] || gt_progress "$stage" "$stage"
     case "$stage" in
       app) gt_install_app || status=$? ;;
       web) gt_install_web || status=$? ;;
@@ -7030,7 +7535,7 @@ gt_bootstrap_execute() {
   done
 }
 gt_install_core() {
-  local key resume=no before after reply file state_dir status=0 confirmation=install-core prompt
+  local key resume=no before after file state_dir status=0 confirmation=install-core
   [[ "$MODE" != --bootstrap ]] || confirmation=install
   local completed_status
   completed_status=0
@@ -7046,7 +7551,7 @@ gt_install_core() {
     [[ "$MODE" == --bootstrap || -z "${STATE[step.app]:-}" ]] ||
       { gt_core_error 'Application stage has begun; resume without a mode or with --install-app.'; return 2; }
   fi
-  gt_inventory; gt_compatibility; gt_report
+  gt_inventory; gt_compatibility; gt_show_report || return $?
   if [[ "$resume" == no && "${FACT[host.class]}" != fresh ]]; then gt_core_error 'Host is not fresh.'; return 2; fi
   if [[ -n "$ANSWERS_FILE" ]]; then gt_answers_file "$ANSWERS_FILE" || return 2; fi
   if [[ "$CORE_CONFIRM" != yes || "$resume" == no && -z "$ANSWERS_FILE" ]]; then
@@ -7056,8 +7561,10 @@ gt_install_core() {
   fi
   if [[ "$resume" == no ]]; then
     gt_prepare_root || return $?
-    if [[ -n "$ANSWERS_FILE" ]]; then gt_file_questions || return 2; else gt_questions || return $?; fi
-    gt_prepare_secrets || return $?
+    if [[ -n "$ANSWERS_FILE" ]]; then
+      gt_file_questions || return 2
+      gt_prepare_secrets || return $?
+    else gt_interactive_answers || return $?; fi
   else
     # Configuration and application secrets are immutable in this core stage. Never rotate them.
     for key in "${!FILE_ANSWERS[@]}"; do
@@ -7067,7 +7574,7 @@ gt_install_core() {
     done
     if [[ "$MODE" != --bootstrap || "${STATE[step.core]:-}" != complete ]]; then
       if [[ "${STATE[new_database_server]}" == yes || "${FACT[database.query]}" != ok ]]; then
-        gt_collect_secret DB_ROOT_PASSWORD || return $?
+        gt_collect_secret DB_ROOT_PASSWORD no no || return $?
       fi
       if [[ "${FACT[database.vendor]}" != absent ]]; then
         file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2
@@ -7076,17 +7583,19 @@ gt_install_core() {
       fi
     fi
   fi
-  if ! gt_execution_plan; then gt_plan_report; return 2; fi
+  if ! gt_execution_plan; then gt_show_plan; return 2; fi
   if [[ "$MODE" != --bootstrap ]]; then gt_prepare_dns || return $?; fi
   gt_execution_plan; local plan_status=$?
-  gt_plan_report
+  # A blocked plan is shown on its own; an executable one is shown together with the Install question.
+  if (( plan_status != 0 )) || [[ "$FRONTEND" != whiptail ]]; then gt_show_plan
+  else gt_plan_report > "$SCRATCH/plan.txt"; fi
   (( plan_status == 0 )) || return 2
   before=$(gt_install_snapshot | LC_ALL=C sort | sha256sum)
   if [[ "$CORE_CONFIRM" != yes ]]; then
-    prompt=$(gt_text 'Type the following to execute this plan' 'Zur Ausführung dieses Plans Folgendes eingeben')
-    printf '%s: %s: ' "$prompt" "$confirmation" >&"$QUESTION_OUTPUT"
-    IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == "$confirmation" ]] || return 130
+    gt_confirm "$confirmation" || return 130
+    [[ "$FRONTEND" != whiptail ]] || cat -- "$SCRATCH/plan.txt" >> "$TRANSCRIPT"
   fi
+  gt_gauge_start || return 2
   gt_inventory
   if [[ "${FACT[database.vendor]}" != absent && -n "${SECRET[DB_ROOT_PASSWORD]:-}" ]]; then
     file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2; gt_database "$file"; rm -f -- "$file"
@@ -7118,6 +7627,8 @@ gt_install_core() {
 gt_cleanup() {
   set +vx
   gt_restore_terminal
+  gt_gauge_stop
+  gt_transcript_print
   if [[ "${STATE[step.toolchains]:-}" == running ]]; then gt_alternatives_restore || :; fi
   SECRET=() SECRET_STATUS=() FILE_ANSWERS=() SECRET_INPUT=''
   PRIVATE_CONTENT=''
@@ -7139,12 +7650,13 @@ main() {
       --answers)
         [[ $# -gt 0 && -z "$ANSWERS_FILE" && -n "$1" && "$1" != --* ]] || { gt_message mode >&2; return 2; }
         ANSWERS_FILE=$1; shift ;;
-      --plain) ;;
+      --plain) PLAIN_FORCED=yes ;;
       --yes) CORE_CONFIRM=yes ;;
       --help|-h)
         cat <<'USAGE'
 Usage: sudo bash gt-install.sh [--answers FILE] [--yes] [--plain]
 Without a mode: review and confirm the full bootstrap, or resume its journal.
+Questions use whiptail dialogs in a terminal of at least 80x24; --plain asks them as single lines.
 Optional stages (all accept --plain):
   --check | --dry-run | --prepare [--answers FILE]
   --install-core [--answers FILE] [--yes]
@@ -7169,19 +7681,24 @@ USAGE
   fi
   umask 077
   SCRATCH=$(mktemp -d) || return 1
+  TRANSCRIPT="$SCRATCH/transcript"
   trap gt_cleanup EXIT
   trap 'exit 130' INT
   trap 'exit 143' TERM
   export GIT_TERMINAL_PROMPT=0
+  gt_frontend_select
+  local status=0
   case "$MODE" in
-    --dry-run) gt_dry_run ;;
-    --prepare) gt_prepare ;;
-    --bootstrap|--install-core) gt_install_core ;;
-    --install-app) gt_install_app ;;
-    --install-web) gt_install_web ;;
-    --check-mail) gt_check_mail ;;
-    *) gt_check ;;
+    --dry-run) gt_dry_run || status=$? ;;
+    --prepare) gt_prepare || status=$? ;;
+    --bootstrap|--install-core) gt_install_core || status=$? ;;
+    --install-app) gt_install_app || status=$? ;;
+    --install-web) gt_install_web || status=$? ;;
+    --check-mail) gt_check_mail || status=$? ;;
+    *) gt_check || status=$? ;;
   esac
+  gt_frontend_finish
+  return "$status"
 }
 
 [[ "${GT_INSTALL_SOURCE_ONLY:-}" == 1 ]] || main "$@"

@@ -154,10 +154,14 @@ Installer erneut ausführen; er prüft sie und schließt ab.")
 
 gt_result_print() {
   local key
-  gt_text 'Installation result (recorded milestones)' 'Installationsergebnis (gespeicherte Prüfergebnisse)'
-  while IFS= read -r key; do
-    printf '%s=%s\n' "$key" "$(gt_safe "${RESULT[$key]}")"
-  done < <(printf '%s\n' "${!RESULT[@]}" | LC_ALL=C sort)
+  {
+    gt_text 'Installation result (recorded milestones)' 'Installationsergebnis (gespeicherte Prüfergebnisse)'
+    while IFS= read -r key; do
+      printf '%s=%s\n' "$key" "$(gt_safe "${RESULT[$key]}")"
+    done < <(printf '%s\n' "${!RESULT[@]}" | LC_ALL=C sort)
+  } > "$SCRATCH/result.txt"
+  # The whiptail front end shows this file as its final text box.
+  cat -- "$SCRATCH/result.txt"
 }
 
 gt_handover() {

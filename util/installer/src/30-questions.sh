@@ -386,6 +386,7 @@ gt_ask() {
     if gt_validate_answer "$key" "$value"; then ANSWER[$key]=$value; return 0; fi
     gt_text 'Invalid value; try again. !quit cancels.' 'Ungültiger Wert; erneut eingeben. !quit bricht ab.' \
       >&"$QUESTION_OUTPUT"
+    gt_validation_hint "$key" >&"$QUESTION_OUTPUT"
   done
 }
 gt_dns_checklist() {
@@ -411,10 +412,15 @@ gt_dns_checklist() {
     fi
   fi
 }
+# Asks the applicable questions in the selected front end. The whiptail front end accepts "last" to re-enter at the
+# last question after Back from the first credential; every other call starts with empty answers.
 gt_questions() {
-  local key
-  ANSWER=()
-  gt_question_model
+  local key from=${1:-}
+  if [[ "$from" != last ]]; then
+    ANSWER=() ANSWER_DEFAULTED=()
+    gt_question_model
+  fi
+  if [[ "$FRONTEND" == whiptail ]]; then gt_wt_questions "$from"; return $?; fi
   if [[ "$MODE" == --install-core ]]; then
     gt_text 'Core configuration: the plan will name the changes before execution. !quit cancels.' \
       'Kernkonfiguration: Der Plan benennt die Änderungen vor der Ausführung. !quit bricht ab.' >&"$QUESTION_OUTPUT"
@@ -483,7 +489,10 @@ gt_read_secret() {
 
 gt_ask_secret() {
   set +vx
-  local key=$1 twice=${2:-no} first status
+  local key=$1 twice=${2:-no} first status prompt
+  prompt=$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")
+  # Only a new password may be generated, and only by typing the explicit request; empty input never selects it.
+  [[ "$twice" != yes ]] || prompt+=$(gt_text '; !generate creates one' '; !generate erzeugt eines')
   if [[ -t "$QUESTION_FD" ]]; then
     TTY_STATE=$(stty -g <&"$QUESTION_FD") || return 2
     # -isig turns Ctrl-C into an input byte that gt_read_secret cancels on: a terminal SIGINT racing the
@@ -491,10 +500,16 @@ gt_ask_secret() {
     stty -echo -isig <&"$QUESTION_FD" || { gt_restore_terminal; return 2; }
   fi
   while :; do
-    printf '%s (%s): ' "$(gt_text "${Q_EN[$key]}" "${Q_DE[$key]}")" "$key" >&"$QUESTION_OUTPUT"
+    printf '%s (%s): ' "$prompt" "$key" >&"$QUESTION_OUTPUT"
     status=0; gt_read_secret || status=$?
     printf '\n' >&"$QUESTION_OUTPUT"
     if (( status == 130 )); then gt_restore_terminal; return 130; fi
+    if (( status == 0 )) && [[ "$twice" == yes && "$SECRET_INPUT" == '!generate' ]]; then
+      SECRET_INPUT=''
+      gt_restore_terminal
+      gt_secret_generate "$key" || return 2
+      gt_secret_show_generated "$key"; return $?
+    fi
     (( status != 0 )) || gt_secret_valid_for "$key" "$SECRET_INPUT" || status=1
     if (( status == 0 )); then
       first=$SECRET_INPUT
@@ -562,11 +577,14 @@ gt_file_questions() {
   done
 }
 
+# twice=yes marks a new password: entered twice, or generated on explicit request. back=no turns Back of the
+# whiptail dialog into the abort question, for a credential that has no previous step.
 gt_collect_secret() {
-  local key=$1 twice=${2:-no}
+  local key=$1 twice=${2:-no} back=${3:-yes}
   if [[ -n "$ANSWERS_FILE" ]]; then
     gt_secret_valid_for "$key" "${FILE_ANSWERS[$key]:-}" || { gt_secret_error; return 2; }
     SECRET[$key]=${FILE_ANSWERS[$key]} SECRET_STATUS[$key]=collected
+  elif [[ "$FRONTEND" == whiptail ]]; then gt_wt_secret "$key" "$twice" "$back"
   else gt_ask_secret "$key" "$twice"; fi
 }
 
@@ -583,10 +601,10 @@ gt_prepare_root() {
   local file
   gt_question_applies DB_ROOT_PASSWORD || return 0
   if [[ "${FACT[database.vendor]}" == absent ]]; then
-    gt_collect_secret DB_ROOT_PASSWORD yes; return $?
+    gt_collect_secret DB_ROOT_PASSWORD yes no; return $?
   fi
   [[ "${FACT[database.vendor]}" == mariadb && "${FACT[database.active]}" == yes ]] || { gt_secret_error; return 2; }
-  gt_collect_secret DB_ROOT_PASSWORD || return $?
+  gt_collect_secret DB_ROOT_PASSWORD no no || return $?
   file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2
   gt_database "$file"
   rm -f -- "$file"
@@ -598,19 +616,28 @@ gt_prepare_root() {
   gt_compatibility
 }
 
+# Returns GT_BACK when Back leaves the first credential, so the caller can return to the questions.
 gt_prepare_secrets() {
   set +vx
-  local key twice file client value
+  local key twice file client value i=0 status
+  local -a keys=()
   unset 'FACT[database.gt_auth]'
   [[ "${FACT[database.vendor]}" == absent || "${FACT[database.gt_user]}" == absent ||
     "${FACT[database.gt_user]}" == present ]] || { gt_secret_error; return 2; }
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" == secret && "$key" != DB_ROOT_PASSWORD ]] || continue
-    gt_question_applies "$key" || continue
-    twice=no
+    gt_question_applies "$key" && keys+=("$key")
+  done
+  while (( i < ${#keys[@]} )); do
+    key=${keys[i]} twice=no
     [[ "$key" != JASYPT_PASSWORD ]] || twice=yes
     [[ "$key" != DB_PASSWORD || "${FACT[database.gt_user]}" == present ]] || twice=yes
-    gt_collect_secret "$key" "$twice" || return $?
+    status=0; gt_collect_secret "$key" "$twice" || status=$?
+    case "$status" in
+      0) i=$((i+1)) ;;
+      1) (( i > 0 )) || return "$GT_BACK"; i=$((i-1)) ;;
+      *) return "$status" ;;
+    esac
   done
   if [[ "${FACT[database.gt_user]}" == present ]]; then
     [[ "${FACT[database.active]}" == yes ]] || { gt_secret_error; return 2; }

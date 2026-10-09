@@ -417,7 +417,7 @@ gt_install_app() {
   [[ "$before" == "$after" ]] && gt_app_preflight || return 2
   gt_core_mark step.app running || return 2
   for step in scripts resources service cron build start; do
-    printf 'Application step: %s\n' "$step"
+    gt_progress app "$step" "Application step: $step"
     message="$step; inspect /var/lib/gt-install/app-build.log and /var/log/grafioschtrader.log,"
     message+=' then resume --install-app. No automatic database rollback.'
     "gt_app_$step" || { gt_core_error "$message"; return 2; }

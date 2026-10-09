@@ -70,6 +70,8 @@ jobs:
       - uses: actions/checkout@v5
       - name: Check planned base packages in a fresh distribution container
         run: docker run --rm -v "$PWD:/repo:ro" ubuntu:24.04 bash /repo/util/installer/test/base-packages-container.sh
+      - name: Drive the real whiptail dialogs through a pseudo-terminal
+        run: docker run --rm -v "$PWD:/repo:ro" ubuntu:24.04 bash /repo/util/installer/test/dialogs-container.sh
       - name: Build disposable core test environment
         run: docker build -t gt-installer-core - < util/installer/test/core.Dockerfile
       - name: Check real MariaDB, encryption and interruption recovery

@@ -1572,7 +1572,7 @@ gt_core_snapshot() {
 gt_core_execute() {
   local step en de
   for step in base_packages swap toolchains user duckdns buildtools clone database configure; do
-    printf '%s: %s\n' "$(gt_text 'Core step' 'Kernschritt')" "$step"
+    gt_progress core "$step" "$(gt_text 'Core step' 'Kernschritt'): $step"
     "gt_core_$step" ||
       { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
   done
