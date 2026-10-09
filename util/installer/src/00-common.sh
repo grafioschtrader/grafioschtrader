@@ -21,6 +21,9 @@ gt_reset() {
   CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader SWAP_MB=2048
   CORE_REPO=/home/grafioschtrader/build/grafioschtrader
   CORE_REMOTE=https://github.com/grafioschtrader/grafioschtrader.git
+  # Compressed by the owned sites; nginx compresses text/html by itself, Apache lists it separately.
+  GZIP_TYPES='text/plain text/css text/xml application/javascript application/json application/wasm application/xml'
+  GZIP_TYPES+=' image/svg+xml'
   case "${LC_ALL:-${LC_MESSAGES:-${LANG:-en}}}" in de*) LANG_CODE=de ;; esac
 }
 
@@ -29,25 +32,42 @@ gt_message() {
   shift
   local en de
   case "$key" in
-    title) en='Grafioschtrader installation check (read-only)'; de='Grafioschtrader Installationsprüfung (nur lesend)' ;;
+    title) en='Grafioschtrader installation check (read-only)'
+      de='Grafioschtrader Installationsprüfung (nur lesend)' ;;
     facts) en='Inventory'; de='Bestandsaufnahme' ;;
-    actions) en='Compatibility recommendations (no changes made)'; de='Kompatibilitätsempfehlungen (keine Änderungen)' ;;
+    actions) en='Compatibility recommendations (no changes made)'
+      de='Kompatibilitätsempfehlungen (keine Änderungen)' ;;
     notes) en='Notes'; de='Hinweise' ;;
-    requirements) en='Source requirements unavailable; built-in floors are provisional'; de='Quellcode-Anforderungen unbekannt; eingebaute Mindestversionen sind vorläufig' ;;
+    requirements) en='Source requirements unavailable; built-in floors are provisional'
+      de='Quellcode-Anforderungen unbekannt; eingebaute Mindestversionen sind vorläufig' ;;
     unavailable) en='Probe unavailable or failed: %s'; de='Prüfung nicht verfügbar oder fehlgeschlagen: %s' ;;
-    stale) en='APT metadata is absent or older than 24 hours; package candidates may be stale'; de='APT-Metadaten fehlen oder sind älter als 24 Stunden; Paketkandidaten können veraltet sein' ;;
-    existing) en='Existing installation: use %s; bootstrap must leave it untouched'; de='Bestehende Installation: %s verwenden; Erstinstallation darf sie nicht ändern' ;;
-    partial) en='Foreign installation pieces must not be adopted or removed'; de='Fremde Installationsteile dürfen weder übernommen noch entfernt werden' ;;
-    running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'; de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail fortsetzen' ;;
-    resume) en='Unfinished full installation; run the installer again without a mode to resume it'; de='Unfertige Gesamtinstallation; Installer erneut ohne Modus starten, um sie fortzusetzen' ;;
+    stale) en='APT metadata is absent or older than 24 hours; package candidates may be stale'
+      de='APT-Metadaten fehlen oder sind älter als 24 Stunden; Paketkandidaten können veraltet sein' ;;
+    existing) en='Existing installation: use %s; bootstrap must leave it untouched'
+      de='Bestehende Installation: %s verwenden; Erstinstallation darf sie nicht ändern' ;;
+    partial) en='Foreign installation pieces must not be adopted or removed'
+      de='Fremde Installationsteile dürfen weder übernommen noch entfernt werden' ;;
+    running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'
+      de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail'
+      de+=' fortsetzen' ;;
+    resume) en='Unfinished full installation; run the installer again without a mode to resume it'
+      de='Unfertige Gesamtinstallation; Installer erneut ohne Modus starten, um sie fortzusetzen' ;;
     memory) en='Low RAM: %s'; de='Wenig RAM: %s' ;;
-    swap) en='Low RAM without swap, and no swap file can be created: %s'; de='Wenig RAM ohne Swap, und keine Swap-Datei möglich: %s' ;;
+    swap) en='Low RAM without swap, and no swap file can be created: %s'
+      de='Wenig RAM ohne Swap, und keine Swap-Datei möglich: %s' ;;
     legacy) en='Legacy platform: %s'; de='Ältere Plattform: %s' ;;
-    footer) en='Check finished: %s blocking recommendations. Run without a mode to review the installation plan.'; de='Prüfung beendet: %s blockierende Empfehlungen. Ohne Modus starten, um den Installationsplan zu prüfen.' ;;
-    root) en='Run inventory modes as root for a complete inventory.'; de='Bestandsaufnahme für einen vollständigen Bericht als root ausführen.' ;;
-    mode) en='Use --check, --dry-run, --prepare, --install-core, --install-app, --install-web or --check-mail; see --help.'; de='--check, --dry-run, --prepare, --install-core, --install-app, --install-web oder --check-mail verwenden; siehe --help.' ;;
-    pipe) en='Download the script to a file before running it; piped execution is refused.'; de='Skript vor dem Ausführen als Datei speichern; Ausführung über eine Pipe wird abgelehnt.' ;;
-    lock) en='An installer is running or its existing lock cannot be read.'; de='Ein Installer läuft oder seine vorhandene Sperre kann nicht gelesen werden.' ;;
+    footer) en='Check finished: %s blocking recommendations. Run without a mode to review the installation plan.'
+      de='Prüfung beendet: %s blockierende Empfehlungen. Ohne Modus starten, um den Installationsplan zu prüfen.' ;;
+    root) en='Run inventory modes as root for a complete inventory.'
+      de='Bestandsaufnahme für einen vollständigen Bericht als root ausführen.' ;;
+    mode) en='Use --check, --dry-run, --prepare, --install-core, --install-app, --install-web or --check-mail;'
+      en+=' see --help.'
+      de='--check, --dry-run, --prepare, --install-core, --install-app, --install-web oder --check-mail verwenden;'
+      de+=' siehe --help.' ;;
+    pipe) en='Download the script to a file before running it; piped execution is refused.'
+      de='Skript vor dem Ausführen als Datei speichern; Ausführung über eine Pipe wird abgelehnt.' ;;
+    lock) en='An installer is running or its existing lock cannot be read.'
+      de='Ein Installer läuft oder seine vorhandene Sperre kann nicht gelesen werden.' ;;
     *) en=$key; de=$key ;;
   esac
   # The format strings above are installer-owned translations, never probe output.
@@ -81,7 +101,9 @@ gt_literal() {
   # Read a single literal key=value. Reject duplicate keys, substitutions and shell operators.
   local file=$1 key=$2 value
   [[ -r "$file" ]] || return 1
-  value=$(awk -v key="$key" 'index($0,key "=")==1 {n++; v=substr($0,length(key)+2)} END {if(n==1) print v; else exit 1}' "$file") || return 1
+  value=$(awk -v key="$key" '
+    index($0,key "=")==1 {n++; v=substr($0,length(key)+2)}
+    END {if(n==1) print v; else exit 1}' "$file") || return 1
   value=${value%$'\r'}
   if [[ "$value" == \"*\" || "$value" == \'*\' ]]; then value=${value:1:${#value}-2}; fi
   [[ "$value" != *[\$\`\;\\]* ]] || return 1
@@ -148,7 +170,8 @@ gt_source_revision() {
       if gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 \
           "$base/util/shellscripts/checkversion.sh" > "$SCRATCH/checkversion.sh" &&
         gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 \
-          "$base/backend/grafioschtrader-server/src/main/resources/application.properties" > "$SCRATCH/application.properties" &&
+          "$base/backend/grafioschtrader-server/src/main/resources/application.properties" \
+          > "$SCRATCH/application.properties" &&
         gt_parse_requirements "$SCRATCH/checkversion.sh"; then
         FACT[source.requirements]=remote
         FACT[source.collation]=no

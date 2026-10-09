@@ -46,7 +46,8 @@ gt_app_sql() {
 gt_app_database() {
   local count failed
   gt_core_login DB_PASSWORD grafioschtrader TCP || return 2
-  count=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" | gt_app_sql) || return 2
+  count=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" |
+    gt_app_sql) || return 2
   [[ "$count" =~ ^[0-9]+$ ]] || return 2
   if [[ -z "${STATE[step.app_start]:-}" ]]; then
     [[ "$count" == 0 ]] || { gt_core_error 'Database is no longer empty before the first authorized start.'; return 2; }
@@ -54,12 +55,13 @@ gt_app_database() {
     # Only a journaled first start may resume a populated schema. Failed migrations
     # require diagnosis; never automatically drop, repair or baseline anything.
     failed=$(printf 'SELECT COUNT(*) FROM flyway_schema_history WHERE success=0;\n' | gt_app_sql) || return 2
-    [[ "$failed" == 0 ]] || { gt_core_error 'Failed Flyway migration; inspect the application log before resuming.'; return 2; }
+    [[ "$failed" == 0 ]] ||
+      { gt_core_error 'Failed Flyway migration; inspect the application log before resuming.'; return 2; }
   fi
 }
 
 gt_app_preflight() {
-  local command file path entry commit changed digest mode
+  local command file path entry commit changed digest mode resources=backend/grafioschtrader-server/src/main/resources
   gt_stage_preflight || return 2
   [[ "${STATE[step.core]:-}:${STATE[step.database]:-}:${STATE[step.configuration]:-}" == complete:complete:complete &&
     "${STATE[step.buildtools]:-}" == complete ]] || { gt_core_error 'Complete --install-core first.'; return 2; }
@@ -80,13 +82,14 @@ gt_app_preflight() {
     "$(gt_as_app git -C "$CORE_REPO" remote get-url origin)" == "$CORE_REMOTE" ]] || return 2
   changed=$(gt_as_app git -C "$CORE_REPO" diff HEAD --name-only) || return 2
   while IFS= read -r file; do
-    case "$file" in ''|backend/grafioschtrader-server/src/main/resources/application.properties|backend/grafioschtrader-server/src/main/resources/application-production.properties) ;;
+    case "$file" in ''|"$resources/application.properties"|"$resources/application-production.properties") ;;
       *) gt_core_error "Source changed: $file"; return 2 ;;
     esac
   done <<< "$changed"
   for file in gtupbackend.sh gtupfrontend.sh; do
     gt_as_app git -C "$CORE_REPO" show "${STATE[planned_commit]}:util/shellscripts/$file" > "$SCRATCH/$file" || return 2
-    grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/$file" || { gt_core_error 'Pinned source lacks the installer build-only contract.'; return 2; }
+    grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/$file" ||
+      { gt_core_error 'Pinned source lacks the installer build-only contract.'; return 2; }
   done
   for file in node buildtools; do
     [[ "$file" != node || "${STATE[build.mode]}" == archive ]] || continue
@@ -105,11 +108,14 @@ gt_app_targets() {
   local path entry file digest mode changed
   # Do not mask a distribution unit or any foreign override, including runtime units.
   for path in /run/systemd/system /usr/lib/systemd/system /lib/systemd/system /etc/systemd/system; do
-    [[ ! -e "$(gt_path "$path/grafioschtrader.service.d")" && ! -L "$(gt_path "$path/grafioschtrader.service.d")" ]] || return 2
+    [[ ! -e "$(gt_path "$path/grafioschtrader.service.d")" && ! -L "$(gt_path "$path/grafioschtrader.service.d")" ]] ||
+      return 2
     [[ "$path" == /etc/systemd/system ]] && continue
-    [[ ! -e "$(gt_path "$path/grafioschtrader.service")" && ! -L "$(gt_path "$path/grafioschtrader.service")" ]] || return 2
+    [[ ! -e "$(gt_path "$path/grafioschtrader.service")" && ! -L "$(gt_path "$path/grafioschtrader.service")" ]] ||
+      return 2
   done
-  for entry in 'unit:/etc/systemd/system/grafioschtrader.service' 'sudoers:/etc/sudoers.d/grafioschtrader' 'logrotate:/etc/logrotate.d/grafioschtrader'; do
+  for entry in 'unit:/etc/systemd/system/grafioschtrader.service' 'sudoers:/etc/sudoers.d/grafioschtrader' \
+    'logrotate:/etc/logrotate.d/grafioschtrader'; do
     file=${entry#*:}; path=$(gt_path "$file")
     gt_no_symlinks "$path" || return 2
     [[ ! -e "$path" || -n "${STATE[file.app_${entry%%:*}]:-}" ]] || { gt_core_error "Foreign file: $file"; return 2; }
@@ -121,7 +127,8 @@ gt_app_targets() {
   done
   path=$(gt_path "${ANSWER[DOCROOT]}/grafioschtrader")
   gt_no_symlinks "$path" || return 2
-  [[ ! -e "$path" || "${STATE[resource.app_frontend]:-}" == intent || "${STATE[resource.app_frontend]:-}" == owned ]] || return 2
+  [[ ! -e "$path" || "${STATE[resource.app_frontend]:-}" == intent || "${STATE[resource.app_frontend]:-}" == owned ]] ||
+    return 2
   path=$(gt_path /var/log/grafioschtrader.log)
   gt_no_symlinks "$path" || return 2
   [[ ! -e "$path" || -n "${STATE[resource.app_log]:-}" ]] || return 2
@@ -140,7 +147,8 @@ gt_app_targets() {
 
 gt_app_scripts() {
   local file
-  for file in gtupdate.sh gtupbackend.sh gtupfrontend.sh gtupfrontback.sh checkversion.sh merger.sh gt_to_g_rename.sh gtcronrandom.sh; do
+  for file in gtupdate.sh gtupbackend.sh gtupfrontend.sh gtupfrontback.sh checkversion.sh merger.sh gt_to_g_rename.sh \
+      gtcronrandom.sh; do
     gt_as_app git -C "$CORE_REPO" show "${STATE[planned_commit]}:util/shellscripts/$file" > "$SCRATCH/$file" || return 2
     bash -n "$SCRATCH/$file" || return 2
     gt_core_publish "app_$file" "$SCRATCH/$file" "$CORE_HOME/$file" 700 || return 2
@@ -219,7 +227,8 @@ UNIT
 ROTATE
   logrotate --debug "$SCRATCH/logrotate" > "$SCRATCH/logrotate-check" 2>&1 || return 2
   gt_app_root_file app_sudoers "$SCRATCH/sudoers" "$(gt_path /etc/sudoers.d/grafioschtrader)" 440 &&
-    gt_app_root_file app_unit "$SCRATCH/grafioschtrader.service" "$(gt_path /etc/systemd/system/grafioschtrader.service)" 644 &&
+    gt_app_root_file app_unit "$SCRATCH/grafioschtrader.service" \
+      "$(gt_path /etc/systemd/system/grafioschtrader.service)" 644 &&
     gt_app_root_file app_logrotate "$SCRATCH/logrotate" "$(gt_path /etc/logrotate.d/grafioschtrader)" 644 || return 2
   gt_core_run systemctl daemon-reload
 }
@@ -235,7 +244,8 @@ gt_app_cron() {
     temporary=$(gt_as_app mktemp "$CORE_HOME/.gt-cron.XXXXXX") || return 2
     PRIVATE_FILES+=("$temporary")
     gt_as_app cp "$target" "$temporary" &&
-      gt_as_app env TZ="${ANSWER[TIMEZONE]}" GT_CRON_RANDOMIZE=on bash "$CORE_HOME/gtcronrandom.sh" --file "$temporary" > "$SCRATCH/cron.log" 2>&1 || return 2
+      gt_as_app env TZ="${ANSWER[TIMEZONE]}" GT_CRON_RANDOMIZE=on bash \
+        "$CORE_HOME/gtcronrandom.sh" --file "$temporary" > "$SCRATCH/cron.log" 2>&1 || return 2
     install -o root -g root -m 600 "$temporary" "$saved.pending" && mv -T "$saved.pending" "$saved" || return 2
   fi
   [[ "${STATE[step.app_cron]:-}" == running ]] && gt_private_read "$saved" || return 2
@@ -247,7 +257,9 @@ gt_app_cron() {
 gt_app_artifacts() {
   local digest file
   local -a jars=()
-  while IFS= read -r -d '' file; do jars+=("$file"); done < <(find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader-server-*.jar' -print0)
+  while IFS= read -r -d '' file; do
+    jars+=("$file")
+  done < <(find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader-server-*.jar' -print0)
   (( ${#jars[@]} == 1 )) || return 2
   for file in "${jars[0]}" "$(gt_path "${ANSWER[DOCROOT]}/grafioschtrader/index.html")"; do
     gt_no_symlinks "$file" && [[ -s "$file" && -f "$file" && "$(stat -c %U "$file")" == grafioschtrader ]] || return 2
@@ -272,7 +284,8 @@ gt_app_build() {
   # Use the approved checkout; gtupdate.sh is reserved for later updates to master.
   # Cron slots have already been journaled; builds must not modify configuration.
   gt_as_app env GT_INSTALL_BUILD_ONLY=1 GT_CRON_RANDOMIZE=off bash "$CORE_HOME/gtupfrontend.sh" >> "$log" 2>&1 &&
-    gt_as_app env GT_INSTALL_BUILD_ONLY=1 GT_CRON_RANDOMIZE=off bash "$CORE_HOME/gtupbackend.sh" >> "$log" 2>&1 || return 2
+    gt_as_app env GT_INSTALL_BUILD_ONLY=1 GT_CRON_RANDOMIZE=off bash "$CORE_HOME/gtupbackend.sh" >> "$log" 2>&1 ||
+      return 2
   gt_core_config_valid && gt_app_artifacts || return 2
   commit=$(gt_as_app git -C "$CORE_REPO" rev-parse HEAD) || return 2
   [[ "$commit" == "${STATE[planned_commit]}" ]] || return 2
@@ -294,11 +307,13 @@ gt_app_verify() {
 @python-inline listener-addresses.py@
 ' | LC_ALL=C sort) || return 2
   expected="127.0.0.1:$port"
-  [[ "${ANSWER[WEBSERVER]}" != apache2 ]] || expected=$(printf '%s\n127.0.0.1:%s\n' "$expected" "${ANSWER[BACKEND_PORT]}" | LC_ALL=C sort)
+  [[ "${ANSWER[WEBSERVER]}" != apache2 ]] ||
+    expected=$(printf '%s\n127.0.0.1:%s\n' "$expected" "${ANSWER[BACKEND_PORT]}" | LC_ALL=C sort)
   [[ "$listeners" == "$expected" ]] || return 2
   count=$(printf 'SELECT COUNT(*) FROM flyway_schema_history WHERE success=1;\n' | gt_app_sql) || return 2
   [[ "$count" =~ ^[1-9][0-9]*$ ]] || return 2
-  count=$(printf "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='grafioschtrader' AND COLLATION_NAME LIKE '%%uca1400%%';\n" | gt_app_sql) || return 2
+  count=$(printf '%s\n' "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='grafioschtrader'" \
+    "AND COLLATION_NAME LIKE '%uca1400%';" | gt_app_sql) || return 2
   [[ "$count" == 0 ]] || return 2
   gt_app_database
 }
@@ -329,20 +344,21 @@ gt_app_start_boundary() {
 }
 
 gt_app_start() {
-  local deadline=$((SECONDS+900)) status active
+  local deadline=$((SECONDS+900)) status active message
   gt_app_database && gt_app_artifacts || return 2
   # A healthy resumed service needs no new startup boundary and no restart.
   if [[ -n "${STATE[step.app_start]:-}" ]] && gt_app_verify; then
     gt_core_run systemctl enable grafioschtrader.service && gt_core_mark step.app_start complete
     return $?
   fi
-  gt_app_start_boundary || {
-    gt_core_error 'Cannot identify the current startup. Inspect /var/log/grafioschtrader.log; stop the owned service before retrying an unjournaled start.'; return 2;
-  }
+  message='Cannot identify the current startup. Inspect /var/log/grafioschtrader.log;'
+  message+=' stop the owned service before retrying an unjournaled start.'
+  gt_app_start_boundary || { gt_core_error "$message"; return 2; }
   if [[ -z "${STATE[step.app_start]:-}" ]]; then gt_core_mark step.app_start intent || return 2; fi
   # The write-ahead entry is the sole permission to resume a populated GT schema.
   gt_core_run systemctl start grafioschtrader.service || return 2
-  STATE[resource.app_start_invocation]=$(gt_core_run systemctl show --property=InvocationID --value grafioschtrader.service) || return 2
+  STATE[resource.app_start_invocation]=$(gt_core_run systemctl show --property=InvocationID --value \
+    grafioschtrader.service) || return 2
   STATE[resource.app_start_pending]=no
   gt_state_save || return 2
   while (( SECONDS < deadline )); do
@@ -350,7 +366,8 @@ gt_app_start() {
     status=0
     diagnostic=$(gt_app_start_log scan) || status=$?
     if (( status != 0 )); then
-      gt_core_error "Startup stopped (${diagnostic:-log-unavailable}); inspect /var/log/grafioschtrader.log. No automatic database rollback."
+      message="Startup stopped (${diagnostic:-log-unavailable}); inspect /var/log/grafioschtrader.log."
+      gt_core_error "$message No automatic database rollback."
       return 2
     fi
     gt_app_verify; status=$?
@@ -369,22 +386,28 @@ gt_app_start() {
 }
 
 gt_install_app() {
-  local reply step before after state_dir
+  local reply step before after state_dir en de message
   local completed_status
   completed_status=0
   gt_completed || completed_status=$?
   (( completed_status == 3 )) || return "$completed_status"
   state_dir=$(gt_path /var/lib/gt-install)
   gt_question_model
-  if ! gt_state_load || ! gt_secrets_load; then gt_core_error 'Valid core journal and original secrets required.'; return 2; fi
+  if ! gt_state_load || ! gt_secrets_load; then
+    gt_core_error 'Valid core journal and original secrets required.'; return 2
+  fi
   gt_no_symlinks "$state_dir/lock" || return 2
   if [[ -z "$LOCK_FD" ]]; then exec {LOCK_FD}<"$state_dir/lock" || return 2; fi
   flock -n "$LOCK_FD" || return 2
   gt_app_preflight || { gt_core_error 'Application preflight failed; no application changes made.'; return 2; }
   before=$(sha256sum "$state_dir/state")
-  gt_text 'Application stage: install update scripts, sudoers (start/stop only), systemd and logrotate; build the pinned commit, start migrations, verify loopback HTTP and enable the service. Web/TLS remain pending.' \
-    'Anwendungsstufe: Update-Skripte, sudoers (nur Start/Stopp), systemd und Logrotation; bestätigten Commit bauen, Migrationen starten, Loopback-HTTP prüfen und Dienst aktivieren. Web/TLS bleiben offen.'
-  printf 'Commit: %s\nDocument root: %s/grafioschtrader\nTimezone: %s\n' "${STATE[planned_commit]}" "${ANSWER[DOCROOT]}" "${ANSWER[TIMEZONE]}"
+  en='Application stage: install update scripts, sudoers (start/stop only), systemd and logrotate;'
+  en+=' build the pinned commit, start migrations, verify loopback HTTP and enable the service. Web/TLS remain pending.'
+  de='Anwendungsstufe: Update-Skripte, sudoers (nur Start/Stopp), systemd und Logrotation; bestätigten Commit bauen,'
+  de+=' Migrationen starten, Loopback-HTTP prüfen und Dienst aktivieren. Web/TLS bleiben offen.'
+  gt_text "$en" "$de"
+  printf 'Commit: %s\nDocument root: %s/grafioschtrader\nTimezone: %s\n' "${STATE[planned_commit]}" \
+    "${ANSWER[DOCROOT]}" "${ANSWER[TIMEZONE]}"
   if [[ "$CORE_CONFIRM" != yes ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
     printf 'install-app: ' >&"$QUESTION_FD"
@@ -395,7 +418,9 @@ gt_install_app() {
   gt_core_mark step.app running || return 2
   for step in scripts resources service cron build start; do
     printf 'Application step: %s\n' "$step"
-    "gt_app_$step" || { gt_core_error "$step; inspect /var/lib/gt-install/app-build.log and /var/log/grafioschtrader.log, then resume --install-app. No automatic database rollback."; return 2; }
+    message="$step; inspect /var/lib/gt-install/app-build.log and /var/log/grafioschtrader.log,"
+    message+=' then resume --install-app. No automatic database rollback.'
+    "gt_app_$step" || { gt_core_error "$message"; return 2; }
   done
   gt_core_mark step.app complete || return 2
   gt_text 'Application running; installation remains unfinished (web/TLS/mail verification pending).' \

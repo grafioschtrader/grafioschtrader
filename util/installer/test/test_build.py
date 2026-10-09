@@ -126,6 +126,12 @@ class BundleTest(unittest.TestCase):
         for index, source in enumerate(sources):
             py_compile.compile(str(source), cfile=str(self.root / f"{index}.pyc"), doraise=True)
 
+    def test_shell_sources_respect_the_line_limit(self):
+        # The project formats at 120 characters; no shell formatter wraps lines, so this test keeps the limit.
+        long = [f"{source.name}:{number}" for source in sorted((INSTALLER / "src").glob("*.sh"))
+                for number, line in enumerate(source.read_text(encoding="utf-8").splitlines(), 1) if len(line) > 120]
+        self.assertEqual(long, [])
+
 
 if __name__ == "__main__":
     unittest.main()

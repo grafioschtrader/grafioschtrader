@@ -3,7 +3,8 @@ gt_plan_block() { PLAN_BLOCKERS+=("$(gt_text "$1" "${2:-$1}")"); }
 gt_plan_warn() { PLAN_WARNINGS+=("$(gt_text "$1" "${2:-$1}")"); }
 gt_plan_file() {
   if [[ -e "$(gt_path "$1")" || -L "$(gt_path "$1")" ]]; then
-    gt_plan_block "Target already exists: $1; ownership must be resolved." "Ziel existiert bereits: $1; Eigentümerschaft muss geklärt werden."
+    gt_plan_block "Target already exists: $1; ownership must be resolved." \
+      "Ziel existiert bereits: $1; Eigentümerschaft muss geklärt werden."
   fi
   gt_plan_row create "$1" "$2" "${3:-$2}"
 }
@@ -43,11 +44,13 @@ gt_plan_packages() {
   while IFS= read -r line; do
     case "$line" in
       'Remv '*) gt_plan_row remove package "$line"
-        gt_plan_block 'APT would remove packages; this increment cannot authorize removals.' 'APT würde Pakete entfernen; diese Stufe erlaubt keine Entfernungen.' ;;
+        gt_plan_block 'APT would remove packages; this increment cannot authorize removals.' \
+          'APT würde Pakete entfernen; diese Stufe erlaubt keine Entfernungen.' ;;
       'Inst '*) gt_plan_row install package "$line"
         # Any existing package upgrade can affect a shared service. Show it and require resolution.
         if [[ "$line" =~ ^Inst[[:space:]]+[^[:space:]]+[[:space:]]+\[ ]]; then
-          gt_plan_block "APT would upgrade an existing package: $line" "APT würde ein vorhandenes Paket aktualisieren: $line"
+          gt_plan_block "APT would upgrade an existing package: $line" \
+            "APT würde ein vorhandenes Paket aktualisieren: $line"
         fi ;;
       'Conf '*) gt_plan_row configure package "$line" ;;
     esac
@@ -121,10 +124,13 @@ gt_plan_toolchains() {
     gt_plan_file /opt/nodejs-gt 'Official Node archive satisfying source requirements; verify SHASUMS256.txt' \
       'Offizielles Node-Archiv gemäß Quellcode-Anforderungen; SHASUMS256.txt prüfen'
   else
-    gt_plan_file /etc/apt/keyrings/nodesource.gpg 'NodeSource signing key; verify fingerprint' 'NodeSource-Signaturschlüssel; Fingerabdruck prüfen'
-    gt_plan_file /etc/apt/sources.list.d/nodesource.sources 'NodeSource 24.x source with signed-by' 'NodeSource-24.x-Quelle mit signed-by'
+    gt_plan_file /etc/apt/keyrings/nodesource.gpg 'NodeSource signing key; verify fingerprint' \
+      'NodeSource-Signaturschlüssel; Fingerabdruck prüfen'
+    gt_plan_file /etc/apt/sources.list.d/nodesource.sources 'NodeSource 24.x source with signed-by' \
+      'NodeSource-24.x-Quelle mit signed-by'
     [[ "${ANSWER[NODE_REPLACE]:-no}" == yes ]] && item=replace || item=install
-    gt_plan_row "$item" package:nodejs 'NodeSource 24; affects the system runtime' 'NodeSource 24; betrifft die System-Laufzeit'
+    gt_plan_row "$item" package:nodejs 'NodeSource 24; affects the system runtime' \
+      'NodeSource 24; betrifft die System-Laufzeit'
     gt_plan_block 'NodeSource candidate and full transaction are unverified until its repository is available.' \
       'NodeSource-Kandidat und vollständige Transaktion sind ungeprüft, bis die Paketquelle verfügbar ist.'
   fi
@@ -132,7 +138,8 @@ gt_plan_toolchains() {
     gt_plan_warn 'Node replacement requested; every shared consumer must be checked before execution.' \
       'Node-Ersatz gewünscht; alle betroffenen Anwendungen müssen vor Ausführung geprüft werden.'
   fi
-  gt_plan_row configure npm "@angular/cli@$CLI_REQUIRED and semver in /opt/gt-build-tools; selected Node; NG_CLI_ANALYTICS=false" \
+  gt_plan_row configure npm \
+    "@angular/cli@$CLI_REQUIRED and semver in /opt/gt-build-tools; selected Node; NG_CLI_ANALYTICS=false" \
     "@angular/cli@$CLI_REQUIRED und semver in /opt/gt-build-tools; gewähltes Node; NG_CLI_ANALYTICS=false"
 }
 gt_plan_database() {
@@ -142,29 +149,35 @@ gt_plan_database() {
     gt_plan_row configure mariadb 'Remove anonymous accounts and test schema only on a newly installed server.' \
       'Anonyme Konten und test-Schema nur auf einem neu installierten Server entfernen.'
   fi
-  gt_plan_row "${ACTION[database]}" database:grafioschtrader 'utf8mb4 / utf8mb4_general_ci; never adopt non-empty data' \
+  gt_plan_row "${ACTION[database]}" database:grafioschtrader \
+    'utf8mb4 / utf8mb4_general_ci; never adopt non-empty data' \
     'utf8mb4 / utf8mb4_general_ci; niemals vorhandene Daten übernehmen'
   if [[ "${FACT[database.gt_tables]}" == 0 && "${ANSWER[DB_REUSE_EMPTY]:-no}" != yes ]]; then
-    gt_plan_block 'Reuse of the empty database was not accepted.' 'Verwendung der leeren Datenbank wurde nicht bestätigt.'
+    gt_plan_block 'Reuse of the empty database was not accepted.' \
+      'Verwendung der leeren Datenbank wurde nicht bestätigt.'
   fi
   if [[ "${FACT[database.gt_user]}" == present ]]; then
-    gt_plan_row verify 'account:grafioschtrader@localhost' 'Supply current password and verify TCP login before any database changes; never rotate it.' \
+    gt_plan_row verify 'account:grafioschtrader@localhost' \
+      'Supply current password and verify TCP login before any database changes; never rotate it.' \
       'Aktuelles Passwort angeben und TCP-Anmeldung vor Datenbankänderungen prüfen; Passwort niemals ändern.'
     if [[ "$MODE" != --prepare || "${FACT[database.gt_auth]:-}" != ok ]]; then
-      gt_plan_block 'Existing database account credentials remain unverified.' 'Zugangsdaten des vorhandenen Datenbankkontos bleiben ungeprüft.'
+      gt_plan_block 'Existing database account credentials remain unverified.' \
+        'Zugangsdaten des vorhandenen Datenbankkontos bleiben ungeprüft.'
     fi
   elif [[ "${FACT[database.gt_user]}" == absent || "${FACT[database.vendor]}" == absent ]]; then
     gt_plan_row create 'account:grafioschtrader@localhost' 'Use the confirmed password; grant grafioschtrader.* only.' \
       'Bestätigtes Passwort verwenden; Rechte nur für grafioschtrader.* vergeben.'
   else
-    gt_plan_row block 'account:grafioschtrader@localhost' 'Authenticate inventory before deciding whether the account exists.' \
+    gt_plan_row block 'account:grafioschtrader@localhost' \
+      'Authenticate inventory before deciding whether the account exists.' \
       'Bestandsaufnahme authentifizieren, bevor über das Vorhandensein des Kontos entschieden wird.'
   fi
   if [[ "${ANSWER[BUFFER_POOL]:-no}" == yes ]]; then
     [[ "$mem" =~ ^[0-9]+$ ]] || mem=0
     if (( mem >= 6000 )); then pool=2G; elif (( mem >= 3000 )); then pool=1G; fi
     gt_plan_file /etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf "innodb_buffer_pool_size=$pool"
-    gt_plan_row restart mariadb 'Affects all listed schemas, including other applications.' 'Betrifft alle aufgeführten Schemas, auch andere Anwendungen.'
+    gt_plan_row restart mariadb 'Affects all listed schemas, including other applications.' \
+      'Betrifft alle aufgeführten Schemas, auch andere Anwendungen.'
   fi
 }
 
@@ -174,24 +187,30 @@ gt_plan_ports() {
   for key in BACKEND_PORT BACKEND_HTTP_PORT TLS_PROXY_LISTEN; do
     port=${ANSWER[$key]:-}; [[ -n "$port" ]] || continue
     if ! gt_port_free "$port" || [[ -n "${used[$port]:-}" ]]; then
-      gt_plan_block "Port $port ($key) is occupied, duplicated or UNKNOWN." "Port $port ($key) ist belegt, doppelt vergeben oder UNKNOWN."
+      gt_plan_block "Port $port ($key) is occupied, duplicated or UNKNOWN." \
+        "Port $port ($key) ist belegt, doppelt vergeben oder UNKNOWN."
     fi
     used[$port]=$key
   done
   if [[ "${ANSWER[WEBSERVER]}" != none && "${ANSWER[TLS_SOURCE]:-}" != proxy ]]; then
     for port in 80 443; do
       [[ "$port" != 443 || -n "${ANSWER[DOMAIN]}" ]] || continue
-      [[ -z "${used[$port]:-}" ]] || gt_plan_block "Backend port $port overlaps a planned web listener." "Backend-Port $port überschneidet sich mit einem geplanten Web-Listener."
+      [[ -z "${used[$port]:-}" ]] || gt_plan_block "Backend port $port overlaps a planned web listener." \
+        "Backend-Port $port überschneidet sich mit einem geplanten Web-Listener."
     done
   fi
-  gt_plan_row configure backend "127.0.0.1:${ANSWER[BACKEND_PORT]} (${ANSWER[WEBSERVER]}); HTTP=${ANSWER[BACKEND_HTTP_PORT]:-same}"
+  gt_plan_row configure backend \
+    "127.0.0.1:${ANSWER[BACKEND_PORT]} (${ANSWER[WEBSERVER]}); HTTP=${ANSWER[BACKEND_HTTP_PORT]:-same}"
 }
 gt_plan_web() {
-  local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root='' unknown=no file kind=''
+  local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root=''
+  local unknown=no file kind=''
   local -A matches=()
   if [[ "$web" == none ]]; then
-    gt_plan_file /root/gt-install-webserver.conf 'Manual proxy configuration; web milestone remains pending.' 'Manuelle Proxy-Konfiguration; Web-Meilenstein bleibt offen.'
-    gt_plan_warn 'No web integration selected; installation would be incomplete.' 'Keine Web-Integration gewählt; Installation wäre unvollständig.'
+    gt_plan_file /root/gt-install-webserver.conf 'Manual proxy configuration; web milestone remains pending.' \
+      'Manuelle Proxy-Konfiguration; Web-Meilenstein bleibt offen.'
+    gt_plan_warn 'No web integration selected; installation would be incomplete.' \
+      'Keine Web-Integration gewählt; Installation wäre unvollständig.'
     return 0
   fi
   gt_plan_web_runtime
@@ -234,46 +253,59 @@ gt_plan_web() {
 VHOST_INCLUDE=yes and TLS_SOURCE=existing." "Ein vorhandener Vhost bedient die LAN-Adresse oder die Domain; die \
 Domain lässt sich nur mit VHOST_INCLUDE=yes und TLS_SOURCE=existing teilen."
   else
-    [[ "$web" == nginx ]] && file=/etc/nginx/sites-available/grafioschtrader || file=/etc/apache2/sites-available/grafioschtrader.conf
+    if [[ "$web" == nginx ]]; then file=/etc/nginx/sites-available/grafioschtrader
+    else file=/etc/apache2/sites-available/grafioschtrader.conf; fi
     gt_plan_file "$file" 'Own vhost: /api, /m2m, /socket/websocket, /ws, /grafioschtrader; preserve other sites.' \
       'Eigener Vhost: /api, /m2m, /socket/websocket, /ws, /grafioschtrader; andere Sites erhalten.'
     gt_plan_file "${file/sites-available/sites-enabled}" 'Enable own vhost' 'Eigenen Vhost aktivieren'
   fi
-  [[ "$unknown" == no ]] || gt_plan_block 'Effective web configuration is ambiguous or includes unresolved context.' 'Effektive Web-Konfiguration ist mehrdeutig oder enthält ungeklärte Includes.'
+  [[ "$unknown" == no ]] || gt_plan_block 'Effective web configuration is ambiguous or includes unresolved context.' \
+    'Effektive Web-Konfiguration ist mehrdeutig oder enthält ungeklärte Includes.'
   if [[ "${ANSWER[TLS_SOURCE]:-}" != proxy ]]; then
     for name in 80 443; do
       [[ "$name" != 443 || -n "$domain" ]] || continue
-      if ! gt_port_free "$name" && ! awk -v port="$name" -v owner="$web" '$4 ~ (":" port "$") && index($0,owner) {found=1} END {exit !found}' <<< "${FACT[listeners]}"; then
-        gt_plan_block "Web port $name belongs to another process or is UNKNOWN." "Web-Port $name gehört einem anderen Prozess oder ist UNKNOWN."
+      if ! gt_port_free "$name" && ! awk -v port="$name" -v owner="$web" \
+          '$4 ~ (":" port "$") && index($0,owner) {found=1} END {exit !found}' <<< "${FACT[listeners]}"; then
+        gt_plan_block "Web port $name belongs to another process or is UNKNOWN." \
+          "Web-Port $name gehört einem anderen Prozess oder ist UNKNOWN."
       fi
     done
   fi
-  gt_plan_row verify "$web" 'Configuration test and existing vhost HTTP comparisons before/after reload; restore on failure.' \
+  gt_plan_row verify "$web" \
+    'Configuration test and existing vhost HTTP comparisons before/after reload; restore on failure.' \
     'Konfigurationstest und HTTP-Vergleich vorhandener Vhosts vor/nach Reload; bei Fehler wiederherstellen.'
 }
 gt_plan_storage() {
   local path=${ANSWER[DOCROOT]} actual device max mem=${FACT[memory.MemTotal]:-unknown}
   actual=$(gt_path "$path")
   if [[ -L "$actual" || -e "$actual" && ! -d "$actual" ]]; then
-    gt_plan_block "Document root is a symlink or not a directory: $path" "Dokumentenverzeichnis ist ein Symlink oder kein Verzeichnis: $path"
+    gt_plan_block "Document root is a symlink or not a directory: $path" \
+      "Dokumentenverzeichnis ist ein Symlink oder kein Verzeichnis: $path"
   elif [[ -e "$actual/grafioschtrader" || -L "$actual/grafioschtrader" ]]; then
     gt_plan_block "GT content already exists in $path" "GT-Inhalt existiert bereits in $path"
-  elif [[ -d "$actual" && -n "$(find "$actual" -mindepth 1 -maxdepth 1 -print -quit)" && "$path" != "${FACT[plan.vhost_root]:-}" ]]; then
-    gt_plan_block "Non-empty document root is not the selected vhost root: $path" "Nichtleeres Dokumentenverzeichnis gehört nicht zum gewählten Vhost: $path"
+  elif [[ -d "$actual" && -n "$(find "$actual" -mindepth 1 -maxdepth 1 -print -quit)" &&
+      "$path" != "${FACT[plan.vhost_root]:-}" ]]; then
+    gt_plan_block "Non-empty document root is not the selected vhost root: $path" \
+      "Nichtleeres Dokumentenverzeichnis gehört nicht zum gewählten Vhost: $path"
   fi
-  gt_plan_row create "$path/grafioschtrader" 'Only this directory is writable by grafioschtrader; preserve shared content.' \
+  gt_plan_row create "$path/grafioschtrader" \
+    'Only this directory is writable by grafioschtrader; preserve shared content.' \
     'Nur dieses Verzeichnis ist für grafioschtrader beschreibbar; gemeinsame Inhalte erhalten.'
-  [[ -e "$actual" ]] || gt_plan_row create "$path/index.html" 'Landing page in newly created document root' 'Startseite im neu angelegten Dokumentenverzeichnis'
+  [[ -e "$actual" ]] || gt_plan_row create "$path/index.html" 'Landing page in newly created document root' \
+    'Startseite im neu angelegten Dokumentenverzeichnis'
   DISKS=() DISK_FREE=() DISK_NEED=(); unset 'FACT[disk.unknown]'
   gt_disk /home 4096; gt_disk /opt "$(gt_opt_need)"; gt_disk "${FACT[database.datadir]}" 2048; gt_disk "$path" 300
   if [[ "${ANSWER[SWAP]:-no}" == yes && "${STATE[step.swap]:-}" != complete ]]; then gt_disk / "$SWAP_MB"; fi
   gt_swap_plan
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_plan_block 'Disk capacity UNKNOWN.' 'Freier Speicherplatz UNKNOWN.'
   for device in "${!DISK_NEED[@]}"; do
-    (( DISK_FREE[$device] >= DISK_NEED[$device] )) || gt_plan_block "Device $device: ${DISK_NEED[$device]} MiB required, ${DISK_FREE[$device]} MiB available."
+    (( DISK_FREE[$device] >= DISK_NEED[$device] )) || gt_plan_block \
+      "Device $device: ${DISK_NEED[$device]} MiB required, ${DISK_FREE[$device]} MiB available."
   done
   max=${ANSWER[JAVA_HEAP]##*Xmx}; [[ "$max" != *g ]] || max="$((${max%g}*1024))m"; max=${max%m}
-  if [[ "$mem" =~ ^[0-9]+$ ]] && (( max >= mem )); then gt_plan_block 'Maximum Java heap must be smaller than RAM.' 'Maximaler Java-Heap muss kleiner als RAM sein.'; fi
+  if [[ "$mem" =~ ^[0-9]+$ ]] && (( max >= mem )); then
+    gt_plan_block 'Maximum Java heap must be smaller than RAM.' 'Maximaler Java-Heap muss kleiner als RAM sein.'
+  fi
 }
 
 gt_dns_required() { [[ -n "${ANSWER[DOMAIN]:-}" && "${ANSWER[TLS_SOURCE]:-}" != proxy ]]; }
@@ -286,7 +318,8 @@ gt_dns_tool_notice() {
 }
 
 gt_dns_update_notice() {
-  gt_text 'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
+  gt_text \
+    'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
     'DNS weicht ab; der Installer aktualisiert DuckDNS vor dem Build und prüft die Einträge vor jedem Zertifikat.'
 }
 
@@ -313,7 +346,7 @@ gt_dns_records_match() {
 }
 
 gt_plan_dns() {
-  local domain=${ANSWER[DOMAIN]} family name result records expected mismatched=no matched_www=yes
+  local domain=${ANSWER[DOMAIN]} family name result records expected mismatched=no matched_www=yes en de
   FACT[plan.names]=$domain
   FACT[dns.status]=skipped
   gt_dns_required || return 0
@@ -325,16 +358,22 @@ gt_plan_dns() {
       gt_plan_warn "$(gt_dns_tool_notice)"
       return 0
     fi
-    gt_plan_block 'Missing DNS check prerequisite: dig (bind9-dnsutils). Install the confirmed prerequisite, then repeat DNS checks.' \
-      'Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils). Bestätigtes Voraussetzungspaket installieren, danach DNS erneut prüfen.'
+    en='Missing DNS check prerequisite: dig (bind9-dnsutils).'
+    en+=' Install the confirmed prerequisite, then repeat DNS checks.'
+    de='Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils).'
+    de+=' Bestätigtes Voraussetzungspaket installieren, danach DNS erneut prüfen.'
+    gt_plan_block "$en" "$de"
     return 0
   fi
   for name in "$domain" "www.$domain"; do
     for family in A AAAA; do
       result=$(gt_probe dig +time=2 +tries=1 +noall +answer "$name" "$family") || result=unknown
       records=$(awk -v type="$family" '$4==type {print tolower($5)}' <<< "$result" | LC_ALL=C sort -u)
-      [[ "$family" == A ]] && expected=${FACT[network.public_ipv4]:-unknown} || expected=${FACT[network.global_ipv6]:-unknown}
-      if [[ "${ANSWER[DNS_FAMILY]}:$family" == ipv4:AAAA || "${ANSWER[DNS_FAMILY]}:$family" == ipv6:A ]]; then expected=''; fi
+      if [[ "$family" == A ]]; then expected=${FACT[network.public_ipv4]:-unknown}
+      else expected=${FACT[network.global_ipv6]:-unknown}; fi
+      if [[ "${ANSWER[DNS_FAMILY]}:$family" == ipv4:AAAA || "${ANSWER[DNS_FAMILY]}:$family" == ipv6:A ]]; then
+        expected=''
+      fi
       records=$(gt_normalize_addresses <<< "$records")
       expected=$(gt_normalize_addresses <<< "$expected")
       gt_plan_row verify "DNS:$name:$family" "records=${records:-none}; expected=${expected:-none}"
@@ -355,8 +394,11 @@ gt_plan_dns() {
   elif [[ "$mismatched" == yes ]]; then
     FACT[dns.status]=mismatch
     if [[ "${ANSWER[TLS_SOURCE]}" == letsencrypt ]]; then
-      gt_plan_block 'DNS does not match selected address families or is UNKNOWN; resolve before certbot. No DNS update was sent.' \
-        'DNS passt nicht zu den gewählten Adressfamilien oder ist UNKNOWN; vor certbot klären. Kein DNS-Update gesendet.'
+      en='DNS does not match selected address families or is UNKNOWN; resolve before certbot.'
+      en+=' No DNS update was sent.'
+      de='DNS passt nicht zu den gewählten Adressfamilien oder ist UNKNOWN; vor certbot klären.'
+      de+=' Kein DNS-Update gesendet.'
+      gt_plan_block "$en" "$de"
     else gt_plan_warn 'DNS differs or is UNKNOWN; existing-certificate deployment needs a reachability check.' \
       'DNS weicht ab oder ist UNKNOWN; Erreichbarkeit bei Verwendung des vorhandenen Zertifikats prüfen.'; fi
   fi
@@ -426,26 +468,38 @@ gt_plan_certificate() {
   cert=$(gt_path "${ANSWER[TLS_CERT]}"); key=$(gt_path "${ANSWER[TLS_KEY]}")
   permissions=$(stat -Lc %a "$key" 2>/dev/null) || permissions=unknown
   if [[ ! -f "$cert" || ! -r "$cert" || ! -f "$key" || ! -r "$key" || ! "$permissions" =~ ^[0-7]{3,4}$ ]]; then
-    gt_plan_block 'Certificate/key missing, unreadable or permissions UNKNOWN.' 'Zertifikat/Schlüssel fehlt, unlesbar oder Rechte UNKNOWN.'; return 0
+    gt_plan_block 'Certificate/key missing, unreadable or permissions UNKNOWN.' \
+      'Zertifikat/Schlüssel fehlt, unlesbar oder Rechte UNKNOWN.'; return 0
   fi
-  (( (8#$permissions & 077) == 0 )) || gt_plan_block 'Private key is group/world accessible.' 'Privater Schlüssel ist für Gruppe/Andere zugänglich.'
+  (( (8#$permissions & 077) == 0 )) || gt_plan_block 'Private key is group/world accessible.' \
+    'Privater Schlüssel ist für Gruppe/Andere zugänglich.'
   public_cert=$(gt_probe openssl x509 -in "$cert" -pubkey -noout) || public_cert=''
   # Empty passphrase refuses encrypted keys without prompting or exposing key contents.
   public_key=$(gt_probe openssl pkey -in "$key" -passin pass: -pubout) || public_key=''
-  [[ -n "$public_cert" && "$public_cert" == "$public_key" ]] || gt_plan_block 'Certificate and private key do not match or cannot be read.' 'Zertifikat und privater Schlüssel passen nicht zusammen oder sind unlesbar.'
+  [[ -n "$public_cert" && "$public_cert" == "$public_key" ]] || gt_plan_block \
+    'Certificate and private key do not match or cannot be read.' \
+    'Zertifikat und privater Schlüssel passen nicht zusammen oder sind unlesbar.'
   for name in ${FACT[plan.names]}; do
-    gt_certificate_covers "$cert" "$name" || gt_plan_block "Certificate does not cover $name" "Zertifikat gilt nicht für $name"
+    gt_certificate_covers "$cert" "$name" || gt_plan_block "Certificate does not cover $name" \
+      "Zertifikat gilt nicht für $name"
   done
   if ! gt_probe openssl x509 -in "$cert" -noout -ext subjectAltName | grep -q 'DNS:'; then
-    gt_plan_block 'Certificate has no DNS subject alternative names.' 'Zertifikat hat keine DNS-Namen in subjectAltName.'
+    gt_plan_block 'Certificate has no DNS subject alternative names.' \
+      'Zertifikat hat keine DNS-Namen in subjectAltName.'
   fi
-  gt_probe openssl x509 -in "$cert" -noout -checkend 0 >/dev/null || gt_plan_block 'Certificate expired or invalid.' 'Zertifikat abgelaufen oder ungültig.'
-  gt_probe openssl x509 -in "$cert" -noout -checkend 2592000 >/dev/null || gt_plan_warn 'Certificate expires within 30 days.' 'Zertifikat läuft innerhalb von 30 Tagen ab.'
-  gt_probe openssl verify -purpose sslserver -untrusted "$cert" "$cert" >/dev/null || gt_plan_block 'Certificate chain cannot be verified against system trust.' 'Zertifikatskette kann nicht gegen den System-Vertrauensspeicher geprüft werden.'
+  gt_probe openssl x509 -in "$cert" -noout -checkend 0 >/dev/null || gt_plan_block 'Certificate expired or invalid.' \
+    'Zertifikat abgelaufen oder ungültig.'
+  gt_probe openssl x509 -in "$cert" -noout -checkend 2592000 >/dev/null || gt_plan_warn \
+    'Certificate expires within 30 days.' 'Zertifikat läuft innerhalb von 30 Tagen ab.'
+  gt_probe openssl verify -purpose sslserver -untrusted "$cert" "$cert" >/dev/null || gt_plan_block \
+    'Certificate chain cannot be verified against system trust.' \
+    'Zertifikatskette kann nicht gegen den System-Vertrauensspeicher geprüft werden.'
   if [[ "${1:-existing}" == certbot ]]; then
-    gt_plan_row reuse "${ANSWER[TLS_CERT]} / ${ANSWER[TLS_KEY]}" 'Validated Certbot certificate; renewal planned separately.'
+    gt_plan_row reuse "${ANSWER[TLS_CERT]} / ${ANSWER[TLS_KEY]}" \
+      'Validated Certbot certificate; renewal planned separately.'
   else
-    gt_plan_row reuse "${ANSWER[TLS_CERT]} / ${ANSWER[TLS_KEY]}" 'Reference existing files; owner renews and reloads the web server. No renewal hook installed.' \
+    gt_plan_row reuse "${ANSWER[TLS_CERT]} / ${ANSWER[TLS_KEY]}" \
+      'Reference existing files; owner renews and reloads the web server. No renewal hook installed.' \
       'Vorhandene Dateien referenzieren; Eigentümer erneuert und lädt Webserver neu. Kein Erneuerungs-Hook.'
   fi
 }
@@ -488,65 +542,94 @@ gt_certbot_plan() {
   gt_plan_certificate certbot
   ANSWER[TLS_CERT]=$saved_cert ANSWER[TLS_KEY]=$saved_key
   gt_plan_row preserve "$renewal" 'Keep renewal configuration, certificate names and existing renewal schedule.'
-  gt_plan_row create 'Certbot deploy hook' 'Additional installer-owned hook, scoped to this lineage; reload selected web server.'
-  gt_plan_row verify "certbot renew --cert-name $name --dry-run" 'Test the existing renewal configuration; no duplicate issuance.'
+  gt_plan_row create 'Certbot deploy hook' \
+    'Additional installer-owned hook, scoped to this lineage; reload selected web server.'
+  gt_plan_row verify "certbot renew --cert-name $name --dry-run" \
+    'Test the existing renewal configuration; no duplicate issuance.'
 }
 gt_plan_tls() {
-  local web=${ANSWER[WEBSERVER]}
+  local web=${ANSWER[WEBSERVER]} en de
   case "${ANSWER[TLS_SOURCE]:-lan}" in
     letsencrypt)
-      if [[ "$web" == none ]]; then gt_plan_block "Let's Encrypt requires nginx or Apache integration." "Let's Encrypt benötigt nginx- oder Apache-Integration."
+      if [[ "$web" == none ]]; then
+        gt_plan_block "Let's Encrypt requires nginx or Apache integration." \
+          "Let's Encrypt benötigt nginx- oder Apache-Integration."
       else
         gt_plan_package certbot
         gt_certbot_plan
         if [[ "${FACT[tls.reuse]:-no}" != yes ]]; then
-          gt_plan_row issue "certificate:${FACT[plan.names]}" 'certbot HTTP-01, domain HTTPS redirect, enable renewal and verify renew --dry-run during installation' \
-          'certbot HTTP-01, HTTPS-Umleitung für Domain, Erneuerung aktivieren und renew --dry-run bei Installation prüfen'
+          en='certbot HTTP-01, domain HTTPS redirect, enable renewal and verify renew --dry-run during installation'
+          de='certbot HTTP-01, HTTPS-Umleitung für Domain, Erneuerung aktivieren'
+          de+=' und renew --dry-run bei Installation prüfen'
+          gt_plan_row issue "certificate:${FACT[plan.names]}" "$en" "$de"
         fi
       fi ;;
     existing) gt_plan_certificate ;;
     proxy)
-      gt_plan_row configure proxy "HTTP ${ANSWER[TLS_PROXY_LISTEN]}; allowed source=${ANSWER[TLS_PROXY_FROM]:-any}; preserve Host, X-Forwarded-For, X-Forwarded-Proto"
-      [[ -n "${ANSWER[TLS_PROXY_FROM]}" ]] || gt_plan_warn 'Proxy source restriction is empty; all sources could supply forwarded headers.' 'Proxy-Quellbeschränkung ist leer; alle Quellen könnten Forwarded-Header liefern.' ;;
+      en="HTTP ${ANSWER[TLS_PROXY_LISTEN]}; allowed source=${ANSWER[TLS_PROXY_FROM]:-any};"
+      en+=' preserve Host, X-Forwarded-For, X-Forwarded-Proto'
+      gt_plan_row configure proxy "$en"
+      [[ -n "${ANSWER[TLS_PROXY_FROM]}" ]] || gt_plan_warn \
+        'Proxy source restriction is empty; all sources could supply forwarded headers.' \
+        'Proxy-Quellbeschränkung ist leer; alle Quellen könnten Forwarded-Header liefern.' ;;
     lan) gt_plan_row skip tls 'LAN-only HTTP, no certificate' 'HTTP nur im LAN, kein Zertifikat' ;;
   esac
   gt_duckdns_plan
 }
 gt_plan_application() {
-  local file
-  gt_plan_row create user:grafioschtrader 'Home /home/grafioschtrader; disabled login password' 'Home /home/grafioschtrader; Anmeldung per Passwort gesperrt'
-  for file in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service /etc/logrotate.d/grafioschtrader \
-      /home/grafioschtrader/gtvar.sh /home/grafioschtrader/grafioschtrader.sh; do
+  local file en de
+  gt_plan_row create user:grafioschtrader 'Home /home/grafioschtrader; disabled login password' \
+    'Home /home/grafioschtrader; Anmeldung per Passwort gesperrt'
+  for file in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service \
+      /etc/logrotate.d/grafioschtrader /home/grafioschtrader/gtvar.sh /home/grafioschtrader/grafioschtrader.sh; do
     gt_plan_file "$file" 'GT configuration; validated before activation' 'GT-Konfiguration; vor Aktivierung prüfen'
   done
-  gt_plan_row create /var/log/grafioschtrader.log 'Preserve if present; weekly copytruncate, 8 compressed rotations' 'Erhalten falls vorhanden; wöchentlich copytruncate, 8 komprimierte Rotationen'
-  gt_plan_file /root/.gt-install/secrets 'Only during installation: application secrets, excluding database root password; directory 700, file 600' \
+  gt_plan_row create /var/log/grafioschtrader.log 'Preserve if present; weekly copytruncate, 8 compressed rotations' \
+    'Erhalten falls vorhanden; wöchentlich copytruncate, 8 komprimierte Rotationen'
+  gt_plan_file /root/.gt-install/secrets \
+    'Only during installation: application secrets, excluding database root password; directory 700, file 600' \
     'Erst bei Installation: Anwendungsgeheimnisse ohne Datenbank-Root-Passwort; Verzeichnis 700, Datei 600'
-  gt_plan_row clone /home/grafioschtrader/build/grafioschtrader "master; planned commit=${FACT[source.commit]}; build as grafioschtrader"
-  gt_plan_row configure application.properties 'Database/mail/JWT credentials encrypted with Jasypt; admin, user limit, connector and mail keys' \
-    'Datenbank/Mail/JWT-Zugangsdaten mit Jasypt verschlüsseln; Administrator, Benutzerlimit, Connector- und Mail-Schlüssel'
-  gt_plan_row configure application-production.properties 'server.address=127.0.0.1; Apache also server.port; survives gtupdate' \
+  gt_plan_row clone /home/grafioschtrader/build/grafioschtrader \
+    "master; planned commit=${FACT[source.commit]}; build as grafioschtrader"
+  en='Database/mail/JWT credentials encrypted with Jasypt; admin, user limit, connector and mail keys'
+  de='Datenbank/Mail/JWT-Zugangsdaten mit Jasypt verschlüsseln;'
+  de+=' Administrator, Benutzerlimit, Connector- und Mail-Schlüssel'
+  gt_plan_row configure application.properties "$en" "$de"
+  gt_plan_row configure application-production.properties \
+    'server.address=127.0.0.1; Apache also server.port; survives gtupdate' \
     'server.address=127.0.0.1; Apache zusätzlich server.port; bleibt bei gtupdate erhalten'
-  if [[ "${ANSWER[TIMEZONE]}" != "${FACT[timezone]}" ]]; then gt_plan_row modify /etc/localtime "${ANSWER[TIMEZONE]}; before first cron setup"; fi
-  gt_plan_row build /home/grafioschtrader/gtupdate.sh "backend from source, frontend=${FACT[frontend.mode]}; verify built commit and requirements"
-  gt_plan_row enable grafioschtrader.service 'After=mariadb.service; first start runs Flyway; verify /api/gtinfo and schema collations' \
+  if [[ "${ANSWER[TIMEZONE]}" != "${FACT[timezone]}" ]]; then
+    gt_plan_row modify /etc/localtime "${ANSWER[TIMEZONE]}; before first cron setup"
+  fi
+  gt_plan_row build /home/grafioschtrader/gtupdate.sh \
+    "backend from source, frontend=${FACT[frontend.mode]}; verify built commit and requirements"
+  gt_plan_row enable grafioschtrader.service \
+    'After=mariadb.service; first start runs Flyway; verify /api/gtinfo and schema collations' \
     'After=mariadb.service; erster Start führt Flyway aus; /api/gtinfo und Schema-Kollationen prüfen'
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == yes ]]; then
-    gt_plan_row configure mail "${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; security=${ANSWER[SMTP_SECURITY]}; sender=${ANSWER[SMTP_USER]}; test=${ANSWER[SMTP_TEST]}; no message sent"
+    en="${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; security=${ANSWER[SMTP_SECURITY]};"
+    en+=" sender=${ANSWER[SMTP_USER]}; test=${ANSWER[SMTP_TEST]}; no message sent"
+    gt_plan_row configure mail "$en"
     if [[ "${ANSWER[SMTP_AUTH]}:${ANSWER[SMTP_SECURITY]}" == yes:none ]]; then
       gt_plan_block 'Authenticated SMTP requires STARTTLS or TLS.' 'SMTP mit Anmeldung benötigt STARTTLS oder TLS.'
     fi
-  else gt_plan_warn 'Mail skipped: nobody can complete registration or become administrator; result would be incomplete.' \
-    'Mail übersprungen: Niemand kann eine Registrierung abschließen oder Administrator werden; Ergebnis wäre unvollständig.'; fi
+  else
+    en='Mail skipped: nobody can complete registration or become administrator; result would be incomplete.'
+    de='Mail übersprungen: Niemand kann eine Registrierung abschließen oder Administrator werden;'
+    de+=' Ergebnis wäre unvollständig.'
+    gt_plan_warn "$en" "$de"
+  fi
   gt_firewall_plan
-  gt_plan_row create /var/lib/gt-install/state 'Execution only: atomic progress, planned/built commits, owned resources; re-inventory before execution' \
-    'Erst bei Ausführung: atomarer Fortschritt, geplante/gebaute Commits, eigene Ressourcen; Bestand vorher erneut prüfen'
+  en='Execution only: atomic progress, planned/built commits, owned resources; re-inventory before execution'
+  de='Erst bei Ausführung: atomarer Fortschritt, geplante/gebaute Commits, eigene Ressourcen;'
+  de+=' Bestand vorher erneut prüfen'
+  gt_plan_row create /var/lib/gt-install/state "$en" "$de"
 }
 # Immutable answers must describe a route supported by every later stage. This
 # contract contains no host-class gate, credentials or mutations, so it also
 # applies to an owned installation resumed after its first application start.
 gt_stage_contract() {
-  local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
+  local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-} en de
   local -A used=()
   if [[ "${ANSWER[VHOST_INCLUDE]:-no}" == yes ]] && ! gt_vhost_include_mode; then
     gt_plan_block \
@@ -579,7 +662,8 @@ gt_stage_contract() {
       if ! gt_port_free "$port" && ! awk -v port="$port" -v owner="$web" \
           '$4 ~ (":" port "$") && owner != "" && index($0,owner) {found=1} END {exit !found}' \
           <<< "${FACT[listeners]}"; then
-        gt_plan_block "Web port $port belongs to another process or is UNKNOWN; co-resident proxy integration is not implemented."
+        gt_plan_block \
+          "Web port $port belongs to another process or is UNKNOWN; co-resident proxy integration is not implemented."
       fi
     done
   fi
@@ -608,11 +692,17 @@ gt_stage_contract() {
     esac
   done
   if [[ "${ANSWER[TLS_SOURCE]:-}" == proxy ]]; then
+    de='Der vorgeschaltete Proxy muss vom Client gelieferte Forwarding-Header ersetzen'
+    de+=' und das öffentliche Protokoll setzen.'
     gt_plan_warn 'The upstream proxy must overwrite client-supplied forwarding headers and set the public protocol.' \
-      'Der vorgeschaltete Proxy muss vom Client gelieferte Forwarding-Header ersetzen und das öffentliche Protokoll setzen.'
-    [[ -n "${ANSWER[TLS_PROXY_FROM]:-}" ]] || gt_plan_warn \
-      'TLS_PROXY_FROM is empty: login lockout cannot reliably attribute clients behind an unconfigured upstream proxy.' \
-      'TLS_PROXY_FROM ist leer: Die Login-Sperre kann Clients hinter einem unkonfigurierten Proxy nicht zuverlässig zuordnen.'
+      "$de"
+    if [[ -z "${ANSWER[TLS_PROXY_FROM]:-}" ]]; then
+      en='TLS_PROXY_FROM is empty: login lockout cannot reliably attribute clients'
+      en+=' behind an unconfigured upstream proxy.'
+      de='TLS_PROXY_FROM ist leer: Die Login-Sperre kann Clients'
+      de+=' hinter einem unkonfigurierten Proxy nicht zuverlässig zuordnen.'
+      gt_plan_warn "$en" "$de"
+    fi
   fi
   [[ "${ANSWER[SMTP_CONFIGURE]:-}:${ANSWER[SMTP_AUTH]:-}:${ANSWER[SMTP_SECURITY]:-}" != yes:yes:none ]] ||
     gt_plan_block 'Authenticated SMTP requires encryption.'
@@ -631,35 +721,44 @@ gt_plan() {
   PLAN=() PLAN_BLOCKERS=() PLAN_WARNINGS=() PLAN_PACKAGES=()
   case "${FACT[host.class]}" in
     classic|completed|docker)
-      gt_plan_row reuse "${FACT[host.class]}" 'Existing installation: no bootstrap actions; use its updater.' 'Vorhandene Installation: keine Bootstrap-Aktionen; zugehörigen Updater verwenden.'; return 0 ;;
+      gt_plan_row reuse "${FACT[host.class]}" 'Existing installation: no bootstrap actions; use its updater.' \
+        'Vorhandene Installation: keine Bootstrap-Aktionen; zugehörigen Updater verwenden.'; return 0 ;;
     fresh) ;;
-    *) gt_plan_block 'Host is not fresh; resolve existing state or installation pieces first.' 'Host ist nicht neu; vorhandenen Zustand oder Installationsteile zuerst klären.'; return 2 ;;
+    *) gt_plan_block 'Host is not fresh; resolve existing state or installation pieces first.' \
+      'Host ist nicht neu; vorhandenen Zustand oder Installationsteile zuerst klären.'; return 2 ;;
   esac
   gt_question_model
   for key in "${QUESTIONS[@]}"; do
     if gt_question_applies "$key" && [[ "${Q_TYPE[$key]}" != secret ]]; then
-      gt_validate_answer "$key" "${ANSWER[$key]:-}" || gt_plan_block "Invalid/missing answer: $key" "Ungültige/fehlende Antwort: $key"
+      gt_validate_answer "$key" "${ANSWER[$key]:-}" || gt_plan_block "Invalid/missing answer: $key" \
+        "Ungültige/fehlende Antwort: $key"
     elif [[ -n "${ANSWER[$key]:-}" ]]; then
-      gt_plan_block "Inactive or secret answer must not enter dry-run: $key" "Inaktive oder geheime Antwort darf nicht in den Dry-run gelangen: $key"
+      gt_plan_block "Inactive or secret answer must not enter dry-run: $key" \
+        "Inaktive oder geheime Antwort darf nicht in den Dry-run gelangen: $key"
     fi
   done
   (( ${#PLAN_BLOCKERS[@]} == 0 )) || return 2
   for key in "${!ACTION[@]}"; do
     [[ "$key" == disk || "${ACTION[$key]}" != block ]] || gt_plan_block "$key: ${REASON[$key]}"
   done
-  [[ "${FACT[source.requirements]}" == remote ]] || gt_plan_block 'Source requirements are provisional; no executable plan until source lookup succeeds.' \
+  [[ "${FACT[source.requirements]}" == remote ]] || gt_plan_block \
+    'Source requirements are provisional; no executable plan until source lookup succeeds.' \
     'Quellcode-Anforderungen sind vorläufig; kein ausführbarer Plan ohne erfolgreiche Quellcode-Abfrage.'
-  [[ "${FACT[dpkg.lock]}" == free ]] || gt_plan_block 'Package lock is held or UNKNOWN.' 'Paketsperre ist belegt oder UNKNOWN.'
+  [[ "${FACT[dpkg.lock]}" == free ]] || gt_plan_block 'Package lock is held or UNKNOWN.' \
+    'Paketsperre ist belegt oder UNKNOWN.'
   if [[ "${FACT[apt.age_hours]}" == unknown ]] || (( ${FACT[apt.age_hours]} > 24 )); then
-    gt_plan_block 'APT metadata is absent/stale; refresh and re-plan before installation.' 'APT-Metadaten fehlen/sind veraltet; vor Installation aktualisieren und neu planen.'
+    gt_plan_block 'APT metadata is absent/stale; refresh and re-plan before installation.' \
+      'APT-Metadaten fehlen/sind veraltet; vor Installation aktualisieren und neu planen.'
   fi
   gt_stage_contract || true
-  gt_plan_toolchains; gt_plan_database; gt_plan_ports; gt_plan_dns; gt_plan_web; gt_plan_storage; gt_plan_tls; gt_plan_application; gt_plan_packages
+  gt_plan_toolchains; gt_plan_database; gt_plan_ports; gt_plan_dns; gt_plan_web; gt_plan_storage; gt_plan_tls
+  gt_plan_application; gt_plan_packages
   (( ${#PLAN_BLOCKERS[@]} == 0 )) || return 2
 }
 gt_plan_report() {
-  local key row
-  gt_text 'Installation plan — no installation changes made' 'Installationsplan — keine Installationsänderungen vorgenommen'
+  local key row de
+  gt_text 'Installation plan — no installation changes made' \
+    'Installationsplan — keine Installationsänderungen vorgenommen'
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" != secret && -n "${ANSWER[$key]+present}" ]] || continue
     printf '%s=%s\n' "$key" "$(gt_safe "${ANSWER[$key]}")"
@@ -673,13 +772,16 @@ gt_plan_report() {
     done
     printf 'JWT_SECRET | g.jwt.secret | %s\n' "${SECRET_STATUS[JWT_SECRET]:-automatic during preparation}"
   fi
-  gt_report_rows "$(gt_text 'Planned actions (subject to blockers)' 'Geplante Aktionen (abhängig von Blockern)')" "${PLAN[@]}"
+  gt_report_rows "$(gt_text 'Planned actions (subject to blockers)' 'Geplante Aktionen (abhängig von Blockern)')" \
+    "${PLAN[@]}"
   gt_report_rows "$(gt_text 'Disk requirements' 'Speicherplatzbedarf')" "${DISKS[@]}"
   gt_report_rows "$(gt_text Warnings Hinweise)" "${PLAN_WARNINGS[@]}"
   gt_report_rows "$(gt_text Blockers Blocker)" "${PLAN_BLOCKERS[@]}"
   printf '%s: %s\n' "$(gt_text 'Blocking findings' 'Blockierende Befunde')" "${#PLAN_BLOCKERS[@]}"
+  de='Keine Installation ausgeführt.'
+  de+=' Zugangsdaten und aktueller Host-Zustand müssen vor Ausführung erneut geprüft werden.'
   gt_text 'No installation was executed. Credentials and live host state must be verified again before execution.' \
-    'Keine Installation ausgeführt. Zugangsdaten und aktueller Host-Zustand müssen vor Ausführung erneut geprüft werden.'
+    "$de"
 }
 gt_dry_run() {
   local status=0
@@ -702,7 +804,7 @@ gt_dry_run() {
 }
 
 gt_prepare() {
-  local status=0
+  local status=0 de
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
   status=0
@@ -713,7 +815,8 @@ gt_prepare() {
       gt_answers_file "$ANSWERS_FILE" || return $?
     else
       if ! { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null; then
-        gt_text 'Preparation needs a terminal or --answers FILE.' 'Vorbereitung benötigt ein Terminal oder --answers DATEI.' >&2
+        gt_text 'Preparation needs a terminal or --answers FILE.' \
+          'Vorbereitung benötigt ein Terminal oder --answers DATEI.' >&2
         return 2
       fi
       QUESTION_OUTPUT=$QUESTION_FD
@@ -727,7 +830,9 @@ gt_prepare() {
   fi
   gt_plan || status=$?
   gt_plan_report
+  de='Vorbereitung endet hier. Erfasste/erzeugte Geheimnisse werden verworfen;'
+  de+=' die übergebene Antwortdatei bleibt unverändert.'
   gt_text 'Preparation ends here. Collected/generated secrets are discarded; the supplied answers file is unchanged.' \
-    'Vorbereitung endet hier. Erfasste/erzeugte Geheimnisse werden verworfen; die übergebene Antwortdatei bleibt unverändert.'
+    "$de"
   return "$status"
 }

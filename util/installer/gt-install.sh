@@ -22,6 +22,9 @@ gt_reset() {
   CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader SWAP_MB=2048
   CORE_REPO=/home/grafioschtrader/build/grafioschtrader
   CORE_REMOTE=https://github.com/grafioschtrader/grafioschtrader.git
+  # Compressed by the owned sites; nginx compresses text/html by itself, Apache lists it separately.
+  GZIP_TYPES='text/plain text/css text/xml application/javascript application/json application/wasm application/xml'
+  GZIP_TYPES+=' image/svg+xml'
   case "${LC_ALL:-${LC_MESSAGES:-${LANG:-en}}}" in de*) LANG_CODE=de ;; esac
 }
 
@@ -30,25 +33,42 @@ gt_message() {
   shift
   local en de
   case "$key" in
-    title) en='Grafioschtrader installation check (read-only)'; de='Grafioschtrader Installationsprüfung (nur lesend)' ;;
+    title) en='Grafioschtrader installation check (read-only)'
+      de='Grafioschtrader Installationsprüfung (nur lesend)' ;;
     facts) en='Inventory'; de='Bestandsaufnahme' ;;
-    actions) en='Compatibility recommendations (no changes made)'; de='Kompatibilitätsempfehlungen (keine Änderungen)' ;;
+    actions) en='Compatibility recommendations (no changes made)'
+      de='Kompatibilitätsempfehlungen (keine Änderungen)' ;;
     notes) en='Notes'; de='Hinweise' ;;
-    requirements) en='Source requirements unavailable; built-in floors are provisional'; de='Quellcode-Anforderungen unbekannt; eingebaute Mindestversionen sind vorläufig' ;;
+    requirements) en='Source requirements unavailable; built-in floors are provisional'
+      de='Quellcode-Anforderungen unbekannt; eingebaute Mindestversionen sind vorläufig' ;;
     unavailable) en='Probe unavailable or failed: %s'; de='Prüfung nicht verfügbar oder fehlgeschlagen: %s' ;;
-    stale) en='APT metadata is absent or older than 24 hours; package candidates may be stale'; de='APT-Metadaten fehlen oder sind älter als 24 Stunden; Paketkandidaten können veraltet sein' ;;
-    existing) en='Existing installation: use %s; bootstrap must leave it untouched'; de='Bestehende Installation: %s verwenden; Erstinstallation darf sie nicht ändern' ;;
-    partial) en='Foreign installation pieces must not be adopted or removed'; de='Fremde Installationsteile dürfen weder übernommen noch entfernt werden' ;;
-    running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'; de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail fortsetzen' ;;
-    resume) en='Unfinished full installation; run the installer again without a mode to resume it'; de='Unfertige Gesamtinstallation; Installer erneut ohne Modus starten, um sie fortzusetzen' ;;
+    stale) en='APT metadata is absent or older than 24 hours; package candidates may be stale'
+      de='APT-Metadaten fehlen oder sind älter als 24 Stunden; Paketkandidaten können veraltet sein' ;;
+    existing) en='Existing installation: use %s; bootstrap must leave it untouched'
+      de='Bestehende Installation: %s verwenden; Erstinstallation darf sie nicht ändern' ;;
+    partial) en='Foreign installation pieces must not be adopted or removed'
+      de='Fremde Installationsteile dürfen weder übernommen noch entfernt werden' ;;
+    running) en='Unfinished installer state; resume with --install-core, --install-app, --install-web or --check-mail'
+      de='Unfertiger Installationszustand; mit --install-core, --install-app, --install-web oder --check-mail'
+      de+=' fortsetzen' ;;
+    resume) en='Unfinished full installation; run the installer again without a mode to resume it'
+      de='Unfertige Gesamtinstallation; Installer erneut ohne Modus starten, um sie fortzusetzen' ;;
     memory) en='Low RAM: %s'; de='Wenig RAM: %s' ;;
-    swap) en='Low RAM without swap, and no swap file can be created: %s'; de='Wenig RAM ohne Swap, und keine Swap-Datei möglich: %s' ;;
+    swap) en='Low RAM without swap, and no swap file can be created: %s'
+      de='Wenig RAM ohne Swap, und keine Swap-Datei möglich: %s' ;;
     legacy) en='Legacy platform: %s'; de='Ältere Plattform: %s' ;;
-    footer) en='Check finished: %s blocking recommendations. Run without a mode to review the installation plan.'; de='Prüfung beendet: %s blockierende Empfehlungen. Ohne Modus starten, um den Installationsplan zu prüfen.' ;;
-    root) en='Run inventory modes as root for a complete inventory.'; de='Bestandsaufnahme für einen vollständigen Bericht als root ausführen.' ;;
-    mode) en='Use --check, --dry-run, --prepare, --install-core, --install-app, --install-web or --check-mail; see --help.'; de='--check, --dry-run, --prepare, --install-core, --install-app, --install-web oder --check-mail verwenden; siehe --help.' ;;
-    pipe) en='Download the script to a file before running it; piped execution is refused.'; de='Skript vor dem Ausführen als Datei speichern; Ausführung über eine Pipe wird abgelehnt.' ;;
-    lock) en='An installer is running or its existing lock cannot be read.'; de='Ein Installer läuft oder seine vorhandene Sperre kann nicht gelesen werden.' ;;
+    footer) en='Check finished: %s blocking recommendations. Run without a mode to review the installation plan.'
+      de='Prüfung beendet: %s blockierende Empfehlungen. Ohne Modus starten, um den Installationsplan zu prüfen.' ;;
+    root) en='Run inventory modes as root for a complete inventory.'
+      de='Bestandsaufnahme für einen vollständigen Bericht als root ausführen.' ;;
+    mode) en='Use --check, --dry-run, --prepare, --install-core, --install-app, --install-web or --check-mail;'
+      en+=' see --help.'
+      de='--check, --dry-run, --prepare, --install-core, --install-app, --install-web oder --check-mail verwenden;'
+      de+=' siehe --help.' ;;
+    pipe) en='Download the script to a file before running it; piped execution is refused.'
+      de='Skript vor dem Ausführen als Datei speichern; Ausführung über eine Pipe wird abgelehnt.' ;;
+    lock) en='An installer is running or its existing lock cannot be read.'
+      de='Ein Installer läuft oder seine vorhandene Sperre kann nicht gelesen werden.' ;;
     *) en=$key; de=$key ;;
   esac
   # The format strings above are installer-owned translations, never probe output.
@@ -82,7 +102,9 @@ gt_literal() {
   # Read a single literal key=value. Reject duplicate keys, substitutions and shell operators.
   local file=$1 key=$2 value
   [[ -r "$file" ]] || return 1
-  value=$(awk -v key="$key" 'index($0,key "=")==1 {n++; v=substr($0,length(key)+2)} END {if(n==1) print v; else exit 1}' "$file") || return 1
+  value=$(awk -v key="$key" '
+    index($0,key "=")==1 {n++; v=substr($0,length(key)+2)}
+    END {if(n==1) print v; else exit 1}' "$file") || return 1
   value=${value%$'\r'}
   if [[ "$value" == \"*\" || "$value" == \'*\' ]]; then value=${value:1:${#value}-2}; fi
   [[ "$value" != *[\$\`\;\\]* ]] || return 1
@@ -149,7 +171,8 @@ gt_source_revision() {
       if gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 \
           "$base/util/shellscripts/checkversion.sh" > "$SCRATCH/checkversion.sh" &&
         gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 \
-          "$base/backend/grafioschtrader-server/src/main/resources/application.properties" > "$SCRATCH/application.properties" &&
+          "$base/backend/grafioschtrader-server/src/main/resources/application.properties" \
+          > "$SCRATCH/application.properties" &&
         gt_parse_requirements "$SCRATCH/checkversion.sh"; then
         FACT[source.requirements]=remote
         FACT[source.collation]=no
@@ -221,7 +244,8 @@ gt_packages() {
 
 gt_service() {
   local unit=$1 value
-  value=$(gt_probe systemctl show "$unit" --property=LoadState --property=ActiveState --property=SubState --property=UnitFileState) || value=unknown
+  value=$(gt_probe systemctl show "$unit" --property=LoadState --property=ActiveState --property=SubState \
+    --property=UnitFileState) || value=unknown
   printf '%s' "$value"
 }
 gt_installed_unit() { [[ "$(gt_service "$1")" == *'LoadState=loaded'* ]]; }
@@ -250,7 +274,8 @@ gt_installation() {
       FACT[state.$key]=$(gt_literal "$state_file" "$key") || FACT[state.$key]=unknown
     done
     # Only completion markers are shown, never arbitrary state values or the secrets file.
-    FACT[state.completed_steps]=$(awk -F= '$1~/^step[._][a-zA-Z0-9_.-]+$/ && $2~/^(complete|completed|ok|1)$/ {print $1}' "$state_file" 2>/dev/null)
+    FACT[state.completed_steps]=$(awk -F= '
+      $1~/^step[._][a-zA-Z0-9_.-]+$/ && $2~/^(complete|completed|ok|1)$/ {print $1}' "$state_file" 2>/dev/null)
     case "$status" in
       complete)
         gt_question_model
@@ -305,8 +330,10 @@ gt_java() {
     javac=no; [[ -x "$dir/bin/java" && -x "$dir/bin/javac" ]] && javac=yes
     jit=no; gt_jdk_jit "$dir" && jit=yes
     JDKS+=("$dir version=$version vendor=$vendor javac=$javac jit=$jit")
-    if [[ "$version" =~ ^([0-9]+)(\.|$) && "$javac" == yes && "$jit" == yes ]] && (( BASH_REMATCH[1] >= JAVA_REQUIRED )); then
-      if [[ "${FACT[java.suitable]}" == absent || ( "${FACT[java.version]%%.*}" != "$JAVA_REQUIRED" && "${version%%.*}" == "$JAVA_REQUIRED" ) ]]; then
+    if [[ "$version" =~ ^([0-9]+)(\.|$) && "$javac" == yes && "$jit" == yes ]] &&
+        (( BASH_REMATCH[1] >= JAVA_REQUIRED )); then
+      if [[ "${FACT[java.suitable]}" == absent ||
+          ( "${FACT[java.version]%%.*}" != "$JAVA_REQUIRED" && "${version%%.*}" == "$JAVA_REQUIRED" ) ]]; then
         FACT[java.suitable]=$dir FACT[java.version]=$version
       fi
     fi
@@ -315,8 +342,8 @@ gt_java() {
 }
 gt_maven_probe() {
   local executable=$1 home=$2
-  local -a environment=(-u JAVA_HOME -u _JAVA_OPTIONS MAVEN_SKIP_RC=1 MAVEN_OPTS="-Djava.io.tmpdir=$SCRATCH -Dstyle.color=never"
-    MAVEN_ARGS= JAVA_TOOL_OPTIONS= JDK_JAVA_OPTIONS=)
+  local -a environment=(-u JAVA_HOME -u _JAVA_OPTIONS MAVEN_SKIP_RC=1
+    MAVEN_OPTS="-Djava.io.tmpdir=$SCRATCH -Dstyle.color=never" MAVEN_ARGS= JAVA_TOOL_OPTIONS= JDK_JAVA_OPTIONS=)
   [[ "$home" == absent || "$home" == pending ]] || environment+=("JAVA_HOME=$home" "PATH=$home/bin:$PATH")
   (cd "$SCRATCH" && gt_probe env "${environment[@]}" "$executable" -v)
 }
@@ -369,8 +396,10 @@ gt_runtimes() {
     while IFS= read -r dir; do
       case "$dir" in
         */@angular/cli|*/semver)
-          version=$(sed -nE 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/p' "$dir/package.json" 2>/dev/null | head -n 1)
-          [[ "$dir" == */semver ]] && FACT[semver.version]=${version:-unknown} || FACT[angular.version]=${version:-unknown}
+          version=$(sed -nE 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/p' \
+            "$dir/package.json" 2>/dev/null | head -n 1)
+          if [[ "$dir" == */semver ]]; then FACT[semver.version]=${version:-unknown}
+          else FACT[angular.version]=${version:-unknown}; fi
           ;;
       esac
     done <<< "$value"
@@ -394,7 +423,8 @@ gt_consumers() {
       done <<< "$value"
     elif [[ $? != 1 ]]; then FACT[$kind.consumers]=unknown; fi
   done
-  value=$(gt_probe apt-cache -o Dir::Cache::pkgcache= -o Dir::Cache::srcpkgcache= rdepends --installed nodejs) || value=unknown
+  value=$(gt_probe apt-cache -o Dir::Cache::pkgcache= -o Dir::Cache::srcpkgcache= rdepends --installed nodejs) ||
+    value=unknown
   FACT[node.reverse_dependencies]=$value
   if [[ "$value" == unknown ]]; then FACT[node.consumers]=unknown
   elif [[ -n "$(sed '1,2d;/^[[:space:]]*$/d' <<< "$value")" ]]; then FACT[node.consumers]=yes; fi
@@ -421,7 +451,8 @@ gt_database() {
   local -a options=(--no-defaults --protocol=SOCKET --user=root --batch --skip-column-names --connect-timeout=4)
   [[ -z "${1:-}" ]] || options[0]="--defaults-file=$1"
   FACT[database.vendor]=absent FACT[database.version]=absent FACT[database.query]=unknown
-  FACT[database.schemas]=unknown FACT[database.users]=unknown FACT[database.gt_tables]=unknown FACT[database.gt_user]=unknown
+  FACT[database.schemas]=unknown FACT[database.users]=unknown
+  FACT[database.gt_tables]=unknown FACT[database.gt_user]=unknown
   FACT[database.datadir]=/var/lib/mysql FACT[database.root_socket]=unknown FACT[database.active]=no
   FACT[database.service]=$(gt_service mariadb.service)
   FACT[database.socket]=$(gt_service mariadb.socket)
@@ -452,23 +483,32 @@ gt_database() {
   IFS=$'\t' read -r version value collation <<< "$value"
   FACT[database.version]=${version%%-*} FACT[database.datadir]=$value FACT[database.collation]=$collation
   [[ "$version" == *MariaDB* ]] && FACT[database.vendor]=mariadb || FACT[database.vendor]=mysql
-  local sql='SELECT s.SCHEMA_NAME, COUNT(t.TABLE_NAME), COALESCE(SUM(t.TABLE_NAME="flyway_schema_history"),0) FROM information_schema.SCHEMATA s LEFT JOIN information_schema.TABLES t ON t.TABLE_SCHEMA=s.SCHEMA_NAME GROUP BY s.SCHEMA_NAME;'
+  local sql='SELECT s.SCHEMA_NAME, COUNT(t.TABLE_NAME), COALESCE(SUM(t.TABLE_NAME="flyway_schema_history"),0)'
+  sql+=' FROM information_schema.SCHEMATA s LEFT JOIN information_schema.TABLES t ON t.TABLE_SCHEMA=s.SCHEMA_NAME'
+  sql+=' GROUP BY s.SCHEMA_NAME;'
   if value=$(gt_probe "$client" "${options[@]}" -e "$sql"); then
     FACT[database.schemas]=$value
-    FACT[database.gt_tables]=$(awk -F '\t' '$1=="grafioschtrader" {print $2; found=1} END {if(!found) print "absent"}' <<< "$value")
+    FACT[database.gt_tables]=$(awk -F '\t' '$1=="grafioschtrader" {print $2; found=1} END {if(!found) print "absent"}' \
+      <<< "$value")
   fi
   if value=$(gt_probe "$client" "${options[@]}" \
       -e 'SELECT User,Host,plugin FROM mysql.user;'); then
     FACT[database.users]=$value FACT[database.gt_user]=absent
-    [[ "$(awk -F '\t' '$1=="grafioschtrader" && $2=="localhost" {print "yes"}' <<< "$value")" == yes ]] && FACT[database.gt_user]=present
+    if [[ "$(awk -F '\t' '$1=="grafioschtrader" && $2=="localhost" {print "yes"}' <<< "$value")" == yes ]]; then
+      FACT[database.gt_user]=present
+    fi
   fi
   if value=$(gt_probe "$client" "${options[@]}" \
-      -e "SELECT COUNT(*) FROM mysql.global_priv WHERE User='root' AND Host='localhost' AND priv LIKE '%unix_socket%';"); then
+      -e "SELECT COUNT(*) FROM mysql.global_priv WHERE User='root' AND Host='localhost'
+        AND priv LIKE '%unix_socket%';"); then
     FACT[database.root_socket]=$value
   fi
   if value=$(gt_probe "$client" "${options[@]}" \
-      -e "SHOW SESSION VARIABLES LIKE 'character_set_collations';"); then FACT[database.character_set_collations]=${value:-unavailable-before-11.2}; fi
-  if awk '$4 ~ /:3306$/ && $4 !~ /^(127\.|\[?::1\]?:)/ {found=1} END {exit !found}' <<< "${FACT[listeners]:-unknown}"; then
+      -e "SHOW SESSION VARIABLES LIKE 'character_set_collations';"); then
+    FACT[database.character_set_collations]=${value:-unavailable-before-11.2}
+  fi
+  if awk '$4 ~ /:3306$/ && $4 !~ /^(127\.|\[?::1\]?:)/ {found=1} END {exit !found}' \
+      <<< "${FACT[listeners]:-unknown}"; then
     gt_note WARN unavailable 'MariaDB listens beyond loopback; leave shared server networking unchanged'
   fi
 }
@@ -492,7 +532,8 @@ gt_network() {
   gt_capture network.ipv4_route ip -4 route get 1.1.1.1
   FACT[network.lan_ipv4]=$(awk '{for(i=1;i<NF;i++) if($i=="src") print $(i+1)}' <<< "${FACT[network.ipv4_route]}")
   # A host on two networks (Ethernet intranet, WLAN uplink) offers each of its addresses for the LAN site.
-  if value=$(gt_probe ip -4 -o addr show scope global); then FACT[network.ipv4_addresses]=$(gt_ipv4_addresses <<< "$value")
+  if value=$(gt_probe ip -4 -o addr show scope global); then
+    FACT[network.ipv4_addresses]=$(gt_ipv4_addresses <<< "$value")
   else FACT[network.ipv4_addresses]=unknown; gt_note UNKNOWN unavailable network.ipv4_addresses; fi
   gt_capture network.ipv6_route ip -6 route show default
   interface=$(awk '{for(i=1;i<NF;i++) if($i=="dev") {print $(i+1); exit}}' <<< "${FACT[network.ipv6_route]}")
@@ -520,7 +561,8 @@ gt_network() {
         -w '%{http_code}' "https://$host/"); then NETWORK+=("$host HTTP=$status"); else NETWORK+=("$host UNKNOWN"); fi
   done
   url=https://github.com/grafioschtrader/grafioschtrader/releases/download/Latest/latest.tar.gz
-  if value=$(gt_probe curl --disable -fsSIL -o /dev/null --connect-timeout 3 --max-time 10 -w '%{url_effective}' "$url"); then
+  if value=$(gt_probe curl --disable -fsSIL -o /dev/null --connect-timeout 3 --max-time 10 -w '%{url_effective}' \
+      "$url"); then
     # Redirects to release assets contain signed query parameters. Report only the host.
     host=${value#*://}; host=${host%%/*}; host=${host%%\?*}
     NETWORK+=("frontend-release host=$host reachable=yes")
@@ -577,13 +619,16 @@ gt_web() {
   local -A visited=() kinds=()
   FACT[web.apache2]=${PACKAGE[apache2]:-absent} FACT[web.nginx]=${PACKAGE[nginx]:-absent}
   FACT[web.certbot]=${PACKAGE[certbot]:-absent}
-  FACT[web.certbot_plugins]="nginx=${PACKAGE[python3-certbot-nginx]:-absent} apache=${PACKAGE[python3-certbot-apache]:-absent}"
+  FACT[web.certbot_plugins]="nginx=${PACKAGE[python3-certbot-nginx]:-absent}"
+  FACT[web.certbot_plugins]+=" apache=${PACKAGE[python3-certbot-apache]:-absent}"
   FACT[web.certbot_timer]=$(gt_service certbot.timer)
   FACT[web.cloudflared]=$(gt_service cloudflared.service)
-  FACT[web.apache_modules]=$(find "$(gt_path /etc/apache2/mods-enabled)" -maxdepth 1 -name '*.load' -printf '%f\n' 2>/dev/null || true)
+  FACT[web.apache_modules]=$(find "$(gt_path /etc/apache2/mods-enabled)" -maxdepth 1 -name '*.load' -printf '%f\n' \
+    2>/dev/null || true)
   local -a files=()
-  for file in "$(gt_path /etc/nginx/nginx.conf)" "$(gt_path /etc/nginx/sites-enabled)"/* "$(gt_path /etc/nginx/conf.d)"/*.conf \
-      "$(gt_path /etc/apache2/apache2.conf)" "$(gt_path /etc/apache2/sites-enabled)"/*; do
+  for file in "$(gt_path /etc/nginx/nginx.conf)" "$(gt_path /etc/nginx/sites-enabled)"/* \
+      "$(gt_path /etc/nginx/conf.d)"/*.conf "$(gt_path /etc/apache2/apache2.conf)" \
+      "$(gt_path /etc/apache2/sites-enabled)"/*; do
     if [[ -f "$file" ]]; then
       files+=("$file")
       [[ "$file" == */apache2/* ]] && kinds[$file]=apache || kinds[$file]=nginx
@@ -643,7 +688,9 @@ gt_web() {
               [[ -f "$include_file" ]] || continue
               files+=("$include_file"); kinds[$include_file]=$kind; result=yes
             done < <(compgen -G "$(gt_path "$include")" | LC_ALL=C sort)
-            if [[ "$result" == no && "$key" != IncludeOptional ]]; then gt_note UNKNOWN unavailable "web include: $file"; fi
+            if [[ "$result" == no && "$key" != IncludeOptional ]]; then
+              gt_note UNKNOWN unavailable "web include: $file"
+            fi
             # The file is inventoried, but assigning included directives to a parent vhost requires expansion.
             if (( in_block )); then gt_note UNKNOWN unavailable "included vhost context: $file"; fi
           fi ;;
@@ -697,25 +744,33 @@ gt_compatibility() {
   case "$distro:$release" in
     debian:12|debian:13|ubuntu:24.04|ubuntu:26.04) gt_action platform reuse 'supported primary release' ;;
     debian:11) gt_action platform reuse 'legacy release'; gt_note WARN legacy 'Debian 11 LTS ended 2026-08-31' ;;
-    ubuntu:22.04) gt_action platform reuse 'legacy release'; gt_note WARN legacy 'Ubuntu 22.04 standard support ends 2027-04' ;;
+    ubuntu:22.04) gt_action platform reuse 'legacy release'
+      gt_note WARN legacy 'Ubuntu 22.04 standard support ends 2027-04' ;;
     *) gt_action platform block 'unsupported or unknown distribution/release' ;;
   esac
   case "$arch" in amd64|arm64) gt_action architecture reuse "$arch" ;; armhf)
-    if [[ "$(date -u +%F)" < 2027-04-30 ]]; then gt_action architecture reuse armhf; gt_note WARN legacy 'armhf requires Node 22; support ends 2027-04-30'
+    if [[ "$(date -u +%F)" < 2027-04-30 ]]; then
+      gt_action architecture reuse armhf; gt_note WARN legacy 'armhf requires Node 22; support ends 2027-04-30'
     else gt_action architecture block 'armhf Node 22 support ended 2027-04-30'; fi ;;
     *) gt_action architecture block 'unsupported or unknown architecture' ;;
   esac
-  if [[ "${FACT[init]}" == systemd ]]; then gt_action init reuse systemd; else gt_action init block 'PID 1 must be systemd'; fi
+  if [[ "${FACT[init]}" == systemd ]]; then gt_action init reuse systemd
+  else gt_action init block 'PID 1 must be systemd'; fi
   case "${FACT[host.class]}" in
-    classic|completed) gt_action host reuse 'existing installation; bootstrap disabled'; gt_note WARN existing './gtupdate.sh (grafioschtrader)' ;;
-    docker) gt_action host reuse 'existing Docker installation; bootstrap disabled'; gt_note WARN existing docker/update.sh ;;
-    foreign-partial|invalid-state) gt_action host block 'existing foreign pieces or invalid installer state'; gt_note WARN partial ;;
+    classic|completed) gt_action host reuse 'existing installation; bootstrap disabled'
+      gt_note WARN existing './gtupdate.sh (grafioschtrader)' ;;
+    docker) gt_action host reuse 'existing Docker installation; bootstrap disabled'
+      gt_note WARN existing docker/update.sh ;;
+    foreign-partial|invalid-state) gt_action host block 'existing foreign pieces or invalid installer state'
+      gt_note WARN partial ;;
     unknown) gt_action host block 'installation inventory UNKNOWN' ;;
     unfinished)
       # A modeless run resumes its own journal; only a staged installation continues with the stage options.
       if [[ "${FACT[state.scope]:-}" == bootstrap ]]; then
         gt_action host block 'resumption requires a run without a mode and a valid journal'; gt_note WARN resume
-      else gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running; fi ;;
+      else
+        gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running
+      fi ;;
     *) gt_action host install 'fresh host' ;;
   esac
   candidate=${CANDIDATE[openjdk-$JAVA_REQUIRED-jdk-headless]:-unknown}
@@ -736,7 +791,8 @@ gt_compatibility() {
   elif [[ "${FACT[node.version]}" != absent && "${FACT[node.consumers]}" != no ]]; then
     gt_action node isolate 'official Node tarball; other consumers must keep their runtime'
   else gt_action node install 'isolated official Node 24 archive on amd64/arm64; Node 22 on armhf'; fi
-  if gt_version_at_least "${FACT[angular.version]}" "$CLI_REQUIRED"; then gt_action angular_cli reuse "${FACT[angular.version]}"
+  if gt_version_at_least "${FACT[angular.version]}" "$CLI_REQUIRED"; then
+    gt_action angular_cli reuse "${FACT[angular.version]}"
   else gt_action angular_cli install "Angular CLI $CLI_REQUIRED using selected Node/npm"; fi
   if [[ "${FACT[semver.version]}" =~ ^[0-9]+\. ]]; then gt_action semver reuse "${FACT[semver.version]}"
   else gt_action semver install 'global npm semver using selected Node/npm'; fi
@@ -768,7 +824,9 @@ gt_compatibility() {
     absent) gt_action database_user install 'grafioschtrader@localhost' ;;
     *) gt_action database_user block 'database accounts UNKNOWN until authenticated inventory' ;;
   esac
-  if [[ "${FACT[database.vendor]}" == absent ]]; then gt_action database_user install 'create after installing MariaDB'; fi
+  if [[ "${FACT[database.vendor]}" == absent ]]; then
+    gt_action database_user install 'create after installing MariaDB'
+  fi
   gt_web_recommendation
   version=${FACT[memory.MemTotal]}
   if [[ "$version" =~ ^[0-9]+$ ]]; then
@@ -787,7 +845,8 @@ gt_compatibility() {
     else gt_action swap reuse 'no additional swap proposed'; fi
     if [[ "${FACT[memory.MemAvailable]}" =~ ^[0-9]+$ ]] && (( ${FACT[memory.MemAvailable]} < version / 2 )); then
       gt_note WARN memory 'other processes use more than half of RAM'
-      FACT[memory.largest_processes]=$(gt_probe ps -eo pid,comm,rss --sort=-rss | head -n 6) || FACT[memory.largest_processes]=unknown
+      FACT[memory.largest_processes]=$(gt_probe ps -eo pid,comm,rss --sort=-rss | head -n 6) ||
+        FACT[memory.largest_processes]=unknown
     fi
   else gt_action memory block 'RAM size UNKNOWN'; fi
   gt_disk /home 4096
@@ -797,7 +856,9 @@ gt_compatibility() {
   gt_action disk reuse 'requirements aggregated by filesystem device'
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_action disk block 'disk capacity UNKNOWN'
   for device in "${!DISK_NEED[@]}"; do
-    if (( DISK_FREE[$device] < DISK_NEED[$device] )); then gt_action disk block "device $device needs ${DISK_NEED[$device]} MiB; ${DISK_FREE[$device]} MiB free"; fi
+    if (( DISK_FREE[$device] < DISK_NEED[$device] )); then
+      gt_action disk block "device $device needs ${DISK_NEED[$device]} MiB; ${DISK_FREE[$device]} MiB free"
+    fi
   done
   # A check never authorizes a package transaction or adopts an existing installation.
 }
@@ -837,7 +898,8 @@ gt_web_recommendation() {
   else gt_action web install 'selection required; default nginx'; fi
   FACT[ports.backend_primary]=$(gt_next_port 9090)
   FACT[ports.backend_http]=$(gt_next_port 8080)
-  if [[ "${FACT[ports.backend_primary]}" == "${FACT[ports.backend_http]}" && "${FACT[ports.backend_primary]}" != unknown ]]; then
+  if [[ "${FACT[ports.backend_primary]}" == "${FACT[ports.backend_http]}" &&
+      "${FACT[ports.backend_primary]}" != unknown ]]; then
     FACT[ports.backend_primary]=$(gt_next_port "$((${FACT[ports.backend_primary]}+1))")
   fi
   FACT[ports.proxy_http]=$(gt_proxy_port_default)
@@ -924,49 +986,80 @@ gt_check() {
 # by the plain renderer and the planner; future front ends must use these same functions.
 gt_text() { if [[ "$LANG_CODE" == de ]]; then printf '%s\n' "$2"; else printf '%s\n' "$1"; fi; }
 gt_question_model() {
-  local key type when choices en de
+  local key type when choices en de row next
   QUESTIONS=() Q_TYPE=() Q_WHEN=() Q_CHOICES=() Q_EN=() Q_DE=()
-  while IFS='|' read -r key type when choices en de; do
+  # A row ending in '|' continues on the next line; that line's indentation is not part of the field.
+  while IFS= read -r row; do
+    while [[ "$row" == *'|' ]] && IFS= read -r next; do row+=${next#"${next%%[! ]*}"}; done
+    IFS='|' read -r key type when choices en de <<< "$row"
     QUESTIONS+=("$key"); Q_TYPE[$key]=$type Q_WHEN[$key]=$when Q_CHOICES[$key]=$choices Q_EN[$key]=$en Q_DE[$key]=$de
     [[ "$type" != yesno ]] || Q_CHOICES[$key]='yes no'
   done <<'QUESTIONS'
 DOMAIN|domain|always||Public domain; empty for LAN only|Öffentliche Domain; leer für nur LAN
-DNS_FAMILY|choice|domain|ipv4 ipv6 both|Reachable address families; choose ipv6 for DS-Lite/CGNAT|Erreichbare Adressfamilien; ipv6 bei DS-Lite/CGNAT wählen
-DUCKDNS_UPDATER|yesno|duckdns||Run a DuckDNS updater here; no if your router or another client updates it|DuckDNS hier aktualisieren; nein bei Aktualisierung durch Router oder anderen Client
-DUCKDNS_TOKEN|secret|duck_updater||DuckDNS token required during installation|DuckDNS-Token bei der Installation erforderlich
-TLS_SOURCE|choice|domain|letsencrypt existing proxy|TLS provider: certbot, existing certificate, or terminating proxy|TLS-Anbieter: certbot, vorhandenes Zertifikat oder vorgeschalteter Proxy
+DNS_FAMILY|choice|domain|ipv4 ipv6 both|Reachable address families; choose ipv6 for DS-Lite/CGNAT|
+  Erreichbare Adressfamilien; ipv6 bei DS-Lite/CGNAT wählen
+DUCKDNS_UPDATER|yesno|duckdns||Run a DuckDNS updater here; no if your router or another client updates it|
+  DuckDNS hier aktualisieren; nein bei Aktualisierung durch Router oder anderen Client
+DUCKDNS_TOKEN|secret|duck_updater||DuckDNS token required during installation|
+  DuckDNS-Token bei der Installation erforderlich
+TLS_SOURCE|choice|domain|letsencrypt existing proxy|TLS provider: certbot, existing certificate, or terminating proxy|
+  TLS-Anbieter: certbot, vorhandenes Zertifikat oder vorgeschalteter Proxy
 LETSENCRYPT_EMAIL|email|letsencrypt||Email for Let's Encrypt|E-Mail für Let's Encrypt
-LETSENCRYPT_CERT_NAME|lineage|letsencrypt||Reuse this Certbot lineage with its renewal configuration; - requests a new certificate|Diese Certbot-Zertifikatsreihe samt Erneuerung verwenden; - fordert ein neues Zertifikat an
-TLS_CERT|path|existing_tls||Readable full-chain certificate file; renewal remains your responsibility|Lesbare Zertifikatsdatei mit vollständiger Kette; Erneuerung bleibt Ihre Aufgabe
-TLS_KEY|path|existing_tls||Private key file, readable only by its owner|Privater Schlüssel, nur für den Eigentümer lesbar
+LETSENCRYPT_CERT_NAME|lineage|letsencrypt||
+  Reuse this Certbot lineage with its renewal configuration; - requests a new certificate|
+  Diese Certbot-Zertifikatsreihe samt Erneuerung verwenden; - fordert ein neues Zertifikat an
+TLS_CERT|path|existing_tls||Readable full-chain certificate file; renewal remains your responsibility|
+  Lesbare Zertifikatsdatei mit vollständiger Kette; Erneuerung bleibt Ihre Aufgabe
+TLS_KEY|path|existing_tls||Private key file, readable only by its owner|
+  Privater Schlüssel, nur für den Eigentümer lesbar
 TLS_PROXY_LISTEN|port|proxy||Local HTTP port receiving proxy traffic|Lokaler HTTP-Port für Proxy-Anfragen
-TLS_PROXY_FROM|address|proxy||Proxy IP address; empty allows every source|IP-Adresse des Proxys; leer erlaubt alle Quellen
-LAN_ADDRESS|lan|always||IPv4 address of this host for the LAN site http://<address>/|IPv4-Adresse dieses Hosts für die LAN-Seite http://<Adresse>/
-WEBSERVER|choice|always|nginx apache2 none|Web integration; none leaves manual configuration pending|Web-Integration; none lässt die manuelle Konfiguration offen
-VHOST_INCLUDE|yesno|vhost||Permit an include in the identified vhost after backup and route checks|Include im erkannten Vhost nach Sicherung und Routenprüfung erlauben
+TLS_PROXY_FROM|address|proxy||Proxy IP address; empty allows every source|
+  IP-Adresse des Proxys; leer erlaubt alle Quellen
+LAN_ADDRESS|lan|always||IPv4 address of this host for the LAN site http://<address>/|
+  IPv4-Adresse dieses Hosts für die LAN-Seite http://<Adresse>/
+WEBSERVER|choice|always|nginx apache2 none|Web integration; none leaves manual configuration pending|
+  Web-Integration; none lässt die manuelle Konfiguration offen
+VHOST_INCLUDE|yesno|vhost||Permit an include in the identified vhost after backup and route checks|
+  Include im erkannten Vhost nach Sicherung und Routenprüfung erlauben
 BACKEND_PORT|port|always||Primary backend port, bound to loopback|Primärer Backend-Port, an Loopback gebunden
-BACKEND_HTTP_PORT|port|apache||Additional loopback HTTP port required by Apache topology|Zusätzlicher Loopback-HTTP-Port für die Apache-Topologie
-ADMIN_EMAIL|email|always||Email whose registration becomes administrator|E-Mail-Adresse, deren Registrierung Administrator wird
+BACKEND_HTTP_PORT|port|apache||Additional loopback HTTP port required by Apache topology|
+  Zusätzlicher Loopback-HTTP-Port für die Apache-Topologie
+ADMIN_EMAIL|email|always||Email whose registration becomes administrator|
+  E-Mail-Adresse, deren Registrierung Administrator wird
 ALLOWED_USERS|integer|always||Maximum number of users|Maximale Anzahl Benutzer
-SMTP_CONFIGURE|yesno|always||Configure mail; no prevents completed registration|Mail konfigurieren; no verhindert abgeschlossene Registrierungen
+SMTP_CONFIGURE|yesno|always||Configure mail; no prevents completed registration|
+  Mail konfigurieren; no verhindert abgeschlossene Registrierungen
 SMTP_HOST|host|smtp||SMTP host|SMTP-Server
 SMTP_PORT|port|smtp||SMTP port|SMTP-Port
 SMTP_AUTH|yesno|smtp||SMTP authentication required|SMTP-Anmeldung erforderlich
-SMTP_USER|email|smtp||SMTP login and sender email; also required for unauthenticated relays|SMTP-Anmeldung und Absender-E-Mail; auch für Relays ohne Anmeldung erforderlich
-SMTP_SECURITY|choice|smtp|starttls tls none|SMTP transport security; none only for unauthenticated relays|SMTP-Transportverschlüsselung; none nur für Relays ohne Anmeldung
-SMTP_PASSWORD|secret|smtp_auth||SMTP password required during installation|SMTP-Passwort bei der Installation erforderlich
+SMTP_USER|email|smtp||SMTP login and sender email; also required for unauthenticated relays|
+  SMTP-Anmeldung und Absender-E-Mail; auch für Relays ohne Anmeldung erforderlich
+SMTP_SECURITY|choice|smtp|starttls tls none|SMTP transport security; none only for unauthenticated relays|
+  SMTP-Transportverschlüsselung; none nur für Relays ohne Anmeldung
+SMTP_PASSWORD|secret|smtp_auth||SMTP password required during installation|
+  SMTP-Passwort bei der Installation erforderlich
 SMTP_TEST|yesno|smtp||Send a test message during installation|Bei der Installation eine Testnachricht senden
-DB_PASSWORD|secret|always||Grafioschtrader database password (spring.datasource.password)|Grafioschtrader-Datenbankpasswort (spring.datasource.password)
-DB_REUSE_EMPTY|yesno|empty_db||Reuse the existing empty grafioschtrader database|Vorhandene leere Datenbank grafioschtrader verwenden
-DB_ROOT_PASSWORD|secret|root_password||MariaDB root password; new for a new server, current for an existing server|MariaDB-Root-Passwort; neu für neuen Server, aktuell für vorhandenen Server
-JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD)|Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD)
-BUFFER_POOL|yesno|buffer||Set MariaDB buffer pool and restart the server, affecting every database|MariaDB-Puffer setzen und Server neu starten; betrifft alle Datenbanken
-JAVA_HEAP|heap|always||Java heap: -Xms<size> -Xmx<size>, with m or g units|Java-Heap: -Xms<Größe> -Xmx<Größe>, mit m oder g
-DOCROOT|path|always||Absolute document root; existing application content must remain untouched|Absolutes Dokumentenverzeichnis; vorhandene Anwendungen müssen erhalten bleiben
+DB_PASSWORD|secret|always||Grafioschtrader database password (spring.datasource.password)|
+  Grafioschtrader-Datenbankpasswort (spring.datasource.password)
+DB_REUSE_EMPTY|yesno|empty_db||Reuse the existing empty grafioschtrader database|
+  Vorhandene leere Datenbank grafioschtrader verwenden
+DB_ROOT_PASSWORD|secret|root_password||MariaDB root password; new for a new server, current for an existing server|
+  MariaDB-Root-Passwort; neu für neuen Server, aktuell für vorhandenen Server
+JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD)|
+  Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD)
+BUFFER_POOL|yesno|buffer||Set MariaDB buffer pool and restart the server, affecting every database|
+  MariaDB-Puffer setzen und Server neu starten; betrifft alle Datenbanken
+JAVA_HEAP|heap|always||Java heap: -Xms<size> -Xmx<size>, with m or g units|
+  Java-Heap: -Xms<Größe> -Xmx<Größe>, mit m oder g
+DOCROOT|path|always||Absolute document root; existing application content must remain untouched|
+  Absolutes Dokumentenverzeichnis; vorhandene Anwendungen müssen erhalten bleiben
 TIMEZONE|timezone|always||Host time zone used for the first cron setup|Host-Zeitzone für die erste Cron-Einrichtung
-SWAP|yesno|swap||Create 2 GiB at /swapfile and add it to /etc/fstab|2 GiB unter /swapfile anlegen und in /etc/fstab eintragen
-NODE_REPLACE|yesno|node_shared||Replace shared Node.js instead of isolating; affects other consumers|Gemeinsames Node.js ersetzen statt isolieren; betrifft andere Anwendungen
-FIREWALL_ALLOW|yesno|ufw||Allow the selected web ports in ufw; SSH and existing rules stay unchanged|Gewählte Web-Ports in ufw freigeben; SSH und bestehende Regeln bleiben unverändert
+SWAP|yesno|swap||Create 2 GiB at /swapfile and add it to /etc/fstab|
+  2 GiB unter /swapfile anlegen und in /etc/fstab eintragen
+NODE_REPLACE|yesno|node_shared||Replace shared Node.js instead of isolating; affects other consumers|
+  Gemeinsames Node.js ersetzen statt isolieren; betrifft andere Anwendungen
+FIREWALL_ALLOW|yesno|ufw||Allow the selected web ports in ufw; SSH and existing rules stay unchanged|
+  Gewählte Web-Ports in ufw freigeben; SSH und bestehende Regeln bleiben unverändert
 QUESTIONS
 }
 
@@ -1039,7 +1132,8 @@ gt_tls_default() {
     fi
   done
   [[ "$existing" != yes ]] || { echo existing; return; }
-  if [[ "${REASON[web]:-}" == 'foreign proxy'* || "${FACT[web.cloudflared]:-}" == *'LoadState=loaded'* ]]; then echo proxy
+  if [[ "${REASON[web]:-}" == 'foreign proxy'* || "${FACT[web.cloudflared]:-}" == *'LoadState=loaded'* ]]; then
+    echo proxy
   else echo letsencrypt; fi
 }
 gt_certificate_default() {
@@ -1056,7 +1150,10 @@ gt_certificate_default() {
       done
       for web_row in "${WEB[@]}"; do
         read -r label directive value <<< "$web_row"
-        if [[ -n "$wanted_label" && "$label" == "$wanted_label" && ( "$directive" == ssl_certificate_key || "$directive" == SSLCertificateKeyFile ) ]]; then printf '%s' "$value"; return; fi
+        if [[ -n "$wanted_label" && "$label" == "$wanted_label" &&
+            ( "$directive" == ssl_certificate_key || "$directive" == SSLCertificateKeyFile ) ]]; then
+          printf '%s' "$value"; return
+        fi
       done
       value=${file#"$ROOT"}
       [[ ! -r "${file%/*}/privkey.pem" ]] || printf '%s/privkey.pem' "${value%/*}"
@@ -1082,7 +1179,9 @@ gt_vhost_root_default() {
     read -r label directive value <<< "$row"
     case "$directive" in server_name|ServerName|ServerAlias)
       for name in ${value//\"/}; do
-        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" || "$name" == "$(gt_lan_planned)" ]]; then matches[$label]=1; fi
+        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" || "$name" == "$(gt_lan_planned)" ]]; then
+          matches[$label]=1
+        fi
       done ;;
     esac
   done
@@ -1131,7 +1230,9 @@ gt_default() {
     BUFFER_POOL)
       value=${FACT[database.schemas]:-unknown}
       if [[ "${FACT[database.vendor]:-}" == absent ]]; then echo yes
-      elif [[ "$value" == unknown ]] || awk -F '\t' '$1 !~ /^(mysql|information_schema|performance_schema|sys|grafioschtrader)$/ {found=1} END {exit !found}' <<< "$value"; then echo no
+      elif [[ "$value" == unknown ]] || awk -F '\t' '
+          $1 !~ /^(mysql|information_schema|performance_schema|sys|grafioschtrader)$/ {found=1}
+          END {exit !found}' <<< "$value"; then echo no
       else echo yes; fi ;;
     JAVA_HEAP) gt_memory_defaults ;;
     DOCROOT) gt_vhost_root_default || echo "/var/www/${ANSWER[DOMAIN]:-gt}" ;;
@@ -1159,7 +1260,9 @@ gt_valid_address() {
       left=${value%%::*}; right=${value#*::}; [[ "$right" != *::* ]] || return 1
       value="$left:$right"
       IFS=: read -r -a parts <<< "$value"
-      for part in "${parts[@]}"; do [[ -z "$part" || ${#part} -le 4 ]] || return 1; [[ -z "$part" ]] || count=$((count+1)); done
+      for part in "${parts[@]}"; do
+        [[ -z "$part" || ${#part} -le 4 ]] || return 1; [[ -z "$part" ]] || count=$((count+1))
+      done
       (( count < 8 ))
     else
       [[ "$value" != :* && "$value" != *: ]] || return 1
@@ -1230,7 +1333,8 @@ gt_validate_answer() {
   case "${Q_TYPE[$key]}" in
     domain) [[ -z "$value" ]] || { [[ "$value" == *.* && ! "$value" =~ ^[0-9.]+$ ]] && gt_valid_hostname "$value"; } ;;
     host) gt_valid_hostname "$value" ;;
-    email) [[ "$value" =~ ^[a-zA-Z0-9._%+-]+@[^@]+$ ]] && gt_valid_hostname "${value#*@}" && [[ "${value#*@}" == *.* ]] ;;
+    email) [[ "$value" =~ ^[a-zA-Z0-9._%+-]+@[^@]+$ ]] && gt_valid_hostname "${value#*@}" &&
+      [[ "${value#*@}" == *.* ]] ;;
     yesno) [[ "$value" == yes || "$value" == no ]] ;;
     choice) [[ "$value" =~ ^[a-zA-Z0-9_-]+$ && " ${Q_CHOICES[$key]} " == *" $value "* ]] ;;
     port) [[ "$value" =~ ^[1-9][0-9]{0,4}$ ]] && (( value <= 65535 )) ;;
@@ -1266,18 +1370,27 @@ gt_ask() {
     [[ -n "$value" ]] || value=$default
     [[ "$key" != DOMAIN ]] || value=${value,,}
     if gt_validate_answer "$key" "$value"; then ANSWER[$key]=$value; return 0; fi
-    gt_text 'Invalid value; try again. !quit cancels.' 'Ungültiger Wert; erneut eingeben. !quit bricht ab.' >&"$QUESTION_OUTPUT"
+    gt_text 'Invalid value; try again. !quit cancels.' 'Ungültiger Wert; erneut eingeben. !quit bricht ab.' \
+      >&"$QUESTION_OUTPUT"
   done
 }
 gt_dns_checklist() {
+  local en de
   [[ -n "${ANSWER[DOMAIN]:-}" ]] || return 0
   if [[ "${ANSWER[TLS_SOURCE]:-}" == proxy ]]; then
-    gt_text 'Proxy: preserve Host; overwrite client-supplied X-Forwarded-For / X-Forwarded-Proto; forward HTTPS to the local HTTP port.' \
-      'Proxy: Host erhalten; Client-Header X-Forwarded-For / X-Forwarded-Proto ersetzen; HTTPS an den lokalen HTTP-Port weiterleiten.'
+    en='Proxy: preserve Host; overwrite client-supplied X-Forwarded-For / X-Forwarded-Proto;'
+    en+=' forward HTTPS to the local HTTP port.'
+    de='Proxy: Host erhalten; Client-Header X-Forwarded-For / X-Forwarded-Proto ersetzen;'
+    de+=' HTTPS an den lokalen HTTP-Port weiterleiten.'
+    gt_text "$en" "$de"
   else
-    gt_text 'Domain checklist: configure A/AAAA records for the selected reachable families and admit TCP 80/443 at the router/firewall.' \
-      'Domain-Checkliste: A/AAAA für die gewählten erreichbaren Familien setzen und TCP 80/443 an Router/Firewall freigeben.'
-    printf 'IPv4=%s IPv6=%s LAN=%s\n' "${FACT[network.public_ipv4]:-unknown}" "${FACT[network.global_ipv6]:-unknown}" "$(gt_lan_planned)"
+    en='Domain checklist: configure A/AAAA records for the selected reachable families'
+    en+=' and admit TCP 80/443 at the router/firewall.'
+    de='Domain-Checkliste: A/AAAA für die gewählten erreichbaren Familien setzen'
+    de+=' und TCP 80/443 an Router/Firewall freigeben.'
+    gt_text "$en" "$de"
+    printf 'IPv4=%s IPv6=%s LAN=%s\n' "${FACT[network.public_ipv4]:-unknown}" "${FACT[network.global_ipv6]:-unknown}" \
+      "$(gt_lan_planned)"
     if [[ "${ANSWER[DOMAIN]}" == *.duckdns.org ]]; then
       gt_text 'DuckDNS: create the account and subdomain yourself; keep the token for installation.' \
         'DuckDNS: Konto und Subdomain selbst anlegen; Token für die Installation bereithalten.'
@@ -1293,10 +1406,12 @@ gt_questions() {
       'Kernkonfiguration: Der Plan benennt die Änderungen vor der Ausführung. !quit bricht ab.' >&"$QUESTION_OUTPUT"
   elif [[ "$MODE" == --prepare ]]; then
     gt_text 'Preparation only; no installation. Secrets follow the configuration questions. !quit cancels.' \
-      'Nur Vorbereitung; keine Installation. Geheimnisse folgen den Konfigurationsfragen. !quit bricht ab.' >&"$QUESTION_OUTPUT"
+      'Nur Vorbereitung; keine Installation. Geheimnisse folgen den Konfigurationsfragen. !quit bricht ab.' \
+      >&"$QUESTION_OUTPUT"
   else
     gt_text 'Dry-run: no passwords are requested or generated. !quit cancels; Enter accepts the default.' \
-      'Dry-run: Passwörter werden weder abgefragt noch erzeugt. !quit bricht ab; Enter übernimmt den Vorschlag.' >&"$QUESTION_OUTPUT"
+      'Dry-run: Passwörter werden weder abgefragt noch erzeugt. !quit bricht ab; Enter übernimmt den Vorschlag.' \
+      >&"$QUESTION_OUTPUT"
   fi
   for key in "${QUESTIONS[@]}"; do
     gt_question_applies "$key" || continue
@@ -1423,7 +1538,8 @@ gt_file_questions() {
     if ! gt_validate_answer "$key" "${ANSWER[$key]}"; then
       printf '%s: %s\n' "$(gt_text 'Invalid/missing answer' 'Ungültige/fehlende Antwort')" "$key" >&2; return 2
     fi
-    if [[ "$key" == WEBSERVER && ( "${REASON[web]:-}" == nginx || "${REASON[web]:-}" == apache2 ) && "${ANSWER[$key]}" != "${REASON[web]}" ]]; then
+    if [[ "$key" == WEBSERVER && ( "${REASON[web]:-}" == nginx || "${REASON[web]:-}" == apache2 ) &&
+        "${ANSWER[$key]}" != "${REASON[web]}" ]]; then
       gt_secret_error; return 2
     fi
   done
@@ -1460,7 +1576,8 @@ gt_prepare_root() {
   file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2
   gt_database "$file"
   rm -f -- "$file"
-  [[ "${FACT[database.query]}" == ok && "${FACT[database.gt_user]}" != unknown && "${FACT[database.schemas]}" != unknown ]] || { gt_secret_error; return 2; }
+  [[ "${FACT[database.query]}" == ok && "${FACT[database.gt_user]}" != unknown &&
+    "${FACT[database.schemas]}" != unknown ]] || { gt_secret_error; return 2; }
   FACT[database.password_auth]=yes SECRET_STATUS[DB_ROOT_PASSWORD]=verified
   # Recompute database recommendations with authenticated facts before asking about reuse.
   ACTION=() REASON=() DISKS=() DISK_FREE=() DISK_NEED=()
@@ -1471,7 +1588,8 @@ gt_prepare_secrets() {
   set +vx
   local key twice file client value
   unset 'FACT[database.gt_auth]'
-  [[ "${FACT[database.vendor]}" == absent || "${FACT[database.gt_user]}" == absent || "${FACT[database.gt_user]}" == present ]] || { gt_secret_error; return 2; }
+  [[ "${FACT[database.vendor]}" == absent || "${FACT[database.gt_user]}" == absent ||
+    "${FACT[database.gt_user]}" == present ]] || { gt_secret_error; return 2; }
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" == secret && "$key" != DB_ROOT_PASSWORD ]] || continue
     gt_question_applies "$key" || continue
@@ -1505,7 +1623,8 @@ gt_plan_block() { PLAN_BLOCKERS+=("$(gt_text "$1" "${2:-$1}")"); }
 gt_plan_warn() { PLAN_WARNINGS+=("$(gt_text "$1" "${2:-$1}")"); }
 gt_plan_file() {
   if [[ -e "$(gt_path "$1")" || -L "$(gt_path "$1")" ]]; then
-    gt_plan_block "Target already exists: $1; ownership must be resolved." "Ziel existiert bereits: $1; Eigentümerschaft muss geklärt werden."
+    gt_plan_block "Target already exists: $1; ownership must be resolved." \
+      "Ziel existiert bereits: $1; Eigentümerschaft muss geklärt werden."
   fi
   gt_plan_row create "$1" "$2" "${3:-$2}"
 }
@@ -1545,11 +1664,13 @@ gt_plan_packages() {
   while IFS= read -r line; do
     case "$line" in
       'Remv '*) gt_plan_row remove package "$line"
-        gt_plan_block 'APT would remove packages; this increment cannot authorize removals.' 'APT würde Pakete entfernen; diese Stufe erlaubt keine Entfernungen.' ;;
+        gt_plan_block 'APT would remove packages; this increment cannot authorize removals.' \
+          'APT würde Pakete entfernen; diese Stufe erlaubt keine Entfernungen.' ;;
       'Inst '*) gt_plan_row install package "$line"
         # Any existing package upgrade can affect a shared service. Show it and require resolution.
         if [[ "$line" =~ ^Inst[[:space:]]+[^[:space:]]+[[:space:]]+\[ ]]; then
-          gt_plan_block "APT would upgrade an existing package: $line" "APT würde ein vorhandenes Paket aktualisieren: $line"
+          gt_plan_block "APT would upgrade an existing package: $line" \
+            "APT würde ein vorhandenes Paket aktualisieren: $line"
         fi ;;
       'Conf '*) gt_plan_row configure package "$line" ;;
     esac
@@ -1623,10 +1744,13 @@ gt_plan_toolchains() {
     gt_plan_file /opt/nodejs-gt 'Official Node archive satisfying source requirements; verify SHASUMS256.txt' \
       'Offizielles Node-Archiv gemäß Quellcode-Anforderungen; SHASUMS256.txt prüfen'
   else
-    gt_plan_file /etc/apt/keyrings/nodesource.gpg 'NodeSource signing key; verify fingerprint' 'NodeSource-Signaturschlüssel; Fingerabdruck prüfen'
-    gt_plan_file /etc/apt/sources.list.d/nodesource.sources 'NodeSource 24.x source with signed-by' 'NodeSource-24.x-Quelle mit signed-by'
+    gt_plan_file /etc/apt/keyrings/nodesource.gpg 'NodeSource signing key; verify fingerprint' \
+      'NodeSource-Signaturschlüssel; Fingerabdruck prüfen'
+    gt_plan_file /etc/apt/sources.list.d/nodesource.sources 'NodeSource 24.x source with signed-by' \
+      'NodeSource-24.x-Quelle mit signed-by'
     [[ "${ANSWER[NODE_REPLACE]:-no}" == yes ]] && item=replace || item=install
-    gt_plan_row "$item" package:nodejs 'NodeSource 24; affects the system runtime' 'NodeSource 24; betrifft die System-Laufzeit'
+    gt_plan_row "$item" package:nodejs 'NodeSource 24; affects the system runtime' \
+      'NodeSource 24; betrifft die System-Laufzeit'
     gt_plan_block 'NodeSource candidate and full transaction are unverified until its repository is available.' \
       'NodeSource-Kandidat und vollständige Transaktion sind ungeprüft, bis die Paketquelle verfügbar ist.'
   fi
@@ -1634,7 +1758,8 @@ gt_plan_toolchains() {
     gt_plan_warn 'Node replacement requested; every shared consumer must be checked before execution.' \
       'Node-Ersatz gewünscht; alle betroffenen Anwendungen müssen vor Ausführung geprüft werden.'
   fi
-  gt_plan_row configure npm "@angular/cli@$CLI_REQUIRED and semver in /opt/gt-build-tools; selected Node; NG_CLI_ANALYTICS=false" \
+  gt_plan_row configure npm \
+    "@angular/cli@$CLI_REQUIRED and semver in /opt/gt-build-tools; selected Node; NG_CLI_ANALYTICS=false" \
     "@angular/cli@$CLI_REQUIRED und semver in /opt/gt-build-tools; gewähltes Node; NG_CLI_ANALYTICS=false"
 }
 gt_plan_database() {
@@ -1644,29 +1769,35 @@ gt_plan_database() {
     gt_plan_row configure mariadb 'Remove anonymous accounts and test schema only on a newly installed server.' \
       'Anonyme Konten und test-Schema nur auf einem neu installierten Server entfernen.'
   fi
-  gt_plan_row "${ACTION[database]}" database:grafioschtrader 'utf8mb4 / utf8mb4_general_ci; never adopt non-empty data' \
+  gt_plan_row "${ACTION[database]}" database:grafioschtrader \
+    'utf8mb4 / utf8mb4_general_ci; never adopt non-empty data' \
     'utf8mb4 / utf8mb4_general_ci; niemals vorhandene Daten übernehmen'
   if [[ "${FACT[database.gt_tables]}" == 0 && "${ANSWER[DB_REUSE_EMPTY]:-no}" != yes ]]; then
-    gt_plan_block 'Reuse of the empty database was not accepted.' 'Verwendung der leeren Datenbank wurde nicht bestätigt.'
+    gt_plan_block 'Reuse of the empty database was not accepted.' \
+      'Verwendung der leeren Datenbank wurde nicht bestätigt.'
   fi
   if [[ "${FACT[database.gt_user]}" == present ]]; then
-    gt_plan_row verify 'account:grafioschtrader@localhost' 'Supply current password and verify TCP login before any database changes; never rotate it.' \
+    gt_plan_row verify 'account:grafioschtrader@localhost' \
+      'Supply current password and verify TCP login before any database changes; never rotate it.' \
       'Aktuelles Passwort angeben und TCP-Anmeldung vor Datenbankänderungen prüfen; Passwort niemals ändern.'
     if [[ "$MODE" != --prepare || "${FACT[database.gt_auth]:-}" != ok ]]; then
-      gt_plan_block 'Existing database account credentials remain unverified.' 'Zugangsdaten des vorhandenen Datenbankkontos bleiben ungeprüft.'
+      gt_plan_block 'Existing database account credentials remain unverified.' \
+        'Zugangsdaten des vorhandenen Datenbankkontos bleiben ungeprüft.'
     fi
   elif [[ "${FACT[database.gt_user]}" == absent || "${FACT[database.vendor]}" == absent ]]; then
     gt_plan_row create 'account:grafioschtrader@localhost' 'Use the confirmed password; grant grafioschtrader.* only.' \
       'Bestätigtes Passwort verwenden; Rechte nur für grafioschtrader.* vergeben.'
   else
-    gt_plan_row block 'account:grafioschtrader@localhost' 'Authenticate inventory before deciding whether the account exists.' \
+    gt_plan_row block 'account:grafioschtrader@localhost' \
+      'Authenticate inventory before deciding whether the account exists.' \
       'Bestandsaufnahme authentifizieren, bevor über das Vorhandensein des Kontos entschieden wird.'
   fi
   if [[ "${ANSWER[BUFFER_POOL]:-no}" == yes ]]; then
     [[ "$mem" =~ ^[0-9]+$ ]] || mem=0
     if (( mem >= 6000 )); then pool=2G; elif (( mem >= 3000 )); then pool=1G; fi
     gt_plan_file /etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf "innodb_buffer_pool_size=$pool"
-    gt_plan_row restart mariadb 'Affects all listed schemas, including other applications.' 'Betrifft alle aufgeführten Schemas, auch andere Anwendungen.'
+    gt_plan_row restart mariadb 'Affects all listed schemas, including other applications.' \
+      'Betrifft alle aufgeführten Schemas, auch andere Anwendungen.'
   fi
 }
 
@@ -1676,24 +1807,30 @@ gt_plan_ports() {
   for key in BACKEND_PORT BACKEND_HTTP_PORT TLS_PROXY_LISTEN; do
     port=${ANSWER[$key]:-}; [[ -n "$port" ]] || continue
     if ! gt_port_free "$port" || [[ -n "${used[$port]:-}" ]]; then
-      gt_plan_block "Port $port ($key) is occupied, duplicated or UNKNOWN." "Port $port ($key) ist belegt, doppelt vergeben oder UNKNOWN."
+      gt_plan_block "Port $port ($key) is occupied, duplicated or UNKNOWN." \
+        "Port $port ($key) ist belegt, doppelt vergeben oder UNKNOWN."
     fi
     used[$port]=$key
   done
   if [[ "${ANSWER[WEBSERVER]}" != none && "${ANSWER[TLS_SOURCE]:-}" != proxy ]]; then
     for port in 80 443; do
       [[ "$port" != 443 || -n "${ANSWER[DOMAIN]}" ]] || continue
-      [[ -z "${used[$port]:-}" ]] || gt_plan_block "Backend port $port overlaps a planned web listener." "Backend-Port $port überschneidet sich mit einem geplanten Web-Listener."
+      [[ -z "${used[$port]:-}" ]] || gt_plan_block "Backend port $port overlaps a planned web listener." \
+        "Backend-Port $port überschneidet sich mit einem geplanten Web-Listener."
     done
   fi
-  gt_plan_row configure backend "127.0.0.1:${ANSWER[BACKEND_PORT]} (${ANSWER[WEBSERVER]}); HTTP=${ANSWER[BACKEND_HTTP_PORT]:-same}"
+  gt_plan_row configure backend \
+    "127.0.0.1:${ANSWER[BACKEND_PORT]} (${ANSWER[WEBSERVER]}); HTTP=${ANSWER[BACKEND_HTTP_PORT]:-same}"
 }
 gt_plan_web() {
-  local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root='' unknown=no file kind=''
+  local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root=''
+  local unknown=no file kind=''
   local -A matches=()
   if [[ "$web" == none ]]; then
-    gt_plan_file /root/gt-install-webserver.conf 'Manual proxy configuration; web milestone remains pending.' 'Manuelle Proxy-Konfiguration; Web-Meilenstein bleibt offen.'
-    gt_plan_warn 'No web integration selected; installation would be incomplete.' 'Keine Web-Integration gewählt; Installation wäre unvollständig.'
+    gt_plan_file /root/gt-install-webserver.conf 'Manual proxy configuration; web milestone remains pending.' \
+      'Manuelle Proxy-Konfiguration; Web-Meilenstein bleibt offen.'
+    gt_plan_warn 'No web integration selected; installation would be incomplete.' \
+      'Keine Web-Integration gewählt; Installation wäre unvollständig.'
     return 0
   fi
   gt_plan_web_runtime
@@ -1736,46 +1873,59 @@ gt_plan_web() {
 VHOST_INCLUDE=yes and TLS_SOURCE=existing." "Ein vorhandener Vhost bedient die LAN-Adresse oder die Domain; die \
 Domain lässt sich nur mit VHOST_INCLUDE=yes und TLS_SOURCE=existing teilen."
   else
-    [[ "$web" == nginx ]] && file=/etc/nginx/sites-available/grafioschtrader || file=/etc/apache2/sites-available/grafioschtrader.conf
+    if [[ "$web" == nginx ]]; then file=/etc/nginx/sites-available/grafioschtrader
+    else file=/etc/apache2/sites-available/grafioschtrader.conf; fi
     gt_plan_file "$file" 'Own vhost: /api, /m2m, /socket/websocket, /ws, /grafioschtrader; preserve other sites.' \
       'Eigener Vhost: /api, /m2m, /socket/websocket, /ws, /grafioschtrader; andere Sites erhalten.'
     gt_plan_file "${file/sites-available/sites-enabled}" 'Enable own vhost' 'Eigenen Vhost aktivieren'
   fi
-  [[ "$unknown" == no ]] || gt_plan_block 'Effective web configuration is ambiguous or includes unresolved context.' 'Effektive Web-Konfiguration ist mehrdeutig oder enthält ungeklärte Includes.'
+  [[ "$unknown" == no ]] || gt_plan_block 'Effective web configuration is ambiguous or includes unresolved context.' \
+    'Effektive Web-Konfiguration ist mehrdeutig oder enthält ungeklärte Includes.'
   if [[ "${ANSWER[TLS_SOURCE]:-}" != proxy ]]; then
     for name in 80 443; do
       [[ "$name" != 443 || -n "$domain" ]] || continue
-      if ! gt_port_free "$name" && ! awk -v port="$name" -v owner="$web" '$4 ~ (":" port "$") && index($0,owner) {found=1} END {exit !found}' <<< "${FACT[listeners]}"; then
-        gt_plan_block "Web port $name belongs to another process or is UNKNOWN." "Web-Port $name gehört einem anderen Prozess oder ist UNKNOWN."
+      if ! gt_port_free "$name" && ! awk -v port="$name" -v owner="$web" \
+          '$4 ~ (":" port "$") && index($0,owner) {found=1} END {exit !found}' <<< "${FACT[listeners]}"; then
+        gt_plan_block "Web port $name belongs to another process or is UNKNOWN." \
+          "Web-Port $name gehört einem anderen Prozess oder ist UNKNOWN."
       fi
     done
   fi
-  gt_plan_row verify "$web" 'Configuration test and existing vhost HTTP comparisons before/after reload; restore on failure.' \
+  gt_plan_row verify "$web" \
+    'Configuration test and existing vhost HTTP comparisons before/after reload; restore on failure.' \
     'Konfigurationstest und HTTP-Vergleich vorhandener Vhosts vor/nach Reload; bei Fehler wiederherstellen.'
 }
 gt_plan_storage() {
   local path=${ANSWER[DOCROOT]} actual device max mem=${FACT[memory.MemTotal]:-unknown}
   actual=$(gt_path "$path")
   if [[ -L "$actual" || -e "$actual" && ! -d "$actual" ]]; then
-    gt_plan_block "Document root is a symlink or not a directory: $path" "Dokumentenverzeichnis ist ein Symlink oder kein Verzeichnis: $path"
+    gt_plan_block "Document root is a symlink or not a directory: $path" \
+      "Dokumentenverzeichnis ist ein Symlink oder kein Verzeichnis: $path"
   elif [[ -e "$actual/grafioschtrader" || -L "$actual/grafioschtrader" ]]; then
     gt_plan_block "GT content already exists in $path" "GT-Inhalt existiert bereits in $path"
-  elif [[ -d "$actual" && -n "$(find "$actual" -mindepth 1 -maxdepth 1 -print -quit)" && "$path" != "${FACT[plan.vhost_root]:-}" ]]; then
-    gt_plan_block "Non-empty document root is not the selected vhost root: $path" "Nichtleeres Dokumentenverzeichnis gehört nicht zum gewählten Vhost: $path"
+  elif [[ -d "$actual" && -n "$(find "$actual" -mindepth 1 -maxdepth 1 -print -quit)" &&
+      "$path" != "${FACT[plan.vhost_root]:-}" ]]; then
+    gt_plan_block "Non-empty document root is not the selected vhost root: $path" \
+      "Nichtleeres Dokumentenverzeichnis gehört nicht zum gewählten Vhost: $path"
   fi
-  gt_plan_row create "$path/grafioschtrader" 'Only this directory is writable by grafioschtrader; preserve shared content.' \
+  gt_plan_row create "$path/grafioschtrader" \
+    'Only this directory is writable by grafioschtrader; preserve shared content.' \
     'Nur dieses Verzeichnis ist für grafioschtrader beschreibbar; gemeinsame Inhalte erhalten.'
-  [[ -e "$actual" ]] || gt_plan_row create "$path/index.html" 'Landing page in newly created document root' 'Startseite im neu angelegten Dokumentenverzeichnis'
+  [[ -e "$actual" ]] || gt_plan_row create "$path/index.html" 'Landing page in newly created document root' \
+    'Startseite im neu angelegten Dokumentenverzeichnis'
   DISKS=() DISK_FREE=() DISK_NEED=(); unset 'FACT[disk.unknown]'
   gt_disk /home 4096; gt_disk /opt "$(gt_opt_need)"; gt_disk "${FACT[database.datadir]}" 2048; gt_disk "$path" 300
   if [[ "${ANSWER[SWAP]:-no}" == yes && "${STATE[step.swap]:-}" != complete ]]; then gt_disk / "$SWAP_MB"; fi
   gt_swap_plan
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_plan_block 'Disk capacity UNKNOWN.' 'Freier Speicherplatz UNKNOWN.'
   for device in "${!DISK_NEED[@]}"; do
-    (( DISK_FREE[$device] >= DISK_NEED[$device] )) || gt_plan_block "Device $device: ${DISK_NEED[$device]} MiB required, ${DISK_FREE[$device]} MiB available."
+    (( DISK_FREE[$device] >= DISK_NEED[$device] )) || gt_plan_block \
+      "Device $device: ${DISK_NEED[$device]} MiB required, ${DISK_FREE[$device]} MiB available."
   done
   max=${ANSWER[JAVA_HEAP]##*Xmx}; [[ "$max" != *g ]] || max="$((${max%g}*1024))m"; max=${max%m}
-  if [[ "$mem" =~ ^[0-9]+$ ]] && (( max >= mem )); then gt_plan_block 'Maximum Java heap must be smaller than RAM.' 'Maximaler Java-Heap muss kleiner als RAM sein.'; fi
+  if [[ "$mem" =~ ^[0-9]+$ ]] && (( max >= mem )); then
+    gt_plan_block 'Maximum Java heap must be smaller than RAM.' 'Maximaler Java-Heap muss kleiner als RAM sein.'
+  fi
 }
 
 gt_dns_required() { [[ -n "${ANSWER[DOMAIN]:-}" && "${ANSWER[TLS_SOURCE]:-}" != proxy ]]; }
@@ -1788,7 +1938,8 @@ gt_dns_tool_notice() {
 }
 
 gt_dns_update_notice() {
-  gt_text 'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
+  gt_text \
+    'DNS differs; the installer updates DuckDNS before the build and verifies the records before any certificate.' \
     'DNS weicht ab; der Installer aktualisiert DuckDNS vor dem Build und prüft die Einträge vor jedem Zertifikat.'
 }
 
@@ -1815,7 +1966,7 @@ gt_dns_records_match() {
 }
 
 gt_plan_dns() {
-  local domain=${ANSWER[DOMAIN]} family name result records expected mismatched=no matched_www=yes
+  local domain=${ANSWER[DOMAIN]} family name result records expected mismatched=no matched_www=yes en de
   FACT[plan.names]=$domain
   FACT[dns.status]=skipped
   gt_dns_required || return 0
@@ -1827,16 +1978,22 @@ gt_plan_dns() {
       gt_plan_warn "$(gt_dns_tool_notice)"
       return 0
     fi
-    gt_plan_block 'Missing DNS check prerequisite: dig (bind9-dnsutils). Install the confirmed prerequisite, then repeat DNS checks.' \
-      'Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils). Bestätigtes Voraussetzungspaket installieren, danach DNS erneut prüfen.'
+    en='Missing DNS check prerequisite: dig (bind9-dnsutils).'
+    en+=' Install the confirmed prerequisite, then repeat DNS checks.'
+    de='Fehlende DNS-Prüfvoraussetzung: dig (bind9-dnsutils).'
+    de+=' Bestätigtes Voraussetzungspaket installieren, danach DNS erneut prüfen.'
+    gt_plan_block "$en" "$de"
     return 0
   fi
   for name in "$domain" "www.$domain"; do
     for family in A AAAA; do
       result=$(gt_probe dig +time=2 +tries=1 +noall +answer "$name" "$family") || result=unknown
       records=$(awk -v type="$family" '$4==type {print tolower($5)}' <<< "$result" | LC_ALL=C sort -u)
-      [[ "$family" == A ]] && expected=${FACT[network.public_ipv4]:-unknown} || expected=${FACT[network.global_ipv6]:-unknown}
-      if [[ "${ANSWER[DNS_FAMILY]}:$family" == ipv4:AAAA || "${ANSWER[DNS_FAMILY]}:$family" == ipv6:A ]]; then expected=''; fi
+      if [[ "$family" == A ]]; then expected=${FACT[network.public_ipv4]:-unknown}
+      else expected=${FACT[network.global_ipv6]:-unknown}; fi
+      if [[ "${ANSWER[DNS_FAMILY]}:$family" == ipv4:AAAA || "${ANSWER[DNS_FAMILY]}:$family" == ipv6:A ]]; then
+        expected=''
+      fi
       records=$(gt_normalize_addresses <<< "$records")
       expected=$(gt_normalize_addresses <<< "$expected")
       gt_plan_row verify "DNS:$name:$family" "records=${records:-none}; expected=${expected:-none}"
@@ -1857,8 +2014,11 @@ gt_plan_dns() {
   elif [[ "$mismatched" == yes ]]; then
     FACT[dns.status]=mismatch
     if [[ "${ANSWER[TLS_SOURCE]}" == letsencrypt ]]; then
-      gt_plan_block 'DNS does not match selected address families or is UNKNOWN; resolve before certbot. No DNS update was sent.' \
-        'DNS passt nicht zu den gewählten Adressfamilien oder ist UNKNOWN; vor certbot klären. Kein DNS-Update gesendet.'
+      en='DNS does not match selected address families or is UNKNOWN; resolve before certbot.'
+      en+=' No DNS update was sent.'
+      de='DNS passt nicht zu den gewählten Adressfamilien oder ist UNKNOWN; vor certbot klären.'
+      de+=' Kein DNS-Update gesendet.'
+      gt_plan_block "$en" "$de"
     else gt_plan_warn 'DNS differs or is UNKNOWN; existing-certificate deployment needs a reachability check.' \
       'DNS weicht ab oder ist UNKNOWN; Erreichbarkeit bei Verwendung des vorhandenen Zertifikats prüfen.'; fi
   fi
@@ -1928,26 +2088,38 @@ gt_plan_certificate() {
   cert=$(gt_path "${ANSWER[TLS_CERT]}"); key=$(gt_path "${ANSWER[TLS_KEY]}")
   permissions=$(stat -Lc %a "$key" 2>/dev/null) || permissions=unknown
   if [[ ! -f "$cert" || ! -r "$cert" || ! -f "$key" || ! -r "$key" || ! "$permissions" =~ ^[0-7]{3,4}$ ]]; then
-    gt_plan_block 'Certificate/key missing, unreadable or permissions UNKNOWN.' 'Zertifikat/Schlüssel fehlt, unlesbar oder Rechte UNKNOWN.'; return 0
+    gt_plan_block 'Certificate/key missing, unreadable or permissions UNKNOWN.' \
+      'Zertifikat/Schlüssel fehlt, unlesbar oder Rechte UNKNOWN.'; return 0
   fi
-  (( (8#$permissions & 077) == 0 )) || gt_plan_block 'Private key is group/world accessible.' 'Privater Schlüssel ist für Gruppe/Andere zugänglich.'
+  (( (8#$permissions & 077) == 0 )) || gt_plan_block 'Private key is group/world accessible.' \
+    'Privater Schlüssel ist für Gruppe/Andere zugänglich.'
   public_cert=$(gt_probe openssl x509 -in "$cert" -pubkey -noout) || public_cert=''
   # Empty passphrase refuses encrypted keys without prompting or exposing key contents.
   public_key=$(gt_probe openssl pkey -in "$key" -passin pass: -pubout) || public_key=''
-  [[ -n "$public_cert" && "$public_cert" == "$public_key" ]] || gt_plan_block 'Certificate and private key do not match or cannot be read.' 'Zertifikat und privater Schlüssel passen nicht zusammen oder sind unlesbar.'
+  [[ -n "$public_cert" && "$public_cert" == "$public_key" ]] || gt_plan_block \
+    'Certificate and private key do not match or cannot be read.' \
+    'Zertifikat und privater Schlüssel passen nicht zusammen oder sind unlesbar.'
   for name in ${FACT[plan.names]}; do
-    gt_certificate_covers "$cert" "$name" || gt_plan_block "Certificate does not cover $name" "Zertifikat gilt nicht für $name"
+    gt_certificate_covers "$cert" "$name" || gt_plan_block "Certificate does not cover $name" \
+      "Zertifikat gilt nicht für $name"
   done
   if ! gt_probe openssl x509 -in "$cert" -noout -ext subjectAltName | grep -q 'DNS:'; then
-    gt_plan_block 'Certificate has no DNS subject alternative names.' 'Zertifikat hat keine DNS-Namen in subjectAltName.'
+    gt_plan_block 'Certificate has no DNS subject alternative names.' \
+      'Zertifikat hat keine DNS-Namen in subjectAltName.'
   fi
-  gt_probe openssl x509 -in "$cert" -noout -checkend 0 >/dev/null || gt_plan_block 'Certificate expired or invalid.' 'Zertifikat abgelaufen oder ungültig.'
-  gt_probe openssl x509 -in "$cert" -noout -checkend 2592000 >/dev/null || gt_plan_warn 'Certificate expires within 30 days.' 'Zertifikat läuft innerhalb von 30 Tagen ab.'
-  gt_probe openssl verify -purpose sslserver -untrusted "$cert" "$cert" >/dev/null || gt_plan_block 'Certificate chain cannot be verified against system trust.' 'Zertifikatskette kann nicht gegen den System-Vertrauensspeicher geprüft werden.'
+  gt_probe openssl x509 -in "$cert" -noout -checkend 0 >/dev/null || gt_plan_block 'Certificate expired or invalid.' \
+    'Zertifikat abgelaufen oder ungültig.'
+  gt_probe openssl x509 -in "$cert" -noout -checkend 2592000 >/dev/null || gt_plan_warn \
+    'Certificate expires within 30 days.' 'Zertifikat läuft innerhalb von 30 Tagen ab.'
+  gt_probe openssl verify -purpose sslserver -untrusted "$cert" "$cert" >/dev/null || gt_plan_block \
+    'Certificate chain cannot be verified against system trust.' \
+    'Zertifikatskette kann nicht gegen den System-Vertrauensspeicher geprüft werden.'
   if [[ "${1:-existing}" == certbot ]]; then
-    gt_plan_row reuse "${ANSWER[TLS_CERT]} / ${ANSWER[TLS_KEY]}" 'Validated Certbot certificate; renewal planned separately.'
+    gt_plan_row reuse "${ANSWER[TLS_CERT]} / ${ANSWER[TLS_KEY]}" \
+      'Validated Certbot certificate; renewal planned separately.'
   else
-    gt_plan_row reuse "${ANSWER[TLS_CERT]} / ${ANSWER[TLS_KEY]}" 'Reference existing files; owner renews and reloads the web server. No renewal hook installed.' \
+    gt_plan_row reuse "${ANSWER[TLS_CERT]} / ${ANSWER[TLS_KEY]}" \
+      'Reference existing files; owner renews and reloads the web server. No renewal hook installed.' \
       'Vorhandene Dateien referenzieren; Eigentümer erneuert und lädt Webserver neu. Kein Erneuerungs-Hook.'
   fi
 }
@@ -1990,65 +2162,94 @@ gt_certbot_plan() {
   gt_plan_certificate certbot
   ANSWER[TLS_CERT]=$saved_cert ANSWER[TLS_KEY]=$saved_key
   gt_plan_row preserve "$renewal" 'Keep renewal configuration, certificate names and existing renewal schedule.'
-  gt_plan_row create 'Certbot deploy hook' 'Additional installer-owned hook, scoped to this lineage; reload selected web server.'
-  gt_plan_row verify "certbot renew --cert-name $name --dry-run" 'Test the existing renewal configuration; no duplicate issuance.'
+  gt_plan_row create 'Certbot deploy hook' \
+    'Additional installer-owned hook, scoped to this lineage; reload selected web server.'
+  gt_plan_row verify "certbot renew --cert-name $name --dry-run" \
+    'Test the existing renewal configuration; no duplicate issuance.'
 }
 gt_plan_tls() {
-  local web=${ANSWER[WEBSERVER]}
+  local web=${ANSWER[WEBSERVER]} en de
   case "${ANSWER[TLS_SOURCE]:-lan}" in
     letsencrypt)
-      if [[ "$web" == none ]]; then gt_plan_block "Let's Encrypt requires nginx or Apache integration." "Let's Encrypt benötigt nginx- oder Apache-Integration."
+      if [[ "$web" == none ]]; then
+        gt_plan_block "Let's Encrypt requires nginx or Apache integration." \
+          "Let's Encrypt benötigt nginx- oder Apache-Integration."
       else
         gt_plan_package certbot
         gt_certbot_plan
         if [[ "${FACT[tls.reuse]:-no}" != yes ]]; then
-          gt_plan_row issue "certificate:${FACT[plan.names]}" 'certbot HTTP-01, domain HTTPS redirect, enable renewal and verify renew --dry-run during installation' \
-          'certbot HTTP-01, HTTPS-Umleitung für Domain, Erneuerung aktivieren und renew --dry-run bei Installation prüfen'
+          en='certbot HTTP-01, domain HTTPS redirect, enable renewal and verify renew --dry-run during installation'
+          de='certbot HTTP-01, HTTPS-Umleitung für Domain, Erneuerung aktivieren'
+          de+=' und renew --dry-run bei Installation prüfen'
+          gt_plan_row issue "certificate:${FACT[plan.names]}" "$en" "$de"
         fi
       fi ;;
     existing) gt_plan_certificate ;;
     proxy)
-      gt_plan_row configure proxy "HTTP ${ANSWER[TLS_PROXY_LISTEN]}; allowed source=${ANSWER[TLS_PROXY_FROM]:-any}; preserve Host, X-Forwarded-For, X-Forwarded-Proto"
-      [[ -n "${ANSWER[TLS_PROXY_FROM]}" ]] || gt_plan_warn 'Proxy source restriction is empty; all sources could supply forwarded headers.' 'Proxy-Quellbeschränkung ist leer; alle Quellen könnten Forwarded-Header liefern.' ;;
+      en="HTTP ${ANSWER[TLS_PROXY_LISTEN]}; allowed source=${ANSWER[TLS_PROXY_FROM]:-any};"
+      en+=' preserve Host, X-Forwarded-For, X-Forwarded-Proto'
+      gt_plan_row configure proxy "$en"
+      [[ -n "${ANSWER[TLS_PROXY_FROM]}" ]] || gt_plan_warn \
+        'Proxy source restriction is empty; all sources could supply forwarded headers.' \
+        'Proxy-Quellbeschränkung ist leer; alle Quellen könnten Forwarded-Header liefern.' ;;
     lan) gt_plan_row skip tls 'LAN-only HTTP, no certificate' 'HTTP nur im LAN, kein Zertifikat' ;;
   esac
   gt_duckdns_plan
 }
 gt_plan_application() {
-  local file
-  gt_plan_row create user:grafioschtrader 'Home /home/grafioschtrader; disabled login password' 'Home /home/grafioschtrader; Anmeldung per Passwort gesperrt'
-  for file in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service /etc/logrotate.d/grafioschtrader \
-      /home/grafioschtrader/gtvar.sh /home/grafioschtrader/grafioschtrader.sh; do
+  local file en de
+  gt_plan_row create user:grafioschtrader 'Home /home/grafioschtrader; disabled login password' \
+    'Home /home/grafioschtrader; Anmeldung per Passwort gesperrt'
+  for file in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service \
+      /etc/logrotate.d/grafioschtrader /home/grafioschtrader/gtvar.sh /home/grafioschtrader/grafioschtrader.sh; do
     gt_plan_file "$file" 'GT configuration; validated before activation' 'GT-Konfiguration; vor Aktivierung prüfen'
   done
-  gt_plan_row create /var/log/grafioschtrader.log 'Preserve if present; weekly copytruncate, 8 compressed rotations' 'Erhalten falls vorhanden; wöchentlich copytruncate, 8 komprimierte Rotationen'
-  gt_plan_file /root/.gt-install/secrets 'Only during installation: application secrets, excluding database root password; directory 700, file 600' \
+  gt_plan_row create /var/log/grafioschtrader.log 'Preserve if present; weekly copytruncate, 8 compressed rotations' \
+    'Erhalten falls vorhanden; wöchentlich copytruncate, 8 komprimierte Rotationen'
+  gt_plan_file /root/.gt-install/secrets \
+    'Only during installation: application secrets, excluding database root password; directory 700, file 600' \
     'Erst bei Installation: Anwendungsgeheimnisse ohne Datenbank-Root-Passwort; Verzeichnis 700, Datei 600'
-  gt_plan_row clone /home/grafioschtrader/build/grafioschtrader "master; planned commit=${FACT[source.commit]}; build as grafioschtrader"
-  gt_plan_row configure application.properties 'Database/mail/JWT credentials encrypted with Jasypt; admin, user limit, connector and mail keys' \
-    'Datenbank/Mail/JWT-Zugangsdaten mit Jasypt verschlüsseln; Administrator, Benutzerlimit, Connector- und Mail-Schlüssel'
-  gt_plan_row configure application-production.properties 'server.address=127.0.0.1; Apache also server.port; survives gtupdate' \
+  gt_plan_row clone /home/grafioschtrader/build/grafioschtrader \
+    "master; planned commit=${FACT[source.commit]}; build as grafioschtrader"
+  en='Database/mail/JWT credentials encrypted with Jasypt; admin, user limit, connector and mail keys'
+  de='Datenbank/Mail/JWT-Zugangsdaten mit Jasypt verschlüsseln;'
+  de+=' Administrator, Benutzerlimit, Connector- und Mail-Schlüssel'
+  gt_plan_row configure application.properties "$en" "$de"
+  gt_plan_row configure application-production.properties \
+    'server.address=127.0.0.1; Apache also server.port; survives gtupdate' \
     'server.address=127.0.0.1; Apache zusätzlich server.port; bleibt bei gtupdate erhalten'
-  if [[ "${ANSWER[TIMEZONE]}" != "${FACT[timezone]}" ]]; then gt_plan_row modify /etc/localtime "${ANSWER[TIMEZONE]}; before first cron setup"; fi
-  gt_plan_row build /home/grafioschtrader/gtupdate.sh "backend from source, frontend=${FACT[frontend.mode]}; verify built commit and requirements"
-  gt_plan_row enable grafioschtrader.service 'After=mariadb.service; first start runs Flyway; verify /api/gtinfo and schema collations' \
+  if [[ "${ANSWER[TIMEZONE]}" != "${FACT[timezone]}" ]]; then
+    gt_plan_row modify /etc/localtime "${ANSWER[TIMEZONE]}; before first cron setup"
+  fi
+  gt_plan_row build /home/grafioschtrader/gtupdate.sh \
+    "backend from source, frontend=${FACT[frontend.mode]}; verify built commit and requirements"
+  gt_plan_row enable grafioschtrader.service \
+    'After=mariadb.service; first start runs Flyway; verify /api/gtinfo and schema collations' \
     'After=mariadb.service; erster Start führt Flyway aus; /api/gtinfo und Schema-Kollationen prüfen'
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == yes ]]; then
-    gt_plan_row configure mail "${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; security=${ANSWER[SMTP_SECURITY]}; sender=${ANSWER[SMTP_USER]}; test=${ANSWER[SMTP_TEST]}; no message sent"
+    en="${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; security=${ANSWER[SMTP_SECURITY]};"
+    en+=" sender=${ANSWER[SMTP_USER]}; test=${ANSWER[SMTP_TEST]}; no message sent"
+    gt_plan_row configure mail "$en"
     if [[ "${ANSWER[SMTP_AUTH]}:${ANSWER[SMTP_SECURITY]}" == yes:none ]]; then
       gt_plan_block 'Authenticated SMTP requires STARTTLS or TLS.' 'SMTP mit Anmeldung benötigt STARTTLS oder TLS.'
     fi
-  else gt_plan_warn 'Mail skipped: nobody can complete registration or become administrator; result would be incomplete.' \
-    'Mail übersprungen: Niemand kann eine Registrierung abschließen oder Administrator werden; Ergebnis wäre unvollständig.'; fi
+  else
+    en='Mail skipped: nobody can complete registration or become administrator; result would be incomplete.'
+    de='Mail übersprungen: Niemand kann eine Registrierung abschließen oder Administrator werden;'
+    de+=' Ergebnis wäre unvollständig.'
+    gt_plan_warn "$en" "$de"
+  fi
   gt_firewall_plan
-  gt_plan_row create /var/lib/gt-install/state 'Execution only: atomic progress, planned/built commits, owned resources; re-inventory before execution' \
-    'Erst bei Ausführung: atomarer Fortschritt, geplante/gebaute Commits, eigene Ressourcen; Bestand vorher erneut prüfen'
+  en='Execution only: atomic progress, planned/built commits, owned resources; re-inventory before execution'
+  de='Erst bei Ausführung: atomarer Fortschritt, geplante/gebaute Commits, eigene Ressourcen;'
+  de+=' Bestand vorher erneut prüfen'
+  gt_plan_row create /var/lib/gt-install/state "$en" "$de"
 }
 # Immutable answers must describe a route supported by every later stage. This
 # contract contains no host-class gate, credentials or mutations, so it also
 # applies to an owned installation resumed after its first application start.
 gt_stage_contract() {
-  local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-}
+  local key port row label directive value name before=${#PLAN_BLOCKERS[@]} web=${ANSWER[WEBSERVER]:-} en de
   local -A used=()
   if [[ "${ANSWER[VHOST_INCLUDE]:-no}" == yes ]] && ! gt_vhost_include_mode; then
     gt_plan_block \
@@ -2081,7 +2282,8 @@ gt_stage_contract() {
       if ! gt_port_free "$port" && ! awk -v port="$port" -v owner="$web" \
           '$4 ~ (":" port "$") && owner != "" && index($0,owner) {found=1} END {exit !found}' \
           <<< "${FACT[listeners]}"; then
-        gt_plan_block "Web port $port belongs to another process or is UNKNOWN; co-resident proxy integration is not implemented."
+        gt_plan_block \
+          "Web port $port belongs to another process or is UNKNOWN; co-resident proxy integration is not implemented."
       fi
     done
   fi
@@ -2110,11 +2312,17 @@ gt_stage_contract() {
     esac
   done
   if [[ "${ANSWER[TLS_SOURCE]:-}" == proxy ]]; then
+    de='Der vorgeschaltete Proxy muss vom Client gelieferte Forwarding-Header ersetzen'
+    de+=' und das öffentliche Protokoll setzen.'
     gt_plan_warn 'The upstream proxy must overwrite client-supplied forwarding headers and set the public protocol.' \
-      'Der vorgeschaltete Proxy muss vom Client gelieferte Forwarding-Header ersetzen und das öffentliche Protokoll setzen.'
-    [[ -n "${ANSWER[TLS_PROXY_FROM]:-}" ]] || gt_plan_warn \
-      'TLS_PROXY_FROM is empty: login lockout cannot reliably attribute clients behind an unconfigured upstream proxy.' \
-      'TLS_PROXY_FROM ist leer: Die Login-Sperre kann Clients hinter einem unkonfigurierten Proxy nicht zuverlässig zuordnen.'
+      "$de"
+    if [[ -z "${ANSWER[TLS_PROXY_FROM]:-}" ]]; then
+      en='TLS_PROXY_FROM is empty: login lockout cannot reliably attribute clients'
+      en+=' behind an unconfigured upstream proxy.'
+      de='TLS_PROXY_FROM ist leer: Die Login-Sperre kann Clients'
+      de+=' hinter einem unkonfigurierten Proxy nicht zuverlässig zuordnen.'
+      gt_plan_warn "$en" "$de"
+    fi
   fi
   [[ "${ANSWER[SMTP_CONFIGURE]:-}:${ANSWER[SMTP_AUTH]:-}:${ANSWER[SMTP_SECURITY]:-}" != yes:yes:none ]] ||
     gt_plan_block 'Authenticated SMTP requires encryption.'
@@ -2133,35 +2341,44 @@ gt_plan() {
   PLAN=() PLAN_BLOCKERS=() PLAN_WARNINGS=() PLAN_PACKAGES=()
   case "${FACT[host.class]}" in
     classic|completed|docker)
-      gt_plan_row reuse "${FACT[host.class]}" 'Existing installation: no bootstrap actions; use its updater.' 'Vorhandene Installation: keine Bootstrap-Aktionen; zugehörigen Updater verwenden.'; return 0 ;;
+      gt_plan_row reuse "${FACT[host.class]}" 'Existing installation: no bootstrap actions; use its updater.' \
+        'Vorhandene Installation: keine Bootstrap-Aktionen; zugehörigen Updater verwenden.'; return 0 ;;
     fresh) ;;
-    *) gt_plan_block 'Host is not fresh; resolve existing state or installation pieces first.' 'Host ist nicht neu; vorhandenen Zustand oder Installationsteile zuerst klären.'; return 2 ;;
+    *) gt_plan_block 'Host is not fresh; resolve existing state or installation pieces first.' \
+      'Host ist nicht neu; vorhandenen Zustand oder Installationsteile zuerst klären.'; return 2 ;;
   esac
   gt_question_model
   for key in "${QUESTIONS[@]}"; do
     if gt_question_applies "$key" && [[ "${Q_TYPE[$key]}" != secret ]]; then
-      gt_validate_answer "$key" "${ANSWER[$key]:-}" || gt_plan_block "Invalid/missing answer: $key" "Ungültige/fehlende Antwort: $key"
+      gt_validate_answer "$key" "${ANSWER[$key]:-}" || gt_plan_block "Invalid/missing answer: $key" \
+        "Ungültige/fehlende Antwort: $key"
     elif [[ -n "${ANSWER[$key]:-}" ]]; then
-      gt_plan_block "Inactive or secret answer must not enter dry-run: $key" "Inaktive oder geheime Antwort darf nicht in den Dry-run gelangen: $key"
+      gt_plan_block "Inactive or secret answer must not enter dry-run: $key" \
+        "Inaktive oder geheime Antwort darf nicht in den Dry-run gelangen: $key"
     fi
   done
   (( ${#PLAN_BLOCKERS[@]} == 0 )) || return 2
   for key in "${!ACTION[@]}"; do
     [[ "$key" == disk || "${ACTION[$key]}" != block ]] || gt_plan_block "$key: ${REASON[$key]}"
   done
-  [[ "${FACT[source.requirements]}" == remote ]] || gt_plan_block 'Source requirements are provisional; no executable plan until source lookup succeeds.' \
+  [[ "${FACT[source.requirements]}" == remote ]] || gt_plan_block \
+    'Source requirements are provisional; no executable plan until source lookup succeeds.' \
     'Quellcode-Anforderungen sind vorläufig; kein ausführbarer Plan ohne erfolgreiche Quellcode-Abfrage.'
-  [[ "${FACT[dpkg.lock]}" == free ]] || gt_plan_block 'Package lock is held or UNKNOWN.' 'Paketsperre ist belegt oder UNKNOWN.'
+  [[ "${FACT[dpkg.lock]}" == free ]] || gt_plan_block 'Package lock is held or UNKNOWN.' \
+    'Paketsperre ist belegt oder UNKNOWN.'
   if [[ "${FACT[apt.age_hours]}" == unknown ]] || (( ${FACT[apt.age_hours]} > 24 )); then
-    gt_plan_block 'APT metadata is absent/stale; refresh and re-plan before installation.' 'APT-Metadaten fehlen/sind veraltet; vor Installation aktualisieren und neu planen.'
+    gt_plan_block 'APT metadata is absent/stale; refresh and re-plan before installation.' \
+      'APT-Metadaten fehlen/sind veraltet; vor Installation aktualisieren und neu planen.'
   fi
   gt_stage_contract || true
-  gt_plan_toolchains; gt_plan_database; gt_plan_ports; gt_plan_dns; gt_plan_web; gt_plan_storage; gt_plan_tls; gt_plan_application; gt_plan_packages
+  gt_plan_toolchains; gt_plan_database; gt_plan_ports; gt_plan_dns; gt_plan_web; gt_plan_storage; gt_plan_tls
+  gt_plan_application; gt_plan_packages
   (( ${#PLAN_BLOCKERS[@]} == 0 )) || return 2
 }
 gt_plan_report() {
-  local key row
-  gt_text 'Installation plan — no installation changes made' 'Installationsplan — keine Installationsänderungen vorgenommen'
+  local key row de
+  gt_text 'Installation plan — no installation changes made' \
+    'Installationsplan — keine Installationsänderungen vorgenommen'
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" != secret && -n "${ANSWER[$key]+present}" ]] || continue
     printf '%s=%s\n' "$key" "$(gt_safe "${ANSWER[$key]}")"
@@ -2175,13 +2392,16 @@ gt_plan_report() {
     done
     printf 'JWT_SECRET | g.jwt.secret | %s\n' "${SECRET_STATUS[JWT_SECRET]:-automatic during preparation}"
   fi
-  gt_report_rows "$(gt_text 'Planned actions (subject to blockers)' 'Geplante Aktionen (abhängig von Blockern)')" "${PLAN[@]}"
+  gt_report_rows "$(gt_text 'Planned actions (subject to blockers)' 'Geplante Aktionen (abhängig von Blockern)')" \
+    "${PLAN[@]}"
   gt_report_rows "$(gt_text 'Disk requirements' 'Speicherplatzbedarf')" "${DISKS[@]}"
   gt_report_rows "$(gt_text Warnings Hinweise)" "${PLAN_WARNINGS[@]}"
   gt_report_rows "$(gt_text Blockers Blocker)" "${PLAN_BLOCKERS[@]}"
   printf '%s: %s\n' "$(gt_text 'Blocking findings' 'Blockierende Befunde')" "${#PLAN_BLOCKERS[@]}"
+  de='Keine Installation ausgeführt.'
+  de+=' Zugangsdaten und aktueller Host-Zustand müssen vor Ausführung erneut geprüft werden.'
   gt_text 'No installation was executed. Credentials and live host state must be verified again before execution.' \
-    'Keine Installation ausgeführt. Zugangsdaten und aktueller Host-Zustand müssen vor Ausführung erneut geprüft werden.'
+    "$de"
 }
 gt_dry_run() {
   local status=0
@@ -2204,7 +2424,7 @@ gt_dry_run() {
 }
 
 gt_prepare() {
-  local status=0
+  local status=0 de
   gt_completed || status=$?
   (( status == 3 )) || return "$status"
   status=0
@@ -2215,7 +2435,8 @@ gt_prepare() {
       gt_answers_file "$ANSWERS_FILE" || return $?
     else
       if ! { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null; then
-        gt_text 'Preparation needs a terminal or --answers FILE.' 'Vorbereitung benötigt ein Terminal oder --answers DATEI.' >&2
+        gt_text 'Preparation needs a terminal or --answers FILE.' \
+          'Vorbereitung benötigt ein Terminal oder --answers DATEI.' >&2
         return 2
       fi
       QUESTION_OUTPUT=$QUESTION_FD
@@ -2229,8 +2450,10 @@ gt_prepare() {
   fi
   gt_plan || status=$?
   gt_plan_report
+  de='Vorbereitung endet hier. Erfasste/erzeugte Geheimnisse werden verworfen;'
+  de+=' die übergebene Antwortdatei bleibt unverändert.'
   gt_text 'Preparation ends here. Collected/generated secrets are discarded; the supplied answers file is unchanged.' \
-    'Vorbereitung endet hier. Erfasste/erzeugte Geheimnisse werden verworfen; die übergebene Antwortdatei bleibt unverändert.'
+    "$de"
   return "$status"
 }
 gt_core_error() {
@@ -2303,9 +2526,11 @@ gt_state_load() {
   while IFS= read -r line; do
     [[ -n "$line" ]] || continue
     key=${line%%=*}; value=${line#*=}
-    [[ "$line" == *=* && "$key" =~ ^[a-zA-Z0-9_.+-]+$ && -z "${STATE[$key]+set}" && "$value" != *[$'\001'-$'\037'$'\177']* ]] || return 2
+    [[ "$line" == *=* && "$key" =~ ^[a-zA-Z0-9_.+-]+$ && -z "${STATE[$key]+set}" &&
+      "$value" != *[$'\001'-$'\037'$'\177']* ]] || return 2
     case "$key" in
-      schema|status|scope|run_id|planned_commit|java_home|maven|new_database_server|database_before|account_before|root_auth|step.*|resource.*|file.*) ;;
+      schema|status|scope|run_id|planned_commit|java_home|maven|new_database_server|database_before|account_before|\
+        root_auth|step.*|resource.*|file.*) ;;
       built_commit) [[ "$value" =~ ^[a-f0-9]{40}$ ]] || return 2 ;;
       installer_sha256) [[ "$value" =~ ^[a-f0-9]{64}$ ]] || return 2 ;;
       completed_at) [[ "$value" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || return 2 ;;
@@ -2408,7 +2633,8 @@ gt_core_begin() {
   gt_private_dir "$(gt_path /var/lib/gt-install)" && gt_private_dir "$(gt_path /root/.gt-install)" || return 2
   [[ ! -e "$(gt_path /root/.gt-install/secrets)" && ! -e "$(gt_path /var/lib/gt-install/state)" ]] || return 2
   STATE=([schema]=1 [status]=running [scope]=core [planned_commit]="${FACT[source.commit]}"
-    [java_home]="${FACT[toolchain.java.path]:-${FACT[java.suitable]}}" [maven]="${FACT[toolchain.maven.path]:-${FACT[maven.path]}}"
+    [java_home]="${FACT[toolchain.java.path]:-${FACT[java.suitable]}}"
+    [maven]="${FACT[toolchain.maven.path]:-${FACT[maven.path]}}"
     [new_database_server]=no [database_before]=no [account_before]=no)
   STATE[run_id]=$(openssl rand -hex 16) || return 2
   [[ "${FACT[database.vendor]}" != absent ]] || STATE[new_database_server]=yes
@@ -2600,7 +2826,8 @@ gt_as_app() {
   runuser -u grafioschtrader -- env -u JAVA_TOOL_OPTIONS -u JDK_JAVA_OPTIONS -u _JAVA_OPTIONS \
     -u MAVEN_OPTS -u MAVEN_ARGS -u NODE_OPTIONS -u NODE_PATH HOME="$CORE_HOME" MAVEN_SKIP_RC=1 GIT_TERMINAL_PROMPT=0 \
     NG_CLI_ANALYTICS=false npm_config_prefix="${STATE[build.prefix]:-/usr/local}" \
-    JAVA_HOME="${STATE[java_home]}" PATH="${build_path}${STATE[java_home]}/bin:${STATE[maven]%/*}:/usr/local/bin:/usr/bin:/bin" "$@"
+    JAVA_HOME="${STATE[java_home]}" \
+    PATH="${build_path}${STATE[java_home]}/bin:${STATE[maven]%/*}:/usr/local/bin:/usr/bin:/bin" "$@"
 }
 
 gt_core_user() {
@@ -2608,12 +2835,14 @@ gt_core_user() {
   if entry=$(getent passwd grafioschtrader); then
     IFS=: read -r _name _password uid _gid description home shell <<< "$entry"
     [[ "${STATE[resource.user]:-}" == intent || "${STATE[resource.user]:-}" == owned ]] || return 2
-    [[ "$description" == "GT installer ${STATE[run_id]}" && "$home" == "$CORE_HOME" && "$uid" != 0 && "$shell" == /bin/bash ]] || return 2
+    [[ "$description" == "GT installer ${STATE[run_id]}" && "$home" == "$CORE_HOME" && "$uid" != 0 &&
+      "$shell" == /bin/bash ]] || return 2
   else
     [[ "${STATE[resource.user]:-}" != owned ]] || return 2
     [[ ! -e "$CORE_HOME" && ! -L "$CORE_HOME" ]] && ! getent group grafioschtrader >/dev/null || return 2
     gt_core_mark resource.user intent || return 2
-    gt_core_run useradd --create-home --user-group --shell /bin/bash --comment "GT installer ${STATE[run_id]}" grafioschtrader || return 2
+    gt_core_run useradd --create-home --user-group --shell /bin/bash --comment "GT installer ${STATE[run_id]}" \
+      grafioschtrader || return 2
   fi
   gt_no_symlinks "$CORE_HOME" || return 2
   [[ "$(stat -c %U "$CORE_HOME")" == grafioschtrader ]] || return 2
@@ -2862,8 +3091,10 @@ gt_core_publish() {
   if [[ -e "$target" ]]; then
     [[ -f "$target" ]] || return 2
     current=$(sha256sum "$target"); current=${current%% *}
-    [[ "$current" == "${STATE[file.$id]:-$original}" || "$current" == "${STATE[file.$id.previous]:-$original}" ]] || return 2
-    if [[ "$current" == "$digest" && "${STATE[file.$id]:-}" == "$digest" && "$(stat -c '%U:%a' "$target")" == "grafioschtrader:$mode" ]]; then
+    [[ "$current" == "${STATE[file.$id]:-$original}" || "$current" == "${STATE[file.$id.previous]:-$original}" ]] ||
+      return 2
+    if [[ "$current" == "$digest" && "${STATE[file.$id]:-}" == "$digest" &&
+        "$(stat -c '%U:%a' "$target")" == "grafioschtrader:$mode" ]]; then
       return 0
     fi
   fi
@@ -2902,7 +3133,8 @@ gt_core_login() {
     mv "$file" "$dir/client.cnf" && chown -R grafioschtrader:grafioschtrader "$dir" || return 2
     file="$dir/client.cnf"; command=(runuser -u grafioschtrader -- mariadb)
   else file=$(gt_db_options "$key" "$user") || return 2; fi
-  command+=("--defaults-file=$file" "--protocol=$protocol" "--user=$user" --batch --skip-column-names --connect-timeout=4)
+  command+=("--defaults-file=$file" "--protocol=$protocol" "--user=$user"
+    --batch --skip-column-names --connect-timeout=4)
   [[ "$protocol" != TCP ]] || command+=(--host=127.0.0.1 --port=3306)
   value=$(printf 'SELECT CURRENT_USER();\n' | "${command[@]}" 2>/dev/null) || status=$?
   rm -f -- "$file"
@@ -2934,7 +3166,8 @@ gt_core_packages() {
     gt_core_run systemctl restart mariadb.service || return 2
   fi
   gt_core_run systemctl start mariadb.service || return 2
-  gt_mariadb_loopback_only || { gt_core_error 'The new MariaDB server listens beyond loopback on port 3306.'; return 2; }
+  gt_mariadb_loopback_only ||
+    { gt_core_error 'The new MariaDB server listens beyond loopback on port 3306.'; return 2; }
 }
 
 gt_mariadb_loopback_only() {
@@ -2965,7 +3198,8 @@ SQL
       { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\nSET PASSWORD FOR 'root'@'localhost'=PASSWORD("
         gt_sql_literal "${SECRET[DB_ROOT_PASSWORD]}"; printf ');\n'; } | gt_core_sql >/dev/null || return 2
     else
-      { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\nALTER USER 'root'@'localhost' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD("
+      { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\n"
+        printf "ALTER USER 'root'@'localhost' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD("
         gt_sql_literal "${SECRET[DB_ROOT_PASSWORD]}"; printf ');\n'; } | gt_core_sql >/dev/null || return 2
     fi
     gt_core_login DB_ROOT_PASSWORD root SOCKET app || return 2
@@ -2984,21 +3218,27 @@ gt_core_database() {
   local result accounts host pool=384M mem=${FACT[memory.MemTotal]:-0} file
   gt_core_packages || return 2
   gt_core_root_auth || return 2
-  result=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" | gt_core_sql) || return 2
+  result=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" |
+    gt_core_sql) || return 2
   [[ "$result" == 0 ]] || return 2 # Never modify or adopt nonempty data, even on resumption.
-  result=$(printf "SELECT DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='grafioschtrader';\n" | gt_core_sql) || return 2
+  result=$(printf '%s\n' "SELECT DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA" \
+    "WHERE SCHEMA_NAME='grafioschtrader';" | gt_core_sql) || return 2
   if [[ -n "$result" ]]; then
     [[ "$result" == $'utf8mb4\tutf8mb4_general_ci' ]] || return 2
-    [[ "${STATE[database_before]}" == yes && "${ANSWER[DB_REUSE_EMPTY]:-}" == yes || "${STATE[resource.database]:-}" == intent || "${STATE[resource.database]:-}" == owned ]] || return 2
+    [[ "${STATE[database_before]}" == yes && "${ANSWER[DB_REUSE_EMPTY]:-}" == yes ||
+      "${STATE[resource.database]:-}" == intent || "${STATE[resource.database]:-}" == owned ]] || return 2
   else
     [[ "${STATE[database_before]}" == no && "${STATE[resource.database]:-}" != owned ]] || return 2
     gt_core_mark resource.database intent || return 2
-    printf 'CREATE DATABASE grafioschtrader CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;\n' | gt_core_sql >/dev/null || return 2
+    printf 'CREATE DATABASE grafioschtrader CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;\n' |
+      gt_core_sql >/dev/null || return 2
   fi
   if [[ "${STATE[database_before]}" == no ]]; then gt_core_mark resource.database owned || return 2; fi
-  result=$(printf "SELECT COUNT(*) FROM mysql.user WHERE User='grafioschtrader' AND Host='localhost';\n" | gt_core_sql) || return 2
+  result=$(printf "SELECT COUNT(*) FROM mysql.user WHERE User='grafioschtrader' AND Host='localhost';\n" |
+    gt_core_sql) || return 2
   if [[ "$result" == 1 ]]; then
-    [[ "${STATE[account_before]}" == yes || "${STATE[resource.account]:-}" == intent || "${STATE[resource.account]:-}" == owned ]] || return 2
+    [[ "${STATE[account_before]}" == yes || "${STATE[resource.account]:-}" == intent ||
+      "${STATE[resource.account]:-}" == owned ]] || return 2
     gt_core_login DB_PASSWORD grafioschtrader TCP || return 2
   elif [[ "$result" == 0 ]]; then
     [[ "${STATE[account_before]}" == no && "${STATE[resource.account]:-}" != owned ]] || return 2
@@ -3007,7 +3247,8 @@ gt_core_database() {
       gt_sql_literal "${SECRET[DB_PASSWORD]}"; printf ';\n'; } | gt_core_sql >/dev/null || return 2
   else return 2; fi
   if [[ "${STATE[account_before]}" == no ]]; then
-    printf "GRANT ALL PRIVILEGES ON grafioschtrader.* TO 'grafioschtrader'@'localhost';\n" | gt_core_sql >/dev/null || return 2
+    printf "GRANT ALL PRIVILEGES ON grafioschtrader.* TO 'grafioschtrader'@'localhost';\n" | gt_core_sql >/dev/null ||
+      return 2
     gt_core_mark resource.account owned || return 2
   fi
   gt_core_login DB_PASSWORD grafioschtrader TCP || return 2
@@ -3016,13 +3257,15 @@ gt_core_database() {
   [[ "$result" == *'GRANT ALL PRIVILEGES ON `grafioschtrader`.* TO '* ]] || return 2
   if [[ "${STATE[new_database_server]}" == yes ]]; then
     accounts=$(printf "SELECT Host FROM mysql.user WHERE User='';\n" | gt_core_sql) || return 2
-    result=$(printf "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='test';\n" | gt_core_sql) || return 2
+    result=$(printf "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='test';\n" | gt_core_sql) ||
+      return 2
     if [[ "${STATE[step.hardening]:-}" == complete ]]; then
       [[ -z "$accounts" && "$result" == 0 ]] || return 2
     else
     while IFS= read -r host; do
       [[ -n "$host" ]] || continue
-      { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\nDROP USER ''@"; gt_sql_literal "$host"; printf ';\n'; } | gt_core_sql >/dev/null || return 2
+      { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\nDROP USER ''@"; gt_sql_literal "$host"; printf ';\n'; } |
+        gt_core_sql >/dev/null || return 2
     done <<< "$accounts"
     printf 'DROP DATABASE IF EXISTS test;\n' | gt_core_sql >/dev/null || return 2
     gt_core_mark step.hardening complete || return 2
@@ -3070,10 +3313,13 @@ gt_encrypt_secret() {
   printf '%s_BEGIN%s%s_END\n' "$marker" "${SECRET[$key]}" "$marker" > "$directory/value.properties"
   chmod 600 "$directory/value.properties" && chown -R grafioschtrader:grafioschtrader "$directory" || return 2
   # Capture all diagnostics privately, including plaintext the plugin may emit on error/debug.
-  output=$(gt_jasypt_call encrypt "$directory" "$marker" 2>&1) || { gt_core_error "Jasypt encryption failed ($key); plugin output suppressed."; return 2; }
+  output=$(gt_jasypt_call encrypt "$directory" "$marker" 2>&1) ||
+    { gt_core_error "Jasypt encryption failed ($key); plugin output suppressed."; return 2; }
   encrypted=$(cat "$directory/value.properties")
-  [[ "$encrypted" =~ ^ENC\([A-Za-z0-9+/=]+\)$ ]] || { gt_core_error "Jasypt returned no unique ciphertext ($key)."; return 2; }
-  output=$(gt_jasypt_call decrypt "$directory" "$marker" 2>&1) || { gt_core_error "Jasypt decryption failed ($key); plugin output suppressed."; return 2; }
+  [[ "$encrypted" =~ ^ENC\([A-Za-z0-9+/=]+\)$ ]] ||
+    { gt_core_error "Jasypt returned no unique ciphertext ($key)."; return 2; }
+  output=$(gt_jasypt_call decrypt "$directory" "$marker" 2>&1) ||
+    { gt_core_error "Jasypt decryption failed ($key); plugin output suppressed."; return 2; }
   # decrypt reports the result on stdout and deliberately leaves the encrypted file intact.
   [[ "$output" == *"${marker}_BEGIN${SECRET[$key]}${marker}_END"* ]] || {
     gt_core_error "Jasypt literal round-trip failed ($key)."; return 2;
@@ -3083,11 +3329,11 @@ gt_encrypt_secret() {
 }
 
 gt_core_config_valid() {
-  local id target digest mode
+  local id target digest mode resources="$CORE_REPO/backend/grafioschtrader-server/src/main/resources"
   for id in properties production launcher variables; do
     case "$id" in
-      properties) target="$CORE_REPO/backend/grafioschtrader-server/src/main/resources/application.properties"; mode=600 ;;
-      production) target="$CORE_REPO/backend/grafioschtrader-server/src/main/resources/application-production.properties"; mode=600 ;;
+      properties) target="$resources/application.properties"; mode=600 ;;
+      production) target="$resources/application-production.properties"; mode=600 ;;
       launcher) target="$CORE_HOME/grafioschtrader.sh"; mode=700 ;;
       variables) target="$CORE_HOME/gtvar.sh"; mode=600 ;;
     esac
@@ -3100,7 +3346,8 @@ gt_core_config_valid() {
 }
 
 gt_core_configure() {
-  local template="$SCRATCH/application.template" production="$SCRATCH/production.template" original target key auth=false starttls=false tls=false
+  local template="$SCRATCH/application.template" production="$SCRATCH/production.template" original target key
+  local auth=false starttls=false tls=false
   if [[ "${STATE[step.configuration]:-}" == complete ]]; then
     gt_core_config_valid || return 2
     [[ -z "${STATE[build.mode]:-}" ]] || gt_core_variables || return 2
@@ -3108,7 +3355,8 @@ gt_core_configure() {
   fi
   target=backend/grafioschtrader-server/src/main/resources
   gt_as_app git -C "$CORE_REPO" show "${STATE[planned_commit]}:$target/application.properties" > "$template" || return 2
-  if ! gt_as_app git -C "$CORE_REPO" show "${STATE[planned_commit]}:$target/application-production.properties" > "$production" 2>/dev/null; then
+  if ! gt_as_app git -C "$CORE_REPO" show \
+      "${STATE[planned_commit]}:$target/application-production.properties" > "$production" 2>/dev/null; then
     : > "$production"
   fi
   # Only the environment placeholder is allowed; application startup must not use a template key.
@@ -3139,7 +3387,8 @@ gt_core_configure() {
   PROPERTIES[spring.mail.properties.mail.smtp.ssl.enable]=$tls
   gt_properties_render "$template" "$SCRATCH/application.config" || return 2
   original=$(sha256sum "$template"); original=${original%% *}
-  gt_core_publish properties "$SCRATCH/application.config" "$CORE_REPO/$target/application.properties" 600 "$original" || return 2
+  gt_core_publish properties "$SCRATCH/application.config" "$CORE_REPO/$target/application.properties" 600 \
+    "$original" || return 2
   PROPERTIES=([server.address]=127.0.0.1 [spring.mail.properties.mail.smtp.starttls.required]="$starttls")
   PROPERTIES[server.forward-headers-strategy]=none
   PROPERTIES[g.security.login.trusted-proxies]='127.0.0.1,::1'
@@ -3149,12 +3398,13 @@ gt_core_configure() {
   if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then PROPERTIES[server.port]=${ANSWER[BACKEND_HTTP_PORT]}; fi
   gt_properties_render "$production" "$SCRATCH/production.config" yes || return 2
   original=$(sha256sum "$production"); original=${original%% *}
-  gt_core_publish production "$SCRATCH/production.config" "$CORE_REPO/$target/application-production.properties" 600 "$original" || return 2
+  gt_core_publish production "$SCRATCH/production.config" "$CORE_REPO/$target/application-production.properties" 600 \
+    "$original" || return 2
   # printf %q is Bash syntax; use a Bash shebang for every generated launcher.
   {
     printf '#!/bin/bash\nexport JASYPT_ENCRYPTOR_PASSWORD=%q\n' "${SECRET[JASYPT_PASSWORD]}"
-    printf 'exec %q %s -Duser.language=en -jar /home/grafioschtrader/grafioschtrader-server-*.jar >> /var/log/grafioschtrader.log 2>&1\n' \
-      "${STATE[java_home]}/bin/java" "${ANSWER[JAVA_HEAP]}"
+    printf 'exec %q %s -Duser.language=en -jar %s >> /var/log/grafioschtrader.log 2>&1\n' \
+      "${STATE[java_home]}/bin/java" "${ANSWER[JAVA_HEAP]}" '/home/grafioschtrader/grafioschtrader-server-*.jar'
   } > "$SCRATCH/launcher"
   bash -n "$SCRATCH/launcher" || return 2
   gt_core_publish launcher "$SCRATCH/launcher" "$CORE_HOME/grafioschtrader.sh" 700 || return 2
@@ -3164,7 +3414,8 @@ gt_core_configure() {
 
 gt_core_variables() {
   {
-    printf 'export docroot=%q\nexport builddir=%q\nexport basehref=grafioschtrader/\nexport NG_CLI_ANALYTICS=false\n' "${ANSWER[DOCROOT]}" "$CORE_HOME/build"
+    printf 'export docroot=%q\nexport builddir=%q\nexport basehref=grafioschtrader/\nexport NG_CLI_ANALYTICS=false\n' \
+      "${ANSWER[DOCROOT]}" "$CORE_HOME/build"
     # shellcheck disable=SC2016
     printf 'export JAVA_HOME=%q\nexport PATH="$JAVA_HOME/bin:%s:$PATH"\n' "${STATE[java_home]}" "${STATE[maven]%/*}"
     if [[ -n "${STATE[build.node_home]:-}" ]]; then
@@ -3464,7 +3715,7 @@ gt_toolchain_archive_install() {
 
 # Prefer candidates from already configured APT sources; otherwise plan a verified vendor archive.
 gt_core_toolchain_plan() {
-  local tool package candidate installed home key value
+  local tool package candidate installed home key value en
   FACT[toolchain.java.package]=none FACT[toolchain.maven.package]=none
   FACT[toolchain.java.version]=none FACT[toolchain.maven.version]=none
   FACT[toolchain.java.path]=${FACT[java.suitable]} FACT[toolchain.maven.path]=${FACT[maven.path]}
@@ -3474,7 +3725,8 @@ gt_core_toolchain_plan() {
     if [[ -n "${STATE[scope]:-}" && "${STATE[step.toolchains]:-complete}" == complete ]]; then
       [[ "$tool" == java ]] && key=java_home || key=maven
       if [[ "$tool" == java && -n "${STATE[java_home]:-}" ]] && ! gt_jdk_jit "${STATE[java_home]}"; then
-        gt_plan_block "Recorded Java ${STATE[java_home]} is the interpreter-only Zero VM; reinstall the host with this installer."
+        gt_plan_block \
+          "Recorded Java ${STATE[java_home]} is the interpreter-only Zero VM; reinstall the host with this installer."
         continue
       fi
       [[ "$home" == "${STATE[$key]}" ]] || gt_plan_block "Selected $tool path changed; restore ${STATE[$key]}."
@@ -3515,22 +3767,27 @@ gt_core_toolchain_plan() {
         continue
       fi
       if [[ -n "${PACKAGE[$package]:-}" ]]; then
-        gt_plan_block "$package is installed but unusable; repair it or use the documented alternative. Automatic upgrades are not authorized."
+        en="$package is installed but unusable; repair it or use the documented alternative."
+        gt_plan_block "$en Automatic upgrades are not authorized."
         continue
       fi
     fi
     FACT[toolchain.$tool.package]=$package FACT[toolchain.$tool.version]=$candidate
     FACT[toolchain.$tool.path]=pending
     if [[ "${PACKAGE[$package]:-}" != "$candidate" ]]; then
-      [[ "${CANDIDATE[$package]:-}" == "$candidate" ]] || gt_plan_block "Recorded candidate $package=$candidate is unavailable; restore its APT source before resuming."
+      [[ "${CANDIDATE[$package]:-}" == "$candidate" ]] ||
+        gt_plan_block "Recorded candidate $package=$candidate is unavailable; restore its APT source before resuming."
       gt_plan_package "$package=$candidate"
     fi
     gt_plan_row install "$tool" "$package=$candidate; verify executables before creating the application user"
   done
   # Only APT packages can change alternatives; vendor archives never register them.
   if [[ ! "${FACT[toolchain.java.package]}:${FACT[toolchain.maven.package]}" =~ ^(none|archive):(none|archive)$ ]]; then
-    command -v update-alternatives >/dev/null || gt_plan_block 'update-alternatives is required before toolchain installation.'
-    gt_plan_row preserve java-alternatives 'Restore previous selections after APT, including failed transactions; changed automatic selections become manual.' \
+    command -v update-alternatives >/dev/null ||
+      gt_plan_block 'update-alternatives is required before toolchain installation.'
+    en='Restore previous selections after APT, including failed transactions;'
+    en+=' changed automatic selections become manual.'
+    gt_plan_row preserve java-alternatives "$en" \
       'Bisherige Auswahl nach APT wiederherstellen, auch bei Fehlern; geänderte automatische Auswahlen werden manuell.'
   fi
 }
@@ -3553,7 +3810,8 @@ gt_alternatives_save() {
   selections=$(LC_ALL=C update-alternatives --get-selections) || return 2
   while read -r name mode path; do
     [[ -n "$name" ]] || continue
-    [[ "$name" =~ ^[a-zA-Z0-9_.+-]+$ && "$mode" =~ ^(auto|manual)$ && "$path" == /* && "$path" != *[$'\001'-$'\037'$'\177']* ]] || return 2
+    [[ "$name" =~ ^[a-zA-Z0-9_.+-]+$ && "$mode" =~ ^(auto|manual)$ && "$path" == /* &&
+      "$path" != *[$'\001'-$'\037'$'\177']* ]] || return 2
     STATE[alternative.$name]=$path
   done <<< "$selections"
   STATE[toolchain.alternatives]=saved
@@ -3572,7 +3830,8 @@ gt_alternatives_restore() {
       gt_core_run update-alternatives --set "$name" "${STATE[$key]}" || failed=1
     fi
   done
-  (( failed == 0 )) || { gt_core_error 'Could not restore original alternatives; resolve this before resuming.'; return 2; }
+  (( failed == 0 )) ||
+    { gt_core_error 'Could not restore original alternatives; resolve this before resuming.'; return 2; }
 }
 
 gt_core_toolchains() {
@@ -3607,7 +3866,8 @@ gt_core_toolchains() {
   if (( ${#archives[@]} )); then
     [[ "${STATE[step.toolchains]}" == running ]] || gt_core_mark step.toolchains running || return 2
     for tool in "${archives[@]}"; do
-      gt_toolchain_archive_install "$tool" || { gt_core_error "Could not install the confirmed $tool archive."; return 2; }
+      gt_toolchain_archive_install "$tool" ||
+        { gt_core_error "Could not install the confirmed $tool archive."; return 2; }
     done
   fi
   gt_java; gt_runtimes
@@ -3642,16 +3902,19 @@ gt_build_field() {
 
 gt_build_valid() {
   local key
-  for key in mode node_version node_home npm prefix node_file node_sha cli_version cli_integrity semver_version semver_integrity; do
+  for key in mode node_version node_home npm prefix node_file node_sha cli_version cli_integrity semver_version \
+      semver_integrity; do
     gt_build_field "$key" "${BUILD[$key]:-}" || return 2
   done
   gt_node_satisfies "${BUILD[node_version]}" "$NODE_REQUIRED" || return 2
   [[ "${BUILD[cli_version]%%.*}" == "$CLI_REQUIRED" ]] || return 2
   if [[ "${BUILD[mode]}" == archive ]]; then
     [[ "${BUILD[node_home]}" == /opt/nodejs-gt && "${BUILD[npm]}" == /opt/nodejs-gt/bin/npm &&
-      "${BUILD[node_file]}" == node-v"${BUILD[node_version]}"-linux-*.tar.xz && "${BUILD[node_sha]}" != none ]] || return 2
+      "${BUILD[node_file]}" == node-v"${BUILD[node_version]}"-linux-*.tar.xz && "${BUILD[node_sha]}" != none ]] ||
+        return 2
   else
-    [[ "${BUILD[node_file]}:${BUILD[node_sha]}" == none:none && "${BUILD[npm]}" == "${BUILD[node_home]}/bin/npm" ]] || return 2
+    [[ "${BUILD[node_file]}:${BUILD[node_sha]}" == none:none && "${BUILD[npm]}" == "${BUILD[node_home]}/bin/npm" ]] ||
+      return 2
     case "${BUILD[node_home]}" in /usr|/usr/local|/opt/*) ;; *) return 2 ;; esac
   fi
 }
@@ -3681,18 +3944,22 @@ gt_build_resolve() {
   fi
   BUILD[prefix]=/opt/gt-build-tools
   if gt_node_satisfies "${FACT[node.version]:-absent}" "$NODE_REQUIRED" &&
-      [[ "${FACT[node.path]:-}" == /usr/bin/node || "${FACT[node.path]:-}" == /usr/local/bin/node || "${FACT[node.path]:-}" == /opt/*/bin/node ]] &&
+      [[ "${FACT[node.path]:-}" == /usr/bin/node || "${FACT[node.path]:-}" == /usr/local/bin/node ||
+        "${FACT[node.path]:-}" == /opt/*/bin/node ]] &&
       [[ -x "${FACT[node.path]%/node}/npm" ]]; then
     BUILD[mode]=reuse BUILD[node_home]=${FACT[node.path]%/bin/node} BUILD[npm]=${FACT[node.path]%/node}/npm
     BUILD[node_version]=${FACT[node.version]} BUILD[node_file]=none BUILD[node_sha]=none
   else
     line=24
-    case "${FACT[architecture]}" in amd64) arch=x64 ;; arm64) arch=arm64 ;; armhf) arch=armv7l; line=22 ;; *) return 2 ;; esac
+    case "${FACT[architecture]}" in
+      amd64) arch=x64 ;; arm64) arch=arm64 ;; armhf) arch=armv7l; line=22 ;; *) return 2 ;;
+    esac
     [[ "$arch" != armv7l || "$(date -u +%F)" < 2027-04-30 ]] || return 2
     gt_probe curl --proto '=https' --tlsv1.2 -fsSL --connect-timeout 5 --max-time 30 \
       "https://nodejs.org/dist/latest-v$line.x/SHASUMS256.txt" -o "$SCRATCH/node-sums" || return 2
     while read -r checksum filename extra; do
-      [[ "$filename" =~ ^node-v$line\.[0-9]+\.[0-9]+-linux-$arch\.tar\.xz$ && "$checksum" =~ ^[a-f0-9]{64}$ && -z "$extra" ]] || continue
+      [[ "$filename" =~ ^node-v$line\.[0-9]+\.[0-9]+-linux-$arch\.tar\.xz$ && "$checksum" =~ ^[a-f0-9]{64}$ &&
+        -z "$extra" ]] || continue
       [[ -z "${BUILD[node_file]:-}" ]] || return 2
       BUILD[node_file]=$filename BUILD[node_sha]=$checksum
       BUILD[node_version]=${filename#node-v}; BUILD[node_version]=${BUILD[node_version]%%-linux-*}
@@ -3707,25 +3974,34 @@ gt_build_resolve() {
 }
 
 gt_core_build_plan() {
-  local command target
+  local command target en
   for command in python3 tar xz; do
-    command -v "$command" >/dev/null || { gt_plan_block "Build tool preparation requires $command; install python3 and xz-utils, then rerun."; return 0; }
+    command -v "$command" >/dev/null ||
+      { gt_plan_block "Build tool preparation requires $command; install python3 and xz-utils, then rerun."; return 0; }
   done
-  [[ "${ANSWER[NODE_REPLACE]:-no}" != yes ]] || gt_plan_block 'Shared Node replacement is not supported by this core; select isolation (NODE_REPLACE=no).'
+  [[ "${ANSWER[NODE_REPLACE]:-no}" != yes ]] ||
+    gt_plan_block 'Shared Node replacement is not supported by this core; select isolation (NODE_REPLACE=no).'
   if ! gt_build_resolve; then
     gt_plan_block 'Could not resolve compatible Node/Angular CLI/semver versions and checksums from official sources.'
     return 0
   fi
   target=${BUILD[prefix]}
-  if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.buildtools]:-}" ]]; then gt_plan_block "Foreign build-tool prefix exists: $target"; fi
+  if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.buildtools]:-}" ]]; then
+    gt_plan_block "Foreign build-tool prefix exists: $target"
+  fi
   if [[ "${BUILD[mode]}" == archive ]]; then
     target=${BUILD[node_home]}
-    if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.node]:-}" ]]; then gt_plan_block "Foreign Node destination exists: $target"; fi
+    if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.node]:-}" ]]; then
+      gt_plan_block "Foreign Node destination exists: $target"
+    fi
     gt_plan_row isolate "$target" "${BUILD[node_file]}; SHA-256 ${BUILD[node_sha]}; system Node unchanged"
   else gt_plan_row reuse node "${BUILD[node_home]}/bin/node; ${BUILD[node_version]}"; fi
-  gt_plan_row install "${BUILD[prefix]}" "@angular/cli@${BUILD[cli_version]}, semver@${BUILD[semver_version]}; private global npm prefix, lifecycle scripts disabled"
+  en="@angular/cli@${BUILD[cli_version]}, semver@${BUILD[semver_version]};"
+  en+=' private global npm prefix, lifecycle scripts disabled'
+  gt_plan_row install "${BUILD[prefix]}" "$en"
   gt_plan_row verify npm "${BUILD[cli_integrity]}; ${BUILD[semver_integrity]}"
-  gt_plan_row configure gtvar.sh 'Selected Node/npm and build-tool prefix; disable Angular analytics; verify as grafioschtrader'
+  gt_plan_row configure gtvar.sh \
+    'Selected Node/npm and build-tool prefix; disable Angular analytics; verify as grafioschtrader'
 }
 
 gt_build_record() {
@@ -3781,7 +4057,8 @@ gt_build_stage() {
   gt_no_symlinks "$stage" || return 2
   [[ "${STATE[resource.$id]:-}" != owned ]] || return 2
   if [[ -e "$stage" ]]; then
-    [[ "${STATE[resource.$id]:-}" == intent && ( "$(stat -c '%u:%a' "$stage")" == "$EUID:700" || "$(stat -c '%u:%a' "$stage")" == "$EUID:755" ) ]] || return 2
+    [[ "${STATE[resource.$id]:-}" == intent && ( "$(stat -c '%u:%a' "$stage")" == "$EUID:700" ||
+      "$(stat -c '%u:%a' "$stage")" == "$EUID:755" ) ]] || return 2
     rm -rf -- "$stage" || return 2
   fi
   gt_core_mark "resource.$id" intent || return 2
@@ -3812,7 +4089,8 @@ PY
 
 gt_build_download() {
   # Execution downloads may take longer than inventory probes. All URLs are constructed from validated metadata.
-  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL --connect-timeout 10 --max-time 600 --retry 2 "$1" -o "$2"
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL --connect-timeout 10 --max-time 600 --retry 2 \
+    "$1" -o "$2"
 }
 
 gt_build_npm() {
@@ -3821,8 +4099,10 @@ gt_build_npm() {
   mkdir -p "$SCRATCH/npm-home" "$SCRATCH/build-cache" || return 2
   : > "$SCRATCH/npm-user-config"; : > "$SCRATCH/npm-global-config"
   (cd "$SCRATCH" && env -i HOME="$SCRATCH/npm-home" PATH="${STATE[build.node_home]}/bin:/usr/bin:/bin" \
-    NG_CLI_ANALYTICS=false CI=true npm_config_userconfig="$SCRATCH/npm-user-config" npm_config_globalconfig="$SCRATCH/npm-global-config" \
-    npm_config_prefix="$prefix" npm_config_cache="$SCRATCH/build-cache" npm_config_registry=https://registry.npmjs.org/ \
+    NG_CLI_ANALYTICS=false CI=true npm_config_userconfig="$SCRATCH/npm-user-config" \
+    npm_config_globalconfig="$SCRATCH/npm-global-config" \
+    npm_config_prefix="$prefix" npm_config_cache="$SCRATCH/build-cache" \
+    npm_config_registry=https://registry.npmjs.org/ \
     npm_config_update_notifier=false npm_config_audit=false npm_config_fund=false npm_config_logs_max=0 \
     "${STATE[build.npm]}" "$@")
 }
@@ -3850,10 +4130,12 @@ gt_core_buildtools() {
     if [[ ! -e "$target" && ! -L "$target" ]]; then
       gt_build_stage node "$stage" || return 2
       archive="$SCRATCH/${STATE[build.node_file]}"
-      gt_build_download "https://nodejs.org/dist/v${STATE[build.node_version]}/${STATE[build.node_file]}" "$archive" || return 2
+      gt_build_download "https://nodejs.org/dist/v${STATE[build.node_version]}/${STATE[build.node_file]}" "$archive" ||
+        return 2
       checksum=$(sha256sum "$archive"); [[ "${checksum%% *}" == "${STATE[build.node_sha]}" ]] || return 2
       gt_build_archive_safe "$archive" "${STATE[build.node_file]%.tar.xz}" || return 2
-      tar --extract --xz --file "$archive" --directory "$stage" --strip-components=1 --no-same-owner --no-same-permissions || return 2
+      tar --extract --xz --file "$archive" --directory "$stage" --strip-components=1 --no-same-owner \
+        --no-same-permissions || return 2
       chmod -R a+rX,go-w "$stage" || return 2
       chmod 755 "$stage" || return 2
     fi
@@ -3873,7 +4155,8 @@ gt_core_buildtools() {
       value="sha512-$(openssl dgst -sha512 -binary "$archive" | openssl base64 -A)"
       [[ "$value" == "$integrity" ]] || return 2
     done
-    gt_build_npm "$stage" install --global --ignore-scripts --engine-strict --no-audit --no-fund "$SCRATCH/cli.tgz" "$SCRATCH/semver.tgz" || return 2
+    gt_build_npm "$stage" install --global --ignore-scripts --engine-strict --no-audit --no-fund "$SCRATCH/cli.tgz" \
+      "$SCRATCH/semver.tgz" || return 2
     chmod -R a+rX,go-w "$stage" || return 2
     chmod 755 "$stage" || return 2
   fi
@@ -3883,11 +4166,12 @@ gt_core_buildtools() {
 }
 
 gt_core_plan() {
-  local key database_check
+  local key database_check en de
   PLAN=() PLAN_BLOCKERS=() PLAN_WARNINGS=() PLAN_PACKAGES=()
   gt_stage_contract || true
   for key in platform architecture mariadb database disk; do
-    if [[ "$key" == database && "${STATE[new_database_server]:-}" == yes && "${STATE[resource.mariadb]:-}" == owned && "${FACT[database.active]:-}" == no ]]; then
+    if [[ "$key" == database && "${STATE[new_database_server]:-}" == yes && "${STATE[resource.mariadb]:-}" == owned &&
+        "${FACT[database.active]:-}" == no ]]; then
       continue # The execution step may start its own stopped server, then recheck every object.
     fi
     [[ "${ACTION[$key]:-block}" != block ]] || gt_plan_block "$key: ${REASON[$key]:-unknown}"
@@ -3904,7 +4188,9 @@ gt_core_plan() {
     command -v "$key" >/dev/null || [[ "${PLAN_PACKAGES[$key]:-}" == install ]] ||
       gt_plan_block "Missing prerequisite: $key"
   done
-  [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished && "${STATE[scope]:-}" =~ ^(core|bootstrap)$ ]] || gt_plan_block 'Only fresh hosts and this installer journal can be used.'
+  [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished &&
+    "${STATE[scope]:-}" =~ ^(core|bootstrap)$ ]] ||
+    gt_plan_block 'Only fresh hosts and this installer journal can be used.'
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" != secret ]] || continue
     [[ "$key" != DB_REUSE_EMPTY || "${STATE[database_before]:-}" != no ]] || continue
@@ -3912,28 +4198,38 @@ gt_core_plan() {
       gt_validate_answer "$key" "${ANSWER[$key]:-}" || gt_plan_block "Invalid/missing answer: $key"
     fi
   done
-  if [[ "${FACT[database.gt_tables]}" == 0 && "${STATE[database_before]:-}" != no && "${ANSWER[DB_REUSE_EMPTY]:-}" != yes ]]; then
+  if [[ "${FACT[database.gt_tables]}" == 0 && "${STATE[database_before]:-}" != no &&
+      "${ANSWER[DB_REUSE_EMPTY]:-}" != yes ]]; then
     gt_plan_block 'Reuse of the existing empty database requires consent.'
   fi
   if [[ "${FACT[database.active]:-}" == yes && "${FACT[database.query]}" == ok ]]; then
     if [[ "${FACT[database.gt_user]}" == present ]]; then
-      gt_core_login DB_PASSWORD grafioschtrader TCP || gt_plan_block 'Existing database credentials no longer authenticate.'
+      gt_core_login DB_PASSWORD grafioschtrader TCP ||
+        gt_plan_block 'Existing database credentials no longer authenticate.'
     fi
     if [[ "${FACT[database.gt_tables]}" == 0 ]]; then
-      database_check=$(printf "SELECT DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='grafioschtrader';\n" | gt_core_sql) || database_check=unknown
-      [[ "$database_check" == $'utf8mb4\tutf8mb4_general_ci' ]] || gt_plan_block 'Existing empty database must use utf8mb4 / utf8mb4_general_ci.'
+      database_check=$(printf '%s\n' \
+        "SELECT DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA" \
+        "WHERE SCHEMA_NAME='grafioschtrader';" | gt_core_sql) || database_check=unknown
+      [[ "$database_check" == $'utf8mb4\tutf8mb4_general_ci' ]] ||
+        gt_plan_block 'Existing empty database must use utf8mb4 / utf8mb4_general_ci.'
     fi
     if [[ "${FACT[database.gt_user]}" == present && -z "${STATE[resource.account]:-}" ]]; then
-      database_check=$(printf "SHOW GRANTS FOR 'grafioschtrader'@'localhost';\n" | gt_core_sql) || database_check=unknown
+      database_check=$(printf "SHOW GRANTS FOR 'grafioschtrader'@'localhost';\n" | gt_core_sql) ||
+        database_check=unknown
       # shellcheck disable=SC2016
-      [[ "$database_check" == *'GRANT ALL PRIVILEGES ON `grafioschtrader`.* TO '* ]] || gt_plan_block 'Existing account lacks required schema privileges; it will not be altered.'
+      [[ "$database_check" == *'GRANT ALL PRIVILEGES ON `grafioschtrader`.* TO '* ]] ||
+        gt_plan_block 'Existing account lacks required schema privileges; it will not be altered.'
     fi
   fi
   # MODE is the shared CLI selection from 00-common.sh, not a local file mode.
   # shellcheck disable=SC2153
   if [[ "$MODE" != --bootstrap ]]; then
-    gt_plan_row configure core 'This scope stops after database and encrypted configuration; no build, backend service, web server or TLS changes.' \
-      'Diese Stufe endet nach Datenbank und verschlüsselter Konfiguration; kein Build, Backend-Dienst, Webserver oder TLS.'
+    en='This scope stops after database and encrypted configuration;'
+    en+=' no build, backend service, web server or TLS changes.'
+    de='Diese Stufe endet nach Datenbank und verschlüsselter Konfiguration;'
+    de+=' kein Build, Backend-Dienst, Webserver oder TLS.'
+    gt_plan_row configure core "$en" "$de"
   fi
   gt_plan_row create /var/lib/gt-install 'Root-only lock and atomic resumption journal (700/600)'
   gt_plan_row create /root/.gt-install/secrets 'Application secrets only (600); no database root password'
@@ -3941,20 +4237,31 @@ gt_core_plan() {
   gt_plan_row clone "$CORE_REPO" "${FACT[source.commit]}"
   if [[ "${FACT[database.vendor]}" == absent ]]; then
     gt_plan_package mariadb-server; gt_plan_package mariadb-client
-    gt_plan_row install 'mariadb-server mariadb-client' 'Distribution packages; no removals/upgrades; root password plus unix_socket; remove default anonymous accounts and test schema'
+    en='Distribution packages; no removals/upgrades; root password plus unix_socket;'
+    en+=' remove default anonymous accounts and test schema'
+    gt_plan_row install 'mariadb-server mariadb-client' "$en"
   fi
   gt_plan_packages
   if gt_plan_needs_apt; then
-    [[ "${FACT[dpkg.lock]}" == free && "${FACT[apt.age_hours]}" != unknown ]] || gt_plan_block 'Package lock/metadata unavailable; install psmisc and run sudo apt-get update, then re-plan.'
-    if [[ "${FACT[apt.age_hours]}" != unknown ]] && (( ${FACT[apt.age_hours]} > 24 )); then gt_plan_block 'APT metadata is stale; run sudo apt-get update and re-plan.'; fi
+    [[ "${FACT[dpkg.lock]}" == free && "${FACT[apt.age_hours]}" != unknown ]] ||
+      gt_plan_block 'Package lock/metadata unavailable; install psmisc and run sudo apt-get update, then re-plan.'
+    if [[ "${FACT[apt.age_hours]}" != unknown ]] && (( ${FACT[apt.age_hours]} > 24 )); then
+      gt_plan_block 'APT metadata is stale; run sudo apt-get update and re-plan.'
+    fi
   fi
   if [[ "${STATE[new_database_server]:-}" == yes && "${FACT[database.active]:-}" == no ]]; then
-    gt_plan_row start mariadb.service 'Resume the installer-owned database server, then verify original credentials and empty schema before any SQL changes'
+    en='Resume the installer-owned database server,'
+    en+=' then verify original credentials and empty schema before any SQL changes'
+    gt_plan_row start mariadb.service "$en"
   fi
-  gt_plan_row configure database:grafioschtrader 'Empty utf8mb4/general_ci schema; existing account unchanged; TCP verification'
-  [[ "${ANSWER[BUFFER_POOL]:-no}" != yes ]] || gt_plan_row configure mariadb 'Buffer pool drop-in and restart; affects all databases on this server'
-  gt_plan_row configure "$CORE_REPO/backend/grafioschtrader-server/src/main/resources" 'Encrypted application.properties and production override; encryption/decryption verified'
-  gt_plan_row create "$CORE_HOME/gtvar.sh, grafioschtrader.sh" 'Selected Java, heap and protected encryption key; service not installed or started'
+  gt_plan_row configure database:grafioschtrader \
+    'Empty utf8mb4/general_ci schema; existing account unchanged; TCP verification'
+  [[ "${ANSWER[BUFFER_POOL]:-no}" != yes ]] ||
+    gt_plan_row configure mariadb 'Buffer pool drop-in and restart; affects all databases on this server'
+  gt_plan_row configure "$CORE_REPO/backend/grafioschtrader-server/src/main/resources" \
+    'Encrypted application.properties and production override; encryption/decryption verified'
+  gt_plan_row create "$CORE_HOME/gtvar.sh, grafioschtrader.sh" \
+    'Selected Java, heap and protected encryption key; service not installed or started'
   FACT[core.plan]=$(printf '%s\n' "${PLAN[@]}" | sha256sum)
   (( ${#PLAN_BLOCKERS[@]} == 0 ))
 }
@@ -3963,7 +4270,10 @@ gt_core_snapshot() {
   local key
   for key in "${!FACT[@]}"; do
     case "$key" in
-      dns.status|plan.names|network.public_ipv4|network.global_ipv6|core.plan|host.*|source.*|os.*|architecture|init|java.suitable|java.alternatives|javac.alternatives|maven.path|node.path|node.version|node.origin|toolchain.*|swap.*|memory.SwapTotal|apt.candidate.*|database.vendor|database.version|database.gt_tables|database.gt_user|database.users|database.schemas|database.buffer_pool_config|packages|dpkg.lock)
+      dns.status|plan.names|network.public_ipv4|network.global_ipv6|core.plan|host.*|source.*|os.*|architecture|init|\
+        java.suitable|java.alternatives|javac.alternatives|maven.path|node.path|node.version|node.origin|toolchain.*|\
+        swap.*|memory.SwapTotal|apt.candidate.*|database.vendor|database.version|database.gt_tables|database.gt_user|\
+        database.users|database.schemas|database.buffer_pool_config|packages|dpkg.lock)
         printf '%s=%s\n' "$key" "${FACT[$key]}" ;;
     esac
   done
@@ -3971,14 +4281,18 @@ gt_core_snapshot() {
 }
 
 gt_core_execute() {
-  local step
+  local step en de
   for step in base_packages swap toolchains user duckdns buildtools clone database configure; do
     printf '%s: %s\n' "$(gt_text 'Core step' 'Kernschritt')" "$step"
-    "gt_core_$step" || { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
+    "gt_core_$step" ||
+      { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
   done
   gt_core_mark step.core complete || return 2
-  gt_text 'Core prepared. Installation remains unfinished: build, service, web/TLS and application checks are pending.' \
-    'Installationskern eingerichtet. Installation bleibt unvollständig: Build, Dienst, Web/TLS und Anwendungsprüfungen stehen aus.'
+  de='Installationskern eingerichtet.'
+  de+=' Installation bleibt unvollständig: Build, Dienst, Web/TLS und Anwendungsprüfungen stehen aus.'
+  en='Core prepared.'
+  en+=' Installation remains unfinished: build, service, web/TLS and application checks are pending.'
+  gt_text "$en" "$de"
   return 10
 }
 # While armbian-ramlog keeps /var/log in RAM, Armbian's boot-time hardware optimization rewrites /var/log/ to
@@ -4029,7 +4343,8 @@ gt_app_sql() {
 gt_app_database() {
   local count failed
   gt_core_login DB_PASSWORD grafioschtrader TCP || return 2
-  count=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" | gt_app_sql) || return 2
+  count=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" |
+    gt_app_sql) || return 2
   [[ "$count" =~ ^[0-9]+$ ]] || return 2
   if [[ -z "${STATE[step.app_start]:-}" ]]; then
     [[ "$count" == 0 ]] || { gt_core_error 'Database is no longer empty before the first authorized start.'; return 2; }
@@ -4037,12 +4352,13 @@ gt_app_database() {
     # Only a journaled first start may resume a populated schema. Failed migrations
     # require diagnosis; never automatically drop, repair or baseline anything.
     failed=$(printf 'SELECT COUNT(*) FROM flyway_schema_history WHERE success=0;\n' | gt_app_sql) || return 2
-    [[ "$failed" == 0 ]] || { gt_core_error 'Failed Flyway migration; inspect the application log before resuming.'; return 2; }
+    [[ "$failed" == 0 ]] ||
+      { gt_core_error 'Failed Flyway migration; inspect the application log before resuming.'; return 2; }
   fi
 }
 
 gt_app_preflight() {
-  local command file path entry commit changed digest mode
+  local command file path entry commit changed digest mode resources=backend/grafioschtrader-server/src/main/resources
   gt_stage_preflight || return 2
   [[ "${STATE[step.core]:-}:${STATE[step.database]:-}:${STATE[step.configuration]:-}" == complete:complete:complete &&
     "${STATE[step.buildtools]:-}" == complete ]] || { gt_core_error 'Complete --install-core first.'; return 2; }
@@ -4063,13 +4379,14 @@ gt_app_preflight() {
     "$(gt_as_app git -C "$CORE_REPO" remote get-url origin)" == "$CORE_REMOTE" ]] || return 2
   changed=$(gt_as_app git -C "$CORE_REPO" diff HEAD --name-only) || return 2
   while IFS= read -r file; do
-    case "$file" in ''|backend/grafioschtrader-server/src/main/resources/application.properties|backend/grafioschtrader-server/src/main/resources/application-production.properties) ;;
+    case "$file" in ''|"$resources/application.properties"|"$resources/application-production.properties") ;;
       *) gt_core_error "Source changed: $file"; return 2 ;;
     esac
   done <<< "$changed"
   for file in gtupbackend.sh gtupfrontend.sh; do
     gt_as_app git -C "$CORE_REPO" show "${STATE[planned_commit]}:util/shellscripts/$file" > "$SCRATCH/$file" || return 2
-    grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/$file" || { gt_core_error 'Pinned source lacks the installer build-only contract.'; return 2; }
+    grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/$file" ||
+      { gt_core_error 'Pinned source lacks the installer build-only contract.'; return 2; }
   done
   for file in node buildtools; do
     [[ "$file" != node || "${STATE[build.mode]}" == archive ]] || continue
@@ -4088,11 +4405,14 @@ gt_app_targets() {
   local path entry file digest mode changed
   # Do not mask a distribution unit or any foreign override, including runtime units.
   for path in /run/systemd/system /usr/lib/systemd/system /lib/systemd/system /etc/systemd/system; do
-    [[ ! -e "$(gt_path "$path/grafioschtrader.service.d")" && ! -L "$(gt_path "$path/grafioschtrader.service.d")" ]] || return 2
+    [[ ! -e "$(gt_path "$path/grafioschtrader.service.d")" && ! -L "$(gt_path "$path/grafioschtrader.service.d")" ]] ||
+      return 2
     [[ "$path" == /etc/systemd/system ]] && continue
-    [[ ! -e "$(gt_path "$path/grafioschtrader.service")" && ! -L "$(gt_path "$path/grafioschtrader.service")" ]] || return 2
+    [[ ! -e "$(gt_path "$path/grafioschtrader.service")" && ! -L "$(gt_path "$path/grafioschtrader.service")" ]] ||
+      return 2
   done
-  for entry in 'unit:/etc/systemd/system/grafioschtrader.service' 'sudoers:/etc/sudoers.d/grafioschtrader' 'logrotate:/etc/logrotate.d/grafioschtrader'; do
+  for entry in 'unit:/etc/systemd/system/grafioschtrader.service' 'sudoers:/etc/sudoers.d/grafioschtrader' \
+    'logrotate:/etc/logrotate.d/grafioschtrader'; do
     file=${entry#*:}; path=$(gt_path "$file")
     gt_no_symlinks "$path" || return 2
     [[ ! -e "$path" || -n "${STATE[file.app_${entry%%:*}]:-}" ]] || { gt_core_error "Foreign file: $file"; return 2; }
@@ -4104,7 +4424,8 @@ gt_app_targets() {
   done
   path=$(gt_path "${ANSWER[DOCROOT]}/grafioschtrader")
   gt_no_symlinks "$path" || return 2
-  [[ ! -e "$path" || "${STATE[resource.app_frontend]:-}" == intent || "${STATE[resource.app_frontend]:-}" == owned ]] || return 2
+  [[ ! -e "$path" || "${STATE[resource.app_frontend]:-}" == intent || "${STATE[resource.app_frontend]:-}" == owned ]] ||
+    return 2
   path=$(gt_path /var/log/grafioschtrader.log)
   gt_no_symlinks "$path" || return 2
   [[ ! -e "$path" || -n "${STATE[resource.app_log]:-}" ]] || return 2
@@ -4123,7 +4444,8 @@ gt_app_targets() {
 
 gt_app_scripts() {
   local file
-  for file in gtupdate.sh gtupbackend.sh gtupfrontend.sh gtupfrontback.sh checkversion.sh merger.sh gt_to_g_rename.sh gtcronrandom.sh; do
+  for file in gtupdate.sh gtupbackend.sh gtupfrontend.sh gtupfrontback.sh checkversion.sh merger.sh gt_to_g_rename.sh \
+      gtcronrandom.sh; do
     gt_as_app git -C "$CORE_REPO" show "${STATE[planned_commit]}:util/shellscripts/$file" > "$SCRATCH/$file" || return 2
     bash -n "$SCRATCH/$file" || return 2
     gt_core_publish "app_$file" "$SCRATCH/$file" "$CORE_HOME/$file" 700 || return 2
@@ -4202,7 +4524,8 @@ UNIT
 ROTATE
   logrotate --debug "$SCRATCH/logrotate" > "$SCRATCH/logrotate-check" 2>&1 || return 2
   gt_app_root_file app_sudoers "$SCRATCH/sudoers" "$(gt_path /etc/sudoers.d/grafioschtrader)" 440 &&
-    gt_app_root_file app_unit "$SCRATCH/grafioschtrader.service" "$(gt_path /etc/systemd/system/grafioschtrader.service)" 644 &&
+    gt_app_root_file app_unit "$SCRATCH/grafioschtrader.service" \
+      "$(gt_path /etc/systemd/system/grafioschtrader.service)" 644 &&
     gt_app_root_file app_logrotate "$SCRATCH/logrotate" "$(gt_path /etc/logrotate.d/grafioschtrader)" 644 || return 2
   gt_core_run systemctl daemon-reload
 }
@@ -4218,7 +4541,8 @@ gt_app_cron() {
     temporary=$(gt_as_app mktemp "$CORE_HOME/.gt-cron.XXXXXX") || return 2
     PRIVATE_FILES+=("$temporary")
     gt_as_app cp "$target" "$temporary" &&
-      gt_as_app env TZ="${ANSWER[TIMEZONE]}" GT_CRON_RANDOMIZE=on bash "$CORE_HOME/gtcronrandom.sh" --file "$temporary" > "$SCRATCH/cron.log" 2>&1 || return 2
+      gt_as_app env TZ="${ANSWER[TIMEZONE]}" GT_CRON_RANDOMIZE=on bash \
+        "$CORE_HOME/gtcronrandom.sh" --file "$temporary" > "$SCRATCH/cron.log" 2>&1 || return 2
     install -o root -g root -m 600 "$temporary" "$saved.pending" && mv -T "$saved.pending" "$saved" || return 2
   fi
   [[ "${STATE[step.app_cron]:-}" == running ]] && gt_private_read "$saved" || return 2
@@ -4230,7 +4554,9 @@ gt_app_cron() {
 gt_app_artifacts() {
   local digest file
   local -a jars=()
-  while IFS= read -r -d '' file; do jars+=("$file"); done < <(find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader-server-*.jar' -print0)
+  while IFS= read -r -d '' file; do
+    jars+=("$file")
+  done < <(find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader-server-*.jar' -print0)
   (( ${#jars[@]} == 1 )) || return 2
   for file in "${jars[0]}" "$(gt_path "${ANSWER[DOCROOT]}/grafioschtrader/index.html")"; do
     gt_no_symlinks "$file" && [[ -s "$file" && -f "$file" && "$(stat -c %U "$file")" == grafioschtrader ]] || return 2
@@ -4255,7 +4581,8 @@ gt_app_build() {
   # Use the approved checkout; gtupdate.sh is reserved for later updates to master.
   # Cron slots have already been journaled; builds must not modify configuration.
   gt_as_app env GT_INSTALL_BUILD_ONLY=1 GT_CRON_RANDOMIZE=off bash "$CORE_HOME/gtupfrontend.sh" >> "$log" 2>&1 &&
-    gt_as_app env GT_INSTALL_BUILD_ONLY=1 GT_CRON_RANDOMIZE=off bash "$CORE_HOME/gtupbackend.sh" >> "$log" 2>&1 || return 2
+    gt_as_app env GT_INSTALL_BUILD_ONLY=1 GT_CRON_RANDOMIZE=off bash "$CORE_HOME/gtupbackend.sh" >> "$log" 2>&1 ||
+      return 2
   gt_core_config_valid && gt_app_artifacts || return 2
   commit=$(gt_as_app git -C "$CORE_REPO" rev-parse HEAD) || return 2
   [[ "$commit" == "${STATE[planned_commit]}" ]] || return 2
@@ -4286,11 +4613,13 @@ for line in sys.stdin:
     print(address + ":" + port)
 ' | LC_ALL=C sort) || return 2
   expected="127.0.0.1:$port"
-  [[ "${ANSWER[WEBSERVER]}" != apache2 ]] || expected=$(printf '%s\n127.0.0.1:%s\n' "$expected" "${ANSWER[BACKEND_PORT]}" | LC_ALL=C sort)
+  [[ "${ANSWER[WEBSERVER]}" != apache2 ]] ||
+    expected=$(printf '%s\n127.0.0.1:%s\n' "$expected" "${ANSWER[BACKEND_PORT]}" | LC_ALL=C sort)
   [[ "$listeners" == "$expected" ]] || return 2
   count=$(printf 'SELECT COUNT(*) FROM flyway_schema_history WHERE success=1;\n' | gt_app_sql) || return 2
   [[ "$count" =~ ^[1-9][0-9]*$ ]] || return 2
-  count=$(printf "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='grafioschtrader' AND COLLATION_NAME LIKE '%%uca1400%%';\n" | gt_app_sql) || return 2
+  count=$(printf '%s\n' "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='grafioschtrader'" \
+    "AND COLLATION_NAME LIKE '%uca1400%';" | gt_app_sql) || return 2
   [[ "$count" == 0 ]] || return 2
   gt_app_database
 }
@@ -4382,20 +4711,21 @@ gt_app_start_boundary() {
 }
 
 gt_app_start() {
-  local deadline=$((SECONDS+900)) status active
+  local deadline=$((SECONDS+900)) status active message
   gt_app_database && gt_app_artifacts || return 2
   # A healthy resumed service needs no new startup boundary and no restart.
   if [[ -n "${STATE[step.app_start]:-}" ]] && gt_app_verify; then
     gt_core_run systemctl enable grafioschtrader.service && gt_core_mark step.app_start complete
     return $?
   fi
-  gt_app_start_boundary || {
-    gt_core_error 'Cannot identify the current startup. Inspect /var/log/grafioschtrader.log; stop the owned service before retrying an unjournaled start.'; return 2;
-  }
+  message='Cannot identify the current startup. Inspect /var/log/grafioschtrader.log;'
+  message+=' stop the owned service before retrying an unjournaled start.'
+  gt_app_start_boundary || { gt_core_error "$message"; return 2; }
   if [[ -z "${STATE[step.app_start]:-}" ]]; then gt_core_mark step.app_start intent || return 2; fi
   # The write-ahead entry is the sole permission to resume a populated GT schema.
   gt_core_run systemctl start grafioschtrader.service || return 2
-  STATE[resource.app_start_invocation]=$(gt_core_run systemctl show --property=InvocationID --value grafioschtrader.service) || return 2
+  STATE[resource.app_start_invocation]=$(gt_core_run systemctl show --property=InvocationID --value \
+    grafioschtrader.service) || return 2
   STATE[resource.app_start_pending]=no
   gt_state_save || return 2
   while (( SECONDS < deadline )); do
@@ -4403,7 +4733,8 @@ gt_app_start() {
     status=0
     diagnostic=$(gt_app_start_log scan) || status=$?
     if (( status != 0 )); then
-      gt_core_error "Startup stopped (${diagnostic:-log-unavailable}); inspect /var/log/grafioschtrader.log. No automatic database rollback."
+      message="Startup stopped (${diagnostic:-log-unavailable}); inspect /var/log/grafioschtrader.log."
+      gt_core_error "$message No automatic database rollback."
       return 2
     fi
     gt_app_verify; status=$?
@@ -4422,22 +4753,28 @@ gt_app_start() {
 }
 
 gt_install_app() {
-  local reply step before after state_dir
+  local reply step before after state_dir en de message
   local completed_status
   completed_status=0
   gt_completed || completed_status=$?
   (( completed_status == 3 )) || return "$completed_status"
   state_dir=$(gt_path /var/lib/gt-install)
   gt_question_model
-  if ! gt_state_load || ! gt_secrets_load; then gt_core_error 'Valid core journal and original secrets required.'; return 2; fi
+  if ! gt_state_load || ! gt_secrets_load; then
+    gt_core_error 'Valid core journal and original secrets required.'; return 2
+  fi
   gt_no_symlinks "$state_dir/lock" || return 2
   if [[ -z "$LOCK_FD" ]]; then exec {LOCK_FD}<"$state_dir/lock" || return 2; fi
   flock -n "$LOCK_FD" || return 2
   gt_app_preflight || { gt_core_error 'Application preflight failed; no application changes made.'; return 2; }
   before=$(sha256sum "$state_dir/state")
-  gt_text 'Application stage: install update scripts, sudoers (start/stop only), systemd and logrotate; build the pinned commit, start migrations, verify loopback HTTP and enable the service. Web/TLS remain pending.' \
-    'Anwendungsstufe: Update-Skripte, sudoers (nur Start/Stopp), systemd und Logrotation; bestätigten Commit bauen, Migrationen starten, Loopback-HTTP prüfen und Dienst aktivieren. Web/TLS bleiben offen.'
-  printf 'Commit: %s\nDocument root: %s/grafioschtrader\nTimezone: %s\n' "${STATE[planned_commit]}" "${ANSWER[DOCROOT]}" "${ANSWER[TIMEZONE]}"
+  en='Application stage: install update scripts, sudoers (start/stop only), systemd and logrotate;'
+  en+=' build the pinned commit, start migrations, verify loopback HTTP and enable the service. Web/TLS remain pending.'
+  de='Anwendungsstufe: Update-Skripte, sudoers (nur Start/Stopp), systemd und Logrotation; bestätigten Commit bauen,'
+  de+=' Migrationen starten, Loopback-HTTP prüfen und Dienst aktivieren. Web/TLS bleiben offen.'
+  gt_text "$en" "$de"
+  printf 'Commit: %s\nDocument root: %s/grafioschtrader\nTimezone: %s\n' "${STATE[planned_commit]}" \
+    "${ANSWER[DOCROOT]}" "${ANSWER[TIMEZONE]}"
   if [[ "$CORE_CONFIRM" != yes ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
     printf 'install-app: ' >&"$QUESTION_FD"
@@ -4448,7 +4785,9 @@ gt_install_app() {
   gt_core_mark step.app running || return 2
   for step in scripts resources service cron build start; do
     printf 'Application step: %s\n' "$step"
-    "gt_app_$step" || { gt_core_error "$step; inspect /var/lib/gt-install/app-build.log and /var/log/grafioschtrader.log, then resume --install-app. No automatic database rollback."; return 2; }
+    message="$step; inspect /var/lib/gt-install/app-build.log and /var/log/grafioschtrader.log,"
+    message+=' then resume --install-app. No automatic database rollback.'
+    "gt_app_$step" || { gt_core_error "$message"; return 2; }
   done
   gt_core_mark step.app complete || return 2
   gt_text 'Application running; installation remains unfinished (web/TLS/mail verification pending).' \
@@ -4582,7 +4921,7 @@ server {
     index index.html;
     client_max_body_size 50m;
     gzip on;
-    gzip_types text/plain text/css text/xml application/javascript application/json application/wasm application/xml image/svg+xml;
+    gzip_types $GZIP_TYPES;
     location = / { return 302 /grafioschtrader/; }
     location = /grafioschtrader { return 301 /grafioschtrader/; }
     location /grafioschtrader/ {
@@ -4619,10 +4958,12 @@ gt_nginx_owned() {
   gt_no_symlinks "$target" && gt_no_symlinks "${link%/*}" || return 2
   if [[ -e "$target" ]]; then
     digest=$(sha256sum "$target"); digest=${digest%% *}
-    [[ -f "$target" && "$digest" == "${STATE[file.web_nginx]:-}" && "$(stat -c '%u:%a' "$target")" == 0:644 ]] || return 2
+    [[ -f "$target" && "$digest" == "${STATE[file.web_nginx]:-}" && "$(stat -c '%u:%a' "$target")" == 0:644 ]] ||
+      return 2
   fi
   if [[ -e "$link" || -L "$link" ]]; then
-    [[ -L "$link" && "$(readlink "$link")" == "$target" && "${STATE[resource.web_link]:-}" == intent && -f "$target" ]] || return 2
+    [[ -L "$link" && "$(readlink "$link")" == "$target" && "${STATE[resource.web_link]:-}" == intent &&
+      -f "$target" ]] || return 2
   fi
 }
 
@@ -4638,7 +4979,8 @@ gt_nginx_package_plan() {
 gt_web_preflight() {
   local command address listeners line
   [[ "${STATE[step.app]:-}" == complete && "${ANSWER[WEBSERVER]:-}" == nginx && -z "${ANSWER[DOMAIN]:-}" ]] || {
-    gt_core_error 'Complete --install-app first; --install-web currently requires nginx and LAN-only answers.'; return 2;
+    gt_core_error 'Complete --install-app first; --install-web currently requires nginx and LAN-only answers.'
+    return 2
   }
   for command in nginx curl python3 ip ss systemctl; do
     [[ "$command" != nginx ]] || continue
@@ -4646,7 +4988,8 @@ gt_web_preflight() {
   done
   [[ "$(cat "$(gt_path /proc/1/comm)")" == systemd ]] || return 2
   gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
-  gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" || return 2
+  gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" ||
+    return 2
   address=$(gt_lan_address) || return 2
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || {
     gt_core_error 'LAN address changed; review the owned vhost before continuing.'; return 2;
@@ -4683,7 +5026,8 @@ gt_web_verify() {
   fi
   curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" "$base/api/gtinfo" > "$SCRATCH/web-info" || return 2
   python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); sys.exit(d.get("databaseName") != "grafioschtrader" or d.get("activeProfile") not in ("", "production"))' "$SCRATCH/web-info" || return 2
-  curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" "$base/grafioschtrader/" > "$SCRATCH/web-index" || return 2
+  curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" "$base/grafioschtrader/" > "$SCRATCH/web-index" ||
+    return 2
   cmp -s "$SCRATCH/web-index" "$(gt_path "${ANSWER[DOCROOT]}/grafioschtrader/index.html")" || return 2
   asset=$(python3 - "$SCRATCH/web-index" <<'PY'
 from html.parser import HTMLParser
@@ -4701,10 +5045,12 @@ if not p.base or not assets: sys.exit(2)
 print(assets[0] if assets[0].startswith('/') else '/grafioschtrader/' + assets[0])
 PY
   ) || return 2
-  type=$(curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" -o "$SCRATCH/web-script" -w '%{content_type}' "$base$asset") || return 2
+  type=$(curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" -o "$SCRATCH/web-script" -w '%{content_type}' \
+    "$base$asset") || return 2
   [[ "$type" == application/javascript* || "$type" == text/javascript* ]] && [[ -s "$SCRATCH/web-script" ]] || return 2
   cmp -s "$SCRATCH/web-script" "$(gt_path "${ANSWER[DOCROOT]}$asset")" || return 2
-  curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" "$base/grafioschtrader/login" > "$SCRATCH/web-nested" || return 2
+  curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" \
+    "$base/grafioschtrader/login" > "$SCRATCH/web-nested" || return 2
   cmp -s "$SCRATCH/web-index" "$SCRATCH/web-nested"
 }
 
@@ -4718,7 +5064,7 @@ gt_web_rollback() {
 }
 
 gt_web_activate() {
-  local target link attempt baseline endpoints
+  local target link attempt baseline endpoints message
   target=$(gt_path /etc/nginx/sites-available/grafioschtrader)
   link=$(gt_path /etc/nginx/sites-enabled/grafioschtrader)
   baseline=$(gt_path /var/lib/gt-install/web-before)
@@ -4749,8 +5095,10 @@ gt_web_activate() {
       sleep 1
     done
   fi
-  gt_web_rollback || { gt_core_error 'nginx recovery failed; inspect nginx -t and the owned enablement link.'; return 2; }
-  gt_core_error 'Web verification failed; own vhost disabled and previous configuration reloaded. Resume --install-web after diagnosis.'
+  gt_web_rollback ||
+    { gt_core_error 'nginx recovery failed; inspect nginx -t and the owned enablement link.'; return 2; }
+  message='Web verification failed; own vhost disabled and previous configuration reloaded.'
+  gt_core_error "$message Resume --install-web after diagnosis."
   return 2
 }
 
@@ -4823,7 +5171,7 @@ gt_firewall_summary() {
 }
 
 gt_install_web() {
-  local state_dir before after reply package
+  local state_dir before after reply package en de
   local completed_status
   completed_status=0
   gt_completed || completed_status=$?
@@ -4841,8 +5189,11 @@ gt_install_web() {
   fi
   gt_web_preflight || { gt_core_error 'Web preflight failed; no web changes made.'; return 2; }
   before="$(sha256sum "$state_dir/state"):${FACT[web.snapshot]}:${FACT[web.package]}:${FACT[web.lan]}"
-  gt_text 'LAN stage: install nginx if absent; add an owned HTTP vhost, verify frontend/API and existing sites, enable nginx at boot.' \
-    'LAN-Stufe: nginx bei Bedarf installieren; eigenen HTTP-Vhost ergänzen, Frontend/API und bestehende Sites prüfen, nginx beim Boot aktivieren.'
+  en='LAN stage: install nginx if absent; add an owned HTTP vhost, verify frontend/API and existing sites,'
+  en+=' enable nginx at boot.'
+  de='LAN-Stufe: nginx bei Bedarf installieren; eigenen HTTP-Vhost ergänzen, Frontend/API und bestehende Sites prüfen,'
+  de+=' nginx beim Boot aktivieren.'
+  gt_text "$en" "$de"
   gt_firewall_summary
   printf 'URL: http://%s/grafioschtrader/\nDocument root: %s\n' "${FACT[web.lan]}" "${ANSWER[DOCROOT]}"
   if [[ "$CORE_CONFIRM" != yes ]]; then
@@ -4867,7 +5218,9 @@ gt_install_web() {
     [[ -L "$(gt_path /etc/nginx/sites-enabled/grafioschtrader)" ]] && gt_web_verify || return 2
     gt_core_run systemctl is-enabled --quiet nginx.service || return 2
   else gt_web_activate || return 2; fi
-  gt_text 'LAN web access verified. Installation remains unfinished: mail verification and final hand-over are pending.' \
+  en='LAN web access verified.'
+  en+=' Installation remains unfinished: mail verification and final hand-over are pending.'
+  gt_text "$en" \
     'LAN-Webzugriff geprüft. Installation bleibt unvollständig: Mail-Prüfung und abschließende Übergabe stehen aus.'
   return 10
 }
@@ -4885,10 +5238,12 @@ gt_site_owned() {
     gt_no_symlinks "$target" && gt_no_symlinks "${link%/*}" || return 2
     if [[ -e "$target" ]]; then
       digest=$(sha256sum "$target"); digest=${digest%% *}
-      [[ -f "$target" && "$digest" == "${STATE[file.site_$id]:-}" && "$(stat -c '%u:%a' "$target")" == 0:644 ]] || return 2
+      [[ -f "$target" && "$digest" == "${STATE[file.site_$id]:-}" && "$(stat -c '%u:%a' "$target")" == 0:644 ]] ||
+        return 2
     fi
     if [[ -e "$link" || -L "$link" ]]; then
-      [[ -L "$link" && "$(readlink "$link")" == "$target" && "${STATE[resource.site_$id]:-}" == intent && -f "$target" ]] || return 2
+      [[ -L "$link" && "$(readlink "$link")" == "$target" && "${STATE[resource.site_$id]:-}" == intent &&
+        -f "$target" ]] || return 2
     fi
   done
   if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then
@@ -4896,7 +5251,8 @@ gt_site_owned() {
     gt_no_symlinks "$target" || return 2
     if [[ -e "$target" ]]; then
       digest=$(sha256sum "$target"); digest=${digest%% *}
-      [[ -f "$target" && "$digest" == "${STATE[file.apache_listen]:-}" && "$(stat -c '%u:%a' "$target")" == 0:644 ]] || return 2
+      [[ -f "$target" && "$digest" == "${STATE[file.apache_listen]:-}" && "$(stat -c '%u:%a' "$target")" == 0:644 ]] ||
+        return 2
     fi
   fi
 }
@@ -5021,7 +5377,7 @@ EOF
         Require all granted
         DirectoryIndex index.html
         FallbackResource /grafioschtrader/index.html
-        AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml application/javascript application/json application/wasm application/xml image/svg+xml
+        AddOutputFilterByType DEFLATE text/plain text/html ${GZIP_TYPES#text/plain }
     </Directory>
 EOF
 }
@@ -5040,14 +5396,19 @@ gt_domain_render() {
       printf '    location / { return 301 https://%s$request_uri; }\n}\n' "$name"
       port=443
     fi
-    printf 'server {\n    listen %s%s;\n    server_name %s;\n' "$port" "$([[ "$phase" != tls ]] || printf ' ssl')" "$names"
-    [[ "${ANSWER[DNS_FAMILY]:-ipv4}" == ipv4 || "$phase" == proxy ]] || printf '    listen [::]:%s%s;\n' "$port" "$([[ "$phase" != tls ]] || printf ' ssl')"
-    [[ "$phase" != tls ]] || printf '    ssl_certificate %s;\n    ssl_certificate_key %s;\n    ssl_protocols TLSv1.2 TLSv1.3;\n' "$cert" "$key"
+    printf 'server {\n    listen %s%s;\n    server_name %s;\n' "$port" "$([[ "$phase" != tls ]] || printf ' ssl')" \
+      "$names"
+    [[ "${ANSWER[DNS_FAMILY]:-ipv4}" == ipv4 || "$phase" == proxy ]] ||
+      printf '    listen [::]:%s%s;\n' "$port" "$([[ "$phase" != tls ]] || printf ' ssl')"
+    if [[ "$phase" == tls ]]; then
+      printf '    ssl_certificate %s;\n    ssl_certificate_key %s;\n' "$cert" "$key"
+      printf '    ssl_protocols TLSv1.2 TLSv1.3;\n'
+    fi
     if [[ "$phase" == proxy && -n "${ANSWER[TLS_PROXY_FROM]:-}" ]]; then
       printf '    allow 127.0.0.1;\n    allow %s;\n    deny all;\n' "${ANSWER[TLS_PROXY_FROM]}"
     fi
     printf '    root %s;\n    index index.html;\n    client_max_body_size 50m;\n    gzip on;\n' "${ANSWER[DOCROOT]}"
-    printf '    gzip_types text/plain text/css text/xml application/javascript application/json application/wasm application/xml image/svg+xml;\n'
+    printf '    gzip_types %s;\n' "$GZIP_TYPES"
     cat <<'EOF'
     location /.well-known/acme-challenge/ { root /var/lib/gt-install-acme; }
     location = / { return 302 /grafioschtrader/; }
@@ -5057,7 +5418,8 @@ gt_domain_render() {
 EOF
     for route in /api /m2m /socket/websocket /ws; do
       target=$route; [[ "$route" != /socket/websocket ]] || target=/socket
-      printf '    location %s {\n        proxy_pass http://127.0.0.1:%s%s;\n' "$route" "${ANSWER[BACKEND_PORT]}" "$target"
+      printf '    location %s {\n        proxy_pass http://127.0.0.1:%s%s;\n' "$route" "${ANSWER[BACKEND_PORT]}" \
+        "$target"
       printf '        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n'
       if [[ "$phase" == proxy ]]; then
         printf '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n'
@@ -5066,7 +5428,8 @@ EOF
       fi
       printf '        proxy_set_header X-Forwarded-Proto %s;\n' "$proto"
       if [[ "$route" == /ws || "$route" == /socket/websocket ]]; then
-        printf '        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection "upgrade";\n'
+        printf '        proxy_http_version 1.1;\n        proxy_set_header Upgrade $http_upgrade;\n'
+        printf '        proxy_set_header Connection "upgrade";\n'
       fi
       printf '    }\n'
     done
@@ -5077,12 +5440,16 @@ EOF
       for name in $names; do [[ "$name" == "${ANSWER[DOMAIN]}" ]] || printf '    ServerAlias %s\n' "$name"; done
       printf '    Alias /.well-known/acme-challenge/ /var/lib/gt-install-acme/.well-known/acme-challenge/\n'
       printf '    <Directory /var/lib/gt-install-acme>\n        Require all granted\n    </Directory>\n'
-      printf '    RedirectMatch 301 ^/(?!\.well-known/acme-challenge/)(.*)$ https://%s/$1\n</VirtualHost>\n' "${ANSWER[DOMAIN]}"
+      printf '    RedirectMatch 301 ^/(?!\.well-known/acme-challenge/)(.*)$ https://%s/$1\n</VirtualHost>\n' \
+        "${ANSWER[DOMAIN]}"
       port=443
     fi
     printf '<VirtualHost *:%s>\n    ServerName %s\n' "$port" "${ANSWER[DOMAIN]}"
     for name in $names; do [[ "$name" == "${ANSWER[DOMAIN]}" ]] || printf '    ServerAlias %s\n' "$name"; done
-    [[ "$phase" != tls ]] || printf '    SSLEngine on\n    SSLCertificateFile %s\n    SSLCertificateKeyFile %s\n    SSLProtocol -all +TLSv1.2 +TLSv1.3\n' "$cert" "$key"
+    if [[ "$phase" == tls ]]; then
+      printf '    SSLEngine on\n    SSLCertificateFile %s\n    SSLCertificateKeyFile %s\n' "$cert" "$key"
+      printf '    SSLProtocol -all +TLSv1.2 +TLSv1.3\n'
+    fi
     if [[ "$phase" == proxy && -n "${ANSWER[TLS_PROXY_FROM]:-}" ]]; then
       printf '    <Location />\n        Require ip 127.0.0.1 %s\n    </Location>\n' "${ANSWER[TLS_PROXY_FROM]}"
     fi
@@ -5536,7 +5903,9 @@ gt_extended_packages() {
   local -a packages=()
   read -r -a packages <<< "${FACT[web.packages]}"
   transaction=$(LC_ALL=C apt-get --simulate --no-remove --no-upgrade install "${packages[@]}" 2>/dev/null) || return 2
-  while IFS= read -r line; do [[ "$line" != 'Remv '* && ! "$line" =~ ^Inst\ [^\ ]+\ \[ ]] || return 2; done <<< "$transaction"
+  while IFS= read -r line; do
+    [[ "$line" != 'Remv '* && ! "$line" =~ ^Inst\ [^\ ]+\ \[ ]] || return 2
+  done <<< "$transaction"
   printf '%s\n' "$transaction" | sha256sum
 }
 
@@ -5558,12 +5927,14 @@ gt_domain_plan() {
   # must be covered by its certificate.
   if gt_vhost_include_mode; then FACT[web.names]='' FACT[plan.names]=${ANSWER[DOMAIN]}; fi
   if [[ -n "${STATE[resource.web_names]:-}" ]]; then
-    [[ "${STATE[resource.web_names]}" == "${FACT[web.names]}" ]] || { gt_core_error 'DNS certificate-name set changed; restore the recorded DNS names before resuming.'; return 2; }
+    [[ "${STATE[resource.web_names]}" == "${FACT[web.names]}" ]] ||
+      { gt_core_error 'DNS certificate-name set changed; restore the recorded DNS names before resuming.'; return 2; }
   fi
   case "${ANSWER[TLS_SOURCE]}" in
     existing)
       for field in TLS_CERT TLS_KEY; do
-        gt_validate_answer "$field" "${ANSWER[$field]:-}" || { gt_core_error "Invalid/missing answer: $field"; return 2; }
+        gt_validate_answer "$field" "${ANSWER[$field]:-}" ||
+          { gt_core_error "Invalid/missing answer: $field"; return 2; }
       done
       FACT[tls.cert]=${ANSWER[TLS_CERT]} FACT[tls.key]=${ANSWER[TLS_KEY]}
       gt_plan_certificate
@@ -5575,7 +5946,8 @@ gt_domain_plan() {
       gt_certbot_plan ;;
     proxy)
       for field in TLS_PROXY_LISTEN TLS_PROXY_FROM; do
-        gt_validate_answer "$field" "${ANSWER[$field]:-}" || { gt_core_error "Invalid/missing answer: $field"; return 2; }
+        gt_validate_answer "$field" "${ANSWER[$field]:-}" ||
+          { gt_core_error "Invalid/missing answer: $field"; return 2; }
       done
       ;;
   esac
@@ -5607,11 +5979,13 @@ gt_apache_modules() {
   before=$(gt_path "/var/lib/gt-install/apache-$phase-before")
   after=$(gt_path "/var/lib/gt-install/apache-$phase-after")
   gt_no_symlinks "$(gt_path /etc/apache2/mods-enabled)" || return 2
-  find "$(gt_path /etc/apache2/mods-enabled)" -maxdepth 1 -type l -printf '%f\t%l\n' | LC_ALL=C sort > "$SCRATCH/modules"
+  find "$(gt_path /etc/apache2/mods-enabled)" -maxdepth 1 -type l -printf '%f\t%l\n' |
+    LC_ALL=C sort > "$SCRATCH/modules"
   if [[ ! -e "$before" ]]; then gt_app_root_file "modules_${phase}_before" "$SCRATCH/modules" "$before" 600 || return 2
   else gt_app_root_file "modules_${phase}_before" "$before" "$before" 600 || return 2; fi
   for file in "${modules[@]}"; do gt_core_run a2enmod "$file" >/dev/null || return 2; done
-  find "$(gt_path /etc/apache2/mods-enabled)" -maxdepth 1 -type l -printf '%f\t%l\n' | LC_ALL=C sort > "$SCRATCH/modules"
+  find "$(gt_path /etc/apache2/mods-enabled)" -maxdepth 1 -type l -printf '%f\t%l\n' |
+    LC_ALL=C sort > "$SCRATCH/modules"
   gt_app_root_file "modules_${phase}_after" "$SCRATCH/modules" "$after" 600
 }
 
@@ -5641,7 +6015,8 @@ gt_extended_preflight() {
   [[ "$(cat "$(gt_path /proc/1/comm)")" == systemd ]] || return 2
   for command in curl python3 ip ss systemctl openssl; do command -v "$command" >/dev/null || return 2; done
   gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
-  gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" || return 2
+  gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" ||
+    return 2
   [[ "$web" != apache2 ]] || gt_validate_answer BACKEND_HTTP_PORT "${ANSWER[BACKEND_HTTP_PORT]:-}" || return 2
   address=$(gt_lan_address) || return 2
   FACT[web.lan]=$address
@@ -5651,7 +6026,9 @@ gt_extended_preflight() {
     if [[ "${ANSWER[TLS_SOURCE]}" == proxy ]]; then ports+=" ${ANSWER[TLS_PROXY_LISTEN]}"; else ports+=' 443'; fi
   fi
   address=$(ss -Htlnp) || return 2
-  while IFS= read -r line; do [[ "$line" == *"\"$web\""* ]] || { gt_core_error 'A required web port belongs to another process.'; return 2; }; done < <(
+  while IFS= read -r line; do
+    [[ "$line" == *"\"$web\""* ]] || { gt_core_error 'A required web port belongs to another process.'; return 2; }
+  done < <(
     awk -v ports="$ports" 'BEGIN {split(ports,p," ")} {for(i in p) if($4 ~ (":" p[i] "$")) print}' <<< "$address")
   [[ "$web" != apache2 ]] || executable=apache2ctl
   FACT[web.packages]=$(gt_web_package_names | paste -sd ' ')
@@ -5659,7 +6036,8 @@ gt_extended_preflight() {
   if command -v "$executable" >/dev/null; then
     gt_site_test || return 2
     FACT[web.snapshot]=$(gt_site_inventory) || return 2
-    gt_core_run systemctl is-active --quiet "$web.service" || { gt_core_error 'Existing web server must be running for shared-site checks.'; return 2; }
+    gt_core_run systemctl is-active --quiet "$web.service" ||
+      { gt_core_error 'Existing web server must be running for shared-site checks.'; return 2; }
     gt_nginx_statuses > "$SCRATCH/web-before" || return 2
   else
     [[ ! -e "$(gt_path "/etc/$web")" ]] || return 2
@@ -5697,7 +6075,8 @@ gt_site_activate() {
     link=$(gt_site_path http); link=${link/sites-available/sites-enabled}
     [[ ! -L "$link" ]] || old_http=yes
     # Persist the restoration choice before removing the HTTP bootstrap link.
-    [[ -n "${STATE[resource.domain_previous_http]:-}" ]] || gt_core_mark resource.domain_previous_http "$old_http" || return 2
+    [[ -n "${STATE[resource.domain_previous_http]:-}" ]] || gt_core_mark resource.domain_previous_http "$old_http" ||
+      return 2
     gt_site_link http off || return 2
   fi
   gt_site_link "$id" on || return 2
@@ -5713,7 +6092,9 @@ gt_site_activate() {
     cat "$SCRATCH/web-verify.err" >&2
   fi
   gt_site_link "$id" off || return 2
-  if [[ "$id" == domain && "${STATE[resource.domain_previous_http]:-}" == yes ]]; then gt_site_link http on || return 2; fi
+  if [[ "$id" == domain && "${STATE[resource.domain_previous_http]:-}" == yes ]]; then
+    gt_site_link http on || return 2
+  fi
   if ! gt_site_test || ! gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service"; then
     gt_core_error 'Web rollback reload failed; inspect the web server log.'; return 2
   fi
@@ -5725,7 +6106,7 @@ gt_site_activate() {
 gt_tls_certbot() { gt_core_run certbot "$@"; }
 
 gt_tls_issue() {
-  local path name cert_name="gt-install-${STATE[run_id]}" log
+  local path name cert_name="gt-install-${STATE[run_id]}" log message
   local -a names=()
   if [[ "${FACT[tls.reuse]:-no}" == yes ]]; then
     gt_core_mark step.tls reused
@@ -5734,12 +6115,14 @@ gt_tls_issue() {
   for name in ${FACT[web.names]}; do names+=(-d "$name"); done
   path=$(gt_path /var/lib/gt-install-acme)
   gt_no_symlinks "$path" || return 2
-  if [[ -e "$path" ]]; then [[ "${STATE[resource.acme_root]:-}" == intent && "$(stat -c '%u:%a' "$path")" == 0:755 ]] || return 2
+  if [[ -e "$path" ]]; then
+    [[ "${STATE[resource.acme_root]:-}" == intent && "$(stat -c '%u:%a' "$path")" == 0:755 ]] || return 2
   else
     gt_core_mark resource.acme_root intent || return 2
     install -d -o root -g root -m 755 "$path" || return 2
   fi
-  if [[ -e "/etc/letsencrypt/renewal/$cert_name.conf" && "${STATE[resource.acme_certificate]:-}" != intent ]]; then return 2; fi
+  if [[ -e "/etc/letsencrypt/renewal/$cert_name.conf" &&
+      "${STATE[resource.acme_certificate]:-}" != intent ]]; then return 2; fi
   gt_core_mark resource.acme_certificate intent || return 2
   log=$(gt_path /var/lib/gt-install/tls.log)
   gt_no_symlinks "$log" || return 2
@@ -5749,7 +6132,8 @@ gt_tls_issue() {
     --webroot -w "$path" --cert-name "$cert_name" "${names[@]}" --keep-until-expiring \
     --deploy-hook "systemctl reload ${ANSWER[WEBSERVER]}.service" >> "$log" 2>&1 || {
     gt_core_mark step.tls failed || return 2
-    gt_core_error "Certificate request failed; HTTP remains available. See $log and rerun --install-web after DNS/router repair."; return 2;
+    message="Certificate request failed; HTTP remains available. See $log"
+    gt_core_error "$message and rerun --install-web after DNS/router repair."; return 2;
   }
   local saved_cert=${ANSWER[TLS_CERT]:-} saved_key=${ANSWER[TLS_KEY]:-}
   ANSWER[TLS_CERT]=${FACT[tls.cert]} ANSWER[TLS_KEY]=${FACT[tls.key]}
@@ -5806,7 +6190,7 @@ gt_tls_verify() {
 }
 
 gt_install_extended_web() {
-  local before after reply id port name web=${ANSWER[WEBSERVER]} package missing=no link status=0
+  local before after reply id port name web=${ANSWER[WEBSERVER]} package missing=no link status=0 en de
   local -a packages=()
   gt_stage_preflight || return 2
   [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
@@ -5820,10 +6204,15 @@ gt_install_extended_web() {
   gt_report_rows "$(gt_text 'Web packages and modules' 'Web-Pakete und Module')" "${PLAN[@]}"
   gt_report_rows "$(gt_text Blockers Blocker)" "${PLAN_BLOCKERS[@]}"
   (( ${#PLAN_BLOCKERS[@]} == 0 )) || return 2
-  before="${FACT[web.snapshot]}:${FACT[web.transaction]}:${FACT[web.names]}:${FACT[web.lan]}:$(gt_tls_snapshot):$(sha256sum "$(gt_path /var/lib/gt-install/state)")"
-  printf 'Web: %s; LAN: http://%s/grafioschtrader/; domain: %s; TLS: %s\n' "$web" "${FACT[web.lan]}" "${ANSWER[DOMAIN]:-none}" "${ANSWER[TLS_SOURCE]:-none}"
-  gt_text 'Install required web packages, own sites and Apache modules; verify routes and shared sites. Certbot uses HTTP-01 and a scoped renewal test.' \
-    'Benötigte Web-Pakete, eigene Sites und Apache-Module installieren; Routen und bestehende Sites prüfen. Certbot nutzt HTTP-01 und einen begrenzten Erneuerungstest.'
+  before="${FACT[web.snapshot]}:${FACT[web.transaction]}:${FACT[web.names]}:${FACT[web.lan]}:$(gt_tls_snapshot)"
+  before+=":$(sha256sum "$(gt_path /var/lib/gt-install/state)")"
+  printf 'Web: %s; LAN: http://%s/grafioschtrader/; domain: %s; TLS: %s\n' "$web" "${FACT[web.lan]}" \
+    "${ANSWER[DOMAIN]:-none}" "${ANSWER[TLS_SOURCE]:-none}"
+  en='Install required web packages, own sites and Apache modules; verify routes and shared sites.'
+  en+=' Certbot uses HTTP-01 and a scoped renewal test.'
+  de='Benötigte Web-Pakete, eigene Sites und Apache-Module installieren; Routen und bestehende Sites prüfen.'
+  de+=' Certbot nutzt HTTP-01 und einen begrenzten Erneuerungstest.'
+  gt_text "$en" "$de"
   gt_firewall_summary
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt && "${FACT[tls.reuse]:-no}" != yes ]]; then
     gt_text "Confirmation also accepts the Let's Encrypt terms: https://letsencrypt.org/repository/" \
@@ -5835,7 +6224,8 @@ gt_install_extended_web() {
     IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == install-web ]] || return 130
   fi
   gt_extended_preflight || return 2
-  after="${FACT[web.snapshot]}:${FACT[web.transaction]}:${FACT[web.names]}:${FACT[web.lan]}:$(gt_tls_snapshot):$(sha256sum "$(gt_path /var/lib/gt-install/state)")"
+  after="${FACT[web.snapshot]}:${FACT[web.transaction]}:${FACT[web.names]}:${FACT[web.lan]}:$(gt_tls_snapshot)"
+  after+=":$(sha256sum "$(gt_path /var/lib/gt-install/state)")"
   [[ "$before" == "$after" ]] || { gt_core_error 'Web plan changed; run again.'; return 2; }
   gt_core_mark resource.web_lan "${FACT[web.lan]}" && gt_core_mark resource.web_names "${FACT[web.names]}" || return 2
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]]; then
@@ -5855,7 +6245,8 @@ gt_install_extended_web() {
   gt_core_run systemctl start "$web.service" || return 2
   # Before any site or certificate: HTTP-01 must reach port 80 through an active ufw.
   gt_web_firewall || return 2
-  gt_site_test && gt_site_inventory > "$SCRATCH/web-inventory" && gt_nginx_statuses > "$SCRATCH/web-before" && gt_site_baseline || return 2
+  gt_site_test && gt_site_inventory > "$SCRATCH/web-inventory" && gt_nginx_statuses > "$SCRATCH/web-before" &&
+    gt_site_baseline || return 2
   if [[ "$web" == apache2 ]]; then
     gt_apache_default_disable || return 2
     if [[ "${STATE[step.site_lan]:-}" != complete ]]; then
@@ -5864,14 +6255,16 @@ gt_install_extended_web() {
     if [[ "${ANSWER[TLS_SOURCE]:-}" == proxy ]]; then
       # Additional Listen is installer-owned; ports.conf stays untouched.
       printf 'Listen %s\n' "${ANSWER[TLS_PROXY_LISTEN]}" > "$SCRATCH/apache-listen"
-      gt_app_root_file apache_listen "$SCRATCH/apache-listen" "$(gt_path /etc/apache2/conf-enabled/grafioschtrader-listen.conf)" 644 || return 2
+      gt_app_root_file apache_listen "$SCRATCH/apache-listen" \
+        "$(gt_path /etc/apache2/conf-enabled/grafioschtrader-listen.conf)" 644 || return 2
     fi
   fi
   gt_site_render_lan > "$SCRATCH/site-lan"
   if [[ "${STATE[step.site_lan]:-}" != complete ]]; then
     if ! gt_site_activate lan "http://${FACT[web.lan]}"; then
       if [[ "$web" == apache2 ]]; then
-        gt_apache_default_restore && gt_apache_modules_restore lan && gt_site_test && gt_core_run systemctl reload apache2.service || return 2
+        gt_apache_default_restore && gt_apache_modules_restore lan && gt_site_test &&
+          gt_core_run systemctl reload apache2.service || return 2
       fi
       return 2
     fi
@@ -5896,12 +6289,15 @@ gt_install_extended_web() {
     if [[ "${STATE[step.site_domain]:-}" != complete ]]; then
       if [[ "$web" == apache2 && "$id" == tls ]]; then gt_apache_modules tls || return 2; fi
       if ! gt_site_activate domain "$name" "${ANSWER[DOMAIN]}:$port:127.0.0.1"; then
-        if [[ "$web" == apache2 && "$id" == tls ]]; then gt_apache_modules_restore tls && gt_site_test && gt_core_run systemctl reload apache2.service || return 2; fi
+        if [[ "$web" == apache2 && "$id" == tls ]]; then
+          gt_apache_modules_restore tls && gt_site_test && gt_core_run systemctl reload apache2.service || return 2
+        fi
         return 2
       fi
     else
       link=$(gt_site_path domain)
-      [[ -L "${link/sites-available/sites-enabled}" ]] && gt_web_verify "$name" "${ANSWER[DOMAIN]}:$port:127.0.0.1" || return 2
+      [[ -L "${link/sites-available/sites-enabled}" ]] && gt_web_verify "$name" "${ANSWER[DOMAIN]}:$port:127.0.0.1" ||
+        return 2
     fi
     if [[ "$id" == tls ]]; then
       gt_tls_verify || return 2
@@ -5917,7 +6313,8 @@ gt_install_extended_web() {
     elif gt_web_verify "https://${ANSWER[DOMAIN]}"; then gt_core_mark step.tls complete || return 2
     else
       gt_core_mark step.tls unverified || return 2
-      gt_text 'External proxy HTTPS not verified from this host; verify from outside the LAN.' 'HTTPS am vorgeschalteten Proxy hier nicht verifiziert; von außerhalb des LAN prüfen.'
+      gt_text 'External proxy HTTPS not verified from this host; verify from outside the LAN.' \
+        'HTTPS am vorgeschalteten Proxy hier nicht verifiziert; von außerhalb des LAN prüfen.'
     fi
   else gt_core_mark step.tls skipped || return 2; fi
   gt_web_verify && gt_site_compare && gt_core_run systemctl enable "$web.service" || return 2
@@ -5929,7 +6326,8 @@ gt_install_extended_web() {
     return 10
   fi
   gt_core_mark step.web complete || return 2
-  gt_text 'Web routes verified. Run --check-mail for the mail milestone; final hand-over remains pending.' 'Web-Routen geprüft. --check-mail führt die Mail-Prüfung aus; abschließende Übergabe bleibt offen.'
+  gt_text 'Web routes verified. Run --check-mail for the mail milestone; final hand-over remains pending.' \
+    'Web-Routen geprüft. --check-mail führt die Mail-Prüfung aus; abschließende Übergabe bleibt offen.'
   return 10
 }
 
@@ -5939,7 +6337,8 @@ gt_apache_default_disable() {
   link=$(gt_path /etc/apache2/sites-enabled/000-default.conf)
   [[ -L "$link" ]] || return 2
   target=$(readlink "$link") || return 2
-  [[ "$target" == ../sites-available/000-default.conf || "$target" == /etc/apache2/sites-available/000-default.conf ]] || return 2
+  [[ "$target" == ../sites-available/000-default.conf ||
+    "$target" == /etc/apache2/sites-available/000-default.conf ]] || return 2
   gt_core_mark resource.apache_default "$target" || return 2
   rm -- "$link" && sync -f "${link%/*}"
 }
@@ -5947,14 +6346,15 @@ gt_apache_default_disable() {
 gt_apache_default_restore() {
   local link target=${STATE[resource.apache_default]:-}
   [[ -n "$target" ]] || return 0
-  [[ "$target" == ../sites-available/000-default.conf || "$target" == /etc/apache2/sites-available/000-default.conf ]] || return 2
+  [[ "$target" == ../sites-available/000-default.conf ||
+    "$target" == /etc/apache2/sites-available/000-default.conf ]] || return 2
   link=$(gt_path /etc/apache2/sites-enabled/000-default.conf)
   gt_no_symlinks "${link%/*}" || return 2
   [[ ! -e "$link" && ! -L "$link" ]] || return 2
   ln -s "$target" "$link" && sync -f "${link%/*}"
 }
 gt_mail_resolve() {
-  local directory jar status=0
+  local directory jar status=0 message
   local -a jars=()
   while IFS= read -r -d '' jar; do jars+=("$jar"); done < <(
     find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader-server-*.jar' -print0)
@@ -5976,8 +6376,8 @@ gt_mail_resolve() {
       cp "$directory/config" "$SCRATCH/mail-configuration" || status=2
   fi
   rm -rf -- "$directory"
-  (( status == 0 )) || gt_core_error \
-    'Application mail configuration could not be resolved/decrypted. Use the matching backend build; details suppressed.'
+  message='Application mail configuration could not be resolved/decrypted.'
+  (( status == 0 )) || gt_core_error "$message Use the matching backend build; details suppressed."
   return "$status"
 }
 
@@ -6055,7 +6455,7 @@ PY
 # milestone is verified, --check-mail --answers FILE accepts a corrected SMTP_PASSWORD; every other answer and
 # secret in FILE must still match the journal.
 gt_mail_password() {
-  local key value reply
+  local key value reply en de
   [[ "${STATE[step.app]:-}" == complete && "${STATE[step.mail]:-}" != complete &&
      "${ANSWER[SMTP_CONFIGURE]:-}:${ANSWER[SMTP_AUTH]:-}" == yes:yes ]] || {
     gt_core_error 'Only an authenticated mail configuration that is not yet verified accepts a new SMTP password.'
@@ -6074,8 +6474,11 @@ gt_mail_password() {
   FILE_ANSWERS=()
   gt_valid_secret "$value" || { gt_core_error 'The answers file needs a valid SMTP_PASSWORD.'; return 2; }
   [[ "$value" != "${SECRET[SMTP_PASSWORD]}" ]] || return 0
-  gt_text 'SMTP_PASSWORD changes: encrypt it into application.properties, rebuild the backend of the installed commit and restart Grafioschtrader.' \
-    'SMTP_PASSWORD ändert sich: in application.properties verschlüsseln, Backend des installierten Commits neu bauen und Grafioschtrader neu starten.'
+  en='SMTP_PASSWORD changes: encrypt it into application.properties,'
+  en+=' rebuild the backend of the installed commit and restart Grafioschtrader.'
+  de='SMTP_PASSWORD ändert sich: in application.properties verschlüsseln,'
+  de+=' Backend des installierten Commits neu bauen und Grafioschtrader neu starten.'
+  gt_text "$en" "$de"
   if [[ "$CORE_CONFIRM" != yes ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
     printf 'change-mail-password: ' >&"$QUESTION_FD"
@@ -6130,7 +6533,8 @@ gt_check_mail() {
   [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == no ]]; then
     gt_core_mark step.mail skipped || return 2
-    gt_text 'Mail skipped; registration cannot be completed. Installation remains incomplete.' 'Mail übersprungen; Registrierung kann nicht abgeschlossen werden. Installation bleibt unvollständig.'
+    gt_text 'Mail skipped; registration cannot be completed. Installation remains incomplete.' \
+      'Mail übersprungen; Registrierung kann nicht abgeschlossen werden. Installation bleibt unvollständig.'
     gt_handover; return $?
   fi
   for field in SMTP_HOST SMTP_PORT SMTP_USER SMTP_AUTH SMTP_SECURITY SMTP_TEST ADMIN_EMAIL; do
@@ -6148,9 +6552,11 @@ gt_check_mail() {
     gt_handover; return $?
   fi
   printf 'SMTP: %s:%s; transport=%s; auth=%s; sender=%s; recipient=%s; send=%s\n' \
-    "${ANSWER[SMTP_HOST]}" "${ANSWER[SMTP_PORT]}" "${ANSWER[SMTP_SECURITY]}" "${ANSWER[SMTP_AUTH]}" "${ANSWER[SMTP_USER]}" "${ANSWER[ADMIN_EMAIL]}" "${ANSWER[SMTP_TEST]}"
+    "${ANSWER[SMTP_HOST]}" "${ANSWER[SMTP_PORT]}" "${ANSWER[SMTP_SECURITY]}" "${ANSWER[SMTP_AUTH]}" \
+    "${ANSWER[SMTP_USER]}" "${ANSWER[ADMIN_EMAIL]}" "${ANSWER[SMTP_TEST]}"
   if [[ "${STATE[step.mail]:-}" == intent ]]; then
-    gt_text 'Previous attempt was interrupted; the same Message-ID may be submitted again.' 'Vorheriger Versuch unterbrochen; dieselbe Message-ID wird möglicherweise erneut gesendet.'
+    gt_text 'Previous attempt was interrupted; the same Message-ID may be submitted again.' \
+      'Vorheriger Versuch unterbrochen; dieselbe Message-ID wird möglicherweise erneut gesendet.'
   fi
   if [[ "$CORE_CONFIRM" != yes ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
@@ -6164,10 +6570,13 @@ gt_check_mail() {
   gt_mail_probe "$send"; result=$?
   if [[ -f "$SCRATCH/mail-result" ]] && grep -qx accepted "$SCRATCH/mail-result"; then
     gt_core_mark resource.mail_delivery accepted || return 2
-    gt_text 'Test message accepted by the SMTP server; actual inbox delivery is not verified.' 'Testnachricht vom SMTP-Server angenommen; tatsächliche Zustellung im Postfach nicht geprüft.'
+    gt_text 'Test message accepted by the SMTP server; actual inbox delivery is not verified.' \
+      'Testnachricht vom SMTP-Server angenommen; tatsächliche Zustellung im Postfach nicht geprüft.'
   elif (( result == 0 )) && [[ -f "$SCRATCH/mail-result" ]] && grep -qx connected "$SCRATCH/mail-result"; then
-    [[ "${STATE[resource.mail_delivery]:-}" == accepted ]] || gt_core_mark resource.mail_delivery not-requested || return 2
-    gt_text 'SMTP connection, selected TLS and authentication verified; no test message requested.' 'SMTP-Verbindung, gewähltes TLS und Anmeldung geprüft; keine Testnachricht gewünscht.'
+    [[ "${STATE[resource.mail_delivery]:-}" == accepted ]] || gt_core_mark resource.mail_delivery not-requested ||
+      return 2
+    gt_text 'SMTP connection, selected TLS and authentication verified; no test message requested.' \
+      'SMTP-Verbindung, gewähltes TLS und Anmeldung geprüft; keine Testnachricht gewünscht.'
   else
     gt_core_error 'Mail check failed; resolve SMTP settings/server access, then repeat --check-mail.'
     if (( result == 2 )); then gt_handover blocked; return $?; fi
@@ -6479,7 +6888,7 @@ gt_bootstrap_web_review() {
 }
 
 gt_bootstrap_app_review() {
-  local file path digest
+  local file path digest raw=https://raw.githubusercontent.com/grafioschtrader/grafioschtrader
   gt_app_targets || return 2
   for file in gtupdate.sh gtupbackend.sh gtupfrontend.sh gtupfrontback.sh checkversion.sh merger.sh \
       gt_to_g_rename.sh gtcronrandom.sh; do
@@ -6495,7 +6904,7 @@ gt_bootstrap_app_review() {
   if [[ "${STATE[step.core]:-}" != complete ]]; then
     for file in gtupbackend.sh gtupfrontend.sh; do
       gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 \
-        "https://raw.githubusercontent.com/grafioschtrader/grafioschtrader/${FACT[source.commit]}/util/shellscripts/$file" \
+        "$raw/${FACT[source.commit]}/util/shellscripts/$file" \
         > "$SCRATCH/bootstrap-$file" || return 2
       grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/bootstrap-$file" || return 2
     done
@@ -6503,7 +6912,7 @@ gt_bootstrap_app_review() {
 }
 
 gt_bootstrap_plan() {
-  local key id target
+  local key id target en
   if [[ "${STATE[step.core]:-}" == complete ]]; then
     PLAN=() PLAN_BLOCKERS=() PLAN_WARNINGS=() PLAN_PACKAGES=()
     # A journaled first start reaches the post-start verifier, never the core's
@@ -6525,15 +6934,19 @@ gt_bootstrap_plan() {
   gt_bootstrap_app_review || gt_plan_block 'Foreign/changed application target or unsupported pinned build helpers.'
   gt_bootstrap_web_review || gt_plan_block 'Web targets, LAN address or shared web configuration cannot be verified.'
   gt_plan_web_runtime
-  gt_plan_row configure application 'Update helpers, sudoers (start/stop only), systemd unit, weekly log rotation (8 copies), protected build log.'
+  gt_plan_row configure application \
+    'Update helpers, sudoers (start/stop only), systemd unit, weekly log rotation (8 copies), protected build log.'
   for target in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service \
       /etc/logrotate.d/grafioschtrader /var/log/grafioschtrader.log; do
     gt_plan_row manage "$target" 'Create or verify installer-owned target; foreign targets block.'
   done
   gt_plan_row configure timezone "${ANSWER[TIMEZONE]}; choose and persist the application cron slot once."
-  gt_plan_row build "$CORE_HOME" "${STATE[planned_commit]:-${FACT[source.commit]}}; backend from source; frontend=${FACT[frontend.mode]:-from-pinned-helper}"
+  en="${STATE[planned_commit]:-${FACT[source.commit]}}; backend from source;"
+  en+=" frontend=${FACT[frontend.mode]:-from-pinned-helper}"
+  gt_plan_row build "$CORE_HOME" "$en"
   gt_plan_row manage "${ANSWER[DOCROOT]}/grafioschtrader" 'Owned frontend directory; shared document root preserved.'
-  gt_plan_row enable grafioschtrader.service 'Start migrations, verify production database and loopback listeners, then enable boot.'
+  gt_plan_row enable grafioschtrader.service \
+    'Start migrations, verify production database and loopback listeners, then enable boot.'
   for id in lan http domain; do
     [[ "${ANSWER[WEBSERVER]}" != none ]] || break
     [[ "$id" == lan || -n "${ANSWER[DOMAIN]:-}" ]] || continue
@@ -6544,7 +6957,8 @@ gt_bootstrap_plan() {
     gt_plan_row manage "$target" 'Own vhost and sites-enabled link; validate before reload and compare shared sites.'
   done
   if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then
-    gt_plan_row configure apache2 'Enable required modules; disable only the distribution default site; preserve rollback records.'
+    gt_plan_row configure apache2 \
+      'Enable required modules; disable only the distribution default site; preserve rollback records.'
     [[ "${ANSWER[TLS_SOURCE]:-}" != proxy ]] || gt_plan_row manage \
       /etc/apache2/conf-enabled/grafioschtrader-listen.conf "Listen ${ANSWER[TLS_PROXY_LISTEN]}"
   fi
@@ -6560,14 +6974,20 @@ gt_bootstrap_plan() {
   fi
   gt_firewall_plan
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]]; then
-    gt_plan_row consent letsencrypt 'HTTP-01 issuance/reuse, renewal test and scoped reload hook/timer; terms: https://letsencrypt.org/repository/'
+    gt_plan_row consent letsencrypt \
+      'HTTP-01 issuance/reuse, renewal test and scoped reload hook/timer; terms: https://letsencrypt.org/repository/'
   fi
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == yes ]]; then
-    gt_plan_row verify SMTP "${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; TLS=${ANSWER[SMTP_SECURITY]}; sender=${ANSWER[SMTP_USER]}; recipient=${ANSWER[ADMIN_EMAIL]}; send=${ANSWER[SMTP_TEST]}"
-    [[ "${STATE[step.mail]:-}" != intent ]] || gt_plan_warn 'Previous mail attempt was interrupted; resumption may submit the same Message-ID again.'
-    [[ "${STATE[resource.mail_delivery]:-}" != accepted ]] || gt_plan_row reuse SMTP 'Recorded server acceptance; no duplicate test message.'
+    en="${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; TLS=${ANSWER[SMTP_SECURITY]};"
+    en+=" sender=${ANSWER[SMTP_USER]}; recipient=${ANSWER[ADMIN_EMAIL]}; send=${ANSWER[SMTP_TEST]}"
+    gt_plan_row verify SMTP "$en"
+    [[ "${STATE[step.mail]:-}" != intent ]] ||
+      gt_plan_warn 'Previous mail attempt was interrupted; resumption may submit the same Message-ID again.'
+    [[ "${STATE[resource.mail_delivery]:-}" != accepted ]] ||
+      gt_plan_row reuse SMTP 'Recorded server acceptance; no duplicate test message.'
   else gt_plan_warn 'SMTP skipped: registration remains unavailable; final result will be incomplete.'; fi
-  gt_plan_row publish /var/lib/gt-install/result 'Verify milestones and publish the protected result; completion requires backend, web, TLS and mail evidence.'
+  gt_plan_row publish /var/lib/gt-install/result \
+    'Verify milestones and publish the protected result; completion requires backend, web, TLS and mail evidence.'
   gt_bootstrap_apt_plan || gt_plan_block 'Full APT transaction unavailable, stale, or would upgrade/remove packages.'
   FACT[bootstrap.plan]=$(printf '%s\n' "${PLAN[@]}" | sha256sum)
   (( ${#PLAN_BLOCKERS[@]} == 0 ))
@@ -6609,7 +7029,7 @@ gt_bootstrap_execute() {
   done
 }
 gt_install_core() {
-  local key resume=no before after reply file state_dir status=0 confirmation=install-core
+  local key resume=no before after reply file state_dir status=0 confirmation=install-core prompt
   [[ "$MODE" != --bootstrap ]] || confirmation=install
   local completed_status
   completed_status=0
@@ -6622,13 +7042,15 @@ gt_install_core() {
       gt_core_error 'Invalid journal or missing/invalid original secrets; recover them before resuming.'; return 2
     fi
     resume=yes
-    [[ "$MODE" == --bootstrap || -z "${STATE[step.app]:-}" ]] || { gt_core_error 'Application stage has begun; resume without a mode or with --install-app.'; return 2; }
+    [[ "$MODE" == --bootstrap || -z "${STATE[step.app]:-}" ]] ||
+      { gt_core_error 'Application stage has begun; resume without a mode or with --install-app.'; return 2; }
   fi
   gt_inventory; gt_compatibility; gt_report
   if [[ "$resume" == no && "${FACT[host.class]}" != fresh ]]; then gt_core_error 'Host is not fresh.'; return 2; fi
   if [[ -n "$ANSWERS_FILE" ]]; then gt_answers_file "$ANSWERS_FILE" || return 2; fi
   if [[ "$CORE_CONFIRM" != yes || "$resume" == no && -z "$ANSWERS_FILE" ]]; then
-    { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || { gt_core_error 'Terminal required, or use --answers FILE --yes.'; return 2; }
+    { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null ||
+      { gt_core_error 'Terminal required, or use --answers FILE --yes.'; return 2; }
     QUESTION_OUTPUT=$QUESTION_FD
   fi
   if [[ "$resume" == no ]]; then
@@ -6660,7 +7082,8 @@ gt_install_core() {
   (( plan_status == 0 )) || return 2
   before=$(gt_install_snapshot | LC_ALL=C sort | sha256sum)
   if [[ "$CORE_CONFIRM" != yes ]]; then
-    printf '%s: %s: ' "$(gt_text 'Type the following to execute this plan' 'Zur Ausführung dieses Plans Folgendes eingeben')" "$confirmation" >&"$QUESTION_OUTPUT"
+    prompt=$(gt_text 'Type the following to execute this plan' 'Zur Ausführung dieses Plans Folgendes eingeben')
+    printf '%s: %s: ' "$prompt" "$confirmation" >&"$QUESTION_OUTPUT"
     IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == "$confirmation" ]] || return 130
   fi
   gt_inventory
@@ -6671,7 +7094,8 @@ gt_install_core() {
   if [[ "$MODE" != --bootstrap ]]; then gt_verify_dns || return 2; fi
   if ! gt_execution_plan; then gt_plan_report; return 2; fi
   after=$(gt_install_snapshot | LC_ALL=C sort | sha256sum)
-  [[ "$before" == "$after" ]] || { gt_core_error 'Inventory changed after planning; run again to review a fresh plan.'; return 2; }
+  [[ "$before" == "$after" ]] ||
+    { gt_core_error 'Inventory changed after planning; run again to review a fresh plan.'; return 2; }
   gt_private_dir "$state_dir" || return 2
   gt_no_symlinks "$state_dir/lock" || return 2
   if [[ -z "$LOCK_FD" ]]; then exec {LOCK_FD}>"$state_dir/lock" || return 2; fi
@@ -6708,8 +7132,12 @@ main() {
   while (( $# )); do
     arg=$1; shift
     case "$arg" in
-      --check|--dry-run|--prepare|--install-core|--install-app|--install-web|--check-mail) [[ -z "$MODE" || "$MODE" == "$arg" ]] || { gt_message mode >&2; return 2; }; MODE=$arg ;;
-      --answers) [[ $# -gt 0 && -z "$ANSWERS_FILE" && -n "$1" && "$1" != --* ]] || { gt_message mode >&2; return 2; }; ANSWERS_FILE=$1; shift ;;
+      --check|--dry-run|--prepare|--install-core|--install-app|--install-web|--check-mail)
+        [[ -z "$MODE" || "$MODE" == "$arg" ]] || { gt_message mode >&2; return 2; }
+        MODE=$arg ;;
+      --answers)
+        [[ $# -gt 0 && -z "$ANSWERS_FILE" && -n "$1" && "$1" != --* ]] || { gt_message mode >&2; return 2; }
+        ANSWERS_FILE=$1; shift ;;
       --plain) ;;
       --yes) CORE_CONFIRM=yes ;;
       --help|-h)
@@ -6729,7 +7157,8 @@ USAGE
   [[ -n "$MODE" ]] || MODE=--bootstrap
   [[ ( -z "$ANSWERS_FILE" || "$MODE" == --bootstrap || "$MODE" == --prepare || "$MODE" == --install-core ||
       "$MODE" == --check-mail ) &&
-    ( "$CORE_CONFIRM" == no || "$MODE" == --bootstrap || "$MODE" == --install-core || "$MODE" == --install-app || "$MODE" == --install-web || "$MODE" == --check-mail ) ]] || { gt_message mode >&2; return 2; }
+    ( "$CORE_CONFIRM" == no || "$MODE" == --bootstrap || "$MODE" == --install-core || "$MODE" == --install-app ||
+      "$MODE" == --install-web || "$MODE" == --check-mail ) ]] || { gt_message mode >&2; return 2; }
   [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]] || { gt_message pipe >&2; return 2; }
   (( EUID == 0 )) || { gt_message root >&2; return 2; }
   command -v timeout >/dev/null || { gt_message unavailable timeout >&2; return 1; }
@@ -6743,7 +7172,15 @@ USAGE
   trap 'exit 130' INT
   trap 'exit 143' TERM
   export GIT_TERMINAL_PROMPT=0
-  case "$MODE" in --dry-run) gt_dry_run ;; --prepare) gt_prepare ;; --bootstrap|--install-core) gt_install_core ;; --install-app) gt_install_app ;; --install-web) gt_install_web ;; --check-mail) gt_check_mail ;; *) gt_check ;; esac
+  case "$MODE" in
+    --dry-run) gt_dry_run ;;
+    --prepare) gt_prepare ;;
+    --bootstrap|--install-core) gt_install_core ;;
+    --install-app) gt_install_app ;;
+    --install-web) gt_install_web ;;
+    --check-mail) gt_check_mail ;;
+    *) gt_check ;;
+  esac
 }
 
 [[ "${GT_INSTALL_SOURCE_ONLY:-}" == 1 ]] || main "$@"

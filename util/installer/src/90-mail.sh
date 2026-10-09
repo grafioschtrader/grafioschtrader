@@ -1,5 +1,5 @@
 gt_mail_resolve() {
-  local directory jar status=0
+  local directory jar status=0 message
   local -a jars=()
   while IFS= read -r -d '' jar; do jars+=("$jar"); done < <(
     find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader-server-*.jar' -print0)
@@ -21,8 +21,8 @@ gt_mail_resolve() {
       cp "$directory/config" "$SCRATCH/mail-configuration" || status=2
   fi
   rm -rf -- "$directory"
-  (( status == 0 )) || gt_core_error \
-    'Application mail configuration could not be resolved/decrypted. Use the matching backend build; details suppressed.'
+  message='Application mail configuration could not be resolved/decrypted.'
+  (( status == 0 )) || gt_core_error "$message Use the matching backend build; details suppressed."
   return "$status"
 }
 
@@ -55,7 +55,7 @@ PY
 # milestone is verified, --check-mail --answers FILE accepts a corrected SMTP_PASSWORD; every other answer and
 # secret in FILE must still match the journal.
 gt_mail_password() {
-  local key value reply
+  local key value reply en de
   [[ "${STATE[step.app]:-}" == complete && "${STATE[step.mail]:-}" != complete &&
      "${ANSWER[SMTP_CONFIGURE]:-}:${ANSWER[SMTP_AUTH]:-}" == yes:yes ]] || {
     gt_core_error 'Only an authenticated mail configuration that is not yet verified accepts a new SMTP password.'
@@ -74,8 +74,11 @@ gt_mail_password() {
   FILE_ANSWERS=()
   gt_valid_secret "$value" || { gt_core_error 'The answers file needs a valid SMTP_PASSWORD.'; return 2; }
   [[ "$value" != "${SECRET[SMTP_PASSWORD]}" ]] || return 0
-  gt_text 'SMTP_PASSWORD changes: encrypt it into application.properties, rebuild the backend of the installed commit and restart Grafioschtrader.' \
-    'SMTP_PASSWORD ändert sich: in application.properties verschlüsseln, Backend des installierten Commits neu bauen und Grafioschtrader neu starten.'
+  en='SMTP_PASSWORD changes: encrypt it into application.properties,'
+  en+=' rebuild the backend of the installed commit and restart Grafioschtrader.'
+  de='SMTP_PASSWORD ändert sich: in application.properties verschlüsseln,'
+  de+=' Backend des installierten Commits neu bauen und Grafioschtrader neu starten.'
+  gt_text "$en" "$de"
   if [[ "$CORE_CONFIRM" != yes ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
     printf 'change-mail-password: ' >&"$QUESTION_FD"
@@ -130,7 +133,8 @@ gt_check_mail() {
   [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == no ]]; then
     gt_core_mark step.mail skipped || return 2
-    gt_text 'Mail skipped; registration cannot be completed. Installation remains incomplete.' 'Mail übersprungen; Registrierung kann nicht abgeschlossen werden. Installation bleibt unvollständig.'
+    gt_text 'Mail skipped; registration cannot be completed. Installation remains incomplete.' \
+      'Mail übersprungen; Registrierung kann nicht abgeschlossen werden. Installation bleibt unvollständig.'
     gt_handover; return $?
   fi
   for field in SMTP_HOST SMTP_PORT SMTP_USER SMTP_AUTH SMTP_SECURITY SMTP_TEST ADMIN_EMAIL; do
@@ -148,9 +152,11 @@ gt_check_mail() {
     gt_handover; return $?
   fi
   printf 'SMTP: %s:%s; transport=%s; auth=%s; sender=%s; recipient=%s; send=%s\n' \
-    "${ANSWER[SMTP_HOST]}" "${ANSWER[SMTP_PORT]}" "${ANSWER[SMTP_SECURITY]}" "${ANSWER[SMTP_AUTH]}" "${ANSWER[SMTP_USER]}" "${ANSWER[ADMIN_EMAIL]}" "${ANSWER[SMTP_TEST]}"
+    "${ANSWER[SMTP_HOST]}" "${ANSWER[SMTP_PORT]}" "${ANSWER[SMTP_SECURITY]}" "${ANSWER[SMTP_AUTH]}" \
+    "${ANSWER[SMTP_USER]}" "${ANSWER[ADMIN_EMAIL]}" "${ANSWER[SMTP_TEST]}"
   if [[ "${STATE[step.mail]:-}" == intent ]]; then
-    gt_text 'Previous attempt was interrupted; the same Message-ID may be submitted again.' 'Vorheriger Versuch unterbrochen; dieselbe Message-ID wird möglicherweise erneut gesendet.'
+    gt_text 'Previous attempt was interrupted; the same Message-ID may be submitted again.' \
+      'Vorheriger Versuch unterbrochen; dieselbe Message-ID wird möglicherweise erneut gesendet.'
   fi
   if [[ "$CORE_CONFIRM" != yes ]]; then
     { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
@@ -164,10 +170,13 @@ gt_check_mail() {
   gt_mail_probe "$send"; result=$?
   if [[ -f "$SCRATCH/mail-result" ]] && grep -qx accepted "$SCRATCH/mail-result"; then
     gt_core_mark resource.mail_delivery accepted || return 2
-    gt_text 'Test message accepted by the SMTP server; actual inbox delivery is not verified.' 'Testnachricht vom SMTP-Server angenommen; tatsächliche Zustellung im Postfach nicht geprüft.'
+    gt_text 'Test message accepted by the SMTP server; actual inbox delivery is not verified.' \
+      'Testnachricht vom SMTP-Server angenommen; tatsächliche Zustellung im Postfach nicht geprüft.'
   elif (( result == 0 )) && [[ -f "$SCRATCH/mail-result" ]] && grep -qx connected "$SCRATCH/mail-result"; then
-    [[ "${STATE[resource.mail_delivery]:-}" == accepted ]] || gt_core_mark resource.mail_delivery not-requested || return 2
-    gt_text 'SMTP connection, selected TLS and authentication verified; no test message requested.' 'SMTP-Verbindung, gewähltes TLS und Anmeldung geprüft; keine Testnachricht gewünscht.'
+    [[ "${STATE[resource.mail_delivery]:-}" == accepted ]] || gt_core_mark resource.mail_delivery not-requested ||
+      return 2
+    gt_text 'SMTP connection, selected TLS and authentication verified; no test message requested.' \
+      'SMTP-Verbindung, gewähltes TLS und Anmeldung geprüft; keine Testnachricht gewünscht.'
   else
     gt_core_error 'Mail check failed; resolve SMTP settings/server access, then repeat --check-mail.'
     if (( result == 2 )); then gt_handover blocked; return $?; fi

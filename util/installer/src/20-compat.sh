@@ -10,25 +10,33 @@ gt_compatibility() {
   case "$distro:$release" in
     debian:12|debian:13|ubuntu:24.04|ubuntu:26.04) gt_action platform reuse 'supported primary release' ;;
     debian:11) gt_action platform reuse 'legacy release'; gt_note WARN legacy 'Debian 11 LTS ended 2026-08-31' ;;
-    ubuntu:22.04) gt_action platform reuse 'legacy release'; gt_note WARN legacy 'Ubuntu 22.04 standard support ends 2027-04' ;;
+    ubuntu:22.04) gt_action platform reuse 'legacy release'
+      gt_note WARN legacy 'Ubuntu 22.04 standard support ends 2027-04' ;;
     *) gt_action platform block 'unsupported or unknown distribution/release' ;;
   esac
   case "$arch" in amd64|arm64) gt_action architecture reuse "$arch" ;; armhf)
-    if [[ "$(date -u +%F)" < 2027-04-30 ]]; then gt_action architecture reuse armhf; gt_note WARN legacy 'armhf requires Node 22; support ends 2027-04-30'
+    if [[ "$(date -u +%F)" < 2027-04-30 ]]; then
+      gt_action architecture reuse armhf; gt_note WARN legacy 'armhf requires Node 22; support ends 2027-04-30'
     else gt_action architecture block 'armhf Node 22 support ended 2027-04-30'; fi ;;
     *) gt_action architecture block 'unsupported or unknown architecture' ;;
   esac
-  if [[ "${FACT[init]}" == systemd ]]; then gt_action init reuse systemd; else gt_action init block 'PID 1 must be systemd'; fi
+  if [[ "${FACT[init]}" == systemd ]]; then gt_action init reuse systemd
+  else gt_action init block 'PID 1 must be systemd'; fi
   case "${FACT[host.class]}" in
-    classic|completed) gt_action host reuse 'existing installation; bootstrap disabled'; gt_note WARN existing './gtupdate.sh (grafioschtrader)' ;;
-    docker) gt_action host reuse 'existing Docker installation; bootstrap disabled'; gt_note WARN existing docker/update.sh ;;
-    foreign-partial|invalid-state) gt_action host block 'existing foreign pieces or invalid installer state'; gt_note WARN partial ;;
+    classic|completed) gt_action host reuse 'existing installation; bootstrap disabled'
+      gt_note WARN existing './gtupdate.sh (grafioschtrader)' ;;
+    docker) gt_action host reuse 'existing Docker installation; bootstrap disabled'
+      gt_note WARN existing docker/update.sh ;;
+    foreign-partial|invalid-state) gt_action host block 'existing foreign pieces or invalid installer state'
+      gt_note WARN partial ;;
     unknown) gt_action host block 'installation inventory UNKNOWN' ;;
     unfinished)
       # A modeless run resumes its own journal; only a staged installation continues with the stage options.
       if [[ "${FACT[state.scope]:-}" == bootstrap ]]; then
         gt_action host block 'resumption requires a run without a mode and a valid journal'; gt_note WARN resume
-      else gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running; fi ;;
+      else
+        gt_action host block 'resumption requires --install-core and a valid core journal'; gt_note WARN running
+      fi ;;
     *) gt_action host install 'fresh host' ;;
   esac
   candidate=${CANDIDATE[openjdk-$JAVA_REQUIRED-jdk-headless]:-unknown}
@@ -49,7 +57,8 @@ gt_compatibility() {
   elif [[ "${FACT[node.version]}" != absent && "${FACT[node.consumers]}" != no ]]; then
     gt_action node isolate 'official Node tarball; other consumers must keep their runtime'
   else gt_action node install 'isolated official Node 24 archive on amd64/arm64; Node 22 on armhf'; fi
-  if gt_version_at_least "${FACT[angular.version]}" "$CLI_REQUIRED"; then gt_action angular_cli reuse "${FACT[angular.version]}"
+  if gt_version_at_least "${FACT[angular.version]}" "$CLI_REQUIRED"; then
+    gt_action angular_cli reuse "${FACT[angular.version]}"
   else gt_action angular_cli install "Angular CLI $CLI_REQUIRED using selected Node/npm"; fi
   if [[ "${FACT[semver.version]}" =~ ^[0-9]+\. ]]; then gt_action semver reuse "${FACT[semver.version]}"
   else gt_action semver install 'global npm semver using selected Node/npm'; fi
@@ -81,7 +90,9 @@ gt_compatibility() {
     absent) gt_action database_user install 'grafioschtrader@localhost' ;;
     *) gt_action database_user block 'database accounts UNKNOWN until authenticated inventory' ;;
   esac
-  if [[ "${FACT[database.vendor]}" == absent ]]; then gt_action database_user install 'create after installing MariaDB'; fi
+  if [[ "${FACT[database.vendor]}" == absent ]]; then
+    gt_action database_user install 'create after installing MariaDB'
+  fi
   gt_web_recommendation
   version=${FACT[memory.MemTotal]}
   if [[ "$version" =~ ^[0-9]+$ ]]; then
@@ -100,7 +111,8 @@ gt_compatibility() {
     else gt_action swap reuse 'no additional swap proposed'; fi
     if [[ "${FACT[memory.MemAvailable]}" =~ ^[0-9]+$ ]] && (( ${FACT[memory.MemAvailable]} < version / 2 )); then
       gt_note WARN memory 'other processes use more than half of RAM'
-      FACT[memory.largest_processes]=$(gt_probe ps -eo pid,comm,rss --sort=-rss | head -n 6) || FACT[memory.largest_processes]=unknown
+      FACT[memory.largest_processes]=$(gt_probe ps -eo pid,comm,rss --sort=-rss | head -n 6) ||
+        FACT[memory.largest_processes]=unknown
     fi
   else gt_action memory block 'RAM size UNKNOWN'; fi
   gt_disk /home 4096
@@ -110,7 +122,9 @@ gt_compatibility() {
   gt_action disk reuse 'requirements aggregated by filesystem device'
   [[ "${FACT[disk.unknown]:-no}" != yes ]] || gt_action disk block 'disk capacity UNKNOWN'
   for device in "${!DISK_NEED[@]}"; do
-    if (( DISK_FREE[$device] < DISK_NEED[$device] )); then gt_action disk block "device $device needs ${DISK_NEED[$device]} MiB; ${DISK_FREE[$device]} MiB free"; fi
+    if (( DISK_FREE[$device] < DISK_NEED[$device] )); then
+      gt_action disk block "device $device needs ${DISK_NEED[$device]} MiB; ${DISK_FREE[$device]} MiB free"
+    fi
   done
   # A check never authorizes a package transaction or adopts an existing installation.
 }
@@ -150,7 +164,8 @@ gt_web_recommendation() {
   else gt_action web install 'selection required; default nginx'; fi
   FACT[ports.backend_primary]=$(gt_next_port 9090)
   FACT[ports.backend_http]=$(gt_next_port 8080)
-  if [[ "${FACT[ports.backend_primary]}" == "${FACT[ports.backend_http]}" && "${FACT[ports.backend_primary]}" != unknown ]]; then
+  if [[ "${FACT[ports.backend_primary]}" == "${FACT[ports.backend_http]}" &&
+      "${FACT[ports.backend_primary]}" != unknown ]]; then
     FACT[ports.backend_primary]=$(gt_next_port "$((${FACT[ports.backend_primary]}+1))")
   fi
   FACT[ports.proxy_http]=$(gt_proxy_port_default)

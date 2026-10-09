@@ -43,7 +43,7 @@ jobs:
   bundle:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Rebuild the standalone installer and reject drift
         run: |
           bash util/installer/build.sh
@@ -54,7 +54,7 @@ jobs:
     needs: bundle
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install test tools
         run: sudo apt-get update && sudo apt-get install -y bats shellcheck openssl mariadb-client
       - name: Check scripts, inventory, planning, and update failures
@@ -67,7 +67,7 @@ jobs:
     needs: bundle
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check planned base packages in a fresh distribution container
         run: docker run --rm -v "$PWD:/repo:ro" ubuntu:24.04 bash /repo/util/installer/test/base-packages-container.sh
       - name: Build disposable core test environment
@@ -78,7 +78,7 @@ jobs:
     needs: bundle
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build disposable host with an existing Java 17
         run: docker build -t gt-installer-toolchains - < util/installer/test/toolchains.Dockerfile
       - name: Check APT installation, Java selection and interruption recovery
@@ -93,7 +93,7 @@ jobs:
     needs: bundle
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build disposable build-tool environment
         run: docker build -t gt-installer-node - < util/installer/test/core.Dockerfile
       - name: Check isolated Node, npm tools and interruption recovery
@@ -102,7 +102,7 @@ jobs:
     needs: bundle
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build disposable application configuration environment
         run: docker build -t gt-installer-app - < util/installer/test/app.Dockerfile
       - name: Check application recovery and privileged files
@@ -113,7 +113,7 @@ jobs:
     needs: bundle
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build disposable web and mail environment
         run: docker build -t gt-installer-web - < util/installer/test/web.Dockerfile
       - name: Check web ownership, routing and rollback
@@ -130,8 +130,8 @@ jobs:
     needs: bundle
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '25'
@@ -151,7 +151,7 @@ jobs:
       matrix:
         web: [nginx, apache2]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build disposable domain environment
         run: docker build -t gt-installer-domain-test - < util/installer/test/web.Dockerfile
       - name: Verify existing certificate and rollback

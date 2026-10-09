@@ -1,48 +1,79 @@
 gt_text() { if [[ "$LANG_CODE" == de ]]; then printf '%s\n' "$2"; else printf '%s\n' "$1"; fi; }
 gt_question_model() {
-  local key type when choices en de
+  local key type when choices en de row next
   QUESTIONS=() Q_TYPE=() Q_WHEN=() Q_CHOICES=() Q_EN=() Q_DE=()
-  while IFS='|' read -r key type when choices en de; do
+  # A row ending in '|' continues on the next line; that line's indentation is not part of the field.
+  while IFS= read -r row; do
+    while [[ "$row" == *'|' ]] && IFS= read -r next; do row+=${next#"${next%%[! ]*}"}; done
+    IFS='|' read -r key type when choices en de <<< "$row"
     QUESTIONS+=("$key"); Q_TYPE[$key]=$type Q_WHEN[$key]=$when Q_CHOICES[$key]=$choices Q_EN[$key]=$en Q_DE[$key]=$de
     [[ "$type" != yesno ]] || Q_CHOICES[$key]='yes no'
   done <<'QUESTIONS'
 DOMAIN|domain|always||Public domain; empty for LAN only|Öffentliche Domain; leer für nur LAN
-DNS_FAMILY|choice|domain|ipv4 ipv6 both|Reachable address families; choose ipv6 for DS-Lite/CGNAT|Erreichbare Adressfamilien; ipv6 bei DS-Lite/CGNAT wählen
-DUCKDNS_UPDATER|yesno|duckdns||Run a DuckDNS updater here; no if your router or another client updates it|DuckDNS hier aktualisieren; nein bei Aktualisierung durch Router oder anderen Client
-DUCKDNS_TOKEN|secret|duck_updater||DuckDNS token required during installation|DuckDNS-Token bei der Installation erforderlich
-TLS_SOURCE|choice|domain|letsencrypt existing proxy|TLS provider: certbot, existing certificate, or terminating proxy|TLS-Anbieter: certbot, vorhandenes Zertifikat oder vorgeschalteter Proxy
+DNS_FAMILY|choice|domain|ipv4 ipv6 both|Reachable address families; choose ipv6 for DS-Lite/CGNAT|
+  Erreichbare Adressfamilien; ipv6 bei DS-Lite/CGNAT wählen
+DUCKDNS_UPDATER|yesno|duckdns||Run a DuckDNS updater here; no if your router or another client updates it|
+  DuckDNS hier aktualisieren; nein bei Aktualisierung durch Router oder anderen Client
+DUCKDNS_TOKEN|secret|duck_updater||DuckDNS token required during installation|
+  DuckDNS-Token bei der Installation erforderlich
+TLS_SOURCE|choice|domain|letsencrypt existing proxy|TLS provider: certbot, existing certificate, or terminating proxy|
+  TLS-Anbieter: certbot, vorhandenes Zertifikat oder vorgeschalteter Proxy
 LETSENCRYPT_EMAIL|email|letsencrypt||Email for Let's Encrypt|E-Mail für Let's Encrypt
-LETSENCRYPT_CERT_NAME|lineage|letsencrypt||Reuse this Certbot lineage with its renewal configuration; - requests a new certificate|Diese Certbot-Zertifikatsreihe samt Erneuerung verwenden; - fordert ein neues Zertifikat an
-TLS_CERT|path|existing_tls||Readable full-chain certificate file; renewal remains your responsibility|Lesbare Zertifikatsdatei mit vollständiger Kette; Erneuerung bleibt Ihre Aufgabe
-TLS_KEY|path|existing_tls||Private key file, readable only by its owner|Privater Schlüssel, nur für den Eigentümer lesbar
+LETSENCRYPT_CERT_NAME|lineage|letsencrypt||
+  Reuse this Certbot lineage with its renewal configuration; - requests a new certificate|
+  Diese Certbot-Zertifikatsreihe samt Erneuerung verwenden; - fordert ein neues Zertifikat an
+TLS_CERT|path|existing_tls||Readable full-chain certificate file; renewal remains your responsibility|
+  Lesbare Zertifikatsdatei mit vollständiger Kette; Erneuerung bleibt Ihre Aufgabe
+TLS_KEY|path|existing_tls||Private key file, readable only by its owner|
+  Privater Schlüssel, nur für den Eigentümer lesbar
 TLS_PROXY_LISTEN|port|proxy||Local HTTP port receiving proxy traffic|Lokaler HTTP-Port für Proxy-Anfragen
-TLS_PROXY_FROM|address|proxy||Proxy IP address; empty allows every source|IP-Adresse des Proxys; leer erlaubt alle Quellen
-LAN_ADDRESS|lan|always||IPv4 address of this host for the LAN site http://<address>/|IPv4-Adresse dieses Hosts für die LAN-Seite http://<Adresse>/
-WEBSERVER|choice|always|nginx apache2 none|Web integration; none leaves manual configuration pending|Web-Integration; none lässt die manuelle Konfiguration offen
-VHOST_INCLUDE|yesno|vhost||Permit an include in the identified vhost after backup and route checks|Include im erkannten Vhost nach Sicherung und Routenprüfung erlauben
+TLS_PROXY_FROM|address|proxy||Proxy IP address; empty allows every source|
+  IP-Adresse des Proxys; leer erlaubt alle Quellen
+LAN_ADDRESS|lan|always||IPv4 address of this host for the LAN site http://<address>/|
+  IPv4-Adresse dieses Hosts für die LAN-Seite http://<Adresse>/
+WEBSERVER|choice|always|nginx apache2 none|Web integration; none leaves manual configuration pending|
+  Web-Integration; none lässt die manuelle Konfiguration offen
+VHOST_INCLUDE|yesno|vhost||Permit an include in the identified vhost after backup and route checks|
+  Include im erkannten Vhost nach Sicherung und Routenprüfung erlauben
 BACKEND_PORT|port|always||Primary backend port, bound to loopback|Primärer Backend-Port, an Loopback gebunden
-BACKEND_HTTP_PORT|port|apache||Additional loopback HTTP port required by Apache topology|Zusätzlicher Loopback-HTTP-Port für die Apache-Topologie
-ADMIN_EMAIL|email|always||Email whose registration becomes administrator|E-Mail-Adresse, deren Registrierung Administrator wird
+BACKEND_HTTP_PORT|port|apache||Additional loopback HTTP port required by Apache topology|
+  Zusätzlicher Loopback-HTTP-Port für die Apache-Topologie
+ADMIN_EMAIL|email|always||Email whose registration becomes administrator|
+  E-Mail-Adresse, deren Registrierung Administrator wird
 ALLOWED_USERS|integer|always||Maximum number of users|Maximale Anzahl Benutzer
-SMTP_CONFIGURE|yesno|always||Configure mail; no prevents completed registration|Mail konfigurieren; no verhindert abgeschlossene Registrierungen
+SMTP_CONFIGURE|yesno|always||Configure mail; no prevents completed registration|
+  Mail konfigurieren; no verhindert abgeschlossene Registrierungen
 SMTP_HOST|host|smtp||SMTP host|SMTP-Server
 SMTP_PORT|port|smtp||SMTP port|SMTP-Port
 SMTP_AUTH|yesno|smtp||SMTP authentication required|SMTP-Anmeldung erforderlich
-SMTP_USER|email|smtp||SMTP login and sender email; also required for unauthenticated relays|SMTP-Anmeldung und Absender-E-Mail; auch für Relays ohne Anmeldung erforderlich
-SMTP_SECURITY|choice|smtp|starttls tls none|SMTP transport security; none only for unauthenticated relays|SMTP-Transportverschlüsselung; none nur für Relays ohne Anmeldung
-SMTP_PASSWORD|secret|smtp_auth||SMTP password required during installation|SMTP-Passwort bei der Installation erforderlich
+SMTP_USER|email|smtp||SMTP login and sender email; also required for unauthenticated relays|
+  SMTP-Anmeldung und Absender-E-Mail; auch für Relays ohne Anmeldung erforderlich
+SMTP_SECURITY|choice|smtp|starttls tls none|SMTP transport security; none only for unauthenticated relays|
+  SMTP-Transportverschlüsselung; none nur für Relays ohne Anmeldung
+SMTP_PASSWORD|secret|smtp_auth||SMTP password required during installation|
+  SMTP-Passwort bei der Installation erforderlich
 SMTP_TEST|yesno|smtp||Send a test message during installation|Bei der Installation eine Testnachricht senden
-DB_PASSWORD|secret|always||Grafioschtrader database password (spring.datasource.password)|Grafioschtrader-Datenbankpasswort (spring.datasource.password)
-DB_REUSE_EMPTY|yesno|empty_db||Reuse the existing empty grafioschtrader database|Vorhandene leere Datenbank grafioschtrader verwenden
-DB_ROOT_PASSWORD|secret|root_password||MariaDB root password; new for a new server, current for an existing server|MariaDB-Root-Passwort; neu für neuen Server, aktuell für vorhandenen Server
-JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD)|Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD)
-BUFFER_POOL|yesno|buffer||Set MariaDB buffer pool and restart the server, affecting every database|MariaDB-Puffer setzen und Server neu starten; betrifft alle Datenbanken
-JAVA_HEAP|heap|always||Java heap: -Xms<size> -Xmx<size>, with m or g units|Java-Heap: -Xms<Größe> -Xmx<Größe>, mit m oder g
-DOCROOT|path|always||Absolute document root; existing application content must remain untouched|Absolutes Dokumentenverzeichnis; vorhandene Anwendungen müssen erhalten bleiben
+DB_PASSWORD|secret|always||Grafioschtrader database password (spring.datasource.password)|
+  Grafioschtrader-Datenbankpasswort (spring.datasource.password)
+DB_REUSE_EMPTY|yesno|empty_db||Reuse the existing empty grafioschtrader database|
+  Vorhandene leere Datenbank grafioschtrader verwenden
+DB_ROOT_PASSWORD|secret|root_password||MariaDB root password; new for a new server, current for an existing server|
+  MariaDB-Root-Passwort; neu für neuen Server, aktuell für vorhandenen Server
+JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD)|
+  Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD)
+BUFFER_POOL|yesno|buffer||Set MariaDB buffer pool and restart the server, affecting every database|
+  MariaDB-Puffer setzen und Server neu starten; betrifft alle Datenbanken
+JAVA_HEAP|heap|always||Java heap: -Xms<size> -Xmx<size>, with m or g units|
+  Java-Heap: -Xms<Größe> -Xmx<Größe>, mit m oder g
+DOCROOT|path|always||Absolute document root; existing application content must remain untouched|
+  Absolutes Dokumentenverzeichnis; vorhandene Anwendungen müssen erhalten bleiben
 TIMEZONE|timezone|always||Host time zone used for the first cron setup|Host-Zeitzone für die erste Cron-Einrichtung
-SWAP|yesno|swap||Create 2 GiB at /swapfile and add it to /etc/fstab|2 GiB unter /swapfile anlegen und in /etc/fstab eintragen
-NODE_REPLACE|yesno|node_shared||Replace shared Node.js instead of isolating; affects other consumers|Gemeinsames Node.js ersetzen statt isolieren; betrifft andere Anwendungen
-FIREWALL_ALLOW|yesno|ufw||Allow the selected web ports in ufw; SSH and existing rules stay unchanged|Gewählte Web-Ports in ufw freigeben; SSH und bestehende Regeln bleiben unverändert
+SWAP|yesno|swap||Create 2 GiB at /swapfile and add it to /etc/fstab|
+  2 GiB unter /swapfile anlegen und in /etc/fstab eintragen
+NODE_REPLACE|yesno|node_shared||Replace shared Node.js instead of isolating; affects other consumers|
+  Gemeinsames Node.js ersetzen statt isolieren; betrifft andere Anwendungen
+FIREWALL_ALLOW|yesno|ufw||Allow the selected web ports in ufw; SSH and existing rules stay unchanged|
+  Gewählte Web-Ports in ufw freigeben; SSH und bestehende Regeln bleiben unverändert
 QUESTIONS
 }
 
@@ -115,7 +146,8 @@ gt_tls_default() {
     fi
   done
   [[ "$existing" != yes ]] || { echo existing; return; }
-  if [[ "${REASON[web]:-}" == 'foreign proxy'* || "${FACT[web.cloudflared]:-}" == *'LoadState=loaded'* ]]; then echo proxy
+  if [[ "${REASON[web]:-}" == 'foreign proxy'* || "${FACT[web.cloudflared]:-}" == *'LoadState=loaded'* ]]; then
+    echo proxy
   else echo letsencrypt; fi
 }
 gt_certificate_default() {
@@ -132,7 +164,10 @@ gt_certificate_default() {
       done
       for web_row in "${WEB[@]}"; do
         read -r label directive value <<< "$web_row"
-        if [[ -n "$wanted_label" && "$label" == "$wanted_label" && ( "$directive" == ssl_certificate_key || "$directive" == SSLCertificateKeyFile ) ]]; then printf '%s' "$value"; return; fi
+        if [[ -n "$wanted_label" && "$label" == "$wanted_label" &&
+            ( "$directive" == ssl_certificate_key || "$directive" == SSLCertificateKeyFile ) ]]; then
+          printf '%s' "$value"; return
+        fi
       done
       value=${file#"$ROOT"}
       [[ ! -r "${file%/*}/privkey.pem" ]] || printf '%s/privkey.pem' "${value%/*}"
@@ -158,7 +193,9 @@ gt_vhost_root_default() {
     read -r label directive value <<< "$row"
     case "$directive" in server_name|ServerName|ServerAlias)
       for name in ${value//\"/}; do
-        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" || "$name" == "$(gt_lan_planned)" ]]; then matches[$label]=1; fi
+        if [[ -n "${ANSWER[DOMAIN]:-}" && "$name" == "${ANSWER[DOMAIN]}" || "$name" == "$(gt_lan_planned)" ]]; then
+          matches[$label]=1
+        fi
       done ;;
     esac
   done
@@ -207,7 +244,9 @@ gt_default() {
     BUFFER_POOL)
       value=${FACT[database.schemas]:-unknown}
       if [[ "${FACT[database.vendor]:-}" == absent ]]; then echo yes
-      elif [[ "$value" == unknown ]] || awk -F '\t' '$1 !~ /^(mysql|information_schema|performance_schema|sys|grafioschtrader)$/ {found=1} END {exit !found}' <<< "$value"; then echo no
+      elif [[ "$value" == unknown ]] || awk -F '\t' '
+          $1 !~ /^(mysql|information_schema|performance_schema|sys|grafioschtrader)$/ {found=1}
+          END {exit !found}' <<< "$value"; then echo no
       else echo yes; fi ;;
     JAVA_HEAP) gt_memory_defaults ;;
     DOCROOT) gt_vhost_root_default || echo "/var/www/${ANSWER[DOMAIN]:-gt}" ;;
@@ -235,7 +274,9 @@ gt_valid_address() {
       left=${value%%::*}; right=${value#*::}; [[ "$right" != *::* ]] || return 1
       value="$left:$right"
       IFS=: read -r -a parts <<< "$value"
-      for part in "${parts[@]}"; do [[ -z "$part" || ${#part} -le 4 ]] || return 1; [[ -z "$part" ]] || count=$((count+1)); done
+      for part in "${parts[@]}"; do
+        [[ -z "$part" || ${#part} -le 4 ]] || return 1; [[ -z "$part" ]] || count=$((count+1))
+      done
       (( count < 8 ))
     else
       [[ "$value" != :* && "$value" != *: ]] || return 1
@@ -306,7 +347,8 @@ gt_validate_answer() {
   case "${Q_TYPE[$key]}" in
     domain) [[ -z "$value" ]] || { [[ "$value" == *.* && ! "$value" =~ ^[0-9.]+$ ]] && gt_valid_hostname "$value"; } ;;
     host) gt_valid_hostname "$value" ;;
-    email) [[ "$value" =~ ^[a-zA-Z0-9._%+-]+@[^@]+$ ]] && gt_valid_hostname "${value#*@}" && [[ "${value#*@}" == *.* ]] ;;
+    email) [[ "$value" =~ ^[a-zA-Z0-9._%+-]+@[^@]+$ ]] && gt_valid_hostname "${value#*@}" &&
+      [[ "${value#*@}" == *.* ]] ;;
     yesno) [[ "$value" == yes || "$value" == no ]] ;;
     choice) [[ "$value" =~ ^[a-zA-Z0-9_-]+$ && " ${Q_CHOICES[$key]} " == *" $value "* ]] ;;
     port) [[ "$value" =~ ^[1-9][0-9]{0,4}$ ]] && (( value <= 65535 )) ;;
@@ -342,18 +384,27 @@ gt_ask() {
     [[ -n "$value" ]] || value=$default
     [[ "$key" != DOMAIN ]] || value=${value,,}
     if gt_validate_answer "$key" "$value"; then ANSWER[$key]=$value; return 0; fi
-    gt_text 'Invalid value; try again. !quit cancels.' 'Ungültiger Wert; erneut eingeben. !quit bricht ab.' >&"$QUESTION_OUTPUT"
+    gt_text 'Invalid value; try again. !quit cancels.' 'Ungültiger Wert; erneut eingeben. !quit bricht ab.' \
+      >&"$QUESTION_OUTPUT"
   done
 }
 gt_dns_checklist() {
+  local en de
   [[ -n "${ANSWER[DOMAIN]:-}" ]] || return 0
   if [[ "${ANSWER[TLS_SOURCE]:-}" == proxy ]]; then
-    gt_text 'Proxy: preserve Host; overwrite client-supplied X-Forwarded-For / X-Forwarded-Proto; forward HTTPS to the local HTTP port.' \
-      'Proxy: Host erhalten; Client-Header X-Forwarded-For / X-Forwarded-Proto ersetzen; HTTPS an den lokalen HTTP-Port weiterleiten.'
+    en='Proxy: preserve Host; overwrite client-supplied X-Forwarded-For / X-Forwarded-Proto;'
+    en+=' forward HTTPS to the local HTTP port.'
+    de='Proxy: Host erhalten; Client-Header X-Forwarded-For / X-Forwarded-Proto ersetzen;'
+    de+=' HTTPS an den lokalen HTTP-Port weiterleiten.'
+    gt_text "$en" "$de"
   else
-    gt_text 'Domain checklist: configure A/AAAA records for the selected reachable families and admit TCP 80/443 at the router/firewall.' \
-      'Domain-Checkliste: A/AAAA für die gewählten erreichbaren Familien setzen und TCP 80/443 an Router/Firewall freigeben.'
-    printf 'IPv4=%s IPv6=%s LAN=%s\n' "${FACT[network.public_ipv4]:-unknown}" "${FACT[network.global_ipv6]:-unknown}" "$(gt_lan_planned)"
+    en='Domain checklist: configure A/AAAA records for the selected reachable families'
+    en+=' and admit TCP 80/443 at the router/firewall.'
+    de='Domain-Checkliste: A/AAAA für die gewählten erreichbaren Familien setzen'
+    de+=' und TCP 80/443 an Router/Firewall freigeben.'
+    gt_text "$en" "$de"
+    printf 'IPv4=%s IPv6=%s LAN=%s\n' "${FACT[network.public_ipv4]:-unknown}" "${FACT[network.global_ipv6]:-unknown}" \
+      "$(gt_lan_planned)"
     if [[ "${ANSWER[DOMAIN]}" == *.duckdns.org ]]; then
       gt_text 'DuckDNS: create the account and subdomain yourself; keep the token for installation.' \
         'DuckDNS: Konto und Subdomain selbst anlegen; Token für die Installation bereithalten.'
@@ -369,10 +420,12 @@ gt_questions() {
       'Kernkonfiguration: Der Plan benennt die Änderungen vor der Ausführung. !quit bricht ab.' >&"$QUESTION_OUTPUT"
   elif [[ "$MODE" == --prepare ]]; then
     gt_text 'Preparation only; no installation. Secrets follow the configuration questions. !quit cancels.' \
-      'Nur Vorbereitung; keine Installation. Geheimnisse folgen den Konfigurationsfragen. !quit bricht ab.' >&"$QUESTION_OUTPUT"
+      'Nur Vorbereitung; keine Installation. Geheimnisse folgen den Konfigurationsfragen. !quit bricht ab.' \
+      >&"$QUESTION_OUTPUT"
   else
     gt_text 'Dry-run: no passwords are requested or generated. !quit cancels; Enter accepts the default.' \
-      'Dry-run: Passwörter werden weder abgefragt noch erzeugt. !quit bricht ab; Enter übernimmt den Vorschlag.' >&"$QUESTION_OUTPUT"
+      'Dry-run: Passwörter werden weder abgefragt noch erzeugt. !quit bricht ab; Enter übernimmt den Vorschlag.' \
+      >&"$QUESTION_OUTPUT"
   fi
   for key in "${QUESTIONS[@]}"; do
     gt_question_applies "$key" || continue
@@ -499,7 +552,8 @@ gt_file_questions() {
     if ! gt_validate_answer "$key" "${ANSWER[$key]}"; then
       printf '%s: %s\n' "$(gt_text 'Invalid/missing answer' 'Ungültige/fehlende Antwort')" "$key" >&2; return 2
     fi
-    if [[ "$key" == WEBSERVER && ( "${REASON[web]:-}" == nginx || "${REASON[web]:-}" == apache2 ) && "${ANSWER[$key]}" != "${REASON[web]}" ]]; then
+    if [[ "$key" == WEBSERVER && ( "${REASON[web]:-}" == nginx || "${REASON[web]:-}" == apache2 ) &&
+        "${ANSWER[$key]}" != "${REASON[web]}" ]]; then
       gt_secret_error; return 2
     fi
   done
@@ -536,7 +590,8 @@ gt_prepare_root() {
   file=$(gt_db_options DB_ROOT_PASSWORD root) || return 2
   gt_database "$file"
   rm -f -- "$file"
-  [[ "${FACT[database.query]}" == ok && "${FACT[database.gt_user]}" != unknown && "${FACT[database.schemas]}" != unknown ]] || { gt_secret_error; return 2; }
+  [[ "${FACT[database.query]}" == ok && "${FACT[database.gt_user]}" != unknown &&
+    "${FACT[database.schemas]}" != unknown ]] || { gt_secret_error; return 2; }
   FACT[database.password_auth]=yes SECRET_STATUS[DB_ROOT_PASSWORD]=verified
   # Recompute database recommendations with authenticated facts before asking about reuse.
   ACTION=() REASON=() DISKS=() DISK_FREE=() DISK_NEED=()
@@ -547,7 +602,8 @@ gt_prepare_secrets() {
   set +vx
   local key twice file client value
   unset 'FACT[database.gt_auth]'
-  [[ "${FACT[database.vendor]}" == absent || "${FACT[database.gt_user]}" == absent || "${FACT[database.gt_user]}" == present ]] || { gt_secret_error; return 2; }
+  [[ "${FACT[database.vendor]}" == absent || "${FACT[database.gt_user]}" == absent ||
+    "${FACT[database.gt_user]}" == present ]] || { gt_secret_error; return 2; }
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" == secret && "$key" != DB_ROOT_PASSWORD ]] || continue
     gt_question_applies "$key" || continue

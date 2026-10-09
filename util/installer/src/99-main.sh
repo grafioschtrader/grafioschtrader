@@ -1,5 +1,5 @@
 gt_install_core() {
-  local key resume=no before after reply file state_dir status=0 confirmation=install-core
+  local key resume=no before after reply file state_dir status=0 confirmation=install-core prompt
   [[ "$MODE" != --bootstrap ]] || confirmation=install
   local completed_status
   completed_status=0
@@ -12,13 +12,15 @@ gt_install_core() {
       gt_core_error 'Invalid journal or missing/invalid original secrets; recover them before resuming.'; return 2
     fi
     resume=yes
-    [[ "$MODE" == --bootstrap || -z "${STATE[step.app]:-}" ]] || { gt_core_error 'Application stage has begun; resume without a mode or with --install-app.'; return 2; }
+    [[ "$MODE" == --bootstrap || -z "${STATE[step.app]:-}" ]] ||
+      { gt_core_error 'Application stage has begun; resume without a mode or with --install-app.'; return 2; }
   fi
   gt_inventory; gt_compatibility; gt_report
   if [[ "$resume" == no && "${FACT[host.class]}" != fresh ]]; then gt_core_error 'Host is not fresh.'; return 2; fi
   if [[ -n "$ANSWERS_FILE" ]]; then gt_answers_file "$ANSWERS_FILE" || return 2; fi
   if [[ "$CORE_CONFIRM" != yes || "$resume" == no && -z "$ANSWERS_FILE" ]]; then
-    { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || { gt_core_error 'Terminal required, or use --answers FILE --yes.'; return 2; }
+    { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null ||
+      { gt_core_error 'Terminal required, or use --answers FILE --yes.'; return 2; }
     QUESTION_OUTPUT=$QUESTION_FD
   fi
   if [[ "$resume" == no ]]; then
@@ -50,7 +52,8 @@ gt_install_core() {
   (( plan_status == 0 )) || return 2
   before=$(gt_install_snapshot | LC_ALL=C sort | sha256sum)
   if [[ "$CORE_CONFIRM" != yes ]]; then
-    printf '%s: %s: ' "$(gt_text 'Type the following to execute this plan' 'Zur Ausführung dieses Plans Folgendes eingeben')" "$confirmation" >&"$QUESTION_OUTPUT"
+    prompt=$(gt_text 'Type the following to execute this plan' 'Zur Ausführung dieses Plans Folgendes eingeben')
+    printf '%s: %s: ' "$prompt" "$confirmation" >&"$QUESTION_OUTPUT"
     IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == "$confirmation" ]] || return 130
   fi
   gt_inventory
@@ -61,7 +64,8 @@ gt_install_core() {
   if [[ "$MODE" != --bootstrap ]]; then gt_verify_dns || return 2; fi
   if ! gt_execution_plan; then gt_plan_report; return 2; fi
   after=$(gt_install_snapshot | LC_ALL=C sort | sha256sum)
-  [[ "$before" == "$after" ]] || { gt_core_error 'Inventory changed after planning; run again to review a fresh plan.'; return 2; }
+  [[ "$before" == "$after" ]] ||
+    { gt_core_error 'Inventory changed after planning; run again to review a fresh plan.'; return 2; }
   gt_private_dir "$state_dir" || return 2
   gt_no_symlinks "$state_dir/lock" || return 2
   if [[ -z "$LOCK_FD" ]]; then exec {LOCK_FD}>"$state_dir/lock" || return 2; fi
@@ -98,8 +102,12 @@ main() {
   while (( $# )); do
     arg=$1; shift
     case "$arg" in
-      --check|--dry-run|--prepare|--install-core|--install-app|--install-web|--check-mail) [[ -z "$MODE" || "$MODE" == "$arg" ]] || { gt_message mode >&2; return 2; }; MODE=$arg ;;
-      --answers) [[ $# -gt 0 && -z "$ANSWERS_FILE" && -n "$1" && "$1" != --* ]] || { gt_message mode >&2; return 2; }; ANSWERS_FILE=$1; shift ;;
+      --check|--dry-run|--prepare|--install-core|--install-app|--install-web|--check-mail)
+        [[ -z "$MODE" || "$MODE" == "$arg" ]] || { gt_message mode >&2; return 2; }
+        MODE=$arg ;;
+      --answers)
+        [[ $# -gt 0 && -z "$ANSWERS_FILE" && -n "$1" && "$1" != --* ]] || { gt_message mode >&2; return 2; }
+        ANSWERS_FILE=$1; shift ;;
       --plain) ;;
       --yes) CORE_CONFIRM=yes ;;
       --help|-h)
@@ -119,7 +127,8 @@ USAGE
   [[ -n "$MODE" ]] || MODE=--bootstrap
   [[ ( -z "$ANSWERS_FILE" || "$MODE" == --bootstrap || "$MODE" == --prepare || "$MODE" == --install-core ||
       "$MODE" == --check-mail ) &&
-    ( "$CORE_CONFIRM" == no || "$MODE" == --bootstrap || "$MODE" == --install-core || "$MODE" == --install-app || "$MODE" == --install-web || "$MODE" == --check-mail ) ]] || { gt_message mode >&2; return 2; }
+    ( "$CORE_CONFIRM" == no || "$MODE" == --bootstrap || "$MODE" == --install-core || "$MODE" == --install-app ||
+      "$MODE" == --install-web || "$MODE" == --check-mail ) ]] || { gt_message mode >&2; return 2; }
   [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]] || { gt_message pipe >&2; return 2; }
   (( EUID == 0 )) || { gt_message root >&2; return 2; }
   command -v timeout >/dev/null || { gt_message unavailable timeout >&2; return 1; }
@@ -133,7 +142,15 @@ USAGE
   trap 'exit 130' INT
   trap 'exit 143' TERM
   export GIT_TERMINAL_PROMPT=0
-  case "$MODE" in --dry-run) gt_dry_run ;; --prepare) gt_prepare ;; --bootstrap|--install-core) gt_install_core ;; --install-app) gt_install_app ;; --install-web) gt_install_web ;; --check-mail) gt_check_mail ;; *) gt_check ;; esac
+  case "$MODE" in
+    --dry-run) gt_dry_run ;;
+    --prepare) gt_prepare ;;
+    --bootstrap|--install-core) gt_install_core ;;
+    --install-app) gt_install_app ;;
+    --install-web) gt_install_web ;;
+    --check-mail) gt_check_mail ;;
+    *) gt_check ;;
+  esac
 }
 
 [[ "${GT_INSTALL_SOURCE_ONLY:-}" == 1 ]] || main "$@"

@@ -3,7 +3,8 @@ gt_core_begin() {
   gt_private_dir "$(gt_path /var/lib/gt-install)" && gt_private_dir "$(gt_path /root/.gt-install)" || return 2
   [[ ! -e "$(gt_path /root/.gt-install/secrets)" && ! -e "$(gt_path /var/lib/gt-install/state)" ]] || return 2
   STATE=([schema]=1 [status]=running [scope]=core [planned_commit]="${FACT[source.commit]}"
-    [java_home]="${FACT[toolchain.java.path]:-${FACT[java.suitable]}}" [maven]="${FACT[toolchain.maven.path]:-${FACT[maven.path]}}"
+    [java_home]="${FACT[toolchain.java.path]:-${FACT[java.suitable]}}"
+    [maven]="${FACT[toolchain.maven.path]:-${FACT[maven.path]}}"
     [new_database_server]=no [database_before]=no [account_before]=no)
   STATE[run_id]=$(openssl rand -hex 16) || return 2
   [[ "${FACT[database.vendor]}" != absent ]] || STATE[new_database_server]=yes
@@ -195,7 +196,8 @@ gt_as_app() {
   runuser -u grafioschtrader -- env -u JAVA_TOOL_OPTIONS -u JDK_JAVA_OPTIONS -u _JAVA_OPTIONS \
     -u MAVEN_OPTS -u MAVEN_ARGS -u NODE_OPTIONS -u NODE_PATH HOME="$CORE_HOME" MAVEN_SKIP_RC=1 GIT_TERMINAL_PROMPT=0 \
     NG_CLI_ANALYTICS=false npm_config_prefix="${STATE[build.prefix]:-/usr/local}" \
-    JAVA_HOME="${STATE[java_home]}" PATH="${build_path}${STATE[java_home]}/bin:${STATE[maven]%/*}:/usr/local/bin:/usr/bin:/bin" "$@"
+    JAVA_HOME="${STATE[java_home]}" \
+    PATH="${build_path}${STATE[java_home]}/bin:${STATE[maven]%/*}:/usr/local/bin:/usr/bin:/bin" "$@"
 }
 
 gt_core_user() {
@@ -203,12 +205,14 @@ gt_core_user() {
   if entry=$(getent passwd grafioschtrader); then
     IFS=: read -r _name _password uid _gid description home shell <<< "$entry"
     [[ "${STATE[resource.user]:-}" == intent || "${STATE[resource.user]:-}" == owned ]] || return 2
-    [[ "$description" == "GT installer ${STATE[run_id]}" && "$home" == "$CORE_HOME" && "$uid" != 0 && "$shell" == /bin/bash ]] || return 2
+    [[ "$description" == "GT installer ${STATE[run_id]}" && "$home" == "$CORE_HOME" && "$uid" != 0 &&
+      "$shell" == /bin/bash ]] || return 2
   else
     [[ "${STATE[resource.user]:-}" != owned ]] || return 2
     [[ ! -e "$CORE_HOME" && ! -L "$CORE_HOME" ]] && ! getent group grafioschtrader >/dev/null || return 2
     gt_core_mark resource.user intent || return 2
-    gt_core_run useradd --create-home --user-group --shell /bin/bash --comment "GT installer ${STATE[run_id]}" grafioschtrader || return 2
+    gt_core_run useradd --create-home --user-group --shell /bin/bash --comment "GT installer ${STATE[run_id]}" \
+      grafioschtrader || return 2
   fi
   gt_no_symlinks "$CORE_HOME" || return 2
   [[ "$(stat -c %U "$CORE_HOME")" == grafioschtrader ]] || return 2
@@ -457,8 +461,10 @@ gt_core_publish() {
   if [[ -e "$target" ]]; then
     [[ -f "$target" ]] || return 2
     current=$(sha256sum "$target"); current=${current%% *}
-    [[ "$current" == "${STATE[file.$id]:-$original}" || "$current" == "${STATE[file.$id.previous]:-$original}" ]] || return 2
-    if [[ "$current" == "$digest" && "${STATE[file.$id]:-}" == "$digest" && "$(stat -c '%U:%a' "$target")" == "grafioschtrader:$mode" ]]; then
+    [[ "$current" == "${STATE[file.$id]:-$original}" || "$current" == "${STATE[file.$id.previous]:-$original}" ]] ||
+      return 2
+    if [[ "$current" == "$digest" && "${STATE[file.$id]:-}" == "$digest" &&
+        "$(stat -c '%U:%a' "$target")" == "grafioschtrader:$mode" ]]; then
       return 0
     fi
   fi
@@ -497,7 +503,8 @@ gt_core_login() {
     mv "$file" "$dir/client.cnf" && chown -R grafioschtrader:grafioschtrader "$dir" || return 2
     file="$dir/client.cnf"; command=(runuser -u grafioschtrader -- mariadb)
   else file=$(gt_db_options "$key" "$user") || return 2; fi
-  command+=("--defaults-file=$file" "--protocol=$protocol" "--user=$user" --batch --skip-column-names --connect-timeout=4)
+  command+=("--defaults-file=$file" "--protocol=$protocol" "--user=$user"
+    --batch --skip-column-names --connect-timeout=4)
   [[ "$protocol" != TCP ]] || command+=(--host=127.0.0.1 --port=3306)
   value=$(printf 'SELECT CURRENT_USER();\n' | "${command[@]}" 2>/dev/null) || status=$?
   rm -f -- "$file"
@@ -529,7 +536,8 @@ gt_core_packages() {
     gt_core_run systemctl restart mariadb.service || return 2
   fi
   gt_core_run systemctl start mariadb.service || return 2
-  gt_mariadb_loopback_only || { gt_core_error 'The new MariaDB server listens beyond loopback on port 3306.'; return 2; }
+  gt_mariadb_loopback_only ||
+    { gt_core_error 'The new MariaDB server listens beyond loopback on port 3306.'; return 2; }
 }
 
 gt_mariadb_loopback_only() {
@@ -560,7 +568,8 @@ SQL
       { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\nSET PASSWORD FOR 'root'@'localhost'=PASSWORD("
         gt_sql_literal "${SECRET[DB_ROOT_PASSWORD]}"; printf ');\n'; } | gt_core_sql >/dev/null || return 2
     else
-      { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\nALTER USER 'root'@'localhost' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD("
+      { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\n"
+        printf "ALTER USER 'root'@'localhost' IDENTIFIED VIA unix_socket OR mysql_native_password USING PASSWORD("
         gt_sql_literal "${SECRET[DB_ROOT_PASSWORD]}"; printf ');\n'; } | gt_core_sql >/dev/null || return 2
     fi
     gt_core_login DB_ROOT_PASSWORD root SOCKET app || return 2
@@ -579,21 +588,27 @@ gt_core_database() {
   local result accounts host pool=384M mem=${FACT[memory.MemTotal]:-0} file
   gt_core_packages || return 2
   gt_core_root_auth || return 2
-  result=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" | gt_core_sql) || return 2
+  result=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" |
+    gt_core_sql) || return 2
   [[ "$result" == 0 ]] || return 2 # Never modify or adopt nonempty data, even on resumption.
-  result=$(printf "SELECT DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='grafioschtrader';\n" | gt_core_sql) || return 2
+  result=$(printf '%s\n' "SELECT DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA" \
+    "WHERE SCHEMA_NAME='grafioschtrader';" | gt_core_sql) || return 2
   if [[ -n "$result" ]]; then
     [[ "$result" == $'utf8mb4\tutf8mb4_general_ci' ]] || return 2
-    [[ "${STATE[database_before]}" == yes && "${ANSWER[DB_REUSE_EMPTY]:-}" == yes || "${STATE[resource.database]:-}" == intent || "${STATE[resource.database]:-}" == owned ]] || return 2
+    [[ "${STATE[database_before]}" == yes && "${ANSWER[DB_REUSE_EMPTY]:-}" == yes ||
+      "${STATE[resource.database]:-}" == intent || "${STATE[resource.database]:-}" == owned ]] || return 2
   else
     [[ "${STATE[database_before]}" == no && "${STATE[resource.database]:-}" != owned ]] || return 2
     gt_core_mark resource.database intent || return 2
-    printf 'CREATE DATABASE grafioschtrader CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;\n' | gt_core_sql >/dev/null || return 2
+    printf 'CREATE DATABASE grafioschtrader CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;\n' |
+      gt_core_sql >/dev/null || return 2
   fi
   if [[ "${STATE[database_before]}" == no ]]; then gt_core_mark resource.database owned || return 2; fi
-  result=$(printf "SELECT COUNT(*) FROM mysql.user WHERE User='grafioschtrader' AND Host='localhost';\n" | gt_core_sql) || return 2
+  result=$(printf "SELECT COUNT(*) FROM mysql.user WHERE User='grafioschtrader' AND Host='localhost';\n" |
+    gt_core_sql) || return 2
   if [[ "$result" == 1 ]]; then
-    [[ "${STATE[account_before]}" == yes || "${STATE[resource.account]:-}" == intent || "${STATE[resource.account]:-}" == owned ]] || return 2
+    [[ "${STATE[account_before]}" == yes || "${STATE[resource.account]:-}" == intent ||
+      "${STATE[resource.account]:-}" == owned ]] || return 2
     gt_core_login DB_PASSWORD grafioschtrader TCP || return 2
   elif [[ "$result" == 0 ]]; then
     [[ "${STATE[account_before]}" == no && "${STATE[resource.account]:-}" != owned ]] || return 2
@@ -602,7 +617,8 @@ gt_core_database() {
       gt_sql_literal "${SECRET[DB_PASSWORD]}"; printf ';\n'; } | gt_core_sql >/dev/null || return 2
   else return 2; fi
   if [[ "${STATE[account_before]}" == no ]]; then
-    printf "GRANT ALL PRIVILEGES ON grafioschtrader.* TO 'grafioschtrader'@'localhost';\n" | gt_core_sql >/dev/null || return 2
+    printf "GRANT ALL PRIVILEGES ON grafioschtrader.* TO 'grafioschtrader'@'localhost';\n" | gt_core_sql >/dev/null ||
+      return 2
     gt_core_mark resource.account owned || return 2
   fi
   gt_core_login DB_PASSWORD grafioschtrader TCP || return 2
@@ -611,13 +627,15 @@ gt_core_database() {
   [[ "$result" == *'GRANT ALL PRIVILEGES ON `grafioschtrader`.* TO '* ]] || return 2
   if [[ "${STATE[new_database_server]}" == yes ]]; then
     accounts=$(printf "SELECT Host FROM mysql.user WHERE User='';\n" | gt_core_sql) || return 2
-    result=$(printf "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='test';\n" | gt_core_sql) || return 2
+    result=$(printf "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='test';\n" | gt_core_sql) ||
+      return 2
     if [[ "${STATE[step.hardening]:-}" == complete ]]; then
       [[ -z "$accounts" && "$result" == 0 ]] || return 2
     else
     while IFS= read -r host; do
       [[ -n "$host" ]] || continue
-      { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\nDROP USER ''@"; gt_sql_literal "$host"; printf ';\n'; } | gt_core_sql >/dev/null || return 2
+      { printf "SET SESSION sql_mode='NO_BACKSLASH_ESCAPES';\nDROP USER ''@"; gt_sql_literal "$host"; printf ';\n'; } |
+        gt_core_sql >/dev/null || return 2
     done <<< "$accounts"
     printf 'DROP DATABASE IF EXISTS test;\n' | gt_core_sql >/dev/null || return 2
     gt_core_mark step.hardening complete || return 2
@@ -665,10 +683,13 @@ gt_encrypt_secret() {
   printf '%s_BEGIN%s%s_END\n' "$marker" "${SECRET[$key]}" "$marker" > "$directory/value.properties"
   chmod 600 "$directory/value.properties" && chown -R grafioschtrader:grafioschtrader "$directory" || return 2
   # Capture all diagnostics privately, including plaintext the plugin may emit on error/debug.
-  output=$(gt_jasypt_call encrypt "$directory" "$marker" 2>&1) || { gt_core_error "Jasypt encryption failed ($key); plugin output suppressed."; return 2; }
+  output=$(gt_jasypt_call encrypt "$directory" "$marker" 2>&1) ||
+    { gt_core_error "Jasypt encryption failed ($key); plugin output suppressed."; return 2; }
   encrypted=$(cat "$directory/value.properties")
-  [[ "$encrypted" =~ ^ENC\([A-Za-z0-9+/=]+\)$ ]] || { gt_core_error "Jasypt returned no unique ciphertext ($key)."; return 2; }
-  output=$(gt_jasypt_call decrypt "$directory" "$marker" 2>&1) || { gt_core_error "Jasypt decryption failed ($key); plugin output suppressed."; return 2; }
+  [[ "$encrypted" =~ ^ENC\([A-Za-z0-9+/=]+\)$ ]] ||
+    { gt_core_error "Jasypt returned no unique ciphertext ($key)."; return 2; }
+  output=$(gt_jasypt_call decrypt "$directory" "$marker" 2>&1) ||
+    { gt_core_error "Jasypt decryption failed ($key); plugin output suppressed."; return 2; }
   # decrypt reports the result on stdout and deliberately leaves the encrypted file intact.
   [[ "$output" == *"${marker}_BEGIN${SECRET[$key]}${marker}_END"* ]] || {
     gt_core_error "Jasypt literal round-trip failed ($key)."; return 2;
@@ -678,11 +699,11 @@ gt_encrypt_secret() {
 }
 
 gt_core_config_valid() {
-  local id target digest mode
+  local id target digest mode resources="$CORE_REPO/backend/grafioschtrader-server/src/main/resources"
   for id in properties production launcher variables; do
     case "$id" in
-      properties) target="$CORE_REPO/backend/grafioschtrader-server/src/main/resources/application.properties"; mode=600 ;;
-      production) target="$CORE_REPO/backend/grafioschtrader-server/src/main/resources/application-production.properties"; mode=600 ;;
+      properties) target="$resources/application.properties"; mode=600 ;;
+      production) target="$resources/application-production.properties"; mode=600 ;;
       launcher) target="$CORE_HOME/grafioschtrader.sh"; mode=700 ;;
       variables) target="$CORE_HOME/gtvar.sh"; mode=600 ;;
     esac
@@ -695,7 +716,8 @@ gt_core_config_valid() {
 }
 
 gt_core_configure() {
-  local template="$SCRATCH/application.template" production="$SCRATCH/production.template" original target key auth=false starttls=false tls=false
+  local template="$SCRATCH/application.template" production="$SCRATCH/production.template" original target key
+  local auth=false starttls=false tls=false
   if [[ "${STATE[step.configuration]:-}" == complete ]]; then
     gt_core_config_valid || return 2
     [[ -z "${STATE[build.mode]:-}" ]] || gt_core_variables || return 2
@@ -703,7 +725,8 @@ gt_core_configure() {
   fi
   target=backend/grafioschtrader-server/src/main/resources
   gt_as_app git -C "$CORE_REPO" show "${STATE[planned_commit]}:$target/application.properties" > "$template" || return 2
-  if ! gt_as_app git -C "$CORE_REPO" show "${STATE[planned_commit]}:$target/application-production.properties" > "$production" 2>/dev/null; then
+  if ! gt_as_app git -C "$CORE_REPO" show \
+      "${STATE[planned_commit]}:$target/application-production.properties" > "$production" 2>/dev/null; then
     : > "$production"
   fi
   # Only the environment placeholder is allowed; application startup must not use a template key.
@@ -734,7 +757,8 @@ gt_core_configure() {
   PROPERTIES[spring.mail.properties.mail.smtp.ssl.enable]=$tls
   gt_properties_render "$template" "$SCRATCH/application.config" || return 2
   original=$(sha256sum "$template"); original=${original%% *}
-  gt_core_publish properties "$SCRATCH/application.config" "$CORE_REPO/$target/application.properties" 600 "$original" || return 2
+  gt_core_publish properties "$SCRATCH/application.config" "$CORE_REPO/$target/application.properties" 600 \
+    "$original" || return 2
   PROPERTIES=([server.address]=127.0.0.1 [spring.mail.properties.mail.smtp.starttls.required]="$starttls")
   PROPERTIES[server.forward-headers-strategy]=none
   PROPERTIES[g.security.login.trusted-proxies]='127.0.0.1,::1'
@@ -744,12 +768,13 @@ gt_core_configure() {
   if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then PROPERTIES[server.port]=${ANSWER[BACKEND_HTTP_PORT]}; fi
   gt_properties_render "$production" "$SCRATCH/production.config" yes || return 2
   original=$(sha256sum "$production"); original=${original%% *}
-  gt_core_publish production "$SCRATCH/production.config" "$CORE_REPO/$target/application-production.properties" 600 "$original" || return 2
+  gt_core_publish production "$SCRATCH/production.config" "$CORE_REPO/$target/application-production.properties" 600 \
+    "$original" || return 2
   # printf %q is Bash syntax; use a Bash shebang for every generated launcher.
   {
     printf '#!/bin/bash\nexport JASYPT_ENCRYPTOR_PASSWORD=%q\n' "${SECRET[JASYPT_PASSWORD]}"
-    printf 'exec %q %s -Duser.language=en -jar /home/grafioschtrader/grafioschtrader-server-*.jar >> /var/log/grafioschtrader.log 2>&1\n' \
-      "${STATE[java_home]}/bin/java" "${ANSWER[JAVA_HEAP]}"
+    printf 'exec %q %s -Duser.language=en -jar %s >> /var/log/grafioschtrader.log 2>&1\n' \
+      "${STATE[java_home]}/bin/java" "${ANSWER[JAVA_HEAP]}" '/home/grafioschtrader/grafioschtrader-server-*.jar'
   } > "$SCRATCH/launcher"
   bash -n "$SCRATCH/launcher" || return 2
   gt_core_publish launcher "$SCRATCH/launcher" "$CORE_HOME/grafioschtrader.sh" 700 || return 2
@@ -759,7 +784,8 @@ gt_core_configure() {
 
 gt_core_variables() {
   {
-    printf 'export docroot=%q\nexport builddir=%q\nexport basehref=grafioschtrader/\nexport NG_CLI_ANALYTICS=false\n' "${ANSWER[DOCROOT]}" "$CORE_HOME/build"
+    printf 'export docroot=%q\nexport builddir=%q\nexport basehref=grafioschtrader/\nexport NG_CLI_ANALYTICS=false\n' \
+      "${ANSWER[DOCROOT]}" "$CORE_HOME/build"
     # shellcheck disable=SC2016
     printf 'export JAVA_HOME=%q\nexport PATH="$JAVA_HOME/bin:%s:$PATH"\n' "${STATE[java_home]}" "${STATE[maven]%/*}"
     if [[ -n "${STATE[build.node_home]:-}" ]]; then
@@ -1014,7 +1040,7 @@ gt_toolchain_archive_install() {
 
 # Prefer candidates from already configured APT sources; otherwise plan a verified vendor archive.
 gt_core_toolchain_plan() {
-  local tool package candidate installed home key value
+  local tool package candidate installed home key value en
   FACT[toolchain.java.package]=none FACT[toolchain.maven.package]=none
   FACT[toolchain.java.version]=none FACT[toolchain.maven.version]=none
   FACT[toolchain.java.path]=${FACT[java.suitable]} FACT[toolchain.maven.path]=${FACT[maven.path]}
@@ -1024,7 +1050,8 @@ gt_core_toolchain_plan() {
     if [[ -n "${STATE[scope]:-}" && "${STATE[step.toolchains]:-complete}" == complete ]]; then
       [[ "$tool" == java ]] && key=java_home || key=maven
       if [[ "$tool" == java && -n "${STATE[java_home]:-}" ]] && ! gt_jdk_jit "${STATE[java_home]}"; then
-        gt_plan_block "Recorded Java ${STATE[java_home]} is the interpreter-only Zero VM; reinstall the host with this installer."
+        gt_plan_block \
+          "Recorded Java ${STATE[java_home]} is the interpreter-only Zero VM; reinstall the host with this installer."
         continue
       fi
       [[ "$home" == "${STATE[$key]}" ]] || gt_plan_block "Selected $tool path changed; restore ${STATE[$key]}."
@@ -1065,22 +1092,27 @@ gt_core_toolchain_plan() {
         continue
       fi
       if [[ -n "${PACKAGE[$package]:-}" ]]; then
-        gt_plan_block "$package is installed but unusable; repair it or use the documented alternative. Automatic upgrades are not authorized."
+        en="$package is installed but unusable; repair it or use the documented alternative."
+        gt_plan_block "$en Automatic upgrades are not authorized."
         continue
       fi
     fi
     FACT[toolchain.$tool.package]=$package FACT[toolchain.$tool.version]=$candidate
     FACT[toolchain.$tool.path]=pending
     if [[ "${PACKAGE[$package]:-}" != "$candidate" ]]; then
-      [[ "${CANDIDATE[$package]:-}" == "$candidate" ]] || gt_plan_block "Recorded candidate $package=$candidate is unavailable; restore its APT source before resuming."
+      [[ "${CANDIDATE[$package]:-}" == "$candidate" ]] ||
+        gt_plan_block "Recorded candidate $package=$candidate is unavailable; restore its APT source before resuming."
       gt_plan_package "$package=$candidate"
     fi
     gt_plan_row install "$tool" "$package=$candidate; verify executables before creating the application user"
   done
   # Only APT packages can change alternatives; vendor archives never register them.
   if [[ ! "${FACT[toolchain.java.package]}:${FACT[toolchain.maven.package]}" =~ ^(none|archive):(none|archive)$ ]]; then
-    command -v update-alternatives >/dev/null || gt_plan_block 'update-alternatives is required before toolchain installation.'
-    gt_plan_row preserve java-alternatives 'Restore previous selections after APT, including failed transactions; changed automatic selections become manual.' \
+    command -v update-alternatives >/dev/null ||
+      gt_plan_block 'update-alternatives is required before toolchain installation.'
+    en='Restore previous selections after APT, including failed transactions;'
+    en+=' changed automatic selections become manual.'
+    gt_plan_row preserve java-alternatives "$en" \
       'Bisherige Auswahl nach APT wiederherstellen, auch bei Fehlern; geänderte automatische Auswahlen werden manuell.'
   fi
 }
@@ -1103,7 +1135,8 @@ gt_alternatives_save() {
   selections=$(LC_ALL=C update-alternatives --get-selections) || return 2
   while read -r name mode path; do
     [[ -n "$name" ]] || continue
-    [[ "$name" =~ ^[a-zA-Z0-9_.+-]+$ && "$mode" =~ ^(auto|manual)$ && "$path" == /* && "$path" != *[$'\001'-$'\037'$'\177']* ]] || return 2
+    [[ "$name" =~ ^[a-zA-Z0-9_.+-]+$ && "$mode" =~ ^(auto|manual)$ && "$path" == /* &&
+      "$path" != *[$'\001'-$'\037'$'\177']* ]] || return 2
     STATE[alternative.$name]=$path
   done <<< "$selections"
   STATE[toolchain.alternatives]=saved
@@ -1122,7 +1155,8 @@ gt_alternatives_restore() {
       gt_core_run update-alternatives --set "$name" "${STATE[$key]}" || failed=1
     fi
   done
-  (( failed == 0 )) || { gt_core_error 'Could not restore original alternatives; resolve this before resuming.'; return 2; }
+  (( failed == 0 )) ||
+    { gt_core_error 'Could not restore original alternatives; resolve this before resuming.'; return 2; }
 }
 
 gt_core_toolchains() {
@@ -1157,7 +1191,8 @@ gt_core_toolchains() {
   if (( ${#archives[@]} )); then
     [[ "${STATE[step.toolchains]}" == running ]] || gt_core_mark step.toolchains running || return 2
     for tool in "${archives[@]}"; do
-      gt_toolchain_archive_install "$tool" || { gt_core_error "Could not install the confirmed $tool archive."; return 2; }
+      gt_toolchain_archive_install "$tool" ||
+        { gt_core_error "Could not install the confirmed $tool archive."; return 2; }
     done
   fi
   gt_java; gt_runtimes
@@ -1192,16 +1227,19 @@ gt_build_field() {
 
 gt_build_valid() {
   local key
-  for key in mode node_version node_home npm prefix node_file node_sha cli_version cli_integrity semver_version semver_integrity; do
+  for key in mode node_version node_home npm prefix node_file node_sha cli_version cli_integrity semver_version \
+      semver_integrity; do
     gt_build_field "$key" "${BUILD[$key]:-}" || return 2
   done
   gt_node_satisfies "${BUILD[node_version]}" "$NODE_REQUIRED" || return 2
   [[ "${BUILD[cli_version]%%.*}" == "$CLI_REQUIRED" ]] || return 2
   if [[ "${BUILD[mode]}" == archive ]]; then
     [[ "${BUILD[node_home]}" == /opt/nodejs-gt && "${BUILD[npm]}" == /opt/nodejs-gt/bin/npm &&
-      "${BUILD[node_file]}" == node-v"${BUILD[node_version]}"-linux-*.tar.xz && "${BUILD[node_sha]}" != none ]] || return 2
+      "${BUILD[node_file]}" == node-v"${BUILD[node_version]}"-linux-*.tar.xz && "${BUILD[node_sha]}" != none ]] ||
+        return 2
   else
-    [[ "${BUILD[node_file]}:${BUILD[node_sha]}" == none:none && "${BUILD[npm]}" == "${BUILD[node_home]}/bin/npm" ]] || return 2
+    [[ "${BUILD[node_file]}:${BUILD[node_sha]}" == none:none && "${BUILD[npm]}" == "${BUILD[node_home]}/bin/npm" ]] ||
+      return 2
     case "${BUILD[node_home]}" in /usr|/usr/local|/opt/*) ;; *) return 2 ;; esac
   fi
 }
@@ -1225,18 +1263,22 @@ gt_build_resolve() {
   fi
   BUILD[prefix]=/opt/gt-build-tools
   if gt_node_satisfies "${FACT[node.version]:-absent}" "$NODE_REQUIRED" &&
-      [[ "${FACT[node.path]:-}" == /usr/bin/node || "${FACT[node.path]:-}" == /usr/local/bin/node || "${FACT[node.path]:-}" == /opt/*/bin/node ]] &&
+      [[ "${FACT[node.path]:-}" == /usr/bin/node || "${FACT[node.path]:-}" == /usr/local/bin/node ||
+        "${FACT[node.path]:-}" == /opt/*/bin/node ]] &&
       [[ -x "${FACT[node.path]%/node}/npm" ]]; then
     BUILD[mode]=reuse BUILD[node_home]=${FACT[node.path]%/bin/node} BUILD[npm]=${FACT[node.path]%/node}/npm
     BUILD[node_version]=${FACT[node.version]} BUILD[node_file]=none BUILD[node_sha]=none
   else
     line=24
-    case "${FACT[architecture]}" in amd64) arch=x64 ;; arm64) arch=arm64 ;; armhf) arch=armv7l; line=22 ;; *) return 2 ;; esac
+    case "${FACT[architecture]}" in
+      amd64) arch=x64 ;; arm64) arch=arm64 ;; armhf) arch=armv7l; line=22 ;; *) return 2 ;;
+    esac
     [[ "$arch" != armv7l || "$(date -u +%F)" < 2027-04-30 ]] || return 2
     gt_probe curl --proto '=https' --tlsv1.2 -fsSL --connect-timeout 5 --max-time 30 \
       "https://nodejs.org/dist/latest-v$line.x/SHASUMS256.txt" -o "$SCRATCH/node-sums" || return 2
     while read -r checksum filename extra; do
-      [[ "$filename" =~ ^node-v$line\.[0-9]+\.[0-9]+-linux-$arch\.tar\.xz$ && "$checksum" =~ ^[a-f0-9]{64}$ && -z "$extra" ]] || continue
+      [[ "$filename" =~ ^node-v$line\.[0-9]+\.[0-9]+-linux-$arch\.tar\.xz$ && "$checksum" =~ ^[a-f0-9]{64}$ &&
+        -z "$extra" ]] || continue
       [[ -z "${BUILD[node_file]:-}" ]] || return 2
       BUILD[node_file]=$filename BUILD[node_sha]=$checksum
       BUILD[node_version]=${filename#node-v}; BUILD[node_version]=${BUILD[node_version]%%-linux-*}
@@ -1251,25 +1293,34 @@ gt_build_resolve() {
 }
 
 gt_core_build_plan() {
-  local command target
+  local command target en
   for command in python3 tar xz; do
-    command -v "$command" >/dev/null || { gt_plan_block "Build tool preparation requires $command; install python3 and xz-utils, then rerun."; return 0; }
+    command -v "$command" >/dev/null ||
+      { gt_plan_block "Build tool preparation requires $command; install python3 and xz-utils, then rerun."; return 0; }
   done
-  [[ "${ANSWER[NODE_REPLACE]:-no}" != yes ]] || gt_plan_block 'Shared Node replacement is not supported by this core; select isolation (NODE_REPLACE=no).'
+  [[ "${ANSWER[NODE_REPLACE]:-no}" != yes ]] ||
+    gt_plan_block 'Shared Node replacement is not supported by this core; select isolation (NODE_REPLACE=no).'
   if ! gt_build_resolve; then
     gt_plan_block 'Could not resolve compatible Node/Angular CLI/semver versions and checksums from official sources.'
     return 0
   fi
   target=${BUILD[prefix]}
-  if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.buildtools]:-}" ]]; then gt_plan_block "Foreign build-tool prefix exists: $target"; fi
+  if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.buildtools]:-}" ]]; then
+    gt_plan_block "Foreign build-tool prefix exists: $target"
+  fi
   if [[ "${BUILD[mode]}" == archive ]]; then
     target=${BUILD[node_home]}
-    if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.node]:-}" ]]; then gt_plan_block "Foreign Node destination exists: $target"; fi
+    if [[ ( -e "$target" || -L "$target" ) && -z "${STATE[resource.node]:-}" ]]; then
+      gt_plan_block "Foreign Node destination exists: $target"
+    fi
     gt_plan_row isolate "$target" "${BUILD[node_file]}; SHA-256 ${BUILD[node_sha]}; system Node unchanged"
   else gt_plan_row reuse node "${BUILD[node_home]}/bin/node; ${BUILD[node_version]}"; fi
-  gt_plan_row install "${BUILD[prefix]}" "@angular/cli@${BUILD[cli_version]}, semver@${BUILD[semver_version]}; private global npm prefix, lifecycle scripts disabled"
+  en="@angular/cli@${BUILD[cli_version]}, semver@${BUILD[semver_version]};"
+  en+=' private global npm prefix, lifecycle scripts disabled'
+  gt_plan_row install "${BUILD[prefix]}" "$en"
   gt_plan_row verify npm "${BUILD[cli_integrity]}; ${BUILD[semver_integrity]}"
-  gt_plan_row configure gtvar.sh 'Selected Node/npm and build-tool prefix; disable Angular analytics; verify as grafioschtrader'
+  gt_plan_row configure gtvar.sh \
+    'Selected Node/npm and build-tool prefix; disable Angular analytics; verify as grafioschtrader'
 }
 
 gt_build_record() {
@@ -1311,7 +1362,8 @@ gt_build_stage() {
   gt_no_symlinks "$stage" || return 2
   [[ "${STATE[resource.$id]:-}" != owned ]] || return 2
   if [[ -e "$stage" ]]; then
-    [[ "${STATE[resource.$id]:-}" == intent && ( "$(stat -c '%u:%a' "$stage")" == "$EUID:700" || "$(stat -c '%u:%a' "$stage")" == "$EUID:755" ) ]] || return 2
+    [[ "${STATE[resource.$id]:-}" == intent && ( "$(stat -c '%u:%a' "$stage")" == "$EUID:700" ||
+      "$(stat -c '%u:%a' "$stage")" == "$EUID:755" ) ]] || return 2
     rm -rf -- "$stage" || return 2
   fi
   gt_core_mark "resource.$id" intent || return 2
@@ -1326,7 +1378,8 @@ PY
 
 gt_build_download() {
   # Execution downloads may take longer than inventory probes. All URLs are constructed from validated metadata.
-  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL --connect-timeout 10 --max-time 600 --retry 2 "$1" -o "$2"
+  curl --proto '=https' --proto-redir '=https' --tlsv1.2 -fsSL --connect-timeout 10 --max-time 600 --retry 2 \
+    "$1" -o "$2"
 }
 
 gt_build_npm() {
@@ -1335,8 +1388,10 @@ gt_build_npm() {
   mkdir -p "$SCRATCH/npm-home" "$SCRATCH/build-cache" || return 2
   : > "$SCRATCH/npm-user-config"; : > "$SCRATCH/npm-global-config"
   (cd "$SCRATCH" && env -i HOME="$SCRATCH/npm-home" PATH="${STATE[build.node_home]}/bin:/usr/bin:/bin" \
-    NG_CLI_ANALYTICS=false CI=true npm_config_userconfig="$SCRATCH/npm-user-config" npm_config_globalconfig="$SCRATCH/npm-global-config" \
-    npm_config_prefix="$prefix" npm_config_cache="$SCRATCH/build-cache" npm_config_registry=https://registry.npmjs.org/ \
+    NG_CLI_ANALYTICS=false CI=true npm_config_userconfig="$SCRATCH/npm-user-config" \
+    npm_config_globalconfig="$SCRATCH/npm-global-config" \
+    npm_config_prefix="$prefix" npm_config_cache="$SCRATCH/build-cache" \
+    npm_config_registry=https://registry.npmjs.org/ \
     npm_config_update_notifier=false npm_config_audit=false npm_config_fund=false npm_config_logs_max=0 \
     "${STATE[build.npm]}" "$@")
 }
@@ -1364,10 +1419,12 @@ gt_core_buildtools() {
     if [[ ! -e "$target" && ! -L "$target" ]]; then
       gt_build_stage node "$stage" || return 2
       archive="$SCRATCH/${STATE[build.node_file]}"
-      gt_build_download "https://nodejs.org/dist/v${STATE[build.node_version]}/${STATE[build.node_file]}" "$archive" || return 2
+      gt_build_download "https://nodejs.org/dist/v${STATE[build.node_version]}/${STATE[build.node_file]}" "$archive" ||
+        return 2
       checksum=$(sha256sum "$archive"); [[ "${checksum%% *}" == "${STATE[build.node_sha]}" ]] || return 2
       gt_build_archive_safe "$archive" "${STATE[build.node_file]%.tar.xz}" || return 2
-      tar --extract --xz --file "$archive" --directory "$stage" --strip-components=1 --no-same-owner --no-same-permissions || return 2
+      tar --extract --xz --file "$archive" --directory "$stage" --strip-components=1 --no-same-owner \
+        --no-same-permissions || return 2
       chmod -R a+rX,go-w "$stage" || return 2
       chmod 755 "$stage" || return 2
     fi
@@ -1387,7 +1444,8 @@ gt_core_buildtools() {
       value="sha512-$(openssl dgst -sha512 -binary "$archive" | openssl base64 -A)"
       [[ "$value" == "$integrity" ]] || return 2
     done
-    gt_build_npm "$stage" install --global --ignore-scripts --engine-strict --no-audit --no-fund "$SCRATCH/cli.tgz" "$SCRATCH/semver.tgz" || return 2
+    gt_build_npm "$stage" install --global --ignore-scripts --engine-strict --no-audit --no-fund "$SCRATCH/cli.tgz" \
+      "$SCRATCH/semver.tgz" || return 2
     chmod -R a+rX,go-w "$stage" || return 2
     chmod 755 "$stage" || return 2
   fi
@@ -1397,11 +1455,12 @@ gt_core_buildtools() {
 }
 
 gt_core_plan() {
-  local key database_check
+  local key database_check en de
   PLAN=() PLAN_BLOCKERS=() PLAN_WARNINGS=() PLAN_PACKAGES=()
   gt_stage_contract || true
   for key in platform architecture mariadb database disk; do
-    if [[ "$key" == database && "${STATE[new_database_server]:-}" == yes && "${STATE[resource.mariadb]:-}" == owned && "${FACT[database.active]:-}" == no ]]; then
+    if [[ "$key" == database && "${STATE[new_database_server]:-}" == yes && "${STATE[resource.mariadb]:-}" == owned &&
+        "${FACT[database.active]:-}" == no ]]; then
       continue # The execution step may start its own stopped server, then recheck every object.
     fi
     [[ "${ACTION[$key]:-block}" != block ]] || gt_plan_block "$key: ${REASON[$key]:-unknown}"
@@ -1418,7 +1477,9 @@ gt_core_plan() {
     command -v "$key" >/dev/null || [[ "${PLAN_PACKAGES[$key]:-}" == install ]] ||
       gt_plan_block "Missing prerequisite: $key"
   done
-  [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished && "${STATE[scope]:-}" =~ ^(core|bootstrap)$ ]] || gt_plan_block 'Only fresh hosts and this installer journal can be used.'
+  [[ "${FACT[host.class]}" == fresh || "${FACT[host.class]}" == unfinished &&
+    "${STATE[scope]:-}" =~ ^(core|bootstrap)$ ]] ||
+    gt_plan_block 'Only fresh hosts and this installer journal can be used.'
   for key in "${QUESTIONS[@]}"; do
     [[ "${Q_TYPE[$key]}" != secret ]] || continue
     [[ "$key" != DB_REUSE_EMPTY || "${STATE[database_before]:-}" != no ]] || continue
@@ -1426,28 +1487,38 @@ gt_core_plan() {
       gt_validate_answer "$key" "${ANSWER[$key]:-}" || gt_plan_block "Invalid/missing answer: $key"
     fi
   done
-  if [[ "${FACT[database.gt_tables]}" == 0 && "${STATE[database_before]:-}" != no && "${ANSWER[DB_REUSE_EMPTY]:-}" != yes ]]; then
+  if [[ "${FACT[database.gt_tables]}" == 0 && "${STATE[database_before]:-}" != no &&
+      "${ANSWER[DB_REUSE_EMPTY]:-}" != yes ]]; then
     gt_plan_block 'Reuse of the existing empty database requires consent.'
   fi
   if [[ "${FACT[database.active]:-}" == yes && "${FACT[database.query]}" == ok ]]; then
     if [[ "${FACT[database.gt_user]}" == present ]]; then
-      gt_core_login DB_PASSWORD grafioschtrader TCP || gt_plan_block 'Existing database credentials no longer authenticate.'
+      gt_core_login DB_PASSWORD grafioschtrader TCP ||
+        gt_plan_block 'Existing database credentials no longer authenticate.'
     fi
     if [[ "${FACT[database.gt_tables]}" == 0 ]]; then
-      database_check=$(printf "SELECT DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='grafioschtrader';\n" | gt_core_sql) || database_check=unknown
-      [[ "$database_check" == $'utf8mb4\tutf8mb4_general_ci' ]] || gt_plan_block 'Existing empty database must use utf8mb4 / utf8mb4_general_ci.'
+      database_check=$(printf '%s\n' \
+        "SELECT DEFAULT_CHARACTER_SET_NAME,DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA" \
+        "WHERE SCHEMA_NAME='grafioschtrader';" | gt_core_sql) || database_check=unknown
+      [[ "$database_check" == $'utf8mb4\tutf8mb4_general_ci' ]] ||
+        gt_plan_block 'Existing empty database must use utf8mb4 / utf8mb4_general_ci.'
     fi
     if [[ "${FACT[database.gt_user]}" == present && -z "${STATE[resource.account]:-}" ]]; then
-      database_check=$(printf "SHOW GRANTS FOR 'grafioschtrader'@'localhost';\n" | gt_core_sql) || database_check=unknown
+      database_check=$(printf "SHOW GRANTS FOR 'grafioschtrader'@'localhost';\n" | gt_core_sql) ||
+        database_check=unknown
       # shellcheck disable=SC2016
-      [[ "$database_check" == *'GRANT ALL PRIVILEGES ON `grafioschtrader`.* TO '* ]] || gt_plan_block 'Existing account lacks required schema privileges; it will not be altered.'
+      [[ "$database_check" == *'GRANT ALL PRIVILEGES ON `grafioschtrader`.* TO '* ]] ||
+        gt_plan_block 'Existing account lacks required schema privileges; it will not be altered.'
     fi
   fi
   # MODE is the shared CLI selection from 00-common.sh, not a local file mode.
   # shellcheck disable=SC2153
   if [[ "$MODE" != --bootstrap ]]; then
-    gt_plan_row configure core 'This scope stops after database and encrypted configuration; no build, backend service, web server or TLS changes.' \
-      'Diese Stufe endet nach Datenbank und verschlüsselter Konfiguration; kein Build, Backend-Dienst, Webserver oder TLS.'
+    en='This scope stops after database and encrypted configuration;'
+    en+=' no build, backend service, web server or TLS changes.'
+    de='Diese Stufe endet nach Datenbank und verschlüsselter Konfiguration;'
+    de+=' kein Build, Backend-Dienst, Webserver oder TLS.'
+    gt_plan_row configure core "$en" "$de"
   fi
   gt_plan_row create /var/lib/gt-install 'Root-only lock and atomic resumption journal (700/600)'
   gt_plan_row create /root/.gt-install/secrets 'Application secrets only (600); no database root password'
@@ -1455,20 +1526,31 @@ gt_core_plan() {
   gt_plan_row clone "$CORE_REPO" "${FACT[source.commit]}"
   if [[ "${FACT[database.vendor]}" == absent ]]; then
     gt_plan_package mariadb-server; gt_plan_package mariadb-client
-    gt_plan_row install 'mariadb-server mariadb-client' 'Distribution packages; no removals/upgrades; root password plus unix_socket; remove default anonymous accounts and test schema'
+    en='Distribution packages; no removals/upgrades; root password plus unix_socket;'
+    en+=' remove default anonymous accounts and test schema'
+    gt_plan_row install 'mariadb-server mariadb-client' "$en"
   fi
   gt_plan_packages
   if gt_plan_needs_apt; then
-    [[ "${FACT[dpkg.lock]}" == free && "${FACT[apt.age_hours]}" != unknown ]] || gt_plan_block 'Package lock/metadata unavailable; install psmisc and run sudo apt-get update, then re-plan.'
-    if [[ "${FACT[apt.age_hours]}" != unknown ]] && (( ${FACT[apt.age_hours]} > 24 )); then gt_plan_block 'APT metadata is stale; run sudo apt-get update and re-plan.'; fi
+    [[ "${FACT[dpkg.lock]}" == free && "${FACT[apt.age_hours]}" != unknown ]] ||
+      gt_plan_block 'Package lock/metadata unavailable; install psmisc and run sudo apt-get update, then re-plan.'
+    if [[ "${FACT[apt.age_hours]}" != unknown ]] && (( ${FACT[apt.age_hours]} > 24 )); then
+      gt_plan_block 'APT metadata is stale; run sudo apt-get update and re-plan.'
+    fi
   fi
   if [[ "${STATE[new_database_server]:-}" == yes && "${FACT[database.active]:-}" == no ]]; then
-    gt_plan_row start mariadb.service 'Resume the installer-owned database server, then verify original credentials and empty schema before any SQL changes'
+    en='Resume the installer-owned database server,'
+    en+=' then verify original credentials and empty schema before any SQL changes'
+    gt_plan_row start mariadb.service "$en"
   fi
-  gt_plan_row configure database:grafioschtrader 'Empty utf8mb4/general_ci schema; existing account unchanged; TCP verification'
-  [[ "${ANSWER[BUFFER_POOL]:-no}" != yes ]] || gt_plan_row configure mariadb 'Buffer pool drop-in and restart; affects all databases on this server'
-  gt_plan_row configure "$CORE_REPO/backend/grafioschtrader-server/src/main/resources" 'Encrypted application.properties and production override; encryption/decryption verified'
-  gt_plan_row create "$CORE_HOME/gtvar.sh, grafioschtrader.sh" 'Selected Java, heap and protected encryption key; service not installed or started'
+  gt_plan_row configure database:grafioschtrader \
+    'Empty utf8mb4/general_ci schema; existing account unchanged; TCP verification'
+  [[ "${ANSWER[BUFFER_POOL]:-no}" != yes ]] ||
+    gt_plan_row configure mariadb 'Buffer pool drop-in and restart; affects all databases on this server'
+  gt_plan_row configure "$CORE_REPO/backend/grafioschtrader-server/src/main/resources" \
+    'Encrypted application.properties and production override; encryption/decryption verified'
+  gt_plan_row create "$CORE_HOME/gtvar.sh, grafioschtrader.sh" \
+    'Selected Java, heap and protected encryption key; service not installed or started'
   FACT[core.plan]=$(printf '%s\n' "${PLAN[@]}" | sha256sum)
   (( ${#PLAN_BLOCKERS[@]} == 0 ))
 }
@@ -1477,7 +1559,10 @@ gt_core_snapshot() {
   local key
   for key in "${!FACT[@]}"; do
     case "$key" in
-      dns.status|plan.names|network.public_ipv4|network.global_ipv6|core.plan|host.*|source.*|os.*|architecture|init|java.suitable|java.alternatives|javac.alternatives|maven.path|node.path|node.version|node.origin|toolchain.*|swap.*|memory.SwapTotal|apt.candidate.*|database.vendor|database.version|database.gt_tables|database.gt_user|database.users|database.schemas|database.buffer_pool_config|packages|dpkg.lock)
+      dns.status|plan.names|network.public_ipv4|network.global_ipv6|core.plan|host.*|source.*|os.*|architecture|init|\
+        java.suitable|java.alternatives|javac.alternatives|maven.path|node.path|node.version|node.origin|toolchain.*|\
+        swap.*|memory.SwapTotal|apt.candidate.*|database.vendor|database.version|database.gt_tables|database.gt_user|\
+        database.users|database.schemas|database.buffer_pool_config|packages|dpkg.lock)
         printf '%s=%s\n' "$key" "${FACT[$key]}" ;;
     esac
   done
@@ -1485,13 +1570,17 @@ gt_core_snapshot() {
 }
 
 gt_core_execute() {
-  local step
+  local step en de
   for step in base_packages swap toolchains user duckdns buildtools clone database configure; do
     printf '%s: %s\n' "$(gt_text 'Core step' 'Kernschritt')" "$step"
-    "gt_core_$step" || { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
+    "gt_core_$step" ||
+      { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
   done
   gt_core_mark step.core complete || return 2
-  gt_text 'Core prepared. Installation remains unfinished: build, service, web/TLS and application checks are pending.' \
-    'Installationskern eingerichtet. Installation bleibt unvollständig: Build, Dienst, Web/TLS und Anwendungsprüfungen stehen aus.'
+  de='Installationskern eingerichtet.'
+  de+=' Installation bleibt unvollständig: Build, Dienst, Web/TLS und Anwendungsprüfungen stehen aus.'
+  en='Core prepared.'
+  en+=' Installation remains unfinished: build, service, web/TLS and application checks are pending.'
+  gt_text "$en" "$de"
   return 10
 }

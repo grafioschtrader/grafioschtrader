@@ -36,7 +36,7 @@ server {
     index index.html;
     client_max_body_size 50m;
     gzip on;
-    gzip_types text/plain text/css text/xml application/javascript application/json application/wasm application/xml image/svg+xml;
+    gzip_types $GZIP_TYPES;
     location = / { return 302 /grafioschtrader/; }
     location = /grafioschtrader { return 301 /grafioschtrader/; }
     location /grafioschtrader/ {
@@ -73,10 +73,12 @@ gt_nginx_owned() {
   gt_no_symlinks "$target" && gt_no_symlinks "${link%/*}" || return 2
   if [[ -e "$target" ]]; then
     digest=$(sha256sum "$target"); digest=${digest%% *}
-    [[ -f "$target" && "$digest" == "${STATE[file.web_nginx]:-}" && "$(stat -c '%u:%a' "$target")" == 0:644 ]] || return 2
+    [[ -f "$target" && "$digest" == "${STATE[file.web_nginx]:-}" && "$(stat -c '%u:%a' "$target")" == 0:644 ]] ||
+      return 2
   fi
   if [[ -e "$link" || -L "$link" ]]; then
-    [[ -L "$link" && "$(readlink "$link")" == "$target" && "${STATE[resource.web_link]:-}" == intent && -f "$target" ]] || return 2
+    [[ -L "$link" && "$(readlink "$link")" == "$target" && "${STATE[resource.web_link]:-}" == intent &&
+      -f "$target" ]] || return 2
   fi
 }
 
@@ -92,7 +94,8 @@ gt_nginx_package_plan() {
 gt_web_preflight() {
   local command address listeners line
   [[ "${STATE[step.app]:-}" == complete && "${ANSWER[WEBSERVER]:-}" == nginx && -z "${ANSWER[DOMAIN]:-}" ]] || {
-    gt_core_error 'Complete --install-app first; --install-web currently requires nginx and LAN-only answers.'; return 2;
+    gt_core_error 'Complete --install-app first; --install-web currently requires nginx and LAN-only answers.'
+    return 2
   }
   for command in nginx curl python3 ip ss systemctl; do
     [[ "$command" != nginx ]] || continue
@@ -100,7 +103,8 @@ gt_web_preflight() {
   done
   [[ "$(cat "$(gt_path /proc/1/comm)")" == systemd ]] || return 2
   gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
-  gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" || return 2
+  gt_validate_answer DOCROOT "${ANSWER[DOCROOT]}" && gt_validate_answer BACKEND_PORT "${ANSWER[BACKEND_PORT]}" ||
+    return 2
   address=$(gt_lan_address) || return 2
   [[ -z "${STATE[resource.web_lan]:-}" || "${STATE[resource.web_lan]}" == "$address" ]] || {
     gt_core_error 'LAN address changed; review the owned vhost before continuing.'; return 2;
@@ -137,16 +141,19 @@ gt_web_verify() {
   fi
   curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" "$base/api/gtinfo" > "$SCRATCH/web-info" || return 2
   python3 -c '@python-inline web-health.py@' "$SCRATCH/web-info" || return 2
-  curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" "$base/grafioschtrader/" > "$SCRATCH/web-index" || return 2
+  curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" "$base/grafioschtrader/" > "$SCRATCH/web-index" ||
+    return 2
   cmp -s "$SCRATCH/web-index" "$(gt_path "${ANSWER[DOCROOT]}/grafioschtrader/index.html")" || return 2
   asset=$(python3 - "$SCRATCH/web-index" <<'PY'
 # @python frontend-index.py
 PY
   ) || return 2
-  type=$(curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" -o "$SCRATCH/web-script" -w '%{content_type}' "$base$asset") || return 2
+  type=$(curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" -o "$SCRATCH/web-script" -w '%{content_type}' \
+    "$base$asset") || return 2
   [[ "$type" == application/javascript* || "$type" == text/javascript* ]] && [[ -s "$SCRATCH/web-script" ]] || return 2
   cmp -s "$SCRATCH/web-script" "$(gt_path "${ANSWER[DOCROOT]}$asset")" || return 2
-  curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" "$base/grafioschtrader/login" > "$SCRATCH/web-nested" || return 2
+  curl --disable --noproxy '*' -fsS --max-time 10 "${resolve[@]}" \
+    "$base/grafioschtrader/login" > "$SCRATCH/web-nested" || return 2
   cmp -s "$SCRATCH/web-index" "$SCRATCH/web-nested"
 }
 
@@ -160,7 +167,7 @@ gt_web_rollback() {
 }
 
 gt_web_activate() {
-  local target link attempt baseline endpoints
+  local target link attempt baseline endpoints message
   target=$(gt_path /etc/nginx/sites-available/grafioschtrader)
   link=$(gt_path /etc/nginx/sites-enabled/grafioschtrader)
   baseline=$(gt_path /var/lib/gt-install/web-before)
@@ -191,8 +198,10 @@ gt_web_activate() {
       sleep 1
     done
   fi
-  gt_web_rollback || { gt_core_error 'nginx recovery failed; inspect nginx -t and the owned enablement link.'; return 2; }
-  gt_core_error 'Web verification failed; own vhost disabled and previous configuration reloaded. Resume --install-web after diagnosis.'
+  gt_web_rollback ||
+    { gt_core_error 'nginx recovery failed; inspect nginx -t and the owned enablement link.'; return 2; }
+  message='Web verification failed; own vhost disabled and previous configuration reloaded.'
+  gt_core_error "$message Resume --install-web after diagnosis."
   return 2
 }
 
@@ -265,7 +274,7 @@ gt_firewall_summary() {
 }
 
 gt_install_web() {
-  local state_dir before after reply package
+  local state_dir before after reply package en de
   local completed_status
   completed_status=0
   gt_completed || completed_status=$?
@@ -283,8 +292,11 @@ gt_install_web() {
   fi
   gt_web_preflight || { gt_core_error 'Web preflight failed; no web changes made.'; return 2; }
   before="$(sha256sum "$state_dir/state"):${FACT[web.snapshot]}:${FACT[web.package]}:${FACT[web.lan]}"
-  gt_text 'LAN stage: install nginx if absent; add an owned HTTP vhost, verify frontend/API and existing sites, enable nginx at boot.' \
-    'LAN-Stufe: nginx bei Bedarf installieren; eigenen HTTP-Vhost ergänzen, Frontend/API und bestehende Sites prüfen, nginx beim Boot aktivieren.'
+  en='LAN stage: install nginx if absent; add an owned HTTP vhost, verify frontend/API and existing sites,'
+  en+=' enable nginx at boot.'
+  de='LAN-Stufe: nginx bei Bedarf installieren; eigenen HTTP-Vhost ergänzen, Frontend/API und bestehende Sites prüfen,'
+  de+=' nginx beim Boot aktivieren.'
+  gt_text "$en" "$de"
   gt_firewall_summary
   printf 'URL: http://%s/grafioschtrader/\nDocument root: %s\n' "${FACT[web.lan]}" "${ANSWER[DOCROOT]}"
   if [[ "$CORE_CONFIRM" != yes ]]; then
@@ -309,7 +321,9 @@ gt_install_web() {
     [[ -L "$(gt_path /etc/nginx/sites-enabled/grafioschtrader)" ]] && gt_web_verify || return 2
     gt_core_run systemctl is-enabled --quiet nginx.service || return 2
   else gt_web_activate || return 2; fi
-  gt_text 'LAN web access verified. Installation remains unfinished: mail verification and final hand-over are pending.' \
+  en='LAN web access verified.'
+  en+=' Installation remains unfinished: mail verification and final hand-over are pending.'
+  gt_text "$en" \
     'LAN-Webzugriff geprüft. Installation bleibt unvollständig: Mail-Prüfung und abschließende Übergabe stehen aus.'
   return 10
 }

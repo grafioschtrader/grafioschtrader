@@ -68,9 +68,11 @@ gt_state_load() {
   while IFS= read -r line; do
     [[ -n "$line" ]] || continue
     key=${line%%=*}; value=${line#*=}
-    [[ "$line" == *=* && "$key" =~ ^[a-zA-Z0-9_.+-]+$ && -z "${STATE[$key]+set}" && "$value" != *[$'\001'-$'\037'$'\177']* ]] || return 2
+    [[ "$line" == *=* && "$key" =~ ^[a-zA-Z0-9_.+-]+$ && -z "${STATE[$key]+set}" &&
+      "$value" != *[$'\001'-$'\037'$'\177']* ]] || return 2
     case "$key" in
-      schema|status|scope|run_id|planned_commit|java_home|maven|new_database_server|database_before|account_before|root_auth|step.*|resource.*|file.*) ;;
+      schema|status|scope|run_id|planned_commit|java_home|maven|new_database_server|database_before|account_before|\
+        root_auth|step.*|resource.*|file.*) ;;
       built_commit) [[ "$value" =~ ^[a-f0-9]{40}$ ]] || return 2 ;;
       installer_sha256) [[ "$value" =~ ^[a-f0-9]{64}$ ]] || return 2 ;;
       completed_at) [[ "$value" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || return 2 ;;

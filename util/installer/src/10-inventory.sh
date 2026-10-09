@@ -56,7 +56,8 @@ gt_packages() {
 
 gt_service() {
   local unit=$1 value
-  value=$(gt_probe systemctl show "$unit" --property=LoadState --property=ActiveState --property=SubState --property=UnitFileState) || value=unknown
+  value=$(gt_probe systemctl show "$unit" --property=LoadState --property=ActiveState --property=SubState \
+    --property=UnitFileState) || value=unknown
   printf '%s' "$value"
 }
 gt_installed_unit() { [[ "$(gt_service "$1")" == *'LoadState=loaded'* ]]; }
@@ -85,7 +86,8 @@ gt_installation() {
       FACT[state.$key]=$(gt_literal "$state_file" "$key") || FACT[state.$key]=unknown
     done
     # Only completion markers are shown, never arbitrary state values or the secrets file.
-    FACT[state.completed_steps]=$(awk -F= '$1~/^step[._][a-zA-Z0-9_.-]+$/ && $2~/^(complete|completed|ok|1)$/ {print $1}' "$state_file" 2>/dev/null)
+    FACT[state.completed_steps]=$(awk -F= '
+      $1~/^step[._][a-zA-Z0-9_.-]+$/ && $2~/^(complete|completed|ok|1)$/ {print $1}' "$state_file" 2>/dev/null)
     case "$status" in
       complete)
         gt_question_model
@@ -140,8 +142,10 @@ gt_java() {
     javac=no; [[ -x "$dir/bin/java" && -x "$dir/bin/javac" ]] && javac=yes
     jit=no; gt_jdk_jit "$dir" && jit=yes
     JDKS+=("$dir version=$version vendor=$vendor javac=$javac jit=$jit")
-    if [[ "$version" =~ ^([0-9]+)(\.|$) && "$javac" == yes && "$jit" == yes ]] && (( BASH_REMATCH[1] >= JAVA_REQUIRED )); then
-      if [[ "${FACT[java.suitable]}" == absent || ( "${FACT[java.version]%%.*}" != "$JAVA_REQUIRED" && "${version%%.*}" == "$JAVA_REQUIRED" ) ]]; then
+    if [[ "$version" =~ ^([0-9]+)(\.|$) && "$javac" == yes && "$jit" == yes ]] &&
+        (( BASH_REMATCH[1] >= JAVA_REQUIRED )); then
+      if [[ "${FACT[java.suitable]}" == absent ||
+          ( "${FACT[java.version]%%.*}" != "$JAVA_REQUIRED" && "${version%%.*}" == "$JAVA_REQUIRED" ) ]]; then
         FACT[java.suitable]=$dir FACT[java.version]=$version
       fi
     fi
@@ -150,8 +154,8 @@ gt_java() {
 }
 gt_maven_probe() {
   local executable=$1 home=$2
-  local -a environment=(-u JAVA_HOME -u _JAVA_OPTIONS MAVEN_SKIP_RC=1 MAVEN_OPTS="-Djava.io.tmpdir=$SCRATCH -Dstyle.color=never"
-    MAVEN_ARGS= JAVA_TOOL_OPTIONS= JDK_JAVA_OPTIONS=)
+  local -a environment=(-u JAVA_HOME -u _JAVA_OPTIONS MAVEN_SKIP_RC=1
+    MAVEN_OPTS="-Djava.io.tmpdir=$SCRATCH -Dstyle.color=never" MAVEN_ARGS= JAVA_TOOL_OPTIONS= JDK_JAVA_OPTIONS=)
   [[ "$home" == absent || "$home" == pending ]] || environment+=("JAVA_HOME=$home" "PATH=$home/bin:$PATH")
   (cd "$SCRATCH" && gt_probe env "${environment[@]}" "$executable" -v)
 }
@@ -204,8 +208,10 @@ gt_runtimes() {
     while IFS= read -r dir; do
       case "$dir" in
         */@angular/cli|*/semver)
-          version=$(sed -nE 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/p' "$dir/package.json" 2>/dev/null | head -n 1)
-          [[ "$dir" == */semver ]] && FACT[semver.version]=${version:-unknown} || FACT[angular.version]=${version:-unknown}
+          version=$(sed -nE 's/^[[:space:]]*"version"[[:space:]]*:[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)".*/\1/p' \
+            "$dir/package.json" 2>/dev/null | head -n 1)
+          if [[ "$dir" == */semver ]]; then FACT[semver.version]=${version:-unknown}
+          else FACT[angular.version]=${version:-unknown}; fi
           ;;
       esac
     done <<< "$value"
@@ -229,7 +235,8 @@ gt_consumers() {
       done <<< "$value"
     elif [[ $? != 1 ]]; then FACT[$kind.consumers]=unknown; fi
   done
-  value=$(gt_probe apt-cache -o Dir::Cache::pkgcache= -o Dir::Cache::srcpkgcache= rdepends --installed nodejs) || value=unknown
+  value=$(gt_probe apt-cache -o Dir::Cache::pkgcache= -o Dir::Cache::srcpkgcache= rdepends --installed nodejs) ||
+    value=unknown
   FACT[node.reverse_dependencies]=$value
   if [[ "$value" == unknown ]]; then FACT[node.consumers]=unknown
   elif [[ -n "$(sed '1,2d;/^[[:space:]]*$/d' <<< "$value")" ]]; then FACT[node.consumers]=yes; fi
@@ -256,7 +263,8 @@ gt_database() {
   local -a options=(--no-defaults --protocol=SOCKET --user=root --batch --skip-column-names --connect-timeout=4)
   [[ -z "${1:-}" ]] || options[0]="--defaults-file=$1"
   FACT[database.vendor]=absent FACT[database.version]=absent FACT[database.query]=unknown
-  FACT[database.schemas]=unknown FACT[database.users]=unknown FACT[database.gt_tables]=unknown FACT[database.gt_user]=unknown
+  FACT[database.schemas]=unknown FACT[database.users]=unknown
+  FACT[database.gt_tables]=unknown FACT[database.gt_user]=unknown
   FACT[database.datadir]=/var/lib/mysql FACT[database.root_socket]=unknown FACT[database.active]=no
   FACT[database.service]=$(gt_service mariadb.service)
   FACT[database.socket]=$(gt_service mariadb.socket)
@@ -287,23 +295,32 @@ gt_database() {
   IFS=$'\t' read -r version value collation <<< "$value"
   FACT[database.version]=${version%%-*} FACT[database.datadir]=$value FACT[database.collation]=$collation
   [[ "$version" == *MariaDB* ]] && FACT[database.vendor]=mariadb || FACT[database.vendor]=mysql
-  local sql='SELECT s.SCHEMA_NAME, COUNT(t.TABLE_NAME), COALESCE(SUM(t.TABLE_NAME="flyway_schema_history"),0) FROM information_schema.SCHEMATA s LEFT JOIN information_schema.TABLES t ON t.TABLE_SCHEMA=s.SCHEMA_NAME GROUP BY s.SCHEMA_NAME;'
+  local sql='SELECT s.SCHEMA_NAME, COUNT(t.TABLE_NAME), COALESCE(SUM(t.TABLE_NAME="flyway_schema_history"),0)'
+  sql+=' FROM information_schema.SCHEMATA s LEFT JOIN information_schema.TABLES t ON t.TABLE_SCHEMA=s.SCHEMA_NAME'
+  sql+=' GROUP BY s.SCHEMA_NAME;'
   if value=$(gt_probe "$client" "${options[@]}" -e "$sql"); then
     FACT[database.schemas]=$value
-    FACT[database.gt_tables]=$(awk -F '\t' '$1=="grafioschtrader" {print $2; found=1} END {if(!found) print "absent"}' <<< "$value")
+    FACT[database.gt_tables]=$(awk -F '\t' '$1=="grafioschtrader" {print $2; found=1} END {if(!found) print "absent"}' \
+      <<< "$value")
   fi
   if value=$(gt_probe "$client" "${options[@]}" \
       -e 'SELECT User,Host,plugin FROM mysql.user;'); then
     FACT[database.users]=$value FACT[database.gt_user]=absent
-    [[ "$(awk -F '\t' '$1=="grafioschtrader" && $2=="localhost" {print "yes"}' <<< "$value")" == yes ]] && FACT[database.gt_user]=present
+    if [[ "$(awk -F '\t' '$1=="grafioschtrader" && $2=="localhost" {print "yes"}' <<< "$value")" == yes ]]; then
+      FACT[database.gt_user]=present
+    fi
   fi
   if value=$(gt_probe "$client" "${options[@]}" \
-      -e "SELECT COUNT(*) FROM mysql.global_priv WHERE User='root' AND Host='localhost' AND priv LIKE '%unix_socket%';"); then
+      -e "SELECT COUNT(*) FROM mysql.global_priv WHERE User='root' AND Host='localhost'
+        AND priv LIKE '%unix_socket%';"); then
     FACT[database.root_socket]=$value
   fi
   if value=$(gt_probe "$client" "${options[@]}" \
-      -e "SHOW SESSION VARIABLES LIKE 'character_set_collations';"); then FACT[database.character_set_collations]=${value:-unavailable-before-11.2}; fi
-  if awk '$4 ~ /:3306$/ && $4 !~ /^(127\.|\[?::1\]?:)/ {found=1} END {exit !found}' <<< "${FACT[listeners]:-unknown}"; then
+      -e "SHOW SESSION VARIABLES LIKE 'character_set_collations';"); then
+    FACT[database.character_set_collations]=${value:-unavailable-before-11.2}
+  fi
+  if awk '$4 ~ /:3306$/ && $4 !~ /^(127\.|\[?::1\]?:)/ {found=1} END {exit !found}' \
+      <<< "${FACT[listeners]:-unknown}"; then
     gt_note WARN unavailable 'MariaDB listens beyond loopback; leave shared server networking unchanged'
   fi
 }
@@ -327,7 +344,8 @@ gt_network() {
   gt_capture network.ipv4_route ip -4 route get 1.1.1.1
   FACT[network.lan_ipv4]=$(awk '{for(i=1;i<NF;i++) if($i=="src") print $(i+1)}' <<< "${FACT[network.ipv4_route]}")
   # A host on two networks (Ethernet intranet, WLAN uplink) offers each of its addresses for the LAN site.
-  if value=$(gt_probe ip -4 -o addr show scope global); then FACT[network.ipv4_addresses]=$(gt_ipv4_addresses <<< "$value")
+  if value=$(gt_probe ip -4 -o addr show scope global); then
+    FACT[network.ipv4_addresses]=$(gt_ipv4_addresses <<< "$value")
   else FACT[network.ipv4_addresses]=unknown; gt_note UNKNOWN unavailable network.ipv4_addresses; fi
   gt_capture network.ipv6_route ip -6 route show default
   interface=$(awk '{for(i=1;i<NF;i++) if($i=="dev") {print $(i+1); exit}}' <<< "${FACT[network.ipv6_route]}")
@@ -355,7 +373,8 @@ gt_network() {
         -w '%{http_code}' "https://$host/"); then NETWORK+=("$host HTTP=$status"); else NETWORK+=("$host UNKNOWN"); fi
   done
   url=https://github.com/grafioschtrader/grafioschtrader/releases/download/Latest/latest.tar.gz
-  if value=$(gt_probe curl --disable -fsSIL -o /dev/null --connect-timeout 3 --max-time 10 -w '%{url_effective}' "$url"); then
+  if value=$(gt_probe curl --disable -fsSIL -o /dev/null --connect-timeout 3 --max-time 10 -w '%{url_effective}' \
+      "$url"); then
     # Redirects to release assets contain signed query parameters. Report only the host.
     host=${value#*://}; host=${host%%/*}; host=${host%%\?*}
     NETWORK+=("frontend-release host=$host reachable=yes")
@@ -412,13 +431,16 @@ gt_web() {
   local -A visited=() kinds=()
   FACT[web.apache2]=${PACKAGE[apache2]:-absent} FACT[web.nginx]=${PACKAGE[nginx]:-absent}
   FACT[web.certbot]=${PACKAGE[certbot]:-absent}
-  FACT[web.certbot_plugins]="nginx=${PACKAGE[python3-certbot-nginx]:-absent} apache=${PACKAGE[python3-certbot-apache]:-absent}"
+  FACT[web.certbot_plugins]="nginx=${PACKAGE[python3-certbot-nginx]:-absent}"
+  FACT[web.certbot_plugins]+=" apache=${PACKAGE[python3-certbot-apache]:-absent}"
   FACT[web.certbot_timer]=$(gt_service certbot.timer)
   FACT[web.cloudflared]=$(gt_service cloudflared.service)
-  FACT[web.apache_modules]=$(find "$(gt_path /etc/apache2/mods-enabled)" -maxdepth 1 -name '*.load' -printf '%f\n' 2>/dev/null || true)
+  FACT[web.apache_modules]=$(find "$(gt_path /etc/apache2/mods-enabled)" -maxdepth 1 -name '*.load' -printf '%f\n' \
+    2>/dev/null || true)
   local -a files=()
-  for file in "$(gt_path /etc/nginx/nginx.conf)" "$(gt_path /etc/nginx/sites-enabled)"/* "$(gt_path /etc/nginx/conf.d)"/*.conf \
-      "$(gt_path /etc/apache2/apache2.conf)" "$(gt_path /etc/apache2/sites-enabled)"/*; do
+  for file in "$(gt_path /etc/nginx/nginx.conf)" "$(gt_path /etc/nginx/sites-enabled)"/* \
+      "$(gt_path /etc/nginx/conf.d)"/*.conf "$(gt_path /etc/apache2/apache2.conf)" \
+      "$(gt_path /etc/apache2/sites-enabled)"/*; do
     if [[ -f "$file" ]]; then
       files+=("$file")
       [[ "$file" == */apache2/* ]] && kinds[$file]=apache || kinds[$file]=nginx
@@ -478,7 +500,9 @@ gt_web() {
               [[ -f "$include_file" ]] || continue
               files+=("$include_file"); kinds[$include_file]=$kind; result=yes
             done < <(compgen -G "$(gt_path "$include")" | LC_ALL=C sort)
-            if [[ "$result" == no && "$key" != IncludeOptional ]]; then gt_note UNKNOWN unavailable "web include: $file"; fi
+            if [[ "$result" == no && "$key" != IncludeOptional ]]; then
+              gt_note UNKNOWN unavailable "web include: $file"
+            fi
             # The file is inventoried, but assigning included directives to a parent vhost requires expansion.
             if (( in_block )); then gt_note UNKNOWN unavailable "included vhost context: $file"; fi
           fi ;;

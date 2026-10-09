@@ -91,7 +91,7 @@ gt_bootstrap_web_review() {
 }
 
 gt_bootstrap_app_review() {
-  local file path digest
+  local file path digest raw=https://raw.githubusercontent.com/grafioschtrader/grafioschtrader
   gt_app_targets || return 2
   for file in gtupdate.sh gtupbackend.sh gtupfrontend.sh gtupfrontback.sh checkversion.sh merger.sh \
       gt_to_g_rename.sh gtcronrandom.sh; do
@@ -107,7 +107,7 @@ gt_bootstrap_app_review() {
   if [[ "${STATE[step.core]:-}" != complete ]]; then
     for file in gtupbackend.sh gtupfrontend.sh; do
       gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 \
-        "https://raw.githubusercontent.com/grafioschtrader/grafioschtrader/${FACT[source.commit]}/util/shellscripts/$file" \
+        "$raw/${FACT[source.commit]}/util/shellscripts/$file" \
         > "$SCRATCH/bootstrap-$file" || return 2
       grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/bootstrap-$file" || return 2
     done
@@ -115,7 +115,7 @@ gt_bootstrap_app_review() {
 }
 
 gt_bootstrap_plan() {
-  local key id target
+  local key id target en
   if [[ "${STATE[step.core]:-}" == complete ]]; then
     PLAN=() PLAN_BLOCKERS=() PLAN_WARNINGS=() PLAN_PACKAGES=()
     # A journaled first start reaches the post-start verifier, never the core's
@@ -137,15 +137,19 @@ gt_bootstrap_plan() {
   gt_bootstrap_app_review || gt_plan_block 'Foreign/changed application target or unsupported pinned build helpers.'
   gt_bootstrap_web_review || gt_plan_block 'Web targets, LAN address or shared web configuration cannot be verified.'
   gt_plan_web_runtime
-  gt_plan_row configure application 'Update helpers, sudoers (start/stop only), systemd unit, weekly log rotation (8 copies), protected build log.'
+  gt_plan_row configure application \
+    'Update helpers, sudoers (start/stop only), systemd unit, weekly log rotation (8 copies), protected build log.'
   for target in /etc/sudoers.d/grafioschtrader /etc/systemd/system/grafioschtrader.service \
       /etc/logrotate.d/grafioschtrader /var/log/grafioschtrader.log; do
     gt_plan_row manage "$target" 'Create or verify installer-owned target; foreign targets block.'
   done
   gt_plan_row configure timezone "${ANSWER[TIMEZONE]}; choose and persist the application cron slot once."
-  gt_plan_row build "$CORE_HOME" "${STATE[planned_commit]:-${FACT[source.commit]}}; backend from source; frontend=${FACT[frontend.mode]:-from-pinned-helper}"
+  en="${STATE[planned_commit]:-${FACT[source.commit]}}; backend from source;"
+  en+=" frontend=${FACT[frontend.mode]:-from-pinned-helper}"
+  gt_plan_row build "$CORE_HOME" "$en"
   gt_plan_row manage "${ANSWER[DOCROOT]}/grafioschtrader" 'Owned frontend directory; shared document root preserved.'
-  gt_plan_row enable grafioschtrader.service 'Start migrations, verify production database and loopback listeners, then enable boot.'
+  gt_plan_row enable grafioschtrader.service \
+    'Start migrations, verify production database and loopback listeners, then enable boot.'
   for id in lan http domain; do
     [[ "${ANSWER[WEBSERVER]}" != none ]] || break
     [[ "$id" == lan || -n "${ANSWER[DOMAIN]:-}" ]] || continue
@@ -156,7 +160,8 @@ gt_bootstrap_plan() {
     gt_plan_row manage "$target" 'Own vhost and sites-enabled link; validate before reload and compare shared sites.'
   done
   if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then
-    gt_plan_row configure apache2 'Enable required modules; disable only the distribution default site; preserve rollback records.'
+    gt_plan_row configure apache2 \
+      'Enable required modules; disable only the distribution default site; preserve rollback records.'
     [[ "${ANSWER[TLS_SOURCE]:-}" != proxy ]] || gt_plan_row manage \
       /etc/apache2/conf-enabled/grafioschtrader-listen.conf "Listen ${ANSWER[TLS_PROXY_LISTEN]}"
   fi
@@ -172,14 +177,20 @@ gt_bootstrap_plan() {
   fi
   gt_firewall_plan
   if [[ "${ANSWER[TLS_SOURCE]:-}" == letsencrypt ]]; then
-    gt_plan_row consent letsencrypt 'HTTP-01 issuance/reuse, renewal test and scoped reload hook/timer; terms: https://letsencrypt.org/repository/'
+    gt_plan_row consent letsencrypt \
+      'HTTP-01 issuance/reuse, renewal test and scoped reload hook/timer; terms: https://letsencrypt.org/repository/'
   fi
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == yes ]]; then
-    gt_plan_row verify SMTP "${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; TLS=${ANSWER[SMTP_SECURITY]}; sender=${ANSWER[SMTP_USER]}; recipient=${ANSWER[ADMIN_EMAIL]}; send=${ANSWER[SMTP_TEST]}"
-    [[ "${STATE[step.mail]:-}" != intent ]] || gt_plan_warn 'Previous mail attempt was interrupted; resumption may submit the same Message-ID again.'
-    [[ "${STATE[resource.mail_delivery]:-}" != accepted ]] || gt_plan_row reuse SMTP 'Recorded server acceptance; no duplicate test message.'
+    en="${ANSWER[SMTP_HOST]}:${ANSWER[SMTP_PORT]}; auth=${ANSWER[SMTP_AUTH]}; TLS=${ANSWER[SMTP_SECURITY]};"
+    en+=" sender=${ANSWER[SMTP_USER]}; recipient=${ANSWER[ADMIN_EMAIL]}; send=${ANSWER[SMTP_TEST]}"
+    gt_plan_row verify SMTP "$en"
+    [[ "${STATE[step.mail]:-}" != intent ]] ||
+      gt_plan_warn 'Previous mail attempt was interrupted; resumption may submit the same Message-ID again.'
+    [[ "${STATE[resource.mail_delivery]:-}" != accepted ]] ||
+      gt_plan_row reuse SMTP 'Recorded server acceptance; no duplicate test message.'
   else gt_plan_warn 'SMTP skipped: registration remains unavailable; final result will be incomplete.'; fi
-  gt_plan_row publish /var/lib/gt-install/result 'Verify milestones and publish the protected result; completion requires backend, web, TLS and mail evidence.'
+  gt_plan_row publish /var/lib/gt-install/result \
+    'Verify milestones and publish the protected result; completion requires backend, web, TLS and mail evidence.'
   gt_bootstrap_apt_plan || gt_plan_block 'Full APT transaction unavailable, stale, or would upgrade/remove packages.'
   FACT[bootstrap.plan]=$(printf '%s\n' "${PLAN[@]}" | sha256sum)
   (( ${#PLAN_BLOCKERS[@]} == 0 ))
