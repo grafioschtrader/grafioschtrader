@@ -590,6 +590,23 @@ fetched during an internet outage, once because Armbian's ramlog had restored th
 `c63be7145b153d30ca7fb8cfea795e573d1a14a0`; installer SHA-256:
 `e57c60fd4614ecc5f8862947b2cc094fbd321f5af472f8073213f54648770c2d`.
 
+German real-hardware acceptance on 2026-10-09 passed on the Radxa ROCK 5B (arm64, 16 GB) with Debian 12, kernel
+`6.1.84-8-rk2410`, after the installation of 2026-10-08 and its packages were removed. The modeless installation
+with an answers file ran from the administrator's home `/home/rock` as root in a session with `LANG=de_CH.UTF-8` and
+no other locale variable: plan, APT output, messages and the result were German. It used the Temurin `25.0.4.1+1`
+archive, the Apache Maven `3.10.0` archive, Node `24.21.0`, MariaDB `10.11.18` and nginx `1.22.1`, built the backend
+and the frontend (`ng build`, 47 s) locally, and reached `status=complete` with Let's Encrypt and an accepted test
+message. MariaDB listened on `127.0.0.1:3306` only, the backend on loopback; both migrations of the baseline
+succeeded and no column or table uses a `uca1400` collation. After a reboot MariaDB, the backend and nginx started
+by themselves, LAN, API and HTTPS answered, and a modeless German rerun reported `host.class=completed` and left
+journal, result, build log and secrets unchanged. The first attempt stopped in the database step because the
+removal had also deleted `/etc/mysql/mariadb.cnf` of the image's preinstalled `mariadb-common`; without its
+`!includedir` MariaDB ignored `bind-address` and listened on every address, and the installer's loopback check
+refused to continue. Restoring that file (`apt-get install --reinstall -o Dpkg::Options::=--force-confmiss
+mariadb-common mysql-common`) and restarting MariaDB let the run resume. Application commit:
+`bfab35b63cc98ceb10abb6970c766eb53b368420`; installer SHA-256:
+`516708ebf333a1b9138eb64673b2ccd6789135ee055bc8cde790196cef89daf3`.
+
 Real-hardware acceptance on Debian 13 arm64 passed on 2026-10-08 on a Radxa ROCK 4C+ (4 GB, zram swap, SD card)
 with Armbian 26.11, kernel `6.18.54-current-rockchip64`, nginx `1.26.3`, Let's Encrypt and the installer's own
 DuckDNS updater, dual-homed like the ROCK 5B. The image had neither git nor dig; the modeless plan installed both

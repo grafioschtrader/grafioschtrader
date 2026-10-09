@@ -49,7 +49,6 @@ failure.
 
 | Release and architecture | Required evidence |
 |---|---|
-| Debian 12 or 13 arm64 on real hardware, started in a German SSH session from the administrator's home | the evidence of the row below |
 | Ubuntu 24.04 arm64, Ubuntu 26.04 arm64 | backend built locally, frontend served, listeners on loopback, migrations complete, no `uca1400` column, service up again after a reboot, rerun without a step |
 
 **Read-only runs on the reference hosts** (`--check` and `--dry-run`): correct host class, complete component

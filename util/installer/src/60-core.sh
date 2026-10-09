@@ -1585,11 +1585,13 @@ gt_core_snapshot() {
 }
 
 gt_core_execute() {
-  local step en de
+  local step en de resume=--install-core
+  # A modeless run resumes its own journal without a mode; --install-core refuses a bootstrap journal.
+  [[ "${STATE[scope]:-}" != bootstrap ]] || resume='the installer without a mode'
   for step in base_packages swap toolchains user duckdns buildtools clone database configure; do
     gt_progress core "$step" "$(gt_text 'Core step' 'Kernschritt'): $step"
     "gt_core_$step" ||
-      { gt_core_error "$step; resume with --install-core after resolving the cause. No automatic rollback."; return 2; }
+      { gt_core_error "$step; resume with $resume after resolving the cause. No automatic rollback."; return 2; }
   done
   gt_core_mark step.core complete || return 2
   de='Installationskern eingerichtet.'
