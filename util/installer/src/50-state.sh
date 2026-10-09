@@ -164,7 +164,10 @@ gt_secrets_load() {
   PRIVATE_CONTENT=''
   [[ "$id" == "${STATE[run_id]}" && "${loaded[JWT_SECRET]:-}" =~ ^[a-zA-Z0-9]{48}$ ]] || return 2
   for key in DB_PASSWORD JASYPT_PASSWORD SMTP_PASSWORD DUCKDNS_TOKEN; do
-    if gt_question_applies "$key"; then gt_valid_secret "${loaded[$key]:-}" || return 2
+    # A change of the SMTP selection journals its answers before the secrets file follows; until it is applied,
+    # the SMTP password may still match the earlier answers (gt_mail_change_apply settles it).
+    if [[ "$key" == SMTP_PASSWORD && "${STATE[step.mail_change]:-}" == intent ]]; then continue
+    elif gt_question_applies "$key"; then gt_valid_secret "${loaded[$key]:-}" || return 2
     else [[ -z "${loaded[$key]+set}" ]] || return 2; fi
   done
   SECRET=()

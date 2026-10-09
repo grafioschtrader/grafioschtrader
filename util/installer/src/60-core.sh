@@ -721,9 +721,29 @@ gt_core_config_valid() {
   done
 }
 
+# The mail keys of application.properties, derived from the SMTP answers alone. The core configuration and a later
+# change of the SMTP selection (--check-mail) render the same lines; the production file's starttls.required follows
+# the starttls.enable set here.
+gt_mail_properties() {
+  local auth=false starttls=false tls=false
+  PROPERTIES=([spring.mail.host]='' [spring.mail.port]=587 [spring.mail.username]='' [spring.mail.password]='')
+  if [[ "${ANSWER[SMTP_CONFIGURE]}" == yes ]]; then
+    PROPERTIES[spring.mail.host]=${ANSWER[SMTP_HOST]} PROPERTIES[spring.mail.port]=${ANSWER[SMTP_PORT]}
+    PROPERTIES[spring.mail.username]=${ANSWER[SMTP_USER]}
+    if [[ "${ANSWER[SMTP_AUTH]}" == yes ]]; then
+      auth=true; gt_encrypt_secret SMTP_PASSWORD || return 2
+      PROPERTIES[spring.mail.password]=$ENCRYPTED
+    fi
+    case "${ANSWER[SMTP_SECURITY]}" in starttls) starttls=true ;; tls) tls=true ;; esac
+  fi
+  PROPERTIES[spring.mail.properties.mail.smtp.auth]=$auth
+  PROPERTIES[spring.mail.properties.mail.smtp.starttls.enable]=$starttls
+  PROPERTIES[spring.mail.properties.mail.smtp.ssl.enable]=$tls
+}
+
 gt_core_configure() {
   local template="$SCRATCH/application.template" production="$SCRATCH/production.template" original target key
-  local auth=false starttls=false tls=false
+  local starttls
   if [[ "${STATE[step.configuration]:-}" == complete ]]; then
     gt_core_config_valid || return 2
     [[ -z "${STATE[build.mode]:-}" ]] || gt_core_variables || return 2
@@ -738,10 +758,11 @@ gt_core_configure() {
   # Only the environment placeholder is allowed; application startup must not use a template key.
   # shellcheck disable=SC2016
   grep -Fxq 'jasypt.encryptor.password=${JASYPT_ENCRYPTOR_PASSWORD:}' "$template" || return 2
-  PROPERTIES=([g.main.user.admin.mail]="${ANSWER[ADMIN_EMAIL]}" [g.allowed.users]="${ANSWER[ALLOWED_USERS]}"
-    [spring.mail.host]='' [spring.mail.port]=587 [spring.mail.username]='' [spring.mail.password]=''
-    [gt.connector.ajp.enabled]=false [gt.connector.ajp.port]="${ANSWER[BACKEND_PORT]}"
-    [gt.connector.http.enabled]=true [gt.connector.http.port]="${ANSWER[BACKEND_PORT]}")
+  gt_mail_properties || return 2
+  starttls=${PROPERTIES[spring.mail.properties.mail.smtp.starttls.enable]}
+  PROPERTIES[g.main.user.admin.mail]=${ANSWER[ADMIN_EMAIL]} PROPERTIES[g.allowed.users]=${ANSWER[ALLOWED_USERS]}
+  PROPERTIES[gt.connector.ajp.enabled]=false PROPERTIES[gt.connector.ajp.port]=${ANSWER[BACKEND_PORT]}
+  PROPERTIES[gt.connector.http.enabled]=true PROPERTIES[gt.connector.http.port]=${ANSWER[BACKEND_PORT]}
   if [[ "${ANSWER[WEBSERVER]}" == apache2 ]]; then
     PROPERTIES[gt.connector.ajp.enabled]=true PROPERTIES[gt.connector.http.enabled]=false
   fi
@@ -749,18 +770,6 @@ gt_core_configure() {
   PROPERTIES[spring.datasource.password]=$ENCRYPTED
   gt_encrypt_secret JWT_SECRET || return 2
   PROPERTIES[g.jwt.secret]=$ENCRYPTED
-  if [[ "${ANSWER[SMTP_CONFIGURE]}" == yes ]]; then
-    PROPERTIES[spring.mail.host]=${ANSWER[SMTP_HOST]} PROPERTIES[spring.mail.port]=${ANSWER[SMTP_PORT]}
-    PROPERTIES[spring.mail.username]=${ANSWER[SMTP_USER]}
-    if [[ "${ANSWER[SMTP_AUTH]}" == yes ]]; then
-      auth=true; gt_encrypt_secret SMTP_PASSWORD || return 2
-      PROPERTIES[spring.mail.password]=$ENCRYPTED
-    fi
-    case "${ANSWER[SMTP_SECURITY]}" in starttls) starttls=true ;; tls) tls=true ;; esac
-  fi
-  PROPERTIES[spring.mail.properties.mail.smtp.auth]=$auth
-  PROPERTIES[spring.mail.properties.mail.smtp.starttls.enable]=$starttls
-  PROPERTIES[spring.mail.properties.mail.smtp.ssl.enable]=$tls
   gt_properties_render "$template" "$SCRATCH/application.config" || return 2
   original=$(sha256sum "$template"); original=${original%% *}
   gt_core_publish properties "$SCRATCH/application.config" "$CORE_REPO/$target/application.properties" 600 \

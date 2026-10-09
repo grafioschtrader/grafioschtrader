@@ -125,7 +125,7 @@ Optional stages (all accept --plain):
   --check | --dry-run | --prepare [--answers FILE]
   --install-core [--answers FILE] [--yes]
   --install-app [--yes] | --install-web [--yes]
-  --check-mail [--answers FILE] [--yes]   FILE may correct SMTP_PASSWORD until mail is verified
+  --check-mail [--answers FILE] [--yes]   FILE may change the SMTP answers until mail is verified
 USAGE
         return 0 ;;
       *) gt_message mode >&2; return 2 ;;

@@ -8,8 +8,8 @@
 `util/installer/gt-install.sh` and [`util/installer/README.md`](../util/installer/README.md); the acceptance record
 lives in [`util/installer/test/README.md`](../util/installer/test/README.md), the administrator documentation in the
 wiki page *Installation with the Linux installer*, linked from the gt-user-manual page *Installation and Update*. This
-document fixes the remaining work packages and the order in which they are done (§1–§4). Each package ends with its
-acceptance; a package starts only after the one before it is committed, except where §5 allows otherwise.
+document fixes the remaining work packages and the order in which they are done (§1–§3). Each package ends with its
+acceptance; a package starts only after the one before it is committed, except where §4 allows otherwise.
 
 Supported platforms stay as the installer reports them: primary are Debian 12, Debian 13, Ubuntu 24.04 and Ubuntu
 26.04 (including Raspberry Pi OS and Armbian on these bases) on amd64 and arm64; legacy are Debian 11 and Ubuntu 22.04
@@ -79,27 +79,10 @@ report, no file, package or service changed.
 | occupied 8080/9090, several vhosts | alternative ports used consistently, no listener off loopback, no traffic routed to another site |
 | secrets with shell, SQL and properties special characters; cancellation during execution | literal values survive; no value in the installer's logs, errors or argv, nor in `/var/log/grafioschtrader.log` once issue #274 is resolved; temporary credentials removed on every exit path |
 | administrator address different from the SMTP sender | `g.main.user.admin.mail` holds the chosen address; registration at exactly that address receives administrator roles |
+| installation done with `SMTP_CONFIGURE=no`, then `--check-mail --answers FILE` with the SMTP lines; the same with a wrong SMTP host | the mail check passes and the result reaches `status=complete` without the skipped-mail warning; database, Jasypt and JWT secrets and the installation ID unchanged |
 | editing after hand-over | edit `application.properties` and add a key to `application-production.properties`, run `./gtupdate.sh` as `grafioschtrader` in a German SSH session; the application answers with the edit in effect, `merger.sh` kept the template key and the production file is unchanged |
 
-## 3. Changing the SMTP selection later
-
-Saved answers are immutable; a changed answer is refused. The one exception today is the SMTP password through
-`--check-mail`. Extend this to the whole SMTP selection: an installation completed with `SMTP_CONFIGURE=no`, or with
-wrong SMTP settings, can set or change `SMTP_HOST`, `SMTP_PORT`, `SMTP_AUTH`, `SMTP_USER`, `SMTP_SECURITY`,
-`SMTP_PASSWORD` and `SMTP_TEST` after a confirmed plan.
-
-- Only the owned configuration affected by mail is regenerated; the application is rebuilt and restarted as for the
-  SMTP password.
-- The original database, Jasypt and JWT secrets are preserved; the installation ID and resource ownership stay.
-- All other saved answers stay immutable; domain and TLS changes remain the manual procedure described on the
-  wiki page *Installation with the Linux installer*.
-- The result changes from `incomplete` to `complete` once the mail milestone passes.
-
-**Acceptance:** Bats cases for the accepted SMTP change and for a refused change of any other answer; on a real host,
-an installation done without SMTP gains mail and reaches `status=complete`. The wiki page *Installation with the
-Linux installer* describes the change in its sections on result and mail and on limitations.
-
-## 4. Stage 2 — Debian package
+## 3. Stage 2 — Debian package
 
 Starts only after §2 has installed a disposable machine of every primary release and architecture.
 
@@ -117,18 +100,16 @@ Starts only after §2 has installed a disposable machine of every primary releas
 **Acceptance:** the package installs and upgrades on Debian 12 and Ubuntu 24.04, `sudo gt-install --check` runs, and
 removing the package leaves an installed Grafioschtrader untouched.
 
-## 5. Order
+## 4. Order
 
 | Order | Package | Depends on |
 |---|---|---|
 | 1 | §1 CI on the Ubuntu 26 runner | `master` published; 2026-10-19 |
 | 2 | §2 Acceptance matrix | rows may start whenever hosts are available; real hosts need the published `master` |
-| 3 | §3 Changing the SMTP selection later | — |
-| 4 | §4 Debian package | §2 complete for every primary combination |
+| 3 | §3 Debian package | §2 complete for every primary combination |
 
-## 6. Decisions
+## 5. Decisions
 
 | # | Decision | Reason |
 |---|---|---|
-| 1 | Only the SMTP selection becomes changeable; domain and TLS changes stay manual | mail is the only incomplete milestone a user can fix without touching web or certificates |
-| 2 | Bash script first, thin `.deb` second; no application package | the jar contains the user's configuration and is rebuilt by `gtupdate.sh` outside any package manager; Java 25 cannot be expressed as a dependency on Debian 11/12 |
+| 1 | Bash script first, thin `.deb` second; no application package | the jar contains the user's configuration and is rebuilt by `gtupdate.sh` outside any package manager; Java 25 cannot be expressed as a dependency on Debian 11/12 |

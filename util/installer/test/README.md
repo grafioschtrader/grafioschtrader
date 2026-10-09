@@ -208,9 +208,13 @@ fixtures, including the result action, a hand-edited proposal and the full-plan 
 `LAN_ADDRESS` default and prompt, the chosen address in the web stages, vhost matching and domain checklist, the
 blocker for an address of no interface, and the default-route fallback for journals without the answer.
 
-`mail-password.bats` covers the corrected SMTP password before mail verification: the journal intent precedes the
-new secret, only `spring.mail.password` changes, the service stops before the backend build and starts after it,
-other changed answers or a verified milestone are refused, and an interrupted change resumes without the file.
+`mail-change.bats` covers the changed SMTP selection before mail verification: a corrected password, an
+installation without mail that gains it from defaults and reaches `status=complete` without its skipped-mail
+warning, a relay without authentication that drops the password. The journal intent precedes the secret, only the
+mail keys change, the service stops before the backend build and starts after it. Another changed answer or secret,
+an invalid selection, a verified milestone and an unchanged selection change nothing; an interrupted change resumes
+without the file, or asks for it again when the password was not yet stored. `core.bats` loads the secrets file on
+either side of that password write while the change is open.
 
 `mariadb-socket.bats` covers a newly installed MariaDB whose package enabled `mariadb.socket`: the socket is
 disabled once, the server restarted, a listener beyond loopback stops the core, and a shared server is not touched.

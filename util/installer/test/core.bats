@@ -58,6 +58,28 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
+@test "an open SMTP change accepts the secrets file on either side of its password write" {
+  local key
+  gt_core_begin
+  ANSWER+=([SMTP_CONFIGURE]=yes [SMTP_HOST]=mail.example.org [SMTP_PORT]=587 [SMTP_AUTH]=yes
+    [SMTP_USER]=gt@example.org [SMTP_SECURITY]=starttls [SMTP_TEST]=yes)
+  for key in "${!ANSWER[@]}"; do STATE[answer.$key]=${ANSWER[$key]}; done
+  gt_state_save
+  run gt_secrets_load
+  [ "$status" -ne 0 ]
+  STATE[step.mail_change]=intent
+  gt_state_save
+  STATE=() ANSWER=()
+  gt_state_load
+  gt_secrets_load
+  [ -z "${SECRET[SMTP_PASSWORD]+set}" ]
+  SECRET[SMTP_PASSWORD]=mail-fixture-only
+  gt_secrets_save
+  SECRET=()
+  gt_secrets_load
+  [ "${SECRET[SMTP_PASSWORD]}" = mail-fixture-only ]
+}
+
 @test "journal is never evaluated and rejects secret answers unknown keys NUL and invalid source identity" {
   gt_core_begin
   local original

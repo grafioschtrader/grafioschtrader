@@ -51,55 +51,128 @@ PY
     "<gt-install-${STATE[run_id]}@localhost>" | python3 "$SCRATCH/mail-check.py" > "$SCRATCH/mail-result" || return 1
 }
 
-# A wrong SMTP password shows up only in the mail check, after the backend was built with it. Until the mail
-# milestone is verified, --check-mail --answers FILE accepts a corrected SMTP_PASSWORD; every other answer and
-# secret in FILE must still match the journal.
-gt_mail_password() {
-  local key value reply en de
+# The answers --check-mail --answers FILE may change until the mail milestone is verified, in question order.
+GT_MAIL_ANSWERS='SMTP_CONFIGURE SMTP_HOST SMTP_PORT SMTP_AUTH SMTP_USER SMTP_SECURITY SMTP_PASSWORD SMTP_TEST'
+
+# One line describing the SMTP selection held in ANSWER; the password never appears.
+gt_mail_summary() {
+  if [[ "${ANSWER[SMTP_CONFIGURE]}" != yes ]]; then gt_text 'no mail' 'keine Mail'; return 0; fi
+  printf '%s:%s; transport=%s; auth=%s; sender=%s; send=%s\n' "${ANSWER[SMTP_HOST]}" "${ANSWER[SMTP_PORT]}" \
+    "${ANSWER[SMTP_SECURITY]}" "${ANSWER[SMTP_AUTH]}" "${ANSWER[SMTP_USER]}" "${ANSWER[SMTP_TEST]}"
+}
+
+# Resolves the SMTP answers of FILE_ANSWERS into ANSWER in question order, so each condition and default sees the
+# answers before it. A key missing from FILE keeps its saved value, or takes its default where it did not apply
+# before. The password the new selection needs is left in the caller's local password.
+gt_mail_answers() {
+  local key
+  for key in $GT_MAIL_ANSWERS; do
+    if ! gt_question_applies "$key"; then
+      [[ -z "${FILE_ANSWERS[$key]+set}" ]] || { gt_core_error "$key does not apply to the SMTP selection."; return 2; }
+      unset "ANSWER[$key]"; continue
+    fi
+    if [[ "$key" == SMTP_PASSWORD ]]; then
+      password=${FILE_ANSWERS[$key]-${SECRET[$key]-}}
+      gt_valid_secret "$password" || { gt_core_error 'The SMTP selection needs a valid SMTP_PASSWORD.'; return 2; }
+      continue
+    fi
+    if [[ -n "${FILE_ANSWERS[$key]+set}" ]]; then ANSWER[$key]=${FILE_ANSWERS[$key]}
+    elif [[ -z "${ANSWER[$key]+set}" ]]; then ANSWER[$key]=$(gt_default "$key"); fi
+    gt_validate_answer "$key" "${ANSWER[$key]}" || { gt_core_error "Invalid/missing answer: $key"; return 2; }
+  done
+  [[ "${ANSWER[SMTP_CONFIGURE]}:${ANSWER[SMTP_AUTH]:-}:${ANSWER[SMTP_SECURITY]:-}" != yes:yes:none ]] || {
+    gt_core_error 'Authenticated SMTP requires STARTTLS or TLS.'; return 2;
+  }
+}
+
+# A skipped or wrong SMTP selection shows up only in the mail check, after the backend was built with it. Until the
+# mail milestone is verified, --check-mail --answers FILE changes the SMTP answers and the SMTP password; every
+# other answer and secret in FILE must still match the journal. Database, Jasypt and JWT secrets, the installation
+# ID and the owned resources stay. This function only journals the confirmed change; gt_mail_change_apply runs it.
+gt_mail_change() {
+  local key value before password='' changed=no
+  local -A previous=()
   [[ "${STATE[step.app]:-}" == complete && "${STATE[step.mail]:-}" != complete &&
-     "${ANSWER[SMTP_CONFIGURE]:-}:${ANSWER[SMTP_AUTH]:-}" == yes:yes ]] || {
-    gt_core_error 'Only an authenticated mail configuration that is not yet verified accepts a new SMTP password.'
-    return 2
+      "${STATE[resource.mail_configuration]:-}" != application-v1 ]] || {
+    gt_core_error 'Only a mail configuration that is not yet verified accepts changed SMTP answers.'; return 2;
   }
   gt_answers_file "$ANSWERS_FILE" || return 2
   for key in "${!FILE_ANSWERS[@]}"; do
-    [[ "$key" != SMTP_PASSWORD && "$key" != DB_ROOT_PASSWORD ]] || continue
+    [[ " $GT_MAIL_ANSWERS DB_ROOT_PASSWORD " != *" $key "* ]] || continue
     if [[ "${Q_TYPE[$key]}" == secret ]]; then value=${SECRET[$key]:-}; else value=${ANSWER[$key]:-}; fi
     [[ "${FILE_ANSWERS[$key]}" == "$value" ]] || {
-      gt_core_error "$key differs from the installation; only SMTP_PASSWORD can change before mail is verified."
+      FILE_ANSWERS=()
+      gt_core_error "$key differs from the installation; only the SMTP answers can change before mail is verified."
       return 2
     }
   done
-  value=${FILE_ANSWERS[SMTP_PASSWORD]-}
-  FILE_ANSWERS=()
-  gt_valid_secret "$value" || { gt_core_error 'The answers file needs a valid SMTP_PASSWORD.'; return 2; }
-  [[ "$value" != "${SECRET[SMTP_PASSWORD]}" ]] || return 0
-  en='SMTP_PASSWORD changes: encrypt it into application.properties,'
-  en+=' rebuild the backend of the installed commit and restart Grafioschtrader.'
-  de='SMTP_PASSWORD ändert sich: in application.properties verschlüsseln,'
-  de+=' Backend des installierten Commits neu bauen und Grafioschtrader neu starten.'
-  gt_text "$en" "$de"
-  if [[ "$CORE_CONFIRM" != yes ]]; then
-    { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
-    printf 'change-mail-password: ' >&"$QUESTION_FD"
-    IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == change-mail-password ]] || return 130
+  for key in "${!ANSWER[@]}"; do previous[$key]=${ANSWER[$key]}; done
+  before=$(gt_mail_summary)
+  if ! gt_mail_answers; then
+    FILE_ANSWERS=() ANSWER=()
+    for key in "${!previous[@]}"; do ANSWER[$key]=${previous[$key]}; done
+    return 2
   fi
-  # The journal intent precedes the new secret, so an interruption resumes the change instead of the old build.
-  gt_core_mark step.mail_password intent || return 2
-  SECRET[SMTP_PASSWORD]=$value
-  gt_secrets_save || return 2
-  gt_mail_password_apply
+  FILE_ANSWERS=()
+  for key in $GT_MAIL_ANSWERS; do
+    [[ "${ANSWER[$key]-unset}" == "${previous[$key]-unset}" ]] || changed=yes
+  done
+  [[ "$password" == "${SECRET[SMTP_PASSWORD]-}" ]] || changed=yes
+  [[ "$changed" == yes ]] || return 0
+  gt_mail_change_plan "$before" "$password" || return $?
+  # The answers reach the journal before the secrets file follows; gt_secrets_load accepts either password while
+  # the intent is open, so an interruption between both writes resumes the change instead of the old build.
+  for key in $GT_MAIL_ANSWERS; do
+    [[ "$key" != SMTP_PASSWORD ]] || continue
+    if [[ -n "${ANSWER[$key]+set}" ]]; then STATE[answer.$key]=${ANSWER[$key]}; else unset "STATE[answer.$key]"; fi
+  done
+  unset 'STATE[step.mail]' 'STATE[resource.mail_delivery]' 'STATE[resource.mail_configuration]'
+  gt_core_mark step.mail_change intent || return 2
+  if [[ -n "$password" ]]; then SECRET[SMTP_PASSWORD]=$password; else unset 'SECRET[SMTP_PASSWORD]'; fi
+  gt_secrets_save
 }
 
-# Replaces only spring.mail.password: application.properties also holds the cron slots chosen at installation.
-gt_mail_password_apply() {
-  local target="$CORE_REPO/backend/grafioschtrader-server/src/main/resources/application.properties" log commit
-  gt_core_config_valid || return 2
-  gt_encrypt_secret SMTP_PASSWORD || return 2
-  PROPERTIES=([spring.mail.password]=$ENCRYPTED)
-  gt_properties_render "$target" "$SCRATCH/application.config" || return 2
-  gt_core_publish properties "$SCRATCH/application.config" "$target" 600 || return 2
-  # The properties are packaged into the JAR, so only a new backend build carries the password.
+# Shows the SMTP change and asks for change-mail unless --yes was given.
+gt_mail_change_plan() {
+  local before=$1 password=$2 reply en de
+  printf '%s: %s\n' "$(gt_text 'SMTP before' 'SMTP bisher')" "$before"
+  printf '%s: %s\n' "$(gt_text 'SMTP after' 'SMTP neu')" "$(gt_mail_summary)"
+  if [[ -n "$password" && "$password" != "${SECRET[SMTP_PASSWORD]-}" ]]; then
+    gt_text 'SMTP_PASSWORD changes.' 'SMTP_PASSWORD ändert sich.'
+  fi
+  en='Regenerate the mail keys of application.properties and application-production.properties, rebuild the'
+  en+=' backend of the installed commit, restart Grafioschtrader and check mail again. Database, Jasypt and JWT'
+  en+=' secrets and every other answer stay.'
+  de='Mail-Schlüssel in application.properties und application-production.properties neu erzeugen, Backend des'
+  de+=' installierten Commits neu bauen, Grafioschtrader neu starten und Mail erneut prüfen. Datenbank-, Jasypt-'
+  de+=' und JWT-Geheimnisse sowie alle anderen Antworten bleiben.'
+  gt_text "$en" "$de"
+  [[ "$CORE_CONFIRM" != yes ]] || return 0
+  { exec {QUESTION_FD}<>/dev/tty; } 2>/dev/null || return 2
+  printf 'change-mail: ' >&"$QUESTION_FD"
+  IFS= read -r -u "$QUESTION_FD" reply && [[ "$reply" == change-mail ]] || return 130
+}
+
+# Regenerates only the mail keys: application.properties also holds the cron slots chosen at installation, the
+# production file the listener and proxy settings. Repeating it after an interruption builds once more.
+gt_mail_change_apply() {
+  local resources="$CORE_REPO/backend/grafioschtrader-server/src/main/resources" log commit starttls
+  if gt_question_applies SMTP_PASSWORD; then
+    gt_valid_secret "${SECRET[SMTP_PASSWORD]:-}" || {
+      gt_core_error 'The interrupted SMTP change lost its password; repeat --check-mail --answers FILE.'; return 2;
+    }
+  elif [[ -n "${SECRET[SMTP_PASSWORD]+set}" ]]; then
+    unset 'SECRET[SMTP_PASSWORD]'; gt_secrets_save || return 2
+  fi
+  gt_mail_properties || return 2
+  starttls=${PROPERTIES[spring.mail.properties.mail.smtp.starttls.enable]}
+  gt_properties_render "$resources/application.properties" "$SCRATCH/application.config" || return 2
+  gt_core_publish properties "$SCRATCH/application.config" "$resources/application.properties" 600 || return 2
+  PROPERTIES=([spring.mail.properties.mail.smtp.starttls.required]=$starttls)
+  gt_properties_render "$resources/application-production.properties" "$SCRATCH/production.config" || return 2
+  gt_core_publish production "$SCRATCH/production.config" "$resources/application-production.properties" 600 ||
+    return 2
+  # The properties are packaged into the JAR, so only a new backend build carries the mail settings.
   log="$(gt_path /var/lib/gt-install)/app-build.log"
   printf '%s\n' "Build log: $log"
   gt_core_run systemctl stop grafioschtrader.service || return 2
@@ -112,7 +185,7 @@ gt_mail_password_apply() {
   [[ "$commit" == "${STATE[planned_commit]}" ]] || return 2
   gt_core_mark step.app_build complete || return 2
   gt_app_start || return 2
-  gt_core_mark step.mail_password complete
+  gt_core_mark step.mail_change complete
 }
 
 gt_check_mail() {
@@ -128,8 +201,8 @@ gt_check_mail() {
   gt_no_symlinks "$state_dir/lock" || return 2
   if [[ -z "$LOCK_FD" ]]; then exec {LOCK_FD}<"$state_dir/lock" || return 2; fi
   flock -n "$LOCK_FD" || return 2
-  if [[ "$MODE" == --check-mail && -n "$ANSWERS_FILE" ]]; then gt_mail_password || return $?
-  elif [[ "${STATE[step.mail_password]:-}" == intent ]]; then gt_mail_password_apply || return 2; fi
+  if [[ "$MODE" == --check-mail && -n "$ANSWERS_FILE" ]]; then gt_mail_change || return $?; fi
+  if [[ "${STATE[step.mail_change]:-}" == intent ]]; then gt_mail_change_apply || return 2; fi
   [[ "${STATE[step.app]:-}" == complete ]] && gt_core_config_valid && gt_app_artifacts && gt_app_verify || return 2
   if [[ "${ANSWER[SMTP_CONFIGURE]}" == no ]]; then
     gt_core_mark step.mail skipped || return 2

@@ -618,12 +618,7 @@ gt_plan_application() {
     if [[ "${ANSWER[SMTP_AUTH]}:${ANSWER[SMTP_SECURITY]}" == yes:none ]]; then
       gt_plan_block 'Authenticated SMTP requires STARTTLS or TLS.' 'SMTP mit Anmeldung benötigt STARTTLS oder TLS.'
     fi
-  else
-    en='Mail skipped: nobody can complete registration or become administrator; result would be incomplete.'
-    de='Mail übersprungen: Niemand kann eine Registrierung abschließen oder Administrator werden;'
-    de+=' Ergebnis wäre unvollständig.'
-    gt_plan_warn "$en" "$de"
-  fi
+  else gt_plan_warn "$(gt_mail_skipped_warning core)"; fi
   gt_firewall_plan
   en='Execution only: atomic progress, planned/built commits, owned resources; re-inventory before execution'
   de='Erst bei Ausführung: atomarer Fortschritt, geplante/gebaute Commits, eigene Ressourcen;'

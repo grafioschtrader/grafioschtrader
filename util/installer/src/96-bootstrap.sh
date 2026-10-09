@@ -188,7 +188,7 @@ gt_bootstrap_plan() {
       gt_plan_warn 'Previous mail attempt was interrupted; resumption may submit the same Message-ID again.'
     [[ "${STATE[resource.mail_delivery]:-}" != accepted ]] ||
       gt_plan_row reuse SMTP 'Recorded server acceptance; no duplicate test message.'
-  else gt_plan_warn 'SMTP skipped: registration remains unavailable; final result will be incomplete.'; fi
+  else gt_plan_warn "$(gt_mail_skipped_warning bootstrap)"; fi
   gt_plan_row publish /var/lib/gt-install/result \
     'Verify milestones and publish the protected result; completion requires backend, web, TLS and mail evidence.'
   gt_bootstrap_apt_plan || gt_plan_block 'Full APT transaction unavailable, stale, or would upgrade/remove packages.'

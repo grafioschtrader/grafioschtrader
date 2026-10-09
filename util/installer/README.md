@@ -67,7 +67,8 @@ The script is self-contained and can be copied to a Debian/Ubuntu host. Save it 
 execution through `curl | bash` is refused. `--help` works without root. Modes cannot be combined; `--answers` is
 accepted without a mode, with `--prepare`, `--install-core` and `--check-mail`. The three `--install-*` modes make
 installation changes;
-`--check-mail` records verification and can send the previously selected test message. Each accepts `--yes`
+`--check-mail` records verification, can send the previously selected test message and, with `--answers FILE`,
+changes the SMTP selection until mail is verified. Each accepts `--yes`
 to use the saved scope without another terminal confirmation.
 
 ## Front ends
@@ -272,15 +273,25 @@ The report includes the browser URL, administrator registration address, update/
 planned and built commits, the SHA-256 of the installer bundle used for hand-over, and recorded warnings.
 `mail_delivery` distinguishes SMTP acceptance (`accepted`, not proof of inbox delivery), a successful check
 without sending (`not-requested`), skipped mail, pending verification and uncertain delivery after interruption.
-An incomplete report lists the remaining actions. Saved answers remain immutable; changing a skipped SMTP
-selection requires the future re-planning support and cannot be achieved just by repeating the check.
+An incomplete report lists the remaining actions. Saved answers remain immutable, with one exception.
 
-The one exception is the SMTP password, because a wrong one shows up only in this check. Until the mail milestone
-is verified, `--check-mail --answers FILE` accepts a corrected `SMTP_PASSWORD`; every other answer and secret in
-`FILE` must match the installation. After confirmation (`change-mail-password` or `--yes`) the installer journals
-the change, stores the new secret, replaces only `spring.mail.password` in `application.properties` (the cron slots
-stay), rebuilds the backend of the installed commit, because the properties are packaged into the JAR, restarts
-Grafioschtrader and repeats the mail check. An interrupted change resumes with the next `--check-mail`.
+The exception is the SMTP selection, because a skipped or wrong one shows up only in this check. Until the mail
+milestone is verified, `--check-mail --answers FILE` accepts changed `SMTP_CONFIGURE`, `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_AUTH`, `SMTP_USER`, `SMTP_SECURITY`, `SMTP_PASSWORD` and `SMTP_TEST`. A key missing from `FILE` keeps its saved
+value; one that did not apply before (an installation with `SMTP_CONFIGURE=no`) takes the installer's default, so
+`SMTP_CONFIGURE=yes`, `SMTP_HOST`, `SMTP_USER` and `SMTP_PASSWORD` are enough for port 587 with STARTTLS. A key
+that does not apply to the new selection is refused, as is authenticated SMTP without encryption. Every other
+answer and secret in `FILE` must match the installation; `DB_ROOT_PASSWORD` is ignored.
+
+The command prints the selection before and after the change. After confirmation (`change-mail` or `--yes`) the
+installer journals the new answers, then stores or removes the SMTP password, regenerates only the mail keys of
+`application.properties` and `starttls.required` in `application-production.properties` (the cron slots, listeners
+and proxy settings stay), rebuilds the backend of the installed commit, because the properties are packaged into
+the JAR, restarts Grafioschtrader and repeats the mail check. Database, Jasypt and JWT secrets, the installation
+ID and the owned resources stay. An earlier mail result is discarded and the skipped-mail warning leaves the
+report; once the check passes, the result changes from `incomplete` to `complete`. An interrupted change resumes
+with the next `--check-mail`; if it was interrupted before the new password was stored, the command asks for
+`--answers FILE` again. Domain and TLS changes are not covered and remain a manual procedure.
 
 The same public fields are atomically written as literal `key=value` lines to `/var/lib/gt-install/result`
 (root-owned, mode 600). Do not source this file as shell code. Technical keys and milestone values are stable;

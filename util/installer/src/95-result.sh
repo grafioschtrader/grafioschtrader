@@ -2,15 +2,31 @@
 # Reports use only selected public fields; neither secrets nor diagnostic logs are copied.
 # The unfinished-journal notes and the pending DNS steps describe this installer's own next steps, never a
 # property of the host; a result must not repeat them. An earlier run in either language may have recorded them.
+# The same holds for the skipped-mail warning once a changed SMTP selection configures mail (gt_mail_change).
 gt_result_transient() {
   local language candidate
+  local -a mail=()
   for language in en de; do
+    if [[ "${ANSWER[SMTP_CONFIGURE]:-}" == yes ]]; then
+      mail=("$(LANG_CODE=$language gt_mail_skipped_warning core)" "$(gt_mail_skipped_warning bootstrap)")
+    fi
     for candidate in "$(LANG_CODE=$language gt_message running)" "$(LANG_CODE=$language gt_message resume)" \
-        "$(LANG_CODE=$language gt_dns_tool_notice)" "$(LANG_CODE=$language gt_dns_update_notice)"; do
+        "$(LANG_CODE=$language gt_dns_tool_notice)" "$(LANG_CODE=$language gt_dns_update_notice)" "${mail[@]}"; do
       [[ "$1" != "WARN: $candidate" ]] || return 0
     done
   done
   return 1
+}
+
+# The plan warning of a skipped mail selection, for the core plan or the English-only bootstrap plan.
+gt_mail_skipped_warning() {
+  if [[ "$1" == bootstrap ]]; then
+    printf '%s\n' 'SMTP skipped: registration remains unavailable; final result will be incomplete.'
+    return 0
+  fi
+  gt_text 'Mail skipped: nobody can complete registration or become administrator; result would be incomplete.' \
+    "Mail übersprungen: Niemand kann eine Registrierung abschließen oder Administrator werden; Ergebnis wäre \
+unvollständig."
 }
 
 gt_result_remember_warnings() {
@@ -119,11 +135,15 @@ gt_result_details() {
 
 gt_result_actions() {
   if [[ "${RESULT[mail]}" == skipped ]]; then
-    RESULT[action.mail]=$(gt_text 'Without mail nobody can complete registration, so there is no administrator yet.' \
-      'Ohne Mail kann niemand die Registrierung abschließen; daher gibt es noch keinen Administrator.')
+    RESULT[action.mail]=$(gt_text \
+      "Without mail nobody can complete registration, so there is no administrator yet. Add the SMTP answers with \
+--check-mail --answers FILE." "Ohne Mail kann niemand die Registrierung abschließen; daher gibt es noch keinen \
+Administrator. SMTP-Antworten mit --check-mail --answers DATEI ergänzen.")
   elif [[ "${RESULT[mail]}" != ok ]]; then
-    RESULT[action.mail]=$(gt_text 'Resolve SMTP settings or server access, then repeat --check-mail.' \
-      'SMTP-Einstellungen oder Serverzugriff klären, danach --check-mail wiederholen.')
+    RESULT[action.mail]=$(gt_text \
+      'Correct the SMTP answers with --check-mail --answers FILE, or resolve server access and repeat --check-mail.' \
+      "SMTP-Antworten mit --check-mail --answers DATEI korrigieren oder Serverzugriff klären und --check-mail \
+wiederholen.")
   fi
   if [[ "${RESULT[web]}" != ok && -n "${STATE[resource.web_manual]:-}" ]]; then
     RESULT[action.web]=$(gt_text \
