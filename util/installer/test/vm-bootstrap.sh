@@ -178,6 +178,43 @@ ANSWERS
     printf 'Source commit: %s\n' "${STATE[built_commit]}"
     echo 'PASS: modeless resume, same secrets/identity, real backend/web verification and one accepted mail.'
     ;;
+  locales)
+    # The tester's terminal side, not an installer prerequisite: both dialog languages need their UTF-8 locale.
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get -o DPkg::Lock::Timeout=600 install -y -qq locales
+    sed -i -E 's/^# *((de_CH|en_US)\.UTF-8 UTF-8)/\1/' /etc/locale.gen
+    locale-gen > /dev/null
+    locale -a | grep -qi '^de_CH\.utf-\?8$'
+    locale -a | grep -qi '^en_US\.utf-\?8$'
+    echo 'PASS: de_CH.UTF-8 and en_US.UTF-8 available for the dialog sessions.'
+    ;;
+  dialog-check)
+    # The installation was driven only by whiptail dialogs over SSH; no answers file was used.
+    load_verifiers
+    [[ ${STATE[status]} == complete && ${STATE[scope]} == bootstrap ]]
+    [[ $(wc -l < "$acceptance/messages") == 1 ]]
+    gt_app_verify; gt_app_artifacts
+    FACT[web.lan]=${STATE[resource.web_lan]}
+    gt_web_verify
+    verify_small_host
+    # Typed and generated credentials never reach the installer's logs, journal or result.
+    for key in DB_PASSWORD JASYPT_PASSWORD; do
+      [[ -n "${SECRET[$key]:-}" ]]
+      if grep -rFq -- "${SECRET[$key]}" /var/lib/gt-install; then
+        echo "FAIL: $key appears in /var/lib/gt-install" >&2; exit 1
+      fi
+      # The application's own startup log is outside the installer; a finding is recorded, not hidden.
+      if grep -Fq -- "${SECRET[$key]}" /var/log/grafioschtrader.log; then
+        echo "NOTE: the application log contains $key (logged by the backend, not by the installer)"
+      fi
+    done
+    cat /proc/sys/kernel/random/boot_id > "$acceptance/boot-id"
+    sha256sum /var/lib/gt-install/state /var/lib/gt-install/result /var/lib/gt-install/app-build.log \
+      > "$acceptance/completed.sha256"
+    sha256sum /root/.gt-install/secrets > "$acceptance/secrets.sha256"
+    printf 'Source commit: %s\n' "${STATE[built_commit]}"
+    echo 'PASS: dialog-driven installation complete, one accepted mail, no credential in installer logs or result.'
+    ;;
   reboot-check)
     load_verifiers
     [[ $(cat /proc/sys/kernel/random/boot_id) != "$(cat "$acceptance/boot-id")" ]]

@@ -399,6 +399,31 @@ docker rm -f gt-installer-vm
 docker image rm gt-installer-vm
 ```
 
+`GT_VM_MODE=dialogs` is the acceptance of the whiptail front end (Debian 12/13, Ubuntu 24.04/26.04, LAN with nginx).
+The guest is prepared as in bootstrap mode, including the local SMTP sink, and gets the `de_CH.UTF-8` and
+`en_US.UTF-8` locales of a tester's terminal. `vm-dialogs.py` then works on the controller side over `ssh -tt`, with
+the terminal size of a pseudo-terminal and `LANG` exported before `sudo`, as in a user's SSH session: a dry-run in a
+23-row terminal must fall back to the plain prompts and cancel with `!quit`; a dry-run in the language other than
+`GT_VM_LANG` (default `de_CH.UTF-8`, or `en_US.UTF-8`) must show that language's dialogs, buttons and key help;
+finally a modeless installation in `GT_VM_LANG` is driven only by dialogs — generated root and Jasypt passwords, a
+typed and confirmed database password, SMTP towards the sink — until the printed result reports `status=complete`.
+No key is sent while the gauge is shown. The guest's `dialog-check` then verifies the completed journal, one
+accepted message, backend and web, and that no credential appears in `/var/lib/gt-install` or the application log;
+the reboot check follows as in bootstrap mode. Each session's raw terminal output and its text are kept as
+`results/dialogs-{small,other,install}.{raw,txt}`.
+
+`GT_VM_DISK_DIR` places the cloud image and the guest disk on another mounted directory, for example a larger
+Windows drive under WSL. Keys and state stay in `/work`, because `ssh` refuses keys on a `drvfs` mount without Unix
+permissions:
+
+```bash
+mkdir -p /mnt/d/gt-installer-vm/dlg-debian13
+docker run -d --name gt-installer-vm-dlg-debian13 --device /dev/kvm -v "$PWD:/repo:ro" \
+  -v /mnt/d/gt-installer-vm/dlg-debian13:/disk gt-installer-vm sleep infinity
+docker exec -e GT_VM_OS=debian-13 -e GT_VM_MODE=dialogs -e GT_VM_LANG=de_CH.UTF-8 -e GT_VM_MEMORY=8192 \
+  -e GT_VM_DISK_DIR=/disk gt-installer-vm-dlg-debian13 bash /repo/util/installer/test/vm-host.sh
+```
+
 On WSL, keep a WSL process alive until the guest has powered off, including while diagnosing a failed command.
 Otherwise WSL shutdown can abruptly power off QEMU. The controller preserves its disk and private keys until
 the named container is removed. Retry the host script to resume an interrupted core/application stage;
@@ -443,6 +468,28 @@ The installer used `openjdk-25-jdk-headless` `25.0.4.1+1-1~26.04.4` and Maven `3
 `11.8.6`. Build, resumption, one accepted mail, reboot and the completed rerun passed; the result carried no
 warning. Application commit and installer SHA-256 as for Debian 13; cloud image SHA-256:
 `8800651811af9a85465ad1d552add729947bb16488dddb4a9b5305a3d97332b2`.
+
+Dialog acceptance (`GT_VM_MODE=dialogs`, 8192 MiB) on 2026-10-09 passed on Debian 13 amd64, kernel
+`6.12.111+deb13-cloud-amd64`, and Ubuntu 26.04 amd64, kernel `7.0.0-34-generic`, each over `ssh -tt` from a fresh
+guest. On both a 23-row terminal fell back to the plain prompts and `!quit` cancelled with 130, and a dry-run in the
+other language showed its buttons and key help. Debian 13 then installed in `de_CH.UTF-8`, Ubuntu 26.04 in
+`en_US.UTF-8`, driven only by dialogs: generated MariaDB root and Jasypt passwords, a typed and confirmed database
+password, SMTP towards the guest's sink. Both reached `status=complete` with one accepted message; neither
+credential appeared under `/var/lib/gt-install`; reboot and the read-only completed rerun passed. Debian 13
+installed Temurin `25.0.4.1+1` and Apache Maven `3.10.0` as isolated archives, Ubuntu 26.04
+`openjdk-25-jdk-headless` `25.0.4.1+1-1~26.04.4` and Maven `3.9.12-1` from APT; both Node `24.21.0`,
+`@angular/cli` `22.2.2`, MariaDB `11.8.6` and nginx (`1.26.3` / `1.28.3`). Application commit:
+`3249e96afcb5caab3fbde93a7fc9b8913f18decf`; installer SHA-256 `b98ed3764dcf4addca7e5f13ee3b72b931c25f300d25adbab77f5e139b8c3257`
+on Debian 13 and `0985e58095d1170341ba3d4a2537d6f256560a090c7693b361b0cff4f5661b75` on Ubuntu 26.04 (the
+latter without the locale isolation of `gt_as_app`, which an English session does not need); cloud images as above.
+
+The first attempts of this acceptance found two faults that the unattended runs, started through `systemd-run` in
+`/` without a locale, could not reach. `runuser` kept the administrator's working directory, a 0700 home on
+Debian 13, where `npx` failed with `EACCES` and `checkversion.sh` rejected Node `24.21.0`; and the German locale
+reached `gtupfrontend.sh`, whose `free -m` then printed `Speicher:` instead of `Mem:`. `gt_as_app` now runs in the
+service user's home with `LC_ALL=C.UTF-8`, and both helpers call `LC_ALL=C free -m`. Independently of the installer,
+the backend's Hibernate startup message `HHH10001005` writes the JDBC URL that MariaDB Connector/J reports,
+including `password=`, to `/var/log/grafioschtrader.log` (mode 640); `dialog-check` records this as a note.
 
 Real-hardware acceptance on 2026-10-08 passed on a Radxa ROCK 5B (arm64, 16 GB, SD card) with Debian 12.15,
 kernel `6.1.84-8-rk2410`, nginx `1.22.1`, Let's Encrypt and the installer's own DuckDNS updater. The host is

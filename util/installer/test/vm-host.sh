@@ -13,12 +13,19 @@ GT_VM_WEB=${GT_VM_WEB:-nginx}
 GT_VM_DOMAIN=${GT_VM_DOMAIN:-no}
 GT_VM_MODE=${GT_VM_MODE:-bootstrap}
 GT_VM_OS=${GT_VM_OS:-ubuntu-24.04}
+# dialogs: the installation language; the other language runs as a dry-run.
+GT_VM_LANG=${GT_VM_LANG:-de_CH.UTF-8}
+# The cloud image and the guest disk may live on a larger mounted drive. Keys and state stay in /work, because
+# ssh refuses keys on file systems without Unix permissions.
+GT_VM_DISK_DIR=${GT_VM_DISK_DIR:-/work}
+[[ "$GT_VM_LANG" == de_CH.UTF-8 || "$GT_VM_LANG" == en_US.UTF-8 ]]
+[[ "$GT_VM_DISK_DIR" == /* && -d "$GT_VM_DISK_DIR" ]]
 # Below 4000 MiB the installer offers a swap file, below 3700 MiB the frontend is downloaded instead of built.
 GT_VM_MEMORY=${GT_VM_MEMORY:-12288}
 [[ "$GT_VM_MEMORY" =~ ^[1-9][0-9]*$ ]] && (( GT_VM_MEMORY >= 2048 ))
 [[ "$GT_VM_WEB" == nginx || "$GT_VM_WEB" == apache2 ]]
 [[ "$GT_VM_DOMAIN" == yes || "$GT_VM_DOMAIN" == no ]]
-[[ "$GT_VM_MODE" == stages || "$GT_VM_MODE" == bootstrap && "$GT_VM_DOMAIN" == no ]]
+[[ "$GT_VM_MODE" == stages || ( "$GT_VM_MODE" == bootstrap || "$GT_VM_MODE" == dialogs ) && "$GT_VM_DOMAIN" == no ]]
 case "$GT_VM_OS" in
   ubuntu-24.04)
     image_base=https://cloud-images.ubuntu.com/noble/current image=noble-server-cloudimg-amd64.img
@@ -26,15 +33,15 @@ case "$GT_VM_OS" in
   # Debian 12 has no APT JDK 25, so the installer must use the vendor archive. The stage driver installs
   # Java/Maven from APT itself; this release therefore runs in bootstrap mode only.
   debian-12)
-    [[ "$GT_VM_MODE" == bootstrap ]]
+    [[ "$GT_VM_MODE" != stages ]]
     image_base=https://cloud.debian.org/images/cloud/bookworm/latest image=debian-12-genericcloud-amd64.qcow2
     sums=SHA512SUMS sum_tool=sha512sum guest_user=debian ;;
   debian-13)
-    [[ "$GT_VM_MODE" == bootstrap ]]
+    [[ "$GT_VM_MODE" != stages ]]
     image_base=https://cloud.debian.org/images/cloud/trixie/latest image=debian-13-genericcloud-amd64.qcow2
     sums=SHA512SUMS sum_tool=sha512sum guest_user=debian ;;
   ubuntu-26.04)
-    [[ "$GT_VM_MODE" == bootstrap ]]
+    [[ "$GT_VM_MODE" != stages ]]
     image_base=https://cloud-images.ubuntu.com/releases/26.04/release image=ubuntu-26.04-server-cloudimg-amd64.img
     sums=SHA256SUMS sum_tool=sha256sum guest_user=ubuntu ;;
   *) exit 2 ;;
@@ -51,17 +58,18 @@ ssh_guest() {
   ssh -i /work/guest-key -p 2222 -o BatchMode=yes -o ConnectTimeout=5 \
     -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/work/known-hosts "$guest_user@127.0.0.1" "$@"
 }
-if [[ ! -e guest.qcow2 ]]; then
+disk=$GT_VM_DISK_DIR
+if [[ ! -e "$disk/guest.qcow2" ]]; then
   curl --fail --silent --show-error --location --retry 3 --connect-timeout 15 --max-time 60 \
     "$image_base/$sums" -o "$sums"
   curl --fail --silent --show-error --location --retry 3 --retry-all-errors --continue-at - \
     --connect-timeout 15 --speed-limit 1024 --speed-time 60 \
-    "$image_base/$image" -o base.img
-  awk -v image="$image" '$2 == "*" image || $2 == image {print $1 "  base.img"; found=1} END {exit !found}' \
-    "$sums" > base.sum
+    "$image_base/$image" -o "$disk/base.img"
+  awk -v image="$image" -v base="$disk/base.img" \
+    '$2 == "*" image || $2 == image {print $1 "  " base; found=1} END {exit !found}' "$sums" > base.sum
   "$sum_tool" --check base.sum
   printf '%s\n' "$GT_VM_OS" > guest-os
-  qemu-img create -f qcow2 -F qcow2 -b /work/base.img guest.qcow2 60G
+  qemu-img create -f qcow2 -F qcow2 -b "$disk/base.img" "$disk/guest.qcow2" 60G
   ssh-keygen -q -t ed25519 -N '' -f guest-key
   {
     printf '#cloud-config\nssh_authorized_keys:\n  - %s\n' "$(cat guest-key.pub)"
@@ -72,7 +80,7 @@ if [[ ! -e guest.qcow2 ]]; then
 fi
 if [[ ! -e qemu.pid ]] || ! kill -0 "$(cat qemu.pid)" 2>/dev/null; then
   qemu-system-x86_64 -enable-kvm -cpu host -smp 8 -m "$GT_VM_MEMORY" -display none \
-    -drive file=/work/guest.qcow2,if=virtio,format=qcow2 -drive file=/work/seed.img,format=raw,if=virtio \
+    -drive "file=$disk/guest.qcow2,if=virtio,format=qcow2" -drive file=/work/seed.img,format=raw,if=virtio \
     -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 -device virtio-net-pci,netdev=net0 \
     -serial file:/work/results/console.log -monitor none -daemonize -pidfile /work/qemu.pid
 fi
@@ -112,6 +120,19 @@ if [[ "$GT_VM_MODE" == bootstrap ]]; then
   guest_script='sudo bash /opt/gt-acceptance/bootstrap.sh'
   ssh_guest "$guest_script prepare $GT_VM_WEB" > results/prepare.log 2>&1
   ssh_guest "$guest_script install" >> results/bootstrap.log 2>&1
+elif [[ "$GT_VM_MODE" == dialogs ]]; then
+  ssh_guest 'sudo tee /opt/gt-acceptance/bootstrap.sh >/dev/null' < /repo/util/installer/test/vm-bootstrap.sh
+  guest_script='sudo bash /opt/gt-acceptance/bootstrap.sh'
+  ssh_guest "$guest_script prepare nginx" > results/prepare.log 2>&1
+  ssh_guest "$guest_script locales" >> results/prepare.log 2>&1
+  # The user's side of an SSH session: a terminal of the given size, LANG exported before sudo, which keeps it.
+  if [[ ! -e results/dialogs-install.ok ]]; then
+    python3 /repo/util/installer/test/vm-dialogs.py "$GT_VM_LANG" /work/results \
+      ssh -tt -i /work/guest-key -p 2222 -o BatchMode=yes -o ServerAliveInterval=30 \
+      -o UserKnownHostsFile=/work/known-hosts "$guest_user@127.0.0.1" > results/dialogs.log 2>&1
+    touch results/dialogs-install.ok
+  fi
+  ssh_guest "$guest_script dialog-check" > results/dialog-check.log 2>&1
 else
 if ! ssh_guest 'sudo grep -qx step.core=complete /var/lib/gt-install/state'; then
   ssh_guest "$guest_script core $GT_VM_WEB $GT_VM_DOMAIN" > results/core.log 2>&1
@@ -137,9 +158,15 @@ if [[ "$GT_VM_MODE" == bootstrap ]]; then
   ssh_guest 'sudo cat /var/lib/gt-install/result' > results/result.txt
   ssh_guest "sudo sed -n 's/^built_commit=//p' /var/lib/gt-install/state" > results/source-commit
 fi
-sha256sum base.img > results/cloud-image.sha256
+sha256sum "$disk/base.img" > results/cloud-image.sha256
 printf '%s\n' "$GT_VM_OS" > results/guest-os
-printf 'PASS: %s, %s MiB RAM, mode=%s, real build, %s LAN access, domain TLS=%s, %s\n' \
-  "$GT_VM_OS" "$GT_VM_MEMORY" "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" 'systemd startup, reboot and resume.' \
-  | tee results/PASS
+if [[ "$GT_VM_MODE" == dialogs ]]; then
+  printf 'PASS: %s, %s MiB RAM, whiptail over SSH, installation in %s, %s\n' "$GT_VM_OS" "$GT_VM_MEMORY" \
+    "$GT_VM_LANG" 'other language and small-terminal fallback, real build, reboot and read-only rerun.' \
+    | tee results/PASS
+else
+  printf 'PASS: %s, %s MiB RAM, mode=%s, real build, %s LAN access, domain TLS=%s, %s\n' \
+    "$GT_VM_OS" "$GT_VM_MEMORY" "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" 'systemd startup, reboot and resume.' \
+    | tee results/PASS
+fi
 ssh_guest 'sudo systemctl poweroff' || true
