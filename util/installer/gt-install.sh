@@ -3321,14 +3321,20 @@ gt_core_swap() {
   gt_core_mark step.swap complete
 }
 
+# Runs a command as the service user in its own home. runuser keeps the caller's working directory, and a home of
+# the administrator who started sudo (0700 on Debian 13, 0750 on Ubuntu) makes npx fail with EACCES when it spawns
+# its shell there; checkversion.sh then reports a sufficient Node version as too old. The operator's locale is not
+# passed on either: helpers parse tool output such as "free", and the build logs stay English.
 gt_as_app() {
-  local build_path=''
+  local build_path='' directory=/
   [[ -z "${STATE[build.node_home]:-}" ]] || build_path="${STATE[build.node_home]}/bin:${STATE[build.prefix]}/bin:"
-  runuser -u grafioschtrader -- env -u JAVA_TOOL_OPTIONS -u JDK_JAVA_OPTIONS -u _JAVA_OPTIONS \
-    -u MAVEN_OPTS -u MAVEN_ARGS -u NODE_OPTIONS -u NODE_PATH HOME="$CORE_HOME" MAVEN_SKIP_RC=1 GIT_TERMINAL_PROMPT=0 \
+  [[ ! -d "$CORE_HOME" ]] || directory=$CORE_HOME
+  (cd "$directory" && runuser -u grafioschtrader -- env -u LANGUAGE -u JAVA_TOOL_OPTIONS -u JDK_JAVA_OPTIONS \
+    -u _JAVA_OPTIONS -u MAVEN_OPTS -u MAVEN_ARGS -u NODE_OPTIONS -u NODE_PATH LC_ALL=C.UTF-8 \
+    HOME="$CORE_HOME" MAVEN_SKIP_RC=1 GIT_TERMINAL_PROMPT=0 \
     NG_CLI_ANALYTICS=false npm_config_prefix="${STATE[build.prefix]:-/usr/local}" \
     JAVA_HOME="${STATE[java_home]}" \
-    PATH="${build_path}${STATE[java_home]}/bin:${STATE[maven]%/*}:/usr/local/bin:/usr/bin:/bin" "$@"
+    PATH="${build_path}${STATE[java_home]}/bin:${STATE[maven]%/*}:/usr/local/bin:/usr/bin:/bin" "$@")
 }
 
 gt_core_user() {

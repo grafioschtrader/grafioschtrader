@@ -22,7 +22,7 @@ echo "Build backend and frontend; parallel backend output follows the frontend o
 # shellcheck source=/dev/null
 . "$HOME/gtvar.sh"
 : "${builddir:?Set builddir in gtvar.sh}"
-memorytotal=$(free -m | awk '/^Mem:/ { print $2 }')
+memorytotal=$(LC_ALL=C free -m | awk '/^Mem:/ { print $2 }')
 [[ "$memorytotal" =~ ^[0-9]+$ ]] || { echo "ERROR: Cannot determine RAM size." >&2; exit 1; }
 rm -rf -- "$builddir/.deps"
 cd "$HOME"

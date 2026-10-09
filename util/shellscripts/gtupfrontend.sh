@@ -62,7 +62,7 @@ if [[ "$root" == / || "$target" != "$root/"* || ( -e "$target" && ! -d "$target"
 fi
 
 cd "$builddir/grafioschtrader/frontend"
-memorytotal=$(free -m | awk '/^Mem:/ { print $2 }')
+memorytotal=$(LC_ALL=C free -m | awk '/^Mem:/ { print $2 }')
 [[ "$memorytotal" =~ ^[0-9]+$ ]] || { echo "ERROR: Cannot determine RAM size." >&2; exit 1; }
 mkdir -p -- "$target"
 # Shared document roots may be root-owned. In that case stage within the GT-owned directory.

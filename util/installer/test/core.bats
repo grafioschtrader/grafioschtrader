@@ -250,3 +250,23 @@ core_boundary_fixture() {
   [ ! -e "$ROOT/executed" ]
   [ ! -e "$ROOT/var/lib/gt-install/state" ]
 }
+
+@test "commands of the service user run in its home, never in the caller's private working directory" {
+  local private="$BATS_TEST_TMPDIR/administrator-home"
+  mkdir -p "$private" "$BATS_TEST_TMPDIR/service-home"
+  runuser() { pwd; }
+  cd "$private"
+  CORE_HOME="$BATS_TEST_TMPDIR/service-home"
+  [ "$(gt_as_app true)" = "$CORE_HOME" ]
+  CORE_HOME="$BATS_TEST_TMPDIR/not-created-yet"
+  [ "$(gt_as_app true)" = / ]
+  [ "$PWD" = "$private" ]
+}
+
+@test "commands of the service user run without the operator's locale" {
+  runuser() { shift 3; "$@"; }
+  CORE_HOME="$BATS_TEST_TMPDIR"
+  LANGUAGE=de
+  export LANGUAGE
+  [ "$(gt_as_app bash -c 'printf %s "$LC_ALL:${LANGUAGE-unset}"')" = 'C.UTF-8:unset' ]
+}
