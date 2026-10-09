@@ -108,8 +108,9 @@ gt_bootstrap_app_review() {
     for file in gtupbackend.sh gtupfrontend.sh; do
       gt_probe curl --disable -fsS --connect-timeout 4 --max-time 10 \
         "$raw/${FACT[source.commit]}/util/shellscripts/$file" \
-        > "$SCRATCH/bootstrap-$file" || return 2
-      grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/bootstrap-$file" || return 2
+        > "$SCRATCH/bootstrap-$file" || { gt_core_error "Pinned build helper unavailable: $file"; return 2; }
+      grep -q GT_INSTALL_BUILD_ONLY "$SCRATCH/bootstrap-$file" ||
+        { gt_core_error "Pinned build helper lacks GT_INSTALL_BUILD_ONLY: $file"; return 2; }
     done
   fi
 }

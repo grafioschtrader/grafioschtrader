@@ -109,10 +109,10 @@ gt_app_targets() {
   # Do not mask a distribution unit or any foreign override, including runtime units.
   for path in /run/systemd/system /usr/lib/systemd/system /lib/systemd/system /etc/systemd/system; do
     [[ ! -e "$(gt_path "$path/grafioschtrader.service.d")" && ! -L "$(gt_path "$path/grafioschtrader.service.d")" ]] ||
-      return 2
+      { gt_core_error "Foreign unit override: $path/grafioschtrader.service.d"; return 2; }
     [[ "$path" == /etc/systemd/system ]] && continue
     [[ ! -e "$(gt_path "$path/grafioschtrader.service")" && ! -L "$(gt_path "$path/grafioschtrader.service")" ]] ||
-      return 2
+      { gt_core_error "Foreign unit: $path/grafioschtrader.service"; return 2; }
   done
   for entry in 'unit:/etc/systemd/system/grafioschtrader.service' 'sudoers:/etc/sudoers.d/grafioschtrader' \
     'logrotate:/etc/logrotate.d/grafioschtrader'; do
@@ -128,12 +128,15 @@ gt_app_targets() {
   path=$(gt_path "${ANSWER[DOCROOT]}/grafioschtrader")
   gt_no_symlinks "$path" || return 2
   [[ ! -e "$path" || "${STATE[resource.app_frontend]:-}" == intent || "${STATE[resource.app_frontend]:-}" == owned ]] ||
-    return 2
+    { gt_core_error "Foreign file: ${ANSWER[DOCROOT]}/grafioschtrader"; return 2; }
+  # A log left by a removed installation counts as well; on Armbian with ramlog it also returns from /var/log.hdd.
   path=$(gt_path /var/log/grafioschtrader.log)
   gt_no_symlinks "$path" || return 2
-  [[ ! -e "$path" || -n "${STATE[resource.app_log]:-}" ]] || return 2
+  [[ ! -e "$path" || -n "${STATE[resource.app_log]:-}" ]] ||
+    { gt_core_error 'Foreign file: /var/log/grafioschtrader.log'; return 2; }
   if [[ -z "${STATE[step.app_build]:-}" && -d "$CORE_HOME" ]]; then
-    [[ -z "$(find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader*.jar' -print -quit)" ]] || return 2
+    [[ -z "$(find "$CORE_HOME" -maxdepth 1 -name 'grafioschtrader*.jar' -print -quit)" ]] ||
+      { gt_core_error "Foreign application JAR in $CORE_HOME"; return 2; }
   fi
   if [[ -z "${STATE[step.app_start]:-}" ]]; then
     changed=$(ss -Htln) || return 2

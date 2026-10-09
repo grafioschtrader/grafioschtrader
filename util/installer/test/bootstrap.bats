@@ -181,6 +181,23 @@ bootstrap_stages_fixture() {
   run gt_app_targets
   [ "$status" -eq 2 ]
   [[ "$output" == *'Foreign file'* ]]
+  # A log left by a removed installation (Armbian's ramlog restores it from /var/log.hdd) is named as well.
+  rm "$ROOT/etc/sudoers.d/grafioschtrader"
+  mkdir -p "$ROOT/var/log"
+  touch "$ROOT/var/log/grafioschtrader.log"
+  ANSWER[DOCROOT]=/var/www/gt
+  run gt_app_targets
+  [ "$status" -eq 2 ]
+  [[ "$output" == *'Foreign file: /var/log/grafioschtrader.log'* ]]
+}
+
+@test "an unreachable pinned build helper is named instead of reported as a foreign target" {
+  ANSWER[DOCROOT]=/var/www/gt FACT[source.commit]=0000000000000000000000000000000000000001
+  gt_app_targets() { :; }
+  gt_probe() { return 6; }
+  run gt_bootstrap_app_review
+  [ "$status" -eq 2 ]
+  [[ "$output" == *'Pinned build helper unavailable: gtupbackend.sh'* ]]
 }
 
 bootstrap_plan_fixture() {
