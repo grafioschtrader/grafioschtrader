@@ -72,7 +72,8 @@ gt_message() {
   esac
   # The format strings above are installer-owned translations, never probe output.
   # shellcheck disable=SC2059
-  if [[ "$LANG_CODE" == de ]]; then printf "$de\n" "$@"; else printf "$en\n" "$@"; fi
+  # '--' keeps a format that starts with an option name, such as the German mode text, from being parsed as one.
+  if [[ "$LANG_CODE" == de ]]; then printf -- "$de\n" "$@"; else printf -- "$en\n" "$@"; fi
 }
 
 gt_note() {
