@@ -48,7 +48,6 @@ failure.
 
 | Release and architecture | Required evidence |
 |---|---|
-| Debian 12 amd64, Ubuntu 24.04 amd64, in QEMU with `GT_VM_MODE=dialogs` | the evidence of the row below, the small-terminal fallback and the other language's dialogs |
 | Debian 12 or 13 arm64 on real hardware, started in a German SSH session from the administrator's home | the evidence of the row below |
 | Ubuntu 24.04 arm64, Ubuntu 26.04 arm64 | backend built locally, frontend served, listeners on loopback, migrations complete, no `uca1400` column, service up again after a reboot, rerun without a step |
 | Debian 11 (legacy), Ubuntu 22.04 (legacy), one architecture each | the same, plus the legacy `WARN` with its reason |

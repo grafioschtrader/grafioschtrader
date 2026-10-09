@@ -62,6 +62,7 @@ load_verifiers() {
 case "${1:-}" in
   prepare)
     [[ "${2:-nginx}" == nginx || "$2" == apache2 ]]
+    [[ "${3:-install}" == install || "$3" == later ]]
     if [[ ! -f "$acceptance/answers" ]]; then
       [[ ! -e /var/lib/gt-install/state && ! -e /home/grafioschtrader ]]
       export DEBIAN_FRONTEND=noninteractive
@@ -99,6 +100,16 @@ WantedBy=multi-user.target
 UNIT
       systemctl daemon-reload
       systemctl enable --now gt-acceptance-smtp.service
+      cat > "$acceptance/mail-answers" <<'ANSWERS'
+SMTP_CONFIGURE=yes
+SMTP_HOST=127.0.0.1
+SMTP_PORT=2526
+SMTP_AUTH=no
+SMTP_USER=sender@example.invalid
+SMTP_SECURITY=none
+SMTP_TEST=yes
+ANSWERS
+      chmod 600 "$acceptance/mail-answers"
       {
         printf 'WEBSERVER=%s\n' "${2:-nginx}"
         [[ "${2:-nginx}" != apache2 ]] || printf 'BACKEND_HTTP_PORT=8080\n'
@@ -107,16 +118,11 @@ DOMAIN=
 BACKEND_PORT=9090
 DOCROOT=/var/www/gt
 ADMIN_EMAIL=admin@example.invalid
-SMTP_CONFIGURE=yes
-SMTP_HOST=127.0.0.1
-SMTP_PORT=2526
-SMTP_AUTH=no
-SMTP_USER=sender@example.invalid
-SMTP_SECURITY=none
-SMTP_TEST=yes
 ALLOWED_USERS=20
 TIMEZONE=Etc/UTC
 ANSWERS
+        # later: the mail answers arrive after the installation, through --check-mail --answers.
+        if [[ "${3:-install}" == later ]]; then echo SMTP_CONFIGURE=no; else cat "$acceptance/mail-answers"; fi
         printf 'DB_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nJASYPT_PASSWORD=%s\n' \
           "$(openssl rand -hex 24)" "$(openssl rand -hex 24)" "$(openssl rand -hex 24)"
       } > "$acceptance/answers"
@@ -162,8 +168,23 @@ ANSWERS
     fi
     start_installer resumed
     wait_installer
-    [[ "$installer_result" == 0 ]]
     load_verifiers
+    if [[ ${ANSWER[SMTP_CONFIGURE]} == no ]]; then
+      # Without mail the result stays incomplete (10) and carries the skipped-mail warning until --check-mail adds
+      # the SMTP answers; the change rebuilds the backend with them and the same check then completes.
+      [[ "$installer_result" == 10 && ${STATE[status]} == running && ! -e "$acceptance/messages" ]]
+      grep -qx mail=skipped /var/lib/gt-install/result
+      grep -qE 'SMTP skipped|Mail skipped' /var/lib/gt-install/result
+      start_installer mail --check-mail --answers "$acceptance/mail-answers"
+      wait_installer
+      load_verifiers
+      [[ ${ANSWER[SMTP_CONFIGURE]} == yes && ${STATE[step.mail_change]} == complete ]]
+      if grep -qE 'SMTP skipped|Mail skipped' /var/lib/gt-install/result; then
+        echo 'FAIL: the skipped-mail warning survived the SMTP change' >&2; exit 1
+      fi
+      echo 'PASS: the installation without mail gained it through --check-mail --answers.'
+    fi
+    [[ "$installer_result" == 0 ]]
     [[ ${STATE[status]} == complete && ${STATE[scope]} == bootstrap ]]
     [[ ${STATE[run_id]} == "$(cat "$acceptance/run-id")" ]]
     sha256sum --check "$acceptance/secrets.sha256"

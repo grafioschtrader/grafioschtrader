@@ -26,6 +26,9 @@ GT_VM_MEMORY=${GT_VM_MEMORY:-12288}
 [[ "$GT_VM_WEB" == nginx || "$GT_VM_WEB" == apache2 ]]
 [[ "$GT_VM_DOMAIN" == yes || "$GT_VM_DOMAIN" == no ]]
 [[ "$GT_VM_MODE" == stages || ( "$GT_VM_MODE" == bootstrap || "$GT_VM_MODE" == dialogs ) && "$GT_VM_DOMAIN" == no ]]
+# bootstrap: later installs with SMTP_CONFIGURE=no and adds the mail answers afterwards through --check-mail.
+GT_VM_SMTP=${GT_VM_SMTP:-install}
+[[ "$GT_VM_SMTP" == install || "$GT_VM_SMTP" == later && "$GT_VM_MODE" == bootstrap ]]
 case "$GT_VM_OS" in
   ubuntu-24.04)
     image_base=https://cloud-images.ubuntu.com/noble/current image=noble-server-cloudimg-amd64.img
@@ -118,7 +121,7 @@ guest_script='sudo bash /opt/gt-acceptance/guest.sh'
 if [[ "$GT_VM_MODE" == bootstrap ]]; then
   ssh_guest 'sudo tee /opt/gt-acceptance/bootstrap.sh >/dev/null' < /repo/util/installer/test/vm-bootstrap.sh
   guest_script='sudo bash /opt/gt-acceptance/bootstrap.sh'
-  ssh_guest "$guest_script prepare $GT_VM_WEB" > results/prepare.log 2>&1
+  ssh_guest "$guest_script prepare $GT_VM_WEB $GT_VM_SMTP" > results/prepare.log 2>&1
   ssh_guest "$guest_script install" >> results/bootstrap.log 2>&1
 elif [[ "$GT_VM_MODE" == dialogs ]]; then
   ssh_guest 'sudo tee /opt/gt-acceptance/bootstrap.sh >/dev/null' < /repo/util/installer/test/vm-bootstrap.sh
@@ -165,8 +168,8 @@ if [[ "$GT_VM_MODE" == dialogs ]]; then
     "$GT_VM_LANG" 'other language and small-terminal fallback, real build, reboot and read-only rerun.' \
     | tee results/PASS
 else
-  printf 'PASS: %s, %s MiB RAM, mode=%s, real build, %s LAN access, domain TLS=%s, %s\n' \
-    "$GT_VM_OS" "$GT_VM_MEMORY" "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" 'systemd startup, reboot and resume.' \
-    | tee results/PASS
+  printf 'PASS: %s, %s MiB RAM, mode=%s, real build, %s LAN access, domain TLS=%s, SMTP=%s, %s\n' \
+    "$GT_VM_OS" "$GT_VM_MEMORY" "$GT_VM_MODE" "$GT_VM_WEB" "$GT_VM_DOMAIN" "$GT_VM_SMTP" \
+    'systemd startup, reboot and resume.' | tee results/PASS
 fi
 ssh_guest 'sudo systemctl poweroff' || true

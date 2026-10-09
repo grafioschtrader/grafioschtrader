@@ -377,6 +377,12 @@ backend and LAN frontend and submit exactly one message to the guest-only SMTP s
 a changed kernel boot ID, automatic database/backend/web startup and application health. A completed modeless
 rerun must preserve journal, result, build log, artifacts and secrets and must not send another message.
 
+`GT_VM_SMTP=later` (bootstrap mode only) installs with `SMTP_CONFIGURE=no` instead. The resumed run must then end
+with exit 10, `status=running`, `mail=skipped`, the skipped-mail warning in the result and no message. The driver
+then runs `--check-mail --answers FILE --yes` with the SMTP lines towards the guest's sink, which rebuilds the
+backend with real Jasypt encryption; it must reach `status=complete` with exactly one accepted message, unchanged
+installation ID and secrets, and no skipped-mail warning left in the result. Reboot and the completed rerun follow.
+
 `GT_VM_MODE=stages` retains the individual-stage acceptance in `vm-guest.sh`. It snapshots Git HEAD and overlays the current
 installer, its changed shell helpers and the application's connection-initialization properties. Other uncommitted
 application changes and local ignored credentials are excluded. This isolated snapshot gets its own commit;
@@ -486,6 +492,27 @@ installed Temurin `25.0.4.1+1` and Apache Maven `3.10.0` as isolated archives, U
 `3249e96afcb5caab3fbde93a7fc9b8913f18decf`; installer SHA-256 `b98ed3764dcf4addca7e5f13ee3b72b931c25f300d25adbab77f5e139b8c3257`
 on Debian 13 and `0985e58095d1170341ba3d4a2537d6f256560a090c7693b361b0cff4f5661b75` on Ubuntu 26.04 (the
 latter without the locale isolation of `gt_as_app`, which an English session does not need); cloud images as above.
+
+Dialog acceptance (`GT_VM_MODE=dialogs`, 8192 MiB) on 2026-10-09 also passed on Debian 12 amd64, kernel
+`6.1.0-53-cloud-amd64`, in `de_CH.UTF-8`: the 23-row fallback with `!quit`, the English dry-run, then an installation
+driven only by dialogs to `status=complete` with one accepted message, no credential under `/var/lib/gt-install`,
+reboot and the read-only completed rerun. APT offered no JDK 25, so the installer used the Temurin `25.0.4.1+1`
+archive, with Maven `3.10.0`, Node `24.21.0`, `@angular/cli` `22.2.2`, MariaDB `10.11.18` and nginx `1.22.1`.
+Application commit: `9b8962091ff0230d14548e31fa389a1a4051fd57`; installer SHA-256:
+`4b3667ce5de0b8481261de739e3cfc72024ffec1e3d436eb8eb38af972563f94`; cloud image as for the modeless Debian 12 run.
+The same evidence passed on Ubuntu 24.04 amd64, kernel `6.8.0-142-generic`, in `en_US.UTF-8` with the German dry-run,
+using `openjdk-25-jdk-headless` `25.0.4.1+1-1~24.04.4` and Maven `3.8.7` from APT, Node `24.21.0`, `@angular/cli`
+`22.2.2`, MariaDB `10.11.14` and nginx `1.24.0`; same application commit and installer SHA-256, cloud image as for
+the modeless Ubuntu 24.04 run. On both, `dialog-check` noted the database password in the application log (issue
+#274).
+
+SMTP-later acceptance (`GT_VM_SMTP=later`, bootstrap mode, 8192 MiB) on 2026-10-09 passed on Debian 13 amd64,
+kernel `6.12.111+deb13-cloud-amd64`, with nginx. The resumed installation ended with exit 10, `mail=skipped` and the
+skipped-mail warning; `--check-mail --answers` with the SMTP lines then rebuilt the backend and exited 0 with
+`status=complete`, `mail_delivery=accepted`, exactly one message at the sink, the same installation ID and secrets,
+and a result without any warning. Reboot and the read-only completed rerun passed. Maven `3.9.9` from APT, Node
+`24.21.0`. Application commit and installer SHA-256 as for the Debian 12 dialog run; cloud image SHA-256:
+`b2aca2bee42c7082fd6aba4a5bb1a89612087a405e99896920f3346f7b23b9d1`.
 
 The first attempts of this acceptance found two faults that the unattended runs, started through `systemd-run` in
 `/` without a locale, could not reach. `runuser` kept the administrator's working directory, a 0700 home on
