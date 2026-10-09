@@ -60,9 +60,7 @@ report, no file, package or service changed.
 |---|---|---|
 | 192.168.100.83 | Debian 13 arm64 | nginx with Home Assistant and phpMyAdmin |
 | 192.168.100.84 | Debian 13 arm64 | nginx |
-| 192.168.100.74 | Armbian on Ubuntu 26.04 arm64 | Apache (AJP) |
 | 192.168.100.82 | Debian 12 arm64, MariaDB through a socket unit on `*:3306` | Apache (AJP) |
-| 192.168.100.80 | Debian 13 arm64, Docker installation | host nginx in front of Docker |
 
 **Scenarios on real hosts** (so far covered by container or fixture tests only):
 

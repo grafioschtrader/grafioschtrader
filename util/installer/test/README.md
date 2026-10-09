@@ -534,6 +534,18 @@ the backend's Hibernate startup message `HHH10001005` writes the JDBC URL that M
 including `password=`, to `/var/log/grafioschtrader.log` (mode 640); `dialog-check` records this as a note until
 issue #274 is resolved.
 
+Read-only acceptance on 2026-10-09 passed on two production reference hosts with the installer downloaded from
+`master` at `525da03bec0a7123a3367d215ea46396c9b154bd` (SHA-256
+`e57c60fd4614ecc5f8862947b2cc094fbd321f5af472f8073213f54648770c2d`). `.74` (ROCK 4C+, Armbian 26.11 on Ubuntu 26.04
+arm64, kernel `6.18.55-current-rockchip64`, Apache with AJP) reported `host.class=classic` with the `./gtupdate.sh`
+hint; `--check` exits 2 because the non-empty database blocks a bootstrap, `--dry-run` exits 0. `.80` (Raspberry
+Pi 5, Debian 13 arm64, kernel `6.18.34+rpt-rpi-2712`, host nginx in front of Docker) first reported
+`foreign-partial`, because a service user and an empty native database remained from an earlier classic
+installation; since GT containers now take precedence it reports `host.class=docker` with the `docker/update.sh`
+hint, and both modes exit 0. On both hosts the package list, unit files, `/var/lib/gt-install` and every file under
+`/etc`, `/usr`, `/opt`, `/var/www` and `/home/grafioschtrader` were unchanged. The only service difference was
+`systemd-timedated`, which the inventory's `timedatectl show` starts through D-Bus and which ends itself when idle.
+
 Real-hardware acceptance on 2026-10-08 passed on a Radxa ROCK 5B (arm64, 16 GB, SD card) with Debian 12.15,
 kernel `6.1.84-8-rk2410`, nginx `1.22.1`, Let's Encrypt and the installer's own DuckDNS updater. The host is
 dual-homed: the intranet on Ethernet without a default route, the internet over WLAN; `LAN_ADDRESS` selected the
