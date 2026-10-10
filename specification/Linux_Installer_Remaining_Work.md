@@ -55,7 +55,6 @@ failure.
 
 | Scenario | Required evidence |
 |---|---|
-| DuckDNS with the installer's updater after an IPv6 address change, simulated on the host by replacing its stable address | the next timer run moves the AAAA records to the new address; HTTPS answers on it |
 | DuckDNS with `DNS_FAMILY` `ipv4` and `both`, only on a connection with its own public IPv4 and port forwarding (DS-Lite offers no inbound IPv4) | records equal the host's addresses; certificate issued |
 | DuckDNS with an updater already in a crontab | found by the inventory, `DUCKDNS_UPDATER` defaults to `no`, no second updater, no token asked |
 | own domain with correct records, with a wrong A record, without a `www` record | certificate issued; mismatch reported with both values and the certbot command; certificate and vhost without `www` |

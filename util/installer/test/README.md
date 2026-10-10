@@ -648,6 +648,14 @@ phpMyAdmin had been attached by an `include` in the installer's LAN site; after 
 lines were added back to the new sites, and phpMyAdmin answered again on the LAN and with 404 on the domain.
 Application commit: `278750fd107cc3b92eef9458cb517eb11cf34246`; installer SHA-256 as for the first run on this host.
 
+An IPv6 address change passed on 2026-10-10 on the same host. A second static address
+`2a02:aa14:a207:ec00::10:10/64` on the interface of the default route became the first stable global address, which
+the updater selects; the regular timer run at 06:33:30Z moved the AAAA records of `gt16o2.duckdns.org` and `www` on
+both DuckDNS name servers to it. From outside, a Let's Encrypt renewal dry run reached port 80 on the new address and
+SSL Labs reached port 443 (grade A). After the address was removed, the timer run at 06:43:30Z moved the records back
+to the SLAAC address and HTTPS answered there again. The host is behind DS-Lite without inbound IPv4, so the
+families `ipv4` and `both` were not exercised.
+
 Real-hardware acceptance on Debian 13 arm64 passed on 2026-10-08 on a Radxa ROCK 4C+ (4 GB, zram swap, SD card)
 with Armbian 26.11, kernel `6.18.54-current-rockchip64`, nginx `1.26.3`, Let's Encrypt and the installer's own
 DuckDNS updater, dual-homed like the ROCK 5B. The image had neither git nor dig; the modeless plan installed both
