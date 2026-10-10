@@ -1,11 +1,12 @@
+/*M!999999\- enable the sandbox mode */ 
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `connector_apikey` (
   `id_provider` varchar(32) NOT NULL,
   `api_key` varchar(255) NOT NULL,
@@ -14,7 +15,7 @@ CREATE TABLE `connector_apikey` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `entity_limit` (
   `id_entity_limit` int(11) NOT NULL AUTO_INCREMENT,
   `limit_type` tinyint(4) NOT NULL,
@@ -44,10 +45,10 @@ CREATE TABLE `entity_limit` (
   CONSTRAINT `FK_EntityLimit_Role` FOREIGN KEY (`id_role`) REFERENCES `role` (`id_role`),
   CONSTRAINT `FK_EntityLimit_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE,
   CONSTRAINT `CK_EntityLimit_Scope` CHECK (`id_role` is null or `id_user` is null)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `globalparameters` (
   `property_name` varchar(45) NOT NULL,
   `property_int` int(11) DEFAULT NULL,
@@ -58,10 +59,10 @@ CREATE TABLE `globalparameters` (
   `changed_by_system` tinyint(1) DEFAULT 0,
   `input_rule` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`property_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net` (
   `id_gt_net` int(11) NOT NULL AUTO_INCREMENT,
   `domain_remote_name` varchar(128) NOT NULL,
@@ -78,7 +79,7 @@ CREATE TABLE `gt_net` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_config` (
   `id_gt_net` int(11) NOT NULL,
   `token_this` varchar(32) DEFAULT NULL,
@@ -99,7 +100,7 @@ CREATE TABLE `gt_net_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_config_entity` (
   `id_gt_net_entity` int(11) NOT NULL,
   `exchange` tinyint(1) NOT NULL DEFAULT 0,
@@ -111,7 +112,7 @@ CREATE TABLE `gt_net_config_entity` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_entity` (
   `id_gt_net_entity` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -126,7 +127,7 @@ CREATE TABLE `gt_net_entity` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_exchange_log` (
   `id_gt_net_exchange_log` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -145,7 +146,7 @@ CREATE TABLE `gt_net_exchange_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_maintenance_window` (
   `id_gt_net_maintenance_window` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL COMMENT 'The remote whose services are unavailable',
@@ -161,7 +162,7 @@ CREATE TABLE `gt_net_maintenance_window` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Announced maintenance windows of remote GTNet instances';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_message` (
   `id_gt_net_message` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -186,7 +187,7 @@ CREATE TABLE `gt_net_message` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_message_answer` (
   `id_gt_net_message_answer` int(11) NOT NULL AUTO_INCREMENT,
   `request_msg_code` tinyint(3) NOT NULL,
@@ -200,7 +201,7 @@ CREATE TABLE `gt_net_message_answer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_message_attempt` (
   `id_gt_net_message_attempt` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL COMMENT 'Target GTNet instance to receive the message',
@@ -221,7 +222,7 @@ CREATE TABLE `gt_net_message_attempt` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Tracks per-target delivery status for future-oriented GTNet broadcast messages';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_message_param` (
   `id_gt_net_message` int(11) NOT NULL,
   `param_name` varchar(32) NOT NULL,
@@ -231,7 +232,7 @@ CREATE TABLE `gt_net_message_param` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_supplier_detail` (
   `id_gt_net_supplier_detail` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -245,7 +246,7 @@ CREATE TABLE `gt_net_supplier_detail` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mail_entity` (
   `id_mail_entity` int(11) NOT NULL AUTO_INCREMENT,
   `id_mail_send_recv` int(11) DEFAULT NULL,
@@ -257,7 +258,7 @@ CREATE TABLE `mail_entity` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mail_send_recv` (
   `id_mail_send_recv` int(11) NOT NULL AUTO_INCREMENT,
   `send_recv` char(1) NOT NULL,
@@ -277,7 +278,7 @@ CREATE TABLE `mail_send_recv` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mail_send_recv_read_del` (
   `id_mail_send_recv` int(11) NOT NULL,
   `id_user` int(11) NOT NULL,
@@ -290,7 +291,7 @@ CREATE TABLE `mail_send_recv_read_del` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mail_setting_forward` (
   `id_mail_setting_forward` int(11) NOT NULL AUTO_INCREMENT,
   `id_user` int(11) NOT NULL,
@@ -305,34 +306,34 @@ CREATE TABLE `mail_setting_forward` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `multilinguestring` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `multilinguestrings` (
   `id_string` int(11) NOT NULL,
   `text` varchar(2000) NOT NULL,
   `language` varchar(2) NOT NULL,
   PRIMARY KEY (`id_string`,`language`),
   CONSTRAINT `FK_Multilinguestrings_Multilinguestring` FOREIGN KEY (`id_string`) REFERENCES `multilinguestring` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_change_entity` (
   `id_propose_request` int(11) NOT NULL,
   `id_entity` int(11) NOT NULL,
   `id_owner_entity` int(11) NOT NULL,
   PRIMARY KEY (`id_propose_request`),
   CONSTRAINT `FK_ProposeChangeEntity_ProposeRequest` FOREIGN KEY (`id_propose_request`) REFERENCES `propose_request` (`id_propose_request`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_change_field` (
   `id_propose_field` int(11) NOT NULL AUTO_INCREMENT,
   `id_propose_request` int(11) NOT NULL,
@@ -341,10 +342,10 @@ CREATE TABLE `propose_change_field` (
   PRIMARY KEY (`id_propose_field`),
   KEY `FK_ProposeChangeField_ProposeRequest` (`id_propose_request`),
   CONSTRAINT `FK_ProposeChangeField_ProposeRequest` FOREIGN KEY (`id_propose_request`) REFERENCES `propose_request` (`id_propose_request`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_request` (
   `id_propose_request` int(11) NOT NULL AUTO_INCREMENT,
   `dtype` varchar(1) NOT NULL,
@@ -358,10 +359,10 @@ CREATE TABLE `propose_request` (
   `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_propose_request`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_user_task` (
   `id_propose_request` int(11) NOT NULL,
   `id_target_user` int(11) NOT NULL,
@@ -371,10 +372,10 @@ CREATE TABLE `propose_user_task` (
   KEY `FK_ProposeUserTask_User` (`id_target_user`),
   CONSTRAINT `FK_ProposeUserTask_ProposeRequest` FOREIGN KEY (`id_propose_request`) REFERENCES `propose_request` (`id_propose_request`) ON DELETE CASCADE,
   CONSTRAINT `FK_ProposeUserTask_User` FOREIGN KEY (`id_target_user`) REFERENCES `user` (`id_user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `release_note` (
   `id_release_note` int(11) NOT NULL AUTO_INCREMENT,
   `version` varchar(12) NOT NULL,
@@ -385,16 +386,16 @@ CREATE TABLE `release_note` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `role` (
   `id_role` int(11) NOT NULL AUTO_INCREMENT,
   `rolename` varchar(50) NOT NULL,
   PRIMARY KEY (`id_role`),
   UNIQUE KEY `rolename` (`id_role`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `task_data_change` (
   `id_task_data_change` int(11) NOT NULL AUTO_INCREMENT,
   `id_task` tinyint(2) NOT NULL,
@@ -411,10 +412,10 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tenant` (
   `id_tenant` int(11) NOT NULL AUTO_INCREMENT,
   `tenant_name` varchar(25) NOT NULL,
@@ -435,10 +436,10 @@ CREATE TABLE `tenant` (
   `report_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`report_settings`)),
   `disposal_cost_estimate` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Tenant opt-out of the disposal cost estimate; effective only while gt.disposal.cost.estimate is 1',
   PRIMARY KEY (`id_tenant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tenant_access` (
   `id_tenant_access` int(11) NOT NULL AUTO_INCREMENT,
   `id_user` int(11) NOT NULL,
@@ -449,10 +450,10 @@ CREATE TABLE `tenant_access` (
   KEY `fk_tenant_access_tenant` (`id_tenant`),
   CONSTRAINT `fk_tenant_access_tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`) ON DELETE CASCADE,
   CONSTRAINT `fk_tenant_access_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_data` (
   `id_user` int(11) NOT NULL,
   `entity` varchar(20) NOT NULL,
@@ -464,7 +465,7 @@ CREATE TABLE `udf_data` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_metadata` (
   `id_udf_metadata` int(11) NOT NULL AUTO_INCREMENT,
   `id_user` int(11) DEFAULT NULL,
@@ -480,7 +481,7 @@ CREATE TABLE `udf_metadata` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_metadata_general` (
   `id_udf_metadata` int(11) NOT NULL,
   `entity` varchar(20) NOT NULL,
@@ -489,7 +490,7 @@ CREATE TABLE `udf_metadata_general` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_special_type_disable_user` (
   `id_user` int(11) NOT NULL,
   `udf_special_type` tinyint(3) NOT NULL,
@@ -498,7 +499,7 @@ CREATE TABLE `udf_special_type_disable_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
   `id_user` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) DEFAULT NULL,
@@ -523,10 +524,10 @@ CREATE TABLE `user` (
   UNIQUE KEY `email` (`email`) USING BTREE,
   KEY `FK_User_Tenant` (`id_tenant`),
   CONSTRAINT `FK_User_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_dashboard` (
   `id_user` int(11) NOT NULL,
   `layout` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`layout`)),
@@ -536,7 +537,7 @@ CREATE TABLE `user_dashboard` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_entity_change_count` (
   `id_user` int(11) NOT NULL,
   `date` date NOT NULL,
@@ -546,10 +547,10 @@ CREATE TABLE `user_entity_change_count` (
   `count_delete` int(11) NOT NULL,
   PRIMARY KEY (`id_user`,`date`,`entity_name`) USING BTREE,
   CONSTRAINT `FK_UserEntityChangeCount_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_role` (
   `id_user` int(11) NOT NULL,
   `id_role` int(11) NOT NULL,
@@ -557,10 +558,10 @@ CREATE TABLE `user_role` (
   KEY `role_id` (`id_role`),
   CONSTRAINT `FK_User_Roles_Roles` FOREIGN KEY (`id_role`) REFERENCES `role` (`id_role`),
   CONSTRAINT `FK_User_Roles_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `verificationtoken` (
   `id_verificationtoken` int(11) NOT NULL AUTO_INCREMENT,
   `expiry_date` datetime DEFAULT NULL,
@@ -569,14 +570,14 @@ CREATE TABLE `verificationtoken` (
   PRIMARY KEY (`id_verificationtoken`),
   KEY `FK_Verify_User` (`id_user`),
   CONSTRAINT `FK_VerificationToken_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
 
 -- ----------------------------------------------------------------------
@@ -584,6 +585,7 @@ CREATE TABLE `verificationtoken` (
 -- Grafioschtrader application config that no grafiosch-* code reads, and several of them hold
 -- the dumping machine's own state (demo tenant ids, connector watermarks).
 -- ----------------------------------------------------------------------
+/*M!999999\- enable the sandbox mode */ 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -591,10 +593,12 @@ CREATE TABLE `verificationtoken` (
 /*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
 
+SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 /*!40000 ALTER TABLE `globalparameters` DISABLE KEYS */;
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.connection.timeout',30,NULL,NULL,NULL,NULL,0,'min:5,max:40');
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.gnet.del.message.recv',NULL,'LP=1,HP=5,SL=5,SS=10',NULL,NULL,NULL,0,'pattern:^LP=([1-9]|10),HP=([1-9]|10),SL=([1-9]|10),SS=([1-9]|10)$');
@@ -608,6 +612,8 @@ INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_strin
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.password.regex.properties',NULL,NULL,NULL,NULL,'de=Das Passwort besteht aus mindestens acht Zeichen mit mindestens einem Buchstaben und einer Zahl.\nregex=^(?\\=.*[A-Za-z])(?\\=.*\\\\d)[A-Za-z\\\\d]{8,}$\nforceRegex=false\nen=The password has at least eight characters with at least one letter and one number.\n\n\n\n\n',0,NULL);
 INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_string`, `property_date`, `property_date_time`, `property_blob`, `changed_by_system`, `input_rule`) VALUES ('g.task.data.days.preserve',10,NULL,NULL,NULL,NULL,0,NULL);
 /*!40000 ALTER TABLE `globalparameters` ENABLE KEYS */;
+COMMIT;
+SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -615,8 +621,9 @@ INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_strin
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
+/*M!999999\- enable the sandbox mode */ 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -624,16 +631,20 @@ INSERT INTO `globalparameters` (`property_name`, `property_int`, `property_strin
 /*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
 
+SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 /*!40000 ALTER TABLE `role` DISABLE KEYS */;
 INSERT INTO `role` (`id_role`, `rolename`) VALUES (5,'ROLE_ADMIN');
 INSERT INTO `role` (`id_role`, `rolename`) VALUES (6,'ROLE_ALLEDIT');
 INSERT INTO `role` (`id_role`, `rolename`) VALUES (7,'ROLE_USER');
 INSERT INTO `role` (`id_role`, `rolename`) VALUES (8,'ROLE_LIMITEDIT');
 /*!40000 ALTER TABLE `role` ENABLE KEYS */;
+COMMIT;
+SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -641,7 +652,7 @@ INSERT INTO `role` (`id_role`, `rolename`) VALUES (8,'ROLE_LIMITEDIT');
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
 
 -- ----------------------------------------------------------------------

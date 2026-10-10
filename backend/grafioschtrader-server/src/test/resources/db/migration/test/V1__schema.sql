@@ -1,8 +1,9 @@
--- MariaDB dump 10.19  Distrib 10.4.27-MariaDB, for Win64 (AMD64)
+/*M!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.20-11.8.9-MariaDB, for Win64 (AMD64)
 --
 -- Host: localhost    Database: grafioschtrader
 -- ------------------------------------------------------
--- Server version	10.4.27-MariaDB
+-- Server version	11.8.9-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -13,7 +14,7 @@
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
 
 --
 -- Table structure for table `algo_alert_evaluation_state`
@@ -21,7 +22,7 @@
 
 DROP TABLE IF EXISTS `algo_alert_evaluation_state`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_alert_evaluation_state` (
   `id_algo_alert_evaluation_state` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -43,7 +44,7 @@ CREATE TABLE `algo_alert_evaluation_state` (
   CONSTRAINT `FK_AlertEvaluation_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlertEvaluation_Strategy` FOREIGN KEY (`id_algo_strategy`) REFERENCES `algo_strategy` (`id_algo_rule_strategy`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlertEvaluation_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=227 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -52,7 +53,7 @@ CREATE TABLE `algo_alert_evaluation_state` (
 
 DROP TABLE IF EXISTS `algo_alert_state`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_alert_state` (
   `id_algo_alert_state` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -76,7 +77,7 @@ CREATE TABLE `algo_alert_state` (
 
 DROP TABLE IF EXISTS `algo_assetclass`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_assetclass` (
   `id_algo_assetclass_security` int(11) NOT NULL,
   `id_algo_assetclass_parent` int(11) NOT NULL,
@@ -90,7 +91,7 @@ CREATE TABLE `algo_assetclass` (
   CONSTRAINT `FK_AlgoAssetClass_AlgoAssetClassSecurity` FOREIGN KEY (`id_algo_assetclass_security`) REFERENCES `algo_assetclass_security` (`id_algo_assetclass_security`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoAssetClass_AlgoTop` FOREIGN KEY (`id_algo_assetclass_parent`) REFERENCES `algo_top` (`id_algo_assetclass_security`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoAssetClass_Assetclass` FOREIGN KEY (`id_asset_class`) REFERENCES `assetclass` (`id_asset_class`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -99,7 +100,7 @@ CREATE TABLE `algo_assetclass` (
 
 DROP TABLE IF EXISTS `algo_assetclass_security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_assetclass_security` (
   `id_algo_assetclass_security` int(11) NOT NULL,
   `id_securitycash_account_1` int(11) DEFAULT NULL,
@@ -110,7 +111,7 @@ CREATE TABLE `algo_assetclass_security` (
   CONSTRAINT `FK_AlgoAssetClassSecurity_AlgoTopAssetSecurity` FOREIGN KEY (`id_algo_assetclass_security`) REFERENCES `algo_top_asset_security` (`id_algo_assetclass_security`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoAssetClassSecurity_SecurityAccount_1` FOREIGN KEY (`id_securitycash_account_1`) REFERENCES `securityaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_AlgoAssetClassSecurity_SecurityAccount_2` FOREIGN KEY (`id_securitycash_account_2`) REFERENCES `securityaccount` (`id_securitycash_account`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -119,7 +120,7 @@ CREATE TABLE `algo_assetclass_security` (
 
 DROP TABLE IF EXISTS `algo_event_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_event_log` (
   `id_algo_event` int(11) NOT NULL AUTO_INCREMENT,
   `id_simulation_result` int(11) NOT NULL,
@@ -143,7 +144,7 @@ CREATE TABLE `algo_event_log` (
   CONSTRAINT `FK_AlgoEventLog_Securitycurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoEventLog_Strategy` FOREIGN KEY (`id_algo_strategy`) REFERENCES `algo_strategy` (`id_algo_rule_strategy`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoEventLog_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=22111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22708 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -152,7 +153,7 @@ CREATE TABLE `algo_event_log` (
 
 DROP TABLE IF EXISTS `algo_execution_state`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_execution_state` (
   `id_algo_execution_state` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -180,7 +181,7 @@ CREATE TABLE `algo_execution_state` (
 
 DROP TABLE IF EXISTS `algo_message_alert`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_message_alert` (
   `id_algo_message_alert` int(11) NOT NULL AUTO_INCREMENT,
   `id_security_currency` int(11) NOT NULL DEFAULT 0 COMMENT '0 when the signal is not about a single instrument',
@@ -210,7 +211,7 @@ CREATE TABLE `algo_message_alert` (
   PRIMARY KEY (`id_algo_message_alert`),
   UNIQUE KEY `UK_AlarmDay` (`id_tenant`,`id_algo_strategy`,`id_security_currency`,`alarm_type`,`signal_direction`,`tranche_key`,`alert_day`),
   KEY `IX_AlarmDeliveryDue` (`delivery_status`,`next_attempt_at`,`delivery_lease_until`)
-) ENGINE=InnoDB AUTO_INCREMENT=60 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -219,7 +220,7 @@ CREATE TABLE `algo_message_alert` (
 
 DROP TABLE IF EXISTS `algo_recommendation`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_recommendation` (
   `id_algo_recommendation` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -248,7 +249,7 @@ CREATE TABLE `algo_recommendation` (
   CONSTRAINT `FK_AlgoRecommendation_AlgoTop` FOREIGN KEY (`id_algo_assetclass_security`) REFERENCES `algo_top_asset_security` (`id_algo_assetclass_security`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoRecommendation_Securitycurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoRecommendation_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1419 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1635 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -257,7 +258,7 @@ CREATE TABLE `algo_recommendation` (
 
 DROP TABLE IF EXISTS `algo_rule_strategy`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_rule_strategy` (
   `id_algo_rule_strategy` int(11) NOT NULL AUTO_INCREMENT,
   `id_algo_assetclass_security` int(11) NOT NULL,
@@ -266,7 +267,7 @@ CREATE TABLE `algo_rule_strategy` (
   PRIMARY KEY (`id_algo_rule_strategy`) USING BTREE,
   KEY `FK_AlgoRuleStrategy_AlgoTopAssetSecurity` (`id_algo_assetclass_security`),
   CONSTRAINT `FK_AlgoRuleStrategy_AlgoTopAssetSecurity` FOREIGN KEY (`id_algo_assetclass_security`) REFERENCES `algo_top_asset_security` (`id_algo_assetclass_security`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -275,14 +276,14 @@ CREATE TABLE `algo_rule_strategy` (
 
 DROP TABLE IF EXISTS `algo_rule_strategy_param`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_rule_strategy_param` (
   `id_algo_rule_strategy` int(11) NOT NULL,
   `param_name` varchar(32) NOT NULL,
   `param_value` varchar(500) NOT NULL,
   PRIMARY KEY (`id_algo_rule_strategy`,`param_name`) USING BTREE,
   CONSTRAINT `FK_AlgoRuleStrategyParam_AlgoRuleStrategy` FOREIGN KEY (`id_algo_rule_strategy`) REFERENCES `algo_rule_strategy` (`id_algo_rule_strategy`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -291,7 +292,7 @@ CREATE TABLE `algo_rule_strategy_param` (
 
 DROP TABLE IF EXISTS `algo_security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_security` (
   `id_algo_assetclass_security` int(11) NOT NULL,
   `id_algo_security_parent` int(11) DEFAULT NULL,
@@ -302,7 +303,7 @@ CREATE TABLE `algo_security` (
   CONSTRAINT `FK_AlgoSecurity_AlgoAssetClass` FOREIGN KEY (`id_algo_security_parent`) REFERENCES `algo_assetclass` (`id_algo_assetclass_security`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoSecurity_AlgoAssetClassSecurity` FOREIGN KEY (`id_algo_assetclass_security`) REFERENCES `algo_assetclass_security` (`id_algo_assetclass_security`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoSecurity_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -311,7 +312,7 @@ CREATE TABLE `algo_security` (
 
 DROP TABLE IF EXISTS `algo_simulation_result`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_simulation_result` (
   `id_simulation_result` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL COMMENT 'The simulation environment the run belongs to, never the main tenant',
@@ -358,7 +359,7 @@ CREATE TABLE `algo_simulation_result` (
 
 DROP TABLE IF EXISTS `algo_strategy`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_strategy` (
   `id_algo_rule_strategy` int(11) NOT NULL,
   `algo_strategy_impl` tinyint(4) NOT NULL,
@@ -367,7 +368,7 @@ CREATE TABLE `algo_strategy` (
   `alert_enabled` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_algo_rule_strategy`),
   CONSTRAINT `FK_AlgoStrategy_AlgoRuleStrategy` FOREIGN KEY (`id_algo_rule_strategy`) REFERENCES `algo_rule_strategy` (`id_algo_rule_strategy`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -376,7 +377,7 @@ CREATE TABLE `algo_strategy` (
 
 DROP TABLE IF EXISTS `algo_top`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_top` (
   `id_algo_assetclass_security` int(11) NOT NULL,
   `name` varchar(40) NOT NULL,
@@ -386,7 +387,7 @@ CREATE TABLE `algo_top` (
   KEY `FK_AlgoTop_Watchlist` (`id_watchlist`),
   CONSTRAINT `FK_AlgoTop_AlgoTopAssetSecurity` FOREIGN KEY (`id_algo_assetclass_security`) REFERENCES `algo_top_asset_security` (`id_algo_assetclass_security`) ON DELETE CASCADE,
   CONSTRAINT `FK_AlgoTop_Watchlist` FOREIGN KEY (`id_watchlist`) REFERENCES `watchlist` (`id_watchlist`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -395,7 +396,7 @@ CREATE TABLE `algo_top` (
 
 DROP TABLE IF EXISTS `algo_top_asset_security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `algo_top_asset_security` (
   `id_algo_assetclass_security` int(11) NOT NULL AUTO_INCREMENT,
   `dtype` varchar(1) NOT NULL,
@@ -404,7 +405,7 @@ CREATE TABLE `algo_top_asset_security` (
   PRIMARY KEY (`id_algo_assetclass_security`),
   KEY `FK_AlgoTopAssetSecurity_Tenant` (`id_tenant`),
   CONSTRAINT `FK_AlgoTopAssetSecurity_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=394 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=394 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -413,7 +414,7 @@ CREATE TABLE `algo_top_asset_security` (
 
 DROP TABLE IF EXISTS `assetclass`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `assetclass` (
   `id_asset_class` int(11) NOT NULL AUTO_INCREMENT,
   `category_type` smallint(6) NOT NULL,
@@ -428,7 +429,7 @@ CREATE TABLE `assetclass` (
   UNIQUE KEY `category_type` (`category_type`,`sub_category_nls`,`spec_invest_instrument`) USING BTREE,
   KEY `FK_Assetklass_Multilinguestring` (`sub_category_nls`),
   CONSTRAINT `FK_Assetclass_Multilinguestring` FOREIGN KEY (`sub_category_nls`) REFERENCES `multilinguestring` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=572 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=572 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -437,7 +438,7 @@ CREATE TABLE `assetclass` (
 
 DROP TABLE IF EXISTS `bankrupt_security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bankrupt_security` (
   `id_bankrupt_security` int(11) NOT NULL AUTO_INCREMENT,
   `id_securitycurrency` int(11) NOT NULL,
@@ -461,7 +462,7 @@ CREATE TABLE `bankrupt_security` (
 
 DROP TABLE IF EXISTS `cashaccount`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cashaccount` (
   `id_securitycash_account` int(11) NOT NULL AUTO_INCREMENT,
   `currency` char(3) NOT NULL,
@@ -469,7 +470,7 @@ CREATE TABLE `cashaccount` (
   `borrowing_rate` double DEFAULT NULL,
   PRIMARY KEY (`id_securitycash_account`),
   CONSTRAINT `FK_CashAccount_SecurityCashAccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=86828 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=87044 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -478,7 +479,7 @@ CREATE TABLE `cashaccount` (
 
 DROP TABLE IF EXISTS `connector_apikey`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `connector_apikey` (
   `id_provider` varchar(32) NOT NULL,
   `api_key` varchar(255) NOT NULL,
@@ -493,7 +494,7 @@ CREATE TABLE `connector_apikey` (
 
 DROP TABLE IF EXISTS `correlation_instrument`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `correlation_instrument` (
   `id_correlation_set` int(11) NOT NULL,
   `id_securitycurrency` int(11) NOT NULL,
@@ -510,7 +511,7 @@ CREATE TABLE `correlation_instrument` (
 
 DROP TABLE IF EXISTS `correlation_set`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `correlation_set` (
   `id_correlation_set` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -521,9 +522,10 @@ CREATE TABLE `correlation_set` (
   `sampling_period` tinyint(1) NOT NULL DEFAULT 1,
   `rolling` tinyint(4) DEFAULT 12,
   `adjust_currency` tinyint(4) NOT NULL DEFAULT 0,
+  `include_dividends` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Add reinvested dividends to the prices before the returns are calculated',
   PRIMARY KEY (`id_correlation_set`),
   UNIQUE KEY `Unique_idTenant_name` (`id_tenant`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=8939 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8969 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -532,7 +534,7 @@ CREATE TABLE `correlation_set` (
 
 DROP TABLE IF EXISTS `currencypair`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `currencypair` (
   `id_securitycurrency` int(11) NOT NULL,
   `from_currency` char(3) NOT NULL,
@@ -540,7 +542,7 @@ CREATE TABLE `currencypair` (
   PRIMARY KEY (`id_securitycurrency`),
   UNIQUE KEY `from_to_currency` (`from_currency`,`to_currency`),
   CONSTRAINT `FK_Currencypair_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -549,7 +551,7 @@ CREATE TABLE `currencypair` (
 
 DROP TABLE IF EXISTS `dividend`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `dividend` (
   `id_dividend` int(11) NOT NULL AUTO_INCREMENT,
   `id_securitycurrency` int(11) NOT NULL,
@@ -563,7 +565,7 @@ CREATE TABLE `dividend` (
   PRIMARY KEY (`id_dividend`),
   KEY `FK_Dividend_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Dividend_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=1135136 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1135259 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -572,7 +574,7 @@ CREATE TABLE `dividend` (
 
 DROP TABLE IF EXISTS `ecb_exchange_rates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ecb_exchange_rates` (
   `date` date NOT NULL,
   `currency` char(3) NOT NULL,
@@ -587,7 +589,7 @@ CREATE TABLE `ecb_exchange_rates` (
 
 DROP TABLE IF EXISTS `entity_limit`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `entity_limit` (
   `id_entity_limit` int(11) NOT NULL AUTO_INCREMENT,
   `limit_type` tinyint(4) NOT NULL,
@@ -617,7 +619,7 @@ CREATE TABLE `entity_limit` (
   CONSTRAINT `FK_EntityLimit_Role` FOREIGN KEY (`id_role`) REFERENCES `role` (`id_role`),
   CONSTRAINT `FK_EntityLimit_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE,
   CONSTRAINT `CK_EntityLimit_Scope` CHECK (`id_role` is null or `id_user` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=232 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=232 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -626,7 +628,7 @@ CREATE TABLE `entity_limit` (
 
 DROP TABLE IF EXISTS `flyway_schema_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `flyway_schema_history` (
   `installed_rank` int(11) NOT NULL,
   `version` varchar(50) DEFAULT NULL,
@@ -640,7 +642,7 @@ CREATE TABLE `flyway_schema_history` (
   `success` tinyint(1) NOT NULL,
   PRIMARY KEY (`installed_rank`),
   KEY `flyway_schema_history_s_idx` (`success`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -649,7 +651,7 @@ CREATE TABLE `flyway_schema_history` (
 
 DROP TABLE IF EXISTS `generic_connector_def`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `generic_connector_def` (
   `id_generic_connector` int(11) NOT NULL AUTO_INCREMENT,
   `short_id` varchar(32) NOT NULL,
@@ -689,7 +691,7 @@ CREATE TABLE `generic_connector_def` (
 
 DROP TABLE IF EXISTS `generic_connector_endpoint`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `generic_connector_endpoint` (
   `id_endpoint` int(11) NOT NULL AUTO_INCREMENT,
   `id_generic_connector` int(11) NOT NULL,
@@ -733,7 +735,7 @@ CREATE TABLE `generic_connector_endpoint` (
 
 DROP TABLE IF EXISTS `generic_connector_field_mapping`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `generic_connector_field_mapping` (
   `id_field_mapping` int(11) NOT NULL AUTO_INCREMENT,
   `id_endpoint` int(11) NOT NULL,
@@ -754,7 +756,7 @@ CREATE TABLE `generic_connector_field_mapping` (
 
 DROP TABLE IF EXISTS `generic_connector_http_header`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `generic_connector_http_header` (
   `id_http_header` int(11) NOT NULL AUTO_INCREMENT,
   `id_generic_connector` int(11) NOT NULL,
@@ -772,7 +774,7 @@ CREATE TABLE `generic_connector_http_header` (
 
 DROP TABLE IF EXISTS `globalparameters`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `globalparameters` (
   `property_name` varchar(45) NOT NULL,
   `property_int` int(11) DEFAULT NULL,
@@ -783,7 +785,7 @@ CREATE TABLE `globalparameters` (
   `changed_by_system` tinyint(1) DEFAULT 0,
   `input_rule` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`property_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -792,7 +794,7 @@ CREATE TABLE `globalparameters` (
 
 DROP TABLE IF EXISTS `gt_net`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net` (
   `id_gt_net` int(11) NOT NULL AUTO_INCREMENT,
   `domain_remote_name` varchar(128) NOT NULL,
@@ -815,7 +817,7 @@ CREATE TABLE `gt_net` (
 
 DROP TABLE IF EXISTS `gt_net_config`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_config` (
   `id_gt_net` int(11) NOT NULL,
   `token_this` varchar(32) DEFAULT NULL,
@@ -842,7 +844,7 @@ CREATE TABLE `gt_net_config` (
 
 DROP TABLE IF EXISTS `gt_net_config_entity`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_config_entity` (
   `id_gt_net_entity` int(11) NOT NULL,
   `exchange` tinyint(1) NOT NULL DEFAULT 0,
@@ -860,7 +862,7 @@ CREATE TABLE `gt_net_config_entity` (
 
 DROP TABLE IF EXISTS `gt_net_entity`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_entity` (
   `id_gt_net_entity` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -881,7 +883,7 @@ CREATE TABLE `gt_net_entity` (
 
 DROP TABLE IF EXISTS `gt_net_exchange_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_exchange_log` (
   `id_gt_net_exchange_log` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -897,7 +899,7 @@ CREATE TABLE `gt_net_exchange_log` (
   PRIMARY KEY (`id_gt_net_exchange_log`),
   KEY `FK_GtNetExchangeLog_GtNet` (`id_gt_net`),
   CONSTRAINT `FK_GtNetExchangeLog_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10713 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10842 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -906,7 +908,7 @@ CREATE TABLE `gt_net_exchange_log` (
 
 DROP TABLE IF EXISTS `gt_net_historyquote`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_historyquote` (
   `id_gt_net_historyquote` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net_instrument` int(11) NOT NULL,
@@ -928,7 +930,7 @@ CREATE TABLE `gt_net_historyquote` (
 
 DROP TABLE IF EXISTS `gt_net_instrument`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_instrument` (
   `id_gt_net_instrument` int(11) NOT NULL AUTO_INCREMENT,
   `dtype` varchar(1) NOT NULL,
@@ -942,7 +944,7 @@ CREATE TABLE `gt_net_instrument` (
 
 DROP TABLE IF EXISTS `gt_net_instrument_currencypair`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_instrument_currencypair` (
   `id_gt_net_instrument` int(11) NOT NULL,
   `from_currency` char(3) NOT NULL,
@@ -959,7 +961,7 @@ CREATE TABLE `gt_net_instrument_currencypair` (
 
 DROP TABLE IF EXISTS `gt_net_instrument_security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_instrument_security` (
   `id_gt_net_instrument` int(11) NOT NULL,
   `isin` varchar(12) NOT NULL,
@@ -976,7 +978,7 @@ CREATE TABLE `gt_net_instrument_security` (
 
 DROP TABLE IF EXISTS `gt_net_lastprice`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_lastprice` (
   `id_gt_net_lastprice` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net_instrument` int(11) NOT NULL,
@@ -998,7 +1000,7 @@ CREATE TABLE `gt_net_lastprice` (
 
 DROP TABLE IF EXISTS `gt_net_maintenance_window`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_maintenance_window` (
   `id_gt_net_maintenance_window` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL COMMENT 'The remote whose services are unavailable',
@@ -1020,7 +1022,7 @@ CREATE TABLE `gt_net_maintenance_window` (
 
 DROP TABLE IF EXISTS `gt_net_message`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_message` (
   `id_gt_net_message` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -1042,7 +1044,7 @@ CREATE TABLE `gt_net_message` (
   KEY `FK_GtNetMessage_GtNetMessage` (`reply_to`),
   CONSTRAINT `FK_GtNetMessage_GtNet` FOREIGN KEY (`id_gt_net`) REFERENCES `gt_net` (`id_gt_net`) ON DELETE CASCADE,
   CONSTRAINT `FK_GtNetMessage_GtNetMessage` FOREIGN KEY (`reply_to`) REFERENCES `gt_net_message` (`id_gt_net_message`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8291 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1051,7 +1053,7 @@ CREATE TABLE `gt_net_message` (
 
 DROP TABLE IF EXISTS `gt_net_message_answer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_message_answer` (
   `id_gt_net_message_answer` int(11) NOT NULL AUTO_INCREMENT,
   `request_msg_code` tinyint(3) NOT NULL,
@@ -1071,7 +1073,7 @@ CREATE TABLE `gt_net_message_answer` (
 
 DROP TABLE IF EXISTS `gt_net_message_attempt`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_message_attempt` (
   `id_gt_net_message_attempt` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL COMMENT 'Target GTNet instance to receive the message',
@@ -1098,7 +1100,7 @@ CREATE TABLE `gt_net_message_attempt` (
 
 DROP TABLE IF EXISTS `gt_net_message_param`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_message_param` (
   `id_gt_net_message` int(11) NOT NULL,
   `param_name` varchar(32) NOT NULL,
@@ -1114,7 +1116,7 @@ CREATE TABLE `gt_net_message_param` (
 
 DROP TABLE IF EXISTS `gt_net_security_imp_gap`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_security_imp_gap` (
   `id_gt_net_security_imp_gap` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net_security_imp_pos` int(11) NOT NULL,
@@ -1135,7 +1137,7 @@ CREATE TABLE `gt_net_security_imp_gap` (
 
 DROP TABLE IF EXISTS `gt_net_security_imp_head`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_security_imp_head` (
   `id_gt_net_security_imp_head` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -1153,7 +1155,7 @@ CREATE TABLE `gt_net_security_imp_head` (
 
 DROP TABLE IF EXISTS `gt_net_security_imp_pos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_security_imp_pos` (
   `id_gt_net_security_imp_pos` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net_security_imp_head` int(11) NOT NULL,
@@ -1176,7 +1178,7 @@ CREATE TABLE `gt_net_security_imp_pos` (
 
 DROP TABLE IF EXISTS `gt_net_supplier_detail`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_supplier_detail` (
   `id_gt_net_supplier_detail` int(11) NOT NULL AUTO_INCREMENT,
   `id_gt_net` int(11) NOT NULL,
@@ -1196,7 +1198,7 @@ CREATE TABLE `gt_net_supplier_detail` (
 
 DROP TABLE IF EXISTS `gt_net_supplier_detail_hist`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_supplier_detail_hist` (
   `id_gt_net_supplier_detail` int(11) NOT NULL,
   `retry_history_load` smallint(6) NOT NULL DEFAULT 0,
@@ -1214,7 +1216,7 @@ CREATE TABLE `gt_net_supplier_detail_hist` (
 
 DROP TABLE IF EXISTS `gt_net_supplier_detail_last`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `gt_net_supplier_detail_last` (
   `id_gt_net_supplier_detail` int(11) NOT NULL,
   `retry_intra_load` smallint(6) NOT NULL DEFAULT 0,
@@ -1230,7 +1232,7 @@ CREATE TABLE `gt_net_supplier_detail_last` (
 
 DROP TABLE IF EXISTS `historyquote`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `historyquote` (
   `id_history_quote` int(11) NOT NULL AUTO_INCREMENT,
   `id_securitycurrency` int(11) NOT NULL,
@@ -1246,7 +1248,7 @@ CREATE TABLE `historyquote` (
   UNIQUE KEY `IHistoryQuote_id_Date` (`id_securitycurrency`,`date`),
   KEY `FK_HistoryQuote_SecurityCurrency` (`id_securitycurrency`) USING BTREE,
   CONSTRAINT `FK_HistoryQuote_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9664347 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9666179 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1255,7 +1257,7 @@ CREATE TABLE `historyquote` (
 
 DROP TABLE IF EXISTS `historyquote_legacy`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `historyquote_legacy` (
   `id_historyquote_legacy` int(11) NOT NULL AUTO_INCREMENT,
   `id_securitycurrency` int(11) NOT NULL,
@@ -1280,7 +1282,7 @@ CREATE TABLE `historyquote_legacy` (
 
 DROP TABLE IF EXISTS `historyquote_period`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `historyquote_period` (
   `id_historyquote_period` int(11) NOT NULL AUTO_INCREMENT,
   `id_securitycurrency` int(11) NOT NULL,
@@ -1291,7 +1293,7 @@ CREATE TABLE `historyquote_period` (
   PRIMARY KEY (`id_historyquote_period`),
   KEY `FK_HistoryquotePeriod_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_HistoryquotePeriod_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT COMMENT='Certain securities do not have public and daily prices. For example, time deposits, but a daily price is still required for the holding period.';
+) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT COMMENT='Certain securities do not have public and daily prices. For example, time deposits, but a daily price is still required for the holding period.';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1300,7 +1302,7 @@ CREATE TABLE `historyquote_period` (
 
 DROP TABLE IF EXISTS `historyquote_quality`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `historyquote_quality` (
   `idSecurity` int(11) NOT NULL,
   `minDate` date DEFAULT NULL,
@@ -1320,7 +1322,7 @@ CREATE TABLE `historyquote_quality` (
   `ohlPercentage` double DEFAULT NULL,
   PRIMARY KEY (`idSecurity`),
   CONSTRAINT `FK_HistoryquoteQuality_Security` FOREIGN KEY (`idSecurity`) REFERENCES `security` (`id_securitycurrency`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1329,7 +1331,7 @@ CREATE TABLE `historyquote_quality` (
 
 DROP TABLE IF EXISTS `historyquote_update_log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `historyquote_update_log` (
   `id_hq_update_log` int(11) NOT NULL AUTO_INCREMENT,
   `id_stockexchange` int(11) NOT NULL,
@@ -1343,7 +1345,7 @@ CREATE TABLE `historyquote_update_log` (
   KEY `idx_hq_update_stockexchange` (`id_stockexchange`),
   KEY `idx_hq_update_timestamp` (`update_timestamp`),
   CONSTRAINT `fk_hq_update_stockexchange` FOREIGN KEY (`id_stockexchange`) REFERENCES `stockexchange` (`id_stockexchange`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1352,7 +1354,7 @@ CREATE TABLE `historyquote_update_log` (
 
 DROP TABLE IF EXISTS `hold_cashaccount_balance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hold_cashaccount_balance` (
   `id_securitycash_account` int(11) NOT NULL,
   `from_hold_date` date NOT NULL,
@@ -1372,8 +1374,9 @@ CREATE TABLE `hold_cashaccount_balance` (
   PRIMARY KEY (`id_securitycash_account`,`from_hold_date`),
   KEY `idTenantIdPortfolioHCS` (`id_tenant`,`id_portfolio`),
   KEY `idTenant_validtimestamp` (`id_tenant`,`valid_timestamp`),
+  KEY `idPortfolioFromHoldDateHCS` (`id_portfolio`,`from_hold_date`),
   CONSTRAINT `FK_HoldCashaccountBalance_Cashaccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `cashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1382,7 +1385,7 @@ CREATE TABLE `hold_cashaccount_balance` (
 
 DROP TABLE IF EXISTS `hold_cashaccount_deposit`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hold_cashaccount_deposit` (
   `id_securitycash_account` int(11) NOT NULL,
   `from_hold_date` date NOT NULL,
@@ -1396,8 +1399,9 @@ CREATE TABLE `hold_cashaccount_deposit` (
   PRIMARY KEY (`id_securitycash_account`,`from_hold_date`),
   KEY `fromHoldToHoldDate` (`from_hold_date`,`to_hold_date`),
   KEY `idTenantIdPortfolioHCD` (`id_tenant`,`id_portfolio`),
+  KEY `idPortfolioFromHoldDateHCD` (`id_portfolio`,`from_hold_date`),
   CONSTRAINT `FK_HoldCashaccountDeposit_Cashaccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `cashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1406,7 +1410,7 @@ CREATE TABLE `hold_cashaccount_deposit` (
 
 DROP TABLE IF EXISTS `hold_daily_total`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hold_daily_total` (
   `id_hold_daily_total` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -1427,7 +1431,7 @@ CREATE TABLE `hold_daily_total` (
   KEY `FK_HoldDailyTotal_Portfolio` (`id_portfolio`),
   CONSTRAINT `FK_HoldDailyTotal_Portfolio` FOREIGN KEY (`id_portfolio`) REFERENCES `portfolio` (`id_portfolio`) ON DELETE CASCADE,
   CONSTRAINT `FK_HoldDailyTotal_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=217130 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Derived daily total value (securities and balance) per tenant and portfolio, see HOLD_DAILY_TOTAL_UPDATE';
+) ENGINE=InnoDB AUTO_INCREMENT=509378 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Derived daily total value (securities and balance) per tenant and portfolio, see HOLD_DAILY_TOTAL_UPDATE';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1436,7 +1440,7 @@ CREATE TABLE `hold_daily_total` (
 
 DROP TABLE IF EXISTS `hold_daily_total_state`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hold_daily_total_state` (
   `id_tenant` int(11) NOT NULL,
   `recalc_from_date` date NOT NULL COMMENT 'First day whose hold_daily_total rows are missing or outdated',
@@ -1452,7 +1456,7 @@ CREATE TABLE `hold_daily_total_state` (
 
 DROP TABLE IF EXISTS `hold_securityaccount_security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `hold_securityaccount_security` (
   `id_securitycash_account` int(11) NOT NULL,
   `id_securitycurrency` int(11) NOT NULL,
@@ -1470,8 +1474,9 @@ CREATE TABLE `hold_securityaccount_security` (
   PRIMARY KEY (`id_securitycash_account`,`id_securitycurrency`,`from_hold_date`),
   UNIQUE KEY `idTenantidSecurtyFromHoldDate` (`id_tenant`,`id_securitycash_account`,`id_securitycurrency`,`from_hold_date`) USING BTREE,
   KEY `idTenantIdPortfolioHSS` (`id_tenant`,`id_portfolio`),
+  KEY `idPortfolioFromHoldDateHSS` (`id_portfolio`,`from_hold_date`),
   CONSTRAINT `FK_HoldSecurityaccountSecurity_SecurityAccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securityaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1480,7 +1485,7 @@ CREATE TABLE `hold_securityaccount_security` (
 
 DROP TABLE IF EXISTS `ictax_exchange_rate`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ictax_exchange_rate` (
   `id_ictax_exchange_rate` int(11) NOT NULL AUTO_INCREMENT,
   `id_tax_year` int(11) NOT NULL,
@@ -1502,7 +1507,7 @@ CREATE TABLE `ictax_exchange_rate` (
 
 DROP TABLE IF EXISTS `ictax_payment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ictax_payment` (
   `id_ictax_payment` int(11) NOT NULL AUTO_INCREMENT,
   `id_ictax_data` int(11) NOT NULL,
@@ -1525,7 +1530,7 @@ CREATE TABLE `ictax_payment` (
 
 DROP TABLE IF EXISTS `ictax_security_tax_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ictax_security_tax_data` (
   `id_ictax_data` int(11) NOT NULL AUTO_INCREMENT,
   `id_tax_upload` int(11) NOT NULL,
@@ -1550,7 +1555,7 @@ CREATE TABLE `ictax_security_tax_data` (
 
 DROP TABLE IF EXISTS `imp_trans_head`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `imp_trans_head` (
   `id_trans_head` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -1563,7 +1568,7 @@ CREATE TABLE `imp_trans_head` (
   KEY `FK_ImpTransHead_Securityaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransHead_Securityaccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securityaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransHead_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=1071 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=1071 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1572,7 +1577,7 @@ CREATE TABLE `imp_trans_head` (
 
 DROP TABLE IF EXISTS `imp_trans_platform`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `imp_trans_platform` (
   `id_trans_imp_platform` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) NOT NULL,
@@ -1583,7 +1588,7 @@ CREATE TABLE `imp_trans_platform` (
   `last_modified_time` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_trans_imp_platform`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1592,7 +1597,7 @@ CREATE TABLE `imp_trans_platform` (
 
 DROP TABLE IF EXISTS `imp_trans_pos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `imp_trans_pos` (
   `id_trans_pos` int(11) NOT NULL AUTO_INCREMENT,
   `id_trans_head` int(11) NOT NULL,
@@ -1636,7 +1641,7 @@ CREATE TABLE `imp_trans_pos` (
   CONSTRAINT `FK_ImpTransPos_Cashaccount1` FOREIGN KEY (`id_cash_account`) REFERENCES `cashaccount` (`id_securitycash_account`),
   CONSTRAINT `FK_ImpTransPos_ImpTransHead` FOREIGN KEY (`id_trans_head`) REFERENCES `imp_trans_head` (`id_trans_head`),
   CONSTRAINT `transacton_maybe` CHECK (`id_transaction_maybe` is null or `id_transaction_maybe` is not null and `id_transaction` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=38846 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=38846 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1645,7 +1650,7 @@ CREATE TABLE `imp_trans_pos` (
 
 DROP TABLE IF EXISTS `imp_trans_pos_failed`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `imp_trans_pos_failed` (
   `id_imp_trans_pos_failed` int(11) NOT NULL AUTO_INCREMENT,
   `id_trans_imp_template` int(11) NOT NULL,
@@ -1655,7 +1660,7 @@ CREATE TABLE `imp_trans_pos_failed` (
   PRIMARY KEY (`id_imp_trans_pos_failed`),
   KEY `Fk_ImpTransPosFailed_ImpTransPos` (`id_trans_pos`),
   CONSTRAINT `Fk_ImpTransPosFailed_ImpTransPos` FOREIGN KEY (`id_trans_pos`) REFERENCES `imp_trans_pos` (`id_trans_pos`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=22021 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=22021 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1664,7 +1669,7 @@ CREATE TABLE `imp_trans_pos_failed` (
 
 DROP TABLE IF EXISTS `imp_trans_template`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `imp_trans_template` (
   `id_trans_imp_template` int(11) NOT NULL AUTO_INCREMENT,
   `id_trans_imp_platform` int(11) NOT NULL,
@@ -1682,7 +1687,7 @@ CREATE TABLE `imp_trans_template` (
   PRIMARY KEY (`id_trans_imp_template`),
   UNIQUE KEY `UNIQUE_imp_template` (`id_trans_imp_platform`,`template_format_type`,`template_category`,`template_language`,`valid_since`),
   CONSTRAINT `FK_TradingImpTemplate_TradingImpPlatform` FOREIGN KEY (`id_trans_imp_platform`) REFERENCES `imp_trans_platform` (`id_trans_imp_platform`)
-) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1691,7 +1696,7 @@ CREATE TABLE `imp_trans_template` (
 
 DROP TABLE IF EXISTS `mail_entity`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mail_entity` (
   `id_mail_entity` int(11) NOT NULL AUTO_INCREMENT,
   `id_mail_send_recv` int(11) DEFAULT NULL,
@@ -1700,7 +1705,7 @@ CREATE TABLE `mail_entity` (
   `mark_date` date NOT NULL,
   `creation_date` date NOT NULL,
   PRIMARY KEY (`id_mail_entity`)
-) ENGINE=InnoDB AUTO_INCREMENT=706 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=708 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1709,7 +1714,7 @@ CREATE TABLE `mail_entity` (
 
 DROP TABLE IF EXISTS `mail_send_recv`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mail_send_recv` (
   `id_mail_send_recv` int(11) NOT NULL AUTO_INCREMENT,
   `send_recv` char(1) NOT NULL,
@@ -1726,7 +1731,7 @@ CREATE TABLE `mail_send_recv` (
   KEY `FK_MailInOut_Role` (`id_role_to`),
   KEY `id_reply_to_local` (`id_reply_to_local`),
   CONSTRAINT `FK_MailSendRecv_Role` FOREIGN KEY (`id_role_to`) REFERENCES `role` (`id_role`)
-) ENGINE=InnoDB AUTO_INCREMENT=1189 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1193 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1735,7 +1740,7 @@ CREATE TABLE `mail_send_recv` (
 
 DROP TABLE IF EXISTS `mail_send_recv_read_del`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mail_send_recv_read_del` (
   `id_mail_send_recv` int(11) NOT NULL,
   `id_user` int(11) NOT NULL,
@@ -1754,7 +1759,7 @@ CREATE TABLE `mail_send_recv_read_del` (
 
 DROP TABLE IF EXISTS `mail_setting_forward`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mail_setting_forward` (
   `id_mail_setting_forward` int(11) NOT NULL AUTO_INCREMENT,
   `id_user` int(11) NOT NULL,
@@ -1775,7 +1780,7 @@ CREATE TABLE `mail_setting_forward` (
 
 DROP TABLE IF EXISTS `mic_provider_map`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mic_provider_map` (
   `id_provider` varchar(15) NOT NULL,
   `mic` char(4) NOT NULL,
@@ -1791,11 +1796,11 @@ CREATE TABLE `mic_provider_map` (
 
 DROP TABLE IF EXISTS `multilinguestring`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `multilinguestring` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=854 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=854 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1804,14 +1809,14 @@ CREATE TABLE `multilinguestring` (
 
 DROP TABLE IF EXISTS `multilinguestrings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `multilinguestrings` (
   `id_string` int(11) NOT NULL,
   `text` varchar(2000) NOT NULL,
   `language` varchar(2) NOT NULL,
   PRIMARY KEY (`id_string`,`language`),
   CONSTRAINT `FK_Multilinguestrings_Multilinguestring` FOREIGN KEY (`id_string`) REFERENCES `multilinguestring` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1820,7 +1825,7 @@ CREATE TABLE `multilinguestrings` (
 
 DROP TABLE IF EXISTS `portfolio`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `portfolio` (
   `id_portfolio` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -1831,7 +1836,7 @@ CREATE TABLE `portfolio` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Portfolio_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Portfolio_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=21731 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21785 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1840,14 +1845,14 @@ CREATE TABLE `portfolio` (
 
 DROP TABLE IF EXISTS `propose_change_entity`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_change_entity` (
   `id_propose_request` int(11) NOT NULL,
   `id_entity` int(11) NOT NULL,
   `id_owner_entity` int(11) NOT NULL,
   PRIMARY KEY (`id_propose_request`),
   CONSTRAINT `FK_ProposeChangeEntity_ProposeRequest` FOREIGN KEY (`id_propose_request`) REFERENCES `propose_request` (`id_propose_request`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1856,7 +1861,7 @@ CREATE TABLE `propose_change_entity` (
 
 DROP TABLE IF EXISTS `propose_change_field`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_change_field` (
   `id_propose_field` int(11) NOT NULL AUTO_INCREMENT,
   `id_propose_request` int(11) NOT NULL,
@@ -1865,7 +1870,7 @@ CREATE TABLE `propose_change_field` (
   PRIMARY KEY (`id_propose_field`),
   KEY `FK_ProposeChangeField_ProposeRequest` (`id_propose_request`),
   CONSTRAINT `FK_ProposeChangeField_ProposeRequest` FOREIGN KEY (`id_propose_request`) REFERENCES `propose_request` (`id_propose_request`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=226 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=226 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1874,7 +1879,7 @@ CREATE TABLE `propose_change_field` (
 
 DROP TABLE IF EXISTS `propose_request`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_request` (
   `id_propose_request` int(11) NOT NULL AUTO_INCREMENT,
   `dtype` varchar(1) NOT NULL,
@@ -1888,7 +1893,7 @@ CREATE TABLE `propose_request` (
   `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_propose_request`)
-) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=132 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1897,7 +1902,7 @@ CREATE TABLE `propose_request` (
 
 DROP TABLE IF EXISTS `propose_user_task`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_user_task` (
   `id_propose_request` int(11) NOT NULL,
   `id_target_user` int(11) NOT NULL,
@@ -1907,7 +1912,7 @@ CREATE TABLE `propose_user_task` (
   KEY `FK_ProposeUserTask_User` (`id_target_user`),
   CONSTRAINT `FK_ProposeUserTask_ProposeRequest` FOREIGN KEY (`id_propose_request`) REFERENCES `propose_request` (`id_propose_request`) ON DELETE CASCADE,
   CONSTRAINT `FK_ProposeUserTask_User` FOREIGN KEY (`id_target_user`) REFERENCES `user` (`id_user`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1916,7 +1921,7 @@ CREATE TABLE `propose_user_task` (
 
 DROP TABLE IF EXISTS `release_note`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `release_note` (
   `id_release_note` int(11) NOT NULL AUTO_INCREMENT,
   `version` varchar(12) NOT NULL,
@@ -1933,7 +1938,7 @@ CREATE TABLE `release_note` (
 
 DROP TABLE IF EXISTS `risk_free_rate_mapping`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `risk_free_rate_mapping` (
   `id_risk_free_rate_mapping` int(11) NOT NULL AUTO_INCREMENT,
   `currency` char(3) NOT NULL,
@@ -1956,13 +1961,13 @@ CREATE TABLE `risk_free_rate_mapping` (
 
 DROP TABLE IF EXISTS `role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `role` (
   `id_role` int(11) NOT NULL AUTO_INCREMENT,
   `rolename` varchar(50) NOT NULL,
   PRIMARY KEY (`id_role`),
   UNIQUE KEY `rolename` (`id_role`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1971,7 +1976,7 @@ CREATE TABLE `role` (
 
 DROP TABLE IF EXISTS `security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `security` (
   `id_securitycurrency` int(11) NOT NULL,
   `name` varchar(80) NOT NULL,
@@ -2016,7 +2021,7 @@ CREATE TABLE `security` (
   CONSTRAINT `FK_Security_Link_Securitycurrency` FOREIGN KEY (`id_link_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`),
   CONSTRAINT `FK_Security_SecurityCurrency` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`),
   CONSTRAINT `FK_Security_StockExchange` FOREIGN KEY (`id_stockexchange`) REFERENCES `stockexchange` (`id_stockexchange`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -2027,8 +2032,8 @@ CREATE TABLE `security` (
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `security_ins` BEFORE INSERT ON `security`
- FOR EACH ROW SET NEW.ticker_symbol = UPPER(NEW.ticker_symbol) */;;
+/*!50003 CREATE*/ /*!50003 TRIGGER security_ins BEFORE INSERT ON security FOR EACH ROW SET NEW.ticker_symbol = UPPER(NEW.ticker_symbol) 
+*/;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -2043,8 +2048,8 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50003 TRIGGER `security_upd` BEFORE UPDATE ON `security`
- FOR EACH ROW SET NEW.ticker_symbol = UPPER(NEW.ticker_symbol) */;;
+/*!50003 CREATE*/ /*!50003 TRIGGER security_upd BEFORE UPDATE ON security FOR EACH ROW SET NEW.ticker_symbol = UPPER(NEW.ticker_symbol) 
+*/;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -2057,7 +2062,7 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS `security_action`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `security_action` (
   `id_security_action` int(11) NOT NULL AUTO_INCREMENT,
   `id_security_old` int(11) NOT NULL,
@@ -2079,7 +2084,7 @@ CREATE TABLE `security_action` (
   CONSTRAINT `fk_sa_created_by` FOREIGN KEY (`created_by`) REFERENCES `user` (`id_user`),
   CONSTRAINT `fk_sa_security_new` FOREIGN KEY (`id_security_new`) REFERENCES `securitycurrency` (`id_securitycurrency`),
   CONSTRAINT `fk_sa_security_old` FOREIGN KEY (`id_security_old`) REFERENCES `securitycurrency` (`id_securitycurrency`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2088,7 +2093,7 @@ CREATE TABLE `security_action` (
 
 DROP TABLE IF EXISTS `security_action_application`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `security_action_application` (
   `id_security_action_app` int(11) NOT NULL AUTO_INCREMENT,
   `id_security_action` int(11) NOT NULL,
@@ -2106,7 +2111,7 @@ CREATE TABLE `security_action_application` (
   CONSTRAINT `fk_saa_tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`),
   CONSTRAINT `fk_saa_transaction_buy` FOREIGN KEY (`id_transaction_buy`) REFERENCES `transaction` (`id_transaction`),
   CONSTRAINT `fk_saa_transaction_sell` FOREIGN KEY (`id_transaction_sell`) REFERENCES `transaction` (`id_transaction`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2115,7 +2120,7 @@ CREATE TABLE `security_action_application` (
 
 DROP TABLE IF EXISTS `security_derived_link`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `security_derived_link` (
   `id_securitycurrency` int(11) NOT NULL,
   `var_name` char(1) NOT NULL,
@@ -2125,7 +2130,7 @@ CREATE TABLE `security_derived_link` (
   KEY `IN_id_securitycurrency_link` (`id_link_securitycurrency`),
   CONSTRAINT `FK_SecurityDerivedLink_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`) ON DELETE CASCADE,
   CONSTRAINT `FK_SecurityDerivedLink_Securitycurrency` FOREIGN KEY (`id_link_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2134,7 +2139,7 @@ CREATE TABLE `security_derived_link` (
 
 DROP TABLE IF EXISTS `security_transfer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `security_transfer` (
   `id_security_transfer` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -2161,7 +2166,7 @@ CREATE TABLE `security_transfer` (
   CONSTRAINT `fk_st_tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`),
   CONSTRAINT `fk_st_transaction_buy` FOREIGN KEY (`id_transaction_buy`) REFERENCES `transaction` (`id_transaction`),
   CONSTRAINT `fk_st_transaction_sell` FOREIGN KEY (`id_transaction_sell`) REFERENCES `transaction` (`id_transaction`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2170,7 +2175,7 @@ CREATE TABLE `security_transfer` (
 
 DROP TABLE IF EXISTS `securityaccount`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `securityaccount` (
   `id_securitycash_account` int(11) NOT NULL,
   `id_trading_platform_plan` int(11) NOT NULL,
@@ -2181,7 +2186,7 @@ CREATE TABLE `securityaccount` (
   KEY `FK_Securityaccount_Tradingplatformplan` (`id_trading_platform_plan`),
   CONSTRAINT `FK_SecurityAccount_SecurityCashAccount` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE,
   CONSTRAINT `FK_Securityaccount_Tradingplatformplan` FOREIGN KEY (`id_trading_platform_plan`) REFERENCES `trading_platform_plan` (`id_trading_platform_plan`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2190,7 +2195,7 @@ CREATE TABLE `securityaccount` (
 
 DROP TABLE IF EXISTS `securityaccount_trading_period`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `securityaccount_trading_period` (
   `id_secaccount_trading_period` int(11) NOT NULL AUTO_INCREMENT,
   `id_securitycash_account` int(11) NOT NULL,
@@ -2201,7 +2206,7 @@ CREATE TABLE `securityaccount_trading_period` (
   PRIMARY KEY (`id_secaccount_trading_period`),
   KEY `idx_stp_secaccount` (`id_securitycash_account`),
   CONSTRAINT `fk_stp_securitycash_account` FOREIGN KEY (`id_securitycash_account`) REFERENCES `securitycashaccount` (`id_securitycash_account`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10259 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10427 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2210,7 +2215,7 @@ CREATE TABLE `securityaccount_trading_period` (
 
 DROP TABLE IF EXISTS `securitycashaccount`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `securitycashaccount` (
   `id_securitycash_account` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(25) NOT NULL,
@@ -2223,7 +2228,7 @@ CREATE TABLE `securitycashaccount` (
   UNIQUE KEY `idPortfolio_dType_name` (`id_portfolio`,`dtype`,`name`) USING BTREE,
   KEY `FK_SecurityAccount_Portfolio` (`id_portfolio`),
   CONSTRAINT `FK_SecurityAccount_Portfolio` FOREIGN KEY (`id_portfolio`) REFERENCES `portfolio` (`id_portfolio`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=86828 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=87044 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2232,7 +2237,7 @@ CREATE TABLE `securitycashaccount` (
 
 DROP TABLE IF EXISTS `securitycurrency`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `securitycurrency` (
   `id_securitycurrency` int(11) NOT NULL AUTO_INCREMENT,
   `dtype` varchar(1) NOT NULL,
@@ -2263,7 +2268,7 @@ CREATE TABLE `securitycurrency` (
   `last_modified_time` datetime NOT NULL DEFAULT current_timestamp(),
   `version` int(11) NOT NULL,
   PRIMARY KEY (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=4325 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4325 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2272,7 +2277,7 @@ CREATE TABLE `securitycurrency` (
 
 DROP TABLE IF EXISTS `securitysplit`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `securitysplit` (
   `id_securitysplit` int(11) NOT NULL AUTO_INCREMENT,
   `id_securitycurrency` int(11) NOT NULL,
@@ -2284,7 +2289,7 @@ CREATE TABLE `securitysplit` (
   PRIMARY KEY (`id_securitysplit`),
   KEY `FK_Securitysplit_Security` (`id_securitycurrency`),
   CONSTRAINT `FK_Securitysplit_Security` FOREIGN KEY (`id_securitycurrency`) REFERENCES `security` (`id_securitycurrency`)
-) ENGINE=InnoDB AUTO_INCREMENT=956 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=956 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2293,7 +2298,7 @@ CREATE TABLE `securitysplit` (
 
 DROP TABLE IF EXISTS `standing_order`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `standing_order` (
   `id_standing_order` int(11) NOT NULL AUTO_INCREMENT,
   `dtype` varchar(1) NOT NULL,
@@ -2327,7 +2332,7 @@ CREATE TABLE `standing_order` (
 
 DROP TABLE IF EXISTS `standing_order_cashaccount`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `standing_order_cashaccount` (
   `id_standing_order` int(11) NOT NULL,
   `cashaccount_amount` double NOT NULL,
@@ -2347,7 +2352,7 @@ CREATE TABLE `standing_order_cashaccount` (
 
 DROP TABLE IF EXISTS `standing_order_failure`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `standing_order_failure` (
   `id_standing_order_failure` int(11) NOT NULL AUTO_INCREMENT,
   `id_standing_order` int(11) NOT NULL,
@@ -2367,7 +2372,7 @@ CREATE TABLE `standing_order_failure` (
 
 DROP TABLE IF EXISTS `standing_order_security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `standing_order_security` (
   `id_standing_order` int(11) NOT NULL,
   `id_securitycurrency` int(11) NOT NULL,
@@ -2397,7 +2402,7 @@ CREATE TABLE `standing_order_security` (
 
 DROP TABLE IF EXISTS `stockexchange`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `stockexchange` (
   `id_stockexchange` int(11) NOT NULL AUTO_INCREMENT,
   `mic` char(4) DEFAULT NULL,
@@ -2423,7 +2428,7 @@ CREATE TABLE `stockexchange` (
   UNIQUE KEY `stockexchange_mic` (`mic`),
   KEY `FK_Stockexchange_TradingCalendarRuleSet` (`id_trading_calendar_rule_set`),
   CONSTRAINT `FK_Stockexchange_TradingCalendarRuleSet` FOREIGN KEY (`id_trading_calendar_rule_set`) REFERENCES `trading_calendar_rule_set` (`id_trading_calendar_rule_set`)
-) ENGINE=InnoDB AUTO_INCREMENT=284 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=284 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2432,7 +2437,7 @@ CREATE TABLE `stockexchange` (
 
 DROP TABLE IF EXISTS `stockexchange_mic`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `stockexchange_mic` (
   `mic` char(4) NOT NULL,
   `name` varchar(128) NOT NULL,
@@ -2450,7 +2455,7 @@ CREATE TABLE `stockexchange_mic` (
 
 DROP TABLE IF EXISTS `task_data_change`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `task_data_change` (
   `id_task_data_change` int(11) NOT NULL AUTO_INCREMENT,
   `id_task` tinyint(2) NOT NULL,
@@ -2467,7 +2472,7 @@ CREATE TABLE `task_data_change` (
   `failed_message_code` varchar(40) DEFAULT NULL,
   `failed_stack_trace` varchar(4096) DEFAULT NULL,
   PRIMARY KEY (`id_task_data_change`)
-) ENGINE=InnoDB AUTO_INCREMENT=23587 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23716 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2476,7 +2481,7 @@ CREATE TABLE `task_data_change` (
 
 DROP TABLE IF EXISTS `tax_country`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tax_country` (
   `id_tax_country` int(11) NOT NULL AUTO_INCREMENT,
   `country_code` varchar(2) NOT NULL,
@@ -2492,7 +2497,7 @@ CREATE TABLE `tax_country` (
 
 DROP TABLE IF EXISTS `tax_security_year_config`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tax_security_year_config` (
   `id_tenant` int(11) NOT NULL,
   `tax_year` smallint(6) NOT NULL,
@@ -2510,7 +2515,7 @@ CREATE TABLE `tax_security_year_config` (
 
 DROP TABLE IF EXISTS `tax_upload`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tax_upload` (
   `id_tax_upload` int(11) NOT NULL AUTO_INCREMENT,
   `id_tax_year` int(11) NOT NULL,
@@ -2530,7 +2535,7 @@ CREATE TABLE `tax_upload` (
 
 DROP TABLE IF EXISTS `tax_year`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tax_year` (
   `id_tax_year` int(11) NOT NULL AUTO_INCREMENT,
   `id_tax_country` int(11) NOT NULL,
@@ -2547,7 +2552,7 @@ CREATE TABLE `tax_year` (
 
 DROP TABLE IF EXISTS `tax_year_correction`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tax_year_correction` (
   `id_tax_year_correction` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -2570,7 +2575,7 @@ CREATE TABLE `tax_year_correction` (
 
 DROP TABLE IF EXISTS `tenant`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tenant` (
   `id_tenant` int(11) NOT NULL AUTO_INCREMENT,
   `tenant_name` varchar(25) NOT NULL,
@@ -2591,7 +2596,7 @@ CREATE TABLE `tenant` (
   `report_settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`report_settings`)),
   `disposal_cost_estimate` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Tenant opt-out of the disposal cost estimate; effective only while gt.disposal.cost.estimate is 1',
   PRIMARY KEY (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2600,7 +2605,7 @@ CREATE TABLE `tenant` (
 
 DROP TABLE IF EXISTS `tenant_access`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tenant_access` (
   `id_tenant_access` int(11) NOT NULL AUTO_INCREMENT,
   `id_user` int(11) NOT NULL,
@@ -2611,7 +2616,7 @@ CREATE TABLE `tenant_access` (
   KEY `fk_tenant_access_tenant` (`id_tenant`),
   CONSTRAINT `fk_tenant_access_tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`) ON DELETE CASCADE,
   CONSTRAINT `fk_tenant_access_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2620,7 +2625,7 @@ CREATE TABLE `tenant_access` (
 
 DROP TABLE IF EXISTS `trading_calendar_rule_set`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `trading_calendar_rule_set` (
   `id_trading_calendar_rule_set` int(11) NOT NULL AUTO_INCREMENT,
   `mic` char(4) DEFAULT NULL,
@@ -2637,7 +2642,7 @@ CREATE TABLE `trading_calendar_rule_set` (
   UNIQUE KEY `trading_calendar_rule_set_mic` (`mic`),
   KEY `FK_TradingCalendarRuleSet_Extends` (`id_extends_rule_set`),
   CONSTRAINT `FK_TradingCalendarRuleSet_Extends` FOREIGN KEY (`id_extends_rule_set`) REFERENCES `trading_calendar_rule_set` (`id_trading_calendar_rule_set`)
-) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2646,7 +2651,7 @@ CREATE TABLE `trading_calendar_rule_set` (
 
 DROP TABLE IF EXISTS `trading_days_minus`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `trading_days_minus` (
   `id_stockexchange` int(11) NOT NULL,
   `trading_date_minus` date NOT NULL,
@@ -2655,7 +2660,7 @@ CREATE TABLE `trading_days_minus` (
   KEY `FK_TradingDayMinus_Stockexchange` (`id_stockexchange`),
   CONSTRAINT `FK_TradingDayMinus_Stockexchange` FOREIGN KEY (`id_stockexchange`) REFERENCES `stockexchange` (`id_stockexchange`) ON DELETE CASCADE,
   CONSTRAINT `FK_TradingDaysMinus_TradingDaysPlus` FOREIGN KEY (`trading_date_minus`) REFERENCES `trading_days_plus` (`trading_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2664,11 +2669,11 @@ CREATE TABLE `trading_days_minus` (
 
 DROP TABLE IF EXISTS `trading_days_plus`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `trading_days_plus` (
   `trading_date` date NOT NULL,
   PRIMARY KEY (`trading_date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2677,7 +2682,7 @@ CREATE TABLE `trading_days_plus` (
 
 DROP TABLE IF EXISTS `trading_platform_plan`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `trading_platform_plan` (
   `id_trading_platform_plan` int(11) NOT NULL AUTO_INCREMENT,
   `platform_plan_name_nls` int(11) NOT NULL,
@@ -2696,7 +2701,7 @@ CREATE TABLE `trading_platform_plan` (
   KEY `FK_Tradingplatform_ImpTransPlatform` (`id_trans_imp_platform`),
   CONSTRAINT `FK_Tradingplatform_ImpTransPlatform` FOREIGN KEY (`id_trans_imp_platform`) REFERENCES `imp_trans_platform` (`id_trans_imp_platform`),
   CONSTRAINT `FK_Tradingplatformplan_Multilinguestring` FOREIGN KEY (`platform_plan_name_nls`) REFERENCES `multilinguestring` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2705,7 +2710,7 @@ CREATE TABLE `trading_platform_plan` (
 
 DROP TABLE IF EXISTS `transaction`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `transaction` (
   `id_transaction` int(11) NOT NULL AUTO_INCREMENT,
   `id_cash_account` int(11) NOT NULL,
@@ -2758,7 +2763,7 @@ CREATE TABLE `transaction` (
   CONSTRAINT `c_currency_ex_rate` CHECK (`currency_ex_rate` is not null and `currency_ex_rate` > 0 and `id_currency_pair` is not null or `currency_ex_rate` is null and `id_currency_pair` is null),
   CONSTRAINT `s_units` CHECK (`units` is not null and `units` <> 0 and `id_securitycurrency` is not null or `id_securitycurrency` is null and `units` is null),
   CONSTRAINT `s_quotation` CHECK (`quotation` is not null and (`quotation` > 0 or `quotation` <> 0 and `transaction_type` between 6 and 7) and `id_securitycurrency` is not null or `quotation` is null and `id_securitycurrency` is null)
-) ENGINE=InnoDB AUTO_INCREMENT=1352712 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1356250 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2767,7 +2772,7 @@ CREATE TABLE `transaction` (
 
 DROP TABLE IF EXISTS `udf_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_data` (
   `id_user` int(11) NOT NULL,
   `entity` varchar(20) NOT NULL,
@@ -2785,7 +2790,7 @@ CREATE TABLE `udf_data` (
 
 DROP TABLE IF EXISTS `udf_metadata`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_metadata` (
   `id_udf_metadata` int(11) NOT NULL AUTO_INCREMENT,
   `id_user` int(11) DEFAULT NULL,
@@ -2798,7 +2803,7 @@ CREATE TABLE `udf_metadata` (
   PRIMARY KEY (`id_udf_metadata`),
   KEY `I_UDF_Metadata_IdUser` (`id_user`),
   CONSTRAINT `FK_udfMetadata_user` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=6287 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6323 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2807,7 +2812,7 @@ CREATE TABLE `udf_metadata` (
 
 DROP TABLE IF EXISTS `udf_metadata_general`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_metadata_general` (
   `id_udf_metadata` int(11) NOT NULL,
   `entity` varchar(20) NOT NULL,
@@ -2822,7 +2827,7 @@ CREATE TABLE `udf_metadata_general` (
 
 DROP TABLE IF EXISTS `udf_metadata_security`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_metadata_security` (
   `id_udf_metadata` int(11) NOT NULL,
   `category_types` bigint(20) NOT NULL,
@@ -2838,7 +2843,7 @@ CREATE TABLE `udf_metadata_security` (
 
 DROP TABLE IF EXISTS `udf_special_type_disable_user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `udf_special_type_disable_user` (
   `id_user` int(11) NOT NULL,
   `udf_special_type` tinyint(3) NOT NULL,
@@ -2853,7 +2858,7 @@ CREATE TABLE `udf_special_type_disable_user` (
 
 DROP TABLE IF EXISTS `user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
   `id_user` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) DEFAULT NULL,
@@ -2878,7 +2883,7 @@ CREATE TABLE `user` (
   UNIQUE KEY `email` (`email`) USING BTREE,
   KEY `FK_User_Tenant` (`id_tenant`),
   CONSTRAINT `FK_User_Tenant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=74 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=74 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2887,7 +2892,7 @@ CREATE TABLE `user` (
 
 DROP TABLE IF EXISTS `user_chart_shape`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_chart_shape` (
   `id_user` int(11) NOT NULL,
   `id_securitycurrency` int(11) NOT NULL,
@@ -2903,7 +2908,7 @@ CREATE TABLE `user_chart_shape` (
 
 DROP TABLE IF EXISTS `user_dashboard`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_dashboard` (
   `id_user` int(11) NOT NULL,
   `layout` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`layout`)),
@@ -2919,7 +2924,7 @@ CREATE TABLE `user_dashboard` (
 
 DROP TABLE IF EXISTS `user_entity_change_count`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_entity_change_count` (
   `id_user` int(11) NOT NULL,
   `date` date NOT NULL,
@@ -2929,7 +2934,7 @@ CREATE TABLE `user_entity_change_count` (
   `count_delete` int(11) NOT NULL,
   PRIMARY KEY (`id_user`,`date`,`entity_name`) USING BTREE,
   CONSTRAINT `FK_UserEntityChangeCount_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2938,7 +2943,7 @@ CREATE TABLE `user_entity_change_count` (
 
 DROP TABLE IF EXISTS `user_role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_role` (
   `id_user` int(11) NOT NULL,
   `id_role` int(11) NOT NULL,
@@ -2946,7 +2951,7 @@ CREATE TABLE `user_role` (
   KEY `role_id` (`id_role`),
   CONSTRAINT `FK_User_Roles_Roles` FOREIGN KEY (`id_role`) REFERENCES `role` (`id_role`),
   CONSTRAINT `FK_User_Roles_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2955,7 +2960,7 @@ CREATE TABLE `user_role` (
 
 DROP TABLE IF EXISTS `verificationtoken`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `verificationtoken` (
   `id_verificationtoken` int(11) NOT NULL AUTO_INCREMENT,
   `expiry_date` datetime DEFAULT NULL,
@@ -2964,7 +2969,7 @@ CREATE TABLE `verificationtoken` (
   PRIMARY KEY (`id_verificationtoken`),
   KEY `FK_Verify_User` (`id_user`),
   CONSTRAINT `FK_VerificationToken_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2973,7 +2978,7 @@ CREATE TABLE `verificationtoken` (
 
 DROP TABLE IF EXISTS `watchlist`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `watchlist` (
   `id_watchlist` int(11) NOT NULL AUTO_INCREMENT,
   `id_tenant` int(11) NOT NULL,
@@ -2983,7 +2988,7 @@ CREATE TABLE `watchlist` (
   UNIQUE KEY `idtenant_name` (`id_tenant`,`name`) USING BTREE,
   KEY `FK_Watchlist_Tentant` (`id_tenant`),
   CONSTRAINT `FK_Watchlist_Tentant` FOREIGN KEY (`id_tenant`) REFERENCES `tenant` (`id_tenant`)
-) ENGINE=InnoDB AUTO_INCREMENT=62271 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=62433 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2992,7 +2997,7 @@ CREATE TABLE `watchlist` (
 
 DROP TABLE IF EXISTS `watchlist_sec_cur`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `watchlist_sec_cur` (
   `id_watchlist` int(11) NOT NULL,
   `id_securitycurrency` int(11) NOT NULL,
@@ -3000,7 +3005,7 @@ CREATE TABLE `watchlist_sec_cur` (
   KEY `id_securitycurrency` (`id_securitycurrency`),
   CONSTRAINT `watchlist_sec_cur_ibfk_1` FOREIGN KEY (`id_watchlist`) REFERENCES `watchlist` (`id_watchlist`) ON DELETE CASCADE,
   CONSTRAINT `watchlist_sec_cur_ibfk_2` FOREIGN KEY (`id_securitycurrency`) REFERENCES `securitycurrency` (`id_securitycurrency`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3021,7 +3026,8 @@ CREATE PROCEDURE `copyTradingMinusToOtherStockexchange`(IN `sourceIdStockexchang
 BEGIN
 DELETE FROM trading_days_minus WHERE id_stockexchange = targetIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
 INSERT INTO trading_days_minus (id_stockexchange, trading_date_minus, create_type) SELECT targetIdStockexchange, trading_date_minus, create_type FROM trading_days_minus WHERE id_stockexchange = sourceIdStockexchange AND trading_date_minus >= dateFrom AND trading_date_minus <= dateTo;
-END ;;
+END
+;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -3092,7 +3098,8 @@ THEN
 ELSE
     INSERT INTO globalparameters (property_name, property_date) VALUES(@globalparam_update,  CURDATE());
 END IF;
-END ;;
+END
+;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -3132,7 +3139,8 @@ SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDa
 GROUP BY t2.idTenant, t2.idSecurityaccount) AS t3 ON t1.idTenant = t3.idTenant
 AND t1.idSecurityaccount = t3.idSecurityaccount AND t3.maxSplitDate >= t3.minTransDate AND (t1.tsDate >= t3.minTransDate AND t1.idPortfolio IS NULL || t1.idPortfolio IS NOT NULL)
 ORDER BY t1.idTenant, t1.idSecurityaccount, t1.tsDate;
-END ;;
+END
+;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -3171,7 +3179,8 @@ SELECT t2.idTenant, t2.idSecurityaccount, MAX(IF(t2.idPortfolio IS NULL, t2.tsDa
 GROUP BY t2.idTenant, t2.idSecurityaccount) AS t3 ON t1.idTenant = t3.idTenant
 AND t1.idSecurityaccount = t3.idSecurityaccount AND t3.maxSplitDate >= t3.minTransDate AND (t1.tsDate >= t3.minTransDate AND t1.idPortfolio IS NULL || t1.idPortfolio IS NOT NULL)
 ORDER BY t1.idTenant, t1.idSecurityaccount, t1.tsDate;
-END ;;
+END
+;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -3216,7 +3225,8 @@ BEGIN
   END LOOP do_foo;
   CLOSE csr;
   SELECT rowsChanged;
-END ;;
+END
+;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -3276,7 +3286,8 @@ BEGIN
       WHERE id_stockexchange = _idStockexchange;
   END LOOP testLoop;
   CLOSE cur;
-END ;;
+END
+;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
@@ -3290,6 +3301,6 @@ DELIMITER ;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-10-07 11:56:57
+-- Dump completed on 2026-10-10 21:53:07
