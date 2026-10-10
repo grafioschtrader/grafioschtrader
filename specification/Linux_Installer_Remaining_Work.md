@@ -60,7 +60,7 @@ failure.
 | own domain with correct records, with a wrong A record, without a `www` record | certificate issued; mismatch reported with both values and the certbot command; certificate and vhost without `www` |
 | `TLS_SOURCE=existing` | the referenced certificate is served; no copy, no renewal hook |
 | `TLS_SOURCE=proxy` with Caddy on the same host owning 80/443, and with a proxy on another machine | local vhost on the chosen port, `X-Forwarded-For` reaches the login lockout as the client address, registration link carries the public URL |
-| existing MariaDB with socket access, with password-only access | no credential question when privileged socket access succeeds; otherwise the current password once; no foreign root password or plugin changed |
+| existing MariaDB with password-only access | the current password asked once; no foreign root password or plugin changed |
 | other Node.js and Java consumers, a shared document root, a PHP location on the same nginx vhost | consumers still on their runtime, alternatives unchanged, other sites answer as before |
 | occupied 8080/9090, several vhosts | alternative ports used consistently, no listener off loopback, no traffic routed to another site |
 | secrets with shell, SQL and properties special characters; cancellation during execution | literal values survive; no value in the installer's logs, errors or argv, nor in `/var/log/grafioschtrader.log` once issue #274 is resolved; temporary credentials removed on every exit path |

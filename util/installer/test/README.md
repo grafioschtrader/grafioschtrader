@@ -634,6 +634,20 @@ modeless German rerun reported `host.class=completed` with journal, result, buil
 Application commit: `838e547e0ade62e9121c7a75bb24ca51ee9f63ea`; installer SHA-256:
 `ea4a259d0fb8ab7f054c136eb1db7250f6ea20f6e98c9d086ddbb1b5f51480d4`.
 
+Existing-server acceptance on 2026-10-10 passed on the same Orange Pi 5 Plus. Only the Grafioschtrader
+installation was removed (services, service user, database and its account, the three own nginx sites, the
+certificate, document root, toolchains, journal and secrets); MariaDB `11.8.6` with its buffer-pool file, nginx, PHP
+8.5 and an administrator's phpMyAdmin stayed. `--check` then reported `host.class=fresh`, `mariadb reuse` with
+privileged socket access (`root` authenticates by password or `unix_socket`) and `web reuse nginx`; the
+`DB_ROOT_PASSWORD` and `BUFFER_POOL` questions no longer applied and were left out of the answers file. The
+modeless German installation never asked for a root password, recorded `new_database_server=no`, created only the
+database and its account and reached `status=complete` with Let's Encrypt and an accepted test message; the
+`root` accounts in `mysql.global_priv` (password hashes and plugins) were byte-for-byte unchanged, nginx's default
+site stayed enabled, listeners stayed on loopback, both migrations succeeded and no `uca1400` collation appeared.
+phpMyAdmin had been attached by an `include` in the installer's LAN site; after the installation the administrator's
+lines were added back to the new sites, and phpMyAdmin answered again on the LAN and with 404 on the domain.
+Application commit: `278750fd107cc3b92eef9458cb517eb11cf34246`; installer SHA-256 as for the first run on this host.
+
 Real-hardware acceptance on Debian 13 arm64 passed on 2026-10-08 on a Radxa ROCK 4C+ (4 GB, zram swap, SD card)
 with Armbian 26.11, kernel `6.18.54-current-rockchip64`, nginx `1.26.3`, Let's Encrypt and the installer's own
 DuckDNS updater, dual-homed like the ROCK 5B. The image had neither git nor dig; the modeless plan installed both
