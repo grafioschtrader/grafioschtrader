@@ -157,8 +157,9 @@ public interface GTNetJpaRepositoryCustom extends BaseRepositoryCustom<GTNet> {
   /**
    * Deletes a GTNet server entry and all its dependent data via cascade.
    *
-   * Validates that the entry is not the local server's own entry and that there are no pending request-response
-   * messages with this server before performing the deletion.
+   * Validates that the entry is not the local server's own entry and, while the handshake with this server is intact,
+   * that there are no pending request-response messages with it. After a reset handshake no answer can be authenticated
+   * any more, so open requests no longer block the deletion and are removed with the entry.
    *
    * @param idGtNet the ID of the GTNet entry to delete
    */

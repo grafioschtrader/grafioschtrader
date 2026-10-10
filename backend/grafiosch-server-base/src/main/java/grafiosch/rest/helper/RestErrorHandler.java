@@ -284,7 +284,9 @@ public class RestErrorHandler {
     }
     log.warn(ex.getMessage(), ex);
     final Locale currentLocale = LocaleContextHolder.getLocale();
-    return new ErrorWrapper(new SecurityBreachError(messageSource.getMessage(ex.getMessage(), null, currentLocale)));
+    // A SecurityException may carry plain text instead of an NLS key, e.g. the GTNet token validation of an M2M call
+    return new ErrorWrapper(
+        new SecurityBreachError(messageSource.getMessage(ex.getMessage(), null, ex.getMessage(), currentLocale)));
   }
 
   /**

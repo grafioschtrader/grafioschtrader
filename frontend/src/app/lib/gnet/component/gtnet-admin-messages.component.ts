@@ -303,10 +303,12 @@ export class GTNetAdminMessagesComponent extends TableCrudSupportMenu<GTNet> {
   /**
    * Returns the list of GTNet entries filtered for multi-select:
    * - Excludes the local server's own entry
-   * - Only includes entries with completed handshake (gtNetConfig exists)
+   * - Only includes entries with completed handshake (both tokens present, not merely a configuration row)
    */
   getFilteredGtNetList(): GTNet[] {
-    return this.gtNetList.filter((gtNet) => gtNet.idGtNet !== this.gtNetMyEntryId && gtNet.gtNetConfig != null);
+    return this.gtNetList.filter(
+      (gtNet) => gtNet.idGtNet !== this.gtNetMyEntryId && !!gtNet.gtNetConfig?.authorizedRemoteEntry
+    );
   }
 
   private sendAdminMsg(): void {

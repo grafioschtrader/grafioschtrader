@@ -77,10 +77,10 @@ import grafiosch.gtnet.MessageParamDateParser;
 import grafiosch.gtnet.MessageVisibility;
 import grafiosch.gtnet.SendReceivedType;
 import grafiosch.gtnet.handler.GTNetCoolingOffService;
-import grafiosch.gtnet.handler.GTNetServerListImporter;
 import grafiosch.gtnet.handler.GTNetMessageContext;
 import grafiosch.gtnet.handler.GTNetMessageHandler;
 import grafiosch.gtnet.handler.GTNetMessageHandlerRegistry;
+import grafiosch.gtnet.handler.GTNetServerListImporter;
 import grafiosch.gtnet.handler.HandlerResult;
 import grafiosch.gtnet.m2m.model.GTNetEntityPublicDTO;
 import grafiosch.gtnet.m2m.model.GTNetPublicDTO;
@@ -742,8 +742,10 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       String tokenForRemote = DataHelper.generateGUID();
       msgRequest.gtNetMessageParamMap = convertPojoToMap(new FirstHandshakeMsg(tokenForRemote));
       if (messageCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S) {
-        payloadModel = sourceGTNet;
+        // What we publish about ourselves, as in the implicit handshake of hasOrCreateFirstContact
+        payloadModel = new GTNetPublicDTO(sourceGTNet);
       } else {
+        rejectTokenRefreshWithoutHandshake(gtNetList);
         // The answerer adopts this token the moment it handles the request and starts calling us with it, while we
         // would otherwise only adopt it when the response arrives. Installing it now, with the token it replaces kept
         // in the overlap window, means neither direction breaks if that response is lost.
@@ -824,8 +826,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     GTNetMessageCode responseCode = messageCodeRegistry.getByValue(meResponse.messageCode);
 
     if (responseCode == GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_ACCEPT_S) {
-      serverListImporter.importServerList(myGTNet, targetGTNet.getDomainRemoteName(), meResponse.payload,
-          objectMapper);
+      serverListImporter.importServerList(myGTNet, targetGTNet.getDomainRemoteName(), meResponse.payload, objectMapper);
     } else if (responseCode == GNetCoreMessageCode.GT_NET_DATA_REQUEST_ACCEPT_S) {
       // When they accept our data request, we will RECEIVE data from them
       Set<IExchangeKindType> acceptedKinds = parseEntityKinds(gtNetMessage.getGtNetMessageParamMap());
@@ -880,6 +881,34 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       }
     }
     log.info("Handshake accepted by {}, tokens stored", targetGTNet.getDomainRemoteName());
+  }
+
+  /**
+   * Refuses a token refresh to a peer we hold no token for. A refresh is authenticated with the token the peer issued
+   * to us, so without one it can only be refused by the peer, and installing our new token optimistically would leave a
+   * half relationship behind. A peer whose tokens were reset or lost is reconnected with a first handshake instead.
+   *
+   * @param gtNetList the targets of the refresh
+   * @throws DataViolationException when a target has no completed handshake
+   */
+  private void rejectTokenRefreshWithoutHandshake(List<GTNet> gtNetList) {
+    for (GTNet targetGTNet : gtNetList) {
+      if (!hasCompletedHandshake(targetGTNet)) {
+        throw new DataViolationException("g.net", "g.gtnet.token.refresh.requires.handshake",
+            new Object[] { targetGTNet.getDomainRemoteName() });
+      }
+    }
+  }
+
+  /**
+   * Whether we hold the token this peer expects from us. A configuration row alone is not a handshake: a reset clears
+   * the tokens but keeps the row with its counters and settings.
+   *
+   * @param gtNet the peer
+   * @return true when messages to this peer can be authenticated
+   */
+  private static boolean hasCompletedHandshake(GTNet gtNet) {
+    return gtNet.getGtNetConfig() != null && gtNet.getGtNetConfig().getTokenRemote() != null;
   }
 
   /**
@@ -1195,7 +1224,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   private boolean hasOrCreateFirstContact(GTNet sourceGTNet, GTNet targetGTNet) {
-    if (targetGTNet.getGtNetConfig() == null) {
+    if (!hasCompletedHandshake(targetGTNet)) {
       // Generate the token that the remote will use to authenticate back to us
       String tokenForRemote = DataHelper.generateGUID();
       Map<String, GTNetMessageParam> msgMap = convertPojoToMap(new FirstHandshakeMsg(tokenForRemote));
@@ -1215,9 +1244,12 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
           && meResponse.messageCode == GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_ACCEPT_S.getValue()) {
         // Extract the token they gave us from their response
         FirstHandshakeMsg responseMsgData = convertMapToPojo(FirstHandshakeMsg.class, meResponse.gtNetMessageParamMap);
-        // Create GTNetConfig to store the tokens
-        GTNetConfig gtNetConfig = new GTNetConfig();
-        gtNetConfig.setIdGtNet(targetGTNet.getIdGtNet()); // Set FK manually
+        // A reset handshake leaves its configuration row in place; reuse it so its settings and counters survive
+        GTNetConfig gtNetConfig = targetGTNet.getGtNetConfig();
+        if (gtNetConfig == null) {
+          gtNetConfig = new GTNetConfig();
+          gtNetConfig.setIdGtNet(targetGTNet.getIdGtNet()); // Set FK manually
+        }
         // Store their token (what we use to call them) as tokenRemote
         gtNetConfig.setTokenRemote(responseMsgData.tokenThis);
         // Store our token (what they use to call us) as tokenThis
@@ -1948,13 +1980,17 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     if (idGtNet.equals(myEntryId)) {
       throw new DataViolationException("g.net", "g.gtnet.cannot.delete.own.entry", null);
     }
-    boolean hasPending = gtNetMessageJpaRepository
+    GTNet peer = gtNetJpaRepository.findById(idGtNet).orElseThrow();
+    // Open requests only protect a peer that can still answer them. Without both tokens no answer can be
+    // authenticated in either direction, so after a reset handshake the open requests are dead and go with the peer.
+    boolean relationshipAlive = peer.getGtNetConfig() != null && peer.getGtNetConfig().isAuthorizedRemoteEntry();
+    boolean hasPending = relationshipAlive && (gtNetMessageJpaRepository
         .findUnansweredRequests(SendReceivedType.SEND.getValue(), messageCodeRegistry.requestCodesRequiringResponse())
         .stream().anyMatch(row -> ((Number) row[0]).intValue() == idGtNet)
         || gtNetMessageJpaRepository
             .findUnansweredRequests(SendReceivedType.RECEIVED.getValue(),
                 messageCodeRegistry.requestCodesRequiringResponse())
-            .stream().anyMatch(row -> ((Number) row[0]).intValue() == idGtNet);
+            .stream().anyMatch(row -> ((Number) row[0]).intValue() == idGtNet));
     if (hasPending) {
       throw new DataViolationException("g.net", "g.gtnet.pending.messages.exist", null);
     }

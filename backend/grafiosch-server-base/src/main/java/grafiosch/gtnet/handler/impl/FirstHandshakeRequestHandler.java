@@ -115,9 +115,11 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
     }
 
     // An unauthenticated message may create a relationship but never replace one. Once we have issued a token to this
-    // domain, the way to rotate it is the authenticated token refresh, and the way to start over is to delete the peer.
+    // domain, the way to rotate it is the authenticated token refresh, and the way to start over is to reset the
+    // handshake. A relationship needs both tokens; a row holding only ours, left behind by a token refresh sent without
+    // a handshake, never let either side reach the other and must not lock the peer out.
     GTNet existing = gtNetJpaRepository.findByDomainRemoteName(canonicalDomain);
-    if (existing != null && existing.getGtNetConfig() != null && existing.getGtNetConfig().getTokenThis() != null) {
+    if (existing != null && existing.getGtNetConfig() != null && existing.getGtNetConfig().isAuthorizedRemoteEntry()) {
       return ValidationResult.invalid("HANDSHAKE_ALREADY_ESTABLISHED",
           "A handshake with this domain is already established");
     }

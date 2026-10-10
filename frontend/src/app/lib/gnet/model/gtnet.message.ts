@@ -231,14 +231,13 @@ function getRemotePeerCodes(params: MsgCallParam): GTNetMessageCodeType[] {
     return codes;
   }
 
-  // Handshake: available when no connection established yet
-  if (!target.gtNetConfig) {
-    codes.push(GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S);
-  }
-
-  // Token refresh: available when connection already exists
-  if (target.gtNetConfig) {
+  // A configuration row alone is no connection: a reset handshake keeps the row but discards both tokens. The first
+  // contact is therefore offered whenever the tokens are missing, and a token refresh, which is authenticated with the
+  // existing tokens, only while they are present.
+  if (target.gtNetConfig?.authorizedRemoteEntry) {
     codes.push(GTNetMessageCodeType.GT_NET_TOKEN_REFRESH_SEL_RR_C);
+  } else {
+    codes.push(GTNetMessageCodeType.GT_NET_FIRST_HANDSHAKE_SEL_RR_S);
   }
 
   // Always available for remote peers

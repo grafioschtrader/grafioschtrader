@@ -8,8 +8,8 @@ import { authHeaders, GTNET_RX, openCrudMenu, openGTNetSetup, readGTNet, acceptC
  * the own entry in place.
  *
  * The asymmetry is deliberate and comes from `GTNetJpaRepositoryImpl.deleteGTNet`, which refuses exactly two
- * cases: the row named by `g.gnet.my.entry.id`, and any row that still carries an unanswered request-response
- * message. So a per-spec reset can remove peers but never the identity — the only reset that also clears
+ * cases: the row named by `g.gnet.my.entry.id`, and any row with an intact handshake that still carries an
+ * unanswered request-response message. So a per-spec reset can remove peers but never the identity — the only reset that also clears
  * `g.gnet.my.entry.id` is recreating the database, which is a per-suite operation. Keeping the own entry is
  * also what makes the GTNet specs rerunnable without a database reset: `040` finds it and updates it.
  *
