@@ -72,6 +72,11 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements 
       values mean the intraday feed no longer delivers and the newest historical closing price took its place.""")
   public LastpriceOrigin lastpriceOrigin = LastpriceOrigin.INTRADAY;
 
+  @Schema(description = """
+      True when dividends were requested and the security is configured to distribute, but no dividend lies within the
+      evaluated period extended back to one year. Its changes then equal the price changes; the client shows a hint.""")
+  public boolean dividendDataMissing;
+
   // ISecurityDataProviderUrls implementation
 
   @Override

@@ -52,6 +52,9 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   @Autowired
   private JdbcTemplate jdbcTemplate;
 
+  @Autowired
+  private DividendJpaRepository dividendJpaRepository;
+
   @Override
   public CorrelationSet saveOnlyAttributes(CorrelationSet correlationSet, CorrelationSet existingEntity,
       Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
@@ -70,7 +73,8 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
   public CorrelationResult getCalculationByCorrelationSet(Integer idCorrelationSet) {
     var correlationSet = getCorrelationSetById(idCorrelationSet);
     if (correlationSet.getSecuritycurrencyList().size() >= 2) {
-      var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository, historyquoteJpaRepository);
+      var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository, historyquoteJpaRepository,
+          dividendJpaRepository);
       return correlationReport.calcCorrelationForMatrix(correlationSet);
     } else {
       throw new GeneralNotTranslatedWithArgumentsException("gt.correlation.needs.twoormore", null);
@@ -165,11 +169,13 @@ public class CorrelationSetJpaRepositoryImpl extends BaseRepositoryImpl<Correlat
     }
     var correlationSetDummy = new CorrelationSet(cs.getIdTenant(), cs.getName(), cs.getIdCorrelationSet(),
         cs.getDateFrom(), cs.getDateTo(), cs.getSamplingPeriod().getValue(), cs.getRolling(), cs.isAdjustCurrency());
+    correlationSetDummy.setIncludeDividends(cs.isIncludeDividends());
 
     Set<Integer> ids = Stream.of(securityIdsPairs).flatMap(Stream::of).collect(Collectors.toSet());
     correlationSetDummy.setSecuritycurrencyList(cs.getSecuritycurrencyList().stream()
         .filter(sc -> ids.contains(sc.getIdSecuritycurrency())).collect(Collectors.toList()));
-    var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository, historyquoteJpaRepository);
+    var correlationReport = new CorrelationReport(jdbcTemplate, currencypairJpaRepository, historyquoteJpaRepository,
+          dividendJpaRepository);
     return correlationReport.getRollingCorrelation(correlationSetDummy, securityIdsPairs);
   }
 

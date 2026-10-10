@@ -102,6 +102,14 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
   @PropertyAlwaysUpdatable
   private boolean adjustCurrency;
 
+  @Schema(description = """
+      Add the reinvested gross dividends to the prices of every dividend-capable security (total return) before
+      the returns are calculated. Currency pairs, indices and derived instruments keep their price series.""")
+  @NotNull
+  @Column(name = "include_dividends")
+  @PropertyAlwaysUpdatable
+  private boolean includeDividends;
+
   @Schema(description = "Contains the instruments of correlation")
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JoinTable(name = TABNAME_CORRELATION_INSTRUMENT, joinColumns = {
@@ -220,6 +228,14 @@ public class CorrelationSet extends TenantBaseID implements Serializable {
 
   public void setAdjustCurrency(boolean adjustCurrency) {
     this.adjustCurrency = adjustCurrency;
+  }
+
+  public boolean isIncludeDividends() {
+    return includeDividends;
+  }
+
+  public void setIncludeDividends(boolean includeDividends) {
+    this.includeDividends = includeDividends;
   }
 
   @Override

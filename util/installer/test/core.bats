@@ -33,6 +33,37 @@ setup() {
   [ "${STATE[status]}" = running ]
 }
 
+@test "secret store accepts existing HS256 keys beyond the generated 48-character format" {
+  local jwt minimum
+  printf -v minimum '%032d' 0
+  gt_core_begin
+  for jwt in "$minimum" "${minimum}!@=" "${minimum}${minimum}" \
+    '012345678901234567890123456789012345678901234567' \
+    'äöüäöüäöüäöüäöüä'; do
+    SECRET[JWT_SECRET]=$jwt
+    gt_secrets_save
+    SECRET=()
+    gt_secrets_load
+    [ "${SECRET[JWT_SECRET]}" = "$jwt" ]
+  done
+}
+
+@test "secret store rejects JWT keys shorter than 32 bytes or missing" {
+  local jwt short
+  printf -v short '%031d' 0
+  gt_core_begin
+  for jwt in '' "$short" 'äöüäöüäöüäöüäöü'; do
+    SECRET[JWT_SECRET]=$jwt
+    gt_secrets_save
+    run gt_secrets_load
+    [ "$status" -ne 0 ]
+  done
+  unset 'SECRET[JWT_SECRET]'
+  gt_secrets_save
+  run gt_secrets_load
+  [ "$status" -ne 0 ]
+}
+
 @test "missing secrets block recovery without inventing replacement credentials" {
   gt_core_begin
   rm "$ROOT/root/.gt-install/secrets"

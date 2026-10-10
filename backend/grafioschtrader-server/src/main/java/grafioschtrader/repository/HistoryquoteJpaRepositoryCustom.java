@@ -99,11 +99,18 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
    * The method ensures user access validation before fetching data.
    * </p>
    *
+   * <p>
+   * With {@code includeDividends} the prices of a dividend-capable security follow the total return rule of
+   * {@code TotalReturnAdjuster}; the response then also carries the adjustment steps and a hint when the security
+   * should distribute but no dividend lies within the series.
+   * </p>
+   *
    * @param idSecuritycurrency The unique identifier of the security or currency pair.
+   * @param includeDividends   True to add the reinvested dividends to the prices.
    * @return A HistoryquoteChartResponse containing either OHLC data (when available) or simple date/close data. The
    *         response includes an ohlcAvailable flag to indicate which format was returned.
    */
-  HistoryquoteChartResponse getHistoryquoteForChart(Integer idSecuritycurrency);
+  HistoryquoteChartResponse getHistoryquoteForChart(Integer idSecuritycurrency, boolean includeDividends);
 
   /**
    * Calculates and returns technical analysis (TA) indicator data for a given security or currency pair, based on
@@ -128,12 +135,14 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
    * @param shortMediumLongInputPeriod An object specifying the short, medium, and long periods for the TA calculation.
    *                                   A calculation is performed for a period only if it's not null and enough
    *                                   historical data is available.
+   * @param includeDividends           True to calculate the indicator on the total return closes, so that it matches
+   *                                   the line drawn with dividends included.
    * @return A list of TaTraceIndicatorData objects, each representing a trace for a calculated indicator over one of
    *         the specified periods. The list can contain up to three entries, or fewer if some periods are invalid or
    *         lack sufficient data. An empty list is returned if no calculations can be performed.
    */
   List<TaTraceIndicatorData> getTaWithShortMediumLongInputPeriod(Integer idSecuritycurrency, TaIndicators taIndicator,
-      ShortMediumLongInputPeriod shortMediumLongInputPeriod);
+      ShortMediumLongInputPeriod shortMediumLongInputPeriod, boolean includeDividends);
 
   /**
    * Calculates and returns technical analysis (TA) indicator data for a given security or currency pair, based on
@@ -152,12 +161,13 @@ public interface HistoryquoteJpaRepositoryCustom extends BaseRepositoryCustom<Hi
    * @param taIndicator            The technical indicator to calculate (e.g., RSI).
    * @param shortMediumInputPeriod An object specifying the short (required) and medium (optional) periods for the TA
    *                               calculation. The medium period can be null to calculate only one indicator line.
+   * @param includeDividends       True to calculate the indicator on the total return closes.
    * @return A list of TaTraceIndicatorData objects, each representing a trace for a calculated indicator over one of
    *         the specified periods. The list can contain up to two entries, or fewer if the medium period is not
    *         specified or lacks sufficient data. An empty list is returned if no calculations can be performed.
    */
   List<TaTraceIndicatorData> getTaWithShortMediumInputPeriod(Integer idSecuritycurrency, TaIndicators taIndicator,
-      ShortMediumInputPeriod shortMediumInputPeriod);
+      ShortMediumInputPeriod shortMediumInputPeriod, boolean includeDividends);
 
   <S extends Securitycurrency<S>> HistoryquotesWithMissings<S> getHistoryqoutesByIdSecuritycurrencyWithMissing(
       int idSecuritycurrency, boolean isCurrencypair) throws InterruptedException, ExecutionException;

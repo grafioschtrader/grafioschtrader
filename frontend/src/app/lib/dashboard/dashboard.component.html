@@ -83,7 +83,9 @@
             @if (!editing) {
               <p-button
                 [label]="'DASHBOARD_REFRESH' | translate"
-                [disabled]="loading || refreshing.has(widget.instanceId)"
+                [disabled]="
+                  loading || refreshing.has(widget.instanceId) || (groupsLoading && !results[widget.instanceId])
+                "
                 (onClick)="refresh(widget)" />
               @if (maximizable(widget)) {
                 @if (widget.instanceId === maximizedId) {
@@ -160,6 +162,8 @@
               @if (result.dataAsOf) {
                 <small>{{ 'DASHBOARD_LOADED_AT' | translate }}: {{ getValueByPath(result, timeField) }}</small>
               }
+            } @else if (groupsLoading) {
+              <p role="status">{{ 'DASHBOARD_LOADING' | translate }}</p>
             }
           } @else {
             <p>{{ 'DASHBOARD_DRAFT_PREVIEW' | translate }}</p>

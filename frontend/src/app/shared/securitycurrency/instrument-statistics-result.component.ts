@@ -40,6 +40,9 @@ import { InstrumentStatisticsSummaryComponent } from './instrument-statistics-su
           </instrument-statistics-summary>
         }
       </div>
+      @if (isr) {
+        <small>{{ 'RETURN_STATISTICAL_DATA_DIVIDENDS' | translate }}</small>
+      }
     </div>
   `,
   styles: [

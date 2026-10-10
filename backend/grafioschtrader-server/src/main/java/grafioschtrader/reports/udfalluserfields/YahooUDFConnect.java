@@ -1,7 +1,6 @@
 package grafioschtrader.reports.udfalluserfields;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -25,6 +24,8 @@ import grafiosch.repository.UDFDataJpaRepository;
 import grafiosch.udfalluserfields.UDFFieldsHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.securitysearch.SecuritySearchQuery;
+import grafioschtrader.connector.securitysearch.SecuritySearchResult;
 import grafioschtrader.connector.yahoo.AbstractYahooFinanceConnector;
 import grafioschtrader.connector.yahoo.YahooFinanceDTO;
 import grafioschtrader.connector.yahoo.YahooFinanceDTO.QueryOperand;
@@ -33,26 +34,23 @@ import grafioschtrader.connector.yahoo.YahooFinanceDTO.VisualizationResponse;
 import grafioschtrader.connector.yahoo.YahooFinanceDTO.VisualizationResult;
 import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.connector.yahoo.YahooSymbolSearch;
+import grafioschtrader.dto.SecuritySearchCandidateDto;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.UDFMetadataSecurity;
-import grafioschtrader.repository.MicProviderMapRepository;
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
-import io.github.bucket4j.ConsumptionProbe;
+import grafioschtrader.types.SecuritySearchStatus;
 
 /**
  * Utility class for connecting to Yahoo Finance to retrieve financial data for user-defined fields. This class provides
  * functionality to evaluate Yahoo symbols for securities, extract earnings dates, and manage rate-limited access to
  * Yahoo Finance services.
  *
- * The class implements rate limiting using the token bucket algorithm to ensure compliance with Yahoo Finance's usage
- * policies and prevent service overload. It also includes caching mechanisms to optimize performance and reduce
- * unnecessary API calls.
+ * The symbol search is rate limited by the {@link YahooSymbolSearch} bean, whose request budget is shared by every
+ * instance of this class. Caching reduces unnecessary API calls.
  *
  * Key features include:<br>
  * - Yahoo symbol resolution through multiple strategies (existing connectors, UDF data, symbol search)<br>
  * - Earnings date extraction from Yahoo Finance calendar pages<br>
- * - Rate limiting with configurable bandwidth constraints<br>
+ * - Rate limiting through the request budget shared by all Yahoo searches ({@link YahooSymbolSearch})<br>
  * - Symbol caching with expiration to reduce redundant lookups<br>
  * - Special handling for US stock exchanges (NASDAQ, NYSE)<br>
  *
@@ -62,9 +60,6 @@ import io.github.bucket4j.ConsumptionProbe;
 public class YahooUDFConnect extends AbstractYahooFinanceConnector {
 
   private static final Logger log = LoggerFactory.getLogger(YahooUDFConnect.class);
-
-  private YahooSymbolSearch yahooSymbolSearch = new YahooSymbolSearch();
-  private Bucket bucket;
 
   /**
    * We believe that the Yahoo Finance ticker symbol on the Nasdaq and NYSE corresponds to the general ticker symbol of
@@ -84,17 +79,23 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
 
   public YahooUDFConnect() {
     super(10); // 10 seconds connection timeout
-
-    // Initialize rate limiting
-    Bandwidth limit = Bandwidth.builder().capacity(2).refillIntervally(1, Duration.ofSeconds(2)).build();
-    this.bucket = Bucket.builder().addLimit(limit).build();
   }
 
   /**
-   * Evaluates and determines the Yahoo Finance symbol for a given security using multiple resolution strategies.
+   * Evaluates and determines the Yahoo Finance symbol for a given security using multiple resolution strategies: the
+   * URL extension of a Yahoo connector, the stored user-defined field, the cache and finally the symbol search. A
+   * search that could not be carried out (rate limit, timeout, provider error) is neither stored nor cached, so a
+   * previously found symbol is not overwritten by a temporary failure.
+   *
+   * @param uDFDataJpaRepository repository of the user-defined field values
+   * @param udfMDSYahooSymbol    metadata of the hidden field holding the Yahoo symbol
+   * @param security             the security
+   * @param yahooSymbolSearch    the Yahoo symbol search
+   * @param recreate             true to search again although a symbol is stored
+   * @return the Yahoo symbol, or null when none is known or it is an index symbol
    */
   public String evaluateYahooSymbol(UDFDataJpaRepository uDFDataJpaRepository, UDFMetadataSecurity udfMDSYahooSymbol,
-      Security security, MicProviderMapRepository micProviderMapRepository, boolean recreate) {
+      Security security, YahooSymbolSearch yahooSymbolSearch, boolean recreate) {
     String yahooCon = BaseFeedConnector.ID_PREFIX + YahooHelper.YAHOO;
     String yahooSymbol = yahooCon.equals(security.getIdConnectorIntra()) ? security.getUrlIntraExtend()
         : yahooCon.equals(security.getIdConnectorHistory()) ? security.getUrlHistoryExtend()
@@ -110,10 +111,13 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
       if (yahooSymbol == null || recreate) {
         yahooSymbol = CACHE_SYMBOL.get(security.getIdSecuritycurrency());
         if (yahooSymbol == null) {
-          yahooSymbol = getYahooSymbolThruSymbolSearch(security, micProviderMapRepository);
-          UDFFieldsHelper.writeValueToUser0(udfMDSYahooSymbol, uDFDataJpaRepository, security.getClass(),
-              security.getIdSecuritycurrency(), yahooSymbol);
-          CACHE_SYMBOL.put(security.getIdSecuritycurrency(), yahooSymbol);
+          SymbolLookup lookup = getYahooSymbolThruSymbolSearch(security, yahooSymbolSearch);
+          yahooSymbol = lookup.symbol();
+          if (!lookup.status().isTransient()) {
+            UDFFieldsHelper.writeValueToUser0(udfMDSYahooSymbol, uDFDataJpaRepository, security.getClass(),
+                security.getIdSecuritycurrency(), yahooSymbol);
+            CACHE_SYMBOL.put(security.getIdSecuritycurrency(), yahooSymbol);
+          }
         }
       }
     }
@@ -121,19 +125,39 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
   }
 
   /**
-   * Retrieves Yahoo symbol through symbol search service with special handling for US exchanges.
+   * Retrieves the Yahoo symbol through the symbol search, with special handling for US exchanges. The symbol is
+   * accepted only when exactly one candidate is placed on the exchange of the security; an ambiguous result yields no
+   * symbol rather than the first one.
+   *
+   * @param security          the security, with ISIN, ticker and stock exchange
+   * @param yahooSymbolSearch the Yahoo symbol search
+   * @return the symbol, or null, together with the status of the search
    */
-  String getYahooSymbolThruSymbolSearch(Security security, MicProviderMapRepository micProviderMapRepository) {
-    String yahooSymbol = null;
+  SymbolLookup getYahooSymbolThruSymbolSearch(Security security, YahooSymbolSearch yahooSymbolSearch) {
     String mic = security.getStockexchange().getMic();
     if (US_STOCK_EXCHANGE.contains(mic) && security.getTickerSymbol() != null) {
-      yahooSymbol = security.getTickerSymbol();
-    } else {
-      waitForTokenOrGo();
-      yahooSymbol = yahooSymbolSearch.getSymbolByISINOrSymbolOrName(micProviderMapRepository,
-          security.getStockexchange().getMic(), security.getIsin(), security.getTickerSymbol(), security.getName());
+      return new SymbolLookup(security.getTickerSymbol(), SecuritySearchStatus.OK);
     }
-    return yahooSymbol;
+    SecuritySearchResult result = yahooSymbolSearch
+        .search(SecuritySearchQuery.of(security.getIsin(), security.getCurrency(), mic, security.getTickerSymbol()));
+    String yahooSymbol = result.uniqueCandidateOnMic(mic, security.getTickerSymbol())
+        .map(SecuritySearchCandidateDto::providerSymbol).orElse(null);
+    if (yahooSymbol != null) {
+      log.info("Got Yahoo symbol {} for ISIN {} on {}", yahooSymbol, security.getIsin(), mic);
+    } else if (result.status().isTransient()) {
+      log.warn("Yahoo symbol search for ISIN {} on {} failed: {} {}", security.getIsin(), mic, result.status(),
+          result.detail());
+    }
+    return new SymbolLookup(yahooSymbol, result.status());
+  }
+
+  /**
+   * Outcome of a symbol resolution.
+   *
+   * @param symbol the resolved Yahoo symbol, null when none was found unambiguously
+   * @param status status of the underlying search; a transient status means the absence of a symbol says nothing
+   */
+  record SymbolLookup(String symbol, SecuritySearchStatus status) {
   }
 
   String getEarningURL(String yahooSymbol) {
@@ -239,26 +263,6 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
   protected LocalDateTime applyGmtOffset(ZonedDateTime utcDateTime, Object gmtOffsetObj) {
     long gmtOffsetMillis = ((Number) gmtOffsetObj).longValue();
     return utcDateTime.toInstant().plusMillis(gmtOffsetMillis).atZone(ZoneOffset.UTC).toLocalDateTime();
-  }
-
-  /**
-   * Implements rate limiting using token bucket algorithm to control access frequency.
-   */
-  private void waitForTokenOrGo() {
-    do {
-      ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
-      if (probe.isConsumed()) {
-        return;
-      } else {
-        long waitForRefill = TimeUnit.MILLISECONDS.convert(probe.getNanosToWaitForRefill(), TimeUnit.NANOSECONDS);
-        try {
-          Thread.sleep(waitForRefill);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          log.warn("Interrupted while waiting for rate-limit token", e);
-        }
-      }
-    } while (true);
   }
 
   /**

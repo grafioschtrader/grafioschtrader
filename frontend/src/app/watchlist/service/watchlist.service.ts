@@ -88,15 +88,26 @@ export class WatchlistService
     );
   }
 
-  getWatchlistWithPeriodPerformance(idWatchlist: number, daysTimeFrame: number): Observable<SecuritycurrencyGroup> {
-    return <Observable<SecuritycurrencyGroup>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/` + `${idWatchlist}/quote`,
-          this.getOptionsWithDaysTimeFrame(daysTimeFrame)
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+  /**
+   * Loads the watchlist with updated prices and the daily, YTD and time frame changes.
+   *
+   * @param idWatchlist the watchlist
+   * @param daysTimeFrame length of the custom time frame in days
+   * @param includeDividends true to add the reinvested dividends of the securities to every change (total return)
+   */
+  getWatchlistWithPeriodPerformance(
+    idWatchlist: number,
+    daysTimeFrame: number,
+    includeDividends = false
+  ): Observable<SecuritycurrencyGroup> {
+    return <Observable<SecuritycurrencyGroup>>this.httpClient
+      .get(`${BaseSettings.API_ENDPOINT}${AppSettings.WATCHLIST_KEY}/` + `${idWatchlist}/quote`, {
+        headers: this.prepareHeaders(),
+        params: new HttpParams()
+          .set('daysTimeFrame', '' + daysTimeFrame)
+          .set('includeDividends', includeDividends.toString())
+      })
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getWatchlistForSplitAndDividend(idWatchlist: number): Observable<SecuritycurrencyGroup> {
@@ -260,10 +271,5 @@ export class WatchlistService
         this.getHeaders()
       )
       .pipe(catchError(this.handleError.bind(this)));
-  }
-
-  private getOptionsWithDaysTimeFrame(daysTimeFrame: number) {
-    const httpParams = new HttpParams().set('daysTimeFrame', '' + daysTimeFrame);
-    return { headers: this.prepareHeaders(), params: httpParams };
   }
 }

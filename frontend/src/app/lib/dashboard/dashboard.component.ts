@@ -69,6 +69,8 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
   catalogue: DashboardCatalogue;
   editing = false;
   loading = false;
+  /** The slower load groups are still being fetched, so a card without a result is waiting rather than empty. */
+  groupsLoading = false;
   saving = false;
   error = '';
   conflict = false;
@@ -161,6 +163,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
       this.results = {};
       this.catalogue = null;
       this.loading = false;
+      this.groupsLoading = false;
       this.editing = false;
       this.restore();
       this.refreshing.clear();
@@ -188,10 +191,12 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
           if (!document.widgets.some((w) => w.instanceId === this.maximizedId)) this.restore();
           this.onComponentClick(null);
           if (document.schemaVersion !== 1) this.error = 'DASHBOARD_SCHEMA';
+          this.loadPendingGroups(document.pendingGroups ?? [], generation, context);
         },
         error: (error) => {
           if (!this.current(generation, context)) return;
           this.loading = false;
+          this.groupsLoading = false;
           this.error = error.status === 403 ? 'DASHBOARD_DISABLED' : 'DASHBOARD_LOAD_ERROR';
           this.results = Object.fromEntries(Object.entries(this.results).map(([id, r]) => [id, { ...r, stale: true }]));
           if (error.status === 401 || error.status === 403) {
@@ -201,6 +206,47 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
         }
       })
     );
+  }
+  /**
+   * Fetches the slower load groups one after the other, fastest first, once the fast cards are on screen. A failed
+   * group marks every card still without data as failed and leaves the remaining groups unread; the refresh of a
+   * single card or of the whole dashboard is the way to try again.
+   *
+   * @param groups - pending load groups, ascending, as listed by the dashboard document
+   * @param generation - load generation the groups belong to; a newer load discards their results
+   * @param context - user and client the groups were requested for
+   */
+  private loadPendingGroups(groups: number[], generation: number, context: string): void {
+    this.groupsLoading = groups.length > 0;
+    if (!this.groupsLoading) return;
+    this.subscriptions.add(
+      this.service.group(groups[0]).subscribe({
+        next: (results) => {
+          if (!this.current(generation, context)) return;
+          results.forEach((r) => (this.results[r.instanceId] = mergeDashboardResult(this.results[r.instanceId], r)));
+          this.loadPendingGroups(groups.slice(1), generation, context);
+        },
+        error: (error) => {
+          if (!this.current(generation, context)) return;
+          this.groupsLoading = false;
+          this.document.widgets
+            .filter((w) => !this.results[w.instanceId])
+            .forEach((w) => (this.results[w.instanceId] = this.failedResult(w, error.status)));
+        }
+      })
+    );
+  }
+  /** The result shown on a card whose data could not be read. */
+  private failedResult(widget: DashboardWidget, status: number): DashboardResult {
+    const unavailable = status === 403 || status === 404;
+    return {
+      instanceId: widget.instanceId,
+      type: widget.type,
+      status: unavailable ? 'UNAVAILABLE' : 'ERROR',
+      payload: null,
+      dataAsOf: '',
+      errorCode: unavailable ? 'DASHBOARD_UNAVAILABLE' : 'DASHBOARD_LOAD_ERROR'
+    };
   }
   edit(): void {
     if (!this.canEdit) return;
@@ -361,15 +407,7 @@ export class DashboardComponent extends ShowRecordConfigBase implements OnInit, 
     this.subscriptions.add(
       this.service.refresh(widget.instanceId).subscribe({
         next: receive,
-        error: (error) =>
-          receive({
-            instanceId: widget.instanceId,
-            type: widget.type,
-            status: error.status === 403 || error.status === 404 ? 'UNAVAILABLE' : 'ERROR',
-            payload: null,
-            dataAsOf: '',
-            errorCode: error.status === 403 || error.status === 404 ? 'DASHBOARD_UNAVAILABLE' : 'DASHBOARD_LOAD_ERROR'
-          })
+        error: (error) => receive(this.failedResult(widget, error.status))
       })
     );
   }

@@ -162,7 +162,7 @@ gt_secrets_load() {
     loaded[$key]=$value
   done <<< "$PRIVATE_CONTENT"
   PRIVATE_CONTENT=''
-  [[ "$id" == "${STATE[run_id]}" && "${loaded[JWT_SECRET]:-}" =~ ^[a-zA-Z0-9]{48}$ ]] || return 2
+  [[ "$id" == "${STATE[run_id]}" && -n "${loaded[JWT_SECRET]:-}" ]] || return 2
   for key in DB_PASSWORD JASYPT_PASSWORD SMTP_PASSWORD DUCKDNS_TOKEN; do
     # A change of the SMTP selection journals its answers before the secrets file follows; until it is applied,
     # the SMTP password may still match the earlier answers (gt_mail_change_apply settles it).

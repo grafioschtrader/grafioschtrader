@@ -26,6 +26,11 @@ public class CorrelationResult {
   @Schema(description = "If there are no overlapping closing prices, these objects will be created.")
   public List<MinMaxDateHistoryquote> mmdhList = new ArrayList<>();
 
+  @Schema(description = """
+      Instruments whose dividends were requested and which are configured to distribute, but which have no dividend in
+      the period. Their total return silently equals their price return, so the client shows a note.""")
+  public List<Integer> idsMissingDividends = new ArrayList<>();
+
   public CorrelationResult(LocalDate firstAvailableDate, LocalDate lastAvailableDate) {
     this.firstAvailableDate = firstAvailableDate;
     this.lastAvailableDate = lastAvailableDate;

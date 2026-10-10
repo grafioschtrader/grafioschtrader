@@ -19,4 +19,6 @@ export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public staleTradingSessions: number;
   /** Where the shown last price comes from. */
   public lastpriceOrigin: LastpriceOrigin;
+  /** Dividends were requested, but this distributing security has none in the period: total return = price return. */
+  public dividendDataMissing: boolean;
 }

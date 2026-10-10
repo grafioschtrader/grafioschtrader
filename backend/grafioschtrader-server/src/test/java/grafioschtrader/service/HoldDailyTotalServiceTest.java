@@ -143,13 +143,20 @@ class HoldDailyTotalServiceTest {
         .thenReturn(new TradingDaysPlus(date));
   }
 
-  /** Captures every row handed to saveAll, in the order of the calls. */
+  /** Captures every row handed to insertRows, in the order of the calls. */
   @SuppressWarnings("unchecked")
   private List<HoldDailyTotal> savedRows() {
-    ArgumentCaptor<List<HoldDailyTotal>> captor = ArgumentCaptor.forClass(List.class);
-    verify(holdDailyTotalJpaRepository, atLeast(0)).saveAll(captor.capture());
+    ArgumentCaptor<Integer> idTenantCaptor = ArgumentCaptor.forClass(Integer.class);
+    ArgumentCaptor<Integer> idPortfolioCaptor = ArgumentCaptor.forClass(Integer.class);
+    ArgumentCaptor<List<IPeriodHolding>> holdingsCaptor = ArgumentCaptor.forClass(List.class);
+    verify(holdDailyTotalJpaRepository, atLeast(0)).insertRows(idTenantCaptor.capture(), idPortfolioCaptor.capture(),
+        holdingsCaptor.capture());
     List<HoldDailyTotal> rows = new ArrayList<>();
-    captor.getAllValues().forEach(rows::addAll);
+    for (int i = 0; i < holdingsCaptor.getAllValues().size(); i++) {
+      Integer idTenant = idTenantCaptor.getAllValues().get(i);
+      Integer idPortfolio = idPortfolioCaptor.getAllValues().get(i);
+      holdingsCaptor.getAllValues().get(i).forEach(h -> rows.add(new HoldDailyTotal(idTenant, idPortfolio, h)));
+    }
     return rows;
   }
 

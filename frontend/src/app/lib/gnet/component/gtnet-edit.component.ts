@@ -87,7 +87,7 @@ import { BaseSettings } from '../../base.settings';
         </editable-table>
 
         <div style="margin-top: 1rem; text-align: right;">
-          <p-button [label]="'SAVE' | translate" (click)="submitAll()">
+          <p-button [label]="'SAVE' | translate" [disabled]="!form?.valid" (click)="submitAll()">
             <i class="pi pi-check" pButtonIcon></i>
           </p-button>
         </div>
@@ -285,8 +285,12 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
           this.translateService,
           GTNetServerOnlineStatusTypes
         );
-        const gtNet = this.callParam.gtNet ?? new GTNet();
-        this.form.transferBusinessObjectToForm(gtNet);
+        // A new entry keeps the field defaults; transferring an empty GTNet would overwrite them with null
+        if (this.callParam.gtNet) {
+          this.form.transferBusinessObjectToForm(this.callParam.gtNet);
+        } else {
+          this.form.setDefaultValues();
+        }
 
         // Initialize entity table data
         this.initializeEntities();
@@ -390,7 +394,11 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
    * Submits both the base form and entity table data.
    */
   submitAll(): void {
-    // Get form values
+    // This button is outside the dynamic form, so the form validation must be checked here
+    if (!this.form.valid) {
+      this.form.form.markAllAsTouched();
+      return;
+    }
     const formValue = this.form.value;
 
     // Create the GTNet entity with all data
@@ -424,7 +432,13 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
     if (this.callParam.isMyEntry) {
       gtNet.timeZone = value['timeZone'];
       gtNet.spreadCapability = value['spreadCapability'];
-      gtNet.dailyRequestLimit = value['dailyRequestLimit'];
+      // The input delivers a string; the form helper converts it according to its NumericInteger data type
+      Helper.copyFormSingleFormConfigToBusinessObject(
+        this.formConfig,
+        this.configObject.dailyRequestLimit,
+        gtNet,
+        true
+      );
       gtNet.serverBusy = value['serverBusy'];
       gtNet.allowServerCreation = value['allowServerCreation'];
       gtNet.serverOnline = GTNetServerOnlineStatusTypes[value['serverOnline']] as any;

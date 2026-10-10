@@ -20,6 +20,17 @@ export class DashboardService extends AuthServiceWithLogout<DashboardDocument> {
   load() {
     return this.httpClient.get<DashboardDocument>(`${BaseSettings.API_ENDPOINT}dashboard`, this.getHeaders());
   }
+  /**
+   * Loads the widgets of one load group the dashboard document listed as pending. The groups are split by how long
+   * their widgets take, so the fast cards never wait for the slow ones, and one request per group rather than per
+   * widget keeps the dashboard below the request limit.
+   */
+  group(group: number) {
+    return this.httpClient.get<DashboardResult[]>(
+      `${BaseSettings.API_ENDPOINT}dashboard/group/${group}`,
+      this.getHeaders()
+    );
+  }
   catalogue() {
     return this.httpClient.get<DashboardCatalogue>(
       `${BaseSettings.API_ENDPOINT}dashboard/catalogue`,

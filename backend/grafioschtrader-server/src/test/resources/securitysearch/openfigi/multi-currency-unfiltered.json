@@ -1,0 +1,42 @@
+[
+ {
+  "data": [
+   {
+    "figi": "BBG002JV1HL4",
+    "name": "APPLE INC",
+    "ticker": "AAPL",
+    "exchCode": "SE",
+    "compositeFIGI": "BBG000LF8110",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001S5N8V8",
+    "securityType2": "Common Stock",
+    "securityDescription": "AAPL"
+   },
+   {
+    "figi": "BBG009CHNPL5",
+    "name": "APPLE INC",
+    "ticker": "AAPLEUR",
+    "exchCode": "SE",
+    "compositeFIGI": "BBG009CHNPJ8",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001S5N8V8",
+    "securityType2": "Common Stock",
+    "securityDescription": "AAPLEUR"
+   },
+   {
+    "figi": "BBG00DGYS856",
+    "name": "APPLE INC",
+    "ticker": "AAPLUSD",
+    "exchCode": "SE",
+    "compositeFIGI": "BBG00DGYS838",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001S5N8V8",
+    "securityType2": "Common Stock",
+    "securityDescription": "AAPLUSD"
+   }
+  ]
+ }
+]

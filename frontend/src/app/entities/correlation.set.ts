@@ -14,6 +14,8 @@ export class CorrelationSet implements BaseID {
   dateFrom: Date | string = null;
   dateTo: Date | string = null;
   adjustCurrency: boolean = false;
+  /** Adds the reinvested dividends to the prices of dividend-capable securities before the returns are calculated */
+  includeDividends: boolean = false;
 
   public getId(): number {
     return this.idCorrelationSet;
@@ -48,6 +50,8 @@ export interface CorrelationResult {
   lastAvailableDate: string;
   correlationInstruments: CorrelationInstrument[];
   mmdhList: MinMaxDateHistoryquote[];
+  /** Distributing securities without dividend data in the period; their total return equals their price return */
+  idsMissingDividends: number[];
 }
 
 export interface CorrelationRollingResult {

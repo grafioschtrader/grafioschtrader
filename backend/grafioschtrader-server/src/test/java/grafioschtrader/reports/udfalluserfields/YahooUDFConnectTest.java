@@ -19,8 +19,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper;
+import grafioschtrader.connector.yahoo.YahooSymbolSearch;
 import grafioschtrader.entities.Security;
-import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.test.start.GTforTest;
 
 @SpringBootTest(classes = GTforTest.class)
@@ -28,7 +28,7 @@ import grafioschtrader.test.start.GTforTest;
 public class YahooUDFConnectTest {
 
   @Autowired
-  private MicProviderMapRepository micProviderMapRepository;
+  private YahooSymbolSearch yahooSymbolSearch;
 
   private YahooUDFConnect yahooUDFConnect = new YahooUDFConnect();
 
@@ -47,7 +47,7 @@ public class YahooUDFConnectTest {
     for (Map.Entry<String, Security> entry : testData.entrySet()) {
       String expected = entry.getKey();
       Security sec = entry.getValue();
-      String actual = yahooUDFConnect.getYahooSymbolThruSymbolSearch(sec, micProviderMapRepository);
+      String actual = yahooUDFConnect.getYahooSymbolThruSymbolSearch(sec, yahooSymbolSearch).symbol();
       assertEquals(expected, actual, () -> String.format("Expected Yahoo symbol for %s on %s to be %s, but was %s",
           sec.getName(), sec.getStockexchange().getMic(), expected, actual));
     }

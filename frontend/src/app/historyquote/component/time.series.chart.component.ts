@@ -16,7 +16,7 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { CurrencypairWithTransaction } from '../../entities/view/currencypair.with.transaction';
 import { SecurityTransactionSummary } from '../../entities/view/security.transaction.summary';
 import { PlotlyLocales } from '../../shared/plotlylocale/plotly.locales';
-import { combineLatest, Observable, Subscription } from 'rxjs';
+import { combineLatest, forkJoin, Observable, Subscription } from 'rxjs';
 import { PlotlyHelper } from '../../shared/chart/plotly.helper';
 import { TransactionType } from '../../shared/types/transaction.type';
 import { AppHelper, Comparison } from '../../lib/helper/app.helper';
@@ -46,7 +46,7 @@ import { DynamicFieldModelHelper } from '../../lib/helper/dynamic.field.model.he
 import { BaseSettings } from '../../lib/base.settings';
 import { ChartType } from '../../shared/types/chart.type';
 import { HistoryquoteOHLC } from '../../entities/projection/historyquote.ohlc';
-import { HistoryquoteChartResponse } from '../../entities/projection/historyquote.chart.response';
+import { HistoryquoteChartResponse, TotalReturnFactor } from '../../entities/projection/historyquote.chart.response';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePicker } from '@openng/optimus-ui/datepicker';
@@ -133,6 +133,13 @@ interface Data {
         <label>{{ 'CONNECT_GAPS' | translate }}</label>
         <input type="checkbox" [(ngModel)]="connectGaps" (change)="toggleCheckbox($event)" />
 
+        @if (hasSecurity()) {
+          <label title="{{ 'INCLUDE_DIVIDENDS_CHART_TOOLTIP' | translate }}">{{
+            'INCLUDE_DIVIDENDS' | translate
+          }}</label>
+          <input type="checkbox" [(ngModel)]="includeDividends" (change)="toggleIncludeDividends()" />
+        }
+
         @if (this.loadedData.length === 1 && volumeAvailable) {
           <label>{{ 'VOLUME' | translate }}</label>
           <input type="checkbox" [(ngModel)]="showVolume" (change)="toggleCheckbox($event)" />
@@ -186,6 +193,11 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   showHolding: boolean = true;
   usePercentage: boolean;
   connectGaps = true;
+  /**
+   * Draws every security of the chart as total return series: the gross dividends are reinvested at the ex-date.
+   * Currency pairs, indices and derived instruments keep their price series.
+   */
+  includeDividends = false;
   dateFormat: string;
   loadedData: LoadedData[] = [];
   oldestMatchDate: string;
@@ -210,6 +222,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
   private indicatorDefinitions: IndicatorDefinitions;
 
   private legendTooltipMap = new Map<string, string>();
+  /** Translated hint for a distributing security without dividend data in its series. */
+  private dividendMissingHint = '';
 
   /** Converts the quotes of every series into the currency the user selected. */
   private currencyNormalizer = new ChartCurrencyNormalizer();
@@ -278,6 +292,9 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       this.prepareChart(paramObject.allParam);
     });
     this.historyquoteService.getAllTaForms().subscribe((formDefinition) => (this.taFormDefinitions = formDefinition));
+    this.translateService
+      .get('TOTAL_RETURN_DIVIDEND_MISSING')
+      .subscribe((hint: string) => (this.dividendMissingHint = hint));
   }
 
   ngOnDestroy(): void {
@@ -310,7 +327,8 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
         : this.currencypairService.getTransactionForCurrencyPair(timeSeriesParams[i].idSecuritycurrency, true);
 
       const historyquoteObservable = this.historyquoteService.getHistoryquoteForChart(
-        timeSeriesParams[i].idSecuritycurrency
+        timeSeriesParams[i].idSecuritycurrency,
+        this.includeDividends
       );
       const observable: Observable<any>[] = [stsObservable, historyquoteObservable];
       this.addCurrencyCrossRateObservable(timeSeriesParams, timeSeriesParams[i].currencySecurity, observable);
@@ -321,30 +339,7 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           : new CurrencypairWithTransaction(data[0]);
 
         const chartResponse: HistoryquoteChartResponse = data[1];
-        // Extract date/close data from the response
-        let historyquotes: HistoryquoteDateClose[];
-        let ohlcData: HistoryquoteOHLC[] | undefined;
-
-        if (chartResponse.ohlcAvailable && chartResponse.ohlcList) {
-          // Convert OHLC to date/close for line chart compatibility
-          historyquotes = chartResponse.ohlcList.map((ohlc) => ({
-            date: ohlc.date,
-            close: ohlc.close
-          }));
-          ohlcData = chartResponse.ohlcList;
-          this.ohlcAvailable = true;
-          this.volumeAvailable = chartResponse.volumeAvailable ?? false;
-        } else {
-          historyquotes = chartResponse.dateCloseList || [];
-          ohlcData = undefined;
-          this.ohlcAvailable = false;
-          this.volumeAvailable = false;
-          this.showVolume = false;
-          // Reset to line chart if OHLC not available
-          if (this.selectedChartType !== ChartType.LINE) {
-            this.selectedChartType = ChartType.LINE;
-          }
-        }
+        const { historyquotes, ohlcData } = this.extractChartData(chartResponse);
 
         if (historyquotes.length > 0) {
           this.createTodayAsHistoryquote(
@@ -352,15 +347,15 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
             nameSecuritycurrency.getSecuritycurrency().sLast,
             historyquotes
           );
-          this.loadedData.push(
-            new LoadedData(
-              timeSeriesParams[i].idSecuritycurrency,
-              nameSecuritycurrency,
-              historyquotes,
-              timeSeriesParams[i].currencySecurity,
-              ohlcData
-            )
+          const loadedData = new LoadedData(
+            timeSeriesParams[i].idSecuritycurrency,
+            nameSecuritycurrency,
+            historyquotes,
+            timeSeriesParams[i].currencySecurity,
+            ohlcData
           );
+          loadedData.setTotalReturn(chartResponse);
+          this.loadedData.push(loadedData);
           if (observable.length === 3) {
             this.addCrossRateResponse(data[2]);
             this.currencyNormalizer.normalize(this.loadedData[this.loadedData.length - 1], this.requestedCurrency);
@@ -375,6 +370,93 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
           });
         }
       });
+    }
+  }
+
+  /**
+   * Separates the line data and the OHLC data of a chart response and adjusts the chart type options to what the
+   * instrument provides.
+   *
+   * @param chartResponse the response of the chart endpoint
+   * @returns the closes for the line chart and, when available, the OHLC data
+   */
+  private extractChartData(chartResponse: HistoryquoteChartResponse): {
+    historyquotes: HistoryquoteDateClose[];
+    ohlcData: HistoryquoteOHLC[] | undefined;
+  } {
+    if (chartResponse.ohlcAvailable && chartResponse.ohlcList) {
+      this.ohlcAvailable = true;
+      this.volumeAvailable = chartResponse.volumeAvailable ?? false;
+      // Convert OHLC to date/close for line chart compatibility
+      return {
+        historyquotes: chartResponse.ohlcList.map((ohlc) => ({ date: ohlc.date, close: ohlc.close })),
+        ohlcData: chartResponse.ohlcList
+      };
+    }
+    this.ohlcAvailable = false;
+    this.volumeAvailable = false;
+    this.showVolume = false;
+    // Reset to line chart if OHLC not available
+    if (this.selectedChartType !== ChartType.LINE) {
+      this.selectedChartType = ChartType.LINE;
+    }
+    return { historyquotes: chartResponse.dateCloseList || [], ohlcData: undefined };
+  }
+
+  /**
+   * Tells whether the chart holds at least one security, the precondition for including dividends.
+   */
+  hasSecurity(): boolean {
+    return this.loadedData.some((ld) => !!ld.currencySecurity);
+  }
+
+  /**
+   * Reloads the prices of every security of the chart with or without the reinvested dividends and replots. The
+   * technical indicators are recalculated on the same basis.
+   */
+  toggleIncludeDividends(): void {
+    const securities = this.loadedData.filter((ld) => !!ld.currencySecurity);
+    forkJoin(
+      securities.map((ld) =>
+        this.historyquoteService.getHistoryquoteForChart(ld.idSecuritycurrency, this.includeDividends)
+      )
+    ).subscribe((chartResponses: HistoryquoteChartResponse[]) => {
+      chartResponses.forEach((chartResponse, i) => {
+        const { historyquotes, ohlcData } = this.extractChartData(chartResponse);
+        const securitycurrency = securities[i].nameSecuritycurrency.getSecuritycurrency();
+        this.createTodayAsHistoryquote(securitycurrency.sTimestamp, securitycurrency.sLast, historyquotes);
+        securities[i].replaceQuotes(historyquotes, ohlcData, chartResponse);
+      });
+      this.currencyNormalizer.normalizeAll(this.loadedData, this.requestedCurrency);
+      // Forces the shown indicators to be loaded again on the new basis
+      this.indicatorDefinitions.idSecuritycurrency = null;
+      this.prepareLoadedDataAndPlot(true);
+    });
+  }
+
+  /**
+   * The legend name of a series. A distributing security without dividend data in total return mode is marked.
+   */
+  private getTraceName(loadedData: LoadedData): string {
+    return loadedData.nameSecuritycurrency.getName() + (this.isDividendDataMissing(loadedData) ? ' \u26A0' : '');
+  }
+
+  private isDividendDataMissing(loadedData: LoadedData): boolean {
+    return this.includeDividends && loadedData.dividendDataMissing;
+  }
+
+  /**
+   * The legend tooltip of a security names its currency and, in total return mode, warns about missing dividend data.
+   */
+  private setLegendTooltip(loadedData: LoadedData): void {
+    if (loadedData.currencySecurity) {
+      this.legendTooltipMap.set(
+        this.getTraceName(loadedData),
+        loadedData.nameSecuritycurrency.getName() +
+          ' / ' +
+          loadedData.currencySecurity +
+          (this.isDividendDataMissing(loadedData) ? ' - ' + this.dividendMissingHint : '')
+      );
     }
   }
 
@@ -563,16 +645,11 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
 
     loadedData.factor = 100 / loadedData.historyquotesNorm[foundStartIndex].close;
-    if (loadedData.currencySecurity) {
-      this.legendTooltipMap.set(
-        loadedData.nameSecuritycurrency.getName(),
-        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity
-      );
-    }
+    this.setLegendTooltip(loadedData);
     return {
       type: 'scatter',
       mode: 'lines',
-      name: loadedData.nameSecuritycurrency.getName(),
+      name: this.getTraceName(loadedData),
       // name: AppHelper.truncateString(loadedData.nameSecuritycurrency.getName(), 25, true),
       x: loadedData.historyquotesNorm
         .slice(foundStartIndex, loadedData.historyquotesNorm.length)
@@ -614,17 +691,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
 
     loadedData.factor = 100 / (loadedData.ohlcData[foundStartIndex]?.close || 1);
-    if (loadedData.currencySecurity) {
-      this.legendTooltipMap.set(
-        loadedData.nameSecuritycurrency.getName(),
-        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity
-      );
-    }
+    this.setLegendTooltip(loadedData);
 
     const slicedData = loadedData.ohlcData.slice(foundStartIndex, loadedData.ohlcData.length);
     return {
       type: 'candlestick',
-      name: loadedData.nameSecuritycurrency.getName(),
+      name: this.getTraceName(loadedData),
       x: slicedData.map((ohlc) => ohlc.date),
       open: slicedData.map((ohlc) => ohlc.open),
       high: slicedData.map((ohlc) => ohlc.high),
@@ -660,17 +732,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
     }
 
     loadedData.factor = 100 / (loadedData.ohlcData[foundStartIndex]?.close || 1);
-    if (loadedData.currencySecurity) {
-      this.legendTooltipMap.set(
-        loadedData.nameSecuritycurrency.getName(),
-        loadedData.nameSecuritycurrency.getName() + ' / ' + loadedData.currencySecurity
-      );
-    }
+    this.setLegendTooltip(loadedData);
 
     const slicedData = loadedData.ohlcData.slice(foundStartIndex, loadedData.ohlcData.length);
     return {
       type: 'ohlc',
-      name: loadedData.nameSecuritycurrency.getName(),
+      name: this.getTraceName(loadedData),
       x: slicedData.map((ohlc) => ohlc.date),
       open: slicedData.map((ohlc) => ohlc.open),
       high: slicedData.map((ohlc) => ohlc.high),
@@ -944,10 +1011,13 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
               normalizeFactor =
                 loadedData.historyquotesNorm[foundStartIndex].close / loadedData.historyquotes[foundStartIndex].close;
             }
+            // In total return mode the real trade price is scaled like the line, so the marker stays on it
             traces[transactionTypeStr].y.push(
               (securityTransactionPosition.quotationSplitCorrection
                 ? securityTransactionPosition.quotationSplitCorrection
-                : transaction.quotation) * normalizeFactor
+                : transaction.quotation) *
+                normalizeFactor *
+                loadedData.totalReturnFactorAt(transactionDateStr)
             );
           }
           traces[transactionTypeStr].text.push(transaction.cashaccount.name);
@@ -1140,7 +1210,12 @@ export class TimeSeriesChartComponent implements OnInit, OnDestroy, IGlobalMenuA
       this.taFormDefinitions[taIndicators].defaultDataModel;
     this.indicatorDefinitions.idSecuritycurrency = this.loadedData[0].idSecuritycurrency;
     this.historyquoteService
-      .getTaWithShortMediumLongInputPeriod(taIndicators, this.indicatorDefinitions.idSecuritycurrency, dataModel)
+      .getTaWithShortMediumLongInputPeriod(
+        taIndicators,
+        this.indicatorDefinitions.idSecuritycurrency,
+        dataModel,
+        this.includeDividends
+      )
       .subscribe((taTraceIndicatorDataList: TaTraceIndicatorData[]) => {
         iDef.taTraceIndicatorDataList = taTraceIndicatorDataList;
         if (iDef.isOscillator) {
@@ -1508,6 +1583,10 @@ class LoadedData {
   public factor: number;
   public historicalLine: any;
   public historyquotesNorm: HistoryquoteDateClose[];
+  /** Steps of the total return adjustment, empty when the prices are not adjusted */
+  public totalReturnFactors: TotalReturnFactor[] = [];
+  /** The security should distribute, but its series holds no dividend */
+  public dividendDataMissing = false;
 
   constructor(
     public idSecuritycurrency: number,
@@ -1517,6 +1596,46 @@ class LoadedData {
     public ohlcData?: HistoryquoteOHLC[]
   ) {
     this.historyquotesNorm = historyquotes;
+  }
+
+  /**
+   * Takes over the total return information of a chart response.
+   *
+   * @param chartResponse the response the quotes came from
+   */
+  setTotalReturn(chartResponse: HistoryquoteChartResponse): void {
+    this.totalReturnFactors = chartResponse.totalReturn ? (chartResponse.totalReturnFactors ?? []) : [];
+    this.dividendDataMissing = !!chartResponse.dividendDataMissing;
+  }
+
+  /**
+   * Replaces the quotes after they were loaded again with or without dividends.
+   *
+   * @param historyquotes the closes
+   * @param ohlcData the OHLC data, undefined when not available
+   * @param chartResponse the response the quotes came from
+   */
+  replaceQuotes(
+    historyquotes: HistoryquoteDateClose[],
+    ohlcData: HistoryquoteOHLC[] | undefined,
+    chartResponse: HistoryquoteChartResponse
+  ): void {
+    this.historyquotes = historyquotes;
+    this.historyquotesNorm = historyquotes;
+    this.ohlcData = ohlcData;
+    this.setTotalReturn(chartResponse);
+  }
+
+  /**
+   * The total return factor of a date, i.e. that of the first ex-date after it. Used to place a real trade price on
+   * the adjusted line.
+   *
+   * @param dateStr date in the native short format (yyyy-MM-dd)
+   * @returns the factor, 1 when no ex-date follows or the prices are not adjusted
+   */
+  totalReturnFactorAt(dateStr: string): number {
+    const step = this.totalReturnFactors.find((trf) => trf.exDate > dateStr);
+    return step ? step.factor : 1;
   }
 }
 

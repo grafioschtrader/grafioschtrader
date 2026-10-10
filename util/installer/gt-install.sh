@@ -1468,7 +1468,13 @@ gt_valid_secret() {
 # the first update and keeps the token free of characters that would need URL or curl-configuration escaping.
 gt_secret_valid_for() {
   gt_valid_secret "$2" || return 1
-  [[ "$1" != DUCKDNS_TOKEN ]] || gt_duckdns_valid_token "$2"
+  case "$1" in
+    JWT_SECRET)
+      # HS256 requires 32 bytes, not the exact shape of an installer-generated secret.
+      local LC_ALL=C
+      [[ ${#2} -ge 32 ]] ;;
+    DUCKDNS_TOKEN) gt_duckdns_valid_token "$2" ;;
+  esac
 }
 
 gt_restore_terminal() {
@@ -3133,7 +3139,7 @@ gt_secrets_load() {
     loaded[$key]=$value
   done <<< "$PRIVATE_CONTENT"
   PRIVATE_CONTENT=''
-  [[ "$id" == "${STATE[run_id]}" && "${loaded[JWT_SECRET]:-}" =~ ^[a-zA-Z0-9]{48}$ ]] || return 2
+  [[ "$id" == "${STATE[run_id]}" && -n "${loaded[JWT_SECRET]:-}" ]] || return 2
   for key in DB_PASSWORD JASYPT_PASSWORD SMTP_PASSWORD DUCKDNS_TOKEN; do
     # A change of the SMTP selection journals its answers before the secrets file follows; until it is applied,
     # the SMTP password may still match the earlier answers (gt_mail_change_apply settles it).

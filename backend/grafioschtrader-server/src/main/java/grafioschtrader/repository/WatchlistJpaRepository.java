@@ -75,6 +75,17 @@ public interface WatchlistJpaRepository extends JpaRepository<Watchlist, Integer
       + " AND (last_timestamp IS NULL OR last_timestamp < ?3)", nativeQuery = true)
   int updateLastTimestampIfStale(LocalDateTime now, Integer idWatchlist, LocalDateTime threshold);
 
+  /**
+   * Reads the stored timestamp after claiming an update, within the same short READ COMMITTED transaction. Returns the
+   * winning caller's value even if another caller won between the ownership check and the conditional update. The row
+   * stays locked until the reservation commits; this query must not run in the report's older REPEATABLE READ snapshot.
+   *
+   * @param idWatchlist the watchlist whose timestamp is read
+   * @return the stored timestamp of the most recently reserved update attempt
+   */
+  @Query(value = "SELECT last_timestamp FROM watchlist WHERE id_watchlist = ?1 FOR UPDATE", nativeQuery = true)
+  LocalDateTime getCurrentLastTimestamp(Integer idWatchlist);
+
   @Transactional
   @Modifying
   int deleteByIdWatchlistAndIdTenant(Integer idWatchlist, Integer idTenant);

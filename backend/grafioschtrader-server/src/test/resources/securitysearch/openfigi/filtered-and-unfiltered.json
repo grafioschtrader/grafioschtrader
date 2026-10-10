@@ -1,0 +1,70 @@
+[
+ {
+  "data": [
+   {
+    "figi": "BBG00HCYS021",
+    "name": "NOVARTIS AG-REG",
+    "ticker": "NOVN",
+    "exchCode": "SE",
+    "compositeFIGI": "BBG000NQV2C4",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001SD31N7",
+    "securityType2": "Common Stock",
+    "securityDescription": "NOVN"
+   }
+  ]
+ },
+ {
+  "data": [
+   {
+    "figi": "BBG000KSBX82",
+    "name": "NOVARTIS AG-REG",
+    "ticker": "NVSEF",
+    "exchCode": "US",
+    "compositeFIGI": "BBG000KSBX82",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001SD31N7",
+    "securityType2": "Common Stock",
+    "securityDescription": "NVSEF"
+   },
+   {
+    "figi": "BBG000KSD652",
+    "name": "NOVARTIS AG-REG",
+    "ticker": "NVSEF",
+    "exchCode": "PQ",
+    "compositeFIGI": "BBG000KSBX82",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001SD31N7",
+    "securityType2": "Common Stock",
+    "securityDescription": "NVSEF"
+   },
+   {
+    "figi": "BBG000KSD796",
+    "name": "NOVARTIS AG-REG",
+    "ticker": "NVSEF",
+    "exchCode": "UV",
+    "compositeFIGI": "BBG000KSBX82",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001SD31N7",
+    "securityType2": "Common Stock",
+    "securityDescription": "NVSEF"
+   },
+   {
+    "figi": "BBG000NQV2C4",
+    "name": "NOVARTIS AG-REG",
+    "ticker": "NOVN",
+    "exchCode": "SW",
+    "compositeFIGI": "BBG000NQV2C4",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001SD31N7",
+    "securityType2": "Common Stock",
+    "securityDescription": "NOVN"
+   }
+  ]
+ }
+]

@@ -54,6 +54,15 @@ public class LastSessionsPerformanceDashboardHandler implements DashboardWidgetH
         DynamicModelHelper.getFormDefinitionOfEntityClass(LastSessionsPerformanceConfig.class, 1));
   }
 
+  /**
+   * The slowest card of the dashboard: finding the usable sessions examines the missing prices over the whole holding
+   * history of the client, which takes seconds on a large one. The other cards are therefore shown first.
+   */
+  @Override
+  public int loadGroup() {
+    return 2;
+  }
+
   /** Investment data needs a client; a user who has not set one up yet has nothing to report on. */
   @Override
   public boolean available(User user) {

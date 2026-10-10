@@ -1,0 +1,8 @@
+grafioschtrader@rock-5b86:~$  mysql -ugrafioschtrader -p  --default-character-set=utf8 grafioschtrader< grafioschtrader20261010.sql
+Enter password:
+--------------
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `security_ins` BEFORE INSERT ON `security`
+ FOR EACH ROW SET NEW.ticker_symbol = UPPER(NEW.ticker_symbol) */
+--------------
+
+ERROR 1227 (42000) at line 3280: Access denied; you need (at least one of) the SUPER, SET USER privilege(s) for this operation

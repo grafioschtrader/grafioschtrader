@@ -471,7 +471,13 @@ gt_valid_secret() {
 # the first update and keeps the token free of characters that would need URL or curl-configuration escaping.
 gt_secret_valid_for() {
   gt_valid_secret "$2" || return 1
-  [[ "$1" != DUCKDNS_TOKEN ]] || gt_duckdns_valid_token "$2"
+  case "$1" in
+    JWT_SECRET)
+      # HS256 requires 32 bytes, not the exact shape of an installer-generated secret.
+      local LC_ALL=C
+      [[ ${#2} -ge 32 ]] ;;
+    DUCKDNS_TOKEN) gt_duckdns_valid_token "$2" ;;
+  esac
 }
 
 gt_restore_terminal() {

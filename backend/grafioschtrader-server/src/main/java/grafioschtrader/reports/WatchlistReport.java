@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +46,7 @@ import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup.IUDFEntityValues;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.repository.IPositionCloseOnLatestPrice;
 import grafioschtrader.repository.SecurityJpaRepository;
@@ -58,6 +58,8 @@ import grafioschtrader.service.GTNetLastpriceService;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.service.IndexPriceRoundingService;
 import grafioschtrader.service.PriceFreshnessService;
+import grafioschtrader.service.WatchlistPriceUpdateService;
+import grafioschtrader.service.WatchlistPriceUpdateService.PriceUpdateClaim;
 import grafioschtrader.types.LastpriceOrigin;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -83,7 +85,13 @@ public class WatchlistReport {
   private WatchlistJpaRepository watchlistJpaRepository;
 
   @Autowired
+  private WatchlistPriceUpdateService watchlistPriceUpdateService;
+
+  @Autowired
   private TransactionJpaRepository transactionJpaRepository;
+
+  @Autowired
+  private DividendJpaRepository dividendJpaRepository;
 
   @Autowired
   private SecurityCalcService securityCalcService;
@@ -259,15 +267,16 @@ public class WatchlistReport {
    *
    * @param idWatchlist   The ID of the watchlist.
    * @param idTenant      The ID of the tenant to whom the watchlist belongs.
-   * @param daysTimeFrame The number of days for the custom time frame performance calculation (e.g., 30 for 30-day
-   *                      performance).
+   * @param daysTimeFrame    The number of days for the custom time frame performance calculation (e.g., 30 for 30-day
+   *                         performance).
+   * @param includeDividends True to add the reinvested dividends of dividend-capable securities to the daily, YTD and
+   *                         time frame changes (total return).
    * @return A {@link SecuritycurrencyGroup} enriched with performance data for each instrument.
    * @throws SecurityException if the watchlist does not belong to the specified tenant.
    */
   @Transactional
-  @Modifying
   public SecuritycurrencyGroup getWatchlistwithPeriodPerformance(final Integer idWatchlist, final Integer idTenant,
-      final Integer daysTimeFrame) {
+      final Integer daysTimeFrame, final boolean includeDividends) {
 
     Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
     if (!watchlist.getIdTenant().equals(idTenant)) {
@@ -284,20 +293,19 @@ public class WatchlistReport {
     final LocalDate dateTimeFrame = LocalDate.now().minusDays(daysTimeFrame);
     Tenant tenant = tenantJpaRepository.getReferenceById(watchlist.getIdTenant());
 
-    // Atomically claim the price update by updating last_timestamp only if it is stale.
-    // This avoids the "Record has changed since last read" error when concurrent requests
-    // both try to update the same watchlist row via saveAndFlush.
+    // Commit the claim before contacting providers: joining this report's transaction would hold the watchlist
+    // row lock throughout the async work and make concurrent requests wait for slow external providers.
     final LocalDateTime now = LocalDateTime.now();
     final LocalDateTime threshold = now.minusSeconds(globalparametersService.getWatchlistIntradayUpdateTimeout());
-    final boolean needsPriceUpdate = watchlistJpaRepository.updateLastTimestampIfStale(now, idWatchlist, threshold) > 0;
-    if (needsPriceUpdate) {
+    final PriceUpdateClaim claim = watchlistPriceUpdateService.claimUpdate(idWatchlist, idTenant, now, threshold);
+    if (claim.needsPriceUpdate()) {
       log.info("Intraday update for {}", watchlist.getName());
     }
 
     // Capture final reference for lambda
     final Watchlist finalWatchlist = watchlist;
     final CompletableFuture<GTNetLastpriceService.SecurityCurrency> securityCurrencyCF = CompletableFuture
-        .supplyAsync(() -> executeLastPriceUpdate(tenant, finalWatchlist, needsPriceUpdate));
+        .supplyAsync(() -> executeLastPriceUpdate(tenant, finalWatchlist, claim));
     final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateCloseCreateType>> historyquoteMaxDayCF = CompletableFuture
         .supplyAsync(() -> getMaxDayHistoryquotesByIdWatchlist(idWatchlist));
     final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateClose>> historyquoteLastDayYearCF = CompletableFuture
@@ -320,6 +328,10 @@ public class WatchlistReport {
     final int[] securitiesIsUsedElsewhere = securitiesIsUsedElsewhereCF.join();
     final int[] currencypairIsUsedElsewhere = currencypairIsUsedElsewhereCF.join();
     final int[] watchlistSecurtiesTransaction = watchlistSecurtiesTransactionCF.join();
+    // One query for the dividends of all securities; built before the persistence context is cleared.
+    final TotalReturnAdjuster totalReturnAdjuster = includeDividends
+        ? TotalReturnAdjuster.load(dividendJpaRepository, securityCurrency.securities, LocalDate.now())
+        : TotalReturnAdjuster.none();
 
     // Clear persistence context to avoid stale entity conflicts after async price updates.
     // The async operations may have modified Security/Currencypair entities in separate transactions,
@@ -333,8 +345,11 @@ public class WatchlistReport {
     final SecuritycurrencyGroup securitycurrencyGroup = combineLastPriceHistoryquote(reloadedTenant, securityCurrency,
         historyquoteMaxDay, historyquoteLastDayYear, historyquoteTimeFrame, securitiesIsUsedElsewhere,
         currencypairIsUsedElsewhere, watchlistSecurtiesTransaction, reloadedWatchlist, daysTimeFrame, securitysplitMap,
-        dateCurrencyMap);
+        dateCurrencyMap, totalReturnAdjuster);
     securitycurrencyGroup.idWatchlist = idWatchlist;
+    // Clearing the persistence context does not renew a REPEATABLE READ snapshot. Use the committed claim's value
+    // for the response without dirtying the managed Watchlist and writing an older timestamp back at report commit.
+    securitycurrencyGroup.lastTimestamp = claim.lastTimestamp();
 
     return securitycurrencyGroup;
   }
@@ -370,27 +385,25 @@ public class WatchlistReport {
   }
 
   /**
-   * Executes the last price update for instruments in a watchlist. The decision whether to update and the watchlist
-   * save are done in the calling method to avoid stale entity issues with async operations in MariaDB 11.x.
+   * Executes the last price update after the calling method has committed the reservation independently of the report.
    *
-   * @param tenant           The tenant owning the watchlist.
-   * @param watchlist        The watchlist to process.
-   * @param needsPriceUpdate Whether the price update should be performed.
+   * @param tenant    The tenant owning the watchlist.
+   * @param watchlist The watchlist to process.
+   * @param claim     The committed update decision and timestamp.
    * @return A {@link GTNetLastpriceService.SecurityCurrency} object containing the lists of securities and
    *         currencypairs (some potentially updated, others not).
    */
   private GTNetLastpriceService.SecurityCurrency executeLastPriceUpdate(Tenant tenant, Watchlist watchlist,
-      boolean needsPriceUpdate) {
+      PriceUpdateClaim claim) {
     final List<Security> securities = watchlist.getSecuritycurrencyListByType(Security.class);
     final List<Currencypair> currencypairs = watchlist.getSecuritycurrencyListByType(Currencypair.class);
 
-    if (needsPriceUpdate) {
+    if (claim.needsPriceUpdate()) {
       List<Currencypair> currenciesNotInList = updateDependingCurrencyWhenPerformanceWatchlist(tenant, watchlist,
           currencypairs);
       return gTNetLastpriceService.updateLastpriceIncludeSupplier(securities, currencypairs, currenciesNotInList);
     } else {
-      log.info("No intraday update for {} because last update was at {}", watchlist.getName(),
-          watchlist.getLastTimestamp());
+      log.info("No intraday update for {} because last update was at {}", watchlist.getName(), claim.lastTimestamp());
       return new GTNetLastpriceService.SecurityCurrency(securities, currencypairs);
     }
   }
@@ -461,6 +474,8 @@ public class WatchlistReport {
    * @param securitysplitMap                    Map of security ID to its splits.
    * @param dateCurrencyMap                     Map for currency conversion (currently unused for watchlist
    *                                            performance).
+   * @param totalReturnAdjuster                 Adds the reinvested dividends to the changes of the securities, the
+   *                                            identity when dividends are not included.
    * @return An enriched {@link SecuritycurrencyGroup} with performance data.
    */
   private <S extends Securitycurrency<?>> SecuritycurrencyGroup combineLastPriceHistoryquote(final Tenant tenant,
@@ -470,15 +485,15 @@ public class WatchlistReport {
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame, final int[] securitiesIsUsedElsewhereIds,
       final int[] currencypairIsUsedElsewhereIds, final int[] watchlistSecuritesHasTransactionIds,
       final Watchlist watchlist, final Integer daysTimeFrame, final Map<Integer, List<Securitysplit>> securitysplitMap,
-      final DateTransactionCurrencypairMap dateCurrencyMap) {
+      final DateTransactionCurrencypairMap dateCurrencyMap, final TotalReturnAdjuster totalReturnAdjuster) {
 
     final List<SecuritycurrencyPosition<Security>> securityPositions = setOpenPositions(tenant, watchlist,
         setDailyChangeAndTimeFrameChange(securityCurrency.securities, historyquoteMaxDateMap,
-            historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame),
+            historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame, totalReturnAdjuster),
         securitysplitMap, dateCurrencyMap);
     final List<SecuritycurrencyPosition<Currencypair>> currencypairPositions = setDailyChangeAndTimeFrameChange(
         securityCurrency.currencypairs, historyquoteMaxDateMap, historyquoteLastDayPrevYear, historyquoteTimeFrame,
-        daysTimeFrame);
+        daysTimeFrame, TotalReturnAdjuster.none());
     setStaleTradingSessions(securityPositions, currencypairPositions);
     roundIndexPrices(securityPositions);
 
@@ -537,13 +552,15 @@ public class WatchlistReport {
    * @param historyquoteLastDayPrevYear Map of end-of-previous-year historical quotes.
    * @param historyquoteTimeFrame       Map of historical quotes for the start of the custom time frame.
    * @param daysTimeFrame               Number of days for the custom time frame.
+   * @param totalReturnAdjuster         Adds the reinvested dividends to every change, the identity otherwise.
    * @return A list of {@link SecuritycurrencyPosition} objects with calculated performance data.
    */
   private <S extends Securitycurrency<S>> List<SecuritycurrencyPosition<S>> setDailyChangeAndTimeFrameChange(
       final List<S> securitycurrenyList,
       final Map<Integer, ISecuritycurrencyIdDateCloseCreateType> historyquoteMaxDateMap,
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayPrevYear,
-      final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame, final Integer daysTimeFrame) {
+      final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame, final Integer daysTimeFrame,
+      final TotalReturnAdjuster totalReturnAdjuster) {
     final List<SecuritycurrencyPosition<S>> securitycurrencyPositionList = createSecuritycurrencyPositionList(
         securitycurrenyList);
     // The substitution has to happen first, every return below is measured against the last price.
@@ -552,11 +569,56 @@ public class WatchlistReport {
         .filter(position -> position.lastpriceOrigin == LastpriceOrigin.INTRADAY
             && position.securitycurrency.getSChangePercentage() == null)
         .forEach(position -> setDailyChangeByUsingHistoryquote(historyquoteMaxDateMap, position));
+    securitycurrencyPositionList.forEach(position -> adjustDailyChangeForDividends(totalReturnAdjuster, position));
     securitycurrencyPositionList.stream()
-        .forEach(securitycurrency -> setYtdGainLoss(historyquoteLastDayPrevYear, securitycurrency));
-    securitycurrencyPositionList.stream()
-        .forEach(securitycurrency -> setTimeFrameGainLoss(historyquoteTimeFrame, securitycurrency, daysTimeFrame));
+        .forEach(position -> setYtdGainLoss(historyquoteLastDayPrevYear, position, totalReturnAdjuster));
+    securitycurrencyPositionList.stream().forEach(
+        position -> setTimeFrameGainLoss(historyquoteTimeFrame, position, daysTimeFrame, totalReturnAdjuster));
+    final LocalDate today = LocalDate.now();
+    securitycurrencyPositionList.forEach(position -> position.dividendDataMissing = totalReturnAdjuster
+        .isMissingDividends(position.securitycurrency.getIdSecuritycurrency(), today.minusDays(daysTimeFrame), today));
     return securitycurrencyPositionList;
+  }
+
+  /**
+   * The growth that the reinvested dividends of a security add between the date of a starting price and the date of the
+   * shown price. A total return change is {@code last / (closeStart * growth) - 1}.
+   *
+   * @param totalReturnAdjuster the dividend factors, the identity when dividends are not included
+   * @param position            the position whose shown price ends the period
+   * @param startDate           date of the starting price
+   * @return the product of the dividend factors in between, 1 without an ex-date
+   */
+  private <S extends Securitycurrency<S>> double dividendGrowth(final TotalReturnAdjuster totalReturnAdjuster,
+      final SecuritycurrencyPosition<S> position, final LocalDate startDate) {
+    final LocalDate lastDate = priceDate(position);
+    return lastDate == null ? 1.0
+        : totalReturnAdjuster.getFactors(position.securitycurrency.getIdSecuritycurrency()).growthBetween(startDate,
+            lastDate);
+  }
+
+  /**
+   * Adds a dividend going ex on the day of the shown price to the daily change, whether the change came from the
+   * intraday connector or from the youngest history quote. The previous close is the one of the youngest history quote
+   * before the price date, otherwise the day before.
+   *
+   * @param totalReturnAdjuster the dividend factors, the identity when dividends are not included
+   * @param position            the position to update
+   */
+  private <S extends Securitycurrency<S>> void adjustDailyChangeForDividends(
+      final TotalReturnAdjuster totalReturnAdjuster, final SecuritycurrencyPosition<S> position) {
+    final Double changePercentage = position.securitycurrency.getSChangePercentage();
+    final LocalDate lastDate = priceDate(position);
+    if (changePercentage == null || lastDate == null) {
+      return;
+    }
+    final LocalDate prevDate = position.youngestHistoryDate != null && position.youngestHistoryDate.isBefore(lastDate)
+        ? position.youngestHistoryDate
+        : lastDate.minusDays(1);
+    final double growth = dividendGrowth(totalReturnAdjuster, position, prevDate);
+    if (growth != 1.0) {
+      position.securitycurrency.setSChangePercentage(((1 + changePercentage / 100) / growth - 1) * 100);
+    }
   }
 
   //@formatter:off
@@ -754,14 +816,16 @@ public class WatchlistReport {
    * @param <S>                      Type of instrument.
    * @param historyquoteTimeFrame    Map of instrument ID to its historical quote from the end of the previous year.
    * @param securitycurrencyPosition The position to update.
+   * @param totalReturnAdjuster      Adds the reinvested dividends, the identity when they are not included.
    */
   private <S extends Securitycurrency<S>> void setYtdGainLoss(
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame,
-      final SecuritycurrencyPosition<S> securitycurrencyPosition) {
+      final SecuritycurrencyPosition<S> securitycurrencyPosition, final TotalReturnAdjuster totalReturnAdjuster) {
     final ISecuritycurrencyIdDateClose historyquote = historyquoteTimeFrame
         .get(securitycurrencyPosition.securitycurrency.getIdSecuritycurrency());
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
-      final double histroyClose = historyquote.getClose();
+      final double histroyClose = historyquote.getClose()
+          * dividendGrowth(totalReturnAdjuster, securitycurrencyPosition, historyquote.getDate());
       securitycurrencyPosition.ytdChangePercentage = DataBusinessHelper
           .roundPercentage((securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);
     }
@@ -774,14 +838,17 @@ public class WatchlistReport {
    * @param historyquoteTimeFrameStart Map of instrument ID to its historical quote from the start of the time frame.
    * @param securitycurrencyPosition   The position to update.
    * @param daysTimeFrame              The number of days in the custom time frame.
+   * @param totalReturnAdjuster        Adds the reinvested dividends, the identity when they are not included.
    */
   private <S extends Securitycurrency<S>> void setTimeFrameGainLoss(
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteLastDayPrevYear,
-      final SecuritycurrencyPosition<S> securitycurrencyPosition, final Integer daysTimeFrame) {
+      final SecuritycurrencyPosition<S> securitycurrencyPosition, final Integer daysTimeFrame,
+      final TotalReturnAdjuster totalReturnAdjuster) {
     final ISecuritycurrencyIdDateClose historyquote = historyquoteLastDayPrevYear
         .get(securitycurrencyPosition.securitycurrency.getIdSecuritycurrency());
     if (historyquote != null && securitycurrencyPosition.securitycurrency.getSLast() != null) {
-      final double histroyClose = historyquote.getClose();
+      final double histroyClose = historyquote.getClose()
+          * dividendGrowth(totalReturnAdjuster, securitycurrencyPosition, historyquote.getDate());
       final int years = daysTimeFrame / 365;
       securitycurrencyPosition.timeFrameChangePercentage = DataBusinessHelper
           .roundPercentage((securitycurrencyPosition.securitycurrency.getSLast() - histroyClose) / histroyClose * 100);

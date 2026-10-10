@@ -29,5 +29,22 @@ public interface DashboardWidgetHandler {
     DashboardLayoutRepository.invalid("DASHBOARD_INVALID");
   }
 
+  /**
+   * Position of this widget in the loading order of the dashboard, grouped by how long the widget takes to load.
+   *
+   * <p>
+   * The dashboard document carries the results of the lowest group present in the layout, so the fast cards appear
+   * at once instead of waiting for the slowest one. Every further group is fetched afterwards with one request of its
+   * own, in ascending order. One request per group rather than per widget keeps a dashboard well below the per-user
+   * request limit. A handler whose load takes a noticeable time - seconds rather than milliseconds - returns a higher
+   * number.
+   * </p>
+   *
+   * @return the load group, 1 for the fastest widgets
+   */
+  default int loadGroup() {
+    return 1;
+  }
+
   Payload load(User user, JsonNode config);
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,21 +30,66 @@ public class DashboardService {
     this.registry = registry;
   }
 
+  /**
+   * Reads the caller's layout and, when asked for data, the results of its fastest load group.
+   *
+   * @param user the authenticated caller
+   * @param data false for the layout alone, as the save path returns it
+   * @return the layout, the results of the lowest load group present and the groups the client still has to fetch
+   */
   public Dashboard get(User user, boolean data) {
     var layout = layouts.read(user);
     List<JsonNode> widgets = layout.schemaVersion() == 1 ? layouts.eligible(layout, user) : List.of();
+    List<Result> results = List.of();
+    List<Integer> pendingGroups = List.of();
+    if (data && !widgets.isEmpty()) {
+      TreeMap<Integer, List<JsonNode>> groups = loadGroups(widgets, user);
+      results = load(groups.firstEntry().getValue(), user);
+      pendingGroups = List.copyOf(groups.tailMap(groups.firstKey(), false).keySet());
+    }
+    return new Dashboard(layout.persisted(), layout.revision(), layout.schemaVersion(), user.getIdTenant(),
+        LocalDateTime.now(), widgets, results, pendingGroups,
+        Math.max(0, DashboardLayoutRepository.MAX_WIDGETS - layout.all().size()));
+  }
+
+  /**
+   * Loads the widgets of one load group of the caller's layout, the follow-up to a {@link #get} that listed the group
+   * as pending.
+   *
+   * @param user  the authenticated caller, whose saved layout is read again
+   * @param group the load group as declared by {@link DashboardWidgetHandler#loadGroup()}
+   * @return the results of that group, empty when the layout no longer holds a widget of it
+   */
+  public List<Result> group(User user, int group) {
+    var layout = layouts.read(user);
+    if (layout.schemaVersion() != 1)
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "DASHBOARD_SCHEMA");
+    return load(loadGroups(layouts.eligible(layout, user), user).getOrDefault(group, List.of()), user);
+  }
+
+  /**
+   * Sorts the widgets by load group, keeping the layout order within each group. A widget without a usable handler
+   * joins the first group, because its unavailable result costs nothing.
+   */
+  private TreeMap<Integer, List<JsonNode>> loadGroups(List<JsonNode> widgets, User user) {
+    TreeMap<Integer, List<JsonNode>> groups = new TreeMap<>();
+    for (JsonNode widget : widgets) {
+      var handler = registry.handler(widget.path("type").asString(), user);
+      groups.computeIfAbsent(handler == null ? 1 : handler.loadGroup(), _ -> new ArrayList<>()).add(widget);
+    }
+    return groups;
+  }
+
+  private List<Result> load(List<JsonNode> widgets, User user) {
     List<Result> results = new ArrayList<>();
     Map<String, Result> memo = new HashMap<>();
-    if (data)
-      for (JsonNode w : widgets) {
-        String key = w.path("type").asString() + ":" + w.path("config");
-        Result r = memo.computeIfAbsent(key, _ -> load(w, user));
-        results.add(new Result(w.path("instanceId").asString(), r.type(), r.status(), r.payload(), r.dataAsOf(),
-            r.errorCode()));
-      }
-    return new Dashboard(layout.persisted(), layout.revision(), layout.schemaVersion(), user.getIdTenant(),
-        LocalDateTime.now(), widgets, results,
-        Math.max(0, DashboardLayoutRepository.MAX_WIDGETS - layout.all().size()));
+    for (JsonNode w : widgets) {
+      String key = w.path("type").asString() + ":" + w.path("config");
+      Result r = memo.computeIfAbsent(key, _ -> load(w, user));
+      results.add(new Result(w.path("instanceId").asString(), r.type(), r.status(), r.payload(), r.dataAsOf(),
+          r.errorCode()));
+    }
+    return results;
   }
 
   public Catalogue catalogue(User user) {

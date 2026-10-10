@@ -21,10 +21,16 @@ public final class DashboardDtos {
   public record Save(Long expectedRevision, int schemaVersion, List<JsonNode> widgets, boolean resetToDefault) {
   }
 
-  @Schema(description = "Eligible layout with independently loaded widget results. A null revision denotes unsaved defaults.")
+  @Schema(description = """
+      Eligible layout with independently loaded widget results. A null revision denotes unsaved defaults. The results
+      cover only the fastest load group present in the layout; the widgets of every group listed in pendingGroups are
+      fetched afterwards, one request per group in the listed order.""")
   public record Dashboard(boolean persisted, Long revision, int schemaVersion, Integer activeTenantId,
       @JsonFormat(pattern = BaseConstants.STANDARD_LOCAL_DATE_TIME_SECOND) LocalDateTime generatedAt,
-      List<JsonNode> widgets, List<Result> results, int remainingCapacity) {
+      List<JsonNode> widgets, List<Result> results,
+      @Schema(description = "Load groups still to be fetched, ascending. Empty when results covers every widget.")
+      List<Integer> pendingGroups,
+      int remainingCapacity) {
   }
 
   @Schema(description = "One read-only widget result, with isolated error and data timestamp.")

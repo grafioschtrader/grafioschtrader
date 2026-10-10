@@ -210,11 +210,11 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
       Watchlist.TABNAME })
   @GetMapping(value = "/{idWatchlist}/quote", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SecuritycurrencyGroup> updateLastPriceByIdWatchlist(@PathVariable final Integer idWatchlist,
-      @RequestParam() final Integer daysTimeFrame) {
+      @RequestParam() final Integer daysTimeFrame,
+      @Parameter(description = "True to add the reinvested dividends to the changes (total return)") @RequestParam(defaultValue = "false") final boolean includeDividends) {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    return new ResponseEntity<>(
-        watchlistReport.getWatchlistwithPeriodPerformance(idWatchlist, user.getIdTenant(), daysTimeFrame),
-        HttpStatus.OK);
+    return new ResponseEntity<>(watchlistReport.getWatchlistwithPeriodPerformance(idWatchlist, user.getIdTenant(),
+        daysTimeFrame, includeDividends), HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the content of a watchlist with the setting of youngest date of history quote. "

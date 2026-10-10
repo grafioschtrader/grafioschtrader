@@ -55,6 +55,8 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.projection.IFormulaInSecurity;
 import grafioschtrader.entities.projection.IFormulaSecurityLoad;
 import grafioschtrader.priceupdate.ThruCalculationHelper;
+import grafioschtrader.reports.TotalReturnAdjuster;
+import grafioschtrader.reports.TotalReturnAdjuster.TotalReturnFactors;
 import grafioschtrader.service.GlobalparametersService;
 import grafioschtrader.service.IndexPriceRoundingService;
 import grafioschtrader.ta.TaIndicators;
@@ -109,6 +111,9 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+
+  @Autowired
+  private DividendJpaRepository dividendJpaRepository;
 
   @Override
   public ISecuritycurrencyIdDateClose getCertainOrOlderDayInHistorquoteByIdSecuritycurrency(
@@ -428,9 +433,12 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   }
 
   @Override
-  public HistoryquoteChartResponse getHistoryquoteForChart(Integer idSecuritycurrency) {
+  public HistoryquoteChartResponse getHistoryquoteForChart(Integer idSecuritycurrency, boolean includeDividends) {
     UserAccess userAccess = checkUserAccess(idSecuritycurrency);
     HistoryquoteChartResponse response = loadHistoryquoteForChart(idSecuritycurrency);
+    if (includeDividends) {
+      applyTotalReturn(userAccess.security, response);
+    }
     Integer priceFractionDigits = indexPriceRoundingService.resolvePriceFractionDigits(userAccess.security);
     if (priceFractionDigits != null) {
       indexPriceRoundingService.roundChart(response, priceFractionDigits);
@@ -455,6 +463,52 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
   }
 
   /**
+   * Adds the reinvested dividends to the chart prices of a dividend-capable security. Open, high, low and close of a
+   * day are multiplied by the same factor, the volume is unchanged. The youngest quote bounds the ex-dates taken into
+   * account, so the latest adjusted price equals the real one.
+   *
+   * @param security the charted security, null for a currency pair
+   * @param response the chart data, changed in place
+   */
+  private void applyTotalReturn(final Security security, final HistoryquoteChartResponse response) {
+    List<LocalDate> dates = response.isOhlcAvailable()
+        ? response.getOhlcList().stream().map(HistoryquoteDateOHLC::getDate).toList()
+        : response.getDateCloseList().stream().map(HistoryquoteDateClose::getDate).toList();
+    if (security == null || dates.isEmpty()) {
+      return;
+    }
+    TotalReturnAdjuster adjuster = TotalReturnAdjuster.load(dividendJpaRepository, List.of(security), dates.getLast());
+    if (!adjuster.isAdjusted(security.getIdSecuritycurrency())) {
+      return;
+    }
+    TotalReturnFactors factors = adjuster.getFactors(security.getIdSecuritycurrency());
+    if (response.isOhlcAvailable()) {
+      for (HistoryquoteDateOHLC ohlc : response.getOhlcList()) {
+        double factor = factors.factorForDate(ohlc.getDate());
+        ohlc.setOpen(multiply(ohlc.getOpen(), factor));
+        ohlc.setHigh(multiply(ohlc.getHigh(), factor));
+        ohlc.setLow(multiply(ohlc.getLow(), factor));
+        ohlc.setClose(multiply(ohlc.getClose(), factor));
+      }
+    } else {
+      adjustDateClose(response.getDateCloseList(), factors);
+    }
+    response.setTotalReturn(true);
+    response.setTotalReturnFactors(factors.getCumulativeFactors());
+    response.setDividendDataMissing(
+        adjuster.isMissingDividends(security.getIdSecuritycurrency(), dates.getFirst(), dates.getLast()));
+  }
+
+  private static void adjustDateClose(final List<HistoryquoteDateClose> dateCloseList,
+      final TotalReturnFactors factors) {
+    dateCloseList.forEach(dc -> dc.setClose(multiply(dc.getClose(), factors.factorForDate(dc.getDate()))));
+  }
+
+  private static Double multiply(final Double price, final double factor) {
+    return price == null ? null : price * factor;
+  }
+
+  /**
    * Delivers the history quotes and the intraday prices of an index level rounded to the precision of its currency.
    * Both were loaded by repository calls of other threads and are therefore detached, so the rounding never reaches the
    * database.
@@ -472,11 +526,9 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   @Override
   public List<TaTraceIndicatorData> getTaWithShortMediumLongInputPeriod(Integer idSecuritycurrency,
-      TaIndicators taIndicator, ShortMediumLongInputPeriod shortMediumLongInputPeriod) {
-    checkUserAccess(idSecuritycurrency);
+      TaIndicators taIndicator, ShortMediumLongInputPeriod shortMediumLongInputPeriod, boolean includeDividends) {
     List<TaTraceIndicatorData> taTraceIndicatorData = new ArrayList<>();
-    List<HistoryquoteDateClose> historyquoteDateClose = historyquoteJpaRepository
-        .findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(idSecuritycurrency);
+    List<HistoryquoteDateClose> historyquoteDateClose = loadCloseForTa(idSecuritycurrency, includeDividends);
     Class<? extends CalcAccessIndicator> taClass = null;
     if (taIndicator == TaIndicators.SMA) {
       taClass = SimpleMovingAverage.class;
@@ -506,11 +558,9 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
 
   @Override
   public List<TaTraceIndicatorData> getTaWithShortMediumInputPeriod(Integer idSecuritycurrency,
-      TaIndicators taIndicator, ShortMediumInputPeriod shortMediumInputPeriod) {
-    checkUserAccess(idSecuritycurrency);
+      TaIndicators taIndicator, ShortMediumInputPeriod shortMediumInputPeriod, boolean includeDividends) {
     List<TaTraceIndicatorData> taTraceIndicatorData = new ArrayList<>();
-    List<HistoryquoteDateClose> historyquoteDateClose = historyquoteJpaRepository
-        .findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(idSecuritycurrency);
+    List<HistoryquoteDateClose> historyquoteDateClose = loadCloseForTa(idSecuritycurrency, includeDividends);
     Class<? extends CalcAccessIndicator> taClass = null;
     if (taIndicator == TaIndicators.RSI) {
       taClass = RelativeStrengthIndex.class;
@@ -529,6 +579,25 @@ public class HistoryquoteJpaRepositoryImpl extends BaseRepositoryImpl<Historyquo
     }
 
     return taTraceIndicatorData;
+  }
+
+  /**
+   * The closes a technical indicator is calculated on, adjusted like the chart line when dividends are included.
+   *
+   * @param idSecuritycurrency the security or currency pair
+   * @param includeDividends   true to apply the total return rule
+   * @return the closes without filled non-trading days, ordered by date
+   */
+  private List<HistoryquoteDateClose> loadCloseForTa(Integer idSecuritycurrency, boolean includeDividends) {
+    UserAccess userAccess = checkUserAccess(idSecuritycurrency);
+    List<HistoryquoteDateClose> historyquoteDateClose = historyquoteJpaRepository
+        .findDateCloseByIdSecuritycurrencyAndCreateTypeFalseOrderByDateAsc(idSecuritycurrency);
+    if (includeDividends && userAccess.security != null && !historyquoteDateClose.isEmpty()) {
+      adjustDateClose(historyquoteDateClose,
+          TotalReturnAdjuster.load(dividendJpaRepository, List.of(userAccess.security),
+              historyquoteDateClose.getLast().getDate()).getFactors(idSecuritycurrency));
+    }
+    return historyquoteDateClose;
   }
 
   private TaTraceIndicatorData getTrace(TaIndicators taIndicator, Class<? extends CalcAccessIndicator> taClass,

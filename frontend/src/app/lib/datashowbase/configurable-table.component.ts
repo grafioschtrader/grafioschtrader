@@ -299,7 +299,8 @@ interface HeaderGroupItem {
                       }
                       @case (FilterType.withOptions) {
                         <!-- Several values can be selected, they are combined with OR. An empty selection is handed
-                             over as null, so that the table drops the filter instead of keeping an empty one. -->
+                             over as null, so that the table drops the filter instead of keeping an empty one. The clear
+                             icon reports only through onClear, never through onChange, so both must reach the table. -->
                         <p-multiSelect
                           [options]="field.filterValues"
                           [style]="{ width: '100%' }"
@@ -309,9 +310,8 @@ interface HeaderGroupItem {
                           [maxSelectedLabels]="1"
                           [showClear]="true"
                           [filter]="$safeNavigationMigration(field.filterValues?.length) > 10"
-                          (onChange)="
-                            table.filter($event.value?.length ? $event.value : null, filterKey(field), 'in')
-                          "></p-multiSelect>
+                          (onChange)="table.filter($event.value?.length ? $event.value : null, filterKey(field), 'in')"
+                          (onClear)="table.filter(null, filterKey(field), 'in')"></p-multiSelect>
                       }
                     }
                   </th>

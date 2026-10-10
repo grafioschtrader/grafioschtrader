@@ -36,6 +36,12 @@ public class MicProviderMap {
   public MicProviderMap() {
   }
 
+  public MicProviderMap(String idProvider, String mic, String codeProvider, String symbolSuffix) {
+    this.idProviderMic = new IdProviderMic(idProvider, mic);
+    this.codeProvider = codeProvider;
+    this.symbolSuffix = symbolSuffix;
+  }
+
   public IdProviderMic getIdProviderMic() {
     return idProviderMic;
   }

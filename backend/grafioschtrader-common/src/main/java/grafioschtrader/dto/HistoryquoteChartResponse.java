@@ -40,6 +40,22 @@ public class HistoryquoteChartResponse {
       """)
   private boolean volumeAvailable;
 
+  @Schema(description = """
+      True when dividends were added to the prices by the total return rule: every open, high, low and close is
+      multiplied by the factor of its date, the volume is unchanged. False for a currency pair, an index, a derived
+      instrument, or when dividends were not requested.""")
+  private boolean totalReturn;
+
+  @Schema(description = """
+      The steps of the total return adjustment, ordered by ex-date. The client multiplies a real trade price by the
+      factor of its date to place it on the adjusted line. Empty unless totalReturn is true.""")
+  private List<TotalReturnFactor> totalReturnFactors = List.of();
+
+  @Schema(description = """
+      True when the instrument is configured to distribute but no dividend lies within the series, so that its total
+      return equals its price return. The client shows a hint.""")
+  private boolean dividendDataMissing;
+
   public HistoryquoteChartResponse() {
   }
 
@@ -101,5 +117,29 @@ public class HistoryquoteChartResponse {
 
   public void setVolumeAvailable(boolean volumeAvailable) {
     this.volumeAvailable = volumeAvailable;
+  }
+
+  public boolean isTotalReturn() {
+    return totalReturn;
+  }
+
+  public void setTotalReturn(boolean totalReturn) {
+    this.totalReturn = totalReturn;
+  }
+
+  public List<TotalReturnFactor> getTotalReturnFactors() {
+    return totalReturnFactors;
+  }
+
+  public void setTotalReturnFactors(List<TotalReturnFactor> totalReturnFactors) {
+    this.totalReturnFactors = totalReturnFactors;
+  }
+
+  public boolean isDividendDataMissing() {
+    return dividendDataMissing;
+  }
+
+  public void setDividendDataMissing(boolean dividendDataMissing) {
+    this.dividendDataMissing = dividendDataMissing;
   }
 }

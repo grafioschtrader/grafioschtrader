@@ -124,7 +124,8 @@ import { FilterType } from '../../datashowbase/filter.type';
                         }
                       }
                       @case (FilterType.withOptions) {
-                        <!-- Several values can be selected, they are combined with OR. -->
+                        <!-- Several values can be selected, they are combined with OR. The clear icon reports only
+                             through onClear, never through onChange, so both must reach the tree table. -->
                         <p-multiSelect
                           [options]="field.filterValues"
                           [style]="{ width: '100%' }"
@@ -132,7 +133,8 @@ import { FilterType } from '../../datashowbase/filter.type';
                           [maxSelectedLabels]="1"
                           [showClear]="true"
                           [filter]="$safeNavigationMigration(field.filterValues?.length) > 10"
-                          (onChange)="tt.filter($event.value?.length ? $event.value : null, field.field, 'in')">
+                          (onChange)="tt.filter($event.value?.length ? $event.value : null, field.field, 'in')"
+                          (onClear)="tt.filter(null, field.field, 'in')">
                         </p-multiSelect>
                       }
                     }

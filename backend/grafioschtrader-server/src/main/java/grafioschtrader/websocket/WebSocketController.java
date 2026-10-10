@@ -39,7 +39,8 @@ public class WebSocketController {
       return null;
     }
     SecuritycurrencyGroup securitycurrencyGroup = watchlistReport
-        .getWatchlistwithPeriodPerformance(queryParam.idWatchlist, user.getIdTenant(), queryParam.daysFrameDate);
+        .getWatchlistwithPeriodPerformance(queryParam.idWatchlist, user.getIdTenant(), queryParam.daysFrameDate,
+            queryParam.includeDividends);
     messagingTemplate.convertAndSendToUser(principal.getName(), "/queue/security", securitycurrencyGroup);
     return null;
   }
@@ -49,10 +50,12 @@ public class WebSocketController {
 class QueryParam {
   public Integer idWatchlist;
   public Integer daysFrameDate;
+  public boolean includeDividends;
 
   @Override
   public String toString() {
-    return "QueryParam [idWatchlist=" + idWatchlist + ", daysFrameDate=" + daysFrameDate + "]";
+    return "QueryParam [idWatchlist=" + idWatchlist + ", daysFrameDate=" + daysFrameDate + ", includeDividends="
+        + includeDividends + "]";
   }
 
 }

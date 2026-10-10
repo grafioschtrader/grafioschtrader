@@ -19,6 +19,7 @@ import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { ChildToParent, CorrelationTableComponent } from './correlation-table.component';
 import { CallParam } from '../../shared/maintree/types/dialog.visible';
 import { Securitycurrency } from '../../entities/securitycurrency';
+import { Security } from '../../entities/security';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { CorrelationEditingSupport } from './correlation.editing.support';
 import { CommonModule } from '@angular/common';
@@ -69,6 +70,9 @@ import { CorrelationSetEditComponent } from './correlation-set-edit.component';
       @if (nonOverlappingDates) {
         <p style="color:tomato;">{{ 'NON_OVERLAPPING_DATES' | translate }}</p>
       }
+      @if (dividendMissingNames) {
+        <p style="color:tomato;">{{ 'CORRELATION_DIVIDEND_MISSING' | translate }} {{ dividendMissingNames }}</p>
+      }
       <correlation-table [childToParent]="this"> </correlation-table>
     </div>
     @if (visibleEditDialog) {
@@ -109,6 +113,12 @@ export class CorrelationComponent
 
   /** Flag indicating whether instruments have non-overlapping date ranges */
   nonOverlappingDates = false;
+
+  /**
+   * Names of the distributing securities without dividend data in the period, when dividends are included. Their total
+   * return equals their price return, which the user is told below the time period.
+   */
+  dividendMissingNames: string = null;
 
   /** Field name for ticker symbol property */
   private readonly tickerSymbol = 'tickerSymbol';
@@ -269,6 +279,7 @@ export class CorrelationComponent
   setChildDataAndCalculateWhenPossible(selectedEntity: CorrelationSet, calculate: boolean): void {
     this.timePeriod = null;
     this.nonOverlappingDates = false;
+    this.dividendMissingNames = null;
     if (selectedEntity) {
       this.childEntityList = selectedEntity.securitycurrencyList;
       if (selectedEntity.securitycurrencyList.length >= 2 && calculate) {
@@ -277,6 +288,7 @@ export class CorrelationComponent
           .subscribe((correlationResult: CorrelationResult) => {
             this.correlationResult = correlationResult;
             this.correlationTableComponent.parentSelectionChanged(selectedEntity, correlationResult);
+            this.dividendMissingNames = this.getDividendMissingNames(selectedEntity, correlationResult);
             if (correlationResult.firstAvailableDate) {
               this.timePeriod =
                 AppHelper.getDateByFormat(this.gps, correlationResult.firstAvailableDate) +
@@ -293,6 +305,20 @@ export class CorrelationComponent
     } else {
       this.correlationTableComponent.parentSelectionChanged(selectedEntity, this.correlationResult);
     }
+  }
+
+  /**
+   * Joins the names of the securities the correlation result reports as lacking dividend data.
+   * @param correlationSet - The calculated correlation set
+   * @param correlationResult - The result of the calculation
+   * @returns The comma separated names, or null when nothing is missing
+   */
+  private getDividendMissingNames(correlationSet: CorrelationSet, correlationResult: CorrelationResult): string {
+    const ids = correlationResult.idsMissingDividends ?? [];
+    const names = correlationSet.securitycurrencyList
+      .filter((sc) => ids.includes(sc.idSecuritycurrency))
+      .map((sc) => (<Security>sc).name);
+    return names.length > 0 ? names.join(', ') : null;
   }
 
   /**

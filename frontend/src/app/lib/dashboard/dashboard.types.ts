@@ -50,7 +50,10 @@ export interface DashboardDocument {
   activeTenantId: number | null;
   generatedAt: string;
   widgets: DashboardWidget[];
+  /** Results of the fastest load group present in the layout only. */
   results: DashboardResult[];
+  /** Slower load groups, ascending, whose results each have to be fetched with a request of their own. */
+  pendingGroups: number[];
   remainingCapacity: number;
 }
 export interface DashboardDescriptor {

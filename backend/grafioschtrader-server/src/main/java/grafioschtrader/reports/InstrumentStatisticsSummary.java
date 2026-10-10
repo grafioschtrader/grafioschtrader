@@ -30,6 +30,7 @@ import grafioschtrader.reports.ReportHelper.ClosePricesCurrencyClose;
 import grafioschtrader.reports.ReportHelper.CurrencyAvailableRequired;
 import grafioschtrader.reports.ReportHelper.CurrencyRequired;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.service.RiskFreeRateService;
@@ -362,14 +363,22 @@ public class InstrumentStatisticsSummary {
    * and the tenant's main currency for comprehensive analysis and comparison purposes.
    * </p>
    *
-   * @param jdbcTemplate   database template for efficient price data retrieval
-   * @param dateFrom       inclusive start date for the statistical analysis period
-   * @param dateTo         exclusive end date for the statistical analysis period
-   * @param adjustCurrency flag indicating whether to perform currency conversion
+   * <p>
+   * The closes of a dividend-capable security always include the reinvested dividends ({@link TotalReturnAdjuster}).
+   * The yearly returns of {@link #getAnnualisedSecurityPerformance()} add the dividends as well, so the Sharpe ratio
+   * divides a total return by the volatility of the total return instead of by a price-only volatility.
+   * </p>
+   *
+   * @param jdbcTemplate          database template for efficient price data retrieval
+   * @param dividendJpaRepository repository for the dividends of the total return adjustment
+   * @param dateFrom              inclusive start date for the statistical analysis period
+   * @param dateTo                exclusive end date for the statistical analysis period
+   * @param adjustCurrency        flag indicating whether to perform currency conversion
    * @return comprehensive statistical summary with volatility and distribution measures
    */
-  public StatisticsSummary getStandardDeviation(JdbcTemplate jdbcTemplate, LocalDate dateFrom, LocalDate dateTo,
-      boolean adjustCurrency) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+  public StatisticsSummary getStandardDeviation(JdbcTemplate jdbcTemplate, DividendJpaRepository dividendJpaRepository,
+      LocalDate dateFrom, LocalDate dateTo, boolean adjustCurrency)
+      throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 
     StatisticsSummary statsSummary = new StatisticsSummary();
     statsSummary.addProperties(TimePeriodType.DAILY, StatisticsSummary.STANDARD_DEVIATION, StatisticsSummary.MIN,
@@ -377,9 +386,12 @@ public class InstrumentStatisticsSummary {
     statsSummary.addProperties(TimePeriodType.MONTHLY, StatisticsSummary.STANDARD_DEVIATION);
     statsSummary.addProperties(TimePeriodType.ANNUAL, StatisticsSummary.STANDARD_DEVIATION);
 
+    TotalReturnAdjuster totalReturnAdjuster = TotalReturnAdjuster.load(dividendJpaRepository,
+        List.of(securityCurrency), LocalDate.now());
     for (TimePeriodType key : statsSummary.statsPropertyMap.keySet()) {
       if (key != TimePeriodType.ANNUAL) {
-        createStatisticsSummaryByPeriod(jdbcTemplate, dateFrom, dateTo, adjustCurrency, key, statsSummary);
+        createStatisticsSummaryByPeriod(jdbcTemplate, dateFrom, dateTo, adjustCurrency, key, statsSummary,
+            totalReturnAdjuster);
       }
     }
     statsSummary.createAnnualByMonthly();
@@ -401,11 +413,13 @@ public class InstrumentStatisticsSummary {
    * @param dateFrom       start date for the analysis period
    * @param dateTo         end date for the analysis period
    * @param adjustCurrency whether to perform currency adjustment
-   * @param timePeriodType the time period granularity (daily or monthly)
-   * @param statsSummary   the statistics summary object to populate
+   * @param timePeriodType      the time period granularity (daily or monthly)
+   * @param statsSummary        the statistics summary object to populate
+   * @param totalReturnAdjuster adds the reinvested dividends to the closes of the security
    */
   private void createStatisticsSummaryByPeriod(JdbcTemplate jdbcTemplate, LocalDate dateFrom, LocalDate dateTo,
-      boolean adjustCurrency, TimePeriodType timePeriodType, StatisticsSummary statsSummary)
+      boolean adjustCurrency, TimePeriodType timePeriodType, StatisticsSummary statsSummary,
+      TotalReturnAdjuster totalReturnAdjuster)
       throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
     List<Securitycurrency<?>> securitycurrencyList = new ArrayList<>(Arrays.asList(securityCurrency));
     CurrencyAvailableRequired currencyAvailableRequired = prepareFakeSecurityWhenNotTenantCurrency(
@@ -413,7 +427,7 @@ public class InstrumentStatisticsSummary {
 
     ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
         securitycurrencyList, SamplingPeriodType.getSamplingPeriodTypeByValue(timePeriodType.getValue()), dateFrom,
-        dateTo, adjustCurrency);
+        dateTo, adjustCurrency, totalReturnAdjuster);
     adjustCloseOfDifferentTenantCurrency(securitycurrencyList, currencyAvailableRequired, closePrices);
     int columns = currencyAvailableRequired == null ? 1 : 2;
     double[][] percentageChange = ReportHelper.transformToPercentageChange(closePrices.dateCloseTree, columns);

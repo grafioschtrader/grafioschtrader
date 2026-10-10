@@ -189,11 +189,15 @@ public abstract class ReportHelper {
    * @param dateTo                    exclusive upper bound for dates
    * @param adjustToSingleCurrency    If true, the currency pairs that allow normalization to a currency are also added
    *                                  to the query
+   * @param totalReturnAdjuster       Adds the reinvested dividends to the closes of every adjustable instrument column,
+   *                                  before any currency conversion or sampling; {@link TotalReturnAdjuster#none()} to
+   *                                  keep the price series
    * @return a ClosePricesCurrencyClose wrapping a date→prices map and any currency‐conversion info
    */
   public static ClosePricesCurrencyClose loadCloseData(JdbcTemplate jdbcTemplate,
       CurrencypairJpaRepository currencypairJpaRepository, List<Securitycurrency<?>> securitycurrencyList,
-      SamplingPeriodType samplingPeriod, LocalDate dateFrom, LocalDate dateTo, boolean adjustToSingleCurrency) {
+      SamplingPeriodType samplingPeriod, LocalDate dateFrom, LocalDate dateTo, boolean adjustToSingleCurrency,
+      TotalReturnAdjuster totalReturnAdjuster) {
     CurrencyRequired cr = null;
     StringBuilder qSelect = new StringBuilder("SELECT h0.date");
     StringBuilder qFrom = new StringBuilder(" FROM ");
@@ -223,12 +227,13 @@ public abstract class ReportHelper {
     }
     addDateBoundry(dateFrom, qWhere, ">");
     addDateBoundry(dateTo, qWhere, "<");
-    StringBuilder qGroup = addMonthYearGroupBy(samplingPeriod);
 
-    String query = qSelect.append(qFrom).append(WHERE_WORD.endsWith(qWhere.toString()) ? "" : qWhere).append(qGroup)
+    String query = qSelect.append(qFrom).append(WHERE_WORD.endsWith(qWhere.toString()) ? "" : qWhere)
         .append(" ORDER BY h0.date").toString();
-    return new ClosePricesCurrencyClose(getQueryDateCloseAsTreeMap(jdbcTemplate, query, securityCurrencyIds.size()),
-        cr);
+    TreeMap<LocalDate, double[]> dateCloseTree = getQueryDateCloseAsTreeMap(jdbcTemplate, query,
+        securityCurrencyIds.size());
+    totalReturnAdjuster.adjustCloseColumns(dateCloseTree, securityCurrencyIds);
+    return new ClosePricesCurrencyClose(sampleLastDayOfPeriod(dateCloseTree, samplingPeriod), cr);
   }
 
   /**
@@ -430,21 +435,26 @@ public abstract class ReportHelper {
   }
 
   /**
-   * Constructs GROUP BY clause for different sampling periods to aggregate price data. Adds appropriate grouping for
-   * monthly or annual sampling while leaving daily data ungrouped.
+   * Reduces daily closes to the last trading day of every month or year that all instruments share. Formerly a SQL
+   * {@code GROUP BY} without aggregation did this, which left the selected row of a period undefined; with the total
+   * return adjustment a wrong row would also carry a wrong factor.
    *
-   * @param samplingPeriodType the desired sampling frequency for data aggregation
-   * @return SQL GROUP BY clause appropriate for the sampling period
+   * @param dateCloseTree      the closes per common trading day
+   * @param samplingPeriodType the desired sampling frequency
+   * @return the closes of the last day of each period, or the input unchanged for daily sampling
    */
-  private static StringBuilder addMonthYearGroupBy(SamplingPeriodType samplingPeriodType) {
-    StringBuilder qGroup = new StringBuilder("");
-    if (samplingPeriodType != SamplingPeriodType.DAILY_RETURNS) {
-      qGroup.append(" GROUP BY YEAR(h0.date)");
-      if (samplingPeriodType == SamplingPeriodType.MONTHLY_RETURNS) {
-        qGroup.append(", MONTH(h0.date)");
-      }
+  static TreeMap<LocalDate, double[]> sampleLastDayOfPeriod(TreeMap<LocalDate, double[]> dateCloseTree,
+      SamplingPeriodType samplingPeriodType) {
+    if (samplingPeriodType == SamplingPeriodType.DAILY_RETURNS) {
+      return dateCloseTree;
     }
-    return qGroup;
+    boolean monthly = samplingPeriodType == SamplingPeriodType.MONTHLY_RETURNS;
+    Map<Integer, LocalDate> lastDayOfPeriod = new HashMap<>();
+    dateCloseTree.keySet().forEach(date -> lastDayOfPeriod
+        .put(monthly ? date.getYear() * 12 + date.getMonthValue() : date.getYear(), date));
+    TreeMap<LocalDate, double[]> sampled = new TreeMap<>();
+    lastDayOfPeriod.values().forEach(date -> sampled.put(date, dateCloseTree.get(date)));
+    return sampled;
   }
 
   /**

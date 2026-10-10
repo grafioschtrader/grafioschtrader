@@ -138,6 +138,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Autowired
   private HistoryquoteLegacyJpaRepository historyquoteLegacyJpaRepository;
 
+  @Autowired
+  private DividendJpaRepository dividendJpaRepository;
+
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
 
@@ -917,7 +920,8 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
         currencypairJpaRepository, riskFreeRateService);
     securityStatisticsSummary.prepareSecurityCurrencypairs(idSecuritycurrency);
     AnnualisedPerformance ap = securityStatisticsSummary.getAnnualisedSecurityPerformance();
-    StatisticsSummary stats = securityStatisticsSummary.getStandardDeviation(jdbcTemplate, dateFrom, dateTo, false);
+    StatisticsSummary stats = securityStatisticsSummary.getStandardDeviation(jdbcTemplate, dividendJpaRepository,
+        dateFrom, dateTo, false);
     securityStatisticsSummary.populateSharpeRatios(ap, stats, dateTo != null ? dateTo : LocalDate.now());
     return new InstrumentStatisticsResult(ap, stats);
   }

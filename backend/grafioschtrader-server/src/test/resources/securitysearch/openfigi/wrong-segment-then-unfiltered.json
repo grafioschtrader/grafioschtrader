@@ -1,0 +1,57 @@
+[
+ {
+  "warning": "No identifier found."
+ },
+ {
+  "data": [
+   {
+    "figi": "BBG000B9XRY4",
+    "name": "APPLE INC",
+    "ticker": "AAPL",
+    "exchCode": "US",
+    "compositeFIGI": "BBG000B9XRY4",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001S5N8V8",
+    "securityType2": "Common Stock",
+    "securityDescription": "AAPL"
+   },
+   {
+    "figi": "BBG000B9XSK7",
+    "name": "APPLE INC",
+    "ticker": "AAPL",
+    "exchCode": "UA",
+    "compositeFIGI": "BBG000B9XRY4",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001S5N8V8",
+    "securityType2": "Common Stock",
+    "securityDescription": "AAPL"
+   },
+   {
+    "figi": "BBG000B9XT70",
+    "name": "APPLE INC",
+    "ticker": "AAPL",
+    "exchCode": "UC",
+    "compositeFIGI": "BBG000B9XRY4",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001S5N8V8",
+    "securityType2": "Common Stock",
+    "securityDescription": "AAPL"
+   },
+   {
+    "figi": "BBG000B9XVV8",
+    "name": "APPLE INC",
+    "ticker": "AAPL",
+    "exchCode": "UN",
+    "compositeFIGI": "BBG000B9XRY4",
+    "securityType": "Common Stock",
+    "marketSector": "Equity",
+    "shareClassFIGI": "BBG001S5N8V8",
+    "securityType2": "Common Stock",
+    "securityDescription": "AAPL"
+   }
+  ]
+ }
+]

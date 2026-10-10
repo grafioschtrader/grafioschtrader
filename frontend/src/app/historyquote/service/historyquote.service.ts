@@ -57,17 +57,19 @@ export class HistoryquoteService
    * Returns either OHLC data for candlestick/OHLC charts or simple date/close data for line charts.
    *
    * @param idSecuritycurrency The ID of the security or currency pair
+   * @param includeDividends True for the total return series of a dividend-capable security
    * @returns Observable of HistoryquoteChartResponse containing ohlcAvailable flag and data
    */
-  getHistoryquoteForChart(idSecuritycurrency: number): Observable<HistoryquoteChartResponse> {
-    return <Observable<HistoryquoteChartResponse>>(
-      this.httpClient
-        .get(
-          `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/forchart`,
-          { headers: this.prepareHeaders() }
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+  getHistoryquoteForChart(idSecuritycurrency: number, includeDividends = false): Observable<HistoryquoteChartResponse> {
+    return <Observable<HistoryquoteChartResponse>>this.httpClient
+      .get(
+        `${BaseSettings.API_ENDPOINT}${AppSettings.HISTORYQUOTE_KEY}/securitycurrency/${idSecuritycurrency}/forchart`,
+        {
+          headers: this.prepareHeaders(),
+          params: new HttpParams().set('includeDividends', includeDividends.toString())
+        }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   getCertainOrOlderDayInHistoryquoteByIdSecuritycurrency(
@@ -97,18 +99,20 @@ export class HistoryquoteService
   getTaWithShortMediumLongInputPeriod(
     taIndicator: string,
     idSecuritycurrency: number,
-    dynamicDataModel: any
+    dynamicDataModel: any,
+    includeDividends = false
   ): Observable<TaTraceIndicatorData[]> {
-    return <Observable<TaTraceIndicatorData[]>>(
-      this.httpClient
-        .post(
-          `${BaseSettings.API_ENDPOINT}` +
-            `${AppSettings.HISTORYQUOTE_KEY}/${idSecuritycurrency}/taindicator/${taIndicator}`,
-          dynamicDataModel,
-          this.getHeaders()
-        )
-        .pipe(catchError(this.handleError.bind(this)))
-    );
+    return <Observable<TaTraceIndicatorData[]>>this.httpClient
+      .post(
+        `${BaseSettings.API_ENDPOINT}` +
+          `${AppSettings.HISTORYQUOTE_KEY}/${idSecuritycurrency}/taindicator/${taIndicator}`,
+        dynamicDataModel,
+        {
+          headers: this.prepareHeaders(),
+          params: new HttpParams().set('includeDividends', includeDividends.toString())
+        }
+      )
+      .pipe(catchError(this.handleError.bind(this)));
   }
 
   update(historyquote: Historyquote): Observable<Historyquote> {

@@ -35,7 +35,7 @@ export class CorrelationEditingSupport {
 
   /**
    * Creates field configuration array for correlation set form including name, date range,
-   * sampling period, rolling window, and currency adjustment fields.
+   * sampling period, rolling window, currency adjustment and total return (include dividends) fields.
    *
    * @param mainField - Optional main field name for dropdown selection, if null creates input field
    * @param usedLayoutColumns - Number of columns to use for field layout (applied if less than 12)
@@ -55,6 +55,7 @@ export class CorrelationEditingSupport {
       DynamicFieldHelper.createFieldSelectStringHeqF(this.samplingPeriod, true),
       DynamicFieldHelper.createFieldSelectNumberHeqF(this.rolling, false),
       DynamicFieldHelper.createFieldCheckboxHeqF('adjustCurrency'),
+      DynamicFieldHelper.createFieldCheckboxHeqF('includeDividends'),
       DynamicFieldHelper.createSubmitButton(submitTextKey)
     ];
     if (mainField) {

@@ -111,13 +111,16 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
   @Operation(summary = "Returns chart data for a security or currency pair", description = """
       Returns historical quote data optimized for chart rendering. Automatically selects between OHLC
       (Open-High-Low-Close) data and simple date/close data based on availability. The response includes
-      an ohlcAvailable flag to indicate whether candlestick and OHLC charts can be displayed.""", tags = {
+      an ohlcAvailable flag to indicate whether candlestick and OHLC charts can be displayed. With includeDividends
+      the prices of a dividend-capable security contain the reinvested gross dividends.""", tags = {
       Historyquote.TABNAME })
   @GetMapping(value = "/securitycurrency/{idSecuritycurrency}/forchart", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<HistoryquoteChartResponse> getHistoryquoteForChart(
-      @Parameter(description = "Id of security or currency pair", required = true) @PathVariable final Integer idSecuritycurrency) {
+      @Parameter(description = "Id of security or currency pair", required = true) @PathVariable final Integer idSecuritycurrency,
+      @Parameter(description = "True for the total return series, dividends reinvested") @RequestParam(defaultValue = "false") final boolean includeDividends) {
     historyquoteReadLimitService.assertReadAllowed(idSecuritycurrency);
-    return new ResponseEntity<>(historyquoteJpaRepository.getHistoryquoteForChart(idSecuritycurrency), HttpStatus.OK);
+    return new ResponseEntity<>(historyquoteJpaRepository.getHistoryquoteForChart(idSecuritycurrency, includeDividends),
+        HttpStatus.OK);
   }
 
   @Operation(summary = "Returns the meta data model for all tecnical indicators like SMA, EMA ", description = "May be used to for the UI to build a dynamic form", tags = {
@@ -133,6 +136,7 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
   public ResponseEntity<List<TaTraceIndicatorData>> getTaWithShortMediumLongInputPeriod(
       @PathVariable final Integer idSecuritycurrency,
       @Parameter(description = "The required tecnical indicator", required = true) @PathVariable final TaIndicators taIndicator,
+      @Parameter(description = "True to calculate on the total return series, as drawn with dividends included") @RequestParam(defaultValue = "false") final boolean includeDividends,
       @RequestBody String dynamicModel) throws IOException {
     historyquoteReadLimitService.assertReadAllowed(idSecuritycurrency);
     List<TaTraceIndicatorData> taTraceIndicatorData = new ArrayList<>();
@@ -142,13 +146,13 @@ public class HistoryquoteResource extends HistoryquoteResourceBase<Historyquote>
       ShortMediumLongInputPeriod shortMediumLongInputPeriod = jacksonObjectMapper.readValue(dynamicModel,
           ShortMediumLongInputPeriod.class);
       taTraceIndicatorData = historyquoteJpaRepository.getTaWithShortMediumLongInputPeriod(idSecuritycurrency,
-          taIndicator, shortMediumLongInputPeriod);
+          taIndicator, shortMediumLongInputPeriod, includeDividends);
       break;
     case RSI:
       ShortMediumInputPeriod shortMediumInputPeriod = jacksonObjectMapper.readValue(dynamicModel,
           ShortMediumInputPeriod.class);
       taTraceIndicatorData = historyquoteJpaRepository.getTaWithShortMediumInputPeriod(idSecuritycurrency, taIndicator,
-          shortMediumInputPeriod);
+          shortMediumInputPeriod, includeDividends);
       break;
     }
     return new ResponseEntity<>(taTraceIndicatorData, HttpStatus.OK);

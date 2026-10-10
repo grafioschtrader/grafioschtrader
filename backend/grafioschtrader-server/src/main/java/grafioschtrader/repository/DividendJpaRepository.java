@@ -57,6 +57,32 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
       List<Integer> idsSecurity);
 
   /**
+   * Delivers the input of the total return adjustment ({@code TotalReturnAdjuster}) for several securities in one
+   * round trip: every dividend together with the closes the reinvestment rule needs and the rate that converts the
+   * dividend into the currency of the security. Both the dividend amount and the closes are split-adjusted, so no split
+   * arithmetic is required by the caller. Rows of create type 1 (filled non-trading days) are skipped, as in the chart
+   * queries.
+   *
+   * Named query: Dividend.getDividendsForTotalReturn
+   * <ul>
+   * <li>The previous close is the last one strictly before the ex-date. It is null when the ex-date lies before the
+   * first quote; it also serves the plausibility check of the amount.</li>
+   * <li>The ex-date close, at which the dividend is reinvested, is the close of the ex-date or, without a quote on that
+   * day, the first one after it. When no history quote exists yet, the last price is taken if it is dated on or after
+   * the ex-date, so a security going ex today is covered by the watchlist; otherwise it is null.</li>
+   * <li>The exchange rate is 1 when the dividend is paid in the currency of the security. Otherwise it is the close of
+   * the currency pair on the ex-date or the last one before it, inverted when only the reverse pair exists, and null
+   * when no rate is known.</li>
+   * </ul>
+   *
+   * @param idsSecuritycurrency ids of the securities whose dividends are loaded (?1)
+   * @param untilDate           last ex-date included (?2); later calendar entries do not affect the price series
+   * @return the dividends ordered by security id and ex-date ascending
+   */
+  @Query(nativeQuery = true)
+  List<DividendTotalReturn> getDividendsForTotalReturn(List<Integer> idsSecuritycurrency, LocalDate untilDate);
+
+  /**
    * Provides dividend details for a tenant’s security holdings.
    */
   public interface DivdendForHoldings {
@@ -84,5 +110,32 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
 
     /** Dividend amount per share */
     double getAmount();
+  }
+
+  /**
+   * One dividend with the prices the total return adjustment needs.
+   */
+  public interface DividendTotalReturn {
+
+    /** Security identifier */
+    Integer getIdSecuritycurrency();
+
+    /** Ex-date of the dividend */
+    LocalDate getExDate();
+
+    /** Split-adjusted dividend amount per share, in the dividend currency */
+    double getAmountAdjusted();
+
+    /** Dividend currency */
+    String getCurrency();
+
+    /** Last split-adjusted close before the ex-date, null when the ex-date precedes the first quote */
+    Double getCloseBefore();
+
+    /** Split-adjusted close of the ex-date or the first one after it, null when no price exists yet */
+    Double getCloseExDate();
+
+    /** Converts one unit of the dividend currency into the security currency, null when no rate is known */
+    Double getExchangeRate();
   }
 }

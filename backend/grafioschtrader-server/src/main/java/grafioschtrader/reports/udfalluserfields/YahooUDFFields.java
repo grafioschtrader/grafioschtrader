@@ -8,15 +8,16 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import grafiosch.types.IUDFSpecialType;
 import grafiosch.udfalluserfields.UDFFieldsHelper;
 import grafioschtrader.connector.yahoo.YahooHelper;
+import grafioschtrader.connector.yahoo.YahooSymbolSearch;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
-import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.types.UDFSpecialGTType;
 
 /**
@@ -49,6 +50,10 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
   private static final Logger log = LoggerFactory.getLogger(YahooUDFFields.class);
 
   private YahooUDFConnect yahooUDFConnect = new YahooUDFConnect();
+
+  /** Shared by all Yahoo user-defined fields, so that their symbol searches draw on one request budget. */
+  @Autowired
+  private YahooSymbolSearch yahooSymbolSearch;
   /**
    * We limit the parallel streams to the following value. Otherwise too many requests may be sent to Yahoo.
    */
@@ -72,11 +77,10 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
    *
    * @param securitycurrencyUDFGroup the group containing securities and UDF data context for processing
    * @param uDFSpecialType           the specific type of Yahoo UDF field to create or update
-   * @param micProviderMapRepository repository for market identifier code mappings used in symbol resolution
    * @param recreate                 if true, forces recreation of field values even if they already exist
    */
   protected void createYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
-      IUDFSpecialType uDFSpecialType, MicProviderMapRepository micProviderMapRepository, boolean recreate) {
+      IUDFSpecialType uDFSpecialType, boolean recreate) {
     udfMDSYahooSymbol = getMetadataSecurity(UDFSpecialGTType.UDF_SPEC_INTERNAL_YAHOO_SYMBOL_HIDE);
     UDFMetadataSecurity udfMetaDataSecurity = getMetadataSecurity(uDFSpecialType);
     LocalDate now = LocalDate.now();
@@ -88,8 +92,7 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
         .collect(Collectors.toList());
 
     forkJoinPool.submit(() -> filteredList.parallelStream().forEach(s -> {
-      createWhenNotExistsYahooFieldValue(securitycurrencyUDFGroup, udfMetaDataSecurity, s.securitycurrency,
-          micProviderMapRepository, recreate);
+      createWhenNotExistsYahooFieldValue(securitycurrencyUDFGroup, udfMetaDataSecurity, s.securitycurrency, recreate);
     })).join();
   }
 
@@ -111,19 +114,16 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
    * @param securitycurrencyUDFGroup the UDF group context for storing field values
    * @param udfMetaDataSecurity      the metadata definition for the specific Yahoo UDF field
    * @param security                 the security for which to create or update the field value
-   * @param micProviderMapRepository repository for market identifier mappings
    * @param recreate                 if true, forces recreation regardless of existing values
    */
   private void createWhenNotExistsYahooFieldValue(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
-      UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository,
-      boolean recreate) {
+      UDFMetadataSecurity udfMetaDataSecurity, Security security, boolean recreate) {
     Object value = UDFFieldsHelper.readValueFromUser0(udfMetaDataSecurity, uDFDataJpaRepository, Security.class,
         security.getIdSecuritycurrency());
     if (value == null || recreate
         || (udfMetaDataSecurity.getUdfSpecialType() == UDFSpecialGTType.UDF_SPEC_INTERNAL_YAHOO_EARNING_NEXT_DATE
             && LocalDateTime.now().isAfter((LocalDateTime) value))) {
-      writeYahooFieldValues(securitycurrencyUDFGroup, udfMetaDataSecurity, security, micProviderMapRepository,
-          recreate);
+      writeYahooFieldValues(securitycurrencyUDFGroup, udfMetaDataSecurity, security, recreate);
     } else {
       putValueToJsonValue(securitycurrencyUDFGroup, udfMetaDataSecurity, security.getIdSecuritycurrency(), value,
           false);
@@ -145,14 +145,12 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
    * @param securitycurrencyUDFGroup the UDF group context for storing field values
    * @param udfMetaDataSecurity      the metadata definition for the specific Yahoo UDF field
    * @param security                 the security for which to create field values
-   * @param micProviderMapRepository repository for market identifier mappings
    * @param recreate                 if true, forces fresh symbol resolution and field creation
    */
   private void writeYahooFieldValues(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
-      UDFMetadataSecurity udfMetaDataSecurity, Security security, MicProviderMapRepository micProviderMapRepository,
-      boolean recreate) {
+      UDFMetadataSecurity udfMetaDataSecurity, Security security, boolean recreate) {
     String yahooSymbol = yahooUDFConnect.evaluateYahooSymbol(uDFDataJpaRepository, udfMDSYahooSymbol, security,
-        micProviderMapRepository, recreate);
+        yahooSymbolSearch, recreate);
     if (yahooSymbol != null) {
       if (udfMetaDataSecurity.getUdfSpecialType() == UDFSpecialGTType.UDF_SPEC_INTERNAL_YAHOO_STATISTICS_LINK) {
         String url = YahooHelper.YAHOO_FINANCE_QUOTE + yahooSymbol + "/key-statistics/";

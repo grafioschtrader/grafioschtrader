@@ -203,6 +203,7 @@ export class AppSettings {
   public static readonly DIV_CHART_TYPE = 'div_chart_type';
   public static readonly DEPOT_CASH_CHART_TYPE = 'depotcash_chart_type';
   public static readonly WATCHLIST_PERFORMANCE_TIMEFRAME_STORE = 'u_watchlist_performance_timeframe_1';
+  public static readonly WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE = 'u_watchlist_performance_include_dividends';
 
   // Some definitions of property names which are used in more than one class
   public static readonly VALUE_SECURITY_MAIN_CURRENCY_FIELD = 'accountValueSecurityMC';

@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import grafioschtrader.entities.HoldDailyTotal;
 import grafioschtrader.entities.HoldDailyTotalState;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Tenant;
@@ -53,6 +52,11 @@ import grafioschtrader.types.TenantKindType;
  * A tenant without a marker has never been computed: its rows are deleted and its history is computed from the zero
  * base day, the last trading day before its first security position, or else from that first hold day. This covers new
  * tenants, tenants restored from an export and tenants whose hold tables were rebuilt.
+ * </p>
+ *
+ * <p>
+ * Such a full computation writes tens of thousands of rows, for example for every demo tenant after its daily copy. The
+ * rows are therefore inserted as a JDBC batch, see {@code HoldDailyTotalJpaRepositoryCustom.insertRows}.
  * </p>
  */
 @Service
@@ -232,8 +236,7 @@ public class HoldDailyTotalService {
   }
 
   private int save(Integer idTenant, Integer idPortfolio, List<IPeriodHolding> holdings) {
-    holdDailyTotalJpaRepository
-        .saveAll(holdings.stream().map(h -> new HoldDailyTotal(idTenant, idPortfolio, h)).toList());
+    holdDailyTotalJpaRepository.insertRows(idTenant, idPortfolio, holdings);
     return holdings.size();
   }
 

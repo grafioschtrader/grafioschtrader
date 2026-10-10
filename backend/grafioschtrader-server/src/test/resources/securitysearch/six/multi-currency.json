@@ -1,0 +1,16 @@
+{"protocolVersion":"fqs.json#17x",
+"pageNumber":1,
+"pageSize":50,
+"totalRows":2,
+"delayMinutes":15,
+"delayedMillis":1791653886936,
+"delayedDateTime":"20261010T19:38:06.936",
+"requestURL":"/itf/fqs/delayed/movie.json?where=ISIN=US0378331005&select=ISIN,ValorId,ValorSymbol,ShortName,IssuerNameFull,TradingBaseCurrency,ProductLine,SecTypeCode",
+"copyRight":"(c) Copyright by SIX Group Ltd 2026. All rights reserved.",
+"colNames":["ISIN","ValorId","ValorSymbol","ShortName","IssuerNameFull","TradingBaseCurrency","ProductLine","SecTypeCode"],
+"rowData":[
+["US0378331005","US0378331005CHF4","AAPL","APPLE INC","Sponsor SIX Swiss Exchange - Sponsored Segment","CHF","PS","SS"],
+["US0378331005","US0378331005USD4","AAPL","APPLE INC","Sponsor SIX Swiss Exchange - Sponsored Segment","USD","PS","SS"]],
+"movie":[
+[185729,-1,-1,"/itf/fqs/delayed/movie.json?where=ISIN=US0378331005&select=ISIN,ValorId,ValorSymbol,ShortName,IssuerNameFull,TradingBaseCurrency,ProductLine,SecTypeCode"]],
+"elapsed":1}

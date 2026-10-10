@@ -435,6 +435,12 @@ public interface HoldSecurityaccountSecurityJpaRepository
    * </p>
    *
    * <p>
+   * Only holding periods overlapping the range take part, and the price lookup is forced onto the index over
+   * instrument and date. Left to itself the optimizer chose the index over the instrument alone and read the whole
+   * price history of every holding period, which made this query take seconds for a range of a few days.
+   * </p>
+   *
+   * <p>
    * Named query: {@code HoldSecurityaccountSecurity.getFilledQuoteDaysByTenant}
    * </p>
    *

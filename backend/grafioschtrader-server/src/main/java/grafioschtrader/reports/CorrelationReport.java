@@ -22,6 +22,7 @@ import grafioschtrader.entities.CorrelationSet;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.reports.ReportHelper.ClosePricesCurrencyClose;
 import grafioschtrader.repository.CurrencypairJpaRepository;
+import grafioschtrader.repository.DividendJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
 import grafioschtrader.types.SamplingPeriodType;
 
@@ -34,6 +35,7 @@ public class CorrelationReport {
   private final JdbcTemplate jdbcTemplate;
   private final CurrencypairJpaRepository currencypairJpaRepository;
   private final HistoryquoteJpaRepository historyquoteJpaRepository;
+  private final DividendJpaRepository dividendJpaRepository;
 
   /**
    * Constructs a CorrelationReport instance.
@@ -41,12 +43,14 @@ public class CorrelationReport {
    * @param jdbcTemplate              The JdbcTemplate for database access.
    * @param currencypairJpaRepository Repository for currency pair data.
    * @param historyquoteJpaRepository Repository for historical quote data.
+   * @param dividendJpaRepository     Repository for the dividends of the total return adjustment.
    */
   public CorrelationReport(JdbcTemplate jdbcTemplate, CurrencypairJpaRepository currencypairJpaRepository,
-      HistoryquoteJpaRepository historyquoteJpaRepository) {
+      HistoryquoteJpaRepository historyquoteJpaRepository, DividendJpaRepository dividendJpaRepository) {
     this.jdbcTemplate = jdbcTemplate;
     this.currencypairJpaRepository = currencypairJpaRepository;
     this.historyquoteJpaRepository = historyquoteJpaRepository;
+    this.dividendJpaRepository = dividendJpaRepository;
   }
 
   /**
@@ -56,14 +60,31 @@ public class CorrelationReport {
    * @return A {@link CorrelationResult} containing the correlation matrix and related data.
    */
   public CorrelationResult calcCorrelationForMatrix(CorrelationSet correlationSet) {
+    TotalReturnAdjuster totalReturnAdjuster = createTotalReturnAdjuster(correlationSet);
     ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
         correlationSet.getSecuritycurrencyList(), correlationSet.getSamplingPeriod(), correlationSet.getDateFrom(),
-        correlationSet.getDateTo(), correlationSet.isAdjustCurrency());
+        correlationSet.getDateTo(), correlationSet.isAdjustCurrency(), totalReturnAdjuster);
 
     if (closePrices.dateCloseTree.isEmpty()) {
       return createNonMatchingEODDataResult(correlationSet);
     }
-    return calculateCorrelationMatrixInternal(correlationSet, closePrices);
+    CorrelationResult correlationResult = calculateCorrelationMatrixInternal(correlationSet, closePrices);
+    correlationResult.idsMissingDividends = totalReturnAdjuster
+        .getIdsMissingDividends(correlationResult.firstAvailableDate, correlationResult.lastAvailableDate);
+    return correlationResult;
+  }
+
+  /**
+   * The total return adjustment requested by the correlation set. Its factors are built per instrument on the complete
+   * close series up to today, before the instruments are joined on common dates and sampled.
+   *
+   * @param correlationSet the correlation set
+   * @return the adjuster, the identity when dividends are not included
+   */
+  private TotalReturnAdjuster createTotalReturnAdjuster(CorrelationSet correlationSet) {
+    return correlationSet.isIncludeDividends()
+        ? TotalReturnAdjuster.load(dividendJpaRepository, correlationSet.getSecuritycurrencyList(), LocalDate.now())
+        : TotalReturnAdjuster.none();
   }
 
   /**
@@ -142,7 +163,7 @@ public class CorrelationReport {
 
     ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
         correlationSet.getSecuritycurrencyList(), correlationSet.getSamplingPeriod(), adjustedDateFrom,
-        correlationSet.getDateTo(), correlationSet.isAdjustCurrency());
+        correlationSet.getDateTo(), correlationSet.isAdjustCurrency(), createTotalReturnAdjuster(correlationSet));
     ReportHelper.adjustCloseToSameCurrency(correlationSet.getSecuritycurrencyList(), closePrices);
 
     double[][] percentageChanges = ReportHelper.transformToPercentageChange(closePrices.dateCloseTree,

@@ -11,6 +11,8 @@ import { UserSettingsService } from '../../lib/services/user.settings.service';
 import moment from 'moment';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppSettings } from '../../shared/app.settings';
+import { BaseSettings } from '../../lib/base.settings';
+import { ColumnConfig } from '../../lib/datashowbase/column.config';
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
 import { HelpIds } from '../../lib/help/help.ids';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -85,6 +87,11 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
   ]
 })
 export class WatchlistPerformanceComponent extends WatchlistTable implements OnInit, OnDestroy {
+  /** Adds the reinvested dividends of the securities to the daily, YTD and time frame changes (total return). */
+  includeDividends = false;
+  /** Translated hint for a distributing security without dividend data. */
+  private dividendMissingHint = '';
+
   /**
    * Creates a new WatchlistPerformanceComponent with all required dependencies and initializes performance columns
    * and time frames.
@@ -142,6 +149,11 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.timeFrames.push(new TimeFrame('YEAR_2', moment(date).diff(moment(date).subtract(2, 'years'), 'days')));
     this.timeFrames.push(new TimeFrame('YEAR_3', moment(date).diff(moment(date).subtract(3, 'years'), 'days')));
     this.choosenTimeFrame = this.restoreTimeFrame();
+    this.includeDividends =
+      this.usersettingsService.readSingleValue(AppSettings.WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE) === true;
+    this.translateService
+      .get('TOTAL_RETURN_DIVIDEND_MISSING')
+      .subscribe((hint: string) => (this.dividendMissingHint = hint));
     this.addBaseColumns();
     this.addColumnFeqH(DataType.NumericRaw, 'securitycurrency.leverageFactor', true, true, {
       templateName: 'greenRed',
@@ -178,6 +190,12 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       headerSuffix: '%',
       templateName: 'greenRed',
       filterType: FilterType.likeDataType
+    });
+    // Marks a distributing security whose changes lack dividend data although dividends are included
+    this.addColumn(DataType.String, 'dividendDataMissing', 'TOTAL_RETURN', this.includeDividends, false, {
+      width: 30,
+      fieldValueFN: this.getDividendDataMissingMark.bind(this),
+      cellTooltipFN: this.getDividendDataMissingTooltip.bind(this)
     });
     this.addColumn(DataType.Numeric, 'units', 'HOLDING', true, true, {
       templateName: 'greenRed',
@@ -252,6 +270,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       ...this.getShowContextMenuItems(securitycurrencyPosition, false),
       { separator: true },
       this.getMenuTimeFrame(),
+      this.getMenuIncludeDividends(),
       ...this.getMenuShowOptions()
     ];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
@@ -261,7 +280,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   /** Updates price data through REST service call with period performance data for the selected time frame. */
   private updateAllPriceThruRest(): void {
     this.watchlistService
-      .getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days)
+      .getWatchlistWithPeriodPerformance(this.idWatchlist, this.choosenTimeFrame.days, this.includeDividends)
       .subscribe((data: SecuritycurrencyGroup) => {
         if (this.watchlist.idWatchlist === data.idWatchlist) {
           this.selectedSecuritycurrencyPosition = null;
@@ -298,6 +317,48 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.hideShowColumnByFileHeader('TIME_FRAME_ANNUAL', timeFrame.days > 600);
     this.updateTimeFrameTooltips();
     this.updateAllPrice();
+  }
+
+  /** Creates the checkable menu item that adds the reinvested dividends to the changes of the securities. */
+  private getMenuIncludeDividends(): MenuItem {
+    return {
+      label: 'INCLUDE_DIVIDENDS',
+      icon: this.includeDividends ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
+      command: (event) => this.handleIncludeDividends(event)
+    };
+  }
+
+  /**
+   * Switches the total return mode, remembers it like the time frame and reloads the changes.
+   * @param event The menu click event
+   */
+  private handleIncludeDividends(event): void {
+    this.includeDividends = !this.includeDividends;
+    this.usersettingsService.saveSingleValue(
+      AppSettings.WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE,
+      this.includeDividends
+    );
+    event.item.icon = this.includeDividends ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY;
+    this.hideShowColumnByFileHeader('TOTAL_RETURN', this.includeDividends);
+    this.updateAllPrice();
+  }
+
+  /** A warning sign for a security whose total return lacks dividend data. */
+  getDividendDataMissingMark(
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
+    field: ColumnConfig,
+    valueField: any
+  ): string {
+    return this.includeDividends && securitycurrencyPosition.dividendDataMissing ? '\u26A0' : null;
+  }
+
+  /** Explains the warning sign of {@link getDividendDataMissingMark}. */
+  getDividendDataMissingTooltip(
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>,
+    field: ColumnConfig,
+    valueField: any
+  ): string {
+    return this.includeDividends && securitycurrencyPosition.dividendDataMissing ? this.dividendMissingHint : null;
   }
 
   /**

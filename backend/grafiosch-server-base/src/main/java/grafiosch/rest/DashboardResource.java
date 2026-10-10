@@ -1,6 +1,7 @@
 package grafiosch.rest;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -50,6 +51,16 @@ public class DashboardResource {
   @GetMapping("/api/dashboard")
   public Dashboard get() {
     return service.get(user(), true);
+  }
+
+  /**
+   * Loads one of the load groups the dashboard document listed as pending.
+   *
+   * @param group load group from {@code pendingGroups} of the dashboard document
+   */
+  @GetMapping("/api/dashboard/group/{group}")
+  public List<Result> group(@PathVariable int group) {
+    return service.group(user(), group);
   }
 
   @GetMapping("/api/dashboard/catalogue")
