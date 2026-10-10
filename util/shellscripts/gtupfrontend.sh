@@ -93,6 +93,8 @@ if [[ ! -s "$output/index.html" ]]; then
   echo "ERROR: Frontend output has no non-empty index.html." >&2
   exit 1
 fi
+# ng build copies assets with the modes of the checkout, which the installer clones under umask 077.
+chmod -R u+rwX,go+rX,go-w -- "$output"
 
 # Preserve the target directory itself: only it, not its parent, may belong to the GT user.
 replacing=1

@@ -148,6 +148,15 @@ teardown() {
   done
 }
 
+@test "frontend assets from a private checkout are published readable by the web server" {
+  export OUTPUT_MODE=private
+  run bash "$HOME/gtupfrontend.sh"
+  [ "$status" -eq 0 ]
+  [ "$(stat -c %a "$docroot/grafioschtrader/assets/icons/cc.svg")" = 644 ]
+  [ "$(stat -c %a "$docroot/grafioschtrader/assets/icons")" = 755 ]
+  [ "$(stat -c %a "$docroot/grafioschtrader/assets")" = 755 ]
+}
+
 @test "partial frontend publication is rolled back" {
   export FAIL=publish-front
   run bash "$HOME/gtupfrontend.sh"

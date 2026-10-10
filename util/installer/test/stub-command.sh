@@ -47,6 +47,10 @@ case "$cmd" in
       printf 'new asset\n' > "$output/browser/main.js"
     fi
     if [[ "${OUTPUT_MODE:-}" == empty ]]; then : > "$output/browser/index.html"; fi
+    if [[ "${OUTPUT_MODE:-}" == private ]]; then
+      # Assets copied from a checkout made under umask 077.
+      (umask 077 && mkdir -p "$output/browser/assets/icons" && printf 'icon\n' > "$output/browser/assets/icons/cc.svg")
+    fi
     ;;
   wget)
     [[ "$1" == -O ]]
