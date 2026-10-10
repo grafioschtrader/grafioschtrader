@@ -1,7 +1,7 @@
 # Linux Installer — Remaining Work
 
 **Code baseline:** backend 0.38.1, highest versioned Flyway script
-`V0_38_1__fuw_connector_disposal_cost_estimate_and_hold_daily_total.sql`.
+`V0_38_2__correlation_set_include_dividends.sql`.
 
 **Scope:** the bootstrap installer for the classic (non-Docker) installation of Grafioschtrader on Debian and Ubuntu,
 `util/installer/`. Its behaviour is defined by the sources in `util/installer/src/`, the generated bundle
