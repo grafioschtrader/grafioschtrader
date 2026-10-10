@@ -22,6 +22,7 @@ import grafiosch.entities.TaskDataChange;
 import grafiosch.gtnet.GNetCoreMessageCode;
 import grafiosch.gtnet.GTNetDomainService;
 import grafiosch.gtnet.GTNetMessageCode;
+import grafiosch.gtnet.GTNetServerOnlineStatusTypes;
 import grafiosch.gtnet.GTNetTime;
 import grafiosch.gtnet.MessageParamDateParser;
 import grafiosch.gtnet.handler.AbstractRequestHandler;
@@ -115,11 +116,11 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
     }
 
     // An unauthenticated message may create a relationship but never replace one. Once we have issued a token to this
-    // domain, the way to rotate it is the authenticated token refresh, and the way to start over is to reset the
-    // handshake. A relationship needs both tokens; a row holding only ours, left behind by a token refresh sent without
-    // a handshake, never let either side reach the other and must not lock the peer out.
+    // domain, the way to rotate it is the authenticated token refresh, and the way to start over is for the
+    // administrator here to reset the handshake. That holds even for a row with our token but none of theirs: whether
+    // such a peer may be re-admitted is the administrator's decision, made visible through the reconnect marker below.
     GTNet existing = gtNetJpaRepository.findByDomainRemoteName(canonicalDomain);
-    if (existing != null && existing.getGtNetConfig() != null && existing.getGtNetConfig().isAuthorizedRemoteEntry()) {
+    if (existing != null && existing.getGtNetConfig() != null && existing.getGtNetConfig().getTokenThis() != null) {
       return ValidationResult.invalid("HANDSHAKE_ALREADY_ESTABLISHED",
           "A handshake with this domain is already established");
     }
@@ -319,6 +320,12 @@ public class FirstHandshakeRequestHandler extends AbstractRequestHandler {
     peer.setSpreadCapability(remotePublic.isSpreadCapability());
     peer.setDailyRequestLimit(remotePublic.getDailyRequestLimit());
     peer.setServerBusy(remotePublic.isServerBusy());
+    // The peer has just reached us and is being accepted, so it is online. Without this a re-admitted peer kept the
+    // UNKNOWN that the handshake reset wrote until the next status check, and was skipped as a supplier meanwhile. An
+    // out-of-service peer stays terminal, as for any inbound message.
+    if (!peer.isOutOfService()) {
+      peer.setServerOnline(GTNetServerOnlineStatusTypes.SOS_ONLINE);
+    }
     applyPublishedEntities(peer, remotePublic);
     peer = gtNetJpaRepository.save(peer);
 

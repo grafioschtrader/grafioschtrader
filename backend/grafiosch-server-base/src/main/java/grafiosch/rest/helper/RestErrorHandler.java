@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -284,9 +285,12 @@ public class RestErrorHandler {
     }
     log.warn(ex.getMessage(), ex);
     final Locale currentLocale = LocaleContextHolder.getLocale();
-    // A SecurityException may carry plain text instead of an NLS key, e.g. the GTNet token validation of an M2M call
-    return new ErrorWrapper(
-        new SecurityBreachError(messageSource.getMessage(ex.getMessage(), null, ex.getMessage(), currentLocale)));
+    // A SecurityException may carry plain text instead of an NLS key, e.g. the GTNet token validation of an M2M call.
+    // That text is for the log only: answering with it would tell a caller whether a domain is a known peer, so it is
+    // replaced by the generic breach text.
+    return new ErrorWrapper(new SecurityBreachError(messageSource.getMessage(
+        new DefaultMessageSourceResolvable(new String[] { ex.getMessage(), BaseConstants.CLIENT_SECURITY_BREACH }),
+        currentLocale)));
   }
 
   /**

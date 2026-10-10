@@ -30,7 +30,8 @@ import { AppSettings } from '../../shared/app.settings';
 /**
  * Table component for displaying security lookup results from GTNet peers.
  * Displays a list of SecurityGtnetLookupDTO entries with single selection support.
- * Rows are expandable to show connector configuration boxes (History, Intraday, Dividend, Split).
+ * Rows are expandable to show connector configuration boxes (History, Intraday, Dividend, Split) followed by a box
+ * with the instrument's base data (trading period, distribution frequency, links).
  * When user selects an entry and clicks "Apply Selected", emits the selected DTO.
  */
 @Component({
@@ -90,6 +91,36 @@ import { AppSettings } from '../../shared/app.settings';
                 }
               </fieldset>
             }
+          }
+          @if (hasSecurityProperties(security)) {
+            <fieldset class="connector-box">
+              <legend>{{ 'BASE_DATA' | translate }}</legend>
+              @for (prop of securityPropertyFields; track prop.field) {
+                @if (isPropertyShown(security, prop)) {
+                  <div class="connector-row">
+                    <span class="connector-label">{{ prop.labelKey | translate }}:</span>
+                    <span class="connector-value">
+                      @switch (prop.kind) {
+                        @case ('date') {
+                          {{ formatDate(security[prop.field]) }}
+                        }
+                        @case ('translate') {
+                          {{ security[prop.field] | translate }}
+                        }
+                        @case ('link') {
+                          <a class="text-break" [href]="security[prop.field]" target="_blank" rel="noopener noreferrer">
+                            {{ security[prop.field] }}
+                          </a>
+                        }
+                        @default {
+                          {{ security[prop.field] }}
+                        }
+                      }
+                    </span>
+                  </div>
+                }
+              }
+            </fieldset>
           }
         </div>
       </div>
@@ -200,6 +231,21 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
     }
   ];
 
+  /**
+   * Instrument properties of the peer's security, shown in an own box after the connector boxes. They are the
+   * fields of the security edit form's base data that the import takes over, so the user can judge them before
+   * applying the selection.
+   */
+  readonly securityPropertyFields: SecurityPropertyField[] = [
+    { field: 'activeFromDate', labelKey: 'ACTIVE_FROM_DATE', kind: 'date' },
+    { field: 'activeToDate', labelKey: 'ACTIVE_TO_DATE', kind: 'date' },
+    { field: 'distributionFrequency', labelKey: 'DISTRIBUTION_FREQUENCY', kind: 'translate' },
+    { field: 'denomination', labelKey: 'DENOMINATION' },
+    { field: 'leverageFactor', labelKey: 'LEVERAGE_FACTOR', hiddenValue: 1 },
+    { field: 'stockexchangeLink', labelKey: 'STOCKEXCHANGE_LINK', kind: 'link' },
+    { field: 'productLink', labelKey: 'PRODUCT_LINK', kind: 'link' }
+  ];
+
   /** Map of connector ID to human-readable name */
   feedConnectorsKV: { [id: string]: string } = {};
 
@@ -300,6 +346,21 @@ export class GtnetSecurityLookupTableComponent extends TableConfigBase implement
   }
 
   /**
+   * Tells whether a property carries a value worth showing: neither missing nor empty nor its neutral default.
+   */
+  isPropertyShown(security: SecurityGtnetLookupDTO, prop: SecurityPropertyField): boolean {
+    const value = security[prop.field];
+    return value != null && value !== '' && value !== prop.hiddenValue;
+  }
+
+  /**
+   * Tells whether the base data box has at least one row, so an empty box is not rendered.
+   */
+  hasSecurityProperties(security: SecurityGtnetLookupDTO): boolean {
+    return this.securityPropertyFields.some((prop) => this.isPropertyShown(security, prop));
+  }
+
+  /**
    * Formats a date string (YYYY-MM-DD) using the locale-aware date format.
    */
   formatDate(value: string): string {
@@ -338,6 +399,17 @@ interface ConnectorExtraField {
   isDate?: boolean;
   isDateTime?: boolean;
   suffix?: string;
+}
+
+/**
+ * One row of the base data box. Without a kind the raw value is shown; a hiddenValue suppresses a neutral default
+ * such as the leverage factor 1 of an unleveraged instrument.
+ */
+interface SecurityPropertyField {
+  field: keyof SecurityGtnetLookupDTO;
+  labelKey: string;
+  kind?: 'date' | 'translate' | 'link';
+  hiddenValue?: unknown;
 }
 
 interface ConnectorDisplayConfig {
