@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, NgZone, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
@@ -89,21 +89,36 @@ export class GtnetSecurityLookupDialogComponent {
 
   constructor(
     private lookupService: GtnetSecurityLookupService,
-    private translateService: TranslateService
+    private translateService: TranslateService,
+    private ngZone: NgZone
   ) {}
 
+  /**
+   * Starts the search when the dialog has opened. Optimus UI emits onShow at the end of the enter motion, which
+   * Angular starts in an afterRender hook outside the NgZone. A request started there would answer outside the zone
+   * as well, leaving the spinner on screen until an unrelated event triggers change detection, so the work is moved
+   * back into the zone.
+   */
   onShow(): void {
-    this.selectionHandled = false;
-    this.errorMessage = null;
-    this.response = null;
-    this.performSearch();
+    this.ngZone.run(() => {
+      this.selectionHandled = false;
+      this.errorMessage = null;
+      this.response = null;
+      this.performSearch();
+    });
   }
 
+  /**
+   * Cancels a running search and reports a close without selection. Runs in the NgZone for the same reason as
+   * onShow, so the parent removes the dialog immediately.
+   */
   onHide(): void {
-    this.cancelPendingRequest();
-    if (!this.selectionHandled) {
-      this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
-    }
+    this.ngZone.run(() => {
+      this.cancelPendingRequest();
+      if (!this.selectionHandled) {
+        this.closeDialog.emit(new ProcessedActionData(ProcessedAction.NO_CHANGE));
+      }
+    });
   }
 
   /** Cancels any pending lookup request to prevent stale responses from affecting the UI */
