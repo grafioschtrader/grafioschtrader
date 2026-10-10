@@ -99,11 +99,7 @@ Since we use **Jasypt**, the enviroment variable **JASYPT_ENCRYPTOR_PASSWORD** m
 java -jar ./grafioschtrader-server/target/grafioschtrader-server-0.XX.X.jar
 ```
 ### Optimize mariadb
-MariaDB deserves a lot of memory resources to operate GT well. Please adjust the following system variables of InnoDB to your system needs. The following settings are rather minimal:
-```
-innodb_buffer_pool_size=1GB
-tmp_table_size=128MB
-```
+MariaDB deserves a lot of memory resources to operate GT well. Set GT's values for your RAM in `/etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf` as described in the wiki section [MariaDB and Java heap by RAM](https://github.com/grafioschtrader/grafioschtrader/wiki/Installation-on-Raspberry-Pi-4-or-5#mariadb-and-java-heap-by-ram); the Linux installer writes the same file.
 
 ### When Flyway first time initialization fails
 If the settings for the database were incorrect and the database needs to be reinitialized. You can execute the following statement:

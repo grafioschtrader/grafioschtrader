@@ -1058,8 +1058,8 @@ DB_ROOT_PASSWORD|secret|root_password||MariaDB root password; new for a new serv
   MariaDB-Root-Passwort; neu für neuen Server, aktuell für vorhandenen Server
 JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD)|
   Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD)
-BUFFER_POOL|yesno|buffer||Set MariaDB buffer pool and restart the server, affecting every database|
-  MariaDB-Puffer setzen und Server neu starten; betrifft alle Datenbanken
+BUFFER_POOL|yesno|buffer||Set MariaDB memory and lock settings and restart the server, affecting every database|
+  MariaDB-Speicher- und Sperreinstellungen setzen und Server neu starten; betrifft alle Datenbanken
 JAVA_HEAP|heap|always||Java heap: -Xms<size> -Xmx<size>, with m or g units|
   Java-Heap: -Xms<Größe> -Xmx<Größe>, mit m oder g
 DOCROOT|path|always||Absolute document root; existing application content must remain untouched|
@@ -1109,6 +1109,18 @@ gt_memory_defaults() {
   [[ "${ANSWER[BUFFER_POOL]:-no}" == yes ]] || pool=0
   if (( row > 0 && (max+pool)*100 > mem*60 )); then row=$((row-1)); fi
   printf '%s' "${heaps[row]}"
+}
+
+# The [mysqld] settings of 60-grafioschtrader.cnf, one name=value per line. The wiki page "Installation on
+# Raspberry Pi 4 or 5" documents the same file and values for a manual installation; change both together.
+gt_mariadb_settings() {
+  local mem=${FACT[memory.MemTotal]:-0} pool=384M tmp=128M
+  [[ "$mem" =~ ^[0-9]+$ ]] || mem=0
+  if (( mem >= 6000 )); then pool=2G tmp=256M
+  elif (( mem >= 3000 )); then pool=1G tmp=256M; fi
+  # MariaDB limits in-memory temporary tables by the lower of both sizes, so they are set together.
+  printf '%s\n' "innodb_buffer_pool_size=$pool" "tmp_table_size=$tmp" "max_heap_table_size=$tmp" \
+    'innodb_lock_wait_timeout=100'
 }
 
 gt_certificate_covers() {
@@ -2264,7 +2276,7 @@ gt_plan_toolchains() {
     "@angular/cli@$CLI_REQUIRED und semver in /opt/gt-build-tools; gewähltes Node; NG_CLI_ANALYTICS=false"
 }
 gt_plan_database() {
-  local pool=384M mem=${FACT[memory.MemTotal]:-0}
+  local settings
   if [[ "${FACT[database.vendor]}" == absent ]]; then
     gt_plan_package mariadb-server; gt_plan_package mariadb-client
     gt_plan_row configure mariadb 'Remove anonymous accounts and test schema only on a newly installed server.' \
@@ -2294,9 +2306,8 @@ gt_plan_database() {
       'Bestandsaufnahme authentifizieren, bevor über das Vorhandensein des Kontos entschieden wird.'
   fi
   if [[ "${ANSWER[BUFFER_POOL]:-no}" == yes ]]; then
-    [[ "$mem" =~ ^[0-9]+$ ]] || mem=0
-    if (( mem >= 6000 )); then pool=2G; elif (( mem >= 3000 )); then pool=1G; fi
-    gt_plan_file /etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf "innodb_buffer_pool_size=$pool"
+    settings=$(gt_mariadb_settings)
+    gt_plan_file /etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf "${settings//$'\n'/ }"
     gt_plan_row restart mariadb 'Affects all listed schemas, including other applications.' \
       'Betrifft alle aufgeführten Schemas, auch andere Anwendungen.'
   fi
@@ -3725,8 +3736,20 @@ SQL
   gt_core_mark root_auth verified
 }
 
+# Returns 0 when the running server uses every value of gt_mariadb_settings, 1 when one differs, 2 on a query error.
+gt_core_database_settings_live() {
+  local name value number result columns=() expected=()
+  while IFS='=' read -r name value; do
+    number=${value%[MG]}
+    case "$value" in *G) number=$((number * 1073741824)) ;; *M) number=$((number * 1048576)) ;; esac
+    columns+=("@@$name") expected+=("$number")
+  done < <(gt_mariadb_settings)
+  result=$(IFS=,; printf 'SELECT %s;\n' "${columns[*]}" | gt_core_sql) || return 2
+  [[ "$result" == "$(IFS=$'\t'; printf '%s' "${expected[*]}")" ]] || return 1
+}
+
 gt_core_database() {
-  local result accounts host pool=384M mem=${FACT[memory.MemTotal]:-0} file
+  local result accounts host file
   gt_core_packages || return 2
   gt_core_root_auth || return 2
   result=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" |
@@ -3783,10 +3806,9 @@ gt_core_database() {
     fi
   fi
   if [[ "${ANSWER[BUFFER_POOL]:-no}" == yes ]]; then
-    if (( mem >= 6000 )); then pool=2G; elif (( mem >= 3000 )); then pool=1G; fi
     file=/etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf
     gt_no_symlinks "$file" || return 2
-    printf '[mysqld]\ninnodb_buffer_pool_size=%s\n' "$pool" > "$SCRATCH/buffer.cnf"
+    { printf '[mysqld]\n'; gt_mariadb_settings; } > "$SCRATCH/buffer.cnf"
     result=$(sha256sum "$SCRATCH/buffer.cnf"); result=${result%% *}
     if [[ -e "$file" ]]; then
       [[ "${STATE[file.buffer]:-}" == "$result" ]] && cmp -s "$file" "$SCRATCH/buffer.cnf" || return 2
@@ -3794,9 +3816,12 @@ gt_core_database() {
       gt_core_mark file.buffer "$result" || return 2
       install -m 644 "$SCRATCH/buffer.cnf" "$file" || return 2
     fi
-    result=$(printf 'SELECT @@innodb_buffer_pool_size;\n' | gt_core_sql) || return 2
-    case "$pool" in 2G) mem=2147483648 ;; 1G) mem=1073741824 ;; *) mem=402653184 ;; esac
-    [[ "$result" == "$mem" ]] || gt_core_run systemctl restart mariadb.service || return 2
+    gt_core_database_settings_live; result=$?
+    (( result != 2 )) || return 2
+    if (( result == 1 )); then
+      gt_core_run systemctl restart mariadb.service || return 2
+      gt_core_database_settings_live || return 2
+    fi
     gt_core_login DB_PASSWORD grafioschtrader TCP || return 2
   fi
   gt_core_mark step.database complete

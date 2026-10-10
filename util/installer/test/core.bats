@@ -292,3 +292,18 @@ core_boundary_fixture() {
   export LANGUAGE
   [ "$(gt_as_app bash -c 'printf %s "$LC_ALL:${LANGUAGE-unset}"')" = 'C.UTF-8:unset' ]
 }
+
+@test "running MariaDB values are compared with the planned settings in bytes" {
+  FACT[memory.MemTotal]=3800
+  gt_core_sql() { cat > "$BATS_TEST_TMPDIR/settings.sql"; printf '%s\n' "$LIVE"; }
+  LIVE=$'1073741824\t268435456\t268435456\t100'
+  gt_core_database_settings_live
+  [ "$(cat "$BATS_TEST_TMPDIR/settings.sql")" = \
+    'SELECT @@innodb_buffer_pool_size,@@tmp_table_size,@@max_heap_table_size,@@innodb_lock_wait_timeout;' ]
+  LIVE=$'1073741824\t16777216\t16777216\t50'
+  run gt_core_database_settings_live
+  [ "$status" -eq 1 ]
+  gt_core_sql() { return 2; }
+  run gt_core_database_settings_live
+  [ "$status" -eq 2 ]
+}

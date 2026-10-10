@@ -143,7 +143,7 @@ gt_plan_toolchains() {
     "@angular/cli@$CLI_REQUIRED und semver in /opt/gt-build-tools; gewähltes Node; NG_CLI_ANALYTICS=false"
 }
 gt_plan_database() {
-  local pool=384M mem=${FACT[memory.MemTotal]:-0}
+  local settings
   if [[ "${FACT[database.vendor]}" == absent ]]; then
     gt_plan_package mariadb-server; gt_plan_package mariadb-client
     gt_plan_row configure mariadb 'Remove anonymous accounts and test schema only on a newly installed server.' \
@@ -173,9 +173,8 @@ gt_plan_database() {
       'Bestandsaufnahme authentifizieren, bevor über das Vorhandensein des Kontos entschieden wird.'
   fi
   if [[ "${ANSWER[BUFFER_POOL]:-no}" == yes ]]; then
-    [[ "$mem" =~ ^[0-9]+$ ]] || mem=0
-    if (( mem >= 6000 )); then pool=2G; elif (( mem >= 3000 )); then pool=1G; fi
-    gt_plan_file /etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf "innodb_buffer_pool_size=$pool"
+    settings=$(gt_mariadb_settings)
+    gt_plan_file /etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf "${settings//$'\n'/ }"
     gt_plan_row restart mariadb 'Affects all listed schemas, including other applications.' \
       'Betrifft alle aufgeführten Schemas, auch andere Anwendungen.'
   fi

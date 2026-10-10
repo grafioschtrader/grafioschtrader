@@ -435,7 +435,10 @@ The core performs these steps:
 4. Create an empty `grafioschtrader` schema with `utf8mb4` / `utf8mb4_general_ci` and its account when absent.
    Existing empty schemas require consent and matching charset/collation. Existing accounts require their current
    password and existing schema privileges; their passwords and grants are not changed. Verify TCP login to
-   `127.0.0.1:3306`. Apply the buffer-pool drop-in and restart MariaDB only when selected and needed.
+   `127.0.0.1:3306`. When selected, write `/etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf` with the buffer pool,
+   the paired `tmp_table_size`/`max_heap_table_size` and `innodb_lock_wait_timeout=100` sized to the RAM, the same
+   file the wiki page *Installation on Raspberry Pi 4 or 5* prescribes for a manual installation, and restart
+   MariaDB only when a running value differs.
 5. Write encrypted application properties, the production override, `gtvar.sh` and a protected Bash service
    launcher with the selected Java/heap and `JASYPT_ENCRYPTOR_PASSWORD`. The launcher is not started.
 

@@ -322,6 +322,18 @@ domain_answers() {
   [[ "${PLAN[*]}" != *'restart | mariadb'* ]]
 }
 
+@test "MariaDB settings follow the RAM rows of the wiki and are planned completely" {
+  FACT[memory.MemTotal]=1900
+  [ "$(gt_mariadb_settings)" = $'innodb_buffer_pool_size=384M\ntmp_table_size=128M\nmax_heap_table_size=128M\ninnodb_lock_wait_timeout=100' ]
+  FACT[memory.MemTotal]=3800
+  [ "$(gt_mariadb_settings)" = $'innodb_buffer_pool_size=1G\ntmp_table_size=256M\nmax_heap_table_size=256M\ninnodb_lock_wait_timeout=100' ]
+  FACT[memory.MemTotal]=16000
+  [ "$(gt_mariadb_settings)" = $'innodb_buffer_pool_size=2G\ntmp_table_size=256M\nmax_heap_table_size=256M\ninnodb_lock_wait_timeout=100' ]
+  FACT[database.gt_tables]=0 ANSWER[DB_REUSE_EMPTY]=yes ANSWER[BUFFER_POOL]=yes
+  gt_plan
+  [[ "${PLAN[*]}" == *'60-grafioschtrader.cnf | innodb_buffer_pool_size=2G tmp_table_size=256M max_heap_table_size=256M innodb_lock_wait_timeout=100'* ]]
+}
+
 @test "shared Node is isolated unless replacement explicitly selected" {
   ACTION[node]=isolate
   ANSWER[NODE_REPLACE]=no

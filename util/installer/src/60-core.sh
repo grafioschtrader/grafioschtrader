@@ -590,8 +590,20 @@ SQL
   gt_core_mark root_auth verified
 }
 
+# Returns 0 when the running server uses every value of gt_mariadb_settings, 1 when one differs, 2 on a query error.
+gt_core_database_settings_live() {
+  local name value number result columns=() expected=()
+  while IFS='=' read -r name value; do
+    number=${value%[MG]}
+    case "$value" in *G) number=$((number * 1073741824)) ;; *M) number=$((number * 1048576)) ;; esac
+    columns+=("@@$name") expected+=("$number")
+  done < <(gt_mariadb_settings)
+  result=$(IFS=,; printf 'SELECT %s;\n' "${columns[*]}" | gt_core_sql) || return 2
+  [[ "$result" == "$(IFS=$'\t'; printf '%s' "${expected[*]}")" ]] || return 1
+}
+
 gt_core_database() {
-  local result accounts host pool=384M mem=${FACT[memory.MemTotal]:-0} file
+  local result accounts host file
   gt_core_packages || return 2
   gt_core_root_auth || return 2
   result=$(printf "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='grafioschtrader';\n" |
@@ -648,10 +660,9 @@ gt_core_database() {
     fi
   fi
   if [[ "${ANSWER[BUFFER_POOL]:-no}" == yes ]]; then
-    if (( mem >= 6000 )); then pool=2G; elif (( mem >= 3000 )); then pool=1G; fi
     file=/etc/mysql/mariadb.conf.d/60-grafioschtrader.cnf
     gt_no_symlinks "$file" || return 2
-    printf '[mysqld]\ninnodb_buffer_pool_size=%s\n' "$pool" > "$SCRATCH/buffer.cnf"
+    { printf '[mysqld]\n'; gt_mariadb_settings; } > "$SCRATCH/buffer.cnf"
     result=$(sha256sum "$SCRATCH/buffer.cnf"); result=${result%% *}
     if [[ -e "$file" ]]; then
       [[ "${STATE[file.buffer]:-}" == "$result" ]] && cmp -s "$file" "$SCRATCH/buffer.cnf" || return 2
@@ -659,9 +670,12 @@ gt_core_database() {
       gt_core_mark file.buffer "$result" || return 2
       install -m 644 "$SCRATCH/buffer.cnf" "$file" || return 2
     fi
-    result=$(printf 'SELECT @@innodb_buffer_pool_size;\n' | gt_core_sql) || return 2
-    case "$pool" in 2G) mem=2147483648 ;; 1G) mem=1073741824 ;; *) mem=402653184 ;; esac
-    [[ "$result" == "$mem" ]] || gt_core_run systemctl restart mariadb.service || return 2
+    gt_core_database_settings_live; result=$?
+    (( result != 2 )) || return 2
+    if (( result == 1 )); then
+      gt_core_run systemctl restart mariadb.service || return 2
+      gt_core_database_settings_live || return 2
+    fi
     gt_core_login DB_PASSWORD grafioschtrader TCP || return 2
   fi
   gt_core_mark step.database complete
