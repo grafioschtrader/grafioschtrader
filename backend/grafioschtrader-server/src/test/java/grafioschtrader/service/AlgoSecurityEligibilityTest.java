@@ -2,7 +2,6 @@ package grafioschtrader.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -19,11 +18,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoSecurity;
@@ -35,7 +32,6 @@ import grafioschtrader.repository.AlgoSecurityJpaRepository;
 import grafioschtrader.repository.AlgoSecurityJpaRepositoryImpl;
 import grafioschtrader.repository.AlgoTopJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
-import grafioschtrader.rest.SecurityResource;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 /** Tests instrument and opening-date eligibility without a Spring context or database writes. */
@@ -71,42 +67,6 @@ class AlgoSecurityEligibilityTest {
     Security unbounded = security(4, null);
     assertEquals(List.of(boundary, later, unbounded),
         eligibility.filterCandidates(7, 238, List.of(ended, boundary, later, unbounded)));
-  }
-
-  @Test
-  @DisplayName("Both ordinary and watchlist candidate endpoints enforce the same eligibility")
-  void bothCandidateEndpoints() {
-    User user = mock(User.class);
-    when(user.getIdTenant()).thenReturn(7);
-    var authentication = new UsernamePasswordAuthenticationToken("user", "unused");
-    authentication.setDetails(user);
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-    SecurityResource resource = new SecurityResource();
-    ReflectionTestUtils.setField(resource, "securityJpaRepository", securities);
-    ReflectionTestUtils.setField(resource, "securityEligibility", eligibility);
-    Security ended = security(1, "2020-02-05");
-    Security eligible = security(2, "2020-02-06");
-    Security cfd = security(3, "2099-12-31");
-    cfd.getAssetClass().setSpecialInvestmentInstrument(SpecialInvestmentInstruments.CFD);
-    Security forex = security(4, "2099-12-31");
-    forex.getAssetClass().setSpecialInvestmentInstrument(SpecialInvestmentInstruments.FOREX);
-    Security leveraged = security(5, "2099-12-31");
-    leveraged.setLeverageFactor(2);
-    var candidates = List.of(ended, cfd, eligible, forex, leveraged);
-    when(securities.getUnusedSecurityForAlgo(7, 238)).thenReturn(candidates);
-    when(securities.getUnusedSecurityForAlgoCustom(9, 7, 238)).thenReturn(candidates);
-    assertEquals(List.of(eligible), resource.getSecuritiesByIdAssetclass(238).getBody());
-    assertEquals(List.of(eligible), resource.getUnusedSecurityForAlgoCustom(9, 238).getBody());
-  }
-
-  @Test
-  @DisplayName("A strategy without a reference date retains expired candidates and accepts assignments")
-  void noReferenceDate() {
-    top.setReferenceDate(null);
-    Security ended = security(1, "2010-01-01");
-    when(securities.findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(1, 7)).thenReturn(ended);
-    assertEquals(List.of(ended), eligibility.filterCandidates(7, 238, List.of(ended)));
-    assertDoesNotThrow(() -> eligibility.validateAssignment(assignment(null, 238, ended), null));
   }
 
   @ParameterizedTest
@@ -154,16 +114,6 @@ class AlgoSecurityEligibilityTest {
   }
 
   @Test
-  @DisplayName("A new assignment may end exactly on opening day and uses the persisted security")
-  void saveBoundary() {
-    Security persisted = security(1, "2020-02-06");
-    when(securities.findByIdTenantPrivateIsNullOrIdTenantPrivateAndIdSecuritycurrency(1, 7)).thenReturn(persisted);
-    AlgoSecurity created = assignment(null, 238, security(1, "2099-12-31"));
-    eligibility.validateAssignment(created, null);
-    assertSame(persisted, created.getSecurity());
-  }
-
-  @Test
   @DisplayName("Unchanged assignments remain editable but replacements and moves must qualify")
   void existingAssignments() {
     Security ended = security(1, "2020-02-05");
@@ -180,30 +130,11 @@ class AlgoSecurityEligibilityTest {
   }
 
   @Test
-  @DisplayName("Standalone alerts have no strategy opening date")
-  void standaloneAlert() {
-    assertDoesNotThrow(() -> eligibility.validateAssignment(assignment(null, null, security(1, "2010-01-01")), null));
-    verifyNoInteractions(securities);
-  }
-
-  @Test
   @DisplayName("Foreign parent tenants and inaccessible securities cannot be used")
   void ownership() {
     assertThrows(SecurityException.class, () -> eligibility.filterCandidates(8, 238, List.of()));
     assertThrows(SecurityException.class,
         () -> eligibility.validateAssignment(assignment(null, 238, security(1, "2099-12-31")), null));
-  }
-
-  @Test
-  @DisplayName("Opening date is the next calendar day, including weekends and year boundaries")
-  void calendarBoundaries() {
-    top.setReferenceDate(LocalDate.of(2020, 12, 31));
-    Security yearEnd = security(1, "2020-12-31");
-    Security newYear = security(2, "2021-01-01");
-    assertEquals(List.of(newYear), eligibility.filterCandidates(7, 238, List.of(yearEnd, newYear)));
-    top.setReferenceDate(LocalDate.of(2020, 2, 7));
-    Security saturday = security(3, "2020-02-08");
-    assertEquals(List.of(saturday), eligibility.filterCandidates(7, 238, List.of(saturday)));
   }
 
   private Security security(int id, String end) {

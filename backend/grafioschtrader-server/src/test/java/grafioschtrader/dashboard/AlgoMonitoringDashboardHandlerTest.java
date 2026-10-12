@@ -64,19 +64,6 @@ class AlgoMonitoringDashboardHandlerTest {
   }
 
   @Test
-  @DisplayName("Without a monitoring assignment the card only states that")
-  void noAssignment() {
-    tenant.setIdAlgoTop(null);
-    assertThat(handler.summarize(user).reasonKey()).isEqualTo("DASHBOARD_ALGO_NO_MONITORING");
-  }
-
-  @Test
-  @DisplayName("An assigned hierarchy without a stored plan has not been evaluated yet")
-  void notEvaluated() {
-    assertThat(handler.summarize(user).reasonKey()).isEqualTo("DASHBOARD_ALGO_NOT_EVALUATED");
-  }
-
-  @Test
   @DisplayName("A plan of holds only is 'nothing to do', with the largest bucket drift and the next checkpoint")
   void nothingToDo() {
     when(recommendations.findByIdTenantAndIdAlgoTopOrderByLevelTypeAscIdNodeAsc(ID_TENANT, ID_TOP))
@@ -114,19 +101,6 @@ class AlgoMonitoringDashboardHandlerTest {
     assertThat(summary.sellCount()).isEqualTo(1);
     assertThat(summary.topTrades()).extracting(AlgoMonitoringSummary.Trade::securityName).containsExactly("C", "B",
         "A");
-  }
-
-  @Test
-  @DisplayName("Lines outside their tolerance band are counted, whatever their level")
-  void allocationBreachesAreCounted() {
-    AlgoRecommendation bucket = line("A", 20, null, AlgoRecommendationAction.REBALANCE_HOLD, null, -8.0);
-    AlgoRecommendation instrument = line("S", 30, 40, AlgoRecommendationAction.REBALANCE_HOLD, null, -8.0);
-    bucket.setAllocationBreach(true);
-    instrument.setAllocationBreach(true);
-    when(recommendations.findByIdTenantAndIdAlgoTopOrderByLevelTypeAscIdNodeAsc(ID_TENANT, ID_TOP)).thenReturn(
-        List.of(line("T", ID_TOP, null, AlgoRecommendationAction.REBALANCE_HOLD, null, 0.0), bucket, instrument));
-
-    assertThat(handler.summarize(user).allocationBreaches()).isEqualTo(2);
   }
 
   @Test

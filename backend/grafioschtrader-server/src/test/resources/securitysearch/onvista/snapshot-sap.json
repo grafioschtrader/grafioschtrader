@@ -1,0 +1,319 @@
+{
+ "instrument": {
+  "type": "Instrument",
+  "entityType": "STOCK",
+  "entitySubType": "COMMON_SHARE",
+  "entityAttributes": [
+   "HAS_SAVINGS_PLAN",
+   "GODMODE_TRADER_TRENDRADAR",
+   "HAS_QUOTE_BAR_LINK",
+   "HAS_SYSTEM_TRIGGER",
+   "BROKER_LIST",
+   "INSTRUMENT",
+   "THE_SCREENER_PDF",
+   "HAS_ORDERBOOK",
+   "HAS_MATCHING_INVESTMENT_PRODUCTS",
+   "HAS_NEWS",
+   "ANALYZER_RECOMMENDATIONS",
+   "TURBO_BOX",
+   "HAS_DYN_TRADER_BOX",
+   "TRADER_BOX",
+   "WIKIFOLIO_HOLDING"
+  ],
+  "entityValue": "82849",
+  "name": "SAP",
+  "urls": {
+   "NEWS": "https://www.onvista.de/news/aktien/SAP-News-DE0007164600",
+   "WEBSITE": "https://www.onvista.de/aktien/SAP-Aktie-DE0007164600"
+  },
+  "instrumentType": "Instrument",
+  "isin": "DE0007164600",
+  "wkn": "716460",
+  "symbol": "SAP",
+  "homeSymbol": "SAP",
+  "displayType": "Aktie",
+  "urlName": "SAP",
+  "underlyingEntity": {
+   "type": "STOCK",
+   "value": "82849",
+   "name": "SAP",
+   "urlName": "SAP"
+  },
+  "tinyName": "SAP",
+  "logo": {
+   "type": "NewsPhoto",
+   "ignoreIfUnknown": false,
+   "photoUrl": "https://images.onvista.com/onvista-media/image/fetch/h_128,w_128/LOGO_URL/STOCK/82849",
+   "width": 128,
+   "height": 128,
+   "imageContent": "LOGO",
+   "cloudinaryUrlTemplate": "https://images.onvista.com/onvista-media/image/fetch/{$transformation}/LOGO_URL/STOCK/82849"
+  }
+ },
+ "quoteList": {
+  "list": [
+   {
+    "market": {
+     "name": "Xetra",
+     "codeMarket": "_GER",
+     "nameExchange": "Xetra",
+     "codeExchange": "GER",
+     "idNotation": 163500,
+     "isoCountry": "DE",
+     "codeExchangeGoogle": "ETR"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.46,
+    "datetimeLast": "2026-10-09T15:38:17.010+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Tradegate BSX",
+     "codeMarket": "_GAT",
+     "nameExchange": "Tradegate BSX",
+     "codeExchange": "GAT",
+     "idNotation": 9386131,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.72,
+    "datetimeLast": "2026-10-09T20:02:38.925+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "LSE European TR",
+     "codeMarket": "_LST",
+     "nameExchange": "LSE European TR",
+     "codeExchange": "LST",
+     "idNotation": 39748696,
+     "isoCountry": "GB"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.3,
+    "datetimeLast": "2026-10-09T15:30:00.199+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "gettex",
+     "codeMarket": "_TRO",
+     "nameExchange": "gettex",
+     "codeExchange": "TRO",
+     "idNotation": 120499220,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.82,
+    "datetimeLast": "2026-10-09T20:50:36.032+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Stuttgart",
+     "codeMarket": "_STU",
+     "nameExchange": "Stuttgart",
+     "codeExchange": "STU",
+     "idNotation": 22031,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.36,
+    "datetimeLast": "2026-10-09T19:55:03.938+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Nasdaq OTC",
+     "codeMarket": "_PNK",
+     "nameExchange": "Nasdaq OTC",
+     "codeExchange": "PNK",
+     "idNotation": 9493482,
+     "isoCountry": "US",
+     "codeExchangeGoogle": "OTCMKTS"
+    },
+    "isoCurrency": "USD",
+    "last": 215.602,
+    "datetimeLast": "2026-10-09T19:35:35.267+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Quotrix",
+     "codeMarket": "_QUO",
+     "nameExchange": "Quotrix",
+     "codeExchange": "QUO",
+     "idNotation": 134129119,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.38,
+    "datetimeLast": "2026-10-09T19:59:20.783+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Frankfurt",
+     "codeMarket": "_FRA",
+     "nameExchange": "Frankfurt",
+     "codeExchange": "FRA",
+     "idNotation": 163497,
+     "isoCountry": "DE",
+     "codeExchangeGoogle": "FRA"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.34,
+    "datetimeLast": "2026-10-09T19:55:02.200+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "LS Exchange",
+     "codeMarket": "_LSX",
+     "nameExchange": "LS Exchange",
+     "codeExchange": "LSX",
+     "idNotation": 244494482,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 190.9,
+    "datetimeLast": "2026-10-09T20:26:32.194+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Stuttgart TradeREBEL",
+     "codeMarket": "_BPS",
+     "nameExchange": "Stuttgart TradeREBEL",
+     "codeExchange": "BPS",
+     "idNotation": 404392008,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.32,
+    "datetimeLast": "2026-10-09T17:17:29.047+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Düsseldorf",
+     "codeMarket": "_DUS",
+     "nameExchange": "Düsseldorf",
+     "codeExchange": "DUS",
+     "idNotation": 15555465,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.26,
+    "datetimeLast": "2026-10-09T18:02:05.710+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "München",
+     "codeMarket": "_MUN",
+     "nameExchange": "München",
+     "codeExchange": "MUN",
+     "idNotation": 15555466,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.1,
+    "datetimeLast": "2026-10-09T15:15:03.570+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Swiss Exchange",
+     "codeMarket": "_SWX",
+     "nameExchange": "Swiss Exchange",
+     "codeExchange": "SWX",
+     "idNotation": 120364809,
+     "isoCountry": "CH",
+     "codeExchangeGoogle": "SWX"
+    },
+    "isoCurrency": "CHF",
+    "last": 178.5,
+    "datetimeLast": "2026-10-09T15:30:51.008+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Lang & Schwarz",
+     "codeMarket": "@_LUSG",
+     "nameExchange": "außerbörslich Deutschland",
+     "codeExchange": "@DE",
+     "nameContributor": "Lang & Schwarz",
+     "codeContributor": "LUSG",
+     "idNotation": 3389771,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 192.62,
+    "datetimeLast": "2026-10-11T16:35:19.424+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Baader Trading",
+     "codeMarket": "@_BBF",
+     "nameExchange": "außerbörslich Deutschland",
+     "codeExchange": "@DE",
+     "nameContributor": "Baader Trading",
+     "codeContributor": "BBF",
+     "idNotation": 46984537,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 190.84,
+    "datetimeLast": "2026-10-10T15:47:35.412+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Hamburg",
+     "codeMarket": "_HAM",
+     "nameExchange": "Hamburg",
+     "codeExchange": "HAM",
+     "idNotation": 15555467,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 186.52,
+    "datetimeLast": "2026-10-09T06:16:00.250+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Hannover",
+     "codeMarket": "_HAN",
+     "nameExchange": "Hannover",
+     "codeExchange": "HAN",
+     "idNotation": 15555468,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 186.54,
+    "datetimeLast": "2026-10-09T06:11:11.500+00:00",
+    "unitType": "STK"
+   },
+   {
+    "market": {
+     "name": "Societe Generale",
+     "codeMarket": "@_SGED",
+     "nameExchange": "außerbörslich Deutschland",
+     "codeExchange": "@DE",
+     "nameContributor": "Societe Generale",
+     "codeContributor": "SGED",
+     "idNotation": 10336976,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 191.24,
+    "datetimeLast": "2026-10-09T19:59:59.000+00:00",
+    "unitType": "STK"
+   }
+  ]
+ }
+}

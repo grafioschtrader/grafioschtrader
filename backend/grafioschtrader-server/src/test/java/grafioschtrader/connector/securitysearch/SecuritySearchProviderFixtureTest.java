@@ -49,7 +49,8 @@ class SecuritySearchProviderFixtureTest {
   }
 
   private XetraSecuritySearch xetra() {
-    return new XetraSecuritySearch(server.baseUrl(), server.baseUrl() + "live/", Duration.ofSeconds(5));
+    return new XetraSecuritySearch(server.baseUrl(), server.baseUrl() + "live/", server.baseUrl() + "site/",
+        Duration.ofSeconds(5));
   }
 
   private OpenFigiSecuritySearch openFigi() {

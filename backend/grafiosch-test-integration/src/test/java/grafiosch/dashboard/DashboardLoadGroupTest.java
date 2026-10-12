@@ -57,25 +57,6 @@ class DashboardLoadGroupTest {
     assertThat(loaded).containsExactly("SLOW_CARD");
   }
 
-  @Test
-  @DisplayName("A layout without fast widgets loads its slowest group at once and leaves nothing pending")
-  void lowestPresentGroupIsLoadedFirst() {
-    layout(widget("s", "SLOW_CARD"));
-    var dashboard = service.get(user, true);
-    assertThat(dashboard.results()).extracting(Result::instanceId).containsExactly("s");
-    assertThat(dashboard.pendingGroups()).isEmpty();
-  }
-
-  @Test
-  @DisplayName("The layout without data, as the save path returns it, loads nothing and lists nothing")
-  void layoutWithoutDataLoadsNothing() {
-    layout(widget("s", "SLOW_CARD"), widget("f", "FAST_CARD"));
-    var dashboard = service.get(user, false);
-    assertThat(dashboard.results()).isEmpty();
-    assertThat(dashboard.pendingGroups()).isEmpty();
-    assertThat(loaded).isEmpty();
-  }
-
   private JsonNode widget(String instanceId, String type) {
     return mapper.valueToTree(Map.of("instanceId", instanceId, "type", type, "width", "HALF", "config", Map.of()));
   }

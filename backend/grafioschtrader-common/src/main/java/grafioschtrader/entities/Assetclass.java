@@ -14,8 +14,8 @@ import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import grafiosch.common.LockedWhenUsed;
 import grafiosch.common.PropertyAlwaysUpdatable;
-import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.entities.Auditable;
 import grafiosch.entities.MultilanguageString;
 import grafiosch.types.Language;
@@ -106,18 +106,22 @@ public class Assetclass extends Auditable implements Serializable {
   @Column(name = "id_asset_class")
   private Integer idAssetClass;
 
+  // categoryType and specialInvestmentInstrument stay changeable until a security references this asset class, see
+  // AssetclassJpaRepositoryImpl.getUpdatePropertyLevels. @PropertySelectiveUpdatableOrWhenNull would freeze them at
+  // creation time instead, because a primitive never has a null target value.
+
   @Schema(description = "An instrument belongs to a group of asset classes, such as shares, bonds, etc.")
   @Basic(optional = false)
   @NotNull
   @Column(name = "category_type")
-  @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   @Max(98)
   private byte categoryType;
 
   @Schema(description = "An instrument belongs to a group of financial instruments, e.g. ETF, direct, etc.")
   @NotNull
   @Column(name = "spec_invest_instrument")
-  @PropertySelectiveUpdatableOrWhenNull
+  @LockedWhenUsed
   @Max(98)
   private byte specialInvestmentInstrument;
 

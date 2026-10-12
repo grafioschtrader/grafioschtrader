@@ -1,0 +1,51 @@
+{
+ "chart": {
+  "result": [
+   {
+    "meta": {
+     "currency": "CHF",
+     "symbol": "NOVN.SW",
+     "exchangeName": "EBS",
+     "fullExchangeName": "Swiss",
+     "instrumentType": "EQUITY",
+     "firstTradeDate": 796892400,
+     "regularMarketTime": 1791559813,
+     "hasPrePostMarketData": false,
+     "gmtoffset": 7200,
+     "timezone": "CEST",
+     "exchangeTimezoneName": "Europe/Zurich",
+     "regularMarketPrice": 119.1,
+     "regularMarketChangePercent": 1.172,
+     "fulldayPrice": 119.1,
+     "fulldayChange": 1.38,
+     "fulldayChangePercent": 1.172,
+     "fiftyTwoWeekHigh": 132.68,
+     "fiftyTwoWeekLow": 97.05,
+     "regularMarketDayHigh": 119.76,
+     "regularMarketDayLow": 118.44,
+     "regularMarketVolume": 1772393,
+     "longName": "Novartis AG",
+     "shortName": "NOVARTIS N",
+     "chartPreviousClose": 117.72,
+     "priceHint": 2,
+     "dataGranularity": "1d",
+     "range": "1d",
+     "validRanges": [
+      "1d",
+      "5d",
+      "1mo",
+      "3mo",
+      "6mo",
+      "1y",
+      "2y",
+      "5y",
+      "10y",
+      "ytd",
+      "max"
+     ]
+    }
+   }
+  ],
+  "error": null
+ }
+}

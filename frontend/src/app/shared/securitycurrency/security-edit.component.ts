@@ -45,6 +45,9 @@ import { GtnetSecurityLookupDialogComponent } from '../../gtnet/component/gtnet-
 import { SecurityGtnetLookupDTO } from '../../gtnet/model/gtnet-security-lookup';
 import { GtnetSecurityLookupService } from '../../gtnet/service/gtnet-security-lookup.service';
 import { SecurityBondTermsComponent } from './security-bond-terms.component';
+import { SecurityLookupDialogComponent } from '../../securitylookup/component/security-lookup-dialog.component';
+import { SecurityLookupSelection } from '../../securitylookup/model/security-lookup';
+import { chooseDistributionFrequency } from '../../securitylookup/model/security-lookup-selection';
 
 export function isManualIssuerCountryChange(
   dataLoaded: boolean,
@@ -139,6 +142,17 @@ export function isManualIssuerCountryChange(
         [tickerSymbol]="$safeNavigationMigration(configObject?.tickerSymbol?.formControl?.value)"
         (closeDialog)="handleCloseGtnetLookupDialog($event)">
       </gtnet-security-lookup-dialog>
+    }
+    @if (visibleSecurityLookupDialog) {
+      <security-lookup-dialog
+        [visibleDialog]="visibleSecurityLookupDialog"
+        [isin]="configObject.isin.formControl.value"
+        [currency]="configObject.currency.formControl.value"
+        [mic]="getSelectedStockexchangeMic()"
+        [idAssetClass]="configObject.assetClass.formControl.value"
+        [tickerSymbol]="configObject.tickerSymbol.formControl.value"
+        (closeDialog)="handleCloseSecurityLookupDialog($event)">
+      </security-lookup-dialog>
     }`,
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -150,6 +164,7 @@ export function isManualIssuerCountryChange(
     SecuritysplitEditTableComponent,
     SecurityHistoryquotePeriodEditTableComponent,
     GtnetSecurityLookupDialogComponent,
+    SecurityLookupDialogComponent,
     SecurityBondTermsComponent
   ]
 })
@@ -189,10 +204,14 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
   /** Visibility flag for GTNet security lookup dialog */
   visibleGtnetLookupDialog = false;
 
+  /** Visibility flag for the security lookup at the data providers */
+  visibleSecurityLookupDialog = false;
+
   dataLoaded = false;
   private stockexchangeSubscribe: Subscription;
   private distributionFrequencySubscribe: Subscription;
   private gtnetLookupSubscribe: Subscription;
+  private securityLookupSubscribe: Subscription;
   private isinSubscribe: Subscription;
   private issuerCountrySubscribe: Subscription;
   private nameSubscribe: Subscription;
@@ -222,6 +241,22 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.formConfigPeriod = AppHelper.getDefaultFormConfig(this.gps, 2, this.helpLinkPeriod.bind(this));
 
     this.config = SecurityEditSupport.getSecurityBaseFieldDefinition(SecurityDerived.Security, this.gps);
+
+    // The lookup at the data providers follows the currency field; it is enabled once ISIN, currency and stock
+    // exchange are set.
+    const currencyFieldIndex = this.config.findIndex((fc) => fc.field === 'currency');
+    if (currencyFieldIndex >= 0) {
+      this.config.splice(
+        currencyFieldIndex + 1,
+        0,
+        DynamicFieldHelper.createFunctionButtonFieldName(
+          'securityLookup',
+          'SECURITY_LOOKUP',
+          () => this.openSecurityLookup(),
+          { fieldsetName: 'BASE_DATA', disabled: true }
+        )
+      );
+    }
 
     // Add GTNet lookup button after currency field if GTNet is enabled (invisible until we check for accessible peers)
     if (this.gps.useGtnet()) {
@@ -439,6 +474,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.stockexchangeSubscribe && this.stockexchangeSubscribe.unsubscribe();
     this.distributionFrequencySubscribe && this.distributionFrequencySubscribe.unsubscribe();
     this.gtnetLookupSubscribe && this.gtnetLookupSubscribe.unsubscribe();
+    this.securityLookupSubscribe?.unsubscribe();
     this.isinSubscribe?.unsubscribe();
     this.issuerCountrySubscribe?.unsubscribe();
     this.nameSubscribe?.unsubscribe();
@@ -477,6 +513,70 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     }
   }
 
+  /** Opens the lookup of the security at the data providers. */
+  openSecurityLookup(): void {
+    this.visibleSecurityLookupDialog = true;
+  }
+
+  /**
+   * MIC of the stock exchange chosen in the form.
+   *
+   * @returns The MIC, or null when no stock exchange is chosen
+   */
+  getSelectedStockexchangeMic(): string {
+    const idStockexchange: number = this.configObject.stockexchange.formControl.value;
+    const stockexchanges = this.configObject.stockexchange.referencedDataObject as Stockexchange[];
+    return stockexchanges?.find((se) => se.idStockexchange === idStockexchange)?.mic ?? null;
+  }
+
+  /**
+   * Handles the close of the security lookup dialog. The chosen listing and connectors are taken over through the same
+   * path as a GTNet lookup, so both fill the form identically. Stock exchange and currency stay as entered.
+   */
+  handleCloseSecurityLookupDialog(processedActionData: ProcessedActionData): void {
+    this.visibleSecurityLookupDialog = false;
+    if (processedActionData.action === ProcessedAction.CREATED && processedActionData.data) {
+      this.applyGtnetLookupData(this.toLookupDto(processedActionData.data as SecurityLookupSelection));
+    }
+  }
+
+  /**
+   * Converts the selection of the security lookup into the DTO the form takeover expects.
+   *
+   * @param selection - Chosen listing and connectors; a missing connector leaves that feed unchanged
+   * @returns The DTO for applyGtnetLookupData
+   */
+  private toLookupDto(selection: SecurityLookupSelection): SecurityGtnetLookupDTO {
+    const c = selection.candidate;
+    return {
+      isin: c.isin,
+      currency: c.currency,
+      name: c.name,
+      tickerSymbol: c.tickerSymbol,
+      categoryType: c.categoryType,
+      specialInvestmentInstrument: c.specialInvestmentInstrument,
+      matchedAssetClassId: c.matchedAssetClassId,
+      stockexchangeMic: null,
+      denomination: c.denomination,
+      // A bond brings its coupon frequency; otherwise the frequency of the chosen dividend connector, or the one the
+      // other dividend connectors agree on
+      distributionFrequency:
+        c.distributionFrequency ?? chooseDistributionFrequency(selection.dividend, c.dividendConnectors),
+      productLink: c.productLink,
+      stockexchangeLink: c.stockexchangeLink,
+      activeFromDate: c.activeFromDate ? Helper.parseDateOnlyAsLocal(c.activeFromDate) : undefined,
+      activeToDate: c.activeToDate ? Helper.parseDateOnlyAsLocal(c.activeToDate) : undefined,
+      matchedHistoryConnector: selection.history?.idConnector,
+      matchedHistoryUrlExtension: selection.history?.urlExtension,
+      matchedIntraConnector: selection.intra?.idConnector,
+      matchedIntraUrlExtension: selection.intra?.urlExtension,
+      matchedDividendConnector: selection.dividend?.idConnector,
+      matchedDividendUrlExtension: selection.dividend?.urlExtension,
+      matchedSplitConnector: selection.split?.idConnector,
+      matchedSplitUrlExtension: selection.split?.urlExtension
+    };
+  }
+
   /**
    * Applies data from GTNet lookup to the security form fields.
    * Maps enum values to local IDs for asset class and stock exchange.
@@ -490,6 +590,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     }
     if (dto.tickerSymbol) {
       this.configObject.tickerSymbol.formControl.setValue(dto.tickerSymbol);
+      this.configObject.tickerSymbol.formControl.markAsTouched();
     }
     if (dto.distributionFrequency) {
       this.configObject.distributionFrequency.formControl.setValue(dto.distributionFrequency);
@@ -592,6 +693,30 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
    * Subscribes to form value changes to enable/disable the GTNet lookup button.
    * Button is enabled when (ISIN or ticker) AND currency are filled.
    */
+  /**
+   * Enables the security lookup button once ISIN, currency, stock exchange and asset class are set. The asset class
+   * comes first because its type decides which data providers and connectors the lookup asks.
+   */
+  private valueChangedOnSecurityLookupFields(): void {
+    this.securityLookupSubscribe = combineLatest([
+      this.configObject.isin.formControl.valueChanges.pipe(startWith(this.configObject.isin.formControl.value)),
+      this.configObject.currency.formControl.valueChanges.pipe(startWith(this.configObject.currency.formControl.value)),
+      this.configObject.stockexchange.formControl.valueChanges.pipe(
+        startWith(this.configObject.stockexchange.formControl.value)
+      ),
+      this.configObject.assetClass.formControl.valueChanges.pipe(
+        startWith(this.configObject.assetClass.formControl.value)
+      )
+    ]).subscribe(([isin, currency, idStockexchange, idAssetClass]) => {
+      this.configObject.securityLookup.disabled = !(
+        isin?.trim().length > 0 &&
+        currency?.trim().length > 0 &&
+        idStockexchange &&
+        idAssetClass
+      );
+    });
+  }
+
   private valueChangedOnGtnetLookupFields(): void {
     if (this.configObject.gtnetLookup) {
       this.gtnetLookupSubscribe = combineLatest([
@@ -619,6 +744,7 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     this.valueChangedOnStockexchange();
     this.valueChangedOnDistributionFrequency();
     this.valueChangedOnGtnetLookupFields();
+    this.valueChangedOnSecurityLookupFields();
     this.valueChangedOnIssuerAndNameFields();
     this.hideVisibleFeedConnectorsFields(this.config, false, FeedIdentifier.SECURITY);
 
@@ -845,6 +971,25 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     }
     if (canHaveIssuerCountry) {
       this.prefillIssuerCountryFromIsin(this.configObject.isin.formControl.value);
+    }
+    this.applyDistributionFrequencyAvailability(assetClass);
+  }
+
+  /**
+   * Hides the distribution frequency for a non-investable index and fixes it to DF_NONE. The disabled value is still
+   * transferred on save, so the index is stored without a distribution frequency.
+   */
+  private applyDistributionFrequencyAvailability(assetClass: Assetclass): void {
+    const distributionFrequency = this.configObject.distributionFrequency;
+    const canHaveDistributionFrequency = Security.canHaveDistributionFrequency(assetClass);
+    distributionFrequency.invisible = !canHaveDistributionFrequency;
+    if (canHaveDistributionFrequency) {
+      distributionFrequency.formControl.enable({ emitEvent: false });
+    } else {
+      distributionFrequency.formControl.setValue(DistributionFrequency[DistributionFrequency.DF_NONE], {
+        emitEvent: false
+      });
+      distributionFrequency.formControl.disable({ emitEvent: false });
     }
   }
 

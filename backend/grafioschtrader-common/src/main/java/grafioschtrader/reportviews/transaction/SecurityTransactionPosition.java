@@ -10,7 +10,6 @@ import grafiosch.common.DataHelper;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.reportviews.securityaccount.DisposalCostDetail;
-import grafioschtrader.reportviews.securityaccount.DisposalEstimate;
 import grafioschtrader.reportviews.securityaccount.SecurityPositionSummary;
 import grafioschtrader.types.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;

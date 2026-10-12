@@ -208,6 +208,7 @@ import { GTNetMessageAnswerTableComponent } from './lib/gnet/component/gtnet-mes
 import { GTNetMessageAnswerService } from './lib/gnet/service/gtnet.message.answer.service';
 import { GTNetProtocolService } from './lib/gnet/service/gtnet.protocol.service';
 import { GtnetSecurityLookupService } from './gtnet/service/gtnet-security-lookup.service';
+import { SecurityLookupService } from './securitylookup/service/security-lookup.service';
 import { GTNetSecurityImpHeadService } from './shared/gtnet/service/gtnet-security-imp-head.service';
 import { GTNetSecurityImpPosService } from './shared/gtnet/service/gtnet-security-imp-pos.service';
 import { GTNetSecurityImportComponent } from './shared/gtnet/component/gtnet-security-import.component';
@@ -480,6 +481,7 @@ const createTranslateLoader = (http: HttpClient) =>
     GTNetProtocolService,
     GTNetService,
     GtnetSecurityLookupService,
+    SecurityLookupService,
     GTNetSecurityImpHeadService,
     GTNetSecurityImpPosService,
     HistoryquotePeriodService,

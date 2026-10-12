@@ -9,7 +9,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import grafiosch.entities.Role;
-import grafiosch.entities.User;
 import grafiosch.exceptions.DataViolationException;
 import grafiosch.rest.UpdateCreateDeleteAuditResource;
 import grafiosch.rest.UpdateCreateJpaRepository;
@@ -70,22 +68,15 @@ public class ImportTransactionPlatformResource extends UpdateCreateDeleteAuditRe
       carries them is not their choice. Pass no platform to clear the setting.""", tags = {
       RequestGTMappings.IMPORTTRANSACTION_PLATFORM })
   @PutMapping(value = "/gtplatform", produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Integer> setGtImportPlatform(
       @RequestParam(required = false) Integer idTransactionImportPlatform) {
-    checkAdmin();
     if (idTransactionImportPlatform != null
         && !importTransactionPlatformJpaRepository.existsById(idTransactionImportPlatform)) {
       throw new DataViolationException("id.gt.import.platform", "gt.tenant.gtplatform.notexists", null);
     }
     globalparametersService.setGtImportPlatformId(idTransactionImportPlatform);
     return new ResponseEntity<>(idTransactionImportPlatform, HttpStatus.OK);
-  }
-
-  private void checkAdmin() {
-    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    if (user.getMostPrivilegedRole() != Role.ROLE_ADMIN) {
-      throw new SecurityException("Admin access required");
-    }
   }
 
   @Override

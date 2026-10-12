@@ -70,10 +70,15 @@ export abstract class SecuritycurrencySearchBase implements OnInit {
       DynamicFieldHelper.createFieldCheckboxHeqF(SecuritycurrencySearchBase.NAME_REGEX, {
         userDefinedValue: this.secondGroup
       }),
-      DynamicFieldHelper.createFieldInputStringHeqF('tickerSymbol', 6, false, {
-        upperCase: true,
-        userDefinedValue: this.secondGroup
-      }),
+      DynamicFieldHelper.createFieldInputStringHeqF(
+        'tickerSymbol',
+        this.gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Security_Ticker_Symbol),
+        false,
+        {
+          upperCase: true,
+          userDefinedValue: this.secondGroup
+        }
+      ),
       DynamicFieldHelper.createFieldPcalendarHeqF(DataType.DateStringShortUS, 'activeDate', false, {
         userDefinedValue: <string>this.secondGroup
       }),

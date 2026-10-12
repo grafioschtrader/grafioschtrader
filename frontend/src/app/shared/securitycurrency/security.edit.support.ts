@@ -65,9 +65,10 @@ export class SecurityEditSupport {
       })
     );
     fc.push(
-      DynamicFieldHelper.createFieldSelectNumber('assetClass', AppSettings.ASSETCLASS.toUpperCase(), true, {
+      DynamicFieldHelper.createFieldDropdownNumber('assetClass', AppSettings.ASSETCLASS.toUpperCase(), true, {
         dataproperty: 'assetClass.idAssetClass',
-        fieldsetName: 'BASE_DATA'
+        fieldsetName: 'BASE_DATA',
+        filter: true
       })
     );
 
@@ -88,10 +89,17 @@ export class SecurityEditSupport {
         DynamicFieldHelper.createFieldInputStringVSHeqF('isin', 12, false, ['ISIN'], { fieldsetName: 'BASE_DATA' })
       );
       fc.push(
-        DynamicFieldHelper.createFieldInputStringHeqF('tickerSymbol', 6, false, {
-          fieldsetName: 'BASE_DATA',
-          upperCase: true
-        })
+        DynamicFieldHelper.createFieldInputStringHeqF(
+          'tickerSymbol',
+          gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Security_Ticker_Symbol),
+          false,
+          {
+            fieldsetName: 'BASE_DATA',
+            upperCase: true,
+            // The input limits typing only; a validator also catches a value taken over from a lookup
+            minLength: 1
+          }
+        )
       );
       fc.push(
         DynamicFieldHelper.createFieldDropdownStringHeqF('issuerCountry', false, {
@@ -317,11 +325,7 @@ export class SecurityEditSupport {
         vksoCurrency
       ));
     configObject.assetClass.referencedDataObject = assetclasses;
-    configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
-      this.gps,
-      this.translateService,
-      configObject.assetClass.referencedDataObject
-    );
+    this.removeFilterAssetclass(configObject);
   }
 
   /**
@@ -372,7 +376,7 @@ export class SecurityEditSupport {
   }
 
   removeFilterAssetclass(configObject: { [name: string]: FieldConfig }): void {
-    configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+    configObject.assetClass.groupItem = BusinessSelectOptionsHelper.assetclassCreateGroupItems(
       this.gps,
       this.translateService,
       configObject.assetClass.referencedDataObject
@@ -380,7 +384,7 @@ export class SecurityEditSupport {
   }
 
   filterAssetclasses(configObject: { [name: string]: FieldConfig }, assetclassType: AssetclassType): void {
-    configObject.assetClass.valueKeyHtmlOptions = BusinessSelectOptionsHelper.assetclassCreateValueKeyHtmlSelectOptions(
+    configObject.assetClass.groupItem = BusinessSelectOptionsHelper.assetclassCreateGroupItems(
       this.gps,
       this.translateService,
       (<Assetclass[]>configObject.assetClass.referencedDataObject).filter(

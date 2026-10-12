@@ -1,0 +1,51 @@
+{
+ "chart": {
+  "result": [
+   {
+    "meta": {
+     "currency": "EUR",
+     "symbol": "SAP.DE",
+     "exchangeName": "GER",
+     "fullExchangeName": "XETRA",
+     "instrumentType": "EQUITY",
+     "firstTradeDate": 892105200,
+     "regularMarketTime": 1791560297,
+     "hasPrePostMarketData": false,
+     "gmtoffset": 7200,
+     "timezone": "CEST",
+     "exchangeTimezoneName": "Europe/Berlin",
+     "regularMarketPrice": 191.46,
+     "regularMarketChangePercent": 3.705,
+     "fulldayPrice": 191.46,
+     "fulldayChange": 6.84,
+     "fulldayChangePercent": 3.705,
+     "fiftyTwoWeekHigh": 244.3,
+     "fiftyTwoWeekLow": 127.5,
+     "regularMarketDayHigh": 192.58,
+     "regularMarketDayLow": 188.86,
+     "regularMarketVolume": 2366705,
+     "longName": "SAP SE",
+     "shortName": "SAP SE                        I",
+     "chartPreviousClose": 184.62,
+     "priceHint": 2,
+     "dataGranularity": "1d",
+     "range": "1d",
+     "validRanges": [
+      "1d",
+      "5d",
+      "1mo",
+      "3mo",
+      "6mo",
+      "1y",
+      "2y",
+      "5y",
+      "10y",
+      "ytd",
+      "max"
+     ]
+    }
+   }
+  ],
+  "error": null
+ }
+}

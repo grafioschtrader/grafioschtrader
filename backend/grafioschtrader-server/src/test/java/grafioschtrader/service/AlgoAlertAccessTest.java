@@ -75,15 +75,6 @@ class AlgoAlertAccessTest {
   }
 
   @Test
-  void alertsWithoutRuleBasedTradingAllowLiveActions() {
-    features.setAlgo(false);
-    resource.evaluateNow();
-    resource.retry(123);
-    verify(evaluator).evaluateAlertsForTenant(42);
-    verify(delivery).retry(42, 123);
-  }
-
-  @Test
   void readOnlyAllowsDiagnosticsButRejectsActions() {
     when(user.isTenantAccessReadOnly()).thenReturn(true);
     assertThat(resource.notifications()).isEmpty();

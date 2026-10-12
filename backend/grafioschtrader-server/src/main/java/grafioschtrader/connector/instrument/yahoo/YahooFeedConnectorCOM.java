@@ -13,8 +13,10 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonView;
@@ -24,12 +26,15 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.connector.yahoo.YahooHelper;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
@@ -76,11 +81,60 @@ public class YahooFeedConnectorCOM extends BaseFeedConnector {
     supportedFeed.put(FeedSupport.FS_DIVIDEND, new FeedIdentifier[] { FeedIdentifier.DIVIDEND_URL });
   }
 
+  /** Source of the Yahoo symbol suffix per MIC; absent when the connector is created outside Spring. */
+  @Autowired(required = false)
+  private MicProviderMapRepository micProviderMapRepository;
+
+  /** Yahoo symbol suffix per MIC, e.g. ".SW" for XSWX; a MIC mapped without suffix has an empty string. */
+  private volatile Map<String, String> yahooSuffixByMic;
+
   public YahooFeedConnectorCOM() {
     super(supportedFeed, YahooHelper.YAHOO, "Yahoo USA Finance", null, EnumSet.noneOf(UrlCheck.class));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.CRYPTOCURRENCY,
         AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.ETF,
         AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
+  }
+
+  /**
+   * Takes the Yahoo symbol of master data that came from Yahoo itself. Otherwise builds the Yahoo symbol from the
+   * exchange ticker and the Yahoo suffix of the MIC in {@code mic_provider_map}, e.g. NOVN on XSWX becomes
+   * {@code NOVN.SW} and AAPL on XNAS stays {@code AAPL}. Every feed of Yahoo is keyed by this symbol. A MIC without a
+   * Yahoo mapping gives no extension, and so does a mapping without suffix outside NASDAQ and NYSE: the Yahoo rows
+   * follow the ISO MIC list, where a missing suffix mostly means an unknown one. Whether the symbol is right is shown by
+   * the probe.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    if (YahooHelper.YAHOO.equals(baseData.providerId()) && baseData.providerInstrumentId() != null) {
+      // Master data from Yahoo itself carries the Yahoo symbol
+      return Optional.of(baseData.providerInstrumentId());
+    }
+    if (baseData.tickerSymbol() == null || baseData.mic() == null) {
+      return Optional.empty();
+    }
+    String suffix = getYahooSuffixByMic().get(baseData.mic());
+    // A row without suffix means "no suffix" only on the US exchanges; elsewhere the suffix is simply unknown
+    if (suffix == null || suffix.isEmpty() && !GlobalConstants.STOCK_EX_MIC_NASDAQ.equals(baseData.mic())
+        && !GlobalConstants.STOCK_EX_MIC_NYSE.equals(baseData.mic())) {
+      return Optional.empty();
+    }
+    String symbol = baseData.tickerSymbol().trim().replace(' ', '-') + suffix;
+    return symbol.matches(URL_NORMAL_REGEX) ? Optional.of(symbol) : Optional.empty();
+  }
+
+  private Map<String, String> getYahooSuffixByMic() {
+    Map<String, String> suffixByMic = yahooSuffixByMic;
+    if (suffixByMic == null) {
+      if (micProviderMapRepository == null) {
+        return Map.of();
+      }
+      suffixByMic = new HashMap<>();
+      for (MicProviderMap row : micProviderMapRepository.findByIdProviderMic_IdProvider(YahooHelper.YAHOO)) {
+        suffixByMic.put(row.getIdProviderMic().getMic(), row.getSymbolSuffix() == null ? "" : row.getSymbolSuffix());
+      }
+      yahooSuffixByMic = suffixByMic;
+    }
+    return suffixByMic;
   }
 
   @Override

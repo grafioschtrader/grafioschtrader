@@ -1,0 +1,54 @@
+{
+ "expires": 1791742091888,
+ "searchValue": "DE0007164600",
+ "list": [
+  {
+   "type": "Instrument",
+   "entityType": "STOCK",
+   "entityAttributes": [
+    "HAS_SAVINGS_PLAN",
+    "GODMODE_TRADER_TRENDRADAR",
+    "HAS_SYSTEM_TRIGGER",
+    "BROKER_LIST",
+    "INSTRUMENT",
+    "THE_SCREENER_PDF",
+    "HAS_ORDERBOOK",
+    "HAS_NEWS",
+    "ANALYZER_RECOMMENDATIONS",
+    "TURBO_BOX",
+    "HAS_DYN_TRADER_BOX",
+    "TRADER_BOX",
+    "WIKIFOLIO_HOLDING"
+   ],
+   "entityValue": "82849",
+   "name": "SAP",
+   "urls": {
+    "NEWS": "https://www.onvista.de/news/aktien/SAP-News-DE0007164600",
+    "WEBSITE": "https://www.onvista.de/aktien/SAP-Aktie-DE0007164600"
+   },
+   "instrumentType": "Instrument",
+   "isin": "DE0007164600",
+   "wkn": "716460",
+   "symbol": "SAP",
+   "homeSymbol": "SAP",
+   "displayType": "Aktie",
+   "urlName": "SAP",
+   "underlyingEntity": {
+    "type": "STOCK",
+    "value": "82849",
+    "name": "SAP",
+    "urlName": "SAP"
+   },
+   "tinyName": "SAP",
+   "logo": {
+    "type": "NewsPhoto",
+    "ignoreIfUnknown": false,
+    "photoUrl": "https://images.onvista.com/onvista-media/image/fetch/h_128,w_128/LOGO_URL/STOCK/82849",
+    "width": 128,
+    "height": 128,
+    "imageContent": "LOGO",
+    "cloudinaryUrlTemplate": "https://images.onvista.com/onvista-media/image/fetch/{$transformation}/LOGO_URL/STOCK/82849"
+   }
+  }
+ ]
+}

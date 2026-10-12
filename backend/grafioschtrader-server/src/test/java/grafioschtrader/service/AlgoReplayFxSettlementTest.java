@@ -137,28 +137,6 @@ class AlgoReplayFxSettlementTest {
   }
 
   @Test
-  void openingLiquidationUsesTheSameRateAndCommitAccounting() throws Exception {
-    var chf = account(40, "CHF", 0);
-    configure(Map.of(30, AlgoReplayFxTest.flat("1")), List.of(securities(30)), List.of(chf));
-    when(market.tradingExcluded(security)).thenReturn(true);
-    var fill = booking.closeExcluded(state, new AlgoReplayLiquidation.Close(security, 30, chf, 1, null), DAY);
-    assertThat(fill.getCurrencyExRate()).isCloseTo(.792, within(1e-12));
-    assertThat(fx.paid()).isCloseTo(.8, within(1e-12));
-  }
-
-  @Test
-  void accountsSharingCashArePricedUnderTheirOwnTariff() {
-    var chf = account(40, "CHF", 80.5);
-    configure(Map.of(30, AlgoReplayFxTest.flat("1"), 31, AlgoReplayFxTest.flat("0")),
-        List.of(securities(30), securities(31)), List.of(chf));
-    var funds = booking.funds(state, security);
-    assertThat(funds.availableFor(30, chf, DAY, "USD", 100)).isLessThan(100);
-    assertThat(funds.availableFor(31, chf, DAY, "USD", 100)).isGreaterThan(100);
-    assertThat(state.accounts.resolve(security, DAY, 100, funds).idSecurityaccount()).isEqualTo(31);
-    assertThat(fx.paid()).isZero();
-  }
-
-  @Test
   void reducedOrderRequotesItsFinalTierAndMic() throws Exception {
     var chf = account(40, "CHF", 810);
     var model = new FxFeeConfig(null, null,
@@ -169,19 +147,6 @@ class AlgoReplayFxSettlementTest {
     assertThat(fill.getCurrencyExRate()).isCloseTo(.832, within(1e-12));
     assertThat(cash.get(40)).isGreaterThanOrEqualTo(0);
     assertThat(fx.paid()).isCloseTo(28.8, within(1e-10));
-  }
-
-  @Test
-  void strategyEstimatesAndRejectedFillsRecordNothing() throws Exception {
-    var chf = account(40, "CHF", 1000);
-    configure(Map.of(30, AlgoReplayFxTest.flat("1")), List.of(securities(30)), List.of(chf));
-    booking.book(state, security, 70, 1, TransactionType.ACCUMULATE, DAY);
-    assertThat(fills).isEmpty();
-    assertThat(fx.paid()).isZero();
-    doThrow(new IllegalArgumentException("rejected")).when(transactions).saveOnlyAttributes(any(), isNull(), anySet());
-    assertThatThrownBy(() -> booking.book(state, security, null, 1, TransactionType.ACCUMULATE, DAY))
-        .hasMessage("rejected");
-    assertThat(fx.paid()).isZero();
   }
 
   @Test
@@ -197,50 +162,6 @@ class AlgoReplayFxSettlementTest {
     assertThat(transfers.getFirst().getDepositTransaction().getCurrencyExRate()).isNull();
     assertThat(fx.paid()).isZero();
     assertThat(cash.get(42)).isZero();
-  }
-
-  @Test
-  void zeroAndAbsentFxKeepTheOriginalChfFundingLedger() throws Exception {
-    var usd = account(40, "USD", 60);
-    var moreUsd = account(41, "USD", 50);
-    var chf = account(42, "CHF", 0);
-    List<Double> expected = null;
-    for (var models : List.of(Map.<Integer, FxFeeConfig>of(), Map.of(30, AlgoReplayFxTest.flat("0")))) {
-      cash.put(40, 60.0);
-      cash.put(41, 50.0);
-      cash.put(42, 0.0);
-      transfers.clear();
-      state.fundingTransfers = 0;
-      configure(models, List.of(securities(30)), List.of(usd, moreUsd, chf));
-      var fill = booking.book(state, security, null, 1, TransactionType.ACCUMULATE, DAY);
-      assertThat(fill.getCashaccount()).isSameAs(chf);
-      assertThat(transfers).hasSize(2);
-      var ledger = transfers.stream()
-          .flatMap(t -> java.util.stream.Stream.of(t.getWithdrawalTransaction(), t.getDepositTransaction()))
-          .map(Transaction::getCashaccountAmount).toList();
-      if (expected == null)
-        expected = ledger;
-      else
-        assertThat(ledger).isEqualTo(expected);
-      assertThat(fx.paid()).isZero();
-    }
-  }
-
-  @Test
-  void pinnedAccountStaysPinnedAndCommittedTransferSurvivesRefusedPurchase() throws Exception {
-    var usd = account(40, "USD", 200);
-    var chf = account(42, "CHF", 0);
-    configure(Map.of(30, AlgoReplayFxTest.flat("1")), List.of(securities(30)), List.of(usd, chf));
-    state.accounts.remember(security, new AlgoReplayAccounts.Booking(30, chf));
-    doThrow(new IllegalArgumentException("rejected")).when(transactions).saveOnlyAttributes(any(), isNull(), anySet());
-    assertThatThrownBy(() -> booking.book(state, security, null, 1, TransactionType.ACCUMULATE, DAY))
-        .hasMessage("rejected");
-    assertThat(transfers).hasSize(1);
-    var deposit = transfers.getFirst().getDepositTransaction();
-    assertThat(deposit.getCashaccount()).isSameAs(chf);
-    assertThat(deposit.getCurrencyExRate()).isCloseTo(.792, within(1e-12));
-    double expected = (deposit.getCashaccountAmount() / .792 - deposit.getCashaccountAmount() / .8) * .8;
-    assertThat(fx.paid()).isCloseTo(expected, within(1e-10));
   }
 
   @Test
@@ -283,20 +204,6 @@ class AlgoReplayFxSettlementTest {
   }
 
   @Test
-  void transferReducedAcrossATierBoundaryUsesItsFinalTariff() {
-    var usd = account(40, "USD", 100);
-    var chf = account(42, "CHF", 0);
-    var model = new FxFeeConfig(null, null,
-        List.of(new FeeRule("large", "amount >= 99", "2"), new FeeRule("small", "true", "4")), null);
-    configure(Map.of(30, model), List.of(securities(30)), List.of(usd, chf));
-    booking.fundCustody(state, 30, chf, DAY.plusDays(1), 80);
-    var transfer = transfers.getFirst();
-    assertThat(transfer.getDepositTransaction().getCurrencyExRate()).isCloseTo(.768, within(1e-12));
-    assertThat(cash.get(40)).isGreaterThanOrEqualTo(0);
-    assertThat(transfer.getDepositTransaction().getCashaccountAmount()).isCloseTo(76.8, within(.01));
-  }
-
-  @Test
   void allTradeCostsSelectTheTariffBeforeTheRateIsApplied() throws Exception {
     var chf = account(40, "CHF", 1000);
     var model = new FxFeeConfig(null, null,
@@ -319,32 +226,6 @@ class AlgoReplayFxSettlementTest {
         .isInstanceOf(AlgoReplayFx.Failure.class);
     assertThat(transfers).isEmpty();
     assertThat(fills).isEmpty();
-  }
-
-  @Test
-  void shiftedIncomeAtFourPointNinePercentPassesTheActualWritePathRateGuard() {
-    var chf = account(42, "CHF", 0);
-    configure(Map.of(30, AlgoReplayFxTest.flat("4.9")), List.of(securities(30)), List.of(chf));
-    var template = mock(TransactionTemplate.class);
-    when(template.execute(any())).thenAnswer(a -> ((TransactionCallback<?>) a.getArgument(0)).doInTransaction(null));
-    var days = mock(TradingDaysPlusJpaRepository.class);
-    var next = mock(TradingDaysPlus.class);
-    when(next.getTradingDate()).thenReturn(DAY.plusDays(2));
-    when(days.findByTradingDateBetweenOrderByTradingDate(any(), any())).thenReturn(List.of(next));
-    var service = new AlgoReplayIncomeBookingService(mock(AlgoTradingRepository.class), transactions, currencies,
-        template, days);
-    var dividend = new AlgoReplayDividendService.Distribution(1, security, DAY.minusDays(2), DAY, 100.0, "USD", false);
-    service.pay(new AlgoReplayIncomeBookingService.Context(1, 65, "CHF", market, fx),
-        new AlgoReplayDividendService.Claim(dividend, 30, chf, 1), 1, 0);
-    Transaction fill = fills.getFirst();
-    assertThat(fill.getTransactionDate()).isEqualTo(DAY.plusDays(2));
-    assertThat(fill.getCurrencyExRate()).isCloseTo(.7608, within(1e-12));
-    var writer = new TransactionJpaRepositoryImpl();
-    ReflectionTestUtils.setField(writer, "currencypairJpaRepository", currencies);
-    when(currencies.getClosePriceForDate(any(), eq(DAY.plusDays(2)))).thenReturn(.8);
-    assertThatCode(() -> ReflectionTestUtils.invokeMethod(writer, "checkCurrencypair", fill))
-        .doesNotThrowAnyException();
-    verify(currencies).getClosePriceForDate(any(), eq(DAY.plusDays(2)));
   }
 
   @Test

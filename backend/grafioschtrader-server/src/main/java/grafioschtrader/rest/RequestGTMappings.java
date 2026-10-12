@@ -65,6 +65,9 @@ public interface RequestGTMappings {
   public static final String GTNETSECURITYLOOKUP = "gtnetsecuritylookup";
   public static final String GTNETSECURITYLOOKUP_MAP = RequestMappings.API + GTNETSECURITYLOOKUP;
 
+  public static final String SECURITYLOOKUP = "securitylookup";
+  public static final String SECURITYLOOKUP_MAP = RequestMappings.API + SECURITYLOOKUP;
+
   public static final String GTNETSECURITYIMPHEAD = "gtnetsecurityimphead";
   public static final String GTNETSECURITYIMPHEAD_MAP = RequestMappings.API + GTNETSECURITYIMPHEAD;
 

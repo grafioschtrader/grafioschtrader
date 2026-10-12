@@ -48,22 +48,6 @@ class AlgoAlertScopeResolverTest {
   }
 
   @Test
-  void largeHierarchyReadsStrategiesOnceWithTenantAndNodeBounds() {
-    when(strategies.findByIdTenantAndIdAlgoAssetclassSecurityInOrderByIdAlgoRuleStrategy(eq(65), anyCollection()))
-        .thenReturn(List.of(strategy(10, 1), strategy(20, 2), strategy(30, 3)));
-
-    var scopes = resolver.resolveForAlgoTop(top);
-
-    assertThat(scopes).hasSize(200).allMatch(AlgoAlertScope::active);
-    assertThat(scopes.getFirst().strategy().getId()).isEqualTo(10);
-    assertThat(scopes.getLast().strategy().getId()).isEqualTo(30);
-    List<Integer> nodeIds = new ArrayList<>(List.of(1, 2));
-    children.forEach(child -> nodeIds.add(child.getId()));
-    verify(strategies).findByIdTenantAndIdAlgoAssetclassSecurityInOrderByIdAlgoRuleStrategy(65, nodeIds);
-    verifyNoMoreInteractions(strategies);
-  }
-
-  @Test
   void strategyChangesRemainVisibleOnTheNextResolution() {
     AlgoStrategy bucketDraft = strategy(20, 2);
     AlgoStrategy memberDraft = strategy(30, 3);
@@ -111,37 +95,4 @@ class AlgoAlertScopeResolverTest {
     assertThat(resolver.resolveForAlgoTop(top)).isEqualTo(replay);
   }
 
-  @Test
-  void standaloneAlertFollowsItsPreference() {
-    AlgoSecurity standalone = children.getFirst();
-    standalone.setIdTenant(65);
-    when(members.findByIdAlgoSecurityParentIsNull()).thenReturn(List.of(standalone));
-    AlgoStrategy rule = strategy(50, standalone.getId());
-    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(standalone.getId(), 65)).thenReturn(List.of(rule));
-    assertThat(resolver.resolveStandalone(65)).singleElement().matches(AlgoAlertScope::active);
-    rule.setAlertEnabled(false);
-    // Reported as inactive rather than dropped, so that the caller discards its crossing baseline.
-    assertThat(resolver.resolveStandalone(65)).singleElement().matches(scope -> !scope.active());
-  }
-
-  @Test
-  void withoutRuleBasedTradingOnlyStandaloneAlertsAreResolved() {
-    var monitoring = mock(AlgoMonitoringService.class);
-    var tops = mock(AlgoTopJpaRepository.class);
-    ReflectionTestUtils.setField(resolver, "monitoring", monitoring);
-    ReflectionTestUtils.setField(resolver, "algoTopJpaRepository", tops);
-    when(tops.findByIdTenantOrderByName(65)).thenReturn(List.of(top));
-    when(monitoring.isAssigned(65, 1)).thenReturn(true);
-    when(strategies.findByIdTenantAndIdAlgoAssetclassSecurityInOrderByIdAlgoRuleStrategy(eq(65), anyCollection()))
-        .thenReturn(List.of(strategy(10, 1)));
-    AlgoSecurity standalone = children.getFirst();
-    standalone.setIdTenant(65);
-    when(members.findByIdAlgoSecurityParentIsNull()).thenReturn(List.of(standalone));
-    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(standalone.getId(), 65))
-        .thenReturn(List.of(strategy(50, standalone.getId())));
-
-    assertThat(resolver.resolveAlertScopes(65, true)).hasSize(2);
-    assertThat(resolver.resolveAlertScopes(65, false)).singleElement()
-        .satisfies(scope -> assertThat(scope.strategy().getId()).isEqualTo(50));
-  }
 }

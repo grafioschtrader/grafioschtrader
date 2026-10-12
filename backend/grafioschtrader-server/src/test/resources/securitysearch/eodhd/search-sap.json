@@ -1,0 +1,62 @@
+[
+ {
+  "Code": "SAP",
+  "Exchange": "XETRA",
+  "Name": "SAP SE",
+  "Type": "Common Stock",
+  "Country": "Germany",
+  "Currency": "EUR",
+  "ISIN": "DE0007164600",
+  "isPrimary": false,
+  "previousClose": 191.46,
+  "previousCloseDate": "2026-10-09"
+ },
+ {
+  "Code": "0NW4",
+  "Exchange": "LSE",
+  "Name": "SAP SE",
+  "Type": "Common Stock",
+  "Country": "UK",
+  "Currency": "EUR",
+  "ISIN": "DE0007164600",
+  "isPrimary": false,
+  "previousClose": 191.3,
+  "previousCloseDate": "2026-10-09"
+ },
+ {
+  "Code": "SAPGF",
+  "Exchange": "US",
+  "Name": "SAP SE",
+  "Type": "Common Stock",
+  "Country": "USA",
+  "Currency": "USD",
+  "ISIN": "DE0007164600",
+  "isPrimary": false,
+  "previousClose": 215.6,
+  "previousCloseDate": "2026-10-09"
+ },
+ {
+  "Code": "SAP",
+  "Exchange": "F",
+  "Name": "SAP SE",
+  "Type": "Common Stock",
+  "Country": "Germany",
+  "Currency": "EUR",
+  "ISIN": "DE0007164600",
+  "isPrimary": true,
+  "previousClose": 191.34,
+  "previousCloseDate": "2026-10-09"
+ },
+ {
+  "Code": "SAP",
+  "Exchange": "STU",
+  "Name": "SAP SE",
+  "Type": "Common Stock",
+  "Country": "Germany",
+  "Currency": "EUR",
+  "ISIN": "DE0007164600",
+  "isPrimary": false,
+  "previousClose": 188.7,
+  "previousCloseDate": "2026-10-08"
+ }
+]

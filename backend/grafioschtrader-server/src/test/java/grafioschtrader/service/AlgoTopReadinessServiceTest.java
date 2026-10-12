@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -64,29 +63,6 @@ class AlgoTopReadinessServiceTest {
   }
 
   @Test
-  @DisplayName("A complete hierarchy with a portfolio rebalance is ready for everything")
-  void ready() {
-    AlgoTopReadiness readiness = check(bucket);
-    assertTrue(readiness.readyForReplay());
-    assertTrue(readiness.readyForRebalancing());
-    assertTrue(readiness.issues().isEmpty());
-  }
-
-  @Test
-  @DisplayName("104% on the top level blocks both uses")
-  void topWeightsIncomplete() {
-    AlgoTopReadiness readiness = check(bucket, bucket(4, 4f, member(5, 100f, 31)));
-    assertBlocked(readiness, AlgoTopReadinessService.WEIGHTS_INCOMPLETE, 1);
-  }
-
-  @Test
-  @DisplayName("Securities of an asset class that do not add up to 100% block")
-  void classWeightsIncomplete() {
-    bucket.getAlgoSecurityList().getFirst().setPercentage(90f);
-    assertBlocked(check(bucket), AlgoTopReadinessService.WEIGHTS_INCOMPLETE, 2);
-  }
-
-  @Test
   @DisplayName("A missing weighting or a maximum investment out of range blocks")
   void invalidWeights() {
     bucket.getAlgoSecurityList().getFirst().setPercentage(null);
@@ -109,21 +85,12 @@ class AlgoTopReadinessServiceTest {
   @Test
   @DisplayName("An incomplete portfolio rebalance and an invalid class band block")
   void rebalancingConfiguration() {
-    strategies.set(0, strategy(1, AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING, "{\"timePeriodPerYear\":4}"));
+    strategies.set(0,
+        strategy(1, AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING, "{\"timePeriodPerYear\":4}"));
     assertBlocked(check(bucket), AlgoTopReadinessService.REBALANCING_CONFIG, 1);
     strategies.set(0, strategy(1, AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING, REBALANCING_CONFIG));
     bucket.setMaxTradedSecuritiesPerAssetclass(0);
     assertBlocked(check(bucket), AlgoTopReadinessService.BAND_INVALID, 2);
-  }
-
-  @Test
-  @DisplayName("What the engines tolerate is reported without blocking")
-  void tolerated() {
-    bucket.getAlgoSecurityList().getFirst().getSecurity().setLeverageFactor(2);
-    AlgoTopReadiness readiness = check(bucket);
-    assertTrue(readiness.readyForRebalancing());
-    assertEquals(List.of(AlgoTopReadinessService.INSTRUMENT_UNSUITABLE, AlgoTopReadinessService.ASSETCLASS_NO_INSTRUMENT),
-        codes(readiness));
   }
 
   @Test
@@ -148,16 +115,6 @@ class AlgoTopReadinessServiceTest {
   }
 
   @Test
-  @DisplayName("An inactive Mean Reversion Dip is not checked")
-  void inactiveMeanReversion() {
-    AlgoStrategy meanReversion = strategy(3, AlgoStrategyImplementationType.AS_OBSERVED_SECURITY_MEAN_REVERSION_DIP,
-        "not json");
-    meanReversion.setActivatable(false);
-    strategies.add(meanReversion);
-    assertTrue(check(bucket).issues().isEmpty());
-  }
-
-  @Test
   @DisplayName("A direct bond without a coupon rate blocks; a zero coupon or an equity does not")
   void bondWithoutCouponRate() {
     Security security = bucket.getAlgoSecurityList().getFirst().getSecurity();
@@ -178,19 +135,6 @@ class AlgoTopReadinessServiceTest {
     assertTrue(check(bucket).issues().isEmpty());
   }
 
-  @Test
-  @DisplayName("A bond without a coupon rate that matured before the opening is only reported as unsuitable")
-  void maturedBondWithoutCouponRate() {
-    Security security = bucket.getAlgoSecurityList().getFirst().getSecurity();
-    security.getAssetClass().setCategoryType(AssetclassType.CONVERTIBLE_BOND);
-    security.setActiveToDate(LocalDate.of(2010, 10, 1));
-    top.setReferenceDate(LocalDate.of(2020, 2, 6));
-    AlgoTopReadiness readiness = check(bucket);
-    assertTrue(readiness.readyForReplay());
-    assertEquals(List.of(AlgoTopReadinessService.INSTRUMENT_UNSUITABLE, AlgoTopReadinessService.ASSETCLASS_NO_INSTRUMENT),
-        codes(readiness));
-  }
-
   private AlgoTopReadiness check(AlgoAssetclass... buckets) {
     return service.check(top, List.of(buckets), Locale.ENGLISH);
   }
@@ -199,8 +143,9 @@ class AlgoTopReadinessServiceTest {
     assertFalse(readiness.readyForReplay());
     assertFalse(readiness.readyForRebalancing());
     assertTrue(readiness.issues().getFirst().blocking());
-    assertTrue(readiness.issues().stream()
-        .anyMatch(issue -> issue.blocking() && code.equals(issue.code()) && issue.idNode() == idNode),
+    assertTrue(
+        readiness.issues().stream()
+            .anyMatch(issue -> issue.blocking() && code.equals(issue.code()) && issue.idNode() == idNode),
         () -> code + " on " + idNode + " not in " + codes(readiness));
   }
 

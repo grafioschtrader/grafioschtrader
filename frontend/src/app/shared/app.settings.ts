@@ -89,6 +89,7 @@ export class AppSettings {
   public static readonly GT_NET_EXCHANGE_SECURITIES_KEY = 'securities';
   public static readonly GT_NET_EXCHANGE_CURRENCYPAIRS_KEY = 'currencypairs';
   public static readonly GT_NET_SECURITY_LOOKUP_KEY = 'gtnetsecuritylookup';
+  public static readonly SECURITY_LOOKUP_KEY = 'securitylookup';
   public static readonly GT_NET_SECURITY_IMP_HEAD = 'GTNetSecurityImpHead';
   public static readonly GT_NET_SECURITY_IMP_HEAD_KEY = 'gtnetsecurityimphead';
   public static readonly GT_NET_SECURITY_IMP_POS = 'GTNetSecurityImpPos';
@@ -238,6 +239,7 @@ export class AppSettings {
 
   public static readonly FIELD_SIZE_MAX_G_WEB_URL = 'FIELD_SIZE_MAX_G_WEB_URL';
   public static readonly FIELD_SIZE_MAX_Stockexchange_Website = 'FIELD_SIZE_MAX_Stockexchange_Website';
+  public static readonly FIELD_SIZE_MAX_Security_Ticker_Symbol = 'FIELD_SIZE_MAX_Security_Ticker_Symbol';
 
   /**
    * Session key holding the id of the simulation environment the user entered. Kept apart from

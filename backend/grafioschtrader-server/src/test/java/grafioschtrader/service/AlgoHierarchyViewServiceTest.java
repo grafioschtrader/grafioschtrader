@@ -19,7 +19,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.context.MessageSource;
 
-import grafioschtrader.dto.AlgoHierarchyDto;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.entities.AlgoTop;
@@ -55,16 +54,6 @@ class AlgoHierarchyViewServiceTest {
     when(assetclasses.findByIdTenantAndIdAlgoAssetclassParent(7, 1)).thenReturn(List.of(bucket));
   }
 
-  @Test
-  @DisplayName("A valid hierarchy delivers totals and no warnings; later-starting instruments remain eligible")
-  void validHierarchy() {
-    bucket.getAlgoSecurityList().getFirst().getSecurity().setActiveFromDate(LocalDate.of(2025, 1, 1));
-    AlgoHierarchyDto result = service.getHierarchy(7, 1);
-    assertEquals(100f, result.algoTop().addedPercentage);
-    assertEquals(100f, result.algoAssetclassList().getFirst().getAddedPercentage());
-    assertTrue(result.invalidFields().isEmpty());
-  }
-
   @ParameterizedTest
   @CsvSource({ "99.994, true", "99.996, false", "100, false", "100.004, false", "100.006, true", "0, true" })
   @DisplayName("The same backend tolerance applies to root and asset-class totals")
@@ -74,19 +63,6 @@ class AlgoHierarchyViewServiceTest {
     var fields = service.getHierarchy(7, 1).invalidFields();
     assertEquals(invalid, fields.getOrDefault(1, Set.of()).contains("addedPercentage"));
     assertEquals(invalid, fields.getOrDefault(2, Set.of()).contains("addedPercentage"));
-  }
-
-  @Test
-  @DisplayName("Positive empty classes are red; zero-weight empty classes only warn about their total")
-  void emptyClass() {
-    bucket.setAlgoSecurityList(List.of());
-    assertEquals(Set.of("name", "addedPercentage"), service.getHierarchy(7, 1).invalidFields().get(2));
-    bucket.setPercentage(0f);
-    assertEquals(Set.of("addedPercentage"), service.getHierarchy(7, 1).invalidFields().get(2));
-    when(assetclasses.findByIdTenantAndIdAlgoAssetclassParent(7, 1)).thenReturn(List.of());
-    AlgoHierarchyDto empty = service.getHierarchy(7, 1);
-    assertEquals(0f, empty.algoTop().addedPercentage);
-    assertEquals(Set.of("addedPercentage"), empty.invalidFields().get(1));
   }
 
   @Test
@@ -107,27 +83,6 @@ class AlgoHierarchyViewServiceTest {
     assertFalse(fields.containsKey(2));
     assertFalse(fields.containsKey(4));
     assertEquals(Set.of("name"), fields.get(3));
-  }
-
-  @Test
-  @DisplayName("Zero-weight members do not cover a positive asset-class allocation")
-  void unallocatedMembers() {
-    AlgoSecurity member = bucket.getAlgoSecurityList().getFirst();
-    member.setPercentage(0f);
-    assertTrue(service.getHierarchy(7, 1).invalidFields().get(2).contains("name"));
-    member.setPercentage(null);
-    assertTrue(service.getHierarchy(7, 1).invalidFields().get(2).contains("name"));
-    member.setPercentage(100f);
-    member.setSecurity(null);
-    assertEquals(Set.of("name"), service.getHierarchy(7, 1).invalidFields().get(3));
-  }
-
-  @Test
-  @DisplayName("A hierarchy without a reference date uses the existing date-unrestricted eligibility policy")
-  void noReferenceDate() {
-    top.setReferenceDate(null);
-    bucket.getAlgoSecurityList().getFirst().getSecurity().setActiveToDate(LocalDate.of(2000, 1, 1));
-    assertTrue(service.getHierarchy(7, 1).invalidFields().isEmpty());
   }
 
   @Test

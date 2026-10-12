@@ -1,0 +1,25 @@
+{
+ "expires": 1791742094272,
+ "searchValue": "US91282CJZ59",
+ "list": [
+  {
+   "type": "Instrument",
+   "entityType": "BOND",
+   "entityAttributes": [
+    "INSTRUMENT",
+    "BROKER_LIST"
+   ],
+   "entityValue": "265058343",
+   "name": "United States of America DL-Notes 2024(34)",
+   "urls": {
+    "WEBSITE": "https://www.onvista.de/anleihen/USA-24-34-Anleihe-US91282CJZ59"
+   },
+   "instrumentType": "Instrument",
+   "isin": "US91282CJZ59",
+   "wkn": "A3LUB5",
+   "displayType": "Anleihe",
+   "urlName": "USA-24-34",
+   "tinyName": "United States of America DL-Notes 2024(34)"
+  }
+ ]
+}

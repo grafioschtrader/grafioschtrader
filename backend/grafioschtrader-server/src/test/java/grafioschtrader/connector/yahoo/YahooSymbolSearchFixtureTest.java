@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import grafioschtrader.connector.securitysearch.FixtureHttpServer;
 import grafioschtrader.connector.securitysearch.SecuritySearchQuery;
 import grafioschtrader.connector.securitysearch.SecuritySearchResult;
+import grafioschtrader.dto.SecuritySearchCandidateDto;
 import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.types.SecuritySearchStatus;
@@ -71,6 +72,23 @@ class YahooSymbolSearchFixtureTest {
     server.fixture(PATH, "yahoo/isin-apple.json");
     SecuritySearchResult result = search().search(SecuritySearchQuery.of("US0378331005", "USD", "XNAS", "AAPL"));
     assertEquals("AAPL", result.uniqueCandidateOnMic("XNAS", "AAPL").orElseThrow().providerSymbol());
+  }
+
+  @Test
+  @DisplayName("An index of exactly ^code lands on the queried exchange, whatever Yahoo names; the ticker drops ^")
+  void indexOnQueriedExchange() {
+    server.fixture(PATH, "yahoo/empty.json").status(PATH + "?q=OMXH25", 200, """
+        {"count":2,"quotes":[{"exchange":"STO","shortname":"OMX Helsinki 25","quoteType":"INDEX","symbol":"^OMXH25"},
+        {"exchange":"STO","shortname":"OMX Helsinki 25 DVP","quoteType":"INDEX","symbol":"^OMXH25DVP"}]}""");
+    SecuritySearchResult result = search(List.of(row("XHEL", "HEX", ".HE"), row("XSTO", "STO", ".ST")))
+        .search(SecuritySearchQuery.of("FI0008900212", "EUR", "XHEL", "OMXH25"));
+    SecuritySearchCandidateDto index = result.candidates().stream().filter(c -> "XHEL".equals(c.mic())).findFirst()
+        .orElseThrow();
+    assertEquals("^OMXH25", index.providerSymbol());
+    assertEquals(1, result.candidates().stream().filter(c -> "XHEL".equals(c.mic())).count(),
+        "only the exact code, not ^OMXH25DVP");
+    assertEquals("OMXH25", YahooSymbolSearch.exchangeTicker("^OMXH25"));
+    assertEquals("SAP", YahooSymbolSearch.exchangeTicker("SAP.DE"));
   }
 
   @Test

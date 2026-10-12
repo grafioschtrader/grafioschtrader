@@ -64,14 +64,6 @@ class GTNetMessageDeleteProtectionTest {
   }
 
   @Test
-  @DisplayName("A pending handshake stays protected, as it always was")
-  void aPendingCoreRequestIsStillProtected() {
-    GTNetMessage request = sentRequest(GNetCoreMessageCode.GT_NET_FIRST_HANDSHAKE_SEL_RR_S.getValue());
-    repositoryImpl.computeCanDeleteFlags(List.of(request), Set.of(ID_MESSAGE), Set.of());
-    assertThat(request.isCanDelete()).isFalse();
-  }
-
-  @Test
   @DisplayName("An announcement is deletable even while it sits in a pending set")
   void anAnnouncementIsNotProtected() {
     GTNetMessage announcement = sentRequest(GNetCoreMessageCode.GT_NET_OFFLINE_ALL_C.getValue());

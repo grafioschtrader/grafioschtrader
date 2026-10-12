@@ -425,12 +425,13 @@ public class SecruityTransactionsReport {
             }
           }, untilDate);
     }
-    if (dateCurrencyMap != null
+    if (dateCurrencyMap != null && !securityTransactionSummary.transactionPositionList.isEmpty()
         && secruityTransactionsReportOptions.contains(SecruityTransactionsReportOptions.CLEAR_TRANSACTION_SECURITY)) {
       // Per-transaction currency result is only returned on the transaction list, which always sets
       // CLEAR_TRANSACTION_SECURITY. The open-position lookup for the transaction dialog does not, and must not require
       // a currency pair that may not exist yet (first trade in that currency, or the pair stored in the opposite
-      // direction).
+      // direction). Without a transaction there is nothing to apply the rate to, and the tenant's currency pairs only
+      // cover currencies it holds, so asking for the rate of an instrument that was never traded would fail.
       securityTransactionSummary.applyReportRate(
           ReportHelper.getReportExchangeRate(security.getCurrency(), dateCurrencyMap, tradingDaysPlusJpaRepository));
     }

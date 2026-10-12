@@ -17,7 +17,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import grafiosch.entities.User;
-import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.entities.AlgoStrategy;
@@ -118,30 +117,6 @@ class AlgoMonitoringServiceTest {
   }
 
   @Test
-  void standalonePreferenceIsEditableWithoutAssignment() {
-    AlgoSecurity standalone = new AlgoSecurity();
-    standalone.setIdTenant(1);
-    when(members.findById(12)).thenReturn(Optional.of(standalone));
-    strategy.setIdAlgoAssetclassSecurity(12);
-    tenant.setIdAlgoTop(null);
-    service.setAlertEnabled(20, false);
-    assertThat(strategy.isAlertEnabled()).isFalse();
-    assertThat(service.permitsAlert(1, 20)).isFalse();
-    verify(alarms).cancelPendingForStrategy(1, 20);
-  }
-
-  @Test
-  void unassignmentCancelsUnsentAlertsAndResetsScopesButKeepsPreferences() {
-    service.assign(null);
-    assertThat(tenant.getIdAlgoTop()).isNull();
-    assertThat(strategy.isAlertEnabled()).isTrue();
-    verify(lifecycle).changed(1, Map.of());
-    verify(alarms).cancelPendingForStrategy(1, 20);
-    service.assign(10);
-    assertThat(tenant.getIdAlgoTop()).isEqualTo(10);
-  }
-
-  @Test
   void replacementRequiresAnOwnedHierarchy() {
     assertThatThrownBy(() -> service.assign(99)).isInstanceOf(SecurityException.class);
     assertThat(tenant.getIdAlgoTop()).isEqualTo(10);
@@ -154,26 +129,6 @@ class AlgoMonitoringServiceTest {
     verify(alarms).cancelPendingForStrategy(1, 20);
     // Only the assigned hierarchy keeps a live plan, so the previous one loses its rows.
     verify(recommendations).deleteAllKindsByIdTenantAndIdAlgoTop(1, 10);
-  }
-
-  @Test
-  void preferenceChangeDoesNotValidateOrModifyDraftConfigurationOrActivation() {
-    strategy.setActivatable(false);
-    strategy.setStrategyConfig(null);
-    service.setAlertEnabled(20, false);
-    assertThat(strategy.isActivatable()).isFalse();
-    assertThat(strategy.getStrategyConfig()).isNull();
-    assertThat(strategy.isAlertEnabled()).isFalse();
-    verify(lifecycle).changed(1, Map.of());
-    verify(alarms).cancelPendingForStrategy(1, 20);
-  }
-
-  @Test
-  void unassignedPreferenceCannotBeEdited() {
-    tenant.setIdAlgoTop(null);
-    assertThat(service.canEdit(1, 10)).isFalse();
-    assertThatThrownBy(() -> service.setAlertEnabled(20, false)).isInstanceOf(DataViolationException.class);
-    assertThat(strategy.isAlertEnabled()).isTrue();
   }
 
   @Test

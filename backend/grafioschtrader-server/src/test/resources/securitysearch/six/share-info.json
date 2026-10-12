@@ -1,0 +1,29 @@
+{
+  "status" : "Ok",
+  "totalCount" : 1,
+  "itemList" : [ {
+    "valorSymbol" : "NOVN",
+    "valorNumber" : 1200526,
+    "isin" : "CH0012005267",
+    "tradingCurrency" : "CHF",
+    "exchange" : "SWX",
+    "priceStepGroup" : "LF",
+    "firstTradingDate" : 20201207,
+    "lastTradingDate" : 99991231,
+    "securityType" : "RS",
+    "smallestTradeableUnit" : 1,
+    "securitySegment" : "SA",
+    "primaryListed" : true,
+    "issuedBy" : "Novartis",
+    "numberInIssue" : 2034819509,
+    "nominalValue" : 0.49,
+    "dividendEntitlement" : true,
+    "regulatoryStandard" : "International Reporting Standard",
+    "countryCode" : "US",
+    "indexSymbols" : [ "SMI", "SMIEXP", "SLI" ],
+    "icb" : {
+      "industry" : null,
+      "superSector" : null
+    }
+  } ]
+}

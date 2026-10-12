@@ -179,9 +179,11 @@ export class GTNetEditComponent extends SimpleEntityEditBase<GTNet> implements O
             fieldsetName: this.BASE_SETTING
           }),
           DynamicFieldHelper.createFieldCheckboxHeqF('serverBusy', {
+            defaultValue: false,
             fieldsetName: this.BASE_SETTING
           }),
           DynamicFieldHelper.createFieldCheckboxHeqF('allowServerCreation', {
+            defaultValue: false,
             fieldsetName: this.BASE_SETTING
           }),
           DynamicFieldHelper.createFieldSelectStringHeqF('serverOnline', true, {

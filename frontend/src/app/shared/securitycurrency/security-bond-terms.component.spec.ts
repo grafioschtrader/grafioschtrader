@@ -10,14 +10,26 @@ describe('extractCouponRateFromSecurityName', () => {
   it.each([
     ['1.20 AMCOM 26-32 /Z', 1.2],
     [' 0,375 Stadler Rail AG 19-26', 0.375],
-    ['0% Sonova Holding AG 19-29', 0]
+    ['0% Sonova Holding AG 19-29', 0],
+    ['2.875 CFFL 10-30', 2.875]
   ])('extracts the numeric name prefix from %s', (name, expected) => {
     expect(extractCouponRateFromSecurityName(name)).toBe(expected);
   });
 
-  it('does not infer a coupon from a number later in the name', () => {
-    expect(extractCouponRateFromSecurityName('Royal Bank 0.20 21-31')).toBeNull();
+  it.each([
+    ['voestalpine3.75%GreenN.24-29/1', 3.75],
+    ['Raiffeisen Bank Intl 4,125 % 22-27', 4.125],
+    ['3M Co 2.5% 20-30', 2.5]
+  ])('extracts a percent-marked number anywhere in %s', (name, expected) => {
+    expect(extractCouponRateFromSecurityName(name)).toBe(expected);
   });
+
+  it.each(['Royal Bank 0.20 21-31', '3M Co 20-30', '', null])(
+    'does not infer a coupon from an unmarked number later in the name or an issuer prefix: %s',
+    (name) => {
+      expect(extractCouponRateFromSecurityName(name)).toBeNull();
+    }
+  );
 });
 
 describe('defaultCouponDayCount', () => {
@@ -59,6 +71,19 @@ describe('Security simulation field eligibility', () => {
     ).toBe(false);
     expect(
       Security.canHaveIssuerCountry(
+        assetclass(AssetclassType.EQUITIES, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES)
+      )
+    ).toBe(false);
+  });
+
+  it('excludes the distribution frequency only for non-investable indices', () => {
+    expect(Security.canHaveDistributionFrequency(assetclass(AssetclassType.EQUITIES))).toBe(true);
+    expect(
+      Security.canHaveDistributionFrequency(assetclass(AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF))
+    ).toBe(true);
+    expect(Security.canHaveDistributionFrequency(null)).toBe(true);
+    expect(
+      Security.canHaveDistributionFrequency(
         assetclass(AssetclassType.EQUITIES, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES)
       )
     ).toBe(false);

@@ -106,6 +106,7 @@ interface HeaderGroupItem {
         [dataKey]="dataKey"
         [selectionMode]="selectionMode"
         [(selection)]="selection"
+        [rowSelectable]="rowSelectableFn ? isRowSelectable : undefined"
         (selectionChange)="selectionChange.emit($event)"
         [sortMode]="sortMode"
         [multiSortMeta]="multiSortMeta"
@@ -844,6 +845,19 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
 
   /** Callback returning CSS class(es) for a row based on row data. */
   @Input() rowClassFn?: (row: T) => string | null;
+
+  /**
+   * Callback deciding whether a row can be selected; a row it rejects ignores clicks. Without it every row is
+   * selectable. Combine it with {@link rowClassFn} to show such rows as unavailable.
+   */
+  @Input() rowSelectableFn?: (row: T) => boolean;
+
+  /**
+   * Adapts {@link rowSelectableFn} to the signature of the table, which passes the row with its index. An arrow
+   * function, so that the table can call it without losing this component.
+   */
+  readonly isRowSelectable = (row: { data: T; index: number }): boolean =>
+    !this.rowSelectableFn || this.rowSelectableFn(row.data);
 
   // ============================================================================
   // Footer Configuration

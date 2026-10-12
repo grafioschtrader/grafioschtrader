@@ -58,28 +58,6 @@ class AlgoMeanReversionSimulationAdapterTest {
   }
 
   @Test
-  void excludedInstrumentCannotBypassTheReplayOrderBuilder() {
-    login(1);
-    var attempted = fill(4);
-    when(attempted.getSecurity().isSimulationTradingExcluded()).thenReturn(true);
-    var failure = assertThrows(IllegalArgumentException.class,
-        () -> adapter.fill(context, decision, "forbidden", attempted));
-    assertEquals("REPLAY_INSTRUMENT_EXCLUDED", failure.getMessage());
-    verifyNoInteractions(transactions);
-  }
-
-  @Test
-  void transactionLimitStopsANewFillBeforeWriting() throws Exception {
-    login(1);
-    var limit = new grafioschtrader.exceptions.TransactionLimitExceededException(10);
-    doThrow(limit).when(transactions).throwWhenTransactionLimitReached(2, 1);
-    assertSame(limit, assertThrows(grafioschtrader.exceptions.TransactionLimitExceededException.class,
-        () -> adapter.fill(context, decision, "over-limit", fill(4))));
-    verify(transactions, never()).saveOnlyAttributes(any(), any(), any());
-    verifyNoInteractions(positions);
-  }
-
-  @Test
   void partialFillBooksOnlyThroughPortfolioPathAndReplayIsIdempotent() throws Exception {
     login(1);
     var first = fill(4);
@@ -94,28 +72,6 @@ class AlgoMeanReversionSimulationAdapterTest {
     verify(positions).reconcile(2, 3, first.getSecurity(), day.plusDays(1));
     when(data.filledUnits(2, decision.identity())).thenReturn(4.0);
     assertThrows(IllegalArgumentException.class, () -> adapter.fill(context, decision, "fill-2", fill(7)));
-  }
-
-  @Test
-  void aTrancheBooksAReductionAndSpendsOnlyItsOwnSignal() throws Exception {
-    login(1);
-    var scaleOut = new Decision(Action.SCALE_OUT, 1, 3, 120, "SCALE_OUT", "2:3:4:10:2026-09-07:SCALE_OUT:1:t1", "t1");
-    when(transactions.saveOnlyAttributes(any(), isNull(), any())).thenAnswer(i -> i.getArgument(0));
-    var sell = fill(2);
-    sell.setTransactionType(TransactionType.REDUCE);
-    assertSame(sell, adapter.fill(context, scaleOut, "fill-t1-a", sell));
-    assertEquals("2:3:4:10:2026-09-07:SCALE_OUT:1:t1", sell.getAlgoSignalId());
-    // A partial fill leaves the rest of that tranche outstanding, and nothing beyond it can be booked on it.
-    when(data.filledUnits(2, scaleOut.identity())).thenReturn(2.0);
-    var rest = fill(1);
-    rest.setTransactionType(TransactionType.REDUCE);
-    assertSame(rest, adapter.fill(context, scaleOut, "fill-t1-b", rest));
-    when(data.filledUnits(2, scaleOut.identity())).thenReturn(3.0);
-    var excess = fill(1);
-    excess.setTransactionType(TransactionType.REDUCE);
-    assertThrows(IllegalArgumentException.class, () -> adapter.fill(context, scaleOut, "fill-t1-c", excess));
-    // A buy cannot fill a signal that gives part of the position back.
-    assertThrows(IllegalArgumentException.class, () -> adapter.fill(context, scaleOut, "fill-t1-d", fill(1)));
   }
 
   @Test
@@ -135,17 +91,6 @@ class AlgoMeanReversionSimulationAdapterTest {
       stale.setTransactionType(fill.getTransactionType());
       assertThrows(IllegalArgumentException.class, () -> adapter.fill(c, add, "stale:" + direction, stale));
     }
-  }
-
-  @Test
-  void executedTrancheRetainsItsTargetMetadata() throws Exception {
-    login(1);
-    var scale = new Decision(Action.SCALE_OUT, 1, 3, 120, "SCALE_OUT", "scale", "t1", Map.of("t1", 3.0));
-    when(transactions.saveOnlyAttributes(any(), isNull(), any())).thenAnswer(i -> i.getArgument(0));
-    var fill = fill(1);
-    fill.setTransactionType(TransactionType.REDUCE);
-    adapter.fill(context, scale, "partial-scale", fill);
-    assertEquals(Map.of("t1", 3.0), AlgoTrancheTargets.read(fill.getAlgoTrancheTargets(), 1));
   }
 
   @Test

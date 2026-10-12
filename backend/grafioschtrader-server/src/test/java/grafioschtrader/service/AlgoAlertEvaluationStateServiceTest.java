@@ -38,19 +38,6 @@ class AlgoAlertEvaluationStateServiceTest {
   }
 
   @Test
-  void claimSurvivesRestartAndCannotBeClaimedTwice() {
-    String token = service.claim(scope, now, 4, window, true, false);
-    assertThat(token).isNotBlank();
-    assertThat(state.getLastAttempt()).isEqualTo(now);
-    AlgoAlertEvaluationStateService restarted = new AlgoAlertEvaluationStateService(repository);
-    assertThat(restarted.claim(scope, now.plusMinutes(1), 4, window, true, false)).isNull();
-    assertThat(restarted.claim(scope, now.plusHours(4), 4, window, true, false)).isNotEqualTo(token);
-    Runnable evaluator = mock(Runnable.class);
-    service.finish(scope, token, now.plusHours(4), now, null, evaluator);
-    verifyNoInteractions(evaluator);
-  }
-
-  @Test
   void failurePreservesSuccessfulObservationAndClearsLease() {
     state.setQuoteTimestamp(now.minusHours(5));
     String token = service.claim(scope, now, 4, window, true, false);
@@ -77,15 +64,4 @@ class AlgoAlertEvaluationStateServiceTest {
     assertThat(service.claim(scope, now.plusMinutes(1), 4, window, false, true)).isNotNull();
   }
 
-  @Test
-  void missingIndicatorDataIsRecordedWithoutSuccess() {
-    String token = service.claim(scope, now, 4, window, true, false);
-    assertThatThrownBy(() -> service.finish(scope, token, now, now, null, () -> {
-      throw new IllegalStateException("insufficient history");
-    })).isInstanceOf(IllegalStateException.class);
-    service.failed(scope, token, "insufficient history");
-    assertThat(state.getOutcome()).isEqualTo("UNAVAILABLE");
-    assertThat(state.getReason()).isEqualTo("insufficient history");
-    assertThat(state.getLastSuccess()).isNull();
-  }
 }

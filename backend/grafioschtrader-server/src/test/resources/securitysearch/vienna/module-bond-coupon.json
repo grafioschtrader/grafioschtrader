@@ -1,0 +1,5 @@
+{
+ "c94047": {
+  "content": "<div id=\"c94047-module\" class=\"grid-view\" data-krajee-grid=\"kvGridInit_3074eb26\">    <div class=\"panel panel-primary\">\n    <div id=\"c94047-module-container\" class=\"kv-grid-container\"><table class=\"table-hover kv-grid-table table table-condensed table-vertical\"><tbody>\n<tr><th>Kupon Art</th><td class=\"kv-align-right\">Fix</td></tr>\n<tr><th>Kuponfrequenz in Monaten</th><td class=\"kv-align-right\">12</td></tr>\n<tr><th>Zinssatz</th><td class=\"kv-align-right\">3,750%</td></tr>\n<tr><th>Zinsanpassungsfrequenz in Monaten</th><td class=\"kv-align-right\"><span class=\"not-set\">-</span></td></tr>\n<tr><th>Nächste Zinsanpassung</th><td class=\"kv-align-right\"><span class=\"not-set\">-</span></td></tr>\n<tr><th>Zinstermin</th><td class=\"kv-align-right\">03.10.2027</td></tr>\n<tr><th>Mindesthandelsmenge</th><td class=\"kv-align-right\">500,00</td></tr>\n</tbody></table></div>\n                \n    </div></div>"
+ }
+}

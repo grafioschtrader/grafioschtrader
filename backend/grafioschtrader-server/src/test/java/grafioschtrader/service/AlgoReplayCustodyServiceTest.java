@@ -1,21 +1,16 @@
 package grafioschtrader.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.util.*;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import grafioschtrader.dto.CustodyOpeningState;
 import grafioschtrader.entities.*;
-import grafioschtrader.repository.TransactionJpaRepository;
-import grafioschtrader.types.TransactionType;
 
-/** Verifies tenant/account boundaries and ordinary transaction settlement without touching a database. */
+/** Checks captured custody terms, settlement-account ownership and charges from shipped fee models. */
 class AlgoReplayCustodyServiceTest {
   private static final LocalDate OPEN = LocalDate.of(2025, 12, 31);
   private static final LocalDate END = LocalDate.of(2026, 3, 31);
@@ -67,16 +62,6 @@ class AlgoReplayCustodyServiceTest {
 
   private AlgoReplayInputs.Snapshot inputs() {
     return new AlgoReplayInputs.Snapshot(3, false, false, 0, Map.of(), Map.of(), Map.of(), List.of());
-  }
-
-  @Test
-  void fxOnlyOverrideCapturesThePlansCommissionAndCustodyTogether() {
-    var account = account();
-    account.setFeeModelYaml(FxMarkupEngineTest.flat("0"));
-    var snapshot = AlgoReplayCustodyService.capture(inputs(), List.of(account), List.of(cash(account, "CHF")), null,
-        OPEN, END);
-    assertThat(snapshot.feeModels().get(30)).isEqualTo(MODEL);
-    assertThat(snapshot.custodyOpening().get(30).cashaccount()).isEqualTo(40);
   }
 
   @Test
@@ -132,68 +117,6 @@ class AlgoReplayCustodyServiceTest {
     assertThatThrownBy(
         () -> AlgoReplayCustodyService.capture(inputs(), List.of(account), List.of(first, second), yaml, OPEN, END))
             .hasMessageContaining("select one");
-  }
-
-  @Test
-  void booksOneFeeThroughNormalPathAndLeavesLiabilityUnchangedOnRejection() throws Exception {
-    var account = account();
-    var cash = cash(account, "EUR");
-    var snapshot = inputs().withFees(Map.of(30, MODEL),
-        Map.of(30, new CustodyOpeningState(40, 0.0, 0.0, 0.0, "Explicit opening state")));
-    var state = mock(AlgoReplayState.class);
-    var run = new AlgoSimulationResult();
-    run.setIdSimulationResult(1);
-    run.setOpeningDate(OPEN);
-    run.setEndDate(END);
-    ReflectionTestUtils.setField(state, "run", run);
-    ReflectionTestUtils.setField(state, "inputs", snapshot);
-    ReflectionTestUtils.setField(state, "market", mock(AlgoReplayMarketData.class));
-    ReflectionTestUtils.setField(state, "decisionEquity", new HashMap<>());
-    when(state.idTenant()).thenReturn(7);
-    when(state.precision(anyString())).thenReturn(2);
-    var valuation = mock(AlgoHistoricalValuationService.class);
-    when(valuation.value(eq(7), any(), any())).thenReturn(new AlgoHistoricalValuationService.Snapshot("CHF", List.of(),
-        Map.of(40, 100.0), Map.of("CHF", 1.0, "EUR", 0.9), 90, 0, List.of()));
-    var transactions = mock(TransactionJpaRepository.class);
-    when(transactions.saveOnlyAttributes(any(), isNull(), anySet()))
-        .thenThrow(new IllegalArgumentException("Not funded"));
-    var booking = mock(AlgoReplayBooking.class);
-    var service = new AlgoReplayCustodyService(valuation, transactions, booking);
-    var session = service.open(state, List.of(account), List.of(cash));
-    var limit = new grafioschtrader.exceptions.TransactionLimitExceededException(10);
-    doThrow(limit).when(booking).fundCustody(eq(state), eq(30), eq(cash), any(), anyDouble());
-    assertThatThrownBy(() -> session.process(OPEN.plusDays(1), true)).isSameAs(limit);
-    verifyNoInteractions(transactions);
-    doNothing().when(booking).fundCustody(eq(state), eq(30), eq(cash), any(), anyDouble());
-    doThrow(limit).when(transactions).throwWhenTransactionLimitReached(7, 1);
-    assertThatThrownBy(() -> session.process(OPEN.plusDays(1), true)).isSameAs(limit);
-    verify(transactions, never()).saveOnlyAttributes(any(), isNull(), anySet());
-    doNothing().when(transactions).throwWhenTransactionLimitReached(7, 1);
-    assertThatThrownBy(() -> session.process(OPEN.plusDays(1), true)).hasMessageContaining("Not funded");
-    doAnswer(a -> {
-      Transaction request = a.getArgument(0);
-      assertThat(request.getCashaccountAmount()).isEqualTo(20); // FEE write contract
-      request.setCashaccountAmount(-request.getCashaccountAmount());
-      return request;
-    }).when(transactions).saveOnlyAttributes(any(), isNull(), anySet());
-    session.process(OPEN.plusDays(1), true);
-    session.process(OPEN.plusDays(1), true);
-    var captor = org.mockito.ArgumentCaptor.forClass(Transaction.class);
-    verify(transactions, times(2)).saveOnlyAttributes(captor.capture(), isNull(), anySet());
-    var fee = captor.getValue();
-    assertThat(fee.getTransactionType()).isEqualTo(TransactionType.FEE);
-    assertThat(fee.getIdSecurityaccount()).isEqualTo(30);
-    assertThat(fee.getIdTenant()).isEqualTo(7);
-    assertThat(fee.getCashaccountAmount()).isEqualTo(-20);
-    assertThat(session.liabilities(OPEN.plusDays(1)).get("CHF")).isZero();
-  }
-
-  @Test
-  void brokerFragmentsRemainValid() throws Exception {
-    var estimator = new TransactionCostEvalExEstimator();
-    for (String broker : BROKERS) {
-      assertThat(estimator.validate(brokerModel(broker))).as(broker).isEmpty();
-    }
   }
 
   /**

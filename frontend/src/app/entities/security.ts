@@ -136,6 +136,26 @@ export class Security extends Securitycurrency implements BaseID {
   }
 
   /**
+   * Tells whether a distribution frequency is meaningful for the asset class. A non-investable index pays nothing, so
+   * the field is fixed to DF_NONE there; the backend enforces the same rule on save.
+   *
+   * @param assetClass the selected asset class, may be null while none is chosen
+   * @returns false only for a non-investable index
+   */
+  public static canHaveDistributionFrequency(assetClass: Assetclass): boolean {
+    if (!assetClass) {
+      return true;
+    }
+    const specialInvestmentInstrument =
+      typeof assetClass.specialInvestmentInstrument === 'number'
+        ? SpecialInvestmentInstruments[assetClass.specialInvestmentInstrument]
+        : assetClass.specialInvestmentInstrument;
+    return (
+      specialInvestmentInstrument !== SpecialInvestmentInstruments[SpecialInvestmentInstruments.NON_INVESTABLE_INDICES]
+    );
+  }
+
+  /**
    * Returns the ISO country code carried by the first two characters of an ISIN. The rest of the ISIN does not need
    * to have been entered yet: this helper is used for live form prefill while the user is typing.
    */

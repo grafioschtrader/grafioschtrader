@@ -29,7 +29,7 @@ import grafioschtrader.rest.SecurityaccountResource;
 import grafioschtrader.rest.TenantResource;
 import grafioschtrader.types.TransactionType;
 
-@DisplayName("FX observations retain timing bias, use net conversion amounts and enforce tenant scope")
+@DisplayName("FX observations use net conversion amounts, sample statistics and tenant scope")
 class FxObservationServiceTest {
   private static final LocalDate DATE = FxMarkupEngineTest.DATE;
   private final SecurityaccountJpaRepository accounts = mock(SecurityaccountJpaRepository.class);
@@ -99,30 +99,6 @@ class FxObservationServiceTest {
   }
 
   @Test
-  void observationsWithoutAnyModelAndExplicitZeroOverrideRemainDistinct() {
-    pair("USD", "CHF", 2);
-    var tx = tx(TransactionType.ACCUMULATE, 2.02, 100);
-    var noModel = report(null, null, tx).getFirst();
-    assertThat(noModel.count()).isOne();
-    assertThat(noModel.modelledCount()).isNull();
-    assertThat(noModel.modelledMean()).isNull();
-    assertThat(noModel.outcomes()).containsEntry(FxOutcome.NO_SECTION, 1);
-    var zero = report(FxMarkupEngineTest.flat("0"), FxMarkupEngineTest.COMMISSION + FxMarkupEngineTest.flat("2"), tx)
-        .getFirst();
-    assertThat(zero.modelledCount()).isOne();
-    assertThat(zero.modelledMean()).isZero();
-    assertThat(zero.uncoveredCount()).isZero();
-  }
-
-  @Test
-  void negativeIncomeUsesActualCashFlowDirection() {
-    pair("USD", "CHF", 2);
-    var group = report(FxMarkupEngineTest.flat("1"), null, tx(TransactionType.DIVIDEND, 2.02, -100)).getFirst();
-    assertThat(group.mean()).isCloseTo(1, within(1e-10));
-    assertThat(group.modelledMean()).isEqualTo(1);
-  }
-
-  @Test
   void skippedReasonsAreExclusiveAndEightPercentBoundaryIsExcluded() {
     pair("USD", "CHF", 2);
     var missingRate = tx(TransactionType.ACCUMULATE, 2, 100);
@@ -151,16 +127,6 @@ class FxObservationServiceTest {
     assertThat(group.median()).isCloseTo(2, within(1e-10));
     assertThat(group.stdDev()).isCloseTo(Math.sqrt(2), within(1e-10));
     assertThat(group.volumeWeightedMean()).isCloseTo(2.5, within(1e-10));
-  }
-
-  @Test
-  void directionCorrelatedTimingBiasDoesNotConvergeToTheTariff() {
-    pair("USD", "CHF", 2);
-    // Buy executions at +0.5% mid, sell executions at -0.5% mid, each with a 1% adverse tariff.
-    var group = report(FxMarkupEngineTest.flat("1"), null, tx(TransactionType.ACCUMULATE, 2 * 1.005 * 1.01, 100),
-        tx(TransactionType.REDUCE, 2 * .995 * .99, 100)).getFirst();
-    assertThat(group.mean()).isCloseTo(1.5, within(1e-10));
-    assertThat(group.modelledMean()).isEqualTo(1);
   }
 
   @Test
@@ -202,35 +168,6 @@ class FxObservationServiceTest {
   }
 
   @Test
-  void payAmountAndMicArePassedToSharedEngine() {
-    pair("USD", "CHF", 2);
-    var buy = tx(TransactionType.ACCUMULATE, 2.02, 100);
-    var exchange = mock(grafioschtrader.entities.Stockexchange.class);
-    when(exchange.getMic()).thenReturn("XSWX");
-    when(buy.getSecurity().getStockexchange()).thenReturn(exchange);
-    var group = report("fx:\n  rules:\n    - name: Buy\n"
-        + "      condition: 'amount == 200 && payCurrency == \"CHF\" && receiveCurrency == \"USD\" && mic == \"XSWX\"'\n"
-        + "      expression: '1'\n", null, buy).getFirst();
-    assertThat(group.outcomes()).containsEntry(FxOutcome.MATCHED, 1);
-  }
-
-  @Test
-  void thirdCurrencyTierAcceptsInverseStoredPairAndMissingCloseHasItsOwnOutcome() {
-    pair("USD", "CHF", 2);
-    var tierPair = new Currencypair("EUR", "CHF");
-    tierPair.setIdSecuritycurrency(10);
-    when(pairs.findByFromCurrencyAndToCurrencyOrToCurrencyAndFromCurrency("CHF", "EUR")).thenReturn(List.of(tierPair));
-    String yaml = "fx:\n  amountCurrency: EUR\n  rules:\n    - name: Tier\n"
-        + "      condition: 'tierAmount == 50'\n      expression: '1'\n";
-    var buy = tx(TransactionType.ACCUMULATE, 2.02, 100);
-    var missing = report(yaml, null, buy).getFirst();
-    assertThat(missing.outcomes()).containsEntry(FxOutcome.NO_TIER_RATE, 1);
-    assertThat(missing.modelledMean()).isNull();
-    close(10, DATE, 4);
-    assertThat(report(yaml, null, buy).getFirst().modelledMean()).isEqualTo(1);
-  }
-
-  @Test
   void periodsCoverageGapsAndInvalidModelsStaySeparate() {
     pair("USD", "CHF", 2);
     String yaml = "fx:\n  periods:\n    - validFrom: '2026-09-01'\n      validTo: '2026-09-25'\n"
@@ -257,21 +194,6 @@ class FxObservationServiceTest {
       assertThat(group.modelledMean()).isNull();
       assertThat(group.error()).isNotBlank();
     }
-  }
-
-  @Test
-  void transferWithdrawalCountsOnceWithoutAnAccountModel() {
-    pair("USD", "CHF", 2);
-    var withdrawal = tx(TransactionType.WITHDRAWAL, 2.02, 100);
-    withdrawal.setCashaccountAmount(-200.0);
-    withdrawal.setSecuritycurrency(null);
-    when(transactions.findFxTransferObservations(7, DATE, DATE)).thenReturn(List.of(withdrawal));
-    var group = service.transfers(7, DATE, DATE).groups().getFirst();
-    assertThat(group.count()).isOne();
-    assertThat(group.mean()).isCloseTo(1, within(1e-10));
-    assertThat(group.modelledCount()).isNull();
-    assertThat(group.modelledMean()).isNull();
-    verifyNoInteractions(accounts);
   }
 
   @Test

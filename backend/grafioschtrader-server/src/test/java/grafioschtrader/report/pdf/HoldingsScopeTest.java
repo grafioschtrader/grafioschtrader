@@ -26,6 +26,7 @@ import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
+import grafioschtrader.service.DisposalCostEstimator;
 import grafioschtrader.service.GlobalparametersService;
 
 /** Real holdings grouping with explicit tenant and time; no database or request context is involved. */
@@ -76,6 +77,9 @@ class HoldingsScopeTest {
     ReflectionTestUtils.setField(report, "securityJpaRepository", securities);
     ReflectionTestUtils.setField(report, "tradingDaysPlusJpaRepository", days);
     ReflectionTestUtils.setField(report, "globalparametersService", parameters);
+    // Real estimator, switched off by the global parameter, so the report neither collects nor estimates.
+    ReflectionTestUtils.setField(report, "disposalCostEstimator",
+        new DisposalCostEstimator(null, null, null, null, null, null, parameters, null, tenants));
     when(parameters.getCurrencyPrecision()).thenReturn(Map.of("CHF", 2, "EUR", 2));
     when(parameters.getPrecisionForCurrency(anyString())).thenReturn(2);
     when(securities.processOpenPositionsWithActualPrice(any(), any())).thenAnswer(_ -> new ArrayList<>());

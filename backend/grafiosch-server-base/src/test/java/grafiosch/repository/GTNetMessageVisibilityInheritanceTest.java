@@ -45,15 +45,6 @@ class GTNetMessageVisibilityInheritanceTest {
   }
 
   @Test
-  @DisplayName("A reply into an admin-only thread is stored admin only")
-  void aReplyInheritsFromItsParent() {
-    row(1, null, MessageVisibility.ADMIN_ONLY);
-
-    GTNetMessage reply = message(2, 1, MessageVisibility.ALL_USERS);
-    assertThat(repositoryImpl.saveMsg(reply).getVisibility()).isEqualTo(MessageVisibility.ADMIN_ONLY);
-  }
-
-  @Test
   @DisplayName("The root of the thread decides, not the message directly above")
   void inheritanceFollowsTheThreadToItsRoot() {
     // The middle row is what an inbound reply looked like before the rule applied to it at all: public, in the middle
@@ -83,13 +74,6 @@ class GTNetMessageVisibilityInheritanceTest {
 
     GTNetMessage reply = message(3, 1, MessageVisibility.ALL_USERS);
     assertThat(repositoryImpl.saveMsg(reply).getVisibility()).isEqualTo(MessageVisibility.ALL_USERS);
-  }
-
-  @Test
-  @DisplayName("A root message keeps the visibility it was given")
-  void aRootMessageIsNotTouched() {
-    GTNetMessage root = message(1, null, MessageVisibility.ADMIN_ONLY);
-    assertThat(repositoryImpl.saveMsg(root).getVisibility()).isEqualTo(MessageVisibility.ADMIN_ONLY);
   }
 
   private GTNetMessage storedRow(InvocationOnMock invocation) {

@@ -13,19 +13,25 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.securitysearch.BoursoramaSecuritySearch;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
+import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 import tools.jackson.databind.DeserializationFeature;
@@ -40,6 +46,14 @@ import tools.jackson.databind.json.JsonMapper;
  * requests without that header receive HTTP 410 (Gone). Therefore every request issued by this connector sets
  * {@link #XHR_HEADER}, including the URL-connectivity check inherited from {@link BaseFeedConnector} (see the
  * {@link #getRequest(String)} override).
+ *
+ * <p>
+ * The last price comes from {@code UpdateCharts}, which holds the trades of the last session. An instrument not
+ * traded in that session - a rarely traded bond, a small share - gets an empty array there; the last price is then
+ * the last daily close of {@code GetTicksEOD}. A bond takes its last price from the daily closes in any case. Since
+ * {@code UpdateCharts} answers an unknown symbol with the same empty array, the intraday setting is checked against
+ * the daily closes as well, which are empty only for an unknown symbol.
+ * </p>
  */
 @Component
 public class BoursoramaFeedConnector extends BaseFeedConnector {
@@ -52,6 +66,12 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   private static final Map<String, String> XHR_HEADER = Map.of("X-Requested-With", "XMLHttpRequest");
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
+
+  @Autowired(required = false)
+  private MicProviderMapRepository micProviderMapRepository;
+
+  /** Market row of the Boursorama symbols per MIC; read once from {@code mic_provider_map}. */
+  private volatile Map<String, MicProviderMap> marketByMic;
   private static List<BoursoramaPeriodEOD> boursoramaPeriods;
   private static String BASE_URL = "https://www.boursorama.com/bourse/action/graph/ws/";
 
@@ -80,6 +100,45 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR,
         AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME,
         AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND);
+  }
+
+  /**
+   * The Boursorama symbol is a market prefix, the ticker and, for London, the suffix {@code .L}: {@code 1zSAP},
+   * {@code 2aNESN}, {@code 1uTTE.L}; a US symbol has no prefix ({@code AAPL}). Master data of the Boursorama search
+   * carries it; for a listing another provider found it is built from the exchange ticker and the {@code boursorama}
+   * row of the MIC in {@code mic_provider_map}. History and intraday use the same symbol.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    if (BoursoramaSecuritySearch.PROVIDER_ID.equals(baseData.providerId()) && baseData.providerInstrumentId() != null) {
+      return Optional.of(baseData.providerInstrumentId());
+    }
+    if (baseData.tickerSymbol() == null || baseData.tickerSymbol().isBlank() || baseData.mic() == null) {
+      return Optional.empty();
+    }
+    MicProviderMap row = getMarketByMic().get(baseData.mic());
+    if (row == null) {
+      return Optional.empty();
+    }
+    String prefix = BoursoramaSecuritySearch.CODE_US.equals(row.getCodeProvider()) ? "" : row.getCodeProvider();
+    return Optional.of(prefix + baseData.tickerSymbol().trim()
+        + (row.getSymbolSuffix() == null ? "" : row.getSymbolSuffix()));
+  }
+
+  private Map<String, MicProviderMap> getMarketByMic() {
+    Map<String, MicProviderMap> marketByMic = this.marketByMic;
+    if (marketByMic == null) {
+      if (micProviderMapRepository == null) {
+        return Map.of();
+      }
+      marketByMic = new HashMap<>();
+      for (MicProviderMap row : micProviderMapRepository
+          .findByIdProviderMic_IdProvider(BoursoramaSecuritySearch.PROVIDER_ID)) {
+        marketByMic.put(row.getIdProviderMic().getMic(), row);
+      }
+      this.marketByMic = marketByMic;
+    }
+    return marketByMic;
   }
 
   /**
@@ -193,7 +252,8 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
   @Override
   public void updateSecurityLastPrice(final Security security) throws Exception {
     if (isYearSecurityForLastPrice(security)) {
-      getLastPriceFromHistoryQuotes(security, getSecurityIntradayDownloadLink(security));
+      getLastPriceFromHistoryQuotes(security, getSecurityIntradayDownloadLink(security),
+          FeedConnectorHelper.getMinorUnitDivider(security));
     } else {
       updateSecuritycurrency(security, getUpdateSecurityCurrecnypairLastPriceLink(security),
           FeedConnectorHelper.getMinorUnitDivider(security));
@@ -205,24 +265,46 @@ public class BoursoramaFeedConnector extends BaseFeedConnector {
     updateSecuritycurrency(currencypair, getUpdateSecurityCurrecnypairLastPriceLink(currencypair), 1.0);
   }
 
+  /**
+   * Sets the last price from the trades of the last session; without trades it falls back to the last daily close.
+   */
   private <T extends Securitycurrency<T>> void updateSecuritycurrency(T securitycurrency, String urlStr, double divider)
       throws Exception {
     final HeaderIntra header = objectMapper
         .readValue(FeedConnectorHelper.getByHttpClient(urlStr, 10, XHR_HEADER).body(), HeaderIntra.class);
-    if (header != null) {
+    if (header != null && header.d != null && header.d.length > 0) {
       header.d[0].setValues(securitycurrency, divider);
+      setSTimestamp(securitycurrency);
     } else {
+      getLastPriceFromHistoryQuotes(securitycurrency, getLastCloseLink(securitycurrency), divider);
+    }
+  }
+
+  /** Daily closes of the last 190 days with the intraday symbol, enough to find the last close of a rare trade. */
+  private String getLastCloseLink(Securitycurrency<?> securitycurrency) {
+    return getSecurityCurrecnypairHistoricalDownloadLink(securitycurrency, LocalDate.now().minusDays(190), false);
+  }
+
+  /**
+   * Sets the last price from the last daily close. Without any close in the period the price stays unset and only the
+   * change is reset, as for an instrument without trades.
+   */
+  private void getLastPriceFromHistoryQuotes(Securitycurrency<?> securitycurrency, String urlStr, double divider)
+      throws Exception {
+    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 40, XHR_HEADER).body(),
+        HeaderEOD.class);
+    if (header == null || header.d == null || header.d.QuoteTab == null || header.d.QuoteTab.length == 0) {
       securitycurrency.setSChangePercentage(0.0);
+    } else {
+      header.d.QuoteTab[header.d.QuoteTab.length - 1].setValues(securitycurrency, divider);
     }
     setSTimestamp(securitycurrency);
   }
 
-  private void getLastPriceFromHistoryQuotes(Security security, String urlStr) throws Exception {
-    final HeaderEOD header = objectMapper.readValue(FeedConnectorHelper.getByHttpClient(urlStr, 40, XHR_HEADER).body(),
-        HeaderEOD.class);
-    QuoteTabEOD lastPrice = header.d.QuoteTab[header.d.QuoteTab.length - 1];
-    lastPrice.setValues(security, FeedConnectorHelper.getMinorUnitDivider(security));
-    setSTimestamp(security);
+  /** Checks the intraday setting against the daily closes, see the class documentation. */
+  @Override
+  protected String getSecurityIntradayCheckLink(Security security) {
+    return getLastCloseLink(security);
   }
 
   @Override

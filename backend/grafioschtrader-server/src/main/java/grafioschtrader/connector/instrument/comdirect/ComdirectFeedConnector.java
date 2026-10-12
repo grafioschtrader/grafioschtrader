@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +30,9 @@ import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.securitysearch.ConsorsbankSecuritySearch;
+import grafioschtrader.connector.securitysearch.OnvistaSecuritySearch;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -36,12 +40,25 @@ import grafioschtrader.entities.Securitycurrency;
 /**
  * A regex check of the URL extension is not active. The connector for checking the instrument works partially and
  * returns an unequal HTTP-OK.
+ *
+ * <p>
+ * comdirect identifies a listing by the same notation id as Consorsbank and onvista ({@code ID_NOTATION}), so the
+ * security lookup builds the URL extension {@code {type}/detail/uebersicht.html?ID_NOTATION={notation}} from the
+ * listing either provider found. The type path must match the instrument - {@code aktien}, {@code etfs},
+ * {@code fonds} or {@code anleihen} - otherwise comdirect answers HTTP 400.
+ * </p>
  */
 @Component
 public class ComdirectFeedConnector extends BaseFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static String BASE_URL = "https://www.comdirect.de/inf/";
+  /** comdirect path per instrument type of Consorsbank ({@code STO}, …) and onvista ({@code STOCK}, …). */
+  private static final Map<String, String> TYPE_PATHS = Map.of("STO", "aktien", "STOCK", "aktien", "ETF", "etfs",
+      "FUN", "fonds", "FUND", "fonds", "BON", "anleihen", "BOND", "anleihen");
+  private static final Pattern CONSORSBANK_NOTATION = Pattern.compile("^_(\\d+),");
+  private static final Pattern ONVISTA_NOTATION = Pattern.compile("idNotation=(\\d+)");
+  private static final Pattern NO_NOTATION = Pattern.compile("(?!)");
 
   static {
     supportedFeed = new HashMap<>();
@@ -54,6 +71,30 @@ public class ComdirectFeedConnector extends BaseFeedConnector {
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.EQUITIES,
         AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND,
         AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT);
+  }
+
+  /**
+   * Builds the URL extension from the notation id and the instrument type of a Consorsbank or onvista listing; the
+   * lookup passes the master data of every provider of the listing.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    String notation = notation(baseData);
+    String typePath = TYPE_PATHS.get(baseData.providerAttributes().getOrDefault("type", ""));
+    return notation == null || typePath == null ? Optional.empty()
+        : Optional.of(typePath + "/detail/uebersicht.html?ID_NOTATION=" + notation);
+  }
+
+  /** The notation id of a Consorsbank ({@code _39471840,GER}) or onvista ({@code …?idNotation=39471840}) listing. */
+  private static String notation(SecurityBaseDataDto baseData) {
+    String id = baseData.providerInstrumentId();
+    if (id == null) {
+      return null;
+    }
+    Matcher matcher = (ConsorsbankSecuritySearch.PROVIDER_ID.equals(baseData.providerId()) ? CONSORSBANK_NOTATION
+        : OnvistaSecuritySearch.PROVIDER_ID.equals(baseData.providerId()) ? ONVISTA_NOTATION : NO_NOTATION)
+        .matcher(id);
+    return matcher.find() ? matcher.group(1) : null;
   }
 
   @Override

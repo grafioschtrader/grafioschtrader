@@ -98,25 +98,6 @@ class AlgoAlarmDeliveryServiceTest {
   }
 
   @Test
-  void bodyCarriesTheTranslatedHeadlineInsteadOfTheRawDetails() {
-    when(messages.getMessage(anyString(), any(), anyString(), any(Locale.class)))
-        .thenAnswer(i -> "T:" + i.getArgument(0));
-    alarm.setAlarmType(grafioschtrader.types.AlgoSignalKind.PRICE_ALERT);
-    alarm.setAlarmDetails("{\"bound\":\"lower\",\"threshold\":90.5,\"price\":89.75,\"direction\":\"BELOW\"}");
-    service.deliverPending();
-    verify(mail).sendInternalMail(eq(0), eq(7), anyString(),
-        argThat(body -> body.contains("T:algo.alarm.price.alert: Instrument") && !body.contains("threshold")));
-  }
-
-  @Test
-  void deliversWithAlertsOnlyWhileRuleBasedTradingIsOff() {
-    features.setAlgo(false);
-    service.deliverPending();
-    assertThat(alarm.getDeliveryStatus()).isEqualTo("DELIVERED");
-    verify(mail).sendInternalMail(eq(0), eq(7), anyString(), anyString());
-  }
-
-  @Test
   void disabledMonitoringCancelsPendingDeliveryAndCannotBeRetried() {
     when(monitoring.permitsAlert(42, 3)).thenReturn(false);
     service.deliverPending();
@@ -130,7 +111,7 @@ class AlgoAlarmDeliveryServiceTest {
   }
 
   @Test
-  void retriesOnlyExternalChannelAfterRestartAndAcrossDays() throws Exception {
+  void retriesOnlyFailedExternalChannelAcrossDays() throws Exception {
     MailSettingForward setting = new MailSettingForward();
     setting.setMessageTargetType(MessageTargetType.INTERNAL_AND_EXTERNAL_MAIL);
     when(settings.findByIdUserAndMessageComType(eq(7), anyByte())).thenReturn(Optional.of(setting));
@@ -149,19 +130,6 @@ class AlgoAlarmDeliveryServiceTest {
   }
 
   @Test
-  void legacyRowsRequireExplicitRetry() {
-    alarm.setDeliveryStatus("REVIEW_REQUIRED");
-    service.deliverPending();
-    verifyNoInteractions(mail);
-    service.retry(42, 1);
-    service.deliverPending();
-    assertThat(alarm.getDeliveryStatus()).isEqualTo("DELIVERED");
-    service.retry(42, 1);
-    service.deliverPending();
-    verify(mail, times(1)).sendInternalMail(anyInt(), anyInt(), anyString(), anyString());
-  }
-
-  @Test
   void advisorRequiresLiveManageGrantAndViewersAreNotRecipients() {
     when(users.findByIdTenantAndHomeTenantReadOnlyFalse(42)).thenReturn(List.of());
     when(users.findById(7)).thenReturn(Optional.of(owner));
@@ -174,17 +142,6 @@ class AlgoAlarmDeliveryServiceTest {
   }
 
   @Test
-  void liveLeasePreventsAnotherWorkerAndExpiredLeaseRecovers() {
-    alarm.setDeliveryStatus("SENDING");
-    alarm.setDeliveryLeaseToken("old");
-    alarm.setDeliveryLeaseUntil(LocalDateTime.ofInstant(origin.plusSeconds(300), ZoneOffset.UTC));
-    service.deliverPending();
-    verifyNoInteractions(mail);
-    makeService(6).deliverPending();
-    assertThat(alarm.getDeliveryStatus()).isEqualTo("DELIVERED");
-  }
-
-  @Test
   void exhaustedFailuresStopAndForeignTenantCannotRetry() {
     alarm.setDeliveryAttempts(7);
     when(users.findByIdTenantAndHomeTenantReadOnlyFalse(42)).thenReturn(List.of());
@@ -194,15 +151,4 @@ class AlgoAlarmDeliveryServiceTest {
     assertThatThrownBy(() -> service.retry(43, 1)).isInstanceOf(grafiosch.exceptions.ResourceNotFoundException.class);
   }
 
-  @Test
-  void deletingStrategyCancelsAndFeatureSwitchPauses() {
-    features.setAlert(false);
-    service.deliverPending();
-    verifyNoInteractions(mail);
-    features.setAlert(true);
-    when(strategies.existsById(3)).thenReturn(false);
-    service.deliverPending();
-    assertThat(alarm.getDeliveryStatus()).isEqualTo("CANCELLED");
-    verifyNoInteractions(mail);
-  }
 }

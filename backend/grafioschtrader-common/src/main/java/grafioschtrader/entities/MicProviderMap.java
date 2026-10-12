@@ -57,6 +57,10 @@ public class MicProviderMap {
   @Embeddable
   public static class IdProviderMic {
 
+    /** Required by Hibernate, which instantiates the embeddable id when it loads a row. */
+    protected IdProviderMic() {
+    }
+
     public IdProviderMic(@NotNull String idProvider, @NotNull String mic) {
       this.idProvider = idProvider;
       this.mic = mic;

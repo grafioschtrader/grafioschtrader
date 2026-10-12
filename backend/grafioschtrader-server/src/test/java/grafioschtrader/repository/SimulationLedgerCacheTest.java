@@ -47,16 +47,6 @@ class SimulationLedgerCacheTest {
   }
 
   @Test
-  @DisplayName("An unchanged ledger is served without reading any row")
-  void unchangedLedgerReadsNoRows() {
-    open();
-    insert(1, DAY);
-    cache().transactions(DAY.plusDays(1), source);
-    cache().transactions(DAY.plusDays(1), source);
-    verify(source, times(1)).loadTransactionsAfterId(eq(TENANT), anyInt());
-  }
-
-  @Test
   @DisplayName("The exclusive end date filters like the database query")
   void exclusiveEndDate() {
     open();

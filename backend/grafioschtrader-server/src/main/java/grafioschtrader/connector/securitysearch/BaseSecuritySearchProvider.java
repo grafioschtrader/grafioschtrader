@@ -8,11 +8,13 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.dto.SecuritySearchCandidateDto;
 import grafioschtrader.types.SecuritySearchStatus;
 import io.github.bucket4j.Bandwidth;
@@ -84,6 +86,50 @@ public abstract class BaseSecuritySearchProvider implements ISecuritySearchProvi
       log.warn("Security search of provider {} failed for ISIN {}: {}", getProviderId(), query.isin(), e.toString());
       return SecuritySearchResult.failure(getProviderId(), SecuritySearchStatus.PROVIDER_ERROR, e.toString());
     }
+  }
+
+  /**
+   * Fetches master data within the same bounds and with the same status mapping as {@link #search}. Adapters override
+   * {@link #supportsBaseData(SecuritySearchCandidateDto)} and
+   * {@link #fetchBaseData(SecuritySearchCandidateDto, Locale)}.
+   */
+  @Override
+  public final SecurityBaseDataResult getSecurityBaseData(SecuritySearchCandidateDto candidate, Locale locale) {
+    if (candidate == null || !getProviderId().equals(candidate.providerId()) || !supportsBaseData(candidate)) {
+      return SecurityBaseDataResult.failure(getProviderId(), SecuritySearchStatus.UNSUPPORTED_QUERY,
+          "Provider cannot deliver master data for this candidate");
+    }
+    try {
+      SecurityBaseDataDto data = fetchBaseData(candidate, locale);
+      return data == null
+          ? SecurityBaseDataResult.failure(getProviderId(), SecuritySearchStatus.NO_MATCH, "No master data delivered")
+          : SecurityBaseDataResult.ok(getProviderId(), data);
+    } catch (SearchFailureException e) {
+      return SecurityBaseDataResult.failure(getProviderId(), e.getStatus(), e.getMessage());
+    } catch (HttpTimeoutException e) {
+      return SecurityBaseDataResult.failure(getProviderId(), SecuritySearchStatus.TIMEOUT, e.getMessage());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return SecurityBaseDataResult.failure(getProviderId(), SecuritySearchStatus.PROVIDER_ERROR, "Interrupted");
+    } catch (Exception e) {
+      log.warn("Master data request of provider {} failed for {}: {}", getProviderId(),
+          candidate.providerInstrumentId(), e.toString());
+      return SecurityBaseDataResult.failure(getProviderId(), SecuritySearchStatus.PROVIDER_ERROR, e.toString());
+    }
+  }
+
+  /**
+   * Fetches the master data of a candidate accepted by {@link #supportsBaseData(SecuritySearchCandidateDto)}. An
+   * adapter throws a {@link SearchFailureException} with {@link SecuritySearchStatus#NO_MATCH} when the identity
+   * delivered by the detail endpoint contradicts the candidate.
+   *
+   * @param candidate the candidate of this provider
+   * @param locale    language of the user
+   * @return the master data, or null when the provider delivered none
+   * @throws Exception any failure; it is converted into a status by {@link #getSecurityBaseData}
+   */
+  protected SecurityBaseDataDto fetchBaseData(SecuritySearchCandidateDto candidate, Locale locale) throws Exception {
+    return null;
   }
 
   /**

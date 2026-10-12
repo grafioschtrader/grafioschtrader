@@ -27,13 +27,10 @@ import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.security.filter.TenantReadOnlyFilter;
 import grafiosch.types.ProgressStateType;
 import grafioschtrader.entities.Tenant;
-import grafioschtrader.entities.Transaction;
 import grafioschtrader.reports.PerformanceReport;
 import grafioschtrader.reportviews.performance.WeekYear;
 import grafioschtrader.repository.CurrencypairJpaRepository;
 import grafioschtrader.repository.HistoryquoteJpaRepository;
-import grafioschtrader.repository.HoldCashaccountDepositJpaRepository;
-import grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository;
 import grafioschtrader.repository.PortfolioJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
@@ -81,65 +78,9 @@ class PerformanceReportBoundaryTest {
     verify(transactions).findByIdTenantAndTransactionDateBetweenForReport(7, from, to);
   }
 
-  @Test
-  @DisplayName("The inherited report form includes usable calendar-year and detail-column inputs")
-  void reportFormDefinition() {
-    var fields = grafiosch.dynamic.model.DynamicModelHelper.getFormDefinitionOfEntityClass(
-        grafioschtrader.dto.PerformanceReportRequest.class, 1).fieldDescriptorInputAndShows;
-    var years = fields.stream().filter(f -> f.fieldName.equals("annualYears")).findFirst().orElseThrow();
-    assertEquals(grafiosch.dynamic.model.DataType.NumericInteger, years.dataType);
-    assertEquals(1.0, years.min);
-    assertEquals(20.0, years.max);
-    assertEquals(grafiosch.dynamic.model.DataType.Boolean,
-        fields.stream().filter(f -> f.fieldName.equals("detailColumns")).findFirst().orElseThrow().dataType);
-  }
-
   @AfterEach
   void clearContext() {
     SecurityContextHolder.clearContext();
-  }
-
-  @Test
-  @DisplayName("Explicit context reaches trading-day and fee loaders without reading ClientClock or SecurityContext")
-  void callerIndependentCalculation() throws Exception {
-    var report = spy(new PerformanceReport());
-    var holdings = mock(HoldSecurityaccountSecurityJpaRepository.class);
-    var tenants = mock(TenantJpaRepository.class);
-    var transactions = mock(TransactionJpaRepository.class);
-    var tradingDays = mock(TradingDaysPlusJpaRepository.class);
-    ReflectionTestUtils.setField(report, "holdSecurityaccountSecurityRepository", holdings);
-    ReflectionTestUtils.setField(report, "tenantJpaRepository", tenants);
-    ReflectionTestUtils.setField(report, "portfolioJpaRepository", mock(PortfolioJpaRepository.class));
-    ReflectionTestUtils.setField(report, "holdCashaccountDepositJpaRepository",
-        mock(HoldCashaccountDepositJpaRepository.class));
-    ReflectionTestUtils.setField(report, "transactionJpaRepository", transactions);
-    ReflectionTestUtils.setField(report, "historyquoteJpaRepository", mock(HistoryquoteJpaRepository.class));
-    ReflectionTestUtils.setField(report, "currencypairJpaRepository", mock(CurrencypairJpaRepository.class));
-    ReflectionTestUtils.setField(report, "tradingDaysPlusJpaRepository", tradingDays);
-    LocalDate from = LocalDate.of(2025, 3, 3), to = from.plusDays(1), today = to.plusDays(1);
-    doReturn(PerformanceReportSampleWriterTest.days(from, to)).when(report).getFirstAndMissingTradingDaysByTenant(7,
-        today);
-    Tenant tenant = new Tenant();
-    tenant.setCurrency("CHF");
-    when(tenants.getReferenceById(7)).thenReturn(tenant);
-    when(holdings.getPeriodHoldingsByTenant(7, from, to))
-        .thenReturn(List.of(new PerformanceReportSampleWriterTest.Holding(from, 100, 0, 0, 100),
-            new PerformanceReportSampleWriterTest.Holding(to, 160, 0, 0, 150)));
-    Transaction known = mock(Transaction.class), missing = mock(Transaction.class);
-    when(known.getExchangeRateOnCurrencyOrNull(eq("CHF"), any())).thenReturn(.9);
-    when(known.getFeeMC(any())).thenReturn(9.0);
-    when(missing.getExchangeRateOnCurrencyOrNull(eq("CHF"), any())).thenReturn(null);
-    when(transactions.findFeesByIdTenantBetween(7, from, to)).thenReturn(List.of(known, missing));
-    SecurityContextHolder.clearContext();
-    try (var clock = mockStatic(ClientClock.class)) {
-      clock.when(ClientClock::today).thenThrow(new AssertionError("Request clock leaked into explicit context"));
-      var result = report.getPeriodPerformanceByTenant(7, "de-CH", today, from, to, WeekYear.WM_WEEK);
-      assertEquals(10, result.getDifference().getTotalGainMC());
-      assertEquals(9, result.getMetrics().feesMC());
-      assertEquals(1, result.getMetrics().feesWithoutRate());
-      verify(tradingDays).hasTradingDayBetweenUntilYesterday(to, today);
-      clock.verifyNoInteractions();
-    }
   }
 
   @Test

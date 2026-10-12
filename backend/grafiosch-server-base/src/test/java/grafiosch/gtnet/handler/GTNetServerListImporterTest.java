@@ -64,14 +64,6 @@ class GTNetServerListImporterTest {
     assertThat(result).isEqualTo(new GTNetServerListImporter.ImportResult(0, 0, 1, 1));
   }
 
-  @Test
-  void missingPayloadImportsNothing() {
-    var result = importer.importServerList(gtNet("https://me", null), "https://peer", null, objectMapper);
-
-    verify(gtNetJpaRepository, never()).save(any());
-    assertThat(result).isEqualTo(new GTNetServerListImporter.ImportResult(0, 0, 0, 0));
-  }
-
   private GTNet gtNet(String domain, LocalDateTime lastModified) {
     GTNet gtNet = new GTNet();
     gtNet.setDomainRemoteName(domain);

@@ -13,7 +13,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import grafioschtrader.types.SecuritySearchStatus;
@@ -32,7 +31,7 @@ public class SecuritySearchService {
 
   private final List<ISecuritySearchProvider> providers;
 
-  @Autowired
+
   public SecuritySearchService(List<ISecuritySearchProvider> providers) {
     this.providers = List.copyOf(providers);
   }

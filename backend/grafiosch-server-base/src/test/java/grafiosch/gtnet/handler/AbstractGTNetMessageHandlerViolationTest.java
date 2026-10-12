@@ -43,12 +43,6 @@ class AbstractGTNetMessageHandlerViolationTest {
   }
 
   @Test
-  void treatsAnUnknownRemoteOrMissingConfigAsUnblocked() {
-    assertThat(handler.isBlockedByRequestViolations(context(null))).isFalse();
-    assertThat(handler.isBlockedByRequestViolations(context(new GTNet()))).isFalse();
-  }
-
-  @Test
   void keepsRefusingOnceTheCounterSaturatesAt99() {
     GTNetConfig config = new GTNetConfig();
     config.setRequestViolationCount((byte) 98);

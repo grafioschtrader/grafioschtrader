@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
@@ -363,6 +365,20 @@ public interface IFeedConnector {
   List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception;
 
   /**
+   * Like {@link #getDividendHistory(Security, LocalDate)}, but also returns the distribution frequency when the
+   * provider states it in the same response. Connectors without such a statement keep this default.
+   *
+   * @param security the security for which to retrieve dividend history
+   * @param fromDate the start date from which to retrieve dividend data
+   * @return the dividends and the stated frequency, which is null when the provider states none
+   * @throws Exception if dividend data retrieval fails
+   */
+  default DividendHistoryResult getDividendHistoryWithFrequency(Security security, LocalDate fromDate)
+      throws Exception {
+    return new DividendHistoryResult(getDividendHistory(security, fromDate), null);
+  }
+
+  /**
    * Generates the download URL for accessing historical stock split data of a security.
    *
    * @param security the security for which to generate the split download link
@@ -424,6 +440,20 @@ public interface IFeedConnector {
    */
   boolean supports(String mic, String countryCode, AssetclassType assetclassType,
       SpecialInvestmentInstruments specialInvestmentInstruments);
+
+  /**
+   * Derives the URL extension this connector needs for a feed of an instrument that is being created, from master data
+   * a data provider delivered. The derivation is deterministic and makes no network request; whether the extension
+   * actually delivers data is checked separately by a probe. A provider symbol is used only by the connector that
+   * belongs to the same provider; the symbol of one provider is never taken for another.
+   *
+   * @param baseData    master data of the listing
+   * @param feedSupport the feed the extension is meant for
+   * @return the extension, or empty when this connector cannot derive one or needs none for the feed
+   */
+  default Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return Optional.empty();
+  }
 
   @Schema(description = """
       Container class for connector help text and documentation that can be displayed

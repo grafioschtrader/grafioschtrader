@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.securitysearch.OnvistaSecuritySearch;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -62,6 +64,17 @@ public class OnvistaFeedConnector extends BaseFeedConnector {
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR,
         AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.FIXED_INCOME,
         AssetclassCategory.ETF, AssetclassCategory.ISSUER_RISK_PRODUCT);
+  }
+
+  /**
+   * The URL extension {@code {TYPE}/{id}/eod_history?idNotation={notation}} is the instrument id of onvista master data
+   * ({@code OnvistaSecuritySearch}); it cannot be derived from ISIN or ticker, since the notation identifies the venue.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return OnvistaSecuritySearch.PROVIDER_ID.equals(baseData.providerId()) && baseData.providerInstrumentId() != null
+        ? Optional.of(baseData.providerInstrumentId())
+        : Optional.empty();
   }
 
   @Override

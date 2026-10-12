@@ -193,7 +193,7 @@ export class GTNetSecurityImportTableComponent extends TableEditConfigBase imple
       width: 80
     });
     const tickerCol = this.getColumnConfigByField('tickerSymbol');
-    tickerCol.cec.maxLength = 6;
+    tickerCol.cec.maxLength = gps.getFieldSize(AppSettings.FIELD_SIZE_MAX_Security_Ticker_Symbol);
 
     this.addEditColumnFeqH(DataType.String, 'currency', true, { width: 100 });
 

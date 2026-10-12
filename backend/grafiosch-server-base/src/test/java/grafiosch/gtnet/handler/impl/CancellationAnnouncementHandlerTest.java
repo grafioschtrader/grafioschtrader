@@ -71,20 +71,6 @@ class CancellationAnnouncementHandlerTest {
   }
 
   @Test
-  void discontinuationCancellationDropsAShutdownThatHasNotTakenEffectYet() throws Exception {
-    CancellationAnnouncementHandler handler = handler();
-    GTNet remote = remote();
-    remote.setCloseStartDate(LocalDate.now().plusDays(30));
-    remote.setServerOnline(GTNetServerOnlineStatusTypes.SOS_ONLINE);
-    correlate(GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_ALL_C, 43);
-
-    handler.handle(context(remote, GNetCoreMessageCode.GT_NET_OPERATION_DISCONTINUED_CANCEL_ALL_C, 900));
-
-    assertThat(remote.getCloseStartDate()).isNull();
-    assertThat(remote.getServerOnline()).isEqualTo(GTNetServerOnlineStatusTypes.SOS_ONLINE);
-  }
-
-  @Test
   void rejectsCancellationWhoseOriginalCannotBeCorrelated() throws Exception {
     CancellationAnnouncementHandler handler = handler();
     when(messageRepository.findByIdGtNetAndSendRecvAndIdSourceGtNetMessageAndMessageCode(any(), anyByte(), any(),

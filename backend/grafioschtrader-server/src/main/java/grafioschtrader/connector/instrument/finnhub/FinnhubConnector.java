@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
@@ -21,6 +22,8 @@ import grafiosch.common.DateHelper;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -62,6 +65,15 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
     super(supportedFeed, "finnhub", "Finnhub", null, EnumSet.noneOf(UrlCheck.class));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES, AssetclassCategory.ETF);
     parseGeoRestrictions("US");
+  }
+
+  /**
+   * The lookup offers this connector for a listing on NASDAQ or NYSE with the exchange ticker another provider found,
+   * see {@link FeedConnectorHelper#deriveUsTicker(SecurityBaseDataDto)}.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return FeedConnectorHelper.deriveUsTicker(baseData);
   }
 
   @Override

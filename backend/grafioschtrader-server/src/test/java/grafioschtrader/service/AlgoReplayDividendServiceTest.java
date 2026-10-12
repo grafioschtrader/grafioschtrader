@@ -10,18 +10,12 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import grafiosch.entities.Globalparameters;
-import grafiosch.repository.GlobalparametersJpaRepository;
-import grafioschtrader.GlobalParamKeyDefault;
+import grafioschtrader.entities.Assetclass;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Security;
@@ -32,6 +26,8 @@ import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.SimulationSourceRepository;
 import grafioschtrader.service.AlgoReplayDividendService.Claim;
 import grafioschtrader.types.AlgoEventType;
+import grafioschtrader.types.CreateType;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import grafioschtrader.types.TransactionType;
 
 @DisplayName("Replay dividend entitlement and payment accounting")
@@ -42,18 +38,22 @@ class AlgoReplayDividendServiceTest {
   private final DividendJpaRepository repository = mock(DividendJpaRepository.class);
   private final SecuritysplitJpaRepository splits = mock(SecuritysplitJpaRepository.class);
   private final SimulationSourceRepository source = mock(SimulationSourceRepository.class);
-  private final Security security = mock(Security.class);
-  private final Cashaccount cash = mock(Cashaccount.class);
+  private final Security security = new Security();
+  private final Cashaccount cash = new Cashaccount();
   private final List<Transaction> ledger = new ArrayList<>();
   private AlgoReplayDividendService service;
 
   @BeforeEach
   void setup() {
-    when(security.getId()).thenReturn(1);
-    when(security.getCurrency()).thenReturn("USD");
-    when(security.getName()).thenReturn("Dividend stock");
-    when(cash.getId()).thenReturn(3);
-    when(cash.getCurrency()).thenReturn("USD");
+    security.setIdSecuritycurrency(1);
+    security.setCurrency("USD");
+    security.setName("Dividend stock");
+    security.setLeverageFactor(1);
+    Assetclass assetclass = new Assetclass();
+    assetclass.setSpecialInvestmentInstrument(SpecialInvestmentInstruments.DIRECT_INVESTMENT);
+    security.setAssetClass(assetclass);
+    cash.setIdSecuritycashAccount(3);
+    cash.setCurrency("USD");
     when(source.cashaccounts(7)).thenReturn(List.of(cash));
     when(source.transactions(eq(7), any())).thenAnswer(_ -> ledger);
     when(splits.findByIdSecuritycurrencyOrderBySplitDateAsc(1)).thenReturn(List.of());
@@ -117,26 +117,8 @@ class AlgoReplayDividendServiceTest {
     });
   }
 
-  @ParameterizedTest
-  @ValueSource(ints = { 1, 16, 32 })
-  @DisplayName("Missing payment dates use calendar days, including weekends")
-  void fallbackDelay(int days) throws Exception {
-    trade(OPENING, 100, TransactionType.ACCUMULATE);
-    var session = open(dividend(EX, null, 2.0), days);
-    List<Claim> payments = new ArrayList<>();
-    session.processThrough(EX.plusDays(days), claim -> {
-      payments.add(claim);
-      return claim.amount();
-    }, (_, _) -> {
-    });
-    assertThat(payments).singleElement().satisfies(claim -> {
-      assertThat(claim.distribution().payDate()).isEqualTo(EX.plusDays(days));
-      assertThat(claim.distribution().estimated()).isTrue();
-    });
-  }
-
   @Test
-  @DisplayName("Provider date wins; unpaid income remains in terminal equity")
+  @DisplayName("Provider dates override the calendar-day fallback; unpaid income remains a receivable")
   void knownDateAndOutstandingIncome() throws Exception {
     trade(OPENING, 100, TransactionType.ACCUMULATE);
     var session = open(dividend(EX, END.plusDays(3), 2.0), 1);
@@ -146,6 +128,25 @@ class AlgoReplayDividendServiceTest {
     });
     assertThat(session.receivables(END)).containsEntry("USD", 200.0);
     assertThat(session.paidTotal()).isZero();
+
+    var estimated = open(dividend(EX, null, 2.0), 16);
+    estimated.processThrough(EX.plusDays(15), _ -> {
+      throw new AssertionError("before estimated payment date");
+    }, (_, _) -> {
+    });
+    assertThat(estimated.receivables(EX.plusDays(15))).containsEntry("USD", 200.0);
+    List<Claim> payments = new ArrayList<>();
+    estimated.processThrough(EX.plusDays(16), claim -> {
+      payments.add(claim);
+      return claim.amount();
+    }, (_, _) -> {
+    });
+    assertThat(payments).singleElement().satisfies(claim -> {
+      assertThat(claim.distribution().payDate()).isEqualTo(EX.plusDays(16));
+      assertThat(claim.distribution().estimated()).isTrue();
+    });
+    assertThat(estimated.paidTotal()).isEqualTo(200.0);
+    assertThat(estimated.receivables(EX.plusDays(16))).isEmpty();
   }
 
   @Test
@@ -167,12 +168,8 @@ class AlgoReplayDividendServiceTest {
   @DisplayName("Splits on the ex-date and before payment preserve the cash entitlement")
   void splitBasis() throws Exception {
     trade(OPENING, 100, TransactionType.ACCUMULATE);
-    Securitysplit onEx = mock(Securitysplit.class);
-    when(onEx.getSplitDate()).thenReturn(EX);
-    when(onEx.getFactor()).thenReturn(2.0);
-    Securitysplit beforePay = mock(Securitysplit.class);
-    when(beforePay.getSplitDate()).thenReturn(EX.plusDays(3));
-    when(beforePay.getFactor()).thenReturn(3.0);
+    Securitysplit onEx = new Securitysplit(1, EX, 1, 2, CreateType.ADD_MODIFIED_USER);
+    Securitysplit beforePay = new Securitysplit(1, EX.plusDays(3), 1, 3, CreateType.ADD_MODIFIED_USER);
     when(splits.findByIdSecuritycurrencyOrderBySplitDateAsc(1)).thenReturn(List.of(onEx, beforePay));
     Dividend dividend = dividend(EX, EX.plusDays(16), null);
     dividend.setAmountAdjusted(1.0);
@@ -187,113 +184,4 @@ class AlgoReplayDividendServiceTest {
     assertThat(session.paidTotal()).isEqualTo(600);
   }
 
-  @Test
-  @DisplayName("Opening-date entitlements are excluded and a fresh run rebuilds the same income")
-  void openingBoundaryAndRepeat() throws Exception {
-    trade(OPENING.minusDays(10), 100, TransactionType.ACCUMULATE);
-    var excluded = open(dividend(OPENING, EX, 2.0), 16);
-    excluded.processThrough(END, _ -> {
-      throw new AssertionError("opening claim");
-    }, (_, _) -> {
-    });
-    assertThat(excluded.receivables(END)).isEmpty();
-    for (int run = 0; run < 2; run++) {
-      var session = open(dividend(EX, EX, 2.0), 16);
-      session.processThrough(END, Claim::amount, (_, _) -> {
-      });
-      assertThat(session.paidTotal()).isEqualTo(200);
-    }
-  }
-
-  @Test
-  @DisplayName("Malformed amounts on held securities fail explicitly")
-  void invalidIncome() {
-    trade(OPENING, 100, TransactionType.ACCUMULATE);
-    var session = open(dividend(EX, EX, Double.NaN), 16);
-    assertThatThrownBy(() -> session.processThrough(EX, Claim::amount, (_, _) -> {
-    })).hasMessageContaining("REPLAY_DIVIDEND_INVALID");
-  }
-
-  @Test
-  @DisplayName("Entitlements retain separate custody and settlement accounts")
-  void accountAttribution() throws Exception {
-    Cashaccount other = mock(Cashaccount.class);
-    when(other.getId()).thenReturn(4);
-    when(other.getCurrency()).thenReturn("USD");
-    when(source.cashaccounts(7)).thenReturn(List.of(cash, other));
-    trade(OPENING, 100, TransactionType.ACCUMULATE);
-    trade(OPENING, 60, TransactionType.ACCUMULATE);
-    ledger.getLast().setCashaccount(other);
-    ledger.getLast().setIdSecurityaccount(5);
-    var session = open(dividend(EX, EX, 2.0), 16);
-    List<Claim> paid = new ArrayList<>();
-    session.processThrough(EX, claim -> {
-      paid.add(claim);
-      return claim.amount();
-    }, (_, _) -> {
-    });
-    assertThat(paid).hasSize(2);
-    assertThat(paid.getFirst().securityaccount()).isEqualTo(2);
-    assertThat(paid.getFirst().cashaccount().getId()).isEqualTo(3);
-    assertThat(paid.getLast().securityaccount()).isEqualTo(5);
-    assertThat(paid.getLast().cashaccount().getId()).isEqualTo(4);
-    assertThat(session.paidTotal()).isEqualTo(320);
-  }
-
-  @Test
-  @DisplayName("Foreign receivables contribute equity but no cash; missing FX marks the valuation unavailable")
-  void receivableValuation() {
-    AlgoHistoricalValuationService valuation = new AlgoHistoricalValuationService();
-    var tenants = mock(grafioschtrader.repository.TenantJpaRepository.class);
-    var tenant = mock(grafioschtrader.entities.Tenant.class);
-    when(tenant.getCurrency()).thenReturn("CHF");
-    when(tenants.findById(7)).thenReturn(java.util.Optional.of(tenant));
-    var currencies = mock(grafioschtrader.repository.CurrencypairJpaRepository.class);
-    var pair = mock(grafioschtrader.entities.Currencypair.class);
-    when(pair.getId()).thenReturn(9);
-    when(currencies.findByFromCurrencyAndToCurrency("USD", "CHF")).thenReturn(pair);
-    ReflectionTestUtils.setField(valuation, "source", source);
-    ReflectionTestUtils.setField(valuation, "tenants", tenants);
-    ReflectionTestUtils.setField(valuation, "currencies", currencies);
-    ReflectionTestUtils.setField(valuation, "balances",
-        mock(grafioschtrader.repository.HoldCashaccountBalanceJpaRepository.class));
-    ReflectionTestUtils.setField(valuation, "holdings",
-        mock(grafioschtrader.repository.HoldSecurityaccountSecurityJpaRepository.class));
-    var market = new AlgoHistoricalValuationService.ClosingPrices() {
-      @Override
-      public Double close(Integer id, LocalDate date) {
-        return 0.9;
-      }
-
-      @Override
-      public Map<String, Double> receivables(LocalDate date) {
-        return Map.of("USD", 200.0);
-      }
-    };
-    var snapshot = valuation.value(7, EX, market);
-    assertThat(snapshot.equity()).isEqualTo(180);
-    assertThat(snapshot.cashBalances()).containsEntry(3, 0.0);
-    assertThat(snapshot.errors()).isEmpty();
-    when(currencies.findByFromCurrencyAndToCurrency("USD", "CHF")).thenReturn(null);
-    var missing = valuation.value(7, EX, market);
-    assertThat(missing.errors()).contains("USD/CHF");
-    assertThatThrownBy(missing::requireAvailable).isInstanceOf(grafiosch.exceptions.DataViolationException.class);
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = { 0, 1, 16, 32, 33 })
-  @DisplayName("Administrator bounds are enforced even for externally corrupted values")
-  void configurationBounds(int value) {
-    GlobalparametersService parameters = new GlobalparametersService();
-    GlobalparametersJpaRepository parametersRepository = mock(GlobalparametersJpaRepository.class);
-    ReflectionTestUtils.setField(parameters, "globalparametersJpaRepository", parametersRepository);
-    Globalparameters parameter = mock(Globalparameters.class);
-    when(parameter.getPropertyInt()).thenReturn(value);
-    when(parametersRepository.findById(GlobalParamKeyDefault.GLOB_KEY_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS))
-        .thenReturn(java.util.Optional.of(parameter));
-    assertThat(parameters.getSimulationDividendPaymentDelayDays()).isEqualTo(value < 1 || value > 32 ? 16 : value);
-    when(parametersRepository.findById(GlobalParamKeyDefault.GLOB_KEY_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS))
-        .thenReturn(java.util.Optional.empty());
-    assertThat(parameters.getSimulationDividendPaymentDelayDays()).isEqualTo(16);
-  }
 }

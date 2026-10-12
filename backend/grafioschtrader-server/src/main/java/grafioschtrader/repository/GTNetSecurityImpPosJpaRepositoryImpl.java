@@ -26,6 +26,7 @@ import grafiosch.exceptions.DataViolationException;
 import grafiosch.service.DailyLimitService;
 import grafiosch.service.EntityLimitService;
 import grafiosch.types.OperationType;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.config.LimitKeyConfig;
 import grafioschtrader.dto.UploadHistoryquotesSuccess;
 import grafioschtrader.entities.GTNetSecurityImpGap;
@@ -467,7 +468,7 @@ public class GTNetSecurityImpPosJpaRepositoryImpl implements GTNetSecurityImpPos
       Set<String> existingKeys, Set<String> processedKeys) {
     String isin = normalizeValue(importPos.getIsin());
     String tickerSymbol = normalizeValue(importPos.getSymbolImp());
-    if (tickerSymbol != null && tickerSymbol.length() > 6) {
+    if (tickerSymbol != null && tickerSymbol.length() > GlobalConstants.FIELD_SIZE_MAX_Security_Ticker_Symbol) {
       tickerSymbol = null;
     }
     String currency = normalizeValue(importPos.getCurrencySecurity());

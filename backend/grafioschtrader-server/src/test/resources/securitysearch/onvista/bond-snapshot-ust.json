@@ -1,0 +1,250 @@
+{
+ "instrument": {
+  "type": "Instrument",
+  "entityType": "BOND",
+  "entityAttributes": [
+   "INSTRUMENT",
+   "BROKER_LIST"
+  ],
+  "entityValue": "265058343",
+  "name": "United States of America DL-Notes 2024(34)",
+  "urls": {
+   "WEBSITE": "https://www.onvista.de/anleihen/USA-24-34-Anleihe-US91282CJZ59"
+  },
+  "instrumentType": "Instrument",
+  "isin": "US91282CJZ59",
+  "wkn": "A3LUB5",
+  "displayType": "Anleihe",
+  "urlName": "USA-24-34",
+  "tinyName": "United States of America DL-Notes 2024(34)"
+ },
+ "quoteList": {
+  "expires": 1791738500430,
+  "list": [
+   {
+    "market": {
+     "name": "Tradegate BSX",
+     "codeMarket": "_GAT",
+     "nameExchange": "Tradegate BSX",
+     "codeExchange": "GAT",
+     "idNotation": 547296859,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 92.973,
+    "datetimeLast": "2026-10-09T20:02:24.895+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Stuttgart",
+     "codeMarket": "_STU",
+     "nameExchange": "Stuttgart",
+     "codeExchange": "STU",
+     "idNotation": 449952146,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 92.941,
+    "datetimeLast": "2026-10-09T19:46:12.999+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "gettex",
+     "codeMarket": "_TRO",
+     "nameExchange": "gettex",
+     "codeExchange": "TRO",
+     "idNotation": 450606331,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 92.91,
+    "datetimeLast": "2026-10-09T20:41:53.126+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Frankfurt",
+     "codeMarket": "_FRA",
+     "nameExchange": "Frankfurt",
+     "codeExchange": "FRA",
+     "idNotation": 449635241,
+     "isoCountry": "DE",
+     "codeExchangeGoogle": "FRA"
+    },
+    "isoCurrency": "USD",
+    "last": 92.84,
+    "datetimeLast": "2026-10-09T15:20:07.790+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Stuttgart FXplus",
+     "codeMarket": "_BTP",
+     "nameExchange": "Stuttgart FXplus",
+     "codeExchange": "BTP",
+     "idNotation": 449952147,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 92.941,
+    "datetimeLast": "2026-10-09T19:45:49.215+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "München",
+     "codeMarket": "_MUN",
+     "nameExchange": "München",
+     "codeExchange": "MUN",
+     "idNotation": 450493444,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 92.935,
+    "datetimeLast": "2026-10-09T11:00:44.060+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Commerzbank",
+     "codeMarket": "@_COBA",
+     "nameExchange": "außerbörslich Deutschland",
+     "codeExchange": "@DE",
+     "nameContributor": "Commerzbank",
+     "codeContributor": "COBA",
+     "idNotation": 452414003,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 93.02,
+    "datetimeLast": "2026-10-09T19:59:43.000+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Düsseldorf",
+     "codeMarket": "_DUS",
+     "nameExchange": "Düsseldorf",
+     "codeExchange": "DUS",
+     "idNotation": 452487347,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 92.97,
+    "datetimeLast": "2026-10-09T07:17:30.890+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Baader Trading",
+     "codeMarket": "@_BBF",
+     "nameExchange": "außerbörslich Deutschland",
+     "codeExchange": "@DE",
+     "nameContributor": "Baader Trading",
+     "codeContributor": "BBF",
+     "idNotation": 508702091,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 92.98,
+    "datetimeLast": "2026-10-09T20:59:44.076+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Stuttgart TradeREBEL",
+     "codeMarket": "_BPS",
+     "nameExchange": "Stuttgart TradeREBEL",
+     "codeExchange": "BPS",
+     "idNotation": 534518230,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "EUR",
+    "last": 93.117,
+    "datetimeLast": "2026-10-08T19:54:22.535+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Quotrix",
+     "codeMarket": "_QUO",
+     "nameExchange": "Quotrix",
+     "codeExchange": "QUO",
+     "idNotation": 452487348,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 96.853,
+    "datetimeLast": "2026-07-09T11:29:05.687+00:00",
+    "unitType": "PCT"
+   },
+   {
+    "market": {
+     "name": "Hannover",
+     "codeMarket": "_HAN",
+     "nameExchange": "Hannover",
+     "codeExchange": "HAN",
+     "idNotation": 584289028,
+     "isoCountry": "DE"
+    },
+    "isoCurrency": "USD",
+    "last": 92.882,
+    "datetimeLast": "2026-10-09T13:32:34.150+00:00",
+    "unitType": "PCT"
+   }
+  ]
+ },
+ "bondsIssuer": {
+  "id": 60231,
+  "name": "United States of America",
+  "isoCountry": "US",
+  "nameCountry": "USA",
+  "idTypeIssuer": 1,
+  "nameTypeIssuer": "öffentlich",
+  "idSubTypeIssuer": 1,
+  "nameSubTypeIssuer": "Bund"
+ },
+ "bondsDetails": {
+  "shortName": "USA 24/34",
+  "officialName": "United States of America DL-Notes 2024(34)",
+  "idTypeBond": 21,
+  "nameTypeBond": "Anleihe",
+  "idTypeCoupon": 1,
+  "nameTypeCoupon": "Fest",
+  "nominal": 100.0,
+  "isoCurrency": "USD",
+  "coupon": 4.0,
+  "categories": []
+ },
+ "bondsBaseData": {
+  "idCouponPeriod": 11,
+  "nameCouponPeriod": "6 Monate",
+  "idTypeInterestRate": 4,
+  "nameTypeInterestRate": "Tageberechnung US-Treasuries (Zinshalbjahr)",
+  "nextCouponProRataTemporis": 2.0,
+  "datetimeNextCoupon": "2027-02-15T12:00:00.000+00:00",
+  "datetimeStartCalculationInterest": "2024-02-15T12:00:00.000+00:00",
+  "datetimeMaturity": "2034-02-15T12:00:00.000+00:00",
+  "namePriority": "",
+  "idTypePriority": 0,
+  "nameTypePriority": "unbekannt",
+  "priceEmission": 99.2431,
+  "isoCurrencyPriceEmission": "USD",
+  "volumeEmission": 123092882300.0,
+  "isoCurrencyCapital": "USD",
+  "datetimeEmission": "2024-02-15T12:00:00.000+00:00",
+  "redemptionPrice": 100.0,
+  "isoCurrencyRedemptionValue": "",
+  "datetimeRedemption": "2034-02-15T00:00:00.000+00:00",
+  "nameTypeDefault": "",
+  "timezone": 1,
+  "financialInnovation": false,
+  "grandfathered": false,
+  "inDefault": false,
+  "perpetual": false,
+  "trusteeSecurity": false,
+  "callable": false
+ }
+}

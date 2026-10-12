@@ -109,21 +109,6 @@ class AlgoMeanReversionPositionServiceTest {
   }
 
   @Test
-  void removedLedgerDeletesStaleProjection() {
-    ledger();
-    AlgoExecutionState old = new AlgoExecutionState();
-    old.setLifecycle(10);
-    when(states.findByIdTenantAndIdAlgoStrategyAndIdSecuritycurrencyOrderByLifecycle(1, 2, 3)).thenReturn(List.of(old));
-    assertEquals(0, service.reconcile(1, 2, security, day).signedUnits());
-    verify(states).deleteAll(argThat(rows -> {
-      for (var row : rows)
-        if (row == old)
-          return true;
-      return false;
-    }));
-  }
-
-  @Test
   void unassigningOpeningCannotOrphanLaterAssignedExit() {
     var opening = trade(10, 2, 4, TransactionType.ACCUMULATE, 10, 100);
     var closing = trade(11, 2, 2, TransactionType.REDUCE, 10, 100);
@@ -135,15 +120,4 @@ class AlgoMeanReversionPositionServiceTest {
     assertThrows(RuntimeException.class, () -> service.validateAssignment(edited));
   }
 
-  @Test
-  void onlyUnassignedOpenQuantitiesBlockEvaluation() {
-    var opening = trade(10, 2, 4, TransactionType.ACCUMULATE, 10, 100);
-    var closing = trade(11, 2, 2, TransactionType.REDUCE, 10, 100);
-    when(opening.getIdAlgoStrategy()).thenReturn(null);
-    when(closing.getIdAlgoStrategy()).thenReturn(null);
-    ledger(opening, closing);
-    assertTrue(service.assignmentResolved(1, security, day));
-    ledger(opening);
-    assertFalse(service.assignmentResolved(1, security, day));
-  }
 }

@@ -4,31 +4,43 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import grafioschtrader.connector.instrument.IFeedConnector.AssetclassCategory;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.dto.SecuritySearchCandidateDto;
+import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.IdentityEvidence;
 import grafioschtrader.types.SecuritySearchStatus;
+import grafioschtrader.types.SpecialInvestmentInstruments;
 import io.github.bucket4j.Bandwidth;
 import tools.jackson.databind.JsonNode;
 
 /**
- * Maps an ISIN to listings through the OpenFIGI mapping API, used without a key (25 requests per minute, up to ten
- * jobs per request). The response repeats neither ISIN, MIC nor currency; they count as {@link IdentityEvidence#FILTERED}
+ * Maps an ISIN to listings through the OpenFIGI mapping API, used without a key (25 requests per minute, up to ten jobs
+ * per request). The response repeats neither ISIN, MIC nor currency; they count as {@link IdentityEvidence#FILTERED}
  * because they are sent as exact filters of the mapping job. The FIGI is reported as provider instrument id, the
  * returned ticker as provider symbol - neither is the symbol of another provider nor a price-feed URL extension.
  *
  * <p>
  * OpenFIGI knows the NASDAQ listings by their segment MICs (XNGS, XNMS, XNCM), not by the operating MIC XNAS that GT
  * uses (see {@link MarketSegmentMics}). A query for an operating MIC therefore sends one job per segment MIC in the
- * same request. A further job without
- * MIC and currency filter tells "ISIN unknown to OpenFIGI" apart from "no listing on this exchange", which is reported in
- * the detail of a {@link SecuritySearchStatus#NO_MATCH}.
+ * same request. A further job without MIC and currency filter tells "ISIN unknown to OpenFIGI" apart from "no listing
+ * on this exchange", which is reported in the detail of a {@link SecuritySearchStatus#NO_MATCH}.
+ * </p>
+ *
+ * <p>
+ * Master data needs no further request: it is the search hit itself - the Bloomberg ticker, which at most European
+ * exchanges equals the exchange ticker, the name, the FIGI and {@code securityType2}. OpenFIGI is an identification
+ * service: it delivers no prices, dates or links.
  * </p>
  */
 @Component
@@ -38,6 +50,8 @@ public class OpenFigiSecuritySearch extends BaseSecuritySearchProvider {
 
   private static final String DEFAULT_BASE_URL = "https://api.openfigi.com/";
   private static final String ID_TYPE_ISIN = "ID_ISIN";
+  private static final Set<AssetclassCategory> COVERED_CATEGORIES = EnumSet.of(AssetclassCategory.EQUITIES,
+      AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND);
 
   private final String baseUrl;
 
@@ -66,18 +80,50 @@ public class OpenFigiSecuritySearch extends BaseSecuritySearchProvider {
     return query.hasValidIsin();
   }
 
+  /**
+   * OpenFIGI has no price connector. It identifies shares, bonds and funds; an index, a currency pair or a CFD is not
+   * worth a request from its small budget.
+   */
+  @Override
+  public boolean covers(AssetclassType categoryType, SpecialInvestmentInstruments sii) {
+    return COVERED_CATEGORIES.stream().anyMatch(c -> c.matches(categoryType, sii));
+  }
+
+  @Override
+  public boolean supportsBaseData(SecuritySearchCandidateDto candidate) {
+    return PROVIDER_ID.equals(candidate.providerId());
+  }
+
+  /** Builds the master data from the search hit; no request is sent. */
+  @Override
+  protected SecurityBaseDataDto fetchBaseData(SecuritySearchCandidateDto candidate, Locale locale) {
+    Map<String, String> attributes = new LinkedHashMap<>();
+    if (candidate.providerInstrumentType() != null) {
+      attributes.put("securityType2", candidate.providerInstrumentType());
+    }
+    if (candidate.providerExchangeCode() != null) {
+      attributes.put("exchCode", candidate.providerExchangeCode());
+    }
+    if (candidate.providerInstrumentId() != null) {
+      attributes.put("figi", candidate.providerInstrumentId());
+    }
+    return new SecurityBaseDataDto(PROVIDER_ID, candidate.providerInstrumentId(), candidate.isin(),
+        candidate.currency(), candidate.mic(), candidate.name(), candidate.providerSymbol(), null, null, null, null,
+        null, null, null, null, null, attributes);
+  }
+
   @Override
   protected List<SecuritySearchCandidateDto> fetchCandidates(SecuritySearchQuery query) throws Exception {
     List<Map<String, String>> jobs = createJobs(query);
-    String body = sendExpectOk(HttpRequest.newBuilder(URI.create(baseUrl + "v3/mapping"))
-        .header("Content-Type", "application/json")
-        .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(jobs))));
+    String body = sendExpectOk(
+        HttpRequest.newBuilder(URI.create(baseUrl + "v3/mapping")).header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(jobs))));
     return parse(query, body);
   }
 
   /**
-   * Creates the mapping jobs: with a MIC one job per MIC variant followed by an unfiltered diagnosis job, without a MIC a
-   * single job. The currency filter is added to the filtered jobs when the query has a currency.
+   * Creates the mapping jobs: with a MIC one job per MIC variant followed by an unfiltered diagnosis job, without a MIC
+   * a single job. The currency filter is added to the filtered jobs when the query has a currency.
    *
    * @param query the search query
    * @return the jobs in the order their answers are expected
@@ -112,9 +158,8 @@ public class OpenFigiSecuritySearch extends BaseSecuritySearchProvider {
     List<SecuritySearchCandidateDto> candidates = new ArrayList<>();
     answers.stream().limit(answers.size() - 1L).forEach(a -> candidates.addAll(toCandidates(query, a, true)));
     if (candidates.isEmpty() && !answers.isEmpty() && answers.getLast().path("data").size() > 0) {
-      throw new SearchFailureException(SecuritySearchStatus.NO_MATCH,
-          "ISIN known to OpenFIGI, but no listing on " + query.mic()
-              + (query.currency() == null ? "" : " in " + query.currency()));
+      throw new SearchFailureException(SecuritySearchStatus.NO_MATCH, "ISIN known to OpenFIGI, but no listing on "
+          + query.mic() + (query.currency() == null ? "" : " in " + query.currency()));
     }
     return candidates;
   }

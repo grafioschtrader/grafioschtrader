@@ -1,7 +1,8 @@
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { TranslateService } from '@ngx-translate/core';
 import { Assetclass } from '../../entities/assetclass';
-import { ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { GroupItem, ValueKeyHtmlSelectOptions } from '../../lib/dynamic-form/models/value.key.html.select.options';
+import { SelectOptionsHelper } from '../../lib/helper/select.options.helper';
 import { combineLatest } from 'rxjs';
 import { Helper } from '../../lib/helper/helper';
 import { AppHelper, Comparison } from '../../lib/helper/app.helper';
@@ -75,6 +76,28 @@ export class BusinessSelectOptionsHelper {
       this.translateAssetclass(translateService, gps.getUserLang(), assetclass, valueKeyHtmlSelectOptions);
     });
     return valueKeyHtmlSelectOptions;
+  }
+
+  /**
+   * Creates the asset class options for an Optimus dropdown, so its overlay filter can search the composed label
+   * "{categoryType} / {subCategory} / {specialInvestmentInstrument}". The first entry is the empty "no selection" row.
+   *
+   * The labels are translated synchronously here: the texts are loaded before the application bootstraps, so
+   * translateService.get() emits at once and the options are complete when they are converted to group items.
+   *
+   * @param gps Provides the user language for the sub category
+   * @param translateService Translates the category type and the special investment instrument
+   * @param assetClasses Asset classes which are transformed to options
+   * @returns GroupItem array for FieldConfig.groupItem, sorted by label
+   */
+  public static assetclassCreateGroupItems(
+    gps: GlobalparameterService,
+    translateService: TranslateService,
+    assetClasses: Assetclass[]
+  ): GroupItem[] {
+    return SelectOptionsHelper.createGroupItemsFromValueKeyHtmlSelectOptions(
+      this.assetclassCreateValueKeyHtmlSelectOptions(gps, translateService, assetClasses)
+    );
   }
 
   public static translateAssetclass(

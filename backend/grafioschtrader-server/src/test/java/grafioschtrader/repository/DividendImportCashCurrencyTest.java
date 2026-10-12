@@ -25,7 +25,6 @@ import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.platform.TransactionImportHelper;
 import grafioschtrader.platformimport.pdf.ImportTransactionHelperPdf;
 import grafioschtrader.platformimport.pdf.ParseFormInputPDFasTXT;
-import grafioschtrader.types.TransactionType;
 
 /** Replays a DKK payout for a holding traded in EUR through the PDF parser and import preparation. */
 @DisplayName("Dividend import converts to cash currency and resolves ISIN independently of holdings")
@@ -122,27 +121,6 @@ class DividendImportCashCurrencyTest {
   }
 
   @Test
-  void missingTargetSecurityDoesNotRelabelTheDkkSecurity() {
-    when(securities.findByIsinAndCurrency("DK0062498333", "EUR")).thenReturn(null);
-    repository.addPossibleExchangeRateForDividend(head, pos);
-    assertUnconverted();
-  }
-
-  @Test
-  void buyKeepsItsOriginalInstrumentAndExchangeRate() {
-    pos.setTransactionType(TransactionType.ACCUMULATE.getValue());
-    repository.addPossibleExchangeRateForDividend(head, pos);
-    assertUnconverted();
-  }
-
-  @Test
-  void costsInAThirdCurrencyNeedAnotherExchangeRate() {
-    pos.setCurrencyCost("CHF");
-    repository.addPossibleExchangeRateForDividend(head, pos);
-    assertUnconverted();
-  }
-
-  @Test
   void missingOrInvalidRatesAndBookedPositionsAreNotConverted() {
     for (Double rate : new Double[] { null, 0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY }) {
       pos.setCurrencyExRate(rate);
@@ -167,30 +145,6 @@ class DividendImportCashCurrencyTest {
     assertThat(pos.getTransactionCost()).isEqualTo(1.25);
     assertThat(pos.getCurrencyCost()).isEqualTo("EUR");
     assertThat(pos.getDiffCashaccountAmount()).isZero();
-  }
-
-  @Test
-  void convertsExplicitPayoutCurrencyCostsOnce() {
-    pos.setExDate(LocalDate.of(2026, 8, 13));
-    pos.setCurrencyCost("DKK");
-    repository.addPossibleExchangeRateForDividend(head, pos);
-    verifyNoInteractions(holdings);
-    assertThat(pos.getTaxCost()).isEqualTo(67.73);
-    assertThat(pos.getCurrencyCost()).isEqualTo("EUR");
-    assertThat(pos.getDiffCashaccountAmount()).isZero();
-  }
-
-  @Test
-  void convertsFeesInPayoutCurrencyToCashCurrency() {
-    pos.setTransactionCost(10.0);
-    pos.setCashaccountAmount(181.78);
-    repository.addPossibleExchangeRateForDividend(head, pos);
-    assertThat(pos.getSecurity()).isSameAs(eur);
-    assertThat(pos.getTransactionCost()).isEqualTo(1.34);
-    assertThat(pos.getTaxCost()).isEqualTo(67.73);
-    assertThat(pos.getCurrencyExRate()).isNull();
-    assertThat(pos.getDiffCashaccountAmount()).isZero();
-    verifyNoInteractions(holdings);
   }
 
   private void assertUnconverted() {

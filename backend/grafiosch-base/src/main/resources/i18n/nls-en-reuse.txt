@@ -48,3 +48,6 @@ VALUE
 # --- Deliberate: entity limits (issue #206) ---
 # 'Element' is the same word in both languages.
 relation.entity.name
+
+# --- Deliberate: a status shown as 'OK' in both languages (dashboard, data provider requests).
+OK

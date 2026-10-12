@@ -60,6 +60,12 @@ public class GlobalConstants extends BaseConstants {
   /** Maximum character length for stock exchange website URLs. */
   public static final int FIELD_SIZE_MAX_Stockexchange_Website = 128;
 
+  /**
+   * Maximum length of the exchange ticker of a security. Mexican listings combine issuer code and series
+   * ({@code GMEXICO B}), and NSE symbols reach ten characters, so six characters were too few.
+   */
+  public static final int FIELD_SIZE_MAX_Security_Ticker_Symbol = 12;
+
   /** Daily correlation parameters: step, min value and max value. */
   public static final String CORR_DAILY = "10,20,120";
 

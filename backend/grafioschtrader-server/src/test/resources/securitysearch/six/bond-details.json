@@ -1,0 +1,43 @@
+{
+  "status" : "Ok",
+  "totalCount" : 1,
+  "itemList" : [ {
+    "info" : {
+      "valorSymbol" : "GIV21",
+      "valorNumber" : 114830872,
+      "isin" : "CH1148308724",
+      "tradingCurrency" : "CHF",
+      "exchange" : "XSWX",
+      "priceStepGroup" : "CH",
+      "firstTradingDate" : 20211203,
+      "lastTradingDate" : 20270603,
+      "securityType" : "BO",
+      "productLine" : "DB",
+      "smallestTradeableUnit" : 5000,
+      "primaryListed" : true,
+      "regulatoryStandard" : "STANDARD_BOND",
+      "dutyToReport" : true,
+      "admissionState" : "DEFINITIVE_LISTING"
+    },
+    "issuerCountryCode" : "CH",
+    "issuedBy" : "Givaudan SA",
+    "smallestDenomination" : 5000,
+    "amountInIssue" : 150000000,
+    "remainingIssueAmount" : 150000000,
+    "issueCurrency" : "CHF",
+    "couponInfo" : {
+      "issueYear" : 2021,
+      "remainingLifeInYear" : 0.0,
+      "paymentDate" : 20211207,
+      "couponRate" : 0.125,
+      "paymentCurrency" : "CHF",
+      "interestFrequency" : "1",
+      "accruedInterestFromDate" : 20211207,
+      "interestCalculationMethod" : 1,
+      "minimumOrderQuantity" : 0
+    },
+    "maturity" : 20270607,
+    "earliestRedemptionDate" : 20270607,
+    "noticePeriod" : 0
+  } ]
+}

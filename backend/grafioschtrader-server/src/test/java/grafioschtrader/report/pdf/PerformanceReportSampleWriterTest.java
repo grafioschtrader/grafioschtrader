@@ -294,7 +294,7 @@ class PerformanceReportSampleWriterTest {
           assertTrue(text.contains("12.50"));
           assertTrue(text.contains("[T]"));
           assertTrue(text.contains(language.equals("de") ? "Kontoübertrag" : "Cash transfer"));
-          assertTrue(text.contains(language.equals("de") ? "Wertschriftenübertrag" : "Security transfer"));
+          assertTrue(text.contains(language.equals("de") ? "Wertpapierübertrag" : "Security transfer"));
           assertFalse(
               text.contains(language.equals("de") ? "Nicht zugeordnete Differenz" : "Not attributed difference"));
           assertEquals(3, document.getPage(0).getAnnotations().size());

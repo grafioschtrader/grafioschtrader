@@ -117,6 +117,7 @@ public class Security extends Securitycurrency<Security>
   @Schema(description = "Public traded security has a ticker symbol which is a unique abbreviation")
   @Column(name = "ticker_symbol")
   @PropertyAlwaysUpdatable
+  @Size(max = GlobalConstants.FIELD_SIZE_MAX_Security_Ticker_Symbol)
   private String tickerSymbol;
 
   @Schema(description = "The traded volume within one day. Adjusted accordingly throughout the day")
@@ -646,6 +647,10 @@ public class Security extends Securitycurrency<Security>
   }
 
   public void clearProperties() {
+    if (this.assetClass.getSpecialInvestmentInstrument() == SpecialInvestmentInstruments.NON_INVESTABLE_INDICES) {
+      // A non-investable index pays nothing, so a distribution frequency has no meaning there
+      this.distributionFrequency = DistributionFrequency.DF_NONE.getValue();
+    }
     if (!this.canHaveSplitConnector()) {
       this.idConnectorSplit = null;
       this.urlSplitExtend = null;

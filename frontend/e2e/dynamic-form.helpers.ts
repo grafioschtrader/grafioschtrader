@@ -21,10 +21,18 @@ export async function selectDynamicFormOptionByText(
 
   const optimusSelect = scope.locator(`p-select#${fieldId}`).first();
   await expect(optimusSelect, `dynamic-form field #${fieldId}`).toBeVisible({ timeout: 15_000 });
-  await optimusSelect.click();
 
+  // The mousedown of the click blurs the previously focused field. When that field is an empty required input, its
+  // "Input required!" message appears and shifts the form down before the mouseup, so the click event misses the
+  // p-select and the overlay stays closed. Click again only while the overlay is closed; a second click on an open
+  // overlay would close it.
   const overlay = page.locator('.p-select-overlay:visible').first();
-  await expect(overlay, `open options for p-select#${fieldId}`).toBeVisible({ timeout: 10_000 });
+  await expect(async () => {
+    if (!(await overlay.isVisible())) {
+      await optimusSelect.click();
+    }
+    await expect(overlay).toBeVisible({ timeout: 2_000 });
+  }, `open options for p-select#${fieldId}`).toPass({ timeout: 10_000 });
   const option = overlay.getByRole('option').filter({ hasText: text });
   await expect(option, `no option matching ${text} in p-select#${fieldId}`).toHaveCount(1, { timeout: 10_000 });
   // Tax metadata can rebuild the lower half of a security dialog while this overlay is open. The option remains the

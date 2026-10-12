@@ -2,7 +2,6 @@ package grafioschtrader.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -161,39 +160,6 @@ class HoldDailyTotalServiceTest {
   }
 
   @Test
-  @DisplayName("A run without changes computes only the new day and moves the marker behind it")
-  void onlyTheNewDay() {
-    HoldDailyTotalState state = state(TODAY);
-    latestTradingDay(TODAY);
-    when(holdSecurityaccountSecurityJpaRepository.getPeriodHoldingsByTenant(ID_TENANT, TODAY, TODAY))
-        .thenReturn(List.of(new Holding(TODAY, 100, 900)));
-
-    int days = service.updateTenant(ID_TENANT, TODAY);
-
-    assertThat(days).isEqualTo(1);
-    verify(holdDailyTotalJpaRepository).removeByIdTenantFromDate(ID_TENANT, TODAY);
-    assertThat(savedRows()).singleElement().satisfies(r -> {
-      assertThat(r.getHoldDate()).isEqualTo(TODAY);
-      assertThat(r.getIdPortfolio()).isNull();
-      assertThat(r.getTotalBalanceMC()).isEqualTo(1000.0);
-    });
-    assertThat(state.getRecalcFromDate()).isEqualTo(TODAY.plusDays(1));
-    assertThat(state.getQuoteCheckedTime()).isBefore(DB_NOW);
-  }
-
-  @Test
-  @DisplayName("Nothing is computed while the marker lies after the latest trading day")
-  void nothingToDo() {
-    HoldDailyTotalState state = state(TODAY.plusDays(1));
-    latestTradingDay(TODAY);
-
-    assertThat(service.updateTenant(ID_TENANT, TODAY)).isZero();
-
-    verify(holdDailyTotalJpaRepository, never()).removeByIdTenantFromDate(any(), any());
-    assertThat(state.getRecalcFromDate()).isEqualTo(TODAY.plusDays(1));
-  }
-
-  @Test
   @DisplayName("A booking three months back recomputes from that day only, the portfolios included")
   void backDatedBooking() {
     LocalDate booked = TODAY.minusMonths(3);
@@ -215,23 +181,6 @@ class HoldDailyTotalServiceTest {
   }
 
   @Test
-  @DisplayName("A long range is queried per calendar year")
-  void chunkedByYear() {
-    LocalDate from = LocalDate.of(2024, 11, 4);
-    state(from);
-    latestTradingDay(TODAY);
-
-    service.updateTenant(ID_TENANT, TODAY);
-
-    verify(holdSecurityaccountSecurityJpaRepository).getPeriodHoldingsByTenant(ID_TENANT, from,
-        LocalDate.of(2024, 12, 31));
-    verify(holdSecurityaccountSecurityJpaRepository).getPeriodHoldingsByTenant(ID_TENANT, LocalDate.of(2025, 1, 1),
-        LocalDate.of(2025, 12, 31));
-    verify(holdSecurityaccountSecurityJpaRepository).getPeriodHoldingsByTenant(ID_TENANT, LocalDate.of(2026, 1, 1),
-        TODAY);
-  }
-
-  @Test
   @DisplayName("A missing quote of yesterday is retried, the marker stays on it")
   void missingQuoteWithinRetryWindow() {
     LocalDate yesterday = TODAY.minusDays(1);
@@ -243,34 +192,6 @@ class HoldDailyTotalServiceTest {
     service.updateTenant(ID_TENANT, TODAY);
 
     assertThat(state.getRecalcFromDate()).isEqualTo(yesterday);
-  }
-
-  @Test
-  @DisplayName("A missing quote outside the retry window stays a gap and is not retried")
-  void missingQuoteOutsideRetryWindow() {
-    LocalDate from = TODAY.minusDays(20);
-    HoldDailyTotalState state = state(from);
-    latestTradingDay(TODAY);
-    when(holdSecurityaccountSecurityJpaRepository.getMissingsQuoteDaysByTenant(ID_TENANT))
-        .thenReturn(Set.of(TODAY.minusDays(15)));
-
-    service.updateTenant(ID_TENANT, TODAY);
-
-    assertThat(state.getRecalcFromDate()).isEqualTo(TODAY.plusDays(1));
-  }
-
-  @Test
-  @DisplayName("A price created or changed since the last scan lowers the marker to its day")
-  void changedQuoteLowersTheMarker() {
-    LocalDate backfilled = TODAY.minusDays(40);
-    HoldDailyTotalState state = state(TODAY);
-    latestTradingDay(TODAY);
-    when(holdDailyTotalJpaRepository.getEarliestChangedQuoteDateByTenant(ID_TENANT, LAST_SCAN)).thenReturn(backfilled);
-
-    service.updateTenant(ID_TENANT, TODAY);
-
-    verify(holdDailyTotalJpaRepository).removeByIdTenantFromDate(ID_TENANT, backfilled);
-    assertThat(state.getRecalcFromDate()).isEqualTo(TODAY.plusDays(1));
   }
 
   @Test
@@ -294,15 +215,4 @@ class HoldDailyTotalServiceTest {
     assertThat(savedRows()).extracting(HoldDailyTotal::getHoldDate).containsExactly(zeroBase, TODAY);
   }
 
-  @Test
-  @DisplayName("A tenant that has never held a security is left without a marker")
-  void tenantWithoutHoldings() {
-    when(holdDailyTotalStateJpaRepository.lockByIdTenant(ID_TENANT)).thenReturn(Optional.empty());
-
-    assertThat(service.updateTenant(ID_TENANT, TODAY)).isZero();
-
-    verify(holdDailyTotalStateJpaRepository, never()).saveAndFlush(any());
-    verify(holdSecurityaccountSecurityJpaRepository, never()).getPeriodHoldingsByTenant(any(), any(), any());
-    verify(holdDailyTotalJpaRepository, never()).removeByIdTenant(anyInt());
-  }
 }

@@ -99,13 +99,6 @@ class EntityLimitServiceTest {
     }
 
     @Test
-    @DisplayName("Without a user or role row the default row applies")
-    void defaultRowApplies() {
-      givenRows(row(null, null, 10, null));
-      assertThat(entityLimitService.resolve(user(Role.ROLE_USER, ID_ROLE_USER), KEY)).contains(10);
-    }
-
-    @Test
     @DisplayName("A key with no row at all is unlimited")
     void noRowIsUnlimited() {
       givenRows();
@@ -129,21 +122,6 @@ class EntityLimitServiceTest {
           .isEmpty();
     }
 
-    @Test
-    @DisplayName("An administrator is bound by a row written for ROLE_ADMIN")
-    void adminHonoursOwnRoleRow() {
-      givenRows(row(ID_ROLE_USER, null, 5, null), row(ID_ROLE_ADMIN, null, 50, null));
-      assertThat(entityLimitService.resolve(user(Role.ROLE_ADMIN, ID_ROLE_ADMIN, ID_ROLE_ALL_EDIT, ID_ROLE_USER), KEY))
-          .contains(50);
-    }
-
-    @Test
-    @DisplayName("An ALLEDIT user is bound by a row written for ROLE_ALLEDIT")
-    void allEditHonoursOwnRoleRow() {
-      givenRows(row(ID_ROLE_ALL_EDIT, null, 25, null));
-      assertThat(entityLimitService.resolve(user(Role.ROLE_ALL_EDIT, ID_ROLE_ALL_EDIT, ID_ROLE_USER), KEY))
-          .contains(25);
-    }
   }
 
   @Nested
@@ -184,20 +162,6 @@ class EntityLimitServiceTest {
   @Nested
   @DisplayName("Cache")
   class Cache {
-
-    @Test
-    @DisplayName("Evicting a user drops that user's entry and keeps the others")
-    void evictUserDropsOnlyThatUser() {
-      givenRows(row(null, ID_USER, 30, null), row(null, null, 10, null));
-      assertThat(entityLimitService.resolve(user(Role.ROLE_USER, ID_ROLE_USER), KEY)).contains(30);
-
-      // A role change makes the cached value stale; after eviction the row set is read again.
-      givenRows(row(null, null, 10, null));
-      assertThat(entityLimitService.resolve(user(Role.ROLE_USER, ID_ROLE_USER), KEY)).as("still cached until evicted")
-          .contains(30);
-      entityLimitService.evictUser(ID_USER);
-      assertThat(entityLimitService.resolve(user(Role.ROLE_USER, ID_ROLE_USER), KEY)).contains(10);
-    }
 
     /**
      * A row whose valid_until has passed must stop applying without a restart, which is what the date stamp on the

@@ -1,0 +1,15 @@
+{
+ "companyIcon": null,
+ "exchangeSymbol": "BB65",
+ "instrumentName": {
+  "originalValue": "Deutschland, Bundesrepublik 0,5% 18/28",
+  "translations": {}
+ },
+ "instrumentTypeKey": "bond",
+ "isParticipationCertificate": false,
+ "isin": "DE0001102440",
+ "issuer": null,
+ "participationCertificate": false,
+ "underlyingValueList": null,
+ "wkn": "110244"
+}

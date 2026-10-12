@@ -13,15 +13,15 @@ import grafioschtrader.types.IdentityEvidence;
 import grafioschtrader.types.SecuritySearchStatus;
 
 /**
- * Turns the listings a provider delivered into a {@link SecuritySearchResult}. It is the one place that decides
- * whether a candidate contradicts the query, so all providers apply the same identity rules:
+ * Turns the listings a provider delivered into a {@link SecuritySearchResult}. It is the one place that decides whether
+ * a candidate contradicts the query, so all providers apply the same identity rules:
  * <ul>
  * <li>A candidate is rejected when an established ISIN, currency or MIC differs from the value in the query. A value
  * the provider did not establish never causes a rejection - it stays unknown.</li>
  * <li>Currencies are compared after folding minor units into their main currency ({@code GBp}/{@code GBX} into
- * {@code GBP}, {@code ZAc} into {@code ZAR}, {@code ILA} into {@code ILS}), because providers quote London, Johannesburg
- * and Tel Aviv listings in minor units while the instrument currency is the main one. The candidate keeps the
- * currency as delivered.</li>
+ * {@code GBP}, {@code ZAc} into {@code ZAR}, {@code ILA} into {@code ILS}), because providers quote London,
+ * Johannesburg and Tel Aviv listings in minor units while the instrument currency is the main one. The candidate keeps
+ * the currency as delivered.</li>
  * <li>The remaining candidates are ordered so that those confirming the MIC come first, then those confirming the
  * currency and then the ISIN. No candidate is chosen; ambiguity is left to the caller.</li>
  * </ul>
@@ -46,8 +46,8 @@ public final class SearchCandidateMatcher {
   public static SecuritySearchResult match(String providerId, SecuritySearchQuery query,
       List<SecuritySearchCandidateDto> rawCandidates) {
     Map<String, SecuritySearchCandidateDto> unique = new LinkedHashMap<>();
-    rawCandidates.forEach(c -> unique.putIfAbsent(c.providerSymbol() + "|" + c.providerInstrumentId() + "|" + c.mic()
-        + "|" + c.currency(), c));
+    rawCandidates.forEach(c -> unique
+        .putIfAbsent(c.providerSymbol() + "|" + c.providerInstrumentId() + "|" + c.mic() + "|" + c.currency(), c));
     int rejected = 0;
     List<SecuritySearchCandidateDto> accepted = new ArrayList<>();
     for (SecuritySearchCandidateDto candidate : unique.values()) {
@@ -87,7 +87,7 @@ public final class SearchCandidateMatcher {
    * @param currency the currency as delivered, may be null
    * @return the main currency in upper case, or null
    */
-  static String normalizeCurrency(String currency) {
+  public static String normalizeCurrency(String currency) {
     if (currency == null) {
       return null;
     }
@@ -95,8 +95,7 @@ public final class SearchCandidateMatcher {
   }
 
   private static boolean differs(String queried, String delivered, IdentityEvidence evidence) {
-    return queried != null && delivered != null && evidence.isEstablished()
-        && !queried.equalsIgnoreCase(delivered);
+    return queried != null && delivered != null && evidence.isEstablished() && !queried.equalsIgnoreCase(delivered);
   }
 
   private static int score(SecuritySearchQuery query, SecuritySearchCandidateDto c) {

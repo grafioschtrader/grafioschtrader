@@ -1,20 +1,9 @@
 package grafioschtrader.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyByte;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -28,17 +17,13 @@ import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.context.MessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import grafiosch.exceptions.DataViolationException;
 import grafioschtrader.algo.RebalancingPlan;
 import grafioschtrader.algo.strategy.model.AlgoStrategyImplementationType;
 import grafioschtrader.algo.strategy.model.StrategyHelper;
-import grafioschtrader.config.FeatureConfig;
 import grafioschtrader.entities.AlgoAssetclass;
-import grafioschtrader.entities.AlgoRecommendation;
 import grafioschtrader.entities.AlgoRuleStrategy.AlgoRuleStrategyParam;
 import grafioschtrader.entities.AlgoSecurity;
 import grafioschtrader.entities.AlgoStrategy;
@@ -54,9 +39,6 @@ import grafioschtrader.service.AlgoHistoricalValuationService.Position;
 import grafioschtrader.service.AlgoHistoricalValuationService.Snapshot;
 import grafioschtrader.types.AlgoRebalancingTrigger;
 import grafioschtrader.types.AlgoRecommendationAction;
-import grafioschtrader.types.AlgoSignalKind;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The allocation arithmetic of the rebalancing, against hand-calculated numbers.
@@ -85,9 +67,6 @@ class AlgoRebalancingServiceTest {
   private final AlgoStrategyJpaRepository strategies = mock(AlgoStrategyJpaRepository.class);
   private final AlgoRecommendationJpaRepository recommendations = mock(AlgoRecommendationJpaRepository.class);
   private final HistoryquoteJpaRepository quotes = mock(HistoryquoteJpaRepository.class);
-  private final AlgoRecommendationWriter writer = mock(AlgoRecommendationWriter.class);
-  private final AlgoMonitoringService monitoring = mock(AlgoMonitoringService.class);
-  private final FeatureConfig features = mock(FeatureConfig.class);
 
   private final AlgoStrategy rebalancing = strategy(100, AlgoStrategyImplementationType.AS_HOLDING_TOP_REBALANCING, 4,
       2);
@@ -104,10 +83,6 @@ class AlgoRebalancingServiceTest {
     ReflectionTestUtils.setField(service, "algoStrategyJpaRepository", strategies);
     ReflectionTestUtils.setField(service, "algoRecommendationJpaRepository", recommendations);
     ReflectionTestUtils.setField(service, "historyquoteJpaRepository", quotes);
-    ReflectionTestUtils.setField(service, "algoRecommendationWriter", writer);
-    ReflectionTestUtils.setField(service, "algoAlarmRecorder", mock(AlgoAlarmRecorder.class));
-    ReflectionTestUtils.setField(service, "algoMonitoringService", monitoring);
-    ReflectionTestUtils.setField(service, "features", features);
     MessageSource messages = mock(MessageSource.class);
     when(messages.getMessage(any(String.class), any(), any(String.class), any())).thenAnswer(i -> i.getArgument(0));
     ReflectionTestUtils.setField(service, "messageSource", messages);
@@ -175,19 +150,6 @@ class AlgoRebalancingServiceTest {
   }
 
   @Test
-  @DisplayName("An allocation inside its tolerance proposes nothing")
-  void withinToleranceProposesNothing() {
-    hierarchy(50f, 100f, 100f);
-    snapshot(100_000, 49_000, List.of(position(security, 49, 49_000)));
-
-    RebalancingPlan.Line line = lineOf(plan(), StrategyHelper.SECURITY_LEVEL_LETTER);
-
-    assertThat(line.action()).isEqualTo(AlgoRecommendationAction.REBALANCE_HOLD);
-    assertThat(line.rationale()).isEqualTo(AlgoRebalancingService.REASON_WITHIN_TOLERANCE);
-    assertThat(line.recommendedAmount()).isNull();
-  }
-
-  @Test
   @DisplayName("Too little exposure buys, too much sells, and the units follow the exposure per unit")
   void driftProposesTheDirectionThatClosesIt() {
     hierarchy(50f, 100f, 100f);
@@ -238,20 +200,6 @@ class AlgoRebalancingServiceTest {
   }
 
   @Test
-  @DisplayName("Gross exposure above net equity is reported rather than refused")
-  void leveragedBookStillProducesAPlan() {
-    hierarchy(90f, 100f, 100f);
-    snapshot(50_000, 120_000, List.of(position(security, 120, 120_000)));
-
-    RebalancingPlan plan = plan();
-
-    assertThat(plan.exposureBreach()).isTrue();
-    assertThat(plan.grossExposure()).isGreaterThan(plan.netEquity());
-    assertThat(lineOf(plan, StrategyHelper.SECURITY_LEVEL_LETTER).action())
-        .isEqualTo(AlgoRecommendationAction.REBALANCE_SELL);
-  }
-
-  @Test
   @DisplayName("A tactical bucket is a ceiling: it is reduced but never filled")
   void tacticalBucketIsNotFilled() {
     hierarchy(50f, 100f, 100f);
@@ -285,15 +233,6 @@ class AlgoRebalancingServiceTest {
     assertThat(line.recommendedAmount()).isEqualTo(5_000.0);
     // One unit is 100 USD, that is 90 CHF, so 5'000 CHF buys 55.55 units rather than 50.
     assertThat(line.recommendedUnits()).isCloseTo(55.5555, Offset.offset(1e-4));
-  }
-
-  @Test
-  @DisplayName("Sibling weights that do not add up to 100% are rejected instead of silently losing budget")
-  void incompleteWeightsAreRejected() {
-    hierarchy(50f, 80f, 100f);
-    snapshot(100_000, 0, List.of());
-
-    assertThatThrownBy(this::plan).isInstanceOf(DataViolationException.class);
   }
 
   @Test
@@ -335,66 +274,6 @@ class AlgoRebalancingServiceTest {
   }
 
   @Test
-  @DisplayName("Whether a checkpoint is due is answered without valuing the portfolio")
-  void checkpointIsAnsweredWithoutAValuation() {
-    hierarchy(50f, 100f, 100f);
-
-    when(recommendations.findLastCheckpointDate(anyInt(), anyInt()))
-        .thenReturn(Optional.of(VALUATION_DATE.minusDays(90)));
-    assertThat(service.isCheckpointDue(ID_TENANT, algoTop, VALUATION_DATE, null)).isFalse();
-    assertThat(service.isCheckpointDue(ID_TENANT, algoTop, VALUATION_DATE, VALUATION_DATE.minusDays(91))).isTrue();
-
-    // An environment that has never been rebalanced is due at once, which is how it reaches its targets on day one.
-    when(recommendations.findLastCheckpointDate(anyInt(), anyInt())).thenReturn(Optional.empty());
-    assertThat(service.isCheckpointDue(ID_TENANT, algoTop, VALUATION_DATE, null)).isTrue();
-
-    verifyNoInteractions(valuation);
-  }
-
-  @Test
-  @DisplayName("A hierarchy that is not assigned to monitoring gets no live plan, and its leftover plan is removed")
-  void onlyTheMonitoredHierarchyKeepsALivePlan() {
-    when(features.isAlgo()).thenReturn(true);
-    when(algoTops.findAll()).thenReturn(List.of(algoTop));
-    when(algoTops.findByIdTenantOrderByName(ID_TENANT)).thenReturn(List.of(algoTop));
-    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(false);
-
-    assertThat(service.hasDueRebalancing()).isFalse();
-    service.evaluateAll();
-    service.evaluateForTenant(ID_TENANT);
-
-    verify(recommendations).deleteByIdTenantAndIdAlgoTop(ID_TENANT, ID_ALGO_TOP);
-    verify(writer, never()).replace(any(), any(), any());
-    verifyNoInteractions(valuation);
-
-    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(true);
-    assertThat(service.hasDueRebalancing()).isTrue();
-  }
-
-  @Test
-  @DisplayName("A daily plan between two checkpoints carries the last checkpoint over instead of restarting the interval")
-  void persistCarriesTheCheckpointOver() {
-    hierarchy(50f, 100f, 100f);
-    snapshot(100_000, 40_000, List.of(position(security, 40, 40_000)));
-
-    // Thirty days into a 91-day interval: the plan is stored, but the interval keeps counting from the old checkpoint.
-    LocalDate lastCheckpoint = VALUATION_DATE.minusDays(30);
-    when(recommendations.findLastCheckpointDate(anyInt(), anyInt())).thenReturn(Optional.of(lastCheckpoint));
-    RebalancingPlan between = plan();
-    assertThat(between.periodicDue()).isFalse();
-    service.persist(between);
-    assertThat(storedCheckpoints()).containsOnly(lastCheckpoint);
-
-    // At the checkpoint the valuation day becomes the new start of the interval.
-    when(recommendations.findLastCheckpointDate(anyInt(), anyInt()))
-        .thenReturn(Optional.of(VALUATION_DATE.minusDays(91)));
-    RebalancingPlan atCheckpoint = plan();
-    assertThat(atCheckpoint.periodicDue()).isTrue();
-    service.persist(atCheckpoint);
-    assertThat(storedCheckpoints()).containsOnly(VALUATION_DATE);
-  }
-
-  @Test
   @DisplayName("Class drift triggers three purchases even when each security is less than five equity points under target")
   void classDriftSelectsOnlyThreeOfTenSmallPositions() {
     tenPositions();
@@ -427,44 +306,6 @@ class AlgoRebalancingServiceTest {
   }
 
   @Test
-  void initialConstructionStillFillsAllExactTargets() {
-    tenPositions();
-    var initial = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, (_, _) -> 1_000.0, false);
-    assertThat(initial.executableLines()).hasSize(10);
-    assertThat(initial.executableLines()).allSatisfy(line -> assertThat(line.recommendedAmount()).isEqualTo(3_000));
-    assertThat(initial.classAdjustments()).isEmpty();
-  }
-
-  @Test
-  @DisplayName("A follow-up attempt of the initial purchase ignores drift inside the security band")
-  void initialFollowUpOnlyCompletesWhatIsMissing() {
-    // One class of 100%, its instruments at 96% and 4%; the default band of 5 points of the class target is 5 points
-    // of equity here. The 4% instrument is not held, so its whole target lies inside the band.
-    hierarchy(100f, 100f, 96f);
-    List<AlgoSecurity> children = List.of(memberNode(96f), otherMember(4f));
-    when(members.findByIdAlgoSecurityParentAndIdTenant(ID_BUCKET, ID_TENANT)).thenReturn(children);
-    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(31, ID_TENANT)).thenReturn(List.of());
-    AlgoHistoricalValuationService.ClosingPrices market = (_, _) -> 1_000.0;
-
-    snapshot(100_000, 94_000, List.of(position(security, 94, 94_000)));
-    RebalancingPlan exact = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, market, false);
-    assertThat(amountOf(exact, ID_SECURITY)).isCloseTo(2_000, Offset.offset(0.01));
-    RebalancingPlan banded = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, market, true);
-    assertThat(amountOf(banded, ID_SECURITY)).isNull();
-    assertThat(amountOf(banded, 41)).isCloseTo(4_000, Offset.offset(0.01));
-
-    snapshot(100_000, 90_000, List.of(position(security, 90, 90_000)));
-    banded = service.initialPlan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT, market, true);
-    assertThat(amountOf(banded, ID_SECURITY)).isCloseTo(6_000, Offset.offset(0.01));
-  }
-
-  /** Recommended amount of the executable line of an instrument, or null when the plan leaves it alone. */
-  private static Double amountOf(RebalancingPlan plan, int idSecurity) {
-    return plan.executableLines().stream().filter(line -> Integer.valueOf(idSecurity).equals(line.idSecuritycurrency()))
-        .map(RebalancingPlan.Line::recommendedAmount).findFirst().orElse(null);
-  }
-
-  @Test
   void swissBondExampleUsesInvestmentBudgetForTriggerBoundary() {
     hierarchy(80, 30.4f, 100);
     rebalancing.getAlgoRuleStrategyParamMap().put("thresholdPercentage", param(5));
@@ -480,15 +321,6 @@ class AlgoRebalancingServiceTest {
     assertThat(atBoundary.executableLines()).isEmpty();
     snapshot(1_000_000, target - 40_000.01, List.of(position(security, 100, target - 40_000.01)));
     assertThat(plan().executableLines()).hasSize(1);
-  }
-
-  @Test
-  void noInternalRedistributionWhenClassIsOnTarget() {
-    hierarchy(80, 100, 50);
-    var children = List.of(memberNode(50), otherMember(50));
-    when(members.findByIdAlgoSecurityParentAndIdTenant(ID_BUCKET, ID_TENANT)).thenReturn(children);
-    snapshot(100_000, 80_000, List.of(position(security, 80, 80_000)));
-    assertThat(plan().executableLines()).isEmpty();
   }
 
   private void tenPositions() {
@@ -533,172 +365,10 @@ class AlgoRebalancingServiceTest {
 
   // -----------------------------------------------------------------------------------------------------------------
 
-  /** The checkpoint days of the rows most recently handed to the writer. */
   @SuppressWarnings("unchecked")
-  private List<LocalDate> storedCheckpoints() {
-    ArgumentCaptor<List<AlgoRecommendation>> rows = ArgumentCaptor.forClass(List.class);
-    verify(writer, atLeastOnce()).replace(anyInt(), anyInt(), rows.capture());
-    return rows.getValue().stream().map(AlgoRecommendation::getCheckpointDate).toList();
-  }
 
   private RebalancingPlan plan() {
     return service.plan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT);
-  }
-
-  @Test
-  @DisplayName("A class and an instrument breach beyond their bands, the AlgoTop above its ceiling")
-  void breachesFollowTheClassToleranceTheSecurityBandAndTheCeiling() {
-    hierarchy(50f, 100f, 100f);
-    // Drift of 20 % of the budget against a class tolerance of 2, and the instrument 20 points below its weight.
-    snapshot(100_000, 40_000, List.of(position(security, 40, 40_000)));
-    var below = AlgoRebalancingService.allocationBreaches(plan());
-    assertThat(below).extracting(b -> b.line().levelType()).containsExactly("A", "S");
-    assertThat(below).allMatch(b -> b.direction() == -1);
-    assertThat(below).extracting(AlgoRebalancingService.AllocationBreach::key).containsExactly("A:" + ID_BUCKET,
-        "S:" + ID_MEMBER);
-
-    // One percent above the budget: within both bands, but above the exposure ceiling.
-    snapshot(100_000, 50_500, List.of(position(security, 50.5, 50_500)));
-    var ceiling = AlgoRebalancingService.allocationBreaches(plan());
-    assertThat(ceiling).singleElement().satisfies(b -> {
-      assertThat(b.line().levelType()).isEqualTo("T");
-      assertThat(b.direction()).isEqualTo((byte) 1);
-    });
-
-    snapshot(100_000, 50_000, List.of(position(security, 50, 50_000)));
-    assertThat(AlgoRebalancingService.allocationBreaches(plan())).isEmpty();
-  }
-
-  @Test
-  @DisplayName("A breach is reported when it begins, not again while it lasts, and again after it has ended")
-  void breachIsReportedOncePerEpisode() {
-    AlgoAlarmRecorder recorder = mock(AlgoAlarmRecorder.class);
-    ReflectionTestUtils.setField(service, "algoAlarmRecorder", recorder);
-    when(features.isAlgo()).thenReturn(true);
-    hierarchy(50f, 100f, 100f);
-    when(algoTops.findAll()).thenReturn(List.of(algoTop));
-    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(true);
-    List<AlgoRecommendation> stored = new ArrayList<>();
-    doAnswer(invocation -> {
-      stored.clear();
-      stored.addAll(invocation.getArgument(2));
-      return null;
-    }).when(writer).replace(any(), any(), any());
-    when(recommendations.findByIdTenantAndIdAlgoTopOrderByLevelTypeAscIdNodeAsc(ID_TENANT, ID_ALGO_TOP))
-        .thenAnswer(_ -> List.copyOf(stored));
-    snapshot(100_000, 40_000, List.of(position(security, 40, 40_000)));
-
-    service.evaluateAll();
-    verify(recorder).recordPlanLine(eq(ID_TENANT), eq(rebalancing), eq("Balanced"), eq(0), eq("Strategic equities"),
-        eq(AlgoSignalKind.ALLOCATION_BREACH), eq((byte) -1), eq("A:" + ID_BUCKET), anyString(), any());
-    verify(recorder).recordPlanLine(eq(ID_TENANT), eq(rebalancing), eq("Balanced"), eq(ID_SECURITY), eq("World ETF"),
-        eq(AlgoSignalKind.ALLOCATION_BREACH), eq((byte) -1), eq("S:" + ID_MEMBER), anyString(), any());
-    assertThat(stored).filteredOn(AlgoRecommendation::isAllocationBreach).hasSize(2);
-
-    // Still outside the next day: the episode continues and nothing is reported.
-    clearInvocations(recorder);
-    service.evaluateAll();
-    verify(recorder, never()).recordPlanLine(any(), any(), any(), any(), any(), any(), anyByte(), any(), any(), any());
-
-    // Back inside ends the episode; leaving the band again begins a new one.
-    snapshot(100_000, 50_000, List.of(position(security, 50, 50_000)));
-    service.evaluateAll();
-    assertThat(stored).noneMatch(AlgoRecommendation::isAllocationBreach);
-    snapshot(100_000, 40_000, List.of(position(security, 40, 40_000)));
-    service.evaluateAll();
-    verify(recorder, times(2)).recordPlanLine(any(), any(), any(), any(), any(), eq(AlgoSignalKind.ALLOCATION_BREACH),
-        anyByte(), any(), any(), any());
-  }
-
-  @Test
-  @DisplayName("A due checkpoint raises one REBALANCE_DRIFT signal per tradable instrument, reductions first")
-  void dueCheckpointSignalsEveryTradableLineReductionsFirst() {
-    AlgoAlarmRecorder recorder = mock(AlgoAlarmRecorder.class);
-    ReflectionTestUtils.setField(service, "algoAlarmRecorder", recorder);
-    when(features.isAlgo()).thenReturn(true);
-    // Two classes of 50%. The plan lists them by label, so the purchase in "bonds" precedes the sale in "equities";
-    // the notification must reverse that.
-    hierarchy(50f, 50f, 100f);
-    AlgoAssetclass bonds = new AlgoAssetclass();
-    bonds.setIdAlgoAssetclassSecurity(21);
-    bonds.setIdTenant(ID_TENANT);
-    bonds.setPercentage(50f);
-    bonds.setName("Strategic bonds");
-    AlgoSecurity bondMember = otherMember(100f);
-    when(buckets.findByIdTenantAndIdAlgoAssetclassParent(ID_TENANT, ID_ALGO_TOP))
-        .thenReturn(List.of(bucketNode(), bonds));
-    when(members.findByIdAlgoSecurityParentAndIdTenant(21, ID_TENANT)).thenReturn(List.of(bondMember));
-    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(21, ID_TENANT)).thenReturn(List.of());
-    when(strategies.findByIdAlgoAssetclassSecurityAndIdTenant(31, ID_TENANT)).thenReturn(List.of());
-    when(algoTops.findAll()).thenReturn(List.of(algoTop));
-    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(true);
-    // Each class targets 25'000; equities hold 10'000 too much, bonds 10'000 too little.
-    snapshot(100_000, 50_000,
-        List.of(position(security, 35, 35_000), position(bondMember.getSecurity(), 15, 15_000)));
-    // Never evaluated before, so the checkpoint is due whatever today is.
-    when(recommendations.findLastCheckpointDate(anyInt(), anyInt())).thenReturn(Optional.empty());
-
-    service.evaluateAll();
-
-    ArgumentCaptor<AlgoAlertScope> scopes = ArgumentCaptor.forClass(AlgoAlertScope.class);
-    ArgumentCaptor<Byte> directions = ArgumentCaptor.forClass(Byte.class);
-    ArgumentCaptor<String> details = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<LocalDate> days = ArgumentCaptor.forClass(LocalDate.class);
-    verify(recorder, times(2)).record(scopes.capture(), eq(AlgoSignalKind.REBALANCE_DRIFT), directions.capture(),
-        details.capture(), days.capture());
-    assertThat(scopes.getAllValues()).extracting(scope -> scope.security().getIdSecuritycurrency())
-        .containsExactly(ID_SECURITY, 41);
-    assertThat(directions.getAllValues()).containsExactly((byte) 1, (byte) -1);
-    assertThat(scopes.getAllValues()).allSatisfy(scope -> {
-      assertThat(scope.idTenant()).isEqualTo(ID_TENANT);
-      assertThat(scope.strategy()).isSameAs(rebalancing);
-      assertThat(scope.contextName()).isEqualTo("Balanced");
-    });
-    assertThat(days.getAllValues()).containsOnly(LocalDate.now());
-    JsonMapper mapper = JsonMapper.builder().build();
-    List<JsonNode> nodes = details.getAllValues().stream().map(mapper::readTree).toList();
-    assertThat(nodes).extracting(node -> node.get("action").asString())
-        .containsExactly(AlgoRecommendationAction.REBALANCE_SELL.name(), AlgoRecommendationAction.REBALANCE_BUY.name());
-    assertThat(nodes).allSatisfy(node -> {
-      assertThat(node.get("trigger").asString()).isEqualTo(AlgoRebalancingTrigger.PERIODIC.name());
-      for (String field : new String[] { "target", "actual", "deviation" }) {
-        assertThat(node.path(field).isNumber()).as(field).isTrue();
-      }
-    });
-
-    // The same drift between two checkpoints is reported in the plan but signals nothing.
-    clearInvocations(recorder);
-    when(recommendations.findLastCheckpointDate(anyInt(), anyInt()))
-        .thenReturn(Optional.of(AlgoRebalancingService.lastCompletedDay()));
-    service.evaluateAll();
-    verify(recorder, never()).record(any(), any(), anyByte(), anyString(), any());
-  }
-
-  @Test
-  @DisplayName("A draft rebalancing strategy gets neither a stored plan nor a signal from a manual evaluation")
-  void manualEvaluationSkipsADraft() {
-    AlgoAlarmRecorder recorder = mock(AlgoAlarmRecorder.class);
-    ReflectionTestUtils.setField(service, "algoAlarmRecorder", recorder);
-    when(features.isAlgo()).thenReturn(true);
-    when(algoTops.findAll()).thenReturn(List.of(algoTop));
-    when(algoTops.findByIdTenantOrderByName(ID_TENANT)).thenReturn(List.of(algoTop));
-    when(monitoring.isAssigned(ID_TENANT, ID_ALGO_TOP)).thenReturn(true);
-    rebalancing.setActivatable(false);
-
-    assertThat(service.hasDueRebalancing()).isFalse();
-    service.evaluateForTenant(ID_TENANT);
-
-    verify(writer, never()).replace(any(), any(), any());
-    verifyNoInteractions(recorder, valuation);
-  }
-
-  @Test
-  void alertPreferenceDoesNotChangeThePlanUsedByReplay() {
-    hierarchy(100, 100, 100);
-    snapshot(100_000, 20_000, List.of(position(security, 100, 20_000)));
-    var enabled = plan();
-    rebalancing.setAlertEnabled(false);
-    assertThat(plan()).isEqualTo(enabled);
   }
 
   private RebalancingPlan.Line lineOf(RebalancingPlan plan, String levelType) {

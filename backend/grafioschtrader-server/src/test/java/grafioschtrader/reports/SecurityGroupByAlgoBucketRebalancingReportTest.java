@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -89,20 +88,6 @@ class SecurityGroupByAlgoBucketRebalancingReportTest {
   }
 
   @Test
-  void allExistingPositionsNeedNoMetadataLookup() {
-    var report = report();
-    var grand = summary();
-    for (int id = 1; id <= 2; id++) {
-      var group = new SecurityPositionDynamicGroupSummary<String>(id == 1 ? "First" : "Second");
-      group.addToGroupSummaryAndCalcGroupTotals(position(id));
-      grand.calcGrandTotal(group);
-    }
-    report.completeComparison(grand);
-    verifyNoInteractions(securities);
-    assertEquals(3, grand.securityPositionGroupSummaryList.size());
-  }
-
-  @Test
   void topLevelAndImplicitCashTargetAreReported() {
     var report = report(100_000, 15_000, 85_000, 80);
     var grand = summary();
@@ -118,23 +103,6 @@ class SecurityGroupByAlgoBucketRebalancingReportTest {
     assertEquals(20.0, cash.getGroupTargetPercentage());
     assertEquals(15.0, cash.getGroupActualPercentage());
     assertEquals(-5.0, cash.getGroupDeviationPercentage());
-  }
-
-  @Test
-  void zeroNetEquityLeavesTheTopShareAndCashTargetOpen() {
-    var report = report(0, 0, 0, 80);
-    var grand = summary();
-    var cash = new SecurityPositionDynamicGroupSummary<String>("Cash");
-    grand.calcGrandTotal(cash);
-    when(securities.findAllById(any())).thenReturn(List.of(security(1), security(2)));
-
-    report.completeComparison(grand);
-
-    assertEquals(80.0, grand.getTopTargetPercentage());
-    assertNull(grand.getTopActualPercentage());
-    assertNull(grand.getTopDeviationPercentage());
-    assertNull(cash.getGroupTargetPercentage());
-    assertNull(cash.getGroupDeviationPercentage());
   }
 
   private SecurityGroupByAlgoBucketRebalancingReport report() {

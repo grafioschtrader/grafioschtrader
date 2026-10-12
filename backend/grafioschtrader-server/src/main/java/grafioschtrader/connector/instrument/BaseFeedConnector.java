@@ -101,6 +101,9 @@ public abstract class BaseFeedConnector implements IFeedConnector {
    */
   public static final String ID_PREFIX = "gt.datafeed.";
 
+  /** Message key of a URL extension that does not satisfy the regular expression of the connector. */
+  public static final String REGEX_URL_MESSAGE_KEY = "gt.connector.regex.url";
+
   private final Logger log = LoggerFactory.getLogger(this.getClass());
 
   @Autowired
@@ -365,7 +368,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
       }
     }
     if (!oneMatches) {
-      throw new GeneralNotTranslatedWithArgumentsException("gt.connector.regex.url",
+      throw new GeneralNotTranslatedWithArgumentsException(REGEX_URL_MESSAGE_KEY,
           new Object[] { shortId, notMatchingPattern });
     }
 
@@ -463,7 +466,7 @@ public abstract class BaseFeedConnector implements IFeedConnector {
     if (urlCheckSet.contains(UrlCheck.INTRADAY)) {
       if (specInst != null) {
         if (((Security) securitycurrency).isActiveForIntradayUpdate(LocalDate.now())) {
-          checkUrl(getSecurityIntradayDownloadLink((Security) securitycurrency),
+          checkUrl(getSecurityIntradayCheckLink((Security) securitycurrency),
               "gt.connector.intra.url.connect.failure", FeedSupport.FS_INTRA);
         }
       } else {
@@ -471,6 +474,18 @@ public abstract class BaseFeedConnector implements IFeedConnector {
             "gt.connector.intra.url.connect.failure", FeedSupport.FS_INTRA);
       }
     }
+  }
+
+  /**
+   * URL requested to check the intraday setting of a security when it is saved. It is the intraday download link,
+   * unless the provider answers that link for a valid instrument the same way as for an unknown one - e.g. with an empty
+   * array when it was not traded in the last session - and another link tells the two apart.
+   *
+   * @param security the security with its intraday URL extension
+   * @return the URL to check
+   */
+  protected String getSecurityIntradayCheckLink(Security security) {
+    return getSecurityIntradayDownloadLink(security);
   }
 
   /**

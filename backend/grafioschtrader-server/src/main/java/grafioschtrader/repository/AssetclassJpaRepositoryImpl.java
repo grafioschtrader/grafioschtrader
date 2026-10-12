@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import grafiosch.common.LockedWhenUsed;
 import grafiosch.common.PropertyAlwaysUpdatable;
-import grafiosch.common.PropertySelectiveUpdatableOrWhenNull;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.User;
 import grafiosch.repository.BaseRepositoryImpl;
@@ -51,7 +51,7 @@ public class AssetclassJpaRepositoryImpl extends BaseRepositoryImpl<Assetclass>
   @Override
   public Set<Class<? extends Annotation>> getUpdatePropertyLevels(final Assetclass existingAssetclass) {
     int numberOfSecurity = assetclassJpaRepository.assetclassHasSecurity(existingAssetclass.getIdAssetClass());
-    return numberOfSecurity == 0 ? Set.of(PropertySelectiveUpdatableOrWhenNull.class, PropertyAlwaysUpdatable.class)
+    return numberOfSecurity == 0 ? Set.of(LockedWhenUsed.class, PropertyAlwaysUpdatable.class)
         : Set.of(PropertyAlwaysUpdatable.class);
   }
 

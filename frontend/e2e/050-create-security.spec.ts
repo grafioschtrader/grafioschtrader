@@ -40,6 +40,7 @@ interface SecurityRow {
 }
 
 interface SavedSecurityRequest {
+  distributionFrequency?: string | null;
   issuerCountry?: string | null;
   simulationMetadata?: { bondTerms?: { couponRate?: number } } | null;
 }
@@ -187,9 +188,8 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       // — which is a form.reset(). Anything entered earlier is silently wiped, leaving 'name'
       // empty and Save disabled. The options are assigned in the same callback right before the
       // reset, so their presence proves the reset already happened.
-      const assetClassSelect = dialog.locator('select#assetClass').first();
-      await assetClassSelect.waitFor({ state: 'visible', timeout: 10_000 });
-      await expect(assetClassSelect.locator('option')).not.toHaveCount(0, { timeout: 15_000 });
+      const currencyOptions = dialog.locator('select#currency').first().locator('option');
+      await expect(currencyOptions).not.toHaveCount(0, { timeout: 15_000 });
 
       // --- Base data ---
       const nameInput = dialog.locator('#name');
@@ -197,14 +197,10 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       await nameInput.fill(row.name);
       await nameInput.dispatchEvent('input');
 
-      // Asset class select — option labels are composed as "{categoryType} / {subCategoryDE} /
+      // Asset class dropdown — option labels are composed as "{categoryType} / {subCategoryDE} /
       // {specialInvestmentInstrument}" by BusinessSelectOptionsHelper.translateAssetclass, so we
       // can't match on subCategoryDE alone: the subcategory repeats for every instrument type.
-      const assetClassOption = assetClassSelect.locator('option').filter({ hasText: assetClassLabel(row) });
-      await expect(assetClassOption, `asset class for ${row.name}`).toHaveCount(1);
-      const assetClassOptionValue = await assetClassOption.getAttribute('value');
-      await assetClassSelect.selectOption(assetClassOptionValue);
-      await assetClassSelect.dispatchEvent('change');
+      await selectDynamicFormOptionByText(page, dialog, 'assetClass', assetClassLabel(row));
 
       await selectDynamicFormOptionByText(page, dialog, 'stockexchange', row.stockexchangeName);
 
@@ -227,9 +223,10 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       await currencySelect.selectOption({ value: row.currency });
       await currencySelect.dispatchEvent('change');
 
-      // JSON carries the REST enum name, which is also the select option value.
+      // JSON carries the REST enum name, which is also the select option value. A non-investable index keeps the
+      // select in the DOM but hidden and disabled, fixed to DF_NONE; the saved request is checked for it below.
       const distSelect = dialog.locator('select#distributionFrequency');
-      if ((await distSelect.count()) > 0 && hasText(row.distributionFrequency)) {
+      if ((await distSelect.isVisible()) && hasText(row.distributionFrequency)) {
         await distSelect.selectOption({ value: row.distributionFrequency });
         await distSelect.dispatchEvent('change');
       }
@@ -366,6 +363,9 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
         .first()
         .click();
       const savedRequest = (await saveRequestPromise).postDataJSON() as SavedSecurityRequest;
+      if (hasText(row.distributionFrequency)) {
+        expect(savedRequest.distributionFrequency).toBe(row.distributionFrequency);
+      }
       const canHaveIssuer = !['CFD', 'FOREX', 'NON_INVESTABLE_INDICES'].includes(row.specialInvestmentInstrument);
       if (row.isin && canHaveIssuer) {
         expect(savedRequest.issuerCountry).toBe(row.isin.slice(0, 2).toUpperCase());
@@ -410,15 +410,11 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       .click();
 
     const dialog = page.locator('security-edit .p-dialog').first();
-    const assetClassSelect = dialog.locator('select#assetClass').first();
-    await expect(assetClassSelect.locator('option')).not.toHaveCount(0, { timeout: 15_000 });
-    const directBond = assetClassSelect
-      .locator('option')
-      .filter({ hasText: /Anleihen Österreich/i })
-      .filter({ hasText: /(Direktanlage|Direct investment)/i })
-      .first();
-    await assetClassSelect.selectOption(await directBond.getAttribute('value'));
-    await assetClassSelect.dispatchEvent('change');
+    await expect(dialog.locator('select#currency option')).not.toHaveCount(0, { timeout: 15_000 });
+    // Labels read "{categoryType} / {subCategory} / {specialInvestmentInstrument}"
+    const directBond = /Anleihen Österreich.*(Direktanlage|Direct investment)/i;
+    const directEquity = /Aktien Spanien.*(Direktanlage|Direct investment)/i;
+    await selectDynamicFormOptionByText(page, dialog, 'assetClass', directBond);
 
     await dialog.locator('#name').fill('1,25 E2E coupon-prefill probe');
     await dialog.locator('#name').dispatchEvent('input');
@@ -444,16 +440,9 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
     expect(Number((await couponInput.inputValue()).replace(',', '.'))).toBe(2);
 
     await dialog.locator('p-tab[value="security"]').click();
-    const directEquity = assetClassSelect
-      .locator('option')
-      .filter({ hasText: /Aktien Spanien/i })
-      .filter({ hasText: /(Direktanlage|Direct investment)/i })
-      .first();
-    await assetClassSelect.selectOption(await directEquity.getAttribute('value'));
-    await assetClassSelect.dispatchEvent('change');
+    await selectDynamicFormOptionByText(page, dialog, 'assetClass', directEquity);
     await expect(dialog.locator('p-tab[value="bondTerms"]')).toHaveCount(0);
-    await assetClassSelect.selectOption(await directBond.getAttribute('value'));
-    await assetClassSelect.dispatchEvent('change');
+    await selectDynamicFormOptionByText(page, dialog, 'assetClass', directBond);
     await expect(dialog.locator('p-tab[value="bondTerms"]')).toBeVisible();
     await dialog.locator('p-tab[value="bondTerms"]').click();
     expect(Number((await couponInput.inputValue()).replace(',', '.'))).toBe(2);

@@ -12,6 +12,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Component;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.securitysearch.ViennaSecuritySearch;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -97,6 +100,17 @@ public class ViennaStockExchangeFeedConnector extends BaseFeedConnector {
     // We do not have the information to calculate the percentage change, somewhere
     // else should that happened
     security.setSChangePercentage(null);
+  }
+
+  /**
+   * History and intraday are keyed by the notation number of Wiener Börse, which only its own master data carries
+   * ({@link ViennaSecuritySearch}); it cannot be derived from ISIN or ticker.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return ViennaSecuritySearch.PROVIDER_ID.equals(baseData.providerId()) && baseData.providerInstrumentId() != null
+        ? Optional.of(baseData.providerInstrumentId())
+        : Optional.empty();
   }
 
   @Override

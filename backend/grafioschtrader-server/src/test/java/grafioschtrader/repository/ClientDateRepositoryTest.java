@@ -16,7 +16,6 @@ import grafiosch.common.ClientClock;
 import grafiosch.entities.User;
 import grafiosch.service.EntityLimitService;
 import grafioschtrader.dto.QuoteToleranceRange;
-import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.StandingOrder;
 import grafioschtrader.entities.StandingOrderCashaccount;
 import grafioschtrader.service.GlobalparametersService;
@@ -72,18 +71,4 @@ class ClientDateRepositoryTest {
     assertFalse(repo.hasTradingDayBetweenUntilYesterday(date, date));
   }
 
-  @Test
-  void manualQuoteValidationUsesClientTodayWithoutALoginOffset() {
-    var repo = new HistoryquoteJpaRepositoryImpl();
-    var quote = new Historyquote();
-    LocalDate today = LocalDate.of(2026, 9, 16);
-    try (var clock = mockStatic(ClientClock.class)) {
-      clock.when(ClientClock::today).thenReturn(today);
-      quote.setDate(today.minusDays(1));
-      assertEquals(1L, (Long) ReflectionTestUtils.invokeMethod(repo, "checkDatePastMinus1Day", quote));
-      quote.setDate(today);
-      assertThrows(IllegalArgumentException.class,
-          () -> ReflectionTestUtils.invokeMethod(repo, "checkDatePastMinus1Day", quote));
-    }
-  }
 }

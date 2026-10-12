@@ -186,7 +186,7 @@ async function openSecurityDialog(page: Page, scenario: SecuritySplitScenario): 
 
   const dialog = page.locator('security-edit .p-dialog').first();
   await dialog.waitFor({ state: 'visible', timeout: 10_000 });
-  await expect(dialog.locator('select#assetClass option')).not.toHaveCount(0, { timeout: 15_000 });
+  await expect(dialog.locator('select#currency option')).not.toHaveCount(0, { timeout: 15_000 });
   await expect(dialog.locator('input#name')).toHaveValue(scenario.securityName);
   await expect(dialog.locator('input#isin')).toHaveValue(scenario.isin);
   await expect(dialog.locator('select#currency')).toHaveValue(scenario.currency);

@@ -1,0 +1,5 @@
+{
+ "c10726": {
+  "content": "<div id=\"c10726-module\" class=\"grid-view\" data-krajee-grid=\"kvGridInit_151c789d\">    <div class=\"panel panel-primary\">\n    <div id=\"c10726-module-container\" class=\"kv-grid-container\"><table class=\"table-hover kv-grid-table table table-condensed table-vertical\"><tbody>\n<tr><th>Rang der Anleihe</th><td class=\"kv-align-right\">gleichrangig (nicht besichert)</td></tr>\n<tr><th>Emissionsvolumen (bei Stücknotiz: Stückanzahl)</th><td class=\"kv-align-right\">500.000.000,00</td></tr>\n<tr><th>Währung</th><td class=\"kv-align-right\">EUR</td></tr>\n<tr><th>Stückelung</th><td class=\"kv-align-right\">500,00</td></tr>\n<tr><th>Mündelsicher</th><td class=\"kv-align-right\">Nein</td></tr>\n<tr><th>CCP-fähig</th><td class=\"kv-align-right\">Ja</td></tr>\n</tbody></table></div>\n                \n    </div></div>"
+ }
+}

@@ -14,12 +14,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
 
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -65,6 +67,12 @@ public class EulerpoolFeedConnector extends BaseFeedApiKeyConnector {
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.EQUITIES);
     Bandwidth limit = Bandwidth.builder().capacity(5).refillIntervally(5, Duration.ofSeconds(1)).build();
     this.bucket = Bucket.builder().addLimit(limit).build();
+  }
+
+  /** The ISIN is the preferred identifier for every feed of Eulerpool. */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return baseData.isin() == null ? Optional.empty() : Optional.of(baseData.isin());
   }
 
   @Override

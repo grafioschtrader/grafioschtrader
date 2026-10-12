@@ -2,14 +2,13 @@ package grafioschtrader.reports.udfalluserfields;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
 import grafiosch.common.DataHelper;
 import grafiosch.types.IUDFSpecialType;
 import grafioschtrader.entities.Security;
+import grafioschtrader.entities.SecurityBondTerms;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
 import grafioschtrader.types.UDFSpecialGTType;
@@ -24,7 +23,7 @@ import grafioschtrader.types.UDFSpecialGTType;
  * The implementation follows standard financial formulas and day count conventions used in bond markets.
  *
  * Key features include:<br>
- * - Automatic coupon rate extraction from security names using regex patterns<br>
+ * - Automatic coupon rate extraction from security names, see {@link SecurityBondTerms#couponRateFromName(String)}<br>
  * - Support for various payment frequencies (annual, semi-annual, quarterly, monthly)<br>
  * - Multiple day count basis conventions (30/360, Actual/Actual, Actual/360, etc.)<br>
  * - Iterative yield calculation using numerical methods with convergence tolerance<br>
@@ -65,7 +64,6 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   @Override
   public void addUDFForEveryUser(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, boolean recreate) {
     UDFMetadataSecurity udfYTM = getMetadataSecurity(getUDFSpecialType());
-    Pattern numberStartTextRegex = Pattern.compile("^[0-9]{0,8}([,|.][0-9]{0,4})?");
     LocalDate now = LocalDate.now();
     securitycurrencyUDFGroup.securityPositionList.stream()
         .filter(s -> matchAssetclassAndSpecialInvestmentInstruments(udfYTM, s.securitycurrency.getAssetClass())
@@ -73,7 +71,7 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
             && s.securitycurrency.getDistributionFrequency().getValue() > 0
             && s.securitycurrency.getDistributionFrequency().getValue() <= 12)
         .forEach(s -> {
-          calcAndSetYTM(securitycurrencyUDFGroup, udfYTM, s.securitycurrency, numberStartTextRegex, now);
+          calcAndSetYTM(securitycurrencyUDFGroup, udfYTM, s.securitycurrency, now);
         });
   }
 
@@ -330,24 +328,22 @@ public class YieldToMaturityCalculator extends AllUserFieldsSecurity implements 
   }
 
   /**
-   * Extracts coupon rate from security name, calculates YTM, and stores the result. This method combines coupon rate
-   * extraction using regex pattern matching with YTM calculation and storage in the UDF system. The coupon rate is
-   * expected to appear at the beginning of the security name as a numeric value.
+   * Extracts coupon rate from security name, calculates YTM, and stores the result. The coupon rate is either a number
+   * marked with a percent sign anywhere in the name or an unmarked number at its start, see
+   * {@link SecurityBondTerms#couponRateFromName(String)}.
    *
    * Results are rounded according to the UDF field's precision settings and stored for display in the user interface.
    *
    * @param securitycurrencyUDFGroup the UDF group context for storing calculated values
    * @param udfYTM                   the UDF metadata for the yield to maturity field
    * @param security                 the security for which to calculate YTM
-   * @param numberStartTextRegex     the regex pattern for extracting coupon rate from security name
    * @param now                      the current date used as settlement date
    */
   private void calcAndSetYTM(SecuritycurrencyUDFGroup securitycurrencyUDFGroup, UDFMetadataSecurity udfYTM,
-      Security security, Pattern numberStartTextRegex, LocalDate now) {
-    Matcher matcher = numberStartTextRegex.matcher(security.getName());
-    if (matcher.find() && !matcher.group(0).isEmpty()) {
-      Double annualCouponRate = Double.parseDouble(matcher.group(0).replace(",", ".")) / 100;
-      double ytm = DataHelper.round(yieldToMaturity(now, security.getActiveToDate(), annualCouponRate,
+      Security security, LocalDate now) {
+    Double couponRate = SecurityBondTerms.couponRateFromName(security.getName());
+    if (couponRate != null) {
+      double ytm = DataHelper.round(yieldToMaturity(now, security.getActiveToDate(), couponRate / 100,
           security.getSLast(), 100, security.getDistributionFrequency().getValue(), 4) * 100,
           udfYTM.getFieldSizeSuffix());
       putValueToJsonValue(securitycurrencyUDFGroup, udfYTM, security.getIdSecuritycurrency(), ytm, false);

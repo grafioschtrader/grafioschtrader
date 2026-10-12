@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import grafiosch.BaseConstants;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -73,6 +75,15 @@ public class TwelvedataFeedConnector extends BaseFeedApiKeyConnector {
         AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES, AssetclassCategory.ETF);
     Bandwidth limit = Bandwidth.builder().capacity(4).refillIntervally(4, Duration.ofMinutes(1)).build();
     this.bucket = Bucket.builder().addLimit(limit).build();
+  }
+
+  /**
+   * The lookup offers this connector for a listing on NASDAQ or NYSE with the exchange ticker another provider found,
+   * see {@link FeedConnectorHelper#deriveUsTicker(SecurityBaseDataDto)}.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return FeedConnectorHelper.deriveUsTicker(baseData);
   }
 
   @Override

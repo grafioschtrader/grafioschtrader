@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
@@ -53,8 +54,18 @@ public class WatchlistJpaRepositoryImpl extends BaseRepositoryImpl<Watchlist> im
   @Autowired
   private TenantJpaRepository tenantJpaRepository;
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>
+   * Runs under READ COMMITTED. An instrument created through "create and add" is added right after its creation, while
+   * {@link SecurityServiceAsyncExectuion} still holds the row lock on its {@code securitycurrency} row during the
+   * asynchronous history load. The foreign key check of the {@code watchlist_sec_cur} insert waits for that lock; under
+   * REPEATABLE READ, MariaDB 11.8 snapshot isolation then rejects the insert with "Record has changed since last read",
+   * because the parent row was changed after this transaction's snapshot was taken.
+   */
   @Override
-  @Transactional
+  @Transactional(isolation = Isolation.READ_COMMITTED)
   @Modifying
   public Watchlist addSecuritycurrenciesToWatchlist(final Integer idWatchlist,
       final SecuritycurrencyLists securitycurrencyLists) {

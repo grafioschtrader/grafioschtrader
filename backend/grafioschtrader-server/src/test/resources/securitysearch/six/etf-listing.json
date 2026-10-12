@@ -1,0 +1,15 @@
+{"protocolVersion":"fqs.json#17x",
+"pageNumber":1,
+"pageSize":50,
+"totalRows":1,
+"delayMinutes":15,
+"delayedMillis":1791694836333,
+"delayedDateTime":"20261011T07:00:36.333",
+"requestURL":"/itf/fqs/delayed/movie.json?where=ISIN=IE000OEF25S1&select=ISIN,ValorId,ValorSymbol,ShortName,IssuerNameFull,TradingBaseCurrency,ProductLine,SecTypeCode",
+"copyRight":"(c) Copyright by SIX Group Ltd 2026. All rights reserved.",
+"colNames":["ISIN","ValorId","ValorSymbol","ShortName","IssuerNameFull","TradingBaseCurrency","ProductLine","SecTypeCode"],
+"rowData":[
+["IE000OEF25S1","IE000OEF25S1CHF4","MWEQ","Invesco MSCI World EW Acc","Invesco Markets II PLC","CHF","ET","EF"]],
+"movie":[
+[172461,-1,-1,"/itf/fqs/delayed/movie.json?where=ISIN=IE000OEF25S1&select=ISIN,ValorId,ValorSymbol,ShortName,IssuerNameFull,TradingBaseCurrency,ProductLine,SecTypeCode"]],
+"elapsed":1}

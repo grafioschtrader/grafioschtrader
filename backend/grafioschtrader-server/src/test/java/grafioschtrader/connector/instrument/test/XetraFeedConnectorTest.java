@@ -35,10 +35,10 @@ public class XetraFeedConnectorTest extends BaseFeedConnectorCheck {
           XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 2641, "2014-11-11", "2025-05-09"));
       hisoricalDate.add(new SecurityHistoricalDate("DAX 40", "DE0008469008",
           SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "DE0008469008",
-          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6449, "2000-01-03", "2025-05-09"));
+          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6483, "2000-01-03", "2025-05-09"));
       hisoricalDate.add(new SecurityHistoricalDate("Beiersdorf Aktiengesellschaft", "DE0005200000",
           SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.EQUITIES, "DE0005200000",
-          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6461, "2000-01-03", "2025-05-09"));
+          XetraFeedConnector.STOCK_EX_MIC_XETRA, 6508, "2000-01-03", "2025-05-09"));
       hisoricalDate.add(new SecurityHistoricalDate("iShares Core MSCI World UCITS ETF", "IE00B4L5Y983",
           SpecialInvestmentInstruments.ETF, AssetclassType.EQUITIES, "IE00B4L5Y983",
           XetraFeedConnector.STOCK_EX_MIC_XETRA, 3910, "2009-10-14", "2025-05-09"));
@@ -50,10 +50,14 @@ public class XetraFeedConnectorTest extends BaseFeedConnectorCheck {
             XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 1488, "2019-07-04", "2025-05-09"));
         hisoricalDate.add(new SecurityHistoricalDate("Nickelpreis", "XC0005705543",
             SpecialInvestmentInstruments.DIRECT_INVESTMENT, AssetclassType.COMMODITIES, "ARIVA:XC0005705543",
-            XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 3091, "2013-01-02", "2025-05-09"));
+            XetraFeedConnector.STOCK_EX_MIC_FRANKFURT, 2669, "2014-09-08", "2025-05-09"));
         hisoricalDate.add(new SecurityHistoricalDate("EURO STOXX 50", "EU0009658145",
             SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "ARIVA:EU0009658145",
-            XetraFeedConnector.STOCK_EX_MIC_XETRA, 3131, "2013-01-02", "2025-05-09"));
+            XetraFeedConnector.STOCK_EX_MIC_XETRA, 2867, "2014-02-03", "2025-05-09"));
+        // The API answers this exact period with a spurious "no_data"; the connector's retry must still load it
+        hisoricalDate.add(new SecurityHistoricalDate("EURO STOXX 50 (no_data retry)", "EU0009658145",
+            SpecialInvestmentInstruments.NON_INVESTABLE_INDICES, AssetclassType.EQUITIES, "ARIVA:EU0009658145",
+            XetraFeedConnector.STOCK_EX_MIC_XETRA, 594, "2023-01-03", "2025-05-06"));
       }
     } catch (ParseException pe) {
       pe.printStackTrace();

@@ -9,8 +9,11 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -18,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.common.MinorCurrencyUnit;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
@@ -295,6 +299,28 @@ public class FeedConnectorHelper {
       return MinorCurrencyUnit.getExchangeDivider(security.getStockexchange().getMic(), security.getCurrency());
     }
     return 1.0;
+  }
+
+  /** US share or ETF symbol: letters and digits, optionally a share class after a dot, dash or blank. */
+  private static final Pattern US_TICKER = Pattern.compile("^[A-Z0-9]{1,6}([.\\- ][A-Z])?$");
+
+  /**
+   * The symbol of an instrument on a US exchange as US data providers such as Finnhub, Twelve Data or StockData use
+   * it: the exchange ticker another provider found, with a share class written with a dot ({@code BRK-B} becomes
+   * {@code BRK.B}). Other exchanges are not derived, since these providers name them differently or the free plans
+   * do not cover them.
+   *
+   * @param baseData master data of a listing found by the security lookup
+   * @return the symbol, or empty when the listing is not on NASDAQ or NYSE or its ticker is no plain US symbol
+   */
+  public static Optional<String> deriveUsTicker(SecurityBaseDataDto baseData) {
+    if (!GlobalConstants.STOCK_EX_MIC_NASDAQ.equals(baseData.mic())
+        && !GlobalConstants.STOCK_EX_MIC_NYSE.equals(baseData.mic()) || baseData.tickerSymbol() == null) {
+      return Optional.empty();
+    }
+    String ticker = baseData.tickerSymbol().trim().toUpperCase(Locale.ROOT);
+    return US_TICKER.matcher(ticker).matches() ? Optional.of(ticker.replace('-', '.').replace(' ', '.'))
+        : Optional.empty();
   }
 
 }

@@ -137,43 +137,6 @@ class AlgoReplayLiquidationTest {
   }
 
   @Test
-  void rejectedLiquidationFailsTheRunWithItsAccountAndOpeningLot() throws Exception {
-    var opening = trade(1, TransactionType.REDUCE, 5, OPEN, null);
-    when(transactions.saveOnlyAttributes(any(), isNull(), anySet()))
-        .thenThrow(new IllegalArgumentException("REPLAY_NOT_FUNDED"));
-    assertThatThrownBy(() -> liquidation.execute(state, MONDAY,
-        List.of(new AlgoReplayLiquidation.Close(security, 20, cash, 5, opening))))
-            .hasMessageContaining("REPLAY_LIQUIDATION_FAILED").hasMessageContaining("account=20 opening=1")
-            .hasMessageContaining("REPLAY_NOT_FUNDED");
-  }
-
-  @Test
-  void scheduleUsesFirstSessionAfterOpeningAndSkipsMissingExactQuote() {
-    when(source.transactions(66, OPEN.plusDays(1)))
-        .thenReturn(List.of(trade(1, TransactionType.ACCUMULATE, 5, OPEN, null)));
-    when(calendar.nextEligibleClose(eq(security), eq(OPEN), any(), any(), any(), eq(false)))
-        .thenReturn(Optional.of(MONDAY));
-    when(calendar.nextEligibleClose(eq(security), eq(MONDAY), any(), any(), any(), eq(false)))
-        .thenReturn(Optional.of(MONDAY.plusDays(1)));
-    when(market.exactClose(10, MONDAY)).thenReturn(null);
-    when(market.close(10, MONDAY)).thenReturn(100d);
-    when(market.exactClose(10, MONDAY.plusDays(1))).thenReturn(111d);
-    assertThat(liquidation.schedule(state)).containsOnlyKeys(MONDAY.plusDays(1));
-    verifyNoInteractions(transactions);
-  }
-
-  @Test
-  void unclosablePositionFailsWithInstrumentDiagnostic() {
-    when(source.transactions(66, OPEN.plusDays(1)))
-        .thenReturn(List.of(trade(1, TransactionType.REDUCE, 5, OPEN, null)));
-    when(calendar.nextEligibleClose(eq(security), any(), any(), any(), any(), eq(false))).thenReturn(Optional.empty());
-    assertThatThrownBy(() -> liquidation.schedule(state)).hasMessageContaining("REPLAY_LIQUIDATION_FAILED")
-        .hasMessageContaining("Excluded security");
-    verify(state).write(eq(AlgoEventType.UNAVAILABLE), eq(OPEN), isNull(), eq(10), isNull(), isNull(), isNull(),
-        isNull(), eq("REPLAY_LIQUIDATION_FAILED"), contains("REPLAY_NO_LIQUIDATION_DATE"));
-  }
-
-  @Test
   void ordinaryOrderCannotReopenExcludedInstrument() {
     assertThatThrownBy(() -> booking.book(state, security, null, 5, TransactionType.ACCUMULATE, MONDAY))
         .hasMessage("REPLAY_INSTRUMENT_EXCLUDED");

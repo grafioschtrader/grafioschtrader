@@ -269,7 +269,7 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
       // stock exchanges, currencies and asset classes in one combineLatest whose subscribe assigns
       // the dropdown options and then calls setDefaultValuesAndEnableSubmit() — a form reset that
       // silently wipes anything typed earlier.
-      await expect(dlg.locator('select#assetClass').locator('option')).not.toHaveCount(0, { timeout: 15_000 });
+      await expect(dlg.locator('select#currency').locator('option')).not.toHaveCount(0, { timeout: 15_000 });
 
       // --- Derived data: base instrument, formula, additional instruments ---
       await pickInstrument(page, dlg, 'baseProductName', row.baseInstrument);

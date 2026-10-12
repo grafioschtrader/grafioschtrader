@@ -214,7 +214,7 @@ docker compose up -d               # start / apply .env changes
 ### Update to a new release
 
 ```bash
-./update.sh 0.38.1     # or: ./update.sh latest
+./update.sh 0.38.2     # or: ./update.sh latest
 ```
 
 `update.sh` does the whole update: it brings the deployment files to the target
@@ -253,9 +253,9 @@ alone and updates the images only.
 itself yet. Fetch the new `update.sh` by hand, then update as usual:
 
 ```bash
-git -C .. fetch --depth 1 origin tag V0.38.1
-git -C .. checkout V0.38.1 -- docker/update.sh
-./update.sh 0.38.1
+git -C .. fetch --depth 1 origin tag V0.38.2
+git -C .. checkout V0.38.2 -- docker/update.sh
+./update.sh 0.38.2
 ```
 
 A release may rename a setting, for example when a key moves from the
@@ -278,7 +278,7 @@ older release with a new version number:
 
 ```bash
 git -C .. fetch --depth 1 origin master && git -C .. reset --hard FETCH_HEAD
-./update.sh 0.38.1 --build
+./update.sh 0.38.2 --build
 ```
 
 The same thing by hand:
@@ -293,7 +293,7 @@ docker compose exec -T mariadb mariadb-dump -uroot -p"$DB_ROOT_PASSWORD" \
 
 # 2. Only when GT_VERSION pins a version: set the new one in .env
 #    (with GT_VERSION=latest, skip this step)
-sed -i 's/^GT_VERSION=.*/GT_VERSION=0.38.1/' .env
+sed -i 's/^GT_VERSION=.*/GT_VERSION=0.38.2/' .env
 
 # 3. Fetch the new images and restart
 docker compose pull
@@ -305,7 +305,7 @@ docker compose logs -f backend
 
 Database migrations run automatically on startup, so the backend can stay in
 `starting` for a while after a release with many migrations. `GT_VERSION=latest`
-(the installer's default) tracks the newest release; set `GT_VERSION=0.38.1` to
+(the installer's default) tracks the newest release; set `GT_VERSION=0.38.2` to
 pin an exact version, which is worth doing if you want an update to be a
 deliberate, reversible step.
 

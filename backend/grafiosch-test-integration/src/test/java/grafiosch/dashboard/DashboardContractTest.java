@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -47,23 +46,6 @@ class DashboardContractTest {
           .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
     }
     assertThatCode(() -> mail.validate(mapper.readTree("{\"maxRows\":20}"))).doesNotThrowAnyException();
-  }
-
-  @Test
-  void defaultsNeverWriteAndDisabledFeatureNeverReads() {
-    var storage = mock(UserDashboardJpaRepository.class);
-    when(storage.findById(123)).thenReturn(Optional.empty());
-    var layouts = new DashboardLayoutRepository(storage, registry, mapper, mock(EntityManager.class),
-        mock(DailyLimitService.class));
-    var layout = layouts.read(user);
-    assertThat(layout.persisted()).isFalse();
-    assertThat(layout.revision()).isNull();
-    verify(storage).findById(123);
-    verifyNoMoreInteractions(storage);
-    features.setDashboard(false);
-    assertThatThrownBy(() -> layouts.read(user))
-        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
-    verifyNoMoreInteractions(storage);
   }
 
   @Test

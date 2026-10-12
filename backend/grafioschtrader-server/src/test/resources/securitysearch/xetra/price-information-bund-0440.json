@@ -1,0 +1,28 @@
+{
+ "changeToPrevDayAbsolute": -0.014,
+ "changeToPrevDayInPercent": -0.01,
+ "closingPricePrevTradingDay": 96.726,
+ "currency": {
+  "originalValue": "EUR",
+  "translations": {
+   "others": "Euro"
+  }
+ },
+ "dayHigh": 96.795,
+ "dayLow": 96.699,
+ "isin": "DE0001102440",
+ "lastPrice": 96.726,
+ "lastPriceIndicator": null,
+ "mic": "XFRA",
+ "minimumTradableUnit": 0,
+ "priceFixings": 7,
+ "timestampLastPrice": "2026-10-09T17:02:59+02:00",
+ "tradedInPercent": true,
+ "tradingTimeEnd": "17:30:00",
+ "tradingTimeStart": "08:00:00",
+ "turnoverInEur": 1314193.52,
+ "turnoverInPieces": null,
+ "turnoverNominal": 1358000,
+ "weeks52High": 97.229,
+ "weeks52Low": 95.98
+}

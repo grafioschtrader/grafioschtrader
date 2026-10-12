@@ -14,6 +14,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import grafiosch.common.DateHelper;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import tools.jackson.databind.DeserializationFeature;
@@ -46,6 +48,8 @@ public class XetraFeedConnector extends BaseFeedConnector {
   private static final String DOMAIN_VERSION = "https://api.boerse-frankfurt.de/v1/";
   private static final String DOMAIN_INTRADAY = "https://api.live.deutsche-boerse.com/v1/data/price_information/single";
   private static final String DAY_RESOLUTION = "1D";
+  /** Status of a history answer without bars. */
+  private static final String NO_DATA = "no_data";
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private static final ObjectMapper objectMapper = JsonMapper.builder()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
@@ -64,6 +68,12 @@ public class XetraFeedConnector extends BaseFeedConnector {
         AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND, AssetclassCategory.REAL_ESTATE_FUND,
         AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
     parseGeoRestrictions("XETR XFRA");
+  }
+
+  /** History and intraday of Deutsche Börse are keyed by the ISIN; the MIC comes from the stock exchange. */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return baseData.isin() == null ? Optional.empty() : Optional.of(baseData.isin());
   }
 
   @Override
@@ -152,92 +162,105 @@ public class XetraFeedConnector extends BaseFeedConnector {
     return getSecurityDownloadLink(security, fromDate, toDate, security.getUrlHistoryExtend(), DAY_RESOLUTION, null);
   }
 
+  /**
+   * The API stamps a daily bar at 00:00 UTC and treats {@code to} as exclusive, so {@code to} is the start of the
+   * following day; otherwise the last day - and in a chunked download the last day of every chunk - would be missing.
+   * Callers filter the bars to the requested days.
+   */
   private String getSecurityDownloadLink(final Security security, LocalDate from, LocalDate to, String urlExtend,
       String resolution, Integer countback) {
+    return getSecurityDownloadLink(security, from, to, urlExtend, resolution, countback, 0);
+  }
+
+  /**
+   * @param toShiftSeconds seconds added to the {@code to} time stamp; a retry after a spurious {@code no_data} answer
+   *                       shifts it by one second, which adds no bar, since the bars lie at 00:00 UTC
+   */
+  private String getSecurityDownloadLink(final Security security, LocalDate from, LocalDate to, String urlExtend,
+      String resolution, Integer countback, int toShiftSeconds) {
     String prefix = DOMAIN_VERSION + "tradingview/history?symbol="
         + (urlExtend.contains(":") ? urlExtend : security.getStockexchange().getMic() + ":" + urlExtend);
     return prefix + "&resolution=" + resolution + "&from=" + DateHelper.LocalDateToEpocheSeconds(from) + "&to="
-        + DateHelper.LocalDateToEpocheSeconds(to) + (countback == null ? "" : "&countback=" + countback);
+        + (DateHelper.LocalDateToEpocheSeconds(to.plusDays(1)) + toShiftSeconds)
+        + (countback == null ? "" : "&countback=" + countback);
   }
 
+  /** Loads the daily history in chunks of up to ten years and keeps the days from {@code from} to {@code to}. */
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
     List<Historyquote> historyquotes = new ArrayList<>();
     LocalDate currentFrom = from;
-
-    // Calculate the end date for the first chunk (up to 10 years from 'from')
-    LocalDate chunkEndDate = from.plusYears(10);
-
-    // Ensure the chunk end date does not exceed the overall 'to' date
-    if (chunkEndDate.isAfter(to)) {
-      chunkEndDate = to;
-    }
-
     while (!currentFrom.isAfter(to)) {
-      // Get the download link for the current chunk
-      String url = getSecurityDownloadLink(security, currentFrom, chunkEndDate, security.getUrlHistoryExtend(),
-          DAY_RESOLUTION, null);
-      log.debug("Fetching data for period: {} to {} using URL: {}", currentFrom, chunkEndDate, url);
-
+      LocalDate chunkEndDate = currentFrom.plusYears(10).isAfter(to) ? to : currentFrom.plusYears(10);
       try {
-        final HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(url);
-        if (response.statusCode() != 200) {
-          throw new RuntimeException(
-              "Failed to fetch historical data from Xetra connector. HTTP status: " + response.statusCode());
-        }
-        final Quotes quotes = objectMapper.readValue(response.body(), Quotes.class);
-
-        if (quotes.s.equals("ok")) {
-          for (int i = 0; i < quotes.t.length; i++) {
-            final Historyquote historyquote = new Historyquote();
-            // Add only if the date is within the requested range (can happen with chunking)
-            LocalDate quoteDate = Instant.ofEpochSecond(quotes.t[i]).atZone(ZoneId.systemDefault()).toLocalDate();
-            if (!quoteDate.isBefore(from) && !quoteDate.isAfter(to)) {
-              historyquotes.add(historyquote);
-              historyquote.setDate(quoteDate);
-              historyquote.setClose(quotes.c[i]);
-              historyquote.setOpen(quotes.o[i]);
-              historyquote.setHigh(quotes.h[i]);
-              historyquote.setLow(quotes.l[i]);
-              historyquote.setVolume(quotes.v[i]);
-            } else {
-              // Log if a date outside the original range was potentially returned by the API
-              log.debug("Skipping quote outside requested range: {} (requested: {} to {})", quoteDate, from, to);
-            }
-          }
-        } else if ("no_data".equals(quotes.s)) {
-          // TradingView UDF protocol: "no_data" means the request was valid but no bars exist in this
-          // period. This is not an error — it happens when active_from_date predates the instrument's
-          // first trading day on this exchange (e.g. a US stock only listed on Xetra years later). Skip
-          // the empty chunk and continue so the remaining chunks still load.
-          log.debug("No data for period: {} to {} (symbol not traded in this range)", currentFrom, chunkEndDate);
-        } else {
-          log.error("Failed to fetch data for period: {} to {}. Status: {}", currentFrom, chunkEndDate, quotes.s);
-          throw new RuntimeException("Failed to fetch historical data from Xetra connector. Status: " + quotes.s);
+        Quotes quotes = fetchChunk(security, currentFrom, chunkEndDate);
+        if (quotes != null) {
+          addQuotes(historyquotes, quotes, from, to);
         }
       } catch (Exception e) {
         log.error("Error fetching data for period: {} to {}", currentFrom, chunkEndDate, e);
-        throw e; // Re-throw the exception for now
+        throw e;
       }
-
-      // Move to the next chunk
       currentFrom = chunkEndDate.plusDays(1);
+    }
+    // Fetching in chunks does not guarantee the order
+    historyquotes.sort((hq1, hq2) -> hq1.getDate().compareTo(hq2.getDate()));
+    return historyquotes;
+  }
 
-      // Calculate the end date for the next chunk
-      chunkEndDate = currentFrom.plusYears(10);
-
-      // Ensure the next chunk end date does not exceed the overall 'to' date
-      if (chunkEndDate.isAfter(to)) {
-        chunkEndDate = to;
+  /**
+   * Requests one chunk. In the TradingView UDF protocol {@code no_data} means that no bars exist in the period, which
+   * is no error: it happens when the active from date precedes the first trading day on this exchange (e.g. a US
+   * stock listed on Xetra years later). The API also answers {@code no_data} now and then for a period with data,
+   * depending on the exact time stamps - such an answer is not repeated for a {@code to} one second later. A chunk
+   * without data is therefore requested once more with that shift before it is skipped.
+   *
+   * @return the bars of the chunk, or null when there are none
+   */
+  private Quotes fetchChunk(Security security, LocalDate chunkFrom, LocalDate chunkTo) throws Exception {
+    Quotes quotes = null;
+    for (int toShiftSeconds = 0; toShiftSeconds <= 1; toShiftSeconds++) {
+      String url = getSecurityDownloadLink(security, chunkFrom, chunkTo, security.getUrlHistoryExtend(), DAY_RESOLUTION,
+          null, toShiftSeconds);
+      log.debug("Fetching data for period: {} to {} using URL: {}", chunkFrom, chunkTo, url);
+      final HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(url);
+      if (response.statusCode() != 200) {
+        throw new RuntimeException(
+            "Failed to fetch historical data from Xetra connector. HTTP status: " + response.statusCode());
+      }
+      quotes = objectMapper.readValue(response.body(), Quotes.class);
+      if (!NO_DATA.equals(quotes.s)) {
+        break;
       }
     }
+    if ("ok".equals(quotes.s)) {
+      return quotes;
+    } else if (NO_DATA.equals(quotes.s)) {
+      log.debug("No data for period: {} to {} (symbol not traded in this range)", chunkFrom, chunkTo);
+      return null;
+    }
+    log.error("Failed to fetch data for period: {} to {}. Status: {}", chunkFrom, chunkTo, quotes.s);
+    throw new RuntimeException("Failed to fetch historical data from Xetra connector. Status: " + quotes.s);
+  }
 
-    // Sort the history quotes by date, as fetching in chunks might not guarantee
-    // order
-    historyquotes.sort((hq1, hq2) -> hq1.getDate().compareTo(hq2.getDate()));
-
-    return historyquotes;
+  /** Adds the bars of a chunk that fall on the requested days. */
+  private void addQuotes(List<Historyquote> historyquotes, Quotes quotes, LocalDate from, LocalDate to) {
+    for (int i = 0; i < quotes.t.length; i++) {
+      LocalDate quoteDate = Instant.ofEpochSecond(quotes.t[i]).atZone(ZoneId.systemDefault()).toLocalDate();
+      if (!quoteDate.isBefore(from) && !quoteDate.isAfter(to)) {
+        final Historyquote historyquote = new Historyquote();
+        historyquote.setDate(quoteDate);
+        historyquote.setClose(quotes.c[i]);
+        historyquote.setOpen(quotes.o[i]);
+        historyquote.setHigh(quotes.h[i]);
+        historyquote.setLow(quotes.l[i]);
+        historyquote.setVolume(quotes.v[i]);
+        historyquotes.add(historyquote);
+      } else {
+        log.debug("Skipping quote outside requested range: {} (requested: {} to {})", quoteDate, from, to);
+      }
+    }
   }
 
   /**

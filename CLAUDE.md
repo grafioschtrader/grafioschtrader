@@ -245,6 +245,21 @@ npm start
 
 ## Testing
 
+### Choosing useful tests
+
+Keep a small set of tests that can expose wrong business results: independently calculated amounts, state changes,
+authorization boundaries, parsers against recorded input, and database behavior against the test database. Prefer
+real domain objects. Mock external I/O only where needed to exercise the real calculation or decision.
+
+Do not add a test for every method or branch. Forwarding checks, getter checks, and assertions that merely repeat a
+mock's configured answer do not justify a test. A mocked repository or transaction manager cannot prove persistence,
+rollback, locking, or restart recovery. Test those claims with the real database and an explicit test profile.
+
+When fixing a bug, choose a regression test that fails for the observed wrong result. AI-generated tests follow the
+same standard; a green run or a larger test count is not evidence of correctness. Keep frontend unit tests focused
+on pure logic; browser behavior belongs in the existing Playwright suite rather than an imitation of the DOM or
+Plotly event processing.
+
 ### Backend Tests
 
 **Framework**: JUnit 6 (Jupiter, version managed by Spring Boot BOM) + Spring Boot Test

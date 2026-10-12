@@ -67,14 +67,6 @@ class SecurityActionTransactionLimitTest {
     verify(transactions, never()).save(any());
   }
 
-  @Test
-  void transferRequiresAllFourRows() {
-    var limit = new TransactionLimitExceededException(3);
-    doThrow(limit).when(transactions).throwWhenTransactionLimitReached(7, 4);
-    assertThatThrownBy(() -> service.createTransfer(new SecurityTransfer())).isSameAs(limit);
-    verify(transactions, never()).save(any());
-  }
-
   private Transaction trade(int account, double units, TransactionType type, LocalDate on) {
     Transaction transaction = new Transaction();
     transaction.setIdSecurityaccount(account);

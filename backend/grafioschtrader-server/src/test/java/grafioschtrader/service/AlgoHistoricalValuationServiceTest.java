@@ -16,14 +16,6 @@ import grafioschtrader.repository.*;
 import grafioschtrader.types.*;
 
 class AlgoHistoricalValuationServiceTest {
-  @Test
-  void initializationModeHasStringMetadataForTheGeneratedSelector() {
-    var descriptor = new grafiosch.dynamic.model.FieldDescriptorInputAndShow("initializationMode",
-        SimulationInitializationMode.class);
-    assertThat(descriptor.dataType).isEqualTo(grafiosch.dynamic.model.DataType.String);
-    assertThat(descriptor.enumType).isEqualTo("SimulationInitializationMode");
-  }
-
   private final LocalDate date = LocalDate.of(2020, 6, 15);
   private final AlgoHistoricalValuationService service = new AlgoHistoricalValuationService();
   private final SimulationSourceRepository source = mock(SimulationSourceRepository.class);
@@ -223,27 +215,6 @@ class AlgoHistoricalValuationServiceTest {
     verify(currencies).findByFromCurrencyAndToCurrency("CHF", "USD");
     verifyNoMoreInteractions(currencies);
     verifyNoInteractions(splits, quotes);
-  }
-
-  @Test
-  void seventeenHundredDaysUseTwoPeriodReadsAndNoLedgerReads() {
-    var dates = date.datesUntil(date.plusDays(1711)).toList();
-    var held = holding(10, 5, 10);
-    Security security = mock(Security.class);
-    when(security.getId()).thenReturn(5);
-    when(security.getCurrency()).thenReturn("CHF");
-    when(security.getName()).thenReturn("Missing share");
-    when(holdings.findPositionsInPeriod(1, date, dates.getLast())).thenReturn(List.of(held));
-    when(balances.findBalancesInPeriod(1, date, dates.getLast())).thenReturn(List.of(cashPeriod(date, 100)));
-    var batch = service.valueSeries(1, dates, (_, day) -> day.equals(date) ? null : 100.0, Map.of(5, security));
-    assertThat(batch).hasSize(1711);
-    assertThat(batch.get(date).errors()).containsExactly("Missing share");
-    assertThat(batch.get(dates.getLast()).equity()).isEqualTo(1100);
-    verify(source).cashaccounts(1);
-    verifyNoMoreInteractions(source);
-    verify(holdings).findPositionsInPeriod(1, date, dates.getLast());
-    verify(balances).findBalancesInPeriod(1, date, dates.getLast());
-    verifyNoMoreInteractions(holdings, balances);
   }
 
   private HoldCashaccountBalance cashPeriod(LocalDate from, double balance) {

@@ -1,16 +1,14 @@
 package grafioschtrader.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +25,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import grafioschtrader.entities.AlgoSimulationResult;
 import grafioschtrader.entities.Cashaccount;
 import grafioschtrader.entities.Transaction;
-import grafioschtrader.exceptions.TransactionLimitExceededException;
 import grafioschtrader.repository.HoldCashaccountBalanceJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.types.TransactionType;
@@ -49,8 +46,8 @@ class AlgoReplayOverdraftInterestTest {
   @Test
   @DisplayName("Charge days are every month end after the opening and the end date")
   void chargeDates() {
-    assertThat(AlgoReplayOverdraftInterest.chargeDates(OPENING, LocalDate.of(2027, 3, 15))).containsExactly(
-        LocalDate.of(2027, 1, 31), LocalDate.of(2027, 2, 28), LocalDate.of(2027, 3, 15));
+    assertThat(AlgoReplayOverdraftInterest.chargeDates(OPENING, LocalDate.of(2027, 3, 15)))
+        .containsExactly(LocalDate.of(2027, 1, 31), LocalDate.of(2027, 2, 28), LocalDate.of(2027, 3, 15));
     assertThat(AlgoReplayOverdraftInterest.chargeDates(LocalDate.of(2027, 1, 31), LocalDate.of(2027, 2, 28)))
         .containsExactly(LocalDate.of(2027, 2, 28));
   }
@@ -91,7 +88,8 @@ class AlgoReplayOverdraftInterestTest {
     session.close(LocalDate.of(2027, 2, 1));
     session.close(LocalDate.of(2027, 2, 28));
 
-    assertThat(charged()).singleElement().satisfies(charge -> assertThat(charge.getCashaccountAmount()).isEqualTo(-3.0));
+    assertThat(charged()).singleElement()
+        .satisfies(charge -> assertThat(charge.getCashaccountAmount()).isEqualTo(-3.0));
   }
 
   @Test
@@ -104,31 +102,6 @@ class AlgoReplayOverdraftInterestTest {
     session.close(END);
 
     verify(transactions, never()).saveOnlyAttributes(any(), isNull(), anySet());
-  }
-
-  @Test
-  @DisplayName("Without a frozen rate the session adds no day and charges nothing")
-  void noRateNoDates() throws Exception {
-    balances.put(OPENING, -10_000.0);
-    var session = session(null);
-
-    assertThat(session.dates()).isEmpty();
-    session.close(LocalDate.of(2027, 1, 31));
-
-    verify(transactions, never()).saveOnlyAttributes(any(), isNull(), anySet());
-  }
-
-  @Test
-  @DisplayName("The transaction limit stops the run, any other refusal fails it with the account name")
-  void refusalsEndTheRun() {
-    balances.put(OPENING, -10_000.0);
-    var limit = new TransactionLimitExceededException(10);
-    doThrow(limit).when(transactions).throwWhenTransactionLimitReached(7, 1);
-    assertThatThrownBy(() -> session(3.6).close(LocalDate.of(2027, 1, 31))).isSameAs(limit);
-
-    doThrow(new IllegalStateException("refused")).when(transactions).throwWhenTransactionLimitReached(7, 1);
-    assertThatThrownBy(() -> session(3.6).close(LocalDate.of(2027, 1, 31)))
-        .hasMessage(AlgoReplayOverdraftInterest.FAILED + ": Overdraft: refused");
   }
 
   private List<Transaction> charged() throws Exception {

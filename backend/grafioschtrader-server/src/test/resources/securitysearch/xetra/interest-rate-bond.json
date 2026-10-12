@@ -1,0 +1,13 @@
+{
+ "coupon": 0.5,
+ "firstAnnualPayDate": "2019-02-15",
+ "interestPaymentCycle": {
+  "originalValue": "1",
+  "translations": {
+   "de": "Jährlich",
+   "en": "yearly"
+  }
+ },
+ "isin": "DE0001102440",
+ "startInterestPayment": "2018-01-12"
+}

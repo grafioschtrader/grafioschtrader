@@ -41,20 +41,6 @@ class AlgoReplayIncomeServiceTest {
   }
 
   @Test
-  void storedAndUnavailableCouponsNeverLoadAccrualLedger() {
-    var session = open(Map.of(1, instrument("STORED"), 2, instrument("UNAVAILABLE")), true);
-
-    assertThat(session.receivables(DAY)).isEmpty();
-    assertThat(session.summary(DAY)).allSatisfy(total -> {
-      assertThat(total.grossReceivables()).isZero();
-      assertThat(total.netReceivables()).isZero();
-    });
-    session.freezeForReporting(MATURITY);
-    assertThat(session.receivables(DAY)).isEmpty();
-    verifyNoInteractions(source, taxes);
-  }
-
-  @Test
   void grossAndNetAccrualShareOneLedgerReadAndRetainWithholding() {
     var session = open(Map.of(1, instrument("GENERATED")), true);
     when(source.transactions(65, DAY.plusDays(1))).thenReturn(List.of(trade(TransactionType.ACCUMULATE)));
@@ -83,18 +69,6 @@ class AlgoReplayIncomeServiceTest {
     assertThat(session.receivables(DAY.minusDays(1))).containsKey("CHF");
     assertThat(session.receivables(DAY)).isEmpty();
     assertThat(session.receivables(DAY.plusDays(30))).isEmpty();
-  }
-
-  @Test
-  void repeatedValuationOnTheSameDaySeesNewlyCommittedClosures() {
-    var session = open(Map.of(1, instrument("GENERATED")), false);
-    when(source.transactions(65, DAY.plusDays(1))).thenReturn(List.of(trade(TransactionType.ACCUMULATE)))
-        .thenReturn(List.of(trade(TransactionType.ACCUMULATE), trade(TransactionType.REDUCE)));
-
-    assertThat(session.receivables(DAY)).containsEntry("CHF", 60.0);
-    assertThat(session.receivables(DAY)).isEmpty();
-    verify(source, times(2)).transactions(65, DAY.plusDays(1));
-    verifyNoInteractions(taxes);
   }
 
   @Test

@@ -20,6 +20,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TimeZone;
 
 import org.json.JSONArray;
@@ -32,6 +33,8 @@ import org.springframework.stereotype.Component;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.securitysearch.SixSecuritySearch;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -80,6 +83,22 @@ public class SixFeedConnector extends BaseFeedConnector {
         AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND,
         AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT, AssetclassCategory.CFD_DERIVATIVE);
     parseGeoRestrictions("XSWX");
+  }
+
+  /**
+   * History, intraday and dividends of SIX are all keyed by the ValorId (ISIN + trading currency + market segment
+   * digit). When the master data comes from SIX itself, its ValorId is used, because the segment digit is not always
+   * {@code 4}; otherwise the extension is built from ISIN and currency with the segment of the main market.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    if (feedSupport == FeedSupport.FS_SPLIT || baseData.isin() == null || baseData.currency() == null) {
+      return Optional.empty();
+    }
+    String valorId = SixSecuritySearch.PROVIDER_ID.equals(baseData.providerId())
+        && baseData.providerInstrumentId() != null ? baseData.providerInstrumentId()
+            : baseData.isin() + baseData.currency() + "4";
+    return valorId.matches(URL_EXTENDED_REGEX) ? Optional.of(valorId) : Optional.empty();
   }
 
   @Override

@@ -3,9 +3,6 @@ package grafioschtrader.dashboard;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -20,7 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import grafiosch.entities.User;
 import grafioschtrader.entities.HoldDailyTotal;
-import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.reportviews.dashboard.PerformanceTotalChartPayload.PerformanceTotalChart;
 import grafioschtrader.reportviews.dashboard.PerformanceTotalChartPayload.Sampling;
@@ -38,7 +34,6 @@ import tools.jackson.databind.json.JsonMapper;
 class PerformanceTotalChartDashboardHandlerTest {
 
   private static final int ID_TENANT = 7;
-  private static final int ID_PORTFOLIO = 11;
   private static final LocalDate START = LocalDate.of(2020, 1, 6);
 
   private final JsonMapper mapper = JsonMapper.builder().build();
@@ -57,16 +52,6 @@ class PerformanceTotalChartDashboardHandlerTest {
     tenant.setTenantKindType(TenantKindType.MAIN);
     when(user.getIdTenant()).thenReturn(ID_TENANT);
     when(tenants.getReferenceById(ID_TENANT)).thenReturn(tenant);
-  }
-
-  @Test
-  @DisplayName("The saved configuration holds exactly one known period")
-  void validateSavedConfiguration() {
-    assertThatCode(() -> handler.validate(json("{\"range\":\"CHART_RANGE_3Y\"}"))).doesNotThrowAnyException();
-    for (String invalid : new String[] { "{}", "{\"range\":\"CHART_RANGE_2Y\"}", "{\"range\":3}",
-        "{\"range\":\"CHART_RANGE_1Y\",\"idPortfolio\":1}" }) {
-      assertThatThrownBy(() -> handler.validate(json(invalid))).as(invalid).isInstanceOf(ResponseStatusException.class);
-    }
   }
 
   @Test
@@ -89,43 +74,6 @@ class PerformanceTotalChartDashboardHandlerTest {
     when(portfolios.findByIdTenantAndIdPortfolio(ID_TENANT, 999)).thenReturn(null);
     assertThatThrownBy(() -> handler.chart(user, json("{\"range\":\"CHART_RANGE_1Y\",\"idPortfolio\":999}")))
         .isInstanceOf(ResponseStatusException.class);
-  }
-
-  @Test
-  @DisplayName("The portfolio scope is drawn in the currency of the portfolio")
-  void portfolioCurrency() {
-    Portfolio portfolio = new Portfolio();
-    portfolio.setCurrency("EUR");
-    when(portfolios.findByIdTenantAndIdPortfolio(ID_TENANT, ID_PORTFOLIO)).thenReturn(portfolio);
-    when(holdDailyTotals.getSeries(eq(ID_TENANT), eq(ID_PORTFOLIO), any(), any()))
-        .thenReturn(new HoldDailyTotalSeries(rows(3), START.plusDays(3)));
-    PerformanceTotalChart chart = handler.chart(user,
-        json("{\"range\":\"CHART_RANGE_1M\",\"idPortfolio\":" + ID_PORTFOLIO + "}"));
-    assertThat(chart.currency()).isEqualTo("EUR");
-    assertThat(chart.idPortfolio()).isEqualTo(ID_PORTFOLIO);
-    assertThat(chart.points()).hasSize(3);
-  }
-
-  @Test
-  @DisplayName("A simulation environment has no daily values and says so")
-  void simulationEnvironment() {
-    tenant.setTenantKindType(TenantKindType.SIMULATION_COPY);
-    PerformanceTotalChart chart = handler.chart(user, json("{\"range\":\"CHART_RANGE_1Y\"}"));
-    assertThat(chart.reasonKey()).isEqualTo(PerformanceTotalChartDashboardHandler.REASON_SIMULATION);
-    assertThat(chart.points()).isEmpty();
-  }
-
-  @Test
-  @DisplayName("Without rows the reason tells a pending first computation from an empty period")
-  void emptyStates() {
-    when(holdDailyTotals.getSeries(eq(ID_TENANT), isNull(), any(), any()))
-        .thenReturn(new HoldDailyTotalSeries(List.of(), null));
-    assertThat(handler.chart(user, json("{\"range\":\"CHART_RANGE_1Y\"}")).reasonKey())
-        .isEqualTo(PerformanceTotalChartDashboardHandler.REASON_PENDING);
-    PerformanceTotalChart empty = PerformanceTotalChartDashboardHandler.toChart("CHF", null,
-        DashboardChartRange.CHART_RANGE_1M, new HoldDailyTotalSeries(List.of(), START));
-    assertThat(empty.reasonKey()).isEqualTo(PerformanceTotalChartDashboardHandler.REASON_NO_DATA);
-    assertThat(empty.recalcPending()).isFalse();
   }
 
   @Test

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.types.AssetclassType;
+import grafioschtrader.types.DistributionFrequency;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
 class SecuritySimulationMetadataTest {
@@ -37,6 +38,20 @@ class SecuritySimulationMetadataTest {
 
     assertThat(security.getIssuerCountry()).isNull();
     assertThat(security.getSimulationMetadata()).isNull();
+  }
+
+  @Test
+  void nonInvestableIndexDropsDistributionFrequency() {
+    Security index = security(AssetclassType.EQUITIES, SpecialInvestmentInstruments.NON_INVESTABLE_INDICES);
+    index.setDistributionFrequency(DistributionFrequency.DF_AD_HOC);
+    Security stock = security(AssetclassType.EQUITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT);
+    stock.setDistributionFrequency(DistributionFrequency.DF_YEAR);
+
+    index.clearProperties();
+    stock.clearProperties();
+
+    assertThat(index.getDistributionFrequency()).isEqualTo(DistributionFrequency.DF_NONE);
+    assertThat(stock.getDistributionFrequency()).isEqualTo(DistributionFrequency.DF_YEAR);
   }
 
   private Security security(AssetclassType categoryType, SpecialInvestmentInstruments instrument) {

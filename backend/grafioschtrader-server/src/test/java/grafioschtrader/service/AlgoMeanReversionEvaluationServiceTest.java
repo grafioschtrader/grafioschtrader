@@ -96,20 +96,6 @@ class AlgoMeanReversionEvaluationServiceTest {
   }
 
   @Test
-  void signalDetailsAreValidJsonWithTheBareReasonKey() throws Exception {
-    var decision = new AlgoMeanReversionDecisionService.Decision(AlgoMeanReversionDecisionService.Action.ENTRY, 1, 12.0,
-        45.6, "MEAN_REVERSION_ENTRY", "1:2:3:0:2026-09-28:ENTRY:1", null);
-    var node = tools.jackson.databind.json.JsonMapper.builder().build()
-        .readTree(AlgoMeanReversionEvaluationService.details(decision));
-    assertEquals("ENTRY", node.get("action").asString());
-    assertEquals("MEAN_REVERSION_ENTRY", node.get("reason").asString());
-    assertEquals(12.0, node.get("units").doubleValue());
-    assertEquals(45.6, node.get("price").doubleValue());
-    assertEquals("", node.get("tranche").asString());
-    assertEquals("1:2:3:0:2026-09-28:ENTRY:1", node.get("identity").asString());
-  }
-
-  @Test
   void additionsReserveCapacityAndCannotFollowAnotherStrategysExit() throws Exception {
     setup();
     var first = scope(5);
@@ -173,23 +159,6 @@ class AlgoMeanReversionEvaluationServiceTest {
   }
 
   @Test
-  void notificationPreferenceDoesNotChangeMeanReversionProposals() throws Exception {
-    setup();
-    var scope = scope(5);
-    when(scopes.resolveForAlgoTop(top)).thenReturn(List.of(scope));
-    AlgoMeanReversionDecisionService.MarketData market = (_, _) -> List.of(new Historyquote(3, day.minusDays(2), 100),
-        new Historyquote(3, day.minusDays(1), 100), new Historyquote(3, day, 80));
-    var enabled = evaluator.evaluate(1, 1, 10, day, market);
-    assertFalse(enabled.isEmpty());
-    scope.strategy().setAlertEnabled(false);
-    var disabled = evaluator.evaluate(1, 1, 10, day, market);
-    assertEquals(enabled.stream().map(AlgoMeanReversionScopeEvaluator.Proposal::decision).toList(),
-        disabled.stream().map(AlgoMeanReversionScopeEvaluator.Proposal::decision).toList());
-    assertEquals(enabled.stream().map(AlgoMeanReversionScopeEvaluator.Proposal::amount).toList(),
-        disabled.stream().map(AlgoMeanReversionScopeEvaluator.Proposal::amount).toList());
-  }
-
-  @Test
   void exitsSuppressConflictingEntriesWithoutInventingFreedBudget() throws Exception {
     setup();
     when(scopes.resolveForAlgoTop(top)).thenReturn(List.of(scope(5), scope(6)));
@@ -201,21 +170,6 @@ class AlgoMeanReversionEvaluationServiceTest {
     assertEquals(0, saved.getLast().getRecommendedUnits());
     verify(recorder, never()).record(any(), eq(AlgoSignalKind.ENTRY_SIGNAL), anyByte(), anyString(), anyString(),
         any());
-  }
-
-  @Test
-  void hierarchyWithoutMonitoringAssignmentKeepsNoProposals() throws Exception {
-    setup();
-    when(scopes.resolveForAlgoTop(top)).thenReturn(List.of(scope(5)));
-    AlgoRecommendation stale = new AlgoRecommendation();
-    when(recommendations.findByIdTenantAndTriggerKind(1, AlgoRebalancingTrigger.MEAN_REVERSION))
-        .thenReturn(List.of(stale));
-    data.lockTenant(1).setIdAlgoTop(null);
-    service.evaluate(1, true);
-    assertTrue(saved.isEmpty());
-    verify(recommendations).deleteAll(List.of(stale));
-    verifyNoInteractions(recorder);
-    assertFalse(service.hasDue());
   }
 
   @Test

@@ -22,8 +22,19 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { GlobalparameterService } from '../../lib/services/globalparameter.service';
 import { CouponDayCountDefaults, TaxDataService } from '../../taxdata/service/tax-data.service';
 
+/**
+ * Reads the annual coupon rate from the name of a bond or convertible bond. A number marked with a percent sign wins
+ * wherever it stands, e.g. "voestalpine3.75%GreenN.24-29/1" or "0% Sonova Holding AG 19-29". Without a percent sign
+ * only a number at the start of the name counts, e.g. "2.875 CFFL 10-30", because an unmarked number further on is
+ * usually part of the term, e.g. "Royal Bank 0.20 21-31". Mirrors SecurityBondTerms.couponRateFromName of the backend,
+ * which fills the yield-to-maturity field; keep both in step.
+ *
+ * @param name - The security name, may be null
+ * @returns The coupon rate in percent, e.g. 3.75, or null when the name carries none
+ */
 export function extractCouponRateFromSecurityName(name: string): number | null {
-  const match = /^\s*(\d+(?:[.,]\d+)?)\s*%?/.exec(name ?? '');
+  const match =
+    /(?<![\d.,])(\d{1,4}(?:[.,]\d+)?)\s*%/.exec(name ?? '') ?? /^\s*(\d{1,4}(?:[.,]\d+)?)(?=\s|%|$)/.exec(name ?? '');
   if (!match) {
     return null;
   }

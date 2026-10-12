@@ -1,7 +1,7 @@
 package grafioschtrader.connector.instrument.divvydiary;
 
-import java.net.URI;
-import java.net.URL;
+import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -13,9 +13,12 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.instrument.DividendHistoryResult;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Security;
 import grafioschtrader.types.CreateType;
+import grafioschtrader.types.DistributionFrequency;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import tools.jackson.databind.DeserializationFeature;
@@ -58,13 +61,54 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
 
   @Override
   public List<Dividend> getDividendHistory(Security security, LocalDate fromDate) throws Exception {
-    List<Dividend> dividends = new ArrayList<>();
-    URL url = new URI(getDividendHistoricalDownloadLink(security)).toURL();
-    waitForTokenOrGo(bucket);
-    final DividendHead dividendHead = objectMapper.readValue(url.openStream(), DividendHead.class);
+    return toDividends(security, fetch(security), fromDate);
+  }
 
-    for (DividendDetail dd : dividendHead.dividends) {
-      if (!dd.exDate.isBefore(fromDate)) {
+  /**
+   * Returns the dividends together with DivvyDiary's own {@code dividendFrequency} from the same response.
+   * {@code annually}, {@code biannually}, {@code quarterly}, {@code monthly} and {@code none} have a GT counterpart;
+   * any other value leaves the frequency to the caller.
+   */
+  @Override
+  public DividendHistoryResult getDividendHistoryWithFrequency(Security security, LocalDate fromDate) throws Exception {
+    DividendHead dividendHead = fetch(security);
+    return new DividendHistoryResult(toDividends(security, dividendHead, fromDate),
+        toDistributionFrequency(dividendHead.dividendFrequency));
+  }
+
+  /**
+   * Maps DivvyDiary's frequency to the GT one.
+   *
+   * @param dividendFrequency the value of {@code dividendFrequency}, may be null
+   * @return the frequency, or null for a missing or unknown value
+   */
+  static DistributionFrequency toDistributionFrequency(String dividendFrequency) {
+    return dividendFrequency == null ? null : switch (dividendFrequency) {
+    case "annually" -> DistributionFrequency.DF_YEAR;
+    case "biannually" -> DistributionFrequency.DF_SEMI_ANNUAL;
+    case "quarterly" -> DistributionFrequency.DF_QUARTERLY;
+    case "monthly" -> DistributionFrequency.DF_MONTHLY;
+    case "none" -> DistributionFrequency.DF_NONE;
+    default -> null;
+    };
+  }
+
+  private DividendHead fetch(Security security) throws Exception {
+    waitForTokenOrGo(bucket);
+    // Sent with the user agent of the shared HTTP client: DivvyDiary answers the default agent of URL.openStream()
+    // ("Java/25") with HTTP 403.
+    HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(getDividendHistoricalDownloadLink(security));
+    if (response.statusCode() != 200) {
+      // An unknown ISIN must fail, not look like an instrument without dividends.
+      throw new IOException("HTTP " + response.statusCode() + " for " + getDividendHistoricalDownloadLink(security));
+    }
+    return objectMapper.readValue(response.body(), DividendHead.class);
+  }
+
+  private static List<Dividend> toDividends(Security security, DividendHead dividendHead, LocalDate fromDate) {
+    List<Dividend> dividends = new ArrayList<>();
+    for (DividendDetail dd : dividendHead.dividends == null ? List.<DividendDetail>of() : dividendHead.dividends) {
+      if (dd.exDate != null && !dd.exDate.isBefore(fromDate)) {
         dividends.add(0, new Dividend(security.getIdSecuritycurrency(), dd.exDate, dd.payDate, dd.amount, null,
             dd.currency, CreateType.CONNECTOR_CREATED));
       }
@@ -73,6 +117,7 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
   }
 
   private static class DividendHead {
+    public String dividendFrequency;
     public List<DividendDetail> dividends;
   }
 

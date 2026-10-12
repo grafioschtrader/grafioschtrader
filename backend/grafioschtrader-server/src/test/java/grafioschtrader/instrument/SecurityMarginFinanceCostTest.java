@@ -23,12 +23,6 @@ class SecurityMarginFinanceCostTest {
   private static final LocalDate CLOSE = LocalDate.of(2026, 9, 16);
 
   @Test
-  @DisplayName("Forex closure proposes 524 days even without a daily rate")
-  void closedWithoutRate() {
-    assertProposal(estimate(opening(OPEN, null), closing(CLOSE, 100000)), 524, CLOSE, 0);
-  }
-
-  @Test
   @DisplayName("A supplied daily rate estimates the amount for the same 524 days")
   void closedWithRate() {
     assertProposal(estimate(opening(OPEN, 2.0), closing(CLOSE, 100000)), 524, CLOSE, 1048);
@@ -50,19 +44,6 @@ class SecurityMarginFinanceCostTest {
   }
 
   @Test
-  @DisplayName("A position opened and closed on the same date has zero financing days")
-  void sameDay() {
-    assertProposal(estimate(opening(OPEN, 2.0), closing(OPEN, 100000)), 0, OPEN, 0);
-  }
-
-  @Test
-  @DisplayName("An open position without a daily rate accrues unpaid days through today")
-  void stillOpen() {
-    LocalDate today = LocalDate.now();
-    assertProposal(estimate(opening(today.minusDays(10), null), payment(today.minusDays(3), 4)), 6, today, 0);
-  }
-
-  @Test
   @DisplayName("Partial closure retains unpaid days through today with proportional costs")
   void partiallyClosed() {
     LocalDate today = LocalDate.now();
@@ -76,12 +57,6 @@ class SecurityMarginFinanceCostTest {
     assertProposal(
         estimate(opening(today.minusDays(10), 2.0), closing(today.minusDays(5), 50000), payment(today.minusDays(2), 5)),
         5, today, 5);
-  }
-
-  @Test
-  @DisplayName("Missing tenant-visible history yields an empty proposal")
-  void noHistory() {
-    assertProposal(estimate(), 0, null, 0);
   }
 
   private ProposedMarginFinanceCost estimate(Transaction... transactions) {

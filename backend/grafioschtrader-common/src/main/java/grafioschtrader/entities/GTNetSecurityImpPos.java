@@ -5,6 +5,7 @@ import java.util.List;
 import grafiosch.common.ImportDataRequired;
 import grafiosch.common.PropertyAlwaysUpdatable;
 import grafiosch.entities.BaseID;
+import grafioschtrader.GlobalConstants;
 import grafioschtrader.validation.ValidCurrencyCode;
 import grafioschtrader.validation.ValidISIN;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -61,7 +62,7 @@ public class GTNetSecurityImpPos extends BaseID<Integer> {
       Stock ticker symbol for the security. Either ISIN or ticker symbol (or both)
       should be provided for lookup. Maximum 6 characters.""")
   @PropertyAlwaysUpdatable
-  @Size(max = 6)
+  @Size(max = GlobalConstants.FIELD_SIZE_MAX_Security_Ticker_Symbol)
   @Column(name = "ticker_symbol")
   private String tickerSymbol;
 

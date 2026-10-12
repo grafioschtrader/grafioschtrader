@@ -1,0 +1,41 @@
+{
+ "circulatingVolume": 28500000000.0,
+ "cupon": 0.5,
+ "extraordinaryCancellation": null,
+ "firstAnnualPayDate": "2019-02-15",
+ "firstTradingDay": "2018-01-10",
+ "flatNotation": null,
+ "interestPaymentPeriod": null,
+ "isin": "DE0001102440",
+ "issueCurrency": "EUR",
+ "issueDate": "2018-01-12",
+ "issueVolume": 28500000000.0,
+ "issuer": "Deutschland, Bundesrepublik",
+ "market": {
+  "originalValue": "REGULATED",
+  "translations": {
+   "de": "Regulierter Markt",
+   "en": "Regulated Market"
+  }
+ },
+ "maturity": "2028-02-15",
+ "minimumInvestmentAmount": 0.01,
+ "noticeType": null,
+ "portfolioCurrency": "EUR",
+ "quotationType": {
+  "originalValue": "2",
+  "translations": {
+   "de": "Prozentnotiert",
+   "en": "Percent"
+  }
+ },
+ "subSegment": null,
+ "subordinated": null,
+ "type": {
+  "originalValue": "21",
+  "translations": {
+   "de": "Bundesanleihen",
+   "en": "Federal bonds"
+  }
+ }
+}

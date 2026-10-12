@@ -516,7 +516,7 @@ async function openSecurityDialog(page: Page, scenario: SecurityFixture): Promis
   await menu.getByText(RX.editInstrument).first().click();
   const dialog = page.locator('security-edit .p-dialog').first();
   await dialog.waitFor({ state: 'visible', timeout: 10_000 });
-  await expect(dialog.locator('select#assetClass option')).not.toHaveCount(0, { timeout: 15_000 });
+  await expect(dialog.locator('select#currency option')).not.toHaveCount(0, { timeout: 15_000 });
   await expect(dialog.locator('input#isin')).toHaveValue(scenario.isin);
   return dialog;
 }
@@ -624,7 +624,7 @@ async function openProposalForReview(page: Page, scenario: ProposeDataChangeFixt
   const dialog = page.locator(selector).first();
   await dialog.waitFor({ state: 'visible', timeout: 10_000 });
   if (scenario.entity === 'Security') {
-    await expect(dialog.locator('select#assetClass option')).not.toHaveCount(0, { timeout: 15_000 });
+    await expect(dialog.locator('select#currency option')).not.toHaveCount(0, { timeout: 15_000 });
   } else {
     await expect(dialog.locator('select#idTradingCalendarRuleSet option')).not.toHaveCount(0, { timeout: 15_000 });
   }

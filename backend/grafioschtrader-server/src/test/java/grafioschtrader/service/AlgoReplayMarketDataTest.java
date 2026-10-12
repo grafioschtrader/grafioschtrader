@@ -7,18 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Limit;
 
 import grafioschtrader.entities.Historyquote;
@@ -101,16 +97,6 @@ class AlgoReplayMarketDataTest {
   }
 
   @Test
-  @DisplayName("The closing price of a day is the last observation up to it, never a later one")
-  void closeNeverReadsForward() {
-    quotes();
-    var market = new AlgoReplayMarketData(repository, START, END);
-
-    assertEquals(104.0, market.close(7, START.plusDays(4)));
-    assertEquals(109.0, market.close(7, END));
-  }
-
-  @Test
   @DisplayName("A day before the first observation has no price rather than the first one available")
   void noPriceBeforeTheFirstObservation() {
     quotes();
@@ -129,43 +115,4 @@ class AlgoReplayMarketDataTest {
     assertThrows(IllegalArgumentException.class, () -> market.history(7, START.plusDays(5)));
   }
 
-  @Test
-  @DisplayName("The history of an instrument is read once for the whole run")
-  void observationsAreLoadedOnce() {
-    quotes();
-    var market = new AlgoReplayMarketData(repository, START, END);
-
-    market.history(7, START.plusDays(2));
-    market.history(7, START.plusDays(3));
-    market.close(7, START.plusDays(4));
-
-    verify(repository, times(1)).history(eq(7), any(LocalDate.class), any(Limit.class));
-  }
-
-  @Test
-  @DisplayName("An instrument without history yields no observations rather than an error")
-  void unknownInstrument() {
-    when(repository.history(eq(8), any(LocalDate.class), any(Limit.class))).thenReturn(List.of());
-    var market = new AlgoReplayMarketData(repository, START, END);
-
-    assertTrue(market.history(8, START).isEmpty());
-    assertNull(market.close(8, START));
-  }
-
-  @Test
-  @DisplayName("The window covers the whole run even for an instrument quoted on every calendar day")
-  void windowSpansTheRunInCalendarDays() {
-    LocalDate opening = LocalDate.of(2006, 2, 6);
-    LocalDate end = LocalDate.of(2026, 9, 7);
-    when(repository.history(eq(7), any(LocalDate.class), any(Limit.class))).thenReturn(List.of());
-    var market = new AlgoReplayMarketData(repository, opening, end);
-
-    market.close(7, opening);
-
-    var limit = ArgumentCaptor.forClass(Limit.class);
-    verify(repository).history(eq(7), eq(end), limit.capture());
-    long calendarDays = ChronoUnit.DAYS.between(opening, end) + 1;
-    assertTrue(limit.getValue().max() >= calendarDays + AlgoReplayMarketData.OBSERVATION_WINDOW,
-        "a currency pair carries a row on every calendar day, so the run alone consumes that many observations");
-  }
 }

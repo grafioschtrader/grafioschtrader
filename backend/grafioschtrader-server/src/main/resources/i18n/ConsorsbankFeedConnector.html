@@ -1,6 +1,26 @@
-Go to the website of <a target="_blank" href="//www.consorsbank.de">Consorsbank.de</a>.
-Select "Suchen" and enter the ISIN. If the instrument is found. 
-It would have to determine the values of "<b>id</b>" and "<b>rtExchangeCode</b>"<. To do this, the developer tools network must be activated in the web browser.
-With the selection of the desired trading place at the price indication the prices are determined again. 
-For "LU0392496344" and the "SIX Schweiz" can be read from the XHR call which contains the "field=PriceV2" URL. 
-The value of "id" is in this case "_47633870" and of "rtExchangeCode" "SWX". These are entered separated by a comma "_47633870,SWX".
+<p>Consorsbank provides current quotes and historical daily prices for securities, forex and available
+cryptocurrency pairs. No login or API key is required.</p>
+<p>Search for the instrument on <a target="_blank" href="https://www.consorsbank.de">Consorsbank</a> and select
+the intended trading venue and currency. In the browser developer tools' network requests, find
+<code>field=PriceV2</code> and copy <code>id</code> and <code>rtExchangeCode</code>.
+For both intraday and history, enter <b>_notation-ID,exchange-code</b>. The search for a security at the data
+providers finds this value by itself for the venues GT knows; US shares are quoted as Nasdaq Basic (<code>NSB</code>).</p>
+<ul>
+<li>adidas, Xetra, EUR: <code>_39471840,GER</code></li>
+<li>SPDR S&amp;P U.S. Energy Select Sector, SIX, USD: <code>_139582518,SWX</code></li>
+<li>EUR/USD, FactSet: <code>_1390634,@W$</code></li>
+<li>EUR/CHF, FactSet: <code>_1619898,@W$</code></li>
+<li>BTC/USD and BTC/EUR, Bitstamp: <code>_213086262,BTC</code> and <code>_213086260,BTC</code></li>
+<li>ETH/USD and ETH/EUR, Bitstamp: <code>_213086261,BTC</code> and <code>_213086259,BTC</code></li>
+</ul>
+<p>The ID identifies a specific listing. General search results may point to inaccessible listings, as observed
+for Ethereum. Select the trading venue explicitly in that case. Additional forex and crypto pairs require an
+accessible Consorsbank listing; inverse pairs and cross rates are not calculated.</p>
+<p>History is downloaded page by page using <code>HistoryV1</code> and restricted to the requested date range.
+It includes closing prices and, where supplied, open, high, low and volume. Forex and crypto weekend observations
+are retained. Current quotes use the provider's timestamp; delays depend on the venue (typically up to 15 minutes).</p>
+<p><b>Quality limitations:</b> Historical coverage depends on the listing and can contain gaps, especially for
+bonds. Missing sessions are not filled and no additional dividend or corporate-action adjustments are applied.
+Adjustments may differ from other providers. Older series can contain erroneous repeated closing prices, as
+observed for the IEF ETF in 2017/2018. Chart history supplies the same closing prices and is not an independent
+source for validation.</p>

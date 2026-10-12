@@ -1,0 +1,36 @@
+{
+  "status" : "Ok",
+  "totalCount" : 1,
+  "itemList" : [ {
+    "general" : {
+      "valorSymbol" : "MWEQ",
+      "valorNumber" : 135860115,
+      "isin" : "IE000OEF25S1",
+      "tradingCurrency" : "CHF",
+      "exchange" : "XSWX",
+      "priceStepGroup" : "LF",
+      "firstTradingDate" : 20241023,
+      "lastTradingDate" : 99991231,
+      "secType" : "EF",
+      "productLine" : "ET",
+      "smallestTradeableUnit" : 1,
+      "assetClass" : "Equity Strategy",
+      "domicileOfFund" : "IE",
+      "investmentRegion" : "Global",
+      "managementStyle" : "passive",
+      "marketExpectation" : "Long",
+      "replicationMethod" : "Physical",
+      "fundManager" : "Invesco Markets II PLC",
+      "dividendEntitlement" : "0",
+      "collateral" : "",
+      "settlementAgency" : ""
+    },
+    "underlying" : "MSCI World Equal Weighted Net Total Return USD Index",
+    "indexProvider" : "MSCI",
+    "numberInIssue" : 1000000,
+    "fundCurrency" : "USD",
+    "managementFee" : "0.200000",
+    "bloombergSymbol" : "MWEQ SE",
+    "reutersSymbol" : "MWEQ.S"
+  } ]
+}

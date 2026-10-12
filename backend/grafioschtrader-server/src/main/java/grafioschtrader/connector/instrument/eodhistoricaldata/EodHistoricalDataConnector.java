@@ -16,10 +16,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Semaphore;
 
 import org.apache.commons.math3.fraction.Fraction;
 import org.apache.commons.math3.fraction.FractionFormat;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -28,12 +30,16 @@ import grafiosch.BaseConstants;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.connector.securitysearch.EodhdSecuritySearch;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Dividend;
 import grafioschtrader.entities.Historyquote;
+import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
+import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.types.CreateType;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -60,6 +66,12 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
 
   private final Semaphore semaphoreLastPrice = new Semaphore(5);
 
+  @Autowired(required = false)
+  private MicProviderMapRepository micProviderMapRepository;
+
+  /** EODHD exchange code per MIC, e.g. XETRA for XETR; read once from {@code mic_provider_map}. */
+  private volatile Map<String, String> exchangeCodeByMic;
+
   static {
     supportedFeed = new HashMap<>();
     supportedFeed.put(FeedSupport.FS_HISTORY,
@@ -74,7 +86,42 @@ public class EodHistoricalDataConnector extends BaseFeedApiKeyConnector {
     super(supportedFeed, "eodhistoricaldata", "EOD Historical Data", null, EnumSet.of(UrlCheck.HISTORY));
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.CURRENCY_PAIR, AssetclassCategory.CRYPTOCURRENCY,
         AssetclassCategory.EQUITIES, AssetclassCategory.ETF, AssetclassCategory.ISSUER_RISK_PRODUCT,
-        AssetclassCategory.CFD_DERIVATIVE);
+        AssetclassCategory.CFD_DERIVATIVE, AssetclassCategory.NON_INVESTABLE_INDICES);
+  }
+
+  /**
+   * The EODHD symbol is ticker plus exchange code, e.g. {@code SAP.XETRA}. Master data of the EODHD search carries it;
+   * for a listing another provider found it is built from the exchange ticker and the {@code eodhd} code of the MIC in
+   * {@code mic_provider_map}, with {@code -} for a dot or blank in the ticker ({@code BRK-B.US}). All four feeds use the
+   * same symbol.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    if (EodhdSecuritySearch.PROVIDER_ID.equals(baseData.providerId()) && baseData.providerInstrumentId() != null) {
+      return Optional.of(baseData.providerInstrumentId());
+    }
+    if (baseData.tickerSymbol() == null || baseData.tickerSymbol().isBlank() || baseData.mic() == null) {
+      return Optional.empty();
+    }
+    String code = getExchangeCodeByMic().get(baseData.mic());
+    return code == null ? Optional.empty()
+        : Optional.of(baseData.tickerSymbol().trim().replace(' ', '-').replace('.', '-') + "." + code);
+  }
+
+  private Map<String, String> getExchangeCodeByMic() {
+    Map<String, String> codeByMic = exchangeCodeByMic;
+    if (codeByMic == null) {
+      if (micProviderMapRepository == null) {
+        return Map.of();
+      }
+      codeByMic = new HashMap<>();
+      for (MicProviderMap row : micProviderMapRepository
+          .findByIdProviderMic_IdProvider(EodhdSecuritySearch.PROVIDER_ID)) {
+        codeByMic.put(row.getIdProviderMic().getMic(), row.getCodeProvider());
+      }
+      exchangeCodeByMic = codeByMic;
+    }
+    return codeByMic;
   }
 
   private String getApiKeyString() {

@@ -12,11 +12,14 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
 import grafiosch.BaseConstants;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
+import grafioschtrader.connector.instrument.FeedConnectorHelper;
+import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
@@ -59,6 +62,15 @@ public class StockDataFeedConnector extends BaseFeedApiKeyConnector {
 
   private String getApiKeyString(boolean firstArgument) {
     return (firstArgument ? "" : "&") + "api_token=" + getApiKey();
+  }
+
+  /**
+   * The lookup offers this connector for a listing on NASDAQ or NYSE with the exchange ticker another provider found,
+   * see {@link FeedConnectorHelper#deriveUsTicker(SecurityBaseDataDto)}.
+   */
+  @Override
+  public Optional<String> deriveUrlExtension(SecurityBaseDataDto baseData, FeedSupport feedSupport) {
+    return FeedConnectorHelper.deriveUsTicker(baseData);
   }
 
   @Override

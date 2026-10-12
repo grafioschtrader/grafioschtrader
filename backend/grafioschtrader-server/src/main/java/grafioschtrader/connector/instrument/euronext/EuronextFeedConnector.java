@@ -1,7 +1,9 @@
 package grafioschtrader.connector.instrument.euronext;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -24,8 +26,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
@@ -42,15 +42,37 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * The Euronext connector can obtain data from several different stock exchanges in Europe.
+ * Price connector for the Euronext exchanges Amsterdam, Brussels, Dublin, Lisbon, Oslo and Paris. It reads the same
+ * endpoints the pages of {@code live.euronext.com} use and needs no key and no URL extension: an instrument is addressed
+ * by {@code {ISIN}-{MIC}}, for Dublin with the operating MIC {@code XDUB} instead of the segment MIC {@code XMSM} GT
+ * stores ({@link #mappingMicOperation}).
  *
- * A regex check of the URL extension is not necessary as it is not edited by the user. The connector for checking the
- * instrument would obviously always return an HTTP OK. Both checks are omitted.
+ * <p>
+ * Endpoints:
+ * </p>
+ * <ul>
+ * <li>History: {@code intraday_chart/getChartData/{ISIN}-{MIC}/{period}}, a JSON array of daily closes with time,
+ * price and volume. The period is {@code 1M} for an update of the last 30 days and {@code max} for anything older;
+ * the server offers no other range, so the result is filtered to the requested days.</li>
+ * <li>Intraday: {@code ajax/getDetailedQuote/{ISIN}-{MIC}} for last price and change, and
+ * {@code intraday_chart/getDetailedQuoteAjax/{ISIN}-{MIC}/full} for open, high, low and previous close. Both are HTML
+ * fragments requested by POST with {@code theme_name=euronext_live}.</li>
+ * </ul>
+ *
+ * <p>
+ * Euronext encrypts these answers. Instead of the data the server returns {@code {"ct":…,"iv":…,"s":…}} in the format
+ * of CryptoJS, which {@link #decrypt(String)} reverses with the passphrase built into the script of the site. If
+ * Euronext changes that passphrase, every request fails with a decryption error naming this cause.
+ * </p>
+ *
+ * <p>
+ * There is no regular expression for a URL extension, since none is used, and no URL check on saving, since the
+ * endpoints answer HTTP 200 for any instrument. The setting check instead requires an ISIN and one of the six exchanges,
+ * which are also declared as the coverage of the connector.
+ * </p>
  */
 @Component
 public class EuronextFeedConnector extends BaseFeedConnector {
-
-  private static final Logger log = LoggerFactory.getLogger(EuronextFeedConnector.class);
 
   public static final String STOCK_EX_MIC_AMSTERDAM = "XAMS";
   public static final String STOCK_EX_MIC_BRUSSELS = "XBRU";
@@ -61,6 +83,7 @@ public class EuronextFeedConnector extends BaseFeedConnector {
 
   public static final String STOCK_EX_OPERATION_DUBLIN = "XDUB";
 
+  /** GT MIC to the MIC Euronext uses in its URLs, where they differ: Dublin {@code XMSM} to {@code XDUB}. */
   public static final Map<String, String> mappingMicOperation = new HashMap<>();
   private static final Set<String> EN_STOCK_EXCHANGES_SET = Set.of(STOCK_EX_MIC_AMSTERDAM, STOCK_EX_MIC_BRUSSELS,
       STOCK_EX_MIC_DUBLIN, STOCK_EX_MIC_LISBON, STOCK_EX_MIC_OSLO, STOCK_EX_MIC_PARIS);
@@ -73,6 +96,13 @@ public class EuronextFeedConnector extends BaseFeedConnector {
   private static final String PERIOD_1M = "1M";
   private static final String PERIOD_MAX = "max";
   private static final ObjectMapper objectMapper = JsonMapper.builder().build();
+  /**
+   * Passphrase of the CryptoJS encryption, taken from the script of {@code live.euronext.com}. It is no secret of GT
+   * but part of the public page; when Euronext replaces it, {@link #decrypt(String)} fails and it has to be updated.
+   */
+  private static final String CRYPTO_PASSPHRASE = "24ayqVo7yJma";
+  /** Key length of AES-256 in bytes. */
+  private static final int KEY_LENGTH = 32;
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
 
   static {
@@ -87,6 +117,8 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     supportedAssetclassCategories = EnumSet.of(AssetclassCategory.NON_INVESTABLE_INDICES, AssetclassCategory.EQUITIES,
         AssetclassCategory.FIXED_INCOME, AssetclassCategory.ETF, AssetclassCategory.MUTUAL_FUND,
         AssetclassCategory.REAL_ESTATE_FUND, AssetclassCategory.ISSUER_RISK_PRODUCT);
+    // The same exchanges the setting check accepts, so that no listing elsewhere is offered this connector
+    parseGeoRestrictions(String.join(" ", EN_STOCK_EXCHANGES_SET));
   }
 
   @Override
@@ -154,6 +186,13 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     return 60;
   }
 
+  /**
+   * Requests an intraday HTML fragment the way the page does, by POST with the theme of the site, and decrypts it.
+   *
+   * @param url the endpoint including {@code {ISIN}-{MIC}}
+   * @return the parsed fragment
+   * @throws IOException when the request fails or the answer cannot be decrypted
+   */
   private Document getIntraDoc(String url) throws IOException {
     String encryptedResponse = Jsoup.connect(url).userAgent(GlobalConstants.USER_AGENT_HTTPCLIENT)
         .header("Accept-Language", "en").header("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
@@ -197,48 +236,73 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     return true;
   }
 
-  public static String decrypt(String ciphertext) {
+  /**
+   * Decrypts an answer of Euronext. The server wraps the actual content - JSON of the chart endpoint or an HTML fragment
+   * of the quote endpoints - in the CryptoJS envelope {@code {"ct":…,"iv":…,"s":…}}:
+   * <ul>
+   * <li>{@code s}: hex salt, {@code iv}: hex initialisation vector, {@code ct}: Base64 cipher text;</li>
+   * <li>the key is derived from {@link #CRYPTO_PASSPHRASE} and the salt with {@code EVP_BytesToKey} of OpenSSL: MD5
+   * blocks {@code D1 = MD5(pass + salt)}, {@code Di = MD5(Di-1 + pass + salt)}, concatenated to 32 bytes;</li>
+   * <li>the cipher is AES-256-CBC with PKCS#5 padding.</li>
+   * </ul>
+   * The plain text is itself a JSON string literal when the content is HTML and is unescaped then. An answer that is
+   * not such an envelope is returned unchanged, so that an endpoint Euronext stops encrypting keeps working.
+   *
+   * @param response the body returned by Euronext
+   * @return the decrypted content
+   * @throws IOException when the envelope cannot be decrypted, e.g. because Euronext changed the passphrase
+   */
+  public static String decrypt(String response) throws IOException {
+    if (response == null || !response.stripLeading().startsWith("{\"ct\"")) {
+      return response;
+    }
     try {
-      final JsonSecurity jsonSecurity = objectMapper.readValue(ciphertext, JsonSecurity.class);
-
+      final JsonSecurity jsonSecurity = objectMapper.readValue(response, JsonSecurity.class);
       byte[] salt = Hex.decodeHex(jsonSecurity.s.toCharArray());
       byte[] iv = Hex.decodeHex(jsonSecurity.iv);
-
-      // EvpKDF: MD5-based key derivation (OpenSSL compatible)
-      byte[] passBytes = "24ayqVo7yJma".getBytes("UTF-8");
-      MessageDigest md5 = MessageDigest.getInstance("MD5");
-      byte[] key = new byte[32];
-      byte[] block = null;
-      int offset = 0;
-      while (offset < 32) {
-        md5.reset();
-        if (block != null)
-          md5.update(block);
-        md5.update(passBytes);
-        md5.update(salt);
-        block = md5.digest();
-        int len = Math.min(block.length, 32 - offset);
-        System.arraycopy(block, 0, key, offset, len);
-        offset += len;
-      }
-
+      byte[] key = deriveKey(CRYPTO_PASSPHRASE.getBytes(StandardCharsets.UTF_8), salt);
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
-      byte[] ct = Base64.getDecoder().decode(jsonSecurity.ct);
-      byte[] plaintext = cipher.doFinal(ct);
-
-      String decrypted = new String(plaintext, "UTF-8");
-      // Decrypted content is a JSON-encoded string — unescape it
-      if (decrypted.startsWith("\"")) {
-        decrypted = objectMapper.readValue(decrypted, String.class);
-      }
-      return decrypted;
+      String decrypted = new String(cipher.doFinal(Base64.getDecoder().decode(jsonSecurity.ct)),
+          StandardCharsets.UTF_8);
+      return decrypted.startsWith("\"") ? objectMapper.readValue(decrypted, String.class) : decrypted;
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      throw new IOException("Euronext answer could not be decrypted; the passphrase of live.euronext.com may have "
+          + "changed: " + e.getMessage(), e);
     }
-    return null;
   }
 
+  /**
+   * {@code EVP_BytesToKey} of OpenSSL with MD5 and one iteration, as CryptoJS uses it for a passphrase.
+   *
+   * @param pass the passphrase
+   * @param salt the salt of the envelope
+   * @return the 32 byte AES key
+   */
+  private static byte[] deriveKey(byte[] pass, byte[] salt) throws NoSuchAlgorithmException {
+    MessageDigest md5 = MessageDigest.getInstance("MD5");
+    byte[] key = new byte[KEY_LENGTH];
+    byte[] block = null;
+    int offset = 0;
+    while (offset < KEY_LENGTH) {
+      md5.reset();
+      if (block != null) {
+        md5.update(block);
+      }
+      md5.update(pass);
+      md5.update(salt);
+      block = md5.digest();
+      int len = Math.min(block.length, KEY_LENGTH - offset);
+      System.arraycopy(block, 0, key, offset, len);
+      offset += len;
+    }
+    return key;
+  }
+
+  /**
+   * Reads the daily closes. The chart endpoint knows only the periods {@code 1M} and {@code max}; a range starting more
+   * than 30 days ago therefore loads the whole history, which is filtered to {@code from}..{@code to}.
+   */
   @Override
   public List<Historyquote> getEodSecurityHistory(final Security security, final LocalDate from, final LocalDate to)
       throws Exception {
@@ -263,12 +327,14 @@ public class EuronextFeedConnector extends BaseFeedConnector {
     return historyquotes;
   }
 
+  /** One element of the chart answer: ISO time of the day, closing price and volume. */
   private static class DailyClose {
     public String time;
     public double price;
     public Long volume;
   }
 
+  /** The CryptoJS envelope of an encrypted answer; see {@link EuronextFeedConnector#decrypt(String)}. */
   private static class JsonSecurity {
     public String ct;
     public String iv;

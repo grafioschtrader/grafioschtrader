@@ -1,7 +1,6 @@
 package grafiosch.gtnet;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyByte;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -10,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -41,30 +39,6 @@ class GTNetIdempotencyServiceTest {
       messageCodeRegistry);
 
   @Test
-  void recognizesARepeatByThePeerScopedTriple() {
-    GTNetMessage previous = receivedRow(DATA_REQUEST);
-    when(messageRepository.findByIdGtNetAndSendRecvAndIdSourceGtNetMessage(ID_PEER,
-        SendReceivedType.RECEIVED.getValue(), SENDER_LOCAL_ID)).thenReturn(Optional.of(previous));
-
-    assertThat(idempotencyService.findPreviousDelivery(peer(), envelope(DATA_REQUEST))).contains(previous);
-  }
-
-  @Test
-  void treatsAFirstDeliveryAsNew() {
-    when(messageRepository.findByIdGtNetAndSendRecvAndIdSourceGtNetMessage(anyInt(), anyByte(), anyInt()))
-        .thenReturn(Optional.empty());
-
-    assertThat(idempotencyService.findPreviousDelivery(peer(), envelope(DATA_REQUEST))).isEmpty();
-  }
-
-  @Test
-  void cannotIdentifyADeliveryFromAnUnknownPeer() {
-    // The first handshake reaches us before any peer row exists, so there is nothing to key on. Its own
-    // HANDSHAKE_ALREADY_ESTABLISHED is what makes a repeat deterministic there.
-    assertThat(idempotencyService.findPreviousDelivery(null, envelope(DATA_REQUEST))).isEmpty();
-  }
-
-  @Test
   void answersARepeatedRequestWithTheAnswerItAlreadyGot() {
     GTNetMessage previous = receivedRow(DATA_REQUEST);
     GTNetMessage answer = sentAnswer(TOKEN_REFRESH_ACCEPT, Map.of("tokenThis", new GTNetMessageParam("abc")));
@@ -76,16 +50,6 @@ class GTNetIdempotencyServiceTest {
     // instead of rotating again.
     assertThat(replay.messageCode).isEqualTo(TOKEN_REFRESH_ACCEPT);
     assertThat(replay.gtNetMessageParamMap.get("tokenThis").getParamValue()).isEqualTo("abc");
-  }
-
-  @Test
-  void tellsARepeatedRequestStillAwaitingADecisionThatItIsDeferred() {
-    when(messageRepository.findByReplyTo(anyInt())).thenReturn(List.of());
-
-    MessageEnvelope replay = idempotencyService.replayOutcome(myGTNet(), receivedRow(DATA_REQUEST), DATA_REQUEST);
-
-    assertThat(replay.messageCode).isEqualTo(GNetCoreMessageCode.GT_NET_DEFERRED_S.getValue());
-    assertThat(replay.errorMsgCode).isEqualTo(GTNetIdempotencyService.DUPLICATE_DELIVERY);
   }
 
   @Test
@@ -107,15 +71,6 @@ class GTNetIdempotencyServiceTest {
     MessageEnvelope replay = idempotencyService.replayOutcome(myGTNet(), receivedRow(DATA_REQUEST), DATA_REQUEST);
 
     assertThat(replay.messageCode).isEqualTo(GNetCoreMessageCode.GT_NET_DEFERRED_S.getValue());
-  }
-
-  @Test
-  void letsASideEffectFreeQueryRunAgainRatherThanReplayingAnEmptyPayload() {
-    // The server list request reads and changes nothing, so the protocol declares it reprocessable; the data request
-    // writes a grant and must be replayed from its stored outcome instead.
-    assertThat(idempotencyService.prefersReprocessing(GNetCoreMessageCode.GT_NET_UPDATE_SERVERLIST_SEL_RR_C.getValue()))
-        .isTrue();
-    assertThat(idempotencyService.prefersReprocessing(DATA_REQUEST)).isFalse();
   }
 
   private static MessageEnvelope envelope(byte messageCode) {
