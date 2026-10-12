@@ -84,6 +84,7 @@ grafioschtrader.connector.instrument.generic
 grafioschtrader.connector.instrument.investing
 grafioschtrader.connector.instrument.onvista
 grafioschtrader.connector.instrument.six
+grafioschtrader.connector.instrument.stockanalysis
 grafioschtrader.connector.instrument.stockdata
 grafioschtrader.connector.instrument.swissfunddata
 grafioschtrader.connector.instrument.twelvedata
@@ -91,6 +92,7 @@ grafioschtrader.connector.instrument.vienna
 grafioschtrader.connector.instrument.warsawgpw
 grafioschtrader.connector.instrument.xetra
 grafioschtrader.connector.instrument.yahoo
+grafioschtrader.connector.securitysearch
 grafioschtrader.connector.yahoo
 grafioschtrader.dashboard
 grafioschtrader.dto
@@ -108,6 +110,7 @@ grafioschtrader.gtnet.m2m.model
 grafioschtrader.gtnet.model
 grafioschtrader.gtnet.model.msg
 grafioschtrader.instrument
+grafioschtrader.instrument.lookup
 grafioschtrader.platform
 grafioschtrader.platform.cornertrader
 grafioschtrader.platform.degiro

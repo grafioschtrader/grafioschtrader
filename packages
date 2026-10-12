@@ -100,6 +100,7 @@ grafioschtrader.connector.instrument.comdirect
 grafioschtrader.connector.instrument.consorsbank
 grafioschtrader.connector.instrument.boursorama
 grafioschtrader.connector.instrument.fxubc
+grafioschtrader.connector.instrument.stockanalysis
 grafioschtrader.connector.instrument.investing
 grafioschtrader.connector.instrument.euronext
 grafioschtrader.connector.instrument
@@ -125,6 +126,7 @@ grafioschtrader.connector.instrument.stockdata
 grafioschtrader.connector.instrument.eodhistoricaldata
 grafioschtrader.connector.instrument.onvista
 grafioschtrader.connector.instrument.swissfunddata
+grafioschtrader.connector.securitysearch
 grafioschtrader.service
 grafioschtrader.repository
 grafioschtrader.repository.helper
@@ -139,6 +141,7 @@ grafioschtrader.gtnet.handler.impl.lastprice
 grafioschtrader.gtnet.handler.impl.historyquote
 grafioschtrader.report.pdf
 grafioschtrader.instrument
+grafioschtrader.instrument.lookup
 grafioschtrader.platform
 grafioschtrader.platform.degiro
 grafioschtrader.platform.migros
