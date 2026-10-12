@@ -221,7 +221,8 @@ gt_runtimes() {
 }
 
 gt_consumers() {
-  local kind value file executable command_line
+  local kind value file executable command_line word previous
+  local -a words
   for kind in node java; do
     FACT[$kind.consumers]=no
     # Avoid printing process arguments, which frequently contain passwords and API tokens.
@@ -249,9 +250,17 @@ gt_consumers() {
       # Inspect wrappers too, but keep arguments and Environment values out of the report.
       command_line=${command_line//\"/ }
       command_line=${command_line//\'/ }
-      if [[ "$command_line" =~ (^|[/[:space:]])(node|nodejs|npm)([[:space:]]|$) ]]; then
-        CONSUMERS+=("node unit=$file executable=$executable"); FACT[node.consumers]=yes
-      fi
+      # A word after an option is that option's value, as in open-iscsi's "iscsiadm -m node"; only a shell's -c
+      # introduces a command.
+      read -ra words <<< "$command_line"
+      previous=''
+      for word in "${words[@]}"; do
+        if [[ "${word##*/}" =~ ^(node|nodejs|npm)$ && ( "$previous" != -* || "$previous" == -c ) ]]; then
+          CONSUMERS+=("node unit=$file executable=$executable"); FACT[node.consumers]=yes
+          break
+        fi
+        previous=$word
+      done
       if [[ "$command_line" =~ (^|[/[:space:]])java([[:space:]]|$) ]]; then
         CONSUMERS+=("java unit=$file executable=$executable"); FACT[java.consumers]=yes
       fi

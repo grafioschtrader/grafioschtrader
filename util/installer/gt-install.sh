@@ -93,7 +93,8 @@ gt_safe() { printf '%s' "$1" | LC_ALL=C tr -d '\000-\010\013-\037\177'; }
 gt_path() { printf '%s%s' "$ROOT" "$1"; }
 gt_probe() {
   command -v "$1" >/dev/null 2>&1 || return 127
-  timeout --signal=TERM --kill-after=2 12 "$@" 2>/dev/null
+  # Probe output is parsed, never shown. APT and ufw translate it ("Installationskandidat:", "Status: aktiv").
+  LC_ALL=C.UTF-8 LANGUAGE='' timeout --signal=TERM --kill-after=2 12 "$@" 2>/dev/null
 }
 gt_capture() {
   local key=$1 value
@@ -414,7 +415,8 @@ gt_runtimes() {
 }
 
 gt_consumers() {
-  local kind value file executable command_line
+  local kind value file executable command_line word previous
+  local -a words
   for kind in node java; do
     FACT[$kind.consumers]=no
     # Avoid printing process arguments, which frequently contain passwords and API tokens.
@@ -442,9 +444,17 @@ gt_consumers() {
       # Inspect wrappers too, but keep arguments and Environment values out of the report.
       command_line=${command_line//\"/ }
       command_line=${command_line//\'/ }
-      if [[ "$command_line" =~ (^|[/[:space:]])(node|nodejs|npm)([[:space:]]|$) ]]; then
-        CONSUMERS+=("node unit=$file executable=$executable"); FACT[node.consumers]=yes
-      fi
+      # A word after an option is that option's value, as in open-iscsi's "iscsiadm -m node"; only a shell's -c
+      # introduces a command.
+      read -ra words <<< "$command_line"
+      previous=''
+      for word in "${words[@]}"; do
+        if [[ "${word##*/}" =~ ^(node|nodejs|npm)$ && ( "$previous" != -* || "$previous" == -c ) ]]; then
+          CONSUMERS+=("node unit=$file executable=$executable"); FACT[node.consumers]=yes
+          break
+        fi
+        previous=$word
+      done
       if [[ "$command_line" =~ (^|[/[:space:]])java([[:space:]]|$) ]]; then
         CONSUMERS+=("java unit=$file executable=$executable"); FACT[java.consumers]=yes
       fi

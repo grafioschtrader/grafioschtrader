@@ -92,7 +92,8 @@ gt_safe() { printf '%s' "$1" | LC_ALL=C tr -d '\000-\010\013-\037\177'; }
 gt_path() { printf '%s%s' "$ROOT" "$1"; }
 gt_probe() {
   command -v "$1" >/dev/null 2>&1 || return 127
-  timeout --signal=TERM --kill-after=2 12 "$@" 2>/dev/null
+  # Probe output is parsed, never shown. APT and ufw translate it ("Installationskandidat:", "Status: aktiv").
+  LC_ALL=C.UTF-8 LANGUAGE='' timeout --signal=TERM --kill-after=2 12 "$@" 2>/dev/null
 }
 gt_capture() {
   local key=$1 value

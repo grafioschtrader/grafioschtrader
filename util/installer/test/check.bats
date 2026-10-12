@@ -340,6 +340,14 @@ setup() {
   [[ "${CONSUMERS[*]}" != *kmod-static-nodes* ]]
 }
 
+@test "an option value named node is no Node consumer" {
+  mkdir -p "$ROOT/etc/systemd/system"
+  printf '[Service]\nExecStart=/usr/sbin/iscsiadm -m node --loginall=automatic\n' > "$ROOT/etc/systemd/system/open-iscsi.service"
+  printf '[Service]\nExecStart=/usr/bin/env NODE_ENV=production /usr/bin/node /srv/app.js\n' > "$ROOT/etc/systemd/system/app.service"
+  gt_consumers
+  [[ "${CONSUMERS[*]}" != *open-iscsi* && "${CONSUMERS[*]}" == *app.service* ]]
+}
+
 @test "compact nginx blocks retain their own host names, ports and routes" {
   mkdir -p "$ROOT/etc/nginx/sites-enabled"
   printf '%s\n' 'server { listen 80; server_name one.example; location /api { proxy_pass http://localhost:8080; } }' \
@@ -377,6 +385,17 @@ setup() {
   [ "$(find "$ROOT" -type f -exec sha256sum {} + | sort)" = "$before" ]
   [ ! -e "$ROOT/var/lib/gt-install" ]
   ! grep -E 'apt-get|npm install|systemctl (start|stop|restart)|update-alternatives --set|nginx -T|apache2ctl' "$PROBES"
+}
+
+@test "probes parse untranslated output in a German session" {
+  eval "$(sed -n '/^gt_probe() {/,/^}/p' "$REPO/util/installer/gt-install.sh")"
+  mkdir -p "$BATS_TEST_TMPDIR/bin"
+  printf '%s\n' '#!/bin/bash' \
+    'if [[ -n "${LANGUAGE:-}" || "${LC_ALL:-${LANG:-}}" == de* ]]; then echo "  Installationskandidat: 1.0"' \
+    'else echo "  Candidate: 1.0"; fi' > "$BATS_TEST_TMPDIR/bin/apt-cache"
+  chmod +x "$BATS_TEST_TMPDIR/bin/apt-cache"
+  PATH="$BATS_TEST_TMPDIR/bin:$PATH" LANG=de_CH.UTF-8 LANGUAGE=de:en gt_packages
+  [ "${FACT[apt.candidate.maven]}" = 1.0 ]
 }
 
 @test "German locale changes headings while stable fact keys remain English" {

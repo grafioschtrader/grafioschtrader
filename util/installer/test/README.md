@@ -656,6 +656,28 @@ SSL Labs reached port 443 (grade A). After the address was removed, the timer ru
 to the SLAAC address and HTTPS answered there again. The host is behind DS-Lite without inbound IPv4, so the
 families `ipv4` and `both` were not exercised.
 
+Ubuntu 24.04 arm64 acceptance on 2026-10-12 passed on a Raspberry Pi 5 Model B (8 GB, SD card) with Ubuntu Server
+24.04.5 LTS, kernel `6.8.0-1065-raspi`, dual-homed like the ROCK 5B (`eth0` in the intranet, `wlan0` towards the
+internet with a global IPv6 address). The image ships no German locale; a dry run in a `LANG=de_CH.UTF-8` session
+before `locale-gen de_CH.UTF-8` still printed German messages. The modeless installation with an answers file ran
+from `/home/hugo` as root in a `de_CH.UTF-8` session in 12 minutes: it installed the Temurin `25.0.4.1+1` and Apache
+Maven `3.10.0` archives, Node `24.21.0`, `@angular/cli` `22.2.2`, MariaDB `10.11.13` and nginx `1.24.0`, built the
+backend and the frontend (`ng build`, 56 s) locally, moved the DuckDNS record `gt8p1.duckdns.org` and `www` to the
+host's IPv6 address and reached `status=complete` with Let's Encrypt and an accepted test message. MariaDB and the
+backend listened on loopback only, the baseline and both later migrations succeeded and no column or table uses a
+`uca1400` collation. After a reboot all three services started by themselves, `/api/gtinfo` answered after 92
+seconds of uptime, LAN and HTTPS answered, and a modeless German rerun reported `host.class=completed` with state,
+result, build log, launchers and jar unchanged. Two defects surfaced. The inventory took `open-iscsi.service`, which
+every Ubuntu Server image enables, for a Node consumer because of `iscsiadm -m node`; a word after an option no
+longer counts. And every probe inherited the session's locale, so APT answered `Installationskandidat:` and all APT
+candidates became `unknown`: the plan fell back to the vendor JDK and the Maven archive although APT offered
+`openjdk-25-jdk-headless` `25.0.4.1+1-1~24.04.4` and Maven `3.8.7` (the German runs on the ROCK 5B and the Orange
+Pi 5 Plus chose the Maven archive for the same reason), and a German `ufw status` would never have matched
+`Status: active`. Probes now run with `LC_ALL=C.UTF-8` and no `LANGUAGE`; the fixed inventory reads all six
+candidates in a German session on this host. Application commit: `ccc98156a10b4192b5276ad6cb07fe35ff7ff764`;
+installer SHA-256 of the installation: `ba74a8343513589aed8ca1136093568ec08c24bc58d69190056207ff83c2cd29`, of the
+rerun and the inventory check: `9dd5f3ad5c14baa29c807e7805b179b3477896d33f607142066febd7769b99f4`.
+
 Real-hardware acceptance on Debian 13 arm64 passed on 2026-10-08 on a Radxa ROCK 4C+ (4 GB, zram swap, SD card)
 with Armbian 26.11, kernel `6.18.54-current-rockchip64`, nginx `1.26.3`, Let's Encrypt and the installer's own
 DuckDNS updater, dual-homed like the ROCK 5B. The image had neither git nor dig; the modeless plan installed both
