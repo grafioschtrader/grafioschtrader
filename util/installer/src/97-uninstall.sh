@@ -51,7 +51,8 @@ gt_uninstall_stash() {
   [[ -e "$target" || -L "$target" ]] || return 0
   stash="$(gt_path /var/lib/gt-install/uninstall-web)${target#"$ROOT"}"
   [[ -e "$stash" || -L "$stash" ]] && return 0
-  mkdir -p -m 700 -- "${stash%/*}" && cp -a -- "$target" "$stash"
+  # main runs with umask 077, so every directory of the stash is private.
+  mkdir -p -- "${stash%/*}" && cp -a -- "$target" "$stash"
 }
 
 gt_uninstall_unstash() {
@@ -503,8 +504,10 @@ gt_uninstall_prepare_root() {
   gt_probe "$client" --batch --skip-column-names -e 'SELECT 1' > /dev/null && return 0
   if [[ -n "$ANSWERS_FILE" ]]; then gt_answers_file "$ANSWERS_FILE" || return 2; fi
   gt_collect_secret DB_ROOT_PASSWORD no no || return $?
-  options=$(gt_uninstall_root) && "$client" ${options:+"$options"} --batch -e 'SELECT 1' > /dev/null 2>&1 ||
-    { gt_uninstall_error 'MariaDB rejected the root password; nothing was changed.'; return 2; }
+  if ! options=$(gt_uninstall_root) ||
+      ! "$client" ${options:+"$options"} --batch -e 'SELECT 1' > /dev/null 2>&1; then
+    gt_uninstall_error 'MariaDB rejected the root password; nothing was changed.'; return 2
+  fi
 }
 
 gt_uninstall_confirm_database() {
