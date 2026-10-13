@@ -55,8 +55,14 @@ loadScripts(document, 'script');</script>
 <div class="toc-header">Contents&nbsp;<input type="text" class="filter-input" disabled placeholder="Filter contents (type .)" aria-label="Filter table of contents" autocomplete="off" spellcheck="false"><input type="reset" class="reset-filter" disabled tabindex="-1" value="Reset"></div>
 <ol class="toc-list" tabindex="-1">
 <li><a href="#" tabindex="0">Description</a></li>
+<li><a href="#field-summary" tabindex="0">Field Summary</a></li>
 <li><a href="#constructor-summary" tabindex="0">Constructor Summary</a></li>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
+<li><a href="#field-detail" tabindex="0">Field Details</a>
+<ol class="toc-list">
+<li><a href="#AIA_CA_ISSUER_LOCATIONS" tabindex="0">AIA_CA_ISSUER_LOCATIONS</a></li>
+</ol>
+</li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
 <li><a href="#%3Cinit%3E()" tabindex="0">GrafioschtraderApplication()</a></li>
@@ -65,6 +71,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#main(java.lang.String%5B%5D)" tabindex="0">main(String[])</a></li>
+<li><a href="#enableCaIssuerDownload()" tabindex="0">enableCaIssuerDownload()</a></li>
 <li><a href="#configureGTNetMessageCodeResolver()" tabindex="0">configureGTNetMessageCodeResolver()</a></li>
 </ol>
 </li>
@@ -123,6 +130,25 @@ port 8080.</li>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- =========== FIELD SUMMARY =========== -->
+<li>
+<section class="field-summary" id="field-summary">
+<h2>Field Summary</h2>
+<div class="caption"><span>Fields</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Field</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#AIA_CA_ISSUER_LOCATIONS" class="member-name-link">AIA_CA_ISSUER_LOCATIONS</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Locations from which Java may download a missing issuer certificate, as a whitespace-separated filter list in
+the syntax of the security property <code>com.sun.security.allowedAIALocations</code> (a trailing slash allows the whole
+path below it).</div>
+</div>
+</div>
+</section>
+</li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <li>
 <section class="constructor-summary" id="constructor-summary">
@@ -154,8 +180,13 @@ port 8080.</li>
 (60+).</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#main(java.lang.String%5B%5D)" class="member-name-link">main</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]&nbsp;args)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#enableCaIssuerDownload()" class="member-name-link">enableCaIssuerDownload</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Enables the download of missing issuer certificates from <a href="#AIA_CA_ISSUER_LOCATIONS"><code>AIA_CA_ISSUER_LOCATIONS</code></a>.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#main(java.lang.String%5B%5D)" class="member-name-link">main</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]&nbsp;args)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -168,6 +199,42 @@ port 8080.</li>
 </section>
 <section class="details">
 <ul class="details-list">
+<!-- ============ FIELD DETAIL =========== -->
+<li>
+<section class="field-details" id="field-detail">
+<h2>Field Details</h2>
+<ul class="member-list">
+<li>
+<section class="detail" id="AIA_CA_ISSUER_LOCATIONS">
+<h3>AIA_CA_ISSUER_LOCATIONS</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">AIA_CA_ISSUER_LOCATIONS</span></div>
+<div class="block"><p>Locations from which Java may download a missing issuer certificate, as a whitespace-separated filter list in
+the syntax of the security property <code>com.sun.security.allowedAIALocations</code> (a trailing slash allows the whole
+path below it).</p>
+<p>Some data providers send an incomplete or wrong certificate chain: <code>fx.sauder.ubc.ca</code> (connector
+<code>gt.datafeed.fxubc</code>) presents the intermediate &quot;Entrust OV TLS Issuing RSA CA 1&quot; although its certificate was
+issued by &quot;... CA 2&quot;, so every connection failed with <code>PKIX path building failed</code>. Browsers repair such a chain
+by fetching the issuer named in the certificate's Authority Information Access (AIA) extension; Java does so only
+when <code>com.sun.security.enableAIAcaIssuers</code> is set, and since Java 25 only from locations on this list. The
+downloaded certificate must still chain to a root of the JDK's truststore, so nothing becomes trusted that was
+not trusted before. The list stays narrow because a fetch is an outbound request to a URL taken from a
+certificate that a remote server presented.</p>
+</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../constant-values.html#grafioschtrader.GrafioschtraderApplication.AIA_CA_ISSUER_LOCATIONS">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+</ul>
+</section>
+</li>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <li>
 <section class="constructor-details" id="constructor-detail">
@@ -194,6 +261,16 @@ port 8080.</li>
 <h3>main</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">main</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]&nbsp;args)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="enableCaIssuerDownload()">
+<h3>enableCaIssuerDownload</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">enableCaIssuerDownload</span>()</div>
+<div class="block">Enables the download of missing issuer certificates from <a href="#AIA_CA_ISSUER_LOCATIONS"><code>AIA_CA_ISSUER_LOCATIONS</code></a>. It runs before the first
+TLS connection because Java reads both settings once. A value an administrator passed with <code>-D</code> is kept.</div>
 </div>
 </section>
 </li>
