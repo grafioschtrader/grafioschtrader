@@ -881,3 +881,25 @@ database and account, packages of its transactions) returned every recorded item
 faults, fixed before acceptance: the stock nginx inventory, `${` in encrypted secrets, the include check right
 after a reload, and the own LAN site on resumption of a domain installation. A vhost backup of the failed include
 attempt stays beside the original in `sites-available`.
+
+## Uninstall
+
+`uninstall.bats` covers the package journal, the digest rule for files, owned and intended directories, the vhost
+include (backup while unchanged, only the line otherwise, every own backup removed), the swap entry, the return of
+alternatives to `auto`, the purge guard and the refusal of foreign host classes and changed options on resumption.
+
+Acceptance on 2026-10-13 on `.82` (Ubuntu 24.04.5 arm64), on the prepared host of the real-host scenarios, started
+from `/home/hugo` with `LANG=de_CH.UTF-8`:
+
+- The completed scenario installation was uninstalled with defaults and interrupted with SIGINT in the `user` step
+  (exit 130); `--check` and a run with other options were refused, the resumed run completed. Against the recorded
+  administrator state only the kept parts differed: the account `grafioschtrader` of the kept database and the kept
+  JDK 25 as best candidate, while `/usr/bin/java` stayed Java 17. Sites, foreign services, vhost, crontab and the
+  MariaDB root account were unchanged, and no file of the installer remained. A new `--prepare` was blocked by the
+  kept database, as the result announces.
+- After dropping that database and purging the first installation's packages (690 packages recorded), a new
+  installation journaled `resource.packages` and `alternative_mode.*`. `--uninstall --remove-database
+  --remove-packages --answers FILE --yes` asked for `delete-database` on the terminal, dumped the database
+  (`/root/grafioschtrader-<UTC>.sql.gz`, mode 600, 127 tables, dump trailer), dropped database and account, purged
+  exactly the journaled packages and returned 28 Java alternatives to `auto`. The package list equalled the one before
+  the installation and the administrator state equalled the recorded one.

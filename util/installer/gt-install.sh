@@ -7810,6 +7810,11 @@ gt_bootstrap_execute() {
 GT_UNINSTALL_STEPS='service duckdns web tls firewall swap privileged log frontend database user toolchains
 mariadb_settings packages alternatives'
 
+gt_uninstall_error() {
+  printf '%s: %s\n' "$(gt_text 'Uninstall stopped' 'Deinstallation angehalten')" "$1" >&2
+  return 2
+}
+
 gt_uninstall_journal() { gt_path /var/lib/gt-install/uninstall; }
 gt_uninstall_save() { gt_atomic_map "$(gt_uninstall_journal)" UNSTATE; }
 
@@ -7999,7 +8004,7 @@ gt_uninstall_web() {
     done
   fi
   gt_uninstall_unstash && gt_site_test && gt_core_run systemctl reload "$web.service"
-  gt_core_error "Removing the web integration changed or broke other sites; the installer files were restored."
+  gt_uninstall_error "Removing the web integration changed or broke other sites; the installer files were restored."
 }
 
 # Only a certificate the installer requested goes; a reused or an administrator's certificate stays.
@@ -8008,7 +8013,7 @@ gt_uninstall_tls() {
   gt_uninstall_file certbot_hook "$(gt_path "/etc/letsencrypt/renewal-hooks/deploy/$name")" || return 2
   if [[ -n "${STATE[resource.acme_certificate]:-}" && -e "$(gt_path "/etc/letsencrypt/renewal/$name.conf")" ]]; then
     gt_core_run certbot delete --cert-name "$name" --non-interactive >> "$SCRATCH/certbot-delete.log" 2>&1 ||
-      { gt_core_error "certbot could not delete the certificate $name."; return 2; }
+      { gt_uninstall_error "certbot could not delete the certificate $name."; return 2; }
     gt_uninstall_note removed "certificate $name"
   fi
   gt_uninstall_tree acme_root "$(gt_path /var/lib/gt-install-acme)"
@@ -8022,7 +8027,7 @@ gt_uninstall_firewall() {
     rule=${STATE[$key]#owned:}
     read -r -a words <<< "$rule"
     gt_core_run ufw delete "${words[@]}" > /dev/null ||
-      { gt_core_error "ufw rule could not be removed: $rule"; return 2; }
+      { gt_uninstall_error "ufw rule could not be removed: $rule"; return 2; }
     gt_uninstall_note removed "ufw $rule"
   done
 }
@@ -8081,7 +8086,7 @@ gt_uninstall_user() {
   }
   if gt_probe getent passwd grafioschtrader > /dev/null; then
     gt_core_run userdel -r grafioschtrader > "$SCRATCH/userdel.log" 2>&1 || :
-    gt_probe getent passwd grafioschtrader > /dev/null && { gt_core_error 'userdel grafioschtrader failed.'; return 2; }
+    gt_probe getent passwd grafioschtrader > /dev/null && { gt_uninstall_error 'userdel grafioschtrader failed.'; return 2; }
   fi
   if gt_probe getent group grafioschtrader > /dev/null; then gt_core_run groupdel grafioschtrader || return 2; fi
   [[ ! -e "$home" ]] || rm -rf -- "$home" || return 2
@@ -8156,8 +8161,8 @@ gt_uninstall_database() {
     return 0
   }
   client=$(command -v mariadb || command -v mysql) || return 2
-  options=$(gt_uninstall_root) || { gt_core_error 'No root access to MariaDB for --remove-database.'; return 2; }
-  gt_uninstall_dump "$options" || { gt_core_error 'The database dump failed; nothing was dropped.'; return 2; }
+  options=$(gt_uninstall_root) || { gt_uninstall_error 'No root access to MariaDB for --remove-database.'; return 2; }
+  gt_uninstall_dump "$options" || { gt_uninstall_error 'The database dump failed; nothing was dropped.'; return 2; }
   "$client" ${options:+"$options"} --batch -e \
     "DROP DATABASE IF EXISTS grafioschtrader; DROP USER IF EXISTS 'grafioschtrader'@'localhost';" || return 2
   gt_uninstall_note removed "database grafioschtrader and account grafioschtrader@localhost (dump ${UNSTATE[dump]})"
@@ -8176,11 +8181,11 @@ gt_uninstall_packages() {
   mapfile -t purged < <(LC_ALL=C apt-get --simulate purge "${installed[@]}" 2> /dev/null |
     awk '/^Purg /{print $2}' | LC_ALL=C sort -u)
   if [[ "$(printf '%s\n' "${purged[@]}")" != "$(printf '%s\n' "${installed[@]}" | LC_ALL=C sort -u)" ]]; then
-    gt_core_error 'Purging the installer packages would remove other packages as well; they were kept.'
+    gt_uninstall_error 'Purging the installer packages would remove other packages as well; they were kept.'
     return 2
   fi
   gt_core_run env DEBIAN_FRONTEND=noninteractive apt-get -y purge "${installed[@]}" > "$SCRATCH/purge.log" 2>&1 ||
-    { gt_core_error 'apt-get purge failed; see the output above.'; cat -- "$SCRATCH/purge.log" >&2; return 2; }
+    { gt_uninstall_error 'apt-get purge failed; see the output above.'; cat -- "$SCRATCH/purge.log" >&2; return 2; }
   gt_uninstall_note removed "packages: ${installed[*]}"
 }
 
@@ -8278,10 +8283,10 @@ gt_uninstall_report() {
 # A resumed uninstall keeps the options it started with; other options would change an approved plan.
 gt_uninstall_begin() {
   if [[ -e "$(gt_uninstall_journal)" ]]; then
-    gt_uninstall_load || { gt_core_error 'Invalid uninstall journal; nothing was changed.'; return 2; }
+    gt_uninstall_load || { gt_uninstall_error 'Invalid uninstall journal; nothing was changed.'; return 2; }
     [[ "$UNINSTALL_DATABASE$UNINSTALL_PACKAGES" == nono ||
       "$UNINSTALL_DATABASE$UNINSTALL_PACKAGES" == "${UNSTATE[database]}${UNSTATE[packages]}" ]] || {
-      gt_core_error 'The started uninstall used other options; resume it without them.'; return 2; }
+      gt_uninstall_error 'The started uninstall used other options; resume it without them.'; return 2; }
   else
     UNSTATE=([schema]=1 [run_id]=${STATE[run_id]} [database]=$UNINSTALL_DATABASE [packages]=$UNINSTALL_PACKAGES)
   fi
@@ -8296,12 +8301,12 @@ gt_uninstall_drops_database() {
 gt_uninstall_prepare_root() {
   local client options
   gt_uninstall_drops_database || return 0
-  client=$(command -v mariadb || command -v mysql) || { gt_core_error 'No MariaDB client.'; return 2; }
+  client=$(command -v mariadb || command -v mysql) || { gt_uninstall_error 'No MariaDB client.'; return 2; }
   gt_probe "$client" --batch --skip-column-names -e 'SELECT 1' > /dev/null && return 0
   if [[ -n "$ANSWERS_FILE" ]]; then gt_answers_file "$ANSWERS_FILE" || return 2; fi
   gt_collect_secret DB_ROOT_PASSWORD no no || return $?
   options=$(gt_uninstall_root) && "$client" ${options:+"$options"} --batch -e 'SELECT 1' > /dev/null 2>&1 ||
-    { gt_core_error 'MariaDB rejected the root password; nothing was changed.'; return 2; }
+    { gt_uninstall_error 'MariaDB rejected the root password; nothing was changed.'; return 2; }
 }
 
 gt_uninstall_confirm_database() {
@@ -8315,7 +8320,7 @@ gt_uninstall_confirm_database() {
 gt_uninstall_terminal() {
   if [[ "$CORE_CONFIRM" != yes ]] || gt_uninstall_drops_database; then
     { exec {QUESTION_FD}<>/dev/tty; } 2> /dev/null ||
-      { gt_core_error 'A terminal is required to approve this uninstall.'; return 2; }
+      { gt_uninstall_error 'A terminal is required to approve this uninstall.'; return 2; }
     QUESTION_OUTPUT=$QUESTION_FD
   fi
 }
@@ -8327,10 +8332,10 @@ gt_uninstall() {
   gt_installation
   case "${FACT[host.class]}" in
     completed|unfinished) ;;
-    *) gt_core_error "This host has no installation of this installer (${FACT[host.class]}); nothing was changed."
+    *) gt_uninstall_error "This host has no installation of this installer (${FACT[host.class]}); nothing was changed."
       return 2 ;;
   esac
-  gt_state_load || { gt_core_error 'Invalid installation journal; nothing was changed.'; return 2; }
+  gt_state_load || { gt_uninstall_error 'Invalid installation journal; nothing was changed.'; return 2; }
   gt_uninstall_begin || return 2
   gt_uninstall_plan
   gt_uninstall_report > "$SCRATCH/plan.txt"
