@@ -8086,7 +8086,9 @@ gt_uninstall_user() {
   }
   if gt_probe getent passwd grafioschtrader > /dev/null; then
     gt_core_run userdel -r grafioschtrader > "$SCRATCH/userdel.log" 2>&1 || :
-    gt_probe getent passwd grafioschtrader > /dev/null && { gt_uninstall_error 'userdel grafioschtrader failed.'; return 2; }
+    if gt_probe getent passwd grafioschtrader > /dev/null; then
+      gt_uninstall_error 'userdel grafioschtrader failed.'; return 2
+    fi
   fi
   if gt_probe getent group grafioschtrader > /dev/null; then gt_core_run groupdel grafioschtrader || return 2; fi
   [[ ! -e "$home" ]] || rm -rf -- "$home" || return 2
