@@ -611,10 +611,52 @@ gt_web_directives() {
   ' "$1"
 }
 
+# Directives of FILE with every static include inside a server block or virtual host replaced by the included files'
+# directives, as the web server itself reads them; snippets such as Debian's fastcgi-php.conf or certbot's
+# options-ssl-nginx.conf then belong to their vhost. Includes outside such a block stay for gt_web to queue. An include
+# that cannot be expanded, or nesting deeper than eight files, is passed on unchanged and reported by gt_web.
+gt_web_expanded() {
+  local file=$1 kind=$2 nesting=${3:-0} in_server=${4:-0} line key value include include_file depth=0 server_depth=0
+  local found
+  while IFS= read -r line; do
+    read -r key value <<< "$line"
+    if [[ "$key" == server && "$value" == '{' || "$key" == '<VirtualHost' ]]; then
+      (( in_server )) || { in_server=1; server_depth=$((depth+1)); }
+    fi
+    if (( in_server )) && [[ "$key" =~ ^(include|Include|IncludeOptional)$ ]] && (( nesting < 8 )); then
+      include=${value//\"/}
+      if [[ "$include" != *'$'* && "$include" != *' '* ]]; then
+        if [[ "$include" != /* ]]; then
+          [[ "$kind" == nginx ]] && include="/etc/nginx/$include" || include="/etc/apache2/$include"
+        fi
+        found=no
+        while IFS= read -r include_file; do
+          [[ -f "$include_file" ]] || continue
+          found=yes
+          gt_web_expanded "$include_file" "$kind" "$((nesting+1))" 1
+        done < <(compgen -G "$(gt_path "$include")" | LC_ALL=C sort)
+        # nginx accepts a wildcard that matches nothing, Apache only with IncludeOptional.
+        [[ "$found" == no && ! ( "$kind" == nginx && "$include" == *[*?[]* || "$key" == IncludeOptional ) ]] ||
+          continue
+      fi
+    fi
+    printf '%s\n' "$line"
+    [[ "$line" != *'{' ]] || depth=$((depth+1))
+    if [[ "$line" == '}' ]]; then
+      depth=$((depth-1))
+      (( ! in_server || depth >= server_depth )) || in_server=0
+    fi
+    [[ "$key" != '</VirtualHost>' ]] || in_server=0
+  done < <(gt_web_directives "$file" "$kind")
+}
+
 gt_web_status() {
   local label=$1 names=$2 listeners=$3 entry name port scheme result
   [[ -n "$listeners" ]] || listeners=80:http
-  [[ -n "$names" ]] || names=127.0.0.1
+  # "_" is nginx's conventional placeholder name of a catch-all block, as in Debian's default site; no request
+  # carries it, so such a block is probed like one without a name.
+  names=" $names "; names=${names// _ / }
+  [[ -n "${names// /}" ]] || names=127.0.0.1
   for entry in $listeners; do
     port=${entry%:*}; scheme=${entry#*:}
     for name in $names; do
@@ -705,16 +747,18 @@ gt_web() {
               [[ -f "$include_file" ]] || continue
               files+=("$include_file"); kinds[$include_file]=$kind; result=yes
             done < <(compgen -G "$(gt_path "$include")" | LC_ALL=C sort)
-            if [[ "$result" == no && "$key" != IncludeOptional ]]; then
+            # nginx accepts a wildcard that matches nothing, Apache only with IncludeOptional.
+            if [[ "$result" == no && "$key" != IncludeOptional && ! ( "$kind" == nginx && "$include" == *[*?[]* ) ]]
+            then
               gt_note UNKNOWN unavailable "web include: $file"
             fi
-            # The file is inventoried, but assigning included directives to a parent vhost requires expansion.
+            # gt_web_expanded resolved every include of a vhost it could; one left here cannot be assigned to it.
             if (( in_block )); then gt_note UNKNOWN unavailable "included vhost context: $file"; fi
           fi ;;
       esac
       [[ "$line" != *'{' ]] || depth=$((depth+1))
       [[ "$line" != '}' ]] || depth=$((depth-1))
-    done < <(gt_web_directives "$file" "$kind")
+    done < <(gt_web_expanded "$file" "$kind")
     if (( in_block )); then gt_note UNKNOWN unavailable "unterminated vhost: $file"; fi
   done
   for certificate in "$(gt_path /etc/letsencrypt/live)"/*/fullchain.pem; do
@@ -2350,6 +2394,29 @@ gt_plan_ports() {
   gt_plan_row configure backend \
     "127.0.0.1:${ANSWER[BACKEND_PORT]} (${ANSWER[WEBSERVER]}); HTTP=${ANSWER[BACKEND_HTTP_PORT]:-same}"
 }
+# Root of the one HTTPS block of the static inventory that names the domain, empty when there is none or several.
+# The web stage still resolves the include target itself; this only tells which document root is already shared.
+gt_plan_include_root() {
+  local row label directive value domain=${ANSWER[DOMAIN]}
+  local -A named=() https=() roots=()
+  for row in "${WEB[@]}"; do
+    read -r label directive value <<< "$row"
+    case "$directive" in
+      server_name|ServerName|ServerAlias) [[ " ${value//\"/} " != *" $domain "* ]] || named[$label]=1 ;;
+      listen) [[ "$value" != *ssl* && "${value%% *}" != *443 ]] || https[$label]=1 ;;
+      '<VirtualHost') [[ "$value" != *:443* ]] || https[$label]=1 ;;
+      SSLEngine) [[ "$value" != on ]] || https[$label]=1 ;;
+      root|DocumentRoot) roots[$label]=${value//\"/} ;;
+    esac
+  done
+  local count=0 found=''
+  for label in "${!named[@]}"; do
+    [[ -n "${https[$label]:-}" ]] || continue
+    count=$((count+1)) found=${roots[$label]:-}
+  done
+  FACT[plan.include_root]=''
+  if (( count == 1 )); then FACT[plan.include_root]=$found; fi
+}
 gt_plan_web() {
   local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root=''
   local unknown=no file kind=''
@@ -2386,6 +2453,8 @@ gt_plan_web() {
     done
     [[ "$web:$kind" == nginx:nginx || "$web:$kind" == apache2:apache ]] || unknown=yes
   elif (( ${#matches[@]} > 1 )); then unknown=yes; fi
+  # In include mode GT joins the domain's HTTPS block, so that block's root is the one DOCROOT may share.
+  if gt_vhost_include_mode; then gt_plan_include_root; root=${FACT[plan.include_root]}; fi
   FACT[plan.vhost_root]=$root
   if gt_vhost_include_mode; then
     # Read-only modes never run apache2ctl; the web stage resolves an Apache target through its vhost dump.

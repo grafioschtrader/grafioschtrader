@@ -201,6 +201,29 @@ gt_plan_ports() {
   gt_plan_row configure backend \
     "127.0.0.1:${ANSWER[BACKEND_PORT]} (${ANSWER[WEBSERVER]}); HTTP=${ANSWER[BACKEND_HTTP_PORT]:-same}"
 }
+# Root of the one HTTPS block of the static inventory that names the domain, empty when there is none or several.
+# The web stage still resolves the include target itself; this only tells which document root is already shared.
+gt_plan_include_root() {
+  local row label directive value domain=${ANSWER[DOMAIN]}
+  local -A named=() https=() roots=()
+  for row in "${WEB[@]}"; do
+    read -r label directive value <<< "$row"
+    case "$directive" in
+      server_name|ServerName|ServerAlias) [[ " ${value//\"/} " != *" $domain "* ]] || named[$label]=1 ;;
+      listen) [[ "$value" != *ssl* && "${value%% *}" != *443 ]] || https[$label]=1 ;;
+      '<VirtualHost') [[ "$value" != *:443* ]] || https[$label]=1 ;;
+      SSLEngine) [[ "$value" != on ]] || https[$label]=1 ;;
+      root|DocumentRoot) roots[$label]=${value//\"/} ;;
+    esac
+  done
+  local count=0 found=''
+  for label in "${!named[@]}"; do
+    [[ -n "${https[$label]:-}" ]] || continue
+    count=$((count+1)) found=${roots[$label]:-}
+  done
+  FACT[plan.include_root]=''
+  if (( count == 1 )); then FACT[plan.include_root]=$found; fi
+}
 gt_plan_web() {
   local web=${ANSWER[WEBSERVER]} domain=${ANSWER[DOMAIN]} row label directive value name match='' root=''
   local unknown=no file kind=''
@@ -237,6 +260,8 @@ gt_plan_web() {
     done
     [[ "$web:$kind" == nginx:nginx || "$web:$kind" == apache2:apache ]] || unknown=yes
   elif (( ${#matches[@]} > 1 )); then unknown=yes; fi
+  # In include mode GT joins the domain's HTTPS block, so that block's root is the one DOCROOT may share.
+  if gt_vhost_include_mode; then gt_plan_include_root; root=${FACT[plan.include_root]}; fi
   FACT[plan.vhost_root]=$root
   if gt_vhost_include_mode; then
     # Read-only modes never run apache2ctl; the web stage resolves an Apache target through its vhost dump.

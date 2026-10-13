@@ -377,6 +377,26 @@ domain_answers() {
   [ "$(cat "$ROOT/var/www/gt/index.html")" = foreign ]
 }
 
+@test "include mode may share the non-empty root of the domain's HTTPS block, not another one" {
+  domain_answers
+  ANSWER[TLS_SOURCE]=existing ANSWER[TLS_CERT]=/cert.pem ANSWER[TLS_KEY]=/key.pem ANSWER[VHOST_INCLUDE]=yes
+  unset 'ANSWER[LETSENCRYPT_EMAIL]'
+  local site=/etc/nginx/sites-enabled/site
+  WEB=("$site#1 server_kind nginx" "$site#1 listen 80" "$site#1 server_name example.org"
+    "$site#2 server_kind nginx" "$site#2 listen 443 ssl" "$site#2 server_name example.org"
+    "$site#2 root /var/www/shared")
+  mkdir -p "$ROOT/var/www/shared" "$ROOT/var/www/other"
+  echo shared > "$ROOT/var/www/shared/index.html"
+  echo other > "$ROOT/var/www/other/index.html"
+  ANSWER[DOCROOT]=/var/www/shared
+  gt_plan || true
+  [[ "${PLAN_BLOCKERS[*]}" != *'Non-empty document root'* ]]
+  [[ "${PLAN[*]}" == *'/var/www/shared/grafioschtrader'* ]]
+  ANSWER[DOCROOT]=/var/www/other
+  gt_plan || true
+  [[ "${PLAN_BLOCKERS[*]}" == *'Non-empty document root'* ]]
+}
+
 @test "matching vhost requires consent and cannot hide conflicting GT routes" {
   domain_answers
   WEB=('/etc/nginx/sites-enabled/foreign#1 server_kind nginx' '/etc/nginx/sites-enabled/foreign#1 server_name example.org' '/etc/nginx/sites-enabled/foreign#1 root /var/www/foreign')

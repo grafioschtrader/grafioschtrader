@@ -359,6 +359,38 @@ setup() {
   [[ "${WEB[*]}" == *'location /api'* ]]
 }
 
+@test "a stock nginx with PHP and Certbot snippets in its vhosts is fully known" {
+  mkdir -p "$ROOT/etc/nginx/sites-enabled" "$ROOT/etc/nginx/snippets" "$ROOT/etc/nginx/conf.d" \
+    "$ROOT/etc/nginx/modules-enabled" "$ROOT/etc/letsencrypt"
+  # Debian's nginx.conf: both wildcard includes match nothing on a host without modules or conf.d files.
+  printf '%s\n' 'include /etc/nginx/modules-enabled/*.conf;' 'http {' '  include /etc/nginx/conf.d/*.conf;' \
+    '  include /etc/nginx/sites-enabled/*;' '}' > "$ROOT/etc/nginx/nginx.conf"
+  printf 'fastcgi_split_path_info ^(.+?\\.php)(/.*)$;\ninclude fastcgi.conf;\n' \
+    > "$ROOT/etc/nginx/snippets/fastcgi-php.conf"
+  printf 'fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n' > "$ROOT/etc/nginx/fastcgi.conf"
+  printf 'ssl_protocols TLSv1.2 TLSv1.3;\n' > "$ROOT/etc/letsencrypt/options-ssl-nginx.conf"
+  printf '%s\n' 'server {' '  listen 443 ssl;' '  server_name shop.example;' \
+    '  include /etc/letsencrypt/options-ssl-nginx.conf;' '  root /var/www/shop;' \
+    '  location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass unix:/run/php/php-fpm.sock; }' '}' \
+    'server { listen 80; server_name other.example; }' > "$ROOT/etc/nginx/sites-enabled/shop"
+  printf '%s\n' 'server { listen 80 default_server; server_name _; root /var/www/html; }' \
+    > "$ROOT/etc/nginx/sites-enabled/default"
+  gt_web
+  [[ "${NOTES[*]}" != *UNKNOWN* ]]
+  [[ "${WEB[*]}" == *'default#1 probe name=127.0.0.1 port=80 scheme=http'* ]]
+  [[ "${WEB[*]}" == *'name=shop.example port=443 scheme=https'* ]]
+  [[ "${WEB[*]}" == *'name=other.example port=80 scheme=http'* ]]
+  [[ "${WEB[*]}" == *'shop#1 root /var/www/shop'* ]]
+}
+
+@test "a vhost include that names a missing file stays unknown" {
+  mkdir -p "$ROOT/etc/nginx/sites-enabled"
+  printf '%s\n' 'server {' '  listen 80;' '  server_name shop.example;' '  include /etc/nginx/missing.conf;' '}' \
+    > "$ROOT/etc/nginx/sites-enabled/shop"
+  gt_web
+  [[ "${NOTES[*]}" == *'included vhost context: '*'/etc/nginx/sites-enabled/shop'* ]]
+}
+
 @test "Apache enabled includes are inventoried without executing configtest" {
   mkdir -p "$ROOT/etc/apache2/sites-enabled"
   printf 'IncludeOptional sites-enabled/*.conf\n' > "$ROOT/etc/apache2/apache2.conf"
