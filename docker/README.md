@@ -7,7 +7,7 @@ ARM64) alike.
 
 For an overview of the containers, their communication paths and the locations
 of persistent data and configuration, see [Docker Architecture in the
-Grafioschtrader user manual](https://grafioschtrader.github.io/gt-user-manual/en/intro/installationupdate/dockerarchitecture/index.html).
+Grafioschtrader user manual](https://grafioschtrader.github.io/gt-user-manual/en/intro/installationupdate/easyinstall/dockerarchitecture/index.html).
 
 ## Quickstart
 
