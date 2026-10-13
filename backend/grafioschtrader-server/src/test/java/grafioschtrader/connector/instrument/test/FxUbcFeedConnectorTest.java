@@ -7,17 +7,28 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.GrafioschtraderApplication;
 import grafioschtrader.connector.instrument.fxubc.FxUbcFeedConnector;
 import grafioschtrader.connector.instrument.test.ConnectorTestHelper.CurrencyPairHistoricalDate;
 import grafioschtrader.entities.Historyquote;
 
 /**
  * This test can often fail, because the provider may be to busy.
+ *
+ * The provider sends a wrong intermediate certificate. On a JDK whose truststore has no imported certificate for it,
+ * the test passes only because the server's issuer is downloaded as the application does at startup. Java reads that
+ * setting once, so run this class on its own: {@code mvn test -pl grafioschtrader-server -Dtest=FxUbcFeedConnectorTest}.
  */
 class FxUbcFeedConnectorTest {
+
+  @BeforeAll
+  static void enableCaIssuerDownload() {
+    GrafioschtraderApplication.enableCaIssuerDownload();
+  }
 
   private FxUbcFeedConnector fxUbcFeedConnector = new FxUbcFeedConnector();
 
