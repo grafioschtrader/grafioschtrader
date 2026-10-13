@@ -585,9 +585,12 @@ it into the right block and reloads, the next run of the installer verifies Graf
 
 With `WEBSERVER=none` another web server, reverse proxy or tunnel serves Grafioschtrader; it requires
 `TLS_SOURCE=existing` or `proxy` for a domain, because nothing local would answer Let's Encrypt's HTTP-01
-request. The installer installs no web server and writes `/root/gt-install-webserver.conf` (600): nginx locations
-and Apache directives for the own server block, with the backend reached over HTTP on `BACKEND_PORT` and the
-request scheme forwarded. Nothing in that file is active; an edited copy is not overwritten. The web stage then
+request. The installer installs no web server and writes `/root/gt-install-webserver.conf` (600): a Caddy snippet
+`(grafioschtrader)` to `import` in each site block, nginx locations and Apache directives for the own server block,
+with the backend reached over HTTP on `BACKEND_PORT` and the request scheme forwarded. This is the way for a proxy
+on the same host that owns ports 80 and 443, such as Caddy; `WEBSERVER=nginx` or `apache2` refuses that host in the
+plan, because their LAN site needs port 80. Caddy 2.5 or later keeps `Host` and replaces client-supplied
+`X-Forwarded-For`/`X-Forwarded-Proto` by itself. Nothing in that file is active; an edited copy is not overwritten. The web stage then
 verifies `http://<lan>/grafioschtrader/` and, for a domain, `https://<domain>/grafioschtrader/` (behind an upstream
 proxy an unverifiable public check is recorded as `tls=unverified`, as for own sites). While they do not answer, the
 result is `incomplete` with `web=pending`; a later run of the installer verifies again and completes. Selected ufw

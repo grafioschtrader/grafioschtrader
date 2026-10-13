@@ -388,10 +388,29 @@ gt_web_manual_render() {
   printf '.\n# Frontend files: %s/grafioschtrader; backend: http://127.0.0.1:%s, WebSockets at /ws and\n' \
     "${ANSWER[DOCROOT]}" "${ANSWER[BACKEND_PORT]}"
   printf '# /socket/websocket. Afterwards run the installer again; it verifies the routes and completes.\n\n'
+  gt_web_manual_caddy
   printf '# ---- nginx: inside each server block ----\n'
   gt_vhost_snippet_render nginx manual
   printf '\n# ---- Apache: inside each <VirtualHost>; needs mod_proxy_http, mod_proxy_wstunnel, mod_headers ----\n'
   gt_vhost_snippet_render apache2 manual
+}
+
+# Caddy is the usual edge that already owns ports 80 and 443 on the same host. Since 2.5 its reverse_proxy keeps
+# Host and replaces client-supplied X-Forwarded-For and X-Forwarded-Proto, which the backend's login lockout needs.
+# Kept first in the proposal: the nginx and Apache sections end the file in that order.
+gt_web_manual_caddy() {
+  local route port=${ANSWER[BACKEND_PORT]}
+  printf '# ---- Caddy 2.5 or later: define this once, then "import grafioschtrader" in each site block ----\n'
+  printf '(grafioschtrader) {\n\tredir /grafioschtrader /grafioschtrader/ 301\n\thandle /grafioschtrader/* {\n'
+  printf '\t\troot * %s\n\t\ttry_files {path} /grafioschtrader/index.html\n\t\tencode gzip\n\t\tfile_server\n\t}\n' \
+    "${ANSWER[DOCROOT]}"
+  printf '\thandle /socket/websocket* {\n\t\turi replace /socket/websocket /socket 1\n'
+  printf '\t\treverse_proxy 127.0.0.1:%s\n\t}\n' "$port"
+  for route in /api /m2m /ws; do
+    printf '\thandle %s* {\n\t\trequest_body {\n\t\t\tmax_size 50MB\n\t\t}\n' "$route"
+    printf '\t\treverse_proxy 127.0.0.1:%s\n\t}\n' "$port"
+  done
+  printf '}\n\n'
 }
 
 gt_web_manual_verified() {

@@ -38,6 +38,14 @@ setup() {
   grep -q 'RequestHeader set X-Forwarded-Proto "expr=%{REQUEST_SCHEME}"' "$SCRATCH/proposal"
   run grep -E 'ajp://|included by gt-install' "$SCRATCH/proposal"
   [ "$status" -ne 0 ]
+  # Caddy reaches the same backend port, maps the STOMP endpoint like nginx and comes before the nginx section,
+  # because the nginx and Apache sections are cut from the end of the file.
+  grep -qx '(grafioschtrader) {' "$SCRATCH/proposal"
+  grep -qx $'\t\turi replace /socket/websocket /socket 1' "$SCRATCH/proposal"
+  [ "$(grep -c $'^\t\treverse_proxy 127.0.0.1:9090$' "$SCRATCH/proposal")" -eq 4 ]
+  grep -qx $'\t\troot \\* /var/www/gt' "$SCRATCH/proposal"
+  [ "$(grep -n '^# ---- Caddy' "$SCRATCH/proposal" | cut -d: -f1)" -lt \
+    "$(grep -n '^# ---- nginx' "$SCRATCH/proposal" | cut -d: -f1)" ]
 }
 
 @test "WEBSERVER=none stays pending until the own web server answers, then completes on the next run" {

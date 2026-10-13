@@ -903,3 +903,17 @@ from `/home/hugo` with `LANG=de_CH.UTF-8`:
   (`/root/grafioschtrader-<UTC>.sql.gz`, mode 600, 127 tables, dump trailer), dropped database and account, purged
   exactly the journaled packages and returned 28 Java alternatives to `auto`. The package list equalled the one before
   the installation and the administrator state equalled the recorded one.
+
+## Proxy on the same host
+
+Acceptance on 2026-10-13 on `.82` (Ubuntu 24.04.5 arm64, kernel `6.8.0-1065-raspi`), application and installer
+commit `01dc63ad5a` plus the Caddy proposal, with Caddy 2.6.2 owning ports 80 and 443 and its own Let's Encrypt
+certificate for `gt8p1.duckdns.org`. With `WEBSERVER=nginx` and `TLS_SOURCE=proxy`, `--prepare` refused the host
+before any change ("co-resident proxy integration is not implemented"). With `WEBSERVER=none`, `TLS_SOURCE=proxy`
+and `TLS_PROXY_FROM=127.0.0.1` the installation ended with `web=pending`; the Caddy block of
+`/root/gt-install-webserver.conf`, imported unchanged into the site blocks of the domain and of
+`http://192.168.100.82`, passed `caddy validate`, and the next run of the installer verified the routes (`web=ok`,
+`tls=ok`). Six failed logins through the public URL, each with a different forged `X-Forwarded-For`, locked the
+sixth (`login.ipaddress.locked`) while a client on the LAN address was not locked, so the backend counted the real
+client address. After `--check-mail`, a registration through `https://gt8p1.duckdns.org/grafioschtrader/` was
+confirmed by its mailed link and received `ROLE_ADMIN`, `ROLE_ALLEDIT`, `ROLE_USER`.
