@@ -2892,7 +2892,10 @@ gt_stage_contract() {
   for row in "${WEB[@]}"; do
     read -r label directive value <<< "$row"
     case "$directive" in server_name|ServerName|ServerAlias)
-      if [[ -n "${STATE[resource.web_link]:-}${STATE[resource.web_names]:-}" ]]; then
+      # The LAN-only stage records resource.web_*, the site stage of a domain installation resource.site_<id>;
+      # gt_site_owned and the web stage verify those files before any change.
+      if [[ -n "${STATE[resource.web_link]:-}${STATE[resource.web_names]:-}${STATE[resource.site_lan]:-}\
+${STATE[resource.site_http]:-}${STATE[resource.site_domain]:-}" ]]; then
         case "${label%#*}" in
           /etc/nginx/sites-enabled/grafioschtrader|/etc/nginx/sites-enabled/grafioschtrader-domain|\
           /etc/nginx/sites-enabled/grafioschtrader-http|/etc/apache2/sites-enabled/grafioschtrader.conf|\

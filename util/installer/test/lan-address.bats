@@ -37,6 +37,17 @@ setup() {
   [[ "${PLAN_BLOCKERS[*]}" == *'The LAN address 10.0.0.2 belongs to a foreign vhost'* ]]
 }
 
+@test "a resumed domain installation keeps its own LAN site, which the site stage journaled" {
+  ANSWER[LAN_ADDRESS]=10.0.0.2 ANSWER[DOMAIN]=example.org
+  WEB=('/etc/nginx/sites-enabled/grafioschtrader#1 server_name 10.0.0.2')
+  gt_stage_contract || true
+  [[ "${PLAN_BLOCKERS[*]}" == *'The LAN address 10.0.0.2 belongs to a foreign vhost'* ]]
+  PLAN_BLOCKERS=()
+  STATE[resource.site_lan]=intent
+  gt_stage_contract || true
+  [[ "${PLAN_BLOCKERS[*]}" != *'belongs to a foreign vhost'* ]]
+}
+
 @test "an address that belongs to no interface of this host blocks the plan and every web stage" {
   run gt_validate_answer LAN_ADDRESS 127.0.0.1
   [ "$status" -ne 0 ]
