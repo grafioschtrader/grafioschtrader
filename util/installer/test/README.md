@@ -839,3 +839,45 @@ unset GT_INSTALL_TEST_DB_PASSWORD
 The check refuses servers with either application schema already present, creates `grafioschtrader` and
 `grafiosch`, and never drops databases. Repeat against new containers. MariaDB before 11.2 has no
 `character_set_collations` variable; only the UTC assertion and resulting schema checks apply there.
+
+## Real-host scenarios
+
+Scenario run on 2026-10-13 on `.82` (Raspberry Pi 5, Ubuntu 24.04.5 LTS arm64, kernel `6.8.0-1065-raspi`), started
+over SSH as root from the administrator's home `/home/hugo` with `LANG=de_CH.UTF-8`, application commit
+`8dadde66c22ac5dcd83ea84adcd018794ca6362d`, installer commit `0efaef32ec`, bundle SHA-256
+`af10bbec0c992ba0ce723a85d4514a4ad0701946304fad986ff026622578048f`. Toolchain: distribution OpenJDK 25.0.4.1 and
+Maven 3.8.7, isolated Node.js 24.21.0, MariaDB 10.11.13, nginx 1.24.0.
+
+Before the installation the host was prepared as a busy administrator's machine and its state recorded:
+
+- MariaDB whose `root@localhost` accepts only `mysql_native_password` (no `unix_socket`), with a foreign database;
+- nginx with Debian's default site (`server_name _`, empty `modules-enabled` and `conf.d` wildcards), a PHP vhost
+  and an HTTPS vhost for `gt8p1.duckdns.org` with a PHP location and `include snippets/fastcgi-php.conf`, serving
+  `/var/www/shared` with a certificate kept as plain files under `/etc/ssl/gt8p1`;
+- a foreign Java 17 service on `127.0.0.1:8080` (alternative `java` on 17) and a distribution Node.js 18 service
+  on `127.0.0.1:9090`;
+- the administrator's own DuckDNS updater in root's crontab.
+
+The answers file chose `TLS_SOURCE=existing` with `VHOST_INCLUDE=yes`, `DOCROOT=/var/www/shared`,
+`SMTP_CONFIGURE=no`, `ADMIN_EMAIL` different from the later SMTP sender, and left out `DUCKDNS_UPDATER`,
+`DUCKDNS_TOKEN` and the ports. The database root and database passwords contained spaces, quotes, a backtick
+command, `$PATH`, `${HOME}`, a backslash sequence, `#`, `=`, `!`, `%`, `;` and `--`; the Jasypt password the same
+without `${`. A sampler read every process's argv three times a second during all runs.
+
+| Scenario | Evidence |
+|---|---|
+| existing MariaDB with password-only access | root password taken once from the answers; root's plugin and hash, the foreign database and its account unchanged |
+| other Node.js and Java consumers, shared document root, PHP location on the same nginx vhost | consumers found by the inventory, Node isolated in `/opt/nodejs-gt`; both foreign services, the default site, the PHP vhost, the shared index and its PHP page answer as before; `/usr/bin/java` still Java 17 (the installer set the alternative to manual because the new JDK 25 became its best choice); GT writes only `/var/www/shared/grafioschtrader` |
+| occupied 8080/9090, several vhosts | ports 9091/8081/8082 proposed and used; GT listens only on `127.0.0.1:9091`; the snippet is the only change to the vhost |
+| `TLS_SOURCE=existing` | the served certificate has the fingerprint of `/etc/ssl/gt8p1/fullchain.pem`; no `/etc/letsencrypt`, no copy, no renewal hook |
+| DuckDNS with an updater already in a crontab | found in `/var/spool/cron/crontabs/root`, `DUCKDNS_UPDATER` defaulted to `no` without a token in the answers; no installer timer; the crontab unchanged |
+| secrets with special characters; cancellation during execution | SIGINT to the installer's process group during the frontend build: exit 130 after `npm ci` finished its own teardown (about three minutes), scratch directory and temporary key copies removed; the resumed run completed; the application authenticated with the literal database password; no secret in the installer's logs, errors or argv (the only argv hits were the administrator's DuckDNS `curl` and the scan's own `grep`); the database password appears in `/var/log/grafioschtrader.log` (issue #274) |
+| administrator address different from the SMTP sender | `g.main.user.admin.mail=hg@hugograf.com`, sender `hg@grafioschtrader.info`; the registration at that address received `ROLE_ADMIN`, `ROLE_ALLEDIT`, `ROLE_USER` |
+| `SMTP_CONFIGURE=no`, then `--check-mail --answers FILE`, also with a wrong SMTP host | result `incomplete` with the skipped-mail warning; `smtp.invalid` gave `mail=failed`, still `incomplete`; `grafiosch.com` gave `status=complete`, exit 0, `mail_delivery=accepted`, no warning; database, Jasypt and JWT secrets, answers and `run_id` unchanged throughout |
+| editing after hand-over | on the previous installation of the same host (commit `ccc98156a1`): `logging.pattern.dateformat` edited in `application.properties` and `logging.level.org.flywaydb=DEBUG` added to `application-production.properties`, then `./gtupdate.sh` through `sudo -iu grafioschtrader` in a German session: log lines carry the edited format, `merger.sh` kept the edited template key, the production file was byte-identical and packaged into the JAR (its `server.address` is in effect; Flyway itself wrote no DEBUG line) |
+
+Removing the footprint of a first attempt that stopped at its start (service, files, own sites and snippet,
+database and account, packages of its transactions) returned every recorded item of the prepared state unchanged. The run found four
+faults, fixed before acceptance: the stock nginx inventory, `${` in encrypted secrets, the include check right
+after a reload, and the own LAN site on resumption of a domain installation. A vhost backup of the failed include
+attempt stays beside the original in `sites-available`.

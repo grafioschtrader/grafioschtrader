@@ -170,7 +170,10 @@ New passwords (`DB_ROOT_PASSWORD` for a new server, `DB_PASSWORD` for a new acco
 generated instead of typed: in the dialogs by choosing *Generate a password*, in the plain prompts by typing
 `!generate`. Empty input never generates, and credentials of existing accounts, the SMTP password and the DuckDNS
 token cannot be generated. A generated password has 24 characters of the `gen_secret` alphabet of
-`docker/install.sh` (`openssl rand -base64` without `/`, `+`, `=`). It is shown once on the terminal to be recorded
+`docker/install.sh` (`openssl rand -base64` without `/`, `+`, `=`). Typed secrets may hold any printable
+character. Spring resolves `${…}` placeholders even in decrypted values, so the installer escapes `${` in every secret
+it encrypts; the Jasypt password itself is read through `${JASYPT_ENCRYPTOR_PASSWORD:}`, where an escape would change
+the key, and therefore must not contain `${`. It is shown once on the terminal to be recorded
 and never written to a log, the plan, the transcript or the result; the plan lists it as `generated`. The internal
 JWT secret keeps its 48 characters.
 
