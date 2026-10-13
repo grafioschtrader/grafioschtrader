@@ -10,6 +10,8 @@ apt-get update -qq
 apt-get install -y -qq --no-install-recommends apt-utils gnupg ca-certificates >/dev/null
 
 work=$(mktemp -d)
+# apt fetches file: repositories as its unprivileged _apt user, which needs read access to the repository.
+chmod 0755 "$work"
 export GNUPGHOME="$work/gnupg"
 install -d -m 700 "$GNUPGHOME"
 gpg --batch --quiet --passphrase '' --quick-gen-key 'Grafioschtrader test repository' ed25519 sign never
@@ -32,6 +34,7 @@ cmp <(dpkg-deb --fsys-tarfile "$new" | tar -xO ./usr/sbin/gt-install) /repo/util
 publish() {
   rm -rf "$work/apt"
   bash "$package/build-repo.sh" "$work/apt" "$key" "$@"
+  chmod -R a+rX "$work/apt"
 }
 publish "$old"
 install -d -m 0755 /etc/apt/keyrings
@@ -99,5 +102,7 @@ apt-get purge -y -qq grafioschtrader-installer >/dev/null
 gpg --batch --quiet --passphrase '' --quick-gen-key 'Foreign key' ed25519 sign never
 foreign=$(gpg --batch --with-colons --list-secret-keys 'Foreign key' | awk -F: '$1 == "fpr" && !n++ {print $10}')
 bash "$package/build-repo.sh" "$work/apt" "$foreign" "$new"
-if apt-get update -qq 2>/dev/null; then exit 1; fi
+chmod -R a+rX "$work/apt"
+if refused=$(apt-get update 2>&1); then exit 1; fi
+grep -qE 'NO_PUBKEY|not signed|[Ss]ignature' <<< "$refused"
 echo "PASS: package $version installs, upgrades, checks and is removed without touching the installation."
