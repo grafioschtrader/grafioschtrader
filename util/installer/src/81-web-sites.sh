@@ -334,7 +334,7 @@ gt_vhost_include() {
     gt_core_mark file.vhost_target "$digest" || return 2
   fi
   if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service" &&
-      gt_web_verify "https://${ANSWER[DOMAIN]}" "$resolve" && gt_site_compare; then
+      gt_web_verify_reloaded "https://${ANSWER[DOMAIN]}" "$resolve" && gt_site_compare; then
     gt_core_mark step.vhost_include complete
     return $?
   fi
@@ -603,7 +603,7 @@ gt_site_compare() {
 }
 
 gt_site_activate() {
-  local id=$1 base=$2 host_resolution=${3:-} target link attempt old_http=no
+  local id=$1 base=$2 host_resolution=${3:-} target link old_http=no
   target=$(gt_site_path "$id")
   gt_app_root_file "site_$id" "$SCRATCH/site-$id" "$target" 644 || return 2
   gt_core_mark "step.site_$id" running || return 2
@@ -616,16 +616,9 @@ gt_site_activate() {
     gt_site_link http off || return 2
   fi
   gt_site_link "$id" on || return 2
-  if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service"; then
-    for ((attempt=0; attempt<10; attempt++)); do
-      # Old workers keep answering for a moment after a reload; only the last attempt's errors are reported.
-      if gt_web_verify "$base" "$host_resolution" 2> "$SCRATCH/web-verify.err"; then
-        if gt_site_compare; then gt_core_mark "step.site_$id" complete; return $?; fi
-        break
-      fi
-      sleep 1
-    done
-    cat "$SCRATCH/web-verify.err" >&2
+  if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service" &&
+      gt_web_verify_reloaded "$base" "$host_resolution" && gt_site_compare; then
+    gt_core_mark "step.site_$id" complete; return $?
   fi
   gt_site_link "$id" off || return 2
   if [[ "$id" == domain && "${STATE[resource.domain_previous_http]:-}" == yes ]]; then

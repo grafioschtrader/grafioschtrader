@@ -95,9 +95,24 @@ include_fixture() {
   gt_site_test() { [[ "${SITE_TEST:-ok}" == ok ]]; }
   gt_core_run() { printf '%s\n' "$*" >> "$SCRATCH/commands"; }
   VERIFY=ok
-  gt_web_verify() { printf '%s\n' "$*" >> "$SCRATCH/verified"; [[ "$VERIFY" == ok ]]; }
+  gt_web_verify() {
+    printf '%s\n' "$*" >> "$SCRATCH/verified"
+    # "stale" answers the first check as the old workers do right after a reload.
+    if [[ "$VERIFY" == stale ]]; then VERIFY=ok; return 2; fi
+    [[ "$VERIFY" == ok ]]
+  }
   gt_site_compare() { :; }
+  sleep() { :; }
   mkdir -p "$ROOT/etc/nginx/snippets"
+}
+
+@test "the check after the reload waits for the new workers instead of restoring the backup" {
+  include_fixture
+  VERIFY=stale
+  gt_vhost_include
+  [ "${STATE[step.vhost_include]}" = complete ]
+  [ "$(grep -c 'https://example.org' "$SCRATCH/verified")" -eq 2 ]
+  [ "$(grep -c 'grafioschtrader.conf;' "$ROOT/etc/nginx/sites-available/site")" -eq 1 ]
 }
 
 @test "the include is inserted after a backup, verified through the domain and journaled" {

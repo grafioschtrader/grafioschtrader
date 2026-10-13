@@ -157,6 +157,19 @@ PY
   cmp -s "$SCRATCH/web-index" "$SCRATCH/web-nested"
 }
 
+# gt_web_verify right after a reload. The reload is asynchronous and the old workers keep answering for a moment
+# with the previous configuration, so the check is repeated for up to ten seconds; only the last attempt's errors
+# are reported.
+gt_web_verify_reloaded() {
+  local attempt
+  for ((attempt=0; attempt<10; attempt++)); do
+    gt_web_verify "$@" 2> "$SCRATCH/web-verify.err" && return 0
+    sleep 1
+  done
+  cat "$SCRATCH/web-verify.err" >&2
+  return 2
+}
+
 gt_web_rollback() {
   local link
   gt_nginx_owned || return 2
@@ -167,7 +180,7 @@ gt_web_rollback() {
 }
 
 gt_web_activate() {
-  local target link attempt baseline endpoints message
+  local target link baseline endpoints message
   target=$(gt_path /etc/nginx/sites-available/grafioschtrader)
   link=$(gt_path /etc/nginx/sites-enabled/grafioschtrader)
   baseline=$(gt_path /var/lib/gt-install/web-before)
@@ -186,17 +199,9 @@ gt_web_activate() {
   gt_app_root_file web_nginx "$SCRATCH/nginx-site" "$target" 644 || return 2
   gt_core_mark resource.web_link intent || return 2
   if [[ ! -L "$link" ]]; then ln -s "$target" "$link" || return 2; fi
-  if gt_nginx_test && gt_core_run systemctl reload nginx.service; then
-    # Reload is asynchronous: wait for new workers before testing the new host.
-    for ((attempt=0; attempt<10; attempt++)); do
-      if gt_web_verify; then
-        if gt_nginx_statuses > "$SCRATCH/web-after" && cmp -s "$SCRATCH/web-before" "$SCRATCH/web-after"; then
-          gt_core_run systemctl enable nginx.service && gt_core_mark step.web complete && return 0
-        fi
-        break
-      fi
-      sleep 1
-    done
+  if gt_nginx_test && gt_core_run systemctl reload nginx.service && gt_web_verify_reloaded &&
+      gt_nginx_statuses > "$SCRATCH/web-after" && cmp -s "$SCRATCH/web-before" "$SCRATCH/web-after"; then
+    gt_core_run systemctl enable nginx.service && gt_core_mark step.web complete && return 0
   fi
   gt_web_rollback ||
     { gt_core_error 'nginx recovery failed; inspect nginx -t and the owned enablement link.'; return 2; }

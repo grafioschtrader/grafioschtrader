@@ -5695,6 +5695,19 @@ PY
   cmp -s "$SCRATCH/web-index" "$SCRATCH/web-nested"
 }
 
+# gt_web_verify right after a reload. The reload is asynchronous and the old workers keep answering for a moment
+# with the previous configuration, so the check is repeated for up to ten seconds; only the last attempt's errors
+# are reported.
+gt_web_verify_reloaded() {
+  local attempt
+  for ((attempt=0; attempt<10; attempt++)); do
+    gt_web_verify "$@" 2> "$SCRATCH/web-verify.err" && return 0
+    sleep 1
+  done
+  cat "$SCRATCH/web-verify.err" >&2
+  return 2
+}
+
 gt_web_rollback() {
   local link
   gt_nginx_owned || return 2
@@ -5705,7 +5718,7 @@ gt_web_rollback() {
 }
 
 gt_web_activate() {
-  local target link attempt baseline endpoints message
+  local target link baseline endpoints message
   target=$(gt_path /etc/nginx/sites-available/grafioschtrader)
   link=$(gt_path /etc/nginx/sites-enabled/grafioschtrader)
   baseline=$(gt_path /var/lib/gt-install/web-before)
@@ -5724,17 +5737,9 @@ gt_web_activate() {
   gt_app_root_file web_nginx "$SCRATCH/nginx-site" "$target" 644 || return 2
   gt_core_mark resource.web_link intent || return 2
   if [[ ! -L "$link" ]]; then ln -s "$target" "$link" || return 2; fi
-  if gt_nginx_test && gt_core_run systemctl reload nginx.service; then
-    # Reload is asynchronous: wait for new workers before testing the new host.
-    for ((attempt=0; attempt<10; attempt++)); do
-      if gt_web_verify; then
-        if gt_nginx_statuses > "$SCRATCH/web-after" && cmp -s "$SCRATCH/web-before" "$SCRATCH/web-after"; then
-          gt_core_run systemctl enable nginx.service && gt_core_mark step.web complete && return 0
-        fi
-        break
-      fi
-      sleep 1
-    done
+  if gt_nginx_test && gt_core_run systemctl reload nginx.service && gt_web_verify_reloaded &&
+      gt_nginx_statuses > "$SCRATCH/web-after" && cmp -s "$SCRATCH/web-before" "$SCRATCH/web-after"; then
+    gt_core_run systemctl enable nginx.service && gt_core_mark step.web complete && return 0
   fi
   gt_web_rollback ||
     { gt_core_error 'nginx recovery failed; inspect nginx -t and the owned enablement link.'; return 2; }
@@ -6431,7 +6436,7 @@ gt_vhost_include() {
     gt_core_mark file.vhost_target "$digest" || return 2
   fi
   if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service" &&
-      gt_web_verify "https://${ANSWER[DOMAIN]}" "$resolve" && gt_site_compare; then
+      gt_web_verify_reloaded "https://${ANSWER[DOMAIN]}" "$resolve" && gt_site_compare; then
     gt_core_mark step.vhost_include complete
     return $?
   fi
@@ -6708,7 +6713,7 @@ gt_site_compare() {
 }
 
 gt_site_activate() {
-  local id=$1 base=$2 host_resolution=${3:-} target link attempt old_http=no
+  local id=$1 base=$2 host_resolution=${3:-} target link old_http=no
   target=$(gt_site_path "$id")
   gt_app_root_file "site_$id" "$SCRATCH/site-$id" "$target" 644 || return 2
   gt_core_mark "step.site_$id" running || return 2
@@ -6721,16 +6726,9 @@ gt_site_activate() {
     gt_site_link http off || return 2
   fi
   gt_site_link "$id" on || return 2
-  if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service"; then
-    for ((attempt=0; attempt<10; attempt++)); do
-      # Old workers keep answering for a moment after a reload; only the last attempt's errors are reported.
-      if gt_web_verify "$base" "$host_resolution" 2> "$SCRATCH/web-verify.err"; then
-        if gt_site_compare; then gt_core_mark "step.site_$id" complete; return $?; fi
-        break
-      fi
-      sleep 1
-    done
-    cat "$SCRATCH/web-verify.err" >&2
+  if gt_site_test && gt_core_run systemctl reload "${ANSWER[WEBSERVER]}.service" &&
+      gt_web_verify_reloaded "$base" "$host_resolution" && gt_site_compare; then
+    gt_core_mark "step.site_$id" complete; return $?
   fi
   gt_site_link "$id" off || return 2
   if [[ "$id" == domain && "${STATE[resource.domain_previous_http]:-}" == yes ]]; then
