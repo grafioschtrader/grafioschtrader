@@ -35,6 +35,7 @@ when embedded in a heredoc. Unknown markers, unused helpers and invalid Python s
 | `90-mail.sh` | SMTP check and its recorded outcome |
 | `95-result.sh` | recorded milestones, final hand-over and read-only completion recognition |
 | `96-bootstrap.sh` | full-plan approval, pinned APT transactions and stage orchestration |
+| `97-uninstall.sh` | `--uninstall`: journal-driven removal, its own journal, plan, steps and result |
 | `99-main.sh` | core execution entry point, cleanup, CLI and source-only guard |
 | `py/*.py` | embedded Python programs, compiled and tested as source files |
 
@@ -61,15 +62,44 @@ sudo bash util/installer/gt-install.sh --install-app
 sudo bash util/installer/gt-install.sh --install-web
 sudo bash util/installer/gt-install.sh --check-mail
 sudo bash util/installer/gt-install.sh --check-mail --answers /root/gt-answers --yes
+sudo bash util/installer/gt-install.sh --uninstall
+sudo bash util/installer/gt-install.sh --uninstall --remove-database --remove-packages
 ```
 
 The script is self-contained and can be copied to a Debian/Ubuntu host. Save it as a file before running it;
 execution through `curl | bash` is refused. `--help` works without root. Modes cannot be combined; `--answers` is
-accepted without a mode, with `--prepare`, `--install-core` and `--check-mail`. The three `--install-*` modes make
+accepted without a mode, with `--prepare`, `--install-core`, `--check-mail` and `--uninstall`. The three `--install-*` modes make
 installation changes;
 `--check-mail` records verification, can send the previously selected test message and, with `--answers FILE`,
 changes the SMTP selection until mail is verified. Each accepts `--yes`
 to use the saved scope without another terminal confirmation.
+
+## Uninstall
+
+`--uninstall` removes an installation that this installer made, on a host whose class is `completed` or
+`unfinished`; a manual or Docker installation is refused. It shows a plan, asks for the word `uninstall` (or takes
+`--yes`) and removes, step by step, only what the installation journal records as the installer's own: the service
+and its unit, the DuckDNS updater, the own sites, the vhost include and snippet (the vhost returns to its backup while
+it is unchanged), a certificate the installer requested with its hook, own ufw rules, the swap file with its fstab
+line, sudoers, logrotate and the application log, the frontend directory, the service user with its home, archive
+toolchains, `/opt/nodejs-gt`, `/opt/gt-build-tools`, the MariaDB settings file, and finally `/root/.gt-install` and
+`/var/lib/gt-install`. A file whose content differs from the journaled digest stays and is listed as `kept.<n>`.
+Before the web server reloads it must pass its configuration test, and the sites that existed before the
+installation must answer as before; otherwise the removed web files are put back.
+
+The database and the packages stay. `--remove-database` drops the database `grafioschtrader` and its account after a
+dump into `/root/grafioschtrader-<UTC>.sql.gz` has been written and verified; it asks for the root password when the
+socket login fails (also from `--answers FILE` as `DB_ROOT_PASSWORD`) and for the extra word `delete-database`, also
+with `--yes`. `--remove-packages` purges exactly the packages the installer's APT transactions installed, recorded in
+`resource.packages`, and only when the purge would remove nothing else; installations made before that record
+existed refuse the option. An alternative that was `auto` before the installation returns to `auto` when its best
+candidate is the recorded path again; otherwise it keeps that path in manual mode.
+
+The uninstall keeps its progress in `/var/lib/gt-install/uninstall` and resumes with `--uninstall` after an
+interruption; every other mode refuses meanwhile, and a resumed run keeps its options. The result is printed and
+stored as `/root/gt-uninstall-<UTC>.result`. A kept database blocks a later installation on the host, which never
+adopts a non-empty schema; restore the data from the dump or a user data export instead. Removing the Debian package
+never uninstalls.
 
 ## Debian package
 

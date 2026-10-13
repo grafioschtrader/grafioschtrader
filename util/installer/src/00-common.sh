@@ -22,6 +22,9 @@ gt_reset() {
   declare -gA BOOTSTRAP_APT=()
   BOOTSTRAP_APPROVED=no BOOTSTRAP_WEB=''
   declare -ga PRIVATE_DIRS=() PRIVATE_FILES=()
+  declare -gA UNSTATE=()
+  declare -ga UNINSTALL_ROWS=()
+  UNINSTALL_DATABASE=no UNINSTALL_PACKAGES=no
   CORE_CONFIRM=no CORE_HOME=/home/grafioschtrader SWAP_MB=2048
   CORE_REPO=/home/grafioschtrader/build/grafioschtrader
   CORE_REMOTE=https://github.com/grafioschtrader/grafioschtrader.git

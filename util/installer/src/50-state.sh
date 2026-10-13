@@ -86,6 +86,8 @@ gt_state_load() {
       toolchain.java.checksum|toolchain.maven.checksum) [[ "$value" =~ ^sha(1|256|512):[a-f0-9]+$ ]] || return 2 ;;
       toolchain.alternatives) [[ "$value" == saved ]] || return 2 ;;
       alternative.*) [[ "${key#alternative.}" =~ ^[a-zA-Z0-9_.+-]+$ && "$value" == /* ]] || return 2 ;;
+      alternative_mode.*) [[ "${key#alternative_mode.}" =~ ^[a-zA-Z0-9_.+-]+$ && "$value" =~ ^(auto|manual)$ ]] ||
+        return 2 ;;
       build.*) gt_build_field "${key#build.}" "$value" || return 2 ;;
       answer.*) gt_validate_answer "${key#answer.}" "$value" || return 2; ANSWER[${key#answer.}]=$value ;;
       *) return 2 ;;

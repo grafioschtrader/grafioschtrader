@@ -86,13 +86,14 @@ gt_show_plan() {
   gt_wt_textbox "$(gt_text 'Summary and action plan' 'Zusammenfassung und Aktionsplan')" "$SCRATCH/plan.txt"
 }
 
+# The optional English and German labels name the approving button; the plain prompt asks for the word itself.
 gt_confirm() {
-  local word=$1 prompt reply status
+  local word=$1 yes_en=${2:-Install} yes_de=${3:-Installieren} prompt reply status
   if [[ "$FRONTEND" == whiptail ]]; then
     while :; do
       status=0
       gt_wt --title "$(gt_text 'Summary and action plan' 'Zusammenfassung und Aktionsplan')" --scrolltext \
-        --yes-button "$(gt_text Install Installieren)" --no-button "$(gt_text Cancel Abbrechen)" \
+        --yes-button "$(gt_text "$yes_en" "$yes_de")" --no-button "$(gt_text Cancel Abbrechen)" \
         --yesno -- "$(< "$SCRATCH/plan.txt")" "$(gt_wt_height)" "$(gt_wt_width)" >/dev/null || status=$?
       case "$status" in 0) return 0 ;; 1) return 130 ;; esac
       if gt_wt_abort; then return 130; fi

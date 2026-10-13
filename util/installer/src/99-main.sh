@@ -108,7 +108,7 @@ main() {
   while (( $# )); do
     arg=$1; shift
     case "$arg" in
-      --check|--dry-run|--prepare|--install-core|--install-app|--install-web|--check-mail)
+      --check|--dry-run|--prepare|--install-core|--install-app|--install-web|--check-mail|--uninstall)
         [[ -z "$MODE" || "$MODE" == "$arg" ]] || { gt_message mode >&2; return 2; }
         MODE=$arg ;;
       --answers)
@@ -116,6 +116,8 @@ main() {
         ANSWERS_FILE=$1; shift ;;
       --plain) PLAIN_FORCED=yes ;;
       --yes) CORE_CONFIRM=yes ;;
+      --remove-database) UNINSTALL_DATABASE=yes ;;
+      --remove-packages) UNINSTALL_PACKAGES=yes ;;
       --help|-h)
         # The Debian package installs this bundle as /usr/sbin/gt-install; a downloaded copy runs through bash.
         if [[ "${BASH_SOURCE[0]:-}" == /usr/sbin/gt-install ]]; then printf 'Usage: sudo gt-install'
@@ -129,6 +131,8 @@ Optional stages (all accept --plain):
   --install-core [--answers FILE] [--yes]
   --install-app [--yes] | --install-web [--yes]
   --check-mail [--answers FILE] [--yes]   FILE may change the SMTP answers until mail is verified
+  --uninstall [--remove-database] [--remove-packages] [--answers FILE] [--yes]
+                                          remove the installation; database and packages stay unless named
 USAGE
         return 0 ;;
       *) gt_message mode >&2; return 2 ;;
@@ -136,9 +140,11 @@ USAGE
   done
   [[ -n "$MODE" ]] || MODE=--bootstrap
   [[ ( -z "$ANSWERS_FILE" || "$MODE" == --bootstrap || "$MODE" == --prepare || "$MODE" == --install-core ||
-      "$MODE" == --check-mail ) &&
+      "$MODE" == --check-mail || "$MODE" == --uninstall ) &&
     ( "$CORE_CONFIRM" == no || "$MODE" == --bootstrap || "$MODE" == --install-core || "$MODE" == --install-app ||
-      "$MODE" == --install-web || "$MODE" == --check-mail ) ]] || { gt_message mode >&2; return 2; }
+      "$MODE" == --install-web || "$MODE" == --check-mail || "$MODE" == --uninstall ) &&
+    ( "$UNINSTALL_DATABASE$UNINSTALL_PACKAGES" == nono || "$MODE" == --uninstall ) ]] ||
+    { gt_message mode >&2; return 2; }
   [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]] || { gt_message pipe >&2; return 2; }
   (( EUID == 0 )) || { gt_message root >&2; return 2; }
   command -v timeout >/dev/null || { gt_message unavailable timeout >&2; return 1; }
@@ -155,6 +161,13 @@ USAGE
   export GIT_TERMINAL_PROMPT=0
   gt_frontend_select
   local status=0
+  # A started uninstall owns the host until it finishes; every other mode would act on half-removed resources.
+  if [[ "$MODE" != --uninstall && -e /var/lib/gt-install/uninstall ]]; then
+    gt_text 'An uninstall is in progress; resume it with --uninstall.' \
+      'Eine Deinstallation ist im Gang; mit --uninstall fortsetzen.' >&2
+    gt_frontend_finish
+    return 2
+  fi
   case "$MODE" in
     --dry-run) gt_dry_run || status=$? ;;
     --prepare) gt_prepare || status=$? ;;
@@ -162,6 +175,7 @@ USAGE
     --install-app) gt_install_app || status=$? ;;
     --install-web) gt_install_web || status=$? ;;
     --check-mail) gt_check_mail || status=$? ;;
+    --uninstall) gt_uninstall || status=$? ;;
     *) gt_check || status=$? ;;
   esac
   gt_frontend_finish

@@ -30,10 +30,36 @@ gt_core_mark() { STATE[$1]=$2; gt_state_save; }
 
 gt_core_run() {
   # Only non-secret commands use this channel. SQL and Maven output use private captures.
-  if [[ "$BOOTSTRAP_APPROVED" == yes && "$1 ${2:-} ${3:-}" == 'env DEBIAN_FRONTEND=noninteractive apt-get' ]]; then
-    gt_bootstrap_apt_run "$@"; return $?
+  if [[ "$1 ${2:-} ${3:-}" == 'env DEBIAN_FRONTEND=noninteractive apt-get' ]]; then
+    gt_packages_record "$@" || { gt_core_error 'The APT transaction cannot be simulated and journaled.'; return 2; }
+    if [[ "$BOOTSTRAP_APPROVED" == yes ]]; then gt_bootstrap_apt_run "$@"; return $?; fi
   fi
   "$@"
+}
+
+# The uninstall may purge only what an installer transaction added (--remove-packages). The packages the simulation
+# installs are journaled in resource.packages before the transaction runs, so an interruption cannot hide one. A
+# transaction before the journal exists records nothing and its packages stay on an uninstall.
+gt_packages_record() {
+  local arg found=no transaction records package set
+  local -a requested=() recorded=()
+  [[ -n "${STATE[run_id]:-}" ]] || return 0
+  for arg in "$@"; do
+    if [[ "$found" == yes ]]; then requested+=("${arg%%=*}")
+    elif [[ "$arg" == install ]]; then found=yes; fi
+  done
+  [[ "$found" == yes ]] || return 0
+  (( ${#requested[@]} )) || return 2
+  transaction=$(gt_probe env LC_ALL=C apt-get --simulate --no-remove --no-upgrade \
+    -o Dir::Cache::pkgcache= -o Dir::Cache::srcpkgcache= install "${requested[@]}") || return 2
+  records=$(gt_bootstrap_apt_parse <<< "$transaction") || return 2
+  read -r -a recorded <<< "${STATE[resource.packages]:-}"
+  set=" ${recorded[*]} "
+  while IFS=$'\t' read -r package _; do
+    [[ -n "$package" && "$set" != *" $package "* ]] || continue
+    set+="$package " recorded+=("$package")
+  done <<< "$records"
+  [[ "${recorded[*]}" == "${STATE[resource.packages]:-}" ]] || gt_core_mark resource.packages "${recorded[*]}"
 }
 
 gt_core_base_packages() {
@@ -1169,7 +1195,8 @@ gt_alternatives_save() {
     [[ -n "$name" ]] || continue
     [[ "$name" =~ ^[a-zA-Z0-9_.+-]+$ && "$mode" =~ ^(auto|manual)$ && "$path" == /* &&
       "$path" != *[$'\001'-$'\037'$'\177']* ]] || return 2
-    STATE[alternative.$name]=$path
+    # The mode lets --uninstall return an alternative to auto; restoring the path alone leaves it manual.
+    STATE[alternative.$name]=$path STATE[alternative_mode.$name]=$mode
   done <<< "$selections"
   STATE[toolchain.alternatives]=saved
   gt_state_save
