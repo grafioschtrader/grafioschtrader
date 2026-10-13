@@ -1,0 +1,94 @@
+name: APT repository
+
+# Publishes the grafioschtrader-installer package into the signed APT repository that GitHub Pages serves from the
+# apt/ folder of the gh-pages branch: https://grafioschtrader.github.io/grafioschtrader/apt
+# Like the Docker images, a published release is the trigger. workflow_dispatch republishes a release and is
+# therefore accepted only on a V<version> tag, so the package version always names a released installer.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# The Javadoc workflow deploys into the same branch.
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Determine the package version from the release tag
+        id: meta
+        run: |
+          if [[ "$GITHUB_REF_TYPE" != tag || "$GITHUB_REF_NAME" != V* ]]; then
+            echo "::error::Publish only from a V<version> tag, not $GITHUB_REF_TYPE $GITHUB_REF_NAME"
+            exit 1
+          fi
+          version=${GITHUB_REF_NAME#V}
+          pom=$(sed -n 's:^  <version>\(.*\)</version>$:\1:p' backend/pom.xml | head -n 1)
+          if [[ "$version" != "$pom" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match version $pom of backend/pom.xml"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Reject a bundle that differs from its sources
+        run: bash util/installer/build.sh --check
+
+      - name: Import the signing key and match it with the committed public key
+        id: key
+        env:
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+        run: |
+          if [[ -z "$APT_SIGNING_KEY" ]]; then
+            echo "::error::Repository secret APT_SIGNING_KEY is missing (util/installer/package/new-signing-key.sh)"
+            exit 1
+          fi
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          install -d -m 700 "$GNUPGHOME"
+          printf '%s\n' "$APT_SIGNING_KEY" | gpg --batch --quiet --import
+          signing=$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" && !n++ {print $10}')
+          committed=$(gpg --batch --with-colons --import-options show-only --import \
+            util/installer/package/grafioschtrader-archive-keyring.asc | awk -F: '$1 == "fpr" && !n++ {print $10}')
+          if [[ -z "$signing" || "$signing" != "$committed" ]]; then
+            echo "::error::APT_SIGNING_KEY ($signing) does not match grafioschtrader-archive-keyring.asc ($committed)"
+            exit 1
+          fi
+          echo "fingerprint=$signing" >> "$GITHUB_OUTPUT"
+          echo "GNUPGHOME=$GNUPGHOME" >> "$GITHUB_ENV"
+
+      - name: Build the package and the signed repository
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends apt-utils
+          deb=$(bash util/installer/package/build-deb.sh "${{ steps.meta.outputs.version }}" "$RUNNER_TEMP/debs")
+          bash util/installer/package/build-repo.sh apt-site "${{ steps.key.outputs.fingerprint }}" "$deb"
+
+      # The acceptance releases; enrollment exactly as util/installer/README.md documents it, with the committed key.
+      - name: Install from the built repository on Debian 12 and Ubuntu 24.04
+        run: |
+          for image in debian:12 ubuntu:24.04; do
+            docker run --rm -v "$PWD/apt-site:/apt:ro" \
+              -v "$PWD/util/installer/package/grafioschtrader-archive-keyring.asc:/key.asc:ro" "$image" bash -euc '
+                install -d -m 0755 /etc/apt/keyrings
+                install -m 0644 /key.asc /etc/apt/keyrings/grafioschtrader.asc
+                printf "%s\n" "Types: deb" "URIs: file:/apt" "Suites: stable" "Components: main" \
+                  "Signed-By: /etc/apt/keyrings/grafioschtrader.asc" > /etc/apt/sources.list.d/grafioschtrader.sources
+                apt-get update -qq
+                DEBIAN_FRONTEND=noninteractive apt-get install -y grafioschtrader-installer
+                gt-install --help | head -n 1'
+          done
+
+      - name: Publish to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4.7.2
+        with:
+          branch: gh-pages
+          folder: apt-site
+          target-folder: apt
+          token: ${{ secrets.GITHUB_TOKEN }}

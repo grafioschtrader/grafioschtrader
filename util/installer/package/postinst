@@ -1,0 +1,12 @@
+#!/bin/sh
+# The package only delivers the installer. The installation itself needs the administrator's answers and approval,
+# so neither the first installation nor an upgrade of this package starts it.
+set -e
+if [ "$1" = configure ] && [ -z "$2" ]; then
+  if [ -f /var/lib/gt-install/state ] && grep -qx 'status=complete' /var/lib/gt-install/state; then
+    echo 'Grafioschtrader is already installed; update it with gtupdate.sh. "sudo gt-install --check" shows its state.'
+  else
+    echo 'Start the Grafioschtrader installation with: sudo gt-install'
+  fi
+fi
+exit 0

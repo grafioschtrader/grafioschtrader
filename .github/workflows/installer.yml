@@ -100,6 +100,17 @@ jobs:
         run: docker build -t gt-installer-node - < util/installer/test/core.Dockerfile
       - name: Check isolated Node, npm tools and interruption recovery
         run: docker run --rm -v "$PWD:/repo:ro" gt-installer-node bash util/installer/test/node-container.sh
+  package:
+    needs: bundle
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['debian:12', 'debian:13', 'ubuntu:22.04', 'ubuntu:24.04', 'ubuntu:26.04']
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build, sign, install, upgrade and remove the Debian package
+        run: docker run --rm -v "$PWD:/repo:ro" ${{ matrix.image }} bash /repo/util/installer/test/package-container.sh
   application:
     needs: bundle
     runs-on: ubuntu-latest

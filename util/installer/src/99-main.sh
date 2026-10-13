@@ -117,8 +117,11 @@ main() {
       --plain) PLAIN_FORCED=yes ;;
       --yes) CORE_CONFIRM=yes ;;
       --help|-h)
+        # The Debian package installs this bundle as /usr/sbin/gt-install; a downloaded copy runs through bash.
+        if [[ "${BASH_SOURCE[0]:-}" == /usr/sbin/gt-install ]]; then printf 'Usage: sudo gt-install'
+        else printf 'Usage: sudo bash gt-install.sh'; fi
         cat <<'USAGE'
-Usage: sudo bash gt-install.sh [--answers FILE] [--yes] [--plain]
+ [--answers FILE] [--yes] [--plain]
 Without a mode: review and confirm the full bootstrap, or resume its journal.
 Questions use whiptail dialogs in a terminal of at least 80x24; --plain asks them as single lines.
 Optional stages (all accept --plain):

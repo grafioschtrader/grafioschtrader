@@ -329,6 +329,33 @@ These container checks do not establish a full GT build, migration/startup under
 The QEMU test below covers those boundaries on Ubuntu amd64; ARM and the low-memory frontend download branch
 with real dependencies remain separate acceptance work.
 
+## Debian package
+
+`package-container.sh` requires a fresh disposable Debian or Ubuntu container. It builds the package for version
+`0.0.1` and for the version of `backend/pom.xml`, checks that it holds only `/usr/sbin/gt-install` (identical to the
+bundle) and its copyright file with the documented `Depends`, publishes both through `build-repo.sh` signed by a
+throwaway key, and enrolls the repository with the armored key and a deb822 source as `util/installer/README.md`
+documents. It then installs `0.0.1` (the hint appears), creates the files of a completed installation, upgrades
+(no hint, files unchanged), runs `gt-install --check --plain` read-only, removes and purges the package (files
+unchanged) and finally proves that a repository signed by another key is refused.
+
+```bash
+for image in debian:12 debian:13 ubuntu:22.04 ubuntu:24.04 ubuntu:26.04; do
+  docker run --rm -v "$PWD:/repo:ro" "$image" bash /repo/util/installer/test/package-container.sh
+done
+```
+
+The `package` job runs these five images. The stage acceptance on real hosts uses the published repository.
+
+Pre-publication run on 2026-10-13 on two hosts with a completed installation, the same sequence with a throwaway
+key and a `file:` repository built on the host, working tree on `d98ad688ce`, bundle SHA-256
+`288457422d168fed115db896b3a6b33a3eb0f81b4296b1e51c7be2002f37fa93`: `.82` (Raspberry Pi 5, Ubuntu 24.04.5 arm64,
+kernel `6.8.0-1065-raspi`, apt 2.8.3, dpkg 1.22.6) and `.86` (ROCK 5B, Debian 12 arm64, kernel `6.1.84-8-rk2410`,
+apt 2.6.1, dpkg 1.21.23). On both, `0.0.1` installed without pulling other packages, `0.38.2` upgraded it,
+`/usr/sbin/gt-install` equalled the bundle, `gt-install --check` in a German session from the administrator's home
+exited 0 with `host.class=completed`, and journal, secrets, unit, sudoers, logrotate, scripts, jar, nginx sites and
+the service's main PID were unchanged after install, upgrade, check, remove and purge.
+
 ## nginx routing and rollback
 
 `web.bats` checks effective include handling, name/listener conflicts, target ownership, managed-file drift,

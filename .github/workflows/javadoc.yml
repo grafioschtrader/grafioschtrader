@@ -14,6 +14,11 @@ on:
       - 'Grafioschtrader/**'
   workflow_dispatch: {}
 
+# The APT repository workflow deploys into the same gh-pages branch.
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
 jobs:
   publish:
     name: Generate & Deploy Javadoc
@@ -50,5 +55,7 @@ jobs:
           branch: gh-pages
           folder: backend/target/reports/apidocs
           token: ${{ secrets.GITHUB_TOKEN }}
+          # The APT repository of the installer lives in apt/ of the same branch (.github/workflows/apt.yml).
+          clean-exclude: apt
 
 

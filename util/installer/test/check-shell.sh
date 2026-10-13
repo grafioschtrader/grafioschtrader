@@ -6,7 +6,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s util/installer/test -p
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s util/installer/test -p test_secret_terminal.py
 scripts=(util/installer/gt-install.sh util/installer/build.sh util/shellscripts/gtupbackend.sh util/shellscripts/gtupfrontend.sh
   util/shellscripts/gtupfrontback.sh util/shellscripts/installroot.sh
-  util/shellscripts/grafioschtrader.sh util/shellscripts/checkversion.sh)
+  util/shellscripts/grafioschtrader.sh util/shellscripts/checkversion.sh util/installer/package/*.sh)
+sh -n util/installer/package/postinst
+shellcheck --shell=sh util/installer/package/postinst
 for script in "${scripts[@]}" util/installer/src/*.sh util/installer/test/*.sh util/installer/test/*.bash; do
   bash -n "$script"
 done

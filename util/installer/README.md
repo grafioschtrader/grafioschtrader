@@ -71,6 +71,68 @@ installation changes;
 changes the SMTP selection until mail is verified. Each accepts `--yes`
 to use the saved scope without another terminal confirmation.
 
+## Debian package
+
+The package `grafioschtrader-installer` (`Architecture: all`) installs this bundle as `/usr/sbin/gt-install`, plus
+its copyright file, and nothing else. It depends only on `bash`, `curl`, `git`, `sudo`, `logrotate` and
+`ca-certificates`, which every supported release provides; the installer plans everything else itself. With the
+package installed, every invocation above reads `sudo gt-install …`. The packaged command behaves exactly like a
+downloaded copy, including pinning the current `master` commit for the build.
+
+Installing the package only prints a hint: run `sudo gt-install`, or — when the journal already records a completed
+installation — update with `gtupdate.sh` and inspect it with `sudo gt-install --check`. An upgrade replaces the
+command and runs nothing; removing or purging it leaves the installed application, its database, configuration, journal and secrets
+in place.
+
+`.github/workflows/apt.yml` builds the package for every published release, with the release version as package
+version, and publishes it to the signed APT repository served by GitHub Pages from the `apt/` folder of the
+`gh-pages` branch, beside the Javadoc (whose deployment excludes that folder). A manual run is accepted on a
+`V<version>` tag only. Before publishing it installs the package from the built repository in Debian 12 and
+Ubuntu 24.04 containers.
+
+### Enrolling the repository on a host
+
+`curl` and `ca-certificates` must be present (`sudo apt install curl ca-certificates` on a minimal Debian). APT 2.4
+and later reads the armored key directly because its name ends in `.asc`:
+
+```bash
+sudo install -d -m 0755 /etc/apt/keyrings
+sudo curl -fsSLo /etc/apt/keyrings/grafioschtrader.asc \
+  https://grafioschtrader.github.io/grafioschtrader/apt/grafioschtrader-archive-keyring.asc
+sudo tee /etc/apt/sources.list.d/grafioschtrader.sources > /dev/null <<'SOURCES'
+Types: deb
+URIs: https://grafioschtrader.github.io/grafioschtrader/apt
+Suites: stable
+Components: main
+Signed-By: /etc/apt/keyrings/grafioschtrader.asc
+SOURCES
+sudo apt update
+sudo apt install grafioschtrader-installer
+sudo gt-install
+```
+
+The same public key is versioned in the source tree as `util/installer/package/grafioschtrader-archive-keyring.asc`;
+`gpg --show-keys` on both copies must show the same fingerprint,
+`E7CE 3038 730C DC85 EF13  851F 00AC 7AB8 2A78 7ABA`. `Signed-By` restricts the key to this repository.
+Unenrolling removes the two files and runs `sudo apt update`.
+
+### Maintaining the signing key
+
+`bash util/installer/package/new-signing-key.sh FILE` creates an Ed25519 signing key without expiry in a throwaway
+keyring, writes its public key into the source tree and the armored secret key to `FILE` outside the repository.
+Commit the public key, store the secret key as the repository secret `APT_SIGNING_KEY`
+(`gh secret set APT_SIGNING_KEY < FILE`) and keep `FILE` offline. The workflow refuses to publish when the secret
+key does not belong to the committed public key.
+
+The key has no expiry because an enrolled host keeps its own copy and would stop trusting the repository on that
+date without warning. Replacing the key — when it may be compromised or is lost — means running the script again,
+committing the new public key, updating the secret, publishing a release and enrolling every host again with the
+commands above; hosts with the old key then fail `apt update` for this repository until they do.
+
+`build-deb.sh VERSION OUT_DIR` (needs `dpkg-deb`) and `build-repo.sh REPO_DIR FINGERPRINT DEB…` (needs
+`apt-ftparchive` and `gpg`) build the package and the repository locally; a rebuild of the same commit yields the same
+package bytes. `test/package-container.sh` covers both in a fresh container.
+
 ## Front ends
 
 The installer runs in a terminal, locally or over SSH. Every question is defined once in `gt_question_model`;
