@@ -1530,7 +1530,7 @@ gt_secret_valid_for() {
     DUCKDNS_TOKEN) gt_duckdns_valid_token "$2" ;;
     # Spring reads the key through ${JASYPT_ENCRYPTOR_PASSWORD:} and resolves placeholders inside the substituted
     # value again, so "${" would change the key itself. Encrypted secrets are escaped instead (gt_encrypt_secret).
-    JASYPT_PASSWORD) [[ "$2" != *'${'* ]] ;;
+    JASYPT_PASSWORD) [[ "$2" != *\$\{* ]] ;;
   esac
 }
 
@@ -3934,7 +3934,7 @@ gt_jasypt_call() (
 # Every encrypted secret is a Spring property. Spring Boot's binder resolves placeholders in the decrypted value, so
 # "${" is escaped as "\${", which the binder turns back into the literal; the escape character acts only there.
 gt_encrypt_secret() {
-  local key=$1 directory output marker encrypted value placeholder='${' escaped='\${'
+  local key=$1 directory output marker encrypted value placeholder=\$\{ escaped=\\\$\{
   value=${SECRET[$key]//"$placeholder"/"$escaped"}
   directory=$(mktemp -d /tmp/gt-crypto.XXXXXX) || return 2
   PRIVATE_DIRS+=("$directory")

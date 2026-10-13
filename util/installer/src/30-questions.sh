@@ -479,7 +479,7 @@ gt_secret_valid_for() {
     DUCKDNS_TOKEN) gt_duckdns_valid_token "$2" ;;
     # Spring reads the key through ${JASYPT_ENCRYPTOR_PASSWORD:} and resolves placeholders inside the substituted
     # value again, so "${" would change the key itself. Encrypted secrets are escaped instead (gt_encrypt_secret).
-    JASYPT_PASSWORD) [[ "$2" != *'${'* ]] ;;
+    JASYPT_PASSWORD) [[ "$2" != *\$\{* ]] ;;
   esac
 }
 
