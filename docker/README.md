@@ -31,7 +31,7 @@ The installer asks for:
 | Question | Meaning |
 |----------|---------|
 | Domain (optional) | With a domain you get automatic HTTPS via Let's Encrypt. Without one, GT runs on plain HTTP in your local network. |
-| DuckDNS (optional) | For home servers: keeps your `*.duckdns.org` subdomain pointed at your changing home IP. |
+| DuckDNS (optional) | For home servers: explicitly select IPv4, IPv6 or both; alternatively keep an existing updater. |
 | Admin email | The user who registers with this address receives admin rights. |
 | SMTP (recommended) | Registration sends a confirmation email — without SMTP new users cannot finish registering. |
 
@@ -52,25 +52,53 @@ internet.
 Set a domain, e.g. `GT_SITE_ADDRESS=myhost.duckdns.org`. Caddy obtains and
 renews a free Let's Encrypt certificate automatically. Requirements:
 
-1. The domain resolves to your public IP.
-2. **Ports 80 and 443 are forwarded** to the Docker host (router setting
-   "port forwarding" / "NAT"). Port 80 is required for the certificate
-   challenge; HTTP requests are then redirected to HTTPS.
+1. The domain's A and/or AAAA records resolve to addresses through which this
+   server is reachable. Remove stale records, especially after reinstalling the host.
+2. **TCP ports 80 and 443 must reach the Docker host.** With IPv4 this normally
+   means router port forwarding (NAT); with IPv6, allow incoming traffic in the
+   router's IPv6 firewall to the **host's** public IPv6 address, not the router's.
+   HTTP requests are redirected to HTTPS; Caddy uses these ports for certificate
+   validation. IPv6-only access works without incoming public IPv4 or IPv4 NAT.
 
 ### Home server with DuckDNS (e.g. Raspberry Pi)
 
 1. Create a free account at [duckdns.org](https://www.duckdns.org) and add a
    subdomain (e.g. `myhost` → `myhost.duckdns.org`). Note your token.
-2. Run `bash install.sh`, enter `myhost.duckdns.org` as domain and answer the
-   DuckDNS questions — a small updater container then keeps the subdomain
-   pointed at your home IP.
-3. Forward ports 80 and 443 on your router to the Pi.
+2. Run `bash install.sh`, enter `myhost.duckdns.org` as domain and choose whether
+   to run an updater here. If enabled, explicitly select **IPv4/NAT**, **IPv6
+   only** (for example DS-Lite), or **both**. There is no default selection.
+3. Forward TCP 80/443 for IPv4, or allow TCP 80/443 to the Pi in the router's
+   IPv6 firewall. For both, configure both paths.
+
+The selection is saved as `DUCKDNS_UPDATE_IP=ipv4`, `ipv6` or `both` in `.env`.
+The updater uses the Linux host network so IPv6 detection sees the host's
+outgoing public address. Like the [LinuxServer DuckDNS
+image](https://docs.linuxserver.io/images/docker-duckdns/), it queries Cloudflare
+for address detection. Use a stable IPv6 address and keep the router allowance
+aligned with that address, including after a prefix change. Multiple uplinks,
+VPNs and temporary IPv6 addresses can make the outgoing address differ from the
+one allowed by the router; an existing router/updater may be preferable there.
+
+IPv6 mode sends only an IPv6 update. If detection fails, it sends **no update**;
+it never falls back to IPv4. The mounted `duckdns-update.sh` supplies this check
+while retaining the image's startup and periodic scheduling. Selecting one
+address family does **not** delete an existing record of the other family.
+Clean up obsolete A/AAAA records separately in DuckDNS: a wrong record can
+prevent access or certificate validation even when the other family works.
+
+**Existing installations:** after obtaining these deployment files, rerun
+`bash install.sh` and keep the existing configuration. If the updater is enabled
+but has no address-family setting, the installer asks for it and preserves the
+other settings. Alternatively add `DUCKDNS_UPDATE_IP=ipv6` (or `ipv4` / `both`)
+to `.env`, then run `docker compose up -d duckdns`. Until a valid mode is set,
+the new updater refuses DNS updates rather than assuming IPv4.
 
 **Already have a DuckDNS domain that's kept updated (router / existing updater)?**
 You don't need a second domain. Enter your existing domain (e.g.
 `gt8p.duckdns.org`) at the Domain prompt, answer **No** to "Run a DuckDNS updater
-here?" (a second updater would fight the first over the same record), and forward
-ports 80 and 443 to this host. Caddy still obtains the Let's Encrypt certificate
+here?" (a second updater would fight the first over the same record), and allow
+TCP 80/443 to this host via IPv4 forwarding and/or the IPv6 firewall as above.
+Caddy still obtains the Let's Encrypt certificate
 for the reused domain.
 
 Other dynamic DNS providers work too: set up their update client yourself
@@ -132,8 +160,9 @@ headers; explicitly list every trusted hop when using a proxy chain.
 
 ### IPv6 for the containers
 
-The Docker bridge network carries IPv4 only, so a container has no IPv6 address
-and no route into the IPv6 internet. Incoming traffic does not care — it arrives
+The backend's Docker bridge network carries IPv4 only, so the backend has no
+IPv6 address and no route into the IPv6 internet. The DuckDNS updater uses host
+networking independently. Incoming traffic does not care — it arrives
 on the host and is published into the container either way — which is why most
 installations never notice.
 
@@ -210,6 +239,34 @@ docker compose logs -f backend     # backend log (migrations, errors)
 docker compose down                # stop (data is kept in Docker volumes)
 docker compose up -d               # start / apply .env changes
 ```
+
+### Uninstall
+
+Run the helper from the installation you want to remove:
+
+```bash
+bash uninstall.sh --dry-run  # show the target services and command
+bash uninstall.sh            # remove containers and networks; keep data
+bash uninstall.sh --purge    # also delete database and Caddy volumes after confirmation
+```
+
+The default removes all project containers, including DuckDNS even when its
+profile is no longer enabled, and orphaned containers from the same Compose
+project. Database and certificate volumes remain, so `docker compose up -d`
+can start the installation again.
+
+`--purge` permanently removes the Compose-managed volumes, including the
+database, HTTPS certificates and Caddy state. It asks you to type `DELETE`
+before removing anything. Take a backup first if you may need the data; the
+uninstaller does not create one. For unattended removal, `--purge --yes`
+explicitly confirms deletion. `--purge --dry-run` only previews it. The helper
+also works after the containers have already been removed.
+
+Docker Engine, downloaded images, the checkout, `.env`, `config/`, backups,
+external volumes and bind-mounted host files are kept in both modes. This is
+not a secure erase of all copies of your data. DNS records and router rules
+also remain; disabling the updater does not delete a DuckDNS domain. Keep the
+original Compose files and `.env` until removal is complete.
 
 ### Update to a new release
 
@@ -616,8 +673,9 @@ services:
   ```
   Note that these local images are tagged exactly like the published ones, so a
   later successful `docker compose pull` replaces them.
-- **No HTTPS certificate** — check that the domain resolves to your public IP
-  (`nslookup myhost.duckdns.org`) and that ports 80/443 are forwarded. Caddy
+- **No HTTPS certificate** — check both A and AAAA records
+  (`nslookup myhost.duckdns.org`) and remove any stale addresses. For IPv4,
+  forward TCP 80/443; for IPv6, allow them to the host in the router firewall. Caddy
   logs the ACME errors: `docker compose logs web`. If your ISP blocks port 80,
   a DNS-01 challenge is possible but requires a custom Caddy build with the
   DuckDNS DNS plugin (not covered by the standard image).

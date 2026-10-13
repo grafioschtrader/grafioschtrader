@@ -100,9 +100,20 @@ services:
     image: lscr.io/linuxserver/duckdns:latest
     profiles: ["duckdns"]
     restart: unless-stopped
+    # IPv6 detection must see the host's public address, not an IPv4-only bridge.
+    network_mode: host
+    # Keep the image's init and periodic scheduling, but fail closed when address
+    # detection fails. An empty ipv6 parameter would let DuckDNS autodetect IPv4.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - cp /etc/gt-duckdns-update.sh /app/duck.sh && chmod 755 /app/duck.sh && exec /init
+    volumes:
+      - ./duckdns-update.sh:/etc/gt-duckdns-update.sh:ro
     environment:
       SUBDOMAINS: ${DUCKDNS_SUBDOMAIN:-}
       TOKEN: ${DUCKDNS_TOKEN:-}
+      UPDATE_IP: ${DUCKDNS_UPDATE_IP:-}
       TZ: Etc/UTC
 
 networks:
