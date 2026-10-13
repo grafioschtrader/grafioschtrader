@@ -1110,8 +1110,8 @@ DB_REUSE_EMPTY|yesno|empty_db||Reuse the existing empty grafioschtrader database
   Vorhandene leere Datenbank grafioschtrader verwenden
 DB_ROOT_PASSWORD|secret|root_password||MariaDB root password; new for a new server, current for an existing server|
   MariaDB-Root-Passwort; neu für neuen Server, aktuell für vorhandenen Server
-JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD)|
-  Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD)
+JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD), without "${"|
+  Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD), ohne "${"
 BUFFER_POOL|yesno|buffer||Set MariaDB memory and lock settings and restart the server, affecting every database|
   MariaDB-Speicher- und Sperreinstellungen setzen und Server neu starten; betrifft alle Datenbanken
 JAVA_HEAP|heap|always||Java heap: -Xms<size> -Xmx<size>, with m or g units|
@@ -1528,6 +1528,9 @@ gt_secret_valid_for() {
       local LC_ALL=C
       [[ ${#2} -ge 32 ]] ;;
     DUCKDNS_TOKEN) gt_duckdns_valid_token "$2" ;;
+    # Spring reads the key through ${JASYPT_ENCRYPTOR_PASSWORD:} and resolves placeholders inside the substituted
+    # value again, so "${" would change the key itself. Encrypted secrets are escaped instead (gt_encrypt_secret).
+    JASYPT_PASSWORD) [[ "$2" != *'${'* ]] ;;
   esac
 }
 
@@ -3925,13 +3928,16 @@ gt_jasypt_call() (
     "-Djasypt.plugin.decrypt.prefix=${marker}_BEGIN" "-Djasypt.plugin.decrypt.suffix=${marker}_END" "jasypt:$goal"
 )
 
+# Every encrypted secret is a Spring property. Spring Boot's binder resolves placeholders in the decrypted value, so
+# "${" is escaped as "\${", which the binder turns back into the literal; the escape character acts only there.
 gt_encrypt_secret() {
-  local key=$1 directory output marker encrypted
+  local key=$1 directory output marker encrypted value placeholder='${' escaped='\${'
+  value=${SECRET[$key]//"$placeholder"/"$escaped"}
   directory=$(mktemp -d /tmp/gt-crypto.XXXXXX) || return 2
   PRIVATE_DIRS+=("$directory")
   marker=$(openssl rand -hex 24) || return 2
-  [[ "${SECRET[$key]}" != *"$marker"* ]] || return 2
-  printf '%s_BEGIN%s%s_END\n' "$marker" "${SECRET[$key]}" "$marker" > "$directory/value.properties"
+  [[ "$value" != *"$marker"* ]] || return 2
+  printf '%s_BEGIN%s%s_END\n' "$marker" "$value" "$marker" > "$directory/value.properties"
   chmod 600 "$directory/value.properties" && chown -R grafioschtrader:grafioschtrader "$directory" || return 2
   # Capture all diagnostics privately, including plaintext the plugin may emit on error/debug.
   output=$(gt_jasypt_call encrypt "$directory" "$marker" 2>&1) ||
@@ -3942,7 +3948,7 @@ gt_encrypt_secret() {
   output=$(gt_jasypt_call decrypt "$directory" "$marker" 2>&1) ||
     { gt_core_error "Jasypt decryption failed ($key); plugin output suppressed."; return 2; }
   # decrypt reports the result on stdout and deliberately leaves the encrypted file intact.
-  [[ "$output" == *"${marker}_BEGIN${SECRET[$key]}${marker}_END"* ]] || {
+  [[ "$output" == *"${marker}_BEGIN${value}${marker}_END"* ]] || {
     gt_core_error "Jasypt literal round-trip failed ($key)."; return 2;
   }
   rm -rf -- "$directory"

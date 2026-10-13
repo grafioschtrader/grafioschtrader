@@ -76,6 +76,24 @@ file_fixture() {
   gt_secret_valid_for SMTP_PASSWORD 'any & thing'
 }
 
+@test "Spring placeholders stay literal: escaped before encryption, refused in the encryption key" {
+  run gt_secret_valid_for JASYPT_PASSWORD 'key ${HOME}'
+  [ "$status" -ne 0 ]
+  gt_secret_valid_for JASYPT_PASSWORD 'key $HOME {x}'
+  gt_secret_valid_for DB_PASSWORD 'db ${HOME} \${x}'
+  # The plugin round-trips the file literally; what reaches Spring's binder is the escaped text.
+  chown() { :; }
+  gt_jasypt_call() {
+    if [[ "$1" == encrypt ]]; then cp "$2/value.properties" "$SCRATCH/plain"; printf 'ENC(QUJD)' > "$2/value.properties"
+    else cat "$SCRATCH/plain"; fi
+  }
+  SECRET[DB_PASSWORD]='db ${HOME} \${x} $PATH'
+  gt_encrypt_secret DB_PASSWORD
+  [ "$ENCRYPTED" = 'ENC(QUJD)' ]
+  grep -qF '_BEGINdb \${HOME} \\${x} $PATH' "$SCRATCH/plain"
+  [ "${SECRET[DB_PASSWORD]}" = 'db ${HOME} \${x} $PATH' ]
+}
+
 @test "EOF cancels without retaining a partial secret" {
   printf partial > "$SCRATCH/input"
   exec {QUESTION_FD}<"$SCRATCH/input"

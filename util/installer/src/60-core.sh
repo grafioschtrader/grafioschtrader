@@ -694,13 +694,16 @@ gt_jasypt_call() (
     "-Djasypt.plugin.decrypt.prefix=${marker}_BEGIN" "-Djasypt.plugin.decrypt.suffix=${marker}_END" "jasypt:$goal"
 )
 
+# Every encrypted secret is a Spring property. Spring Boot's binder resolves placeholders in the decrypted value, so
+# "${" is escaped as "\${", which the binder turns back into the literal; the escape character acts only there.
 gt_encrypt_secret() {
-  local key=$1 directory output marker encrypted
+  local key=$1 directory output marker encrypted value placeholder='${' escaped='\${'
+  value=${SECRET[$key]//"$placeholder"/"$escaped"}
   directory=$(mktemp -d /tmp/gt-crypto.XXXXXX) || return 2
   PRIVATE_DIRS+=("$directory")
   marker=$(openssl rand -hex 24) || return 2
-  [[ "${SECRET[$key]}" != *"$marker"* ]] || return 2
-  printf '%s_BEGIN%s%s_END\n' "$marker" "${SECRET[$key]}" "$marker" > "$directory/value.properties"
+  [[ "$value" != *"$marker"* ]] || return 2
+  printf '%s_BEGIN%s%s_END\n' "$marker" "$value" "$marker" > "$directory/value.properties"
   chmod 600 "$directory/value.properties" && chown -R grafioschtrader:grafioschtrader "$directory" || return 2
   # Capture all diagnostics privately, including plaintext the plugin may emit on error/debug.
   output=$(gt_jasypt_call encrypt "$directory" "$marker" 2>&1) ||
@@ -711,7 +714,7 @@ gt_encrypt_secret() {
   output=$(gt_jasypt_call decrypt "$directory" "$marker" 2>&1) ||
     { gt_core_error "Jasypt decryption failed ($key); plugin output suppressed."; return 2; }
   # decrypt reports the result on stdout and deliberately leaves the encrypted file intact.
-  [[ "$output" == *"${marker}_BEGIN${SECRET[$key]}${marker}_END"* ]] || {
+  [[ "$output" == *"${marker}_BEGIN${value}${marker}_END"* ]] || {
     gt_core_error "Jasypt literal round-trip failed ($key)."; return 2;
   }
   rm -rf -- "$directory"

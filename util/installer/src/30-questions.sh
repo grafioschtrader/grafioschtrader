@@ -59,8 +59,8 @@ DB_REUSE_EMPTY|yesno|empty_db||Reuse the existing empty grafioschtrader database
   Vorhandene leere Datenbank grafioschtrader verwenden
 DB_ROOT_PASSWORD|secret|root_password||MariaDB root password; new for a new server, current for an existing server|
   MariaDB-Root-Passwort; neu für neuen Server, aktuell für vorhandenen Server
-JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD)|
-  Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD)
+JASYPT_PASSWORD|secret|always||Encryption password (JASYPT_ENCRYPTOR_PASSWORD), without "${"|
+  Verschlüsselungspasswort (JASYPT_ENCRYPTOR_PASSWORD), ohne "${"
 BUFFER_POOL|yesno|buffer||Set MariaDB memory and lock settings and restart the server, affecting every database|
   MariaDB-Speicher- und Sperreinstellungen setzen und Server neu starten; betrifft alle Datenbanken
 JAVA_HEAP|heap|always||Java heap: -Xms<size> -Xmx<size>, with m or g units|
@@ -477,6 +477,9 @@ gt_secret_valid_for() {
       local LC_ALL=C
       [[ ${#2} -ge 32 ]] ;;
     DUCKDNS_TOKEN) gt_duckdns_valid_token "$2" ;;
+    # Spring reads the key through ${JASYPT_ENCRYPTOR_PASSWORD:} and resolves placeholders inside the substituted
+    # value again, so "${" would change the key itself. Encrypted secrets are escaped instead (gt_encrypt_secret).
+    JASYPT_PASSWORD) [[ "$2" != *'${'* ]] ;;
   esac
 }
 
