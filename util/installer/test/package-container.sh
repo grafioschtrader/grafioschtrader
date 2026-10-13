@@ -103,6 +103,8 @@ gpg --batch --quiet --passphrase '' --quick-gen-key 'Foreign key' ed25519 sign n
 foreign=$(gpg --batch --with-colons --list-secret-keys 'Foreign key' | awk -F: '$1 == "fpr" && !n++ {print $10}')
 bash "$package/build-repo.sh" "$work/apt" "$foreign" "$new"
 chmod -R a+rX "$work/apt"
-if refused=$(apt-get update 2>&1); then exit 1; fi
+# With its previous lists still present apt only warns and keeps them; without them the refusal is an error.
+rm -f /var/lib/apt/lists/"${work//\//_}"_apt_*
+if refused=$(apt-get update 2>&1); then printf '%s\n' "$refused"; exit 1; fi
 grep -qE 'NO_PUBKEY|not signed|[Ss]ignature' <<< "$refused"
 echo "PASS: package $version installs, upgrades, checks and is removed without touching the installation."
