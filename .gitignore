@@ -34,5 +34,8 @@ backend/grafioschtrader-server/src/test/resources/local-seed/
 # Scratch output of agent sessions; never part of a release
 /tmp/
 
+# Playwright failure log; it was committed by accident in past releases
+/error.txt
+
 # Installation-specific data of agent skills (hosts, remotes); see .agents/skills/release/SKILL.md
 /.agents/skills/*/site.local.md
