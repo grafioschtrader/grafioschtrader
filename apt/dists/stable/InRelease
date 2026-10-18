@@ -1,0 +1,46 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Architectures: amd64 arm64 armhf
+Codename: stable
+Components: main
+Date: Sun, 18 Oct 2026 18:50:18 +0000
+Description: Grafioschtrader installer
+Label: Grafioschtrader
+Origin: Grafioschtrader
+Suite: stable
+MD5Sum:
+ 8927009130627c68701ed4a1f57e50ab             1271 main/binary-amd64/Packages
+ 50f440514258428929d123c50e92001c              739 main/binary-amd64/Packages.gz
+ 8927009130627c68701ed4a1f57e50ab             1271 main/binary-arm64/Packages
+ 50f440514258428929d123c50e92001c              739 main/binary-arm64/Packages.gz
+ 8927009130627c68701ed4a1f57e50ab             1271 main/binary-armhf/Packages
+ 50f440514258428929d123c50e92001c              739 main/binary-armhf/Packages.gz
+SHA1:
+ 34f63e88beb5e380eaa12822ceb26617259ff65a             1271 main/binary-amd64/Packages
+ 896a9d38d3c95f7741a587ee4fdc6ca3af8efbff              739 main/binary-amd64/Packages.gz
+ 34f63e88beb5e380eaa12822ceb26617259ff65a             1271 main/binary-arm64/Packages
+ 896a9d38d3c95f7741a587ee4fdc6ca3af8efbff              739 main/binary-arm64/Packages.gz
+ 34f63e88beb5e380eaa12822ceb26617259ff65a             1271 main/binary-armhf/Packages
+ 896a9d38d3c95f7741a587ee4fdc6ca3af8efbff              739 main/binary-armhf/Packages.gz
+SHA256:
+ eb801c0f945896c3eb3eb7d168940f2a05d6900c414c91b720b9979c4a1886cd             1271 main/binary-amd64/Packages
+ 80b68166f55f2ee8f2b7247355797286e26935cd70dc5cf50cdc3ae718e1a6f5              739 main/binary-amd64/Packages.gz
+ eb801c0f945896c3eb3eb7d168940f2a05d6900c414c91b720b9979c4a1886cd             1271 main/binary-arm64/Packages
+ 80b68166f55f2ee8f2b7247355797286e26935cd70dc5cf50cdc3ae718e1a6f5              739 main/binary-arm64/Packages.gz
+ eb801c0f945896c3eb3eb7d168940f2a05d6900c414c91b720b9979c4a1886cd             1271 main/binary-armhf/Packages
+ 80b68166f55f2ee8f2b7247355797286e26935cd70dc5cf50cdc3ae718e1a6f5              739 main/binary-armhf/Packages.gz
+SHA512:
+ ca01d8c175916f3d97d33fb98fa7a093e9955fc692e0e8d076a2772b040ef8c78deb41d081f9bd8206371bd3504cf109eccc0956dfcba134d5cbb72e46130499             1271 main/binary-amd64/Packages
+ 223cef8ce5bbb3df8aaf4953808fabd509879ea74243865ac074e91c3f5012bfbf3bcaa7554166179128fd4f1f9e84ba2a43ca0f52e816e0f2e48b7b31149ac0              739 main/binary-amd64/Packages.gz
+ ca01d8c175916f3d97d33fb98fa7a093e9955fc692e0e8d076a2772b040ef8c78deb41d081f9bd8206371bd3504cf109eccc0956dfcba134d5cbb72e46130499             1271 main/binary-arm64/Packages
+ 223cef8ce5bbb3df8aaf4953808fabd509879ea74243865ac074e91c3f5012bfbf3bcaa7554166179128fd4f1f9e84ba2a43ca0f52e816e0f2e48b7b31149ac0              739 main/binary-arm64/Packages.gz
+ ca01d8c175916f3d97d33fb98fa7a093e9955fc692e0e8d076a2772b040ef8c78deb41d081f9bd8206371bd3504cf109eccc0956dfcba134d5cbb72e46130499             1271 main/binary-armhf/Packages
+ 223cef8ce5bbb3df8aaf4953808fabd509879ea74243865ac074e91c3f5012bfbf3bcaa7554166179128fd4f1f9e84ba2a43ca0f52e816e0f2e48b7b31149ac0              739 main/binary-armhf/Packages.gz
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYKAB0WIQTnzjA4cwzche8ThR8ArHq4Knh6ugUCatUU6gAKCRAArHq4Knh6
+ugK5AQCPjC9G9rUUkAhJuMDZk1Z2nmLgWMxokK/7uAGdESRJEgD/R52LSOUEBJCS
+A3jYEjnbzcXZf+TBWYHBkHAQLgUX6QE=
+=EZC7
+-----END PGP SIGNATURE-----

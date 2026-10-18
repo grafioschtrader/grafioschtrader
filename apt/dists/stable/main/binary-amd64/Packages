@@ -1,0 +1,23 @@
+Package: grafioschtrader-installer
+Architecture: all
+Version: 0.38.3
+Priority: optional
+Section: admin
+Maintainer: hugograf <hg@hugograf.com>
+Installed-Size: 456
+Depends: bash, curl, git, sudo, logrotate, ca-certificates
+Filename: pool/main/g/grafioschtrader-installer/grafioschtrader-installer_0.38.3_all.deb
+Size: 101280
+MD5sum: 163e710e51026808957a6ca329460f62
+SHA1: 4f0689506a19e9f1706fea1744431ff79f8c40a2
+SHA256: e76342ed2490a67edfb06f9550d5085d9a8fbb62dc0bf8500c801a4212b60c5e
+SHA512: 85c0a33a751556b33b5241fc02fa2d0de843815705e5bc9a4c5989340d608cc2b248140e3c54d49688ac110beb8332883c924d2adc3b5564ee83dcb51a1515a8
+Homepage: https://github.com/grafioschtrader/grafioschtrader
+Description: installer for a classic Grafioschtrader installation
+ Provides the command gt-install, the bootstrap installer of Grafioschtrader for Debian and Ubuntu. It inventories
+ the host, asks for the installation choices, shows the complete plan and installs the database, toolchains,
+ application, web server and TLS only after the administrator approves that plan.
+ .
+ Installing or upgrading this package never runs the installation, and removing it leaves an installed
+ Grafioschtrader with its database and configuration in place. Start the installation with "sudo gt-install".
+
