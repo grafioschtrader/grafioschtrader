@@ -31,8 +31,23 @@ cat > "$work/bin/docker" <<'EOF'
 printf '%s\n' "$*" >> "$DOCKER_LOG"
 case "$*" in
   'context inspect '*) printf 'ssh://installer-test.invalid\n' ;;
+  # A docker-compose.yml that hands the address family to duckdns-update.sh.
+  'compose config duckdns')
+    mode="$(grep -oP '^DUCKDNS_UPDATE_IP=\K.*' .env)"
+    printf '    environment:\n      UPDATE_IP: %s\n' "${mode//\"/}"
+    printf '    volumes:\n      - target: /etc/gt-duckdns-update.sh\n' ;;
 esac
 exit 0
+EOF
+# Ethernet LAN, WLAN uplink and two Docker bridges, in kernel interface order.
+cat > "$work/bin/ip" <<'EOF'
+#!/usr/bin/env bash
+[ "$*" = '-4 -o addr show scope global' ] || exit 99
+printf '3: docker0    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0\\       valid_lft forever\n'
+printf '4: end0    inet 192.0.2.10/24 brd 192.0.2.255 scope global end0\\       valid_lft forever\n'
+printf '4: end0    inet 169.254.123.63/16 brd 169.254.255.255 scope global end0\\       valid_lft forever\n'
+printf '5: br-0dc79966e734    inet 172.18.0.1/16 brd 172.18.255.255 scope global br-0dc79966e734\\       valid_lft forever\n'
+printf '6: wlan0    inet 198.51.100.79/24 brd 198.51.100.255 scope global dynamic wlan0\\       valid_lft 80000sec\n'
 EOF
 cat > "$work/bin/ss" <<'EOF'
 #!/usr/bin/env bash
@@ -84,23 +99,36 @@ new_install() {
 }
 for pair in 1:ipv4 2:ipv6 3:both; do
   new_install "fresh-${pair#*:}"
-  printf 'example.duckdns.org\ny\n%s\n\ntest-token\nadmin@example.com\nn\n\n' "${pair%:*}" \
+  printf 'example.duckdns.org\n\ny\n%s\n\ntest-token\nadmin@example.com\nn\n\n' "${pair%:*}" \
     | bash "$install_dir/install.sh" > "$work/installer-output"
   assert_line "$install_dir/.env" "DUCKDNS_UPDATE_IP=${pair#*:}"
   assert_line "$install_dir/.env" "COMPOSE_PROFILES=duckdns"
 done
+# The default LAN site is the first interface address, never a Docker bridge.
+assert_line "$install_dir/.env" 'GT_SITE_ADDRESS="example.duckdns.org, http://192.0.2.10"'
+grep -q 'In the local network also:  http://192.0.2.10/grafioschtrader/' "$work/installer-output" \
+  || fail "did not report the LAN address"
+grep -q 'Addresses of this host: 192.0.2.10 198.51.100.79$' "$work/installer-output" \
+  || fail "offered a Docker bridge or link-local address"
 
 new_install retry-choice
-printf 'example.duckdns.org\ny\n\ninvalid\n2\n\ntest-token\nadmin@example.com\nn\n\n' \
+printf 'example.duckdns.org\n-\ny\n\ninvalid\n2\n\ntest-token\nadmin@example.com\nn\n\n' \
   | bash "$install_dir/install.sh" > "$work/installer-output"
 assert_line "$install_dir/.env" "DUCKDNS_UPDATE_IP=ipv6"
+assert_line "$install_dir/.env" 'GT_SITE_ADDRESS="example.duckdns.org"'
 new_install external-updater
-printf 'example.duckdns.org\nn\nadmin@example.com\nn\n\n' \
+printf 'example.duckdns.org\n127.0.0.1\n999.1.2.3\n198.51.100.79\nn\nadmin@example.com\nn\n\n' \
   | bash "$install_dir/install.sh" > "$work/installer-output"
 if grep -q '^COMPOSE_PROFILES=duckdns' "$install_dir/.env"; then fail "enabled second updater"; fi
+assert_line "$install_dir/.env" 'GT_SITE_ADDRESS="example.duckdns.org, http://198.51.100.79"'
+new_install foreign-lan-address
+printf 'example.duckdns.org\n192.0.2.99\nn\nadmin@example.com\nn\n\n' \
+  | bash "$install_dir/install.sh" > "$work/installer-output" 2>&1
+grep -q '192.0.2.99 is not assigned to an interface' "$work/installer-output" || fail "accepted a foreign address silently"
+assert_line "$install_dir/.env" 'GT_SITE_ADDRESS="example.duckdns.org, http://192.0.2.99"'
 new_install local-http
 printf '\nadmin@example.com\nn\n\n' | bash "$install_dir/install.sh" > "$work/installer-output"
-assert_line "$install_dir/.env" "GT_SITE_ADDRESS=:80"
+assert_line "$install_dir/.env" 'GT_SITE_ADDRESS=":80"'
 
 new_install existing
 cat > "$install_dir/.env" <<'EOF'
@@ -123,9 +151,9 @@ assert_line "$install_dir/.env" 'DUCKDNS_UPDATE_IP="ipv6"'
 
 # Merely omitting the profile would leave the old IPv4 updater running.
 : > "$DOCKER_LOG"
-printf 'n\nexample.duckdns.org\nn\nadmin@example.com\nn\n\n' \
+printf 'n\nexample.duckdns.org\n\nn\nadmin@example.com\nn\n\n' \
   | bash "$install_dir/install.sh" > "$work/installer-output"
 assert_line "$DOCKER_LOG" 'compose --profile duckdns stop duckdns'
 assert_line "$install_dir/.env" 'DB_PASSWORD=existing-secret'
 if grep -q '^COMPOSE_PROFILES=duckdns' "$install_dir/.env"; then fail "kept disabled updater"; fi
-printf 'PASS: fresh, external, local and existing installer configurations\n'
+printf 'PASS: fresh, external, local, LAN-site and existing installer configurations\n'

@@ -21,20 +21,15 @@ docker compose version >/dev/null 2>&1 \
   || fail "the 'docker compose' plugin is missing. See https://docs.docker.com/compose/install/"
 
 # Check before docker info: socket activation can hide a disabled boot service.
-# Follow Docker's endpoint precedence and never change a local service when the
-# CLI targets a remote engine, Docker Desktop or a rootless/user-owned socket.
+# Never change a local service when the CLI targets a remote engine, Docker
+# Desktop or a rootless/user-owned socket. Without a name, 'docker context
+# inspect' resolves the endpoint the CLI itself uses: DOCKER_HOST before
+# DOCKER_CONTEXT before the saved context.
 ensure_docker_autostart() {
   local endpoint state
   local -a admin=()
-  if [ -n "${DOCKER_CONTEXT:-}" ]; then
-    endpoint="$(docker context inspect "$DOCKER_CONTEXT" --format '{{.Endpoints.docker.Host}}')" \
-      || fail "cannot inspect Docker context '$DOCKER_CONTEXT'."
-  elif [ -n "${DOCKER_HOST:-}" ]; then
-    endpoint="$DOCKER_HOST"
-  else
-    endpoint="$(docker context inspect --format '{{.Endpoints.docker.Host}}')" \
-      || fail "cannot determine the current Docker endpoint."
-  fi
+  endpoint="$(docker context inspect --format '{{.Endpoints.docker.Host}}')" \
+    || fail "cannot determine the current Docker endpoint."
   case "$endpoint" in
     unix:///var/run/docker.sock|unix:///run/docker.sock) ;;
     *) info "Docker uses a remote or separately managed endpoint; arrange its automatic startup on the engine host."
@@ -68,9 +63,35 @@ ensure_docker_autostart
 docker info >/dev/null 2>&1 \
   || fail "cannot talk to the Docker daemon. Is it running? (You may need to add your user to the 'docker' group.)"
 
+# Value of KEY in .env without the quotes Compose dotenv syntax allows.
+env_value() {
+  local value
+  value="$(grep -oP "^$1=\K.*" .env 2>/dev/null || true)"
+  value="${value//\"/}"; printf '%s' "${value//\'/}"
+}
+
+# The DuckDNS address family only takes effect through a docker-compose.yml that
+# hands it to duckdns-update.sh. An older file (e.g. brought back by an update to
+# an older release) runs the image's own updater, which always sends this host's
+# IPv4 address. Such a file must not start the updater.
+check_duckdns_wiring() {
+  local mode config
+  case ",$(env_value COMPOSE_PROFILES)," in *,duckdns,*) ;; *) return 0 ;; esac
+  mode="$(env_value DUCKDNS_UPDATE_IP)"
+  # duckdns-update.sh refuses an empty or unknown mode by itself.
+  case "$mode" in ipv4|ipv6|both) ;; *) return 0 ;; esac
+  config="$(docker compose "$@" config duckdns 2>/dev/null)" \
+    || fail "cannot read the DuckDNS service from docker-compose.yml. Check 'docker compose config duckdns'."
+  grep -qE "^ +UPDATE_IP: \"?${mode}\"?$" <<< "$config" && grep -q '/etc/gt-duckdns-update.sh' <<< "$config" \
+    || fail "docker-compose.yml does not hand DUCKDNS_UPDATE_IP=${mode} to duckdns-update.sh, so the
+       DuckDNS updater would send this host's IPv4 address. Nothing was started. Restore the file of this
+       checkout (git -C .. checkout -- docker/docker-compose.yml) or use the docker/ directory of a newer release."
+}
+
 # Compose waits for MariaDB/backend healthchecks and for the other services to
 # run. A failed start or timeout must not reach either installation success message.
 start_stack() {
+  check_duckdns_wiring "$@"
   info "Starting Grafioschtrader and waiting for its healthchecks (up to 30 minutes)."
   info "The first start runs database migrations. Follow progress with: docker compose logs -f backend"
   docker compose "$@" up -d --wait --wait-timeout 1800 \
@@ -118,6 +139,52 @@ port_in_use() {
   fi
 }
 
+# IPv4 addresses of this host's own interfaces, without loopback, link-local
+# (which some images assign with scope global) and the bridges Docker creates.
+# A host on two networks (Ethernet intranet, WLAN uplink) lists each of them.
+lan_candidates() {
+  if command -v ip >/dev/null 2>&1; then
+    ip -4 -o addr show scope global 2>/dev/null \
+      | awk '$2 !~ /^(docker[0-9]*|br-.*|veth.*)$/ { sub(/\/.*/, "", $4); print $4 }'
+  else
+    hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9.]+$'
+  fi | grep -v '^169\.254\.' || true
+}
+
+valid_ipv4() {
+  local octet
+  local -a octets
+  [[ "$1" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]] || return 1
+  IFS=. read -r -a octets <<< "$1"
+  for octet in "${octets[@]}"; do (( 10#$octet <= 255 )) || return 1; done
+  [[ "$1" != 127.* && "$1" != 169.254.* ]]
+}
+
+# With a domain, Caddy serves only that name over HTTPS and redirects every HTTP
+# request to it — also one addressed to the LAN IP, which has no certificate. A
+# second site http://<LAN address>/ keeps Grafioschtrader reachable inside the
+# network, as with the classic installation. That site is plain HTTP.
+choose_lan_address() {
+  local candidates default answer
+  candidates="$(lan_candidates | paste -sd' ' -)"
+  default="${candidates%% *}"
+  info "Inside the local network Grafioschtrader can also be served over plain HTTP"
+  info "at http://<LAN address>/ (unencrypted; the domain keeps HTTPS)."
+  [ -z "$candidates" ] || info "Addresses of this host: ${candidates}"
+  while true; do
+    read -r -p "LAN address for http://<address>/ [${default:--}], '-' for none: " answer
+    answer="${answer:-${default:--}}"
+    if [ "$answer" = - ]; then LAN_ADDRESS=""; return 0; fi
+    if valid_ipv4 "$answer"; then break; fi
+    warn "Enter an IPv4 address of this host outside 127.0.0.0/8 and 169.254.0.0/16, or '-'."
+  done
+  case " $candidates " in
+    *" $answer "*) ;;
+    *) warn "$answer is not assigned to an interface of this host; the LAN site answers only requests to it." ;;
+  esac
+  LAN_ADDRESS="$answer"
+}
+
 # Never infer inbound reachability from an outbound connection: DS-Lite hosts
 # can reach IPv4 services while only accepting incoming connections over IPv6.
 choose_duckdns_mode() {
@@ -151,13 +218,8 @@ choose_duckdns_mode() {
 # Old installers enabled an IPv4-only updater without asking. On a rerun, ask
 # for its mode without forcing the user to re-enter mail settings or secrets.
 upgrade_duckdns_mode() {
-  local profiles mode
-  profiles="$(grep -oP '^COMPOSE_PROFILES=\K.*' .env || true)"
-  profiles="${profiles//\"/}"; profiles="${profiles//\'/}"
-  case ",$profiles," in *,duckdns,*) ;; *) return 0 ;; esac
-  mode="$(grep -oP '^DUCKDNS_UPDATE_IP=\K.*' .env || true)"
-  mode="${mode//\"/}"; mode="${mode//\'/}"
-  case "$mode" in ipv4|ipv6|both) return 0 ;; esac
+  case ",$(env_value COMPOSE_PROFILES)," in *,duckdns,*) ;; *) return 0 ;; esac
+  case "$(env_value DUCKDNS_UPDATE_IP)" in ipv4|ipv6|both) return 0 ;; esac
   warn "This configuration has no valid DuckDNS address-family selection."
   choose_duckdns_mode
   cp .env ".env.backup.$(date +%Y%m%d%H%M%S)"
@@ -213,11 +275,13 @@ read -r -p "Domain (e.g. myhost.duckdns.org) — leave empty for local HTTP only
 DOMAIN="${DOMAIN## }"; DOMAIN="${DOMAIN%% }"
 
 SITE_ADDRESS=":80"
+LAN_ADDRESS=""
 if [ -n "$DOMAIN" ]; then
-  SITE_ADDRESS="$DOMAIN"
   warn "Ports 80 and 443 of this machine must be reachable from the internet"
   warn "(IPv4: NAT port forwarding; IPv6: firewall allowance for this host),"
   warn "otherwise the Let's Encrypt certificate cannot be issued."
+  choose_lan_address
+  SITE_ADDRESS="${DOMAIN}${LAN_ADDRESS:+, http://${LAN_ADDRESS}}"
 fi
 
 # --------------------------------------------------------------------------
@@ -368,7 +432,7 @@ JWT_SECRET=${JWT_SECRET}
 ADMIN_EMAIL=${ADMIN_EMAIL}
 GT_ALLOWED_USERS=${GT_ALLOWED_USERS}
 
-GT_SITE_ADDRESS=${SITE_ADDRESS}
+GT_SITE_ADDRESS="${SITE_ADDRESS}"
 GT_HTTP_PORT=${GT_HTTP_PORT}
 GT_HTTPS_PORT=${GT_HTTPS_PORT}
 
@@ -441,4 +505,5 @@ info "The backend and database healthchecks passed. View logs with:"
 info "    docker compose logs -f backend"
 echo
 info "Then open:  ${URL}"
+[ -z "$LAN_ADDRESS" ] || info "In the local network also:  http://${LAN_ADDRESS}/grafioschtrader/"
 info "Register with ${ADMIN_EMAIL} — this first account receives admin rights."

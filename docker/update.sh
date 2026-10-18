@@ -70,6 +70,7 @@ DB_NAME="${DB_NAME:-grafioschtrader}"
 GT_REPO_URL=https://github.com/grafioschtrader/grafioschtrader.git
 GT_REPO_ARCHIVE=https://github.com/grafioschtrader/grafioschtrader/archive/refs/tags
 GT_RELEASE_API=https://api.github.com/repos/grafioschtrader/grafioschtrader/releases/latest
+GT_COMPARE_API=https://api.github.com/repos/grafioschtrader/grafioschtrader/compare
 DEPLOYMENT_MANIFEST=.gt-deployment.sha256
 DOCKER_DIR="$(basename "$PWD")"
 
@@ -137,8 +138,35 @@ baseline_hash() {
   fi
 }
 
+# True while a file is exactly what the git checkout holds — delivered by git,
+# not edited here — even after an earlier update recorded other hashes.
+is_checkout_version() {
+  $IS_GIT && git -C .. cat-file -e ":$1" 2>/dev/null \
+    && [ "$(git -C .. show ":$1" | sha256sum | cut -d' ' -f1)" = "$2" ]
+}
+
+# Where the checked-out commit stands relative to release V<version>: identical,
+# ahead, behind or diverged; nothing when it cannot be determined. A shallow
+# clone (the README's git clone --depth 1) lacks the history, so GitHub compares
+# the two commits; a commit GitHub does not know stays undetermined.
+checkout_position() {
+  local tag="V$1" head base
+  head="$(git -C .. rev-parse HEAD)"
+  base="$(git -C .. rev-parse -q --verify "refs/tags/$tag^{commit}" || true)"
+  if [ -n "$base" ] && [ "$base" = "$head" ]; then
+    echo identical
+  elif [ -n "$base" ] && [ "$(git -C .. rev-parse --is-shallow-repository)" != true ]; then
+    if git -C .. merge-base --is-ancestor "$base" "$head"; then echo ahead
+    elif git -C .. merge-base --is-ancestor "$head" "$base"; then echo behind
+    else echo diverged; fi
+  elif command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$GT_COMPARE_API/$tag...$head?per_page=1" 2>/dev/null \
+      | grep -m1 -oP '"status":\s*"\K(identical|ahead|behind|diverged)(?=")' || true
+  fi
+}
+
 refresh_deployment_files() {
-  local release="$1" previous="$2" work rel host base current delivered
+  local release="$1" previous="$2" work rel host base current delivered position
   local -a changes=() conflicts=() existing=() manifest=()
   work="$(mktemp -d)"
   bold ""
@@ -147,6 +175,28 @@ refresh_deployment_files() {
     rm -rf "$work"
     fail "the deployment files of release V$release could not be fetched — nothing was changed.
        Check the network access to github.com, or run again with --skip-files to update the images alone."
+  fi
+
+  # A checkout newer than the release (install.sh run from master) already has
+  # newer deployment files. Replacing them with the release's would silently undo
+  # fixes, e.g. bring back a DuckDNS updater that sends IPv4 against the choice in .env.
+  if $IS_GIT; then
+    position="$(checkout_position "$release")"
+    case "$position" in
+      identical|behind) ;;
+      ahead|diverged)
+        rm -rf "$work"
+        warn "This checkout ($(git -C .. rev-parse --short HEAD)) is newer than release V$release ($position)."
+        warn "Its deployment files are kept; the release would replace them with older ones."
+        info "They follow the checkout: update it with git (e.g. git -C .. pull --ff-only)."
+        return 0 ;;
+      *)
+        rm -rf "$work"
+        fail "cannot tell whether this checkout ($(git -C .. rev-parse --short HEAD)) is newer than
+       release V$release — nothing was changed. Replacing newer deployment files with older ones
+       could undo fixes. Check the network access to api.github.com, or run again with --skip-files
+       to keep the files and update the images alone." ;;
+    esac
   fi
   OLD_BUNDLE=""
   if [ ! -f "$DEPLOYMENT_MANIFEST" ] && ! $IS_GIT && [ -n "$previous" ] && [ "$previous" != latest ] \
@@ -170,7 +220,7 @@ refresh_deployment_files() {
       continue
     fi
     base="$(baseline_hash "$rel")"
-    if [ -n "$base" ] && [ "$current" = "$base" ]; then
+    if { [ -n "$base" ] && [ "$current" = "$base" ]; } || is_checkout_version "$rel" "$current"; then
       changes+=("$rel")
     elif [ -n "$base" ] && [ "$base" = "$delivered" ] && ! $REPLACE_MODIFIED; then
       # Edited here, but the release did not change it: the local edit stays.
@@ -234,6 +284,29 @@ elif [ "${GT_DEPLOYMENT_REFRESHED:-}" != 1 ]; then
        Name the version explicitly (./update.sh 0.38.2), or run with --skip-files to update the images alone."
   refresh_deployment_files "$RELEASE" "$PREVIOUS_VERSION"
 fi
+
+# --------------------------------------------------------------------------
+# 1c. DuckDNS address family
+# --------------------------------------------------------------------------
+# The choice in .env only takes effect through a docker-compose.yml that hands it
+# to duckdns-update.sh. An older file runs the image's own updater, which always
+# sends this host's IPv4 address, so the stack is not restarted with it.
+env_value() {
+  local value
+  value="$(grep -oP "^$1=\K.*" .env || true)"
+  value="${value//\"/}"; printf '%s' "${value//\'/}"
+}
+DUCKDNS_MODE="$(env_value DUCKDNS_UPDATE_IP)"
+case ",$(env_value COMPOSE_PROFILES),:$DUCKDNS_MODE" in
+  *,duckdns,*:ipv4|*,duckdns,*:ipv6|*,duckdns,*:both)
+    DUCKDNS_CONFIG="$(docker compose config duckdns 2>/dev/null)" \
+      || fail "cannot read the DuckDNS service from docker-compose.yml — the stack was not restarted."
+    grep -qE "^ +UPDATE_IP: \"?${DUCKDNS_MODE}\"?$" <<< "$DUCKDNS_CONFIG" \
+      && grep -q '/etc/gt-duckdns-update.sh' <<< "$DUCKDNS_CONFIG" \
+      || fail "docker-compose.yml does not hand DUCKDNS_UPDATE_IP=${DUCKDNS_MODE} to duckdns-update.sh,
+       so the DuckDNS updater would send this host's IPv4 address. The stack was not restarted.
+       Use the docker-compose.yml of a release that contains duckdns-update.sh." ;;
+esac
 
 # --------------------------------------------------------------------------
 # 2. Target version

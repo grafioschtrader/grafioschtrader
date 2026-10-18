@@ -73,6 +73,14 @@ renews a free Let's Encrypt certificate automatically. Requirements:
    HTTP requests are redirected to HTTPS; Caddy uses these ports for certificate
    validation. IPv6-only access works without incoming public IPv4 or IPv4 NAT.
 
+With a domain alone, `http://<host-ip>/` is redirected to `https://<host-ip>/`,
+for which there is no certificate, so the LAN address stops working. `install.sh`
+therefore asks for a LAN address (default: the first address of the host's own
+interfaces, never a Docker bridge; `-` for none) and adds it as a second, plain
+HTTP site, as the classic installation does:
+`GT_SITE_ADDRESS="myhost.duckdns.org, http://192.168.1.20"`. Requests to that
+address are unencrypted, including the login; the domain keeps HTTPS.
+
 ### Home server with DuckDNS (e.g. Raspberry Pi)
 
 1. Create a free account at [duckdns.org](https://www.duckdns.org) and add a
@@ -98,6 +106,12 @@ while retaining the image's startup and periodic scheduling. Selecting one
 address family does **not** delete an existing record of the other family.
 Clean up obsolete A/AAAA records separately in DuckDNS: a wrong record can
 prevent access or certificate validation even when the other family works.
+
+The selection takes effect only through a `docker-compose.yml` that mounts
+`duckdns-update.sh` and passes `UPDATE_IP` to it; an older file runs the image's
+own updater, which always sends the IPv4 address. `install.sh` and `update.sh`
+therefore check `docker compose config duckdns` and refuse to start the stack
+when the file does not hand the selected family on.
 
 **Existing installations:** after obtaining these deployment files, rerun
 `bash install.sh` and keep the existing configuration. If the updater is enabled
@@ -305,6 +319,16 @@ saved in `gt-deployment-<date>.tar.gz` first, and `.gt-deployment.sha256`
 records what was delivered, so the next update can tell a delivered file from
 one you edited. `.env`, `config/` and the Docker volumes are never touched. If
 `update.sh` itself changes, the new version takes over and repeats the run.
+
+In a git checkout a file that is still exactly the checkout's counts as
+delivered, too. A checkout **newer** than the target release — `install.sh` run
+from `master`, for example — keeps its deployment files: replacing them would
+bring back older ones and undo fixes. The images are still updated; the files
+follow the checkout (`git -C .. pull --ff-only`). A shallow clone (`git clone
+--depth 1`) has no history, so `update.sh` asks the GitHub API how the two
+commits relate; if that is not possible, for example for a commit GitHub does
+not know, the update stops before anything is changed (`--skip-files` updates the
+images alone).
 
 A file you edited on the host is handled like this:
 

@@ -13,7 +13,22 @@ cat > "$work/bin/docker" <<'EOF'
 printf 'docker %s\n' "$*" >> "$TEST_LOG"
 case "$*" in
   'compose version') exit 0 ;;
-  'context inspect '*) printf '%s\n' "$TEST_ENDPOINT" ;;
+  # Like the Docker CLI (verified with Docker 29): DOCKER_HOST wins over
+  # DOCKER_CONTEXT, which wins over the saved context; an unknown context fails.
+  'context inspect --format {{.Endpoints.docker.Host}}')
+    if [ -n "${DOCKER_HOST:-}" ]; then printf '%s\n' "$DOCKER_HOST"
+    elif [ -n "${DOCKER_CONTEXT:-}" ]; then
+      case "$DOCKER_CONTEXT" in
+        remote) printf 'ssh://remote.invalid\n' ;;
+        local) printf 'unix:///var/run/docker.sock\n' ;;
+        *) exit 1 ;;
+      esac
+    else printf '%s\n' "$TEST_ENDPOINT"; fi ;;
+  'compose config duckdns')
+    printf 'services:\n  duckdns:\n    environment:\n'
+    [ "$TEST_WIRED" = no ] || printf '      UPDATE_IP: ipv6\n'
+    printf '    volumes:\n'
+    [ "$TEST_WIRED" = no ] || printf '      - target: /etc/gt-duckdns-update.sh\n' ;;
   info)
     # Like docker.socket, this can start the daemon without enabling boot startup.
     touch "$TEST_STATE/active"
@@ -74,6 +89,7 @@ reset_case() {
   unset DOCKER_HOST DOCKER_CONTEXT
   export TEST_ENDPOINT=unix:///var/run/docker.sock TEST_LOAD_STATE=loaded TEST_UID=0
   export TEST_ENABLE_STATUS=0 TEST_ENABLE_EFFECTIVE=yes TEST_START_STATUS=0 TEST_IMAGE_MISSING=0
+  export TEST_WIRED=yes
 }
 run_existing() {
   printf 'y\n' | bash "$install_dir/install.sh" > "$work/output" 2>&1
@@ -120,15 +136,26 @@ for failure in denied ineffective masked; do
   assert_no_success
 done
 
-# Docker context overrides DOCKER_HOST; DOCKER_HOST overrides the saved context.
+# The installer follows the endpoint the CLI resolves: DOCKER_HOST overrides
+# DOCKER_CONTEXT, which overrides the saved context.
 reset_case remote-context
-export DOCKER_CONTEXT=remote DOCKER_HOST=unix:///var/run/docker.sock TEST_ENDPOINT=ssh://remote.invalid
-run_existing
+export DOCKER_CONTEXT=remote
+run_existing || fail 'failed with DOCKER_CONTEXT=remote'
 assert_no_host_changes
 reset_case remote-host
 export DOCKER_HOST=tcp://remote.invalid:2376
-run_existing
+run_existing || fail 'failed with a remote DOCKER_HOST'
 assert_no_host_changes
+reset_case local-context-remote-host
+export DOCKER_CONTEXT=local DOCKER_HOST=tcp://remote.invalid:2376
+run_existing || fail 'failed with a local DOCKER_CONTEXT and a remote DOCKER_HOST'
+assert_no_host_changes
+for context in remote does-not-exist; do
+  reset_case "local-host-$context"
+  export DOCKER_CONTEXT="$context" DOCKER_HOST=unix:///var/run/docker.sock
+  run_existing || fail "DOCKER_HOST did not override DOCKER_CONTEXT=$context"
+  [ "$(cat "$TEST_STATE/enabled")" = enabled ] || fail "left the local Docker disabled with DOCKER_CONTEXT=$context"
+done
 for endpoint in unix:///run/user/1000/docker.sock unix:///home/test/.docker/desktop/docker.sock npipe:////./pipe/docker_engine; do
   reset_case "separate-$RANDOM"
   export TEST_ENDPOINT="$endpoint"
@@ -157,4 +184,16 @@ for mode in prebuilt build; do
   grep -q 'did not become ready' "$work/output" || fail "did not check $mode readiness"
   assert_no_success
 done
-printf 'PASS: persistent autostart, endpoint isolation, service failures and readiness on all install paths\n'
+# A docker-compose.yml that ignores the DuckDNS address family would start the
+# image's IPv4 updater; such a file must not start the stack.
+reset_case duckdns-unwired
+printf 'COMPOSE_PROFILES=duckdns\nDUCKDNS_UPDATE_IP="ipv6"\nDB_PASSWORD=existing-secret\n' > "$install_dir/.env"
+export TEST_WIRED=no
+if run_existing; then fail 'started an updater that ignores DUCKDNS_UPDATE_IP'; fi
+grep -q 'does not hand DUCKDNS_UPDATE_IP=ipv6' "$work/output" || fail 'missing DuckDNS wiring message'
+if grep -q '^docker compose up' "$TEST_LOG"; then fail 'started the stack with an unwired updater'; fi
+assert_no_success
+reset_case duckdns-wired
+printf 'COMPOSE_PROFILES=duckdns\nDUCKDNS_UPDATE_IP=ipv6\nDB_PASSWORD=existing-secret\n' > "$install_dir/.env"
+run_existing || fail 'refused a wired DuckDNS updater'
+printf 'PASS: persistent autostart, endpoint precedence, service failures, readiness and DuckDNS wiring\n'
