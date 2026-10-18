@@ -16,6 +16,47 @@ import grafiosch.GlobalParamKeyBaseDefault;
  * </p>
  */
 public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
+  /**
+   * Days after which a value of a user-defined field with the fill source RESOLVER, or the answer that the source has
+   * none, is looked up again.
+   */
+  public static final String GLOB_KEY_UDF_FILL_RESOLVER_REFRESH_DAYS = GlobalConstants.GT_PREFIX
+      + "udf.fill.resolver.refresh.days";
+  public static final int DEFAULT_UDF_FILL_RESOLVER_REFRESH_DAYS = 30;
+  public static final int MIN_UDF_FILL_RESOLVER_REFRESH_DAYS = 1;
+  public static final int MAX_UDF_FILL_RESOLVER_REFRESH_DAYS = 365;
+
+  /**
+   * Language models in order of priority, comma-separated, each optionally with a model, for example
+   * {@code gemini:gemini-3.8-flash,openai}. The value {@code none} switches every model feature off.
+   */
+  public static final String GLOB_KEY_AI_PROVIDERS = GlobalConstants.GT_PREFIX + "ai.providers";
+  public static final String GLOB_KEY_AI_TENANT_PROVIDERS = GlobalConstants.GT_PREFIX + "ai.tenant.providers";
+  public static final String DEFAULT_AI_TENANT_PROVIDERS = "anthropic,openai,gemini";
+  public static final String GLOB_KEY_AI_INSTANCE_KEYS_PROPOSE_RULE = GlobalConstants.GT_PREFIX
+      + "ai.instance.keys.propose.rule";
+  public static final int DEFAULT_AI_INSTANCE_KEYS_PROPOSE_RULE = 0;
+
+  /** Round trips to a language model per UTC day for the whole instance; 0 disables every model call. */
+  public static final String GLOB_KEY_AI_DAILY_REQUESTS_INSTANCE = GlobalConstants.GT_PREFIX
+      + "ai.daily.requests.instance";
+  public static final int DEFAULT_AI_DAILY_REQUESTS_INSTANCE = 1000;
+  public static final int MIN_AI_DAILY_REQUESTS_INSTANCE = 0;
+  public static final int MAX_AI_DAILY_REQUESTS_INSTANCE = 100000;
+
+  /** Days the log of the language model requests is kept. */
+  public static final String GLOB_KEY_AI_REQUEST_LOG_RETENTION_DAYS = GlobalConstants.GT_PREFIX
+      + "ai.request.log.retention.days";
+  public static final int DEFAULT_AI_REQUEST_LOG_RETENTION_DAYS = 90;
+  public static final int MIN_AI_REQUEST_LOG_RETENTION_DAYS = 2;
+  public static final int MAX_AI_REQUEST_LOG_RETENTION_DAYS = 3650;
+
+  /** Securities one value proposal run of a language model asks for at most. */
+  public static final String GLOB_KEY_AI_SUGGEST_MAX_PER_RUN = GlobalConstants.GT_PREFIX + "ai.suggest.max.per.run";
+  public static final int DEFAULT_AI_SUGGEST_MAX_PER_RUN = 50;
+  public static final int MIN_AI_SUGGEST_MAX_PER_RUN = 1;
+  public static final int MAX_AI_SUGGEST_MAX_PER_RUN = 500;
+
   /** Calendar-day fallback for replay dividends without a payment date. */
   public static final String GLOB_KEY_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS = GlobalConstants.GT_PREFIX
       + "simulation.dividend.payment.delay.days";

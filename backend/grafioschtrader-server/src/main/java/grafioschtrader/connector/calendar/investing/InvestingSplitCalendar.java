@@ -44,7 +44,7 @@ public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
       throws Exception {
     HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     List<ValueKeyHtmlSelectOptions> countries = firstReqeustForCountries(httpClient, countryCodes);
-    return secondRequestForSplits(httpClient, forDate, countries);
+    return secondRequestForSplits(httpClient, forDate, countries, createCountryCodeByFlag(countryCodes));
   }
 
   @Override
@@ -89,8 +89,27 @@ public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
     return Arrays.asList(countryNames);
   }
 
+  /**
+   * Maps the flag names used by investing.com in the CSS class of a row ("USA", "UK", "Canada", "South_Korea") to the
+   * ISO country codes of the stock exchanges. A flag that cannot be mapped, such as "Europe", stays unknown.
+   *
+   * @param countryCodes ISO country codes of the stock exchanges used in GT
+   * @return flag name to ISO country code
+   */
+  static Map<String, String> createCountryCodeByFlag(String[] countryCodes) {
+    Map<String, String> countryCodeByFlag = new HashMap<>();
+    for (String countryCode : countryCodes) {
+      countryCodeByFlag.put(Locale.of("", countryCode).getDisplayCountry(Locale.ENGLISH).replace(' ', '_'),
+          countryCode);
+    }
+    countryCodeByFlag.put("USA", "US");
+    countryCodeByFlag.put("UK", "GB");
+    return countryCodeByFlag;
+  }
+
   private Map<String, TickerSecuritysplit> secondRequestForSplits(HttpClient httpClient, LocalDate forDate,
-      List<ValueKeyHtmlSelectOptions> countries) throws IOException, InterruptedException {
+      List<ValueKeyHtmlSelectOptions> countries, Map<String, String> countryCodeByFlag)
+      throws IOException, InterruptedException {
 
     List<FormData> formData = new ArrayList<>();
     formData.add(new FormData("dateFrom", forDate.toString()));
@@ -114,10 +133,20 @@ public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
     ObjectMapper objectMapper = new ObjectMapper();
     SplitCalendarResponse splitCalendarResponse = objectMapper.readValue(response.body(), SplitCalendarResponse.class);
 
-    return readSplitTable(Jsoup.parseBodyFragment("<table>" + splitCalendarResponse.data + "</table>"), forDate);
+    return readSplitTable(Jsoup.parseBodyFragment("<table>" + splitCalendarResponse.data + "</table>"), forDate,
+        countryCodeByFlag);
   }
 
-  private Map<String, TickerSecuritysplit> readSplitTable(Document doc, LocalDate forDate) {
+  /**
+   * Reads the rows of the split table. Each split carries the country of its listing, taken from the flag of the row.
+   *
+   * @param doc               the table rows returned by investing.com
+   * @param forDate           the day of the splits
+   * @param countryCodeByFlag flag name to ISO country code, see {@link #createCountryCodeByFlag(String[])}
+   * @return ticker to split
+   */
+  Map<String, TickerSecuritysplit> readSplitTable(Document doc, LocalDate forDate,
+      Map<String, String> countryCodeByFlag) {
     Map<String, TickerSecuritysplit> splitTickerMap = new HashMap<>();
     Pattern namePattern = Pattern.compile("(.*)\\((.*)\\)$");
     FractionFormat fractionFormat = new FractionFormat(NumberFormat.getInstance(Locale.US));
@@ -126,7 +155,7 @@ public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
       Elements cols = row.select("td");
 
       if (cols.size() == 3) {
-        setRowDataToSplitMap(cols, forDate, fractionFormat, splitTickerMap, namePattern);
+        setRowDataToSplitMap(cols, forDate, fractionFormat, splitTickerMap, namePattern, countryCodeByFlag);
       }
     }
 
@@ -134,19 +163,15 @@ public class InvestingSplitCalendar implements ISplitCalendarFeedConnector {
   }
 
   private void setRowDataToSplitMap(Elements cols, LocalDate forDate, FractionFormat fractionFormat,
-      Map<String, TickerSecuritysplit> splitTickerMap, Pattern namePattern) {
+      Map<String, TickerSecuritysplit> splitTickerMap, Pattern namePattern, Map<String, String> countryCodeByFlag) {
     Matcher m = namePattern.matcher(cols.get(1).text());
     if (m.find()) {
       String[] countrySplitString = cols.get(1).select("span").attr("class").split("\\s+");
-      String countryCode = countrySplitString.length >= 2 ? countrySplitString[1] : null;
-      String ticker = tickerTransformer(m.group(2), countryCode);
-      splitTickerMap.putIfAbsent(ticker,
-          new TickerSecuritysplit(m.group(1).trim(), getSecuritySplit(cols.get(2).text(), forDate, fractionFormat)));
+      String flag = countrySplitString.length >= 2 ? countrySplitString[1] : null;
+      splitTickerMap.putIfAbsent(m.group(2), new TickerSecuritysplit(m.group(1).trim(),
+          flag == null ? null : countryCodeByFlag.get(flag), null,
+          getSecuritySplit(cols.get(2).text(), forDate, fractionFormat)));
     }
-  }
-
-  private String tickerTransformer(String investingTicker, String investingCountryCode) {
-    return investingTicker;
   }
 
   private Securitysplit getSecuritySplit(String splitText, LocalDate forDate, FractionFormat fractionFormat) {

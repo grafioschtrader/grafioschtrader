@@ -13,6 +13,7 @@ import { DataType } from '../../lib/dynamic-form/models/data.type';
 import { AppSettings } from '../../shared/app.settings';
 import { BaseSettings } from '../../lib/base.settings';
 import { ColumnConfig } from '../../lib/datashowbase/column.config';
+import { ShowRecordConfigBase } from '../../lib/datashowbase/show.record.config.base';
 import { SecuritycurrencyGroup } from '../../entities/view/securitycurrency.group';
 import { HelpIds } from '../../lib/help/help.ids';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -58,6 +59,19 @@ import { UDFGeneralEditComponent } from '../../lib/udfmeta/components/udf-genera
       .cell-move {
         cursor: move !important;
       }
+      /* An inline block with its own small line height: lines of the position values that wrap stay close together
+         instead of taking the line height of the heading. */
+      .position-header {
+        display: inline-block;
+        vertical-align: middle;
+        font-size: 0.75rem;
+        font-weight: normal;
+        line-height: 1.2;
+      }
+      .position-header-value {
+        margin-left: 1em;
+        white-space: nowrap;
+      }
     `
   ],
   providers: [DialogService],
@@ -91,6 +105,10 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
   includeDividends = false;
   /** Translated hint for a distributing security without dividend data. */
   private dividendMissingHint = '';
+  /** Shows the position values of the selected row in the caption of the table. */
+  showPositionHeader = false;
+  /** Currency of the tenant as delivered with the data, the suffix of the headers of the values in this currency. */
+  private mainCurrency: string;
 
   /**
    * Creates a new WatchlistPerformanceComponent with all required dependencies and initializes performance columns
@@ -151,6 +169,8 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.choosenTimeFrame = this.restoreTimeFrame();
     this.includeDividends =
       this.usersettingsService.readSingleValue(AppSettings.WATCHLIST_PERFORMANCE_INCLUDE_DIVIDENDS_STORE) === true;
+    this.showPositionHeader =
+      this.usersettingsService.readSingleValue(AppSettings.WATCHLIST_PERFORMANCE_POSITION_HEADER_STORE) === true;
     this.translateService
       .get('TOTAL_RETURN_DIVIDEND_MISSING')
       .subscribe((hint: string) => (this.dividendMissingHint = hint));
@@ -210,6 +230,17 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumnFeqH(DataType.Numeric, 'valueSecurity', true, true, {
       filterType: FilterType.likeDataType
     });
+    // The same two values in the currency of the tenant, whose code is appended to the header once the data arrived.
+    // Explicit header keys: the derived ones would drop the suffix MC and collide with the two columns above, which
+    // share their stored visibility.
+    this.addColumn(DataType.Numeric, 'valueSecurityMC', 'VALUE_SECURITY_MC', false, true, {
+      filterType: FilterType.likeDataType
+    });
+    this.addColumn(DataType.Numeric, 'positionGainLossPercentageMC', 'POSITION_GAIN_LOSS_PERCENTAGE_MC', false, true, {
+      headerSuffix: '%',
+      templateName: 'greenRed',
+      filterType: FilterType.likeDataType
+    });
     this.addColumn(DataType.Numeric, 'securitycurrency.sPrevClose', 'DAY_BEFORE_CLOSE', true, true, {
       maxFractionDigits: gps.getMaxFractionDigits(),
       fractionDigitsField: 'securitycurrency.priceFractionDigits'
@@ -227,6 +258,7 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     this.addColumn(DataType.DateString, 'youngestHistoryDate', 'YOUNGEST_EOD', false, true);
 
     this.prepareTableAndTranslate();
+    this.createPositionHeaderFields();
     this.watchlistHasModifiedFromOutside();
   }
 
@@ -271,10 +303,89 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
       { separator: true },
       this.getMenuTimeFrame(),
       this.getMenuIncludeDividends(),
+      this.getMenuPositionHeader(),
       ...this.getMenuShowOptions()
     ];
     TranslateHelper.translateMenuItems(menuItems, this.translateService);
     return menuItems;
+  }
+
+  /**
+   * Takes over the data and, when it carries the currency of the tenant, appends that currency to the headers of the
+   * values expressed in it.
+   *
+   * @param data Security currency group containing separate lists of security and currency positions
+   */
+  override createSecurityPositionList(data: SecuritycurrencyGroup): void {
+    super.createSecurityPositionList(data);
+    if (data.mainCurrency && data.mainCurrency !== this.mainCurrency) {
+      this.mainCurrency = data.mainCurrency;
+      this.setMainCurrencyHeaderSuffix('valueSecurityMC', this.mainCurrency);
+      this.setMainCurrencyHeaderSuffix('positionGainLossPercentageMC', '% ' + this.mainCurrency);
+      this.createPositionHeaderFields();
+    }
+  }
+
+  /**
+   * Replaces the header suffix of a column and translates its header again.
+   *
+   * @param field The field of the column
+   * @param headerSuffix The new suffix of the header
+   */
+  private setMainCurrencyHeaderSuffix(field: string, headerSuffix: string): void {
+    const columnConfig = this.getColumnConfigByField(field);
+    columnConfig.headerSuffix = headerSuffix;
+    this.setFieldHeaderTranslation(columnConfig);
+  }
+
+  /**
+   * Creates the fields of the position values shown in the caption for the selected row, or removes them when the
+   * position line is switched off. The values in the currency of the tenant carry its code once it is known.
+   */
+  private createPositionHeaderFields(): void {
+    if (!this.showPositionHeader) {
+      this.positionHeaderFields = null;
+      return;
+    }
+    // Until the first data arrived the currency is unknown and the headers stay without it
+    const currency = this.mainCurrency;
+    const fields = [
+      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'units', 'HOLDING'),
+      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'valueSecurity', 'VALUE_SECURITY'),
+      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'positionGainLoss', 'POSITION_GAIN_LOSS'),
+      ShowRecordConfigBase.createColumnConfig(
+        DataType.Numeric,
+        'positionGainLossPercentage',
+        'POSITION_GAIN_LOSS_PERCENTAGE',
+        true,
+        true,
+        { headerSuffix: '%' }
+      ),
+      ShowRecordConfigBase.createColumnConfig(DataType.Numeric, 'valueSecurityMC', 'VALUE_SECURITY_MC', true, true, {
+        headerSuffix: currency
+      }),
+      ShowRecordConfigBase.createColumnConfig(
+        DataType.Numeric,
+        'positionGainLossMC',
+        'POSITION_GAIN_LOSS_MC',
+        true,
+        true,
+        { headerSuffix: currency }
+      ),
+      ShowRecordConfigBase.createColumnConfig(
+        DataType.Numeric,
+        'positionGainLossPercentageMC',
+        'POSITION_GAIN_LOSS_PERCENTAGE_MC',
+        true,
+        true,
+        { headerSuffix: currency ? '% ' + currency : '%' }
+      )
+    ];
+    this.translateHeaders(
+      fields.map((field) => field.headerKey),
+      fields
+    );
+    this.positionHeaderFields = fields;
   }
 
   /** Updates price data through REST service call with period performance data for the selected time frame. */
@@ -341,6 +452,29 @@ export class WatchlistPerformanceComponent extends WatchlistTable implements OnI
     event.item.icon = this.includeDividends ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY;
     this.hideShowColumnByFileHeader('TOTAL_RETURN', this.includeDividends);
     this.updateAllPrice();
+  }
+
+  /** Creates the checkable menu item that shows the position values of the selected row in the caption. */
+  private getMenuPositionHeader(): MenuItem {
+    return {
+      label: 'POSITION_IN_HEADER',
+      icon: this.showPositionHeader ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY,
+      command: (event) => this.handlePositionHeader(event)
+    };
+  }
+
+  /**
+   * Switches the position line in the caption on or off and remembers the choice.
+   * @param event The menu click event
+   */
+  private handlePositionHeader(event): void {
+    this.showPositionHeader = !this.showPositionHeader;
+    this.usersettingsService.saveSingleValue(
+      AppSettings.WATCHLIST_PERFORMANCE_POSITION_HEADER_STORE,
+      this.showPositionHeader
+    );
+    event.item.icon = this.showPositionHeader ? BaseSettings.ICONNAME_SQUARE_CHECK : BaseSettings.ICONNAME_SQUARE_EMTPY;
+    this.createPositionHeaderFields();
   }
 
   /** A warning sign for a security whose total return lacks dividend data. */

@@ -83,7 +83,8 @@ public class YahooSplitCalendar extends AbstractYahooFinanceConnector implements
           // Process each row to extract split information
           for (List<Object> row : document.rows) {
             if (row.size() >= 6) {
-              String ticker = extractTicker(row.get(0));
+              String yahooTicker = row.get(0) == null ? null : row.get(0).toString().trim();
+              String ticker = extractTicker(yahooTicker);
               String companyName = row.get(1) != null ? row.get(1).toString() : "";
 
               // Parse split date
@@ -104,7 +105,8 @@ public class YahooSplitCalendar extends AbstractYahooFinanceConnector implements
                     CreateType.CONNECTOR_CREATED);
 
                 // Add to map (putIfAbsent ensures ticker uniqueness)
-                splitTickerMap.putIfAbsent(ticker, new TickerSecuritysplit(companyName, securitySplit));
+                splitTickerMap.putIfAbsent(ticker,
+                    new TickerSecuritysplit(companyName, null, extractSuffix(yahooTicker), securitySplit));
               }
             }
           }
@@ -121,13 +123,21 @@ public class YahooSplitCalendar extends AbstractYahooFinanceConnector implements
   /**
    * Extracts clean ticker symbol from raw ticker string Removes exchange suffixes (everything after the first dot)
    */
-  private String extractTicker(Object tickerObj) {
-    if (tickerObj == null)
+  private String extractTicker(String ticker) {
+    if (ticker == null)
       return null;
 
-    String ticker = tickerObj.toString().trim();
     int dotPos = ticker.indexOf(".");
     return dotPos > 0 ? ticker.substring(0, dotPos) : ticker;
+  }
+
+  /**
+   * Extracts the exchange suffix including the dot, which identifies the listing. A US listing has none, so an empty
+   * string is returned for it.
+   */
+  private String extractSuffix(String ticker) {
+    int dotPos = ticker.indexOf(".");
+    return dotPos > 0 ? ticker.substring(dotPos) : "";
   }
 
   /**

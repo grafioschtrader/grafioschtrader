@@ -1,5 +1,6 @@
 package grafioschtrader.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -20,6 +21,16 @@ public interface UDFMetadataSecurityJpaRepository extends JpaRepository<UDFMetad
   List<UDFMetadataSecurity> getAllByIdUserInAndUiOrderLessThanOrderByUiOrder(int[] idUser, byte lessThanUiOrderNum);
 
   int deleteByIdUDFMetadataAndIdUser(int idUDFMetadata, int idUser);
+
+  /**
+   * Returns the user fields — of a user other than 0 and without special type — whose fill source is one of the
+   * given ones, used by the daily run of the automatically filled fields.
+   *
+   * @param fillSources the byte values of the fill sources
+   * @return the matching fields of all users
+   */
+  @Query("SELECT u FROM UDFMetadataSecurity u WHERE u.fillSource IN ?1 AND u.idUser <> 0 AND u.udfSpecialType IS NULL")
+  List<UDFMetadataSecurity> findUserFieldsByFillSourceIn(Collection<Byte> fillSources);
 
   /**
    * Counts existing UDF security metadata entries with matching UI order and description values for validation. This

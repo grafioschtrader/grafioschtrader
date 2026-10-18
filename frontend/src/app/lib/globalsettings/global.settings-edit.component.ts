@@ -135,10 +135,11 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
       }
     } else {
       this.selectedPropertyField = 'propertyString';
+      // Matches the length of the column property_string
       fieldConfig = DynamicFieldHelper.createFieldInputString(
         this.selectedPropertyField,
         globalparameters.propertyName,
-        30,
+        100,
         true
       );
       // Add pattern validator from inputRule if present

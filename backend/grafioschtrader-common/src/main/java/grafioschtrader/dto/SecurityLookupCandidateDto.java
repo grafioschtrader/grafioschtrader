@@ -55,5 +55,8 @@ public record SecurityLookupCandidateDto(
     @Schema(description = "Every provider that found this listing, the exchange provider first") List<String> providerIds,
     @Schema(description = """
         Source of each set field, keyed by field name: a provider id such as 'six' or 'yahoo', or 'derived' for a
-        value a rule produced, e.g. a hyperlink from a template""") Map<String, String> fieldSources) {
+        value a rule produced, e.g. a hyperlink from a template""") Map<String, String> fieldSources,
+    @Schema(description = """
+        Hints about this listing: fields the security form needs but no provider delivered, a failed master data
+        request, a type that contradicts the chosen asset class, and values in which the merged providers disagree""") List<SecurityLookupHint> hints) {
 }

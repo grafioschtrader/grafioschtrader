@@ -49,6 +49,83 @@ public class GlobalparametersService {
         .orElse(GlobalParamKeyDefault.DEFAULT_SIMULATION_DIVIDEND_PAYMENT_DELAY_DAYS);
   }
 
+  /**
+   * Days after which a resolved value of a user-defined field, or the answer that the source has none, is due again.
+   * Read once per fill run; a missing or out of range row falls back to the default.
+   *
+   * @return the configured days, or {@link GlobalParamKeyDefault#DEFAULT_UDF_FILL_RESOLVER_REFRESH_DAYS}
+   */
+  public int getUdfFillResolverRefreshDays() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_UDF_FILL_RESOLVER_REFRESH_DAYS)
+        .map(Globalparameters::getPropertyInt)
+        .filter(value -> value >= GlobalParamKeyDefault.MIN_UDF_FILL_RESOLVER_REFRESH_DAYS
+            && value <= GlobalParamKeyDefault.MAX_UDF_FILL_RESOLVER_REFRESH_DAYS)
+        .orElse(GlobalParamKeyDefault.DEFAULT_UDF_FILL_RESOLVER_REFRESH_DAYS);
+  }
+
+  /**
+   * Round trips paid with instance keys per UTC day; 0 disables instance-funded calls only.
+   *
+   * @return the configured budget, or the default when the row is missing or out of range
+   */
+  public int getAIDailyRequestsInstance() {
+    return boundedInt(GlobalParamKeyDefault.GLOB_KEY_AI_DAILY_REQUESTS_INSTANCE,
+        GlobalParamKeyDefault.MIN_AI_DAILY_REQUESTS_INSTANCE, GlobalParamKeyDefault.MAX_AI_DAILY_REQUESTS_INSTANCE,
+        GlobalParamKeyDefault.DEFAULT_AI_DAILY_REQUESTS_INSTANCE);
+  }
+
+  /**
+   * Days the log of the language model requests is kept.
+   *
+   * @return the configured days, or the default when the row is missing or out of range
+   */
+  public int getAIRequestLogRetentionDays() {
+    return boundedInt(GlobalParamKeyDefault.GLOB_KEY_AI_REQUEST_LOG_RETENTION_DAYS,
+        GlobalParamKeyDefault.MIN_AI_REQUEST_LOG_RETENTION_DAYS,
+        GlobalParamKeyDefault.MAX_AI_REQUEST_LOG_RETENTION_DAYS,
+        GlobalParamKeyDefault.DEFAULT_AI_REQUEST_LOG_RETENTION_DAYS);
+  }
+
+  /**
+   * Securities one value proposal run of a language model asks for at most.
+   *
+   * @return the configured number, or the default when the row is missing or out of range
+   */
+  public int getAISuggestMaxPerRun() {
+    return boundedInt(GlobalParamKeyDefault.GLOB_KEY_AI_SUGGEST_MAX_PER_RUN,
+        GlobalParamKeyDefault.MIN_AI_SUGGEST_MAX_PER_RUN, GlobalParamKeyDefault.MAX_AI_SUGGEST_MAX_PER_RUN,
+        GlobalParamKeyDefault.DEFAULT_AI_SUGGEST_MAX_PER_RUN);
+  }
+
+  /**
+   * The language models in order of priority, as the administrator entered them.
+   *
+   * @return the value of {@code gt.ai.providers}, or null when the row is missing
+   */
+  public String getAIProviders() {
+    return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_AI_PROVIDERS)
+        .map(Globalparameters::getPropertyString).orElse(null);
+  }
+
+  /** Allowed providers, read for each request so withdrawing permission takes effect immediately. */
+  public List<String> getAITenantProviders() {
+    String value = globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_AI_TENANT_PROVIDERS)
+        .map(Globalparameters::getPropertyString).orElse(GlobalParamKeyDefault.DEFAULT_AI_TENANT_PROVIDERS);
+    return java.util.Arrays.stream(value.split(",")).map(String::strip)
+        .filter(grafioschtrader.udffill.ai.AIChatModelProvider.PROVIDERS::contains).distinct().toList();
+  }
+
+  /** Whether rule proposals may fall back to the operator's keys. Value suggestions never do. */
+  public boolean isAIInstanceKeysProposeRule() {
+    return boundedInt(GlobalParamKeyDefault.GLOB_KEY_AI_INSTANCE_KEYS_PROPOSE_RULE, 0, 1,
+        GlobalParamKeyDefault.DEFAULT_AI_INSTANCE_KEYS_PROPOSE_RULE) == 1;
+  }
+
+  private int boundedInt(String propertyName, int min, int max, int defaultValue) {
+    return globalparametersJpaRepository.findById(propertyName).map(Globalparameters::getPropertyInt)
+        .filter(value -> value >= min && value <= max).orElse(defaultValue);
+  }
+
   /** Reads the admin setting on each run, with a safe fallback for missing or externally corrupted rows. */
   public int getAlgoAlarmEvaluationIntervalHours() {
     return globalparametersJpaRepository.findById(GlobalParamKeyDefault.GLOB_KEY_ALGO_ALARM_EVALUATION_INTERVAL_HOURS)

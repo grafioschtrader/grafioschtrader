@@ -51,7 +51,7 @@ export class NicknameLangEditComponent extends SimpleEditBase implements OnInit 
     private mainDialogService: MainDialogService,
     gps: GlobalparameterService
   ) {
-    super(HelpIds.HELP_USER, gps);
+    super(HelpIds.HELP_INTRO_SETTINGS, gps);
   }
 
   ngOnInit(): void {

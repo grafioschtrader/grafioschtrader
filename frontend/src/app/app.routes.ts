@@ -1,3 +1,4 @@
+import { CorrelationChartComponent } from './correlation/component/correlation-chart.component';
 import { RouterModule, Routes } from '@angular/router';
 import { DASHBOARD_ROUTES } from './lib/dashboard/dashboard.routes';
 import { HistoryquoteHostComponent } from './historyquote/component/historyquote-host.component';
@@ -62,6 +63,7 @@ import { WatchlistPriceFeedComponent } from './watchlist/component/watchlist.pri
 import { WatchlistDividendSplitFeedComponent } from './watchlist/component/watchlist.dividend.split.feed.component';
 import { GlobalSettingsTableComponent } from './lib/globalsettings/global.settings.table.component';
 import { TaskDataChangeTableComponent } from './lib/taskdatamonitor/component/task.data.change.table.component';
+import { TaskDataChangeTabMenuComponent } from './lib/taskdatamonitor/component/task-data-change-tab-menu.component';
 import { ConnectorApiKeyTableComponent } from './lib/connectorapikey/component/connector.api.key.table.component';
 import { GTNetSetupTableComponent } from './lib/gnet/component/gtnet.setup.table.component';
 import { GTNetTabMenuComponent } from './lib/gnet/component/gtnet-tabmenu.component';
@@ -248,6 +250,13 @@ const APP_ROUTES: Routes = [
             canActivate: [authGuard]
           }
         ]
+      },
+
+      {
+        path: AppSettings.CHART_GENERAL_PURPOSE + '/' + AppSettings.CORRELATION_CHART,
+        component: CorrelationChartComponent,
+        outlet: AppSettings.MAIN_BOTTOM,
+        canActivate: [authGuard]
       },
 
       {
@@ -487,8 +496,9 @@ const APP_ROUTES: Routes = [
       },
       {
         path: BaseSettings.TASK_DATA_CHANGE_MONITOR_KEY,
-        component: TaskDataChangeTableComponent,
-        canActivate: [authGuard]
+        component: TaskDataChangeTabMenuComponent,
+        canActivate: [authGuard],
+        children: [{ path: ':queue', component: TaskDataChangeTableComponent, canActivate: [authGuard] }]
       },
 
       { path: AppSettings.TAX_DATA_KEY, component: TaxDataTreetableComponent, canActivate: [authGuard] },

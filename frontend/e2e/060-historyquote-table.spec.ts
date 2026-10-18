@@ -1,6 +1,7 @@
 import { APIResponse, expect, Locator, Page, Response, test } from '@playwright/test';
 import { loginAsFixtureUser } from './helpers';
 import { expectToast } from './manage-client.helpers';
+import { watchlistTable } from './watchlist.helpers';
 
 /**
  * End-of-day price views of a security that is seeded WITH its price history.
@@ -189,7 +190,7 @@ async function openWatchlist(page: Page): Promise<void> {
   const watchlistNode = page.getByRole('treeitem', { name: WATCHLIST_NAME, exact: true }).first();
   await watchlistNode.waitFor({ state: 'visible', timeout: 15_000 });
   await watchlistNode.click();
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await watchlistTable(page).waitFor({ state: 'visible', timeout: 15_000 });
 }
 
 /** The watchlist row of the security under test. */
@@ -202,7 +203,7 @@ function securityCell(page: Page): Locator {
  * searching by ISIN. The dialog stays open after the add, so it is closed explicitly.
  */
 async function addSecurityByIsin(page: Page): Promise<void> {
-  const container = page.locator('.data-container').first();
+  const container = watchlistTable(page);
   await container.click();
   await page.waitForTimeout(300);
   await container.click({ button: 'right' });

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { getUser } from './helpers';
 import { toShortDate } from './portfolio.helpers';
+import { watchlistTable } from './watchlist.helpers';
 
 const FIXTURE_PATH = path.resolve(
   __dirname,
@@ -205,16 +206,11 @@ async function openWatchlist(page: Page, watchlistName: string): Promise<void> {
   const node = page.getByRole('treeitem', { name: watchlistName, exact: true }).first();
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await watchlistTable(page).waitFor({ state: 'visible', timeout: 15_000 });
 }
 
 function watchlistSecurityRow(page: Page, group: SecurityTransactionGroup): Locator {
-  return page
-    .locator('.data-container')
-    .first()
-    .locator('p-table tbody tr')
-    .filter({ hasText: group.securityName })
-    .first();
+  return watchlistTable(page).locator('p-table tbody tr').filter({ hasText: group.securityName }).first();
 }
 
 async function openMarginTable(page: Page, group: SecurityTransactionGroup): Promise<Locator> {

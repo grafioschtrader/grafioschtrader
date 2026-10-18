@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loginAsFixtureUser, parseCsvRow } from './helpers';
+import { watchlistTable } from './watchlist.helpers';
 
 interface CurrencypairRow {
   fromCurrency: string;
@@ -32,7 +33,7 @@ function loadE2ERows(): CurrencypairRow[] {
 }
 
 async function openWatchlistContextMenu(page: Page): Promise<Locator> {
-  const contentArea = page.locator('.data-container').first();
+  const contentArea = watchlistTable(page);
   await contentArea.waitFor({ state: 'visible', timeout: 10_000 });
   await contentArea.click();
   await page.waitForTimeout(300);

@@ -22,6 +22,7 @@ SELECT 0, x.entity_name, x.relation_entity_name, x.count_scope, x.owner_scope,
         UNION ALL SELECT 'Cashaccount',     NULL, NULL, 0, 'gt.max.cash.account',     30
         UNION ALL SELECT 'Portfolio',       NULL, NULL, 0, 'gt.max.portfolio',        20
         UNION ALL SELECT 'Securityaccount', NULL, NULL, 0, 'gt.max.security.account', 20
+        UNION ALL SELECT 'TenantAIProvider', NULL, NULL, 0, NULL, 4
         UNION ALL SELECT 'Watchlist',       NULL, NULL, 0, 'gt.max.watchlist',        30
         UNION ALL SELECT 'CorrelationSet',  NULL, NULL, 0, 'gt.max.correlation.set',  10
         UNION ALL SELECT 'StandingOrder',   NULL, NULL, 0, 'gt.max.standing.order',   50

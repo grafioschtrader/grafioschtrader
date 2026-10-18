@@ -67,4 +67,14 @@ public interface ITask {
     return 0L;
   }
 
+  /**
+   * Gets the queue whose workers run this task. A queue other than the main one must be declared as a
+   * {@link TaskQueueDefinition} bean; an undeclared name falls back to the main queue.
+   *
+   * @return the name of the queue, {@link TaskQueueDefinition#MAIN} by default
+   */
+  default String getQueue() {
+    return TaskQueueDefinition.MAIN;
+  }
+
 }

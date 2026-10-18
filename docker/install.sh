@@ -19,8 +19,63 @@ command -v docker >/dev/null 2>&1 \
   || fail "docker is not installed. See https://docs.docker.com/engine/install/"
 docker compose version >/dev/null 2>&1 \
   || fail "the 'docker compose' plugin is missing. See https://docs.docker.com/compose/install/"
+
+# Check before docker info: socket activation can hide a disabled boot service.
+# Follow Docker's endpoint precedence and never change a local service when the
+# CLI targets a remote engine, Docker Desktop or a rootless/user-owned socket.
+ensure_docker_autostart() {
+  local endpoint state
+  local -a admin=()
+  if [ -n "${DOCKER_CONTEXT:-}" ]; then
+    endpoint="$(docker context inspect "$DOCKER_CONTEXT" --format '{{.Endpoints.docker.Host}}')" \
+      || fail "cannot inspect Docker context '$DOCKER_CONTEXT'."
+  elif [ -n "${DOCKER_HOST:-}" ]; then
+    endpoint="$DOCKER_HOST"
+  else
+    endpoint="$(docker context inspect --format '{{.Endpoints.docker.Host}}')" \
+      || fail "cannot determine the current Docker endpoint."
+  fi
+  case "$endpoint" in
+    unix:///var/run/docker.sock|unix:///run/docker.sock) ;;
+    *) info "Docker uses a remote or separately managed endpoint; arrange its automatic startup on the engine host."
+       return 0 ;;
+  esac
+  state="$(systemctl show docker.service --property=LoadState --value 2>/dev/null || true)"
+  if [ "$state" = masked ]; then
+    fail "docker.service is masked. Resolve this with the host administrator before installing."
+  elif [ "$state" != loaded ]; then
+    warn "No local systemd Docker service found. Ensure Docker starts automatically on this host."
+    return 0
+  fi
+  state="$(systemctl is-enabled docker.service 2>/dev/null || true)"
+  if [ "$state" = enabled ] && systemctl is-active --quiet docker.service; then
+    return 0
+  fi
+  if [ "$(id -u)" != 0 ]; then
+    command -v sudo >/dev/null 2>&1 \
+      || fail "Docker needs boot startup enabled. Run 'sudo systemctl enable --now docker.service', then retry."
+    admin=(sudo)
+  fi
+  info "Enabling Docker at boot and starting it now (administrator privileges may be required)."
+  "${admin[@]}" systemctl enable --now docker.service \
+    || fail "could not enable/start Docker. Check 'systemctl status docker.service' and retry."
+  [ "$(systemctl is-enabled docker.service 2>/dev/null || true)" = enabled ] \
+    && systemctl is-active --quiet docker.service \
+    || fail "Docker must be running and persistently enabled before installation can continue."
+}
+
+ensure_docker_autostart
 docker info >/dev/null 2>&1 \
   || fail "cannot talk to the Docker daemon. Is it running? (You may need to add your user to the 'docker' group.)"
+
+# Compose waits for MariaDB/backend healthchecks and for the other services to
+# run. A failed start or timeout must not reach either installation success message.
+start_stack() {
+  info "Starting Grafioschtrader and waiting for its healthchecks (up to 30 minutes)."
+  info "The first start runs database migrations. Follow progress with: docker compose logs -f backend"
+  docker compose "$@" up -d --wait --wait-timeout 1800 \
+    || fail "Grafioschtrader did not become ready. Check 'docker compose ps -a' and 'docker compose logs backend mariadb web'."
+}
 
 gen_secret() {
   local len="$1"
@@ -133,8 +188,8 @@ if [ -f .env ]; then
     upgrade_duckdns_mode
     randomize_cron
     pull_images
-    docker compose up -d
-    bold "Grafioschtrader is starting with the existing configuration."
+    start_stack
+    bold "Grafioschtrader is running with the existing configuration."
     exit 0
   fi
   OLD_DB_ROOT_PASSWORD="$(grep -oP '^DB_ROOT_PASSWORD=\K.*' .env || true)"
@@ -364,12 +419,13 @@ if [ -n "$missing" ]; then
   info "build needs roughly 4 GB of free RAM and is slow on a Raspberry Pi)."
   read -r -p "Build the images locally now? [y/N] " b
   if [ "${b:-N}" = "y" ] || [ "${b:-N}" = "Y" ]; then
-    docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+    docker compose -f docker-compose.yml -f docker-compose.build.yml build
+    start_stack -f docker-compose.yml -f docker-compose.build.yml
   else
     fail "Cannot start without the images. Re-run install.sh once they are published/public, or build locally."
   fi
 else
-  docker compose up -d
+  start_stack
 fi
 
 echo
@@ -381,8 +437,7 @@ else
   URL="http://${host_ip:-localhost}${port_suffix}/grafioschtrader/"
 fi
 bold "=== Done! ==="
-info "The first start runs all database migrations — this can take 1-3 minutes"
-info "(on a Raspberry Pi somewhat longer). Watch it with:"
+info "The backend and database healthchecks passed. View logs with:"
 info "    docker compose logs -f backend"
 echo
 info "Then open:  ${URL}"

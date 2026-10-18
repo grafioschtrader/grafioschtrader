@@ -99,10 +99,31 @@ public class DivvyDiaryConnector extends BaseFeedConnector {
     // ("Java/25") with HTTP 403.
     HttpResponse<String> response = FeedConnectorHelper.getByHttpClient(getDividendHistoricalDownloadLink(security));
     if (response.statusCode() != 200) {
+      String movedTo = getMovedToIsin(response);
+      if (movedTo != null) {
+        // Not followed: the instrument got a new ISIN (ADR ratio change, reverse split), which GT has to adopt too.
+        throw new IOException("DivvyDiary has moved ISIN " + security.getIsin() + " to " + movedTo
+            + ". The ISIN of this security is probably outdated and should be changed to " + movedTo + ".");
+      }
       // An unknown ISIN must fail, not look like an instrument without dividends.
       throw new IOException("HTTP " + response.statusCode() + " for " + getDividendHistoricalDownloadLink(security));
     }
     return objectMapper.readValue(response.body(), DividendHead.class);
+  }
+
+  /**
+   * Extracts the successor ISIN from a permanent redirect such as {@code Location: /symbols/US89686D3035}.
+   *
+   * @param response the response of the symbol request
+   * @return the ISIN the redirect points to, or null when the response is no permanent redirect to another symbol
+   */
+  private static String getMovedToIsin(HttpResponse<String> response) {
+    if (response.statusCode() != 301 && response.statusCode() != 308) {
+      return null;
+    }
+    return response.headers().firstValue("Location").filter(location -> location.contains("/symbols/"))
+        .map(location -> location.substring(location.lastIndexOf('/') + 1)).filter(isin -> !isin.isBlank())
+        .orElse(null);
   }
 
   private static List<Dividend> toDividends(Security security, DividendHead dividendHead, LocalDate fromDate) {

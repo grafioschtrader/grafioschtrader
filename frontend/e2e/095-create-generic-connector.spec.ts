@@ -1,5 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { loginAsFixtureUser } from './helpers';
+import { watchlistTable } from './watchlist.helpers';
 import {
   addEditableTableRow,
   fillNumber,
@@ -396,7 +397,7 @@ test.describe.serial('generic connectors — create as alledit, activate as admi
     await watchlistNode.click();
     await page.waitForTimeout(1500);
 
-    const contentArea = page.locator('.data-container').first();
+    const contentArea = watchlistTable(page);
     await contentArea.click();
     await page.waitForTimeout(300);
     await contentArea.click({ button: 'right' });

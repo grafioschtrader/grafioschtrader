@@ -64,8 +64,11 @@ export enum TaskTypeExtended {
   /** Checks whether a connector for intraday price data may no longer be working */
   MONITOR_INTRADAY_PRICE_DATA = 47,
 
-  /** Stores the determined values of the user-defined fields of user 0 */
-  UDF_USER_0_FILL_PERSISTENT_FIELDS_WITH_VALUES = 48,
+  /**
+   * Fills user-defined security fields. Without an entity: recreates the persistent fields of user 0 and enqueues one
+   * run per user field with a template or a lookup. With a user field as entity: fills that field.
+   */
+  UDF_FILL_VALUES = 48,
 
   /** Resets retry counters (history and intra) for connector(s) on active instruments */
   RESET_CONNECTOR_RETRY_COUNTERS = 49,
@@ -87,6 +90,9 @@ export enum TaskTypeExtended {
 
   /** Brings the daily total value per tenant and portfolio in hold_daily_total up to date */
   HOLD_DAILY_TOTAL_UPDATE = 55,
+
+  /** Lets a language model propose values of one user-defined security field; started by the user only */
+  UDF_USER_SUGGEST_VALUES = 57,
 
   // System tasks (80+ band): use oldValueNumber/oldValueString and cannot be created by a user
 

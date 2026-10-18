@@ -9,6 +9,7 @@ import grafiosch.limit.LimitKeyRegistration;
 import grafiosch.limit.LimitKeyRegistry;
 import grafiosch.types.CountScope;
 import grafiosch.types.OwnerScope;
+import grafioschtrader.entities.AIRequestLog;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoEventLog;
 import grafioschtrader.entities.AlgoExecutionState;
@@ -71,9 +72,9 @@ public abstract class LimitKeyConfig {
   public static final String ENTITY_NAME_SIMULATION_TENANT = "SimulationTenant";
 
   /**
-   * Pseudo entity name for securities created by the GTNet import. Kept separate from the ordinary {@code Security}
-   * cap so that network synchronisation does not consume a user's manual budget. It carries both a daily CUD limit and
-   * a lifetime cap.
+   * Pseudo entity name for securities created by the GTNet import. Kept separate from the ordinary {@code Security} cap
+   * so that network synchronisation does not consume a user's manual budget. It carries both a daily CUD limit and a
+   * lifetime cap.
    */
   public static final String ENTITY_NAME_GTNET_SECURITY_IMPORT = "GTNetSecurityImport";
 
@@ -93,6 +94,9 @@ public abstract class LimitKeyConfig {
    * the retry of a notification delivery. Its unit is one action, not one row of any table.
    */
   public static final String ENTITY_NAME_ALGO_ALERT_ACTION = "AlgoAlertAction";
+  /** Pseudo entity of the daily budget of round trips to a language model. */
+  public static final String ENTITY_NAME_AI_REQUEST = "AIRequest";
+  public static final LimitKey KEY_TENANT_AI_PROVIDER = LimitKey.max("TenantAIProvider", OwnerScope.TENANT);
 
   private static final String RELATION_SECURITYCURRENCY = "Securitycurrency";
 
@@ -114,8 +118,8 @@ public abstract class LimitKeyConfig {
   public static final LimitKey KEY_STANDING_ORDER = LimitKey.max(StandingOrder.class.getSimpleName(),
       OwnerScope.TENANT);
   public static final LimitKey KEY_SIMULATION_TENANT = LimitKey.max(ENTITY_NAME_SIMULATION_TENANT, OwnerScope.TENANT);
-  public static final LimitKey KEY_IMPORT_TRANSACTION_HEAD = LimitKey
-      .max(ImportTransactionHead.class.getSimpleName(), OwnerScope.TENANT);
+  public static final LimitKey KEY_IMPORT_TRANSACTION_HEAD = LimitKey.max(ImportTransactionHead.class.getSimpleName(),
+      OwnerScope.TENANT);
   public static final LimitKey KEY_IMPORT_TRANSACTION_POS = LimitKey.max(ImportTransactionPos.class.getSimpleName(),
       OwnerScope.TENANT);
   public static final LimitKey KEY_TAX_YEAR_CORRECTION = LimitKey.max(TaxYearCorrection.class.getSimpleName(),
@@ -126,12 +130,10 @@ public abstract class LimitKeyConfig {
   public static final LimitKey KEY_ALGO_ASSETCLASS = LimitKey.max(AlgoAssetclass.class.getSimpleName(),
       OwnerScope.TENANT);
   public static final LimitKey KEY_ALGO_SECURITY = LimitKey.max(AlgoSecurity.class.getSimpleName(), OwnerScope.TENANT);
-  public static final LimitKey KEY_ALGO_STRATEGY = LimitKey.max(AlgoStrategy.class.getSimpleName(),
-      OwnerScope.TENANT);
+  public static final LimitKey KEY_ALGO_STRATEGY = LimitKey.max(AlgoStrategy.class.getSimpleName(), OwnerScope.TENANT);
   public static final LimitKey KEY_ALGO_EXECUTION_STATE = LimitKey.max(AlgoExecutionState.class.getSimpleName(),
       OwnerScope.TENANT);
-  public static final LimitKey KEY_ALGO_EVENT_LOG = LimitKey.max(AlgoEventLog.class.getSimpleName(),
-      OwnerScope.TENANT);
+  public static final LimitKey KEY_ALGO_EVENT_LOG = LimitKey.max(AlgoEventLog.class.getSimpleName(), OwnerScope.TENANT);
 
   // Caps on the elements of a nested collection.
   /** Instruments in one watchlist. */
@@ -151,9 +153,8 @@ public abstract class LimitKeyConfig {
       ImportTransactionHead.class.getSimpleName(), ImportTransactionPos.class.getSimpleName(), CountScope.SINGLE,
       OwnerScope.TENANT);
   /** Staging positions over all GTNet import sets of the tenant. */
-  public static final LimitKey KEY_GTNET_SECURITY_IMP_POS_ALL = LimitKey.max(
-      GTNetSecurityImpHead.class.getSimpleName(), GTNetSecurityImpPos.class.getSimpleName(), CountScope.ALL,
-      OwnerScope.TENANT);
+  public static final LimitKey KEY_GTNET_SECURITY_IMP_POS_ALL = LimitKey.max(GTNetSecurityImpHead.class.getSimpleName(),
+      GTNetSecurityImpPos.class.getSimpleName(), CountScope.ALL, OwnerScope.TENANT);
   /** Staging positions of one GTNet import set. */
   public static final LimitKey KEY_GTNET_SECURITY_IMP_POS_SINGLE = LimitKey.max(
       GTNetSecurityImpHead.class.getSimpleName(), GTNetSecurityImpPos.class.getSimpleName(), CountScope.SINGLE,
@@ -185,8 +186,7 @@ public abstract class LimitKeyConfig {
   // Derived daily keys the application checks explicitly rather than through the generic CUD path.
   public static final LimitKey KEY_DAY_GTNET_SECURITY_IMPORT = LimitKey.dayCud(ENTITY_NAME_GTNET_SECURITY_IMPORT);
   public static final LimitKey KEY_DAY_HISTORYQUOTE_READ = LimitKey.dayRead(ENTITY_NAME_HISTORYQUOTE_READ);
-  public static final LimitKey KEY_DAY_TRADING_DAYS_MINUS_YEAR = LimitKey
-      .dayCud(ENTITY_NAME_TRADING_DAYS_MINUS_YEAR);
+  public static final LimitKey KEY_DAY_TRADING_DAYS_MINUS_YEAR = LimitKey.dayCud(ENTITY_NAME_TRADING_DAYS_MINUS_YEAR);
 
   private LimitKeyConfig() {
   }
@@ -207,6 +207,8 @@ public abstract class LimitKeyConfig {
    * {@code LIMIT_SECURITY_BREACH} would otherwise replace with a bare 401.
    */
   private static void registerTenantCaps() {
+    registerFlat(KEY_TENANT_AI_PROVIDER, grafioschtrader.entities.TenantAIProvider.class, 4, "min:0,max:4",
+        "MAX_TENANT_AI_PROVIDER", true);
     registerFlat(KEY_CASH_ACCOUNT, Cashaccount.class, 30, null, "MAX_CASH_ACCOUNT", true);
     registerFlat(KEY_PORTFOLIO, Portfolio.class, 20, null, "MAX_PORTFOLIO", true);
     registerFlat(KEY_SECURITY_ACCOUNT, Securityaccount.class, 20, null, "MAX_SECURITY_ACCOUNT", true);
@@ -291,11 +293,14 @@ public abstract class LimitKeyConfig {
 
     // GTNetSecurityImpPos carries no tenant column - it extends plain BaseID and reaches the tenant only through its
     // head - so even its tenant total has to be the nested ALL key rather than a flat one.
-    LimitKeyRegistry.register(new LimitKeyRegistration(KEY_GTNET_SECURITY_IMP_POS_ALL, GTNetSecurityImpHead.class,
-        (entityManager, user, _, _) -> user == null || user.getIdTenant() == null ? 0
-            : entityManager.createQuery(GTNET_IMP_POS_OF_TENANT, Long.class).setParameter(1, user.getIdTenant())
-                .getSingleResult().intValue(),
-        1000, null, "MAX_GT_NET_SECURITY_IMP_POS_ALL", false));
+    LimitKeyRegistry
+        .register(
+            new LimitKeyRegistration(KEY_GTNET_SECURITY_IMP_POS_ALL, GTNetSecurityImpHead.class,
+                (entityManager, user, _,
+                    _) -> user == null || user.getIdTenant() == null ? 0
+                        : entityManager.createQuery(GTNET_IMP_POS_OF_TENANT, Long.class)
+                            .setParameter(1, user.getIdTenant()).getSingleResult().intValue(),
+                1000, null, "MAX_GT_NET_SECURITY_IMP_POS_ALL", false));
 
     LimitKeyRegistry.register(new LimitKeyRegistration(KEY_GTNET_SECURITY_IMP_POS_SINGLE, GTNetSecurityImpHead.class,
         (entityManager, user, _, parentId) -> countSingleParent(entityManager,
@@ -330,12 +335,11 @@ public abstract class LimitKeyConfig {
   private static void registerSharedDataCaps() {
     // Securities the GTNet import created are excluded here and counted against their own key below.
     LimitKeyRegistry.register(new LimitKeyRegistration(KEY_SECURITY, Security.class,
-        (entityManager, user, _, _) -> user == null ? 0
-            : entityManager.createQuery("""
-                SELECT count(s) FROM Security s WHERE s.createdBy = ?1 AND NOT EXISTS
-                  (SELECT p FROM GTNetSecurityImpPos p WHERE p.security = s AND p.securityCreatedByImport = true)
-                """, Long.class).setParameter(1, user.getIdUser()).getSingleResult().intValue(),
-        2000, RULE_SHARED_DATA, "MAX_SECURITY", true));
+        (entityManager, user, _, _) -> user == null ? 0 : entityManager.createQuery("""
+            SELECT count(s) FROM Security s WHERE s.createdBy = ?1 AND NOT EXISTS
+              (SELECT p FROM GTNetSecurityImpPos p WHERE p.security = s AND p.securityCreatedByImport = true)
+            """, Long.class).setParameter(1, user.getIdUser()).getSingleResult().intValue(), 2000, RULE_SHARED_DATA,
+        "MAX_SECURITY", true));
 
     registerFlat(KEY_CURRENCYPAIR, Currencypair.class, 500, RULE_SHARED_DATA, "MAX_CURRENCYPAIR", true);
     registerFlat(KEY_ASSETCLASS, Assetclass.class, 200, RULE_SHARED_DATA, "MAX_ASSETCLASS", true);
@@ -344,14 +348,14 @@ public abstract class LimitKeyConfig {
     // Counted through the staging table rather than a column on security, because nothing on the security itself
     // records that an import created it.
     LimitKeyRegistry.register(new LimitKeyRegistration(KEY_GTNET_SECURITY_IMPORT, Security.class,
-        (entityManager, user, _, _) -> user == null ? 0
-            : entityManager.createQuery("""
-                SELECT count(p) FROM GTNetSecurityImpPos p WHERE p.securityCreatedByImport = true
-                  AND p.security.createdBy = ?1
-                """, Long.class).setParameter(1, user.getIdUser()).getSingleResult().intValue(),
-        20000, RULE_SHARED_DATA, "MAX_GT_NET_SECURITY_IMPORT", false));
+        (entityManager, user, _, _) -> user == null ? 0 : entityManager.createQuery("""
+            SELECT count(p) FROM GTNetSecurityImpPos p WHERE p.securityCreatedByImport = true
+              AND p.security.createdBy = ?1
+            """, Long.class).setParameter(1, user.getIdUser()).getSingleResult().intValue(), 20000, RULE_SHARED_DATA,
+        "MAX_GT_NET_SECURITY_IMPORT", false));
 
-    // Reference data a user may create beside the instruments. Each had a daily budget only; the defaults are ceilings on
+    // Reference data a user may create beside the instruments. Each had a daily budget only; the defaults are ceilings
+    // on
     // abuse, several times what the largest creator of the production database holds today.
     registerFlat(KEY_GENERIC_CONNECTOR_DEF, GenericConnectorDef.class, 20, RULE_SHARED_DATA,
         "MAX_GENERIC_CONNECTOR_DEF", true);
@@ -375,8 +379,8 @@ public abstract class LimitKeyConfig {
 
   /**
    * Pseudo entity names have no JPA entity behind them, so the derived daily key space cannot find them in the
-   * metamodel. {@code HistoryquoteRead} is registered for the read family only: a row written for it as
-   * {@code DAY_CUD} would be invisible to the read resolver and would silently drop that user's read exception.
+   * metamodel. {@code HistoryquoteRead} is registered for the read family only: a row written for it as {@code DAY_CUD}
+   * would be invisible to the read resolver and would silently drop that user's read exception.
    */
   private static void registerPseudoEntityNames() {
     LimitKeyRegistry.registerCudPseudoEntityName(ENTITY_NAME_GTNET_SECURITY_IMPORT, Security.class);
@@ -394,6 +398,10 @@ public abstract class LimitKeyConfig {
     // name stands for no table; the strategies the alerts belong to are tenant private, which is what the
     // administration shows it as.
     LimitKeyRegistry.registerCudPseudoEntityName(ENTITY_NAME_ALGO_ALERT_ACTION, AlgoStrategy.class);
+    // Round trips to a language model, budgeted per user and day by AIRequestGate; the reservations are kept in the
+    // user-private request log.
+    LimitKeyRegistry.registerCudPseudoEntityName(ENTITY_NAME_AI_REQUEST, AIRequestLog.class);
+    LimitKeyRegistry.registerCudPseudoEntityName("TenantAIProvider", grafioschtrader.entities.TenantAIProvider.class);
     LimitKeyRegistry.registerReadPseudoEntityName(ENTITY_NAME_HISTORYQUOTE_READ, Historyquote.class);
   }
 

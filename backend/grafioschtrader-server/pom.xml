@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>grafioschtrader</groupId>
 		<artifactId>grafioschtrader</artifactId>
-		<version>0.38.2</version>
+		<version>0.38.3</version>
 	</parent>
 
 	<artifactId>grafioschtrader-server</artifactId>
@@ -37,13 +37,13 @@
 		 <dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-base</artifactId>
-	        <version>0.38.2</version>
+	        <version>0.38.3</version>
 		</dependency>
 
  		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-server-base</artifactId>
-	        <version>0.38.2</version>
+	        <version>0.38.3</version>
 		</dependency>
 
 		<!-- Shared integration test fixture (grafiosch.test.rest): users.json reader, JWT acquisition
@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafiosch-server-base</artifactId>
-			<version>0.38.2</version>
+			<version>0.38.3</version>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>grafioschtrader</groupId>
 			<artifactId>grafioschtrader-common</artifactId>
-			<version>0.38.2</version>
+			<version>0.38.3</version>
 		</dependency>
 
 
@@ -227,6 +227,30 @@
 			<artifactId>bucket4j_jdk17-core</artifactId>
 		</dependency>
 
+		<!-- Language model of the user-defined field fill. The auto-configuration is switched off with
+		     spring.ai.model.chat=none; AIChatModelProvider builds the client in code from gt.ai.provider. -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-anthropic</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-openai</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-ollama</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-google-genai</artifactId>
+		</dependency>
+		<dependency>
+			<!-- Public source fetcher of the user-defined field fill: a DnsResolver per client lets the connection use
+			     only the addresses that were checked before -->
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
@@ -374,6 +398,15 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<!-- META-INF/build-info.properties provides BuildProperties, e.g. the version in the
+						     User-Agent of the requests to public sources of the user-defined field fill -->
+						<goals>
+							<goal>build-info</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
 					<mainClass>grafioschtrader.GrafioschtraderApplication</mainClass>
 					<!-- Keep the ~150 MB repackaged fat jar out of the local Maven repository on

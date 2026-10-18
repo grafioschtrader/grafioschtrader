@@ -26,6 +26,11 @@ public class SecuritycurrencyGroup {
   @Schema(description = "The ID of the watchlist to which this group of instruments belongs.")
   public Integer idWatchlist;
 
+  @Schema(description = """
+      Currency of the tenant, the currency of the values of the positions with the suffix MC. Only set when the
+      performance of the watchlist is calculated.""")
+  public String mainCurrency;
+
   public SecuritycurrencyGroup(List<SecuritycurrencyPosition<Security>> securityPositionList,
       List<SecuritycurrencyPosition<Currencypair>> currencypairPositionList, LocalDateTime lastTimestamp,
       Integer idWatchlist) {

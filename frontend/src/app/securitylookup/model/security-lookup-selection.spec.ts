@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { ConnectorAlternative } from './security-lookup';
-import { chooseDistributionFrequency, isUsableAlternative, preselectAlternative } from './security-lookup-selection';
+import { ConnectorAlternative, SecurityLookupCandidate } from './security-lookup';
+import {
+  chooseDistributionFrequency,
+  isAllUpperCase,
+  isUsableAlternative,
+  preselectAlternative,
+  preselectNameCandidate
+} from './security-lookup-selection';
 
 function alternative(idConnector: string, probeStatus: string): ConnectorAlternative {
   return { idConnector, probeStatus } as ConnectorAlternative;
@@ -46,5 +52,30 @@ describe('security lookup connector selection', () => {
     expect(preselectAlternative('history', [alternative('a', 'OK'), alternative('b', 'OK')])).toBeNull();
     expect(preselectAlternative('history', [alternative('a', 'REGEX_FAILED')])).toBeNull();
     expect(preselectAlternative('split', [])).toBeNull();
+  });
+});
+
+function listing(name: string): SecurityLookupCandidate {
+  return { name } as SecurityLookupCandidate;
+}
+
+describe('security lookup name selection', () => {
+  it('recognizes a name written entirely in capitals', () => {
+    expect(isAllUpperCase('FIVERR INTL')).toBe(true);
+    expect(isAllUpperCase('Fiverr International')).toBe(false);
+    expect(isAllUpperCase('3M')).toBe(true);
+    expect(isAllUpperCase('1234')).toBe(false);
+    expect(isAllUpperCase(null)).toBe(false);
+  });
+
+  it('prefers the first name that is not written entirely in capitals', () => {
+    const fiverr = listing('Fiverr International');
+    expect(preselectNameCandidate([listing('FIVERR INTL'), fiverr])).toBe(fiverr);
+  });
+
+  it('falls back to the first listing when every name is in capitals', () => {
+    const first = listing('FIVERR INTL');
+    expect(preselectNameCandidate([first, listing('FIVERR')])).toBe(first);
+    expect(preselectNameCandidate([])).toBeNull();
   });
 });

@@ -16,7 +16,10 @@ public record SecurityLookupResponse(
         form; otherwise no dividend connector is searched and the dialog shows no dividend table""") boolean dividendConnectorApplicable,
     @Schema(description = """
         True when an instrument of the chosen asset class can have splits, by the same rule as the security form; a
-        directly held bond, for example, has none""") boolean splitConnectorApplicable) {
+        directly held bond, for example, has none""") boolean splitConnectorApplicable,
+    @Schema(description = """
+        Hints that concern the query as a whole: providers that failed, and exchanges on which providers found the
+        instrument while finding nothing on the queried one. They are given even when there is no candidate.""") List<SecurityLookupHint> hints) {
 
   @Schema(description = "Outcome of the search at one provider")
   public record ProviderStatus(@Schema(description = "Short id of the provider") String providerId,

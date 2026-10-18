@@ -145,20 +145,30 @@ public class UDFData {
       // UDF_URLString:
       WebUrlValidator wuv = new WebUrlValidator();
       if (!wuv.isValid(value, null)) {
-        throw new IllegalArgumentException("URL starts with '" + value.substring(0, 20) + "' is not a valid url");
+        throw new IllegalArgumentException("URL starts with '" + urlPrefix(value) + "' is not a valid url");
       }
       if (value.length() > BaseConstants.FIELD_SIZE_MAX_G_WEB_URL) {
-        throw new IllegalArgumentException("URL starts with '" + value.substring(0, 20) + "' has more than "
+        throw new IllegalArgumentException("URL starts with '" + urlPrefix(value) + "' has more than "
             + BaseConstants.FIELD_SIZE_MAX_G_WEB_URL + " characters");
       }
       return value;
     }
   }
 
+  /**
+   * Returns at most the first 20 characters of a URL for an error message, so that a short value does not throw.
+   */
+  private static String urlPrefix(String value) {
+    return value.substring(0, Math.min(20, value.length()));
+  }
+
   private Double checkNumeric(String numericStr, double min, double max) {
     Double numeric = null;
     try {
       numeric = Double.parseDouble(numericStr);
+      if (!Double.isFinite(numeric)) {
+        throw new IllegalArgumentException(numericStr + " is not a finite decimal number");
+      }
       if (numeric < min || numeric > max) {
         throw new IllegalArgumentException("Decimal Number " + numeric + " is not a range of " + min + " - " + max);
       }

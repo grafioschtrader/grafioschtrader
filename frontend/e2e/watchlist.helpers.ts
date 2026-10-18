@@ -2,6 +2,11 @@ import { expect, Locator, Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
+/** Returns the watchlist's context-menu container independently of its full-height layout class. */
+export function watchlistTable(page: Page): Locator {
+  return page.locator('.data-table-container > configurable-table > div').first();
+}
+
 const FIXTURE_PATH = path.resolve(
   __dirname,
   '../../backend/grafioschtrader-server/src/test/resources/testdata/watchlists.json'
@@ -138,7 +143,7 @@ export async function ensureWatchlistSecuritiesBySubCategorySearch(
   await watchlistNode.waitFor({ state: 'visible', timeout: 15_000 });
   await watchlistNode.click();
 
-  const container = page.locator('.data-container').first();
+  const container = watchlistTable(page);
   await container.waitFor({ state: 'visible', timeout: 15_000 });
   const addDialog = await openAddInstrumentDialog(page, container);
   const subCategorySelect = addDialog.locator('select#subCategoryNLS');
@@ -194,7 +199,7 @@ export async function ensureWatchlistSecuritiesBySearch(page: Page, watchlist: W
   await watchlistNode.waitFor({ state: 'visible', timeout: 15_000 });
   await watchlistNode.click();
 
-  const container = page.locator('.data-container').first();
+  const container = watchlistTable(page);
   await container.waitFor({ state: 'visible', timeout: 15_000 });
   const missing: WatchlistSecurityFixture[] = [];
   for (const security of expectedSecurities) {

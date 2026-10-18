@@ -37,6 +37,18 @@ interface HeaderGroupItem {
 }
 
 /**
+ * A small mark shown before the content of a table cell.
+ */
+export interface CellMark {
+  /** CSS classes of the icon, for example 'fa fa-magic' */
+  iconClass: string;
+  /** Already translated tooltip of the mark */
+  tooltip: string;
+  /** Optional text shown in italics after the icon, for example a value that is only proposed */
+  text?: string;
+}
+
+/**
  * Reusable table component providing standardized Optimus table functionality with column configuration,
  * sorting, pagination, row expansion, selection, and context menu support.
  *
@@ -353,6 +365,19 @@ interface HeaderGroupItem {
                   [ngStyle]="getMergedCellStyle(rowData, field)"
                   [style.max-width.px]="field.width"
                   [ngClass]="getCellClass(field)">
+                  <!-- Optional mark before the content, for example for an automatically filled value -->
+                  @if (cellMarkFn) {
+                    @if (cellMarkFn(rowData, field); as mark) {
+                      <i
+                        [ngClass]="mark.iconClass"
+                        [pTooltip]="mark.tooltip"
+                        tooltipPosition="top"
+                        style="font-size: 0.75em; margin-right: 3px; opacity: 0.7"></i>
+                      @if (mark.text) {
+                        <i [pTooltip]="mark.tooltip" tooltipPosition="top">{{ mark.text }}</i>
+                      }
+                    }
+                  }
                   <!-- Cell content rendering -->
                   @if (customCellTemplate) {
                     <!-- Use custom cell template if provided -->
@@ -838,6 +863,12 @@ export class ConfigurableTableComponent<T = any> implements OnChanges {
    * Useful for conditional cell background coloring (e.g., color gradients based on values).
    */
   @Input() cellStyleFn?: (row: T, field: ColumnConfig) => { [key: string]: string } | null;
+
+  /**
+   * Optional function returning a small mark shown before the content of a cell, with a tooltip. Returns null for a
+   * cell without mark. Used for example to flag values that were filled automatically.
+   */
+  @Input() cellMarkFn?: (row: T, field: ColumnConfig) => CellMark | null;
 
   // ============================================================================
   // Row Behavior Callbacks

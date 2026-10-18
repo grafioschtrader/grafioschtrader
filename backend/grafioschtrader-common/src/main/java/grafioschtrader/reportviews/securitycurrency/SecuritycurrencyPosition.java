@@ -31,6 +31,28 @@ public class SecuritycurrencyPosition<T extends Securitycurrency<T>> implements 
   public Double positionGainLossPercentage;
   public Double valueSecurity;
 
+  @Schema(description = """
+      Total of the open position converted into the currency of the tenant at the current exchange rate. Like
+      valueSecurity it is the notional value for a margin instrument. Null when there is no open position or the
+      exchange rate is missing.""")
+  public Double valueSecurityMC;
+
+  @Schema(description = """
+      Gain or loss of the open position in the currency of the security, the amount behind positionGainLossPercentage.
+      For a margin instrument it is the unrealized gain or loss of its open positions.""")
+  public Double positionGainLoss;
+
+  @Schema(description = """
+      Gain or loss of the open position in the currency of the tenant including the currency effect: the price gain at
+      the current exchange rate plus the drift of the money still invested against the rates it was booked at. For a
+      margin instrument only the price gain at the current rate.""")
+  public Double positionGainLossMC;
+
+  @Schema(description = """
+      positionGainLossMC relative to the cost of the open units in the currency of the tenant, converted at the rates at
+      which the money was invested. Equals positionGainLossPercentage for a security in the currency of the tenant.""")
+  public Double positionGainLossPercentageMC;
+
   @Schema(description = "Intra day data html access produced from data connector of security")
   public String intradayUrl;
 

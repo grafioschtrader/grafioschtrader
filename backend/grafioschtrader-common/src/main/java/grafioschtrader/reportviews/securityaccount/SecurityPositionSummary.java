@@ -153,8 +153,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   public List<DisposalCostDetail> disposalDetails;
 
   /**
-   * Net proceeds in security currency of the units that settle into a cash account in the currency of the security.
-   * The portfolio report converts them into the main currency together with the balance of that cash account.
+   * Net proceeds in security currency of the units that settle into a cash account in the currency of the security. The
+   * portfolio report converts them into the main currency together with the balance of that cash account.
    */
   @JsonIgnore
   public double disposalSameCurrencyNet;
@@ -220,6 +220,14 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
   @JsonIgnore
   public Double transactionGainLossMC;
 
+  /**
+   * Average cost basis in security currency allocated to the units of a sale, the amount {@link #transactionGainLoss}
+   * of that sale is measured against. Kept because the sale removes it from {@link #adjustedCostBase}, so after a
+   * hypothetical sale of the whole position the cost basis of the open units is only available here.
+   */
+  @JsonIgnore
+  public Double transactionCostBase;
+
   @JsonIgnore
   public Double transactionExchangeRate;
 
@@ -250,6 +258,10 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    */
   @JsonIgnore
   public Double transactionFlowSC;
+
+  /** Exchange rate from security currency to main currency that {@link #calcMainCurrency(double)} was called with. */
+  @JsonIgnore
+  public double reportExchangeRate;
 
   @JsonIgnore
   public int precision;
@@ -451,6 +463,7 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
    * @param currencyExchangeRate exchange rate from security currency to main currency
    */
   public void calcMainCurrency(double currencyExchangeRate) {
+    reportExchangeRate = currencyExchangeRate;
     gainLossSecurityMC = gainLossSecurity * currencyExchangeRate;
     gainLossCurrencyMC = netInvestedSC * currencyExchangeRate - netInvestedMC;
     valueSecurityMC = valueSecurity * currencyExchangeRate;
@@ -458,9 +471,8 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
       accountValueSecurityMC = accountValueSecurity * currencyExchangeRate;
       if (marginGainLossBySettlementCurrency != null) {
         marginGainLossBySettlementCurrencyMC = new HashMap<>();
-        marginGainLossBySettlementCurrency
-            .forEach((currency, gainLoss) -> marginGainLossBySettlementCurrencyMC.put(currency,
-                gainLoss * currencyExchangeRate));
+        marginGainLossBySettlementCurrency.forEach((currency, gainLoss) -> marginGainLossBySettlementCurrencyMC
+            .put(currency, gainLoss * currencyExchangeRate));
       }
     } else {
       accountValueSecurity = valueSecurity;
@@ -496,6 +508,59 @@ public class SecurityPositionSummary extends SecuritycurrencyPositionSummary<Sec
     return DataBusinessHelper
         .roundPercentage(securitycurrency.isMarginInstrument() ? (this.gainLossSecurity / this.adjustedCostBase * 100)
             : transactionGainLossPercentage);
+  }
+
+  /**
+   * The amount in security currency behind {@link #getPositionGainLossPercentage()}: the unrealized gain or loss of the
+   * open margin positions, otherwise the gain or loss of the hypothetical sale of the open units.
+   *
+   * @return gain/loss of the open position in security currency, null when no hypothetical sale was calculated
+   */
+  @JsonIgnore
+  public Double getPositionGainLoss() {
+    return securitycurrency.isMarginInstrument() ? gainLossSecurity : transactionGainLoss;
+  }
+
+  /**
+   * Gain or loss of the open position in main currency including the currency effect: the price gain valued at the
+   * reporting date rate plus {@link #gainLossCurrencyMC}, the drift of the money still invested against the rates it
+   * was originally booked at. A margin position settles only its gain or loss, no capital was converted, so it is the
+   * price gain at the reporting date rate. Requires {@link #calcMainCurrency(double)} to have run.
+   *
+   * @return gain/loss in main currency, null when no hypothetical sale was calculated
+   */
+  @JsonIgnore
+  public Double getPositionGainLossMC() {
+    final Double positionGainLoss = getPositionGainLoss();
+    if (positionGainLoss == null) {
+      return null;
+    }
+    return DataHelper.round(
+        positionGainLoss * reportExchangeRate + (securitycurrency.isMarginInstrument() ? 0.0 : gainLossCurrencyMC),
+        precisionMC);
+  }
+
+  /**
+   * {@link #getPositionGainLossMC()} relative to the cost basis of the open units in main currency. The cost basis is
+   * converted at the average rate at which the money still invested was booked; when nothing is invested any more,
+   * because dividends and sales have returned more than was paid, the reporting date rate takes its place. For a
+   * security in main currency the result equals {@link #getPositionGainLossPercentage()}, as it does for a margin
+   * position. Requires {@link #calcMainCurrency(double)} to have run.
+   *
+   * @return percentage gain/loss in main currency, null when it cannot be determined
+   */
+  @JsonIgnore
+  public Double getPositionGainLossPercentageMC() {
+    if (securitycurrency.isMarginInstrument()) {
+      return getPositionGainLossPercentage();
+    }
+    final Double positionGainLossMC = getPositionGainLossMC();
+    if (positionGainLossMC == null || transactionCostBase == null) {
+      return null;
+    }
+    final double averageRate = netInvestedSC > 0 ? netInvestedMC / netInvestedSC : reportExchangeRate;
+    final double costBaseMC = transactionCostBase * averageRate;
+    return costBaseMC == 0 ? null : DataBusinessHelper.roundPercentage(positionGainLossMC / costBaseMC * 100);
   }
 
   public Security getSecurity() {

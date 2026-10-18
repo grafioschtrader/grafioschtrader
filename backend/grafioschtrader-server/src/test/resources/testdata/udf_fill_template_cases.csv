@@ -1,0 +1,35 @@
+# Cases of the TEMPLATE fill rule, replayed by UDFFillTemplateTest. Natural keys only.
+# The rule may contain the filter separator |, so the first five and the last field are split off and the
+# rest is the rule. \n and \r in the rule stand for line separators. An empty expected value means that
+# no line produces a value. A rule containing :// fills a URL field, every other one a string field.
+name|isin|ticker|mic|currency|rule|expected
+Apple Inc.|US0378331005|AAPL|XNAS|USD|[mic=XNAS,XNYS] https://www.marketbeat.com/stocks/{mic|map(XNAS=NASDAQ,XNYS=NYSE)}/{ticker|urlencode}/short-interest/|https://www.marketbeat.com/stocks/NASDAQ/AAPL/short-interest/
+The Coca-Cola Company|US1912161007|KO|XNYS|USD|[mic=XNAS,XNYS] https://www.marketbeat.com/stocks/{mic|map(XNAS=NASDAQ,XNYS=NYSE)}/{ticker|urlencode}/short-interest/|https://www.marketbeat.com/stocks/NYSE/KO/short-interest/
+Berkshire Hathaway Inc. Class B|US0846707026|BRK.B|XNYS|USD|[mic=XNAS,XNYS] https://www.marketbeat.com/stocks/{mic|map(XNAS=NASDAQ,XNYS=NYSE)}/{ticker|urlencode}/short-interest/|https://www.marketbeat.com/stocks/NYSE/BRK.B/short-interest/
+Berkshire Hathaway Inc. Class B|US0846707026|BRK B|XNYS|USD|[mic=XNAS,XNYS] https://www.marketbeat.com/stocks/{mic|map(XNAS=NASDAQ,XNYS=NYSE)}/{ticker|urlencode}/short-interest/|https://www.marketbeat.com/stocks/NYSE/BRK%20B/short-interest/
+Nestlé SA|CH0038863350|NESN|XSWX|CHF|[mic=XNAS,XNYS] https://www.marketbeat.com/stocks/{mic|map(XNAS=NASDAQ,XNYS=NYSE)}/{ticker|urlencode}/short-interest/|
+Nestlé SA|CH0038863350|NESN|XSWX|CHF|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/nestle#bilanz-guv
+Novartis AG|CH0012005267|NOVN|XSWX|CHF|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/novartis#bilanz-guv
+Roche Holding AG (Genussschein)|CH0012032048|ROG|XSWX|CHF|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/roche#bilanz-guv
+Procter & Gamble Co.|US7427181091|PG|XNYS|USD|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/procter_gamble#bilanz-guv
+Johnson & Johnson|US4781601046|JNJ|XNYS|USD|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/johnson_johnson#bilanz-guv
+Microsoft Corporation|US5949181045|MSFT|XNAS|USD|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/microsoft#bilanz-guv
+Volkswagen AG Vz|DE0007664039|VOW3|XETR|EUR|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/volkswagen_vz#bilanz-guv
+Unilever PLC|GB00B10RZP78|ULVR|XLON|GBP|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/unilever#bilanz-guv
+Holding AG||HAG|XSWX|CHF|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|
+Straßen Bau GmbH & Co. KG|DE0000000001|SBG|XETR|EUR|https://www.finanzen.ch/dividende/{name|legal|slug}#bilanz-guv|https://www.finanzen.ch/dividende/strassen_bau#bilanz-guv
+Mercedes-Benz Group AG|DE0007100000|MBG|XETR|EUR|https://x.example/{name|legal|slug(-)}|https://x.example/mercedes-benz
+Ørsted A/S|DK0060094928|ORSTED|XCSE|DKK|{name|ascii}|Orsted A/S
+Æro Øl Łódź|DK0000000002|AERO|XCSE|DKK|{name|ascii|upper}|AERO OL LODZ
+Apple Inc.|US0378331005|AAPL|XNAS|USD|{ticker|lower}-{currency|lower}|aapl-usd
+Apple Inc.|US0378331005|AAPL|XNAS|USD|{{{ticker}}}|{AAPL}
+Private Equity Fund||PEF|XSWX|CHF|https://isin.example/{isin}\nhttps://ticker.example/{ticker}|https://ticker.example/PEF
+Private Equity Fund|||XSWX|CHF|https://isin.example/{isin}|
+No Exchange Corp|US0000000003|NEX||USD|[mic=XNAS] https://a.example/{ticker}|
+No Exchange Corp|US0000000003|NEX||USD|https://m.example/{mic|lower}\nhttps://t.example/{ticker}|https://t.example/NEX
+Apple Inc.|US0378331005|AAPL|XNAS|USD|[currency=USD;mic=XNAS,XNYS] https://u.example/{ticker}|https://u.example/AAPL
+Nestlé SA|CH0038863350|NESN|XSWX|CHF|[currency=USD] https://u.example/{ticker}\n[currency=CHF,EUR] https://c.example/{ticker}|https://c.example/NESN
+Nestlé SA|CH0038863350|NESN|XSWX|CHF|https://m.example/{mic|map(XNAS=NASDAQ,XNYS=NYSE)}/{ticker}\nhttps://fallback.example/{ticker}|https://fallback.example/NESN
+Apple Inc.|US0378331005|AAPL|XNAS|USD|https://long.example/abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij/{ticker}\nhttps://short.example/{ticker}|https://short.example/AAPL
+Apple Inc.|US0378331005|AAPL|XNAS|USD|# yahoo pages use the lower case ticker\r\n\r\n  https://c.example/{ticker|lower}  |https://c.example/aapl
+Apple Inc.|US0378331005|AAPL|XNAS|USD|https://y.example/{isin}/{name|legal|slug}|https://y.example/US0378331005/apple

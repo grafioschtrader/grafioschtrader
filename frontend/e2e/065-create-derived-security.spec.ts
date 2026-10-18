@@ -5,6 +5,7 @@ import { loginAsFixtureUser } from './helpers';
 import { expectToast } from './manage-client.helpers';
 import { fillText, selectByValue } from './generic-connector.helpers';
 import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
+import { watchlistTable } from './watchlist.helpers';
 
 /**
  * A linked instrument of a derived security. Instruments are referenced by name because the
@@ -226,7 +227,7 @@ async function openWatchlist(page: Page, watchlistName: string): Promise<void> {
   const node = page.getByRole('treeitem', { name: watchlistName, exact: true }).first();
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await watchlistTable(page).waitFor({ state: 'visible', timeout: 15_000 });
   // Let the watchlist table render before the skip-if-present check.
   await page.waitForTimeout(1500);
 }
@@ -250,7 +251,7 @@ test.describe.serial('derived instruments — watchlist and calculated securitie
       }
 
       // Activate the panel, then open its context menu.
-      const contentArea = page.locator('.data-container').first();
+      const contentArea = watchlistTable(page);
       await contentArea.click();
       await page.waitForTimeout(300);
       await contentArea.click({ button: 'right' });

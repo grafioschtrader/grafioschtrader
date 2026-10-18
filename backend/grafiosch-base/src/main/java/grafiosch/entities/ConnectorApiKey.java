@@ -39,7 +39,7 @@ public class ConnectorApiKey extends BaseID<String> {
   @Schema(description = "The API key is stored in encrypted form in the persistence.")
   @NotBlank
   @Basic(optional = false)
-  @Size(min = 10, max = 255)
+  @Size(min = 10, max = 512)
   @Column(name = "api_key")
   private String apiKey;
 

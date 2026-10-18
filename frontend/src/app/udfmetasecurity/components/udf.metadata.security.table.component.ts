@@ -4,7 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { UDFMetadataSecurityService } from '../service/udf.metadata.security.service';
 import { AppSettings } from '../../shared/app.settings';
-import { ConfirmationService, FilterService } from '@openng/optimus-ui/api';
+import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
 import { MessageToastService } from '../../lib/message/message.toast.service';
 import { ActivePanelService } from '../../lib/mainmenubar/service/active.panel.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
@@ -17,9 +17,11 @@ import { HelpIds } from '../../lib/help/help.ids';
 import { UDFMetaTable } from '../../lib/udfmeta/components/udf.metadata.table';
 import { GlobalSessionNames } from '../../lib/global.session.names';
 import { UDFSpecialTypeDisableUserService } from '../../lib/udfmeta/service/udf.special.type.disable.user.service';
-import { UDFMetadataSecurity, UDFMetadataSecurityParam } from '../model/udf.metadata.security';
+import { UDFFillSource, UDFMetadataSecurity, UDFMetadataSecurityParam } from '../model/udf.metadata.security';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { UDFMetadataSecurityEditComponent } from './udf-metadata-security-edit.component';
+import { UDFFillProposalsDialogComponent } from './udf-fill-proposals-dialog.component';
+import { BaseSettings } from '../../lib/base.settings';
 
 /**
  * Table component for managing security-specific UDF metadata definitions.
@@ -71,6 +73,13 @@ import { UDFMetadataSecurityEditComponent } from './udf-metadata-security-edit.c
         (closeDialog)="handleCloseDialog($event)">
       </udf-metadata-security-edit>
     }
+    @if (visibleProposalsDialog) {
+      <udf-fill-proposals-dialog
+        [visibleDialog]="visibleProposalsDialog"
+        [field]="proposalsField"
+        (closeDialog)="visibleProposalsDialog = false">
+      </udf-fill-proposals-dialog>
+    }
   `,
   providers: [DialogService],
   standalone: true,
@@ -80,7 +89,8 @@ import { UDFMetadataSecurityEditComponent } from './udf-metadata-security-edit.c
     TranslateModule,
     AngularSvgIconModule,
     ConfigurableTableComponent,
-    UDFMetadataSecurityEditComponent
+    UDFMetadataSecurityEditComponent,
+    UDFFillProposalsDialogComponent
   ]
 })
 export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataSecurity> implements OnDestroy {
@@ -89,6 +99,12 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
 
   /** Flag indicating this is security-specific (not general) metadata editing */
   isSecurityEdit = true;
+
+  /** Shows the proposals of a language model for {@link proposalsField} */
+  visibleProposalsDialog = false;
+
+  /** The field whose proposals are shown */
+  proposalsField: UDFMetadataSecurity;
 
   /**
    * Creates the UDF metadata security table component.
@@ -152,6 +168,8 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
         translateValues: TranslateValue.UPPER_CASE_ARRAY_TO_COMMA_SEPERATED,
         width: 200
       });
+      // Set by the server: whether anything fills the field, e.g. not a language model field without a tenant key
+      this.addColumnFeqH(DataType.Boolean, 'active', true, false, { templateName: 'check' });
     }
   }
 
@@ -161,6 +179,26 @@ export class UDFMetadataSecurityTableComponent extends UDFMetaTable<UDFMetadataS
    *
    * @param entity - Security UDF metadata entity to edit, or null for new entry
    */
+  /**
+   * Adds the proposals of a language model for an own field with the fill source LLM.
+   *
+   * @param udfMetaData - The selected field
+   * @param menuItems - Menu items to extend
+   * @protected
+   */
+  protected override addCustomMenusToSelectedEntity(udfMetaData: UDFMetadataSecurity, menuItems: MenuItem[]): void {
+    super.addCustomMenusToSelectedEntity(udfMetaData, menuItems);
+    if (udfMetaData?.fillSource === UDFFillSource.LLM && udfMetaData.idUser === this.gps.getIdUser()) {
+      menuItems.push({
+        label: 'UDF_FILL_PROPOSALS' + BaseSettings.DIALOG_MENU_SUFFIX,
+        command: () => {
+          this.proposalsField = udfMetaData;
+          this.visibleProposalsDialog = true;
+        }
+      });
+    }
+  }
+
   override prepareCallParam(entity: UDFMetadataSecurity): void {
     this.beforeEdit(entity, this.callParam);
     this.callParam.uDFMetadataSecurity = entity;

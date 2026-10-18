@@ -5,7 +5,12 @@ import { GlobalparameterService } from '../../services/globalparameter.service';
 import { MessageToastService } from '../../message/message.toast.service';
 import { HelpIds } from '../../help/help.ids';
 import { TaskDataChangeService } from '../service/task.data.change.service';
-import { TaskDataChange, TaskDataChangeFormConstraints, EntityIdOption } from '../types/task.data.change';
+import {
+  TaskDataChange,
+  TaskDataChangeFormConstraints,
+  EntityIdOption,
+  MAIN_TASK_QUEUE
+} from '../types/task.data.change';
 import { AppHelper } from '../../helper/app.helper';
 import { DynamicFieldHelper } from '../../helper/dynamic.field.helper';
 import { TranslateHelper } from '../../helper/translate.helper';
@@ -18,6 +23,7 @@ import moment from 'moment';
 import { Validators } from '@angular/forms';
 import { BaseSettings } from '../../base.settings';
 import { TaskTypeBase } from '../types/task.type.base';
+import { getTaskTypeHelpId } from '../task.type.help';
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
@@ -49,6 +55,8 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
   @Input() callParam: TaskDataChange;
   @Input() tdcFormConstraints: TaskDataChangeFormConstraints;
   @Input() taskTypeEnum: any = TaskTypeBase; // Application can provide extended enum
+  /** The queue of the monitor tab; only its task types can be created there */
+  @Input() queue: string = MAIN_TASK_QUEUE;
 
   private idTaskSubscribe: Subscription;
   private entitySubscribe: Subscription;
@@ -88,6 +96,18 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       DynamicFieldHelper.createSubmitButton()
     ];
     this.configObject = TranslateHelper.prepareFieldsAndErrors(this.translateService, this.config);
+  }
+
+  /**
+   * Opens the description of the selected task type at its own section, or the overview of all task types when
+   * none is selected yet.
+   */
+  override helpLink(): void {
+    const idTaskName = this.configObject.idTask.formControl.value;
+    this.gps.toExternalHelpWebpage(
+      this.gps.getUserLang(),
+      getTaskTypeHelpId(idTaskName ? this.taskTypeEnum[idTaskName] : null)
+    );
   }
 
   valueChangedOnIdTask(): void {
@@ -206,7 +226,11 @@ export class TaskDataChangeEditComponent extends SimpleEntityEditBase<TaskDataCh
       this.translateService,
       this.taskTypeEnum,
       Object.keys(this.taskTypeEnum)
-        .filter((key) => this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask)
+        .filter(
+          (key) =>
+            this.taskTypeEnum[key] <= this.tdcFormConstraints.maxUserCreateTask &&
+            (this.tdcFormConstraints.taskTypeQueue?.[key] ?? MAIN_TASK_QUEUE) === this.queue
+        )
         .map((key) => this.taskTypeEnum[key])
     ).map((option) => {
       const label = `${option.value} - ${this.taskTypeEnum[option.key as string]}`;

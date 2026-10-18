@@ -62,6 +62,7 @@ import { adminGuard, authGuard } from '../app/lib/services/guards.definition';
 import { UserSettingsService } from '../app/lib/services/user.settings.service';
 import { TabMenuService } from '../app/lib/tabmenu/service/tab.menu.service';
 import { TaskDataChangeTableComponent } from '../app/lib/taskdatamonitor/component/task.data.change.table.component';
+import { TaskDataChangeTabMenuComponent } from '../app/lib/taskdatamonitor/component/task-data-change-tab-menu.component';
 import { TaskDataChangeService } from '../app/lib/taskdatamonitor/service/task.data.change.service';
 import { TASK_EXTENDED_SERVICE } from '../app/lib/taskdatamonitor/service/task.extend.service.token';
 import { TASK_TYPE_ENUM } from '../app/lib/taskdatamonitor/service/task.type.enum.token';
@@ -188,8 +189,9 @@ const routes: Routes = [
       },
       {
         path: BaseSettings.TASK_DATA_CHANGE_MONITOR_KEY,
-        component: TaskDataChangeTableComponent,
-        canActivate: [authGuard]
+        component: TaskDataChangeTabMenuComponent,
+        canActivate: [authGuard],
+        children: [{ path: ':queue', component: TaskDataChangeTableComponent, canActivate: [authGuard] }]
       },
       {
         path: BaseSettings.CONNECTOR_API_KEY_KEY,

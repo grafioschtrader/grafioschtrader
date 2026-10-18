@@ -1,0 +1,19 @@
+{
+ "batchcomplete": "",
+ "query": {
+  "searchinfo": {
+   "totalhits": 1
+  },
+  "search": [
+   {
+    "ns": 0,
+    "title": "Q312",
+    "pageid": 1000,
+    "size": 400000,
+    "wordcount": 0,
+    "snippet": "",
+    "timestamp": "2026-10-01T08:12:44Z"
+   }
+  ]
+ }
+}

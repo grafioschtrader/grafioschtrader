@@ -3,6 +3,7 @@ package grafioschtrader.exportdelete;
 import grafiosch.entities.UDFMetadata;
 import grafiosch.exportdelete.ExportDefinition;
 import grafiosch.exportdelete.ExportDefinition.TENANT_USER;
+import grafioschtrader.entities.AIRequestLog;
 import grafioschtrader.entities.AlgoAlertEvaluationState;
 import grafioschtrader.entities.AlgoAssetclass;
 import grafioschtrader.entities.AlgoAssetclassSecurity;
@@ -66,6 +67,7 @@ import grafioschtrader.entities.TradingDaysMinus;
 import grafioschtrader.entities.TradingDaysPlus;
 import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.entities.UDFDataFill;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
 
@@ -73,6 +75,8 @@ import grafioschtrader.entities.Watchlist;
  * Delete the user's data from this database and export his data for later import into his personal database.<br>
  *
  * <ul>
+ * <li>ai_request_log is operational history and is deleted, never exported.
+ * <li>tenant_ai_provider contains instance-encrypted secrets and is deleted, never exported or transferred.
  * <li>hold_* tables are not exported they should rebuild with import</li>
  * <li>mail* tables are not exported, they have a relation to others users</li>
  * <li>{@link grafiosch.entities.TaskDataChange} is not exported
@@ -137,7 +141,8 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT s.* FROM %1$s JOIN security s ON s.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?
       UNION SELECT s1.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
       JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
-      WHERE tas.id_tenant = ? AND sc.dtype = 'S'""".formatted(ALGO_SECURITY_FROM);
+      WHERE tas.id_tenant = ? AND sc.dtype = 'S'"""
+      .formatted(ALGO_SECURITY_FROM);
   private static String SECURITY_DELETE = String.format("FROM %s WHERE id_tenant_private = ?", Security.TABNAME);
   private static String SECURITY_DERIVED_LINK = String.format(
       """
@@ -174,7 +179,8 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT sc.* FROM risk_free_rate_mapping rfm JOIN securitycurrency sc ON sc.id_securitycurrency = rfm.id_securitycurrency WHERE sc.dtype = 'S'
       UNION SELECT sc.* FROM %1$s JOIN securitycurrency sc ON sc.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?
       UNION SELECT sc.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
-      JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ? AND sc.dtype = 'S'""".formatted(ALGO_SECURITY_FROM);
+      JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ? AND sc.dtype = 'S'"""
+      .formatted(ALGO_SECURITY_FROM);
   private static String SECURITYCURRENCY_DELETE = "FROM securitycurrency WHERE id_securitycurrency = ?";
   private static String PRIVATE_SECURITY_IDS = "SELECT id_securitycurrency FROM security WHERE id_tenant_private = ?";
   private static String PRIVATE_SECURITY_TASK_DELETE = """
@@ -203,7 +209,8 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT cp.* FROM correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN currencypair cp
       ON ci.id_securitycurrency = cp.id_securitycurrency WHERE cs.id_tenant = ?
       UNION SELECT c.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
-      JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ?""".formatted(ALGO_SECURITY_FROM);
+      JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ?"""
+      .formatted(ALGO_SECURITY_FROM);
   private static String SECURITYCURRENCY_C_SELECT = """
       sc.* FROM currencypair c1, securitycurrency sc, (SELECT DISTINCT s.currency as fromcurrency, e.currency as tocurrency
       FROM tenant e, portfolio p, securitycashaccount sc, transaction t, security s WHERE e.id_tenant = ? AND e.id_tenant = p.id_portfolio
@@ -228,7 +235,8 @@ public class MyDataExportDeleteDefinition {
       JOIN securitycurrency sc ON ci.id_securitycurrency = sc.id_securitycurrency WHERE sc.dtype = 'C' AND cs.id_tenant = ?
       UNION SELECT sc.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
       JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency
-      WHERE tas.id_tenant = ?""".formatted(ALGO_SECURITY_FROM);
+      WHERE tas.id_tenant = ?"""
+      .formatted(ALGO_SECURITY_FROM);
   private static String HISTORYQUOTE_SELECT = """
       DISTINCT h.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency JOIN historyquote h ON s.id_securitycurrency = h.id_securitycurrency
       WHERE t.id_tenant = ? AND s.active_to_date < now() + interval 1 month
@@ -261,19 +269,22 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT hl.* FROM %1$s JOIN historyquote_legacy hl ON hl.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?
       UNION SELECT hl.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
       JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency JOIN historyquote_legacy hl ON hl.id_securitycurrency = sc.id_securitycurrency
-      WHERE tas.id_tenant = ? AND sc.dtype = 'S'""".formatted(ALGO_SECURITY_FROM);
+      WHERE tas.id_tenant = ? AND sc.dtype = 'S'"""
+      .formatted(ALGO_SECURITY_FROM);
   // Restricted the same way as the history quote periods: a marker names a security, so exporting the whole table
   // would reference instruments the dump does not carry and the re-import would fail on the foreign key.
   private static String BANKRUPT_SECURITY_SELECT = """
       bs.* FROM bankrupt_security bs JOIN security s ON bs.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
       UNION SELECT DISTINCT bs.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN bankrupt_security bs ON wsc.id_securitycurrency = bs.id_securitycurrency
       WHERE w.id_tenant = ? UNION SELECT DISTINCT bs.* FROM transaction t JOIN bankrupt_security bs ON t.id_securitycurrency = bs.id_securitycurrency WHERE t.id_tenant = ?
-      UNION SELECT bs.* FROM %1$s JOIN bankrupt_security bs ON bs.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?""".formatted(ALGO_SECURITY_FROM);
+      UNION SELECT bs.* FROM %1$s JOIN bankrupt_security bs ON bs.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?"""
+      .formatted(ALGO_SECURITY_FROM);
   private static String HISTORYQUOTEPERIOD_SELECT = """
       hp.* FROM historyquote_period hp JOIN security s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?
       UNION SELECT DISTINCT hp.* FROM watchlist w JOIN watchlist_sec_cur wsc ON w.id_watchlist = wsc.id_watchlist JOIN historyquote_period hp ON wsc.id_securitycurrency = hp.id_securitycurrency
       WHERE w.id_tenant = ? UNION SELECT DISTINCT hp.* FROM transaction t JOIN historyquote_period hp ON t.id_securitycurrency = hp.id_securitycurrency WHERE t.id_tenant = ?
-      UNION SELECT hp.* FROM %1$s JOIN historyquote_period hp ON hp.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?""".formatted(ALGO_SECURITY_FROM);
+      UNION SELECT hp.* FROM %1$s JOIN historyquote_period hp ON hp.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?"""
+      .formatted(ALGO_SECURITY_FROM);
   private static String HISTORYQUOTEPERIOD_DELETE = String.format(
       "hp.* FROM %s hp JOIN %s s ON hp.id_securitycurrency = s.id_securitycurrency WHERE s.id_tenant_private = ?",
       HistoryquotePeriod.TABNAME, Security.TABNAME);
@@ -289,6 +300,9 @@ public class MyDataExportDeleteDefinition {
   private static String UDF_METADATA_SECURITY_EXPORT = String.format(
       " ums.* FROM %s ums JOIN %s m ON ums.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ? OR m.id_user = 0",
       UDFMetadataSecurity.TABNAME, UDFMetadata.TABNAME);
+  private static String UDF_DATA_FILL_SELDEL = String.format(
+      " f.* FROM %s f JOIN %s m ON f.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?", UDFDataFill.TABNAME,
+      UDFMetadata.TABNAME);
   private static String SECACCOUNT_TRADING_PERIOD_SELDEL = String.format(
       "stp.* FROM %s stp JOIN %s sc ON stp.id_securitycash_account = sc.id_securitycash_account WHERE sc.id_tenant = ?",
       SecaccountTradingPeriod.TABNAME, Securitycashaccount.TABNAME);
@@ -454,6 +468,15 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(UDFMetadataSecurity.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_SECURITY_EXPORT,
           ExportDefinition.EXPORT_USE),
       new ExportDefinition(UDFMetadataSecurity.TABNAME, TENANT_USER.ID_USER, UDF_METADATA_SECUIRTY_SELDEL,
+          ExportDefinition.DELETE_USE),
+      // Provenance of the automatically filled cells, scoped through the owner of the field. All states are exported,
+      // so that a re-imported tenant keeps its automatic values and locks; securities are shared and survive the user,
+      // hence the explicit delete.
+      new ExportDefinition(UDFDataFill.TABNAME, TENANT_USER.ID_USER, UDF_DATA_FILL_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      // Operational log of the language model requests: deleted with the account, never exported.
+      new ExportDefinition(AIRequestLog.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(grafioschtrader.entities.TenantAIProvider.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.DELETE_USE),
 
       // The algo hierarchy and its strategies are user configuration and belong in a personal export. Forward order is

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import grafiosch.dto.SubscriptionTypeReadableName;
@@ -18,6 +19,7 @@ import grafioschtrader.connector.instrument.generic.GenericFeedConnectorFactory;
 import grafioschtrader.entities.GenericConnectorDef;
 import grafioschtrader.repository.GenericConnectorDefJpaRepository;
 import grafioschtrader.types.SubscriptionType;
+import grafioschtrader.udffill.ai.AIChatModelProvider;
 
 /**
  * Service for managing API key operations and subscription types for feed connectors. Provides functionality to reset
@@ -36,8 +38,17 @@ public class FeedConnectorApiKeyService implements IConnectorApiKeyReset {
   @Autowired(required = false)
   private GenericFeedConnectorFactory genericFeedConnectorFactory;
 
+  @Autowired
+  @Lazy
+  private AIChatModelProvider aiChatModelProvider;
+
   @Override
   public void resetConnectorApiKey(String idProvider) {
+    if (AIChatModelProvider.KEY_PROVIDERS.contains(idProvider)) {
+      // The key of a language model provider: only its cached client is dropped, no feed connector is reloaded
+      aiChatModelProvider.reset(idProvider);
+      return;
+    }
     Optional<IFeedConnector> found = feedConnectorbeans.stream().filter(fc -> fc.getShortID().equals(idProvider))
         .findFirst();
     if (found.isPresent()) {
@@ -72,6 +83,10 @@ public class FeedConnectorApiKeyService implements IConnectorApiKeyReset {
         idSubTypeMap.put(def.getShortId(), new SubscriptionTypeReadableName(def.getReadableName()));
       }
     }
+    // The keys of the language model providers of the user-defined field fill have no subscription levels
+    AIChatModelProvider.PROVIDERS.stream().filter(AIChatModelProvider.KEY_PROVIDERS::contains)
+        .forEach(provider -> idSubTypeMap.put(provider,
+            new SubscriptionTypeReadableName(AIChatModelProvider.PROVIDER_NAMES.get(provider))));
     return idSubTypeMap;
   }
 }

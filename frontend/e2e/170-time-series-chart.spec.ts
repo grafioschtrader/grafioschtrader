@@ -1,4 +1,5 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
+import { watchlistTable } from './watchlist.helpers';
 
 import { loginAsFixtureUser } from './helpers';
 
@@ -66,7 +67,7 @@ async function openWatchlist(page: Page, name: Instrument['watchlist']): Promise
   const node = page.getByRole('treeitem', { name, exact: true }).first();
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.locator(':scope > .p-tree-node-content').click();
-  const dataContainer = page.locator('.data-container').first();
+  const dataContainer = watchlistTable(page);
   if (
     !(await dataContainer
       .waitFor({ state: 'visible', timeout: 2_000 })
@@ -85,8 +86,8 @@ async function openWatchlist(page: Page, name: Instrument['watchlist']): Promise
 }
 
 function instrumentRow(page: Page, instrument: Instrument): Locator {
-  return page
-    .locator('.data-container p-table tbody tr')
+  return watchlistTable(page)
+    .locator('p-table tbody tr')
     .filter({ has: page.locator('td').filter({ hasText: exactText(instrument.ticker) }) })
     .first();
 }

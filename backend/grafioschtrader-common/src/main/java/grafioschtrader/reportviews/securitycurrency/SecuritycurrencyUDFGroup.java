@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import grafioschtrader.dto.UDFFillInfo;
 import grafioschtrader.entities.Currencypair;
 import grafioschtrader.entities.Security;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,6 +22,12 @@ public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
       """)
   private Map<Integer, String> udfEntityValues;
 
+  @Schema(description = """
+      Fill marks of the cells of the user-defined fields, kept apart from the values themselves. The outer key is the
+      ID of the security, the inner key the field key ('f' followed by the ID of the field). Only automatic and locked
+      cells appear.""")
+  private Map<Integer, Map<String, UDFFillInfo>> udfFillInfo;
+
   public SecuritycurrencyUDFGroup(List<SecuritycurrencyPosition<Security>> securityPositionList) {
     this(securityPositionList, null, null, null, null);
   }
@@ -34,6 +41,14 @@ public class SecuritycurrencyUDFGroup extends SecuritycurrencyGroup {
 
   public Map<Integer, String> getUdfEntityValues() {
     return udfEntityValues;
+  }
+
+  public Map<Integer, Map<String, UDFFillInfo>> getUdfFillInfo() {
+    return udfFillInfo;
+  }
+
+  public void setUdfFillInfo(Map<Integer, Map<String, UDFFillInfo>> udfFillInfo) {
+    this.udfFillInfo = udfFillInfo;
   }
 
   public static interface IUDFEntityValues {

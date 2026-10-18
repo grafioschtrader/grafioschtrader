@@ -294,7 +294,6 @@ export class CorrelationComponent
                 AppHelper.getDateByFormat(this.gps, correlationResult.firstAvailableDate) +
                 ' - ' +
                 AppHelper.getDateByFormat(this.gps, correlationResult.lastAvailableDate);
-              this.correlationTableComponent.refreshChartWhenCorrelationSetChanges();
             } else {
               this.nonOverlappingDates = true;
             }

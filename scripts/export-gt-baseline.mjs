@@ -58,7 +58,7 @@ const SKIPPED_TABLES = ['flyway_schema_history'];
 const STRUCTURE_ONLY = {
   historyquote: 'price history - a new installation loads it through the connectors',
   historyquote_quality: 'derived from historyquote by deleteUpdateHistoryQuality()',
-  udf_data: 'filled at startup by UDF_USER_0_FILL_PERSISTENT_FIELDS_WITH_VALUES',
+  udf_data: 'filled by the daily task UDF_FILL_VALUES',
   task_data_change: 'task queue of the source instance; INITIAL_TASKS adds what a new installation needs',
 };
 

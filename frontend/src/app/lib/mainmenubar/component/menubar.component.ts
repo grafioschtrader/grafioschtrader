@@ -1,4 +1,5 @@
-import { Component, Inject, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, Optional, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { SETTINGS_MENU_EXTENSIONS, SettingsMenuExtension } from '../service/settings-menu-extensions';
 import { LoginService } from '../../login/service/log-in.service';
 import { ActivePanelService } from '../service/active.panel.service';
 import { TopMenuTypes } from './top.menu.types';
@@ -56,7 +57,8 @@ export class MenubarComponent implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService,
     private manageClientService: ManageClientService,
     private dialogService: DialogService,
-    @Inject(PERSONAL_DATA_ZIP_NAME) private personalDataZipName: string
+    @Inject(PERSONAL_DATA_ZIP_NAME) private personalDataZipName: string,
+    @Optional() @Inject(SETTINGS_MENU_EXTENSIONS) private settingsExtensions: SettingsMenuExtension[]
   ) {
     this.activePanelService.topMenuItems = this.menuItems;
   }
@@ -96,6 +98,15 @@ export class MenubarComponent implements OnInit, OnDestroy {
       }
     ];
     const accountOperationsAvailable = !this.isInManagedClient();
+    for (const extension of this.settingsExtensions ?? []) {
+      settingsItems.push(
+        ...extension({
+          accountOperationsAvailable,
+          dialogService: this.dialogService,
+          translateService: this.translateService
+        })
+      );
+    }
     if (accountOperationsAvailable) {
       settingsItems.push(exportDataItem, {
         label: 'DELETE_MY',

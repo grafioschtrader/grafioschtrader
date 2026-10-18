@@ -1,4 +1,4 @@
-import { ConnectorAlternative } from './security-lookup';
+import { ConnectorAlternative, SecurityLookupCandidate } from './security-lookup';
 
 /** The four feeds of a security, each with its own connector table in the lookup dialog. */
 export type LookupFeed = 'history' | 'intra' | 'dividend' | 'split';
@@ -54,4 +54,28 @@ export function chooseDistributionFrequency(
       .map((a) => a.distributionFrequency)
   );
   return frequencies.size === 1 ? frequencies.values().next().value : undefined;
+}
+
+/**
+ * Tells whether a name is written entirely in capitals, as exchanges and some providers deliver it ("FIVERR INTL").
+ *
+ * @param name - The name, may be null
+ * @returns True when the name has letters and none of them is lower case
+ */
+export function isAllUpperCase(name: string): boolean {
+  return !!name && name === name.toUpperCase() && name !== name.toLowerCase();
+}
+
+/**
+ * Chooses the listing whose name is taken over by default. Every listing names the same instrument, but the providers
+ * write it differently; a name that is not written entirely in capitals ("Fiverr International") reads better than
+ * the exchange spelling ("FIVERR INTL").
+ *
+ * @param candidates - The listings found by the lookup
+ * @returns The first listing whose name is not written entirely in capitals, otherwise the first listing; null when
+ *   there is none
+ */
+export function preselectNameCandidate(candidates: SecurityLookupCandidate[]): SecurityLookupCandidate {
+  const list = candidates ?? [];
+  return list.find((c) => c.name && !isAllUpperCase(c.name)) ?? list[0] ?? null;
 }

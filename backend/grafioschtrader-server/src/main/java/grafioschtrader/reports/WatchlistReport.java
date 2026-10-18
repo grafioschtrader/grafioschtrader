@@ -24,7 +24,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import grafiosch.BaseConstants;
+import grafiosch.common.ClientClock;
+import grafiosch.common.DataHelper;
 import grafiosch.entities.User;
+import grafiosch.exceptions.DataViolationException;
 import grafiosch.repository.UDFSpecialTypeDisableUserRepository;
 import grafioschtrader.common.DataBusinessHelper;
 import grafioschtrader.dto.IMinMaxDateHistoryquote;
@@ -52,6 +55,7 @@ import grafioschtrader.repository.IPositionCloseOnLatestPrice;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.TenantJpaRepository;
+import grafioschtrader.repository.TradingDaysPlusJpaRepository;
 import grafioschtrader.repository.TransactionJpaRepository;
 import grafioschtrader.repository.WatchlistJpaRepository;
 import grafioschtrader.service.GTNetLastpriceService;
@@ -61,6 +65,7 @@ import grafioschtrader.service.PriceFreshnessService;
 import grafioschtrader.service.WatchlistPriceUpdateService;
 import grafioschtrader.service.WatchlistPriceUpdateService.PriceUpdateClaim;
 import grafioschtrader.types.LastpriceOrigin;
+import grafioschtrader.udffill.UDFFillService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -114,8 +119,14 @@ public class WatchlistReport {
   @Autowired
   private IndexPriceRoundingService indexPriceRoundingService;
 
+  @Autowired
+  private TradingDaysPlusJpaRepository tradingDaysPlusJpaRepository;
+
   @Autowired(required = false)
   private List<IUDFForEveryUser> uDFForEveryUser;
+
+  @Autowired
+  private UDFFillService udfFillService;
 
   @Autowired
   private UDFSpecialTypeDisableUserRepository uDFSpecialTypeDisUserRep;
@@ -227,10 +238,20 @@ public class WatchlistReport {
   public SecuritycurrencyUDFGroup getWatchlistWithUDFData(final Integer idWatchlist)
       throws InterruptedException, ExecutionException {
     final User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
-    final CompletableFuture<List<IUDFEntityValues>> entityValuesCF = CompletableFuture
-        .supplyAsync(() -> watchlistJpaRepository.getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(),
-            new String[] { Currencypair.class.getSimpleName(), Security.class.getSimpleName() }));
-    return combineWatchlistWithUDF(getWatchlistWithoutUpdate(idWatchlist), entityValuesCF.get(), user);
+    final String[] entities = new String[] { Currencypair.class.getSimpleName(), Security.class.getSimpleName() };
+    // The access check of the watchlist comes first
+    final SecuritycurrencyGroup sg = getWatchlistWithoutUpdate(idWatchlist);
+    final List<Security> securities = sg.securityPositionList.stream().map(p -> p.securitycurrency).toList();
+    // The template fields are filled before the values are read, so that the response shows what was just written.
+    // This is the one place where loading data stores data; it makes no outbound call.
+    udfFillService.fillWatchlistTemplates(user, securities, () -> UDFFillService.parseValues(
+        watchlistJpaRepository.getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(), entities)));
+    final List<IUDFEntityValues> entityValues = watchlistJpaRepository
+        .getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(), entities);
+    final SecuritycurrencyUDFGroup sUDFGroup = combineWatchlistWithUDF(sg, entityValues, user);
+    sUDFGroup.setUdfFillInfo(udfFillService.getFillInfo(user, UDFFillService.idsOf(securities),
+        UDFFillService.parseValues(entityValues)));
+    return sUDFGroup;
   }
 
   private SecuritycurrencyUDFGroup combineWatchlistWithUDF(SecuritycurrencyGroup sg,
@@ -265,8 +286,8 @@ public class WatchlistReport {
    * change, year-to-date (YTD) change, and change over a specified time frame. This method may trigger an update of the
    * last prices for the instruments if the cached prices are considered stale.
    *
-   * @param idWatchlist   The ID of the watchlist.
-   * @param idTenant      The ID of the tenant to whom the watchlist belongs.
+   * @param idWatchlist      The ID of the watchlist.
+   * @param idTenant         The ID of the tenant to whom the watchlist belongs.
    * @param daysTimeFrame    The number of days for the custom time frame performance calculation (e.g., 30 for 30-day
    *                         performance).
    * @param includeDividends True to add the reinvested dividends of dividend-capable securities to the daily, YTD and
@@ -286,9 +307,8 @@ public class WatchlistReport {
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdWatchlist(idWatchlist);
 
-    // Currency conversion is not used since watchlist only calculates security
-    // gains in the currency of the instrument
-    final DateTransactionCurrencypairMap dateCurrencyMap = null;
+    // The positions are also valued in the currency of the tenant, whose calendar day is resolved on this thread
+    final LocalDate today = ClientClock.today();
 
     final LocalDate dateTimeFrame = LocalDate.now().minusDays(daysTimeFrame);
     Tenant tenant = tenantJpaRepository.getReferenceById(watchlist.getIdTenant());
@@ -345,8 +365,9 @@ public class WatchlistReport {
     final SecuritycurrencyGroup securitycurrencyGroup = combineLastPriceHistoryquote(reloadedTenant, securityCurrency,
         historyquoteMaxDay, historyquoteLastDayYear, historyquoteTimeFrame, securitiesIsUsedElsewhere,
         currencypairIsUsedElsewhere, watchlistSecurtiesTransaction, reloadedWatchlist, daysTimeFrame, securitysplitMap,
-        dateCurrencyMap, totalReturnAdjuster);
+        today, totalReturnAdjuster);
     securitycurrencyGroup.idWatchlist = idWatchlist;
+    securitycurrencyGroup.mainCurrency = reloadedTenant.getCurrency();
     // Clearing the persistence context does not renew a REPEATABLE READ snapshot. Use the committed claim's value
     // for the response without dirtying the managed Watchlist and writing an older timestamp back at report commit.
     securitycurrencyGroup.lastTimestamp = claim.lastTimestamp();
@@ -472,8 +493,8 @@ public class WatchlistReport {
    * @param watchlist                           The watchlist.
    * @param daysTimeFrame                       The number of days for the custom time frame.
    * @param securitysplitMap                    Map of security ID to its splits.
-   * @param dateCurrencyMap                     Map for currency conversion (currently unused for watchlist
-   *                                            performance).
+   * @param today                               The calendar day of the client, used to value the open positions in the
+   *                                            currency of the tenant.
    * @param totalReturnAdjuster                 Adds the reinvested dividends to the changes of the securities, the
    *                                            identity when dividends are not included.
    * @return An enriched {@link SecuritycurrencyGroup} with performance data.
@@ -485,12 +506,12 @@ public class WatchlistReport {
       final Map<Integer, ISecuritycurrencyIdDateClose> historyquoteTimeFrame, final int[] securitiesIsUsedElsewhereIds,
       final int[] currencypairIsUsedElsewhereIds, final int[] watchlistSecuritesHasTransactionIds,
       final Watchlist watchlist, final Integer daysTimeFrame, final Map<Integer, List<Securitysplit>> securitysplitMap,
-      final DateTransactionCurrencypairMap dateCurrencyMap, final TotalReturnAdjuster totalReturnAdjuster) {
+      final LocalDate today, final TotalReturnAdjuster totalReturnAdjuster) {
 
     final List<SecuritycurrencyPosition<Security>> securityPositions = setOpenPositions(tenant, watchlist,
         setDailyChangeAndTimeFrameChange(securityCurrency.securities, historyquoteMaxDateMap,
             historyquoteLastDayPrevYear, historyquoteTimeFrame, daysTimeFrame, totalReturnAdjuster),
-        securitysplitMap, dateCurrencyMap);
+        securitysplitMap, today);
     final List<SecuritycurrencyPosition<Currencypair>> currencypairPositions = setDailyChangeAndTimeFrameChange(
         securityCurrency.currencypairs, historyquoteMaxDateMap, historyquoteLastDayPrevYear, historyquoteTimeFrame,
         daysTimeFrame, TotalReturnAdjuster.none());
@@ -572,8 +593,8 @@ public class WatchlistReport {
     securitycurrencyPositionList.forEach(position -> adjustDailyChangeForDividends(totalReturnAdjuster, position));
     securitycurrencyPositionList.stream()
         .forEach(position -> setYtdGainLoss(historyquoteLastDayPrevYear, position, totalReturnAdjuster));
-    securitycurrencyPositionList.stream().forEach(
-        position -> setTimeFrameGainLoss(historyquoteTimeFrame, position, daysTimeFrame, totalReturnAdjuster));
+    securitycurrencyPositionList.stream()
+        .forEach(position -> setTimeFrameGainLoss(historyquoteTimeFrame, position, daysTimeFrame, totalReturnAdjuster));
     final LocalDate today = LocalDate.now();
     securitycurrencyPositionList.forEach(position -> position.dividendDataMissing = totalReturnAdjuster
         .isMissingDividends(position.securitycurrency.getIdSecuritycurrency(), today.minusDays(daysTimeFrame), today));
@@ -703,29 +724,94 @@ public class WatchlistReport {
         : position.securitycurrency.getSTimestamp().toLocalDate();
   }
 
+  /**
+   * Calculates the open positions of the securities of the watchlist from the transactions of the tenant, valued in the
+   * currency of the security and in the currency of the tenant. A missing exchange rate must not take the watchlist
+   * down: the positions are then calculated again without the currency of the tenant, whose values stay null.
+   *
+   * @param tenant                    The tenant owning the watchlist.
+   * @param watchlist                 The watchlist.
+   * @param securitycurrencyPositions The security positions of the watchlist, completed by this method.
+   * @param securitysplitMap          Map of security ID to its splits.
+   * @param today                     The calendar day of the client.
+   * @return The completed security positions.
+   */
   private List<SecuritycurrencyPosition<Security>> setOpenPositions(final Tenant tenant, final Watchlist watchlist,
       final List<SecuritycurrencyPosition<Security>> securitycurrencyPositions,
-      final Map<Integer, List<Securitysplit>> securitysplitMap, final DateTransactionCurrencypairMap dateCurrencyMap) {
+      final Map<Integer, List<Securitysplit>> securitysplitMap, final LocalDate today) {
 
     final List<Transaction> transactions = this.transactionJpaRepository.findByIdWatchlist(watchlist.getIdWatchlist());
-
-    final boolean excludeDivTax = tenant.isExcludeDivTax();
-    final Map<Security, SecurityPositionSummary> summarySecurityMap = new HashMap<>();
-
-    // Calculate all positions closed or open
-    transactions.forEach(transaction -> securityCalcService.calcSingleSecurityTransaction(transaction,
-        summarySecurityMap, securitysplitMap, excludeDivTax, dateCurrencyMap));
-    this.calcOpenSecurityPositons(securitycurrencyPositions, summarySecurityMap, securitysplitMap, dateCurrencyMap);
+    if (transactions.isEmpty()) {
+      return securitycurrencyPositions;
+    }
+    final DateTransactionCurrencypairMap dateCurrencyMap = createDateCurrencyMap(tenant, transactions, today);
+    try {
+      calcPositions(tenant, transactions, securitycurrencyPositions, securitysplitMap, dateCurrencyMap);
+    } catch (final DataViolationException dve) {
+      log.warn("Watchlist {} is shown without values in currency {}: {}", watchlist.getName(), tenant.getCurrency(),
+          dve.getMessage());
+      securitycurrencyPositions.forEach(this::clearMainCurrencyValues);
+      calcPositions(tenant, transactions, securitycurrencyPositions, securitysplitMap, null);
+    }
     return securitycurrencyPositions;
   }
 
   /**
-   * Calculates the current value and gain/loss for open security positions based on their latest prices.
+   * Walks all transactions of the watchlist securities and then values the open positions at their latest price.
+   *
+   * @param dateCurrencyMap Exchange rates for the currency of the tenant, null to calculate in the currency of the
+   *                        security only.
+   */
+  private void calcPositions(final Tenant tenant, final List<Transaction> transactions,
+      final List<SecuritycurrencyPosition<Security>> securitycurrencyPositions,
+      final Map<Integer, List<Securitysplit>> securitysplitMap, final DateTransactionCurrencypairMap dateCurrencyMap) {
+    final Map<Security, SecurityPositionSummary> summarySecurityMap = new HashMap<>();
+    // Calculate all positions closed or open
+    transactions.forEach(transaction -> securityCalcService.calcSingleSecurityTransaction(transaction,
+        summarySecurityMap, securitysplitMap, tenant.isExcludeDivTax(), dateCurrencyMap));
+    this.calcOpenSecurityPositons(securitycurrencyPositions, summarySecurityMap, securitysplitMap, dateCurrencyMap);
+  }
+
+  /**
+   * Creates the exchange rates for valuing the positions in the currency of the tenant, from the same data the holdings
+   * report uses. The current rate of every foreign security currency is a precondition, because the hypothetical sale
+   * of a position is converted at it.
+   *
+   * @return The exchange rate map, or null when a current rate is missing and the positions are therefore valued in the
+   *         currency of the security only.
+   */
+  private DateTransactionCurrencypairMap createDateCurrencyMap(final Tenant tenant,
+      final List<Transaction> transactions, final LocalDate today) {
+    final DateTransactionCurrencypairMap dateCurrencyMap = new DateTransactionCurrencypairMap(tenant.getCurrency(),
+        today, historyquoteJpaRepository.getHistoryquotesForAllForeignTransactionsByIdTenant(tenant.getIdTenant()),
+        currencypairJpaRepository.getAllCurrencypairsByTenantInPortfolioAndAccounts(tenant.getIdTenant()),
+        tradingDaysPlusJpaRepository.hasTradingDayBetweenUntilYesterday(today, today), true, today);
+    final boolean currentRateMissing = transactions.stream().map(t -> t.getSecurity().getCurrency()).distinct()
+        .filter(currency -> !currency.equals(tenant.getCurrency())).map(dateCurrencyMap::getCurrencypairByFromCurrency)
+        .anyMatch(currencypair -> currencypair == null || currencypair.getSLast() == null);
+    if (currentRateMissing) {
+      log.warn("Positions of tenant {} are not valued in {}, a current exchange rate is missing", tenant.getIdTenant(),
+          tenant.getCurrency());
+      return null;
+    }
+    return dateCurrencyMap;
+  }
+
+  private void clearMainCurrencyValues(final SecuritycurrencyPosition<Security> securitycurrencyPosition) {
+    securitycurrencyPosition.valueSecurityMC = null;
+    securitycurrencyPosition.positionGainLossMC = null;
+    securitycurrencyPosition.positionGainLossPercentageMC = null;
+  }
+
+  /**
+   * Calculates the current value and gain/loss for open security positions based on their latest prices. When exchange
+   * rates are given, the open positions are also converted into the currency of the tenant at the current rate.
    *
    * @param securitycurrencyPositions List of security positions from the watchlist.
    * @param summarySecurityMap        Map containing summarized transaction data for securities.
    * @param securitysplitMap          Map of security splits.
-   * @param dateCurrencyMap           Map for currency conversion (currently unused).
+   * @param dateCurrencyMap           Map for currency conversion, null to calculate in the currency of the security
+   *                                  only.
    */
   private void calcOpenSecurityPositons(final List<SecuritycurrencyPosition<Security>> securitycurrencyPositions,
       final Map<Security, SecurityPositionSummary> summarySecurityMap,
@@ -758,9 +844,25 @@ public class WatchlistReport {
               securitycurrencyPosition.units = securityPositionSummary.getUnits();
               securitycurrencyPosition.positionGainLossPercentage = securityPositionSummary
                   .getPositionGainLossPercentage();
+              final Double positionGainLoss = securityPositionSummary.getPositionGainLoss();
+              securitycurrencyPosition.positionGainLoss = positionGainLoss == null ? null
+                  : DataHelper.round(positionGainLoss, securityPositionSummary.precision);
+              if (dateCurrencyMap != null) {
+                setMainCurrencyValues(securitycurrencyPosition, securityPositionSummary, dateCurrencyMap);
+              }
             }
           }, LocalDate.now());
     }
+  }
+
+  /** Converts the open position into the currency of the tenant at the current exchange rate. */
+  private void setMainCurrencyValues(final SecuritycurrencyPosition<Security> securitycurrencyPosition,
+      final SecurityPositionSummary securityPositionSummary, final DateTransactionCurrencypairMap dateCurrencyMap) {
+    securityPositionSummary.calcMainCurrency(ReportHelper.getReportExchangeRate(
+        securityPositionSummary.getSecurity().getCurrency(), dateCurrencyMap, tradingDaysPlusJpaRepository));
+    securitycurrencyPosition.valueSecurityMC = securityPositionSummary.getValueSecurityMC();
+    securitycurrencyPosition.positionGainLossMC = securityPositionSummary.getPositionGainLossMC();
+    securitycurrencyPosition.positionGainLossPercentageMC = securityPositionSummary.getPositionGainLossPercentageMC();
   }
 
   @SuppressWarnings("unchecked")

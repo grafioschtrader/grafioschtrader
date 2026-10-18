@@ -25,14 +25,13 @@ class AlgoReplayLiquidationTest {
   private final AlgoReplayState state = mock(AlgoReplayState.class);
   private final AlgoReplayMarketData market = mock(AlgoReplayMarketData.class);
   private final AlgoReplayCalendar calendar = mock(AlgoReplayCalendar.class);
-  private final SimulationSourceRepository source = mock(SimulationSourceRepository.class);
   private final TransactionJpaRepository transactions = mock(TransactionJpaRepository.class);
   private final CurrencypairJpaRepository pairs = mock(CurrencypairJpaRepository.class);
   private final AlgoReplayCosts costs = mock(AlgoReplayCosts.class);
   private final AlgoReplayBooking booking = new AlgoReplayBooking(calendar, transactions, pairs,
       mock(HoldCashaccountBalanceJpaRepository.class), mock(GlobalparametersService.class),
       mock(org.springframework.context.MessageSource.class));
-  private final AlgoReplayLiquidation liquidation = new AlgoReplayLiquidation(source, calendar, booking);
+  
 
   @BeforeEach
   void setup() throws Exception {

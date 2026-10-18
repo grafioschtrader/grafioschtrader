@@ -56,6 +56,13 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   private visibleRestore: boolean[] = [];
 
   /**
+   * Key under which readTableDefinition found the column settings of this table. The column visibility dialog saves
+   * them under it as soon as it closes; otherwise a choice made there would only be saved when the component is
+   * destroyed, which a page reload never does.
+   */
+  private tableDefinitionKey: string = null;
+
+  /**
    * Creates a new table configuration base.
    *
    * @param filterService - Optimus service for registering custom filters
@@ -142,6 +149,7 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
    * @param key - Unique identifier for this table configuration
    */
   readTableDefinition(key: string): void {
+    this.tableDefinitionKey = key;
     if (this.hasSameChecksum(key)) {
       const readFields: any[] = this.usersettingsService.readArray(key);
       if (readFields != null && readFields.length > 0) {
@@ -377,7 +385,8 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
   /**
    * Opens a dialog for toggling column visibility.
    * The dialog shows checkboxes for all columns with changeVisibility enabled.
-   * Changes are applied in real-time as checkboxes are toggled.
+   * Changes are applied in real-time as checkboxes are toggled and saved when the dialog closes, provided the table
+   * reads its settings through readTableDefinition.
    */
   openColumnVisibilityDialog(): void {
     if (!this.injector) {
@@ -386,16 +395,18 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
     }
     const dialogService = this.injector.get(DialogService);
     this.translateService.get('ON_OFF_COLUMNS').subscribe((header) => {
-      dialogService.open(ColumnVisibilityDialogComponent, {
-        header,
-        width: '300px',
-        modal: true,
-        draggable: true,
-        closable: true,
-        closeOnEscape: true,
-        position: 'right',
-        data: { fields: this.fields }
-      });
+      dialogService
+        .open(ColumnVisibilityDialogComponent, {
+          header,
+          width: '300px',
+          modal: true,
+          draggable: true,
+          closable: true,
+          closeOnEscape: true,
+          position: 'right',
+          data: { fields: this.fields }
+        })
+        .onClose.subscribe(() => this.tableDefinitionKey && this.writeTableDefinition(this.tableDefinitionKey));
     });
   }
 

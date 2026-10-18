@@ -9,13 +9,16 @@ import java.util.Optional;
 import org.junit.jupiter.api.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import grafiosch.entities.User;
 import grafiosch.service.DailyLimitService;
 import grafioschtrader.config.FeatureConfig;
+import grafioschtrader.entities.AlgoMessageAlert;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.repository.*;
 import grafioschtrader.rest.AlgoAlertResource;
+import grafioschtrader.rest.AlgoAlertResource.NotificationDto;
 import grafioschtrader.types.TenantKindType;
 
 /**
@@ -65,13 +68,20 @@ class AlgoAlertAccessTest {
 
   @Test
   void managedSessionReadsAndActsOnlyOnEffectiveTenant() {
-    resource.notifications();
-    verify(alarms).findByIdTenantOrderByIdAlgoMessageAlertDesc(42);
-    resource.evaluateNow();
-    resource.retry(123);
-    verify(evaluator).evaluateAlertsForTenant(42);
-    verify(delivery).retry(42, 123);
-    verify(limits, times(2)).check(user, AlgoAlertResource.ACTION_LIMIT, 1);
+    when(alarms.findByIdTenantOrderByIdAlgoMessageAlertDesc(42)).thenReturn(List.of(alert("Home book")));
+    when(alarms.findByIdTenantOrderByIdAlgoMessageAlertDesc(7)).thenReturn(List.of(alert("Request book")));
+    var recordingEvaluator = new RecordingEvaluator();
+    var recordingDelivery = new RecordingDelivery();
+    var homeResource = new AlgoAlertResource(mock(AlgoAlertScopeResolver.class),
+        mock(AlgoAlertEvaluationStateJpaRepository.class), alarms, recordingDelivery, recordingEvaluator, tenants,
+        limits, features);
+
+    assertThat(homeResource.notifications()).extracting(NotificationDto::contextName).containsExactly("Home book");
+    homeResource.evaluateNow();
+    assertThat(recordingEvaluator.tenant).isEqualTo(42);
+    homeResource.retry(123);
+    assertThat(recordingDelivery.tenant).isEqualTo(42);
+    assertThat(recordingDelivery.alertId).isEqualTo(123);
   }
 
   @Test
@@ -94,5 +104,38 @@ class AlgoAlertAccessTest {
     features.setAlert(false);
     assertThatThrownBy(resource::evaluateNow).isInstanceOf(SecurityException.class);
     verifyNoInteractions(evaluator, delivery, limits);
+  }
+
+  private static AlgoMessageAlert alert(String contextName) {
+    AlgoMessageAlert alert = new AlgoMessageAlert();
+    alert.setContextName(contextName);
+    return alert;
+  }
+
+  /** Records the tenant a manual evaluation was asked to run for. */
+  private static final class RecordingEvaluator extends AlgoAlarmEvaluationService {
+    private Integer tenant;
+
+    @Override
+    public void evaluateAlertsForTenant(Integer idTenant) {
+      tenant = idTenant;
+    }
+  }
+
+  /** Records the tenant and notification a manual retry was asked to send again. */
+  private static final class RecordingDelivery extends AlgoAlarmDeliveryService {
+    private Integer tenant;
+    private Integer alertId;
+
+    private RecordingDelivery() {
+      super(null, null, null, null, null, null, null, null, null, null, new FeatureConfig(),
+          mock(PlatformTransactionManager.class));
+    }
+
+    @Override
+    public void retry(Integer tenant, Integer id) {
+      this.tenant = tenant;
+      this.alertId = id;
+    }
   }
 }

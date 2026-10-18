@@ -58,6 +58,7 @@ import grafioschtrader.connector.yahoo.YahooInstrumentTypeMapper;
 import grafioschtrader.dto.ConnectorAlternativeDto;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.dto.SecurityLookupCandidateDto;
+import grafioschtrader.dto.SecurityLookupHint;
 import grafioschtrader.dto.SecurityLookupResponse;
 import grafioschtrader.dto.SecurityLookupResponse.ProviderStatus;
 import grafioschtrader.dto.SecuritySearchCandidateDto;
@@ -91,15 +92,19 @@ import grafioschtrader.types.SpecialInvestmentInstruments;
  * </p>
  *
  * <p>
- * SIX, Deutsche Börse (Xetra, Frankfurt), Wiener Börse, Euronext, Yahoo, EODHD (with an API key), onvista,
- * Boursorama, Consorsbank, BIVA and Nasdaq Nordic (only for their stock exchange hyperlink) and OpenFIGI are searched
- * ({@link #LOOKUP_PROVIDERS}),
- * each only when it covers the exchange and the chosen type - decided by the price connector of the same data source
- * ({@link ISecuritySearchProvider#getFeedConnectorShortId()}) or by the provider itself;
- * only listings on the queried exchange in the queried currency are kept, the currency of a Yahoo listing being
+ * SIX, Deutsche Börse (Xetra, Frankfurt), Wiener Börse, Euronext, Yahoo, EODHD (with an API key), onvista, Boursorama,
+ * Consorsbank, BIVA and Nasdaq Nordic (only for their stock exchange hyperlink) and OpenFIGI are searched
+ * ({@link #LOOKUP_PROVIDERS}), each only when it covers the exchange and the chosen type - decided by the price
+ * connector of the same data source ({@link ISecuritySearchProvider#getFeedConnectorShortId()}) or by the provider
+ * itself; only listings on the queried exchange in the queried currency are kept, the currency of a Yahoo listing being
  * confirmed by its master data. The same listing found by several providers is merged by {@link LookupListingMerger};
  * OpenFIGI only supplements it, e.g. with the ticker of a Frankfurt listing. The connectors offered are not limited to
  * these providers: DivvyDiary, for example, needs only the ISIN.
+ * </p>
+ *
+ * <p>
+ * What the lookup cannot resolve is reported as hints ({@link LookupHints}): providers that found the instrument only
+ * on another exchange, failed providers, and fields of a listing that no provider delivered.
  * </p>
  */
 @Service
@@ -127,7 +132,6 @@ public class SecurityLookupService {
   private final AssetclassJpaRepository assetclassJpaRepository;
   private final StockexchangeJpaRepository stockexchangeJpaRepository;
 
- 
   public SecurityLookupService(SecuritySearchService securitySearchService, List<ISecuritySearchProvider> providers,
       List<IFeedConnector> feedConnectors, ConnectorProbe connectorProbe,
       AssetclassJpaRepository assetclassJpaRepository, StockexchangeJpaRepository stockexchangeJpaRepository) {
@@ -174,8 +178,8 @@ public class SecurityLookupService {
         assetclass.getSpecialInvestmentInstrument());
     FeedApplicability applicable = feedApplicability(chosen, stockexchange);
     Set<String> covering = coveringProviders(query.mic(), stockexchange, chosen);
-    List<SecuritySearchResult> results = new ArrayList<>(securitySearchService.search(query, covering,
-        SEARCH_DEADLINE));
+    List<SecuritySearchResult> results = new ArrayList<>(
+        securitySearchService.search(query, covering, SEARCH_DEADLINE));
     List<LookupListing> listings = collectListings(results, query, locale);
     List<SecuritySearchResult> indexSearch = searchIndexByCode(query, chosen, covering, listings);
     if (!indexSearch.isEmpty()) {
@@ -189,7 +193,8 @@ public class SecurityLookupService {
     List<SecurityLookupCandidateDto> candidates = LookupListingMerger.merge(listings).stream()
         .map(listing -> createCandidate(listing, query.isin(), query.mic(), stockexchange, chosen, applicable, locale))
         .toList();
-    return new SecurityLookupResponse(candidates, providerStatus, applicable.dividend(), applicable.split());
+    return new SecurityLookupResponse(candidates, providerStatus, applicable.dividend(), applicable.split(),
+        LookupHints.queryHints(results, query.mic(), candidates.isEmpty()));
   }
 
   /** Keeps the listings on the queried exchange in the queried currency, each with its master data. */
@@ -260,6 +265,18 @@ public class SecurityLookupService {
     Security security = new Security();
     security.setAssetClass(assetclass);
     return new FeedApplicability(security.isDividendCapableInstrument(), security.canHaveSplitConnector());
+  }
+
+  /**
+   * Applies the rule of the security entity: a directly held bond needs maturity, coupon frequency and denomination.
+   */
+  static boolean isBondDirectInvestment(ChosenType chosen) {
+    Assetclass assetclass = new Assetclass();
+    assetclass.setCategoryType(chosen.categoryType());
+    assetclass.setSpecialInvestmentInstrument(chosen.sii());
+    Security security = new Security();
+    security.setAssetClass(assetclass);
+    return security.isBondDirectInvestment();
   }
 
   /** Asset class chosen by the user; type and financial instrument are those of the asset class. */
@@ -354,28 +371,32 @@ public class SecurityLookupService {
         .orElse(null);
     SpecialInvestmentInstruments sii = chosen.sii();
     Map<FeedSupport, List<ConnectorAlternativeDto>> alternatives = connectorAlternatives(
-        withIsinForProbes(baseData, queriedIsin), listing.providerBaseData(), mic, stockexchange,
-        chosen.categoryType(), sii, applicable);
+        withIsinForProbes(baseData, queriedIsin), listing.providerBaseData(), mic, stockexchange, chosen.categoryType(),
+        sii, applicable);
     Map<String, String> fieldSources = new LinkedHashMap<>(listing.fieldSources());
     String productLink = baseData.productLink();
     if (productLink == null && (productLink = ProductLinkResolver.resolve(baseData, sii, locale)) != null) {
       fieldSources.put("productLink", DERIVED_SOURCE);
     }
     String stockexchangeLink = baseData.stockexchangeLink();
-    if (stockexchangeLink == null && (stockexchangeLink = StockexchangeLinkResolver.resolve(baseData.mic(),
-        baseData.tickerSymbol(), baseData.isin() != null ? baseData.isin() : queriedIsin, baseData.name(), sii,
-        locale)) != null) {
+    if (stockexchangeLink == null
+        && (stockexchangeLink = StockexchangeLinkResolver.resolve(baseData.mic(), baseData.tickerSymbol(),
+            baseData.isin() != null ? baseData.isin() : queriedIsin, baseData.name(), sii, locale)) != null) {
       fieldSources.put("stockexchangeLink", DERIVED_SOURCE);
     }
+    boolean instrumentTypeMismatch = contradictsChosenType(instrumentType, chosen);
+    boolean distributesNothing = distributesNothing(baseData, alternatives.get(FeedSupport.FS_DIVIDEND));
+    List<SecurityLookupHint> hints = LookupHints.candidateHints(listing, baseData, instrumentTypeMismatch,
+        new LookupHints.CandidateContext(isBondDirectInvestment(chosen), applicable.dividend(), distributesNothing,
+            alternatives.get(FeedSupport.FS_DIVIDEND)));
     return new SecurityLookupCandidateDto(candidate.providerId(), candidate.providerInstrumentId(),
         candidate.providerInstrumentType(), baseData.isin(), baseData.currency(), baseData.mic(), baseData.name(),
         baseData.tickerSymbol(), baseData.issuerCountry(), baseData.activeFromDate(), baseData.activeToDate(),
-        baseData.distributionFrequency(), baseData.denomination(), productLink, stockexchangeLink,
-        reportedCategoryType, reportedSii, chosen.idAssetClass(), contradictsChosenType(instrumentType, chosen),
-        baseDataResult.status(), baseDataResult.detail(),
+        baseData.distributionFrequency(), baseData.denomination(), productLink, stockexchangeLink, reportedCategoryType,
+        reportedSii, chosen.idAssetClass(), instrumentTypeMismatch, baseDataResult.status(), baseDataResult.detail(),
         baseData.providerAttributes(), alternatives.get(FeedSupport.FS_HISTORY), alternatives.get(FeedSupport.FS_INTRA),
-        alternatives.get(FeedSupport.FS_DIVIDEND), alternatives.get(FeedSupport.FS_SPLIT),
-        distributesNothing(baseData, alternatives.get(FeedSupport.FS_DIVIDEND)), listing.providerIds(), fieldSources);
+        alternatives.get(FeedSupport.FS_DIVIDEND), alternatives.get(FeedSupport.FS_SPLIT), distributesNothing,
+        listing.providerIds(), fieldSources, hints);
   }
 
   /**
@@ -416,8 +437,8 @@ public class SecurityLookupService {
     case EuronextSecuritySearch.PROVIDER_ID -> EuronextInstrumentTypeMapper.map(candidate.providerInstrumentType());
     case OnvistaSecuritySearch.PROVIDER_ID -> OnvistaInstrumentTypeMapper.map(candidate.providerInstrumentType());
     case BoursoramaSecuritySearch.PROVIDER_ID -> BoursoramaInstrumentTypeMapper.map(candidate.providerInstrumentType());
-    case ConsorsbankSecuritySearch.PROVIDER_ID ->
-      ConsorsbankInstrumentTypeMapper.map(candidate.providerInstrumentType());
+    case ConsorsbankSecuritySearch.PROVIDER_ID -> ConsorsbankInstrumentTypeMapper
+        .map(candidate.providerInstrumentType());
     case YahooHelper.YAHOO -> YahooInstrumentTypeMapper
         .map(baseData.providerAttributes().getOrDefault("instrumentType", candidate.providerInstrumentType()));
     default -> Optional.empty();
@@ -470,8 +491,8 @@ public class SecurityLookupService {
   /**
    * An empty dividend or split answer is normal for an instrument without such events, but a provider answers an
    * unknown symbol the same way. When the same connector with the same URL extension was also probed for history or
-   * intraday prices and none of these probes delivered data, the empty answer becomes {@code UNKNOWN_SYMBOL}, which
-   * the dialog does not offer for selection. A connector without such a price probe, e.g. DivvyDiary, keeps
+   * intraday prices and none of these probes delivered data, the empty answer becomes {@code UNKNOWN_SYMBOL}, which the
+   * dialog does not offer for selection. A connector without such a price probe, e.g. DivvyDiary, keeps
    * {@code NO_DATA}.
    *
    * @param alternatives the probed connectors per feed
@@ -501,8 +522,8 @@ public class SecurityLookupService {
 
   private static ConnectorAlternativeDto asUnknownSymbol(ConnectorAlternativeDto a) {
     return new ConnectorAlternativeDto(a.idConnector(), a.readableName(), a.urlExtension(),
-        ConnectorProbeStatus.UNKNOWN_SYMBOL, a.sampleDate(), a.sampleValue(), a.sampleCount(), a.distributionFrequency(),
-        "No prices for this URL extension either");
+        ConnectorProbeStatus.UNKNOWN_SYMBOL, a.sampleDate(), a.sampleValue(), a.sampleCount(),
+        a.distributionFrequency(), "No prices for this URL extension either");
   }
 
   /** Starts the probe of one connector on its own transient security. */

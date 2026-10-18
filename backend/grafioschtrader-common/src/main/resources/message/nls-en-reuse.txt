@@ -74,6 +74,7 @@ SERVER_ONLINE
 SYMBOL_IMP
 # VALUE_SECURITY reads "Total Position" in both; German would be "Gesamtposition".
 VALUE_SECURITY
+VALUE_SECURITY_MC
 # c.showOnlyParam1 is "aaa {{param1}}" -- placeholder text left over from development, not a real
 # label. It is referenced nowhere; consider deleting the key entirely.
 c.showOnlyParam1
@@ -91,3 +92,6 @@ DASHBOARD_MOVERS_INTRADAY
 # --- Deliberate: the status column of the historical replay.
 # "Status" is the identical, established word in German.
 STATUS
+
+# --- Deliberate: the label of the argument of a lookup reads the same in both languages.
+RESOLVER_ARGUMENT

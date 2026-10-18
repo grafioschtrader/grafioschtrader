@@ -41,8 +41,19 @@ public interface ISplitCalendarFeedConnector {
     /** Company name for identification */
     public String companyName;
 
-    /** Country code where the company is listed */
+    /**
+     * ISO country code of the listing that splits, or null when the connector does not know it. A depositary receipt
+     * often carries the ticker of its underlying stock, so without this the split of a Canadian CDR would be matched
+     * with the US stock.
+     */
     public String countryCode;
+
+    /**
+     * Yahoo exchange suffix of the listing including the dot, for example ".SW", an empty string for a listing without
+     * suffix (US exchanges), or null when the connector does not deliver it. Compared with the Yahoo suffix of the
+     * security's stock exchange.
+     */
+    public String symbolSuffix;
 
     /** Security split information including dates, ratios, and details */
     public Securitysplit securitysplit;
@@ -52,10 +63,25 @@ public interface ISplitCalendarFeedConnector {
       this.securitysplit = securitysplit;
     }
 
+    /**
+     * Creates the split information together with the identification of the listing.
+     *
+     * @param companyName   company name for the similarity check with the security name
+     * @param countryCode   ISO country code of the listing, or null if unknown
+     * @param symbolSuffix  Yahoo exchange suffix of the listing, or null if unknown
+     * @param securitysplit the announced split
+     */
+    public TickerSecuritysplit(String companyName, String countryCode, String symbolSuffix,
+        Securitysplit securitysplit) {
+      this(companyName, securitysplit);
+      this.countryCode = countryCode;
+      this.symbolSuffix = symbolSuffix;
+    }
+
     @Override
     public String toString() {
-      return "TickerSecuritysplit [companyName=" + companyName + ", countryCode=" + countryCode + ", securitysplit="
-          + securitysplit + "]";
+      return "TickerSecuritysplit [companyName=" + companyName + ", countryCode=" + countryCode + ", symbolSuffix="
+          + symbolSuffix + ", securitysplit=" + securitysplit + "]";
     }
 
   }

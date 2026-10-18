@@ -26,6 +26,7 @@ export class LibDataMainTreeContributor {
   static createUdfMetadataGeneralNode(nodeType: string): TreeNode {
     return {
       label: AppHelper.toUpperCaseWithUnderscore(BaseSettings.UDF_METADATA_GENERAL),
+      icon: 'pi pi-tags',
       children: [],
       data: new TypeNodeData(
         nodeType,
@@ -47,6 +48,7 @@ export class LibDataMainTreeContributor {
   static createGlobalSettingsNode(): TreeNode {
     return {
       label: 'GLOBAL_SETTINGS',
+      icon: 'pi pi-cog',
       data: new TypeNodeData(
         LibTreeNodeType.NO_MENU,
         LibDataMainTreeContributor.addMainRoute(BaseSettings.GLOBAL_SETTINGS_KEY),
@@ -67,6 +69,7 @@ export class LibDataMainTreeContributor {
   static createTaskDataMonitorNode(): TreeNode {
     return {
       label: 'TASK_DATA_MONITOR',
+      icon: 'pi pi-desktop',
       data: new TypeNodeData(
         LibTreeNodeType.NO_MENU,
         LibDataMainTreeContributor.addMainRoute(BaseSettings.TASK_DATA_CHANGE_MONITOR_KEY),
@@ -87,6 +90,7 @@ export class LibDataMainTreeContributor {
   static createConnectorApiKeyNode(): TreeNode {
     return {
       label: 'CONNECTOR_API_KEY',
+      icon: 'pi pi-key',
       data: new TypeNodeData(
         LibTreeNodeType.NO_MENU,
         LibDataMainTreeContributor.addMainRoute(BaseSettings.CONNECTOR_API_KEY_KEY),
@@ -107,6 +111,7 @@ export class LibDataMainTreeContributor {
   static createUserSettingsNode(): TreeNode {
     return {
       label: 'USER_SETTINGS',
+      icon: 'pi pi-users',
       data: new TypeNodeData(
         LibTreeNodeType.NO_MENU,
         LibDataMainTreeContributor.addMainRoute(BaseSettings.USER_ADMIN_KEY),
@@ -127,6 +132,7 @@ export class LibDataMainTreeContributor {
   static createEntityLimitNode(): TreeNode {
     return {
       label: 'ENTITY_LIMIT_INFO_CLASS',
+      icon: 'pi pi-sliders-h',
       data: new TypeNodeData(
         LibTreeNodeType.NO_MENU,
         LibDataMainTreeContributor.addMainRoute(BaseSettings.ENTITY_LIMIT_KEY),

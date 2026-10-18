@@ -14,24 +14,27 @@ import grafioschtrader.connector.securitysearch.SixSecuritySearch;
 import grafioschtrader.connector.securitysearch.ViennaSecuritySearch;
 import grafioschtrader.connector.securitysearch.XetraSecuritySearch;
 import grafioschtrader.dto.SecurityBaseDataDto;
+import grafioschtrader.instrument.lookup.LookupListing.FieldConflict;
 
 /**
  * Merges the listings that several providers found for the same instrument on the same exchange, so that the dialog
  * shows one row per listing. The provider that is the exchange itself (SIX on XSWX, Deutsche Börse on XETR and XFRA,
- * Wiener Börse on XVIE, Euronext on its exchanges) is primary: its values are kept, and another provider only fills the fields it left open - e.g.
- * Yahoo the first trading day of a share, which SIX does not deliver. Every field keeps the provider it came from.
+ * Wiener Börse on XVIE, Euronext on its exchanges) is primary: its values are kept, and another provider only fills the
+ * fields it left open - e.g. Yahoo the first trading day of a share, which SIX does not deliver. Every field keeps the
+ * provider it came from, and a value of another provider that differs from the kept one is recorded as a conflict, so
+ * that the user can see it.
  *
  * <p>
  * Two listings are the same when their MIC and their currency (minor units folded) agree and the exchange ticker of the
  * secondary one equals the ticker of the primary one, case-insensitive. Deutsche Börse delivers no ticker; its listing
  * absorbs the one listing of each other provider on the same exchange in the same currency, which then supplies the
- * ticker. A listing without ticker that names the same ISIN is absorbed the same way, e.g. onvista for a bond on
- * SIX; listings without ticker are merged after those with one, so that the outcome does not depend on the order of the
+ * ticker. A listing without ticker that names the same ISIN is absorbed the same way, e.g. onvista for a bond on SIX;
+ * listings without ticker are merged after those with one, so that the outcome does not depend on the order of the
  * providers. A row without ISIN, e.g. Yahoo's, takes the ISIN of a listing it absorbs by ticker, which lets a listing
  * without ticker of the same ISIN join it; when no listing confirmed the ISIN, a listing without ticker joins the one
- * row without ISIN of its exchange and currency. A listing without currency - Euronext, or a bond Boursorama quotes in percent - is compatible with any; a
- * primary listing without currency takes the one of the listing it absorbs. The raw attributes of a secondary provider
- * are kept with its provider id as prefix, e.g. {@code yahoo.instrumentType}.
+ * row without ISIN of its exchange and currency. A listing without currency - Euronext, or a bond Boursorama quotes in
+ * percent - is compatible with any; a primary listing without currency takes the one of the listing it absorbs. The raw
+ * attributes of a secondary provider are kept with its provider id as prefix, e.g. {@code yahoo.instrumentType}.
  * </p>
  */
 final class LookupListingMerger {
@@ -170,20 +173,51 @@ final class LookupListingMerger {
     Map<String, String> attributes = new LinkedHashMap<>(p.providerAttributes());
     s.providerAttributes().forEach((key, value) -> attributes.put(secondaryId + "." + key, value));
     SecurityBaseDataDto merged = new SecurityBaseDataDto(p.providerId(), p.providerInstrumentId(),
-        first(p.isin(), s.isin()),
-        first(p.currency(), s.currency()), p.mic(), first(p.name(), s.name()), first(p.tickerSymbol(), s.tickerSymbol()),
-        first(p.issuerCountry(), s.issuerCountry()), first(p.activeFromDate(), s.activeFromDate()),
-        first(p.activeToDate(), s.activeToDate()), first(p.distributionFrequency(), s.distributionFrequency()),
-        first(p.denomination(), s.denomination()), first(p.productLink(), s.productLink()),
-        first(p.stockexchangeLink(), s.stockexchangeLink()), first(p.listedSince(), s.listedSince()),
-        first(p.distributing(), s.distributing()), attributes);
+        first(p.isin(), s.isin()), first(p.currency(), s.currency()), p.mic(), first(p.name(), s.name()),
+        first(p.tickerSymbol(), s.tickerSymbol()), first(p.issuerCountry(), s.issuerCountry()),
+        first(p.activeFromDate(), s.activeFromDate()), first(p.activeToDate(), s.activeToDate()),
+        first(p.distributionFrequency(), s.distributionFrequency()), first(p.denomination(), s.denomination()),
+        first(p.productLink(), s.productLink()), first(p.stockexchangeLink(), s.stockexchangeLink()),
+        first(p.listedSince(), s.listedSince()), first(p.distributing(), s.distributing()), attributes);
     List<String> providerIds = new ArrayList<>(primary.providerIds());
     providerIds.add(secondaryId);
     List<SecurityBaseDataDto> providerBaseData = new ArrayList<>(primary.providerBaseData());
     providerBaseData.addAll(secondary.providerBaseData());
+    List<FieldConflict> conflicts = new ArrayList<>(primary.conflicts());
+    conflicts.addAll(secondary.conflicts());
+    conflicts.addAll(conflicts(primaryValues, primary.fieldSources(), fieldValues(s), secondaryId));
     return new LookupListing(primary.candidate(), primary.baseDataResult(), merged,
         mergeTypes(primary.instrumentType(), secondary.instrumentType()), List.copyOf(providerIds), sources,
-        List.copyOf(providerBaseData));
+        List.copyOf(providerBaseData), List.copyOf(conflicts));
+  }
+
+  /**
+   * Fields whose disagreement is reported. Names are left out: every provider spells them its own way ("Chegg Inc"
+   * against "Chegg, Inc."), so a difference says nothing. The ticker cannot differ, since it decides the merge.
+   */
+  static final List<String> CONFLICT_FIELDS = List.of("activeFromDate", "activeToDate", "distributionFrequency",
+      "denomination");
+
+  /**
+   * Finds the fields in which the secondary provider delivered another value than the one the primary listing keeps.
+   *
+   * @param primaryValues   values of the primary listing by field name
+   * @param primarySources  provider of each value of the primary listing
+   * @param secondaryValues values of the secondary listing by field name
+   * @param secondaryId     the secondary provider
+   * @return the disagreements, in the order of {@link #CONFLICT_FIELDS}
+   */
+  static List<FieldConflict> conflicts(Map<String, Object> primaryValues, Map<String, String> primarySources,
+      Map<String, Object> secondaryValues, String secondaryId) {
+    List<FieldConflict> conflicts = new ArrayList<>();
+    for (String field : CONFLICT_FIELDS) {
+      Object kept = primaryValues.get(field);
+      Object other = secondaryValues.get(field);
+      if (kept != null && other != null && !kept.equals(other)) {
+        conflicts.add(new FieldConflict(field, primarySources.get(field), kept, secondaryId, other));
+      }
+    }
+    return conflicts;
   }
 
   /**

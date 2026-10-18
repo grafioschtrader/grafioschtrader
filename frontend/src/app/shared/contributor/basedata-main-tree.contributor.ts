@@ -78,10 +78,12 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
     this.rootNode.children = [
       {
         label: AppSettings.ASSETCLASS.toUpperCase(),
+        icon: 'pi pi-th-large',
         data: new TypeNodeData(TreeNodeType.AssetClass, this.addMainRoute(AppSettings.ASSETCLASS_KEY), null, null, null)
       },
       {
         label: AppSettings.STOCKEXCHANGE.toUpperCase(),
+        icon: 'pi pi-building-columns',
         data: new TypeNodeData(
           TreeNodeType.Stockexchange,
           this.addMainRoute(AppSettings.STOCKEXCHANGE_KEY),
@@ -92,6 +94,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
       },
       {
         label: AppHelper.toUpperCaseWithUnderscore(AppSettings.TRADING_PLATFORM_PLAN),
+        icon: 'pi pi-wallet',
         data: new TypeNodeData(
           TreeNodeType.TradingPlatformPlan,
           this.addMainRoute(AppSettings.TRADING_PLATFORM_PLAN_KEY),
@@ -102,6 +105,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
       },
       {
         label: 'IMPORT_TRANSACTION_PLATFORM',
+        icon: 'pi pi-file-import',
         data: new TypeNodeData(
           TreeNodeType.ImpTransTemplate,
           this.addMainRoute(AppSettings.IMP_TRANS_TEMPLATE_KEY),
@@ -113,6 +117,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
       udfMetadataGeneralNode,
       {
         label: AppHelper.toUpperCaseWithUnderscore(AppSettings.GENERIC_CONNECTOR_DEF),
+        icon: 'pi pi-link',
         data: new TypeNodeData(
           TreeNodeType.GenericConnectorDef,
           this.addMainRoute(AppSettings.GENERIC_CONNECTOR_KEY),
@@ -123,6 +128,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
       },
       {
         label: AppHelper.toUpperCaseWithUnderscore(AppSettings.SECURITY_ACTION),
+        icon: 'pi pi-bolt',
         data: new TypeNodeData(
           TreeNodeType.SecurityAction,
           this.addMainRoute(AppSettings.SECURITY_ACTION_KEY),
@@ -133,6 +139,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
       },
       {
         label: 'RISK_FREE_RATE_MAPPING',
+        icon: 'pi pi-percentage',
         data: new TypeNodeData(
           TreeNodeType.RiskFreeRateMapping,
           this.addMainRoute(AppSettings.RISK_FREE_RATE_MAPPING_KEY),
@@ -143,6 +150,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
       },
       {
         label: AppHelper.toUpperCaseWithUnderscore(AppSettings.BANKRUPT_SECURITY),
+        icon: 'pi pi-ban',
         data: new TypeNodeData(
           TreeNodeType.BankruptSecurity,
           this.addMainRoute(AppSettings.BANKRUPT_SECURITY_KEY),
@@ -155,6 +163,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
     if (this.globalParamService.useGtnet()) {
       this.rootNode.children.push({
         label: 'GTNET_SECURITY_IMPORT',
+        icon: 'pi pi-download',
         data: new TypeNodeData(
           TreeNodeType.GTNetSecurityImport,
           this.addMainRoute(AppSettings.GT_NET_SECURITY_IMPORT_KEY),
@@ -169,6 +178,7 @@ export class BaseDataMainTreeContributor extends MainTreeContributor {
   private getUDFMetadataSecurityChild(): TreeNode {
     return {
       label: AppHelper.toUpperCaseWithUnderscore(AppSettings.UDF_METADATA_SECURITY),
+      icon: 'pi pi-tag',
       data: new TypeNodeData(
         TreeNodeType.UDFMetadataSecurity,
         this.addMainRoute(AppSettings.UDF_METADATA_SECURITY_KEY),

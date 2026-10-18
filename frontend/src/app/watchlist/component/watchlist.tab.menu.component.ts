@@ -37,6 +37,25 @@ import { WatchlistExpandedPanelStateService } from '../service/watchlist.expande
       <router-outlet></router-outlet>
     </div>
   `,
+  // The tab panel gets the remaining height, so the watchlist table scrolls inside its own viewport and its caption
+  // and column headers stay visible instead of the whole view scrolling away.
+  styles: [
+    `
+      :host {
+        display: block;
+        height: 100%;
+      }
+      .card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .card ::ng-deep > router-outlet + * {
+        flex: 1;
+        min-height: 0;
+      }
+    `
+  ],
   standalone: true,
   imports: [TranslateModule, RouterModule, Tabs, TabList, Tab],
   // Both services are scoped to this component on purpose: the cached instrument statistics and the remembered

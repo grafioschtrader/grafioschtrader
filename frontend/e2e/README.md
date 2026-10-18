@@ -114,6 +114,10 @@ Three rules from it are worth repeating here, because getting them wrong is sile
 
 ## Watchlist specs (040-* create / 844-* teardown)
 
+Use `watchlistTable(page)` from `watchlist.helpers.ts` to locate the watchlist table and its context-menu
+container. It is scoped to the shared watchlist view without depending on the sizing class (`data-container-full`).
+Other views still use `data-container`; do not replace that selector across the entire suite.
+
 `040-create-watchlist.spec.ts` creates every Playwright-owned watchlist before the currency-pair and
 security workflows run. `844-delete-watchlist.spec.ts` removes the watchlists whose fixture row has
 `delete=true`; it runs before the portfolio teardown in `888`. Both read the hand-authored JSON fixture

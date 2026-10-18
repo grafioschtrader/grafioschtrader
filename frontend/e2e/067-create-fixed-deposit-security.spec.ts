@@ -6,6 +6,7 @@ import { loginAsFixtureUser } from './helpers';
 import { expectToast } from './manage-client.helpers';
 import { toShortDate } from './portfolio.helpers';
 import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
+import { watchlistTable } from './watchlist.helpers';
 
 type HistoryquotePeriodCreateType = 'SYSTEM_CREATED' | 'USER_CREATED';
 
@@ -113,8 +114,8 @@ function exactText(value: string): RegExp {
 }
 
 function securityRow(page: Page, security: FixedDepositSecurity): Locator {
-  return page
-    .locator('.data-container p-table tbody tr')
+  return watchlistTable(page)
+    .locator('p-table tbody tr')
     .filter({ has: page.locator('td').filter({ hasText: exactText(security.name) }) })
     .filter({ has: page.locator('td').filter({ hasText: exactText(security.currency) }) })
     .first();
@@ -124,12 +125,12 @@ async function openWatchlist(page: Page, watchlistName: string): Promise<void> {
   const node = page.getByRole('treeitem', { name: watchlistName, exact: true }).first();
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await watchlistTable(page).waitFor({ state: 'visible', timeout: 15_000 });
   await page.waitForTimeout(1500);
 }
 
 async function openWatchlistMenu(page: Page): Promise<Locator> {
-  const container = page.locator('.data-container').first();
+  const container = watchlistTable(page);
   await container.click();
   await page.waitForTimeout(300);
   await container.click({ button: 'right' });

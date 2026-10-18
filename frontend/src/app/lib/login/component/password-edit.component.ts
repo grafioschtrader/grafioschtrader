@@ -14,6 +14,7 @@ import { TranslateHelper } from '../../helper/translate.helper';
 import { FieldDescriptorInputAndShow } from '../../dynamicfield/field.descriptor.input.and.show';
 import { GlobalSessionNames } from '../../global.session.names';
 import { DynamicFieldModelHelper } from '../../helper/dynamic.field.model.helper';
+import { HelpIds } from '../../help/help.ids';
 
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { DynamicFormModule } from '../../dynamic-form/dynamic-form.module';
@@ -85,6 +86,11 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
     }
   }
 
+  /** Opens the settings page of the user manual, which also explains the forced change at login. */
+  helpLink(): void {
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_INTRO_SETTINGS);
+  }
+
   public onShow(event) {}
 
   public onHide(event) {
@@ -93,7 +99,7 @@ export class PasswordEditComponent extends PasswordBaseComponent implements OnIn
 
   private changePasswdFormDefinition(fdias: FieldDescriptorInputAndShow[]): void {
     super.init(fdias, true);
-    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5);
+    this.formConfig = AppHelper.getDefaultFormConfig(this.gps, 5, this.helpLink.bind(this));
     this.config = [
       DynamicFieldModelHelper.ccWithFieldsFromDescriptorHeqF(this.translateService, 'password', fdias, {
         targetField: PasswordEditComponent.passwordOld

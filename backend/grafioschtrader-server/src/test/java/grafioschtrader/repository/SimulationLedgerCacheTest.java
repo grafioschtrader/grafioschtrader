@@ -20,7 +20,7 @@ class SimulationLedgerCacheTest {
   private static final LocalDate DAY = LocalDate.of(2024, 3, 4);
 
   private final SimulationSourceRepository source = mock(SimulationSourceRepository.class);
-  private final List<Transaction> database = new ArrayList<>();
+  private final List<Transaction> sourceRows = new ArrayList<>();
   private SimulationLedgerCache.Scope scope;
 
   @AfterEach
@@ -47,7 +47,7 @@ class SimulationLedgerCacheTest {
   }
 
   @Test
-  @DisplayName("The exclusive end date filters like the database query")
+  @DisplayName("Transactions on or after the exclusive end date are omitted")
   void exclusiveEndDate() {
     open();
     insert(5, DAY.plusDays(2));
@@ -59,21 +59,21 @@ class SimulationLedgerCacheTest {
   }
 
   @Test
-  @DisplayName("A rolled-back fill forces a complete reload")
-  void rollbackReloads() {
+  @DisplayName("Replacing a source row with a higher ID forces a complete reload")
+  void replacedSourceRowForcesFullReload() {
     open();
     insert(1, DAY);
     insert(2, DAY);
     cache().transactions(DAY.plusDays(1), source);
 
-    database.removeIf(t -> t.getIdTransaction() == 2);
+    sourceRows.removeIf(t -> t.getIdTransaction() == 2);
     insert(3, DAY);
     assertThat(ids(cache().transactions(DAY.plusDays(1), source))).containsExactly(1, 3);
     verify(source, times(2)).loadTransactionsAfterId(TENANT, 0);
   }
 
   @Test
-  @DisplayName("Another tenant and a closed scope read from the database")
+  @DisplayName("Another tenant and a closed scope have no active cache")
   void outsideTheReplay() {
     assertThat(SimulationLedgerCache.active(TENANT)).isNull();
     open();
@@ -88,7 +88,7 @@ class SimulationLedgerCacheTest {
     when(source.ledgerFingerprint(TENANT)).thenAnswer(_ -> fingerprint());
     when(source.loadTransactionsAfterId(eq(TENANT), anyInt())).thenAnswer(invocation -> {
       int after = invocation.getArgument(1);
-      return database.stream().filter(t -> t.getIdTransaction() > after).toList();
+      return sourceRows.stream().filter(t -> t.getIdTransaction() > after).toList();
     });
   }
 
@@ -101,12 +101,12 @@ class SimulationLedgerCacheTest {
     transaction.setIdTransaction(id);
     transaction.setIdTenant(TENANT);
     transaction.setTransactionTime(date.atTime(12, 0));
-    database.add(transaction);
+    sourceRows.add(transaction);
   }
 
   private LedgerFingerprint fingerprint() {
-    long count = database.size();
-    Integer max = database.stream().map(Transaction::getIdTransaction).max(Integer::compare).orElse(null);
+    long count = sourceRows.size();
+    Integer max = sourceRows.stream().map(Transaction::getIdTransaction).max(Integer::compare).orElse(null);
     return new LedgerFingerprint() {
       @Override
       public long getRowCount() {

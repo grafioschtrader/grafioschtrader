@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { watchlistTable } from './watchlist.helpers';
 
 import { loginAsFixtureUser, parseCsvRow } from './helpers';
 import { toShortDate } from './portfolio.helpers';
@@ -136,8 +137,8 @@ function exactText(value: string): RegExp {
 }
 
 function securityRow(page: Page, scenario: SecuritySplitScenario): Locator {
-  return page
-    .locator('.data-container p-table tbody tr')
+  return watchlistTable(page)
+    .locator('p-table tbody tr')
     .filter({ has: page.locator('td').filter({ hasText: exactText(scenario.securityName) }) })
     .filter({ has: page.locator('td').filter({ hasText: exactText(scenario.currency) }) })
     .first();
@@ -147,7 +148,7 @@ async function openWatchlist(page: Page, watchlistName: string): Promise<void> {
   const node = page.getByRole('treeitem', { name: watchlistName, exact: true }).first();
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await watchlistTable(page).waitFor({ state: 'visible', timeout: 15_000 });
   await page.waitForTimeout(1500);
 }
 

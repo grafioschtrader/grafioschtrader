@@ -19,7 +19,9 @@ import grafioschtrader.types.AssetclassType;
 import grafioschtrader.types.IdentityEvidence;
 import grafioschtrader.types.SpecialInvestmentInstruments;
 
-/** Merging the listings several providers found for the same instrument, e.g. the SIX and Yahoo listings of Novartis. */
+/**
+ * Merging the listings several providers found for the same instrument, e.g. the SIX and Yahoo listings of Novartis.
+ */
 class LookupListingMergerTest {
 
   private static LookupListing listing(String providerId, String ticker, String currency, String mic,
@@ -129,8 +131,8 @@ class LookupListingMergerTest {
   @Test
   @DisplayName("Without a confirmed ISIN a listing without ticker joins the one Yahoo row of its exchange, not two")
   void withoutTickerJoinsSingleRowWithoutIsin() {
-    SecurityBaseDataDto toyota = new SecurityBaseDataDto("yahoo", "7203.T", null, "JPY", "XTKS", "Toyota", "7203",
-        null, null, null, null, null, null, null, null, null, Map.of());
+    SecurityBaseDataDto toyota = new SecurityBaseDataDto("yahoo", "7203.T", null, "JPY", "XTKS", "Toyota", "7203", null,
+        null, null, null, null, null, null, null, null, Map.of());
     LookupListing yahoo = listing("yahoo", "7203", "JPY", "XTKS", null, SHARE);
     yahoo = LookupListing.of(yahoo.candidate(), SecurityBaseDataResult.ok("yahoo", toyota), toyota, SHARE);
     LookupListing consorsbank = listing("consorsbank", null, "JPY", "XTKS", null, SHARE);
@@ -140,8 +142,8 @@ class LookupListingMergerTest {
     assertEquals(List.of("yahoo", "consorsbank"), merged.getFirst().providerIds());
     assertEquals("CH0012005267", merged.getFirst().baseData().isin(), "the ISIN comes from the listing that has it");
 
-    SecurityBaseDataDto other = new SecurityBaseDataDto("yahoo", "7203X.T", null, "JPY", "XTKS", "Other", "7203X",
-        null, null, null, null, null, null, null, null, null, Map.of());
+    SecurityBaseDataDto other = new SecurityBaseDataDto("yahoo", "7203X.T", null, "JPY", "XTKS", "Other", "7203X", null,
+        null, null, null, null, null, null, null, null, Map.of());
     LookupListing secondYahoo = LookupListing.of(listing("yahoo", "7203X", "JPY", "XTKS", null, SHARE).candidate(),
         SecurityBaseDataResult.ok("yahoo", other), other, SHARE);
     assertEquals(3, LookupListingMerger.merge(List.of(yahoo, secondYahoo, consorsbank)).size(),
@@ -155,6 +157,21 @@ class LookupListingMergerTest {
         listing("boursorama", "FON25", null, "XSWX", null, SHARE)));
     assertEquals(1, merged.size());
     assertEquals("CHF", merged.getFirst().baseData().currency());
+  }
+
+  @Test
+  @DisplayName("Disagreeing first trading days are recorded as conflict; the value of the exchange provider is kept")
+  void conflictingValues() {
+    LookupListing merged = LookupListingMerger
+        .merge(List.of(listing("yahoo", "NOVN", "CHF", "XSWX", LocalDate.of(2001, 5, 2), SHARE),
+            listing("six", "NOVN", "CHF", "XSWX", LocalDate.of(2000, 1, 3), SHARE),
+            listing("boursorama", "NOVN", "CHF", "XSWX", LocalDate.of(2000, 1, 3), SHARE)))
+        .getFirst();
+    assertEquals(LocalDate.of(2000, 1, 3), merged.baseData().activeFromDate());
+    assertEquals(
+        List.of(new LookupListing.FieldConflict("activeFromDate", "six", LocalDate.of(2000, 1, 3), "yahoo",
+            LocalDate.of(2001, 5, 2))),
+        merged.conflicts(), "an equal value and differently spelled names are no conflict");
   }
 
   @Test

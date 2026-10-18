@@ -89,6 +89,21 @@ class SearchCandidateMatcherTest {
                 IdentityEvidence.UNKNOWN)));
     assertEquals(SecuritySearchStatus.NO_MATCH, result.status());
     assertEquals(2, result.rejectedCandidates());
+    assertEquals(List.of("CSSPX.MI"),
+        result.otherMicCandidates().stream().map(SecuritySearchCandidateDto::providerSymbol).toList(),
+        "only the listing rejected for its exchange alone hints at another exchange; the other ISIN does not");
+  }
+
+  @Test
+  @DisplayName("A listing on another exchange in another currency is no hint at the queried instrument")
+  void otherMicInOtherCurrency() {
+    SecuritySearchResult result = SearchCandidateMatcher.match("p", SecuritySearchQuery.of(ISIN, "USD", "XNAS", null),
+        List.of(
+            candidate("CHGG", null, IdentityEvidence.UNKNOWN, "USD", IdentityEvidence.RETURNED, "XNYS",
+                IdentityEvidence.RETURNED),
+            candidate("0CG", null, IdentityEvidence.UNKNOWN, "EUR", IdentityEvidence.RETURNED, "XETR",
+                IdentityEvidence.RETURNED)));
+    assertEquals(List.of("XNYS"), result.otherMicCandidates().stream().map(SecuritySearchCandidateDto::mic).toList());
   }
 
   @Test
@@ -110,17 +125,17 @@ class SearchCandidateMatcherTest {
         IdentityEvidence.RETURNED, "XSWX", IdentityEvidence.RETURNED);
     SecuritySearchResult result = SearchCandidateMatcher.match("p", SecuritySearchQuery.of(ISIN, "CHF", "XSWX", null),
         List.of(incomplete, complete));
-    assertEquals(List.of("B", "A"), result.candidates().stream().map(SecuritySearchCandidateDto::providerSymbol)
-        .toList());
+    assertEquals(List.of("B", "A"),
+        result.candidates().stream().map(SecuritySearchCandidateDto::providerSymbol).toList());
     assertNull(result.candidates().get(1).currency());
   }
 
   @Test
   @DisplayName("Minor-unit currencies compare equal to their main currency")
   void minorUnitCurrency() {
-    SecuritySearchResult result = SearchCandidateMatcher.match("p", SecuritySearchQuery.of("GB0002374006", "GBP",
-        null, null), List.of(candidate("DGE.L", null, IdentityEvidence.UNKNOWN, "GBp", IdentityEvidence.RETURNED,
-            null, IdentityEvidence.UNKNOWN)));
+    SecuritySearchResult result = SearchCandidateMatcher.match("p",
+        SecuritySearchQuery.of("GB0002374006", "GBP", null, null), List.of(candidate("DGE.L", null,
+            IdentityEvidence.UNKNOWN, "GBp", IdentityEvidence.RETURNED, null, IdentityEvidence.UNKNOWN)));
     assertEquals(SecuritySearchStatus.OK, result.status());
     assertEquals("GBp", result.candidates().getFirst().currency());
   }

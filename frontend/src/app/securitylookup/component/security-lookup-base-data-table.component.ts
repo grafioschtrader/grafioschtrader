@@ -8,8 +8,11 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FilterService } from '@openng/optimus-ui/api';
+import { CheckboxModule } from '@openng/optimus-ui/checkbox';
+import { TooltipModule } from '@openng/optimus-ui/tooltip';
 
 import { TableConfigBase } from '../../lib/datashowbase/table.config.base';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
@@ -26,7 +29,7 @@ import { SecurityLookupCandidate } from '../model/security-lookup';
 @Component({
   selector: 'security-lookup-base-data-table',
   standalone: true,
-  imports: [ConfigurableTableComponent, TranslateModule],
+  imports: [ConfigurableTableComponent, TranslateModule, FormsModule, CheckboxModule, TooltipModule],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <configurable-table
@@ -45,6 +48,21 @@ import { SecurityLookupCandidate } from '../model/security-lookup';
       [expandable]="true"
       [expandedRowTemplate]="baseDataExpansion">
       <h5 caption>{{ 'BASE_DATA' | translate }}</h5>
+      <ng-template #customCell let-row let-field="field">
+        @if (field.field === takeOverNameField) {
+          <span (click)="$event.stopPropagation()">
+            <p-checkbox
+              [ngModel]="row === nameCandidate"
+              [binary]="true"
+              [readonly]="row === nameCandidate"
+              (onChange)="onNameCandidateChange(row)"></p-checkbox>
+          </span>
+        } @else if (field.templateName === 'check') {
+          <span><i [class.fa]="getValueByPath(row, field)" [class.fa-check]="getValueByPath(row, field)"></i></span>
+        } @else {
+          <span [pTooltip]="getValueByPath(row, field)" tooltipPosition="top">{{ getValueByPath(row, field) }}</span>
+        }
+      </ng-template>
     </configurable-table>
 
     <ng-template #baseDataExpansion let-candidate>
@@ -109,6 +127,18 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
   @Input() selectedCandidate: SecurityLookupCandidate;
 
   /**
+   * The listing whose name is taken over. It may differ from the chosen listing, because the providers spell the name
+   * of the same instrument differently and the listing with the better spelling may lack the wanted connectors.
+   */
+  @Input() nameCandidate: SecurityLookupCandidate;
+
+  /** Emits the listing whose name is taken over */
+  @Output() nameCandidateChange = new EventEmitter<SecurityLookupCandidate>();
+
+  /** Column with the checkbox choosing the name taken over; the candidate has no such property */
+  readonly takeOverNameField = 'takeOverName';
+
+  /**
    * Further master data shown in the expanded row. They are hidden columns of the table, so that formatting and the
    * translation of enum values go through the GT data types like every other column.
    */
@@ -131,6 +161,7 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
     injector: Injector
   ) {
     super(filterService, usersettingsService, translateService, gps, injector);
+    this.addColumnFeqH(DataType.Boolean, this.takeOverNameField, true, false, { width: 60 });
     this.addColumnFeqH(DataType.String, 'name', true, false, { width: 220 });
     this.addColumnFeqH(DataType.String, 'tickerSymbol', true, false, { width: 70 });
     this.addColumn(DataType.String, 'isin', 'ISIN', true, false, { width: 110 });
@@ -178,6 +209,17 @@ export class SecurityLookupBaseDataTableComponent extends TableConfigBase implem
   onSelectionChange(candidate: SecurityLookupCandidate): void {
     this.selectedCandidate = candidate;
     this.candidateSelected.emit(candidate);
+  }
+
+  /**
+   * Makes the listing the source of the name. The checkbox works like a radio button: exactly one listing supplies the
+   * name, so the checked box is read-only.
+   *
+   * @param candidate - The listing whose checkbox was clicked
+   */
+  onNameCandidateChange(candidate: SecurityLookupCandidate): void {
+    this.nameCandidate = candidate;
+    this.nameCandidateChange.emit(candidate);
   }
 
   hasAttributes(candidate: SecurityLookupCandidate): boolean {

@@ -35,6 +35,7 @@ import { TranslateHelper } from '../../lib/helper/translate.helper';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { ProductIconService } from '../../securitycurrency/service/product.icon.service';
 import { ColumnConfig, TranslateValue } from '../../lib/datashowbase/column.config';
+import { CellMark } from '../../lib/datashowbase/configurable-table.component';
 import { WatchlistSecurityExists } from '../../entities/dnd/watchlist.security.exists';
 import { MailSendParam } from '../../lib/dynamicdialog/component/mail-send-dynamic-dialog.component';
 import { DataType } from '../../lib/dynamic-form/models/data.type';
@@ -167,6 +168,12 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
 
   /** Reference to the table component, used to apply and to reset the stored filters. */
   @ViewChild(ConfigurableTableComponent) protected configurableTable: ConfigurableTableComponent;
+
+  /**
+   * Values of the selected row shown in the caption of the table, null when the watchlist type has no such line or it
+   * is switched off.
+   */
+  positionHeaderFields: ColumnConfig[] = null;
 
   /** Parameters for UDF general dialogs. */
   uDFGeneralCallParam: UDFGeneralCallParam;
@@ -423,6 +430,17 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
    * information.
    */
   private static readonly MAX_HISTORY_START_GAP_DAYS = 365;
+
+  /**
+   * Returns the small mark shown before the content of a cell. The watchlist types without such marks keep the default.
+   *
+   * @param position - Row of the table
+   * @param field - Column configuration of the cell
+   * @returns The mark of the cell, or null for none
+   */
+  cellMark(position: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig): CellMark | null {
+    return null;
+  }
 
   /**
    * Paints the cells whose value would otherwise have to be compared with a second value by eye.
@@ -944,7 +962,7 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
         fieldValueFN: this.getDistributionText.bind(this),
         filterType: FilterType.withOptions,
         templateName: 'svgIcon',
-        width: 60
+        width: 40
       }
     );
     this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.isin', true, true, {
@@ -952,7 +970,8 @@ export abstract class WatchlistTable extends TableConfigBase implements AfterVie
       filterType: FilterType.likeDataType
     });
     this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.tickerSymbol', true, true, {
-      filterType: FilterType.likeDataType
+      filterType: FilterType.likeDataType,
+      width: 60
     });
     this.addColumnFeqH(DataType.String, WatchlistHelper.SECURITYCURRENCY + '.currency', true, true, {
       filterType: FilterType.withOptions,

@@ -23,6 +23,21 @@ export interface ConnectorAlternative {
 }
 
 /**
+ * Something the security lookup could not resolve, why, and what follows for the form. Corresponds to the backend
+ * record SecurityLookupHint.
+ */
+export interface SecurityLookupHint {
+  /** ERROR, WARNING or INFO */
+  severity: string;
+  /** Field of the candidate the hint is about, e.g. 'activeFromDate'; its label is derived from it */
+  field: string;
+  /** Translation key of the text */
+  messageKey: string;
+  /** Placeholder values; a name ending in 'Key' is translated, one ending in 'Date' formatted */
+  args: { [name: string]: string };
+}
+
+/**
  * One listing proposed by the security lookup. Corresponds to the backend record SecurityLookupCandidateDto.
  */
 export interface SecurityLookupCandidate {
@@ -66,6 +81,8 @@ export interface SecurityLookupCandidate {
   providerIds: string[];
   /** Source of each set field by field name: a provider id or 'derived' for a value a rule produced */
   fieldSources: { [field: string]: string };
+  /** Missing fields, a failed master data request, a contradicting type and disagreeing providers of this listing */
+  hints: SecurityLookupHint[];
 }
 
 /** Outcome of the search at one provider. */
@@ -83,11 +100,15 @@ export interface SecurityLookupResponse {
   dividendConnectorApplicable: boolean;
   /** False when an instrument of the chosen asset class has no splits, e.g. a directly held bond */
   splitConnectorApplicable: boolean;
+  /** Failed providers and exchanges on which the instrument was found instead; also given without any candidate */
+  hints: SecurityLookupHint[];
 }
 
 /** The candidate and the connectors the user chose in the lookup dialog; a missing connector leaves the form as is. */
 export interface SecurityLookupSelection {
   candidate: SecurityLookupCandidate;
+  /** The listing whose name is taken over; another listing than the chosen one may spell the name better */
+  nameCandidate: SecurityLookupCandidate;
   history: ConnectorAlternative;
   intra: ConnectorAlternative;
   dividend: ConnectorAlternative;

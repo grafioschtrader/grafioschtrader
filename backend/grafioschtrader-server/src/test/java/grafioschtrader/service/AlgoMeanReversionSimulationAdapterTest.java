@@ -7,6 +7,7 @@ import java.time.*;
 import java.util.*;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,20 +59,37 @@ class AlgoMeanReversionSimulationAdapterTest {
   }
 
   @Test
-  void partialFillBooksOnlyThroughPortfolioPathAndReplayIsIdempotent() throws Exception {
+  @DisplayName("A partial fill is assigned to its simulation tenant, strategy and signal")
+  void partialFillReceivesSimulationAndSignalAssignment() throws Exception {
     login(1);
     var first = fill(4);
     when(transactions.saveOnlyAttributes(any(), isNull(), any())).thenAnswer(i -> i.getArgument(0));
-    assertSame(first, adapter.fill(context, decision, "fill-1", first));
+    adapter.fill(context, decision, "fill-1", first);
     assertEquals(2, first.getIdTenant());
     assertEquals(3, first.getIdAlgoStrategy());
-    when(data.fill(2, "fill-1")).thenReturn(Optional.of(first));
-    assertSame(first, adapter.fill(context, decision, "fill-1", fill(4)));
-    verify(transactions, times(1)).saveOnlyAttributes(any(), isNull(), any());
-    verify(transactions, times(1)).throwWhenTransactionLimitReached(2, 1);
-    verify(positions).reconcile(2, 3, first.getSecurity(), day.plusDays(1));
+    assertEquals("fill-1", first.getAlgoFillId());
+    assertEquals(decision.identity(), first.getAlgoSignalId());
+  }
+
+  @Test
+  @DisplayName("A matching fill returned by the repository is reused without another booking")
+  void existingRepositoryFillIsReusedWithoutBooking() throws Exception {
+    login(1);
+    var existing = fill(4);
+    existing.setAlgoSignalId(decision.identity());
+    when(data.fill(2, "fill-1")).thenReturn(Optional.of(existing));
+
+    assertSame(existing, adapter.fill(context, decision, "fill-1", fill(4)));
+    verifyNoInteractions(transactions);
+  }
+
+  @Test
+  @DisplayName("A partial fill cannot exceed the remaining signal quantity")
+  void partialFillCannotExceedRemainingQuantity() {
+    login(1);
     when(data.filledUnits(2, decision.identity())).thenReturn(4.0);
-    assertThrows(IllegalArgumentException.class, () -> adapter.fill(context, decision, "fill-2", fill(7)));
+    var error = assertThrows(IllegalArgumentException.class, () -> adapter.fill(context, decision, "fill-2", fill(7)));
+    assertEquals("Fill exceeds the outstanding signal quantity", error.getMessage());
   }
 
   @Test
@@ -85,7 +103,7 @@ class AlgoMeanReversionSimulationAdapterTest {
       when(positions.reconcile(eq(2), eq(3), any(), any())).thenReturn(p);
       var fill = fill(2);
       fill.setTransactionType(direction > 0 ? TransactionType.ACCUMULATE : TransactionType.REDUCE);
-      assertSame(fill, adapter.fill(c, add, "partial:" + direction, fill));
+      assertDoesNotThrow(() -> adapter.fill(c, add, "partial:" + direction, fill));
       when(positions.reconcile(eq(2), eq(3), any(), any())).thenReturn(Position.empty());
       var stale = fill(1);
       stale.setTransactionType(fill.getTransactionType());

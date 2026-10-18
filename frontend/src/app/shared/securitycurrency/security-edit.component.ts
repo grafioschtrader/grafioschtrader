@@ -551,7 +551,8 @@ export class SecurityEditComponent extends SecuritycurrencyEdit implements OnIni
     return {
       isin: c.isin,
       currency: c.currency,
-      name: c.name,
+      // The name may come from another listing of the same instrument whose providers spell it better
+      name: (selection.nameCandidate ?? c).name,
       tickerSymbol: c.tickerSymbol,
       categoryType: c.categoryType,
       specialInvestmentInstrument: c.specialInvestmentInstrument,

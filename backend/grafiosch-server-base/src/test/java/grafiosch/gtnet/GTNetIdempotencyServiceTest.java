@@ -73,14 +73,7 @@ class GTNetIdempotencyServiceTest {
     assertThat(replay.messageCode).isEqualTo(GNetCoreMessageCode.GT_NET_DEFERRED_S.getValue());
   }
 
-  private static MessageEnvelope envelope(byte messageCode) {
-    MessageEnvelope me = new MessageEnvelope();
-    me.sourceDomain = "http://192.0.2.10:8080";
-    me.idSourceGtNetMessage = SENDER_LOCAL_ID;
-    me.timestamp = LocalDateTime.now(ZoneOffset.UTC);
-    me.messageCode = messageCode;
-    return me;
-  }
+ 
 
   private static GTNetMessage receivedRow(byte messageCode) {
     GTNetMessage message = new GTNetMessage(ID_PEER, LocalDateTime.now(ZoneOffset.UTC),
@@ -102,9 +95,5 @@ class GTNetIdempotencyServiceTest {
     return myGTNet;
   }
 
-  private static GTNet peer() {
-    GTNet peer = new GTNet();
-    peer.setIdGtNet(ID_PEER);
-    return peer;
-  }
+ 
 }

@@ -1,6 +1,12 @@
-import { Component, Inject, Injector, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, Injector, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
+import { ActivatedRoute, ParamMap } from '@angular/router';
 import { ConfirmationService, FilterService, MenuItem } from '@openng/optimus-ui/api';
-import { ProgressStateType, TaskDataChange, TaskDataChangeFormConstraints } from '../types/task.data.change';
+import {
+  MAIN_TASK_QUEUE,
+  ProgressStateType,
+  TaskDataChange,
+  TaskDataChangeFormConstraints
+} from '../types/task.data.change';
 import { ActivePanelService } from '../../mainmenubar/service/active.panel.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GlobalparameterService } from '../../services/globalparameter.service';
@@ -13,7 +19,7 @@ import { CrudMenuOptions, TableCrudSupportMenu } from '../../datashowbase/table.
 import { MessageToastService } from '../../message/message.toast.service';
 import { DialogService } from '@openng/optimus-ui/dynamicdialog';
 import { FilterType } from '../../datashowbase/filter.type';
-import { combineLatest, of } from 'rxjs';
+import { combineLatest, of, Subscription } from 'rxjs';
 import { InfoLevelType } from '../../message/info.leve.type';
 import { ITaskExtendService } from './itask.extend.service';
 import { TASK_EXTENDED_SERVICE } from '../service/task.extend.service.token';
@@ -24,11 +30,13 @@ import { ConfigurableTableComponent } from '../../datashowbase/configurable-tabl
 import { TooltipModule } from '@openng/optimus-ui/tooltip';
 import { TaskDataChangeEditComponent } from './task-data-change-edit.component';
 import { TaskFilterDialogComponent } from './task-filter-dialog.component';
+import { TaskDataChangeTabMenuComponent } from './task-data-change-tab-menu.component';
 import { TranslateHelper } from '../../helper/translate.helper';
 import { GlobalSessionNames } from '../../global.session.names';
 
 /**
- * Shows the batch Jobs in a table.
+ * Shows the batch jobs of one queue in a table. The queue comes from the child route of the tab menu; without one, the
+ * main queue is shown. Each queue keeps its own column settings, the task filter applies to all of them.
  */
 @Component({
   template: `
@@ -62,7 +70,7 @@ import { GlobalSessionNames } from '../../global.session.names';
       [valueGetterFn]="getValueByPath.bind(this)"
       (componentClick)="onComponentClick($event)">
       <div caption>
-        <h4>{{ 'TASK_DATA_MONITOR' | translate }}</h4>
+        <h4>{{ queueLabelKey | translate }}</h4>
         <p>{{ 'NO_DATA_REFRESH' | translate }}</p>
       </div>
 
@@ -95,6 +103,7 @@ import { GlobalSessionNames } from '../../global.session.names';
         [callParam]="callParam"
         [tdcFormConstraints]="tdcFormConstraints"
         [taskTypeEnum]="taskTypeEnum"
+        [queue]="queue"
         (closeDialog)="handleCloseDialog($event)">
       </task-data-change-edit>
     }
@@ -134,6 +143,14 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
 
   tdcFormConstraints: TaskDataChangeFormConstraints;
   taskTypeEnum: any;
+
+  /** The queue whose tasks are shown */
+  queue: string = MAIN_TASK_QUEUE;
+  /** Text key of the caption, the label of the queue */
+  queueLabelKey = 'TASK_DATA_MONITOR';
+
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private routeSubscription: Subscription;
 
   constructor(
     private taskDataChangeService: TaskDataChangeService,
@@ -220,11 +237,18 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
   }
 
   ngOnDestroy(): void {
-    this.writeTableDefinition(TaskDataChangeTableComponent.STORE_KEY);
+    this.writeTableDefinition(this.storeKey());
+    this.routeSubscription?.unsubscribe();
+  }
+
+  /** The key of the stored column settings; the main queue keeps the key it always had. */
+  private storeKey(): string {
+    return this.queue === MAIN_TASK_QUEUE
+      ? TaskDataChangeTableComponent.STORE_KEY
+      : TaskDataChangeTableComponent.STORE_KEY + '_' + this.queue;
   }
 
   protected override initialize(): void {
-    this.readTableDefinition(TaskDataChangeTableComponent.STORE_KEY);
     // Load stored filter from LocalStorage (null means load all). The stored selection is validated
     // against the current set of task types, so a stale filter (e.g. after task-type renumbering or a
     // newly added task) is discarded and all tasks are shown.
@@ -232,13 +256,54 @@ export class TaskDataChangeTableComponent extends TableCrudSupportMenu<TaskDataC
     this.taskDataChangeService.getFormConstraints().subscribe((tdcFormConstraints: TaskDataChangeFormConstraints) => {
       // Only needs to be read once, as this is configuration data.
       this.tdcFormConstraints = tdcFormConstraints;
-      this.readData();
+      // The tab menu reuses this component when another queue is chosen, so the queue is followed, not read once
+      this.routeSubscription = this.activatedRoute.paramMap.subscribe((params: ParamMap) =>
+        this.showQueue(TaskDataChangeTabMenuComponent.queueOf(params.get('queue')))
+      );
     });
   }
 
+  /**
+   * Switches the table to a queue, keeping the column settings of the previous one.
+   *
+   * @param queue - The queue to show
+   */
+  private showQueue(queue: string): void {
+    if (this.taskDataChangeList) {
+      this.writeTableDefinition(this.storeKey());
+    }
+    this.queue = queue;
+    this.queueLabelKey = this.tdcFormConstraints.queues?.find((q) => q.name === queue)?.labelKey ?? 'TASK_DATA_MONITOR';
+    this.readTableDefinition(this.storeKey());
+    this.readData();
+  }
+
+  /**
+   * The task types to load: those of the shown queue, narrowed by the task filter. Null loads every task, which only
+   * happens with a server that reports no queues.
+   */
+  private taskIdsOfQueue(): number[] | null {
+    const taskTypeQueue = this.tdcFormConstraints?.taskTypeQueue;
+    if (!taskTypeQueue) {
+      return this.currentTaskFilter;
+    }
+    const ids = Object.keys(taskTypeQueue)
+      .filter((name) => taskTypeQueue[name] === this.queue)
+      .map((name) => this.taskTypeEnum[name])
+      .filter((id) => typeof id === 'number');
+    return this.currentTaskFilter ? ids.filter((id) => this.currentTaskFilter.includes(id)) : ids;
+  }
+
   protected override readData(): void {
+    const idTasks = this.taskIdsOfQueue();
+    if (idTasks && idTasks.length === 0) {
+      // An empty list would load every task
+      this.taskDataChangeList = [];
+      this.prepareTableAndTranslate();
+      return;
+    }
     combineLatest([
-      this.taskDataChangeService.getAllTaskDataChange(this.currentTaskFilter),
+      this.taskDataChangeService.getAllTaskDataChange(idTasks),
       this.taskExtendService.supportAdditionalToolTipData() ? this.taskExtendService.getAdditionalData() : of([])
     ]).subscribe(([taskDataChanges, additionalData]: [TaskDataChange[], any]) => {
       this.taskDataChangeList = taskDataChanges;

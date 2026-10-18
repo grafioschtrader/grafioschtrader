@@ -86,7 +86,7 @@ public class Globalparameters implements Serializable {
   private Integer propertyInt;
 
   @Schema(description = "String value for text-based configuration settings")
-  @Size(max = 25)
+  @Size(max = 100)
   @Column(name = "property_string")
   private String propertyString;
 

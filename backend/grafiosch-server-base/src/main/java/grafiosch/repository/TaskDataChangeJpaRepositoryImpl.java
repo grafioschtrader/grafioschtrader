@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import grafiosch.dto.TaskDataChangeFormConstraints;
+import grafiosch.dto.TaskQueueInfo;
 import grafiosch.dto.ValueKeyHtmlSelectOptions;
 import grafiosch.entities.TaskDataChange;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafiosch.task.ITask;
+import grafiosch.task.TaskQueueDefinition;
+import grafiosch.task.TaskQueueRegistry;
 import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
 
@@ -30,6 +33,9 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
 
   @Autowired(required = false)
   private List<EntityIdOptionsProvider> entityIdOptionsProviders;
+
+  @Autowired
+  private TaskQueueRegistry taskQueueRegistry;
 
   @Override
   public TaskDataChange saveOnlyAttributes(final TaskDataChange taskDataChange, final TaskDataChange existingEntity,
@@ -51,6 +57,11 @@ public class TaskDataChangeJpaRepositoryImpl extends BaseRepositoryImpl<TaskData
     taskDataChangeConfig.canBeInterruptedList = tasks.stream()
         .filter(t -> t.getTaskType().getValue() <= taskDataChangeConfig.maxUserCreateTask && t.canBeInterrupted())
         .map(t -> t.getTaskType()).collect(Collectors.toList());
+    taskQueueRegistry.getQueues()
+        .forEach(q -> taskDataChangeConfig.queues.add(new TaskQueueInfo(q.name(), q.parallel(), q.labelKey())));
+    Map<Byte, String> queueByTaskType = taskQueueRegistry.getQueueByTaskType();
+    tasks.forEach(t -> taskDataChangeConfig.taskTypeQueue.put(t.getTaskType(),
+        queueByTaskType.getOrDefault(t.getTaskType().getValue(), TaskQueueDefinition.MAIN)));
     addEntityIdOptions(taskDataChangeConfig);
     composeEntityIdOptions(taskDataChangeConfig);
     return taskDataChangeConfig;

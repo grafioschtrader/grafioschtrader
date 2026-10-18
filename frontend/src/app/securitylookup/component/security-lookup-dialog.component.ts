@@ -11,19 +11,20 @@ import { ProcessedAction } from '../../lib/types/processed.action';
 import { SecurityLookupService } from '../service/security-lookup.service';
 import {
   ConnectorAlternative,
-  LookupProviderStatus,
   SecurityLookupCandidate,
   SecurityLookupResponse,
   SecurityLookupSelection
 } from '../model/security-lookup';
 import { SecurityLookupBaseDataTableComponent } from './security-lookup-base-data-table.component';
 import { SecurityLookupConnectorTableComponent } from './security-lookup-connector-table.component';
-import { LookupFeed, preselectAlternative } from '../model/security-lookup-selection';
+import { SecurityLookupHintTableComponent } from './security-lookup-hint-table.component';
+import { LookupFeed, preselectAlternative, preselectNameCandidate } from '../model/security-lookup-selection';
 
 /**
  * Dialog of the security lookup. It searches the data providers by ISIN, currency and exchange as soon as it opens and
- * shows five tables: the listings with their master data, then the connectors for history, intraday, dividends and
- * splits of the chosen listing. Only a connector whose probe succeeded can be chosen, and a table with exactly one such
+ * shows the hints of the query - failed providers, exchanges on which the instrument was found instead - followed by
+ * the listings with their master data, the hints of the chosen listing, and the connectors for history, intraday,
+ * dividends and splits of the chosen listing. Only a connector whose probe succeeded can be chosen, and a table with exactly one such
  * connector is preselected. "Apply" closes the dialog and hands the
  * chosen listing and connectors to the security form; nothing is saved here.
  */
@@ -37,7 +38,8 @@ import { LookupFeed, preselectAlternative } from '../model/security-lookup-selec
     MessageModule,
     ButtonModule,
     SecurityLookupBaseDataTableComponent,
-    SecurityLookupConnectorTableComponent
+    SecurityLookupConnectorTableComponent,
+    SecurityLookupHintTableComponent
   ],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
@@ -45,6 +47,7 @@ import { LookupFeed, preselectAlternative } from '../model/security-lookup-selec
       [header]="'SECURITY_LOOKUP_DIALOG' | translate"
       [visible]="visibleDialog"
       [style]="{ width: '1150px', minHeight: '400px' }"
+      [contentStyle]="{ 'max-height': 'calc(100vh - 160px)', 'overflow-y': 'auto' }"
       [modal]="true"
       [resizable]="true"
       (onShow)="onShow()"
@@ -57,19 +60,20 @@ import { LookupFeed, preselectAlternative } from '../model/security-lookup-selec
         @if (errorMessage) {
           <p-message severity="error" [text]="errorMessage"></p-message>
         }
-        @for (ps of failedProviders; track ps.providerId) {
-          <p-message severity="warn" [text]="ps.providerId + ': ' + (ps.status | translate)"></p-message>
-        }
         @if (response) {
+          <security-lookup-hint-table titleKey="LOOKUP_HINTS" [hints]="response.hints"></security-lookup-hint-table>
           @if (response.candidates.length === 0) {
             <p-message severity="info" [text]="'SECURITY_LOOKUP_NO_RESULTS' | translate"></p-message>
           } @else {
             <security-lookup-base-data-table
               [candidates]="response.candidates"
               [selectedCandidate]="selectedCandidate"
+              [(nameCandidate)]="nameCandidate"
               (candidateSelected)="onCandidateSelected($event)">
             </security-lookup-base-data-table>
             @if (selectedCandidate) {
+              <security-lookup-hint-table titleKey="LOOKUP_HINTS_LISTING" [hints]="selectedCandidate.hints">
+              </security-lookup-hint-table>
               @for (feed of visibleFeeds(); track feed.key) {
                 <security-lookup-connector-table
                   [titleKey]="feed.titleKey"
@@ -117,9 +121,9 @@ export class SecurityLookupDialogComponent {
   loading = false;
   response: SecurityLookupResponse;
   errorMessage: string;
-  /** Providers whose search did not succeed; their status is shown above the tables */
-  failedProviders: LookupProviderStatus[] = [];
   selectedCandidate: SecurityLookupCandidate;
+  /** The listing whose name is taken over; by default the first one not written entirely in capitals */
+  nameCandidate: SecurityLookupCandidate;
   selection: Record<LookupFeed, ConnectorAlternative> = this.emptySelection();
 
   /** Prevents a second emission when "Apply" closes the dialog */
@@ -140,7 +144,7 @@ export class SecurityLookupDialogComponent {
       this.selectionHandled = false;
       this.errorMessage = null;
       this.response = null;
-      this.failedProviders = [];
+      this.nameCandidate = null;
       this.onCandidateSelected(null);
       this.performLookup();
     });
@@ -211,7 +215,11 @@ export class SecurityLookupDialogComponent {
 
   /** Hands the chosen listing and connectors to the security form and closes the dialog. */
   apply(): void {
-    const result: SecurityLookupSelection = { candidate: this.selectedCandidate, ...this.selection };
+    const result: SecurityLookupSelection = {
+      candidate: this.selectedCandidate,
+      nameCandidate: this.nameCandidate,
+      ...this.selection
+    };
     this.selectionHandled = true;
     this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED, result));
     this.visibleDialog = false;
@@ -225,10 +233,7 @@ export class SecurityLookupDialogComponent {
       .subscribe({
         next: (response) => {
           this.response = response;
-          // A provider that does not cover the exchange (SIX outside XSWX) or found nothing is no failure
-          this.failedProviders = response.providerStatus.filter(
-            (ps) => !['OK', 'NO_MATCH', 'UNSUPPORTED_QUERY'].includes(ps.status)
-          );
+          this.nameCandidate = preselectNameCandidate(response.candidates);
           this.onCandidateSelected(response.candidates.length === 1 ? response.candidates[0] : null);
           this.loading = false;
         },

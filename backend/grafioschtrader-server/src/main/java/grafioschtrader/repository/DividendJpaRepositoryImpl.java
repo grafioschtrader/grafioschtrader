@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -212,7 +211,9 @@ public class DividendJpaRepositoryImpl implements DividendJpaRepositoryCustom {
     } catch (final Exception ex) {
       retryDividendLoad++;
       log.error(ex.getMessage() + " " + security, ex);
-      errorMessages.add(ExceptionUtils.getStackTrace(ex));
+      // Only the message: the task keeps 4096 characters of all securities, one stack trace would fill them alone.
+      // The stack trace is in the log.
+      errorMessages.add(ex.getMessage() != null ? ex.getMessage() : ex.getClass().getName());
     }
     security.setRetryDividendLoad(retryDividendLoad);
     securityJpaRepository.save(security);

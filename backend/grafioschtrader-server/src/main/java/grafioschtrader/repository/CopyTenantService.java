@@ -31,6 +31,8 @@ import grafioschtrader.entities.StandingOrderCashaccount;
 import grafioschtrader.entities.StandingOrderSecurity;
 import grafioschtrader.entities.Tenant;
 import grafioschtrader.entities.Transaction;
+import grafioschtrader.entities.UDFDataFill;
+import grafioschtrader.entities.UDFDataFill.UDFDataFillKey;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
 import jakarta.persistence.EntityManager;
@@ -93,6 +95,7 @@ public class CopyTenantService {
     Map<Integer, Integer> fieldMap = copyUDFMetadataGeneral(sourceUser.getIdUser(), targetUser.getIdUser());
     copyUDFMetadataSecurity(fieldMap, sourceUser.getIdUser(), targetUser.getIdUser());
     copyUDFData(fieldMap, sourceUser.getIdUser(), targetUser.getIdUser());
+    copyUDFDataFill(fieldMap, sourceUser.getIdUser());
     updateTenantReference(sourceUser.getIdTenant(), targetUser.getIdTenant(), watchlistMap);
   }
 
@@ -351,6 +354,9 @@ public class CopyTenantService {
       UDFMetadataSecurity uDFMetadataSecurity = new UDFMetadataSecurity(u.getCategoryTypes(),
           u.getSpecialInvestmentInstruments(), targetIdUser, u.getUdfSpecialTypeAsByte(), u.getDescription(),
           u.getDescriptionHelp(), u.getUdfDataType(), u.getFieldSize(), u.getUiOrder());
+      uDFMetadataSecurity.setFillSource(u.getFillSource());
+      uDFMetadataSecurity.setFillRule(u.getFillRule());
+      uDFMetadataSecurity.setFillRuleVersion(u.getFillRuleVersion());
       em.persist(uDFMetadataSecurity);
       fieldMap.put(u.getIdUDFMetadata(), uDFMetadataSecurity.getIdUDFMetadata());
     }
@@ -376,6 +382,31 @@ public class CopyTenantService {
       UDFData uDFData = new UDFData(
           new UDFDataKey(targetIdUser, u.getuDFDataKey().getEntity(), u.getuDFDataKey().getIdEntity()), jvNew);
       em.persist(uDFData);
+    }
+    em.flush();
+  }
+
+  /**
+   * Copies the fill rows of the automatically filled security fields from the source user, so that the copied values
+   * stay automatic. The rows keep their security and get the ID of the copied field from {@code fieldMap}.
+   *
+   * @param fieldMap     map from source UDF metadata ID to target UDF metadata ID
+   * @param sourceIdUser the source user ID
+   */
+  private void copyUDFDataFill(Map<Integer, Integer> fieldMap, Integer sourceIdUser) {
+    TypedQuery<UDFDataFill> q = em.createQuery(
+        "SELECT f FROM UDFDataFill f, UDFMetadataSecurity u WHERE f.id.idUDFMetadata = u.idUDFMetadata AND u.idUser = ?1",
+        UDFDataFill.class);
+    for (UDFDataFill f : q.setParameter(1, sourceIdUser).getResultList()) {
+      UDFDataFill copy = new UDFDataFill(
+          new UDFDataFillKey(fieldMap.get(f.getId().getIdUDFMetadata()), f.getId().getIdEntity()));
+      copy.setFillSource(f.getFillSource());
+      copy.setFillState(f.getFillState());
+      copy.setRuleVersion(f.getRuleVersion());
+      copy.setFilledValue(f.getFilledValue());
+      copy.setSourceUrl(f.getSourceUrl());
+      copy.setCheckedTime(f.getCheckedTime());
+      em.persist(copy);
     }
     em.flush();
   }

@@ -87,14 +87,15 @@ public abstract class AllUserFieldsSecurity {
   /**
    * Determines if a security's asset class characteristics match the UDF metadata field applicability criteria. This
    * method checks whether the security's category type and special investment instrument fall within the scope defined
-   * by the UDF metadata configuration, ensuring that UDF fields are only applied to appropriate security types.
+   * by the UDF metadata configuration, ensuring that UDF fields are only applied to appropriate security types. The
+   * automatic filling of user fields restricts its tenant scope with the same test.
    *
    * @param udfMetadataSecurity the UDF metadata containing the applicable category types and investment instruments
    * @param assetclass          the asset class of the security to be checked for UDF field applicability
    * @return true if the asset class matches the UDF metadata criteria and the field should be applied, false if the
    *         security type is not within the UDF field's scope
    */
-  protected boolean matchAssetclassAndSpecialInvestmentInstruments(UDFMetadataSecurity udfMetadataSecurity,
+  public static boolean matchAssetclassAndSpecialInvestmentInstruments(UDFMetadataSecurity udfMetadataSecurity,
       Assetclass assetclass) {
     return EnumHelper.contains(assetclass.getCategoryType(), udfMetadataSecurity.getCategoryTypes()) && EnumHelper
         .contains(assetclass.getSpecialInvestmentInstrument(), udfMetadataSecurity.getSpecialInvestmentInstruments());

@@ -7,6 +7,7 @@ trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/bin"
 export PATH="$work/bin:$PATH" REQUEST_LOG="$work/request" DETECTION_LOG="$work/detection"
 export DOCKER_LOG="$work/docker"
+export DOCKER_CONTEXT=gt-installer-test
 export SUBDOMAINS=example TOKEN=test-token
 export TEST_IPV4=198.51.100.23 TEST_IPV6=2001:db8::23 TEST_DIG_STATUS=0 TEST_RESPONSE=OK
 
@@ -28,6 +29,9 @@ EOF
 cat > "$work/bin/docker" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$DOCKER_LOG"
+case "$*" in
+  'context inspect '*) printf 'ssh://installer-test.invalid\n' ;;
+esac
 exit 0
 EOF
 cat > "$work/bin/ss" <<'EOF'

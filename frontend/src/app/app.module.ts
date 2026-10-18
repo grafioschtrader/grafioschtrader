@@ -255,11 +255,14 @@ import { AlgoMainTreeContributor } from './algo/contributor/algo-main-tree.contr
 import { BaseDataMainTreeContributor } from './shared/contributor/basedata-main-tree.contributor';
 import { AdminDataMainTreeContributor } from './shared/contributor/admindata-main-tree.contributor';
 import { DIALOG_HANDLER } from './lib/maintree/handler/dialog-handler.interface';
+import { SETTINGS_MENU_EXTENSIONS } from './lib/mainmenubar/service/settings-menu-extensions';
+import { aiSettingsMenu } from './tenantaiprovider/ai-settings-menu';
 import { AppDialogHandler } from './shared/maintree/handler/app-dialog.handler';
 import { AfterLoginHandler } from './lib/login/service/after-login.handler';
 import { GtAfterLoginHandler } from './shared/login/gt-after-login.handler';
 import { registerHelpIds } from './lib/help/help.ids';
-import { AppHelpIds } from './shared/help/help.ids';
+import { AppHelpIds, AppTaskTypeHelpIds } from './shared/help/help.ids';
+import { registerTaskTypeHelpIds } from './lib/taskdatamonitor/task.type.help';
 import { AlgoStrategyEditComponent } from './algo/component/algo-strategy-edit.component';
 import { SecurityDerivedEditComponent } from './securitycurrency/component/security-derived-edit.component';
 import { SecurityEditComponent } from './shared/securitycurrency/security-edit.component';
@@ -576,6 +579,7 @@ const createTranslateLoader = (http: HttpClient) =>
     }),
     // Main Tree Dialog Handler
     { provide: DIALOG_HANDLER, useClass: AppDialogHandler },
+    { provide: SETTINGS_MENU_EXTENSIONS, useValue: aiSettingsMenu, multi: true },
     // File name of the personal data export, overrides the neutral default of the lib layer
     { provide: PERSONAL_DATA_ZIP_NAME, useValue: 'gtPersonalData.zip' },
     // Dashboard renderers by backend type code. The token is not multi, so this replaces the library map and has to
@@ -657,5 +661,6 @@ export class AppModule {
   constructor() {
     // Register application-specific help IDs at startup
     registerHelpIds(AppHelpIds);
+    registerTaskTypeHelpIds(AppTaskTypeHelpIds);
   }
 }

@@ -11,18 +11,33 @@ import grafioschtrader.types.SecuritySearchStatus;
  * Result of one provider search. Ambiguous or incomplete candidates are kept for the caller to resolve; nothing here
  * picks the first one.
  *
- * @param providerId        id of the provider that was asked
- * @param status            outcome of the search
- * @param candidates        the candidates that do not contradict the query, best established first; empty unless the
- *                          status is {@link SecuritySearchStatus#OK}
+ * @param providerId         id of the provider that was asked
+ * @param status             outcome of the search
+ * @param candidates         the candidates that do not contradict the query, best established first; empty unless the
+ *                           status is {@link SecuritySearchStatus#OK}
  * @param rejectedCandidates number of candidates removed because their ISIN, currency or MIC contradicted the query
- * @param detail            short technical explanation of a failure or an empty result, may be null
+ * @param detail             short technical explanation of a failure or an empty result, may be null
+ * @param otherMicCandidates the rejected candidates whose only contradiction is an established MIC other than the
+ *                           queried one. They are never offered, but tell the user that the instrument may be listed on
+ *                           another exchange than the one chosen.
  */
 public record SecuritySearchResult(String providerId, SecuritySearchStatus status,
-    List<SecuritySearchCandidateDto> candidates, int rejectedCandidates, String detail) {
+    List<SecuritySearchCandidateDto> candidates, int rejectedCandidates, String detail,
+    List<SecuritySearchCandidateDto> otherMicCandidates) {
 
   public SecuritySearchResult {
     candidates = candidates == null ? List.of() : List.copyOf(candidates);
+    otherMicCandidates = otherMicCandidates == null ? List.of() : List.copyOf(otherMicCandidates);
+  }
+
+  /**
+   * Creates a result without candidates on other exchanges.
+   *
+   * @see #SecuritySearchResult(String, SecuritySearchStatus, List, int, String, List)
+   */
+  public SecuritySearchResult(String providerId, SecuritySearchStatus status,
+      List<SecuritySearchCandidateDto> candidates, int rejectedCandidates, String detail) {
+    this(providerId, status, candidates, rejectedCandidates, detail, List.of());
   }
 
   /**

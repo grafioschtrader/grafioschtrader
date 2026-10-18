@@ -34,6 +34,7 @@ import grafioschtrader.connector.instrument.euronext.EuronextFeedConnector;
 import grafioschtrader.connector.instrument.six.SixFeedConnector;
 import grafioschtrader.connector.securitysearch.ISecuritySearchProvider;
 import grafioschtrader.connector.securitysearch.InstrumentType;
+import grafioschtrader.connector.securitysearch.SearchCandidateMatcher;
 import grafioschtrader.connector.securitysearch.SecurityBaseDataResult;
 import grafioschtrader.connector.securitysearch.SecuritySearchQuery;
 import grafioschtrader.connector.securitysearch.SecuritySearchResult;
@@ -42,6 +43,8 @@ import grafioschtrader.connector.securitysearch.SixSecuritySearch;
 import grafioschtrader.dto.ConnectorAlternativeDto;
 import grafioschtrader.dto.SecurityBaseDataDto;
 import grafioschtrader.dto.SecurityLookupCandidateDto;
+import grafioschtrader.dto.SecurityLookupHint;
+import grafioschtrader.dto.SecurityLookupHint.Severity;
 import grafioschtrader.dto.SecurityLookupResponse;
 import grafioschtrader.dto.SecuritySearchCandidateDto;
 import grafioschtrader.entities.Assetclass;
@@ -186,6 +189,8 @@ class SecurityLookupServiceTest {
     assertFalse(response.splitConnectorApplicable(), "a directly held bond has no splits");
     assertFalse(candidate.distributesNothing(), "a bond pays coupons");
     assertTrue(candidate.splitConnectors().isEmpty());
+    assertTrue(candidate.hints().isEmpty(), "SIX delivers every field the form needs for a bond");
+    assertTrue(response.hints().isEmpty());
   }
 
   @Test
@@ -195,15 +200,73 @@ class SecurityLookupServiceTest {
         .lookup(BOND_ISIN, "CHF", "XSWX", null, SHARES, Locale.GERMAN).candidates().getFirst();
     assertTrue(candidate.instrumentTypeMismatch(), "SIX lists a bond, shares were chosen");
     assertEquals(3, candidate.matchedAssetClassId());
+    assertEquals(List.of(LookupHints.TYPE_MISMATCH), hintKeys(candidate.hints()));
 
     baseDataResult = SecurityBaseDataResult.failure(SixSecuritySearch.PROVIDER_ID, SecuritySearchStatus.TIMEOUT,
         "slow");
-    candidate = service(List.of()).lookup(BOND_ISIN, "CHF", "XSWX", null, BONDS, Locale.GERMAN).candidates()
-        .getFirst();
+    candidate = service(List.of()).lookup(BOND_ISIN, "CHF", "XSWX", null, BONDS, Locale.GERMAN).candidates().getFirst();
     assertEquals(SecuritySearchStatus.TIMEOUT, candidate.baseDataStatus());
     assertEquals("0.125 GIV 21-27", candidate.name());
     assertEquals("GIV21", candidate.tickerSymbol());
     assertEquals(AssetclassType.FIXED_INCOME, candidate.categoryType(), "a bond product line maps without details");
+    assertEquals(
+        List.of(LookupHints.BASE_DATA_FAILED, LookupHints.ACTIVE_FROM_MISSING, LookupHints.ACTIVE_TO_MISSING,
+            LookupHints.DISTRIBUTION_FREQUENCY_MISSING, LookupHints.DENOMINATION_MISSING),
+        hintKeys(candidate.hints()), "the search values lack every date and the bond fields; the warnings come first");
+    assertEquals(Map.of("provider", "six", "statusKey", "TIMEOUT"), candidate.hints().getFirst().args());
+  }
+
+  private static List<String> hintKeys(List<SecurityLookupHint> hints) {
+    return hints.stream().map(SecurityLookupHint::messageKey).toList();
+  }
+
+  /**
+   * Chegg is listed on the NYSE. A Yahoo search answers its ISIN with the NYSE listing only, which the identity rules
+   * reject when NASDAQ was queried - as happened when the security was created on XNAS.
+   */
+  private static ISecuritySearchProvider fakeYahooChegg() {
+    return new ISecuritySearchProvider() {
+      @Override
+      public String getProviderId() {
+        return "yahoo";
+      }
+
+      @Override
+      public boolean supports(SecuritySearchQuery query) {
+        return true;
+      }
+
+      @Override
+      public SecuritySearchResult search(SecuritySearchQuery query) {
+        return SearchCandidateMatcher.match(getProviderId(), query, List.of(yahooCandidate("CHGG", "XNYS")));
+      }
+
+      @Override
+      public boolean supportsBaseData(SecuritySearchCandidateDto candidate) {
+        return true;
+      }
+
+      @Override
+      public SecurityBaseDataResult getSecurityBaseData(SecuritySearchCandidateDto candidate, Locale locale) {
+        throw new AssertionError("a rejected listing gets no master data request");
+      }
+    };
+  }
+
+  @Test
+  @DisplayName("Wrong exchange: no candidate, but an error hint names the exchange on which Yahoo found the instrument")
+  void instrumentOnlyOnOtherExchange() throws Exception {
+    ISecuritySearchProvider yahoo = fakeYahooChegg();
+    SecurityLookupResponse response = new SecurityLookupService(new SecuritySearchService(List.of(yahoo)),
+        List.of(yahoo), List.of(), new ConnectorProbe(), assetclassJpaRepository, stockexchangeJpaRepository)
+            .lookup("US1630921096", "USD", "XNAS", null, SHARES, Locale.GERMAN);
+
+    assertTrue(response.candidates().isEmpty());
+    assertEquals(1, response.hints().size());
+    SecurityLookupHint hint = response.hints().getFirst();
+    assertEquals(Severity.ERROR, hint.severity(), "without any candidate the chosen exchange is probably wrong");
+    assertEquals(LookupHints.OTHER_MIC, hint.messageKey());
+    assertEquals(Map.of("mic", "XNYS", "queriedMic", "XNAS", "providers", "yahoo"), hint.args());
   }
 
   @Test
@@ -242,8 +305,8 @@ class SecurityLookupServiceTest {
     when(divvy.getDividendHistoryWithFrequency(any(), any()))
         .thenReturn(new DividendHistoryResult(dividends, DistributionFrequency.DF_SEMI_ANNUAL));
     assertEquals(DistributionFrequency.DF_SEMI_ANNUAL,
-        service(List.of(divvy)).lookup("CH0012005267", "CHF", "XSWX", null, SHARES, Locale.GERMAN).candidates().getFirst()
-            .dividendConnectors().getFirst().distributionFrequency(),
+        service(List.of(divvy)).lookup("CH0012005267", "CHF", "XSWX", null, SHARES, Locale.GERMAN).candidates()
+            .getFirst().dividendConnectors().getFirst().distributionFrequency(),
         "a frequency stated by the provider takes precedence over the derivation");
 
     when(divvy.getDividendHistoryWithFrequency(any(), any())).thenReturn(new DividendHistoryResult(List.of(), null));
@@ -428,9 +491,9 @@ class SecurityLookupServiceTest {
     IFeedConnector sixConnector = connector("six", false, FeedSupport.FS_HISTORY);
     when(sixConnector.getShortID()).thenReturn("six");
     when(sixConnector.supports(any(), any(), eq(AssetclassType.FIXED_INCOME), any())).thenReturn(false);
-    SecurityLookupService service = new SecurityLookupService(
-        new SecuritySearchService(List.of(sixWithCompanion)), List.of(sixWithCompanion), List.of(sixConnector),
-        new ConnectorProbe(), assetclassJpaRepository, stockexchangeJpaRepository);
+    SecurityLookupService service = new SecurityLookupService(new SecuritySearchService(List.of(sixWithCompanion)),
+        List.of(sixWithCompanion), List.of(sixConnector), new ConnectorProbe(), assetclassJpaRepository,
+        stockexchangeJpaRepository);
 
     SecurityLookupResponse bonds = service.lookup(BOND_ISIN, "CHF", "XSWX", null, BONDS, Locale.GERMAN);
     assertTrue(bonds.providerStatus().isEmpty(), "the connector does not support bonds, so SIX is not asked");
@@ -448,17 +511,22 @@ class SecurityLookupServiceTest {
   @DisplayName("An empty dividend or split answer counts only when the same symbol delivered prices")
   void emptyEventFeedsNeedKnownSymbol() {
     Map<FeedSupport, List<ConnectorAlternativeDto>> probed = new EnumMap<>(FeedSupport.class);
-    probed.put(FeedSupport.FS_HISTORY, List.of(alternative("gt.datafeed.yahoo", "GMEXICOB", ConnectorProbeStatus.REQUEST_FAILED),
-        alternative("gt.datafeed.six", "CH1CHF4", ConnectorProbeStatus.OK)));
-    probed.put(FeedSupport.FS_INTRA, List.of(alternative("gt.datafeed.yahoo", "GMEXICOB", ConnectorProbeStatus.NO_DATA)));
-    probed.put(FeedSupport.FS_DIVIDEND, List.of(alternative("gt.datafeed.yahoo", "GMEXICOB", ConnectorProbeStatus.NO_DATA),
-        alternative("gt.datafeed.six", "CH1CHF4", ConnectorProbeStatus.NO_DATA),
-        alternative("gt.datafeed.divvydiary", null, ConnectorProbeStatus.NO_DATA)));
-    probed.put(FeedSupport.FS_SPLIT, List.of(alternative("gt.datafeed.yahoo", "GMEXICOB.MX", ConnectorProbeStatus.NO_DATA)));
+    probed.put(FeedSupport.FS_HISTORY,
+        List.of(alternative("gt.datafeed.yahoo", "GMEXICOB", ConnectorProbeStatus.REQUEST_FAILED),
+            alternative("gt.datafeed.six", "CH1CHF4", ConnectorProbeStatus.OK)));
+    probed.put(FeedSupport.FS_INTRA,
+        List.of(alternative("gt.datafeed.yahoo", "GMEXICOB", ConnectorProbeStatus.NO_DATA)));
+    probed.put(FeedSupport.FS_DIVIDEND,
+        List.of(alternative("gt.datafeed.yahoo", "GMEXICOB", ConnectorProbeStatus.NO_DATA),
+            alternative("gt.datafeed.six", "CH1CHF4", ConnectorProbeStatus.NO_DATA),
+            alternative("gt.datafeed.divvydiary", null, ConnectorProbeStatus.NO_DATA)));
+    probed.put(FeedSupport.FS_SPLIT,
+        List.of(alternative("gt.datafeed.yahoo", "GMEXICOB.MX", ConnectorProbeStatus.NO_DATA)));
 
     Map<FeedSupport, List<ConnectorAlternativeDto>> confirmed = SecurityLookupService.confirmEmptyEventFeeds(probed);
     List<ConnectorAlternativeDto> dividend = confirmed.get(FeedSupport.FS_DIVIDEND);
-    assertEquals(ConnectorProbeStatus.UNKNOWN_SYMBOL, dividend.get(0).probeStatus(), "Yahoo delivered no prices either");
+    assertEquals(ConnectorProbeStatus.UNKNOWN_SYMBOL, dividend.get(0).probeStatus(),
+        "Yahoo delivered no prices either");
     assertEquals(ConnectorProbeStatus.NO_DATA, dividend.get(1).probeStatus(), "SIX delivered prices for the symbol");
     assertEquals(ConnectorProbeStatus.NO_DATA, dividend.get(2).probeStatus(), "DivvyDiary has no price probe");
     assertEquals(ConnectorProbeStatus.NO_DATA, confirmed.get(FeedSupport.FS_SPLIT).getFirst().probeStatus(),
@@ -469,19 +537,19 @@ class SecurityLookupServiceTest {
   @Test
   @DisplayName("Dividend and split feeds follow the rules of the security form for the chosen asset class")
   void feedApplicability() {
-    assertEquals(new SecurityLookupService.FeedApplicability(false, false), SecurityLookupService.feedApplicability(
-        new SecurityLookupService.ChosenType(1, AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT),
-        null));
-    assertEquals(new SecurityLookupService.FeedApplicability(true, true), SecurityLookupService.feedApplicability(
-        new SecurityLookupService.ChosenType(1, AssetclassType.EQUITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT),
-        null));
+    assertEquals(new SecurityLookupService.FeedApplicability(false, false),
+        SecurityLookupService.feedApplicability(new SecurityLookupService.ChosenType(1, AssetclassType.FIXED_INCOME,
+            SpecialInvestmentInstruments.DIRECT_INVESTMENT), null));
+    assertEquals(new SecurityLookupService.FeedApplicability(true, true),
+        SecurityLookupService.feedApplicability(new SecurityLookupService.ChosenType(1, AssetclassType.EQUITIES,
+            SpecialInvestmentInstruments.DIRECT_INVESTMENT), null));
     assertEquals(new SecurityLookupService.FeedApplicability(true, true), SecurityLookupService.feedApplicability(
         new SecurityLookupService.ChosenType(1, AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.ETF), null));
     Stockexchange privatePapers = new Stockexchange();
     privatePapers.setNoMarketValue(true);
-    assertEquals(new SecurityLookupService.FeedApplicability(false, false), SecurityLookupService.feedApplicability(
-        new SecurityLookupService.ChosenType(1, AssetclassType.EQUITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT),
-        privatePapers));
+    assertEquals(new SecurityLookupService.FeedApplicability(false, false),
+        SecurityLookupService.feedApplicability(new SecurityLookupService.ChosenType(1, AssetclassType.EQUITIES,
+            SpecialInvestmentInstruments.DIRECT_INVESTMENT), privatePapers));
   }
 
   @Test
@@ -490,15 +558,14 @@ class SecurityLookupServiceTest {
     SecurityLookupService.ChosenType etf = new SecurityLookupService.ChosenType(1, AssetclassType.EQUITIES,
         SpecialInvestmentInstruments.ETF);
     assertFalse(SecurityLookupService.contradictsChosenType(Optional.empty(), etf));
-    assertFalse(SecurityLookupService.contradictsChosenType(
-        Optional.of(new InstrumentType(null, SpecialInvestmentInstruments.MUTUAL_FUND)), etf));
+    assertFalse(SecurityLookupService
+        .contradictsChosenType(Optional.of(new InstrumentType(null, SpecialInvestmentInstruments.MUTUAL_FUND)), etf));
     assertFalse(SecurityLookupService.contradictsChosenType(
         Optional.of(new InstrumentType(AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF)), etf));
     assertTrue(SecurityLookupService.contradictsChosenType(
         Optional.of(new InstrumentType(AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.ETF)), etf));
     assertTrue(SecurityLookupService.contradictsChosenType(
-        Optional.of(new InstrumentType(AssetclassType.EQUITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT)),
-        etf));
+        Optional.of(new InstrumentType(AssetclassType.EQUITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT)), etf));
   }
 
   @Test
@@ -538,9 +605,10 @@ class SecurityLookupServiceTest {
   @DisplayName("Euronext is offered only on the exchanges its setting check accepts")
   void euronextCoverage() {
     EuronextFeedConnector euronext = new EuronextFeedConnector();
-    assertFalse(euronext.supports("XFRA", "DE", AssetclassType.FIXED_INCOME,
-        SpecialInvestmentInstruments.DIRECT_INVESTMENT));
-    assertTrue(euronext.supports("XPAR", "FR", AssetclassType.EQUITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    assertFalse(
+        euronext.supports("XFRA", "DE", AssetclassType.FIXED_INCOME, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
+    assertTrue(
+        euronext.supports("XPAR", "FR", AssetclassType.EQUITIES, SpecialInvestmentInstruments.DIRECT_INVESTMENT));
     assertTrue(euronext.supports("XMSM", "IE", AssetclassType.EQUITIES, SpecialInvestmentInstruments.ETF));
   }
 }

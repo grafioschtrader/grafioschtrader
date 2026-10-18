@@ -6,6 +6,17 @@ export class SecuritycurrencyPosition<T extends Securitycurrency> {
   public ytdChangePercentage: number;
   public timeFrameChangePercentage: number;
   public units: number;
+  /** Gain or loss of the open position in the currency of the security. */
+  public positionGainLoss: number;
+  public positionGainLossPercentage: number;
+  /** Total of the open position in the currency of the security. */
+  public valueSecurity: number;
+  /** Total of the open position converted into the currency of the tenant at the current exchange rate. */
+  public valueSecurityMC: number;
+  /** Gain or loss of the open position in the currency of the tenant, including the currency effect. */
+  public positionGainLossMC: number;
+  /** positionGainLossMC relative to the cost of the open units in the currency of the tenant. */
+  public positionGainLossPercentageMC: number;
   public historicalUrl: string;
   public intradayUrl: string;
   public dividendUrl: string;

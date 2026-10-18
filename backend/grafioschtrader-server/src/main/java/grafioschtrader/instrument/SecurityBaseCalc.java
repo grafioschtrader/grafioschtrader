@@ -304,6 +304,7 @@ public abstract class SecurityBaseCalc {
     securityPositionSummary.transactionGainLoss = null;
     securityPositionSummary.transactionGainLossPercentage = null;
     securityPositionSummary.transactionGainLossMC = null;
+    securityPositionSummary.transactionCostBase = null;
     securityPositionSummary.transactionFlowSC = null;
     securityPositionSummary.transactionExchangeRate = ctp.exchangeRate;
 

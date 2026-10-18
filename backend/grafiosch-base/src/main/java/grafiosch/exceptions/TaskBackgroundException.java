@@ -52,7 +52,7 @@ public class TaskBackgroundException extends Exception {
    */
   public TaskBackgroundException(String errorMessagesKey, List<String> errorMsgOfSystem, boolean rollback) {
     this(errorMessagesKey, rollback);
-    this.rollback = rollback;
+    this.errorMsgOfSystem = errorMsgOfSystem;
   }
 
   public String getErrorMessagesKey() {

@@ -51,9 +51,7 @@ public class UpdateSplitForSecurityTask implements ITask {
     if (security.getIdConnectorSplit() != null) {
       try {
         // If the split connector has been changed, the split date is zero.
-        LocalDate requestSplitDate = taskDataChange.getOldValueString() == null ? null
-            : LocalDate.parse(taskDataChange.getOldValueString(),
-                DateTimeFormatter.ofPattern(GlobalConstants.SHORT_STANDARD_DATE_FORMAT));
+        LocalDate requestSplitDate = parseRequestedSplitDate(taskDataChange.getOldValueString());
         List<String> errorMessages = securitysplitJpaRepository.loadAllSplitDataFromConnectorForSecurity(security,
             requestSplitDate);
         if (!errorMessages.isEmpty()) {
@@ -65,6 +63,34 @@ public class UpdateSplitForSecurityTask implements ITask {
     } else {
       throw new TaskBackgroundException("gt.split.connector.notfound", false);
     }
+  }
+
+  /**
+   * Formats the expected split date for the old value of this task. Every producer of the task must use it, because
+   * {@link #parseRequestedSplitDate(String)} reads the value back.
+   *
+   * @param requestedSplitDate the split date announced by a split calendar
+   * @return the date in the format {@link GlobalConstants#SHORT_STANDARD_DATE_FORMAT}
+   */
+  public static String formatRequestedSplitDate(LocalDate requestedSplitDate) {
+    return requestedSplitDate.format(DateTimeFormatter.ofPattern(GlobalConstants.SHORT_STANDARD_DATE_FORMAT));
+  }
+
+  /**
+   * Reads the expected split date from the old value of this task. Besides the format written by
+   * {@link #formatRequestedSplitDate(LocalDate)} the ISO format is accepted, because older versions wrote it for the
+   * repeated attempt and such tasks may still be waiting in the database.
+   *
+   * @param oldValueString the old value of the task, null when the split connector was changed
+   * @return the expected split date, or null when no split date was requested
+   * @throws DateTimeParseException if the value is in neither format
+   */
+  public static LocalDate parseRequestedSplitDate(String oldValueString) {
+    if (oldValueString == null) {
+      return null;
+    }
+    return oldValueString.indexOf('-') > 0 ? LocalDate.parse(oldValueString)
+        : LocalDate.parse(oldValueString, DateTimeFormatter.ofPattern(GlobalConstants.SHORT_STANDARD_DATE_FORMAT));
   }
 
 }

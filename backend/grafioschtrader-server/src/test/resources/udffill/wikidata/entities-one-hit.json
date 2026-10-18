@@ -1,0 +1,42 @@
+{
+ "entities": {
+  "Q312": {
+   "type": "item",
+   "id": "Q312",
+   "claims": {
+    "P946": [
+     {
+      "mainsnak": {
+       "snaktype": "value",
+       "property": "P946",
+       "hash": "x",
+       "datavalue": {
+        "value": "US0378331005",
+        "type": "string"
+       },
+       "datatype": "external-id"
+      },
+      "type": "statement",
+      "id": "Q312$1",
+      "rank": "normal"
+     }
+    ]
+   },
+   "sitelinks": {
+    "dewiki": {
+     "site": "dewiki",
+     "title": "Apple",
+     "badges": [],
+     "url": "https://de.wikipedia.org/wiki/Apple"
+    },
+    "enwiki": {
+     "site": "enwiki",
+     "title": "Apple Inc.",
+     "badges": [],
+     "url": "https://en.wikipedia.org/wiki/Apple_Inc."
+    }
+   }
+  }
+ },
+ "success": 1
+}

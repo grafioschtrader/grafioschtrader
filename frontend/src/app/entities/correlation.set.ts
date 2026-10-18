@@ -58,6 +58,10 @@ export interface CorrelationRollingResult {
   securitycurrencyList: Securitycurrency[];
   dates: string[];
   correlation: number[];
+  /** Common daily dates in the displayed period, excluding the rolling warm-up. */
+  closeDates: string[];
+  /** Adjusted daily closes in securitycurrencyList order, indexed by closeDates. */
+  closes: number[][];
 }
 
 export interface MinMaxDateHistoryquote {

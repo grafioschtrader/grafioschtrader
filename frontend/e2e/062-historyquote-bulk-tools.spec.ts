@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { loginAsFixtureUser } from './helpers';
 import { expectToast } from './manage-client.helpers';
+import { watchlistTable } from './watchlist.helpers';
 
 /**
  * Bulk history-quote maintenance for the seeded CRE18 bond.
@@ -137,7 +138,7 @@ async function openEodTable(page: Page): Promise<QuotesPayload> {
   await watchlistNode.waitFor({ state: 'visible', timeout: 15_000 });
   await watchlistNode.click();
 
-  const container = page.locator('.data-container').first();
+  const container = watchlistTable(page);
   await container.waitFor({ state: 'visible', timeout: 15_000 });
   const securityRow = container.locator('tbody tr').filter({ hasText: SECURITY_TICKER }).first();
   await expect(securityRow, `${SECURITY_TICKER} in ${WATCHLIST_NAME}`).toContainText(SECURITY_NAME_RX, {

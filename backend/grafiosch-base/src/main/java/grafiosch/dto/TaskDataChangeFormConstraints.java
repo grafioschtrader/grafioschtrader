@@ -22,6 +22,14 @@ public class TaskDataChangeFormConstraints {
   public List<ITaskType> canBeInterruptedList = new ArrayList<>();
 
   @Schema(description = """
+      The queues of background tasks, the main queue first. Each has its own workers; the task monitor shows one tab
+      per queue.""")
+  public List<TaskQueueInfo> queues = new ArrayList<>();
+
+  @Schema(description = "The queue every task type runs in, by task type")
+  public Map<ITaskType, String> taskTypeQueue = new HashMap<>();
+
+  @Schema(description = """
       Selectable ID options per task type and entity name. When an entity type has predefined options
       (e.g., IFeedConnector with specific connectors), the frontend can display a dropdown instead of a
       free-form numeric input. The outer key is the task type, the inner key is the entity class simple

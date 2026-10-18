@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.web.server.ResponseStatusException;
 
 import grafiosch.config.BaseFeatureConfig;
 import grafiosch.entities.User;
@@ -49,13 +50,23 @@ class DashboardContractTest {
   }
 
   @Test
-  void layoutCapsCountUtf8BytesAndHiddenInstances() {
+  void layoutSizeLimitCountsUtf8Bytes() {
     var layouts = new DashboardLayoutRepository(mock(UserDashboardJpaRepository.class), registry, mapper,
         mock(EntityManager.class), mock(DailyLimitService.class));
     var oversized = mapper.createObjectNode().put("instanceId", "unknown").put("opaque", "ä".repeat(33000));
-    assertThatThrownBy(() -> layouts.encode(List.of(oversized)))
-        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
-    assertThatThrownBy(() -> layouts.encode(List.of(oversized, oversized)))
-        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+    assertThatThrownBy(() -> layouts.encode(List.of(oversized))).isInstanceOfSatisfying(ResponseStatusException.class,
+        error -> assertThat(error.getReason()).isEqualTo("DASHBOARD_CAPACITY"));
+    oversized.put("opaque", "a".repeat(33000));
+    assertThatCode(() -> layouts.encode(List.of(oversized))).doesNotThrowAnyException();
+  }
+
+  @Test
+  void duplicateInstanceIdsAreRejected() {
+    var layouts = new DashboardLayoutRepository(mock(UserDashboardJpaRepository.class), registry, mapper,
+        mock(EntityManager.class), mock(DailyLimitService.class));
+    var first = mapper.createObjectNode().put("instanceId", "same").put("type", "first");
+    var second = mapper.createObjectNode().put("instanceId", "same").put("type", "second");
+    assertThatThrownBy(() -> layouts.encode(List.of(first, second))).isInstanceOfSatisfying(
+        ResponseStatusException.class, error -> assertThat(error.getReason()).isEqualTo("DASHBOARD_CAPACITY"));
   }
 }

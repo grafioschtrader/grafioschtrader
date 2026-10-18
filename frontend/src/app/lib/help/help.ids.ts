@@ -7,11 +7,13 @@
  * Object.assign(HelpIds, YourAppHelpIds);
  */
 export const HelpIds: Record<string, string> = {
-  HELP_DASHBOARD: 'intro/dashboard',
+  HELP_DASHBOARD: 'dashboard',
   // Intro
   HELP_INTRO: 'intro',
   HELP_INTRO_REGISTER: 'intro/register',
   HELP_INTRO_NAVIGATION: 'intro/userinterface',
+  /** The settings of the menu bar: password, nickname and locale, language-model keys, export and deletion. */
+  HELP_INTRO_SETTINGS: 'intro/settings',
   HELP_INTRO_PROPOSE_CHANGE_ENTITY: 'basedata',
 
   // Base data
@@ -21,6 +23,9 @@ export const HelpIds: Record<string, string> = {
   HELP_MESSAGE_SYSTEM: 'admindata',
   HELP_GLOBAL_SETTINGS: 'admindata/globalsettings',
   HELP_TASK_DATA_CHANGE_MONITOR: 'admindata/taskdatachangemonitor',
+  /** Description of the background task types; also the page of every task type without a group page of its own. */
+  HELP_TASK_DESCRIPTION: 'admindata/taskdatachangemonitor/taskdescription',
+  HELP_TASK_DESCRIPTION_GTNET: 'admindata/taskdatachangemonitor/taskdescription/gtnet',
   HELP_CONNECTOR_API_KEY: 'admindata/connectorapikey',
   HELP_USER: 'admindata/user',
   HELP_ENTITY_LIMIT: 'admindata/entitylimit',

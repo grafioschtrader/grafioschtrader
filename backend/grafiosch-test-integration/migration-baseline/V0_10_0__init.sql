@@ -9,7 +9,7 @@
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `connector_apikey` (
   `id_provider` varchar(32) NOT NULL,
-  `api_key` varchar(255) NOT NULL,
+  `api_key` varchar(512) NOT NULL,
   `subscription_type` smallint(6) DEFAULT NULL,
   PRIMARY KEY (`id_provider`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -52,7 +52,7 @@ CREATE TABLE `entity_limit` (
 CREATE TABLE `globalparameters` (
   `property_name` varchar(45) NOT NULL,
   `property_int` int(11) DEFAULT NULL,
-  `property_string` varchar(30) DEFAULT NULL,
+  `property_string` varchar(100) DEFAULT NULL,
   `property_date` date DEFAULT NULL,
   `property_date_time` datetime DEFAULT NULL,
   `property_blob` blob DEFAULT NULL,

@@ -1,0 +1,11 @@
+{
+ "error": {
+  "code": "maxlag",
+  "info": "Waiting for 10.64.48.35: 7.25 seconds lagged.",
+  "host": "10.64.48.35",
+  "lag": 7.25,
+  "type": "db",
+  "*": "See https://www.wikidata.org/w/api.php for API usage."
+ },
+ "servedby": "mw-api-ext.eqiad.main-7b9c8d6f5-abcde"
+}

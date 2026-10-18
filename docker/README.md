@@ -15,6 +15,19 @@ Requirements: [Docker Engine](https://docs.docker.com/engine/install/) with the
 Compose plugin (both included in Docker Desktop and in the standard
 `get.docker.com` install).
 
+For a local systemd-managed Docker Engine, the installer enables boot startup and
+starts `docker.service` before checking the daemon. It uses `sudo` when needed;
+membership in the `docker` group alone cannot configure the system service.
+Docker Desktop, rootless and remote Docker endpoints keep their own startup
+configuration. On those installations, arrange automatic startup on the engine
+host separately.
+
+The installer waits up to 30 minutes for the stack's healthchecks, including
+database migrations, before reporting success. This requires a Compose plugin
+supporting `up --wait --wait-timeout`. A failed start or timeout exits with an
+error and prints commands for inspecting the containers and logs. These checks
+also apply when keeping an existing `.env`.
+
 ```bash
 # 1. Get the docker/ directory (no full clone needed)
 git clone --depth 1 https://github.com/grafioschtrader/grafioschtrader.git

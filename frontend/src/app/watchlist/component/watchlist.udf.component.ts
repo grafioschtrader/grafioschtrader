@@ -29,7 +29,20 @@ import { AlarmSetupService } from '../../algo/service/alarm.setup.service';
 import { GlobalparameterGTService } from '../../gtservice/globalparameter.gt.service';
 import { HelpIds } from '../../lib/help/help.ids';
 import { BaseSettings } from '../../lib/base.settings';
-import { FieldDescriptorInputAndShowExtendedSecurity } from '../../udfmetasecurity/model/udf.metadata.security';
+import {
+  FieldDescriptorInputAndShowExtendedSecurity,
+  UDFFillInfo,
+  UDFFillSource,
+  UDFFillState,
+  UDFMetadataSecurity
+} from '../../udfmetasecurity/model/udf.metadata.security';
+import { CellMark } from '../../lib/datashowbase/configurable-table.component';
+import { MenuItem } from '@openng/optimus-ui/api';
+import { SecuritycurrencyPosition } from '../../entities/view/securitycurrency.position';
+import { Security } from '../../entities/security';
+import { Currencypair } from '../../entities/currencypair';
+import { CurrencypairWatchlist } from '../../entities/view/currencypair.watchlist';
+import { UDFMetadataHelper } from '../../lib/udfmeta/components/udf.metadata.helper';
 import { CommonModule } from '@angular/common';
 import { ConfigurableTableComponent } from '../../lib/datashowbase/configurable-table.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -96,6 +109,15 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
 
   /** Map of security currency IDs to their UDF values as JSON strings */
   private udfEntityValues: { [idSecuritycurrency: number]: string };
+
+  /** Fill marks of the automatically filled and the locked cells, by security and field key */
+  private udfFillInfo: { [idSecuritycurrency: number]: { [fieldKey: string]: UDFFillInfo } } = {};
+
+  /** Prepared marks of the cells, keyed by security ID and field key, so no cell translates on each check */
+  private cellMarks = new Map<string, CellMark>();
+
+  /** The own fields of the user whose fill source is not manual; they get the cell actions of the context menu */
+  private fillFields: UDFMetadataSecurity[] = [];
 
   /** List of field descriptors for security and general UDF metadata */
   private readonly fdSecurityList: FieldDescriptorInputAndShowExtendedSecurity[];
@@ -219,15 +241,22 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
     );
     const tenantLimitObservable: Observable<TenantLimit[]> =
       this.watchlistService.getSecuritiesCurrenciesWatchlistLimits(this.idWatchlist);
-    combineLatest([watchListObservable, tenantLimitObservable]).subscribe(
-      (result: [SecuritycurrencyUDFGroup, TenantLimit[]]) => {
-        this.createSecurityPositionList(result[0]);
-        this.udfEntityValues = (<SecuritycurrencyUDFGroup>result[0]).udfEntityValues;
-        this.tenantLimits = result[1];
-        this.extendSecurityWithUDF();
-        this.loading = false;
-      }
-    );
+    combineLatest([
+      watchListObservable,
+      tenantLimitObservable,
+      this.uDFMetadataSecurityService.getAllByIdUser()
+    ]).subscribe((result: [SecuritycurrencyUDFGroup, TenantLimit[], UDFMetadataSecurity[]]) => {
+      this.createSecurityPositionList(result[0]);
+      this.udfEntityValues = (<SecuritycurrencyUDFGroup>result[0]).udfEntityValues;
+      this.udfFillInfo = (<SecuritycurrencyUDFGroup>result[0]).udfFillInfo ?? {};
+      this.tenantLimits = result[1];
+      this.fillFields = result[2].filter(
+        (f) => f.idUser === this.gps.getIdUser() && f.fillSource && f.fillSource !== UDFFillSource.MANUAL
+      );
+      this.extendSecurityWithUDF();
+      this.prepareCellMarks();
+      this.loading = false;
+    });
   }
 
   /**
@@ -244,6 +273,147 @@ export class WatchlistUdfComponent extends WatchlistTable implements OnInit, OnD
         Object.assign(spl.securitycurrency, udfValues);
       }
     });
+  }
+
+  /**
+   * Translates the fill marks once per load: a wand for a value the fill source wrote or adopted and that the cell
+   * still holds, a lock for a cell the user took over.
+   */
+  private prepareCellMarks(): void {
+    this.cellMarks.clear();
+    for (const [idSecuritycurrency, marks] of Object.entries(this.udfFillInfo)) {
+      for (const [fieldKey, info] of Object.entries(marks)) {
+        this.cellMarks.set(idSecuritycurrency + '|' + fieldKey, this.createCellMark(info));
+      }
+    }
+  }
+
+  /**
+   * Creates the mark of one cell with its translated tooltip.
+   *
+   * @param info - The fill mark sent by the server
+   * @returns The mark shown before the cell content
+   */
+  private createCellMark(info: UDFFillInfo): CellMark {
+    if (info.fillState === UDFFillState.PROPOSED) {
+      return {
+        iconClass: 'fa fa-lightbulb-o',
+        tooltip: this.translateService.instant('UDF_FILL_PROPOSAL_TOOLTIP', { evidence: info.evidence ?? '' }),
+        text: info.proposedValue
+      };
+    }
+    if (info.fillState === UDFFillState.LOCKED) {
+      return { iconClass: 'fa fa-lock', tooltip: this.translateService.instant('UDF_FILL_LOCKED_TOOLTIP') };
+    }
+    const tooltip: string = this.translateService.instant('UDF_FILL_AUTOMATIC_TOOLTIP', {
+      source: this.translateService.instant(info.fillSource),
+      checkedTime: info.checkedTime ? new Date(info.checkedTime).toLocaleString(this.gps.getUserLang()) : ''
+    });
+    return { iconClass: 'fa fa-magic', tooltip: info.sourceUrl ? tooltip + ' ' + info.sourceUrl : tooltip };
+  }
+
+  /**
+   * Returns the fill mark of a user-defined field cell.
+   *
+   * @param position - Row of the table
+   * @param field - Column configuration of the cell
+   * @returns The mark, or null when the cell is neither automatic nor locked
+   */
+  override cellMark(position: SecuritycurrencyPosition<Security | Currencypair>, field: ColumnConfig): CellMark | null {
+    const prefix = WatchlistHelper.SECURITYCURRENCY + '.';
+    if (this.cellMarks.size === 0 || !field.field.startsWith(prefix)) {
+      return null;
+    }
+    const key = position.securitycurrency.idSecuritycurrency + '|' + field.field.substring(prefix.length);
+    return this.cellMarks.get(key) ?? null;
+  }
+
+  /**
+   * Adds the cell actions of the automatically filled fields to the edit menu: take a cell over manually, or let a
+   * taken over cell be filled automatically again.
+   *
+   * @param securitycurrencyPosition - Selected position or null
+   * @returns The edit menu items
+   */
+  protected override getEditMenuItems(
+    securitycurrencyPosition: SecuritycurrencyPosition<Security | Currencypair>
+  ): MenuItem[] {
+    const menuItems = super.getEditMenuItems(securitycurrencyPosition);
+    if (
+      securitycurrencyPosition &&
+      !(securitycurrencyPosition.securitycurrency instanceof CurrencypairWatchlist) &&
+      this.fillFields.length > 0
+    ) {
+      const fillItems = this.getFillCellMenuItems(<Security>securitycurrencyPosition.securitycurrency);
+      if (fillItems.length > 0) {
+        menuItems.push({ separator: true }, { label: 'UDF_FILL_CELLS', items: fillItems });
+      }
+    }
+    return menuItems;
+  }
+
+  /**
+   * Creates one cell action per automatically filled field that applies to the asset class of the security. The labels
+   * are translated here because they carry the field description.
+   *
+   * @param security - The selected security
+   * @returns The menu items of the cell actions
+   */
+  private getFillCellMenuItems(security: Security): MenuItem[] {
+    const id = security.idSecuritycurrency;
+    return this.fillFields
+      .filter(
+        (f) =>
+          f.categoryTypeEnums.includes(<any>security.assetClass.categoryType) &&
+          f.specialInvestmentInstrumentEnums.includes(<any>security.assetClass.specialInvestmentInstrument)
+      )
+      .flatMap((f) => {
+        const fieldKey = UDFMetadataHelper.UDF_FIELD_PREFIX + f.idUDFMetadata;
+        const info = this.udfFillInfo[id]?.[fieldKey];
+        const locked = info?.fillState === UDFFillState.LOCKED;
+        const proposalItems: MenuItem[] =
+          info?.fillState === UDFFillState.PROPOSED ? this.getProposalMenuItems(f, id, info) : [];
+        const action = locked
+          ? () => this.uDFMetadataSecurityService.unlockCell(f.idUDFMetadata, id)
+          : () => this.uDFMetadataSecurityService.lockCell(f.idUDFMetadata, id);
+        return [
+          ...proposalItems,
+          {
+            label: this.translateService.instant(locked ? 'UDF_FILL_UNLOCK' : 'UDF_FILL_LOCK', {
+              field: f.description
+            }),
+            command: () => action().subscribe(() => this.getWatchlistWithoutUpdate())
+          }
+        ];
+      });
+  }
+
+  /**
+   * Accept and reject of a proposal of a language model in a cell. Both name the version and value the user sees.
+   *
+   * @param f - The field with the fill source LLM
+   * @param idSecuritycurrency - The security
+   * @param info - The fill mark of the cell with the proposal
+   * @returns The two menu items
+   */
+  private getProposalMenuItems(f: UDFMetadataSecurity, idSecuritycurrency: number, info: UDFFillInfo): MenuItem[] {
+    const decisions = [{ idSecuritycurrency, ruleVersion: info.ruleVersion, value: info.proposedValue }];
+    return [
+      {
+        label: this.translateService.instant('UDF_FILL_ACCEPT_PROPOSAL', { field: f.description }),
+        command: () =>
+          this.uDFMetadataSecurityService
+            .acceptProposals(f.idUDFMetadata, decisions)
+            .subscribe(() => this.getWatchlistWithoutUpdate())
+      },
+      {
+        label: this.translateService.instant('UDF_FILL_REJECT_PROPOSAL', { field: f.description }),
+        command: () =>
+          this.uDFMetadataSecurityService
+            .rejectProposals(f.idUDFMetadata, decisions)
+            .subscribe(() => this.getWatchlistWithoutUpdate())
+      }
+    ];
   }
 
   /**

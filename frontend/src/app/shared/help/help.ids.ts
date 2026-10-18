@@ -1,4 +1,5 @@
 import { HelpIds } from '../../lib/help/help.ids';
+import { TaskTypeExtended } from '../types/task.type.extended';
 
 /**
  * Application-specific (Grafioschtrader) help IDs.
@@ -92,6 +93,8 @@ export const AppHelpIds: Record<string, string> = {
   HELP_TRADING_CALENDAR: 'admindata/tradingcalendar',
   HELP_HISTORYQUOTE_QUALITY: 'admindata/historyquotequality/',
   HELP_TAX_DATA: 'admindata/taxdata/',
+  HELP_TASK_DESCRIPTION_PRICE_DATA: HelpIds.HELP_TASK_DESCRIPTION + '/pricedata',
+  HELP_TASK_DESCRIPTION_SPLIT_DIVIDEND: HelpIds.HELP_TASK_DESCRIPTION + '/splitdividend',
 
   // The GTNet landing page is the architectural overview of the network; it describes no single view. Every screen
   // therefore points at the page that documents it, HELP_GT_NET_SETUP being the one for the server overview, its
@@ -102,4 +105,38 @@ export const AppHelpIds: Record<string, string> = {
   HELP_GT_NET_AUTOANSWER: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/autoanswer',
   HELP_GT_NET_EXCHANGE: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/exchange',
   HELP_GT_NET_EXCHANGE_LOG: HelpIds.HELP_MESSAGE_SYSTEM + '/gtnet/exchangelog'
+};
+
+/**
+ * Help page of every application task type that can be created in the batch processing monitor. Registered at
+ * startup via registerTaskTypeHelpIds(); a task type described on the main page maps to HELP_TASK_DESCRIPTION.
+ */
+export const AppTaskTypeHelpIds: Record<number, string> = {
+  [TaskTypeExtended.PRICE_AND_SPLIT_DIV_CALENDAR_UPDATE_THRU]: AppHelpIds.HELP_TASK_DESCRIPTION_PRICE_DATA,
+  [TaskTypeExtended.SECURITY_DIVIDEND_UPDATE_FOR_SECURITY]: AppHelpIds.HELP_TASK_DESCRIPTION_SPLIT_DIVIDEND,
+  [TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY]: AppHelpIds.HELP_TASK_DESCRIPTION_SPLIT_DIVIDEND,
+  [TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_OR_PORTFOLIO]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.CURRENCY_CHANGED_ON_TENANT_AND_PORTFOLIO]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA]: AppHelpIds.HELP_TASK_DESCRIPTION_PRICE_DATA,
+  [TaskTypeExtended.HOLDINGS_SECURITY_REBUILD]: AppHelpIds.HELP_TASK_DESCRIPTION_SPLIT_DIVIDEND,
+  [TaskTypeExtended.REBUILD_HOLDING_CASHACCOUNT_DEPOSIT_OUT_DATED_CURRENCY_PAIR_PRICE]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.CHECK_RELOAD_SECURITY_ADJUSTED_HISTORICAL_PRICES]: AppHelpIds.HELP_TASK_DESCRIPTION_SPLIT_DIVIDEND,
+  [TaskTypeExtended.REBUILD_HOLDINGS_ALL_OR_SINGLE_TENANT]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.LOAD_EMPTY_CURRENCYPAIR_HISTORYQUOTES]: AppHelpIds.HELP_TASK_DESCRIPTION_PRICE_DATA,
+  [TaskTypeExtended.COPY_SOURCE_ACCOUNT_TO_DEMO_ACCOUNTS]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_INDEX]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.PERIODICALLY_DIVIDEND_UPDATE_CHECK]: AppHelpIds.HELP_TASK_DESCRIPTION_SPLIT_DIVIDEND,
+  [TaskTypeExtended.CHECK_INACTIVE_SECURITY_AND_DIVIDEND_INTEREST]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.LOAD_ECB_CURRENCY_EXCHANGE_RATES]: AppHelpIds.HELP_TASK_DESCRIPTION_PRICE_DATA,
+  [TaskTypeExtended.MONITOR_HISTORICAL_PRICE_DATA]: AppHelpIds.HELP_TASK_DESCRIPTION_PRICE_DATA,
+  [TaskTypeExtended.MONITOR_INTRADAY_PRICE_DATA]: AppHelpIds.HELP_TASK_DESCRIPTION_PRICE_DATA,
+  [TaskTypeExtended.UDF_FILL_VALUES]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.RESET_CONNECTOR_RETRY_COUNTERS]: AppHelpIds.HELP_TASK_DESCRIPTION_PRICE_DATA,
+  [TaskTypeExtended.ALGO_ALARM_INDICATOR_EVALUATION]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.GTNET_SECURITY_IMPORT_POSITIONS]: HelpIds.HELP_TASK_DESCRIPTION_GTNET,
+  [TaskTypeExtended.STANDING_ORDER_EXECUTION]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.HOLD_TABLE_CONSISTENCY_CHECK]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.HOLD_DAILY_TOTAL_UPDATE]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.UDF_USER_SUGGEST_VALUES]: HelpIds.HELP_TASK_DESCRIPTION
 };

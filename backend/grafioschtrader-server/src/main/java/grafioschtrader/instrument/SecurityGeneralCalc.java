@@ -138,9 +138,10 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
   }
 
   /**
-   * Like {@link #createHypotheticalSellTransaction(SecurityPositionSummary, double, Map, DateTransactionCurrencypairMap,
-   * SecurityTransactionSummary, NegativeIdNumberCreater)}, but the sale carries the estimated commission and tax, so
-   * its gain or loss is the one after these costs. The cash account amount is reduced by them accordingly.
+   * Like
+   * {@link #createHypotheticalSellTransaction(SecurityPositionSummary, double, Map, DateTransactionCurrencypairMap, SecurityTransactionSummary, NegativeIdNumberCreater)},
+   * but the sale carries the estimated commission and tax, so its gain or loss is the one after these costs. The cash
+   * account amount is reduced by them accordingly.
    *
    * @param disposalEstimate the estimated costs of the sale in security currency, null for a sale without costs
    */
@@ -163,8 +164,8 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
             : DataHelper.round(disposalEstimate.tax(), securityPositionSummary.precision);
         transaction.setTransactionCost(commission);
         transaction.setTaxCost(tax);
-        transaction.setCashaccountAmount(transaction.getCashaccountAmount() - (commission == null ? 0.0 : commission)
-            - (tax == null ? 0.0 : tax));
+        transaction.setCashaccountAmount(
+            transaction.getCashaccountAmount() - (commission == null ? 0.0 : commission) - (tax == null ? 0.0 : tax));
       }
       calcTransactionPosition(transaction, securityPositionSummary, false, securitysplitMap, false, dateCurrencyMap,
           negativeIdNumberCreater);
@@ -493,6 +494,7 @@ public class SecurityGeneralCalc extends SecurityBaseCalc {
     final double acb = ctp.unitsSplited * securityPositionSummary.adjustedCostBase / securityPositionSummary.units;
     double balance = ctp.securitiesNetPrice - ctp.transactionTaxCost;
     securityPositionSummary.transactionGainLoss = balance - acb;
+    securityPositionSummary.transactionCostBase = acb;
     securityPositionSummary.transactionGainLossPercentage = securityPositionSummary.transactionGainLoss
         / (ctp.unitsSplited / securityPositionSummary.units * securityPositionSummary.adjustedCostBase) * 100.0;
     securityPositionSummary.adjustedCostBase -= acb;

@@ -70,6 +70,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
 
     this.rootNode.children.push({
       label: 'TRADING_CALENDAR_GLOBAL',
+      icon: 'pi pi-calendar',
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
         this.addMainRoute(AppSettings.TRADING_CALENDAR_GLOBAL_KEY),
@@ -81,6 +82,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
 
     this.rootNode.children.push({
       label: 'SECURITY_HISTORY_QUALITY',
+      icon: 'pi pi-chart-line',
       data: new TypeNodeData(
         TreeNodeType.NO_MENU,
         this.addMainRoute(AppSettings.SECURITY_HISTORY_QUALITY_KEY),
@@ -102,6 +104,7 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
     // Tax Data management
     this.rootNode.children.push({
       label: 'TAX_DATA',
+      icon: 'pi pi-file',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.TAX_DATA_KEY), null, null, null)
     });
 
@@ -122,12 +125,14 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
       expanded: true,
       children: [],
       label: 'GT_NET_NET_AND_MESSAGE',
+      icon: 'pi pi-globe',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_TAB_MENU_KEY), null, null, null)
     };
 
     if (AuditHelper.hasAdminRole(this.globalParamService)) {
       gtNetNode.children.push({
         label: 'GT_NET_MESSAGE_ANSWER',
+        icon: 'pi pi-reply',
         data: new TypeNodeData(
           TreeNodeType.NO_MENU,
           this.addMainRoute(BaseSettings.GT_NET_MESSAGE_ANSWER_KEY),
@@ -140,12 +145,14 @@ export class AdminDataMainTreeContributor extends MainTreeContributor {
 
     gtNetNode.children.push({
       label: 'GT_NET_EXCHANGE',
+      icon: 'pi pi-arrows-h',
       data: new TypeNodeData(TreeNodeType.NO_MENU, this.addMainRoute(AppSettings.GT_NET_EXCHANGE_KEY), null, null, null)
     });
 
     const logEnabled = this.globalParamService.isGtNetLogEnabled();
     gtNetNode.children.push({
       label: 'GT_NET_EXCHANGE_LOG',
+      icon: 'pi pi-list',
       styleClass: logEnabled ? '' : 'p-disabled',
       selectable: logEnabled,
       data: new TypeNodeData(

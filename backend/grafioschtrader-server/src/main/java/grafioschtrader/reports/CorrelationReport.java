@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -154,7 +155,6 @@ public class CorrelationReport {
    */
   public List<CorrelationRollingResult> getRollingCorrelation(CorrelationSet correlationSet,
       Integer[][] securityIdsPairs) {
-    List<CorrelationRollingResult> rollingResultList = new ArrayList<>();
     LocalDate adjustedDateFrom = correlationSet.getDateFrom();
     if (adjustedDateFrom != null) {
       adjustedDateFrom = subtractRollingPeriodFromDateFrom(adjustedDateFrom, correlationSet.getSamplingPeriod(),
@@ -162,11 +162,28 @@ public class CorrelationReport {
     }
 
     ClosePricesCurrencyClose closePrices = ReportHelper.loadCloseData(jdbcTemplate, currencypairJpaRepository,
-        correlationSet.getSecuritycurrencyList(), correlationSet.getSamplingPeriod(), adjustedDateFrom,
+        correlationSet.getSecuritycurrencyList(), SamplingPeriodType.DAILY_RETURNS, adjustedDateFrom,
         correlationSet.getDateTo(), correlationSet.isAdjustCurrency(), createTotalReturnAdjuster(correlationSet));
     ReportHelper.adjustCloseToSameCurrency(correlationSet.getSecuritycurrencyList(), closePrices);
 
-    double[][] percentageChanges = ReportHelper.transformToPercentageChange(closePrices.dateCloseTree,
+    return calculateRollingResults(correlationSet, securityIdsPairs, closePrices.dateCloseTree);
+  }
+
+  /**
+   * Builds daily chart series and sampled rolling correlations from the same already adjusted daily closes. Package
+   * visibility allows the numerical/date alignment contract to be tested without a database.
+   */
+  List<CorrelationRollingResult> calculateRollingResults(CorrelationSet correlationSet, Integer[][] securityIdsPairs,
+      TreeMap<LocalDate, double[]> dailyCloses) {
+    List<CorrelationRollingResult> rollingResultList = new ArrayList<>();
+    TreeMap<LocalDate, double[]> sampledCloses = trimWarmUpBeforeDateFrom(
+        ReportHelper.sampleLastDayOfPeriod(dailyCloses, correlationSet.getSamplingPeriod()),
+        correlationSet.getDateFrom(), correlationSet.getRolling());
+    if (sampledCloses.size() <= correlationSet.getRolling()) {
+      return rollingResultList;
+    }
+
+    double[][] percentageChanges = ReportHelper.transformToPercentageChange(sampledCloses,
         correlationSet.getSecuritycurrencyList().size());
     RealMatrix realMatrix = new Array2DRowRealMatrix(percentageChanges);
 
@@ -177,20 +194,28 @@ public class CorrelationReport {
       Double[] correlations = calculateRollingCovCorrBeta(realMatrix.getColumn(colIndexSc1),
           realMatrix.getColumn(colIndexSc2), rollingWindowConfig);
 
-      LocalDate[] datesArray = closePrices.dateCloseTree.keySet()
-          .toArray(new LocalDate[closePrices.dateCloseTree.keySet().size()]);
+      LocalDate[] datesArray = sampledCloses.keySet().toArray(LocalDate[]::new);
       if (rollingWindowConfig.removeEmptyRollingAtStart) {
         datesArray = Arrays.copyOfRange(datesArray, rollingWindowConfig.windowSize, datesArray.length);
       }
-      rollingResultList
-          .add(new CorrelationRollingResult(Arrays.asList(correlationSet.getSecuritycurrencyList().get(colIndexSc1),
-              correlationSet.getSecuritycurrencyList().get(colIndexSc2)), datesArray, correlations));
+      var displayedCloses = dailyCloses.subMap(datesArray[0], true, datesArray[datesArray.length - 1], true);
+      LocalDate[] closeDates = displayedCloses.keySet().toArray(LocalDate[]::new);
+      double[][] closes = new double[][] {
+          displayedCloses.values().stream().mapToDouble(row -> row[colIndexSc1]).toArray(),
+          displayedCloses.values().stream().mapToDouble(row -> row[colIndexSc2]).toArray() };
+      rollingResultList.add(new CorrelationRollingResult(
+          Arrays.asList(correlationSet.getSecuritycurrencyList().get(colIndexSc1),
+              correlationSet.getSecuritycurrencyList().get(colIndexSc2)),
+          datesArray, correlations, closeDates, closes));
     }
     return rollingResultList;
   }
 
   /**
-   * Adjusts the 'dateFrom' by subtracting the rolling period to ensure enough data for the first rolling calculation.
+   * Moves 'dateFrom' back far enough that the loaded closes certainly contain the warm-up of the first rolling window.
+   * The window counts sampling periods with a price for every instrument, so a daily window of n periods spans more
+   * than n calendar days: weekends, holidays and differing exchange calendars thin out the common trading days. The
+   * margin is therefore generous; {@link #trimWarmUpBeforeDateFrom} cuts the surplus away again.
    *
    * @param dateFrom           The original start date.
    * @param samplingPeriodType The sampling period (daily or monthly).
@@ -201,10 +226,38 @@ public class CorrelationReport {
       byte rollingWindowSize) {
     switch (samplingPeriodType) {
     case DAILY_RETURNS:
-      return dateFrom.minusDays(rollingWindowSize + 1);
+      return dateFrom.minusDays(rollingWindowSize * 2L + 30);
     default: // MONTHLY_RETURNS
-      return dateFrom.minusMonths(rollingWindowSize + 1);
+      return dateFrom.minusMonths(rollingWindowSize + 2L);
     }
+  }
+
+  /**
+   * Keeps exactly the warm-up of the first rolling window before 'dateFrom', so that the first correlation value falls
+   * on the first sampled date on or after 'dateFrom'. The window of n returns needs n sampled closes before that date,
+   * because the first return is formed from two closes. When less history exists, the series is returned unchanged and
+   * the line starts as soon as a window is complete.
+   *
+   * @param sampledCloses     The sampled closes, starting before 'dateFrom' by the margin of
+   *                          {@link #subtractRollingPeriodFromDateFrom}.
+   * @param dateFrom          The start date of the correlation set, or null when it has none.
+   * @param rollingWindowSize The size of the rolling window in sampling periods.
+   * @return The sampled closes starting with the warm-up of the first window, or an empty map when no close lies on or
+   *         after 'dateFrom'.
+   */
+  static TreeMap<LocalDate, double[]> trimWarmUpBeforeDateFrom(TreeMap<LocalDate, double[]> sampledCloses,
+      LocalDate dateFrom, byte rollingWindowSize) {
+    if (dateFrom == null) {
+      return sampledCloses;
+    }
+    LocalDate firstDisplayed = sampledCloses.ceilingKey(dateFrom);
+    if (firstDisplayed == null) {
+      return new TreeMap<>();
+    }
+    LocalDate[] warmUp = sampledCloses.headMap(firstDisplayed, false).descendingKeySet().stream()
+        .limit(rollingWindowSize).toArray(LocalDate[]::new);
+    return warmUp.length < rollingWindowSize ? sampledCloses
+        : new TreeMap<>(sampledCloses.tailMap(warmUp[warmUp.length - 1], true));
   }
 
   /**

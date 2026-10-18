@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { watchlistTable } from './watchlist.helpers';
 
 import { loginAsFixtureUser } from './helpers';
 
@@ -488,8 +489,8 @@ async function cleanupScenario(
 }
 
 function securityRow(page: Page, scenario: SecurityFixture): Locator {
-  return page
-    .locator('.data-container p-table tbody tr')
+  return watchlistTable(page)
+    .locator('p-table tbody tr')
     .filter({ has: page.locator('td').filter({ hasText: exactText(scenario.securityName) }) })
     .filter({ has: page.locator('td').filter({ hasText: exactText(scenario.currency) }) })
     .first();
@@ -499,7 +500,7 @@ async function openWatchlist(page: Page, scenario: SecurityFixture): Promise<voi
   const node = page.getByRole('treeitem', { name: scenario.watchlistName, exact: true }).first();
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await watchlistTable(page).waitFor({ state: 'visible', timeout: 15_000 });
   await page.waitForTimeout(1500);
 }
 

@@ -4,6 +4,7 @@ import * as path from 'path';
 import { loginAsFixtureUser } from './helpers';
 import { toShortDate } from './portfolio.helpers';
 import { selectDynamicFormOptionByText } from './dynamic-form.helpers';
+import { watchlistTable } from './watchlist.helpers';
 
 /**
  * Create-time business values from generated/securities.json. References to the stock exchange and asset class use
@@ -163,7 +164,7 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
       }
 
       // Activate panel, then open context menu.
-      const contentArea = page.locator('.data-container').first();
+      const contentArea = watchlistTable(page);
       await contentArea.waitFor({ state: 'visible', timeout: 10_000 });
       await contentArea.click();
       await page.waitForTimeout(300);
@@ -398,7 +399,7 @@ test.describe.serial('Seed Spanish securities in the Spain watchlist', () => {
     // Same order as the creation tests above: the watchlist offers "Create and add security" only once its table has
     // rendered and its panel has been activated by a left click, so a bare right-click opens a menu without that entry.
     await page.waitForTimeout(1500);
-    const contentArea = page.locator('.data-container').first();
+    const contentArea = watchlistTable(page);
     await contentArea.waitFor({ state: 'visible', timeout: 10_000 });
     await contentArea.click();
     await page.waitForTimeout(300);

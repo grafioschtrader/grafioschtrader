@@ -73,7 +73,8 @@ export class ConnectorApiKeyEditComponent extends SimpleEntityEditBase<Connector
     this.config = [
       DynamicFieldHelper.createFieldSelectStringHeqF('idProvider', true),
       DynamicFieldHelper.createFieldSelectStringHeqF('subscriptionType', false),
-      DynamicFieldHelper.createFieldInputStringHeqF('apiKey', 64, true, {
+      // A browser cuts a longer pasted key silently; 256 covers OpenAI project keys and fits the encrypted column
+      DynamicFieldHelper.createFieldInputStringHeqF('apiKey', 256, true, {
         minLength: 10
       }),
       DynamicFieldHelper.createSubmitButton()

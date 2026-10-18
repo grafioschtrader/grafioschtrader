@@ -365,8 +365,7 @@ class AlgoRebalancingServiceTest {
 
   // -----------------------------------------------------------------------------------------------------------------
 
-  @SuppressWarnings("unchecked")
-
+  
   private RebalancingPlan plan() {
     return service.plan(ID_TENANT, algoTop, VALUATION_DATE, Locale.ROOT);
   }

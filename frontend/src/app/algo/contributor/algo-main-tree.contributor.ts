@@ -129,7 +129,7 @@ export class AlgoMainTreeContributor extends MainTreeContributor {
           const sims = simTenants.filter((s) => s.idAlgoTop === algoTop.idAlgoAssetclassSecurity);
           if (sims.length > 0) {
             if (algoTop.idAlgoAssetclassSecurity !== this.monitoringId) {
-              treeNode.icon = 'pi pi-desktop';
+              treeNode.icon = 'pi pi-compass';
             }
             treeNode.children = [];
             for (const sim of sims) {

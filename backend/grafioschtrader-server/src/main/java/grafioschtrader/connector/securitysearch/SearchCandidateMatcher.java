@@ -50,21 +50,36 @@ public final class SearchCandidateMatcher {
         .putIfAbsent(c.providerSymbol() + "|" + c.providerInstrumentId() + "|" + c.mic() + "|" + c.currency(), c));
     int rejected = 0;
     List<SecuritySearchCandidateDto> accepted = new ArrayList<>();
+    List<SecuritySearchCandidateDto> otherMic = new ArrayList<>();
     for (SecuritySearchCandidateDto candidate : unique.values()) {
       if (contradicts(query, candidate)) {
         rejected++;
+        if (contradictsOnlyMic(query, candidate)) {
+          otherMic.add(candidate);
+        }
       } else {
         accepted.add(candidate);
       }
     }
     if (accepted.isEmpty()) {
       return new SecuritySearchResult(providerId, SecuritySearchStatus.NO_MATCH, List.of(), rejected,
-          rejected > 0 ? rejected + " candidate(s) contradicted the queried ISIN, currency or MIC" : null);
+          rejected > 0 ? rejected + " candidate(s) contradicted the queried ISIN, currency or MIC" : null, otherMic);
     }
     List<SecuritySearchCandidateDto> ordered = accepted.stream()
         .sorted(Comparator.comparingInt((SecuritySearchCandidateDto c) -> score(query, c)).reversed())
         .limit(query.maxResults()).toList();
-    return new SecuritySearchResult(providerId, SecuritySearchStatus.OK, ordered, rejected, null);
+    return new SecuritySearchResult(providerId, SecuritySearchStatus.OK, ordered, rejected, null, otherMic);
+  }
+
+  /**
+   * Tells whether the candidate is rejected for its exchange alone: ISIN and currency do not contradict the query, but
+   * the provider established another MIC.
+   */
+  static boolean contradictsOnlyMic(SecuritySearchQuery query, SecuritySearchCandidateDto candidate) {
+    return candidate.hasEstablishedMic() && differs(query.mic(), candidate.mic(), candidate.micEvidence())
+        && !differs(query.isin(), candidate.isin(), candidate.isinEvidence())
+        && !differs(normalizeCurrency(query.currency()), normalizeCurrency(candidate.currency()),
+            candidate.currencyEvidence());
   }
 
   /**

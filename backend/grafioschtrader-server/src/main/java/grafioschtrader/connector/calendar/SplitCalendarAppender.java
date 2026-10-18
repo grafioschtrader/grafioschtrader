@@ -2,9 +2,9 @@ package grafioschtrader.connector.calendar;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,16 +24,19 @@ import grafiosch.repository.GlobalparametersJpaRepository;
 import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.ProgressStateType;
 import grafiosch.types.TaskDataExecPriority;
-import grafioschtrader.GlobalConstants;
 import grafioschtrader.GlobalParamKeyDefault;
 import grafioschtrader.connector.calendar.ISplitCalendarFeedConnector.TickerSecuritysplit;
+import grafioschtrader.connector.yahoo.YahooHelper;
+import grafioschtrader.entities.MicProviderMap;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.entities.TradingDaysPlus;
+import grafioschtrader.repository.MicProviderMapRepository;
 import grafioschtrader.repository.SecurityJpaRepository;
 import grafioschtrader.repository.SecuritysplitJpaRepository;
 import grafioschtrader.repository.StockexchangeJpaRepository;
 import grafioschtrader.repository.TradingDaysPlusJpaRepository;
+import grafioschtrader.task.exec.UpdateSplitForSecurityTask;
 import grafioschtrader.types.TaskTypeExtended;
 
 /**
@@ -63,6 +66,9 @@ public class SplitCalendarAppender {
 
   @Autowired
   private TaskDataChangeJpaRepository taskDataChangeJpaRepository;
+
+  @Autowired
+  private MicProviderMapRepository micProviderMapRepository;
 
   @Autowired(required = false)
   private List<ISplitCalendarFeedConnector> splitCalendarFeedConnectors = new ArrayList<>();
@@ -94,10 +100,21 @@ public class SplitCalendarAppender {
     String[] countryCodes = stockexchangeJpaRepository.findDistinctCountryCodes();
     SimilarityScore<Double> similarityAlgo = new JaroWinklerSimilarity();
     splitCalendarFeedConnectors.sort(Comparator.comparingInt(ISplitCalendarFeedConnector::getPriority));
-    stepThruEveryCalendarDay(tradingDaysPlusList, countryCodes, similarityAlgo);
+    stepThruEveryCalendarDay(tradingDaysPlusList, countryCodes, similarityAlgo, getYahooSuffixByMic());
     Globalparameters globalparameters = new Globalparameters(GlobalParamKeyDefault.GLOB_KEY_YOUNGEST_SPLIT_APPEND_DATE,
         now, true);
     globalparametersJpaRepository.save(globalparameters);
+  }
+
+  /**
+   * Returns the Yahoo exchange suffix of every MIC, an empty string for an exchange without suffix.
+   */
+  private Map<String, String> getYahooSuffixByMic() {
+    Map<String, String> suffixByMic = new HashMap<>();
+    for (MicProviderMap row : micProviderMapRepository.findByIdProviderMic_IdProvider(YahooHelper.YAHOO)) {
+      suffixByMic.put(row.getIdProviderMic().getMic(), row.getSymbolSuffix() == null ? "" : row.getSymbolSuffix());
+    }
+    return suffixByMic;
   }
 
   /**
@@ -107,9 +124,10 @@ public class SplitCalendarAppender {
    * @param tradingDaysPlusList list of trading days to process
    * @param countryCodes        array of country codes for filtering split data
    * @param similarityAlgo      algorithm for comparing company names when exact matches fail
+   * @param yahooSuffixByMic    Yahoo exchange suffix of every MIC
    */
   private void stepThruEveryCalendarDay(List<TradingDaysPlus> tradingDaysPlusList, String[] countryCodes,
-      SimilarityScore<Double> similarityAlgo) {
+      SimilarityScore<Double> similarityAlgo, Map<String, String> yahooSuffixByMic) {
     for (TradingDaysPlus tradingDaysPlus : tradingDaysPlusList) {
       for (ISplitCalendarFeedConnector calendarFeedConnector : splitCalendarFeedConnectors) {
         try {
@@ -117,7 +135,8 @@ public class SplitCalendarAppender {
               .getCalendarSplitForSingleDay(tradingDaysPlus.getTradingDate(), countryCodes);
           List<Security> securities = securityJpaRepository
               .findByTickerSymbolInOrderByIdSecuritycurrency(splitTickerMap.keySet());
-          matchSecurityNameWithSplitNameOthweiseRemoveIt(splitTickerMap, securities, similarityAlgo);
+          matchSecurityNameWithSplitNameOthweiseRemoveIt(splitTickerMap, securities, similarityAlgo,
+              yahooSuffixByMic);
           proposeSecuritsplitOverTaskDataChange(splitTickerMap, securities);
         } catch (Exception ex) {
           log.error(ex.getMessage(), ex);
@@ -127,18 +146,25 @@ public class SplitCalendarAppender {
   }
 
   /**
-   * Validates security matches by comparing company names using similarity algorithm. Removes securities from the list
-   * if name similarity falls below threshold. Uses different similarity thresholds for stocks (0.88) vs other
-   * securities (0.95).
+   * Validates security matches by their listing and by comparing company names using similarity algorithm. Removes
+   * securities from the list if the split belongs to another listing or if name similarity falls below threshold. Uses
+   * different similarity thresholds for stocks (0.88) vs other securities (0.95).
    *
-   * @param splitTickerMap map of ticker symbols to split information
-   * @param securities     list of securities to validate (modified in place)
-   * @param similarityAlgo algorithm for calculating name similarity scores
+   * @param splitTickerMap   map of ticker symbols to split information
+   * @param securities       list of securities to validate (modified in place)
+   * @param similarityAlgo   algorithm for calculating name similarity scores
+   * @param yahooSuffixByMic Yahoo exchange suffix of every MIC
    */
   private void matchSecurityNameWithSplitNameOthweiseRemoveIt(Map<String, TickerSecuritysplit> splitTickerMap,
-      List<Security> securities, SimilarityScore<Double> similarityAlgo) {
+      List<Security> securities, SimilarityScore<Double> similarityAlgo, Map<String, String> yahooSuffixByMic) {
     securities.removeIf(s -> {
       TickerSecuritysplit tss = splitTickerMap.get(s.getTickerSymbol());
+      if (!isSameListing(tss, s.getStockexchange().getCountryCode(),
+          yahooSuffixByMic.getOrDefault(s.getStockexchange().getMic(), ""))) {
+        log.info("Found ticker {} Security split of '{}' with country {} and suffix {} belongs to another listing",
+            s.getTickerSymbol(), tss.companyName, tss.countryCode, tss.symbolSuffix);
+        return true;
+      }
 
       String name1 = s.getName().toLowerCase();
       String name2 = tss.companyName.toLowerCase();
@@ -155,6 +181,21 @@ public class SplitCalendarAppender {
       }
       return !matchName;
     });
+  }
+
+  /**
+   * Checks whether a split of the calendar belongs to the listing of a security with the same ticker symbol. Depositary
+   * receipts, such as the Canadian CDRs, often carry the ticker of their underlying stock, but split independently of
+   * it. A property of the listing that the calendar does not deliver is not checked.
+   *
+   * @param tss                 the split of the calendar
+   * @param securityCountryCode country code of the security's stock exchange
+   * @param securityYahooSuffix Yahoo exchange suffix of the security's stock exchange, empty string for none
+   * @return false if the split comes from a listing in another country or on another exchange
+   */
+  public static boolean isSameListing(TickerSecuritysplit tss, String securityCountryCode, String securityYahooSuffix) {
+    return (tss.countryCode == null || tss.countryCode.equals(securityCountryCode))
+        && (tss.symbolSuffix == null || tss.symbolSuffix.equals(securityYahooSuffix));
   }
 
   /**
@@ -193,8 +234,8 @@ public class SplitCalendarAppender {
           var taskDataChange = new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
               TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusMinutes(2), security.getIdSecuritycurrency(),
               Security.class.getSimpleName());
-          taskDataChange.setOldValueString(tss.securitysplit.getSplitDate()
-              .format(DateTimeFormatter.ofPattern(GlobalConstants.SHORT_STANDARD_DATE_FORMAT)));
+          taskDataChange
+              .setOldValueString(UpdateSplitForSecurityTask.formatRequestedSplitDate(tss.securitysplit.getSplitDate()));
           taskDataChangeJpaRepository.save(taskDataChange);
         }
       }

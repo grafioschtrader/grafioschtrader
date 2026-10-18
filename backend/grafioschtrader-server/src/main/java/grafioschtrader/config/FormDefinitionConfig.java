@@ -24,6 +24,7 @@ public class FormDefinitionConfig {
     FormDefinitionRegistry.register(grafioschtrader.dto.PerformanceReportRequest.class);
     FormDefinitionRegistry.register(BankruptSecurity.class);
     FormDefinitionRegistry.register(Cashaccount.class);
+    FormDefinitionRegistry.register(grafioschtrader.entities.TenantAIProvider.class);
     FormDefinitionRegistry.register(SimulationTenantCreateDTO.class);
     FormDefinitionRegistry.register(SimulationRunRequestDTO.class);
     FormDefinitionRegistry.register(SecurityBondTerms.class);

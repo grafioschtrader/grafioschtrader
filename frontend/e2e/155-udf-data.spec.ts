@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { watchlistTable } from './watchlist.helpers';
 
 import { fillText } from './generic-connector.helpers';
 import { loginAsFixtureUser } from './helpers';
@@ -77,12 +78,12 @@ async function openWatchlist(page: Page, name: string): Promise<void> {
   const node = page.getByRole('treeitem', { name, exact: true }).first();
   await node.waitFor({ state: 'visible', timeout: 15_000 });
   await node.click();
-  await page.locator('.data-container').first().waitFor({ state: 'visible', timeout: 15_000 });
+  await watchlistTable(page).waitFor({ state: 'visible', timeout: 15_000 });
   await page.waitForTimeout(1500);
 }
 
 function instrumentRow(page: Page, row: UdfDataFixture): Locator {
-  const rows = page.locator('.data-container p-table tbody tr');
+  const rows = watchlistTable(page).locator('p-table tbody tr');
   if (row.entity === 'Security') {
     return rows
       .filter({ has: page.locator('td').filter({ hasText: exactText(row.securityName) }) })

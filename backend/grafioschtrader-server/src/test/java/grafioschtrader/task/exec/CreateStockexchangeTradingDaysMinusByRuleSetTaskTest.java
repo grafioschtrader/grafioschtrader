@@ -120,8 +120,8 @@ class CreateStockexchangeTradingDaysMinusByRuleSetTaskTest {
   }
 
   @Test
-  @DisplayName("A user-created non trading day on the same date is preserved, not duplicated")
-  void userRowSurvives() {
+  @DisplayName("A date returned as user-created is not inserted again as a rule-created closure")
+  void existingUserDateIsNotInsertedAgain() {
     stubPeriodAndRuleSet();
     // The user already recorded Labour Day manually, so the generator must not insert it again.
     when(tradingDaysMinusJpaRepository.findUserDatesInRange(ID_STOCKEXCHANGE, PERIOD_START, PERIOD_END))

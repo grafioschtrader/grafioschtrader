@@ -22,7 +22,7 @@
     [stripedRows]="true"
     [showGridlines]="true"
     [loading]="loading"
-    [containerClass]="{'data-container': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+    [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
     [expandable]="true"
     [expandedRowTemplate]="expandedContent"
     [canExpandFn]="canExpandRow.bind(this)"
@@ -30,16 +30,33 @@
     [contextMenuItems]="contextMenuItems"
     [ownerHighlightFn]="ownerHighlightFn.bind(this)"
     [cellStyleFn]="priceCellStyle.bind(this)"
+    [cellMarkFn]="cellMark.bind(this)"
     [negativeValueFn]="isValueByPathMinus.bind(this)"
     [valueGetterFn]="getValueByPath.bind(this)"
     (componentClick)="onComponentClick($event)"
     (filterChange)="onFilterChanged($event)"
     (colResize)="onColResize($event)"
     [contextMenuAppendTo]="'body'">
-    <!-- Caption -->
-    <h4 caption>
+    <!-- Caption. Bootstrap gives the heading a bottom margin of 0.5rem and the theme pads the table header with 0.75rem
+         below it; the negative margin takes the heading's margin back and half of that padding, so the header keeps a
+         small gap above the column headers. A rule on the table header itself would lose against the theme styles. -->
+    <h4 caption style="margin-bottom: -0.5rem">
       {{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{
       $safeNavigationMigration(securitycurrencyGroup?.lastTimestamp) | date: 'HH:mm dd.MM.yy' }}
+      <!-- Position values of the selected row, only shown by the watchlist types which fill positionHeaderFields. Styled
+           by the component that fills them. -->
+      @if (positionHeaderFields && selectedSecuritycurrencyPosition?.units) {
+      <span class="position-header">
+        @for (phf of positionHeaderFields; track phf.field) {
+        <span class="position-header-value">
+          {{ phf.headerTranslated }}:
+          <span [style.color]="isValueByPathMinus(selectedSecuritycurrencyPosition, phf) ? 'red' : 'inherit'">
+            {{ getValueByPath(selectedSecuritycurrencyPosition, phf) }}
+          </span>
+        </span>
+        }
+      </span>
+      }
     </h4>
 
     <!-- Custom icon cell template for svg-icon rendering with drag-and-drop -->

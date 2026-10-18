@@ -25,10 +25,8 @@ import { DataChangedService } from '../../lib/maintree/service/data.changed.serv
 import { TenantLimit } from '../../shared/types/tenant.limit';
 import { ProcessedAction } from '../../lib/types/processed.action';
 import { Subscription } from 'rxjs';
-import { ChartDataService } from '../../shared/chart/service/chart.data.service';
+import { CorrelationChartService } from '../service/correlation-chart.service';
 import { Router } from '@angular/router';
-import { PlotlyHelper } from '../../shared/chart/plotly.helper';
-import moment from 'moment';
 import { BusinessHelper } from '../../shared/helper/business.helper';
 import { AppHelper } from '../../lib/helper/app.helper';
 import { BaseSettings } from '../../lib/base.settings';
@@ -38,7 +36,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TableModule } from '@openng/optimus-ui/table';
 import { CorrelationAddInstrumentDialogComponent } from './correlation-add-instrument-dialog.component';
 import { InstrumentStatisticsResultComponent } from '../../shared/securitycurrency/instrument-statistics-result.component';
-import { GlobalSessionNames } from '../../lib/global.session.names';
 
 /**
  * This component serves as the main table view for correlation sets, displaying securities and currency pairs
@@ -195,11 +192,11 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
   /** Security currency selected in column header */
   private securityCurrencyColumn: Securitycurrency;
 
-  /** Subscription for chart data requests */
-  private subscriptionRequestFromChart: Subscription;
+  /** Cancels obsolete chart requests when the selection changes. */
+  private chartRequest: Subscription;
 
-  /** Map of chart traces currently being displayed */
-  private traceShow: { [name: string]: any } = {};
+  /** Canonical instrument pairs currently selected for the chart. */
+  private chartPairs: { [key: string]: number[] } = {};
 
   /**
    * Creates an instance of CorrelationTableComponent.
@@ -218,7 +215,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     private correlationSetService: CorrelationSetService,
     private messageToastService: MessageToastService,
     private dataChangedService: DataChangedService,
-    private chartDataService: ChartDataService,
+    private chartDataService: CorrelationChartService,
     filterService: FilterService,
     translateService: TranslateService,
     gps: GlobalparameterService,
@@ -249,8 +246,14 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @param correlationResult The correlation calculation results
    */
   parentSelectionChanged(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
+    if (this.correlationSet?.idCorrelationSet !== correlationSet?.idCorrelationSet) {
+      this.chartPairs = {};
+      this.selectedEntity = null;
+      this.securityCurrencyColumn = null;
+    }
     this.createDynamicTableDefinition(correlationSet, correlationResult);
     this.readListLimitOnce(correlationSet);
+    this.refreshChartWhenCorrelationSetChanges();
   }
 
   /**
@@ -287,21 +290,20 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
       this.correlationSet &&
       SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS
     ) {
-      if (
-        this.selectedEntity &&
-        this.securityCurrencyColumn &&
-        this.selectedEntity !== this.securityCurrencyColumn &&
-        !this.isGraphForPairShowing(
-          this.selectedEntity.idSecuritycurrency,
-          this.securityCurrencyColumn.idSecuritycurrency
-        )
-      ) {
+      if (this.selectedEntity && this.securityCurrencyColumn && this.selectedEntity !== this.securityCurrencyColumn) {
         menuItems.push({ separator: true });
         menuItems.push({
           label: 'CORRELATION_SET_GRAPH|' + this.getMenuName(this.selectedEntity, this.securityCurrencyColumn),
           command: (event) => this.navigateToChartRoute()
         });
-        if (Object.keys(this.traceShow).length > 0) {
+        if (
+          this.isChartShow() &&
+          Object.keys(this.chartPairs).length > 0 &&
+          !this.isGraphForPairShowing(
+            this.selectedEntity.idSecuritycurrency,
+            this.securityCurrencyColumn.idSecuritycurrency
+          )
+        ) {
           menuItems.push({
             label: 'CORRELATION_ADD_GRAPH|' + this.getMenuName(this.selectedEntity, this.securityCurrencyColumn),
             command: (event) => this.changeToOpenChart()
@@ -320,7 +322,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    * @returns True if graph is already showing for this pair
    */
   private isGraphForPairShowing(id1: number, id2: number): boolean {
-    return !!Object.keys(this.traceShow).find((key) => {
+    return !!Object.keys(this.chartPairs).find((key) => {
       const ids: number[] = key.split(',').map(Number);
       return ids.indexOf(id1) >= 0 && ids.indexOf(id2) >= 0;
     });
@@ -433,7 +435,9 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
 
   /** Component cleanup */
   ngOnDestroy(): void {
-    this.subscriptionInstrumentAdded && this.subscriptionInstrumentAdded.unsubscribe();
+    this.subscriptionInstrumentAdded?.unsubscribe();
+    this.chartRequest?.unsubscribe();
+    this.chartDataService.publish(null);
   }
 
   /**
@@ -457,6 +461,7 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
    */
   private createDynamicTableDefinition(correlationSet: CorrelationSet, correlationResult: CorrelationResult): void {
     this.removeAllColumns();
+    this.correlationSet = correlationSet;
     this.correlationResult = correlationResult;
     this.addColumnFeqH(DataType.String, this.nameHeader, true, false, {
       width: 250,
@@ -472,7 +477,6 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
         }
       }
       this.securitycurrencyList = correlationSet.securitycurrencyList;
-      this.correlationSet = correlationSet;
     } else {
       this.securitycurrencyList = [];
     }
@@ -523,150 +527,73 @@ export class CorrelationTableComponent extends TableConfigBase implements OnDest
     });
   }
 
-  /** Refreshes chart when correlation set changes */
+  /** Reloads surviving pairs when dates, adjustments or instruments change. */
   public refreshChartWhenCorrelationSetChanges(): void {
+    const ids = new Set(this.correlationSet?.securitycurrencyList.map((sc) => sc.idSecuritycurrency) ?? []);
+    Object.keys(this.chartPairs).forEach((key) => {
+      if (this.chartPairs[key].some((id) => !ids.has(id))) {
+        delete this.chartPairs[key];
+      }
+    });
     if (
-      SamplingPeriodType[this.correlationSet.samplingPeriod] !== SamplingPeriodType.ANNUAL_RETURNS &&
-      this.isChartShow()
+      !this.correlationSet ||
+      SamplingPeriodType[this.correlationSet.samplingPeriod] === SamplingPeriodType.ANNUAL_RETURNS
     ) {
-      const idsPairs: number[][] = [];
-      Object.keys(this.traceShow)
-        .filter((key) => {
-          const ids: string[] = key.split(',');
-          return (
-            this.correlationSet.securitycurrencyList.find((s) => s.idSecuritycurrency === +ids[0]) &&
-            this.correlationSet.securitycurrencyList.find((s) => s.idSecuritycurrency === +ids[1])
-          );
-        })
-        .forEach((key) => {
-          const ids: string[] = key.split(',');
-          idsPairs.push([+ids[0], +ids[1]]);
-        });
-      this.traceShow = [];
-      if (idsPairs.length > 0) {
-        this.correlationSetService
-          .getRollingCorrelations(this.correlationSet.idCorrelationSet, idsPairs)
-          .subscribe((crs: CorrelationRollingResult[]) => this.prepareCharDataAndSentToChart(crs));
-      }
+      this.chartPairs = {};
     }
+    this.loadChartPairs();
   }
 
-  /** Used when correlation chart is already show. Reset chart or add another correlation line */
+  /** Adds a pair to the already open chart. */
   private changeToOpenChart(): void {
-    this.isChartShow() && this.getAndSetRollingCorrelation();
-  }
-
-  /** Open chart line or reset existing chart */
-  private navigateToChartRoute(): void {
     if (this.isChartShow()) {
-      this.traceShow = {};
-      this.getAndSetRollingCorrelation();
-    } else {
-      this.prepareChartDataWithRequest();
-      this.router.navigate([
-        BaseSettings.MAINVIEW_KEY + '/',
-        {
-          outlets: {
-            mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.CORRELATION_CHART]
-          }
-        }
-      ]);
+      this.addSelectedChartPair();
+      this.loadChartPairs();
     }
   }
 
-  /**
-   * Checks if correlation chart is currently showing.
-   * @returns True if chart is visible
-   */
+  /** Replaces the plotted selection and opens the chart in the lower outlet. */
+  private navigateToChartRoute(): void {
+    this.chartPairs = {};
+    this.addSelectedChartPair();
+    this.loadChartPairs();
+    this.router.navigate([
+      BaseSettings.MAINVIEW_KEY + '/',
+      { outlets: { mainbottom: [AppSettings.CHART_GENERAL_PURPOSE, AppSettings.CORRELATION_CHART] } }
+    ]);
+  }
+
   private isChartShow(): boolean {
-    return !!this.subscriptionRequestFromChart || this.chartDataService.isChartOfIdShown(AppSettings.CORRELATION_CHART);
+    return this.chartDataService.shown;
   }
 
-  /** For the first call from the chart (callback) */
-  private prepareChartDataWithRequest(): void {
-    this.subscriptionRequestFromChart = this.chartDataService.requestFromChart$.subscribe((id) => {
-      if (id === AppSettings.CORRELATION_CHART) {
-        this.getAndSetRollingCorrelation();
-      }
-    });
-  }
-
-  /** Add single line to chart. It gets the data from the backend */
-  private getAndSetRollingCorrelation(): void {
-    this.correlationSetService
-      .getRollingCorrelations(this.correlationSet.idCorrelationSet, [
-        [this.securityCurrencyColumn.idSecuritycurrency, this.selectedEntity.idSecuritycurrency]
-      ])
-      .subscribe((crs: CorrelationRollingResult[]) => this.prepareCharDataAndSentToChart(crs));
-  }
-
-  /**
-   * Prepares chart data and sends it to the chart service.
-   * @param crsArray Array of correlation rolling results
-   */
-  private prepareCharDataAndSentToChart(crsArray: CorrelationRollingResult[]): void {
-    let minDate = moment();
-    let maxDate = moment(
-      sessionStorage.getItem(GlobalSessionNames.OLDEST_TRADING_DAY) ?? BaseSettings.OLDEST_TRADING_DAY_FALLBACK
+  private addSelectedChartPair(): void {
+    const pair = [this.securityCurrencyColumn.idSecuritycurrency, this.selectedEntity.idSecuritycurrency].sort(
+      (a, b) => a - b
     );
-    const legendTooltipMap = new Map<string, string>();
-    crsArray.forEach((crs) => {
-      const traceName =
-        this.getTickerOrName(crs.securitycurrencyList[0]) + '<->' + this.getTickerOrName(crs.securitycurrencyList[1]);
-      const fullName = crs.securitycurrencyList[0].name + '<->' + crs.securitycurrencyList[1].name;
-      legendTooltipMap.set(traceName, fullName);
-      const trace = {
-        type: 'scatter',
-        mode: 'lines',
-        name: traceName,
-        x: crs.dates,
-        y: crs.correlation
-      };
-      minDate = moment.min(minDate, moment(crs.dates[0]));
-      maxDate = moment.max(maxDate, moment(crs.dates[crs.dates.length - 1]));
-      this.traceShow[
-        crs.securitycurrencyList[0].idSecuritycurrency + ',' + crs.securitycurrencyList[1].idSecuritycurrency
-      ] = trace;
-    });
-    const chartData = Object.values(this.traceShow);
-    this.chartDataService.sentToChart({
-      data: chartData,
-      layout: this.getChartLayout(
-        minDate.format(BaseSettings.FORMAT_DATE_SHORT_NATIVE),
-        maxDate.format(BaseSettings.FORMAT_DATE_SHORT_NATIVE)
-      ),
-      legendTooltipMap,
-      options: {
-        modeBarButtonsToRemove: ['hoverCompareCartesian', 'hoverClosestCartesian']
-      }
-    });
+    this.chartPairs[pair.join(',')] = pair;
   }
 
-  /**
-   * Creates the chart layout configuration.
-   * @param minDate Minimum date for chart range
-   * @param maxDate Maximum date for chart range
-   * @returns Chart layout configuration object
-   */
-  private getChartLayout(minDate: string, maxDate: string): any {
-    const layout = {
-      title: { text: 'CORRELATION_ROLLING|' + this.childToParent.getPeriodAndRollingWithParamPrefix().join('|') },
-      showlegend: true,
-      legend: PlotlyHelper.getLegendUnderChart(11),
-      xaxis: {
-        autorange: true,
-        range: [minDate, maxDate],
-        rangeslider: { range: [minDate, maxDate] },
-        type: 'date'
-      },
-      yaxis: {
-        autorange: true,
-        range: [-1, 1],
-        type: 'linear'
-      }
-    };
-    PlotlyHelper.translateLayout(this.translateService, layout);
-    return layout;
+  /** Reloads all selected pairs together so every series has the same common trading dates. */
+  private loadChartPairs(): void {
+    this.chartRequest?.unsubscribe();
+    this.chartDataService.publish(null);
+    const pairs = Object.values(this.chartPairs);
+    if (!pairs.length) {
+      return;
+    }
+    const set = this.correlationSet;
+    const title = 'CORRELATION_ROLLING|' + this.childToParent.getPeriodAndRollingWithParamPrefix().join('|');
+    this.chartRequest = this.correlationSetService.getRollingCorrelations(set.idCorrelationSet, pairs).subscribe({
+      next: (results: CorrelationRollingResult[]) =>
+        this.chartDataService.publish({
+          results,
+          title,
+          includeDividends: set.includeDividends,
+          adjustCurrency: set.adjustCurrency
+        }),
+      error: () => this.chartDataService.publish(null)
+    });
   }
 }
 

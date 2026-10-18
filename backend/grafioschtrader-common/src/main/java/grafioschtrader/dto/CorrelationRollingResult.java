@@ -24,11 +24,22 @@ public class CorrelationRollingResult {
       A null value indicates that the correlation could not be calculated for that specific date (e.g., insufficient data for the window).""")
   public final Double[] correlation;
 
+  @Schema(description = "Common daily trading dates within the displayed correlation period, without its warm-up.")
+  @JsonFormat(pattern = BaseConstants.STANDARD_DATE_FORMAT)
+  public final LocalDate[] closeDates;
+
+  @Schema(description = """
+      Two daily close series in securitycurrencyList order, indexed by closeDates. Includes the same dividend and
+      currency adjustments as the correlation. These remain daily even for monthly correlations.""")
+  public final double[][] closes;
+
   public CorrelationRollingResult(List<Securitycurrency<?>> securitycurrencyList, LocalDate[] dates,
-      Double[] correlation) {
+      Double[] correlation, LocalDate[] closeDates, double[][] closes) {
     this.securitycurrencyList = securitycurrencyList;
     this.dates = dates;
     this.correlation = correlation;
+    this.closeDates = closeDates;
+    this.closes = closes;
   }
 
   @Override

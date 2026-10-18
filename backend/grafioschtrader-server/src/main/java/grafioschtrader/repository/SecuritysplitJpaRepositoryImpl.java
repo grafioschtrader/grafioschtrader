@@ -45,6 +45,7 @@ import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotes;
 import grafioschtrader.repository.SecurityJpaRepository.SplitAdjustedHistoryquotesResult;
 import grafioschtrader.service.GlobalparametersService;
+import grafioschtrader.task.exec.UpdateSplitForSecurityTask;
 import grafioschtrader.types.CreateType;
 import grafioschtrader.types.TaskTypeExtended;
 
@@ -250,7 +251,7 @@ public class SecuritysplitJpaRepositoryImpl implements SecuritysplitJpaRepositor
         var taskDataChange = new TaskDataChange(TaskTypeExtended.SECURITY_SPLIT_UPDATE_FOR_SECURITY,
             TaskDataExecPriority.PRIO_NORMAL, LocalDateTime.now().plusDays(1), security.getIdSecuritycurrency(),
             Security.class.getSimpleName());
-        taskDataChange.setOldValueString(requestedSplitdate.toString());
+        taskDataChange.setOldValueString(UpdateSplitForSecurityTask.formatRequestedSplitDate(requestedSplitdate));
         taskDataChangeJpaRepository.save(taskDataChange);
       }
     }
