@@ -157,5 +157,9 @@ grafioschtrader.tax.swiss.ictax
 grafioschtrader.test.start
 grafioschtrader.tools
 grafioschtrader.types
+grafioschtrader.udffill
+grafioschtrader.udffill.ai
+grafioschtrader.udffill.http
+grafioschtrader.udffill.resolver
 grafioschtrader.validation
 grafioschtrader.websocket
