@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { DialogModule } from '@openng/optimus-ui/dialog';
 import { ButtonModule } from '@openng/optimus-ui/button';
@@ -22,7 +22,8 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
 /**
  * Creates a personal access token. The form comes from the backend definition of the creation request. After a
  * successful creation the form gives way to the token itself, which is shown this one time only and can be copied.
- * Closing the dialog then reports the new token to the table.
+ * The table is told at once through {@link tokenCreated}, so it shows the new row however the dialog is closed;
+ * copying the token closes the dialog.
  */
 @Component({
   selector: 'user-access-token-create-dialog',
@@ -60,6 +61,8 @@ import { UserAccessTokenCreated } from '../model/user-access-token';
 })
 export class UserAccessTokenCreateDialogComponent extends SimpleEditBase implements OnInit {
   @Input() formDefinition: ClassDescriptorInputAndShow;
+  /** Emitted as soon as the server created the token, while the dialog still shows it. */
+  @Output() tokenCreated = new EventEmitter<void>();
   /** Set once the server created the token; it is held only as long as this dialog is open. */
   created: UserAccessTokenCreated;
 
@@ -93,7 +96,10 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
     this.userAccessTokenService
       .create({ tokenName: value['tokenName'], scope: 'READ', expiresInDays: value['expiresInDays'] })
       .subscribe({
-        next: (created) => (this.created = created),
+        next: (created) => {
+          this.created = created;
+          this.tokenCreated.emit();
+        },
         error: () => (this.configObject.submit.disabled = false)
       });
   }
@@ -101,6 +107,9 @@ export class UserAccessTokenCreateDialogComponent extends SimpleEditBase impleme
   async copyToken(): Promise<void> {
     await navigator.clipboard.writeText(this.created.plainToken);
     this.messageToastService.showMessageI18n(InfoLevelType.SUCCESS, 'ACCESS_TOKEN_COPIED');
+    // Copied is done: the clear text leaves the screen, and the table reloads once more
+    this.created = null;
+    this.closeDialog.emit(new ProcessedActionData(ProcessedAction.CREATED));
   }
 
   override onHide(event: any): void {

@@ -58,6 +58,7 @@ import { UserAccessTokenCreateDialogComponent } from './user-access-token-create
       <user-access-token-create-dialog
         [visibleDialog]="visibleDialog"
         [formDefinition]="formDefinition"
+        (tokenCreated)="readData()"
         (closeDialog)="handleCloseDialog($event)" />
     }
   `
