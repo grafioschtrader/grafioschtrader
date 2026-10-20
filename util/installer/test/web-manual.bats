@@ -42,7 +42,10 @@ setup() {
   # because the nginx and Apache sections are cut from the end of the file.
   grep -qx '(grafioschtrader) {' "$SCRATCH/proposal"
   grep -qx $'\t\turi replace /socket/websocket /socket 1' "$SCRATCH/proposal"
-  [ "$(grep -c $'^\t\treverse_proxy 127.0.0.1:9090$' "$SCRATCH/proposal")" -eq 4 ]
+  [ "$(grep -c $'^\t\treverse_proxy 127.0.0.1:9090$' "$SCRATCH/proposal")" -eq 6 ]
+  # The OAuth discovery documents of the MCP server lie outside /api and need routes of their own
+  grep -qxF $'\thandle /.well-known/oauth-protected-resource* {' "$SCRATCH/proposal"
+  grep -qxF $'\thandle /.well-known/oauth-authorization-server* {' "$SCRATCH/proposal"
   grep -qx $'\t\troot \\* /var/www/gt' "$SCRATCH/proposal"
   [ "$(grep -n '^# ---- Caddy' "$SCRATCH/proposal" | cut -d: -f1)" -lt \
     "$(grep -n '^# ---- nginx' "$SCRATCH/proposal" | cut -d: -f1)" ]

@@ -326,7 +326,10 @@ part of every installation and stays closed until the administrator sets the glo
 `gt.mcp.public.base.url` to `https://<DOMAIN>` in the global settings. The
 domain sites and the include snippet also forward the two OAuth discovery documents of the MCP server,
 `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server`, which lie outside `/api` by
-standard; the ACME challenge path stays untouched.
+standard; the ACME challenge path stays untouched. An installation completed before V0.39.0 lacks these two routes,
+and the installer refuses changes to a completed installation; its administrator adds them by hand to the own site
+or the vhost snippet, as the wiki page *Updating GT* describes. The edited file then differs from its journaled
+digest, so `--uninstall` keeps it and lists it as `kept.<n>`.
 
 The upstream edge proxy must replace client-supplied headers. Source restrictions alone do not establish correct
 client identity. Without `TLS_PROXY_FROM`, the plan warns that client attribution behind the upstream proxy is

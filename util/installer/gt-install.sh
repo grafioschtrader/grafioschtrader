@@ -6101,7 +6101,8 @@ gt_domain_render() {
     location / { return 404; }
 EOF
     # The two OAuth discovery documents of the MCP server lie outside /api by standard (RFC 9728, RFC 8414)
-    for route in /api /m2m /socket/websocket /ws /.well-known/oauth-protected-resource       /.well-known/oauth-authorization-server; do
+    for route in /api /m2m /socket/websocket /ws /.well-known/oauth-protected-resource \
+      /.well-known/oauth-authorization-server; do
       target=$route; [[ "$route" != /socket/websocket ]] || target=/socket
       printf '    location %s {\n        proxy_pass http://127.0.0.1:%s%s;\n' "$route" "${ANSWER[BACKEND_PORT]}" \
         "$target"
@@ -6180,7 +6181,8 @@ gt_vhost_snippet_render() {
     printf '    try_files $uri $uri/ /grafioschtrader/index.html;\n    gzip on;\n'
     printf '    gzip_types text/plain text/css text/xml application/javascript application/json application/wasm'
     printf ' application/xml image/svg+xml;\n}\n'
-    for route in /api /m2m /socket/websocket /ws /.well-known/oauth-protected-resource       /.well-known/oauth-authorization-server; do
+    for route in /api /m2m /socket/websocket /ws /.well-known/oauth-protected-resource \
+      /.well-known/oauth-authorization-server; do
       target=$route; [[ "$route" != /socket/websocket ]] || target=/socket
       printf 'location ^~ %s {\n    proxy_pass http://127.0.0.1:%s%s;\n' "$route" "$port" "$target"
       printf '    client_max_body_size 50m;\n    proxy_set_header Host $host;\n'
@@ -6198,7 +6200,8 @@ gt_vhost_snippet_render() {
     printf '    Require all granted\n    DirectoryIndex index.html\n    FallbackResource /grafioschtrader/index.html\n'
     printf '    AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml application/javascript'
     printf ' application/json application/wasm application/xml image/svg+xml\n</Directory>\n'
-    for route in /socket/websocket /ws /api /m2m /.well-known/oauth-protected-resource       /.well-known/oauth-authorization-server; do
+    for route in /socket/websocket /ws /api /m2m /.well-known/oauth-protected-resource \
+      /.well-known/oauth-authorization-server; do
       case "$route" in
         /socket/websocket) target=ws://127.0.0.1:$http/socket ;;
         /ws) target=ws://127.0.0.1:$http/ws ;;
@@ -6550,6 +6553,10 @@ gt_web_manual_caddy() {
   for route in /api /m2m /ws; do
     printf '\thandle %s* {\n\t\trequest_body {\n\t\t\tmax_size 50MB\n\t\t}\n' "$route"
     printf '\t\treverse_proxy 127.0.0.1:%s\n\t}\n' "$port"
+  done
+  # The two OAuth discovery documents of the MCP server lie outside /api by standard (RFC 9728, RFC 8414)
+  for route in /.well-known/oauth-protected-resource /.well-known/oauth-authorization-server; do
+    printf '\thandle %s* {\n\t\treverse_proxy 127.0.0.1:%s\n\t}\n' "$route" "$port"
   done
   printf '}\n\n'
 }

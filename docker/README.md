@@ -150,7 +150,9 @@ Home Assistant, another reverse proxy, …), `install.sh` detects the conflict:
 
 To keep the other web server terminating TLS on 80/443 and have it reverse-proxy
 to Grafioschtrader, point it at `http://127.0.0.1:${GT_HTTP_PORT}` and leave GT
-in local-HTTP mode.
+in local-HTTP mode. If that server forwards only selected paths, it must also forward
+`/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server`
+for AI assistants that sign in with OAuth (see below).
 
 ### Client addresses and login lockout
 
@@ -204,6 +206,8 @@ only the endpoint URL, discover the authorization server from the two documents 
 `/.well-known/oauth-protected-resource/…` and `/.well-known/oauth-authorization-server`, which the Caddyfile forwards
 to the backend, and send the user to a consent page of Grafioschtrader. The authorized applications appear in the same
 dialog and can be revoked there. OAuth needs `gt.mcp.public.base.url`; with `none` only personal tokens work.
+An installation updated from a version before 0.39.0 receives the two routes with the new web image, because the
+Caddyfile is part of it; nothing has to be changed on the host.
 
 A token lives up to a year, so the backend accepts it only when the client's connection was encrypted. It believes
 the `X-Forwarded-Proto` header only from the proxies in `G_SECURITY_LOGIN_TRUSTEDPROXIES`, which is Caddy. In local
