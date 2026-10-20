@@ -298,6 +298,16 @@ export class GlobalparameterService
     return this.prepareUseFeatures(FeatureType.ALGO);
   }
 
+  /** Personal access tokens for machine clients; reported only while they may be used. */
+  public useAccessToken(): boolean {
+    return this.prepareUseFeatures(FeatureType.ACCESSTOKEN);
+  }
+
+  /** MCP server for AI assistants, opened by the administrator (gt.mcp.use); it comes with personal access tokens. */
+  public useMcp(): boolean {
+    return this.prepareUseFeatures(FeatureType.MCP);
+  }
+
   public useGtnet(): boolean {
     return this.prepareUseFeatures(FeatureType.GTNET);
   }

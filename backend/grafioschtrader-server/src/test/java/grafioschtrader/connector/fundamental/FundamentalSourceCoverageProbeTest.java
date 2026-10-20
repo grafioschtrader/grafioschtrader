@@ -47,9 +47,9 @@ import tools.jackson.databind.JsonNode;
  * fundamental data feature are chosen.
  *
  * <p>
- * The universe is every active direct equity that is in a watchlist or has a transaction. For each source and stock
- * the report records whether the base values of {@link Metric} were delivered. The database is opened read-only with
- * plain JDBC; no Spring context starts, so no scheduled task and no Flyway can touch the real database.
+ * The universe is every active direct equity that is in a watchlist or has a transaction. For each source and stock the
+ * report records whether the base values of {@link Metric} were delivered. The database is opened read-only with plain
+ * JDBC; no Spring context starts, so no scheduled task and no Flyway can touch the real database.
  * </p>
  *
  * <p>
@@ -68,17 +68,18 @@ import tools.jackson.databind.JsonNode;
  * Optional: {@code -Dgt.probe.fundamentals.sources=sec,eulerpool,finnhub,yahoo,eodhd,simfin} selects sources (the
  * default omits {@code simfin}, whose key is not stored in {@code connector_apikey}),
  * {@code -Dgt.probe.fundamentals.max=N} limits the number of stocks, {@code -Dgt.probe.fundamentals.ids=1,2,3}
- * restricts the run to the given {@code id_securitycurrency} values, {@code -Dgt.probe.db.url=…} and
+ * restricts the run to the given {@code id_securitycurrency} values, {@code -Dgt.probe.fundamentals.reference=ISIN,…}
+ * replaces the ISINs whose answers are always kept as samples, {@code -Dgt.probe.db.url=…} and
  * {@code -Dgt.probe.db.user=…} point elsewhere. Without the Jasypt password a key can be given directly as environment
  * variable {@code GT_PROBE_KEY_EULERPOOL}, {@code GT_PROBE_KEY_FINNHUB}, {@code GT_PROBE_KEY_EODHISTORICALDATA} or
- * {@code GT_PROBE_KEY_SIMFIN};
- * a source without key is reported as skipped.
+ * {@code GT_PROBE_KEY_SIMFIN}; a source without key is reported as skipped.
  * </p>
  *
  * <p>
  * Output in {@code grafioschtrader-server/target/fundamental-probe/}: {@code coverage.csv} (one row per source and
- * stock), {@code summary.csv} (per source and exchange) and {@code samples/} (the first answers per source, keys
- * masked). No key is ever logged or written.
+ * stock), {@code summary.csv} (per source and exchange) and {@code samples/} (the first answers per source and every
+ * answer for a reference ISIN, keys masked, named {@code <source>-<symbol>-<fetch date>.json}). No key is ever logged
+ * or written.
  * </p>
  */
 class FundamentalSourceCoverageProbeTest {
@@ -87,6 +88,12 @@ class FundamentalSourceCoverageProbeTest {
   private static final String DEFAULT_SOURCES = "sec,eulerpool,finnhub,yahoo,eodhd";
   private static final Path OUTPUT = Path.of("target", "fundamental-probe");
   private static final int SAMPLES_PER_SOURCE = 3;
+  /**
+   * ISINs whose answers are always written as samples: a home listing (Nestlé), a listing in another currency than the
+   * reporting one (Novo Nordisk, held in EUR) and an ADR (Alibaba). They settle the currency and share basis of the
+   * fields of the fundamental data feature and feed its mapping tests.
+   */
+  private static final String DEFAULT_REFERENCE_ISINS = "CH0038863350,DK0062498333,US01609W1027";
   private static final String DELIMITER = "|";
 
   private static final Logger log = LoggerFactory.getLogger(FundamentalSourceCoverageProbeTest.class);
@@ -123,8 +130,9 @@ class FundamentalSourceCoverageProbeTest {
   }
 
   private List<FundamentalSourceProbe> createProbes(Map<String, String> keys) {
-    List<String> selected = Arrays.stream(System.getProperty("gt.probe.fundamentals.sources", DEFAULT_SOURCES)
-        .split(",")).map(String::trim).toList();
+    List<String> selected = Arrays
+        .stream(System.getProperty("gt.probe.fundamentals.sources", DEFAULT_SOURCES).split(",")).map(String::trim)
+        .toList();
     List<FundamentalSourceProbe> probes = new ArrayList<>();
     for (String source : selected) {
       switch (source) {
@@ -141,8 +149,8 @@ class FundamentalSourceCoverageProbeTest {
   }
 
   /**
-   * Active direct equities that are in a watchlist or have a transaction, with the intraday connector and its
-   * extension (the symbol a connector already uses) and the system-wide Yahoo symbol UDF.
+   * Active direct equities that are in a watchlist or have a transaction, with the intraday connector and its extension
+   * (the symbol a connector already uses) and the system-wide Yahoo symbol UDF.
    */
   private List<ProbeSecurity> loadSecurities(Connection connection) throws SQLException {
     String sql = """
@@ -190,8 +198,8 @@ class FundamentalSourceCoverageProbeTest {
   }
 
   /**
-   * Keys of the providers by id. An environment variable {@code GT_PROBE_KEY_<PROVIDER>} wins; otherwise the stored
-   * key is decrypted with the entity's own encryptor, which needs {@code JASYPT_ENCRYPTOR_PASSWORD}.
+   * Keys of the providers by id. An environment variable {@code GT_PROBE_KEY_<PROVIDER>} wins; otherwise the stored key
+   * is decrypted with the entity's own encryptor, which needs {@code JASYPT_ENCRYPTOR_PASSWORD}.
    */
   private Map<String, String> loadKeys(Connection connection) throws SQLException {
     Map<String, String> keys = new HashMap<>();
@@ -271,8 +279,8 @@ class FundamentalSourceCoverageProbeTest {
   }
 
   /**
-   * One row per source and exchange plus one {@code ALL} row per source: counts per status and per metric, and how
-   * many answers name a reporting period no older than 400 days.
+   * One row per source and exchange plus one {@code ALL} row per source: counts per status and per metric, and how many
+   * answers name a reporting period no older than 400 days.
    */
   private String summaryCsv(List<ProbeResult> results) {
     StringBuilder csv = new StringBuilder(String.join(DELIMITER, "source", "mic", "total",
@@ -298,19 +306,29 @@ class FundamentalSourceCoverageProbeTest {
       cells.add(String.valueOf(rows.stream().filter(r -> Boolean.TRUE.equals(r.metrics().get(metric))).count()));
     }
     String freshLimit = LocalDate.now().minusDays(400).toString();
-    cells.add(String.valueOf(
-        rows.stream().filter(r -> r.latestPeriod().length() >= 10 && r.latestPeriod().compareTo(freshLimit) >= 0)
-            .count()));
+    cells.add(String.valueOf(rows.stream()
+        .filter(r -> r.latestPeriod().length() >= 10 && r.latestPeriod().compareTo(freshLimit) >= 0).count()));
     return String.join(DELIMITER, cells);
   }
 
   private void writeSamples(List<ProbeResult> results) throws IOException {
+    List<String> referenceIsins = Arrays
+        .stream(System.getProperty("gt.probe.fundamentals.reference", DEFAULT_REFERENCE_ISINS).split(","))
+        .map(String::trim).toList();
     Map<String, Integer> written = new HashMap<>();
+    String fetchDate = LocalDate.now().toString();
     for (ProbeResult r : results) {
-      if (r.status() == Status.FOUND && r.body() != null
-          && written.merge(r.source(), 1, Integer::sum) <= SAMPLES_PER_SOURCE) {
-        String file = r.source() + "-" + r.security().id() + ".json";
+      if (r.status() != Status.FOUND || r.body() == null) {
+        continue;
+      }
+      boolean reference = referenceIsins.contains(r.security().isin());
+      if (reference || written.merge(r.source(), 1, Integer::sum) <= SAMPLES_PER_SOURCE) {
+        String symbol = r.symbol().replaceAll("[^A-Za-z0-9.]", "_");
+        String file = r.source() + "-" + symbol + "-" + fetchDate + ".json";
         Files.writeString(OUTPUT.resolve("samples").resolve(file), r.body(), StandardCharsets.UTF_8);
+      }
+      if (reference) {
+        log.info("Reference {} {} {}: {}", r.source(), r.symbol(), r.security().currency(), r.values());
       }
     }
   }

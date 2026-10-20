@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntConsumer;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 import org.slf4j.Logger;
@@ -96,6 +97,19 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
    */
   public String evaluateYahooSymbol(UDFDataJpaRepository uDFDataJpaRepository, UDFMetadataSecurity udfMDSYahooSymbol,
       Security security, YahooSymbolSearch yahooSymbolSearch, boolean recreate) {
+    return evaluateYahooSymbol(uDFDataJpaRepository, udfMDSYahooSymbol, security, yahooSymbolSearch, recreate, null);
+  }
+
+  /**
+   * As {@link #evaluateYahooSymbol(UDFDataJpaRepository, UDFMetadataSecurity, Security, YahooSymbolSearch, boolean)},
+   * and tells when a stored symbol was replaced by another one, so that data derived from the old symbol, such as the
+   * fundamental values of Yahoo, can be dropped.
+   *
+   * @param storedSymbolChanged receives the security ID when a stored symbol was overwritten with a different one; may
+   *                            be null
+   */
+  public String evaluateYahooSymbol(UDFDataJpaRepository uDFDataJpaRepository, UDFMetadataSecurity udfMDSYahooSymbol,
+      Security security, YahooSymbolSearch yahooSymbolSearch, boolean recreate, IntConsumer storedSymbolChanged) {
     String yahooCon = BaseFeedConnector.ID_PREFIX + YahooHelper.YAHOO;
     String yahooSymbol = yahooCon.equals(security.getIdConnectorIntra()) ? security.getUrlIntraExtend()
         : yahooCon.equals(security.getIdConnectorHistory()) ? security.getUrlHistoryExtend()
@@ -108,6 +122,7 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
         yahooSymbol = (String) UDFFieldsHelper.readValueFromUser0(udfMDSYahooSymbol, uDFDataJpaRepository,
             Security.class, security.getIdSecuritycurrency());
       }
+      String storedSymbol = yahooSymbol;
       if (yahooSymbol == null || recreate) {
         yahooSymbol = CACHE_SYMBOL.get(security.getIdSecuritycurrency());
         if (yahooSymbol == null) {
@@ -117,6 +132,9 @@ public class YahooUDFConnect extends AbstractYahooFinanceConnector {
             UDFFieldsHelper.writeValueToUser0(udfMDSYahooSymbol, uDFDataJpaRepository, security.getClass(),
                 security.getIdSecuritycurrency(), yahooSymbol);
             CACHE_SYMBOL.put(security.getIdSecuritycurrency(), yahooSymbol);
+            if (storedSymbolChanged != null && storedSymbol != null && !storedSymbol.equals(yahooSymbol)) {
+              storedSymbolChanged.accept(security.getIdSecuritycurrency());
+            }
           }
         }
       }

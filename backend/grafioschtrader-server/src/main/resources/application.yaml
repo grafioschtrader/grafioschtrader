@@ -20,6 +20,10 @@ gt:
     websocket: false
     algo: true
     alert: true
+    # MCP server for AI assistants under /api/mcp. This only loads the code; the administrator opens it with the
+    # global parameter gt.mcp.use. Set gt.use.mcp=false in application.properties to leave it out of the deployment
+    # altogether; the access tokens of the library (g.use.accesstoken) follow this switch.
+    mcp: true
   limit:
     # Limit Data
     #-------------------------------------
@@ -47,6 +51,7 @@ g:
     # GTNet price/history retrieval and the feature is hidden in the frontend. Start with
     # --g.use.gtnet=false during development instead of toggling the database parameter.
     gtnet: true
+    # accesstoken is not set here: application.properties derives it from gt.use.mcp, so the two cannot disagree.
 
 spring:
   main:

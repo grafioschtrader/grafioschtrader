@@ -185,6 +185,33 @@ and IPv6 addresses, not hostnames or CIDR ranges. Keep
 interpreting forwarding headers. An edge proxy must overwrite client-provided
 headers; explicitly list every trusted hop when using a proxy chain.
 
+### AI assistants (MCP)
+
+Users can let an AI assistant such as Claude Code read their portfolios through the MCP server at
+`https://<domain>/api/mcp`. The image contains it, but it stays closed until the administrator opens it in
+*Administration → Global settings*, without a restart:
+
+| Global parameter | Value |
+|---|---|
+| `gt.mcp.use` | `1` opens the server, `0` closes it and refuses every token at once |
+| `gt.mcp.public.base.url` | the public address, e.g. `https://myhost.duckdns.org`; `none` offers personal tokens only |
+
+Each user then creates a token under *Settings → AI assistants (MCP)*, visible after the next login; the dialog shows
+the endpoint and a configuration example built from `gt.mcp.public.base.url`.
+
+Clients that cannot send a fixed header, such as a ChatGPT connector, sign in through OAuth instead: they are given
+only the endpoint URL, discover the authorization server from the two documents under
+`/.well-known/oauth-protected-resource/…` and `/.well-known/oauth-authorization-server`, which the Caddyfile forwards
+to the backend, and send the user to a consent page of Grafioschtrader. The authorized applications appear in the same
+dialog and can be revoked there. OAuth needs `gt.mcp.public.base.url`; with `none` only personal tokens work.
+
+A token lives up to a year, so the backend accepts it only when the client's connection was encrypted. It believes
+the `X-Forwarded-Proto` header only from the proxies in `G_SECURITY_LOGIN_TRUSTEDPROXIES`, which is Caddy. In local
+HTTP mode (`GT_SITE_ADDRESS=:80`) Caddy forwards `http`, and every MCP request is refused with 403. Behind another web
+server that terminates TLS and forwards to Caddy, Caddy replaces that server's `X-Forwarded-Proto` with `http` unless
+it trusts it; for that case add `servers { trusted_proxies static <address> }` to the global options block at the
+top of the Caddyfile.
+
 ### IPv6 for the containers
 
 The backend's Docker bridge network carries IPv4 only, so the backend has no

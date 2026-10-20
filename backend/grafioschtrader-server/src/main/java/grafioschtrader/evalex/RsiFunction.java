@@ -11,7 +11,7 @@ import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
-import grafioschtrader.entities.Historyquote;
+import grafioschtrader.dto.IDateCloseHighLow;
 import grafioschtrader.ta.TaIndicatorData;
 import grafioschtrader.ta.indicator.calc.RelativeStrengthIndex;
 
@@ -23,10 +23,10 @@ import grafioschtrader.ta.indicator.calc.RelativeStrengthIndex;
 @FunctionParameter(name = "period")
 public class RsiFunction extends AbstractFunction {
 
-  private final List<Historyquote> historyquotes;
+  private final List<? extends IDateCloseHighLow> historyquotes;
   private final Map<Integer, Double> cache = new HashMap<>();
 
-  public RsiFunction(List<Historyquote> historyquotes) {
+  public RsiFunction(List<? extends IDateCloseHighLow> historyquotes) {
     this.historyquotes = historyquotes;
   }
 
@@ -41,7 +41,7 @@ public class RsiFunction extends AbstractFunction {
       throw new IndicatorUnavailableException("RSI", period, historyquotes.size());
     }
     RelativeStrengthIndex rsi = new RelativeStrengthIndex(period, historyquotes.size());
-    for (Historyquote hq : historyquotes) {
+    for (IDateCloseHighLow hq : historyquotes) {
       rsi.addData(hq.getDate(), hq.getClose());
     }
     TaIndicatorData[] data = rsi.getTaIndicatorData();

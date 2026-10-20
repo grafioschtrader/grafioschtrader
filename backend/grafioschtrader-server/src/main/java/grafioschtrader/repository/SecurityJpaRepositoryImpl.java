@@ -40,6 +40,8 @@ import grafiosch.repository.TaskDataChangeJpaRepository;
 import grafiosch.types.TaskDataExecPriority;
 import grafioschtrader.GlobalConstants;
 import grafioschtrader.connector.ConnectorHelper;
+import grafioschtrader.connector.instrument.BaseFeedConnector;
+import grafioschtrader.connector.yahoo.YahooHelper;
 import grafioschtrader.connector.instrument.IFeedConnector;
 import grafioschtrader.connector.instrument.IFeedConnector.FeedSupport;
 import grafioschtrader.dto.AnnualisedPerformance;
@@ -140,6 +142,9 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
 
   @Autowired
   private DividendJpaRepository dividendJpaRepository;
+
+  @Autowired
+  private SecurityFundamentalJpaRepository securityFundamentalJpaRepository;
 
   // Circular Dependency -> Lazy
   private HoldSecurityaccountSecurityJpaRepository holdSecurityaccountSecurityRepository;
@@ -818,6 +823,7 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
   @Override
   protected void afterSave(Security security, Security securityBefore, User user, boolean historyAccessHasChanged) {
     deleteObsoleteHistoryquotePeriods(security, securityBefore);
+    deleteFundamentalsWhenIdentityChanged(security, securityBefore);
     if (historyAccessHasChanged) {
       archivePreviousHistoryIfConnectorChanged(security, securityBefore);
       taskDataChangeJpaRepository.save(new TaskDataChange(TaskTypeExtended.SECURITY_LOAD_HISTORICAL_INTRA_PRICE_DATA,
@@ -873,6 +879,34 @@ public class SecurityJpaRepositoryImpl extends SecuritycurrencyService<Security,
     if (!target.isNoMarketValue()) {
       historyquotePeriodJpaRepository.deleteByIdSecuritycurrency(security.getIdSecuritycurrency());
     }
+  }
+
+  /**
+   * Deletes the stored fundamental values of a security when a change makes them describe something else: another
+   * currency, another ISIN (Eulerpool asks by ISIN), or another symbol of the Yahoo or Finnhub intraday connector, from
+   * which those sources derive their symbol. The next weekly run loads them again. A change of the Yahoo symbol of the
+   * user-defined field is handled where that field is written.
+   *
+   * @param security       the saved security
+   * @param securityBefore the security as it was persisted before this save, {@code null} on creation
+   */
+  private void deleteFundamentalsWhenIdentityChanged(Security security, Security securityBefore) {
+    if (securityBefore == null) {
+      return;
+    }
+    boolean fundamentalSymbolChanged = (isFundamentalSymbolConnector(security.getIdConnectorIntra())
+        || isFundamentalSymbolConnector(securityBefore.getIdConnectorIntra()))
+        && !(Objects.equals(security.getIdConnectorIntra(), securityBefore.getIdConnectorIntra())
+            && Objects.equals(security.getUrlIntraExtend(), securityBefore.getUrlIntraExtend()));
+    if (fundamentalSymbolChanged || !Objects.equals(security.getCurrency(), securityBefore.getCurrency())
+        || !Objects.equals(security.getIsin(), securityBefore.getIsin())) {
+      securityFundamentalJpaRepository.deleteByIdSecuritycurrency(security.getIdSecuritycurrency());
+    }
+  }
+
+  private static boolean isFundamentalSymbolConnector(String idConnector) {
+    return (BaseFeedConnector.ID_PREFIX + YahooHelper.YAHOO).equals(idConnector)
+        || (BaseFeedConnector.ID_PREFIX + "finnhub").equals(idConnector);
   }
 
   private void setSecurityDerivedLinks(Security security, Security existingSecurity) {

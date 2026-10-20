@@ -10,6 +10,9 @@ public enum TaskTypeBase implements ITaskType {
   /** Deletes all expired token of the registration process with its created user */
   TOKEN_USER_REGISTRATION_PURGE((byte) 15),
 
+  // Deletes personal access tokens 30 days after they expired
+  PURGE_EXPIRED_ACCESS_TOKEN((byte) 16),
+
   /** Physically deletes role messages that every corresponding role member has marked as deleted. */
   MAIL_ROLE_MESSAGE_PURGE((byte) 29),
 

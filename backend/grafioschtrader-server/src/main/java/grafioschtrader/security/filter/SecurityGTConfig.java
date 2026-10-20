@@ -67,10 +67,15 @@ import grafioschtrader.security.TokenAuthenticationService;
 @Order(1)
 public class SecurityGTConfig {
 
-  /** Writes that are either account-self operations or read-only evaluations. */
+  /**
+   * Writes that are either account-self operations or read-only evaluations. Personal access tokens belong to the
+   * account: a user with a read-only home tenant may still revoke tokens and create a reading one.
+   */
   public static final java.util.Set<String> READ_ONLY_WRITE_ALLOW_LIST = java.util.Set.of(
       RequestGTMappings.TENANT_MAP + "/switchto/**", RequestGTMappings.HOLDING_MAP + "/report/pdf",
-      RequestMappings.USER_MAP + "/password", RequestMappings.USER_MAP + "/nicknamelocale");
+      RequestMappings.USER_MAP + "/password", RequestMappings.USER_MAP + "/nicknamelocale",
+      RequestMappings.USER_ACCESS_TOKEN_MAP, RequestMappings.USER_ACCESS_TOKEN_MAP + "/**",
+      RequestMappings.API + "oauth/consent");
 
   @Autowired
   private MessageSource messages;

@@ -301,7 +301,8 @@ public abstract class TokenAuthentication {
     final Set<EntityType<?>> entityTypeList = entityManager.getMetamodel().getEntities();
     for (EntityType<?> entity : entityTypeList) {
       Class<?> clazz = entity.getBindableJavaType();
-      if (!Modifier.isAbstract(clazz.getModifiers())) {
+      // An @IdClass entity has no single key attribute, and Hibernate throws on getId() for it
+      if (!Modifier.isAbstract(clazz.getModifiers()) && entity.hasSingleIdAttribute()) {
         SingularAttribute<?, ?> id = entity.getId(entity.getIdType().getJavaType());
         entityNameWithKeyNameList.add(new EntityNameWithKeyName(entity.getName(), id.getName()));
       }

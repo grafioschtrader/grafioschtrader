@@ -255,12 +255,12 @@ public class AlgoMeanReversionDecisionService {
     if (history.size() < period)
       throw new Unavailable("MEAN_REVERSION_NO_HISTORY");
     if ("zscore".equals(type)) {
-      var values = history.subList(history.size() - period, history.size());
-      double mean = values.stream().mapToDouble(Historyquote::getClose).average().orElseThrow();
-      double variance = values.stream().mapToDouble(h -> Math.pow(h.getClose() - mean, 2)).average().orElseThrow();
-      if (variance <= 0)
+      try {
+        return grafioschtrader.evalex.IndicatorFunctionSet
+            .zscore(history.subList(history.size() - period, history.size()));
+      } catch (grafioschtrader.evalex.IndicatorUnavailableException e) {
         throw new Unavailable("MEAN_REVERSION_ZERO_VARIANCE");
-      return (history.getLast().getClose() - mean) / Math.sqrt(variance);
+      }
     }
     try {
       double value = AlertExpressionSupport.create(type.toUpperCase(Locale.ROOT) + "(" + period + ")", history)

@@ -1,0 +1,92 @@
+{
+  "quoteSummary": {
+    "result": [
+      {
+        "summaryDetail": {
+          "currency": "USD",
+          "previousClose": {
+            "raw": 108.57,
+            "fmt": "108.57"
+          },
+          "marketCap": {
+            "raw": 270140997632,
+            "fmt": "270.14B",
+            "longFmt": "270,140,997,632"
+          },
+          "trailingPE": {
+            "raw": 26.292662,
+            "fmt": "26.29"
+          },
+          "priceToSalesTrailing12Months": {
+            "raw": 0.2585153,
+            "fmt": "0.26"
+          }
+        },
+        "defaultKeyStatistics": {
+          "trailingEps": {
+            "raw": 4.13,
+            "fmt": "4.13"
+          },
+          "bookValue": {
+            "raw": 67.17209,
+            "fmt": "67.17"
+          },
+          "sharesOutstanding": {
+            "raw": 2487744939,
+            "fmt": "2.49B",
+            "longFmt": "2,487,744,939"
+          },
+          "impliedSharesOutstanding": {
+            "raw": 2487744939,
+            "fmt": "2.49B",
+            "longFmt": "2,487,744,939"
+          },
+          "mostRecentQuarter": {
+            "raw": 1782777600,
+            "fmt": "2026-06-30"
+          },
+          "priceToBook": {
+            "raw": 1.6165748,
+            "fmt": "1.62"
+          },
+          "enterpriseValue": {
+            "raw": 199077806080,
+            "fmt": "199.08B",
+            "longFmt": "199,077,806,080"
+          }
+        },
+        "financialData": {
+          "financialCurrency": "CNY",
+          "totalRevenue": {
+            "raw": 1044970995712,
+            "fmt": "1.04T",
+            "longFmt": "1,044,970,995,712"
+          },
+          "revenuePerShare": {
+            "raw": 449.613,
+            "fmt": "449.61"
+          },
+          "totalDebt": {
+            "raw": 266529996800,
+            "fmt": "266.53B",
+            "longFmt": "266,529,996,800"
+          },
+          "totalCash": {
+            "raw": 385696989184,
+            "fmt": "385.7B",
+            "longFmt": "385,696,989,184"
+          }
+        },
+        "price": {
+          "currency": "USD",
+          "regularMarketPrice": {
+            "raw": 108.5887,
+            "fmt": "108.59"
+          },
+          "regularMarketTime": 1792509530
+        }
+      }
+    ],
+    "error": null
+  }
+}

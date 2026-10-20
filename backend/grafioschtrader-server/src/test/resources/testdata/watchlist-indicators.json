@@ -1,0 +1,11 @@
+{
+  "nickname": "alledit",
+  "watchlist": "Indicator E2E",
+  "columns": [
+    {"label": "Indicator E2E Zero", "expression": "0"},
+    {"label": "Indicator E2E Boolean", "expression": "1 > 0"},
+    {"label": "Indicator E2E Missing", "expression": "DIVYIELD()"}
+  ],
+  "currencies": [{"fromCurrency": "USD", "toCurrency": "CHF"}, {"fromCurrency": "EUR", "toCurrency": "CHF"}],
+  "e2e": "e"
+}

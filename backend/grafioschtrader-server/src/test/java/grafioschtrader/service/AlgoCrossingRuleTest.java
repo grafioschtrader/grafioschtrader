@@ -75,17 +75,13 @@ class AlgoCrossingRuleTest {
   }
 
   @Test
-  @DisplayName("An expression is recognised as using indicators whatever case or spacing it is written in")
+  @DisplayName("AST input discovery recognises every series function regardless of case or whitespace")
   void indicatorFunctionsAreRecognised() {
-    assertThat(AlgoAlarmEvaluationService.usesIndicatorFunctions("price < SMA(200)")).isTrue();
-    // EvalEx accepts a function name in any case and tolerates whitespace before the parenthesis. The literal search
-    // for "SMA(" missed both, and the expression was then built without the function and failed on an unknown name.
-    assertThat(AlgoAlarmEvaluationService.usesIndicatorFunctions("price < sma (200)")).isTrue();
-    assertThat(AlgoAlarmEvaluationService.usesIndicatorFunctions("EMA(50) > EMA(200)")).isTrue();
-    assertThat(AlgoAlarmEvaluationService.usesIndicatorFunctions("rsi(14) < 30")).isTrue();
-    assertThat(AlgoAlarmEvaluationService.usesIndicatorFunctions("price > 100")).isFalse();
-    assertThat(AlgoAlarmEvaluationService.usesIndicatorFunctions("prevClose > 100")).isFalse();
-    assertThat(AlgoAlarmEvaluationService.usesIndicatorFunctions(null)).isFalse();
+    for (String expression : List.of("price < SMA(200)", "price < sma (200)", "EMA(50) > EMA(200)", "rsi(14) < 30",
+        "CLOSE(10) > 100"))
+      assertThat(grafioschtrader.evalex.AlertExpressionSupport.requiredData(expression))
+          .contains(grafioschtrader.evalex.IndicatorData.SERIES);
+    assertThat(grafioschtrader.evalex.AlertExpressionSupport.requiredData("price > 100")).isEmpty();
   }
 
   /**

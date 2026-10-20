@@ -3,10 +3,12 @@ package grafioschtrader.connector.instrument.finnhub;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -21,6 +23,11 @@ import org.springframework.web.util.UriUtils;
 import grafiosch.common.DateHelper;
 import grafiosch.exceptions.GeneralNotTranslatedWithArgumentsException;
 import grafioschtrader.GlobalConstants;
+import grafioschtrader.connector.fundamental.FundamentalAnswer;
+import grafioschtrader.connector.fundamental.FundamentalAnswerMapper;
+import grafioschtrader.connector.fundamental.FundamentalFeedSupport;
+import grafioschtrader.connector.fundamental.FundamentalFeedSupport.HttpAnswer;
+import grafioschtrader.connector.fundamental.IFundamentalFeedConnector;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.dto.SecurityBaseDataDto;
@@ -29,6 +36,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitycurrency;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
+import grafioschtrader.types.FundamentalSource;
 import grafioschtrader.types.SubscriptionType;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -40,10 +48,13 @@ import tools.jackson.databind.json.JsonMapper;
  * Stock, Bond, ETF:<br>
  * Splits were once free but anymore. The implementation was not removed.
  *
- *
+ * <p>
+ * It is also a source of fundamental base values ({@code stock/metric}). Only US listings are asked, whatever the
+ * subscription: the free plan refuses every other symbol, and the symbol scheme of a paid plan is not measured.
+ * </p>
  */
 @Component
-public class FinnhubConnector extends BaseFeedApiKeyConnector {
+public class FinnhubConnector extends BaseFeedApiKeyConnector implements IFundamentalFeedConnector {
 
   private static Map<FeedSupport, FeedIdentifier[]> supportedFeed;
   private final static String TOKEN_PARAM_NAME = "token";
@@ -157,6 +168,49 @@ public class FinnhubConnector extends BaseFeedApiKeyConnector {
             new Object[] { getReadableName(), feedSupport.name() });
       }
     }
+  }
+
+  @Override
+  public FundamentalSource getFundamentalSource() {
+    return FundamentalSource.FINNHUB;
+  }
+
+  @Override
+  public boolean isFundamentalAvailable() {
+    return isActivated();
+  }
+
+  @Override
+  public boolean supportsFundamentals(Security security) {
+    return FundamentalFeedSupport.isUsListing(security) && fundamentalSymbol(security) != null;
+  }
+
+  @Override
+  public Duration getFundamentalPause() {
+    // The free plan allows 60 requests per minute.
+    return Duration.ofMillis(1100);
+  }
+
+  @Override
+  public FundamentalAnswer loadFundamentals(Security security) throws Exception {
+    String symbol = fundamentalSymbol(security);
+    HttpAnswer answer = FundamentalFeedSupport.get(DOMAIN_NAME_WITH_VERSION + "stock/metric?metric=all&symbol="
+        + UriUtils.encodeQueryParam(symbol, StandardCharsets.UTF_8) + getTokenParam(), Map.of());
+    if (answer.status() != 200) {
+      return FundamentalAnswer.failed("HTTP " + answer.status() + " for " + symbol, answer.status());
+    }
+    return FundamentalAnswerMapper.finnhub(FundamentalFeedSupport.parse(answer.body()),
+        security.getIdSecuritycurrency(), security.getCurrency(), LocalDateTime.now(ZoneOffset.UTC));
+  }
+
+  /** The connector's own extension when the security is priced by Finnhub, otherwise the ticker. */
+  private String fundamentalSymbol(Security security) {
+    if (getID().equals(security.getIdConnectorIntra()) && security.getUrlIntraExtend() != null
+        && !security.getUrlIntraExtend().isBlank()) {
+      return security.getUrlIntraExtend().trim().toUpperCase(Locale.ROOT);
+    }
+    return security.getTickerSymbol() == null || security.getTickerSymbol().isBlank() ? null
+        : security.getTickerSymbol().trim().toUpperCase(Locale.ROOT);
   }
 
   @Override

@@ -21,9 +21,10 @@
 		file_server
 	}
 
-	# REST API, GTNet machine-to-machine and WebSocket/SockJS endpoints.
+	# REST API, GTNet machine-to-machine and WebSocket/SockJS endpoints, plus the two OAuth discovery documents of the
+	# MCP server (RFC 9728, RFC 8414), which live outside /api by standard.
 	# Caddy handles the WebSocket upgrade and X-Forwarded-* headers automatically.
-	@backend path /api/* /m2m/* /socket/* /ws/*
+	@backend path /api/* /m2m/* /socket/* /ws/* /.well-known/oauth-protected-resource/* /.well-known/oauth-authorization-server*
 	handle @backend {
 		reverse_proxy backend:8080
 	}

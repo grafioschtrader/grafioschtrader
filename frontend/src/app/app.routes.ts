@@ -1,3 +1,4 @@
+import { WatchlistIndicatorComponent } from './watchlist/component/watchlist.indicator.component';
 import { CorrelationChartComponent } from './correlation/component/correlation-chart.component';
 import { RouterModule, Routes } from '@angular/router';
 import { DASHBOARD_ROUTES } from './lib/dashboard/dashboard.routes';
@@ -40,6 +41,7 @@ import { CashaccountEditComponent } from './cashaccount/component/cashaccount-ed
 import { SecurityaccountTabMenuComponent } from './securityaccount/component/securityaccount.tab.menu.component';
 import { SecurityaccountImportTabMenuComponent } from './imptransaction/component/securityaccount-import-tab-menu.component';
 import { LoginComponent } from './lib/login/component/login.component';
+import { McpOAuthAuthorizeComponent } from './mcp/component/mcp-oauth-authorize.component';
 import { SecurityaccountImportTransactionComponent } from './imptransaction/component/securityaccount.import.transaction.component';
 import { ImportTransactionTemplateComponent } from './imptranstemplate/component/import.transaction.template.component';
 import { BankruptSecurityTableComponent } from './bankruptsecurity/component/bankrupt-security-table.component';
@@ -92,6 +94,8 @@ import { SecurityActionTreetableComponent } from './securityaction/component/sec
 const APP_ROUTES: Routes = [
   { path: '', redirectTo: '/' + BaseSettings.LOGIN_KEY, pathMatch: 'full' },
   { path: BaseSettings.LOGIN_KEY, component: LoginComponent },
+  // OAuth authorization endpoint of the MCP server; it sends the user through the login itself when necessary
+  { path: 'oauth/authorize', component: McpOAuthAuthorizeComponent },
   { path: BaseSettings.REGISTER_KEY, component: RegisterComponent },
   { path: AppSettings.TOKEN_VERIFY_KEY, component: RegistrationTokenVerifyComponent },
   { path: BaseSettings.TENANT_KEY, component: TenantEditFullPageComponent, canActivate: [authGuard] },
@@ -329,6 +333,11 @@ const APP_ROUTES: Routes = [
           {
             path: AppSettings.WATCHLIST_PRICE_FEED_KEY + '/:id',
             component: WatchlistPriceFeedComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: AppSettings.WATCHLIST_INDICATOR_KEY + '/:id',
+            component: WatchlistIndicatorComponent,
             canActivate: [authGuard]
           },
           {

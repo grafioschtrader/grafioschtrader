@@ -42,6 +42,7 @@ import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
+import grafioschtrader.entities.WatchlistIndicatorColumn;
 import jakarta.persistence.EntityManager;
 
 /**
@@ -82,6 +83,12 @@ public abstract class LimitKeyConfig {
   public static final String ENTITY_NAME_HISTORYQUOTE_READ = "HistoryquoteRead";
 
   /**
+   * Pseudo entity name for the daily budget of tool calls of the MCP server. One call is one unit, whatever it reads; the
+   * reservation is made before the report runs, so a call that ends with an error still consumes its unit.
+   */
+  public static final String ENTITY_NAME_MCP_TOOL_CALL = "McpToolCall";
+
+  /**
    * Pseudo entity name for the daily budget of the trading calendar. Its unit is one stock exchange year touched, not
    * one {@code trading_days_minus} row: a calendar is always edited or copied a year at a time, and counting rows would
    * make a single sparse year and a whole copied decade cost almost the same. {@code TradingDaysMinus} has no daily key
@@ -105,6 +112,9 @@ public abstract class LimitKeyConfig {
   /** Staging positions of a tenant, reached through their head because the position itself carries no tenant. */
   private static final String GTNET_IMP_POS_OF_TENANT = "SELECT count(p) FROM GTNetSecurityImpPos p, "
       + "GTNetSecurityImpHead h WHERE h.idGtNetSecurityImpHead = p.idGtNetSecurityImpHead AND h.idTenant = ?1";
+
+  public static final LimitKey KEY_WATCHLIST_INDICATOR_COLUMN = LimitKey
+      .max(WatchlistIndicatorColumn.class.getSimpleName(), OwnerScope.TENANT);
 
   // Flat per-tenant caps.
   public static final LimitKey KEY_CASH_ACCOUNT = LimitKey.max(Cashaccount.class.getSimpleName(), OwnerScope.TENANT);
@@ -186,6 +196,7 @@ public abstract class LimitKeyConfig {
   // Derived daily keys the application checks explicitly rather than through the generic CUD path.
   public static final LimitKey KEY_DAY_GTNET_SECURITY_IMPORT = LimitKey.dayCud(ENTITY_NAME_GTNET_SECURITY_IMPORT);
   public static final LimitKey KEY_DAY_HISTORYQUOTE_READ = LimitKey.dayRead(ENTITY_NAME_HISTORYQUOTE_READ);
+  public static final LimitKey KEY_DAY_MCP_TOOL_CALL = LimitKey.dayRead(ENTITY_NAME_MCP_TOOL_CALL);
   public static final LimitKey KEY_DAY_TRADING_DAYS_MINUS_YEAR = LimitKey.dayCud(ENTITY_NAME_TRADING_DAYS_MINUS_YEAR);
 
   private LimitKeyConfig() {
@@ -212,6 +223,8 @@ public abstract class LimitKeyConfig {
     registerFlat(KEY_CASH_ACCOUNT, Cashaccount.class, 30, null, "MAX_CASH_ACCOUNT", true);
     registerFlat(KEY_PORTFOLIO, Portfolio.class, 20, null, "MAX_PORTFOLIO", true);
     registerFlat(KEY_SECURITY_ACCOUNT, Securityaccount.class, 20, null, "MAX_SECURITY_ACCOUNT", true);
+    registerFlat(KEY_WATCHLIST_INDICATOR_COLUMN, WatchlistIndicatorColumn.class, 20, "min:1,max:50",
+        "MAX_WATCHLIST_INDICATOR_COLUMN", true);
     registerFlat(KEY_WATCHLIST, Watchlist.class, 30, null, "MAX_WATCHLIST", true);
     registerFlat(KEY_CORRELATION_SET, CorrelationSet.class, 10, null, "MAX_CORRELATION_SET", true);
 
@@ -401,8 +414,11 @@ public abstract class LimitKeyConfig {
     // Round trips to a language model, budgeted per user and day by AIRequestGate; the reservations are kept in the
     // user-private request log.
     LimitKeyRegistry.registerCudPseudoEntityName(ENTITY_NAME_AI_REQUEST, AIRequestLog.class);
+    LimitKeyRegistry.registerCudPseudoEntityName("WatchlistIndicatorColumn", WatchlistIndicatorColumn.class);
     LimitKeyRegistry.registerCudPseudoEntityName("TenantAIProvider", grafioschtrader.entities.TenantAIProvider.class);
     LimitKeyRegistry.registerReadPseudoEntityName(ENTITY_NAME_HISTORYQUOTE_READ, Historyquote.class);
+    // The tool calls read the tenant's portfolios, which is what the administration shows the budget as.
+    LimitKeyRegistry.registerReadPseudoEntityName(ENTITY_NAME_MCP_TOOL_CALL, Portfolio.class);
   }
 
   private static void registerFlat(LimitKey limitKey, Class<?> entityClass, int defaultValue, String inputRule,

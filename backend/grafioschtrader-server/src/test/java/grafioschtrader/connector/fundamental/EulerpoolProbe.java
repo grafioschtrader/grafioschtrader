@@ -86,8 +86,38 @@ final class EulerpoolProbe implements FundamentalSourceProbe {
         + "}";
     return ProbeResult.answered(name(), s, identifier, answer.status(), metrics,
         FundamentalProbeSupport.countNumbers(root), latest, sanitize(sample)).withNote(note)
-        .withValues("eps=" + FundamentalProbeSupport.text(root, "/perShare/eps") + " "
-            + FundamentalProbeSupport.text(root, "/currency"));
+        .withValues(values(root));
+  }
+
+  /**
+   * The raw values the fundamental data feature stores, the newest historical period and the field names of its entry,
+   * so that the net income needed by the unit check (EPS · shares against net income) can be located.
+   */
+  private static String values(JsonNode root) {
+    JsonNode newest = newestHistorical(root.path("historical"));
+    StringBuilder keys = new StringBuilder();
+    if (newest != null) {
+      newest.propertyNames().forEach(name -> keys.append(keys.isEmpty() ? "" : ",").append(name));
+    }
+    return "eps=" + FundamentalProbeSupport.text(root, "/perShare/eps") + " cur="
+        + FundamentalProbeSupport.text(root, "/currency") + " bvps=" + FundamentalProbeSupport.text(root, "/perShare/bps")
+        + " sps=" + FundamentalProbeSupport.text(root, "/perShare/sps") + " sharesMio="
+        + FundamentalProbeSupport.text(root, "/other/shares") + " netDebt="
+        + FundamentalProbeSupport.text(root, "/leverage/netDebt") + " mcapMio="
+        + FundamentalProbeSupport.text(root, "/valuation/marketCap") + " period="
+        + (newest == null ? "" : FundamentalProbeSupport.text(newest, "/period")) + " historicalKeys=" + keys;
+  }
+
+  /** The entry of the historical array with the greatest period, null when there is none. */
+  private static JsonNode newestHistorical(JsonNode historical) {
+    JsonNode newest = null;
+    for (JsonNode entry : historical) {
+      String period = FundamentalProbeSupport.text(entry, "/period");
+      if (newest == null || period.compareTo(FundamentalProbeSupport.text(newest, "/period")) > 0) {
+        newest = entry;
+      }
+    }
+    return newest;
   }
 
   /** HTTP status and numeric field count of {@code key-figures}, to see whether the free plan serves it. */

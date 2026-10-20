@@ -1,3 +1,4 @@
+import { WatchlistIndicatorComponent } from './watchlist/component/watchlist.indicator.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { inject, NgModule, provideAppInitializer } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -257,6 +258,7 @@ import { AdminDataMainTreeContributor } from './shared/contributor/admindata-mai
 import { DIALOG_HANDLER } from './lib/maintree/handler/dialog-handler.interface';
 import { SETTINGS_MENU_EXTENSIONS } from './lib/mainmenubar/service/settings-menu-extensions';
 import { aiSettingsMenu } from './tenantaiprovider/ai-settings-menu';
+import { mcpSettingsMenu } from './mcp/mcp-settings-menu';
 import { AppDialogHandler } from './shared/maintree/handler/app-dialog.handler';
 import { AfterLoginHandler } from './lib/login/service/after-login.handler';
 import { GtAfterLoginHandler } from './shared/login/gt-after-login.handler';
@@ -381,6 +383,7 @@ const createTranslateLoader = (http: HttpClient) =>
     CorrelationSetAddInstrumentTableComponent,
     WatchlistTabMenuComponent,
     WatchlistUdfComponent,
+    WatchlistIndicatorComponent,
     WatchlistEditDynamicComponent,
     InstrumentStatisticsResultComponent,
     PerformancePeriodComponent,
@@ -580,6 +583,7 @@ const createTranslateLoader = (http: HttpClient) =>
     // Main Tree Dialog Handler
     { provide: DIALOG_HANDLER, useClass: AppDialogHandler },
     { provide: SETTINGS_MENU_EXTENSIONS, useValue: aiSettingsMenu, multi: true },
+    { provide: SETTINGS_MENU_EXTENSIONS, useValue: mcpSettingsMenu, multi: true },
     // File name of the personal data export, overrides the neutral default of the lib layer
     { provide: PERSONAL_DATA_ZIP_NAME, useValue: 'gtPersonalData.zip' },
     // Dashboard renderers by backend type code. The token is not multi, so this replaces the library map and has to

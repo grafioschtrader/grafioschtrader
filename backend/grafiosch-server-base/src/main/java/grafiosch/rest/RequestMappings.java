@@ -43,6 +43,9 @@ public class RequestMappings {
 
   public static final String USER_MAP = API + User.TABNAME;
 
+  public static final String USER_ACCESS_TOKEN = "useraccesstoken";
+  public static final String USER_ACCESS_TOKEN_MAP = API + USER_ACCESS_TOKEN;
+
   // The is no table for useradmin
   public static final String USERADMIN = "useradmin";
   public static final String USERADMIN_MAP = API + USERADMIN;

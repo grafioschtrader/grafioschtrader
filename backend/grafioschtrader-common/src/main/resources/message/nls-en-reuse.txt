@@ -95,3 +95,7 @@ STATUS
 
 # --- Deliberate: the label of the argument of a lookup reads the same in both languages.
 RESOLVER_ARGUMENT
+
+WIC_DEFAULT_1
+WIC_DEFAULT_4
+WIC_DEFAULT_8

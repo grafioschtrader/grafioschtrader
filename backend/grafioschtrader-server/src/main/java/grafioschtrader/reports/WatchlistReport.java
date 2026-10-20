@@ -249,8 +249,8 @@ public class WatchlistReport {
     final List<IUDFEntityValues> entityValues = watchlistJpaRepository
         .getUDFByIdWatchlistAndIdUserAndEntity(idWatchlist, user.getIdUser(), entities);
     final SecuritycurrencyUDFGroup sUDFGroup = combineWatchlistWithUDF(sg, entityValues, user);
-    sUDFGroup.setUdfFillInfo(udfFillService.getFillInfo(user, UDFFillService.idsOf(securities),
-        UDFFillService.parseValues(entityValues)));
+    sUDFGroup.setUdfFillInfo(
+        udfFillService.getFillInfo(user, UDFFillService.idsOf(securities), UDFFillService.parseValues(entityValues)));
     return sUDFGroup;
   }
 
@@ -299,35 +299,18 @@ public class WatchlistReport {
   public SecuritycurrencyGroup getWatchlistwithPeriodPerformance(final Integer idWatchlist, final Integer idTenant,
       final Integer daysTimeFrame, final boolean includeDividends) {
 
-    Watchlist watchlist = watchlistJpaRepository.getReferenceById(idWatchlist);
-    if (!watchlist.getIdTenant().equals(idTenant)) {
-      throw new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH);
-    }
-
+    final LocalDate today = ClientClock.today();
+    requireOwnedWatchlist(idWatchlist, idTenant);
+    // Read split metadata before the price task touches managed instrument collections. A query here after
+    // launching it could auto-flush the task's temporary history-list changes on the request thread.
     final Map<Integer, List<Securitysplit>> securitysplitMap = securitysplitJpaRepository
         .getSecuritysplitMapByIdWatchlist(idWatchlist);
-
-    // The positions are also valued in the currency of the tenant, whose calendar day is resolved on this thread
-    final LocalDate today = ClientClock.today();
-
-    final LocalDate dateTimeFrame = LocalDate.now().minusDays(daysTimeFrame);
-    Tenant tenant = tenantJpaRepository.getReferenceById(watchlist.getIdTenant());
-
-    // Commit the claim before contacting providers: joining this report's transaction would hold the watchlist
-    // row lock throughout the async work and make concurrent requests wait for slow external providers.
-    final LocalDateTime now = LocalDateTime.now();
-    final LocalDateTime threshold = now.minusSeconds(globalparametersService.getWatchlistIntradayUpdateTimeout());
-    final PriceUpdateClaim claim = watchlistPriceUpdateService.claimUpdate(idWatchlist, idTenant, now, threshold);
-    if (claim.needsPriceUpdate()) {
-      log.info("Intraday update for {}", watchlist.getName());
-    }
-
-    // Capture final reference for lambda
-    final Watchlist finalWatchlist = watchlist;
-    final CompletableFuture<GTNetLastpriceService.SecurityCurrency> securityCurrencyCF = CompletableFuture
-        .supplyAsync(() -> executeLastPriceUpdate(tenant, finalWatchlist, claim));
-    final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateCloseCreateType>> historyquoteMaxDayCF = CompletableFuture
-        .supplyAsync(() -> getMaxDayHistoryquotesByIdWatchlist(idWatchlist));
+    final UpdatedWatchlist updated = updateWatchlistPrices(idWatchlist, idTenant, today);
+    final PriceUpdateClaim claim = updated.claim();
+    final LocalDate dateTimeFrame = today.minusDays(daysTimeFrame);
+    final CompletableFuture<GTNetLastpriceService.SecurityCurrency> securityCurrencyCF = updated.prices();
+    final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateCloseCreateType>> historyquoteMaxDayCF = updated
+        .closes();
     final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateClose>> historyquoteLastDayYearCF = CompletableFuture
         .supplyAsync(() -> getLastDayOfLastYearHistoryquotesByIdWatchlist(idWatchlist));
     final CompletableFuture<Map<Integer, ISecuritycurrencyIdDateClose>> historyquoteTimeFrameCF = CompletableFuture
@@ -373,6 +356,56 @@ public class WatchlistReport {
     securitycurrencyGroup.lastTimestamp = claim.lastTimestamp();
 
     return securitycurrencyGroup;
+  }
+
+  /** Performs the ownership check and shares the committed intraday update claim between both price reports. */
+  private UpdatedWatchlist updateWatchlistPrices(Integer idWatchlist, Integer idTenant, LocalDate today) {
+    Watchlist watchlist = requireOwnedWatchlist(idWatchlist, idTenant);
+    Tenant tenant = tenantJpaRepository.getReferenceById(idTenant);
+    LocalDateTime now = LocalDateTime.now();
+    var claim = watchlistPriceUpdateService.claimUpdate(idWatchlist, idTenant, now,
+        now.minusSeconds(globalparametersService.getWatchlistIntradayUpdateTimeout()));
+    return new UpdatedWatchlist(watchlist, claim,
+        CompletableFuture.supplyAsync(() -> executeLastPriceUpdate(tenant, watchlist, claim)),
+        CompletableFuture.supplyAsync(() -> getMaxDayHistoryquotesByIdWatchlist(idWatchlist, today)));
+  }
+
+  private Watchlist requireOwnedWatchlist(Integer idWatchlist, Integer idTenant) {
+    return watchlistJpaRepository.findById(idWatchlist).filter(w -> idTenant.equals(w.getIdTenant()))
+        .orElseThrow(() -> new SecurityException(BaseConstants.CLIENT_SECURITY_BREACH));
+  }
+
+  private record UpdatedWatchlist(Watchlist watchlist, PriceUpdateClaim claim,
+      CompletableFuture<GTNetLastpriceService.SecurityCurrency> prices,
+      CompletableFuture<Map<Integer, ISecuritycurrencyIdDateCloseCreateType>> closes) {
+  }
+
+  @Autowired
+  private WatchlistIndicatorReport indicatorReport;
+
+  /** Loads the same current prices as performance, then computes only the requested indicator inputs. */
+  @Transactional
+  public grafioschtrader.reportviews.securitycurrency.SecuritycurrencyIndicatorGroup getWatchlistWithIndicators(
+      Integer idWatchlist) {
+    User user = (User) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    LocalDate today = ClientClock.today();
+    var updated = updateWatchlistPrices(idWatchlist, user.getIdTenant(), today);
+    var prices = updated.prices().join();
+    var closes = updated.closes().join();
+    entityManager.clear();
+    var securities = createSecuritycurrencyPositionList(prices.securities);
+    var currencies = createSecuritycurrencyPositionList(prices.currencypairs);
+    securities.forEach(p -> replaceLastPriceByHistoryquote(closes, p));
+    currencies.forEach(p -> replaceLastPriceByHistoryquote(closes, p));
+    setStaleTradingSessions(securities, currencies);
+    roundIndexPrices(securities);
+    var group = new SecuritycurrencyGroup(securities, currencies, updated.claim().lastTimestamp(), idWatchlist);
+    markForUsedSecurityCurrencypairs(group,
+        watchlistJpaRepository.watchlistSecuritiesHasTransactionOrOtherWatchlist(idWatchlist),
+        watchlistJpaRepository.watchlistCurrencypairsHasReferencesButThisWatchlist(idWatchlist));
+    markWatchlistSecurityHasEverTransactionTenant(watchlistJpaRepository
+        .watchlistSecuritiesHasOpenOrClosedTransactionForThisTenant(idWatchlist, user.getIdTenant()), securities);
+    return indicatorReport.calculate(group, user.getIdTenant(), today);
   }
 
   private SecuritycurrencyGroup combineSecuritycurrencyGroupWithSecurtiesTransaction(
@@ -460,9 +493,9 @@ public class WatchlistReport {
    * may reach beyond the current day, so an unbounded query would hand out a price for a day that has not happened yet.
    */
   private Map<Integer, ISecuritycurrencyIdDateCloseCreateType> getMaxDayHistoryquotesByIdWatchlist(
-      final Integer idWatchlist) {
+      final Integer idWatchlist, LocalDate today) {
     final List<ISecuritycurrencyIdDateCloseCreateType> historyquotes = this.historyquoteJpaRepository
-        .getYoungestHistorquoteForSecuritycurrencyByWatchlist(idWatchlist, LocalDate.now());
+        .getYoungestHistorquoteForSecuritycurrencyByWatchlist(idWatchlist, today);
     return historyquotes.stream()
         .collect(Collectors.toMap(ISecuritycurrencyIdDateCloseCreateType::getIdSecuritycurrency, Function.identity()));
   }

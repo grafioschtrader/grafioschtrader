@@ -102,6 +102,7 @@ export class MenubarComponent implements OnInit, OnDestroy {
       settingsItems.push(
         ...extension({
           accountOperationsAvailable,
+          useMcp: this.gps.useMcp(),
           dialogService: this.dialogService,
           translateService: this.translateService
         })

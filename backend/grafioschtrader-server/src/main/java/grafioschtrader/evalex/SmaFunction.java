@@ -11,7 +11,7 @@ import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.functions.FunctionParameter;
 import com.ezylang.evalex.parser.Token;
 
-import grafioschtrader.entities.Historyquote;
+import grafioschtrader.dto.IDateCloseHighLow;
 import grafioschtrader.ta.TaIndicatorData;
 import grafioschtrader.ta.indicator.calc.SimpleMovingAverage;
 
@@ -23,10 +23,10 @@ import grafioschtrader.ta.indicator.calc.SimpleMovingAverage;
 @FunctionParameter(name = "period")
 public class SmaFunction extends AbstractFunction {
 
-  private final List<Historyquote> historyquotes;
+  private final List<? extends IDateCloseHighLow> historyquotes;
   private final Map<Integer, Double> cache = new HashMap<>();
 
-  public SmaFunction(List<Historyquote> historyquotes) {
+  public SmaFunction(List<? extends IDateCloseHighLow> historyquotes) {
     this.historyquotes = historyquotes;
   }
 
@@ -41,7 +41,7 @@ public class SmaFunction extends AbstractFunction {
       throw new IndicatorUnavailableException("SMA", period, historyquotes.size());
     }
     SimpleMovingAverage sma = new SimpleMovingAverage(period, historyquotes.size());
-    for (Historyquote hq : historyquotes) {
+    for (IDateCloseHighLow hq : historyquotes) {
       sma.addData(hq.getDate(), hq.getClose());
     }
     TaIndicatorData[] data = sma.getTaIndicatorData();

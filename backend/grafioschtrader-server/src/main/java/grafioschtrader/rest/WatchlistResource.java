@@ -50,6 +50,12 @@ public class WatchlistResource extends UpdateCreateDeleteWithTenantResource<Watc
   @Autowired
   private WatchlistReport watchlistReport;
 
+  @GetMapping(value = "/{idWatchlist}/indicator", produces = APPLICATION_JSON_VALUE)
+  public grafioschtrader.reportviews.securitycurrency.SecuritycurrencyIndicatorGroup indicators(
+      @PathVariable Integer idWatchlist) {
+    return watchlistReport.getWatchlistWithIndicators(idWatchlist);
+  }
+
   public WatchlistResource() {
     super(Watchlist.class);
   }

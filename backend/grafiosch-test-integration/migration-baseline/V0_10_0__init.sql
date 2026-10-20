@@ -324,6 +324,25 @@ CREATE TABLE `multilinguestrings` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `oauth_authorization` (
+  `id_oauth_authorization` int(11) NOT NULL AUTO_INCREMENT,
+  `id_user` int(11) NOT NULL,
+  `client_id` varchar(255) NOT NULL,
+  `client_name` varchar(100) NOT NULL,
+  `scope` tinyint(4) NOT NULL,
+  `resource` varchar(255) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  `last_refresh_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id_oauth_authorization`),
+  UNIQUE KEY `UK_OAuthAuthorization_Client` (`id_user`,`client_id`),
+  KEY `FK_OAuthAuthorization_User` (`id_user`),
+  CONSTRAINT `FK_OAuthAuthorization_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `propose_change_entity` (
   `id_propose_request` int(11) NOT NULL,
   `id_entity` int(11) NOT NULL,
@@ -528,6 +547,30 @@ CREATE TABLE `user` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_access_token` (
+  `id_user_access_token` int(11) NOT NULL AUTO_INCREMENT,
+  `id_user` int(11) NOT NULL,
+  `token_name` varchar(40) NOT NULL,
+  `token_hash` char(64) NOT NULL,
+  `token_prefix` varchar(12) NOT NULL,
+  `scope` tinyint(4) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `last_used_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  `token_kind` tinyint(4) NOT NULL DEFAULT 1,
+  `id_oauth_authorization` int(11) DEFAULT NULL,
+  `consumed_at` datetime DEFAULT NULL,
+  `audience` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_user_access_token`),
+  UNIQUE KEY `UK_UserAccessToken_Hash` (`token_hash`),
+  KEY `FK_UserAccessToken_User` (`id_user`),
+  KEY `FK_UserAccessToken_OAuthAuthorization` (`id_oauth_authorization`),
+  CONSTRAINT `FK_UserAccessToken_OAuthAuthorization` FOREIGN KEY (`id_oauth_authorization`) REFERENCES `oauth_authorization` (`id_oauth_authorization`) ON DELETE CASCADE,
+  CONSTRAINT `FK_UserAccessToken_User` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_dashboard` (
   `id_user` int(11) NOT NULL,
   `layout` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`layout`)),
@@ -665,8 +708,10 @@ SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'MailSendRecv', NULL, NULL, 2, NULL, 2000, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'MailSettingForward', NULL, NULL, 2, NULL, 50, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'OAuthAuthorization', NULL, NULL, 2, NULL, 10, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'ProposeUserTask', NULL, NULL, 2, NULL, 100, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UDFMetadataGeneral', NULL, NULL, 2, NULL, 50, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (0, 'UserAccessToken', NULL, NULL, 2, NULL, 5, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNet', NULL, NULL, NULL, 8, 5, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfig', NULL, NULL, NULL, 8, 3, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'GTNetConfigEntity', NULL, NULL, NULL, 8, 10, NULL, 0, 0, 0);
@@ -676,6 +721,7 @@ INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'MailSettingForward', NULL, NULL, NULL, 8, 12, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'ProposeUserTask', NULL, NULL, NULL, 8, 10, NULL, 0, 0, 0);
 INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UDFMetadataGeneral', NULL, NULL, NULL, 8, 20, NULL, 0, 0, 0);
+INSERT INTO `entity_limit` (limit_type, entity_name, relation_entity_name, count_scope, owner_scope, id_role, limit_value, valid_until, created_by, last_modified_by, version) VALUES (1, 'UserAccessToken', NULL, NULL, NULL, NULL, 10, NULL, 0, 0, 0);
 
 -- g.gnet.my.entry.id points at the dumping machine's own GTNet entry, but gt_net is dumped
 -- structure-only. NULL - not a deleted row - is the fresh-install state: the key stays visible in

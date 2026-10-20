@@ -2,6 +2,7 @@ package grafioschtrader.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -57,9 +58,9 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
       List<Integer> idsSecurity);
 
   /**
-   * Delivers the input of the total return adjustment ({@code TotalReturnAdjuster}) for several securities in one
-   * round trip: every dividend together with the closes the reinvestment rule needs and the rate that converts the
-   * dividend into the currency of the security. Both the dividend amount and the closes are split-adjusted, so no split
+   * Delivers the input of the total return adjustment ({@code TotalReturnAdjuster}) for several securities in one round
+   * trip: every dividend together with the closes the reinvestment rule needs and the rate that converts the dividend
+   * into the currency of the security. Both the dividend amount and the closes are split-adjusted, so no split
    * arithmetic is required by the caller. Rows of create type 1 (filled non-trading days) are skipped, as in the chart
    * queries.
    *
@@ -138,4 +139,16 @@ public interface DividendJpaRepository extends JpaRepository<Dividend, Integer>,
     /** Converts one unit of the dividend currency into the security currency, null when no rate is known */
     Double getExchangeRate();
   }
+
+  /**
+   * Dividend.findByIdsAndExDateRangeWithRate: securities (?1), inclusive ex-date range (?2/?3), FX at ex-date including
+   * weekend fills.
+   */
+  @Query(nativeQuery = true)
+  List<DividendTotalReturn> findByIdsAndExDateRangeWithRate(List<Integer> ids, LocalDate from, LocalDate to);
+
+  /** Securities with any past dividend, including those whose last dividend lies outside the loaded window. */
+  @Query(value = "SELECT DISTINCT id_securitycurrency FROM dividend WHERE id_securitycurrency IN (?1) AND ex_date <= ?2", nativeQuery = true)
+  Set<Integer> findIdsWithDividendData(List<Integer> ids, LocalDate to);
+
 }

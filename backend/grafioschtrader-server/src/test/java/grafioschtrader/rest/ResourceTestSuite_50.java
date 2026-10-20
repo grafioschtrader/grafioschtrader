@@ -3,6 +3,9 @@ package grafioschtrader.rest;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
+import grafioschtrader.mcp.McpServerIntegrationTest;
+import grafioschtrader.mcp.oauth.McpOAuthIntegrationTest;
+
 /**
  * Creates integration-owned bank-account transactions after Playwright spec 045 has initialized currency pairs.
  *
@@ -14,9 +17,15 @@ import org.junit.platform.suite.api.Suite;
  * {@code HoldCashaccountReplayRebuildTest} follows, because it books on a cash account of the same fixture and asserts
  * that the incremental hold-table replay and the full rebuild agree.
  * </p>
+ *
+ * <p>
+ * {@code McpServerIntegrationTest} and {@code McpOAuthIntegrationTest} come last: the tools read the portfolios and
+ * transactions created before.
+ * </p>
  */
 @Suite
-@SelectClasses({ TransactionResourceTest.class, HoldCashaccountReplayRebuildTest.class })
+@SelectClasses({ TransactionResourceTest.class, HoldCashaccountReplayRebuildTest.class, McpServerIntegrationTest.class,
+    McpOAuthIntegrationTest.class })
 public class ResourceTestSuite_50 {
 
 }

@@ -6048,6 +6048,8 @@ EOF
     ProxyPass /ws ws://127.0.0.1:$http/ws
     ProxyPass /api ajp://127.0.0.1:$port/api
     ProxyPass /m2m ajp://127.0.0.1:$port/m2m
+    ProxyPass /.well-known/oauth-protected-resource ajp://127.0.0.1:$port/.well-known/oauth-protected-resource
+    ProxyPass /.well-known/oauth-authorization-server ajp://127.0.0.1:$port/.well-known/oauth-authorization-server
     RedirectMatch 302 ^/$ /grafioschtrader/
     RedirectMatch 301 ^/grafioschtrader$ /grafioschtrader/
     <Directory ${ANSWER[DOCROOT]}>
@@ -6098,7 +6100,8 @@ gt_domain_render() {
     location /grafioschtrader/ { try_files $uri $uri/ /grafioschtrader/index.html; }
     location / { return 404; }
 EOF
-    for route in /api /m2m /socket/websocket /ws; do
+    # The two OAuth discovery documents of the MCP server lie outside /api by standard (RFC 9728, RFC 8414)
+    for route in /api /m2m /socket/websocket /ws /.well-known/oauth-protected-resource       /.well-known/oauth-authorization-server; do
       target=$route; [[ "$route" != /socket/websocket ]] || target=/socket
       printf '    location %s {\n        proxy_pass http://127.0.0.1:%s%s;\n' "$route" "${ANSWER[BACKEND_PORT]}" \
         "$target"
@@ -6177,7 +6180,7 @@ gt_vhost_snippet_render() {
     printf '    try_files $uri $uri/ /grafioschtrader/index.html;\n    gzip on;\n'
     printf '    gzip_types text/plain text/css text/xml application/javascript application/json application/wasm'
     printf ' application/xml image/svg+xml;\n}\n'
-    for route in /api /m2m /socket/websocket /ws; do
+    for route in /api /m2m /socket/websocket /ws /.well-known/oauth-protected-resource       /.well-known/oauth-authorization-server; do
       target=$route; [[ "$route" != /socket/websocket ]] || target=/socket
       printf 'location ^~ %s {\n    proxy_pass http://127.0.0.1:%s%s;\n' "$route" "$port" "$target"
       printf '    client_max_body_size 50m;\n    proxy_set_header Host $host;\n'
@@ -6195,7 +6198,7 @@ gt_vhost_snippet_render() {
     printf '    Require all granted\n    DirectoryIndex index.html\n    FallbackResource /grafioschtrader/index.html\n'
     printf '    AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml application/javascript'
     printf ' application/json application/wasm application/xml image/svg+xml\n</Directory>\n'
-    for route in /socket/websocket /ws /api /m2m; do
+    for route in /socket/websocket /ws /api /m2m /.well-known/oauth-protected-resource       /.well-known/oauth-authorization-server; do
       case "$route" in
         /socket/websocket) target=ws://127.0.0.1:$http/socket ;;
         /ws) target=ws://127.0.0.1:$http/ws ;;

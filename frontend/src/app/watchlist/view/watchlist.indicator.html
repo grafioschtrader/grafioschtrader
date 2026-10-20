@@ -1,0 +1,139 @@
+@if (indicatorGroup && !indicatorGroup.columns.length) {
+<p>{{ 'WIC_EMPTY' | translate }}</p>
+@if (!indicatorGroup.tenantHasColumns) {
+<p-button [label]="'WIC_CREATE_DEFAULTS' | translate" (click)="createDefaults()" />
+}
+<p-button [label]="'WIC_EDIT_COLUMNS' | translate" (click)="editColumns()" />
+}
+
+<div class="data-table-container" style="height: 100%; overflow: hidden">
+  <configurable-table
+    [data]="securityPositionList"
+    [fields]="fields"
+    [dataKey]="'securitycurrency.idSecuritycurrency'"
+    [selectionMode]="selectMultiMode"
+    [(selection)]="singleMultiSelection"
+    [multiSortMeta]="multiSortMeta"
+    [customSortFn]="customSort.bind(this)"
+    [hasFilter]="hasFilter && showFilterRow"
+    [customMatchModeOptions]="customMatchModeOptions"
+    [baseLocale]="baseLocale"
+    [formLocale]="formLocale"
+    [scrollHeight]="'flex'"
+    [scrollable]="true"
+    [stripedRows]="true"
+    [showGridlines]="true"
+    [loading]="loading"
+    [containerClass]="{'data-container-full': true, 'active-border': isActivated(), 'passiv-border': !isActivated()}"
+    [expandable]="false"
+    [showContextMenu]="contextMenuItems && isActivated()"
+    [contextMenuItems]="contextMenuItems"
+    [ownerHighlightFn]="ownerHighlightFn.bind(this)"
+    [cellStyleFn]="priceCellStyle.bind(this)"
+    [cellMarkFn]="cellMark.bind(this)"
+    [negativeValueFn]="isValueByPathMinus.bind(this)"
+    [valueGetterFn]="getValueByPath.bind(this)"
+    (componentClick)="onComponentClick($event)"
+    (filterChange)="onFilterChanged($event)"
+    (colResize)="onColResize($event)"
+    [contextMenuAppendTo]="'body'">
+    <!-- Caption. Bootstrap gives the heading a bottom margin of 0.5rem and the theme pads the table header with 0.75rem
+         below it; the negative margin takes the heading's margin back and half of that padding, so the header keeps a
+         small gap above the column headers. A rule on the table header itself would lose against the theme styles. -->
+    <h4 caption style="margin-bottom: -0.5rem">
+      {{ 'WATCHLIST' | translate }}: "{{ watchlist.name }}" {{
+      $safeNavigationMigration(securitycurrencyGroup?.lastTimestamp) | date: 'HH:mm dd.MM.yy' }}
+      <!-- Position values of the selected row, only shown by the watchlist types which fill positionHeaderFields. Styled
+           by the component that fills them. -->
+      @if (positionHeaderFields && selectedSecuritycurrencyPosition?.units) {
+      <span class="position-header">
+        @for (phf of positionHeaderFields; track phf.field) {
+        <span class="position-header-value">
+          {{ phf.headerTranslated }}:
+          <span [style.color]="isValueByPathMinus(selectedSecuritycurrencyPosition, phf) ? 'red' : 'inherit'">
+            {{ getValueByPath(selectedSecuritycurrencyPosition, phf) }}
+          </span>
+        </span>
+        }
+      </span>
+      }
+    </h4>
+
+    <!-- Custom icon cell template for svg-icon rendering with drag-and-drop -->
+    <ng-template #iconCell let-row let-field="field" let-value="value">
+      <span
+        class="cell-move"
+        draggable="true"
+        [pTooltip]="row.securitycurrency.idSecuritycurrency"
+        (dragstart)="dragStart($event, row)"
+        (dragend)="dragEnd($event, row)">
+        <svg-icon [name]="value" [svgStyle]="{ 'width.px':14, 'height.px':14 }"> </svg-icon>
+      </span>
+    </ng-template>
+
+    <!-- Icon cell without drag-and-drop. The tooltip spells out what the icon means, the cell value itself is only the
+         short yes or no the column sorts and filters on. -->
+    <ng-template #svgIconCell let-row let-field="field" let-value="value">
+      @if (getDistributionIcon(row); as iconName) {
+      <svg-icon
+        [name]="iconName"
+        [pTooltip]="'DISTRIBUTION_HEADER_TOOLTIP' | translate"
+        tooltipPosition="top"
+        [svgStyle]="{ 'width.px':14, 'height.px':14 }">
+      </svg-icon>
+      }
+    </ng-template>
+  </configurable-table>
+</div>
+
+<!-- Instrument actions shared with the other watchlist tabs. -->
+@if (visibleSecurityTransactionDialog) {
+<transaction-security-edit
+  (closeDialog)="handleCloseTransactionDialog($event)"
+  [transactionCallParam]="transactionCallParam"
+  [visibleSecurityTransactionDialog]="visibleSecurityTransactionDialog">
+</transaction-security-edit>
+} @if (visibleAddInstrumentDialog) {
+<watchlist-add-instrument
+  (closeDialog)="handleCloseAddInstrumentDialog($event)"
+  [idWatchlist]="idWatchlist"
+  [tenantLimits]="tenantLimits"
+  [visibleAddInstrumentDialog]="visibleAddInstrumentDialog">
+</watchlist-add-instrument>
+} @if (visibleEditCurrencypairDialog) {
+<currencypair-edit
+  (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
+  [securityCurrencypairCallParam]="securityCurrencypairCallParam"
+  [visibleEditCurrencypairDialog]="visibleEditCurrencypairDialog">
+</currencypair-edit>
+} @if (visibleEditSecurityDialog) {
+<security-edit
+  (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
+  [securityCurrencypairCallParam]="securityCurrencypairCallParam"
+  [visibleEditSecurityDialog]="visibleEditSecurityDialog">
+</security-edit>
+} @if (visibleEditSecurityDerivedDialog) {
+<security-derived-edit
+  (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
+  [securityCallParam]="securityCallParam"
+  [visibleDialog]="visibleEditSecurityDerivedDialog">
+</security-derived-edit>
+} @if (visibleUDFSecurityDialog) {
+<udf-security-edit
+  (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
+  [uDFGeneralCallParam]="uDFGeneralCallParam"
+  [visibleDialog]="visibleUDFSecurityDialog">
+</udf-security-edit>
+} @if (alarmSetupService.visibleDialog) {
+<algo-strategy-edit
+  [visibleDialog]="alarmSetupService.visibleDialog"
+  [algoCallParam]="alarmSetupService.algoCallParam"
+  (closeDialog)="alarmSetupService.handleCloseDialog($event)">
+</algo-strategy-edit>
+} @if (visibleUDFGeneralDialog) {
+<udf-general-edit
+  (closeDialog)="handleCloseEditSecuritycurrencyDialog($event)"
+  [uDFGeneralCallParam]="uDFGeneralCallParam"
+  [visibleDialog]="visibleUDFGeneralDialog">
+</udf-general-edit>
+}

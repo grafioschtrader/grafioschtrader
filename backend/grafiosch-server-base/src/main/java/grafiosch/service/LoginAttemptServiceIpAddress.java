@@ -146,6 +146,29 @@ public class LoginAttemptServiceIpAddress {
    * @param request request before any container/filter forwarding-address rewriting
    * @return canonical client address, or the direct peer when no trustworthy chain is available
    */
+  /**
+   * Tells whether the direct peer of a request is one of the configured proxies
+   * ({@code g.security.login.trusted-proxies}), whose forwarding headers may therefore be believed.
+   *
+   * @param remoteAddress the peer address as reported by {@link HttpServletRequest#getRemoteAddr()}
+   * @return true for a literal address of the trusted list
+   */
+  public boolean isTrustedProxy(String remoteAddress) {
+    String peer = literalAddress(remoteAddress);
+    return peer != null && trustedProxies.contains(peer);
+  }
+
+  /**
+   * Resolves the client address of a request the way the login lockout counts it: the forwarding chain is honoured only
+   * from trusted proxies.
+   *
+   * @param request the incoming request
+   * @return the client address
+   */
+  public String clientAddress(HttpServletRequest request) {
+    return getClientIP(request);
+  }
+
   private String getClientIP(HttpServletRequest request) {
     String peer = literalAddress(request.getRemoteAddr());
     if (peer == null) {

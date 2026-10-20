@@ -3,9 +3,13 @@ package grafiosch.config;
 import java.util.EnumSet;
 import java.util.Set;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import grafiosch.security.AccessTokenAvailability;
 import grafiosch.types.FeatureTypeBase;
 
 /**
@@ -21,6 +25,11 @@ import grafiosch.types.FeatureTypeBase;
 @Component
 @ConfigurationProperties(prefix = "g.use")
 public class BaseFeatureConfig {
+
+  /** The application's run time decision on access tokens; absent means they are always allowed. */
+  @Autowired
+  @Lazy
+  private ObjectProvider<AccessTokenAvailability> accessTokenAvailability;
 
   /** Enables the personal dashboard in every application built on the library. */
   private boolean dashboard = true;
@@ -45,6 +54,13 @@ public class BaseFeatureConfig {
   private boolean gtnet = true;
 
   /**
+   * Personal access tokens for machine clients such as AI assistants. When false the token resource answers 404 and the
+   * token authentication filter authenticates nothing. Off by default, because a token opens the user's data to a
+   * client outside the browser.
+   */
+  private boolean accesstoken;
+
+  /**
    * Returns the set of enabled library-level features.
    *
    * @return the enabled {@link FeatureTypeBase} values, possibly empty
@@ -57,7 +73,16 @@ public class BaseFeatureConfig {
     if (manageclient) {
       features.add(FeatureTypeBase.MANAGECLIENT);
     }
+    if (accesstoken && isAccessTokenAllowedNow()) {
+      features.add(FeatureTypeBase.ACCESSTOKEN);
+    }
     return features;
+  }
+
+  private boolean isAccessTokenAllowedNow() {
+    AccessTokenAvailability decision = accessTokenAvailability == null ? null
+        : accessTokenAvailability.getIfAvailable();
+    return decision == null || decision.isAccessTokenAllowed();
   }
 
   public boolean isManageclient() {
@@ -74,5 +99,13 @@ public class BaseFeatureConfig {
 
   public void setGtnet(boolean gtnet) {
     this.gtnet = gtnet;
+  }
+
+  public boolean isAccesstoken() {
+    return accesstoken;
+  }
+
+  public void setAccesstoken(boolean accesstoken) {
+    this.accesstoken = accesstoken;
   }
 }

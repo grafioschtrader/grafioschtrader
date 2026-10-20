@@ -1,0 +1,92 @@
+{
+  "quoteSummary": {
+    "result": [
+      {
+        "summaryDetail": {
+          "currency": "GBp",
+          "previousClose": {
+            "raw": 12400.0,
+            "fmt": "12,400.00"
+          },
+          "marketCap": {
+            "raw": 195476160512,
+            "fmt": "195.48B",
+            "longFmt": "195,476,160,512"
+          },
+          "trailingPE": {
+            "raw": 26.09524,
+            "fmt": "26.10"
+          },
+          "priceToSalesTrailing12Months": {
+            "raw": 3.1854146,
+            "fmt": "3.19"
+          }
+        },
+        "defaultKeyStatistics": {
+          "trailingEps": {
+            "raw": 4.83,
+            "fmt": "4.83"
+          },
+          "bookValue": {
+            "raw": 24.511501,
+            "fmt": "24.51"
+          },
+          "sharesOutstanding": {
+            "raw": 1550905742,
+            "fmt": "1.55B",
+            "longFmt": "1,550,905,742"
+          },
+          "impliedSharesOutstanding": {
+            "raw": 1550905742,
+            "fmt": "1.55B",
+            "longFmt": "1,550,905,742"
+          },
+          "mostRecentQuarter": {
+            "raw": 1782777600,
+            "fmt": "2026-06-30"
+          },
+          "priceToBook": {
+            "raw": 514.2076,
+            "fmt": "514.21"
+          },
+          "enterpriseValue": {
+            "raw": 219781005312,
+            "fmt": "219.78B",
+            "longFmt": "219,781,005,312"
+          }
+        },
+        "financialData": {
+          "financialCurrency": "USD",
+          "totalRevenue": {
+            "raw": 61366001664,
+            "fmt": "61.37B",
+            "longFmt": "61,366,001,664"
+          },
+          "revenuePerShare": {
+            "raw": 39.591,
+            "fmt": "39.59"
+          },
+          "totalDebt": {
+            "raw": 32349999104,
+            "fmt": "32.35B",
+            "longFmt": "32,349,999,104"
+          },
+          "totalCash": {
+            "raw": 4968000000,
+            "fmt": "4.97B",
+            "longFmt": "4,968,000,000"
+          }
+        },
+        "price": {
+          "currency": "GBp",
+          "regularMarketPrice": {
+            "raw": 12604.0,
+            "fmt": "12,604.00"
+          },
+          "regularMarketTime": 1792508645
+        }
+      }
+    ],
+    "error": null
+  }
+}

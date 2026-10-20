@@ -28,5 +28,11 @@ public enum FeatureTypeBase implements FeatureType {
    * library, which is why the feature is reported here and not from an application's own feature set. Toggled by the
    * launch argument {@code g.use.gtnet} together with the global parameter {@code g.gnet.use}.
    */
-  GTNET
+  GTNET,
+
+  /**
+   * Personal access tokens with which a machine client, for example an AI assistant, authenticates on the paths the
+   * application opens for it. Toggled by {@code g.use.accesstoken}; the application decides which paths accept a token.
+   */
+  ACCESSTOKEN
 }

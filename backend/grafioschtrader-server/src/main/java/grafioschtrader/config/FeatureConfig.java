@@ -27,6 +27,8 @@ public class FeatureConfig {
   private boolean websocket;
   private boolean algo;
   private boolean alert;
+  /** MCP server for AI assistants; see grafioschtrader.mcp.McpSecurityConfig. */
+  private boolean mcp;
 
   public Set<FeatureTypeGT> getEnabledFeatures() {
     EnumSet<FeatureTypeGT> features = EnumSet.noneOf(FeatureTypeGT.class);
@@ -38,6 +40,10 @@ public class FeatureConfig {
     }
     if (alert) {
       features.add(FeatureTypeGT.ALERT);
+    }
+    // The deployment switch loads the code, the global parameter gt.mcp.use is the administrator's decision
+    if (mcp && globalparametersService.isMcpUse()) {
+      features.add(FeatureTypeGT.MCP);
     }
     // GTNET is not added here: it is a library feature now and TokenAuthentication raises it from
     // GlobalparametersJpaRepository.isGTNetEnabled() for every application built on the base modules.
@@ -66,6 +72,14 @@ public class FeatureConfig {
 
   public void setAlert(boolean alert) {
     this.alert = alert;
+  }
+
+  public boolean isMcp() {
+    return mcp;
+  }
+
+  public void setMcp(boolean mcp) {
+    this.mcp = mcp;
   }
 
   /**

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<!-- Reduced finanzen.ch response recorded on 2026-10-20; verification token replaced. -->
+<html><head><script>
+var i = 1792484548; var j = i + Number("4588" + "72021");
+</script></head><body>
+<img id="akam-logo" src="/_sec/akamai-logo.svg">
+<script>
+function triggerInterstitialChallenge() {
+  var xhr = new XMLHttpRequest();
+  xhr.withCredentials = true;
+  xhr.open("POST", "/_sec/verify?provider=interstitial", false);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.send(JSON.stringify({"bm-verify": "fixture/token+value==", "pow": j}));
+}
+</script></body></html>

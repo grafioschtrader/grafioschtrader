@@ -25,7 +25,7 @@ import jakarta.persistence.Table;
 @Schema(description = "Contains a single qoute for end of day data")
 @Entity
 @Table(name = Historyquote.TABNAME)
-public class Historyquote extends BaseHistoryquote implements Serializable {
+public class Historyquote extends BaseHistoryquote implements Serializable, grafioschtrader.dto.IDateCloseHighLow {
 
   public static final String TABNAME = "historyquote";
 

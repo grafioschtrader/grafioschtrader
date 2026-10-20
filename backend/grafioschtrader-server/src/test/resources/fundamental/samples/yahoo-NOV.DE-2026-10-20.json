@@ -1,0 +1,92 @@
+{
+  "quoteSummary": {
+    "result": [
+      {
+        "summaryDetail": {
+          "currency": "EUR",
+          "previousClose": {
+            "raw": 34.32,
+            "fmt": "34.32"
+          },
+          "marketCap": {
+            "raw": 154039615488,
+            "fmt": "154.04B",
+            "longFmt": "154,039,615,488"
+          },
+          "trailingPE": {
+            "raw": 9.888102,
+            "fmt": "9.89"
+          },
+          "priceToSalesTrailing12Months": {
+            "raw": 0.46759298,
+            "fmt": "0.47"
+          }
+        },
+        "defaultKeyStatistics": {
+          "trailingEps": {
+            "raw": 3.53,
+            "fmt": "3.53"
+          },
+          "bookValue": {
+            "raw": 6.6848507,
+            "fmt": "6.68"
+          },
+          "sharesOutstanding": {
+            "raw": 3338238124,
+            "fmt": "3.34B",
+            "longFmt": "3,338,238,124"
+          },
+          "impliedSharesOutstanding": {
+            "raw": 4413110124,
+            "fmt": "4.41B",
+            "longFmt": "4,413,110,124"
+          },
+          "mostRecentQuarter": {
+            "raw": 1782777600,
+            "fmt": "2026-06-30"
+          },
+          "priceToBook": {
+            "raw": 5.2215075,
+            "fmt": "5.22"
+          },
+          "enterpriseValue": {
+            "raw": 247115988992,
+            "fmt": "247.12B",
+            "longFmt": "247,115,988,992"
+          }
+        },
+        "financialData": {
+          "financialCurrency": "DKK",
+          "totalRevenue": {
+            "raw": 329430990848,
+            "fmt": "329.43B",
+            "longFmt": "329,430,990,848"
+          },
+          "revenuePerShare": {
+            "raw": 74.186,
+            "fmt": "74.19"
+          },
+          "totalDebt": {
+            "raw": 140126994432,
+            "fmt": "140.13B",
+            "longFmt": "140,126,994,432"
+          },
+          "totalCash": {
+            "raw": 44982001664,
+            "fmt": "44.98B",
+            "longFmt": "44,982,001,664"
+          }
+        },
+        "price": {
+          "currency": "EUR",
+          "regularMarketPrice": {
+            "raw": 34.905,
+            "fmt": "34.90"
+          },
+          "regularMarketTime": 1792508595
+        }
+      }
+    ],
+    "error": null
+  }
+}

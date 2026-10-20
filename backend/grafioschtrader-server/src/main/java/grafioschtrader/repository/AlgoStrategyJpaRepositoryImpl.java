@@ -36,6 +36,8 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
 
   @Autowired
   private ObjectMapper objectMapper;
+  @Autowired
+  private org.springframework.context.MessageSource messageSource;
 
   @Autowired
   private grafioschtrader.service.AlgoHierarchyWriteGuard hierarchyWriteGuard;
@@ -76,7 +78,10 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
           throw new IllegalArgumentException("Rebalancing configuration is required and must be finite");
       } catch (RuntimeException e) {
         throw new DataViolationException("strategy.config", "algo.strategy.config.invalid",
-            new Object[] { e.getMessage() });
+            new Object[] { e instanceof grafioschtrader.evalex.AlertExpressionException ae
+                ? messageSource.getMessage(ae.getKey(), ae.getArguments(),
+                    org.springframework.context.i18n.LocaleContextHolder.getLocale())
+                : e.getMessage() });
       }
     } else if (scbd != null && scbd.complexConfigClass != null) {
       if (algoStrategy.getStrategyConfig() != null || algoStrategy.isActivatable()) {
@@ -87,7 +92,10 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
             StrategyConfigValidator.parseAndValidate(algoStrategy.getStrategyConfig(), objectMapper);
         } catch (Exception e) {
           throw new DataViolationException("strategy.config", "algo.strategy.config.invalid",
-              new Object[] { e.getMessage() });
+              new Object[] { e instanceof grafioschtrader.evalex.AlertExpressionException ae
+                  ? messageSource.getMessage(ae.getKey(), ae.getArguments(),
+                      org.springframework.context.i18n.LocaleContextHolder.getLocale())
+                  : e.getMessage() });
         }
       }
     } else if (scbd != null && scbd.algoSecurityModel != null) {
@@ -99,7 +107,10 @@ public class AlgoStrategyJpaRepositoryImpl extends BaseRepositoryImpl<AlgoStrate
           grafioschtrader.evalex.AlertExpressionSupport.validate(expression.getExpression());
       } catch (RuntimeException e) {
         throw new DataViolationException("strategy.config", "algo.strategy.config.invalid",
-            new Object[] { e.getMessage() });
+            new Object[] { e instanceof grafioschtrader.evalex.AlertExpressionException ae
+                ? messageSource.getMessage(ae.getKey(), ae.getArguments(),
+                    org.springframework.context.i18n.LocaleContextHolder.getLocale())
+                : e.getMessage() });
       }
     }
 

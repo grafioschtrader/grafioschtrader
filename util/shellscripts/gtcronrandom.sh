@@ -188,6 +188,50 @@ local_minutes_to_utc() {
 }
 
 # ---------------------------------------------------------------------------
+# The weekly fundamental data load, outside the chain: it depends on no other
+# job. While it is absent or still at its shipped default it moves to a random
+# minute between 03:00 and 04:59 UTC on Saturday. The window is UTC because the
+# default is; a value somebody changed is never touched. It runs before the
+# guard of the chain, so a customized chain does not keep it at the default.
+#
+# IMPORTANT: the default mirrors gt.fundamental.load.cron in
+# backend/grafioschtrader-server/src/main/resources/application.properties.
+# ---------------------------------------------------------------------------
+WEEKLY_KEY="gt.fundamental.load.cron"
+WEEKLY_DEFAULT="0 23 4 * * SAT"
+WEEKLY_WINDOW_START_MIN=$((3 * 60))
+WEEKLY_WINDOW_SLOTS=120
+
+randomize_weekly() {
+  local current escaped minutes new_value
+  current="$(active_value "$WEEKLY_KEY")"
+  if [[ -n "$current" && "$current" != "$WEEKLY_DEFAULT" && "$FORCE" == false ]]; then
+    echo "gtcronrandom.sh: $WEEKLY_KEY is '$current' - left unchanged."
+    return 0
+  fi
+  minutes=$(( WEEKLY_WINDOW_START_MIN + RANDOM % WEEKLY_WINDOW_SLOTS ))
+  new_value="$(printf '0 %d %d * * SAT' $(( minutes % 60 )) $(( minutes / 60 )))"
+  echo "gtcronrandom.sh: weekly $WEEKLY_KEY=$new_value (UTC)"
+  if [[ "$DRY_RUN" == true ]]; then
+    return 0
+  fi
+  escaped="${WEEKLY_KEY//./\\.}"
+  if [[ -n "$current" ]]; then
+    sed -i "s|^\([[:space:]]*\)${escaped}[[:space:]]*=.*\$|\1${WEEKLY_KEY}=${new_value}|" "$PROP_FILE"
+  elif has_commented_line "$WEEKLY_KEY"; then
+    sed -i "0,/^[[:space:]]*[#!][[:space:]]*${escaped}[[:space:]]*=.*\$/s||${WEEKLY_KEY}=${new_value}|" "$PROP_FILE"
+  else
+    {
+      echo ""
+      echo "# Weekly fundamental data load, moved to a random minute by gtcronrandom.sh (UTC)."
+      echo "${WEEKLY_KEY}=${new_value}"
+    } >> "$PROP_FILE"
+  fi
+}
+
+randomize_weekly
+
+# ---------------------------------------------------------------------------
 # Guard: randomize only while every key is still at its shipped default
 # ---------------------------------------------------------------------------
 customized=false

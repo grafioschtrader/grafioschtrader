@@ -26,6 +26,7 @@ import grafiosch.dashboard.DashboardPersistenceTest;
 @Suite
 @SelectClasses({ UserResourceTest.class, EntityLimitResourceTest.class, GTNetAuthorizationTest.class,
     GTNetDeleteResourceTest.class, MailSendRecvResourceTest.class, MailSettingForwardResourceTest.class,
+    UserAccessTokenResourceTest.class,
     TaskDataChangeResourceTest.class, DashboardPersistenceTest.class,
     TenantContextAuthorizationTest.class })
 public class ResourceTestSuite {

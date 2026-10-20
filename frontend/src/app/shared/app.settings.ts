@@ -67,6 +67,8 @@ export class AppSettings {
   public static readonly WATCHLIST_PERFORMANCE_KEY = 'watchlistperformance';
   public static readonly WATCHLIST_PRICE_FEED_KEY = 'watchlistpricefeed';
   public static readonly WATCHLIST_DIVIDEND_SPLIT_FEED_KEY = 'watchlistdividendsplitfeed';
+  public static readonly WATCHLIST_INDICATOR_KEY = 'watchlistindicator';
+  public static readonly WATCHLIST_INDICATOR_TABLE_SETTINGS_STORE = 'u_watchlist_indicator_1';
   public static readonly WATCHLIST_UDF_KEY = 'watchlistudf';
   public static readonly TRANSACTION_KEY = AppSettings.TRANSACTION.toLowerCase();
 

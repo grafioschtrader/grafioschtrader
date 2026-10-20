@@ -698,3 +698,29 @@ frontend turns into a form. Class-level `@DateRange` is included as a cross-fiel
 
 `Cashaccount` / `Securitycashaccount` (annotated fields) + `CashaccountEditComponent`
 (`getEntityFormDefinition('Cashaccount')` → `createFieldsFromClassDescriptorInputAndShow`).
+
+## MCP Server for AI Assistants — Tools, Switches and OAuth
+
+The MCP server (`grafioschtrader.mcp`, GitHub issue #284) is **read-only**. Writing through an assistant is planned
+in `specification/MCP_Write_Proposals_Specification.md` and must only ever happen through a proposal the user
+approves in the GT user interface.
+
+- **Tools are registered explicitly.** `spring.ai.mcp.server.tool-callback-converter=false` also disables the
+  `@McpTool` spec factory, and the annotation scanner is off, so a tool exists only if it is a method of
+  `GTMcpReadTools` — `McpSecurityConfig.gtMcpToolSpecifications` builds the list with `SyncStatelessMcpToolProvider`.
+  No other bean may become a public tool. The stateless endpoint path is
+  `spring.ai.mcp.server.streamable-http.mcp-endpoint`, not a `stateless.*` property.
+- **Every tool runs through `McpToolExecutor`** (rate buckets, one heavy report per user, daily budget `McpToolCall`)
+  and resolves every instrument id through `McpInstrumentAccess`. A token always reads the user's home tenant; never
+  take a tenant from a tool argument. Tool errors are tool results with a `McpErrorCode`, not HTTP errors.
+- **Two switches.** `gt.use.mcp` (application.yaml, default true) only loads the code and derives
+  `g.use.accesstoken`. The administrator opens the server with the global parameter `gt.mcp.use` and sets
+  `gt.mcp.public.base.url`; both are read per request (`McpAvailability`, the library asks through
+  `AccessTokenAvailability`). A test that needs the server open uses `McpTestSwitch`, which writes the rows with JDBC
+  and evicts the `Globalparameters` second-level cache.
+- **OAuth is GT's own small authorization server** in `grafioschtrader.mcp.oauth`, not Spring Authorization Server:
+  that one lacks refresh for public clients, `resource` (RFC 8707), `iss` (RFC 9207) and Client ID Metadata
+  Documents, puts the metadata of a path issuer in the wrong place, and opens `client_credentials`, introspection,
+  JWKS and DPoP by default. Clients register only by Client ID Metadata Document; there is no dynamic client
+  registration. Do not add `spring-security-oauth2-authorization-server`.
+- **Tokens are stored as SHA-256 hashes** in `user_access_token` and are never exported (`DELETE_USE` only).

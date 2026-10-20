@@ -66,6 +66,7 @@ import { GlobalSessionNames } from '../../global.session.names';
         'passiv-border': !isActivated()
       }"
       [showContextMenu]="!!contextMenuItems"
+      [contextMenuAppendTo]="'body'"
       [contextMenuItems]="contextMenuItems"
       [valueGetterFn]="getValueByPath.bind(this)"
       (componentClick)="onComponentClick($event)">

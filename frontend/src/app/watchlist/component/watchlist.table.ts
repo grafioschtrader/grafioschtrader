@@ -1499,5 +1499,6 @@ export enum WatchListType {
   /** User-defined fields view displaying custom fields and metadata with UDF details in expanded rows */
   UDF,
   /** Dividend and split feed view showing distribution data with dividend and split history tables in expanded rows */
-  DIVIDEND_SPLIT_FEED
+  DIVIDEND_SPLIT_FEED,
+  INDICATOR
 }

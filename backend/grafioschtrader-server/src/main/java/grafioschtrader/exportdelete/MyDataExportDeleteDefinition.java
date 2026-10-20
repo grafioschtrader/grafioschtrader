@@ -70,6 +70,7 @@ import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.UDFDataFill;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
+import grafioschtrader.entities.WatchlistIndicatorColumn;
 
 /**
  * Delete the user's data from this database and export his data for later import into his personal database.<br>
@@ -80,6 +81,8 @@ import grafioschtrader.entities.Watchlist;
  * <li>hold_* tables are not exported they should rebuild with import</li>
  * <li>mail* tables are not exported, they have a relation to others users</li>
  * <li>{@link grafiosch.entities.TaskDataChange} is not exported
+ * <li>security_fundamental is derived data that the weekly fundamental data load rebuilds; it is written only by the
+ * system and is not exported</li>
  * </ul>
  */
 public class MyDataExportDeleteDefinition {
@@ -141,7 +144,8 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT s.* FROM %1$s JOIN security s ON s.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?
       UNION SELECT s1.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
       JOIN security s1 ON s1.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON s1.id_securitycurrency = sc.id_securitycurrency
-      WHERE tas.id_tenant = ? AND sc.dtype = 'S'"""
+      WHERE tas.id_tenant = ? AND sc.dtype = 'S'
+      UNION SELECT s.* FROM watchlist_indicator_column wic JOIN security s ON s.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ?"""
       .formatted(ALGO_SECURITY_FROM);
   private static String SECURITY_DELETE = String.format("FROM %s WHERE id_tenant_private = ?", Security.TABNAME);
   private static String SECURITY_DERIVED_LINK = String.format(
@@ -179,7 +183,8 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT sc.* FROM risk_free_rate_mapping rfm JOIN securitycurrency sc ON sc.id_securitycurrency = rfm.id_securitycurrency WHERE sc.dtype = 'S'
       UNION SELECT sc.* FROM %1$s JOIN securitycurrency sc ON sc.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?
       UNION SELECT sc.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
-      JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ? AND sc.dtype = 'S'"""
+      JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ? AND sc.dtype = 'S'
+      UNION SELECT sc.* FROM watchlist_indicator_column wic JOIN securitycurrency sc ON sc.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ? AND sc.dtype = 'S'"""
       .formatted(ALGO_SECURITY_FROM);
   private static String SECURITYCURRENCY_DELETE = "FROM securitycurrency WHERE id_securitycurrency = ?";
   private static String PRIVATE_SECURITY_IDS = "SELECT id_securitycurrency FROM security WHERE id_tenant_private = ?";
@@ -209,7 +214,8 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT cp.* FROM correlation_set cs JOIN correlation_instrument ci ON cs.id_correlation_set = ci.id_correlation_set JOIN currencypair cp
       ON ci.id_securitycurrency = cp.id_securitycurrency WHERE cs.id_tenant = ?
       UNION SELECT c.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
-      JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ?"""
+      JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency WHERE tas.id_tenant = ?
+      UNION SELECT cp.* FROM watchlist_indicator_column wic JOIN currencypair cp ON cp.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ?"""
       .formatted(ALGO_SECURITY_FROM);
   private static String SECURITYCURRENCY_C_SELECT = """
       sc.* FROM currencypair c1, securitycurrency sc, (SELECT DISTINCT s.currency as fromcurrency, e.currency as tocurrency
@@ -235,7 +241,8 @@ public class MyDataExportDeleteDefinition {
       JOIN securitycurrency sc ON ci.id_securitycurrency = sc.id_securitycurrency WHERE sc.dtype = 'C' AND cs.id_tenant = ?
       UNION SELECT sc.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
       JOIN currencypair c ON c.id_securitycurrency = sdl.id_link_securitycurrency JOIN securitycurrency sc ON c.id_securitycurrency = sc.id_securitycurrency
-      WHERE tas.id_tenant = ?"""
+      WHERE tas.id_tenant = ?
+      UNION SELECT sc.* FROM watchlist_indicator_column wic JOIN securitycurrency sc ON sc.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ? AND sc.dtype = 'C'"""
       .formatted(ALGO_SECURITY_FROM);
   private static String HISTORYQUOTE_SELECT = """
       DISTINCT h.* FROM transaction t JOIN security s ON t.id_securitycurrency = s.id_securitycurrency JOIN historyquote h ON s.id_securitycurrency = h.id_securitycurrency
@@ -269,7 +276,8 @@ public class MyDataExportDeleteDefinition {
       UNION SELECT hl.* FROM %1$s JOIN historyquote_legacy hl ON hl.id_securitycurrency = a.id_securitycurrency WHERE tas.id_tenant = ?
       UNION SELECT hl.* FROM %1$s JOIN security_derived_link sdl ON a.id_securitycurrency = sdl.id_securitycurrency
       JOIN securitycurrency sc ON sc.id_securitycurrency = sdl.id_link_securitycurrency JOIN historyquote_legacy hl ON hl.id_securitycurrency = sc.id_securitycurrency
-      WHERE tas.id_tenant = ? AND sc.dtype = 'S'"""
+      WHERE tas.id_tenant = ? AND sc.dtype = 'S'
+      UNION SELECT hl.* FROM watchlist_indicator_column wic JOIN historyquote_legacy hl ON hl.id_securitycurrency = wic.id_benchmark WHERE wic.id_tenant = ?"""
       .formatted(ALGO_SECURITY_FROM);
   // Restricted the same way as the history quote periods: a marker names a security, so exporting the whole table
   // would reference instruments the dump does not carry and the re-import would fail on the foreign key.
@@ -413,6 +421,8 @@ public class MyDataExportDeleteDefinition {
       new ExportDefinition(HistoryquoteLegacy.TABNAME, TENANT_USER.ID_TENANT, HISTORYQUOTE_LEGACY_SELECT,
           ExportDefinition.EXPORT_USE),
       new ExportDefinition(Watchlist.TABNAME, TENANT_USER.ID_TENANT, null,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(WatchlistIndicatorColumn.TABNAME, TENANT_USER.ID_TENANT, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       new ExportDefinition(Watchlist.TABNAME_SEC_CUR, TENANT_USER.NONE, WATCHLIST_SEC_CUR_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),

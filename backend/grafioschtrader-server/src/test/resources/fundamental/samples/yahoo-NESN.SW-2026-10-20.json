@@ -1,0 +1,92 @@
+{
+  "quoteSummary": {
+    "result": [
+      {
+        "summaryDetail": {
+          "currency": "CHF",
+          "previousClose": {
+            "raw": 82.55,
+            "fmt": "82.55"
+          },
+          "marketCap": {
+            "raw": 214368796672,
+            "fmt": "214.37B",
+            "longFmt": "214,368,796,672"
+          },
+          "trailingPE": {
+            "raw": 28.837368,
+            "fmt": "28.84"
+          },
+          "priceToSalesTrailing12Months": {
+            "raw": 2.414743,
+            "fmt": "2.41"
+          }
+        },
+        "defaultKeyStatistics": {
+          "trailingEps": {
+            "raw": 2.89,
+            "fmt": "2.89"
+          },
+          "bookValue": {
+            "raw": 11.36,
+            "fmt": "11.36"
+          },
+          "sharesOutstanding": {
+            "raw": 2572220000,
+            "fmt": "2.57B",
+            "longFmt": "2,572,220,000"
+          },
+          "impliedSharesOutstanding": {
+            "raw": 2572220000,
+            "fmt": "2.57B",
+            "longFmt": "2,572,220,000"
+          },
+          "mostRecentQuarter": {
+            "raw": 1782777600,
+            "fmt": "2026-06-30"
+          },
+          "priceToBook": {
+            "raw": 7.3362675,
+            "fmt": "7.34"
+          },
+          "enterpriseValue": {
+            "raw": 269386153984,
+            "fmt": "269.39B",
+            "longFmt": "269,386,153,984"
+          }
+        },
+        "financialData": {
+          "financialCurrency": "CHF",
+          "totalRevenue": {
+            "raw": 88775000064,
+            "fmt": "88.78B",
+            "longFmt": "88,775,000,064"
+          },
+          "revenuePerShare": {
+            "raw": 34.503,
+            "fmt": "34.50"
+          },
+          "totalDebt": {
+            "raw": 62845001728,
+            "fmt": "62.85B",
+            "longFmt": "62,845,001,728"
+          },
+          "totalCash": {
+            "raw": 6134000128,
+            "fmt": "6.13B",
+            "longFmt": "6,134,000,128"
+          }
+        },
+        "price": {
+          "currency": "CHF",
+          "regularMarketPrice": {
+            "raw": 83.34,
+            "fmt": "83.34"
+          },
+          "regularMarketTime": 1792508636
+        }
+      }
+    ],
+    "error": null
+  }
+}

@@ -9,6 +9,7 @@ import { TaskTypeBase } from './types/task.type.base';
  */
 export const TaskTypeHelpIds: Record<number, string> = {
   [TaskTypeBase.TOKEN_USER_REGISTRATION_PURGE]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeBase.PURGE_EXPIRED_ACCESS_TOKEN]: HelpIds.HELP_TASK_DESCRIPTION,
   [TaskTypeBase.GTNET_SERVER_STATUS_CHECK]: HelpIds.HELP_TASK_DESCRIPTION_GTNET,
   [TaskTypeBase.GTNET_EXCHANGE_LOG_AGGREGATION]: HelpIds.HELP_TASK_DESCRIPTION_GTNET,
   [TaskTypeBase.GTNET_EXCHANGE_SYNC]: HelpIds.HELP_TASK_DESCRIPTION_GTNET,

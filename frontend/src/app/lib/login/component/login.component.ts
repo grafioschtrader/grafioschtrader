@@ -160,7 +160,14 @@ export class LoginComponent extends FormBase implements OnInit, OnDestroy {
       this.configObject.submit.disabled = false;
       this.configObject.password.formControl.setValue('');
     } else {
-      this.router.navigate([`/${BaseSettings.MAINVIEW_KEY}`]);
+      const returnUrl = sessionStorage.getItem(GlobalSessionNames.RETURN_AFTER_LOGIN);
+      sessionStorage.removeItem(GlobalSessionNames.RETURN_AFTER_LOGIN);
+      // Only an in-app route is accepted, never an absolute address
+      if (returnUrl?.startsWith('/') && !returnUrl.startsWith('//')) {
+        this.router.navigateByUrl(returnUrl);
+      } else {
+        this.router.navigate([`/${BaseSettings.MAINVIEW_KEY}`]);
+      }
     }
   }
 

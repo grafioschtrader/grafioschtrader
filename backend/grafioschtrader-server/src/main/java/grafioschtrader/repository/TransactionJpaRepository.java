@@ -417,11 +417,13 @@ public interface TransactionJpaRepository extends JpaRepository<Transaction, Int
 
   /**
    * Returns the transactions of a specific cash account over a definable period of time according to specified
-   * transaction types.
+   * transaction types, newest first and with the id as tie-break. The balance of the selection is summed backwards over
+   * this list, so a fixed order is what makes the running sum reproducible when several bookings share a time.
    */
   @Query(value = """
       SELECT t FROM Transaction t JOIN t.cashaccount c
-      WHERE c.idSecuritycashAccount= ?1 AND t.idTenant=?2 AND t.transactionDate>=?3 AND t.transactionDate<=?4 AND t.transactionType IN ?5""")
+      WHERE c.idSecuritycashAccount= ?1 AND t.idTenant=?2 AND t.transactionDate>=?3 AND t.transactionDate<=?4 AND t.transactionType IN ?5
+      ORDER BY t.transactionTime DESC, t.idTransaction DESC""")
   List<Transaction> findByTenantAndCashaccountAndYearAndTransactionType(Integer idSecuritycashAccount, Integer idTenant,
       LocalDate transactionDateFrom, LocalDate transactionDateTo, int[] transactionTypes);
 

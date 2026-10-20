@@ -14,6 +14,8 @@ export const HelpIds: Record<string, string> = {
   HELP_INTRO_NAVIGATION: 'intro/userinterface',
   /** The settings of the menu bar: password, nickname and locale, language-model keys, export and deletion. */
   HELP_INTRO_SETTINGS: 'intro/settings',
+  /** Access of AI assistants: personal access tokens and applications authorized by OAuth. */
+  HELP_INTRO_SETTINGS_AI_ASSISTANT: 'intro/settings/aiassistant',
   HELP_INTRO_PROPOSE_CHANGE_ENTITY: 'basedata',
 
   // Base data

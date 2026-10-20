@@ -18,6 +18,7 @@ import grafioschtrader.entities.Security;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyPosition;
 import grafioschtrader.reportviews.securitycurrency.SecuritycurrencyUDFGroup;
+import grafioschtrader.repository.SecurityFundamentalJpaRepository;
 import grafioschtrader.types.UDFSpecialGTType;
 
 /**
@@ -54,6 +55,10 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
   /** Shared by all Yahoo user-defined fields, so that their symbol searches draw on one request budget. */
   @Autowired
   private YahooSymbolSearch yahooSymbolSearch;
+
+  /** Yahoo's fundamental values are dropped when the stored Yahoo symbol of a security changes. */
+  @Autowired
+  private SecurityFundamentalJpaRepository securityFundamentalJpaRepository;
   /**
    * We limit the parallel streams to the following value. Otherwise too many requests may be sent to Yahoo.
    */
@@ -150,7 +155,7 @@ public abstract class YahooUDFFields extends AllUserFieldsSecurity {
   private void writeYahooFieldValues(SecuritycurrencyUDFGroup securitycurrencyUDFGroup,
       UDFMetadataSecurity udfMetaDataSecurity, Security security, boolean recreate) {
     String yahooSymbol = yahooUDFConnect.evaluateYahooSymbol(uDFDataJpaRepository, udfMDSYahooSymbol, security,
-        yahooSymbolSearch, recreate);
+        yahooSymbolSearch, recreate, securityFundamentalJpaRepository::deleteByIdSecuritycurrency);
     if (yahooSymbol != null) {
       if (udfMetaDataSecurity.getUdfSpecialType() == UDFSpecialGTType.UDF_SPEC_INTERNAL_YAHOO_STATISTICS_LINK) {
         String url = YahooHelper.YAHOO_FINANCE_QUOTE + yahooSymbol + "/key-statistics/";

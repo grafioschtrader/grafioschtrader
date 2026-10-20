@@ -3,13 +3,16 @@ package grafiosch.config;
 import grafiosch.dto.LimitKey;
 import grafiosch.entities.MailSendRecv;
 import grafiosch.entities.MailSettingForward;
+import grafiosch.entities.OAuthAuthorization;
 import grafiosch.entities.ProposeUserTask;
 import grafiosch.entities.TenantAccess;
 import grafiosch.entities.UDFMetadataGeneral;
 import grafiosch.entities.User;
+import grafiosch.entities.UserAccessToken;
 import grafiosch.limit.LimitCounters;
 import grafiosch.limit.LimitKeyRegistration;
 import grafiosch.limit.LimitKeyRegistry;
+import grafiosch.types.AccessTokenKind;
 import grafiosch.types.OwnerScope;
 import grafiosch.types.SendRecvType;
 import grafiosch.types.TenantAccessLevel;
@@ -55,7 +58,8 @@ public abstract class LimitKeyBaseConfig {
 
   /**
    * Bounds how many managed clients one advisor may create. Counted as the advisor's {@code MANAGE} grants in
-   * {@code tenant_access}, which {@code createclient} writes for each client and the deletion of a client removes again.
+   * {@code tenant_access}, which {@code createclient} writes for each client and the deletion of a client removes
+   * again.
    */
   public static final LimitKey KEY_MANAGED_CLIENT = LimitKey.max(ENTITY_NAME_MANAGED_CLIENT, OwnerScope.TENANT);
 
@@ -67,6 +71,19 @@ public abstract class LimitKeyBaseConfig {
   public static final LimitKey KEY_MAIL_SETTING_FORWARD = LimitKey.max(MailSettingForward.class.getSimpleName(),
       OwnerScope.CREATOR);
   public static final LimitKey KEY_MAIL_SEND_RECV = LimitKey.max(MailSendRecv.class.getSimpleName(),
+      OwnerScope.CREATOR);
+  /**
+   * Bounds how many personal access tokens one user may hold, expired ones included until the purge task removes them.
+   * Checked by the token resource itself, so that reaching the cap shows its own message rather than counting as a
+   * security breach.
+   */
+  public static final LimitKey KEY_USER_ACCESS_TOKEN = LimitKey.max(UserAccessToken.class.getSimpleName(),
+      OwnerScope.CREATOR);
+  /**
+   * Bounds how many OAuth clients one user may authorize. A new consent for a client that is already authorized
+   * replaces the old one and does not count; the consent endpoint checks the cap before it issues a code.
+   */
+  public static final LimitKey KEY_OAUTH_AUTHORIZATION = LimitKey.max(OAuthAuthorization.class.getSimpleName(),
       OwnerScope.CREATOR);
 
   private static final String RULE_ACCOUNT_CAP = "min:1,max:1000";
@@ -119,5 +136,17 @@ public abstract class LimitKeyBaseConfig {
                 .setParameter(1, user.getIdUser()).setParameter(2, SendRecvType.SEND.getValue()).getSingleResult()
                 .intValue(),
         2000, null, "MAX_MAIL_SEND_RECV", true));
+    // Only personal tokens count; the tokens of an OAuth client are bounded by its family
+    LimitKeyRegistry.register(new LimitKeyRegistration(KEY_USER_ACCESS_TOKEN, UserAccessToken.class,
+        (entityManager, user, _, _) -> user == null ? 0
+            : entityManager
+                .createQuery("SELECT count(t) FROM UserAccessToken t WHERE t.idUser = ?1 AND t.tokenKind = ?2",
+                    Long.class)
+                .setParameter(1, user.getIdUser()).setParameter(2, AccessTokenKind.PERSONAL.getValue())
+                .getSingleResult().intValue(),
+        5, "min:1,max:50", "MAX_USER_ACCESS_TOKEN", false));
+    LimitKeyRegistry.register(new LimitKeyRegistration(KEY_OAUTH_AUTHORIZATION, OAuthAuthorization.class,
+        LimitCounters.userCount(OAuthAuthorization.class.getSimpleName(), "idUser"), 10, "min:1,max:50",
+        "MAX_OAUTH_AUTHORIZATION", false));
   }
 }

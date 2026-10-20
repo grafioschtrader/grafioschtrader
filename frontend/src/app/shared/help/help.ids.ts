@@ -54,6 +54,7 @@ export const AppHelpIds: Record<string, string> = {
   HELP_WATCHLIST_SEASONALITY_HEATMAP: 'watchlistinstrument/seasonalityheatmap',
   HELP_WATCHLIST_WATCHLIST: 'watchlistinstrument/watchlist',
   HELP_WATCHLIST_PERFORMANCE: 'watchlistinstrument/watchlist/performance',
+  HELP_WATCHLIST_INDICATOR: 'watchlistinstrument/watchlist/indicator',
   HELP_WATCHLIST_UDF: 'watchlistinstrument/watchlist/udf',
   HELP_WATCHLIST_PRICE_FEED: 'watchlistinstrument/watchlist/pricefeed',
   HELP_WATCHLIST_DIVIDEND_SPLIT_FEED: 'watchlistinstrument/watchlist/dividendsplit',
@@ -138,5 +139,6 @@ export const AppTaskTypeHelpIds: Record<number, string> = {
   [TaskTypeExtended.CREATE_STOCK_EXCHANGE_CALENDAR_BY_RULE_SET]: HelpIds.HELP_TASK_DESCRIPTION,
   [TaskTypeExtended.HOLD_TABLE_CONSISTENCY_CHECK]: HelpIds.HELP_TASK_DESCRIPTION,
   [TaskTypeExtended.HOLD_DAILY_TOTAL_UPDATE]: HelpIds.HELP_TASK_DESCRIPTION,
+  [TaskTypeExtended.FUNDAMENTAL_DATA_LOAD]: AppHelpIds.HELP_TASK_DESCRIPTION_PRICE_DATA,
   [TaskTypeExtended.UDF_USER_SUGGEST_VALUES]: HelpIds.HELP_TASK_DESCRIPTION
 };

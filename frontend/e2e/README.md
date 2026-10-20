@@ -1,5 +1,14 @@
 # Frontend E2E suites
 
+## Watchlist indicators (230-*)
+
+`230-watchlist-indicators.spec.ts` uses the `alledit` account, an owned `Indicator E2E` watchlist and the definitions in
+`testdata/watchlist-indicators.json`. It removes only its prefixed columns and watchlist at the start and after success,
+then exercises the real column editor, numeric/boolean presentation, watchlist scope and missing-data cells. Existing
+USD/CHF and EUR/CHF instruments are only associated with this watchlist, never edited or deleted. Both the backend and
+frontend proxy must report `grafioschtrader_t` with profile `e2e`. Run with
+`npx playwright test e2e/230-watchlist-indicators.spec.ts --project=grafioschtrader-e2e --no-deps`.
+
 ## Dashboard (225-*)
 
 `225-dashboard.spec.ts` exercises the real dashboard catalogue, configuration forms and persistence for the existing

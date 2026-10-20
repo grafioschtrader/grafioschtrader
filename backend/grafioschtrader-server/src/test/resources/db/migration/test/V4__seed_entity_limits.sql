@@ -22,6 +22,7 @@ SELECT 0, x.entity_name, x.relation_entity_name, x.count_scope, x.owner_scope,
         UNION ALL SELECT 'Cashaccount',     NULL, NULL, 0, 'gt.max.cash.account',     30
         UNION ALL SELECT 'Portfolio',       NULL, NULL, 0, 'gt.max.portfolio',        20
         UNION ALL SELECT 'Securityaccount', NULL, NULL, 0, 'gt.max.security.account', 20
+        UNION ALL SELECT 'WatchlistIndicatorColumn', NULL, NULL, 0, NULL, 20
         UNION ALL SELECT 'TenantAIProvider', NULL, NULL, 0, NULL, 4
         UNION ALL SELECT 'Watchlist',       NULL, NULL, 0, 'gt.max.watchlist',        30
         UNION ALL SELECT 'CorrelationSet',  NULL, NULL, 0, 'gt.max.correlation.set',  10
@@ -61,6 +62,8 @@ SELECT 0, x.entity_name, x.relation_entity_name, x.count_scope, x.owner_scope,
         UNION ALL SELECT 'UDFMetadataSecurity',       NULL,               NULL, 2, NULL,     50
         UNION ALL SELECT 'UDFMetadataGeneral',        NULL,               NULL, 2, NULL,     50
         UNION ALL SELECT 'MailSettingForward',        NULL,               NULL, 2, NULL,     50
+        UNION ALL SELECT 'UserAccessToken',           NULL,               NULL, 2, NULL,      5
+        UNION ALL SELECT 'OAuthAuthorization',        NULL,               NULL, 2, NULL,     10
         UNION ALL SELECT 'MailSendRecv',              NULL,               NULL, 2, NULL,   2000
         UNION ALL SELECT 'ProposeUserTask',           NULL,               NULL, 2, NULL,    100
         UNION ALL SELECT 'ManagedClient',             NULL,               NULL, 0, NULL,     20

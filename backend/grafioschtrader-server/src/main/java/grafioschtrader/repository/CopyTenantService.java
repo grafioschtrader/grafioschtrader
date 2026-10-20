@@ -23,6 +23,7 @@ import grafioschtrader.entities.ImportTransactionHead;
 import grafioschtrader.entities.ImportTransactionPos;
 import grafioschtrader.entities.Portfolio;
 import grafioschtrader.entities.SecaccountTradingPeriod;
+import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securityaccount;
 import grafioschtrader.entities.Securitycashaccount;
 import grafioschtrader.entities.Securitycurrency;
@@ -35,6 +36,7 @@ import grafioschtrader.entities.UDFDataFill;
 import grafioschtrader.entities.UDFDataFill.UDFDataFillKey;
 import grafioschtrader.entities.UDFMetadataSecurity;
 import grafioschtrader.entities.Watchlist;
+import grafioschtrader.entities.WatchlistIndicatorColumn;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -91,6 +93,7 @@ public class CopyTenantService {
     Map<Integer, Watchlist> watchlistMap = copyWatchlist(sourceUser.getIdTenant(), targetUser.getIdTenant());
     copyTransaction(sourceUser.getIdTenant(), targetUser.getIdTenant(), securityaccountMap, cashaccoutMap,
         standingOrderMap);
+    copyWatchlistIndicatorColumn(sourceUser.getIdTenant(), targetUser.getIdTenant(), watchlistMap);
     copyCorrelationSet(sourceUser.getIdTenant(), targetUser.getIdTenant());
     Map<Integer, Integer> fieldMap = copyUDFMetadataGeneral(sourceUser.getIdUser(), targetUser.getIdUser());
     copyUDFMetadataSecurity(fieldMap, sourceUser.getIdUser(), targetUser.getIdUser());
@@ -112,10 +115,10 @@ public class CopyTenantService {
   private void deleteData(Integer targetIdTenant, Integer targetIdUser) {
     DelTab[] tables = new DelTab[] { new DelTab(ImportTransactionPos.TABNAME, true),
         new DelTab(ImportTransactionHead.TABNAME, true), new DelTab(Transaction.TABNAME, true),
-        new DelTab(StandingOrder.TABNAME, true), new DelTab(Watchlist.TABNAME, true),
-        new DelTab(Securitycashaccount.TABNAME, true), new DelTab(Portfolio.TABNAME, true),
-        new DelTab(CorrelationSet.TABNAME, true), new DelTab(UDFData.TABNAME, false),
-        new DelTab(UDFMetadata.TABNAME, false) };
+        new DelTab(StandingOrder.TABNAME, true), new DelTab(WatchlistIndicatorColumn.TABNAME, true),
+        new DelTab(Watchlist.TABNAME, true), new DelTab(Securitycashaccount.TABNAME, true),
+        new DelTab(Portfolio.TABNAME, true), new DelTab(CorrelationSet.TABNAME, true),
+        new DelTab(UDFData.TABNAME, false), new DelTab(UDFMetadata.TABNAME, false) };
     for (DelTab delTab : tables) {
       String deleteSQL = "DELETE FROM " + delTab.tabName + " WHERE " + (delTab.useIdTenant ? "id_tenant" : "id_user")
           + "=?";
@@ -291,6 +294,35 @@ public class CopyTenantService {
     em.flush();
     return watchlistMap;
   }
+
+  /** Copies definitions, mapping watchlists and dropping benchmarks private to the source tenant. */
+  private void copyWatchlistIndicatorColumn(Integer sourceIdTenant, Integer targetIdTenant,
+      Map<Integer, Watchlist> watchlistMap) {
+    for (var source : indicatorColumns.findByIdTenantOrderByUiOrder(sourceIdTenant)) {
+      var copy = new WatchlistIndicatorColumn();
+      copy.setIdTenant(targetIdTenant);
+      copy.setIdWatchlist(source.getIdWatchlist() == null ? null : watchlistMap.get(source.getIdWatchlist()).getId());
+      copy.setLabel(source.getLabel());
+      copy.setExpression(source.getExpression());
+      copy.setResultType(source.getResultType());
+      copy.setDecimals(source.getDecimals());
+      copy.setLowerMark(source.getLowerMark());
+      copy.setUpperMark(source.getUpperMark());
+      copy.setMarkColors(source.getMarkColors());
+      copy.setUiOrder(source.getUiOrder());
+      Integer benchmark = source.getIdBenchmark();
+      Security security = benchmark == null ? null : em.find(Security.class, benchmark);
+      if (security != null && security.getIdTenantPrivate() != null
+          && !targetIdTenant.equals(security.getIdTenantPrivate()))
+        benchmark = null;
+      copy.setIdBenchmark(benchmark);
+      em.persist(copy);
+    }
+    em.flush();
+  }
+
+  @org.springframework.beans.factory.annotation.Autowired
+  private WatchlistIndicatorColumnJpaRepository indicatorColumns;
 
   /**
    * Copies all correlation sets from the source tenant, preserving the security/currency-pair associations and

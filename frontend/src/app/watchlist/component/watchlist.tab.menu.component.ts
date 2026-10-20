@@ -204,7 +204,8 @@ export class WatchlistTabMenuComponent extends BaseTabMenuComponent implements O
         label: 'WATCHLIST_DIVIDEND_SPLIT_FEED',
         route: AppSettings.WATCHLIST_DIVIDEND_SPLIT_FEED_KEY,
         icon: ''
-      }
+      },
+      { label: 'WATCHLIST_INDICATOR', route: AppSettings.WATCHLIST_INDICATOR_KEY, icon: '' }
     ];
   }
 

@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import grafioschtrader.GlobalConstants;
@@ -81,10 +82,61 @@ final class YahooQuoteSummaryProbe implements FundamentalSourceProbe {
     String latest = result.at(DKS + "mostRecentQuarter/fmt").asString("");
     return ProbeResult.answered(name(), s, symbol, answer.status(), metrics,
         FundamentalProbeSupport.countNumbers(result), latest, answer.body())
-        // trailingEps is stated in the quote currency of the symbol, not in financialData.financialCurrency.
-        .withValues("eps=" + FundamentalProbeSupport.text(result, DKS + "trailingEps/raw") + " "
-            + FundamentalProbeSupport.text(result, SD + "currency") + " pe="
-            + FundamentalProbeSupport.text(result, SD + "trailingPE/raw"));
+        .withValues(values(result));
+  }
+
+  /**
+   * The raw values with both currency fields and the ratios that settle the field contract of the fundamental data
+   * feature. {@code trailingEps} is stated in the quote currency of the symbol ({@code summaryDetail.currency}), not in
+   * {@code financialData.financialCurrency}; for the other fields the currency is not established. Each ratio is about 1
+   * when the field is in the quote currency and on the share basis of the listing, and about an exchange rate or a
+   * depositary ratio otherwise:
+   * <ul>
+   * <li>{@code bvRatio} = previousClose / (priceToBook · bookValue)</li>
+   * <li>{@code psRatio} = marketCap / (priceToSalesTrailing12Months · totalRevenue)</li>
+   * <li>{@code shRatio} = marketCap / (previousClose · sharesOutstanding)</li>
+   * <li>{@code evRatio} = (marketCap + totalDebt − totalCash) / enterpriseValue</li>
+   * </ul>
+   */
+  private static String values(JsonNode r) {
+    Double close = number(r, SD + "previousClose/raw");
+    Double marketCap = number(r, SD + "marketCap/raw");
+    Double bookValue = number(r, DKS + "bookValue/raw");
+    Double revenue = number(r, FD + "totalRevenue/raw");
+    Double shares = number(r, DKS + "sharesOutstanding/raw");
+    Double debt = number(r, FD + "totalDebt/raw");
+    Double cash = number(r, FD + "totalCash/raw");
+    return "eps=" + text(r, DKS + "trailingEps/raw") + " cur=" + text(r, SD + "currency") + " finCur="
+        + text(r, FD + "financialCurrency") + " pe=" + text(r, SD + "trailingPE/raw") + " close="
+        + text(r, SD + "previousClose/raw") + " bvps=" + text(r, DKS + "bookValue/raw") + " ptb="
+        + text(r, DKS + "priceToBook/raw") + " revenue=" + text(r, FD + "totalRevenue/raw") + " pts="
+        + text(r, SD + "priceToSalesTrailing12Months/raw") + " shares=" + text(r, DKS + "sharesOutstanding/raw")
+        + " debt=" + text(r, FD + "totalDebt/raw") + " cash=" + text(r, FD + "totalCash/raw") + " mcap="
+        + text(r, SD + "marketCap/raw") + " ev=" + text(r, DKS + "enterpriseValue/raw") + " mrq="
+        + text(r, DKS + "mostRecentQuarter/fmt") + " bvRatio="
+        + ratio(close, product(number(r, DKS + "priceToBook/raw"), bookValue)) + " psRatio="
+        + ratio(marketCap, product(number(r, SD + "priceToSalesTrailing12Months/raw"), revenue)) + " shRatio="
+        + ratio(marketCap, product(close, shares)) + " evRatio="
+        + ratio(marketCap == null || debt == null || cash == null ? null : marketCap + debt - cash,
+            number(r, DKS + "enterpriseValue/raw"));
+  }
+
+  private static String text(JsonNode root, String pointer) {
+    return FundamentalProbeSupport.text(root, pointer);
+  }
+
+  private static Double number(JsonNode root, String pointer) {
+    JsonNode node = root.at(pointer);
+    return node.isNumber() ? node.asDouble() : null;
+  }
+
+  private static Double product(Double a, Double b) {
+    return a == null || b == null ? null : a * b;
+  }
+
+  private static String ratio(Double numerator, Double denominator) {
+    return numerator == null || denominator == null || denominator == 0 ? ""
+        : String.format(Locale.ROOT, "%.3f", numerator / denominator);
   }
 
   private static HttpAnswer request(String symbol) {

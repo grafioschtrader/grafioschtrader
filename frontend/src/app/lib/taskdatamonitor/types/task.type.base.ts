@@ -13,6 +13,9 @@ export enum TaskTypeBase {
   /** Deletes all expired token of the registration process with its created user */
   TOKEN_USER_REGISTRATION_PURGE = 15,
 
+  /** Deletes personal access tokens 30 days after they expired */
+  PURGE_EXPIRED_ACCESS_TOKEN = 16,
+
   /** Checks and updates the online/busy status of all configured GTNet servers. */
   GTNET_SERVER_STATUS_CHECK = 20,
 

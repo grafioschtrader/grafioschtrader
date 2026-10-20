@@ -151,5 +151,9 @@ export enum FeatureType {
    */
   MANAGECLIENT,
   /** Personal dashboard, controlled by the library flag g.use.dashboard. */
-  DASHBOARD
+  DASHBOARD,
+  /** Personal access tokens for machine clients such as AI assistants; deployed and currently allowed. */
+  ACCESSTOKEN,
+  /** MCP server for AI assistants under /api/mcp: deployed (gt.use.mcp) and opened by the admin (gt.mcp.use). */
+  MCP
 }

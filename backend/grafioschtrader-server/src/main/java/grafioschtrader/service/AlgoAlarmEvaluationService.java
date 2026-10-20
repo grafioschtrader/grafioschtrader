@@ -66,7 +66,7 @@ public class AlgoAlarmEvaluationService {
   private static final Logger log = LoggerFactory.getLogger(AlgoAlarmEvaluationService.class);
 
   /** Upper bound on the observations loaded for one indicator, whatever period it asks for. */
-  private static final int MAX_HISTORY_OBSERVATIONS = 1200;
+  private static final int MAX_HISTORY_OBSERVATIONS = grafioschtrader.evalex.AlertExpressionSupport.SERIES_OBSERVATIONS;
 
   /**
    * Observations loaded beyond the period itself. An exponential average and an RSI both need a run-in before their
@@ -308,7 +308,7 @@ public class AlgoAlarmEvaluationService {
       unavailable(scope, "no configuration stored");
       return;
     }
-    List<Historyquote> history = loadHistory(security.getIdSecuritycurrency(), config.getPeriod());
+    List<Historyquote> history = loadHistory(security.getIdSecuritycurrency(), config.getPeriod(), today);
     if (history.size() <= config.getPeriod()) {
       unavailable(scope, "only " + history.size() + " observations for a " + config.getPeriod() + " period average");
       return;
@@ -346,7 +346,7 @@ public class AlgoAlarmEvaluationService {
       unavailable(scope, "no configuration stored");
       return;
     }
-    List<Historyquote> history = loadHistory(security.getIdSecuritycurrency(), config.getRsiPeriod());
+    List<Historyquote> history = loadHistory(security.getIdSecuritycurrency(), config.getRsiPeriod(), today);
     if (history.size() <= config.getRsiPeriod()) {
       unavailable(scope, "only " + history.size() + " observations for a " + config.getRsiPeriod() + " period RSI");
       return;
@@ -394,8 +394,10 @@ public class AlgoAlarmEvaluationService {
     String expressionText = config.getExpression();
     grafioschtrader.evalex.AlertExpressionSupport.validate(expressionText);
     Expression expression = grafioschtrader.evalex.AlertExpressionSupport.create(expressionText,
-        usesIndicatorFunctions(expressionText) ? loadHistory(security.getIdSecuritycurrency(), MAX_HISTORY_OBSERVATIONS)
-            : List.of());
+        grafioschtrader.evalex.AlertExpressionSupport.requiredData(expressionText)
+            .contains(grafioschtrader.evalex.IndicatorData.SERIES)
+                ? loadHistory(security.getIdSecuritycurrency(), MAX_HISTORY_OBSERVATIONS, today)
+                : List.of());
 
     expression.with("price", BigDecimal.valueOf(price));
     withIfPresent(expression, "prevClose", security.getSPrevClose());
@@ -418,23 +420,6 @@ public class AlgoAlarmEvaluationService {
     if (value != null) {
       expression.with(name, BigDecimal.valueOf(value));
     }
-  }
-
-  /**
-   * Whether an expression calls one of the indicator functions, and therefore needs price history loaded for it.
-   *
-   * <p>
-   * A regular expression rather than a substring search for {@code "SMA("}: EvalEx accepts a function name in any case
-   * and tolerates whitespace before the parenthesis, so {@code sma (200)} is a valid call that the literal search
-   * missed. Missing it did not degrade gracefully - the expression was then built without the function and failed on an
-   * unknown identifier.
-   * </p>
-   *
-   * @param expression the expression text
-   * @return true when SMA, EMA or RSI is called
-   */
-  static boolean usesIndicatorFunctions(String expression) {
-    return expression != null && expression.matches("(?is).*\\b(SMA|EMA|RSI)\\s*\\(.*");
   }
 
   // == Notification ==========================================================
@@ -463,10 +448,11 @@ public class AlgoAlarmEvaluationService {
    * @param period             the longest period any indicator over this data will ask for
    * @return the quotes in chronological order
    */
-  private List<Historyquote> loadHistory(Integer idSecuritycurrency, int period) {
+  private List<Historyquote> loadHistory(Integer idSecuritycurrency, int period, LocalDate today) {
     int wanted = Math.min(period + INDICATOR_WARMUP_OBSERVATIONS, MAX_HISTORY_OBSERVATIONS);
     List<Historyquote> newestFirst = historyquoteJpaRepository
-        .findByIdSecuritycurrencyOrderByDateDesc(idSecuritycurrency, Limit.of(wanted));
+        .findByIdSecuritycurrencyAndCreateTypeNotAndDateLessThanEqualOrderByDateDesc(idSecuritycurrency, (byte) 1,
+            today, Limit.of(wanted));
     List<Historyquote> chronological = new ArrayList<>(newestFirst);
     java.util.Collections.reverse(chronological);
     return chronological;

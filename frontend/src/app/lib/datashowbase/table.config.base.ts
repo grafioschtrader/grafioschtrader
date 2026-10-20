@@ -155,7 +155,8 @@ export abstract class TableConfigBase extends TableTreetableTotalBase {
       if (readFields != null && readFields.length > 0) {
         const fieldObject: any = Object.assign({}, ...readFields);
         this.fields.forEach((field) => {
-          field.visible = fieldObject[field.headerKey];
+          // Dynamic columns may be newer than the saved visibility settings.
+          if (Object.hasOwn(fieldObject, field.headerKey)) field.visible = fieldObject[field.headerKey];
         });
       }
     }

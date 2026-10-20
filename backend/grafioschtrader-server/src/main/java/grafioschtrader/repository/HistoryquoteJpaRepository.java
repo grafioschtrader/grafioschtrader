@@ -71,6 +71,27 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
    * @param limit              how many observations to load at most
    * @return the newest quotes first, fewer than {@code limit} when the instrument has no more
    */
+  /** Alert series: newest non-weekend rows through the evaluation day, bounded by the supplied Limit. */
+  List<Historyquote> findByIdSecuritycurrencyAndCreateTypeNotAndDateLessThanEqualOrderByDateDesc(
+      Integer idSecuritycurrency, byte createType, LocalDate date, Limit limit);
+
+  /**
+   * Historyquote.findDateCloseHighLowByIdsAndDateRange: ids (?1), inclusive from/to (?2/?3), chronological projection.
+   */
+  @Query(nativeQuery = true)
+  List<IndicatorQuote> findDateCloseHighLowByIdsAndDateRange(List<Integer> ids, LocalDate from, LocalDate to);
+
+  /**
+   * Historyquote.findNewestDateCloseHighLowByIds: ids (?1), inclusive cutoff (?2), newest 1200 non-weekend rows each,
+   * oldest first.
+   */
+  @Query(nativeQuery = true)
+  List<IndicatorQuote> findNewestDateCloseHighLowByIds(List<Integer> ids, LocalDate to);
+
+  /** Native projection must be a subtype not implemented by Historyquote, or Spring treats it as an entity result. */
+  interface IndicatorQuote extends grafioschtrader.dto.IDateCloseHighLow {
+  }
+
   List<Historyquote> findByIdSecuritycurrencyOrderByDateDesc(Integer idSecuritycurrency, Limit limit);
 
   List<SecurityCurrencyIdAndDate> findByIdSecuritycurrency(Integer idSecuritycurrency);

@@ -24,6 +24,12 @@ export enum GlobalSessionNames {
   /** JSON Web Token for stateless authentication. */
   JWT = 'jwt',
 
+  /**
+   * Route to open after a successful login instead of the main view. Set by a page that needs the login first, for
+   * example the OAuth authorization page, and removed when it is used.
+   */
+  RETURN_AFTER_LOGIN = 'returnAfterLogin',
+
   /** User's assigned roles as comma-separated string. */
   ROLES = 'roles',
 

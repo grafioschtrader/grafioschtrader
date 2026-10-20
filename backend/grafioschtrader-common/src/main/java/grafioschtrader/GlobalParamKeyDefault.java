@@ -17,6 +17,21 @@ import grafiosch.GlobalParamKeyBaseDefault;
  */
 public class GlobalParamKeyDefault extends GlobalParamKeyBaseDefault {
   /**
+   * Opens the MCP server for AI assistants: 1 lets users create access tokens and connect assistants, 0 refuses every
+   * token at once. Requires the deployment switch {@code gt.use.mcp}, which only decides whether the code is loaded.
+   */
+  public static final String GLOB_KEY_MCP_USE = GlobalConstants.GT_PREFIX + "mcp.use";
+  public static final int DEFAULT_MCP_USE = 0;
+
+  /**
+   * Public HTTPS address of this instance including a path prefix, for example {@code https://gt.example.org}. The MCP
+   * endpoint shown in the token dialog and every OAuth address derive from it; {@code none} offers personal tokens
+   * only.
+   */
+  public static final String GLOB_KEY_MCP_PUBLIC_BASE_URL = GlobalConstants.GT_PREFIX + "mcp.public.base.url";
+  public static final String MCP_PUBLIC_BASE_URL_NONE = "none";
+
+  /**
    * Days after which a value of a user-defined field with the fill source RESOLVER, or the answer that the source has
    * none, is looked up again.
    */

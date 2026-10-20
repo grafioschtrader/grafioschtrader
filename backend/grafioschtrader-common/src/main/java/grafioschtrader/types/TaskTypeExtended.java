@@ -66,6 +66,8 @@ public enum TaskTypeExtended implements ITaskType {
   HOLD_TABLE_CONSISTENCY_CHECK((byte) 54),
   /** Brings the daily total value per tenant and portfolio in hold_daily_total up to date */
   HOLD_DAILY_TOTAL_UPDATE((byte) 55),
+  /** Loads the fundamental base values of the direct equities in scope, or of one security, from external sources */
+  FUNDAMENTAL_DATA_LOAD((byte) 56),
   /** Lets a language model propose values of one user-defined security field; started by the user only */
   UDF_USER_SUGGEST_VALUES((byte) 57),
 

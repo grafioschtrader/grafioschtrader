@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -19,6 +20,11 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
 
+import grafioschtrader.connector.fundamental.FundamentalAnswer;
+import grafioschtrader.connector.fundamental.FundamentalAnswerMapper;
+import grafioschtrader.connector.fundamental.FundamentalFeedSupport;
+import grafioschtrader.connector.fundamental.FundamentalFeedSupport.HttpAnswer;
+import grafioschtrader.connector.fundamental.IFundamentalFeedConnector;
 import grafioschtrader.connector.instrument.BaseFeedApiKeyConnector;
 import grafioschtrader.connector.instrument.FeedConnectorHelper;
 import grafioschtrader.dto.SecurityBaseDataDto;
@@ -27,6 +33,7 @@ import grafioschtrader.entities.Historyquote;
 import grafioschtrader.entities.Security;
 import grafioschtrader.entities.Securitysplit;
 import grafioschtrader.types.CreateType;
+import grafioschtrader.types.FundamentalSource;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import tools.jackson.databind.DeserializationFeature;
@@ -38,9 +45,14 @@ import tools.jackson.databind.json.JsonMapper;
  * because ticker and ISIN of one company can be two series. Equities only: {@code /charting/ohlcv} answers 404 for ETFs
  * and indices. History is split-adjusted. Last price comes from the multi-exchange quote, never from the ticker-only
  * last-quote endpoint (short tickers collide).
+ *
+ * <p>
+ * It is also a source of fundamental base values ({@code equity/metrics}) of the last fiscal year, asked by ISIN;
+ * securities without ISIN are not supported.
+ * </p>
  */
 @Component
-public class EulerpoolFeedConnector extends BaseFeedApiKeyConnector {
+public class EulerpoolFeedConnector extends BaseFeedApiKeyConnector implements IFundamentalFeedConnector {
 
   private static final String DOMAIN = "https://api.eulerpool.com/api/1/";
   private static final String TOKEN_PARAM_NAME = "token";
@@ -119,6 +131,38 @@ public class EulerpoolFeedConnector extends BaseFeedApiKeyConnector {
   @Override
   public String getDividendHistoricalDownloadLink(Security security) {
     return dividendsUrl(security.getUrlDividendExtend());
+  }
+
+  @Override
+  public FundamentalSource getFundamentalSource() {
+    return FundamentalSource.EULERPOOL;
+  }
+
+  @Override
+  public boolean isFundamentalAvailable() {
+    return isActivated();
+  }
+
+  @Override
+  public boolean supportsFundamentals(Security security) {
+    return security.getIsin() != null && !security.getIsin().isBlank();
+  }
+
+  @Override
+  public Duration getFundamentalPause() {
+    return Duration.ofMillis(300);
+  }
+
+  @Override
+  public FundamentalAnswer loadFundamentals(Security security) throws Exception {
+    String url = DOMAIN + "equity/metrics/" + encode(security.getIsin().trim()) + tokenQuery(false);
+    waitForTokenOrGo(bucket);
+    HttpAnswer answer = FundamentalFeedSupport.get(url, Map.of());
+    if (answer.status() != 200) {
+      return FundamentalAnswer.failed("HTTP " + answer.status() + " for " + security.getIsin(), answer.status());
+    }
+    return FundamentalAnswerMapper.eulerpool(FundamentalFeedSupport.parse(answer.body()),
+        security.getIdSecuritycurrency(), LocalDateTime.now(ZoneOffset.UTC));
   }
 
   @Override

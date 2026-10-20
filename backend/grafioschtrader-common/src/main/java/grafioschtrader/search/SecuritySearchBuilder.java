@@ -132,6 +132,9 @@ public class SecuritySearchBuilder extends SecuritycurrencySearchBuilder impleme
     if (securitycurrencySearch.getIsin() != null) {
       mainPredicates
           .add(builder.and(builder.equal(securityRoot.get(Security_.isin), securitycurrencySearch.getIsin())));
+      // An ISIN must not reveal the private security of another tenant
+      mainPredicates.add(builder.or(builder.equal(securityRoot.get(Security_.idTenantPrivate), idTenant),
+          builder.isNull(securityRoot.get(Security_.idTenantPrivate))));
     } else {
       if (securitycurrencySearch.isExcludeDerivedSecurity()) {
         mainPredicates.add(builder.and(builder.isNull(securityRoot.get(Security_.idLinkSecuritycurrency))));

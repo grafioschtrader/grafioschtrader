@@ -83,7 +83,14 @@ final class FinnhubProbe implements FundamentalSourceProbe {
         "/metric/peExclExtraTTM", "/metric/peAnnual"));
     return ProbeResult.answered(name(), s, symbol, answer.status(), metrics,
         FundamentalProbeSupport.countNumbers(root.path("metric")), "", answer.body().replace(apiKey, "***"))
+        // The series block shows whether epsAnnual can be dated: its first annual entry should carry the same value.
         .withValues("eps=" + FundamentalProbeSupport.text(root, "/metric/epsTTM") + " annual="
-            + FundamentalProbeSupport.text(root, "/metric/epsAnnual"));
+            + FundamentalProbeSupport.text(root, "/metric/epsAnnual") + " seriesAnnualEps="
+            + FundamentalProbeSupport.text(root, "/series/annual/eps/0/v") + "@"
+            + FundamentalProbeSupport.text(root, "/series/annual/eps/0/period") + " seriesQuarterlyEps="
+            + FundamentalProbeSupport.text(root, "/series/quarterly/eps/0/v") + "@"
+            + FundamentalProbeSupport.text(root, "/series/quarterly/eps/0/period") + " bvps="
+            + FundamentalProbeSupport.text(root, "/metric/bookValuePerShareQuarterly") + " sps="
+            + FundamentalProbeSupport.text(root, "/metric/revenuePerShareTTM"));
   }
 }
