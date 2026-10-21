@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import com.ezylang.evalex.Expression;
-import com.ezylang.evalex.config.ExpressionConfiguration;
 import com.ezylang.evalex.parser.ASTNode;
 import com.ezylang.evalex.parser.Token.TokenType;
 
@@ -52,10 +51,7 @@ public final class AlertExpressionSupport {
   }
 
   public static Expression create(String text, IndicatorFunctionSet functions) {
-    var configuration = ExpressionConfiguration.defaultConfiguration();
-    for (var function : functions.functions().entrySet())
-      configuration = configuration.withAdditionalFunctions(function);
-    return new Expression(text, configuration);
+    return new Expression(text, functions.configuration());
   }
 
   public static void validate(String text) {

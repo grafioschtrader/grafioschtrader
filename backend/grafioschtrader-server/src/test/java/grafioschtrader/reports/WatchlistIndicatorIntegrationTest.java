@@ -265,7 +265,8 @@ class WatchlistIndicatorIntegrationTest {
         assertThat(query.getResultList()).anyMatch(row -> ((Number) ((Object[]) row)[0]).intValue() == benchmark);
       }
     });
-    var projected = history.findNewestDateCloseHighLowByIds(List.of(benchmark), LocalDate.now());
+    var projected = history.findNewestDateCloseHighLowByIds(List.of(benchmark), LocalDate.now()).stream()
+        .map(HistoryquoteJpaRepository.IndicatorQuote::of).toList();
     var alerts = history.findByIdSecuritycurrencyAndCreateTypeNotAndDateLessThanEqualOrderByDateDesc(benchmark,
         (byte) 1, LocalDate.now(), Limit.of(1200));
     assertThat(projected).extracting(p -> p.getDate())

@@ -122,12 +122,13 @@ public class WatchlistIndicatorReport {
     if (ids.isEmpty())
       return Map.of();
     var rows = history.findDateCloseHighLowByIdsAndDateRange(ids, today.minusDays(1920), today).stream()
-        .map(row -> (IDateCloseHighLow) row).collect(Collectors.groupingBy(IDateCloseHighLow::getIdSecuritycurrency));
+        .map(row -> (IDateCloseHighLow) HistoryquoteJpaRepository.IndicatorQuote.of(row))
+        .collect(Collectors.groupingBy(IDateCloseHighLow::getIdSecuritycurrency));
     var shortIds = ids.stream()
         .filter(id -> rows.getOrDefault(id, List.of()).size() < AlertExpressionSupport.SERIES_OBSERVATIONS).toList();
     if (!shortIds.isEmpty()) {
       shortIds.forEach(rows::remove);
-      history.findNewestDateCloseHighLowByIds(shortIds, today)
+      history.findNewestDateCloseHighLowByIds(shortIds, today).stream().map(HistoryquoteJpaRepository.IndicatorQuote::of)
           .forEach(r -> rows.computeIfAbsent(r.getIdSecuritycurrency(), _ -> new ArrayList<>()).add(r));
     }
     rows.replaceAll((_, list) -> List

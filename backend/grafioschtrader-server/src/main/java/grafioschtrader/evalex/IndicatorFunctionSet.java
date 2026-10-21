@@ -9,6 +9,7 @@ import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 
 import com.ezylang.evalex.Expression;
+import com.ezylang.evalex.config.ExpressionConfiguration;
 import com.ezylang.evalex.data.EvaluationValue;
 import com.ezylang.evalex.functions.AbstractFunction;
 import com.ezylang.evalex.functions.FunctionIfc;
@@ -23,6 +24,7 @@ public final class IndicatorFunctionSet {
   private final Map<String, FunctionIfc> functions = new LinkedHashMap<>();
   private List<IDateCloseHighLow> common;
   private List<IDateCloseHighLow> benchmark;
+  private ExpressionConfiguration configuration;
 
   public IndicatorFunctionSet(IndicatorSeries data) {
     this.data = data;
@@ -38,6 +40,19 @@ public final class IndicatorFunctionSet {
 
   public Map<String, FunctionIfc> functions() {
     return Collections.unmodifiableMap(functions);
+  }
+
+  /**
+   * The EvalEx configuration with these functions, built on first use. Building the default configuration creates every
+   * EvalEx function by reflection, so the columns of one instrument share it instead of building one per cell.
+   */
+  public ExpressionConfiguration configuration() {
+    if (configuration == null) {
+      configuration = ExpressionConfiguration.defaultConfiguration();
+      for (var function : functions.entrySet())
+        configuration = configuration.withAdditionalFunctions(function);
+    }
+    return configuration;
   }
 
   public LocalDate lastCommonDate() {

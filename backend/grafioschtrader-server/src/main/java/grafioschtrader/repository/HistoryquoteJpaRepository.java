@@ -76,20 +76,62 @@ public interface HistoryquoteJpaRepository extends JpaRepository<Historyquote, I
       Integer idSecuritycurrency, byte createType, LocalDate date, Limit limit);
 
   /**
-   * Historyquote.findDateCloseHighLowByIdsAndDateRange: ids (?1), inclusive from/to (?2/?3), chronological projection.
+   * Historyquote.findDateCloseHighLowByIdsAndDateRange: ids (?1), inclusive from/to (?2/?3), chronological rows of
+   * id, date, close, high and low; convert each with {@link IndicatorQuote#of(Object[])}.
    */
   @Query(nativeQuery = true)
-  List<IndicatorQuote> findDateCloseHighLowByIdsAndDateRange(List<Integer> ids, LocalDate from, LocalDate to);
+  List<Object[]> findDateCloseHighLowByIdsAndDateRange(List<Integer> ids, LocalDate from, LocalDate to);
 
   /**
    * Historyquote.findNewestDateCloseHighLowByIds: ids (?1), inclusive cutoff (?2), newest 1200 non-weekend rows each,
-   * oldest first.
+   * oldest first, as rows of id, date, close, high and low; convert each with {@link IndicatorQuote#of(Object[])}.
    */
   @Query(nativeQuery = true)
-  List<IndicatorQuote> findNewestDateCloseHighLowByIds(List<Integer> ids, LocalDate to);
+  List<Object[]> findNewestDateCloseHighLowByIds(List<Integer> ids, LocalDate to);
 
-  /** Native projection must be a subtype not implemented by Historyquote, or Spring treats it as an entity result. */
-  interface IndicatorQuote extends grafioschtrader.dto.IDateCloseHighLow {
+  /**
+   * Daily price of the watchlist indicator series. The indicator functions read every price many times; an interface
+   * projection would make each of these reads a proxied, reflective call, which made a watchlist of 115 securities
+   * with the default columns take about 13 seconds. The native rows are therefore copied into this record once.
+   */
+  record IndicatorQuote(Integer idSecuritycurrency, LocalDate date, double close, Double high, Double low)
+      implements grafioschtrader.dto.IDateCloseHighLow {
+
+    /** Converts a row of id, date, close, high and low of the two indicator queries. */
+    public static IndicatorQuote of(Object[] row) {
+      LocalDate date = row[1] instanceof java.sql.Date sqlDate ? sqlDate.toLocalDate() : (LocalDate) row[1];
+      return new IndicatorQuote(((Number) row[0]).intValue(), date, ((Number) row[2]).doubleValue(), number(row[3]),
+          number(row[4]));
+    }
+
+    private static Double number(Object value) {
+      return value == null ? null : ((Number) value).doubleValue();
+    }
+
+    @Override
+    public Integer getIdSecuritycurrency() {
+      return idSecuritycurrency;
+    }
+
+    @Override
+    public LocalDate getDate() {
+      return date;
+    }
+
+    @Override
+    public double getClose() {
+      return close;
+    }
+
+    @Override
+    public Double getHigh() {
+      return high;
+    }
+
+    @Override
+    public Double getLow() {
+      return low;
+    }
   }
 
   List<Historyquote> findByIdSecuritycurrencyOrderByDateDesc(Integer idSecuritycurrency, Limit limit);

@@ -645,6 +645,15 @@ Sanctioned bypasses and why they are safe:
 
 `scripts/check-hold-tables.mjs` verifies the three hold tables against the `transaction` table read-only and is the way to confirm a new bypass did not desynchronise anything.
 
+## Interface Projections Are Slow in Hot Loops
+
+A Spring Data interface projection is a JDK proxy: every getter call runs through AOP interceptors and
+reflection. For a value read once per row that does not matter. For rows that a calculation reads many times
+(price series of indicators, alerts, simulations) it dominates: the watchlist indicator tab took 6.4 s instead
+of 1 s for 115 securities until `HistoryquoteJpaRepository.IndicatorQuote` became a record filled from
+`Object[]` rows. Return `List<Object[]>` from such a native query and copy each row once into a record (or use
+entities), never hand the projection itself to the calculation.
+
 ## Common Annotations for Native Queries
 
 ```java
