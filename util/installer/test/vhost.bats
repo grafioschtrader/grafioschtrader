@@ -71,7 +71,7 @@ SITE
 
 @test "the snippet scopes every route with ^~ so regex locations of the site cannot capture them" {
   gt_vhost_snippet_render > "$SCRATCH/snippet"
-  [ "$(grep -c '^location ^~ ' "$SCRATCH/snippet")" -eq 5 ]
+  [ "$(grep -c '^location ^~ ' "$SCRATCH/snippet")" -eq 7 ]
   grep -qx 'location = /grafioschtrader { return 301 /grafioschtrader/; }' "$SCRATCH/snippet"
   grep -q 'proxy_pass http://127.0.0.1:9090/socket;' "$SCRATCH/snippet"
   run grep -E '^(server|listen|ssl_|root)' "$SCRATCH/snippet"
@@ -81,7 +81,7 @@ SITE
 @test "Apache routes live in Location blocks; the site's own requests keep their headers" {
   ANSWER[WEBSERVER]=apache2
   gt_vhost_snippet_render > "$SCRATCH/snippet"
-  [ "$(grep -c '^<Location ' "$SCRATCH/snippet")" -eq 4 ]
+  [ "$(grep -c '^<Location ' "$SCRATCH/snippet")" -eq 6 ]
   grep -q 'ProxyPass ajp://127.0.0.1:9090/api' "$SCRATCH/snippet"
   grep -q 'ProxyPass ws://127.0.0.1:8080/socket' "$SCRATCH/snippet"
   # Header and proxy settings appear only inside Location blocks, never at virtual host level.
