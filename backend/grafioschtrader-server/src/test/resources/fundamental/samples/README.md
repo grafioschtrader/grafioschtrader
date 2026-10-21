@@ -39,3 +39,22 @@ Values and their raw/fmt wrappers are unchanged. Cookies, crumbs and request hea
 
 The tests use these recorded prices and independent expected mapped amounts. Modified copies cover a wrong ADR
 ratio, an incomplete share class, missing market capitalisation, missing currency and invalid values.
+
+# Finnhub and Eulerpool field contract
+
+The `finnhub-*-2026-10-21.json` and `eulerpool-*-2026-10-21.json` files were recorded on 2026-10-21 by
+`FundamentalSourceCoverageProbeTest` (sources `finnhub,eulerpool`, six reference securities). API keys are not part
+of an answer and were masked in the probe output in any case.
+
+- **Finnhub** (`stock/metric?metric=all`): the `metric` object is kept whole, the `series` block is cut to the first
+  three annual and four quarterly `eps` entries. The first annual entry carries the period of `epsAnnual` (Apple
+  7.465 on 2025-09-27, Merck 7.2812 on 2025-12-31), so the fiscal year earnings are dated from it. The trailing,
+  book value and sales values stay undated. Only the two US listings answered; the free plan refuses Nestle,
+  Novo Nordisk in EUR and Deutsche Telekom with 403.
+- **Eulerpool** (`equity/metrics/{ISIN}`): the answer is kept whole; the companion `financials-ltm` answer of the
+  probe is dropped because the mapping does not use it. All amounts are in `currency`, the reporting currency
+  (Novo Nordisk DKK, Alibaba CNY), for the newest `historical[].period`. `other.shares` is in millions, `leverage
+  .netDebt` and `historical[].netIncome` in full units. Alibaba's `perShare.eps` 42.89 CNY is per ADS (eight
+  ordinary shares) while `other.shares` 19 318 million counts ordinary shares, so the share count fails the market
+  capitalisation check against the ADR. `netIncome` includes non-controlling interests (Deutsche Telekom 14.93
+  billion EUR against EPS times shares of 9.67 billion), which is why it is not used for a unit check.

@@ -33,9 +33,11 @@ public final class FundamentalAnswerMapper {
    * Names under which an entry of Eulerpool's {@code historical} array states the net income for the unit check of the
    * share count; the first numeric one is used. Deliberately empty: in the production run of 2026-10-20 the check
    * failed for share counts that reproduce Yahoo's market capitalisation exactly (Continental, Rheinmetall, Deutsche
-   * Telekom, Sanofi and others), so the net income read from {@code netIncome} has another unit or meaning. Until a
-   * recorded answer settles it, the check stays not checked; the market capitalisation check already catches a slip of
-   * the millions factor.
+   * Telekom, Sanofi and others). The answers recorded on 2026-10-21 show why: {@code netIncome} is in full units — EPS
+   * times shares reproduces it within 2 % for Nestle, Novo Nordisk, Apple and Merck — but it is the group result
+   * including non-controlling interests, of which Deutsche Telekom's EPS times shares gives only 65 %. A failed check
+   * would therefore discard a correct share count. The market capitalisation check already catches a slip of the
+   * millions factor.
    */
   static final List<String> EULERPOOL_NET_INCOME_FIELDS = List.of();
 

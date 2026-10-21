@@ -148,7 +148,8 @@ class WatchlistIndicatorFunctionsTest {
         "SMA(1.5)"))
       assertThatThrownBy(() -> AlertExpressionSupport.validate(invalid, EnumSet.allOf(IndicatorData.class)))
           .isInstanceOf(AlertExpressionException.class);
-    for (String unavailable : List.of("RS(2)", "BETA(2)", "DIVYIELD()", "DIVGROWTH(2)", "DIVYEARS()"))
+    for (String unavailable : List.of("RS(2)", "BETA(2)", "DIVYIELD()", "DIVGROWTH(2)", "DIVYEARS()", "PRICE / EPS",
+        "SHARES > 0"))
       assertThatThrownBy(() -> AlertExpressionSupport.validate(unavailable)).isInstanceOfSatisfying(
           AlertExpressionException.class, e -> assertThat(e.getKey()).isEqualTo("ALERT_EXPRESSION_DATA_NOT_AVAILABLE"));
     for (String valid : List.of("close (0)", "HIGHEST(2)", "LOWEST(2)", "ZSCORE(2)", "VOLA(2)", "MAXDD(2)", "ATR(2)"))
