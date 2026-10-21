@@ -289,6 +289,9 @@ public class GlobalparametersJpaRepositoryImpl implements GlobalparametersJpaRep
     String errorMsgKey = null;
     if (updGp.getPropertyInt() != null) {
       errorMsgKey = rule.validate(updGp.getPropertyInt());
+    } else if (rule.isNumeric() && existingGp.hasNoValue()) {
+      // A typeless row takes whatever type its first value has, so a numeric rule must keep a string out of it.
+      errorMsgKey = "g.input.rule.number.required";
     } else if (updGp.getPropertyString() != null) {
       errorMsgKey = rule.validate(updGp.getPropertyString());
     }

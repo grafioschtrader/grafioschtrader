@@ -443,7 +443,7 @@ Definitions* below). `@DecimalMin` / `@DecimalMax` are fine on `Double`.
 
 ## New Entity or Table — Export/Delete Definition and Entity Limit
 
-**IMPORTANT**: A new entity owes two things that **no test and no compiler checks**. Both are about
+**IMPORTANT**: A new entity owes two things that **no compiler checks**. Both are about
 what the REST API permits, not about what the UI offers — `ROLE_LIMIT_EDIT`, the role every
 self-registered user holds, may call almost every `/api/**` write endpoint.
 
@@ -453,6 +453,10 @@ the account deletion aborts instead; without one the rows are orphaned forever. 
 at startup by `ExportDeleteHelper.addExportDefinitions(...)` (`GTStartUp`): library tables in
 `grafiosch/exportdelete/ExportDeleteHelper.exportDefinitions`, application tables in
 `grafioschtrader/exportdelete/MyDataExportDeleteDefinition.exportDefinitions`.
+`ExportDefinitionCoverageTest` (`grafioschtrader-server`, test database) fails for a table that is in
+no array and not in its omission list, and for every non-cascading foreign key to `user` / `tenant`
+that no definition resolves (owner column → `DELETE_USE`, `created_by` →
+`CHANGE_USER_ID_FOR_CREATED_BY`, any other column → a `DELETE_USE` statement naming table and column).
 
 | Entity kind | `TENANT_USER` | usage flags |
 |-------------|---------------|-------------|
@@ -460,7 +464,7 @@ at startup by `ExportDeleteHelper.addExportDefinitions(...)` (`GTStartUp`): libr
 | user-private (`UserBaseID`) | `ID_USER` | `EXPORT_USE \| DELETE_USE` |
 | child reached only through its parent | `NONE` + join SQL | `EXPORT_USE \| DELETE_USE` |
 | shared reference data | `NONE` | `EXPORT_USE \| CHANGE_USER_ID_FOR_CREATED_BY` |
-| derived / rebuilt on import | — | omit, and say why in the class Javadoc |
+| derived / rebuilt on import | — | omit, with the reason in `ExportDefinitionCoverageTest.OMITTED_TABLES` |
 
 The array position is the foreign-key order in both directions: `MySqlExportMyData` walks it forward
 (parent first, so the re-import holds), `MySqlDeleteMyData` walks it backwards (children first).

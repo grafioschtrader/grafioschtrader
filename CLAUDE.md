@@ -319,9 +319,10 @@ its summary.
 both, one after the other because they share port 8082. Their tests are **client-only** — they start no
 Spring context and drive the running peers over HTTP — because GTNet allows only **one application context
 per database at a time**: a second context would share `g.gnet.my.entry.id` and one `domainRemoteName`,
-which is not a two-peer topology. Two details bite: the identity of an instance must be a **non-loopback
-literal IPv4** (`isDomainNameThisMachine` skips loopback interfaces, and `BaseDataClient` resolves
-`IPV6_PREFERRED`), and the two health endpoints differ in shape — `/api/integration-info` returns
+which is not a two-peer topology. Two details bite: the identity URL of an instance must be **reachable from
+that instance itself** — it recognises its own entry by sending a challenge to that URL
+(`GTNetInstanceIdentity`), and a literal IPv4 avoids `BaseDataClient`'s `IPV6_PREFERRED` steering a hostname to
+IPv6 — and the two health endpoints differ in shape — `/api/integration-info` returns
 `activeProfiles` as an array while `/api/gtinfo` returns `activeProfile` as a comma-joined string.
 
 **IMPORTANT — run `e2eTest.cmd` / `e2eTest.sh` ONLY when the user explicitly asks for it.** Never
@@ -490,11 +491,12 @@ TABLE` migration is needed.
 
 #### What a new entity owes beyond persisting
 
-Two obligations are unguarded — no compiler and no test catches a miss. The entity must appear in an
-`ExportDefinition` array, or its rows are absent from "export my data" and survive the deletion of
-the user's account; and every user-writable entity must be bounded by an `entity_limit` key, because
-a key with no row means unlimited and `ROLE_LIMIT_EDIT` reaches almost every `/api/**` write
-endpoint.
+Two obligations no compiler catches. The table must appear in an `ExportDefinition` array, or its
+rows are absent from "export my data" and survive the deletion of the user's account —
+`ExportDefinitionCoverageTest` fails for a table that is in no array and not in its list of omissions
+with a reason. And every user-writable entity must be bounded by an `entity_limit` key, because a key
+with no row means unlimited and `ROLE_LIMIT_EDIT` reaches almost every `/api/**` write endpoint — that
+one no test catches.
 
 **Follow the `new-entity` skill** (`.agents/skills/new-entity/SKILL.md`) whenever an entity or table
 is added; `backend/CLAUDE.md` → "New Entity or Table — Export/Delete Definition and Entity Limit"

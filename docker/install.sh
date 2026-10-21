@@ -92,10 +92,22 @@ check_duckdns_wiring() {
 # run. A failed start or timeout must not reach either installation success message.
 start_stack() {
   check_duckdns_wiring "$@"
+  # A network gains IPv6 only by being recreated, which compose cannot do while
+  # containers are attached to it.
+  if [ -f container-ipv6.sh ]; then
+    # shellcheck source=container-ipv6.sh
+    . ./container-ipv6.sh
+    setup_container_ipv6
+    if $CONTAINER_NETWORK_CHANGED; then
+      info "Stopping the stack once to recreate its network with IPv6."
+      docker compose "$@" down || fail "could not stop the stack to recreate its network. Check 'docker compose ps -a'."
+    fi
+  fi
   info "Starting Grafioschtrader and waiting for its healthchecks (up to 30 minutes)."
   info "The first start runs database migrations. Follow progress with: docker compose logs -f backend"
   docker compose "$@" up -d --wait --wait-timeout 1800 \
     || fail "Grafioschtrader did not become ready. Check 'docker compose ps -a' and 'docker compose logs backend mariadb web'."
+  if [ -f container-ipv6.sh ]; then verify_container_ipv6; fi
 }
 
 gen_secret() {

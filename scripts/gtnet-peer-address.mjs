@@ -3,10 +3,10 @@
  *
  * Why this is not simply `http://localhost:<port>`:
  *
- *   - `GTNetJpaRepositoryImpl.isDomainNameThisMachine` walks the local `NetworkInterface` list and
- *     **skips every loopback interface**. An own entry registered as `localhost` or `127.0.0.1` is
- *     therefore never recognised as this instance, `g.gnet.my.entry.id` is never written, and the
- *     instance stays non-operational however the form is filled in.
+ *   - The own URL is also the address the other peer is given, so it is a LAN address as between two
+ *     real hosts. The instance recognises its own entry by sending a challenge to that URL
+ *     (`GTNetInstanceIdentity`); an address it cannot reach itself leaves `g.gnet.my.entry.id` unwritten
+ *     and the instance non-operational however the form is filled in.
  *   - On the very first `gt_net` insert (`gtNetJpaRepository.count() == 0`) `saveOnlyAttributes`
  *     probes the URL being saved through `BaseDataClient.getActuatorInfo`. The address has to be
  *     reachable *from the instance itself*, so the host must hairpin to its own address and the local
@@ -17,8 +17,8 @@
  * unroutable candidates, and only a connect attempt tells them apart.
  *
  * Always a literal IPv4, never a hostname: `BaseDataClient` builds its `WebClient` with
- * `ResolvedAddressTypes.IPV6_PREFERRED`, so a dual-stack name would steer the client to an address
- * `isDomainNameThisMachine` never matched.
+ * `ResolvedAddressTypes.IPV6_PREFERRED`, so a dual-stack name would steer the client to an IPv6 address
+ * the backend may not be reachable on.
  */
 
 import net from 'node:net';

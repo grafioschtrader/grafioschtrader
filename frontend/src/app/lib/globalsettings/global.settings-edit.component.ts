@@ -111,7 +111,11 @@ export class GlobalSettingsEditComponent extends SimpleEntityEditBase<Globalpara
         globalparameters.propertyName,
         true
       );
-    } else if (globalparameters.propertyInt !== null) {
+    } else if (
+      globalparameters.propertyInt !== null ||
+      (globalparameters.propertyString == null && this.inputRule?.isNumeric())
+    ) {
+      // A row without any value has no type of its own; a numeric input rule makes it an integer parameter
       this.selectedPropertyField = 'propertyInt';
       // Use inputRule min/max if available, otherwise use defaults
       const min = this.inputRule?.min ?? 0;

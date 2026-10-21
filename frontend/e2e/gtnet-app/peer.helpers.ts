@@ -52,9 +52,9 @@ async function openCreate(page: Page): Promise<void> {
 /**
  * Creates this instance's own entry if it has none.
  *
- * The address has to be the runner-resolved non-loopback IPv4: saveOnlyAttributes writes g.gnet.my.entry.id only when
- * isDomainNameThisMachine matches, and that method skips every loopback interface. localhost would leave the peer
- * non-operational no matter how the form is filled in.
+ * The address has to be the runner-resolved IPv4 under which the peer reaches itself: saveOnlyAttributes writes
+ * g.gnet.my.entry.id only when that URL answers the identity challenge the peer sends to it. An address the peer cannot
+ * reach would leave it non-operational no matter how the form is filled in.
  */
 export async function ensureOwnPeer(page: Page, baseURL: string, ownURL: string | undefined): Promise<void> {
   expect(ownURL, 'runner-resolved non-loopback peer URL').toBeTruthy();

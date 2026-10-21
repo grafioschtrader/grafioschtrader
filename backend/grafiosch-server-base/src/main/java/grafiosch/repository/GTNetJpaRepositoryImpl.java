@@ -5,22 +5,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.reactive.function.client.WebClientException;
 
 import grafiosch.common.DataHelper;
 import grafiosch.common.UserAccessHelper;
@@ -61,6 +53,7 @@ import grafiosch.gtnet.GTNetDomainService;
 import grafiosch.gtnet.GTNetEnvelopeValidator;
 import grafiosch.gtnet.GTNetGrantService;
 import grafiosch.gtnet.GTNetIdempotencyService;
+import grafiosch.gtnet.GTNetInstanceIdentity;
 import grafiosch.gtnet.GTNetMessageCode;
 import grafiosch.gtnet.GTNetMessageCodeRegistry;
 import grafiosch.gtnet.GTNetProtocolDescriptor;
@@ -190,6 +183,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   private GTNetTokenRotationService tokenRotationService;
 
   @Autowired
+  private GTNetInstanceIdentity instanceIdentity;
+
+  @Autowired
   private GTNetGrantService grantService;
 
   @Autowired
@@ -290,24 +286,29 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
       final Set<Class<? extends Annotation>> updatePropertyLevelClasses) throws Exception {
 
     Integer myInstanceEntry = globalparametersJpaRepository.getGTNetMyEntryID();
-    // Validate remote URL is reachable
-
+    int connectionTimeout = GTNetTimeoutHelper.resolveTimeout(gtNet, globalparametersJpaRepository);
     if (gtNetJpaRepository.count() == 0) {
-      baseDataClient.getActuatorInfo(gtNet.getDomainRemoteName(),
-          GTNetTimeoutHelper.resolveTimeout(gtNet, globalparametersJpaRepository));
+      validateReachable(gtNet.getDomainRemoteName(), connectionTimeout);
     }
 
     // Track settings changes (only for myGTNet)
     boolean isMyEntry = myInstanceEntry != null && myInstanceEntry.equals(gtNet.getIdGtNet());
     boolean settingsChanged = isMyEntry && existingEntity != null && hasSettingsChanged(existingEntity, gtNet);
+    // Only an instance without a valid own entry claims one, so a peer entry saved later never takes over the identity.
+    // A pointer at a row that no longer exists (left behind by a database import) counts as no own entry.
+    boolean claimsOwnEntry = !isMyEntry
+        && (myInstanceEntry == null || !gtNetJpaRepository.existsById(myInstanceEntry))
+        && isThisInstance(gtNet.getDomainRemoteName(), connectionTimeout);
 
     // Validate that AC_PUSH_OPEN is only used for entity kinds that support it
     validateEntityPushSupport(gtNet);
 
     GTNet gtNetNew = RepositoryHelper.saveOnlyAttributes(gtNetJpaRepository, gtNet, existingEntity,
         updatePropertyLevelClasses);
-    if (isDomainNameThisMachine(gtNet.getDomainRemoteName())) {
-      globalparametersJpaRepository.saveGTNetMyEntryID(gtNetNew.getIdGtNet());
+    if (isMyEntry || claimsOwnEntry) {
+      if (claimsOwnEntry) {
+        globalparametersJpaRepository.saveGTNetMyEntryID(gtNetNew.getIdGtNet());
+      }
       // Local server is always online - set status if not already set
       if (gtNetNew.getServerOnline() != GTNetServerOnlineStatusTypes.SOS_ONLINE) {
         gtNetNew.setServerOnline(GTNetServerOnlineStatusTypes.SOS_ONLINE);
@@ -401,19 +402,47 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     saveBroadcastToOwnEntry(myGTNet, msgRequest, messageCode);
   }
 
-  static boolean isDomainNameThisMachine(String domainName)
-      throws SocketException, UnknownHostException, URISyntaxException {
-    URI uri = new URI(domainName);
-    String host = uri.getHost();
-    InetAddress[] searchAddr = InetAddress.getAllByName(host);
-    Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
-    for (NetworkInterface netint : Collections.list(nets)) {
-      if (!netint.isLoopback()
-          && !Collections.disjoint(Collections.list(netint.getInetAddresses()), Arrays.asList(searchAddr))) {
-        return true;
-      }
+  /**
+   * Refuses the very first entry when its URL cannot be reached from this server. The first entry is normally the own
+   * one, and the call goes out through the public address exactly as a peer's would, so a failure here means that GTNet
+   * could not work with this URL either.
+   *
+   * @param domainName        the URL of the entry being saved
+   * @param connectionTimeout connection and response timeout in seconds
+   * @throws DataViolationException with the cause of the failure, instead of a bare network exception
+   */
+  private void validateReachable(String domainName, int connectionTimeout) {
+    try {
+      baseDataClient.getActuatorInfo(domainName, connectionTimeout);
+    } catch (WebClientException e) {
+      log.warn("GTNet URL {} is not reachable from this server", domainName, e);
+      throw new DataViolationException("g.net", "g.gtnet.url.unreachable",
+          new Object[] { domainName, e.getMostSpecificCause().getMessage() });
     }
-    return false;
+  }
+
+  /**
+   * Finds out whether a URL leads back to this running instance by sending it the challenge of
+   * {@link GTNetInstanceIdentity}. Comparing the resolved address with the local network interfaces cannot answer this:
+   * behind NAT, inside a container or behind a reverse proxy the public address is on no local interface, and two
+   * instances on one host share the address and differ only in the port.
+   *
+   * @param domainName        the URL to ask
+   * @param connectionTimeout connection and response timeout in seconds
+   * @return true when this instance answered; false when another server answered, none did, or the URL is malformed
+   */
+  private boolean isThisInstance(String domainName, int connectionTimeout) {
+    if (domainName == null || domainName.isBlank()) {
+      return false;
+    }
+    String challenge = instanceIdentity.newChallenge();
+    try {
+      return instanceIdentity.isOwnAnswer(challenge,
+          baseDataClient.getIdentityAnswer(domainName, challenge, connectionTimeout));
+    } catch (WebClientException | IllegalArgumentException e) {
+      log.debug("GTNet URL {} did not prove to be this instance: {}", domainName, e.getMessage());
+      return false;
+    }
   }
 
   @Override
@@ -2105,9 +2134,9 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
    *
    * <p>
    * Resolution is by the domain name held before the import first, and only then by
-   * {@link #isDomainNameThisMachine(String)} - the same rule {@code saveOnlyAttributes} uses to claim the own entry.
-   * That method has a known false negative behind NAT or a reverse proxy, where the public host name resolves to no
-   * locally bound address, so failing to resolve leaves the parameter untouched rather than rolling the import back.
+   * {@link #isThisInstance(String, int)} - the same probe {@code saveOnlyAttributes} uses to claim the own entry. The
+   * probe needs the own URL to be reachable from this server, so failing to resolve leaves the parameter untouched
+   * rather than rolling the import back.
    * </p>
    *
    * @param previousOwnDomain the own domain name read before the import, or null when there was none
@@ -2116,7 +2145,7 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
     Map<Integer, String> importedDomains = readImportedDomains();
     Integer resolved = findIdByDomain(importedDomains, previousOwnDomain);
     if (resolved == null) {
-      resolved = findIdByThisMachine(importedDomains);
+      resolved = findIdByThisInstance(importedDomains);
     }
     Integer currentEntryId = globalparametersJpaRepository.getGTNetMyEntryID();
     if (resolved == null) {
@@ -2159,22 +2188,19 @@ public class GTNetJpaRepositoryImpl extends BaseRepositoryImpl<GTNet> implements
   }
 
   /**
-   * Finds the imported row whose domain name resolves to an address of this machine. A domain that cannot be resolved
-   * belongs to a peer and is skipped rather than failing the import. Two matching rows leave the decision open, because
+   * Finds the imported row whose URL leads back to this running instance. A URL that does not answer belongs to a peer,
+   * or to nothing, and is skipped rather than failing the import. Two matching rows leave the decision open, because
    * picking one of them would be a guess about this instance's identity.
    *
    * @param importedDomains the imported entries by id
-   * @return the id of the single entry that is this machine, or null when none or more than one matches
+   * @return the id of the single entry that is this instance, or null when none or more than one matches
    */
-  private Integer findIdByThisMachine(Map<Integer, String> importedDomains) {
+  private Integer findIdByThisInstance(Map<Integer, String> importedDomains) {
+    int connectionTimeout = GTNetTimeoutHelper.resolveTimeout(null, globalparametersJpaRepository);
     List<Integer> matches = new ArrayList<>();
     for (Map.Entry<Integer, String> entry : importedDomains.entrySet()) {
-      try {
-        if (entry.getValue() != null && isDomainNameThisMachine(entry.getValue())) {
-          matches.add(entry.getKey());
-        }
-      } catch (SocketException | UnknownHostException | URISyntaxException _) {
-        log.debug("GTNet import cannot resolve {}, so it is not this machine", entry.getValue());
+      if (entry.getValue() != null && isThisInstance(entry.getValue(), connectionTimeout)) {
+        matches.add(entry.getKey());
       }
     }
     if (matches.size() > 1) {

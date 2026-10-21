@@ -151,6 +151,15 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Order(3)
+  @DisplayName("An unknown method such as server/discover gives JSON-RPC -32601 with HTTP 200, not HTTP 500")
+  void unknownMethodIsMethodNotFound() {
+    JsonNode response = call("server/discover", Map.of());
+    assertThat(response.get("id").asInt()).isEqualTo(requestId);
+    assertThat(response.get("error").get("code").asInt()).isEqualTo(-32601);
+  }
+
+  @Test
   @Order(4)
   @DisplayName("holdings equal the currency grouping of SecurityaccountResource, at the client's day")
   void holdingsMatchUserInterface() throws Exception {

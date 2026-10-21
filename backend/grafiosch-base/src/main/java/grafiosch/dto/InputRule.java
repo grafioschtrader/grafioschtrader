@@ -97,6 +97,17 @@ public class InputRule {
   }
 
   /**
+   * Tells whether the rule constrains a number. min, max and enum apply to integers only and a pattern to strings only,
+   * so a rule carrying any of the former also types its parameter as an integer while the row holds no value at all —
+   * the state in which an instance-specific id such as {@code g.gnet.my.entry.id} is reset after a database import.
+   *
+   * @return true when min, max or enum is set
+   */
+  public boolean isNumeric() {
+    return min != null || max != null || enumValues != null;
+  }
+
+  /**
    * Validates an integer value against the parsed rules.
    *
    * @param value the integer value to validate

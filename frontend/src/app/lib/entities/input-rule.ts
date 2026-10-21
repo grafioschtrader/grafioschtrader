@@ -78,6 +78,16 @@ export class InputRule {
    *
    * @returns array of ValidatorFn for use with Angular forms
    */
+  /**
+   * Tells whether the rule constrains a number. min, max and enum apply to integers only, so such a rule types a
+   * parameter whose row holds no value at all, as an instance-specific id has after a database import.
+   *
+   * @returns true when min, max or enum is set
+   */
+  isNumeric(): boolean {
+    return this.min !== null || this.max !== null || this.enumValues !== null;
+  }
+
   getValidators(): ValidatorFn[] {
     const validators: ValidatorFn[] = [];
 

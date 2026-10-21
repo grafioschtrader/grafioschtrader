@@ -166,6 +166,24 @@ public class BaseDataClient {
   }
 
   /**
+   * Sends an identity challenge to a URL and returns what answers it. Whether the answer proves that the URL leads back
+   * to this instance is decided by {@code GTNetInstanceIdentity}, not here.
+   *
+   * @param domainName               the base URL to ask (e.g., "https://example.com")
+   * @param challenge                the challenge drawn by {@code GTNetInstanceIdentity}
+   * @param connectionTimeoutSeconds TCP connection and response timeout in seconds (0 = use Netty default)
+   * @return the answer body, or null when the URL returned none
+   * @throws WebClientResponseException if the URL returns an error status, e.g. 404 from an older instance
+   * @throws WebClientRequestException  if the URL is unreachable
+   */
+  public String getIdentityAnswer(String domainName, String challenge, int connectionTimeoutSeconds) {
+    return getWebClientForDomain(domainName, connectionTimeoutSeconds).get()
+        .uri(uriBuilder -> uriBuilder.path(RequestMappings.GTNET_IDENTITY_M2M_MAP)
+            .queryParam("challenge", challenge).build())
+        .retrieve().bodyToMono(String.class).block();
+  }
+
+  /**
    * Sends a GTNet message to a remote instance.
    *
    * @param tokenRemote     the authentication token received from the remote during handshake

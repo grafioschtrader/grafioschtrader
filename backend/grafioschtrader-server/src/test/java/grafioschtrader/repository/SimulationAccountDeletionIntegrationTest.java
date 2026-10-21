@@ -117,7 +117,10 @@ class SimulationAccountDeletionIntegrationTest {
       em.persist(top);
       topId = top.getId();
       ledger(home, "home", false);
+      jdbc.update("INSERT INTO user_chart_shape (id_user, id_securitycurrency, shape_data) VALUES (?, ?, ?)",
+          owner.getIdUser(), sharedId, "[{\"name\": \"" + PREFIX + "shape\"}]");
       ledger(advisorHome, "advisor", false);
+      unlockRequestAndForwardToOwner();
       for (int index = 0; index < 2; index++) {
         seedEnvironment(index);
       }
@@ -203,7 +206,7 @@ class SimulationAccountDeletionIntegrationTest {
           data = new String(zip.readAllBytes(), StandardCharsets.UTF_8);
       }
     }
-    assertThat(data).isNotNull().contains(PREFIX + "home", PREFIX + "shared", PREFIX + "strategy")
+    assertThat(data).isNotNull().contains(PREFIX + "home", PREFIX + "shared", PREFIX + "strategy", PREFIX + "shape")
         .doesNotContain(PREFIX + "env", PREFIX + "private", PREFIX + "run", PREFIX + "advisor");
     assertFamilyIntact();
   }
@@ -286,6 +289,10 @@ class SimulationAccountDeletionIntegrationTest {
     }
     assertCount("tenant", "id_parent_tenant", home, 0);
     assertCount("user", "id_user", owner.getIdUser(), 0);
+    assertCount("user_chart_shape", "id_user", owner.getIdUser(), 0);
+    assertCount("propose_user_task", "id_target_user", owner.getIdUser(), 0);
+    assertCount("mail_setting_forward", "id_user_redirect", owner.getIdUser(), 0);
+    assertCount("mail_setting_forward", "id_user", advisor.getIdUser(), 1);
     assertCount("algo_top_asset_security", "id_algo_assetclass_security", topId, 0);
     for (Integer id : privateIds) {
       assertCount("securitycurrency", "id_securitycurrency", id, 0);
@@ -299,6 +306,9 @@ class SimulationAccountDeletionIntegrationTest {
   private void assertFamilyIntact() {
     assertCount("tenant", "id_tenant", home, 1);
     assertCount("user", "id_user", owner.getIdUser(), 1);
+    assertCount("user_chart_shape", "id_user", owner.getIdUser(), 1);
+    assertCount("propose_user_task", "id_target_user", owner.getIdUser(), 1);
+    assertCount("mail_setting_forward", "id_user_redirect", owner.getIdUser(), 1);
     assertCount("algo_top_asset_security", "id_algo_assetclass_security", topId, 1);
     for (Integer id : environments) {
       for (String table : TENANT_TABLES)
@@ -378,6 +388,25 @@ class SimulationAccountDeletionIntegrationTest {
     return watchlist;
   }
 
+  /**
+   * Rows that reference the owner but are not authored or owned by the owner: an unlock request filed during login,
+   * before a security context exists, so its author is the system user, and a message forward of the advisor whose
+   * target is the owner. Both keys are RESTRICT, so either one alone would abort the deletion of the owner.
+   */
+  private void unlockRequestAndForwardToOwner() {
+    jdbc.update("""
+        INSERT INTO propose_request (dtype, entity, data_change_state, created_by, last_modified_by, version)
+        VALUES ('U', 'User', 0, 0, 0, 0)""");
+    Integer idProposeRequest = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
+    jdbc.update("""
+        INSERT INTO propose_user_task (id_propose_request, id_target_user, id_role_to, user_task_type)
+        VALUES (?, ?, (SELECT id_role FROM role WHERE rolename = 'ROLE_ADMIN'), 0)""", idProposeRequest,
+        owner.getIdUser());
+    jdbc.update("""
+        INSERT INTO mail_setting_forward (id_user, message_com_type, message_target_type, id_user_redirect)
+        VALUES (?, 1, 1, ?)""", advisor.getIdUser(), owner.getIdUser());
+  }
+
   private void ledger(Integer tenant, String suffix, boolean opening) {
     Portfolio portfolio = new Portfolio(tenant, PREFIX + suffix, "CHF");
     em.persist(portfolio);
@@ -414,9 +443,18 @@ class SimulationAccountDeletionIntegrationTest {
     tx.executeWithoutResult(_ -> {
       List<Integer> ids = jdbc.queryForList(
           "SELECT id_tenant FROM tenant WHERE tenant_name LIKE ? ORDER BY id_tenant DESC", Integer.class, PREFIX + "%");
+      String fixtureUsers = "SELECT u.id_user FROM user u JOIN tenant t ON t.id_tenant = u.id_tenant"
+          + " WHERE t.tenant_name LIKE ?";
+      jdbc.update("DELETE FROM mail_setting_forward WHERE id_user IN (" + fixtureUsers + ") OR id_user_redirect IN ("
+          + fixtureUsers + ")", PREFIX + "%", PREFIX + "%");
+      jdbc.update(
+          "DELETE r.* FROM propose_request r JOIN propose_user_task p ON p.id_propose_request = r.id_propose_request"
+              + " WHERE p.id_target_user IN (" + fixtureUsers + ")",
+          PREFIX + "%");
       for (Integer id : ids) {
         registry.release(id);
         cleanup.deleteTenantData(id);
+        jdbc.update("DELETE FROM user_chart_shape WHERE id_user IN (SELECT id_user FROM user WHERE id_tenant = ?)", id);
         jdbc.update("DELETE FROM user WHERE id_tenant = ?", id);
         jdbc.update("DELETE FROM tenant WHERE id_tenant = ?", id);
       }

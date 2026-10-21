@@ -49,10 +49,10 @@ export const GTNET_ROUTES = {
 /**
  * The URL under which this instance reaches itself, exported by `scripts/e2e-test.mjs`.
  *
- * A GTNet own entry is only recognised as *this* instance when its `domainRemoteName` resolves to a
- * **non-loopback** interface — `GTNetJpaRepositoryImpl.isDomainNameThisMachine` skips every loopback one — and
- * the very first `gt_net` insert additionally probes that URL from the instance itself. So neither `localhost`
- * nor a hard-coded address works, and the value has to come from the runner.
+ * A GTNet own entry is only recognised as *this* instance when its `domainRemoteName` answers the challenge
+ * of `GTNetInstanceIdentity`, which the instance sends to that URL itself, and the very first `gt_net` insert
+ * additionally probes that URL. The address therefore has to be one the host reaches itself under, which a
+ * hard-coded value cannot guarantee, so it comes from the runner.
  *
  * Throws rather than skipping: a silent skip would hide a broken harness, and the fixture readers of this
  * repository fail loudly for the same reason.

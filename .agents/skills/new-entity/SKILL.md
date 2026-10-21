@@ -7,8 +7,9 @@ description: What a new JPA entity or table owes the rest of Grafioschtrader bey
 
 ## Rule 0 — a new table is not finished when it persists
 
-Two obligations have **no compile-time and no test-time guard**. Nothing turns red when you skip
-them; the damage shows up in production, months later, in someone else's data.
+Two obligations have **no compile-time guard**. The export obligation is caught by
+`ExportDefinitionCoverageTest`, which runs against the test database; the limit obligation is caught
+by nothing — skip it and the damage shows up in production, months later, in someone else's data.
 
 | Obligation | What goes wrong when it is missed |
 |---|---|
@@ -56,7 +57,7 @@ Pick the row by what owns the data:
 | user-private (`UserBaseID`, has `id_user`) | `ID_USER` | `null` | `EXPORT_USE \| DELETE_USE` |
 | child reached only through its parent | `NONE` | join select/delete | `EXPORT_USE \| DELETE_USE` |
 | shared reference data, exported whole | `NONE` | `null` | `EXPORT_USE \| CHANGE_USER_ID_FOR_CREATED_BY` |
-| derived, rebuilt on import | — | — | **omit**, and record why in the class Javadoc |
+| derived, rebuilt on import | — | — | **omit**, and record why in `ExportDefinitionCoverageTest.OMITTED_TABLES` |
 
 `CHANGE_USER_ID_FOR_CREATED_BY` is what makes shared data survivable: on deletion a second backward
 pass sets `created_by = BaseConstants.SYSTEM_ID_USER` for those tables, so the rows stay while their
@@ -83,9 +84,23 @@ feature flag — a static SQL predicate cannot express it. Implement `IExportMyD
 return `AdditionalExportQuery` rows; `TenantBaseImpl` collects every addon bean. Reference:
 `BrokenConnectorHistoryExportAddon`.
 
-**Omitting a table is a decision, not an oversight — write it down.** The class Javadoc of
-`MyDataExportDeleteDefinition` lists the current ones: `hold_*` (rebuilt from the transactions on
-import), `mail*` (rows belong to two users at once), `TaskDataChange`.
+**Omitting a table is a decision, not an oversight — write it down.** Every table that is in neither
+array is listed with its reason in `ExportDefinitionCoverageTest.OMITTED_TABLES` (or matched by
+`OMITTED_PREFIXES`: `hold_`, `mail_`) in `grafioschtrader-server/src/test/java/grafioschtrader/exportdelete/`.
+That test also fails for a non-cascading foreign key to `user` / `tenant` that nothing resolves — the
+case in which the account deletion aborts — and when an array or the omission list names a table the
+schema does not have. How such a key is resolved depends on its column:
+
+| Column | Resolved by |
+|---|---|
+| `id_user` / `id_tenant` (the row's owner) | a `DELETE_USE` definition of that table |
+| `created_by` | a definition with `CHANGE_USER_ID_FOR_CREATED_BY` |
+| any other (a user who is not the owner) | a `DELETE_USE` statement that names the table and `column = ?` — delete the row, or clear the reference with an `UPDATE` when the row belongs to someone else |
+
+Two library references to copy: `PROPOSE_REQUEST_TARGET_USER_DEL` (an unlock request is filed during
+login before the security context exists, so its `created_by` is 0 and only `id_target_user` names the
+user) and `MAIL_SETTING_FORWARD_NULL_REDIRECT` (another administrator's forward to the deleted user
+falls back to the main administrator).
 
 ## Limits
 
@@ -206,7 +221,7 @@ Each of these already has a rule; follow the pointer instead of inventing a vari
 ## Checklist before reporting a new entity as done
 
 - [ ] The entity sits in the module whose code consumes it.
-- [ ] It has an `ExportDefinition` entry in the array of that layer — or the class Javadoc says why it
+- [ ] It has an `ExportDefinition` entry in the array of that layer — or `OMITTED_TABLES` says why it
       has none.
 - [ ] Its position in the array puts every parent before it, so export and delete both hold the FKs.
 - [ ] Every REST write path to it is bounded: a `MAX` key, a daily budget, or a written reason why
@@ -216,5 +231,5 @@ Each of these already has a rule; follow the pointer instead of inventing a vari
 - [ ] A write path that bypasses `UpdateCreate` calls `DailyLimitService.check` and `.log` itself.
 - [ ] The `toLabelKey` key and any `MAX_*` msgKey exist in both bundles of the owning module.
 - [ ] `cd backend && mvn clean install -DskipTests` compiles.
-- [ ] `EntityLimitSeedGuardTest` and the NLS guards pass — they are the two that actually catch a
+- [ ] `ExportDefinitionCoverageTest`, `EntityLimitSeedGuardTest` and the NLS guards pass — they are the ones that actually catch a
       mistake made here.

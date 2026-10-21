@@ -445,6 +445,17 @@ fi
 # --------------------------------------------------------------------------
 bold ""
 bold "Restarting"
+# A host with IPv6 gives it to the containers too; a network gains IPv6 only by
+# being recreated, which compose cannot do while containers are attached to it.
+if [ -f container-ipv6.sh ]; then
+  # shellcheck source=container-ipv6.sh
+  . ./container-ipv6.sh
+  setup_container_ipv6
+  if $CONTAINER_NETWORK_CHANGED; then
+    info "Stopping the stack once to recreate its network with IPv6."
+    docker compose down
+  fi
+fi
 docker compose up -d
 
 info "Waiting for the backend — a release with many migrations can take several minutes."
@@ -459,6 +470,7 @@ while :; do
   fi
   sleep 10
 done
+if [ -f container-ipv6.sh ]; then verify_container_ipv6; fi
 
 # --------------------------------------------------------------------------
 # 7. Report

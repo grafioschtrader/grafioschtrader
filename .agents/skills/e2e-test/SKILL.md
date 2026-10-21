@@ -199,11 +199,12 @@ claim port 8082 they never overlap:
 
 Three things bite when a spec is run by hand:
 
-- **The identity address must be a non-loopback literal IPv4.** `GTNetJpaRepositoryImpl.saveOnlyAttributes`
-  writes `g.gnet.my.entry.id` only when `isDomainNameThisMachine` matches, and that method skips every loopback
-  interface, so `localhost` leaves the instance non-operational however the form is filled in. Resolve it with
-  `node scripts/gtnet-peer-address.mjs` and export it as `GTNET_PEER_A_OWN_URL` / `GTNET_PEER_B_OWN_URL`.
-  A hostname does not do either: `BaseDataClient` builds its `WebClient` with `IPV6_PREFERRED`.
+- **The identity address must be reachable from the instance itself.** `GTNetJpaRepositoryImpl.saveOnlyAttributes`
+  writes `g.gnet.my.entry.id` only when the URL answers the challenge of `GTNetInstanceIdentity`, which the
+  instance sends to that URL; an address the host cannot reach itself leaves it non-operational however the form
+  is filled in. Resolve it with `node scripts/gtnet-peer-address.mjs` and export it as `GTNET_PEER_A_OWN_URL` /
+  `GTNET_PEER_B_OWN_URL`. Use the literal IPv4 it prints, not a hostname: `BaseDataClient` builds its `WebClient`
+  with `IPV6_PREFERRED`.
 - **The two health endpoints have different shapes.** `GET /api/integration-info` returns `activeProfiles` as an
   array; `GET /api/gtinfo` returns `activeProfile` as a comma-joined string. A predicate cannot be copied between
   the two suites.

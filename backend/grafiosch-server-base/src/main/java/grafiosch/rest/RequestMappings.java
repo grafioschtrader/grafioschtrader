@@ -53,6 +53,8 @@ public class RequestMappings {
   public static final String GTNET_MAP = API + GTNET;
   public static final String GTNET_M2M = GTNET + M2M;
   public static final String GTNET_M2M_MAP = M2M_API + GTNET;
+  public static final String GTNET_IDENTITY = "gtnetidentity";
+  public static final String GTNET_IDENTITY_M2M_MAP = M2M_API + GTNET_IDENTITY;
 
   public static final String GTNET_MESSAGE = "gtnetmessage";
   public static final String GTNET_MESSAGE_MAP = API + GTNET_MESSAGE;

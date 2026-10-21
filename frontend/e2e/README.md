@@ -948,11 +948,10 @@ a future library spec may take them.
 | `065-gtnet-export-import`  | `GT_NET_EXPORT` / `GT_NET_IMPORT` of the setup table's _View_ menu, as a round trip                   |
 | `070-gtnet-teardown`       | deletes the peers and auto-answer rules of the four above; the own entry is preserved                 |
 
-**`GTNET_OWN_URL` is mandatory.** `GTNetJpaRepositoryImpl.isDomainNameThisMachine` walks the local network
-interfaces and **skips every loopback one**, so an own entry registered as `localhost` or `127.0.0.1` is never
-recognised as this instance and `g.gnet.my.entry.id` is never written. The very first `gt_net` insert
-additionally probes the URL through `BaseDataClient.getActuatorInfo`, so the host has to hairpin to its own
-address. `scripts/e2e-test.mjs` resolves the first private IPv4 that accepts a TCP connection on the backend
+**`GTNET_OWN_URL` is mandatory.** An own entry is recognised as this instance only when its URL answers the
+challenge of `GTNetInstanceIdentity`, which the instance sends to that very URL; otherwise
+`g.gnet.my.entry.id` is never written. The very first `gt_net` insert additionally probes the URL through
+`BaseDataClient.getActuatorInfo`, so the host has to hairpin to its own address. `scripts/e2e-test.mjs` resolves the first private IPv4 that accepts a TCP connection on the backend
 port and exports the variable; the specs throw when it is missing. **The local firewall has to allow the host
 to connect to its own LAN address on port 8081.**
 

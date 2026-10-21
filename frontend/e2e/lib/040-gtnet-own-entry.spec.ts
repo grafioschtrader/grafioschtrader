@@ -21,11 +21,11 @@ import {
  *
  * Three things about this form are not obvious from looking at it:
  *
- *  - **The address must be a non-loopback literal IPv4 of this host.** `saveOnlyAttributes` writes
- *    `g.gnet.my.entry.id` only when `isDomainNameThisMachine(domainRemoteName)` is true, and that walks the
- *    local interfaces *skipping every loopback one*. On the very first `gt_net` insert it additionally probes
- *    the URL through `BaseDataClient.getActuatorInfo`, so the host has to hairpin to its own address and the
- *    local firewall has to allow it. The runner resolves the address; see {@link ownPeerUrl}.
+ *  - **The address must lead back to this instance.** `saveOnlyAttributes` writes `g.gnet.my.entry.id` only
+ *    when `domainRemoteName` answers the challenge of `GTNetInstanceIdentity`, which the instance sends to that
+ *    URL. On the very first `gt_net` insert it additionally probes the URL through
+ *    `BaseDataClient.getActuatorInfo`, so the host has to hairpin to its own address and the local firewall has
+ *    to allow it. The runner resolves the address; see {@link ownPeerUrl}.
  *  - **The own entry has no dynamic-form submit button.** `ngOnInit` appends `createSubmitButton()` only when
  *    the entry is *not* the own one; here the save sits below the batch entity table and calls `submitAll()`.
  *  - **The batch table rows come from the host registry.** `GTNetWithMessages.exchangeKindTypes` is filled from
@@ -168,8 +168,8 @@ test.describe.serial('GTNet own entry', () => {
     const after = await readGTNet(page);
     expect(
       after.gtNetMyEntryId,
-      'g.gnet.my.entry.id is still NULL — saveOnlyAttributes only writes it when isDomainNameThisMachine() ' +
-        `matches, and it skips loopback interfaces. Registered address: ${ownDomain}`
+      'g.gnet.my.entry.id is still NULL — saveOnlyAttributes only writes it when the URL answers the identity ' +
+        `challenge, so this host could not reach itself there. Registered address: ${ownDomain}`
     ).not.toBeNull();
 
     const own = after.gtNetList.find((gtNet) => gtNet.idGtNet === after.gtNetMyEntryId);

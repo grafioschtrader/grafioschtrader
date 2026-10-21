@@ -218,56 +218,50 @@ top of the Caddyfile.
 
 ### IPv6 for the containers
 
-The backend's Docker bridge network carries IPv4 only, so the backend has no
-IPv6 address and no route into the IPv6 internet. The DuckDNS updater uses host
-networking independently. Incoming traffic does not care — it arrives
-on the host and is published into the container either way — which is why most
-installations never notice.
+Docker's project network carries IPv4 only, so without further setup the
+backend has no IPv6 address and no route into the IPv6 internet. Incoming
+traffic does not care — it arrives on the host and is published into the
+container either way — which is why most installations never notice. Two
+things do notice: a domain with an `AAAA` record but no `A` record, which the
+backend then cannot reach although it is its own (creating the first GTNet
+entry fails with `Network is unreachable: myhost.duckdns.org/[2a02:...]:443`),
+and GTNet peers that are reachable over IPv6 only.
 
-Two things do notice. If your domain has an `AAAA` record but no `A` record, the
-backend cannot reach its own address, and creating the first GTNet entry, which
-probes the URL from inside the container, fails with
-
-```
-io.netty.channel.AbstractChannel$AnnotatedSocketException: Network is unreachable:
-  myhost.duckdns.org/[2a02:...]:443
-```
-
-And GTNet peers that are only reachable over IPv6 stay unreachable.
-
-Give the project network a Unique Local Address prefix. Docker masquerades it
-onto the host's global address — which is exactly the address your domain
-resolves to, so peers see you under the address they also reach you at:
+**`install.sh` and `update.sh` take care of this.** When the host has an IPv6
+default route, they write a `docker-compose.override.yml` that switches IPv6
+on for the project network, and stop the stack once so that compose can
+recreate the network:
 
 ```yaml
-# docker-compose.override.yml
 networks:
   default:
     enable_ipv6: true
-    ipam:
-      config:
-        - subnet: 172.18.0.0/16          # the subnet the network already has
-        - subnet: fd4f:9c2a:71e3::/64    # any ULA prefix out of fd00::/8
 ```
 
-Repeating the IPv4 subnet keeps the container addresses where they are; read the
-current one with `docker network inspect grafioschtrader_default`. The host has
-to route the new prefix, which it only does with IPv6 forwarding on:
+Docker 27 and newer does the rest by itself: it allocates a Unique Local
+Address prefix, masquerades it onto the host's global address — exactly the
+address your domain resolves to, so peers see you under the address they also
+reach you at — and switches `net.ipv6.conf.all.forwarding` on. The scripts never
+touch the host's `sysctl` settings. They leave the containers IPv4-only, with a
+warning, when
 
-```bash
-echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee /etc/sysctl.d/99-docker-ipv6.conf
-sudo sysctl --system
-```
+- a `docker-compose.override.yml` already exists without `enable_ipv6` — it is
+  yours and is never edited; add the three lines above to it yourself;
+- Docker is older than 27;
+- the kernel processes router advertisements itself (`accept_ra = 1` on the
+  uplink and a default route `proto ra`). Forwarding makes such a kernel ignore
+  RAs, and the host loses the route and the address it learned from them —
+  usually noticed only after the next reboot. Add
+  `net.ipv6.conf.<uplink>.accept_ra = 2` to a file in `/etc/sysctl.d/`, apply it
+  with `sudo sysctl --system` and rerun `./update.sh`. Raspberry Pi OS and other
+  systems with NetworkManager or systemd-networkd are not affected: they handle
+  RAs in userspace and leave the kernel's `accept_ra` at `0`.
 
-Changing a network's addressing means recreating the network, and compose can
-only do that with the containers stopped:
+`GT_CONTAINER_IPV6=off` in `.env` keeps the containers IPv4-only. To undo the
+change, delete the override file and run `docker compose down && docker compose up -d`.
 
-```bash
-docker compose down && docker compose up -d
-```
-
-Then confirm that the container really has IPv6, and that it reaches your own
-domain through it:
+Confirm that the container really has IPv6 and reaches your own domain through
+it:
 
 ```bash
 docker compose exec backend curl -s -6 -m 15 https://ifconfig.co
@@ -277,15 +271,6 @@ docker compose exec backend curl -s -m 15 -o /dev/null \
 
 The first command should print the host's global IPv6 address, the second
 `http=200` via that same address.
-
-**One caveat, on hosts where the kernel processes router advertisements.**
-Switching `net.ipv6.conf.all.forwarding` on makes the kernel ignore RAs, and the
-host then loses the default route and the global address it learned from them —
-usually noticed only after the next reboot. Add
-`net.ipv6.conf.<uplink>.accept_ra = 2` to the same file there. Raspberry Pi OS
-with NetworkManager is not affected, because it handles RAs in userspace and
-leaves the kernel's `accept_ra` at `0`, but check `ip -6 route show default` and
-`ip -6 addr show scope global` after the change regardless.
 
 ## Everyday operations
 
@@ -801,14 +786,16 @@ services:
 - **GTNet does not recognize this instance's own entry** — the GTNet setup keeps
   showing the red communication-requirement hint after the own entry was saved,
   and the log complains `My GTNet entry not found with ID: …`. Grafioschtrader
-  claims an entry as its own by resolving its address and comparing the result
-  against the machine's own network interfaces. Inside a container those are the
-  bridge address (`172.18.0.x`) and nothing else — never the host's LAN address,
-  never the public address the domain resolves to. The match therefore fails
-  silently and the global parameter `g.gnet.my.entry.id` is never written. Set it
-  by hand under *Administration → Global settings*, using the id of the own
-  entry — the GTNet setup shows it in the tooltip of the URL column, and the
-  database answers too:
+  claims an entry as its own by sending a random challenge to the entry's URL and
+  checking that the answer comes from the running instance itself. The URL must
+  therefore be reachable from inside the backend container; when the domain is
+  IPv6-only, the containers need IPv6 (see [IPv6 for the
+  containers](#ipv6-for-the-containers)). Once that works, open the entry and
+  save it again: as long as an instance has no own entry, every save repeats the
+  check. Alternatively set the global parameter `g.gnet.my.entry.id` by
+  hand under *Administration → Global settings*, using the id of the own entry —
+  the GTNet setup shows it in the tooltip of the URL column, and the database
+  answers too:
 
   ```bash
   docker compose exec -T mariadb mariadb -uroot -p"$DB_ROOT_PASSWORD" "$DB_NAME" \

@@ -69,6 +69,7 @@ import grafioschtrader.entities.TradingPlatformPlan;
 import grafioschtrader.entities.Transaction;
 import grafioschtrader.entities.UDFDataFill;
 import grafioschtrader.entities.UDFMetadataSecurity;
+import grafioschtrader.entities.UserChartShape;
 import grafioschtrader.entities.Watchlist;
 import grafioschtrader.entities.WatchlistIndicatorColumn;
 
@@ -84,6 +85,8 @@ import grafioschtrader.entities.WatchlistIndicatorColumn;
  * <li>security_fundamental is derived data that the weekly fundamental data load rebuilds; it is written only by the
  * system and is not exported</li>
  * </ul>
+ * The complete list of tables that appear in neither this array nor the library array, each with its reason, is kept in
+ * {@code ExportDefinitionCoverageTest}, which fails for a table that is in no array and not in that list.
  */
 public class MyDataExportDeleteDefinition {
   // The instruments of the tenant's algo hierarchy. They are exported exactly like the instruments of a watchlist, so
@@ -483,6 +486,10 @@ public class MyDataExportDeleteDefinition {
       // so that a re-imported tenant keeps its automatic values and locks; securities are shared and survive the user,
       // hence the explicit delete.
       new ExportDefinition(UDFDataFill.TABNAME, TENANT_USER.ID_USER, UDF_DATA_FILL_SELDEL,
+          ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      // Chart drawings of the user. No foreign key to the instrument, so the position only has to precede the user row,
+      // which the library array deletes after this one; the RESTRICT key to user makes the explicit delete mandatory.
+      new ExportDefinition(UserChartShape.TABNAME, TENANT_USER.ID_USER, null,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
       // Operational log of the language model requests: deleted with the account, never exported.
       new ExportDefinition(AIRequestLog.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),

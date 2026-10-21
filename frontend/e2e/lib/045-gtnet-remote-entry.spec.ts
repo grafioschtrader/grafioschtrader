@@ -17,8 +17,8 @@ import { deleteRemoteGTNets, GTNET_RX, openCrudMenu, openGTNetSetup, readGTNet, 
  *  - **The reachability probe does not run here.** `saveOnlyAttributes` calls `BaseDataClient.getActuatorInfo`
  *    only while `gtNetJpaRepository.count() == 0`, i.e. for the very first row, which `040` created. A remote
  *    entry may therefore point at an address nothing answers on, and this spec uses `192.0.2.10` — RFC 5737
- *    TEST-NET-1, which is guaranteed not to be a local interface, so `isDomainNameThisMachine` cannot mistake
- *    it for this host and steal `g.gnet.my.entry.id`.
+ *    TEST-NET-1, where nothing answers. The identity challenge does not run either, because `040` already set
+ *    `g.gnet.my.entry.id`, so the remote entry cannot take over the instance's identity.
  *  - **`040` must have run**, both for the own entry and because the probe would otherwise fire against
  *    TEST-NET-1 and fail.
  *

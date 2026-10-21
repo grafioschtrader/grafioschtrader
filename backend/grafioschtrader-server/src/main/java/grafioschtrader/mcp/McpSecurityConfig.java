@@ -6,10 +6,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.mcp.annotation.provider.tool.SyncStatelessMcpToolProvider;
+import org.springframework.ai.mcp.server.webmvc.transport.WebMvcStatelessServerTransport;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,7 @@ import grafiosch.security.filter.AccessTokenAuthenticationFilter;
 import grafiosch.service.LoginAttemptServiceIpAddress;
 import grafioschtrader.mcp.oauth.McpOAuthEndpoints;
 import io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncToolSpecification;
+import io.modelcontextprotocol.spec.McpStatelessServerTransport;
 
 /**
  * The security chain and the tool registration of the MCP server under {@code /api/mcp}. Everything here exists only
@@ -124,6 +127,16 @@ public class McpSecurityConfig {
   @Bean
   List<SyncToolSpecification> gtMcpToolSpecifications(GTMcpReadTools gtMcpReadTools) {
     return new SyncStatelessMcpToolProvider(List.of(gtMcpReadTools)).getToolSpecifications();
+  }
+
+  /**
+   * The transport the MCP server is built on: the WebMVC transport of the auto-configuration, which still serves the
+   * route, wrapped so that an unknown method gives a JSON-RPC error instead of HTTP 500.
+   */
+  @Bean
+  @Primary
+  McpStatelessServerTransport mcpStatelessServerTransport(WebMvcStatelessServerTransport webMvcStatelessServerTransport) {
+    return new McpJsonRpcErrorTransport(webMvcStatelessServerTransport);
   }
 
   /** Tells the token dialog where clients connect and how a configuration looks. */

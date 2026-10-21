@@ -46,6 +46,16 @@ public abstract class ExportDeleteHelper {
   private static String PROPOSE_CHANGE_FIELD_SELDEL = String.format(
       "f.* FROM %s f INNER JOIN %s r ON f.id_propose_request = r.id_propose_request WHERE r.created_by = ?",
       ProposeChangeField.TABNAME, ProposeRequest.TABNAME);
+  // Requests about the user that the user did not author: an unlock request is filed during login, before the security
+  // context exists, so its created_by is 0 and the CREATED_BY definitions miss it. The RESTRICT key on id_target_user
+  // would abort the deletion. Deleting the request row cascades to the task and its fields.
+  private static String PROPOSE_REQUEST_TARGET_USER_DEL = String.format(
+      "r.* FROM %s r JOIN %s t ON r.id_propose_request = t.id_propose_request WHERE t.id_target_user = ?",
+      ProposeRequest.TABNAME, ProposeUserTask.TABNAME);
+  // Another administrator may forward a message type to the deleted user. Without a redirect the message goes to the
+  // main administrator again, so the setting of the other user is kept and only its target is cleared.
+  private static String MAIL_SETTING_FORWARD_NULL_REDIRECT = String
+      .format("UPDATE %s SET id_user_redirect = NULL WHERE id_user_redirect = ?", MailSettingForward.TABNAME);
   private static String USER_EXPORT = String.format(" * FROM %s WHERE id_tenant = ? OR id_user = 0", User.TABNAME);
   private static String UDF_METADATA_GENERAL_SELDEL = String.format(
       " umg.* FROM %s umg JOIN %s m ON umg.id_udf_metadata = m.id_udf_metadata WHERE m.id_user = ?",
@@ -81,6 +91,8 @@ public abstract class ExportDeleteHelper {
           ExportDefinition.EXPORT_USE),
       new ExportDefinition(ProposeChangeField.TABNAME, TENANT_USER.CREATED_BY, PROPOSE_CHANGE_FIELD_SELDEL,
           ExportDefinition.EXPORT_USE | ExportDefinition.DELETE_USE),
+      new ExportDefinition(ProposeRequest.TABNAME, TENANT_USER.ID_USER, PROPOSE_REQUEST_TARGET_USER_DEL,
+          ExportDefinition.DELETE_USE),
       new ExportDefinition(EntityLimit.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       new ExportDefinition(UserEntityChangeCount.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
       // UDF EXPORT: include global (id_user=0) data alongside user data
@@ -98,6 +110,8 @@ public abstract class ExportDeleteHelper {
       // TODO Delete all Mails of the user, nothing is exported
       // ...
       new ExportDefinition(MailSettingForward.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),
+      new ExportDefinition(MailSettingForward.TABNAME, TENANT_USER.ID_USER, MAIL_SETTING_FORWARD_NULL_REDIRECT,
+          ExportDefinition.DELETE_USE),
       // Only hashes of access tokens are stored, which are worthless on another instance: delete, never export. The
       // OAuth families stand before their tokens, so the backward deletion removes the tokens first.
       new ExportDefinition(OAuthAuthorization.TABNAME, TENANT_USER.ID_USER, null, ExportDefinition.DELETE_USE),

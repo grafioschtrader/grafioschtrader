@@ -222,6 +222,14 @@ public class Globalparameters implements Serializable {
   /**
    * Replaces the existing property value with a new value of the same type.
    *
+   * <p>
+   * The type of a row is the column that holds its value. A row without any value has no type, so it takes an integer
+   * or a string from the first save. Such rows exist by design: instance-specific values such as
+   * {@code g.gnet.my.entry.id} are reset to NULL when a database is built from the dump of another instance, and the
+   * administrator has to be able to set them again. Which of the two a typeless row must receive is decided by its
+   * input rule before this method is called.
+   * </p>
+   *
    * @param gpNew new global parameter with updated value
    * @throws IllegalArgumentException if property types don't match
    */
@@ -230,15 +238,26 @@ public class Globalparameters implements Serializable {
       this.propertyDate = gpNew.getPropertyDate();
     } else if (gpNew.getPropertyDateTime() != null && propertyDateTime != null) {
       this.propertyDateTime = gpNew.getPropertyDateTime();
-    } else if (gpNew.getPropertyInt() != null && propertyInt != null) {
+    } else if (gpNew.getPropertyInt() != null && (propertyInt != null || hasNoValue())) {
       this.propertyInt = gpNew.getPropertyInt();
-    } else if (gpNew.getPropertyString() != null && propertyString != null) {
+    } else if (gpNew.getPropertyString() != null && (propertyString != null || hasNoValue())) {
       this.propertyString = gpNew.getPropertyString();
     } else if (gpNew.getPropertyBlob() != null && propertyBlob != null) {
       setPropertyBlob(gpNew.getPropertyBlob());
     } else {
       throw new IllegalArgumentException();
     }
+  }
+
+  /**
+   * Tells whether this row holds no value in any of its value columns and therefore has no type of its own.
+   *
+   * @return true when every value column is null
+   */
+  @JsonIgnore
+  public boolean hasNoValue() {
+    return propertyInt == null && propertyString == null && propertyDate == null && propertyDateTime == null
+        && propertyBlob == null;
   }
 
   /**
