@@ -61,6 +61,7 @@ grafioschtrader.connector.calendar
 grafioschtrader.connector.calendar.divvydiary
 grafioschtrader.connector.calendar.investing
 grafioschtrader.connector.calendar.yahoo
+grafioschtrader.connector.fundamental
 grafioschtrader.connector.instrument
 grafioschtrader.connector.instrument.alphavantage
 grafioschtrader.connector.instrument.boursorama
@@ -102,6 +103,7 @@ grafioschtrader.evalex
 grafioschtrader.exceptions
 grafioschtrader.exportcsv
 grafioschtrader.exportdelete
+grafioschtrader.fundamental
 grafioschtrader.gtnet
 grafioschtrader.gtnet.handler.impl
 grafioschtrader.gtnet.handler.impl.historyquote
@@ -111,6 +113,8 @@ grafioschtrader.gtnet.model
 grafioschtrader.gtnet.model.msg
 grafioschtrader.instrument
 grafioschtrader.instrument.lookup
+grafioschtrader.mcp
+grafioschtrader.mcp.oauth
 grafioschtrader.platform
 grafioschtrader.platform.cornertrader
 grafioschtrader.platform.degiro
