@@ -13,6 +13,7 @@ import { WatchlistIndicatorColumn } from '../model/watchlist-indicator';
 import { WatchlistIndicatorColumnEditComponent } from './watchlist-indicator-column-edit.component';
 import { WatchlistService } from '../service/watchlist.service';
 import { forkJoin } from 'rxjs';
+import { HelpIds } from '../../lib/help/help.ids';
 
 /** Ordered column editor, separate from both the report and its dynamic edit form. */
 @Component({
@@ -30,9 +31,12 @@ import { forkJoin } from 'rxjs';
     `
   ],
   template: `
-    <div class="toolbar">
+    <div class="toolbar d-flex align-items-center">
       <p-button [label]="'WIC_CREATE_COLUMN' | translate" (click)="edit(null)">
         <i class="pi pi-plus" pButtonIcon></i>
+      </p-button>
+      <p-button class="ms-auto" [rounded]="true" (click)="helpLink()">
+        <i class="pi pi-question" pButtonIcon></i>
       </p-button>
     </div>
     <p-table [value]="rows" (onRowReorder)="reorder()" dataKey="idWatchlistIndicatorColumn">
@@ -130,6 +134,10 @@ export class WatchlistIndicatorColumnsDialogComponent extends TableConfigBase im
     this.service
       .order(this.rows.map((r) => r.idWatchlistIndicatorColumn))
       .subscribe({ next: () => this.load(), error: () => this.load() });
+  }
+  /** Opens the user manual page of the indicator tab, which explains expressions, functions and variables. */
+  helpLink(): void {
+    this.gps.toExternalHelpWebpage(this.gps.getUserLang(), HelpIds.HELP_WATCHLIST_INDICATOR);
   }
   remove(row: WatchlistIndicatorColumn): void {
     this.confirmation.confirm({

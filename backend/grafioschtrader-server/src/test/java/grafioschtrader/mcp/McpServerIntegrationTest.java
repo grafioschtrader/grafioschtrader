@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.offset;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -36,9 +38,12 @@ import grafiosch.dto.UserAccessTokenCreatedDto;
 import grafiosch.entities.UserAccessToken;
 import grafiosch.rest.RequestMappings;
 import grafiosch.types.AccessTokenScope;
+import grafioschtrader.entities.Cashaccount;
+import grafioschtrader.entities.Transaction;
 import grafioschtrader.rest.BaseIntegrationTest;
 import grafioschtrader.rest.RequestGTMappings;
 import grafioschtrader.rest.RestTestHelper;
+import grafioschtrader.types.TransactionType;
 import jakarta.persistence.EntityManagerFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -48,9 +53,10 @@ import tools.jackson.databind.json.JsonMapper;
  * reports of the user interface, ownership checks, the reproducible running sum and the atomic daily budget.
  *
  * <p>
- * It reads the portfolios and transactions the numbered suite created in {@code grafioschtrader_t}, so it runs after
- * {@code ResourceTestSuite_50}. It opens the server through the global parameter {@code gt.mcp.use} for its run and
- * closes it again, and it cleans up the tokens and the budget row it writes.
+ * It reads the portfolios that Playwright spec 025 created for alledit in {@code grafioschtrader_t}, so it runs inside
+ * {@code ResourceTestSuite_50} and fails standalone. alledit has no transactions yet at that point, so the running sum is
+ * checked on a series the test books itself. It opens the server through the global parameter {@code gt.mcp.use} for
+ * its run and closes it again, and it cleans up the tokens, the bookings and the budget row it writes.
  * </p>
  */
 @TestMethodOrder(OrderAnnotation.class)
@@ -60,6 +66,11 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
   private static final String TOKEN_NAME = "mcp-integration-test";
   private static final String MCP = "/api/mcp";
   private static final JsonMapper JSON = JsonMapper.builder().build();
+  /**
+   * The year of the bookings of {@link #runningSumIsReproducible()}. No fixture of alledit books in it, and the
+   * transactions of alledit are only created by Playwright specs after this suite.
+   */
+  private static final LocalDate RUNNING_SUM_FIRST_DATE = LocalDate.of(2019, 3, 4);
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
@@ -70,6 +81,7 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
   private String token;
   private Integer idUserAlledit;
   private int requestId;
+  private final List<Integer> createdTransactionIds = new ArrayList<>();
 
   @BeforeAll
   void setUp() {
@@ -81,6 +93,7 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
 
   @AfterAll
   void tearDown() {
+    deleteBookedTransactions();
     McpTestSwitch.close(jdbcTemplate, entityManagerFactory);
     deleteTestTokens();
     jdbcTemplate.update("DELETE FROM user_entity_change_count WHERE id_user = ? AND entity_name = 'McpToolCall'",
@@ -182,13 +195,20 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
   @Order(6)
   @DisplayName("runningSumOfSelection is the chronological sum of the whole selection, on every page")
   void runningSumIsReproducible() {
-    Map<String, Object> busiest = jdbcTemplate.queryForMap("""
-        SELECT t.id_cash_account AS id, YEAR(t.transaction_time) AS y, COUNT(*) AS n FROM transaction t
-        WHERE t.id_tenant = (SELECT id_tenant FROM user WHERE id_user = ?)
-        GROUP BY t.id_cash_account, YEAR(t.transaction_time) ORDER BY n DESC LIMIT 1""", idUserAlledit);
-    Map<String, Object> args = Map.of("idCashaccount", busiest.get("id"), "year", busiest.get("y"), "limit", 3);
+    Integer idCashaccount = jdbcTemplate.queryForObject("""
+        SELECT MIN(c.id_securitycash_account) FROM cashaccount c JOIN securitycashaccount s
+          ON s.id_securitycash_account = c.id_securitycash_account JOIN portfolio p ON p.id_portfolio = s.id_portfolio
+          WHERE p.id_tenant = (SELECT id_tenant FROM user WHERE id_user = ?) AND c.currency = 'CHF'""", Integer.class,
+        idUserAlledit);
+    assertThat(idCashaccount).as("a CHF cash account of the portfolios Playwright spec 025 created").isNotNull();
+    bookRunningSumSeries(idCashaccount);
+    Integer count = jdbcTemplate.queryForObject(
+        "SELECT COUNT(*) FROM transaction WHERE id_cash_account = ? AND YEAR(transaction_time) = ?", Integer.class,
+        idCashaccount, RUNNING_SUM_FIRST_DATE.getYear());
+    Map<String, Object> args = Map.of("idCashaccount", idCashaccount, "year", RUNNING_SUM_FIRST_DATE.getYear(),
+        "limit", 3);
     List<JsonNode> rows = readAllPages("cashaccount_transactions", args);
-    assertThat(rows).hasSize(((Number) busiest.get("n")).intValue());
+    assertThat(rows).hasSize(count);
     double sum = 0;
     for (JsonNode row : rows) {
       sum += row.get("cashaccountAmount").asDouble();
@@ -265,6 +285,36 @@ public class McpServerIntegrationTest extends BaseIntegrationTest {
   }
 
   // -----------------------------------------------------------------------------------------------------------------
+
+  /**
+   * Books seven cash transactions, more than two pages of three. Two pairs share their timestamp, so the order and with
+   * it the running sum depend on the id as tie-break. The rows are removed again in {@link #tearDown()}.
+   */
+  private void bookRunningSumSeries(Integer idCashaccount) {
+    LocalDateTime first = LocalDateTime.of(RUNNING_SUM_FIRST_DATE, LocalTime.NOON);
+    book(idCashaccount, TransactionType.DEPOSIT, 1000.0, first);
+    book(idCashaccount, TransactionType.INTEREST_CASHACCOUNT, 12.35, first);
+    book(idCashaccount, TransactionType.FEE, 7.5, first.plusDays(30));
+    book(idCashaccount, TransactionType.DEPOSIT, 250.0, first.plusDays(61));
+    book(idCashaccount, TransactionType.FEE, 3.25, first.plusDays(61));
+    book(idCashaccount, TransactionType.INTEREST_CASHACCOUNT, 4.1, first.plusDays(92));
+    book(idCashaccount, TransactionType.DEPOSIT, 80.0, first.plusDays(122));
+  }
+
+  private void book(Integer idCashaccount, TransactionType transactionType, double amount, LocalDateTime time) {
+    Transaction created = authenticatedClient(RestTestHelper.ALLEDIT).post()
+        .uri(RequestGTMappings.TRANSACTION_MAP + "/singlecashtrans")
+        .body(new Transaction(new Cashaccount(idCashaccount, "CHF"), amount, transactionType, time)).exchange()
+        .expectStatus().isOk().expectBody(Transaction.class).returnResult().getResponseBody();
+    createdTransactionIds.add(created.getIdTransaction());
+  }
+
+  private void deleteBookedTransactions() {
+    createdTransactionIds.reversed()
+        .forEach(id -> authenticatedClient(RestTestHelper.ALLEDIT).delete()
+            .uri(RequestGTMappings.TRANSACTION_MAP + "/" + id).exchange().expectStatus().isNoContent());
+    createdTransactionIds.clear();
+  }
 
   private List<JsonNode> readAllPages(String tool, Map<String, Object> args) {
     List<JsonNode> rows = new ArrayList<>();
