@@ -10,6 +10,9 @@ umask 077
 SCRATCH=$(mktemp -d)
 trap gt_cleanup EXIT
 apt-get update -qq
+# A fresh host is brought up to date before the installer runs. The image lags behind the security pocket, and
+# a pending update of a shared library (libsystemd0, libudev1) would rightly block the plan below.
+DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq > /dev/null
 # Prepare the inventory prerequisites just as the documented CLI requires.
 # This fixture setup may update their dependencies in an older container image;
 # the installer transaction below must still refuse all package upgrades.
